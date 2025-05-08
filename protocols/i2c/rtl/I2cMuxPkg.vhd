@@ -57,7 +57,7 @@ package I2cMuxPkg is
       0 => b"0000_0100",
       1 => b"0000_0101");
 
-end;
+end package I2cMuxPkg;
 
 package body I2cMuxPkg is
 

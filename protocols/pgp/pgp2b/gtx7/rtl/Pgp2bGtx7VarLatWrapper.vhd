@@ -41,7 +41,7 @@ entity Pgp2bGtx7VarLatWrapper is
       --    FVCO = 1000 * CLKFBOUT_MULT_F_G/(CLKIN1_PERIOD_G * DIVCLK_DIVIDE_G)
       -- And must be within the specified operating range of the PLL (around 1Ghz)
       USE_REFCLK_G          : boolean                 := false;
-      CLKIN_PERIOD_G        : real                    := 16.0;   -- gtClkP/2
+      CLKIN_PERIOD_G        : real                    := 16.0;  -- gtClkP/2
       DIVCLK_DIVIDE_G       : natural range 1 to 106  := 2;
       CLKFBOUT_MULT_F_G     : real range 1.0 to 64.0  := 31.875;
       CLKOUT0_DIVIDE_F_G    : real range 1.0 to 128.0 := 6.375;
@@ -66,16 +66,16 @@ entity Pgp2bGtx7VarLatWrapper is
       RX_CLK25_DIV_G        : natural                 := 5;
       TX_CLK25_DIV_G        : natural                 := 5;
       RX_OS_CFG_G           : bit_vector              := "0000010000000";
-      RXCDR_CFG_G           : bit_vector              := x"03000023ff40200020";
+      RXCDR_CFG_G           : bit_vector              := x"03000023FF40200020";
       RXDFEXYDEN_G          : sl                      := '1';
       RX_DFE_KL_CFG2_G      : bit_vector              := x"301148AC";
       -- PGP Settings
-      VC_INTERLEAVE_G       : integer                 := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G     : integer                 := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G       : integer                 := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G     : integer                 := 7;  -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4    := 4;
       TX_POLARITY_G         : sl                      := '0';
       RX_POLARITY_G         : sl                      := '0';
-      TX_ENABLE_G           : boolean                 := true;   -- Enable TX direction
+      TX_ENABLE_G           : boolean                 := true;  -- Enable TX direction
       RX_ENABLE_G           : boolean                 := true);  -- Enable RX direction
    port (
       -- Manual Reset

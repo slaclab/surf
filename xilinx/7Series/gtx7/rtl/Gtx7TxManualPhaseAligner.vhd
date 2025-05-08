@@ -12,9 +12,8 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 
-
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
+library ieee;
+use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -68,7 +67,8 @@ architecture rtl of Gtx7TxManualPhaseAligner is
       gtTxPhAlign        => '0',
       gtTxDlyEn          => '0');
 
-   signal r, rin : RegType := REG_RESET_C;
+   signal r   : RegType := REG_RESET_C;
+   signal rin : RegType;
 
    signal gtTxDlySResetDoneSync : sl;
    signal gtTxPhInitDoneSync    : sl;
@@ -109,8 +109,8 @@ begin
          risingEdge  => gtTxPhAlignDoneEdge,
          fallingEdge => open);
 
-   comb : process (r, gtTxDlySResetDoneSync, gtTxPhInitDoneSync, gtTxPhAlignDoneSync, gtTxPhAlignDoneEdge,
-                   resetPhAlignment, runPhAlignment) is
+   comb : process (gtTxDlySResetDoneSync, gtTxPhAlignDoneEdge,
+                   gtTxPhInitDoneSync, r, resetPhAlignment, runPhAlignment) is
       variable v : RegType;
    begin
       v := r;
@@ -142,7 +142,7 @@ begin
                v.gtTxPhAlign := '0';
                v.gtTxDlyEn   := '1';
 --               v.state       := WAIT_PH_ALIGN_DONE_2_S;
-               v.state := DONE_S;
+               v.state       := DONE_S;
             end if;
 
          when WAIT_PH_ALIGN_DONE_2_S =>
@@ -177,4 +177,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 end architecture rtl;

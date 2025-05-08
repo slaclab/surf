@@ -24,11 +24,11 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteRegs is
    generic (
-      TPD_G            : time                  := 1 ns;
-      RST_ASYNC_G      : boolean               := false;
-      NUM_WRITE_REG_G  : integer range 1 to 32 := 1;
-      INI_WRITE_REG_G  : Slv32Array            := (0 => x"0000_0000");
-      NUM_READ_REG_G   : integer range 1 to 32 := 1);
+      TPD_G           : time                  := 1 ns;
+      RST_ASYNC_G     : boolean               := false;
+      NUM_WRITE_REG_G : integer range 1 to 32 := 1;
+      INI_WRITE_REG_G : Slv32Array            := (0 => x"0000_0000");
+      NUM_READ_REG_G  : integer range 1 to 32 := 1);
    port (
       -- AXI-Lite Bus
       axiClk         : in  sl;
@@ -44,11 +44,11 @@ end AxiLiteRegs;
 
 architecture rtl of AxiLiteRegs is
 
-   subtype WriteRegArray is Slv32Array( writeRegister'range );
+   subtype WriteRegArray is Slv32Array(writeRegister'range);
 
    function writeRegIni(iniVal : Slv32Array) return WriteRegArray is
    begin
-      if ( iniVal'length = 1 ) then
+      if (iniVal'length = 1) then
          return (others => iniVal(0));
       else
          return iniVal;
@@ -62,7 +62,7 @@ architecture rtl of AxiLiteRegs is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      writeRegister => writeRegIni( INI_WRITE_REG_G ),
+      writeRegister => writeRegIni(INI_WRITE_REG_G),
       axiReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
@@ -71,10 +71,10 @@ architecture rtl of AxiLiteRegs is
 
 begin
 
-   assert (  (     (INI_WRITE_REG_G'left      = writeRegister'left     )
-               and (INI_WRITE_REG_G'right     = writeRegister'right    )
-               and (INI_WRITE_REG_G'ascending = writeRegister'ascending) )
-          or (INI_WRITE_REG_G'length = 1) )
+   assert (((INI_WRITE_REG_G'left = writeRegister'left)
+            and (INI_WRITE_REG_G'right = writeRegister'right)
+            and (INI_WRITE_REG_G'ascending = writeRegister'ascending))
+           or (INI_WRITE_REG_G'length = 1))
       report "INI_WRITE_REG_G must have either one element or cover the same range as writeRegs"
       severity failure;
 

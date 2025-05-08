@@ -19,16 +19,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.Pgp3Pkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp3GthUs is
    generic (
@@ -118,10 +116,10 @@ architecture rtl of Pgp3GthUs is
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
-   signal phyTxActive   : sl;
-   signal phyTxStart    : sl;
-   signal phyTxData     : slv(63 downto 0);
-   signal phyTxHeader   : slv(1 downto 0);
+   signal phyTxActive : sl;
+   signal phyTxStart  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -134,7 +132,7 @@ architecture rtl of Pgp3GthUs is
          connectivity  => X"FFFF"),
       DRP_AXIL_INDEX_C => (
          baseAddr      => AXIL_BASE_ADDR_G + X"1000",
-         addrBits      => 11,
+         addrBits      => 12,
          connectivity  => X"FFFF"));
 
    signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);

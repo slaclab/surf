@@ -28,29 +28,29 @@ use surf.StdRtlPkg.all;
 
 entity SlvDelayRam is
    generic (
-      TPD_G          : time      := 1 ns;
-      RST_POLARITY_G : sl        := '1';  -- '1' for active high rst, '0' for active low
-      MEMORY_TYPE_G  : string    := "block";
-      DO_REG_G       : boolean   := true;
+      TPD_G          : time                       := 1 ns;
+      RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
+      MEMORY_TYPE_G  : string                     := "block";
+      DO_REG_G       : boolean                    := true;
       DELAY_G        : integer range 3 to (2**24) := 3;  --max number of clock cycle delays. MAX delay stages when using
-      WIDTH_G        : positive  := 1);
+      WIDTH_G        : positive                   := 1);
    port (
       clk      : in  sl;
-      rst      : in  sl      := not(RST_POLARITY_G);
-      en       : in  sl      := '1';                 -- Optional clock enable
-      maxCount : in  slv(log2(DELAY_G - ite(DO_REG_G, 2, 1)) - 1 downto 0) := toSlv(DELAY_G - ite(DO_REG_G, 3, 2), log2(DELAY_G - ite(DO_REG_G, 2, 1))); -- Optional runtime configurable
+      rst      : in  sl                                                    := not(RST_POLARITY_G);
+      en       : in  sl                                                    := '1';  -- Optional clock enable
+      maxCount : in  slv(log2(DELAY_G - ite(DO_REG_G, 2, 1)) - 1 downto 0) := toSlv(DELAY_G - ite(DO_REG_G, 3, 2), log2(DELAY_G - ite(DO_REG_G, 2, 1)));  -- Optional runtime configurable
       din      : in  slv(WIDTH_G - 1 downto 0);
       dout     : out slv(WIDTH_G - 1 downto 0));
 end entity SlvDelayRam;
 
 architecture rtl of SlvDelayRam is
 
-   constant XST_BRAM_STYLE_C    : string := MEMORY_TYPE_G;
+   constant XST_BRAM_STYLE_C : string := MEMORY_TYPE_G;
 
    constant INIT_C : slv(WIDTH_G-1 downto 0) := slvZero(WIDTH_G);
 
-   type mem_type is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
-   signal mem : mem_type := (others => (others => '0'));
+   type MemType is array (DELAY_G - 1 - ite(DO_REG_G, 2, 1) downto 0) of slv(WIDTH_G - 1 downto 0);
+   signal mem : MemType := (others => (others => '0'));
 
    type RegType is record
       addr     : integer range 0 to DELAY_G - ite(DO_REG_G, 2, 1);
@@ -66,7 +66,7 @@ architecture rtl of SlvDelayRam is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal doutInt     : slv(WIDTH_G - 1 downto 0);
+   signal doutInt : slv(WIDTH_G - 1 downto 0);
 
    -- Attribute for XST (Xilinx Synthesis)
    attribute ram_style        : string;
@@ -79,12 +79,12 @@ architecture rtl of SlvDelayRam is
    attribute syn_ramstyle        : string;
    attribute syn_ramstyle of mem : signal is XST_BRAM_STYLE_C;
 
-   attribute syn_keep            : string;
-   attribute syn_keep of mem     : signal is "TRUE";
+   attribute syn_keep        : string;
+   attribute syn_keep of mem : signal is "TRUE";
 
 begin
 
-   comb : process (en, maxCount, doutInt, rst, r) is
+   comb : process (doutInt, en, maxCount, r, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -123,7 +123,7 @@ begin
    end process seq;
 
    -- read before write single port RAM
-   MEM_PROC : process(clk, rst)
+   MEM_PROC : process(clk)
    begin
       if rising_edge(clk) then
          if en = '1' then

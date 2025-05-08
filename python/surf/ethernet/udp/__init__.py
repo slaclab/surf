@@ -25,7 +25,7 @@ def setPortValue(var, value, write):
 
 def getIpValue(var, read):
     x = var.dependencies[0].get(read=read)
-    return ( '%d.%d.%d.%d' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF) ) )
+    return f'{(x >> 0) & 0xFF}.{(x >> 8) & 0xFF}.{(x >> 16) & 0xFF}.{(x >> 24) & 0xFF}'
 
 def setIpValue(var, value, write):
     x = int(ipaddress.IPv4Address(value))
@@ -34,11 +34,12 @@ def setIpValue(var, value, write):
 
 def getMacValue(var, read):
     x = var.dependencies[0].get(read=read)
-    return ( '%02X:%02X:%02X:%02X:%02X:%02X' % ( ((x>>0)&0xFF),((x>>8)&0xFF),((x>>16)&0xFF),((x>>24)&0xFF),((x>>32)&0xFF),((x>>40)&0xFF) ) )
+    return f'{(x >> 0) & 0xFF:02X}:{(x >> 8) & 0xFF:02X}:{(x >> 16) & 0xFF:02X}:{(x >> 24) & 0xFF:02X}:{(x >> 32) & 0xFF:02X}:{(x >> 40) & 0xFF:02X}'
 
 def setMacValue(var, value, write):
     x=value.replace(":"," ").split()
     if( len(x) == 6):
         x = [int(i,16) for i in x]
-        newValue = ( '0x%02x%02x%02x%02x%02x%02x' % (x[5],x[4],x[3],x[2],x[1],x[0]) )
+        newValue = f'0x{x[5]:02x}{x[4]:02x}{x[3]:02x}{x[2]:02x}{x[1]:02x}{x[0]:02x}'
         var.dependencies[0].set(int(newValue,16), write=write)
+

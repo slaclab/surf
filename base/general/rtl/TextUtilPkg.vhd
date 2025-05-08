@@ -119,7 +119,10 @@ package TextUtilPkg is
    procedure print(file out_file :    text;
                    char          : in character);
 
-
+   -- appends contents of a string to a file until line feed occurs
+   -- (LF is considered to be the end of the string)
+   procedure strWrite(file out_file :    text;
+                      new_string    : in string);
 
 end TextUtilPkg;
 
@@ -127,11 +130,11 @@ package body TextUtilPkg is
 
    -- prints text to the screen
    procedure print(text : string) is
-      variable msg_line : line;
+      variable msgLine : line;
    begin
-      write(msg_line, text);
-      writeline(output, msg_line);
-   end print;
+      write(msgLine, text);
+      writeline(output, msgLine);
+   end procedure print;
 
    -- prints text to the screen when active
    procedure print(active : boolean; text : string) is
@@ -139,7 +142,7 @@ package body TextUtilPkg is
       if active then
          print(text);
       end if;
-   end print;
+   end procedure print;
 
    -- converts std_logic into a character
    function chr(sl : std_logic) return character is
@@ -157,7 +160,7 @@ package body TextUtilPkg is
          when '-' => c := '-';
       end case;
       return c;
-   end chr;
+   end function chr;
 
    -- converts std_logic into a string (1 to 1)
    function str(sl : std_logic) return string is
@@ -165,7 +168,7 @@ package body TextUtilPkg is
    begin
       s(1) := chr(sl);
       return s;
-   end str;
+   end function str;
 
    -- converts std_logic_vector into a string (binary base)
    -- (this also takes care of the fact that the range of
@@ -181,7 +184,7 @@ package body TextUtilPkg is
          r         := r + 1;
       end loop;
       return result;
-   end str;
+   end function str;
 
    -- Converts a boolean into "true" or "false"
    function str(b : boolean) return string is
@@ -191,7 +194,7 @@ package body TextUtilPkg is
       else
          return "false";
       end if;
-   end str;
+   end function str;
 
    -- converts an integer into a character
    -- for 0 to 9 the obvious mapping is used, higher
@@ -241,7 +244,7 @@ package body TextUtilPkg is
          when others => c := '?';
       end case;
       return c;
-   end chr;
+   end function chr;
 
    -- Convert a character into an integer.
    function int (c : character) return integer is
@@ -292,34 +295,34 @@ package body TextUtilPkg is
    -- convert integer to string using specified base
    -- (adapted from Steve Vogwell's posting in comp.lang.vhdl)
    function str(intValue : integer; base : integer) return string is
-      variable temp    : string(1 to 10);
-      variable num     : integer;
-      variable abs_int : integer;
-      variable len     : integer := 1;
-      variable power   : integer := 1;
+      variable temp   : string(1 to 10);
+      variable num    : integer;
+      variable absInt : integer;
+      variable len    : integer := 1;
+      variable power  : integer := 1;
    begin
       -- bug fix for negative numbers
-      abs_int := abs(intValue);
-      num     := abs_int;
+      absInt := abs(intValue);
+      num    := absInt;
 
       while num >= base loop            -- Determine how many
          len := len + 1;                -- characters required
          num := num / base;             -- to represent the
       end loop;  -- number.
 
-      for i in len downto 1 loop                  -- Convert the number to
-         temp(i) := chr(abs_int/power mod base);  -- a string starting
-         power   := power * base;                 -- with the right hand
+      for i in len downto 1 loop                 -- Convert the number to
+         temp(i) := chr(absInt/power mod base);  -- a string starting
+         power   := power * base;                -- with the right hand
       end loop;  -- side.
 
       -- return result and add sign if required
       if intValue < 0 then
-         return '-'& temp(1 to len);
+         return '-' & temp(1 to len);
       else
          return temp(1 to len);
       end if;
 
-   end str;
+   end function str;
 
    -- Convert a string and base into an integer.
    function int (s : string; base : integer) return integer is
@@ -343,13 +346,13 @@ package body TextUtilPkg is
    function str(intValue : integer) return string is
    begin
       return str(intValue, 10);
-   end str;
+   end function str;
 
    -- convert a time to string
    function str (tim : time) return string is
    begin
       return time'image(tim);
-   end str;
+   end function str;
 
    -- converts a std_logic_vector into a hex string.
    function hstr(slv : std_logic_vector) return string is
@@ -386,7 +389,7 @@ package body TextUtilPkg is
       end loop;
 --      print("HSTR Out: " & hex(1 to hexlen));
       return hex(1 to hexlen);
-   end hstr;
+   end function hstr;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- functions to manipulate strings
@@ -426,7 +429,7 @@ package body TextUtilPkg is
          when others => u := c;
       end case;
       return u;
-   end toUpper;
+   end function toUpper;
 
    -- convert a character to lower case
    function toLower(c : character) return character is
@@ -462,7 +465,7 @@ package body TextUtilPkg is
          when others => l := c;
       end case;
       return l;
-   end toLower;
+   end function toLower;
 
    -- convert a string to upper case
    function toUpper(s : string) return string is
@@ -472,7 +475,7 @@ package body TextUtilPkg is
          uppercase(i) := toUpper(s(i));
       end loop;
       return uppercase;
-   end toUpper;
+   end function toUpper;
 
    -- convert a string to lower case
    function toLower(s : string) return string is
@@ -482,7 +485,7 @@ package body TextUtilPkg is
          lowercase(i) := toLower(s(i));
       end loop;
       return lowercase;
-   end toLower;
+   end function toLower;
 
    ---------------------------------------------------------------------------------------------------------------------
 
@@ -494,7 +497,7 @@ package body TextUtilPkg is
          return true;
       else return false;
       end if;
-   end isWhitespace;
+   end function isWhitespace;
 
 
    -- remove leading whitespace (JFF)
@@ -524,7 +527,7 @@ package body TextUtilPkg is
       end loop;
 
       return stemp;
-   end strip;
+   end function strip;
 
 
 
@@ -550,7 +553,7 @@ package body TextUtilPkg is
       end loop;
 
       return s2;
-   end firstString;
+   end function firstString;
 
 
    -- removes first non-whitespace string from a string (JFF)
@@ -585,7 +588,7 @@ package body TextUtilPkg is
       end loop;
 
       s := stemp2;
-   end chomp;
+   end procedure chomp;
 
 
 
@@ -619,7 +622,7 @@ package body TextUtilPkg is
             sl := 'X';
       end case;
       return sl;
-   end toSl;
+   end function toSl;
 
 
    -- converts a string into std_logic_vector
@@ -633,7 +636,7 @@ package body TextUtilPkg is
          k      := k - 1;
       end loop;
       return slv;
-   end toSlv;
+   end function toSlv;
 
    ---------------------------------------------------------------------------------------------------------------------
    -- file I/O  --
@@ -642,9 +645,9 @@ package body TextUtilPkg is
    -- read variable length string from input file
    procedure strRead(file in_file :     text;
                      res_string   : out string) is
-      variable l         : line;
-      variable c         : character;
-      variable is_string : boolean;
+      variable l        : line;
+      variable c        : character;
+      variable isString : boolean;
    begin
       readline(in_file, l);
       -- clear the contents of the result string
@@ -654,13 +657,13 @@ package body TextUtilPkg is
       -- read all characters of the line, up to the length
       -- of the results string
       for i in res_string'range loop
-         read(l, c, is_string);
+         read(l, c, isString);
          res_string(i) := c;
-         if not is_string then          -- found end of line
+         if not isString then           -- found end of line
             exit;
          end if;
       end loop;
-   end strRead;
+   end procedure strRead;
 
 
    -- print string to a file
@@ -670,7 +673,7 @@ package body TextUtilPkg is
    begin
       write(l, new_string);
       writeline(out_file, l);
-   end print;
+   end procedure print;
 
 
    -- print character to a file and start new line
@@ -680,7 +683,7 @@ package body TextUtilPkg is
    begin
       write(l, char);
       writeline(out_file, l);
-   end print;
+   end procedure print;
 
    -- appends contents of a string to a file until line feed occurs
    -- (LF is considered to be the end of the string)
@@ -693,11 +696,7 @@ package body TextUtilPkg is
             exit;
          end if;
       end loop;
-   end strWrite;
+   end procedure strWrite;
 
 
-end TextUtilPkg;
-
-
-
-
+end package body TextUtilPkg;

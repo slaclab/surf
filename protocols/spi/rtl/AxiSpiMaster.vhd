@@ -55,8 +55,10 @@ entity AxiSpiMaster is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Copy of the shadow memory (SHADOW_EN_G=true)
-      shadowAddr     : in  slv(log2(SPI_NUM_CHIPS_G)+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
-      shadowData     : out slv(DATA_SIZE_G-1 downto 0)                          := (others => '0');
+      -- Same width as ADDRESS_SIZE_G if NUM_CHIPS_G=1
+      -- Else ADDRESS_SIZE_G+log2(NUM_CHIPS_G)
+      shadowAddr     : in  slv(ite(NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
+      shadowData     : out slv(DATA_SIZE_G-1 downto 0)                                                   := (others => '0');
       -- SPI Interface
       coreSclk       : out sl;
       coreSDin       : in  sl;
@@ -131,7 +133,8 @@ begin
    end generate SHADOW_RAM_GEN;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData,
+                   rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin

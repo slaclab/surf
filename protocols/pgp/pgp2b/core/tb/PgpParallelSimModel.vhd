@@ -33,11 +33,11 @@ entity PgpParallelSimModel is
       TX_SER_DELAY_C        : natural              := 5;
       RX_SER_DELAY_C        : natural              := 5;
       -- PGP Parameters
-      VC_INTERLEAVE_G       : integer              := 1;    -- Interleave Frames
-      PAYLOAD_CNT_TOP_G     : integer              := 7;    -- Top bit for payload counter
+      VC_INTERLEAVE_G       : integer              := 1;  -- Interleave Frames
+      PAYLOAD_CNT_TOP_G     : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
-      TX_ENABLE_G           : boolean              := true;        -- Enable TX direction
-      RX_ENABLE_G           : boolean              := true);       -- Enable RX direction
+      TX_ENABLE_G           : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G           : boolean              := true);  -- Enable RX direction
    port (
       -- System Signals
       clk          : in  sl;

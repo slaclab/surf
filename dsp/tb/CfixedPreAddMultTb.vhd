@@ -33,33 +33,32 @@ architecture test of CfixedPreAddMultTb is
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
-   signal run : boolean := true;
-   signal cnt : integer := 0;
+   signal run : boolean   := true;
+   signal cnt : integer   := 0;
 
-   signal a : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
-   signal b : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal d : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
-   signal y : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
-   signal aVld : std_logic := '1';
-   signal bVld : std_logic := '1';
-   signal dVld : std_logic := '0';
-   signal yVld : std_logic := '1';
+   signal a    : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
+   signal b    : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
+   signal d    : cfixed(re(1 downto -25), im(1 downto -25)) := (others => (others => '0'));
+   signal y    : cfixed(re(1 downto -16), im(1 downto -16)) := (others => (others => '0'));
+   signal aVld : std_logic                                  := '1';
+   signal bVld : std_logic                                  := '1';
+   signal dVld : std_logic                                  := '0';
+   signal yVld : std_logic                                  := '1';
 
-   signal aIn       : complex := (re => 0.00, im => 0.00);
-   signal bIn       : complex := (re => 0.00, im => 0.00);
-   signal dIn       : complex := (re => 0.00, im => 0.00);
+   signal aIn : complex := (re => 0.00, im => 0.00);
+   signal bIn : complex := (re => 0.00, im => 0.00);
+   signal dIn : complex := (re => 0.00, im => 0.00);
 
-   signal yExpected : complexArray(9 downto 0) := (others => (re => 0.00, im=>0.00));
-   signal yE        : complex := (re => 0.00, im => 0.00);
+   signal yExpected : complexArray(9 downto 0) := (others => (re => 0.00, im => 0.00));
+   signal yE        : complex                  := (re     => 0.00, im => 0.00);
 
-   signal yOut      : complex := (re => 0.00, im => 0.00);
-   signal yError    : real    := 0.000;
-   signal maxError  : real    := 0.000;
+   signal yOut     : complex := (re => 0.00, im => 0.00);
+   signal yError   : real    := 0.000;
+   signal maxError : real    := 0.000;
 
    signal addNotSub : sl := ite(ADD_NOT_SUB_C, '1', '0');
 
 begin
-
 
    yE <= yExpected(5);
 
@@ -77,15 +76,15 @@ begin
       end if;
    end process p_clk;
 
-   p_cnt : process ( clk ) is
+   p_cnt : process (clk) is
       variable s1 : integer := 981;
       variable s2 : integer := 12541;
       variable s3 : integer := 2745;
       variable s4 : integer := 442;
 
-      impure function rand_complex(min_val, max_val : real) return complex is
-         variable re : real := 0.0;
-         variable im : real := 0.0;
+      impure function randComplex(min_val, max_val : real) return complex is
+         variable re : real    := 0.0;
+         variable im : real    := 0.0;
          variable c  : complex := (re => 0.0, im => 0.0);
       begin
          uniform(s1, s2, re);
@@ -93,28 +92,28 @@ begin
          c.re := re * (max_val - min_val) + min_val;
          c.im := im * (max_val - min_val) + min_val;
          return c;
-      end function rand_complex;
+      end function randComplex;
 
    begin
       if rising_edge(clk) then
          case cnt is
             when 10 =>
-               rst   <= '0';
+               rst <= '0';
             when 11 to RUN_CNT_C-1 =>
-               aVld <= '1';
-               bVld <= '1';
-               dVld <= '1';
-               aIn  <= rand_complex(-0.5, 0.5);
-               bIn  <= rand_complex(-0.5, 0.5);
-               dIn  <= rand_complex(-0.5, 0.5);
-               a     <= to_cfixed(aIn, a);
-               b     <= to_cfixed(bIn, b);
-               d     <= to_cfixed(dIn, d);
+               aVld                  <= '1';
+               bVld                  <= '1';
+               dVld                  <= '1';
+               aIn                   <= randComplex(-0.5, 0.5);
+               bIn                   <= randComplex(-0.5, 0.5);
+               dIn                   <= randComplex(-0.5, 0.5);
+               a                     <= to_cfixed(aIn, a);
+               b                     <= to_cfixed(bIn, b);
+               d                     <= to_cfixed(dIn, d);
                yExpected(9 downto 1) <= yExpected(8 downto 0);
                if ADD_NOT_SUB_C then
-                  yExpected(0) <= ( aIn + dIn ) * bIn;
+                  yExpected(0) <= (aIn + dIn) * bIn;
                else
-                  yExpected(0) <= ( aIn - dIn ) * bIn;
+                  yExpected(0) <= (aIn - dIn) * bIn;
                end if;
             when RUN_CNT_C =>
                run <= false;
@@ -127,16 +126,16 @@ begin
 
          case cnt is
             when 11 to RUN_CNT_C =>
-               yError  <= abs(yOut - yE);
+               yError   <= abs(yOut - yE);
                maxError <= maximum(yError, maxError);
                assert (yError < ERROR_TOL_C)
                   report CR & LF & CR & LF &
                   "**** Test FAILED **** " & CR & LF &
                   "abs(error) is " & real'image(yError) &
                   CR & LF
-                 severity failure;
+                  severity failure;
             when others =>
-        end case;
+         end case;
 
          cnt <= cnt + 1;
       end if;
@@ -147,15 +146,15 @@ begin
          REG_IN_G  => true,
          REG_OUT_G => false)
       port map (
-         clk   => clk,
-         add   => addNotSub, -- Add not sub
-         a     => a,
-         aVld  => aVld,
-         b     => b,
-         bVld  => bVld,
-         d     => d,
-         dVld  => dVld,
-         y     => y,
-         yVld  => yVld);
+         clk  => clk,
+         add  => addNotSub,             -- Add not sub
+         a    => a,
+         aVld => aVld,
+         b    => b,
+         bVld => bVld,
+         d    => d,
+         dVld => dVld,
+         y    => y,
+         yVld => yVld);
 
 end architecture test;

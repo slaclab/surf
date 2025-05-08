@@ -67,19 +67,18 @@
 
 --*****************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.all;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library surf;
 
 entity Gtx7TxRst is
-   generic(
+   generic (
       TPD_G                  : time                  := 1 ns;
       GT_TYPE                : string                := "GTX";
       STABLE_CLOCK_PERIOD    : integer range 4 to 20 := 8;  --Period of the stable clock driving this state-machine, unit is [ns]
-      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8
-      );
+      RETRY_COUNTER_BITWIDTH : integer range 2 to 8  := 8);
    port (
       STABLE_CLOCK      : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                           --or reference-clock present at startup.
@@ -98,9 +97,7 @@ entity Gtx7TxRst is
       RESET_PHALIGNMENT : out std_logic := '0';
       PHALIGNMENT_DONE  : in  std_logic;
 
-      RETRY_COUNTER : out std_logic_vector (RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0')  -- Number of
-                                        -- Retries it took to get the transceiver up and running
-      );
+      RETRY_COUNTER : out std_logic_vector(RETRY_COUNTER_BITWIDTH-1 downto 0) := (others => '0'));  -- Number of Retries it took to get the transceiver up and running
 end Gtx7TxRst;
 
 --Interdependencies:
@@ -111,16 +108,14 @@ end Gtx7TxRst;
 --   => signal which PLL has been reset
 -- *
 
-
-
 architecture RTL of Gtx7TxRst is
 
-   type tx_rst_fsm_type is(
+   type TxRstFsmType is (
       INIT, ASSERT_ALL_RESETS, RELEASE_PLL_RESET,
       RELEASE_MMCM_RESET, WAIT_RESET_DONE, DO_PHASE_ALIGNMENT,
       RESET_FSM_DONE);
 
-   signal tx_state : tx_rst_fsm_type := INIT;
+   signal tx_state : TxRstFsmType := INIT;
 
    constant MMCM_LOCK_CNT_MAX : integer := 1024;
    constant STARTUP_DELAY     : integer := 500;  --AR43482: Transceiver needs to wait for 500 ns after configuration
@@ -128,8 +123,8 @@ architecture RTL of Gtx7TxRst is
    constant WAIT_MAX          : integer := WAIT_CYCLES + 10;  -- 500 ns plus some additional margin
 
    constant WAIT_TIMEOUT_2ms   : integer := 2000000 / STABLE_CLOCK_PERIOD;  --  2 ms time-out
-   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;   --100 us time-out
-   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;   --100 us time-out
+   constant WAIT_TLOCK_MAX     : integer := 100000 / STABLE_CLOCK_PERIOD;  --100 us time-out
+   constant WAIT_TIMEOUT_500us : integer := 500000 / STABLE_CLOCK_PERIOD;  --100 us time-out
 
    signal soft_reset_sync : std_logic;
    signal soft_reset_rise : std_logic;
@@ -168,15 +163,14 @@ architecture RTL of Gtx7TxRst is
 
    signal plllock_sync : std_logic := '0';
 
-   attribute KEEP_HIERARCHY : string;
-   attribute KEEP_HIERARCHY of
-      Synchronizer_run_phase_alignment,
-      Synchronizer_fsm_reset_done,
-      Synchronizer_SOFT_RESET,
-      Synchronizer_TXRESETDONE,
-      Synchronizer_time_out_wait_bypass,
-      Synchronizer_mmcm_lock_reclocked,
-      Synchronizer_PLLLOCK : label is "TRUE";
+   attribute KEEP_HIERARCHY                                      : string;
+   attribute KEEP_HIERARCHY of Synchronizer_run_phase_alignment  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_fsm_reset_done       : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_SOFT_RESET           : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_TXRESETDONE          : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_time_out_wait_bypass : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_mmcm_lock_reclocked  : label is "TRUE";
+   attribute KEEP_HIERARCHY of Synchronizer_PLLLOCK              : label is "TRUE";
 
 begin
 
@@ -229,7 +223,7 @@ begin
       end if;
    end process;
 
-   mmcm_lock_wait : process(TXUSERCLK, MMCM_LOCK)
+   mmcm_lock_wait : process(MMCM_LOCK, TXUSERCLK)
    begin
       if MMCM_LOCK = '0' then
          mmcm_lock_count <= 0;
@@ -267,12 +261,12 @@ begin
 
    Synchronizer_SOFT_RESET : entity surf.SynchronizerEdge
       generic map (
-         TPD_G    => TPD_G)
+         TPD_G => TPD_G)
       port map (
-         clk     => STABLE_CLOCK,
-         dataIn  => SOFT_RESET,
-         dataOut => soft_reset_sync,
-         risingEdge => soft_reset_rise,
+         clk         => STABLE_CLOCK,
+         dataIn      => SOFT_RESET,
+         dataOut     => soft_reset_sync,
+         risingEdge  => soft_reset_rise,
          fallingEdge => soft_reset_fall);
 
    Synchronizer_TXRESETDONE : entity surf.Synchronizer

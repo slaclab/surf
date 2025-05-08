@@ -39,11 +39,10 @@ class Adc32Rf45(pr.Device):
         # General Register
         ##################
         self.add(pr.RemoteVariable(name='GeneralAddr',
-                                   offset       = generalAddr + (4*0x0000),  # 0x00000 - 0x001FF
+                                   offset       = generalAddr + (4*0x0000),  # 0x00000 - 0x00FFF, 4096 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x80, # 512Bytes
                                    bitOffset    = 0,
-                                   numValues    = 0x80,
+                                   numValues    = 0x400, # 0x400 * 4 = 4096 Bytes
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
@@ -81,9 +80,8 @@ class Adc32Rf45(pr.Device):
         # Raw Interface
         ##################
         self.add(pr.RemoteVariable(name='RawInterface0',
-                                   offset       = rawInterface + (4*0x0000), # 0x40000 - 0x401FF
+                                   offset       = rawInterface + (4*0x0000), # 0x40000 - 0x401FF, 512 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x80, # 512 Bytes
                                    bitOffset    = 0,
                                    numValues    = 0x80,
                                    valueBits    = 32,
@@ -94,9 +92,8 @@ class Adc32Rf45(pr.Device):
                                    verify       = False))
 
         self.add(pr.RemoteVariable(name='RawInterface4',
-                                   offset       = rawInterface + (4*0x4000), # 0x50000 - 0x5003F
+                                   offset       = rawInterface + (4*0x4000), # 0x50000 - 0x5003F, 64 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x10, # 64 Bytes
                                    bitOffset    = 0,
                                    numValues    = 0x10,
                                    valueBits    = 32,
@@ -107,9 +104,8 @@ class Adc32Rf45(pr.Device):
                                    verify       = False))
 
         self.add(pr.RemoteVariable(name='RawInterface6',
-                                   offset       = rawInterface + (4*0x6000), # 0x58000 - 0x583FF
+                                   offset       = rawInterface + (4*0x6000), # 0x58000 - 0x583FF, 1024 Bytes
                                    base         = pr.UInt,
-                                   bitSize      = 32*0x100, # 1024 Bytes
                                    bitOffset    = 0,
                                    numValues    = 0x100,
                                    valueBits    = 32,
@@ -342,8 +338,8 @@ class Adc32Rf45(pr.Device):
 
             time.sleep(0.250)
 
-            self.CH0[0].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
-            self.CH0[1].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
+            self.CH[0].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
+            self.CH[1].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
 
             self.GeneralAddr.set(value=0x04,index=0x012) # write 4 to address 12 page select
             self.GeneralAddr.set(value=0x00,index=0x056) # sysref dis - check this was written earlier

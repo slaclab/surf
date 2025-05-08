@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.TextUtilPkg.all;
@@ -23,7 +22,7 @@ use surf.TextUtilPkg.all;
 entity DeviceDna is
    generic (
       TPD_G           : time     := 1 ns;
-      XIL_DEVICE_G   : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
+      XIL_DEVICE_G    : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       USE_SLOWCLK_G   : boolean  := false;
       BUFR_CLK_DIV_G  : positive := 8;
       RST_POLARITY_G  : sl       := '1';
@@ -70,7 +69,7 @@ architecture rtl of DeviceDna is
 
 begin
 
-   assert (XIL_DEVICE_G ="7SERIES" or XIL_DEVICE_G ="ULTRASCALE" or XIL_DEVICE_G ="ULTRASCALE_PLUS")
+   assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G = "ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
@@ -87,7 +86,7 @@ begin
             slowClk  => slowClk,
             dnaValue => dnaValue(55 downto 0),
             dnaValid => dnaValid);
-      dnaValue(127 downto 56) <= (others=>'0');
+      dnaValue(127 downto 56) <= (others => '0');
    end generate;
 
    GEN_ULTRA_SCALE : if (XIL_DEVICE_G = "ULTRASCALE") or (XIL_DEVICE_G = "ULTRASCALE_PLUS") generate
@@ -104,7 +103,7 @@ begin
             slowClk  => slowClk,
             dnaValue => dnaValue(95 downto 0),
             dnaValid => dnaValid);
-      dnaValue(127 downto 96) <= (others=>'0');
+      dnaValue(127 downto 96) <= (others => '0');
    end generate;
 
 end rtl;

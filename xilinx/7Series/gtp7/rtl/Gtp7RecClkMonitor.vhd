@@ -11,7 +11,7 @@
 --//
 --//
 --  Description :     This module is the ppm monitor between the
---  		      GT RxRecClk and the reference clock
+--              GT RxRecClk and the reference clock
 --
 --                    This module will declare that the Rx RECCLK is stable if the
 --                    recovered clock is within +/-5000PPM of the reference clock.
@@ -118,148 +118,149 @@
 
 --*******************************************************************************
 
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
-ENTITY Gtp7RecClkMonitor is
-   generic(
-      COUNTER_UPPER_VALUE      : integer := 20; --ppm counter. For 2^20 cntr.
-      GCLK_COUNTER_UPPER_VALUE : integer := 20; --ppm counter. For 2^20 cntr.
+entity Gtp7RecClkMonitor is
+   generic (
+      COUNTER_UPPER_VALUE      : integer := 20;  --ppm counter. For 2^20 cntr.
+      GCLK_COUNTER_UPPER_VALUE : integer := 20;  --ppm counter. For 2^20 cntr.
       CLOCK_PULSES             : integer := 5000;
-      EXAMPLE_SIMULATION       : integer := 0         --The simulation-only constructs are not used but the
-                                                      --full HW-circuitry gets simulated.
-                                                      --NOTE OF CARE: This can extend the necessary simulation-
-                                                      --time to beyond 600 ?s (six-hundred, sic!)
-
-      );
+      EXAMPLE_SIMULATION       : integer := 0);  --The simulation-only constructs are not used but the
+                                        --full HW-circuitry gets simulated.
+   --NOTE OF CARE: This can extend the necessary simulation-
+   --time to beyond 600 ?s (six-hundred, sic!)
    port (
-	GT_RST       : in std_logic;
-	REF_CLK      : in std_logic;
-	RX_REC_CLK0  : in std_logic;
-	SYSTEM_CLK   : in std_logic; -- This would be your System Clock;
-	PLL_LK_DET   : in std_logic; -- This signal is verified in the Rx-FSM,
-                                     -- it can be tied high as the PLL-LK has already been
-                                     -- verified in the previous state.
-	RECCLK_STABLE : out std_logic;
-        EXEC_RESTART  : out std_logic
-	);
-end ENTITY Gtp7RecClkMonitor;
+      GT_RST        : in  std_logic;
+      REF_CLK       : in  std_logic;
+      RX_REC_CLK0   : in  std_logic;
+      SYSTEM_CLK    : in  std_logic;    -- This would be your System Clock;
+      PLL_LK_DET    : in  std_logic;  -- This signal is verified in the Rx-FSM,
+      -- it can be tied high as the PLL-LK has already been
+      -- verified in the previous state.
+      RECCLK_STABLE : out std_logic;
+      EXEC_RESTART  : out std_logic);
+end entity Gtp7RecClkMonitor;
 
-
-ARCHITECTURE RTL of Gtp7RecClkMonitor is
+architecture RTL of Gtp7RecClkMonitor is
 
 --------------------------------------------------------------------------------
 -- Declaration of wires/regs
 --------------------------------------------------------------------------------
-type FSM is (WAIT_FOR_LOCK,REFCLK_EVENT,CALC_PPM_DIFF,CHECK_SIGN,COMP_CNTR,RESTART);
-signal state : FSM;
+   type StateType is (WAIT_FOR_LOCK, REFCLK_EVENT, CALC_PPM_DIFF, CHECK_SIGN, COMP_CNTR, RESTART);
+   signal state : StateType;
 
 
-attribute syn_keep : boolean;
-signal ref_clk_cnt        : std_logic_vector (COUNTER_UPPER_VALUE-1 downto  0);
-signal rec_clk0_cnt       : std_logic_vector (COUNTER_UPPER_VALUE-1 downto  0) := (others => '0');
-signal rec_clk0_msb       : std_logic_vector (2 downto  1);
-signal ref_clk_msb        : std_logic_vector (2 downto  1);
-signal rec_clk_0_msb_meta : std_logic;
-attribute syn_keep of rec_clk_0_msb_meta : signal is true;
-signal ref_clk_msb_meta   : std_logic;
-attribute syn_keep of ref_clk_msb_meta : signal is true;
+   attribute syn_keep                       : boolean;
+   signal ref_clk_cnt                       : std_logic_vector(COUNTER_UPPER_VALUE-1 downto 0);
+   signal rec_clk0_cnt                      : std_logic_vector(COUNTER_UPPER_VALUE-1 downto 0) := (others => '0');
+   signal rec_clk0_msb                      : std_logic_vector(2 downto 1);
+   signal ref_clk_msb                       : std_logic_vector(2 downto 1);
+   signal rec_clk_0_msb_meta                : std_logic;
+   attribute syn_keep of rec_clk_0_msb_meta : signal is true;
+   signal ref_clk_msb_meta                  : std_logic;
+   attribute syn_keep of ref_clk_msb_meta   : signal is true;
 
-signal sys_clk_counter            : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto  0);
-signal rec_clk0_compare_cnt_latch : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto  0);
-signal ref_clk_compare_cnt_latch  : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto  0);
+   signal sys_clk_counter            : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal rec_clk0_compare_cnt_latch : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
+   signal ref_clk_compare_cnt_latch  : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
 
-signal g_clk_rst_meta      : std_logic;
-attribute syn_keep of g_clk_rst_meta : signal is true;
-signal g_clk_rst_sync      : std_logic;
-signal gt_pll_locked_meta  : std_logic;
-attribute syn_keep of gt_pll_locked_meta : signal  is true;
-signal gt_pll_locked_sync  : std_logic;
+   signal g_clk_rst_meta                    : std_logic;
+   attribute syn_keep of g_clk_rst_meta     : signal is true;
+   signal g_clk_rst_sync                    : std_logic;
+   signal gt_pll_locked_meta                : std_logic;
+   attribute syn_keep of gt_pll_locked_meta : signal is true;
+   signal gt_pll_locked_sync                : std_logic;
 
-signal reset_logic_rec0_meta : std_logic;
-attribute syn_keep of reset_logic_rec0_meta : signal  is true;
-signal reset_logic_rec0_sync : std_logic;
-signal reset_logic_ref_meta  : std_logic;
-attribute syn_keep of reset_logic_ref_meta: signal is true;
-signal reset_logic_ref_sync  : std_logic;
+   signal reset_logic_rec0_meta                : std_logic;
+   attribute syn_keep of reset_logic_rec0_meta : signal is true;
+   signal reset_logic_rec0_sync                : std_logic;
+   signal reset_logic_ref_meta                 : std_logic;
+   attribute syn_keep of reset_logic_ref_meta  : signal is true;
+   signal reset_logic_ref_sync                 : std_logic;
 
-signal rec_clk0_edge_event : std_logic;
-signal ref_clk_edge_event : std_logic_vector (1 downto 0);
+   signal rec_clk0_edge_event : std_logic;
+   signal ref_clk_edge_event  : std_logic_vector(1 downto 0);
 
-signal ppm0 : std_logic_vector (GCLK_COUNTER_UPPER_VALUE-1 downto  0);
+   signal ppm0 : std_logic_vector(GCLK_COUNTER_UPPER_VALUE-1 downto 0);
 
-signal recclk_stable0 : std_logic;
-signal reset_logic : std_logic_vector (3 downto  0);
-signal ref_clk_edge_rt : std_logic_vector (1 downto  0);
+   signal recclk_stable0  : std_logic;
+   signal reset_logic     : std_logic_vector(3 downto 0);
+   signal ref_clk_edge_rt : std_logic_vector(1 downto 0);
 
-signal g_clk_rst : std_logic;
-signal gt_pll_locked : std_logic;
-signal rec_clk0_edge : std_logic;
-signal ref_clk_edge : std_logic;
-signal recclk_stable0_int  : std_logic := '0';
+   signal g_clk_rst          : std_logic;
+   signal gt_pll_locked      : std_logic;
+   signal rec_clk0_edge      : std_logic;
+   signal ref_clk_edge       : std_logic;
+   signal recclk_stable0_int : std_logic := '0';
 
 
- function simulation_func return boolean is
-    --This function detects at compile-time whether the design
-    --is synthesised or simulated. For Simulation the Pragma-
-    --constructs below are just comments and the variable "sim"
-    --is set to True.
-    --For synthesis the Pragma-constructs turn off the translation
-    --between the _off and _on part and hence only the value false
-    --is returned for the function.
-    variable sim: boolean := false;
-  begin
-    sim := false;
-    --pragma translate_off
-    sim := true;
-    --pragma translate_on
-    return sim;
-  end function;
+   function simulation_func return boolean is
+      --This function detects at compile-time whether the design
+      --is synthesised or simulated. For Simulation the Pragma-
+      --constructs below are just comments and the variable "sim"
+      --is set to True.
+      --For synthesis the Pragma-constructs turn off the translation
+      --between the _off and _on part and hence only the value false
+      --is returned for the function.
+      variable sim : boolean := false;
+   begin
+      sim := false;
+      --pragma translate_off
+      sim := true;
+      --pragma translate_on
+      return sim;
+   end function;
 
-  constant simulation: boolean := simulation_func;
+   constant simulation : boolean := simulation_func;
 
 --------------------------------------------------------------------------------
 -- Main Logic
 --------------------------------------------------------------------------------
+
 begin
 
-HW_circuitry: if not simulation or (EXAMPLE_SIMULATION = 0) generate
-process (RX_REC_CLK0) begin
-   if rising_edge(RX_REC_CLK0) then
-     reset_logic_rec0_meta <= reset_logic(3);
-     reset_logic_rec0_sync <= reset_logic_rec0_meta;
-   end if;
-end process;
+   HW_circuitry : if not simulation or (EXAMPLE_SIMULATION = 0) generate
+      process (RX_REC_CLK0)
+      begin
+         if rising_edge(RX_REC_CLK0) then
+            reset_logic_rec0_meta <= reset_logic(3);
+            reset_logic_rec0_sync <= reset_logic_rec0_meta;
+         end if;
+      end process;
 
-process (RX_REC_CLK0) begin
-   if rising_edge(RX_REC_CLK0) then
-        if (reset_logic_rec0_sync = '1') then
-	   rec_clk0_cnt <= (others => '0');
-	else
-	   rec_clk0_cnt <= rec_clk0_cnt +1;
-	end if;
-   end if;
-end process;
+      process (RX_REC_CLK0)
+      begin
+         if rising_edge(RX_REC_CLK0) then
+            if (reset_logic_rec0_sync = '1') then
+               rec_clk0_cnt <= (others => '0');
+            else
+               rec_clk0_cnt <= rec_clk0_cnt +1;
+            end if;
+         end if;
+      end process;
 
 
-process (REF_CLK) begin
-   if rising_edge(REF_CLK) then
-     reset_logic_ref_meta <= reset_logic(3);
-     reset_logic_ref_sync <= reset_logic_ref_meta;
-   end if;
-end process;
+      process (REF_CLK)
+      begin
+         if rising_edge(REF_CLK) then
+            reset_logic_ref_meta <= reset_logic(3);
+            reset_logic_ref_sync <= reset_logic_ref_meta;
+         end if;
+      end process;
 
-process (REF_CLK) begin
-   if rising_edge(REF_CLK) then
-	if (reset_logic_ref_sync = '1') then
-	   ref_clk_cnt <= (others => '0');
-	else
-	   ref_clk_cnt <= ref_clk_cnt +1;
-	end if;
-   end if;
-end process;
+      process (REF_CLK)
+      begin
+         if rising_edge(REF_CLK) then
+            if (reset_logic_ref_sync = '1') then
+               ref_clk_cnt <= (others => '0');
+            else
+               ref_clk_cnt <= ref_clk_cnt +1;
+            end if;
+         end if;
+      end process;
 
 
 --------------------------------------------------------------------------------
@@ -281,181 +282,185 @@ end process;
 --------------------------------------------------------------------------------
 
 -- Synchronize reset to global Clock domain
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      g_clk_rst_meta <= GT_RST;
-      g_clk_rst_sync <= g_clk_rst_meta;
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            g_clk_rst_meta <= GT_RST;
+            g_clk_rst_sync <= g_clk_rst_meta;
 
-      gt_pll_locked_meta <= PLL_LK_DET;
-      gt_pll_locked_sync <= gt_pll_locked_meta;
-   end if;
-end process;
+            gt_pll_locked_meta <= PLL_LK_DET;
+            gt_pll_locked_sync <= gt_pll_locked_meta;
+         end if;
+      end process;
 
-g_clk_rst     <= g_clk_rst_sync;
-gt_pll_locked <= gt_pll_locked_sync;
+      g_clk_rst     <= g_clk_rst_sync;
+      gt_pll_locked <= gt_pll_locked_sync;
 
 
 -- Main FSM
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      if (g_clk_rst = '1') then
-          state     <= WAIT_FOR_LOCK;
-          ppm0      <= (others => '1');
-          recclk_stable0 <= '0';
-          EXEC_RESTART  <= '0';
-      else
-          EXEC_RESTART <= '0';
-          case (state) is
- 	     when WAIT_FOR_LOCK =>
-  	        if ( (gt_pll_locked= '1')) then
-		   if (ref_clk_edge_event = "01") then
-		      state <= REFCLK_EVENT;
-		   else
-		      state <= WAIT_FOR_LOCK;
-		   end if;
-		else
-		   state <= WAIT_FOR_LOCK;
-	        end if;
-	     when REFCLK_EVENT =>
-                 if (ref_clk_edge_event = "11") then -- two reference couter periods
-		    state <= CALC_PPM_DIFF;
-		 else
-		    state <= REFCLK_EVENT;
-		 end if;
-	      when CALC_PPM_DIFF =>
-	         if (rec_clk0_edge_event = '1') then
-		    ppm0 <= rec_clk0_compare_cnt_latch + ref_clk_compare_cnt_latch;
-		 end if;
-			 state <= CHECK_SIGN;
-	      when CHECK_SIGN =>
-		  --check the sign bit - if 1'b1, then convert to binary.
-		  if (ppm0(GCLK_COUNTER_UPPER_VALUE-1) = '1') then
-		     ppm0 <= not ppm0 + 1;
-		  end if;
-		  state <= COMP_CNTR;
-	       when COMP_CNTR =>
-	          if (ppm0 < CLOCK_PULSES) then
-	             recclk_stable0 <= '1';
-	          else
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if (g_clk_rst = '1') then
+               state          <= WAIT_FOR_LOCK;
+               ppm0           <= (others => '1');
                recclk_stable0 <= '0';
+               EXEC_RESTART   <= '0';
+            else
+               EXEC_RESTART <= '0';
+               case (state) is
+                  when WAIT_FOR_LOCK =>
+                     if ((gt_pll_locked = '1')) then
+                        if (ref_clk_edge_event = "01") then
+                           state <= REFCLK_EVENT;
+                        else
+                           state <= WAIT_FOR_LOCK;
+                        end if;
+                     else
+                        state <= WAIT_FOR_LOCK;
+                     end if;
+                  when REFCLK_EVENT =>
+                     if (ref_clk_edge_event = "11") then  -- two reference couter periods
+                        state <= CALC_PPM_DIFF;
+                     else
+                        state <= REFCLK_EVENT;
+                     end if;
+                  when CALC_PPM_DIFF =>
+                     if (rec_clk0_edge_event = '1') then
+                        ppm0 <= rec_clk0_compare_cnt_latch + ref_clk_compare_cnt_latch;
+                     end if;
+                     state <= CHECK_SIGN;
+                  when CHECK_SIGN =>
+                     --check the sign bit - if 1'b1, then convert to binary.
+                     if (ppm0(GCLK_COUNTER_UPPER_VALUE-1) = '1') then
+                        ppm0 <= not ppm0 + 1;
+                     end if;
+                     state <= COMP_CNTR;
+                  when COMP_CNTR =>
+                     if (ppm0 < CLOCK_PULSES) then
+                        recclk_stable0 <= '1';
+                     else
+                        recclk_stable0 <= '0';
+                     end if;
+                     state <= RESTART;
+                  when RESTART =>
+                     state        <= WAIT_FOR_LOCK;
+                     EXEC_RESTART <= '1';
+                  when others =>
+                     state          <= WAIT_FOR_LOCK;
+                     ppm0           <= (others => '1');
+                     recclk_stable0 <= '0';
+               end case;
             end if;
-	          state <= RESTART;
-	       when RESTART =>
-                  state <= WAIT_FOR_LOCK;
-                  EXEC_RESTART <= '1';
-	       when others =>
-	          state     <= WAIT_FOR_LOCK;
-	          ppm0      <= (others => '1');
-	          recclk_stable0 <= '0';
-	   end case;
-       end if;
-   end if;
-end process;
+         end if;
+      end process;
 
 
 
 -- On clock roll-over, latch counter value once and event occurance.
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      if (reset_logic(3) = '1') then
-	 rec_clk0_edge_event        <= '0';
-	 ref_clk_edge_event         <=  "00";
-	 rec_clk0_compare_cnt_latch <= (others => '0');
-	 ref_clk_compare_cnt_latch  <= (others => '0');
-	 ref_clk_edge_rt            <= "00";
-      else
-         if ((rec_clk0_edge='1') and(rec_clk0_edge_event='0')) then
-	    rec_clk0_edge_event        <= '1';
-	    rec_clk0_compare_cnt_latch <= sys_clk_counter;
-	 end if;
-	 if (ref_clk_edge='1') then
-	    ref_clk_edge_event <= ref_clk_edge_event(0)&'1';
-	    --only latch it the first time around
-	    if (ref_clk_edge_event(0)='0') then
-  	       ref_clk_compare_cnt_latch <= sys_clk_counter;
-	    end if;
-            ref_clk_edge_rt <= ref_clk_edge_rt(0) &ref_clk_edge;
-	    --take the 2's complement number after we latched it
-	    if ((ref_clk_edge_event = "01") and (ref_clk_edge_rt= "01")) then
-	       ref_clk_compare_cnt_latch <= not ref_clk_compare_cnt_latch +1;
-	    end if;
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if (reset_logic(3) = '1') then
+               rec_clk0_edge_event        <= '0';
+               ref_clk_edge_event         <= "00";
+               rec_clk0_compare_cnt_latch <= (others => '0');
+               ref_clk_compare_cnt_latch  <= (others => '0');
+               ref_clk_edge_rt            <= "00";
+            else
+               if ((rec_clk0_edge = '1') and (rec_clk0_edge_event = '0')) then
+                  rec_clk0_edge_event        <= '1';
+                  rec_clk0_compare_cnt_latch <= sys_clk_counter;
+               end if;
+               if (ref_clk_edge = '1') then
+                  ref_clk_edge_event <= ref_clk_edge_event(0) & '1';
+                  --only latch it the first time around
+                  if (ref_clk_edge_event(0) = '0') then
+                     ref_clk_compare_cnt_latch <= sys_clk_counter;
+                  end if;
+                  ref_clk_edge_rt <= ref_clk_edge_rt(0) & ref_clk_edge;
+                  --take the 2's complement number after we latched it
+                  if ((ref_clk_edge_event = "01") and (ref_clk_edge_rt = "01")) then
+                     ref_clk_compare_cnt_latch <= not ref_clk_compare_cnt_latch +1;
+                  end if;
+               end if;
+            end if;
          end if;
-      end if;
-   end if;
-end process;
+      end process;
 
 -- increment clock counters'
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      if (reset_logic(3) = '1') then
-         sys_clk_counter <= (others => '0');
-      else
- 	 sys_clk_counter <= sys_clk_counter + 1;
-      end if;
-   end if;
-end process;
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if (reset_logic(3) = '1') then
+               sys_clk_counter <= (others => '0');
+            else
+               sys_clk_counter <= sys_clk_counter + 1;
+            end if;
+         end if;
+      end process;
 
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      if (reset_logic(3) = '1') then
-           rec_clk_0_msb_meta <= '0';
-           ref_clk_msb_meta   <= '0';
-	   rec_clk0_msb       <= "00";
-	   ref_clk_msb        <= "00";
-      else -- double flop msb count bit to system clock domain
-	   rec_clk_0_msb_meta <= rec_clk0_cnt(COUNTER_UPPER_VALUE-1);
-	   rec_clk0_msb       <= rec_clk0_msb(1)&rec_clk_0_msb_meta;
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if (reset_logic(3) = '1') then
+               rec_clk_0_msb_meta <= '0';
+               ref_clk_msb_meta   <= '0';
+               rec_clk0_msb       <= "00";
+               ref_clk_msb        <= "00";
+            else  -- double flop msb count bit to system clock domain
+               rec_clk_0_msb_meta <= rec_clk0_cnt(COUNTER_UPPER_VALUE-1);
+               rec_clk0_msb       <= rec_clk0_msb(1) & rec_clk_0_msb_meta;
 
-	   ref_clk_msb_meta <= ref_clk_cnt(COUNTER_UPPER_VALUE-1);
-	   ref_clk_msb      <= ref_clk_msb(1)&ref_clk_msb_meta;
-      end if;
-   end if;
-end process;
+               ref_clk_msb_meta <= ref_clk_cnt(COUNTER_UPPER_VALUE-1);
+               ref_clk_msb      <= ref_clk_msb(1) & ref_clk_msb_meta;
+            end if;
+         end if;
+      end process;
 
 --falling edge detect
-rec_clk0_edge <= '1' when ((rec_clk0_msb(2)='1')and (rec_clk0_msb(1)='0')) else '0';
-ref_clk_edge  <= '1' when ((ref_clk_msb(2)='1')and (ref_clk_msb(1)='0')) else '0';
+      rec_clk0_edge <= '1' when ((rec_clk0_msb(2) = '1') and (rec_clk0_msb(1) = '0')) else '0';
+      ref_clk_edge  <= '1' when ((ref_clk_msb(2) = '1') and (ref_clk_msb(1) = '0'))   else '0';
 
 -- Manage counter reset/restart
-process (SYSTEM_CLK) begin
-   if rising_edge(SYSTEM_CLK) then
-      if (g_clk_rst = '1') then
- 	 reset_logic <= "1111";
-      else
-	 if (state = RESTART) then
-	    reset_logic <= "1111";
-	 else
-	    reset_logic <= reset_logic(2 downto 0) & '0';
+      process (SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if (g_clk_rst = '1') then
+               reset_logic <= "1111";
+            else
+               if (state = RESTART) then
+                  reset_logic <= "1111";
+               else
+                  reset_logic <= reset_logic(2 downto 0) & '0';
+               end if;
+            end if;
          end if;
-      end if;
-   end if;
-end process;
+      end process;
 
 
 
-   RECCLK_STABLE <= recclk_stable0;
-  end generate;
+      RECCLK_STABLE <= recclk_stable0;
+   end generate;
 
-  SIM_shortcut: if simulation and (EXAMPLE_SIMULATION = 1)generate
-    --This Generate-branch is ONLY FOR SIMULATION and is not implemented in HW.
-    --The whole purpose of this shortcut-branch is to avoid huge simulation-
-    --times.
-    process(SYSTEM_CLK)
-    begin
-      if rising_edge(SYSTEM_CLK) then
-        if GT_RST = '1' then
-          recclk_stable0_int <= '0';
-        else
-          recclk_stable0_int <= PLL_LK_DET;
-        end if;
-      end if;
-    end process;
-    RECCLK_STABLE <= recclk_stable0_int;
+   SIM_shortcut : if simulation and (EXAMPLE_SIMULATION = 1)generate
+      --This Generate-branch is ONLY FOR SIMULATION and is not implemented in HW.
+      --The whole purpose of this shortcut-branch is to avoid huge simulation-
+      --times.
+      process(SYSTEM_CLK)
+      begin
+         if rising_edge(SYSTEM_CLK) then
+            if GT_RST = '1' then
+               recclk_stable0_int <= '0';
+            else
+               recclk_stable0_int <= PLL_LK_DET;
+            end if;
+         end if;
+      end process;
+      RECCLK_STABLE <= recclk_stable0_int;
 
-  end generate;
+   end generate;
 
 
 
 end RTL;
-
-

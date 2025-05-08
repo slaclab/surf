@@ -25,7 +25,7 @@ entity AxiStreamMon is
    generic (
       TPD_G           : time    := 1 ns;
       RST_ASYNC_G     : boolean := false;
-      COMMON_CLK_G    : boolean := false;  -- true if axisClk = statusClk
+      COMMON_CLK_G    : boolean := false;      -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G : real    := 156.25E+6;  -- units of Hz
       AXIS_CONFIG_G   : AxiStreamConfigType);
    port (
@@ -37,16 +37,16 @@ entity AxiStreamMon is
       -- Status Interface
       statusClk    : in  sl;
       statusRst    : in  sl;
-      frameCnt     : out slv(63 downto 0);             -- units of frames
-      frameSize    : out slv(31 downto 0);             -- units of Byte
-      frameSizeMax : out slv(31 downto 0);             -- units of Byte
-      frameSizeMin : out slv(31 downto 0);             -- units of Byte
-      frameRate    : out slv(31 downto 0);             -- units of Hz
-      frameRateMax : out slv(31 downto 0);             -- units of Hz
-      frameRateMin : out slv(31 downto 0);             -- units of Hz
-      bandwidth    : out slv(63 downto 0);             -- units of Byte/s
-      bandwidthMax : out slv(63 downto 0);             -- units of Byte/s
-      bandwidthMin : out slv(63 downto 0));            -- units of Byte/s
+      frameCnt     : out slv(63 downto 0);     -- units of frames
+      frameSize    : out slv(31 downto 0);     -- units of Byte
+      frameSizeMax : out slv(31 downto 0);     -- units of Byte
+      frameSizeMin : out slv(31 downto 0);     -- units of Byte
+      frameRate    : out slv(31 downto 0);     -- units of Hz
+      frameRateMax : out slv(31 downto 0);     -- units of Hz
+      frameRateMin : out slv(31 downto 0);     -- units of Hz
+      bandwidth    : out slv(63 downto 0);     -- units of Byte/s
+      bandwidthMax : out slv(63 downto 0);     -- units of Byte/s
+      bandwidthMin : out slv(63 downto 0));    -- units of Byte/s
 end AxiStreamMon;
 
 architecture rtl of AxiStreamMon is

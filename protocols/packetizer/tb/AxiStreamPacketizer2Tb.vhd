@@ -46,17 +46,17 @@ architecture tb of AxiStreamPacketizer2Tb is
    constant NUM_CHANNELS_C       : integer          := 4;
 
    -- component ports
-   signal axisClk                : sl;                                               -- [in]
-   signal axisRst                : sl;                                               -- [in]
-   signal rearbitrate            : sl;                                               -- [out]
+   signal axisClk                : sl;  -- [in]
+   signal axisRst                : sl;  -- [in]
+   signal rearbitrate            : sl;  -- [out]
    signal prbsTxAxisMasters      : AxiStreamMasterArray(NUM_CHANNELS_C-1 downto 0);  -- [in]
-   signal prbsTxAxisSlaves       : AxiStreamSlaveArray(NUM_CHANNELS_C-1 downto 0);   -- [out]
+   signal prbsTxAxisSlaves       : AxiStreamSlaveArray(NUM_CHANNELS_C-1 downto 0);  -- [out]
    signal muxAxisMaster          : AxiStreamMasterType;
    signal muxAxisSlave           : AxiStreamSlaveType;
-   signal packetizedAxisMaster   : AxiStreamMasterType;                              -- [out]
-   signal packetizedAxisSlave    : AxiStreamSlaveType;                               -- [in]
-   signal depacketizedAxisMaster : AxiStreamMasterType;                              -- [out]
-   signal depacketizedAxisSlave  : AxiStreamSlaveType;                               -- [in]
+   signal packetizedAxisMaster   : AxiStreamMasterType;  -- [out]
+   signal packetizedAxisSlave    : AxiStreamSlaveType;   -- [in]
+   signal depacketizedAxisMaster : AxiStreamMasterType;  -- [out]
+   signal depacketizedAxisSlave  : AxiStreamSlaveType;   -- [in]
    signal demuxedAxisMasters     : AxiStreamMasterArray(NUM_CHANNELS_C-1 downto 0);
 
    constant PACKETIZER_IN_AXIS_CFG_C : AxiStreamConfigType := (
@@ -144,9 +144,9 @@ begin
 
    U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
-         TPD_G                => TPD_G,
-         CRC_EN_G             => true,
-         INPUT_PIPE_STAGES_G  => 0)
+         TPD_G               => TPD_G,
+         CRC_EN_G            => true,
+         INPUT_PIPE_STAGES_G => 0)
       port map (
          axisClk     => axisClk,                 -- [in]
          axisRst     => axisRst,                 -- [in]

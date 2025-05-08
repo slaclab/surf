@@ -28,7 +28,7 @@ architecture test of AxiStreamBytePackerTb is
 
    constant SRC_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16, -- 128 bits
+      TDATA_BYTES_C => 16,              -- 128 bits
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -37,7 +37,7 @@ architecture test of AxiStreamBytePackerTb is
 
    constant DST_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16, -- 128 bits
+      TDATA_BYTES_C => 16,              -- 128 bits
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -50,9 +50,9 @@ architecture test of AxiStreamBytePackerTb is
    signal axiClk : sl;
    signal axiRst : sl;
 
-   signal testInMaster    : AxiStreamMasterArray(15 downto 0);
-   signal testOutMaster   : AxiStreamMasterArray(15 downto 0);
-   signal testFail        : slv(15 downto 0);
+   signal testInMaster  : AxiStreamMasterArray(15 downto 0);
+   signal testOutMaster : AxiStreamMasterArray(15 downto 0);
+   signal testFail      : slv(15 downto 0);
 
 begin
 
@@ -62,7 +62,7 @@ begin
    U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 10030 ns)  -- Hold reset for this long)
       port map (
          clkP => axiClk,
@@ -82,16 +82,16 @@ begin
             axiRst      => axiRst,
             mAxisMaster => testInMaster(i));
 
-      U_Pack: entity surf.AxiStreamBytePacker
+      U_Pack : entity surf.AxiStreamBytePacker
          generic map (
             TPD_G           => TPD_G,
             SLAVE_CONFIG_G  => SRC_CONFIG_C,
             MASTER_CONFIG_G => DST_CONFIG_C)
          port map (
-            axiClk       => axiClk,
-            axiRst       => axiRst,
-            sAxisMaster  => testInMaster(i),
-            mAxisMaster  => testOutMaster(i));
+            axiClk      => axiClk,
+            axiRst      => axiRst,
+            sAxisMaster => testInMaster(i),
+            mAxisMaster => testOutMaster(i));
 
       U_PackRx : entity surf.AxiStreamBytePackerTbRx
          generic map (

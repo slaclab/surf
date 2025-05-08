@@ -33,22 +33,22 @@ entity sfixedMultAdd is
       TPD_G                : time                      := 1 ns;
       LATENCY_G            : natural range 3 to 100    := 3;
       BYPASS_CREG_G        : boolean                   := false;
-      RND_SIMPLE_G         : boolean                   := false; -- may interfere with large mult inference (35x27)
+      RND_SIMPLE_G         : boolean                   := false;  -- may interfere with large mult inference (35x27)
       OUT_OVERFLOW_STYLE_G : fixed_overflow_style_type := fixed_wrap;
       OUT_ROUNDING_STYLE_G : fixed_round_style_type    := fixed_truncate);
    port (
-      clk     : in  sl;
+      clk  : in  sl;
       -- rst may cause issues inferring DSP48
-      rst     : in  sl := '0';
-      a       : in  sfixed;
-      aVld    : in  sl := '0';
-      b       : in  sfixed;
-      bVld    : in  sl := '0';
-      c       : in  sfixed;
-      cVld    : in  sl := '0';
+      rst  : in  sl := '0';
+      a    : in  sfixed;
+      aVld : in  sl := '0';
+      b    : in  sfixed;
+      bVld : in  sl := '0';
+      c    : in  sfixed;
+      cVld : in  sl := '0';
       -- outputs
-      y       : out sfixed;
-      yVld    : out sl);
+      y    : out sfixed;
+      yVld : out sl);
 end entity sfixedMultAdd;
 
 architecture rtl of sfixedMultAdd is
@@ -66,41 +66,41 @@ architecture rtl of sfixedMultAdd is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      areg   => (others => '0'),
-      breg   => (others => '0'),
-      creg   => (others => '0'),
-      crreg  => (others => '0'),
-      mreg   => (others => '0'),
-      preg   => (others => (others => '0')),
-      vld    => (others => '0'));
+      areg  => (others => '0'),
+      breg  => (others => '0'),
+      creg  => (others => '0'),
+      crreg => (others => '0'),
+      mreg  => (others => '0'),
+      preg  => (others => (others => '0')),
+      vld   => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process( a, b, c, aVld, bVld, cVld, r ) is
+   comb : process(a, aVld, b, bVld, c, cVld, r) is
       variable v : RegType;
    begin
       -- latch current value
       v := r;
 
-      v.areg   := a;
-      v.breg   := b;
-      v.creg   := c;
-      v.crreg  := r.creg;
+      v.areg  := a;
+      v.breg  := b;
+      v.creg  := c;
+      v.crreg := r.creg;
 
       if BYPASS_CREG_G then
-         v.vld(0) := aVld and bVld;
-         v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
+         v.vld(0)                    := aVld and bVld;
+         v.vld(LATENCY_G-1 downto 1) := r.vld(LATENCY_G-2 downto 0);
          -- cVld comes in 2 c-c later
-         v.vld(2) := v.vld(2) and cVld;
+         v.vld(2)                    := v.vld(2) and cVld;
       else
-         v.vld(0) := aVld and bVld and cVld;
-         v.vld(LATENCY_G-1 downto 1)  := r.vld(LATENCY_G-2 downto 0);
+         v.vld(0)                    := aVld and bVld and cVld;
+         v.vld(LATENCY_G-1 downto 1) := r.vld(LATENCY_G-2 downto 0);
       end if;
 
-      v.mreg    := r.areg * r.breg;
+      v.mreg := r.areg * r.breg;
       if BYPASS_CREG_G then
          v.preg(2) := resize(r.mreg + c, v.preg(2), OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
       else
@@ -109,12 +109,12 @@ begin
       v.preg(LATENCY_G-1 downto 3) := r.preg(LATENCY_G-2 downto 2);
 
       -- register for next cycle
-      rin  <= v;
+      rin <= v;
 
       -- registered outputs
-      yVld    <= r.vld(LATENCY_G-1);
+      yVld <= r.vld(LATENCY_G-1);
       --y       <= resize(r.preg(LATENCY_G-1), y, OUT_OVERFLOW_STYLE_G, OUT_ROUNDING_STYLE_G);
-      y       <= r.preg(LATENCY_G-1);
+      y    <= r.preg(LATENCY_G-1);
 
    end process comb;
 

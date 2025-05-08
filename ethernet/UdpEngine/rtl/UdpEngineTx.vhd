@@ -31,27 +31,32 @@ entity UdpEngineTx is
       TPD_G          : time          := 1 ns;
       -- UDP General Generic
       SIZE_G         : positive      := 1;
-      TX_FLOW_CTRL_G : boolean       := true; -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      IS_CLIENT_G    : boolean       := false;
       PORT_G         : PositiveArray := (0 => 8192));
    port (
       -- Interface to IPV4 Engine
-      obUdpMaster  : out AxiStreamMasterType;
-      obUdpSlave   : in  AxiStreamSlaveType;
+      obUdpMaster   : out AxiStreamMasterType;
+      obUdpSlave    : in  AxiStreamSlaveType;
       -- Interface to User Application
-      linkUp       : out slv(SIZE_G-1 downto 0);
-      localMac     : in  slv(47 downto 0);
-      localIp      : in  slv(31 downto 0);
-      remotePort   : in  Slv16Array(SIZE_G-1 downto 0);
-      remoteIp     : in  Slv32Array(SIZE_G-1 downto 0);
-      remoteMac    : in  Slv48Array(SIZE_G-1 downto 0);
-      ibMasters    : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
-      ibSlaves     : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
+      linkUp        : out slv(SIZE_G-1 downto 0);
+      localMac      : in  slv(47 downto 0);
+      localIp       : in  slv(31 downto 0);
+      remotePort    : in  Slv16Array(SIZE_G-1 downto 0);
+      remoteIp      : in  Slv32Array(SIZE_G-1 downto 0);
+      remoteMac     : in  Slv48Array(SIZE_G-1 downto 0);
+      ibMasters     : in  AxiStreamMasterArray(SIZE_G-1 downto 0);
+      ibSlaves      : out AxiStreamSlaveArray(SIZE_G-1 downto 0);
+      arpTabPos     : out Slv8Array(SIZE_G-1 downto 0);
+      arpTabFound   : in  slv(SIZE_G-1 downto 0)        := (others => '0');
+      arpTabIpAddr  : in  Slv32Array(SIZE_G-1 downto 0) := (others => (others => '0'));
+      arpTabMacAddr : in  Slv48Array(SIZE_G-1 downto 0) := (others => (others => '0'));
       -- Interface to DHCP Engine
-      obDhcpMaster : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      obDhcpSlave  : out AxiStreamSlaveType;
+      obDhcpMaster  : in  AxiStreamMasterType           := AXI_STREAM_MASTER_INIT_C;
+      obDhcpSlave   : out AxiStreamSlaveType;
       -- Clock and Reset
-      clk          : in  sl;
-      rst          : in  sl);
+      clk           : in  sl;
+      rst           : in  sl);
 end UdpEngineTx;
 
 architecture rtl of UdpEngineTx is
@@ -60,6 +65,7 @@ architecture rtl of UdpEngineTx is
 
    type StateType is (
       IDLE_S,
+      ACC_ARP_TAB_S,
       DHCP_HDR_S,
       HDR_S,
       DHCP_BUFFER_S,
@@ -74,6 +80,7 @@ architecture rtl of UdpEngineTx is
       eofe        : sl;
       chPntr      : natural range 0 to SIZE_G-1;
       index       : natural range 0 to SIZE_G-1;
+      arpPos      : Slv8Array(SIZE_G-1 downto 0);
       obDhcpSlave : AxiStreamSlaveType;
       ibSlaves    : AxiStreamSlaveArray(SIZE_G-1 downto 0);
       txMaster    : AxiStreamMasterType;
@@ -87,6 +94,7 @@ architecture rtl of UdpEngineTx is
       eofe        => '0',
       chPntr      => 0,
       index       => 0,
+      arpPos      => (others => (others => '0')),
       obDhcpSlave => AXI_STREAM_SLAVE_INIT_C,
       ibSlaves    => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
@@ -103,10 +111,12 @@ architecture rtl of UdpEngineTx is
 
 begin
 
-   comb : process (ibMasters, localIp, localMac, obDhcpMaster, r, remoteIp,
-                   remoteMac, remotePort, rst, txSlave) is
-      variable v : RegType;
-      variable i : natural;
+   comb : process (arpTabFound, arpTabIpAddr, arpTabMacAddr, ibMasters,
+                   localIp, localMac, obDhcpMaster, r, remoteIp, remoteMac,
+                   remotePort, rst, txSlave) is
+      variable v       : RegType;
+      variable arpPosV : Slv8Array(SIZE_G-1 downto 0);
+      variable i       : natural;
    begin
       -- Latch the current value
       v := r;
@@ -123,12 +133,12 @@ begin
 
       for i in SIZE_G-1 downto 0 loop
          -- Check if link is up
-         if (localMac /= 0)       and  -- Non-zero local MAC address
-            (localIp /= 0)        and  -- Non-zero local IP address
-            (PORT_G(i) /= 0)      and  -- Non-zero local UDP port
-            (remoteMac(i) /= 0)   and  -- Non-zero remote MAC address
-            (remoteIp(i) /= 0)    and  -- Non-zero remote IP address
-            (remotePort(i) /= 0) then  -- Non-zero remote UDP port
+         if (localMac /= 0) and         -- Non-zero local MAC address
+                           (localIp /= 0) and      -- Non-zero local IP address
+                           (PORT_G(i) /= 0) and    -- Non-zero local UDP port
+                           (remoteMac(i) /= 0) and  -- Non-zero remote MAC address
+                           (remoteIp(i) /= 0) and  -- Non-zero remote IP address
+                           (remotePort(i) /= 0) then  -- Non-zero remote UDP port
             -- Link Up
             v.linkUp(i) := '1';
          else
@@ -156,7 +166,7 @@ begin
                   -- Write the first header
                   v.txMaster.tValid               := '1';
                   v.txMaster.tData(47 downto 0)   := (others => '1');  -- Destination MAC address
-                  v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
+                  v.txMaster.tData(63 downto 48)  := x"0000";     -- All 0s
                   v.txMaster.tData(95 downto 64)  := (others => '0');  -- Source IP address
                   v.txMaster.tData(127 downto 96) := (others => '1');  -- Destination IP address
                   ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
@@ -168,31 +178,84 @@ begin
                end if;
             -- Check for data and remote MAC is non-zero
             elsif (ibMasters(r.index).tValid = '1') and (v.txMaster.tValid = '0') then
+               -- Check if need to access ARP Table
+               if ibMasters(r.index).tDest = x"00" or IS_CLIENT_G = false then
+                  -- Check if link down and blowing off the data
+                  if (r.linkUp(r.index) = '0') and TX_FLOW_CTRL_G then
+                     -- Blow off the data
+                     v.ibSlaves(r.index).tReady := '1';
+                  -- Check for SOF
+                  elsif (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.index)) = '1') then
+                     -- Check if link up
+                     if (r.linkUp(r.index) = '1') then
+                        -- Latch the index
+                        v.chPntr                        := r.index;
+                        -- Write the first header
+                        v.txMaster.tValid               := '1';
+                        v.txMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
+                        v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
+                        v.txMaster.tData(95 downto 64)  := localIp;  -- Source IP address
+                        v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address
+                        ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
+                        -- Next state
+                        v.state                         := HDR_S;
+                     end if;
+                  else
+                     -- Blow off the data
+                     v.ibSlaves(r.index).tReady := '1';
+                  end if;
+               else
+                  v.chPntr         := r.index;
+                  arpPosV(r.index) := ibMasters(r.index).tDest;
+                  v.state          := ACC_ARP_TAB_S;
+               end if;
+            end if;
+         -----------------------------------------------------------------------
+         when ACC_ARP_TAB_S =>
+            arpPosV(r.chPntr) := ibMasters(r.chPntr).tDest;
+            if arpTabFound(r.chPntr) = '0' then
+               v.linkUp(r.chPntr)          := '0';
+               -- Blow off the data..
+               v.ibSlaves(r.chPntr).tReady := '1';
+               -- ..until the last frame
+               if (ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibMasters(r.chPntr)) = '1' or ibMasters(r.chPntr).tLast = '1') then
+                  v.state := IDLE_S;
+               end if;
+            else
                -- Check if link down and blowing off the data
-               if (r.linkUp(r.index) = '0') and TX_FLOW_CTRL_G then
-                  -- Blow off the data
-                  v.ibSlaves(r.index).tReady := '1';
+               if (r.linkUp(r.chPntr) = '0') and TX_FLOW_CTRL_G then
+                  -- Blow off the data..
+                  v.ibSlaves(r.chPntr).tReady := '1';
+                  -- ..until the last frame
+                  if (ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibMasters(r.chPntr)) = '1' or ibMasters(r.chPntr).tLast = '1') then
+                     v.state := IDLE_S;
+                  end if;
                -- Check for SOF
-               elsif (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.index)) = '1') then
+               elsif (ssiGetUserSof(EMAC_AXIS_CONFIG_C, ibMasters(r.chPntr)) = '1') then
                   -- Check if link up
-                  if (r.linkUp(r.index) = '1') then
+                  if (r.linkUp(r.chPntr) = '1') then
                      -- Latch the index
-                     v.chPntr                        := r.index;
+                     v.chPntr                        := r.chPntr;
                      -- Write the first header
                      v.txMaster.tValid               := '1';
-                     v.txMaster.tData(47 downto 0)   := remoteMac(r.index);  -- Destination MAC address
+                     v.txMaster.tData(47 downto 0)   := arpTabMacAddr(r.chPntr);  -- Destination MAC address
                      v.txMaster.tData(63 downto 48)  := x"0000";  -- All 0s
                      v.txMaster.tData(95 downto 64)  := localIp;  -- Source IP address
-                     v.txMaster.tData(127 downto 96) := remoteIp(r.index);  -- Destination IP address
+                     v.txMaster.tData(127 downto 96) := arpTabIpAddr(r.chPntr);  -- Destination IP address
                      ssiSetUserSof(EMAC_AXIS_CONFIG_C, v.txMaster, '1');
                      -- Next state
                      v.state                         := HDR_S;
                   end if;
                else
-                  -- Blow off the data
-                  v.ibSlaves(r.index).tReady := '1';
+                  -- Blow off the data..
+                  v.ibSlaves(r.chPntr).tReady := '1';
+                  -- ..until the last frame
+                  if (ssiGetUserEofe(EMAC_AXIS_CONFIG_C, ibMasters(r.chPntr)) = '1' or ibMasters(r.chPntr).tLast = '1') then
+                     v.state := IDLE_S;
+                  end if;
                end if;
             end if;
+
          ------------------------------------------------
          -- Notes: Non-Standard IPv4 Pseudo Header Format
          ------------------------------------------------
@@ -382,6 +445,7 @@ begin
       obDhcpSlave <= v.obDhcpSlave;
       txMaster    <= r.txMaster;
       linkUp      <= r.linkUp;
+      arpTabPos   <= arpPosV;
 
       -- Reset
       if (rst = '1') then

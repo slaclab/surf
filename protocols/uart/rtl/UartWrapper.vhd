@@ -18,15 +18,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
 entity UartWrapper is
-
    generic (
       TPD_G             : time                  := 1 ns;
-      CLK_FREQ_G        : real                  := 125.0e6;
+      CLK_FREQ_G        : real                  := 125.0E+6;
       BAUD_RATE_G       : integer               := 115200;
       BAUD_MULT_G       : integer range 1 to 16 := 16;
       STOP_BITS_G       : integer range 1 to 2  := 1;
@@ -48,7 +46,6 @@ entity UartWrapper is
       -- Serial IO
       tx      : out sl;
       rx      : in  sl);
-
 end entity UartWrapper;
 
 architecture rtl of UartWrapper is

@@ -18,37 +18,36 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2bPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Pgp2bGtp7MultiLane is
    generic (
       TPD_G                 : time                 := 1 ns;
-      COMMON_CLK_G          : boolean              := false;-- set true if (stableClk = axilClk)
+      COMMON_CLK_G          : boolean              := false;  -- set true if (stableClk = axilClk)
       ----------------------------------------------------------------------------------------------
       -- GT Settings
       ----------------------------------------------------------------------------------------------
       -- Sim Generics
       SIM_GTRESET_SPEEDUP_G : string               := "FALSE";
       SIM_VERSION_G         : string               := "2.0";
-      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;                    --units of seconds
+      STABLE_CLOCK_PERIOD_G : real                 := 4.0E-9;  --units of seconds
       -- Configure PLL
       RXOUT_DIV_G           : integer              := 2;
       TXOUT_DIV_G           : integer              := 2;
-      RX_CLK25_DIV_G        : integer              := 7;      -- Set by wizard
-      TX_CLK25_DIV_G        : integer              := 7;      -- Set by wizard
-      PMA_RSV_G             : bit_vector           := x"00000333";               -- Set by wizard
-      RX_OS_CFG_G           : bit_vector           := "0001111110000";           -- Set by wizard
+      RX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      TX_CLK25_DIV_G        : integer              := 7;  -- Set by wizard
+      PMA_RSV_G             : bit_vector           := x"00000333";  -- Set by wizard
+      RX_OS_CFG_G           : bit_vector           := "0001111110000";  -- Set by wizard
       RXCDR_CFG_G           : bit_vector           := x"0000107FE206001041010";  -- Set by wizard
-      RXLPM_INCM_CFG_G      : bit                  := '1';    -- Set by wizard
-      RXLPM_IPCM_CFG_G      : bit                  := '0';    -- Set by wizard
+      RXLPM_INCM_CFG_G      : bit                  := '1';  -- Set by wizard
+      RXLPM_IPCM_CFG_G      : bit                  := '0';  -- Set by wizard
       DYNAMIC_QPLL_G        : boolean              := false;
       TX_PLL_G              : string               := "PLL0";
       RX_PLL_G              : string               := "PLL1";
@@ -63,28 +62,28 @@ entity Pgp2bGtp7MultiLane is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G       : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G     : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G       : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G     : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G           : integer range 1 to 4 := 4;
       TX_POLARITY_G         : sl                   := '0';
       RX_POLARITY_G         : sl                   := '0';
-      TX_ENABLE_G           : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G           : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G           : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
-      qPllRxSelect     : in  slv(1 downto 0) := "00";
-      qPllTxSelect     : in  slv(1 downto 0) := "00";
+      qPllRxSelect     : in  slv(1 downto 0)                  := "00";
+      qPllTxSelect     : in  slv(1 downto 0)                  := "00";
       gtQPllOutRefClk  : in  slv(1 downto 0);
       gtQPllOutClk     : in  slv(1 downto 0);
       gtQPllLock       : in  slv(1 downto 0);
       gtQPllRefClkLost : in  slv(1 downto 0);
       gtQPllReset      : out slv(1 downto 0);
       -- Gt Serial IO
-      gtTxP            : out slv((LANE_CNT_G-1) downto 0);    -- GT Serial Transmit Positive
-      gtTxN            : out slv((LANE_CNT_G-1) downto 0);    -- GT Serial Transmit Negative
-      gtRxP            : in  slv((LANE_CNT_G-1) downto 0);    -- GT Serial Receive Positive
-      gtRxN            : in  slv((LANE_CNT_G-1) downto 0);    -- GT Serial Receive Negative
+      gtTxP            : out slv((LANE_CNT_G-1) downto 0);  -- GT Serial Transmit Positive
+      gtTxN            : out slv((LANE_CNT_G-1) downto 0);  -- GT Serial Transmit Negative
+      gtRxP            : in  slv((LANE_CNT_G-1) downto 0);  -- GT Serial Receive Positive
+      gtRxN            : in  slv((LANE_CNT_G-1) downto 0);  -- GT Serial Receive Negative
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxRecClk      : out sl;        -- recovered clock
@@ -123,11 +122,10 @@ entity Pgp2bGtp7MultiLane is
       axilReadSlaves   : out AxiLiteReadSlaveArray((LANE_CNT_G-1) downto 0);
       axilWriteMasters : in  AxiLiteWriteMasterArray((LANE_CNT_G-1) downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
       axilWriteSlaves  : out AxiLiteWriteSlaveArray((LANE_CNT_G-1) downto 0));
-
 end Pgp2bGtp7MultiLane;
 
--- Define architecture
 architecture rtl of Pgp2bGtp7MultiLane is
+
    --------------------------------------------------------------------------------------------------
    -- Types
    --------------------------------------------------------------------------------------------------
@@ -260,14 +258,14 @@ begin
             TX_BUF_ADDR_MODE_G       => TX_BUF_ADDR_MODE_G,
             RX_BUF_EN_G              => true,
             RX_OUTCLK_SRC_G          => "OUTCLKPMA",
-            RX_USRCLK_SRC_G          => "RXOUTCLK",    -- Not 100% sure, doesn't really matter
+            RX_USRCLK_SRC_G          => "RXOUTCLK",  -- Not 100% sure, doesn't really matter
             RX_DLY_BYPASS_G          => '1',
             RX_DDIEN_G               => '0',
             RX_BUF_ADDR_MODE_G       => "FULL",
-            RX_ALIGN_MODE_G          => "GT",          -- Default
-            ALIGN_COMMA_DOUBLE_G     => "FALSE",       -- Default
+            RX_ALIGN_MODE_G          => "GT",        -- Default
+            ALIGN_COMMA_DOUBLE_G     => "FALSE",     -- Default
             ALIGN_COMMA_ENABLE_G     => "1111111111",  -- Default
-            ALIGN_COMMA_WORD_G       => 2,             -- Default
+            ALIGN_COMMA_WORD_G       => 2,           -- Default
             ALIGN_MCOMMA_DET_G       => "TRUE",
             ALIGN_MCOMMA_VALUE_G     => "1010000011",  -- Default
             ALIGN_MCOMMA_EN_G        => '1',
@@ -276,48 +274,48 @@ begin
             ALIGN_PCOMMA_EN_G        => '1',
             SHOW_REALIGN_COMMA_G     => "FALSE",
             RXSLIDE_MODE_G           => "AUTO",
-            RX_DISPERR_SEQ_MATCH_G   => "TRUE",        -- Default
-            DEC_MCOMMA_DETECT_G      => "TRUE",        -- Default
-            DEC_PCOMMA_DETECT_G      => "TRUE",        -- Default
-            DEC_VALID_COMMA_ONLY_G   => "FALSE",       -- Default
-            CBCC_DATA_SOURCE_SEL_G   => "DECODED",     -- Default
-            CLK_COR_SEQ_2_USE_G      => "FALSE",       -- Default
-            CLK_COR_KEEP_IDLE_G      => "FALSE",       -- Default
+            RX_DISPERR_SEQ_MATCH_G   => "TRUE",      -- Default
+            DEC_MCOMMA_DETECT_G      => "TRUE",      -- Default
+            DEC_PCOMMA_DETECT_G      => "TRUE",      -- Default
+            DEC_VALID_COMMA_ONLY_G   => "FALSE",     -- Default
+            CBCC_DATA_SOURCE_SEL_G   => "DECODED",   -- Default
+            CLK_COR_SEQ_2_USE_G      => "FALSE",     -- Default
+            CLK_COR_KEEP_IDLE_G      => "FALSE",     -- Default
             CLK_COR_MAX_LAT_G        => 21,
             CLK_COR_MIN_LAT_G        => 18,
-            CLK_COR_PRECEDENCE_G     => "TRUE",        -- Default
-            CLK_COR_REPEAT_WAIT_G    => 0,             -- Default
+            CLK_COR_PRECEDENCE_G     => "TRUE",      -- Default
+            CLK_COR_REPEAT_WAIT_G    => 0,           -- Default
             CLK_COR_SEQ_LEN_G        => 4,
-            CLK_COR_SEQ_1_ENABLE_G   => "1111",        -- Default
+            CLK_COR_SEQ_1_ENABLE_G   => "1111",      -- Default
             CLK_COR_SEQ_1_1_G        => "0110111100",
             CLK_COR_SEQ_1_2_G        => "0100011100",
             CLK_COR_SEQ_1_3_G        => "0100011100",
             CLK_COR_SEQ_1_4_G        => "0100011100",
             CLK_CORRECT_USE_G        => "TRUE",
-            CLK_COR_SEQ_2_ENABLE_G   => "0000",        -- Default
+            CLK_COR_SEQ_2_ENABLE_G   => "0000",      -- Default
             CLK_COR_SEQ_2_1_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_2_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_3_G        => "0000000000",  -- Default
             CLK_COR_SEQ_2_4_G        => "0000000000",  -- Default
             RX_CHAN_BOND_EN_G        => true,
             RX_CHAN_BOND_MASTER_G    => (i = 0),
-            CHAN_BOND_KEEP_ALIGN_G   => "FALSE",       -- Default
+            CHAN_BOND_KEEP_ALIGN_G   => "FALSE",     -- Default
             CHAN_BOND_MAX_SKEW_G     => 10,
-            CHAN_BOND_SEQ_LEN_G      => 1,             -- Default
+            CHAN_BOND_SEQ_LEN_G      => 1,           -- Default
             CHAN_BOND_SEQ_1_1_G      => "0110111100",
             CHAN_BOND_SEQ_1_2_G      => "0111011100",
             CHAN_BOND_SEQ_1_3_G      => "0111011100",
             CHAN_BOND_SEQ_1_4_G      => "0111011100",
-            CHAN_BOND_SEQ_1_ENABLE_G => "1111",        -- Default
+            CHAN_BOND_SEQ_1_ENABLE_G => "1111",      -- Default
             CHAN_BOND_SEQ_2_1_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_2_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_3_G      => "0000000000",  -- Default
             CHAN_BOND_SEQ_2_4_G      => "0000000000",  -- Default
-            CHAN_BOND_SEQ_2_ENABLE_G => "0000",        -- Default
-            CHAN_BOND_SEQ_2_USE_G    => "FALSE",       -- Default
-            FTS_DESKEW_SEQ_ENABLE_G  => "1111",        -- Default
-            FTS_LANE_DESKEW_CFG_G    => "1111",        -- Default
-            FTS_LANE_DESKEW_EN_G     => "FALSE")       -- Default
+            CHAN_BOND_SEQ_2_ENABLE_G => "0000",      -- Default
+            CHAN_BOND_SEQ_2_USE_G    => "FALSE",     -- Default
+            FTS_DESKEW_SEQ_ENABLE_G  => "1111",      -- Default
+            FTS_LANE_DESKEW_CFG_G    => "1111",      -- Default
+            FTS_LANE_DESKEW_EN_G     => "FALSE")     -- Default
          port map (
             stableClkIn      => stableClk,
             qPllRxSelect     => qPllRxSelect,

@@ -156,16 +156,16 @@ architecture rtl of I2cSlave is
 
    constant REG_INIT_C : i2cslv_reg_type := (
       slvstate => idle,
-      active => false,
-      addr => false,
-      sreg => (others => '0'),
-      cnt => (others => '0'),
-      scl => '0',
-      sda => '0',
-      i2ci => (others => (scl => '0', sda => '0')),
-      scloen => I2C_HIZ_C,
-      sdaoen => I2C_HIZ_C,
-      o => I2C_SLAVE_OUT_INIT_C);
+      active   => false,
+      addr     => false,
+      sreg     => (others => '0'),
+      cnt      => (others => '0'),
+      scl      => '0',
+      sda      => '0',
+      i2ci     => (others => (scl => '0', sda => '0')),
+      scloen   => I2C_HIZ_C,
+      sdaoen   => I2C_HIZ_C,
+      o        => I2C_SLAVE_OUT_INIT_C);
 
    -----------------------------------------------------------------------------
    -- Subprograms
@@ -200,12 +200,12 @@ architecture rtl of I2cSlave is
    -----------------------------------------------------------------------------
 
    -- Register interface
-   signal r : i2cslv_reg_type := REG_INIT_C;
+   signal r   : i2cslv_reg_type := REG_INIT_C;
    signal rin : i2cslv_reg_type;
 
 begin
 
-   comb : process (r, sRst, i2ci, i2cSlaveIn)
+   comb : process (i2cSlaveIn, i2ci, r, sRst)
       variable v       : i2cslv_reg_type;
       variable sclfilt : std_logic_vector(FILTER_G-1 downto 0);
       variable sdafilt : std_logic_vector(FILTER_G-1 downto 0);
@@ -459,7 +459,7 @@ begin
       i2co.enable <= i2cSlaveIn.enable;
    end process comb;
 
-   reg : process (clk, aRst)
+   reg : process (aRst, clk)
    begin  -- process reg
       if (aRst = '1') then
          r.slvstate   <= idle            after TPD_G;

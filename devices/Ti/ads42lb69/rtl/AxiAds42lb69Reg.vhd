@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -25,10 +24,10 @@ use surf.AxiAds42lb69Pkg.all;
 
 entity AxiAds42lb69Reg is
    generic (
-      TPD_G              : time              := 1 ns;
-      SIM_SPEEDUP_G      : boolean           := false;
-      ADC_CLK_FREQ_G     : real              := 250.00E+6; -- units of Hz
-      DMODE_INIT_G       : slv(1 downto 0)   := "00");
+      TPD_G          : time            := 1 ns;
+      SIM_SPEEDUP_G  : boolean         := false;
+      ADC_CLK_FREQ_G : real            := 250.00E+6;  -- units of Hz
+      DMODE_INIT_G   : slv(1 downto 0) := "00");
    port (
       -- AXI-Lite Register Interface (axiClk domain)
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -42,8 +41,7 @@ entity AxiAds42lb69Reg is
       adcClk         : in  sl;
       adcRst         : in  sl;
       axiClk         : in  sl;
-      axiRst         : in  sl
-   );
+      axiRst         : in  sl);
 end AxiAds42lb69Reg;
 
 architecture rtl of AxiAds42lb69Reg is
@@ -64,15 +62,15 @@ architecture rtl of AxiAds42lb69Reg is
       axiWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C);
 
    type AdcType is record
-      timer         : natural range 0 to TIMEOUT_1S_C;
-      smplCnt       : natural range 0 to 7;
-      armed         : sl;
+      timer   : natural range 0 to TIMEOUT_1S_C;
+      smplCnt : natural range 0 to 7;
+      armed   : sl;
    end record AdcType;
 
    constant ADC_INIT_C : AdcType := (
-      timer         => 0,
-      smplCnt       => 0,
-      armed         => '0');
+      timer   => 0,
+      smplCnt => 0,
+      armed   => '0');
 
    signal r    : RegType := REG_INIT_C;
    signal rin  : RegType;
@@ -83,12 +81,10 @@ architecture rtl of AxiAds42lb69Reg is
 
 begin
 
-
-
    -------------------------------
    -- Configuration Register
    -------------------------------
-   comb : process (axiRst, adcRst, axiReadMaster, axiWriteMaster, r, ra, regIn) is
+   comb : process (adcRst, axiReadMaster, axiRst, axiWriteMaster, r, ra, regIn) is
       variable v            : RegType;
       variable va           : AdcType;
       variable axiStatus    : AxiLiteStatusType;
@@ -96,14 +92,14 @@ begin
       variable axiReadResp  : slv(1 downto 0);
    begin
       -- Latch the current value
-      v := r;
+      v  := r;
       va := ra;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave, axiStatus);
 
       -- Reset strobe signals
-      v.regOut.delayIn.load := (others=>(others=>'0'));
+      v.regOut.delayIn.load := (others => (others => '0'));
       v.regOut.delayIn.rst  := '0';
 
       -- Increment the counter (ADC clock domain)
@@ -111,10 +107,10 @@ begin
       -- Check the timer for 1 second timeout
       if ra.timer = TIMEOUT_1S_C then
          -- Reset the counters
-         va.timer := 0;
+         va.timer   := 0;
          va.smplCnt := 0;
          -- Set the flag
-         va.armed := '1';
+         va.armed   := '1';
       end if;
       -- Count ADC samples (ADC clock domain)
       if ra.armed = '1' then
@@ -220,7 +216,7 @@ begin
          axiSlaveWriteResponse(v.axiWriteSlave, axiWriteResp);
       elsif (axiStatus.readEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"60" =>
@@ -309,17 +305,17 @@ begin
       end if;
       -- Synchronous Reset
       if adcRst = '1' then
-         va             := ADC_INIT_C;
+         va := ADC_INIT_C;
       end if;
 
       -- Register the variable for next clock cycle
-      rin <= v;
+      rin  <= v;
       rain <= va;
 
       -- Outputs
-      axiReadSlave   <= r.axiReadSlave;
-      axiWriteSlave  <= r.axiWriteSlave;
-      config         <= r.regOut;
+      axiReadSlave  <= r.axiReadSlave;
+      axiWriteSlave <= r.axiWriteSlave;
+      config        <= r.regOut;
 
    end process comb;
 
@@ -348,14 +344,14 @@ begin
             TPD_G        => TPD_G,
             DATA_WIDTH_G => 16)
          port map (
-            wr_clk   => adcClk,
-            wr_en    => ra.armed,
-            din      => status.adcData(ch),
-            rd_clk   => axiClk,
-            rd_en    => regIn.adcValid(ch),
-            valid    => regIn.adcValid(ch),
-            dout     => regIn.adcData(ch)
-         );
+            wr_clk => adcClk,
+            wr_en  => ra.armed,
+            din    => status.adcData(ch),
+            rd_clk => axiClk,
+            rd_en  => regIn.adcValid(ch),
+            valid  => regIn.adcValid(ch),
+            dout   => regIn.adcData(ch)
+            );
    end generate;
 
    regIn.delayOut <= status.delayOut;

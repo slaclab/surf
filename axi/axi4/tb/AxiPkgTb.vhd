@@ -25,7 +25,7 @@ architecture tb of AxiPkgTb is
 
    constant AXI_CFG_C : AxiConfigType := (
       ADDR_WIDTH_C => 32,               -- 32-bit address interface
-      DATA_BYTES_C => 16,               -- 128-bit data interface (matches the AXIS stream)
+      DATA_BYTES_C => 16,  -- 128-bit data interface (matches the AXIS stream)
       ID_BITS_C    => 5,                -- Up to 32 DMA IDS
       LEN_BITS_C   => 8);               -- 8-bit awlen/arlen interface
 

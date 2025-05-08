@@ -24,28 +24,26 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
-use surf.jesd204bpkg.all;
+use surf.Jesd204bpkg.all;
 
 entity JesdLmfcGen is
    generic (
-      TPD_G        : time   := 1 ns;
-      K_G          : positive   := 32;
-      F_G          : positive   := 2);
+      TPD_G : time     := 1 ns;
+      K_G   : positive := 32;
+      F_G   : positive := 2);
    port (
-      clk      : in  sl;
-      rst      : in  sl;
+      clk : in sl;
+      rst : in sl;
 
       -- Synchronization inputs
-      nSync_i  : in  sl;
-      sysref_i : in  sl;
+      nSync_i  : in sl;
+      sysref_i : in sl;
 
       -- Outs
       sysrefRe_o : out sl;
-      lmfc_o     : out sl
-   );
+      lmfc_o     : out sl);
 end entity JesdLmfcGen;
 
 architecture rtl of JesdLmfcGen is
@@ -61,18 +59,17 @@ architecture rtl of JesdLmfcGen is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      sysrefD1  => '0',
-      cnt       => (others => '0'),
-      lmfc      => '0',
-      sysrefRe  => '0'
-   );
+      sysrefD1 => '0',
+      cnt      => (others => '0'),
+      lmfc     => '0',
+      sysrefRe => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (r, rst,sysref_i,nSync_i) is
+   comb : process (nSync_i, r, rst, sysref_i) is
       variable v : RegType;
    begin
       v := r;
@@ -88,16 +85,20 @@ begin
 
       -- LMFC is aligned to sysref on rising edge of sysref_i.
       -- The alignment is only done when nSync_i='0'
-      if (r.sysrefRe = '1' and nSync_i = '0' ) then
+      if (r.sysrefRe = '1' and nSync_i = '0') then
          v.cnt  := (others => '0');
          v.lmfc := '1';
       elsif (r.cnt = PERIOD_C) then
          v.cnt  := (others => '0');
          v.lmfc := '1';
       else
-         v.cnt := r.cnt + 1;
+         v.cnt  := r.cnt + 1;
          v.lmfc := '0';
       end if;
+
+      -- Output assignment
+      lmfc_o     <= r.lmfc;
+      sysrefRe_o <= r.sysrefRe;
 
       if (rst = '1') then
          v := REG_INIT_C;
@@ -114,8 +115,4 @@ begin
       end if;
    end process seq;
 
-   -- Output assignment
-   lmfc_o       <= r.lmfc;
-   sysrefRe_o   <= r.sysrefRe;
----------------------------------------
 end architecture rtl;

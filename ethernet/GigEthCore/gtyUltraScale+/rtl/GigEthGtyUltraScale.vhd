@@ -33,6 +33,7 @@ entity GigEthGtyUltraScale is
       MEMORY_TYPE_G     : string              := "ultra";
       JUMBO_G           : boolean             := true;
       PAUSE_EN_G        : boolean             := true;
+      ROCEV2_EN_G       : boolean             := false;
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean             := false;
       -- AXI Streaming Configurations
@@ -92,18 +93,18 @@ architecture mapping of GigEthGtyUltraScale is
          pma_reset              : in  std_logic;
          mmcm_locked            : in  std_logic;
          independent_clock_bufg : in  std_logic;
-         gmii_txd               : in  std_logic_vector (7 downto 0);
+         gmii_txd               : in  std_logic_vector(7 downto 0);
          gmii_tx_en             : in  std_logic;
          gmii_tx_er             : in  std_logic;
-         gmii_rxd               : out std_logic_vector (7 downto 0);
+         gmii_rxd               : out std_logic_vector(7 downto 0);
          gmii_rx_dv             : out std_logic;
          gmii_rx_er             : out std_logic;
          gmii_isolate           : out std_logic;
-         configuration_vector   : in  std_logic_vector (4 downto 0);
+         configuration_vector   : in  std_logic_vector(4 downto 0);
          an_interrupt           : out std_logic;
-         an_adv_config_vector   : in  std_logic_vector (15 downto 0);
+         an_adv_config_vector   : in  std_logic_vector(15 downto 0);
          an_restart_config      : in  std_logic;
-         status_vector          : out std_logic_vector (15 downto 0);
+         status_vector          : out std_logic_vector(15 downto 0);
          reset                  : in  std_logic;
          gtpowergood            : out std_logic;
          signal_detect          : in  std_logic;
@@ -188,6 +189,7 @@ begin
          JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
          PAUSE_512BITS_G   => PAUSE_512BITS_C,
+         ROCEV2_EN_G       => ROCEV2_EN_G,
          PHY_TYPE_G        => "GMII",
          PRIM_CONFIG_G     => AXIS_CONFIG_G)
       port map (

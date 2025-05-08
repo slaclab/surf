@@ -54,7 +54,7 @@ entity FifoCascade is
       almost_full   : out sl;
       full          : out sl;
       not_full      : out sl;
-      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0); -- Output stage = 0
+      progFullVec   : out slv(CASCADE_SIZE_G-1 downto 0);  -- Output stage = 0
       --Read Ports (rd_clk domain)
       rd_clk        : in  sl;           --unused if GEN_SYNC_FIFO_G = true
       rd_en         : in  sl := '0';
@@ -75,11 +75,13 @@ architecture mapping of FifoCascade is
 
    type FifoDataType is array (CASCADE_SIZE_C downto 0) of slv((DATA_WIDTH_G-1) downto 0);
 
-   signal progFull,
-      cascadeClk : sl;
-   signal readJump,
-      validJump,
-      AFullJump : slv(CASCADE_SIZE_C downto 0);
+   signal progFull   : sl;
+   signal cascadeClk : sl;
+
+   signal readJump  : slv(CASCADE_SIZE_C downto 0);
+   signal validJump : slv(CASCADE_SIZE_C downto 0);
+   signal AFullJump : slv(CASCADE_SIZE_C downto 0);
+
    signal dataJump : FifoDataType;
 
 begin

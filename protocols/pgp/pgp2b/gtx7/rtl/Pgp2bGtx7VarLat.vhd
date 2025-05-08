@@ -46,7 +46,7 @@ entity Pgp2bGtx7VarLat is
 
       PMA_RSV_G    : bit_vector := x"00018480";
       RX_OS_CFG_G  : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G  : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G  : bit_vector := x"03000023FF40200020";  -- Set by wizard
       RXDFEXYDEN_G : sl         := '0';                    -- Set by wizard
 
       -- RX Equalizer Attributes
@@ -71,8 +71,8 @@ entity Pgp2bGtx7VarLat is
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;                -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true);               -- Enable RX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
       stableClk        : in  sl;        -- GT needs a stable clock to "boot up"

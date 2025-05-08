@@ -48,7 +48,7 @@ entity Pgp4Gtp7Wrapper is
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
       TX_CELL_WORDS_MAX_G         : integer                     := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
-      TX_MUX_MODE_G               : string                      := "INDEXED";   -- Or "ROUTED"
+      TX_MUX_MODE_G               : string                      := "INDEXED";  -- Or "ROUTED"
       TX_MUX_TDEST_ROUTES_G       : Slv8Array                   := (0      => "--------");  -- Only used in ROUTED mode
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7        := 0;
       TX_MUX_ILEAVE_EN_G          : boolean                     := true;
@@ -82,10 +82,10 @@ entity Pgp4Gtp7Wrapper is
       pgpClk            : out slv(NUM_LANES_G-1 downto 0);
       pgpClkRst         : out slv(NUM_LANES_G-1 downto 0);
       -- Non VC Rx Signals
-      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0) := (others => PGP4_RX_IN_INIT_C);
+      pgpRxIn           : in  Pgp4RxInArray(NUM_LANES_G-1 downto 0)                  := (others => PGP4_RX_IN_INIT_C);
       pgpRxOut          : out Pgp4RxOutArray(NUM_LANES_G-1 downto 0);
       -- Non VC Tx Signals
-      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0) := (others => PGP4_TX_IN_INIT_C);
+      pgpTxIn           : in  Pgp4TxInArray(NUM_LANES_G-1 downto 0)                  := (others => PGP4_TX_IN_INIT_C);
       pgpTxOut          : out Pgp4TxOutArray(NUM_LANES_G-1 downto 0);
       -- Frame Transmit Interface
       pgpTxMasters      : in  AxiStreamMasterArray((NUM_LANES_G*NUM_VC_G)-1 downto 0);
@@ -200,7 +200,7 @@ begin
             mAxiReadMasters     => axilReadMasters,
             mAxiReadSlaves      => axilReadSlaves);
 
-      U_QPLL : entity surf.Pgp3Gtp7Qpll -- Same IP core for both PGPv3 and PGPv4
+      U_QPLL : entity surf.Pgp3Gtp7Qpll  -- Same IP core for both PGPv3 and PGPv4
          generic map (
             TPD_G         => TPD_G,
             EN_DRP_G      => EN_QPLL_DRP_G,
@@ -218,8 +218,8 @@ begin
             qpllRefClkLost  => qpllRefClkLost,
             qpllRst         => qpllRst,
             -- AXI-Lite Interface
-            axilClk         => axilClk,                              -- [in]
-            axilRst         => axilRst,                              -- [in]
+            axilClk         => axilClk,  -- [in]
+            axilRst         => axilRst,  -- [in]
             axilReadMaster  => axilReadMasters(QPLL_AXIL_INDEX_C),   -- [in]
             axilReadSlave   => axilReadSlaves(QPLL_AXIL_INDEX_C),    -- [out]
             axilWriteMaster => axilWriteMasters(QPLL_AXIL_INDEX_C),  -- [in]

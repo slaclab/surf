@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -59,7 +58,7 @@ architecture rtl of AxiMicronP30Reg is
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, HALF_CYCLE_FREQ_C);
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       RAM_READ_S,
       BLOCK_RD_S,
@@ -551,7 +550,7 @@ begin
          dina  => r.ramDin,
          -- Port B
          clkb  => axiClk,
-         rstb  => '0', -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
+         rstb  => '0',  -- Cadence Genus doesn't support not(RST_POLARITY_G) on port's initial value : Could not resolve complex expression. [CDFG-200] [elaborate]
          addrb => r.raddr,
          doutb => ramDout);
 

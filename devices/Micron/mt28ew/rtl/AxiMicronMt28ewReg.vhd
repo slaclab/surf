@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -57,7 +56,7 @@ architecture rtl of AxiMicronMt28ewReg is
 
    constant MAX_CNT_C : natural := getTimeRatio(AXI_CLK_FREQ_G, HALF_CYCLE_FREQ_C);
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       RAM_READ_S,
       BLOCK_RD_S,

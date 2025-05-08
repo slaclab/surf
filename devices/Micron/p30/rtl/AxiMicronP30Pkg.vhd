@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -57,4 +56,4 @@ package AxiMicronP30Pkg is
    type AxiMicronP30OutArray is array (natural range <>) of AxiMicronP30OutType;
    type AxiMicronP30OutVectorArray is array (integer range<>, integer range<>)of AxiMicronP30OutType;
 
-end package;
+end package AxiMicronP30Pkg;

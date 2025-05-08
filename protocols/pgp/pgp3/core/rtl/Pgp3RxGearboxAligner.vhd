@@ -28,7 +28,7 @@ use surf.StdRtlPkg.all;
 entity Pgp3RxGearboxAligner is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false;
       SLIP_WAIT_G    : integer := 32);
    port (
@@ -127,7 +127,7 @@ begin
       rin <= v;
 
       locked <= r.locked;
-      slip <= r.slip;
+      slip   <= r.slip;
 
    end process comb;
 

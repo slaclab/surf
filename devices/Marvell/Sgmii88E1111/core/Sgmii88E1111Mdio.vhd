@@ -16,7 +16,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.MdioPkg.all;
@@ -63,7 +62,7 @@ architecture rtl of Sgmii88E1111Mdio is
          mdioWriteInst(PHY_G, 22, X"0000", false),  -- select page 0
          mdioWriteInst(PHY_G, 4, X"0140", false),  -- advertise 10/100 FD only
          mdioWriteInst(PHY_G, 9, X"0200", false),  -- advertise 1000   FD only
-         mdioWriteInst(PHY_G, 18, X"0c00", false),  -- enable link status and ANEG IRQ
+         mdioWriteInst(PHY_G, 18, X"0C00", false),  -- enable link status and ANEG IRQ
          mdioWriteInst(PHY_G, 0, X"1340", true)    -- restart copper ANEG
          );
 
@@ -90,8 +89,7 @@ architecture rtl of Sgmii88E1111Mdio is
    constant REG_INIT_C : RegType := (
       s10_100  => '0',
       s100     => '0',
-      linkIsUp => '0'
-      );
+      linkIsUp => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -111,22 +109,17 @@ begin
          DIV_G           => DIV_G,
          PROG_INIT_G     => P_INIT_C,
          PROG_HDLR_G     => P_HDLR_C,
-         NUM_HDLR_ARGS_G => NUM_READ_ARGS_C
-         )
+         NUM_HDLR_ARGS_G => NUM_READ_ARGS_C)
       port map (
-         clk => clk,
-         rst => rst,
-
+         clk      => clk,
+         rst      => rst,
          initDone => initDone,
          hdlrDone => hdlrDone,
          args     => args,
-
-         mdc => mdc,
-         mdi => mdi,
-         mdo => mdo,
-
-         phyIrq => linkIrq
-         );
+         mdc      => mdc,
+         mdi      => mdi,
+         mdo      => mdo,
+         phyIrq   => linkIrq);
 
    COMB : process(args, hdlrDone, r)
       variable v   : RegType;
@@ -175,4 +168,3 @@ begin
    end process SEQ;
 
 end rtl;
-

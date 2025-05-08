@@ -30,8 +30,8 @@ architecture test of FirAverageTb is
    constant ERROR_TOL_C  : real    := 0.0001;
    constant RUN_CNT_C    : integer := 10000;
 
-   constant FILT_LEN_C  : integer := 16;
-   constant ILEAVE_C    : integer := 21;
+   constant FILT_LEN_C : integer := 16;
+   constant ILEAVE_C   : integer := 21;
 
    signal clk : std_logic := '0';
    signal rst : std_logic := '1';
@@ -43,23 +43,23 @@ architecture test of FirAverageTb is
       PASSED_S);
 
    type RegType is record
-       cnt      : integer;
-       passed   : sl;
-       failed   : sl;
-       halt     : sl;
-       dinR     : real;
-       doutR    : real;
-       din      : sfixed(0 downto -15);
-       dout     : sfixed(0 downto -15);
-       validIn  : sl;
-       validOut : sl;
-       userIn   : slv(3 downto 0);
-       userOut  : slv(3 downto 0);
-       filtArray : RealArray(FILT_LEN_C - 1 downto 0);
-       expected : real;
-       err      : real;
-       maxError : real;
-       state    : StateType;
+      cnt       : integer;
+      passed    : sl;
+      failed    : sl;
+      halt      : sl;
+      dinR      : real;
+      doutR     : real;
+      din       : sfixed(0 downto -15);
+      dout      : sfixed(0 downto -15);
+      validIn   : sl;
+      validOut  : sl;
+      userIn    : slv(3 downto 0);
+      userOut   : slv(3 downto 0);
+      filtArray : RealArray(FILT_LEN_C - 1 downto 0);
+      expected  : real;
+      err       : real;
+      maxError  : real;
+      state     : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -126,23 +126,23 @@ begin
          ILEAVE_CHAN_G => ILEAVE_C,
          USER_WIDTH_G  => r.userIn'length)
       port map (
-         clk       => clk,
-         rst       => rst,
-         validIn   => r.validIn,
-         userIn    => r.userIn,
-         din       => r.din,
-         validOut  => validOut,
-         userOut   => userOut,
-         dout      => dout);
+         clk      => clk,
+         rst      => rst,
+         validIn  => r.validIn,
+         userIn   => r.userIn,
+         din      => r.din,
+         validOut => validOut,
+         userOut  => userOut,
+         dout     => dout);
 
-   comb : process (dout, validOut, userOut, rst, r) is
-      variable v : RegType;
+   comb : process (dout, r, rst, userOut, validOut) is
+      variable v  : RegType;
       variable s1 : integer := 981;
       variable s2 : integer := 12541;
 
       variable rn : real;
 
-      impure function rand_n(min_val, max_val : real) return real is
+      impure function randNum(min_val, max_val : real) return real is
          variable re : real := 0.0;
          variable im : real := 0.0;
          variable r  : real := 0.0;
@@ -150,7 +150,7 @@ begin
          uniform(s1, s2, r);
          r := r * (max_val - min_val) + min_val;
          return r;
-      end function rand_n;
+      end function randNum;
 
    begin
 
@@ -165,28 +165,28 @@ begin
             v.validOut := validOut;
             v.userOut  := userOut;
 
-            v.cnt      := r.cnt + 1;
+            v.cnt := r.cnt + 1;
             if (r.cnt mod ILEAVE_C) = 0 then
-               rn          := rand_n(-0.5, 0.5);
-               v.userIn    := (others => '1');
-               v.validIn   := '1';
+               rn                                   := randNum(-0.5, 0.5);
+               v.userIn                             := (others => '1');
+               v.validIn                            := '1';
                -- compute expected value
                v.filtArray(FILT_LEN_C - 1 downto 1) := r.filtArray(FILT_LEN_C - 2 downto 0);
-               v.filtArray(0) := rn;
-               v.expected := realMean(v.filtArray);
+               v.filtArray(0)                       := rn;
+               v.expected                           := realMean(v.filtArray);
             else
                rn        := 0.0;
                v.userIn  := (others => '0');
                v.validIn := '0';
             end if;
 
-            v.dinR   := rn;
-            v.din    := to_sfixed(rn, v.din);
+            v.dinR := rn;
+            v.din  := to_sfixed(rn, v.din);
 
             if r.validOut = '1' then
-                v.doutR    := to_real(r.dout);
-                v.err      := abs(v.doutR - r.expected);
-                v.maxError := maximum(r.maxError, v.err);
+               v.doutR    := to_real(r.dout);
+               v.err      := abs(v.doutR - r.expected);
+               v.maxError := maximum(r.maxError, v.err);
             end if;
 
             if r.maxError > ERROR_TOL_C then
@@ -228,16 +228,17 @@ begin
    process(failed, passed)
    begin
       if passed = '1' then
-         report CR & LF & CR & LF &
+         assert false
+            report CR & LF & CR & LF &
             "Simulation Passed!" & CR & LF &
-             "Max error is " & real'image(r.maxError) &
-             CR & LF & CR & LF;
+            "Max error is " & real'image(r.maxError) &
+            CR & LF & CR & LF severity note;
       elsif failed = '1' then
          assert false
             report CR & LF & CR & LF &
-               "Simulation Failed!" & CR & LF &
-                "Max error is " & real'image(r.maxError) &
-                CR & LF & CR & LF severity failure;
+            "Simulation Failed!" & CR & LF &
+            "Max error is " & real'image(r.maxError) &
+            CR & LF & CR & LF severity failure;
       end if;
    end process;
 

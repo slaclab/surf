@@ -28,18 +28,18 @@ use surf.AxiDmaPkg.all;
 
 entity AxiStreamDmaWrite is
    generic (
-      TPD_G             : time                := 1 ns;
-      AXI_READY_EN_G    : boolean             := false;
+      TPD_G             : time                     := 1 ns;
+      AXI_READY_EN_G    : boolean                  := false;
       AXIS_CONFIG_G     : AxiStreamConfigType;
       AXI_CONFIG_G      : AxiConfigType;
-      AXI_BURST_G       : slv(1 downto 0)     := "01";
-      AXI_CACHE_G       : slv(3 downto 0)     := "1111";
+      AXI_BURST_G       : slv(1 downto 0)          := "01";
+      AXI_CACHE_G       : slv(3 downto 0)          := "1111";
       BURST_BYTES_G     : positive range 1 to 4096 := 4096;
-      SW_CACHE_EN_G     : boolean             := false;
-      ACK_WAIT_BVALID_G : boolean             := true;
-      PIPE_STAGES_G     : natural             := 1;
-      BYP_SHIFT_G       : boolean             := false;
-      BYP_CACHE_G       : boolean             := false);
+      SW_CACHE_EN_G     : boolean                  := false;
+      ACK_WAIT_BVALID_G : boolean                  := true;
+      PIPE_STAGES_G     : natural                  := 1;
+      BYP_SHIFT_G       : boolean                  := false;
+      BYP_CACHE_G       : boolean                  := false);
    port (
       -- Clock/Reset
       axiClk         : in  sl;
@@ -54,7 +54,7 @@ entity AxiStreamDmaWrite is
       -- AXI Interface
       axiWriteMaster : out AxiWriteMasterType;
       axiWriteSlave  : in  AxiWriteSlaveType;
-      axiWriteCtrl   : in  AxiCtrlType := AXI_CTRL_UNUSED_C);
+      axiWriteCtrl   : in  AxiCtrlType     := AXI_CTRL_UNUSED_C);
 end AxiStreamDmaWrite;
 
 architecture rtl of AxiStreamDmaWrite is
@@ -64,14 +64,14 @@ architecture rtl of AxiStreamDmaWrite is
       TDATA_BYTES_C => AXIS_CONFIG_G.TDATA_BYTES_C,
       TDEST_BITS_C  => AXIS_CONFIG_G.TDEST_BITS_C,
       TID_BITS_C    => AXIS_CONFIG_G.TID_BITS_C,
-      TKEEP_MODE_C  => TKEEP_NORMAL_C,  -- Override
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,   -- Override
       TUSER_BITS_C  => AXIS_CONFIG_G.TUSER_BITS_C,
-      TUSER_MODE_C  => TUSER_NORMAL_C); -- Override
+      TUSER_MODE_C  => TUSER_NORMAL_C);  -- Override
 
    constant DATA_BYTES_C      : integer         := LOC_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant ADDR_LSB_C        : integer         := bitSize(DATA_BYTES_C-1);
    constant AWLEN_C           : slv(7 downto 0) := getAxiLen(AXI_CONFIG_G, BURST_BYTES_G);
-   constant FIFO_ADDR_WIDTH_C : natural         := ite((AXI_CONFIG_G.LEN_BITS_C<3),4,(AXI_CONFIG_G.LEN_BITS_C+1));
+   constant FIFO_ADDR_WIDTH_C : natural         := ite((AXI_CONFIG_G.LEN_BITS_C < 3), 4, (AXI_CONFIG_G.LEN_BITS_C+1));
 
    type StateType is (
       IDLE_S,
@@ -140,10 +140,10 @@ begin
 
    U_AxiStreamShift : entity surf.AxiStreamShift
       generic map (
-         TPD_G             => TPD_G,
-         PIPE_STAGES_G     => PIPE_STAGES_G,
-         AXIS_CONFIG_G     => LOC_AXIS_CONFIG_C,
-         BYP_SHIFT_G       => BYP_SHIFT_G)
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => PIPE_STAGES_G,
+         AXIS_CONFIG_G => LOC_AXIS_CONFIG_C,
+         BYP_SHIFT_G   => BYP_SHIFT_G)
       port map (
          axisClk     => axiClk,
          axisRst     => axiRst,
@@ -216,7 +216,8 @@ begin
 
    end generate;
 
-   comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster, lastDet, pause, r, swCache) is
+   comb : process (axiRst, axiWriteSlave, cache, dmaReq, intAxisMaster,
+                   lastDet, pause, r, swCache) is
       variable v       : RegType;
       variable bytes   : natural;
       variable ibValid : sl;
@@ -261,7 +262,7 @@ begin
       end if;
 
       -- Count number of bytes in return data
-      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),LOC_AXIS_CONFIG_C);
+      bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0), LOC_AXIS_CONFIG_C);
 
       -- Check the AXI stream data cache
       if (lastDet = '1') or (cache.pause = '1') then
@@ -326,10 +327,10 @@ begin
                -- Update the Protection control
                v.wMaster.awprot := r.dmaReq.prot;
                -- Latch AXI awlen value
-               v.awlen     := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               v.awlen          := v.wMaster.awlen(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
                -- Update the threshold
-               v.threshold := resize(v.awlen, FIFO_ADDR_WIDTH_C);
-               v.threshold := v.threshold + 1;
+               v.threshold      := resize(v.awlen, FIFO_ADDR_WIDTH_C);
+               v.threshold      := v.threshold + 1;
                -- DMA request has dropped. Abort. This is needed to disable engine while it
                -- is still waiting for an inbound frame.
                if dmaReq.request = '0' then
@@ -398,16 +399,16 @@ begin
                -- -- Check for first AXIS word
                if (r.first = '0') then
                   -- Set the flag
-                  v.first                                                   := '1';
+                  v.first                                                       := '1';
                   -- Latch the tDest/tId/tUser values
-                  v.dmaAck.dest                                             := intAxisMaster.tDest;
-                  v.dmaAck.id                                               := intAxisMaster.tId;
+                  v.dmaAck.dest                                                 := intAxisMaster.tDest;
+                  v.dmaAck.id                                                   := intAxisMaster.tId;
                   v.dmaAck.firstUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster, conv_integer(r.shift));
                end if;
                -- -- Check for last AXIS word
                if (intAxisMaster.tLast = '1') and (r.last = '0') then
                   -- Set the flag
-                  v.last                                                   := '1';
+                  v.last                                                       := '1';
                   -- Latch the tUser value
                   v.dmaAck.lastUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster);
                end if;
@@ -458,10 +459,10 @@ begin
                -- Check for first AXIS word
                if (r.first = '0') then
                   -- Set the flag
-                  v.first                                                   := '1';
+                  v.first                                                       := '1';
                   -- Latch the tDest/tId/tUser values
-                  v.dmaAck.dest                                             := intAxisMaster.tDest;
-                  v.dmaAck.id                                               := intAxisMaster.tId;
+                  v.dmaAck.dest                                                 := intAxisMaster.tDest;
+                  v.dmaAck.id                                                   := intAxisMaster.tId;
                   v.dmaAck.firstUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster, conv_integer(r.shift));
                end if;
                -- Check for last AXIS word
@@ -469,7 +470,7 @@ begin
                   -- Latch the tUser value
                   v.dmaAck.lastUser(LOC_AXIS_CONFIG_C.TUSER_BITS_C-1 downto 0) := axiStreamGetUserField(LOC_AXIS_CONFIG_C, intAxisMaster);
                   -- Next state
-                  v.state                                                  := WAIT_S;
+                  v.state                                                      := WAIT_S;
                end if;
             end if;
          ----------------------------------------------------------------------

@@ -1174,7 +1174,7 @@ class Lmk048Base(pr.Device):
                         if (v.get() != data):
                             print(f'ID_VNDR_LOWER mismatch: {v.get()} != {data}')
                     else:
-                        v = getattr(self, 'LmkReg_0x%04X'%addr)
+                        v = getattr(self, f'LmkReg_0x{addr:04X}')
                         v.set(data)
 
         @self.command(description='Powerdown the sysref lines',)

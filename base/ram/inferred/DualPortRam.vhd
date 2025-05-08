@@ -26,13 +26,13 @@ entity DualPortRam is
       RST_ASYNC_G    : boolean                    := false;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
       MEMORY_TYPE_G  : string                     := "block";
-      REG_EN_G       : boolean                    := true;   -- This generic only with BRAM
+      REG_EN_G       : boolean                    := true;  -- This generic only with BRAM
       DOA_REG_G      : boolean                    := false;  -- This generic only with BRAM
       DOB_REG_G      : boolean                    := false;  -- This generic only with LUTRAM
       MODE_G         : string                     := "read-first";
       BYTE_WR_EN_G   : boolean                    := false;
       DATA_WIDTH_G   : integer range 1 to (2**24) := 16;
-      BYTE_WIDTH_G   : integer                    := 8;    -- If BRAM, should be multiple of 8 or 9
+      BYTE_WIDTH_G   : integer                    := 8;  -- If BRAM, should be multiple of 8 or 9
       ADDR_WIDTH_G   : integer range 1 to (2**24) := 4;
       INIT_G         : slv                        := "0");
    port (
@@ -61,7 +61,7 @@ architecture mapping of DualPortRam is
 
 begin
 
-   GEN_BRAM : if (MEMORY_TYPE_G/="distributed") generate
+   GEN_BRAM : if (MEMORY_TYPE_G /= "distributed") generate
       TrueDualPortRam_Inst : entity surf.TrueDualPortRam
          generic map (
             TPD_G          => TPD_G,
@@ -97,7 +97,7 @@ begin
             regceb  => regceb);
    end generate;
 
-   GEN_LUTRAM : if (MEMORY_TYPE_G="distributed") generate
+   GEN_LUTRAM : if (MEMORY_TYPE_G = "distributed") generate
       LutRam_Inst : entity surf.LutRam
          generic map (
             TPD_G          => TPD_G,

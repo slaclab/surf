@@ -11,3 +11,4 @@ from surf.protocols.coaxpress._CoaXPressAxiL import *
 from surf.protocols.coaxpress._Bootstrap     import *
 
 from surf.protocols.coaxpress._PhantomS991   import *
+from surf.protocols.coaxpress._PhantomS641   import *

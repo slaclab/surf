@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -46,6 +45,7 @@ end EthMacTxExportXlgmii;
 architecture rtl of EthMacTxExportXlgmii is
 
 begin
+
    -- Place holder for future code
    macObSlave     <= AXI_STREAM_SLAVE_FORCE_C;
    phyTxd         <= (others => '0');
@@ -53,4 +53,5 @@ begin
    txCountEn      <= '0';
    txUnderRun     <= '0';
    txLinkNotReady <= '0';
+
 end rtl;

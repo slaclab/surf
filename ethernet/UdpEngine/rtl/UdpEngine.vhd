@@ -22,23 +22,24 @@ use surf.AxiStreamPkg.all;
 entity UdpEngine is
    generic (
       -- Simulation Generics
-      TPD_G          : time          := 1 ns;
+      TPD_G             : time                    := 1 ns;
       -- UDP Server Generics
-      SERVER_EN_G    : boolean       := true;
-      SERVER_SIZE_G  : positive      := 1;
-      SERVER_PORTS_G : PositiveArray := (0 => 8192);
+      SERVER_EN_G       : boolean                 := true;
+      SERVER_SIZE_G     : positive                := 1;
+      SERVER_PORTS_G    : PositiveArray           := (0 => 8192);
       -- UDP Client Generics
-      CLIENT_EN_G    : boolean       := true;
-      CLIENT_SIZE_G  : positive      := 1;
-      CLIENT_PORTS_G : PositiveArray := (0 => 8193);
+      CLIENT_EN_G       : boolean                 := true;
+      CLIENT_SIZE_G     : positive                := 1;
+      CLIENT_PORTS_G    : PositiveArray           := (0 => 8193);
+      ARP_TAB_ENTRIES_G : positive range 1 to 255 := 4;
       -- General UDP/IGMP/ARP/DHCP Generics
-      TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
-      DHCP_G         : boolean       := false;
-      IGMP_G         : boolean       := false;
-      IGMP_GRP_SIZE  : positive      := 1;
-      CLK_FREQ_G     : real          := 156.25E+06;   -- In units of Hz
-      COMM_TIMEOUT_G : positive      := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
-      SYNTH_MODE_G   : string        := "inferred");  -- Synthesis mode for internal RAMs
+      TX_FLOW_CTRL_G    : boolean                 := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
+      DHCP_G            : boolean                 := false;
+      IGMP_G            : boolean                 := false;
+      IGMP_GRP_SIZE     : positive                := 1;
+      CLK_FREQ_G        : real                    := 156.25E+06;  -- In units of Hz
+      COMM_TIMEOUT_G    : positive                := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
+      SYNTH_MODE_G      : string                  := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Local Configurations
       localMac         : in  slv(47 downto 0);  --  big-Endian configuration
@@ -77,8 +78,9 @@ end UdpEngine;
 
 architecture mapping of UdpEngine is
 
-   signal clientRemoteDet : slv(CLIENT_SIZE_G-1 downto 0);
-   signal clientRemoteMac : Slv48Array(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteDetValid : slv(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteDetIp    : Slv32Array(CLIENT_SIZE_G-1 downto 0);
+   signal clientRemoteMac      : Slv48Array(CLIENT_SIZE_G-1 downto 0);
 
    signal remotePort      : Slv16Array(SERVER_SIZE_G-1 downto 0);
    signal remoteIp        : Slv32Array(SERVER_SIZE_G-1 downto 0);
@@ -94,6 +96,14 @@ architecture mapping of UdpEngine is
    signal obDhcpSlave  : AxiStreamSlaveType;
 
    signal localIp : slv(31 downto 0);
+
+   signal arpTabFound    : slv(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabMacAddr  : Slv48Array(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabIpAddr   : Slv32Array(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabIpWe     : slv(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabMacWe    : slv(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabMacAddrW : Slv48Array(CLIENT_SIZE_G-1 downto 0);
+   signal arpTabPos      : Slv8Array(CLIENT_SIZE_G-1 downto 0);
 
 begin
 
@@ -118,28 +128,29 @@ begin
          CLIENT_PORTS_G => CLIENT_PORTS_G)
       port map (
          -- Local Configurations
-         localIp          => localIp,
-         broadcastIp      => broadcastIp,
-         igmpIp           => igmpIp,
+         localIp              => localIp,
+         broadcastIp          => broadcastIp,
+         igmpIp               => igmpIp,
          -- Interface to IPV4 Engine
-         ibUdpMaster      => ibUdpMaster,
-         ibUdpSlave       => ibUdpSlave,
+         ibUdpMaster          => ibUdpMaster,
+         ibUdpSlave           => ibUdpSlave,
          -- Interface to UDP Server engine(s)
-         serverRemotePort => remotePort,
-         serverRemoteIp   => remoteIp,
-         serverRemoteMac  => serverRemoteMac,
-         obServerMasters  => obServerMasters,
-         obServerSlaves   => obServerSlaves,
+         serverRemotePort     => remotePort,
+         serverRemoteIp       => remoteIp,
+         serverRemoteMac      => serverRemoteMac,
+         obServerMasters      => obServerMasters,
+         obServerSlaves       => obServerSlaves,
          -- Interface to UDP Client engine(s)
-         clientRemoteDet  => clientRemoteDet,
-         obClientMasters  => obClientMasters,
-         obClientSlaves   => obClientSlaves,
+         clientRemoteDetValid => clientRemoteDetValid,
+         clientRemoteDetIp    => clientRemoteDetIp,
+         obClientMasters      => obClientMasters,
+         obClientSlaves       => obClientSlaves,
          -- Interface to DHCP Engine
-         ibDhcpMaster     => ibDhcpMaster,
-         ibDhcpSlave      => ibDhcpSlave,
+         ibDhcpMaster         => ibDhcpMaster,
+         ibDhcpSlave          => ibDhcpSlave,
          -- Clock and Reset
-         clk              => clk,
-         rst              => rst);
+         clk                  => clk,
+         rst                  => rst);
 
    GEN_DHCP : if (DHCP_G = true) generate
 
@@ -206,6 +217,33 @@ begin
 
    GEN_CLIENT : if (CLIENT_EN_G = true) generate
 
+      GEN_ARP_TABLES : for i in 0 to CLIENT_SIZE_G-1 generate
+         ArpIpTable_1 : entity surf.ArpIpTable
+            generic map (
+               TPD_G          => TPD_G,
+               CLK_FREQ_G     => CLK_FREQ_G,
+               COMM_TIMEOUT_G => COMM_TIMEOUT_G,
+               ENTRIES_G      => ARP_TAB_ENTRIES_G)
+            port map (
+               -- Clock and Reset
+               clk                  => clk,
+               rst                  => rst,
+               -- Read LUT
+               ipAddrIn             => clientRemoteIp(i),
+               pos                  => arpTabPos(i),
+               found                => arpTabFound(i),
+               macAddr              => arpTabMacAddr(i),
+               ipAddrOut            => arpTabIpAddr(i),
+               -- Refresh LUT
+               clientRemoteDetValid => clientRemoteDetValid(i),
+               clientRemoteDetIp    => clientRemoteDetIp(i),
+               -- Write LUT
+               ipWrEn               => arpTabIpWe(i),
+               IpWrAddr             => clientRemoteIp(i),
+               macWrEn              => arpTabMacWe(i),
+               macWrAddr            => arpTabMacAddrW(i));
+      end generate GEN_ARP_TABLES;
+
       U_UdpEngineArp : entity surf.UdpEngineArp
          generic map (
             TPD_G          => TPD_G,
@@ -214,41 +252,53 @@ begin
             COMM_TIMEOUT_G => COMM_TIMEOUT_G)
          port map (
             -- Local Configurations
-            localIp         => localIp,
+            localIp              => localIp,
             -- Interface to ARP Engine
-            arpReqMasters   => arpReqMasters,
-            arpReqSlaves    => arpReqSlaves,
-            arpAckMasters   => arpAckMasters,
-            arpAckSlaves    => arpAckSlaves,
+            arpReqMasters        => arpReqMasters,
+            arpReqSlaves         => arpReqSlaves,
+            arpAckMasters        => arpAckMasters,
+            arpAckSlaves         => arpAckSlaves,
+            -- Interface to ARP Table
+            arpTabFound          => arpTabFound,
+            arpTabMacAddr        => arpTabMacAddr,
+            arpTabIpWe           => arpTabIpWe,
+            arpTabMacWe          => arpTabMacWe,
+            arpTabMacAddrW       => arpTabMacAddrW,
             -- Interface to UDP Client engine(s)
-            clientRemoteDet => clientRemoteDet,
-            clientRemoteIp  => clientRemoteIp,
-            clientRemoteMac => clientRemoteMac,
+            clientRemoteDetValid => clientRemoteDetValid,
+            clientRemoteDetIp    => clientRemoteDetIp,
+            clientRemoteIp       => clientRemoteIp,
+            clientRemoteMac      => clientRemoteMac,
             -- Clock and Reset
-            clk             => clk,
-            rst             => rst);
+            clk                  => clk,
+            rst                  => rst);
 
       U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
             SIZE_G         => CLIENT_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
+            IS_CLIENT_G    => true,
             PORT_G         => CLIENT_PORTS_G)
          port map (
             -- Interface to IPV4 Engine
-            obUdpMaster => obUdpMasters(1),
-            obUdpSlave  => obUdpSlaves(1),
+            obUdpMaster   => obUdpMasters(1),
+            obUdpSlave    => obUdpSlaves(1),
             -- Interface to User Application
-            localMac    => localMac,
-            localIp     => localIp,
-            remotePort  => clientRemotePort,
-            remoteIp    => clientRemoteIp,
-            remoteMac   => clientRemoteMac,
-            ibMasters   => ibClientMasters,
-            ibSlaves    => ibClientSlaves,
+            localMac      => localMac,
+            localIp       => localIp,
+            remotePort    => clientRemotePort,
+            remoteIp      => clientRemoteIp,
+            remoteMac     => clientRemoteMac,
+            ibMasters     => ibClientMasters,
+            ibSlaves      => ibClientSlaves,
+            arpTabPos     => arpTabPos,
+            arpTabFound   => arpTabFound,
+            arpTabIpAddr  => arpTabIpAddr,
+            arpTabMacAddr => arpTabMacAddr,
             -- Clock and Reset
-            clk         => clk,
-            rst         => rst);
+            clk           => clk,
+            rst           => rst);
 
    end generate;
 

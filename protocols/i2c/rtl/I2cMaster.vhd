@@ -47,9 +47,9 @@ use surf.I2cPkg.all;
 entity I2cMaster is
    generic (
       TPD_G                : time                      := 1 ns;  -- Simulated propagation delay
-      OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;     -- output enable polarity
+      OUTPUT_EN_POLARITY_G : integer range 0 to 1      := 0;  -- output enable polarity
       PRESCALE_G           : integer range 0 to 655535 := 62;
-      FILTER_G             : integer range 2 to 512    := 126;   -- filter bit size
+      FILTER_G             : integer range 2 to 512    := 126;  -- filter bit size
       DYNAMIC_FILTER_G     : integer range 0 to 1      := 0);
    port (
       clk          : in  sl;
@@ -140,8 +140,8 @@ architecture rtl of I2cMaster is
 
    -- Outputs from byte_ctrl block
    signal byteCtrlOut : ByteCtrlOutType;
-   signal iSclOEn     : sl;                                           -- Internal SCL output enable
-   signal iSdaOEn     : sl;                                           -- Internal SDA output enablee
+   signal iSclOEn     : sl;             -- Internal SCL output enable
+   signal iSdaOEn     : sl;             -- Internal SDA output enablee
    signal filter      : slv((FILTER_G-1)*DYNAMIC_FILTER_G downto 0);  -- filt input to byte_ctrl
    signal arstL       : sl;
    signal coreRst     : sl;
@@ -201,7 +201,7 @@ begin
 
 
 
-   comb : process (r, byteCtrlOut, i2cMasterIn, srst)
+   comb : process (byteCtrlOut, i2cMasterIn, r, srst)
       variable v        : RegType;
       variable indexVar : integer;
    begin  -- process comb
@@ -264,7 +264,7 @@ begin
 
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
-                  if (r.tenbit = '1') then         -- Must send second half of addr if tenbit set
+                  if (r.tenbit = '1') then  -- Must send second half of addr if tenbit set
                      v.tenbit := '0';
                      v.state  := ADDR_S;
                   else
@@ -281,6 +281,7 @@ begin
                   v.i2cMasterOut.rdValid  := '1';
                   v.i2cMasterOut.rdData   := I2C_INVALID_ADDR_ERROR_C;
                   v.state                 := WAIT_TXN_REQ_S;
+                  v.coreRst               := '1';
                end if;
                if (r.tenbit = '0') and (i2cMasterIn.busReq = '1') then
                   v.i2cMasterOut.busAck := '1';
@@ -303,15 +304,15 @@ begin
          when WAIT_READ_DATA_S =>
             v.timer := r.timer + 1;
 
-            v.byteCtrlIn.stop  := r.byteCtrlIn.stop;   -- Hold stop or it wont get seen
+            v.byteCtrlIn.stop  := r.byteCtrlIn.stop;  -- Hold stop or it wont get seen
             v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
-            if (byteCtrlOut.cmdAck = '1') then         -- Master sent the command
-               v.byteCtrlIn.stop      := '0';          -- Drop stop asap or it will be repeated
+            if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
+               v.byteCtrlIn.stop      := '0';  -- Drop stop asap or it will be repeated
                v.byteCtrlIn.ackIn     := '0';
                v.i2cMasterOut.rdData  := byteCtrlOut.dout;
                v.i2cMasterOut.rdValid := '1';
-               if (i2cMasterIn.txnReq = '0') then      -- Last byte of txn
-                  v.i2cMasterOut.txnError := '0';      -- Necessary? Should already be 0
+               if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
+                  v.i2cMasterOut.txnError := '0';  -- Necessary? Should already be 0
                   v.state                 := WAIT_TXN_REQ_S;
                else
                   -- If not last byte, read another.
@@ -333,10 +334,10 @@ begin
             v.timer := r.timer + 1;
 
             v.byteCtrlIn.stop := r.byteCtrlIn.stop;
-            if (byteCtrlOut.cmdAck = '1') then        -- Master sent the command
-               if (byteCtrlOut.ackOut = '0') then     -- Slave ack'd the transfer
+            if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
+               if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
                   v.byteCtrlIn.stop    := '0';
-                  v.i2cMasterOut.wrAck := '1';        -- Pass wr ack to front end
+                  v.i2cMasterOut.wrAck := '1';     -- Pass wr ack to front end
                   if (i2cMasterIn.txnReq = '0') then  -- Last byte of txn
                      v.i2cMasterOut.txnError := '0';  -- Necessary, should already be 0?
                      v.state                 := WAIT_TXN_REQ_S;
@@ -350,6 +351,7 @@ begin
                   v.i2cMasterOut.rdValid  := '1';
                   v.i2cMasterOut.rdData   := I2C_WRITE_ACK_ERROR_C;
                   v.state                 := WAIT_TXN_REQ_S;
+                  v.coreRst               := '1';
                end if;
             end if;
 
@@ -363,6 +365,7 @@ begin
          v.i2cMasterOut.txnError := '1';
          v.i2cMasterOut.rdValid  := '1';
          v.i2cMasterOut.rdData   := I2C_ARBITRATION_LOST_ERROR_C;
+         v.coreRst               := '1';
       end if;
 
       -- Always monitor for timeouts.
@@ -396,7 +399,7 @@ begin
    end process comb;
    filter <= i2cMasterIn.filter when DYNAMIC_FILTER_G = 1 else (others => '0');
 
-   reg : process (clk, arst)
+   reg : process (arst, clk)
    begin
       if (arst = '1') then
          r <= REG_INIT_C after TPD_G;

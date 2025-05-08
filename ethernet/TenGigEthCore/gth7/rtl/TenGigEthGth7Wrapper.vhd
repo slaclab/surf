@@ -30,6 +30,7 @@ entity TenGigEthGth7Wrapper is
       NUM_LANE_G        : natural range 1 to 4             := 1;
       JUMBO_G           : boolean                          := true;
       PAUSE_EN_G        : boolean                          := true;
+      ROCEV2_EN_G       : boolean                          := false;
       -- QUAD PLL Configurations
       USE_GTREFCLK_G    : boolean                          := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
       REFCLK_DIV2_G     : boolean                          := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
@@ -126,13 +127,14 @@ begin
 
       TenGigEthGth7_Inst : entity surf.TenGigEthGth7
          generic map (
-            TPD_G           => TPD_G,
-            JUMBO_G         => JUMBO_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
+            TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
+            ROCEV2_EN_G   => ROCEV2_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

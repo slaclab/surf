@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -68,20 +68,20 @@ package Pgp2fcPkg is
       loopback => "000");
 
    type Pgp2fcRxOutType is record
-      phyRxReady   : sl;                             -- RX Phy is ready
-      linkReady    : sl;                             -- Local side has link
-      frameRx      : sl;                             -- A good frame was received
-      frameRxErr   : sl;                             -- An errored frame was received
-      cellError    : sl;                             -- A cell error has occured
-      linkDown     : sl;                             -- A link down event has occured
-      linkError    : sl;                             -- A link error has occured
-      fcValid      : sl;                             -- Fast Control word received
-      fcError      : sl;                             -- Fast Control word received with error
+      phyRxReady   : sl;                -- RX Phy is ready
+      linkReady    : sl;                -- Local side has link
+      frameRx      : sl;                -- A good frame was received
+      frameRxErr   : sl;                -- An errored frame was received
+      cellError    : sl;                -- A cell error has occured
+      linkDown     : sl;                -- A link down event has occured
+      linkError    : sl;                -- A link error has occured
+      fcValid      : sl;                -- Fast Control word received
+      fcError      : sl;  -- Fast Control word received with error
       fcWord       : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast control word
-      remLinkReady : sl;                             -- Far end side has link
-      remLinkData  : slv(7 downto 0);                -- Far end side User Data
-      remOverflow  : slv(3 downto 0);                -- Far end overflow status
-      remPause     : slv(3 downto 0);                -- Far end pause status
+      remLinkReady : sl;                -- Far end side has link
+      remLinkData  : slv(7 downto 0);   -- Far end side User Data
+      remOverflow  : slv(3 downto 0);   -- Far end overflow status
+      remPause     : slv(3 downto 0);   -- Far end pause status
    end record Pgp2fcRxOutType;
 
    type Pgp2fcRxOutArray is array (natural range <>) of Pgp2fcRxOutType;

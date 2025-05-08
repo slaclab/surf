@@ -75,39 +75,41 @@ architecture rtl of AxiStreamDmaV2Write is
       DUMP_S);
 
    type RegType is record
-      dmaWrDescReq  : AxiWriteDmaDescReqType;
-      dmaWrTrack    : AxiWriteDmaTrackType;
-      dmaWrDescRet  : AxiWriteDmaDescRetType;
-      result        : slv(1  downto 0);
-      reqCount      : slv(31 downto 0);
-      ackCount      : slv(31 downto 0);
-      stCount       : slv(15 downto 0);
-      awlen         : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
-      axiLen        : AxiLenType;
-      wMaster       : AxiWriteMasterType;
-      slave         : AxiStreamSlaveType;
-      state         : StateType;
-      lastUser      : slv(7 downto 0);
-      continue      : sl;
-      dmaWrIdle     : sl;
+      dmaWrDescReq : AxiWriteDmaDescReqType;
+      dmaWrTrack   : AxiWriteDmaTrackType;
+      dmaWrDescRet : AxiWriteDmaDescRetType;
+      result       : slv(1 downto 0);
+      reqCount     : slv(31 downto 0);
+      ackCount     : slv(31 downto 0);
+      stCount      : slv(31 downto 0);
+      timeoutCnt   : slv(31 downto 0);
+      awlen        : slv(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+      axiLen       : AxiLenType;
+      wMaster      : AxiWriteMasterType;
+      slave        : AxiStreamSlaveType;
+      state        : StateType;
+      lastUser     : slv(7 downto 0);
+      continue     : sl;
+      dmaWrIdle    : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dmaWrDescReq  => AXI_WRITE_DMA_DESC_REQ_INIT_C,
-      dmaWrTrack    => AXI_WRITE_DMA_TRACK_INIT_C,
-      dmaWrDescRet  => AXI_WRITE_DMA_DESC_RET_INIT_C,
-      result        => (others => '0'),
-      reqCount      => (others => '0'),
-      ackCount      => (others => '0'),
-      stCount       => (others => '0'),
-      awlen         => (others => '0'),
-      axiLen        => AXI_LEN_INIT_C,
-      wMaster       => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
-      slave         => AXI_STREAM_SLAVE_INIT_C,
-      state         => RESET_S,
-      lastUser      => (others=>'0'),
-      continue      => '0',
-      dmaWrIdle     => '0');
+      dmaWrDescReq => AXI_WRITE_DMA_DESC_REQ_INIT_C,
+      dmaWrTrack   => AXI_WRITE_DMA_TRACK_INIT_C,
+      dmaWrDescRet => AXI_WRITE_DMA_DESC_RET_INIT_C,
+      result       => (others => '0'),
+      reqCount     => (others => '0'),
+      ackCount     => (others => '0'),
+      stCount      => (others => '0'),
+      timeoutCnt   => (others => '0'),
+      awlen        => (others => '0'),
+      axiLen       => AXI_LEN_INIT_C,
+      wMaster      => axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000"),
+      slave        => AXI_STREAM_SLAVE_INIT_C,
+      state        => RESET_S,
+      lastUser     => (others => '0'),
+      continue     => '0',
+      dmaWrIdle    => '0');
 
    signal r             : RegType := REG_INIT_C;
    signal rin           : RegType;
@@ -143,10 +145,10 @@ begin
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
 
    -- State machine
-   comb : process (axiRst, axiWriteSlave, dmaWrDescAck, dmaWrDescRetAck,
-                   intAxisMaster, trackData, pause, r, axiCache) is
-      variable v       : RegType;
-      variable bytes   : natural;
+   comb : process (axiCache, axiRst, axiWriteSlave, dmaWrDescAck,
+                   dmaWrDescRetAck, intAxisMaster, pause, r, trackData) is
+      variable v     : RegType;
+      variable bytes : natural;
    begin
       -- Latch the current value
       v := r;
@@ -189,7 +191,7 @@ begin
       if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
          bytes := conv_integer(intAxisMaster.tKeep(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0));
       else
-         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0),AXIS_CONFIG_G);
+         bytes := getTKeep(intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0), AXIS_CONFIG_G);
       end if;
 
       -- State machine
@@ -206,7 +208,7 @@ begin
          when INIT_S =>
             v.dmaWrTrack.dest := r.dmaWrTrack.dest + 1;
             if r.dmaWrTrack.dest = 255 then
-               v.state           := IDLE_S;
+               v.state := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
@@ -221,7 +223,7 @@ begin
                   -- Frame is still in progress
                   if r.dmaWrTrack.inUse = '1' then
                      if r.dmaWrTrack.dropEn = '1' then
-                           -- Next state
+                        -- Next state
                         v.state := DUMP_S;
                      else
                         -- Next state
@@ -231,7 +233,7 @@ begin
                   -- New frame with same destination, new descriptor
                   else
                      v.dmaWrDescReq.valid := '1';
-                     v.state := REQ_S;
+                     v.state              := REQ_S;
                   end if;
 
                -- Wait for mem selection to match incoming frame
@@ -252,7 +254,7 @@ begin
                      -- Request a new descriptor
                      v.dmaWrDescReq.valid := '1';
                      -- Next state
-                     v.state := REQ_S;
+                     v.state              := REQ_S;
                   end if;
                end if;
             end if;
@@ -261,8 +263,8 @@ begin
             -- Wait for response and latch fields
             if dmaWrDescAck.valid = '1' then
                v.dmaWrTrack.inUse      := '1';
-               v.dmaWrTrack.size       := (others=>'0');
-               v.dmaWrTrack.firstUser  := (others=>'0');
+               v.dmaWrTrack.size       := (others => '0');
+               v.dmaWrTrack.firstUser  := (others => '0');
                v.dmaWrTrack.contEn     := dmaWrDescAck.contEn;
                v.dmaWrTrack.dropEn     := dmaWrDescAck.dropEn;
                v.dmaWrTrack.buffId     := dmaWrDescAck.buffId;
@@ -271,6 +273,7 @@ begin
                v.dmaWrTrack.metaAddr   := dmaWrDescAck.metaAddr;
                v.dmaWrTrack.address    := dmaWrDescAck.address;
                v.dmaWrTrack.maxSize    := dmaWrDescAck.maxSize;
+               v.dmaWrTrack.timeout    := dmaWrDescAck.timeout;
 
                -- Descriptor return calls for dumping frame?
                if dmaWrDescAck.dropEn = '1' then
@@ -284,11 +287,11 @@ begin
          ----------------------------------------------------------------------
          when ADDR_S =>
             -- Reset counter, continue and last user
-            v.stCount  := (others=>'0');
+            v.stCount  := (others => '0');
             v.continue := '0';
-            v.lastUser := (others=>'0');
+            v.lastUser := (others => '0');
             -- Determine transfer size aligned to 4k boundaries
-            getAxiLenProc(AXI_CONFIG_G,BURST_BYTES_G,r.dmaWrTrack.maxSize,r.dmaWrTrack.address,r.axiLen,v.axiLen);
+            getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.dmaWrTrack.maxSize, r.dmaWrTrack.address, r.axiLen, v.axiLen);
             -- Address can be sent
             if (v.wMaster.awvalid = '0') and (v.axiLen.valid = "11") then
                -- Set the memory address
@@ -303,28 +306,28 @@ begin
                   v.wMaster.awvalid := '1';
                   v.axiLen.valid    := "00";
                   -- Increment the counter
-                  v.reqCount := r.reqCount + 1;
+                  v.reqCount        := r.reqCount + 1;
                   -- Next state
-                  v.state := MOVE_S;
+                  v.state           := MOVE_S;
                end if;
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
             -- Incoming valid data
             if intAxisMaster.tValid = '1' then
-               v.stCount := (others=>'0');
+               v.stCount := (others => '0');
                -- Destination has changed, complete current write
                if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := PAD_S;
                -- Overflow detect
-               elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then -- Assumes max AXIS.TDATA width of 128-bits
+               elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then  -- Assumes max AXIS.TDATA width of 128-bits
                   -- Multi-descriptor DMA is supported
                   if r.dmaWrTrack.contEn = '1' then
-                     v.continue := '1';
+                     v.continue         := '1';
                      v.dmaWrTrack.inUse := '0';
                   else
                      v.dmaWrTrack.overflow := '1';
-                     v.dmaWrTrack.dropEn := '1';
+                     v.dmaWrTrack.dropEn   := '1';
                   end if;
                   -- Pad current write, dump of incoming frame will occur
                   -- after state machine returns to idle due to dropEn being set.
@@ -333,15 +336,15 @@ begin
                -- We are able to push more data
                elsif v.wMaster.wvalid = '0' then
                   -- Accept the data
-                  v.slave.tReady := '1';
+                  v.slave.tReady                               := '1';
                   -- Move the data
-                  v.wMaster.wvalid := '1';
+                  v.wMaster.wvalid                             := '1';
                   v.wMaster.wdata((DATA_BYTES_C*8)-1 downto 0) := intAxisMaster.tData((DATA_BYTES_C*8)-1 downto 0);
                   -- Set byte write strobes
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
                      v.wMaster.wstrb(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0) := genTKeep(bytes);
                   else
-                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0)                 := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
+                     v.wMaster.wstrb(DATA_BYTES_C-1 downto 0) := intAxisMaster.tKeep(DATA_BYTES_C-1 downto 0);
                   end if;
                   -- Address and size increment
                   v.dmaWrTrack.address := r.dmaWrTrack.address + DATA_BYTES_C;
@@ -397,11 +400,11 @@ begin
             end if;
          ----------------------------------------------------------------------
          when PAD_S =>
-            v.stCount := (others=>'0');
+            v.stCount := (others => '0');
             -- We are able to push more data
             if v.wMaster.wvalid = '0' then
                v.wMaster.wvalid := '1';
-               v.wMaster.wstrb := (others=>'0');
+               v.wMaster.wstrb  := (others => '0');
                -- Check for last AXI transfer
                if r.awlen = 0 then
                   -- Set the flag
@@ -437,14 +440,17 @@ begin
                -- Write data channel
                v.wMaster.wlast := '1';
 
+               -- Increment the counter
+               v.reqCount := r.reqCount + 1;
+
                -- Descriptor data, 64-bits
-               v.wMaster.wdata(63 downto 32)   := r.dmaWrTrack.size;
-               v.wMaster.wdata(31 downto 24)   := r.dmaWrTrack.firstUser;
-               v.wMaster.wdata(23 downto 16)   := r.lastUser;
-               v.wMaster.wdata(15 downto 4)    := (others => '0');
-               v.wMaster.wdata(3)              := r.continue;
-               v.wMaster.wdata(2)              := '0';
-               v.wMaster.wdata(1 downto 0)     := r.result;
+               v.wMaster.wdata(63 downto 32) := r.dmaWrTrack.size;
+               v.wMaster.wdata(31 downto 24) := r.dmaWrTrack.firstUser;
+               v.wMaster.wdata(23 downto 16) := r.lastUser;
+               v.wMaster.wdata(15 downto 4)  := (others => '0');
+               v.wMaster.wdata(3)            := r.continue;
+               v.wMaster.wdata(2)            := r.dmaWrTrack.overflow;
+               v.wMaster.wdata(1 downto 0)   := r.result;
 
                v.wMaster.wstrb := resize(x"FF", 128);
 
@@ -457,35 +463,37 @@ begin
             -- Previous return was acked
             if v.dmaWrDescRet.valid = '0' then
                -- Setup return record
-               v.dmaWrDescRet.buffId    := r.dmaWrTrack.buffId;
-               v.dmaWrDescRet.firstUser := r.dmaWrTrack.firstUser;
-               v.dmaWrDescRet.size      := r.dmaWrTrack.size;
-               v.dmaWrDescRet.dest      := r.dmaWrTrack.dest;
-               v.dmaWrDescRet.id        := r.dmaWrTrack.id;
-               v.dmaWrDescRet.lastUser  := r.lastUser;
-               v.dmaWrDescRet.continue  := r.continue;
-               v.dmaWrDescRet.result(2) := r.dmaWrTrack.overflow;
+               v.dmaWrDescRet.buffId             := r.dmaWrTrack.buffId;
+               v.dmaWrDescRet.firstUser          := r.dmaWrTrack.firstUser;
+               v.dmaWrDescRet.size               := r.dmaWrTrack.size;
+               v.dmaWrDescRet.dest               := r.dmaWrTrack.dest;
+               v.dmaWrDescRet.id                 := r.dmaWrTrack.id;
+               v.dmaWrDescRet.lastUser           := r.lastUser;
+               v.dmaWrDescRet.continue           := r.continue;
+               v.dmaWrDescRet.result(3)          := '0';
+               v.dmaWrDescRet.result(2)          := r.dmaWrTrack.overflow;
                v.dmaWrDescRet.result(1 downto 0) := r.result;
                -- Init record
-               v.dmaWrTrack.inUse := '0';
+               v.dmaWrTrack.inUse                := '0';
                -- Wait for all transactions to complete before returning descriptor
                if (r.ackCount = r.reqCount) or (ACK_WAIT_BVALID_G = false) then
                   v.dmaWrDescRet.valid := '1';
-                  v.state := IDLE_S;
+                  v.state              := IDLE_S;
                -- Check for ACK timeout
-               elsif (r.stCount = x"FFFF") then
+               elsif (r.stCount = r.dmaWrTrack.timeout) then
                   -- Set the flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
-                  v.dmaWrDescRet.valid := '1';
-                  v.reqCount := (others => '0');
-                  v.ackCount := (others => '0');
-                  v.state    := IDLE_S;
+                  v.dmaWrDescRet.valid              := '1';
+                  v.dmaWrDescRet.result(3)          := '1';
+                  v.reqCount                        := (others => '0');
+                  v.ackCount                        := (others => '0');
+                  v.state                           := IDLE_S;
                else
                   -- Increment the counter
                   v.stCount := r.stCount + 1;
                end if;
             else
-               v.stCount := (others=>'0');
+               v.stCount := (others => '0');
             end if;
          ----------------------------------------------------------------------
          when DUMP_S =>
@@ -500,11 +508,15 @@ begin
                   -- -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
-                     v.state := RETURN_S;
+                     if r.dmaWrTrack.metaEnable = '1' then
+                        v.state := META_S;
+                     else
+                        v.state := RETURN_S;
+                     end if;
                   end if;
                end if;
             end if;
-      ----------------------------------------------------------------------
+         ----------------------------------------------------------------------
          when others =>
             v.state := RESET_S;
       end case;
@@ -545,26 +557,26 @@ begin
    --------------------------
    -- Tracking RAM
    --------------------------
-   U_TrackRam: entity surf.DualPortRam
+   U_TrackRam : entity surf.DualPortRam
       generic map (
-         TPD_G          => TPD_G,
-         MEMORY_TYPE_G  => "block",
-         REG_EN_G       => true,
-         DOA_REG_G      => true,
-         DOB_REG_G      => true, -- 2 cycle read latency
-         MODE_G         => "write-first",
-         DATA_WIDTH_G   => AXI_WRITE_DMA_TRACK_SIZE_C,
-         ADDR_WIDTH_G   => 8)
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "block",
+         REG_EN_G      => true,
+         DOA_REG_G     => true,
+         DOB_REG_G     => true,         -- 2 cycle read latency
+         MODE_G        => "write-first",
+         DATA_WIDTH_G  => AXI_WRITE_DMA_TRACK_SIZE_C,
+         ADDR_WIDTH_G  => 8)
       port map (
-         clka    => axiClk,
-         wea     => '1',
-         rsta    => axiRst,
-         addra   => r.dmaWrTrack.dest,
-         dina    => trackDin,
-         clkb    => axiClk,
-         rstb    => axiRst,
-         addrb   => intAxisMaster.tDest,
-         doutb   => trackDout);
+         clka  => axiClk,
+         wea   => '1',
+         rsta  => axiRst,
+         addra => r.dmaWrTrack.dest,
+         dina  => trackDin,
+         clkb  => axiClk,
+         rstb  => axiRst,
+         addrb => intAxisMaster.tDest,
+         doutb => trackDout);
 
    trackDin  <= toSlv(r.dmaWrTrack);
    trackData <= toAxiWriteDmaTrack(trackDout);

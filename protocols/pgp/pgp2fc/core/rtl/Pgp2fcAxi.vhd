@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -18,9 +18,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -38,13 +37,12 @@ entity Pgp2fcAxi is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4);
    port (
-
       -- TX PGP Interface (pgpTxClk domain)
-      pgpTxClk     : in  sl;
-      pgpTxClkRst  : in  sl;
-      pgpTxIn      : out Pgp2fcTxInType;
-      pgpTxOut     : in  Pgp2fcTxOutType;
-      locTxIn      : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
+      pgpTxClk    : in  sl;
+      pgpTxClkRst : in  sl;
+      pgpTxIn     : out Pgp2fcTxInType;
+      pgpTxOut    : in  Pgp2fcTxOutType;
+      locTxIn     : in  Pgp2fcTxInType := PGP2FC_TX_IN_INIT_C;
 
       -- RX PGP Interface (pgpRxClk domain)
       pgpRxClk    : in  sl;
@@ -63,8 +61,7 @@ entity Pgp2fcAxi is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType
-      );
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2fcAxi;
 
 architecture structure of Pgp2fcAxi is
@@ -126,8 +123,7 @@ architecture structure of Pgp2fcAxi is
       alignSlide     => '0',
       alignPhaseReq  => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
-      );
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -176,9 +172,6 @@ architecture structure of Pgp2fcAxi is
    signal txstatusSync : TxStatusType;
 
 begin
-
-
-
 
    ---------------------------------------
    -- Receive Status
@@ -265,7 +258,7 @@ begin
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -331,9 +324,9 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 100.0,
-         CLK_LOWER_LIMIT_G => 155.0E+6,
-         CLK_UPPER_LIMIT_G => 158.0E+6,
+         REFRESH_RATE_G    => 1.0,
+         CLK_LOWER_LIMIT_G => 185.0E+6,
+         CLK_UPPER_LIMIT_G => 187.0E+6,
          CNT_WIDTH_G       => 32)
       port map (
          freqOut     => rxStatusSync.rxClkFreq,
@@ -446,9 +439,9 @@ begin
       generic map (
          TPD_G             => TPD_G,
          REF_CLK_FREQ_G    => AXI_CLK_FREQ_G,
-         REFRESH_RATE_G    => 100.0,
-         CLK_LOWER_LIMIT_G => 155.0E+6,
-         CLK_UPPER_LIMIT_G => 158.0E+6,
+         REFRESH_RATE_G    => 1.0,
+         CLK_LOWER_LIMIT_G => 185.0E+6,
+         CLK_UPPER_LIMIT_G => 187.0E+6,
          CNT_WIDTH_G       => 32)
       port map (
          freqOut     => txStatusSync.txClkFreq,
@@ -518,6 +511,8 @@ begin
    pgpTxIn.flowCntlDis <= locTxIn.flowCntlDis or syncFlowCntlDis;
    pgpTxIn.resetTx     <= locTxIn.resetTx or txReset;
    pgpTxIn.resetGt     <= r.resetGt;
+   pgpTxIn.fcValid     <= locTxIn.fcValid;
+   pgpTxIn.fcWord      <= locTxIn.fcWord;
 
 
    -------------------------------------
@@ -551,7 +546,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin

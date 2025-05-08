@@ -28,7 +28,7 @@ entity AxiAd5780Reg is
       TPD_G              : time                  := 1 ns;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       AXI_CLK_FREQ_G     : real                  := 200.0E+6;  -- units of Hz
-      SPI_CLK_FREQ_G     : real                  := 25.0E+6);   -- units of Hz
+      SPI_CLK_FREQ_G     : real                  := 25.0E+6);  -- units of Hz
    port (
       -- AXI-Lite Register Interface
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -76,7 +76,8 @@ begin
    -------------------------------
    -- Configuration Register
    -------------------------------
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, dacRefreshRate, r, regIn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, dacRefreshRate, r,
+                   regIn) is
       variable v            : RegType;
       variable axiStatus    : AxiLiteStatusType;
       variable axiWriteResp : slv(1 downto 0);
@@ -129,7 +130,7 @@ begin
 
       if (axiStatus.readEnable = '1') then
          -- Check for an out of 32 bit aligned address
-         axiReadResp          := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axiReadResp := ite(axiReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          -- Decode address and assign read data
          case (axiReadMaster.araddr(9 downto 2)) is
             when x"10" =>

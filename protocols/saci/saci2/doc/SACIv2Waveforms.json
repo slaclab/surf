@@ -1,0 +1,28 @@
+
+// This is for rendering waveforms with the wavedrom tool
+// wavedrom.com/editor.html
+
+{signal: [['Coordinator',
+  {name: 'saciSelL', wave: '1.0......|.....|...|.......|..1.'},
+  {name: 'saciClk', wave: 'p........|.....|...|.......|....'},
+  {name: 'saciCmd', wave: '0..113...|.4...|.0.|.......|....', data: ['ADDR[31:2]', 'DATA[31:0]']}],
+          {},['Subordinate',
+  {name: 'saciRsp', wave: '=.0......|.....|...|.113...|.0=.', data: ['High-Z', 'ADDR[31:2]', 'HIGH-Z']},
+]
+],
+  foot:{
+   text:'SACIv2 Write',
+ }
+}
+
+{signal: [['Coordinator',
+  {name: 'saciSelL', wave: '1.0......|..|........|.....|..1.'},
+  {name: 'saciClk', wave: 'p........|..|........|.....|....'},
+  {name: 'saciCmd', wave: '0..103...|.0|........|.....|....', data: ['ADDR[31:2]', ]}],
+          {},['Subordinate',
+  {name: 'saciRsp', wave: '=.0......|..|..103...|.4...|.0=.', data: ['High-Z', 'ADDR[31:2]', 'DATA[31:0]', 'HIGH-Z']},
+]
+],
+  foot:{
+   text:'SACIv2 Read',
+ }}

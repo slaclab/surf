@@ -27,6 +27,7 @@ entity TenGigEthGtyUltraScale is
       TPD_G         : time                := 1 ns;
       JUMBO_G       : boolean             := true;
       PAUSE_EN_G    : boolean             := true;
+      ROCEV2_EN_G   : boolean             := false;
       -- AXI-Lite Configurations
       EN_AXI_REG_G  : boolean             := false;
       -- AXI Streaming Configurations
@@ -237,6 +238,7 @@ begin
          TPD_G             => TPD_G,
          JUMBO_G           => JUMBO_G,
          PAUSE_EN_G        => PAUSE_EN_G,
+         ROCEV2_EN_G       => ROCEV2_EN_G,
          FIFO_ADDR_WIDTH_G => 12,       -- single 4K UltraRAM
          SYNTH_MODE_G      => "xpm",
          MEMORY_TYPE_G     => "ultra",

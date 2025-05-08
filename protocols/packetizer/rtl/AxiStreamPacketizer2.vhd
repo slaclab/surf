@@ -34,7 +34,7 @@ entity AxiStreamPacketizer2 is
       REG_EN_G             : boolean                := false;
       CRC_MODE_G           : string                 := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0)       := x"04C11DB7";
-      MAX_PACKET_BYTES_G   : positive               := 256*8;   -- Must be a multiple of 8
+      MAX_PACKET_BYTES_G   : positive               := 256*8;  -- Must be a multiple of 8
       SEQ_CNT_SIZE_G       : positive range 4 to 16 := 16;
       TDEST_BITS_G         : natural                := 8;
       OUTPUT_TDEST_G       : slv(7 downto 0)        := (others => '0');

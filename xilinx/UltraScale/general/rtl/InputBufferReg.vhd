@@ -69,8 +69,8 @@ begin
          Q2 => Q2,  -- 1-bit output: Registered parallel output 2
          C  => C,                       -- 1-bit input: High-speed clock
          CB => CB,  -- 1-bit input: Inversion of High-speed clock C
-         D  => inputSig, -- 1-bit input: Serial Data Input
-         R  => R);  -- 1-bit input: Active High Async Reset
+         D  => inputSig,                -- 1-bit input: Serial Data Input
+         R  => R);                      -- 1-bit input: Active High Async Reset
 
    CB <= not(C);
 

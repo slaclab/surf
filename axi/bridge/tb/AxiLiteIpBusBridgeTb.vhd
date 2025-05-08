@@ -120,7 +120,7 @@ begin
    ----------------------------
    U_AxiLiteToIpBus : entity surf.AxiLiteToIpBus
       generic map (
-         TPD_G        => TPD_G)
+         TPD_G => TPD_G)
       port map (
          -- Clock and Reset
          clk             => axilClk,
@@ -144,7 +144,7 @@ begin
    ----------------------------
    U_IpBusToAxiLite : entity surf.IpBusToAxiLite
       generic map (
-         TPD_G        => TPD_G)
+         TPD_G => TPD_G)
       port map (
          -- Clock and Reset
          clk             => axilClk,

@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -53,4 +52,4 @@ package SemPkg is
       rxEmpty        => '0',            -- Init with backpreassure
       iprogIcapGrant => '0');  -- '0' = SEM access ICAP, '1' = IPROG access ICAP
 
-end package;
+end package SemPkg;

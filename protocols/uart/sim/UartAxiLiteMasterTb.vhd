@@ -35,7 +35,7 @@ architecture sim of UartAxiLiteMasterTb is
 
    -- component generics
    constant TPD_G             : time                  := 1 ns;
-   constant CLK_FREQ_G        : real                  := 125.0e6;
+   constant CLK_FREQ_G        : real                  := 125.0E+6;
    constant BAUD_RATE_G       : integer               := 115200;
    constant MEMORY_TYPE_G     : string                := "distributed";
    constant FIFO_ADDR_WIDTH_G : integer range 4 to 48 := 5;
@@ -111,15 +111,15 @@ begin
 
    U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
       generic map (
-         TPD_G        => TPD_G,
-         SYNTH_MODE_G => "xpm",
-         MEMORY_TYPE_G=> "distributed",
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => "xpm",
+         MEMORY_TYPE_G  => "distributed",
          READ_LATENCY_G => 0,
-         AXI_WR_EN_G  => true,
-         SYS_WR_EN_G  => false,
-         COMMON_CLK_G => true,
-         ADDR_WIDTH_G => 12,
-         DATA_WIDTH_G => 32)
+         AXI_WR_EN_G    => true,
+         SYS_WR_EN_G    => false,
+         COMMON_CLK_G   => true,
+         ADDR_WIDTH_G   => 12,
+         DATA_WIDTH_G   => 32)
       port map (
          axiClk         => clk,              -- [in]
          axiRst         => rst,              -- [in]
@@ -206,7 +206,7 @@ begin
                if (s(i) = CR or s(i) = LF) then
                   exit;
                end if;
-               i:=i+1;
+               i := i+1;
             end if;
          end loop;
          print("Received: " & s);
@@ -231,12 +231,12 @@ begin
       is
          variable s     : string(1 to 11);
          variable reply : string(1 to 30);
-         variable tmp : integer;
+         variable tmp   : integer;
       begin
          s      := "R " & hstr(rdAddr) & CR;
          sendString(s);
          receiveString(reply);
-         tmp := int(reply(12 to 19), 16);
+         tmp    := int(reply(12 to 19), 16);
          print(reply(12 to 19));
          print(str(tmp));
          rdData := toSlv(tmp, 32);

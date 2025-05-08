@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -81,16 +80,16 @@ architecture mapping of FifoAlteraMf is
 begin
 
    GEN_ASYNC : if (GEN_SYNC_FIFO_G = false) generate
-      U_dcfifo : dcfifo
+      U_DcFifo : dcfifo
          generic map (
-            ram_block_type     => MEMORY_TYPE_G,
-            lpm_numwords       => (2**ADDR_WIDTH_G),
-            lpm_showahead      => FWFT_EN_C,
-            lpm_type           => "dcfifo",
-            lpm_width          => DATA_WIDTH_G,
-            lpm_widthu         => ADDR_WIDTH_G,
-            overflow_checking  => "ON",
-            underflow_checking => "ON")
+            RAM_BLOCK_TYPE     => MEMORY_TYPE_G,
+            LPM_NUMWORDS       => (2**ADDR_WIDTH_G),
+            LPM_SHOWAHEAD      => FWFT_EN_C,
+            LPM_TYPE           => "dcfifo",
+            LPM_WIDTH          => DATA_WIDTH_G,
+            LPM_WIDTHU         => ADDR_WIDTH_G,
+            OVERFLOW_CHECKING  => "ON",
+            UNDERFLOW_CHECKING => "ON")
          port map (
             aclr    => reset,
             -- Write Ports
@@ -109,16 +108,16 @@ begin
    end generate;
 
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
-      U_scfifo : scfifo
+      U_ScFifo : scfifo
          generic map (
-            ram_block_type     => MEMORY_TYPE_G,
-            lpm_numwords       => (2**ADDR_WIDTH_G),
-            lpm_showahead      => FWFT_EN_C,
-            lpm_type           => "scfifo",
-            lpm_width          => DATA_WIDTH_G,
-            lpm_widthu         => ADDR_WIDTH_G,
-            overflow_checking  => "ON",
-            underflow_checking => "ON")
+            RAM_BLOCK_TYPE     => MEMORY_TYPE_G,
+            LPM_NUMWORDS       => (2**ADDR_WIDTH_G),
+            LPM_SHOWAHEAD      => FWFT_EN_C,
+            LPM_TYPE           => "scfifo",
+            LPM_WIDTH          => DATA_WIDTH_G,
+            LPM_WIDTHU         => ADDR_WIDTH_G,
+            OVERFLOW_CHECKING  => "ON",
+            UNDERFLOW_CHECKING => "ON")
          port map (
             sclr  => reset,
             aclr  => '0',

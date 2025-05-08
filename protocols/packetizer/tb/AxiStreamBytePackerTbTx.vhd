@@ -24,15 +24,15 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePackerTbTx is
    generic (
-      TPD_G         : time                := 1 ns;
-      BYTE_SIZE_C   : positive            := 1;
+      TPD_G         : time     := 1 ns;
+      BYTE_SIZE_C   : positive := 1;
       AXIS_CONFIG_G : AxiStreamConfigType);
    port (
       -- System clock and reset
-      axiClk       : in  sl;
-      axiRst       : in  sl;
+      axiClk      : in  sl;
+      axiRst      : in  sl;
       -- Outbound frame
-      mAxisMaster  : out AxiStreamMasterType);
+      mAxisMaster : out AxiStreamMasterType);
 end AxiStreamBytePackerTbTx;
 
 architecture rtl of AxiStreamBytePackerTbTx is
@@ -53,19 +53,19 @@ architecture rtl of AxiStreamBytePackerTbTx is
 
 begin
 
-   comb : process (r, axiRst ) is
+   comb : process (axiRst, r) is
       variable v : RegType;
    begin
       v := r;
 
-      v.master := AXI_STREAM_MASTER_INIT_C;
-      v.master.tKeep  := (others=>'0');
+      v.master        := AXI_STREAM_MASTER_INIT_C;
+      v.master.tKeep  := (others => '0');
       v.master.tValid := '1';
 
       for i in 0 to BYTE_SIZE_C-1 loop
-         v.master.tData(i*8+7 downto i*8) := toSlv(v.byteCount,8);
-         v.master.tKeep(i) := '1';
-         v.byteCount := v.byteCount + 1;
+         v.master.tData(i*8+7 downto i*8) := toSlv(v.byteCount, 8);
+         v.master.tKeep(i)                := '1';
+         v.byteCount                      := v.byteCount + 1;
       end loop;
 
       if v.byteCount = (r.frameCount+1)*BYTE_SIZE_C then

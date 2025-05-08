@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 
 package AxiStreamPkg is
 
-   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 512;  -- Units of bits
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 1024;  -- Units of bits
    constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
 
    type AxiStreamMasterType is record
@@ -81,24 +81,24 @@ package AxiStreamPkg is
 
    type AxiStreamConfigType is record
       -- TDEST_INTERLEAVE_C : boolean;
-      TSTRB_EN_C         : boolean;
-      TDATA_BYTES_C      : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
-      TDEST_BITS_C       : natural range 0 to 8;
-      TID_BITS_C         : natural range 0 to 8;
-      TKEEP_MODE_C       : TkeepModeType;
-      TUSER_BITS_C       : natural range 0 to 8;
-      TUSER_MODE_C       : TUserModeType;
+      TSTRB_EN_C    : boolean;
+      TDATA_BYTES_C : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C;
+      TDEST_BITS_C  : natural range 0 to 8;
+      TID_BITS_C    : natural range 0 to 8;
+      TKEEP_MODE_C  : TkeepModeType;
+      TUSER_BITS_C  : natural range 0 to 8;
+      TUSER_MODE_C  : TUserModeType;
    end record AxiStreamConfigType;
 
    constant AXI_STREAM_CONFIG_INIT_C : AxiStreamConfigType := (
       -- TDEST_INTERLEAVE_C => true,
-      TSTRB_EN_C         => false,
-      TDATA_BYTES_C      => 16,
-      TDEST_BITS_C       => 4,
-      TID_BITS_C         => 0,
-      TKEEP_MODE_C       => TKEEP_NORMAL_C,
-      TUSER_BITS_C       => 4,
-      TUSER_MODE_C       => TUSER_NORMAL_C);
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 16,
+      TDEST_BITS_C  => 4,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => 4,
+      TUSER_MODE_C  => TUSER_NORMAL_C);
 
    type AxiStreamConfigArray is array (natural range<>) of AxiStreamConfigType;
    type AxiStreamConfigVectorArray is array (natural range<>, natural range<>) of AxiStreamConfigType;
@@ -258,7 +258,7 @@ package body AxiStreamPkg is
       if axisConfig.TUSER_BITS_C > 0 then
          for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             if lsb = i then
-               ret := axisMaster.tUser(ret'HIGH+i downto ret'LOW+i);
+               ret := axisMaster.tUser(ret'high+i downto ret'low+i);
             end if;
          end loop;
       else
@@ -305,7 +305,7 @@ package body AxiStreamPkg is
 
          for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             if lsb = i then
-               axisMaster.tUser(fieldValue'HIGH+i downto fieldValue'LOW+i) := fieldValue;
+               axisMaster.tUser(fieldValue'high+i downto fieldValue'low+i) := fieldValue;
             end if;
          end loop;
 
@@ -612,16 +612,16 @@ package body AxiStreamPkg is
       size := size + c.TDATA_BYTES_C*8;
 
       -- Keep
-      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,                       -- TKEEP_NORMAL_C
-                     ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),              -- TKEEP_COMP_C
-                     ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
-                     0)));  -- TKEEP_FIXED_C
+      size := size + ite((c.TKEEP_MODE_C = TKEEP_NORMAL_C), c.TDATA_BYTES_C,  -- TKEEP_NORMAL_C
+                         ite((c.TKEEP_MODE_C = TKEEP_COMP_C), bitSize(c.TDATA_BYTES_C-1),  -- TKEEP_COMP_C
+                             ite((c.TKEEP_MODE_C = TKEEP_COUNT_C), bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C),  -- TKEEP_COUNT_C
+                                 0)));  -- TKEEP_FIXED_C
 
       -- User bits
       size := size + ite(c.TUSER_MODE_C = TUSER_FIRST_LAST_C, c.TUSER_BITS_C*2,
-                     ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
-                     ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
-                     0)));  -- TUSER_NONE_C
+                         ite(c.TUSER_MODE_C = TUSER_LAST_C, c.TUSER_BITS_C,
+                             ite(c.TUSER_MODE_C = TUSER_NORMAL_C, c.TDATA_BYTES_C * c.TUSER_BITS_C,
+                                 0)));  -- TUSER_NONE_C
 
       size := size + ite(c.TSTRB_EN_C, c.TDATA_BYTES_C, 0);  -- Strobe bits
       size := size + c.TDEST_BITS_C;

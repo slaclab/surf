@@ -17,16 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity GtRxAlignCheck is
    generic (
-      TPD_G          : time   := 1 ns;
-      GT_TYPE_G      : string := "GTHE3";   -- or GTYE3, GTHE4, GTYE4
-      AXI_CLK_FREQ_G : real   := 125.0e6;
+      TPD_G          : time    := 1 ns;
+      SIMULATION_G   : boolean := false;
+      LOCK_VALUE_G   : integer := 16;
+      MASK_VALUE_G   : integer := 126;
+      GT_TYPE_G      : string  := "GTHE3";  -- or GTYE3, GTHE4, GTYE4
+      AXI_CLK_FREQ_G : real    := 156.25E+6;
       DRP_ADDR_G     : slv(31 downto 0));
    port (
       -- Clock Monitoring
@@ -65,9 +67,6 @@ architecture rtl of GtRxAlignCheck is
    constant COMMA_ALIGN_LATENCY_OFFSET_C : slv(31 downto 0) := ite((GT_TYPE_G = "GTHE3"), x"0000_0540", x"0000_0940");
    constant COMMA_ALIGN_LATENCY_ADDR_C   : slv(31 downto 0) := (DRP_ADDR_G + COMMA_ALIGN_LATENCY_OFFSET_C);
 
-   constant LOCK_VALUE_C : integer := 16;
-   constant MASK_VALUE_C : integer := 126;
-
    type StateType is (
       RESET_S,
       READ_S,
@@ -95,12 +94,12 @@ architecture rtl of GtRxAlignCheck is
       locked          => '0',
       rst             => '1',
       rstRetryCnt     => '0',
-      override        => '0',
+      override        => toSl(SIMULATION_G),
       rstlen          => toSlv(3, 4),
       rstcnt          => toSlv(0, 4),
       retryCnt        => toSlv(0, 16),
-      tgt             => toSlv(LOCK_VALUE_C, 7),
-      mask            => toSlv(MASK_VALUE_C, 7),
+      tgt             => toSlv(LOCK_VALUE_G, 7),
+      mask            => toSlv(MASK_VALUE_G, 7),
       last            => toSlv(0, 16),
       sample          => (others => (others => '0')),
       sAxilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -118,20 +117,14 @@ architecture rtl of GtRxAlignCheck is
    signal rxClkFreq  : slv(31 downto 0);
    signal refClkFreq : slv(31 downto 0);
 
-  -- attribute dont_touch              : string;
-  -- attribute dont_touch of r         : signal is "TRUE";
-  -- attribute dont_touch of ack       : signal is "TRUE";
-  -- attribute dont_touch of txClkFreq : signal is "TRUE";
-  -- attribute dont_touch of rxClkFreq : signal is "TRUE";
-
 begin
 
    U_refClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => refClkFreq,
@@ -143,9 +136,9 @@ begin
    U_txClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => txClkFreq,
@@ -157,9 +150,9 @@ begin
    U_rxClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
-         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,   -- Units of Hz
-         REFRESH_RATE_G => 1.0,         -- Units of Hz
-         CNT_WIDTH_G    => 32)          -- Counters' width
+         REF_CLK_FREQ_G => AXI_CLK_FREQ_G,  -- Units of Hz
+         REFRESH_RATE_G => 1.0,             -- Units of Hz
+         CNT_WIDTH_G    => 32)              -- Counters' width
       port map (
          -- Frequency Measurement and Monitoring Outputs (locClk domain)
          freqOut => rxClkFreq,
@@ -168,8 +161,8 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   comb : process (ack, axilRst, r, resetDone, resetErr, resetIn, rxClkFreq,
-           sAxilReadMaster, sAxilWriteMaster, txClkFreq, refClkFreq) is
+   comb : process (ack, axilRst, r, refClkFreq, resetDone, resetErr, resetIn,
+                   rxClkFreq, sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable i      : natural;
@@ -179,6 +172,7 @@ begin
 
       -- Reset the flags
       v.rst         := '0';
+      v.locked      := '0';
       -- Reset the strobes
       v.rstRetryCnt := '0';
 
@@ -190,19 +184,19 @@ begin
       axiSlaveWaitTxn(axilEp, sAxilWriteMaster, sAxilReadMaster, v.sAxilWriteSlave, v.sAxilReadSlave);
 
       for i in 0 to r.sample'length-1 loop
-         axiSlaveRegister(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), v.sample(i));
+         axiSlaveRegisterR(axilEp, toSlv(4*(i/4), 12), 8*(i mod 4), r.sample(i));
       end loop;
-      axiSlaveRegister (axilEp, x"100", 0,  v.tgt);
-      axiSlaveRegister (axilEp, x"100", 8,  v.mask);
+      axiSlaveRegister (axilEp, x"100", 0, v.tgt);
+      axiSlaveRegister (axilEp, x"100", 8, v.mask);
       axiSlaveRegister (axilEp, x"100", 16, v.rstlen);
-      axiSlaveRegister (axilEp, x"104", 0,  v.last);
-      axiSlaveRegisterR(axilEp, x"108", 0,  txClkFreq);
-      axiSlaveRegisterR(axilEp, x"10C", 0,  rxClkFreq);
-      axiSlaveRegisterR(axilEp, x"110", 0,  v.locked);
-      axiSlaveRegister (axilEp, x"114", 0,  v.override);
-      axiSlaveRegister (axilEp, x"118", 0,  v.rstRetryCnt);
-      axiSlaveRegisterR(axilEp, x"11C", 0,  v.retryCnt);
-      axiSlaveRegisterR(axilEp, x"120", 0,  refClkFreq);
+      axiSlaveRegisterR(axilEp, x"104", 0, r.last);
+      axiSlaveRegisterR(axilEp, x"108", 0, txClkFreq);
+      axiSlaveRegisterR(axilEp, x"10C", 0, rxClkFreq);
+      axiSlaveRegisterR(axilEp, x"110", 0, r.locked);
+      axiSlaveRegister (axilEp, x"114", 0, v.override);
+      axiSlaveRegister (axilEp, x"118", 0, v.rstRetryCnt);
+      axiSlaveRegisterR(axilEp, x"11C", 0, r.retryCnt);
+      axiSlaveRegisterR(axilEp, x"120", 0, refClkFreq);
 
 
       -- Close out the transaction
@@ -212,9 +206,8 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when RESET_S =>
-            -- Set the flags
-            v.rst    := '1';
-            v.locked := '0';
+            -- Set the flag
+            v.rst := '1';
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
@@ -230,8 +223,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
-            -- Reset the flag
-            v.locked := '0';
             -- Wait for the reset transition and check state of master AXI-Lite
             if (resetDone = '1') and (ack.done = '0') then
                -- Start the master AXI-Lite transaction
@@ -254,8 +245,8 @@ begin
                -- Save the last byte alignment check
                v.last        := ack.rdData(15 downto 0);
                -- Check the byte alignment
-               if ( (((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
-               or  v.override = '1') then
+               if ((((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
+                   or v.override = '1') then
                   -- Next state
                   v.state := LOCKED_S;
                else
@@ -267,7 +258,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when LOCKED_S =>
-            -- Set the flag (can now be reset only by an external resetIn/resetErr)
+            -- Set the flag
             v.locked := '1';
       ----------------------------------------------------------------------
       end case;
@@ -278,7 +269,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1') then
+      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
@@ -289,7 +280,7 @@ begin
       end if;
 
       -- Increment the reset retry counter (if triggered internally)
-      if    (r.rstRetryCnt = '1') then
+      if (r.rstRetryCnt = '1') then
          -- Reset clause first
          v.retryCnt := (others => '0');
       elsif (v.rst = '1' and r.rst = '0' and resetIn = '0' and resetErr = '0') then

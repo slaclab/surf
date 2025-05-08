@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Title      : PGPv2fc: https://confluence.slac.stanford.edu/x/q86fD
+-- Title      : PGP2fc: https://confluence.slac.stanford.edu/x/JhItHw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Pgp2fcPkg.all;
@@ -30,13 +29,12 @@ use surf.SsiPkg.all;
 entity Pgp2fcLane is
    generic (
       TPD_G             : time                 := 1 ns;
-      FC_WORDS_G        : integer range 1 to 8 := 1;     -- Number of words in FC bus
-      VC_INTERLEAVE_G   : integer              := 1;     -- Interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;     -- Top bit for payload counter
+      FC_WORDS_G        : integer range 1 to 8 := 1;  -- Number of words in FC bus
+      VC_INTERLEAVE_G   : integer              := 1;  -- Interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
-      RX_ENABLE_G       : boolean              := true   -- Enable RX direction
-      );
+      RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
 
       ---------------------------------
@@ -68,6 +66,7 @@ entity Pgp2fcLane is
       pgpRxClkEn  : in sl := '1';
       pgpRxClk    : in sl := '0';
       pgpRxClkRst : in sl := '0';
+      pgpRxPhyRst : in sl := '0';
 
       -- Non-VC related IO
       pgpRxIn  : in  Pgp2fcRxInType := PGP2FC_RX_IN_INIT_C;
@@ -83,13 +82,9 @@ entity Pgp2fcLane is
       -- PHY interface
       phyRxLaneIn : in  Pgp2fcRxPhyLaneInType;
       phyRxReady  : in  sl := '0';
-      phyRxInit   : out sl
-      );
-
+      phyRxInit   : out sl);
 end Pgp2fcLane;
 
-
--- Define architecture
 architecture Pgp2fcLane of Pgp2fcLane is
 
    -- Local Signals
@@ -112,21 +107,20 @@ begin
             FC_WORDS_G        => FC_WORDS_G,
             VC_INTERLEAVE_G   => VC_INTERLEAVE_G,
             PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G,
-            NUM_VC_EN_G       => NUM_VC_EN_G
-            ) port map (
-               pgpTxClkEn    => pgpTxClkEn,
-               pgpTxClk      => pgpTxClk,
-               pgpTxClkRst   => pgpTxClkRst,
-               pgpTxIn       => pgpTxIn,
-               pgpTxOut      => pgpTxOut,
-               locLinkReady  => intRxOut.linkReady,
-               pgpTxMasters  => pgpTxMasters,
-               pgpTxSlaves   => pgpTxSlaves,
-               locFifoStatus => pgpRxCtrl,
-               remFifoStatus => remFifoStatus,
-               phyTxLaneOut  => phyTxLaneOut,
-               phyTxReady    => phyTxReady
-               );
+            NUM_VC_EN_G       => NUM_VC_EN_G)
+         port map (
+            pgpTxClkEn    => pgpTxClkEn,
+            pgpTxClk      => pgpTxClk,
+            pgpTxClkRst   => pgpTxClkRst,
+            pgpTxIn       => pgpTxIn,
+            pgpTxOut      => pgpTxOut,
+            locLinkReady  => intRxOut.linkReady,
+            pgpTxMasters  => pgpTxMasters,
+            pgpTxSlaves   => pgpTxSlaves,
+            locFifoStatus => pgpRxCtrl,
+            remFifoStatus => remFifoStatus,
+            phyTxLaneOut  => phyTxLaneOut,
+            phyTxReady    => phyTxReady);
    end generate;
 
    U_TxDisGen : if TX_ENABLE_G = false generate
@@ -134,7 +128,6 @@ begin
       pgpTxSlaves  <= (others => AXI_STREAM_SLAVE_INIT_C);
       phyTxLaneOut <= PGP2FC_TX_PHY_LANE_OUT_INIT_C;
    end generate;
-
 
    -----------------------------
    -- Receive
@@ -147,33 +140,32 @@ begin
          generic map (
             TPD_G             => TPD_G,
             FC_WORDS_G        => FC_WORDS_G,
-            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G
-            ) port map (
-               pgpRxClkEn    => pgpRxClkEn,
-               pgpRxClk      => pgpRxClk,
-               pgpRxClkRst   => pgpRxClkRst,
-               pgpRxIn       => pgpRxIn,
-               pgpRxOut      => intRxOut,
-               pgpRxMaster   => intRxMaster,
-               remFifoStatus => remFifoStatus,
-               phyRxLaneIn   => phyRxLaneIn,
-               phyRxReady    => phyRxReady,
-               phyRxInit     => phyRxInit
-               );
+            PAYLOAD_CNT_TOP_G => PAYLOAD_CNT_TOP_G)
+         port map (
+            pgpRxClkEn    => pgpRxClkEn,
+            pgpRxClk      => pgpRxClk,
+            pgpRxClkRst   => pgpRxClkRst,
+            pgpRxPhyRst   => pgpRxPhyRst,
+            pgpRxIn       => pgpRxIn,
+            pgpRxOut      => intRxOut,
+            pgpRxMaster   => intRxMaster,
+            remFifoStatus => remFifoStatus,
+            phyRxLaneIn   => phyRxLaneIn,
+            phyRxReady    => phyRxReady,
+            phyRxInit     => phyRxInit);
 
       -- Demux
       U_RxDeMux : entity surf.AxiStreamDeMux
          generic map (
             TPD_G         => TPD_G,
-            NUM_MASTERS_G => 4
-            ) port map (
-               axisClk      => pgpRxClk,
-               axisRst      => pgpRxClkRst,
-               sAxisMaster  => intRxMaster,
-               sAxisSlave   => open,
-               mAxisMasters => pgpRxMasters,
-               mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C)
-               );
+            NUM_MASTERS_G => 4)
+         port map (
+            axisClk      => pgpRxClk,
+            axisRst      => pgpRxClkRst,
+            sAxisMaster  => intRxMaster,
+            sAxisSlave   => open,
+            mAxisMasters => pgpRxMasters,
+            mAxisSlaves  => (others => AXI_STREAM_SLAVE_FORCE_C));
 
    end generate;
 
@@ -190,4 +182,3 @@ begin
    pgpRxOut         <= intRxOut;
 
 end Pgp2fcLane;
-

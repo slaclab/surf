@@ -16,8 +16,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -165,8 +165,8 @@ begin
    process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
             locPause, locPauseCnt, r, remLinkData, remRxOverflowCnt,
             remRxPause, remRxPauseCnt, rxClkFreq, rxError, rxErrorCnt,
-            rxOpCodeData, rxStatus, rxStatusCnt, txClkFreq, txError,
-            txErrorCnt, txOpCodeData, txStatus, txStatusCnt) is
+            rxOpCodeData, rxStatusCnt, txClkFreq, txError, txErrorCnt,
+            txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -409,12 +409,12 @@ begin
          statusIn(7)  => pgpRxOut.linkError,
          statusIn(8)  => pgpRxOut.ebOverflow,
          statusIn(9)  => pgpRxOut.cellError,
-         statusIn(10)  => pgpRxOut.cellSofError,
-         statusIn(11)  => pgpRxOut.cellSeqError,
-         statusIn(12)  => pgpRxOut.cellVersionError,
-         statusIn(13)  => pgpRxOut.cellCrcModeError,
-         statusIn(14)  => pgpRxOut.cellCrcError,
-         statusIn(15)  => pgpRxOut.cellEofeError,
+         statusIn(10) => pgpRxOut.cellSofError,
+         statusIn(11) => pgpRxOut.cellSeqError,
+         statusIn(12) => pgpRxOut.cellVersionError,
+         statusIn(13) => pgpRxOut.cellCrcModeError,
+         statusIn(14) => pgpRxOut.cellCrcError,
+         statusIn(15) => pgpRxOut.cellEofeError,
          statusOut    => rxError,
          cntOut       => rxErrorCnt,
          cntRstIn     => r.countReset,
