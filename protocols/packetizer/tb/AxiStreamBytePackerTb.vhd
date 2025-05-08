@@ -47,7 +47,7 @@ architecture test of AxiStreamBytePackerTb is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    constant CLK_PERIOD_C : time := 5.000 ns;
-   constant TPD_G        : time := 1 ns;
+   constant TPD_C        : time := 1 ns;
 
    signal axiClk : sl := '0';
    signal axiRst : sl := '0';
@@ -76,7 +76,7 @@ begin
 
       U_PackTx : entity surf.AxiStreamBytePackerTbTx
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G         => TPD_C,
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => SRC_CONFIG_C)
          port map (
@@ -86,7 +86,7 @@ begin
 
       U_Pack : entity surf.AxiStreamBytePacker
          generic map (
-            TPD_G           => TPD_G,
+            TPD_G           => TPD_C,
             SLAVE_CONFIG_G  => SRC_CONFIG_C,
             MASTER_CONFIG_G => DST_CONFIG_C)
          port map (
@@ -97,7 +97,7 @@ begin
 
       U_PackRx : entity surf.AxiStreamBytePackerTbRx
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G         => TPD_C,
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => DST_CONFIG_C)
          port map (
