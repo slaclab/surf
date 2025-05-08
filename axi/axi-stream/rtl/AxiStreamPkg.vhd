@@ -382,7 +382,6 @@ package body AxiStreamPkg is
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural is
       variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       variable retVar    : natural;
-      variable i         : natural;
    begin
       -- Init
       retVar    := 0;

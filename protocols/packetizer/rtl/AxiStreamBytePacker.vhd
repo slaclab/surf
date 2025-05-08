@@ -53,7 +53,7 @@ architecture rtl of AxiStreamBytePacker is
 
    type RegType is record
       byteCount : integer range 0 to MAX_OUT_BYTE_C;
-      inTop     : integer range 0 to MAX_IN_BYTE_C;
+      inTop     : integer range -1 to MAX_IN_BYTE_C;
       inMaster  : AxiStreamMasterType;
       curMaster : AxiStreamMasterType;
       nxtMaster : AxiStreamMasterType;
