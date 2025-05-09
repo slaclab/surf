@@ -98,7 +98,6 @@ begin
                    clientRemoteDetIp, clientRemoteDetValid, clientRemoteIp, r,
                    rst) is
       variable v : RegType;
-      variable i : natural;
    begin
       -- Latch the current value
       v := r;

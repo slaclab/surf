@@ -75,7 +75,6 @@ begin
 
       comb : process (axisRst, mAxisSlave, r, sAxisMaster, sSideBand) is
          variable v : RegType;
-         variable i : natural;
       begin
          -- Latch the current value
          v := r;

@@ -61,7 +61,6 @@ architecture mapping of IpV4Engine is
 
    function genIPv4List (foo : Slv8Array(PROTOCOL_SIZE_G-1 downto 0)) return Slv8Array is
       variable retVar : Slv8Array(PROTOCOL_SIZE_C-1 downto 0);
-      variable i      : natural;
    begin
       for i in PROTOCOL_SIZE_G-1 downto 0 loop
          retVar(i) := foo(i);

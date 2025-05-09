@@ -147,7 +147,6 @@ begin
          cntOut     => cntOut);
 
    comb : process (irqEnIn, r, rdRst, statusStrobe) is
-      variable i : integer;
       variable v : RegType;
    begin
       -- Reset signals

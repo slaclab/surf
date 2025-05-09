@@ -159,7 +159,6 @@ end package EthMacPkg;
 package body EthMacPkg is
 
    function EthPortArrayBigEndian (portNum : PositiveArray; portSize : positive) return Slv16Array is
-      variable i      : natural;
       variable vec    : slv(15 downto 0);
       variable retVar : Slv16Array((portSize-1) downto 0);
    begin
@@ -190,7 +189,6 @@ package body EthMacPkg is
       ipCsum  : inout slv(15 downto 0);
       valid   : inout sl;
       csum    : inout slv(15 downto 0)) is
-      variable i       : natural;
       variable header  : Slv32Array(9 downto 0);
       variable data    : Slv32Array(7 downto 0);
       variable hdrCsum : slv(15 downto 0);

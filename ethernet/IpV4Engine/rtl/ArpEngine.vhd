@@ -101,7 +101,6 @@ begin
    comb : process (arpAckSlaves, arpReqMasters, ibArpMaster, localIp, localMac,
                    obArpSlave, r, rst) is
       variable v : RegType;
-      variable i : natural;
    begin
       -- Latch the current value
       v := r;

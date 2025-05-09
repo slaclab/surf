@@ -3,7 +3,7 @@ cocotb
 cocotbext-axi
 cocotb-test
 coverage
-#codecov
+codecov
 pytest
 pytest-cov
 pytest-xdist

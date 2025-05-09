@@ -25,10 +25,10 @@ use surf.AxiDmaPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 
-entity dma_read_tb is end dma_read_tb;
+entity AxiStreamDmaReadTb is end AxiStreamDmaReadTb;
 
 -- Define architecture
-architecture dma_read_tb of dma_read_tb is
+architecture testbed of AxiStreamDmaReadTb is
 
    constant CLK_PERIOD_C   : time    := 4 ns;
    constant TPD_G          : time    := CLK_PERIOD_C/4;
@@ -83,13 +83,16 @@ architecture dma_read_tb of dma_read_tb is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal axiClk        : sl;
-   signal axiClkRst     : sl;
    signal dmaAck        : AxiReadDmaAckType;
    signal axisMaster    : AxiStreamMasterType;
    signal axisSlave     : AxiStreamSlaveType;
    signal axiReadMaster : AxiReadMasterType;
    signal axiReadSlave  : AxiReadSlaveType;
+
+   signal clk    : sl := '0';
+   signal rst    : sl := '0';
+   signal passed : sl := '0';
+   signal failed : sl := '0';
 
 begin
 
@@ -102,9 +105,9 @@ begin
          RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
-         clkP => axiClk,
+         clkP => clk,
          clkN => open,
-         rst  => axiClkRst,
+         rst  => rst,
          rstL => open);
 
    ---------------------------------
@@ -115,8 +118,8 @@ begin
          TPD_G        => TPD_G,
          AXI_CONFIG_G => AXI_CONFIG_C)
       port map (
-         axiClk        => axiClk,
-         axiRst        => axiClkRst,
+         axiClk        => clk,
+         axiRst        => rst,
          axiReadMaster => axiReadMaster,
          axiReadSlave  => axiReadSlave);
 
@@ -133,8 +136,8 @@ begin
          AXI_CACHE_G     => "1111",
          PEND_THRESH_G   => ite(USE_PEND_C, 512, 0))
       port map (
-         axiClk        => axiClk,
-         axiRst        => axiClkRst,
+         axiClk        => clk,
+         axiRst        => rst,
          dmaReq        => r.dmaReq,
          dmaAck        => dmaAck,
          axisMaster    => axisMaster,
@@ -143,7 +146,7 @@ begin
          axiReadMaster => axiReadMaster,
          axiReadSlave  => axiReadSlave);
 
-   comb : process (axiClkRst, axisMaster, dmaAck, r) is
+   comb : process (axisMaster, dmaAck, r, rst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -247,7 +250,7 @@ begin
                v.dmaReq.dest      := r.dmaReq.dest + 1;
                v.dmaReq.id        := r.dmaReq.id + 1;
                -- Check for last DMA transfer
-               if (r.dmaReq.address = 3000) then
+               if (r.dmaReq.address = 50) then
                   -- Next state
                   v.state := DONE_S;
                else
@@ -261,11 +264,13 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatorial outputs
+      -- Outputs
       axisSlave <= v.axisSlave;
+      passed    <= r.passedDly;
+      failed    <= uOr(r.failedDly);
 
       -- Reset
-      if (axiClkRst = '1') then
+      if (rst = '1') then
          v := REG_INIT_C;
       end if;
 
@@ -274,23 +279,23 @@ begin
 
    end process comb;
 
-   seq : process (axiClk) is
+   seq : process (clk) is
    begin
-      if (rising_edge(axiClk)) then
+      if (rising_edge(clk)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-   process(r)
+   process(failed, passed)
    begin
-      if uOr(r.failedDly) = '1' then
+      if failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;
       end if;
-      if r.passedDly = '1' then
+      if passed = '1' then
          assert false
             report "Simulation Passed!" severity note;
       end if;
    end process;
 
-end dma_read_tb;
+end testbed;

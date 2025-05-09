@@ -67,12 +67,39 @@ for ((i=0; i<${#INCLUDED_FILES[@]}; i+=split_size)); do
     split_file_list+=("$filelist")
 done
 
-# Run vsg in parallel
+# Disable job control messages to suppress "[N] Done" output
+set +m
+
+# Run vsg in parallel, printing only blocks with violations
 pids=()
 for filelist in "${split_file_list[@]}"; do
     (
         mapfile -t files < "$filelist"
-        vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml"
+        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml")
+
+        echo "$output" | awk -v base="$PWD/" '
+            BEGIN { block=""; printing=0; }
+            # Save block and reset if delimiter line appears
+            /^=+$/ && block != "" {
+                if (printing) print block;
+                block=""; printing=0;
+            }
+            {
+                # Rewrite absolute file paths into relative paths
+                if ($0 ~ /^File:[[:space:]]+/) {
+                    gsub(base, "", $0);  # Remove leading directory
+                }
+                block = block $0 ORS;
+
+                # Enable printing if violations exist
+                if ($0 ~ /Total Violations:[[:space:]]*[1-9][0-9]*/) {
+                    printing=1;
+                }
+            }
+            END {
+                if (printing) print block;
+            }
+        '
     ) &
     pids+=($!)
 done

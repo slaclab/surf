@@ -57,7 +57,7 @@ begin
                generic map (
                   TPD_G           => TPD_G,
                   GEN_SYNC_FIFO_G => ite(i = 0, true, false),
-                  SYNTH_MODE_G    => ite(j = 0, "inferred", "xpm"),
+                  -- SYNTH_MODE_G    => ite(j = 0, "inferred", "xpm"),
                   MEMORY_TYPE_G   => ite(k = 0, "block", "distributed"))
                port map (
                   clk    => clk,

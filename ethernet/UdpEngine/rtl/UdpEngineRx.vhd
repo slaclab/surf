@@ -152,7 +152,6 @@ begin
    comb : process (broadcastIp, clientSlave, dhcpSlave, igmpIp, localIp, r,
                    rst, rxMaster, serverSlave) is
       variable v            : RegType;
-      variable i            : natural;
       variable multiCastDet : boolean;
    begin
       -- Latch the current value

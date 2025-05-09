@@ -126,7 +126,6 @@ begin
             -- General Configurations
             TPD_G                      => TPD_C,
             -- FIFO configurations
-            MEMORY_TYPE_G              => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G            => true,
             CASCADE_SIZE_G             => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
@@ -245,7 +244,6 @@ begin
             TPD_G                     => TPD_C,
             STATUS_CNT_WIDTH_G        => STATUS_CNT_WIDTH_C,
             -- FIFO Configurations
-            MEMORY_TYPE_G             => MEMORY_TYPE_C,
             GEN_SYNC_FIFO_G           => true,
             CASCADE_SIZE_G            => CASCADE_SIZE_C,
             FIFO_ADDR_WIDTH_G         => FIFO_ADDR_WIDTH_C,
@@ -276,7 +274,6 @@ begin
    end generate GEN_SINK;
 
    process(slowClk)
-      variable i : natural;
    begin
       if rising_edge(slowClk) then
          if slowRst = '1' then

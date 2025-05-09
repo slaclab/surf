@@ -277,7 +277,6 @@ begin
          dataOut => bypCheck);
 
    comb : process (bypCheck, r, rxAxisMaster, sAxisRst, txAxisSlave) is
-      variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value

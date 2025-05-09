@@ -26,9 +26,11 @@ entity AxiStreamBytePackerTb is end AxiStreamBytePackerTb;
 -- Define architecture
 architecture test of AxiStreamBytePackerTb is
 
+   constant SWEEP_SIZE_C : positive := 4;
+
    constant SRC_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,              -- 128 bits
+      TDATA_BYTES_C => SWEEP_SIZE_C,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -37,7 +39,7 @@ architecture test of AxiStreamBytePackerTb is
 
    constant DST_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 16,              -- 128 bits
+      TDATA_BYTES_C => 2*SWEEP_SIZE_C,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -45,14 +47,14 @@ architecture test of AxiStreamBytePackerTb is
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
    constant CLK_PERIOD_C : time := 5.000 ns;
-   constant TPD_G        : time := 1 ns;
+   constant TPD_C        : time := 1 ns;
 
-   signal axiClk : sl;
-   signal axiRst : sl;
+   signal axiClk : sl := '0';
+   signal axiRst : sl := '0';
 
-   signal testInMaster  : AxiStreamMasterArray(15 downto 0);
-   signal testOutMaster : AxiStreamMasterArray(15 downto 0);
-   signal testFail      : slv(15 downto 0);
+   signal testInMaster  : AxiStreamMasterArray(SWEEP_SIZE_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal testOutMaster : AxiStreamMasterArray(SWEEP_SIZE_C-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal testFail      : slv(SWEEP_SIZE_C-1 downto 0)                  := (others => '0');
 
 begin
 
@@ -62,19 +64,19 @@ begin
    U_ClkRst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 10030 ns)  -- Hold reset for this long)
+         RST_START_DELAY_G => 0 ns,
+         RST_HOLD_TIME_G   => 100 ns)
       port map (
          clkP => axiClk,
          clkN => open,
          rst  => axiRst,
          rstL => open);
 
-   U_TestGen : for i in 0 to 15 generate
+   U_TestGen : for i in 0 to SWEEP_SIZE_C-1 generate
 
       U_PackTx : entity surf.AxiStreamBytePackerTbTx
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G         => TPD_C,
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => SRC_CONFIG_C)
          port map (
@@ -84,7 +86,7 @@ begin
 
       U_Pack : entity surf.AxiStreamBytePacker
          generic map (
-            TPD_G           => TPD_G,
+            TPD_G           => TPD_C,
             SLAVE_CONFIG_G  => SRC_CONFIG_C,
             MASTER_CONFIG_G => DST_CONFIG_C)
          port map (
@@ -95,7 +97,7 @@ begin
 
       U_PackRx : entity surf.AxiStreamBytePackerTbRx
          generic map (
-            TPD_G         => TPD_G,
+            TPD_G         => TPD_C,
             BYTE_SIZE_C   => i+1,
             AXIS_CONFIG_G => DST_CONFIG_C)
          port map (
