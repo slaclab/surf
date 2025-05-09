@@ -478,7 +478,7 @@ package body AxiStreamPkg is
       end loop;
 
       return retWord;
-   end endianSwap;
+   end function endianSwap;
 
    procedure axiStreamSimSendTxn (
       constant CONFIG_C : in  AxiStreamConfigType;
