@@ -25,7 +25,7 @@ async def dut_tb(dut):
     while dut.fastRst.value == 1:
         await RisingEdge(dut.fastClk)
     while dut.slowRst.value == 1:
-        await RisingEdge(dut.slowClk)        
+        await RisingEdge(dut.slowClk)
 
     timeout_us = 1000.0 # 1ms
     clk_period_ns = 10.0 # 10ns
