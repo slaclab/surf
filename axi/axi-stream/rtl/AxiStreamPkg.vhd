@@ -256,7 +256,7 @@ package body AxiStreamPkg is
       lsb := axisConfig.TUSER_BITS_C*pos;
 
       if axisConfig.TUSER_BITS_C > 0 then
-         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         for i in 0 to 8*AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             if lsb = i then
                ret := axisMaster.tUser(ret'high+i downto ret'low+i);
             end if;
@@ -303,7 +303,7 @@ package body AxiStreamPkg is
 
       if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
 
-         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         for i in 0 to 8*AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
             if lsb = i then
                axisMaster.tUser(fieldValue'high+i downto fieldValue'low+i) := fieldValue;
             end if;
