@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -298,8 +297,8 @@ begin
                      -- Check for max. address
                      if r.address = STOP_ADDR_C then
                         report "AxiMemTester: Passed Test!";
-                        report "wTimer = " & integer'image(conv_integer(v.wTimer));
-                        report "rTimer = " & integer'image(conv_integer(v.rTimer));
+                        report "wTimer = " & integer'image(conv_integer(v.wTimer(30 downto 0)));
+                        report "rTimer = " & integer'image(conv_integer(v.rTimer(30 downto 0)));
                         -- Next State
                         v.state := DONE_S;
                      else

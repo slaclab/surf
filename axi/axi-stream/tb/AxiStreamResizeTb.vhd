@@ -30,8 +30,10 @@ architecture testbed of AxiStreamResizeTb is
 
    constant CLK_PERIOD_C    : time             := 10 ns;
    constant TPD_C           : time             := CLK_PERIOD_C/4;
-   constant PACKET_LENGTH_C : slv(31 downto 0) := toSlv(32, 32);
-   constant NUMBER_PACKET_C : slv(31 downto 0) := toSlv(4096, 32);
+   constant PACKET_LENGTH_C : slv(31 downto 0) := toSlv(5, 32);
+   -- constant PACKET_LENGTH_C : slv(31 downto 0) := toSlv(32, 32);
+   constant NUMBER_PACKET_C : slv(31 downto 0) := toSlv(4, 32);
+   -- constant NUMBER_PACKET_C : slv(31 downto 0) := toSlv(4096, 32);
 
    constant PRBS_SSI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,

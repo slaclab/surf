@@ -139,8 +139,6 @@ begin
    -- Override TDESTS and TIDs according to the routing tables
    ROUTE_TABLE_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
-      variable i   : natural;
-      variable j   : natural;
    begin
       -- Latch the current value
       tmp := sAxisMasters;
@@ -208,7 +206,6 @@ begin
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
-      variable i        : natural;
    begin
       -- Latch the current value
       v := r;
