@@ -58,7 +58,7 @@ entity AxiSpiMaster is
       -- Same width as ADDRESS_SIZE_G if NUM_CHIPS_G=1
       -- Else ADDRESS_SIZE_G+log2(NUM_CHIPS_G)
       shadowAddr     : in  slv(ite(SPI_NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
-      shadowData     : out slv(DATA_SIZE_G-1 downto 0)                                                   := (others => '0');
+      shadowData     : out slv(DATA_SIZE_G-1 downto 0)                                                       := (others => '0');
       -- SPI Interface
       coreSclk       : out sl;
       coreSDin       : in  sl;
@@ -70,8 +70,9 @@ end entity AxiSpiMaster;
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
-   constant PACKET_SIZE_C : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
-   constant CHIP_BITS_C   : integer  := log2(SPI_NUM_CHIPS_G);
+   constant PACKET_SIZE_C          : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
+   constant CHIP_BITS_C            : integer  := log2(SPI_NUM_CHIPS_G);
+   constant SHADOW_MEM_ADDR_SIZE_C : integer  := ite(SPI_NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G;
 
    signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
@@ -79,8 +80,8 @@ architecture rtl of AxiSpiMaster is
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_CYCLE_SHADOW_S, WAIT_SPI_TXN_DONE_S, SHADOW_READ_DONE_S);
 
 
-   signal memData : slv(DATA_SIZE_G-1 downto 0)                := (others => '0');
-   signal memAddr : slv(ADDRESS_SIZE_G+CHIP_BITS_C-1 downto 0) := (others => '0');
+   signal memData : slv(DATA_SIZE_G-1 downto 0)            := (others => '0');
+   signal memAddr : slv(SHADOW_MEM_ADDR_SIZE_C-1 downto 0) := (others => '0');
 
    -- Registers
    type RegType is record
@@ -108,14 +109,22 @@ architecture rtl of AxiSpiMaster is
 begin
 
    SHADOW_RAM_GEN : if (SHADOW_EN_G) generate
-      memAddr <= r.chipSel & r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
+      NO_CHIP_SEL : if (SPI_NUM_CHIPS_G = 1) generate
+         memAddr <= r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
+      end generate NO_CHIP_SEL;
+
+      CHIP_SEL : if (SPI_NUM_CHIPS_G > 1) generate
+         memAddr <= r.chipSel & r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
+      end generate CHIP_SEL;
+
+
       U_DualPortRam_1 : entity surf.DualPortRam
          generic map (
             TPD_G         => TPD_G,
             MEMORY_TYPE_G => SHADOW_MEM_TYPE_G,
             REG_EN_G      => false,
             DATA_WIDTH_G  => DATA_SIZE_G,
-            ADDR_WIDTH_G  => ADDRESS_SIZE_G+CHIP_BITS_C)
+            ADDR_WIDTH_G  => SHADOW_MEM_ADDR_SIZE_C)
          port map (
             clka  => axiClk,                            -- [in]
             ena   => '1',                               -- [in]
