@@ -272,8 +272,8 @@ begin
 
    end generate;
 
-   comb : process (inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem,
-                   ramPacketActiveOut, ramPacketSeqOut, ramSentEofeOut) is
+   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem, ramPacketActiveOut,
+                   ramPacketSeqOut, ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -451,7 +451,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
