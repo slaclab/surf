@@ -222,7 +222,6 @@ begin
                    serverRemotePort) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
-      variable i      : natural;
    begin
       -- Latch the current value
       v := r;

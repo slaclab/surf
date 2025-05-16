@@ -116,7 +116,6 @@ begin
                    remotePort, rst, txSlave) is
       variable v       : RegType;
       variable arpPosV : Slv8Array(SIZE_G-1 downto 0);
-      variable i       : natural;
    begin
       -- Latch the current value
       v := r;

@@ -108,7 +108,6 @@ begin
 
    comb : process (r, rst, rxMaster, txSlave) is
       variable v : RegType;
-      variable i : natural;
    begin
       -- Latch the current value
       v := r;
