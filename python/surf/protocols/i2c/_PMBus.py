@@ -17,11 +17,11 @@ class PMBus(pr.Device):
         self.notImplemented = notImplemented.copy()
 
         def addPMBusVariable(**kwargs):
-            if name not in self.notImplemented:
+            if kwargs['name'] not in self.notImplemented:
                 self.add(pr.RemoteVariable(hidden=simpleDisplay, **kwargs))
 
         def addPMBusCommand(**kwargs):
-            if name not in self.notImplemented:
+            if kwargs['name'] not in self.notImplemented:
                 self.add(pr.RemoteVariable(hidden=simpleDisplay, **kwargs))
 
 
