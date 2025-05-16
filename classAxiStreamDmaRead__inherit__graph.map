@@ -6,17 +6,17 @@
 <area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="369,185,255,228,253,223,368,180"/>
 <area shape="rect" id="Node000006" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="320,225,503,251"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="414,191,414,225,409,225,409,191"/>
-<area shape="rect" id="Node000007" href="$classdma__read__tb.html" title=" " alt="" coords="527,225,634,251"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="452,180,554,223,552,228,450,185"/>
-<area shape="rect" id="Node000008" href="$classSrpV3Axi.html" title=" " alt="" coords="659,225,740,251"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="472,178,659,224,658,229,470,183"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamDmaReadTb.html" title=" " alt="" coords="527,225,698,251"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="458,179,581,223,579,228,456,184"/>
+<area shape="rect" id="Node000008" href="$classSrpV3Axi.html" title=" " alt="" coords="723,225,804,251"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="484,177,711,223,723,225,722,231,709,228,482,183"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="340,5,483,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="402,44,391,79,391,99,394,119,407,151,402,153,389,120,385,99,386,78,397,42"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamShift.html" title=" " alt="" coords="401,79,520,104"/>
 <area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="429,41,455,77,450,80,425,44"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="447,117,422,153,417,150,443,114"/>
-<area shape="rect" id="Node000009" href="$classSrpV3AxiLiteFull.html" title=" " alt="" coords="567,299,695,324"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="681,262,644,300,640,297,677,259"/>
-<area shape="rect" id="Node000010" href="$classSrpV3AxiTb.html" title=" " alt="" coords="720,299,817,324"/>
-<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="722,259,759,297,756,300,718,263"/>
+<area shape="rect" id="Node000009" href="$classSrpV3AxiLiteFull.html" title=" " alt="" coords="631,299,759,324"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="745,262,708,300,704,297,741,259"/>
+<area shape="rect" id="Node000010" href="$classSrpV3AxiTb.html" title=" " alt="" coords="784,299,881,324"/>
+<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="786,259,823,297,820,300,782,263"/>
 </map>

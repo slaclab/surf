@@ -12,8 +12,8 @@
 <g id="Node000001" class="node">
 <title>Node1</title>
 <g id="a_Node000001"><a xlink:title=" ">
-<polygon fill="#999999" stroke="#666666" points="115,-185 0,-185 0,-166 115,-166 115,-185"/>
-<text text-anchor="middle" x="57.5" y="-173" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRam</text>
+<polygon fill="#999999" stroke="#666666" points="115,-148 0,-148 0,-129 115,-129 115,-148"/>
+<text text-anchor="middle" x="57.5" y="-136" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRam</text>
 </a>
 </g>
 </g>
@@ -21,8 +21,8 @@
 <g id="Node000002" class="node">
 <title>Node2</title>
 <g id="a_Node000002"><a xlink:href="classAxiStreamRingBuffer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="272,-333 153,-333 153,-314 272,-314 272,-333"/>
-<text text-anchor="middle" x="212.5" y="-321" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamRingBuffer</text>
+<polygon fill="white" stroke="#bfbfbf" points="272,-328 153,-328 153,-309 272,-309 272,-328"/>
+<text text-anchor="middle" x="212.5" y="-316" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamRingBuffer</text>
 </a>
 </g>
 </g>
@@ -30,8 +30,8 @@
 <g id="edge1_Node000001_Node000002" class="edge">
 <title>Node1&#45;&gt;Node2</title>
 <g id="a_edge1_Node000001_Node000002"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M70.41,-193.5C86.64,-217.08 117.53,-258.81 151,-287.5 163.34,-298.08 179.19,-307.38 191.57,-313.88"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="73.26,-191.46 64.75,-185.14 67.46,-195.38 73.26,-191.46"/>
+<path fill="none" stroke="#63b8ff" d="M67.98,-157.38C82.88,-185.77 113.92,-240.1 151,-277.5 163.69,-290.29 180.91,-301.51 193.74,-308.96"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="70.93,-155.47 63.25,-148.18 64.71,-158.67 70.93,-155.47"/>
 </a>
 </g>
 </g>
@@ -39,8 +39,8 @@
 <g id="Node000004" class="node">
 <title>Node4</title>
 <g id="a_Node000004"><a xlink:href="classAxiRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="240,-278 185,-278 185,-259 240,-259 240,-278"/>
-<text text-anchor="middle" x="212.5" y="-266" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRam</text>
+<polygon fill="white" stroke="#bfbfbf" points="240,-268 185,-268 185,-249 240,-249 240,-268"/>
+<text text-anchor="middle" x="212.5" y="-256" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRam</text>
 </a>
 </g>
 </g>
@@ -48,8 +48,8 @@
 <g id="edge3_Node000001_Node000004" class="edge">
 <title>Node1&#45;&gt;Node4</title>
 <g id="a_edge3_Node000001_Node000004"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M75,-192.31C92.45,-209.22 121.5,-234.95 151,-250.5 161.47,-256.02 173.87,-260.09 184.71,-262.94"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="77.41,-189.77 67.84,-185.23 72.49,-194.75 77.41,-189.77"/>
+<path fill="none" stroke="#63b8ff" d="M72.35,-155.89C89.2,-176.17 119.35,-209.66 151,-231.5 161.32,-238.62 173.82,-244.57 184.77,-249.06"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="75.01,-153.62 65.98,-148.09 69.59,-158.05 75.01,-153.62"/>
 </a>
 </g>
 </g>
@@ -57,8 +57,8 @@
 <g id="Node000008" class="node">
 <title>Node8</title>
 <g id="a_Node000008"><a xlink:href="classAxiRingBuffer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="254,-241 171,-241 171,-222 254,-222 254,-241"/>
-<text text-anchor="middle" x="212.5" y="-229" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
+<polygon fill="white" stroke="#bfbfbf" points="254,-222 171,-222 171,-203 254,-203 254,-222"/>
+<text text-anchor="middle" x="212.5" y="-210" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
 </a>
 </g>
 </g>
@@ -66,17 +66,17 @@
 <g id="edge7_Node000001_Node000008" class="edge">
 <title>Node1&#45;&gt;Node8</title>
 <g id="a_edge7_Node000001_Node000008"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M89.28,-189.06C107.14,-196.69 130.14,-206.13 151,-213.5 159.37,-216.46 168.5,-219.34 177.07,-221.91"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="90.51,-185.77 79.94,-185.03 87.74,-192.2 90.51,-185.77"/>
+<path fill="none" stroke="#63b8ff" d="M87.43,-152.49C117.82,-167.19 164.83,-189.93 191.4,-202.78"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="88.72,-149.23 78.19,-148.02 85.67,-155.53 88.72,-149.23"/>
 </a>
 </g>
 </g>
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="classRssiCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="242,-204 183,-204 183,-185 242,-185 242,-204"/>
-<text text-anchor="middle" x="212.5" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCore</text>
+<g id="a_Node000009"><a xlink:href="classBoxcarIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="261.5,-167 163.5,-167 163.5,-148 261.5,-148 261.5,-167"/>
+<text text-anchor="middle" x="212.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarIntegrator</text>
 </a>
 </g>
 </g>
@@ -84,53 +84,35 @@
 <g id="edge9_Node000001_Node000009" class="edge">
 <title>Node1&#45;&gt;Node9</title>
 <g id="a_edge9_Node000001_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M125.14,-183.78C145.28,-186.28 166.34,-188.89 182.62,-190.91"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="125.39,-180.28 115.04,-182.52 124.53,-187.23 125.39,-180.28"/>
+<path fill="none" stroke="#63b8ff" d="M125.19,-146.78C137.99,-148.37 151.16,-150.01 163.24,-151.51"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="125.39,-143.28 115.04,-145.52 124.53,-150.23 125.39,-143.28"/>
 </a>
 </g>
 </g>
-<!-- Node14 -->
-<g id="Node000014" class="node">
-<title>Node14</title>
-<g id="a_Node000014"><a xlink:href="classAxiMicronMt28ewReg.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="274,-167 151,-167 151,-148 274,-148 274,-167"/>
-<text text-anchor="middle" x="212.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronMt28ewReg</text>
+<!-- Node13 -->
+<g id="Node000013" class="node">
+<title>Node13</title>
+<g id="a_Node000013"><a xlink:href="classRssiCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="242,-130 183,-130 183,-111 242,-111 242,-130"/>
+<text text-anchor="middle" x="212.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCore</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node14 -->
-<g id="edge14_Node000001_Node000014" class="edge">
-<title>Node1&#45;&gt;Node14</title>
-<g id="a_edge14_Node000001_Node000014"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M125.01,-167.68C133.59,-166.67 142.35,-165.64 150.83,-164.64"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="124.56,-164.2 115.04,-168.85 125.38,-171.16 124.56,-164.2"/>
-</a>
-</g>
-</g>
-<!-- Node16 -->
-<g id="Node000016" class="node">
-<title>Node16</title>
-<g id="a_Node000016"><a xlink:href="classAxiMicronN25QReg.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="268,-130 157,-130 157,-111 268,-111 268,-130"/>
-<text text-anchor="middle" x="212.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronN25QReg</text>
-</a>
-</g>
-</g>
-<!-- Node1&#45;&gt;Node16 -->
-<g id="edge16_Node000001_Node000016" class="edge">
-<title>Node1&#45;&gt;Node16</title>
-<g id="a_edge16_Node000001_Node000016"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M91.68,-161.97C109.21,-154.98 131.16,-146.47 151,-139.5 160.24,-136.25 170.37,-132.97 179.65,-130.06"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="89.89,-158.92 81.91,-165.89 92.49,-165.41 89.89,-158.92"/>
+<!-- Node1&#45;&gt;Node13 -->
+<g id="edge13_Node000001_Node000013" class="edge">
+<title>Node1&#45;&gt;Node13</title>
+<g id="a_edge13_Node000001_Node000013"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M125.14,-130.66C145.28,-128.29 166.34,-125.81 182.62,-123.9"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="124.56,-127.2 115.04,-131.85 125.38,-134.16 124.56,-127.2"/>
 </a>
 </g>
 </g>
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="classAxiMicronP30Reg.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="263.5,-93 161.5,-93 161.5,-74 263.5,-74 263.5,-93"/>
-<text text-anchor="middle" x="212.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronP30Reg</text>
+<g id="a_Node000018"><a xlink:href="classAxiMicronMt28ewReg.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="274,-93 151,-93 151,-74 274,-74 274,-93"/>
+<text text-anchor="middle" x="212.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronMt28ewReg</text>
 </a>
 </g>
 </g>
@@ -138,17 +120,17 @@
 <g id="edge18_Node000001_Node000018" class="edge">
 <title>Node1&#45;&gt;Node18</title>
 <g id="a_edge18_Node000001_Node000018"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M75.9,-158.54C93.53,-142.17 122.24,-117.7 151,-102.5 158.01,-98.8 165.86,-95.67 173.53,-93.1"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="73.03,-156.43 68.18,-165.85 77.85,-161.52 73.03,-156.43"/>
+<path fill="none" stroke="#63b8ff" d="M91.68,-124.97C109.21,-117.98 131.16,-109.47 151,-102.5 160.24,-99.25 170.37,-95.97 179.65,-93.06"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="89.89,-121.92 81.91,-128.89 92.49,-128.41 89.89,-121.92"/>
 </a>
 </g>
 </g>
 <!-- Node20 -->
 <g id="Node000020" class="node">
 <title>Node20</title>
-<g id="a_Node000020"><a xlink:href="classBoxcarIntegrator.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="261.5,-56 163.5,-56 163.5,-37 261.5,-37 261.5,-56"/>
-<text text-anchor="middle" x="212.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarIntegrator</text>
+<g id="a_Node000020"><a xlink:href="classAxiMicronN25QReg.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="268,-56 157,-56 157,-37 268,-37 268,-56"/>
+<text text-anchor="middle" x="212.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronN25QReg</text>
 </a>
 </g>
 </g>
@@ -156,8 +138,26 @@
 <g id="edge20_Node000001_Node000020" class="edge">
 <title>Node1&#45;&gt;Node20</title>
 <g id="a_edge20_Node000001_Node000020"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M69.1,-157.36C84.25,-132.99 114.34,-89.94 151,-65.5 156.77,-61.65 163.37,-58.55 170.03,-56.05"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="66.06,-155.62 63.88,-165.99 72.05,-159.24 66.06,-155.62"/>
+<path fill="none" stroke="#63b8ff" d="M75.9,-121.54C93.53,-105.17 122.24,-80.7 151,-65.5 158.01,-61.8 165.86,-58.67 173.53,-56.1"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="73.03,-119.43 68.18,-128.85 77.85,-124.52 73.03,-119.43"/>
+</a>
+</g>
+</g>
+<!-- Node22 -->
+<g id="Node000022" class="node">
+<title>Node22</title>
+<g id="a_Node000022"><a xlink:href="classAxiMicronP30Reg.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="263.5,-19 161.5,-19 161.5,0 263.5,0 263.5,-19"/>
+<text text-anchor="middle" x="212.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronP30Reg</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node22 -->
+<g id="edge22_Node000001_Node000022" class="edge">
+<title>Node1&#45;&gt;Node22</title>
+<g id="a_edge22_Node000001_Node000022"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M69.01,-120.11C84.05,-95.42 114.02,-51.87 151,-27.5 156.12,-24.12 161.9,-21.36 167.8,-19.11"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="65.91,-118.46 63.83,-128.85 71.94,-122.03 65.91,-118.46"/>
 </a>
 </g>
 </g>
@@ -174,8 +174,8 @@
 <g id="edge2_Node000002_Node000003" class="edge">
 <title>Node2&#45;&gt;Node3</title>
 <g id="a_edge2_Node000002_Node000003"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M282.03,-331.59C291.3,-332.68 300.78,-333.8 309.98,-334.89"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="282.42,-328.11 272.08,-330.41 281.6,-335.06 282.42,-328.11"/>
+<path fill="none" stroke="#63b8ff" d="M282.18,-328.74C291.58,-330.14 301.21,-331.57 310.53,-332.96"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="282.49,-325.25 272.08,-327.23 281.45,-332.17 282.49,-325.25"/>
 </a>
 </g>
 </g>
@@ -192,8 +192,8 @@
 <g id="edge4_Node000004_Node000005" class="edge">
 <title>Node4&#45;&gt;Node5</title>
 <g id="a_edge4_Node000004_Node000005"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M250.13,-276.92C277.7,-283.25 315.17,-291.86 341.75,-297.97"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="250.62,-273.44 240.09,-274.61 249.05,-280.26 250.62,-273.44"/>
+<path fill="none" stroke="#63b8ff" d="M249.67,-269.55C267.76,-275.04 290.01,-281.71 310,-287.5 320.38,-290.51 331.74,-293.71 341.98,-296.56"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="250.67,-266.2 240.08,-266.64 248.63,-272.9 250.67,-266.2"/>
 </a>
 </g>
 </g>
@@ -210,8 +210,8 @@
 <g id="edge5_Node000004_Node000006" class="edge">
 <title>Node4&#45;&gt;Node6</title>
 <g id="a_edge5_Node000004_Node000006"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M250.14,-260.08C274.82,-254.41 307.42,-246.92 333.05,-241.02"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="249.05,-256.74 240.09,-262.39 250.62,-263.56 249.05,-256.74"/>
+<path fill="none" stroke="#63b8ff" d="M250.12,-252.36C273.11,-248.5 302.98,-243.49 327.68,-239.35"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="249.37,-248.94 240.09,-254.04 250.53,-255.84 249.37,-248.94"/>
 </a>
 </g>
 </g>
@@ -228,8 +228,8 @@
 <g id="edge6_Node000004_Node000007" class="edge">
 <title>Node4&#45;&gt;Node7</title>
 <g id="a_edge6_Node000004_Node000007"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M250.14,-268.5C276.72,-268.5 312.47,-268.5 338.83,-268.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="250.09,-265 240.09,-268.5 250.09,-272 250.09,-265"/>
+<path fill="none" stroke="#63b8ff" d="M250.14,-260.78C276.72,-262.43 312.47,-264.65 338.83,-266.28"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="250.28,-257.28 240.09,-260.15 249.85,-264.26 250.28,-257.28"/>
 </a>
 </g>
 </g>
@@ -237,17 +237,17 @@
 <g id="edge8_Node000008_Node000006" class="edge">
 <title>Node8&#45;&gt;Node6</title>
 <g id="a_edge8_Node000008_Node000006"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M264.18,-231.5C284.57,-231.5 307.94,-231.5 327.9,-231.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="264.13,-228 254.13,-231.5 264.13,-235 264.13,-228"/>
+<path fill="none" stroke="#63b8ff" d="M264.18,-218.48C284.57,-220.89 307.94,-223.64 327.9,-226"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="264.47,-214.99 254.13,-217.29 263.65,-221.94 264.47,-214.99"/>
 </a>
 </g>
 </g>
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="classRssiCoreWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="426,-204 325,-204 325,-185 426,-185 426,-204"/>
-<text text-anchor="middle" x="375.5" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCoreWrapper</text>
+<g id="a_Node000010"><a xlink:href="classBoxcarFilter.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="413,-204 338,-204 338,-185 413,-185 413,-204"/>
+<text text-anchor="middle" x="375.5" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarFilter</text>
 </a>
 </g>
 </g>
@@ -255,17 +255,35 @@
 <g id="edge10_Node000009_Node000010" class="edge">
 <title>Node9&#45;&gt;Node10</title>
 <g id="a_edge10_Node000009_Node000010"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M252.47,-194.5C274.21,-194.5 301.53,-194.5 324.8,-194.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="252.28,-191 242.28,-194.5 252.28,-198 252.28,-191"/>
+<path fill="none" stroke="#63b8ff" d="M264.87,-169.3C288.61,-174.76 316.25,-181.11 337.84,-186.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="265.49,-165.86 254.96,-167.03 263.92,-172.68 265.49,-165.86"/>
+</a>
+</g>
+</g>
+<!-- Node12 -->
+<g id="Node000012" class="node">
+<title>Node12</title>
+<g id="a_Node000012"><a xlink:href="classBoxcarIntegratorTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="430.5,-167 320.5,-167 320.5,-148 430.5,-148 430.5,-167"/>
+<text text-anchor="middle" x="375.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarIntegratorTb</text>
+</a>
+</g>
+</g>
+<!-- Node9&#45;&gt;Node12 -->
+<g id="edge12_Node000009_Node000012" class="edge">
+<title>Node9&#45;&gt;Node12</title>
+<g id="a_edge12_Node000009_Node000012"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M271.97,-157.5C287.76,-157.5 304.77,-157.5 320.31,-157.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="271.81,-154 261.81,-157.5 271.81,-161 271.81,-154"/>
 </a>
 </g>
 </g>
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="classRssiCoreTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="562.5,-241 491.5,-241 491.5,-222 562.5,-222 562.5,-241"/>
-<text text-anchor="middle" x="527" y="-229" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCoreTb</text>
+<g id="a_Node000011"><a xlink:href="classBoxcarFilterTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="570.5,-204 483.5,-204 483.5,-185 570.5,-185 570.5,-204"/>
+<text text-anchor="middle" x="527" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarFilterTb</text>
 </a>
 </g>
 </g>
@@ -273,53 +291,35 @@
 <g id="edge11_Node000010_Node000011" class="edge">
 <title>Node10&#45;&gt;Node11</title>
 <g id="a_edge11_Node000010_Node000011"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M424.97,-206.5C446.56,-211.84 471.51,-218.01 491.21,-222.89"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="425.55,-203.03 415,-204.03 423.87,-209.83 425.55,-203.03"/>
+<path fill="none" stroke="#63b8ff" d="M423.15,-194.5C442.42,-194.5 464.62,-194.5 483.45,-194.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="423.07,-191 413.07,-194.5 423.07,-198 423.07,-191"/>
 </a>
 </g>
 </g>
-<!-- Node12 -->
-<g id="Node000012" class="node">
-<title>Node12</title>
-<g id="a_Node000012"><a xlink:href="classRssiInterleaveTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="576,-204 478,-204 478,-185 576,-185 576,-204"/>
-<text text-anchor="middle" x="527" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">RssiInterleaveTb</text>
+<!-- Node14 -->
+<g id="Node000014" class="node">
+<title>Node14</title>
+<g id="a_Node000014"><a xlink:href="classRssiCoreWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="426,-130 325,-130 325,-111 426,-111 426,-130"/>
+<text text-anchor="middle" x="375.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCoreWrapper</text>
 </a>
 </g>
 </g>
-<!-- Node10&#45;&gt;Node12 -->
-<g id="edge12_Node000010_Node000012" class="edge">
-<title>Node10&#45;&gt;Node12</title>
-<g id="a_edge12_Node000010_Node000012"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M436.63,-194.5C450.37,-194.5 464.8,-194.5 477.96,-194.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="436.28,-191 426.28,-194.5 436.28,-198 436.28,-191"/>
-</a>
-</g>
-</g>
-<!-- Node13 -->
-<g id="Node000013" class="node">
-<title>Node13</title>
-<g id="a_Node000013"><a xlink:href="classRawEthFramerTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="577,-167 477,-167 477,-148 577,-148 577,-167"/>
-<text text-anchor="middle" x="527" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">RawEthFramerTb</text>
-</a>
-</g>
-</g>
-<!-- Node10&#45;&gt;Node13 -->
-<g id="edge13_Node000010_Node000013" class="edge">
-<title>Node10&#45;&gt;Node13</title>
-<g id="a_edge13_Node000010_Node000013"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M424.96,-182.51C445.18,-177.5 468.33,-171.77 487.37,-167.06"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="423.87,-179.17 415,-184.97 425.55,-185.97 423.87,-179.17"/>
+<!-- Node13&#45;&gt;Node14 -->
+<g id="edge14_Node000013_Node000014" class="edge">
+<title>Node13&#45;&gt;Node14</title>
+<g id="a_edge14_Node000013_Node000014"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M252.47,-120.5C274.21,-120.5 301.53,-120.5 324.8,-120.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="252.28,-117 242.28,-120.5 252.28,-124 252.28,-117"/>
 </a>
 </g>
 </g>
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="classAxiMicronMt28ewCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="439,-167 312,-167 312,-148 439,-148 439,-167"/>
-<text text-anchor="middle" x="375.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronMt28ewCore</text>
+<g id="a_Node000015"><a xlink:href="classRssiCoreTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="562.5,-167 491.5,-167 491.5,-148 562.5,-148 562.5,-167"/>
+<text text-anchor="middle" x="527" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">RssiCoreTb</text>
 </a>
 </g>
 </g>
@@ -327,35 +327,53 @@
 <g id="edge15_Node000014_Node000015" class="edge">
 <title>Node14&#45;&gt;Node15</title>
 <g id="a_edge15_Node000014_Node000015"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M284.57,-157.5C293.69,-157.5 302.97,-157.5 311.94,-157.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="284.37,-154 274.37,-157.5 284.37,-161 284.37,-154"/>
+<path fill="none" stroke="#63b8ff" d="M424.97,-132.5C446.56,-137.84 471.51,-144.01 491.21,-148.89"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="425.55,-129.03 415,-130.03 423.87,-135.83 425.55,-129.03"/>
+</a>
+</g>
+</g>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="classRssiInterleaveTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="576,-130 478,-130 478,-111 576,-111 576,-130"/>
+<text text-anchor="middle" x="527" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">RssiInterleaveTb</text>
+</a>
+</g>
+</g>
+<!-- Node14&#45;&gt;Node16 -->
+<g id="edge16_Node000014_Node000016" class="edge">
+<title>Node14&#45;&gt;Node16</title>
+<g id="a_edge16_Node000014_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M436.63,-120.5C450.37,-120.5 464.8,-120.5 477.96,-120.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="436.28,-117 426.28,-120.5 436.28,-124 436.28,-117"/>
 </a>
 </g>
 </g>
 <!-- Node17 -->
 <g id="Node000017" class="node">
 <title>Node17</title>
-<g id="a_Node000017"><a xlink:href="classAxiMicronN25QCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="433,-130 318,-130 318,-111 433,-111 433,-130"/>
-<text text-anchor="middle" x="375.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronN25QCore</text>
+<g id="a_Node000017"><a xlink:href="classRawEthFramerTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="577,-93 477,-93 477,-74 577,-74 577,-93"/>
+<text text-anchor="middle" x="527" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">RawEthFramerTb</text>
 </a>
 </g>
 </g>
-<!-- Node16&#45;&gt;Node17 -->
-<g id="edge17_Node000016_Node000017" class="edge">
-<title>Node16&#45;&gt;Node17</title>
-<g id="a_edge17_Node000016_Node000017"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M278.35,-120.5C291.43,-120.5 305.08,-120.5 317.85,-120.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="278.01,-117 268.01,-120.5 278.01,-124 278.01,-117"/>
+<!-- Node14&#45;&gt;Node17 -->
+<g id="edge17_Node000014_Node000017" class="edge">
+<title>Node14&#45;&gt;Node17</title>
+<g id="a_edge17_Node000014_Node000017"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M424.96,-108.51C445.18,-103.5 468.33,-97.77 487.37,-93.06"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="423.87,-105.17 415,-110.97 425.55,-111.97 423.87,-105.17"/>
 </a>
 </g>
 </g>
 <!-- Node19 -->
 <g id="Node000019" class="node">
 <title>Node19</title>
-<g id="a_Node000019"><a xlink:href="classAxiMicronP30Core.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="428.5,-93 322.5,-93 322.5,-74 428.5,-74 428.5,-93"/>
-<text text-anchor="middle" x="375.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronP30Core</text>
+<g id="a_Node000019"><a xlink:href="classAxiMicronMt28ewCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="439,-93 312,-93 312,-74 439,-74 439,-93"/>
+<text text-anchor="middle" x="375.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronMt28ewCore</text>
 </a>
 </g>
 </g>
@@ -363,17 +381,17 @@
 <g id="edge19_Node000018_Node000019" class="edge">
 <title>Node18&#45;&gt;Node19</title>
 <g id="a_edge19_Node000018_Node000019"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M273.83,-83.5C289.75,-83.5 306.79,-83.5 322.25,-83.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="273.56,-80 263.56,-83.5 273.56,-87 273.56,-80"/>
+<path fill="none" stroke="#63b8ff" d="M284.57,-83.5C293.69,-83.5 302.97,-83.5 311.94,-83.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="284.37,-80 274.37,-83.5 284.37,-87 284.37,-80"/>
 </a>
 </g>
 </g>
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="classBoxcarFilter.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="413,-56 338,-56 338,-37 413,-37 413,-56"/>
-<text text-anchor="middle" x="375.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarFilter</text>
+<g id="a_Node000021"><a xlink:href="classAxiMicronN25QCore.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="433,-56 318,-56 318,-37 433,-37 433,-56"/>
+<text text-anchor="middle" x="375.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronN25QCore</text>
 </a>
 </g>
 </g>
@@ -381,44 +399,26 @@
 <g id="edge21_Node000020_Node000021" class="edge">
 <title>Node20&#45;&gt;Node21</title>
 <g id="a_edge21_Node000020_Node000021"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M272.03,-46.5C293.99,-46.5 318.31,-46.5 337.75,-46.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="271.81,-43 261.81,-46.5 271.81,-50 271.81,-43"/>
+<path fill="none" stroke="#63b8ff" d="M278.35,-46.5C291.43,-46.5 305.08,-46.5 317.85,-46.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="278.01,-43 268.01,-46.5 278.01,-50 278.01,-43"/>
 </a>
 </g>
 </g>
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classBoxcarIntegratorTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="430.5,-19 320.5,-19 320.5,0 430.5,0 430.5,-19"/>
-<text text-anchor="middle" x="375.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarIntegratorTb</text>
+<g id="a_Node000023"><a xlink:href="classAxiMicronP30Core.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="428.5,-19 322.5,-19 322.5,0 428.5,0 428.5,-19"/>
+<text text-anchor="middle" x="375.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMicronP30Core</text>
 </a>
 </g>
 </g>
-<!-- Node20&#45;&gt;Node23 -->
-<g id="edge23_Node000020_Node000023" class="edge">
-<title>Node20&#45;&gt;Node23</title>
-<g id="a_edge23_Node000020_Node000023"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M264.8,-34.71C286.77,-29.66 312.11,-23.84 332.9,-19.06"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="263.92,-31.32 254.96,-36.97 265.49,-38.14 263.92,-31.32"/>
-</a>
-</g>
-</g>
-<!-- Node22 -->
-<g id="Node000022" class="node">
-<title>Node22</title>
-<g id="a_Node000022"><a xlink:href="classBoxcarFilterTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="570.5,-56 483.5,-56 483.5,-37 570.5,-37 570.5,-56"/>
-<text text-anchor="middle" x="527" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">BoxcarFilterTb</text>
-</a>
-</g>
-</g>
-<!-- Node21&#45;&gt;Node22 -->
-<g id="edge22_Node000021_Node000022" class="edge">
-<title>Node21&#45;&gt;Node22</title>
-<g id="a_edge22_Node000021_Node000022"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M423.15,-46.5C442.42,-46.5 464.62,-46.5 483.45,-46.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="423.07,-43 413.07,-46.5 423.07,-50 423.07,-43"/>
+<!-- Node22&#45;&gt;Node23 -->
+<g id="edge23_Node000022_Node000023" class="edge">
+<title>Node22&#45;&gt;Node23</title>
+<g id="a_edge23_Node000022_Node000023"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M273.83,-9.5C289.75,-9.5 306.79,-9.5 322.25,-9.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="273.56,-6 263.56,-9.5 273.56,-13 273.56,-6"/>
 </a>
 </g>
 </g>

@@ -1,27 +1,31 @@
 <map id="Srl16Delay" name="Srl16Delay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="232,5,325,31"/>
-<area shape="rect" id="Node000002" href="$classSlvFixedDelay.html" title=" " alt="" coords="221,79,336,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="281,44,281,79,276,79,276,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="315,5,408,31"/>
+<area shape="rect" id="Node000002" href="$classSlvFixedDelay.html" title=" " alt="" coords="304,79,419,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="364,44,364,79,359,79,359,44"/>
 <area shape="rect" id="Node000003" href="$classcfixedDelay.html" title=" " alt="" coords="5,152,104,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,111,92,154,90,149,229,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="299,110,105,154,104,149,298,104"/>
 <area shape="rect" id="Node000004" href="$classSinCosTaylor.html" title=" " alt="" coords="89,225,194,251"/>
-<area shape="poly" id="edge13_Node000002_Node000004" title=" " alt="" coords="230,112,197,129,169,154,158,171,151,191,145,225,139,224,146,189,153,169,165,150,194,125,227,107"/>
-<area shape="rect" id="Node000006" href="$classFirAverage.html" title=" " alt="" coords="291,152,381,177"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="299,113,329,150,325,154,294,116"/>
-<area shape="rect" id="Node000008" href="$classIirSimple.html" title=" " alt="" coords="405,152,485,177"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="319,107,419,149,417,154,317,112"/>
-<area shape="rect" id="Node000010" href="$classSfixedAccumulator.html" title=" " alt="" coords="514,152,657,177"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="342,104,536,149,535,154,341,110"/>
-<area shape="rect" id="Node000012" href="$classSinCosLut.html" title=" " alt="" coords="179,152,266,177"/>
-<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="263,117,234,154,230,150,259,113"/>
+<area shape="poly" id="edge14_Node000002_Node000004" title=" " alt="" coords="291,101,259,107,226,118,195,133,169,154,157,171,150,190,144,225,139,225,144,189,152,168,165,150,192,128,224,113,257,102,290,95"/>
+<area shape="rect" id="Node000006" href="$classSfixedAccumulator.html" title=" " alt="" coords="290,152,433,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="364,118,364,152,359,152,359,118"/>
+<area shape="rect" id="Node000008" href="$classsfixedDelay.html" title=" " alt="" coords="508,152,607,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="406,106,526,149,524,154,405,111"/>
+<area shape="rect" id="Node000009" href="$classFirAverage.html" title=" " alt="" coords="461,225,552,251"/>
+<area shape="poly" id="edge15_Node000002_Node000009" title=" " alt="" coords="394,109,446,150,479,189,502,223,497,226,474,192,442,154,391,114"/>
+<area shape="rect" id="Node000011" href="$classIirSimple.html" title=" " alt="" coords="600,225,680,251"/>
+<area shape="poly" id="edge16_Node000002_Node000011" title=" " alt="" coords="433,98,541,118,589,132,620,150,633,168,640,188,643,225,638,225,635,190,628,170,617,154,587,137,540,123,432,103"/>
+<area shape="rect" id="Node000013" href="$classSinCosLut.html" title=" " alt="" coords="179,152,266,177"/>
+<area shape="poly" id="edge12_Node000002_Node000013" title=" " alt="" coords="328,113,247,154,244,149,326,108"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="81,184,129,223,125,227,77,188"/>
 <area shape="rect" id="Node000005" href="$classSinCosLutTb.html" title=" " alt="" coords="90,299,193,324"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="144,264,144,299,139,299,139,264"/>
-<area shape="rect" id="Node000007" href="$classFirAverageTb.html" title=" " alt="" coords="267,225,373,251"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="333,191,325,226,320,225,328,190"/>
-<area shape="rect" id="Node000009" href="$classIirSimpleTb.html" title=" " alt="" coords="397,225,493,251"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="448,191,448,225,443,225,443,191"/>
-<area shape="rect" id="Node000011" href="$classCfixedAccumulator.html" title=" " alt="" coords="517,225,661,251"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="589,191,591,225,586,225,584,191"/>
-<area shape="poly" id="edge12_Node000012_Node000004" title=" " alt="" coords="201,188,156,227,153,223,198,184"/>
+<area shape="rect" id="Node000007" href="$classCfixedAccumulator.html" title=" " alt="" coords="289,225,433,251"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="364,191,364,225,359,225,359,191"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="543,190,517,227,513,224,539,187"/>
+<area shape="poly" id="edge10_Node000008_Node000011" title=" " alt="" coords="583,184,628,223,625,227,579,188"/>
+<area shape="rect" id="Node000010" href="$classFirAverageTb.html" title=" " alt="" coords="453,299,560,324"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="509,264,509,299,504,299,504,264"/>
+<area shape="rect" id="Node000012" href="$classIirSimpleTb.html" title=" " alt="" coords="592,299,688,324"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="643,264,643,299,637,299,637,264"/>
+<area shape="poly" id="edge13_Node000013_Node000004" title=" " alt="" coords="201,188,156,227,153,223,198,184"/>
 </map>

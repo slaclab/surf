@@ -74,9 +74,9 @@
 <!-- Node22 -->
 <g id="Node000022" class="node">
 <title>Node22</title>
-<g id="a_Node000022"><a xlink:href="classfifo__tb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="926,-1055 879,-1055 879,-1036 926,-1036 926,-1055"/>
-<text text-anchor="middle" x="902.5" y="-1043" font-family="Helvetica,sans-Serif" font-size="10.00">fifo_tb</text>
+<g id="a_Node000022"><a xlink:href="classAxiRingBuffer.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="orangered" points="944,-1055 861,-1055 861,-1036 944,-1036 944,-1055"/>
+<text text-anchor="middle" x="902.5" y="-1043" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
 </a>
 </g>
 </g>
@@ -84,25 +84,25 @@
 <g id="edge30_Node000001_Node000022" class="edge">
 <title>Node1&#45;&gt;Node22</title>
 <g id="a_edge30_Node000001_Node000022"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M741.96,-602.51C746.12,-680.77 765.17,-964.95 825,-1027.5 838.77,-1041.9 861.71,-1045.73 878.89,-1046.36"/>
+<path fill="none" stroke="#63b8ff" d="M741.96,-602.51C746.12,-680.77 765.17,-964.95 825,-1027.5 834.24,-1037.16 847.62,-1042.07 860.61,-1044.44"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="745.44,-601.95 741.43,-592.14 738.44,-602.3 745.44,-601.95"/>
 </a>
 </g>
 </g>
-<!-- Node23 -->
-<g id="Node000023" class="node">
-<title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classAxiRingBuffer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="orangered" points="944,-1018 861,-1018 861,-999 944,-999 944,-1018"/>
-<text text-anchor="middle" x="902.5" y="-1006" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
+<!-- Node24 -->
+<g id="Node000024" class="node">
+<title>Node24</title>
+<g id="a_Node000024"><a xlink:href="classAxiStreamDmaRingRead.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="971,-1018 834,-1018 834,-999 971,-999 971,-1018"/>
+<text text-anchor="middle" x="902.5" y="-1006" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingRead</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node23 -->
-<g id="edge31_Node000001_Node000023" class="edge">
-<title>Node1&#45;&gt;Node23</title>
-<g id="a_edge31_Node000001_Node000023"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M742.31,-602.25C747.61,-675.99 769.85,-933.78 825,-990.5 834.32,-1000.09 847.72,-1004.97 860.7,-1007.35"/>
+<!-- Node1&#45;&gt;Node24 -->
+<g id="edge31_Node000001_Node000024" class="edge">
+<title>Node1&#45;&gt;Node24</title>
+<g id="a_edge31_Node000001_Node000024"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M742.31,-602.25C747.61,-675.99 769.85,-933.78 825,-990.5 828.23,-993.83 831.96,-996.59 835.99,-998.87"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="745.79,-601.79 741.6,-592.06 738.81,-602.28 745.79,-601.79"/>
 </a>
 </g>
@@ -110,9 +110,9 @@
 <!-- Node25 -->
 <g id="Node000025" class="node">
 <title>Node25</title>
-<g id="a_Node000025"><a xlink:href="classAxiStreamDmaRingRead.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="971,-981 834,-981 834,-962 971,-962 971,-981"/>
-<text text-anchor="middle" x="902.5" y="-969" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingRead</text>
+<g id="a_Node000025"><a xlink:href="classAxiStreamDmaRingWrite.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="972,-981 833,-981 833,-962 972,-962 972,-981"/>
+<text text-anchor="middle" x="902.5" y="-969" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingWrite</text>
 </a>
 </g>
 </g>
@@ -128,9 +128,9 @@
 <!-- Node26 -->
 <g id="Node000026" class="node">
 <title>Node26</title>
-<g id="a_Node000026"><a xlink:href="classAxiStreamDmaRingWrite.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="972,-944 833,-944 833,-925 972,-925 972,-944"/>
-<text text-anchor="middle" x="902.5" y="-932" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingWrite</text>
+<g id="a_Node000026"><a xlink:href="classAxiLiteSrpV0.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="orangered" points="942,-944 863,-944 863,-925 942,-925 942,-944"/>
+<text text-anchor="middle" x="902.5" y="-932" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteSrpV0</text>
 </a>
 </g>
 </g>
@@ -138,25 +138,25 @@
 <g id="edge33_Node000001_Node000026" class="edge">
 <title>Node1&#45;&gt;Node26</title>
 <g id="a_edge33_Node000001_Node000026"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M743.29,-602.34C751.18,-667.21 779.29,-871.48 825,-916.5 828.4,-919.85 832.3,-922.62 836.51,-924.91"/>
+<path fill="none" stroke="#63b8ff" d="M743.29,-602.34C751.18,-667.21 779.29,-871.48 825,-916.5 835.01,-926.36 849.35,-931.2 862.92,-933.46"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="746.75,-601.74 742.09,-592.22 739.79,-602.57 746.75,-601.74"/>
 </a>
 </g>
 </g>
-<!-- Node27 -->
-<g id="Node000027" class="node">
-<title>Node27</title>
-<g id="a_Node000027"><a xlink:href="classAxiLiteSrpV0.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="orangered" points="942,-907 863,-907 863,-888 942,-888 942,-907"/>
-<text text-anchor="middle" x="902.5" y="-895" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteSrpV0</text>
+<!-- Node28 -->
+<g id="Node000028" class="node">
+<title>Node28</title>
+<g id="a_Node000028"><a xlink:href="classHtspCoreTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="939.5,-907 865.5,-907 865.5,-888 939.5,-888 939.5,-907"/>
+<text text-anchor="middle" x="902.5" y="-895" font-family="Helvetica,sans-Serif" font-size="10.00">HtspCoreTb</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node27 -->
-<g id="edge34_Node000001_Node000027" class="edge">
-<title>Node1&#45;&gt;Node27</title>
-<g id="a_edge34_Node000001_Node000027"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M740.25,-602.33C739.38,-655.55 744.73,-802.73 825,-879.5 835.06,-889.12 849.24,-893.93 862.67,-896.24"/>
+<!-- Node1&#45;&gt;Node28 -->
+<g id="edge34_Node000001_Node000028" class="edge">
+<title>Node1&#45;&gt;Node28</title>
+<g id="a_edge34_Node000001_Node000028"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M740.25,-602.33C739.38,-655.55 744.73,-802.73 825,-879.5 835.75,-889.78 851.21,-894.57 865.43,-896.68"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="743.75,-602.28 740.51,-592.19 736.75,-602.1 743.75,-602.28"/>
 </a>
 </g>

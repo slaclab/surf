@@ -1,29 +1,33 @@
 <map id="SinglePortRamPrimitive" name="SinglePortRamPrimitive">
-<area shape="rect" id="Node000001" title=" " alt="" coords="190,5,367,31"/>
-<area shape="rect" id="Node000002" href="$classLutFixedDelay.html" title=" " alt="" coords="221,79,336,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="281,44,281,79,276,79,276,44"/>
-<area shape="rect" id="Node000003" href="$classSlvFixedDelay.html" title=" " alt="" coords="221,152,336,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="281,118,281,152,276,152,276,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="273,5,450,31"/>
+<area shape="rect" id="Node000002" href="$classLutFixedDelay.html" title=" " alt="" coords="304,79,419,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="364,44,364,79,359,79,359,44"/>
+<area shape="rect" id="Node000003" href="$classSlvFixedDelay.html" title=" " alt="" coords="304,152,419,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="364,118,364,152,359,152,359,118"/>
 <area shape="rect" id="Node000004" href="$classcfixedDelay.html" title=" " alt="" coords="5,225,104,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="231,184,92,228,90,223,229,179"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="299,183,105,228,104,223,298,178"/>
 <area shape="rect" id="Node000005" href="$classSinCosTaylor.html" title=" " alt="" coords="89,299,194,324"/>
-<area shape="poly" id="edge14_Node000003_Node000005" title=" " alt="" coords="230,185,197,202,169,227,158,245,151,264,145,299,139,298,146,263,153,242,165,224,194,198,227,180"/>
-<area shape="rect" id="Node000007" href="$classFirAverage.html" title=" " alt="" coords="291,225,381,251"/>
-<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="299,186,329,224,325,227,294,190"/>
-<area shape="rect" id="Node000009" href="$classIirSimple.html" title=" " alt="" coords="405,225,485,251"/>
-<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="319,180,419,223,417,228,317,185"/>
-<area shape="rect" id="Node000011" href="$classSfixedAccumulator.html" title=" " alt="" coords="514,225,657,251"/>
-<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="342,178,536,223,535,228,341,183"/>
-<area shape="rect" id="Node000013" href="$classSinCosLut.html" title=" " alt="" coords="179,225,266,251"/>
-<area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="263,190,234,227,230,224,259,187"/>
+<area shape="poly" id="edge15_Node000003_Node000005" title=" " alt="" coords="291,174,259,181,226,191,195,206,169,227,157,244,150,263,144,299,139,298,144,262,152,241,165,223,192,202,224,186,257,175,290,169"/>
+<area shape="rect" id="Node000007" href="$classSfixedAccumulator.html" title=" " alt="" coords="290,225,433,251"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="364,191,364,225,359,225,359,191"/>
+<area shape="rect" id="Node000009" href="$classsfixedDelay.html" title=" " alt="" coords="508,225,607,251"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="406,179,526,223,524,228,405,184"/>
+<area shape="rect" id="Node000010" href="$classFirAverage.html" title=" " alt="" coords="461,299,552,324"/>
+<area shape="poly" id="edge16_Node000003_Node000010" title=" " alt="" coords="394,183,446,223,479,262,502,297,497,300,474,266,442,227,391,187"/>
+<area shape="rect" id="Node000012" href="$classIirSimple.html" title=" " alt="" coords="600,299,680,324"/>
+<area shape="poly" id="edge17_Node000003_Node000012" title=" " alt="" coords="433,171,541,191,589,205,620,223,633,241,640,262,643,298,638,299,635,263,628,244,617,227,587,210,540,196,432,177"/>
+<area shape="rect" id="Node000014" href="$classSinCosLut.html" title=" " alt="" coords="179,225,266,251"/>
+<area shape="poly" id="edge13_Node000003_Node000014" title=" " alt="" coords="328,186,247,227,244,223,326,181"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="81,257,129,296,125,301,77,261"/>
 <area shape="rect" id="Node000006" href="$classSinCosLutTb.html" title=" " alt="" coords="90,372,193,397"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="144,338,144,372,139,372,139,338"/>
-<area shape="rect" id="Node000008" href="$classFirAverageTb.html" title=" " alt="" coords="267,299,373,324"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="333,265,325,299,320,298,328,263"/>
-<area shape="rect" id="Node000010" href="$classIirSimpleTb.html" title=" " alt="" coords="397,299,493,324"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="448,264,448,299,443,299,443,264"/>
-<area shape="rect" id="Node000012" href="$classCfixedAccumulator.html" title=" " alt="" coords="517,299,661,324"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="589,264,591,298,586,299,584,265"/>
-<area shape="poly" id="edge13_Node000013_Node000005" title=" " alt="" coords="201,262,156,300,153,296,198,258"/>
+<area shape="rect" id="Node000008" href="$classCfixedAccumulator.html" title=" " alt="" coords="289,299,433,324"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="364,264,364,299,359,299,359,264"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="543,264,517,300,513,297,539,261"/>
+<area shape="poly" id="edge11_Node000009_Node000012" title=" " alt="" coords="583,258,628,296,625,300,579,262"/>
+<area shape="rect" id="Node000011" href="$classFirAverageTb.html" title=" " alt="" coords="453,372,560,397"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="509,338,509,372,504,372,504,338"/>
+<area shape="rect" id="Node000013" href="$classIirSimpleTb.html" title=" " alt="" coords="592,372,688,397"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="643,338,643,372,637,372,637,338"/>
+<area shape="poly" id="edge14_Node000014_Node000005" title=" " alt="" coords="201,262,156,300,153,296,198,258"/>
 </map>

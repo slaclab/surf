@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 917;
+var viewWidth = 965;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node16 -->
 <g id="Node000016" class="node">
 <title>Node16</title>
-<g id="a_Node000016"><a xlink:href="classdma__read__tb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="909,-166 829,-166 829,-147 909,-147 909,-166"/>
-<text text-anchor="middle" x="869" y="-154" font-family="Helvetica,sans-Serif" font-size="10.00">dma_read_tb</text>
+<g id="a_Node000016"><a xlink:href="classAxiStreamDmaReadTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="957,-166 829,-166 829,-147 957,-147 957,-166"/>
+<text text-anchor="middle" x="893" y="-154" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaReadTb</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,8 @@ var sectionId = 'dynsection-0';
 <g id="edge22_Node000001_Node000016" class="edge">
 <title>Node1&#45;&gt;Node16</title>
 <g id="a_edge22_Node000001_Node000016"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M803.38,-156.5C812.06,-156.5 820.83,-156.5 828.99,-156.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="803.26,-153 793.26,-156.5 803.26,-160 803.26,-153"/>
+<path fill="none" stroke="#63b8ff" d="M803.21,-156.5C811.61,-156.5 820.29,-156.5 828.78,-156.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="803.13,-153 793.13,-156.5 803.13,-160 803.13,-153"/>
 </a>
 </g>
 </g>

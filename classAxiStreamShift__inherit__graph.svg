@@ -210,9 +210,9 @@ var sectionId = 'dynsection-0';
 <!-- Node7 -->
 <g id="Node000007" class="node">
 <title>Node7</title>
-<g id="a_Node000007"><a xlink:href="classdma__read__tb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="530.5,-19 450.5,-19 450.5,0 530.5,0 530.5,-19"/>
-<text text-anchor="middle" x="490.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">dma_read_tb</text>
+<g id="a_Node000007"><a xlink:href="classAxiStreamDmaReadTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="554.5,-19 426.5,-19 426.5,0 554.5,0 554.5,-19"/>
+<text text-anchor="middle" x="490.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaReadTb</text>
 </a>
 </g>
 </g>
@@ -220,7 +220,7 @@ var sectionId = 'dynsection-0';
 <g id="edge6_Node000003_Node000007" class="edge">
 <title>Node3&#45;&gt;Node7</title>
 <g id="a_edge6_Node000003_Node000007"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M374.45,-70.13C378.12,-68.45 381.69,-66.57 385,-64.5 404.45,-52.33 401.18,-39.06 421,-27.5 429.92,-22.3 440.36,-18.57 450.37,-15.91"/>
+<path fill="none" stroke="#63b8ff" d="M374.45,-70.13C378.12,-68.45 381.69,-66.57 385,-64.5 404.45,-52.33 401.18,-39.06 421,-27.5 426.84,-24.09 433.34,-21.32 439.93,-19.06"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="373.1,-66.9 365.18,-73.95 375.76,-73.38 373.1,-66.9"/>
 </a>
 </g>
