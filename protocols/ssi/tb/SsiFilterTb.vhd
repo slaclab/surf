@@ -194,12 +194,12 @@ begin
    process(failedDly, passedDly)
    begin
       if (failedDly = '1') then
-      -- assert false
-      -- report "Simulation Failed!" severity failure;
+         assert false
+            report "Simulation Failed!" severity failure;
       end if;
       if (passedDly = '1') then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 

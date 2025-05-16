@@ -29,7 +29,7 @@ end entity HammingEccTb;
 architecture sim of HammingEccTb is
 
    constant CLK_PERIOD_C : time := 4 ns;
-   constant TPD_G        : time := CLK_PERIOD_C/4;
+   constant TPD_C        : time := CLK_PERIOD_C/4;
 
    constant DATA_WIDTH_C : positive := 8;
    constant ENC_WIDTH_C  : positive := hammingEccDataWidth(DATA_WIDTH_C);
@@ -98,7 +98,7 @@ begin
    -----------------------
    U_Encoder : entity surf.HammingEccEncoder
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G        => TPD_C,
          DATA_WIDTH_G => DATA_WIDTH_C)
       port map (
          -- Clock and Reset
@@ -115,7 +115,7 @@ begin
 
    U_Decoder : entity surf.HammingEccDecoder
       generic map (
-         TPD_G        => TPD_G,
+         TPD_G        => TPD_C,
          DATA_WIDTH_G => DATA_WIDTH_C)
       port map (
          -- Clock and Reset
@@ -256,7 +256,7 @@ begin
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         r <= rin after TPD_G;
+         r <= rin after TPD_C;
       end if;
    end process seq;
 
@@ -264,7 +264,7 @@ begin
    begin
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       elsif failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;

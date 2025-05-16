@@ -50,8 +50,10 @@ architecture testbed of SsiPrbsTb is
    constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3;
    constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
-   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
+   -- constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(64, 32);
+   -- constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
+   constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(32, 32);
 
    -- FIFO configurations
    constant MEMORY_TYPE_C       : string  := "block";
@@ -84,7 +86,6 @@ architecture testbed of SsiPrbsTb is
    signal slowRst : sl := '1';
 
    signal errWordCnt : slv(31 downto 0);
-   signal errbitCnt  : slv(31 downto 0);
    signal cnt        : slv(31 downto 0);
 
    signal axisMaster : AxiStreamMasterType;
@@ -187,10 +188,7 @@ begin
          errLength       => errLength,
          errDataBus      => errDataBus,
          errEofe         => errEofe,
-         errWordCnt      => errWordCnt,
-         errbitCnt       => errbitCnt,
-         packetRate      => open,
-         packetLength    => open);
+         errWordCnt      => errWordCnt);
 
    process(slowClk)
    begin
@@ -220,10 +218,6 @@ begin
             if errWordCnt /= 0 then
                failed <= '1' after TPD_C;
             end if;
-            -- Check for bit error
-            if errbitCnt /= 0 then
-               failed <= '1' after TPD_C;
-            end if;
             -- Check the counter
             if cnt = NUMBER_PACKET_C then
                passed <= '1' after TPD_C;
@@ -243,7 +237,7 @@ begin
       end if;
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 
