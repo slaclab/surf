@@ -12,9 +12,65 @@ import pyrogue as pr
 
 import surf.protocols.i2c
 
+NOT_IMPLEMENTED = [
+    'PHASE',
+    'STORE_DEFAULT_ALL',
+    'RESTORE_DEFAULT_ALL',
+    'STORE_DEFAULT_CODE',
+    'RESTORE_DEFAULT_CODE',
+    'STORE_USER_CODE',
+    'RESTORE_USER_CODE',
+    'VOUT_TRIM',
+    'VOUT_CAL_OFFSET',
+    'VOUT_DROOP',
+    'VOUT_SCALE_LOOP',
+    'VOUT_SCALE_MONITOR',
+    'POUT_MAX',
+    'MAX_DUTY',
+    'INTERLEAVE',
+    'IOUT_CAL_GAIN',
+    'IOUT_CAL_OFFSET',
+    'FAN_CONFIG_1_2',
+    'FAN_COMMAND_1',
+    'FAN_COMMAND_2',
+    'FAN_CONFIG_3_4',
+    'FAN_COMMAND_3',
+    'FAN_COMMAND_4',
+    'IOUT_OC_LV_FAULT_LIMIT',
+    'IOUT_OC_LV_FAULT_RESPONSE',
+    'IOUT_UC_FAULT_LIMIT',
+    'IOUT_UC_FAULT_RESPONSE',
+    'UT_WARN_LIMIT',
+    'VIN_OV_WARN_LIMIT',
+    'VIN_UV_FAULT_LIMIT',
+    'VIN_UV_FAULT_RESPONSE',
+    'IIN_OC_FAULT_LIMIT',
+    'IIN_OC_FAULT_RESPONSE',
+    'POWER_GOOD_ON',
+    'POWER_GOOD_OFF',
+    'POUT_OP_FAULT_LIMIT',
+    'POUT_OP_FAULT_RESPONSE',
+    'POUT_OP_WARN_LIMIT',
+    'PIN_OP_WARN_LIMIT',
+    'STATUS_OTHER',
+    'STATUS_FANS_1_2',
+    'STATUS_FANS_3_4',
+    'READ_VCAP',
+    'READ_TEMPERATURE_3',
+    'READ_FAN_SPEED_1',
+    'READ_FAN_SPEED_2',
+    'READ_FAN_SPEED_3',
+    'READ_FAN_SPEED_4',
+    'READ_DUTY_CYCLE',
+    'MFR_REVISION',
+    'MFR_LOCATION',
+    'MFR_DATE',
+    'MFR_SERIAL',
+]    
+
 class Ltm4664(surf.protocols.i2c.PMBus):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(notImplemented=NOT_IMPLEMENTED, **kwargs)
 
         # ---------------------------
         # Helper functions
@@ -54,59 +110,6 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         self.tenbit.hidden = True
         self.ignoreResp.hidden = True
 
-        del self._nodes['PHASE']
-        del self._nodes['STORE_DEFAULT_ALL']
-        del self._nodes['RESTORE_DEFAULT_ALL']
-        del self._nodes['STORE_DEFAULT_CODE']
-        del self._nodes['RESTORE_DEFAULT_CODE']
-        del self._nodes['STORE_USER_CODE']
-        del self._nodes['RESTORE_USER_CODE']
-        del self._nodes['VOUT_TRIM']
-        del self._nodes['VOUT_CAL_OFFSET']
-        del self._nodes['VOUT_DROOP']
-        del self._nodes['VOUT_SCALE_LOOP']
-        del self._nodes['VOUT_SCALE_MONITOR']
-        del self._nodes['POUT_MAX']
-        del self._nodes['MAX_DUTY']
-        del self._nodes['INTERLEAVE']
-        del self._nodes['IOUT_CAL_GAIN']
-        del self._nodes['IOUT_CAL_OFFSET']
-        del self._nodes['FAN_CONFIG_1_2']
-        del self._nodes['FAN_COMMAND_1']
-        del self._nodes['FAN_COMMAND_2']
-        del self._nodes['FAN_CONFIG_3_4']
-        del self._nodes['FAN_COMMAND_3']
-        del self._nodes['FAN_COMMAND_4']
-        del self._nodes['IOUT_OC_LV_FAULT_LIMIT']
-        del self._nodes['IOUT_OC_LV_FAULT_RESPONSE']
-        del self._nodes['IOUT_UC_FAULT_LIMIT']
-        del self._nodes['IOUT_UC_FAULT_RESPONSE']
-        del self._nodes['UT_WARN_LIMIT']
-        del self._nodes['VIN_OV_WARN_LIMIT']
-        del self._nodes['VIN_UV_FAULT_LIMIT']
-        del self._nodes['VIN_UV_FAULT_RESPONSE']
-        del self._nodes['IIN_OC_FAULT_LIMIT']
-        del self._nodes['IIN_OC_FAULT_RESPONSE']
-        del self._nodes['POWER_GOOD_ON']
-        del self._nodes['POWER_GOOD_OFF']
-        del self._nodes['POUT_OP_FAULT_LIMIT']
-        del self._nodes['POUT_OP_FAULT_RESPONSE']
-        del self._nodes['POUT_OP_WARN_LIMIT']
-        del self._nodes['PIN_OP_WARN_LIMIT']
-        del self._nodes['STATUS_OTHER']
-        del self._nodes['STATUS_FANS_1_2']
-        del self._nodes['STATUS_FANS_3_4']
-        del self._nodes['READ_VCAP']
-        del self._nodes['READ_TEMPERATURE_3']
-        del self._nodes['READ_FAN_SPEED_1']
-        del self._nodes['READ_FAN_SPEED_2']
-        del self._nodes['READ_FAN_SPEED_3']
-        del self._nodes['READ_FAN_SPEED_4']
-        del self._nodes['READ_DUTY_CYCLE']
-        del self._nodes['MFR_REVISION']
-        del self._nodes['MFR_LOCATION']
-        del self._nodes['MFR_DATE']
-        del self._nodes['MFR_SERIAL']
 
         # NOTE: string commands MFR_ID and MFR_MODEL do not work correctly
 
