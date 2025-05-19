@@ -18,6 +18,9 @@ while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/stdlib.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/orig" -type f -name "*.vhd")
 
+# Manually add a specific file to the exclude list
+EXCLUDE_FILES+=("$SCRIPT_DIR/../protocols/packetizer/rtl/AxiStreamDepacketizer2.vhd")
+
 # Build a lookup table using associative array
 declare -A EXCLUDE_MAP
 for file in "${EXCLUDE_FILES[@]}"; do
