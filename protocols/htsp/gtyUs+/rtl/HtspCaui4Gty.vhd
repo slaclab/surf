@@ -34,7 +34,7 @@ entity HtspCaui4Gty is
       SIM_SPEEDUP_G         : boolean                     := false;
       ROGUE_SIM_EN_G        : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G  : natural range 1024 to 49151 := 9000;
-      REFCLK_TYPE_G         : string                     := "161MHz";  -- or "156.25MHz"
+      REFCLK_TYPE_G         : string                      := "161MHz";  -- or "156.25MHz"
       -- HTSP Settings
       NUM_VC_G              : integer range 1 to 16       := 4;
       TX_MAX_PAYLOAD_SIZE_G : positive                    := 8192;  -- Must be a multiple of 64B (in units of bytes)
