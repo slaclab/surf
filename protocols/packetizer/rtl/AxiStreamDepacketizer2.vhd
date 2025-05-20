@@ -91,6 +91,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
       crcReset         : sl;
+      crcOut           : slv(31 downto 0);
       linkGoodDly      : sl;
       rdLat            : natural range 0 to 2;
       debug            : Packetizer2DebugType;
@@ -110,6 +111,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
       crcReset         => '1',
+      crcOut           => (others => '0'),
       linkGoodDly      => '0',
       rdLat            => 2,
       debug            => PACKETIZER2_DEBUG_INIT_C,
@@ -272,8 +274,8 @@ begin
 
    end generate;
 
-   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem, ramPacketActiveOut,
-                   ramPacketSeqOut, ramSentEofeOut) is
+   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem,
+                   ramPacketActiveOut, ramPacketSeqOut, ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -346,6 +348,9 @@ begin
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer
+
+      -- Register crcOut in case we need it.
+      v.crcOut := crcOut;
 
       -- Reset tready by default
       v.inputAxisSlave.tready := '0';
