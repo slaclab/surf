@@ -22,79 +22,34 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
+use surf.PMbusPkg.all;
 
 entity AxiLitePMbusMasterCore is
    generic (
-      TPD_G           : time            := 1 ns;
-      I2C_ADDR_G      : slv(6 downto 0) := "1010000";
-      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real            := 156.25E+6);  -- units of Hz
+      TPD_G             : time             := 1 ns;
+      I2C_ADDR_G        : slv(6 downto 0)  := "1010000";
+      I2C_SCL_FREQ_G    : real             := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G   : real             := 100.0E-9;    -- units of seconds
+      ACCESS_ROM_INIT_G : PMbusAccessArray := PMBUS_ACCESS_ROM_INIT_C;
+      AXI_CLK_FREQ_G    : real             := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
-      i2ci            : in  i2c_in_type;
-      i2co            : out i2c_out_type;
+      i2ci              : in  i2c_in_type;
+      i2co              : out i2c_out_type;
       -- AXI-Lite Register Interface
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilReadMaster    : in  AxiLiteReadMasterType;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType;
+      axilWriteSlave    : out AxiLiteWriteSlaveType;
       -- Clocks and Resets
-      axilClk         : in  sl;
-      axilRst         : in  sl);
+      axilClk           : in  sl;
+      axilRst           : in  sl);
 end AxiLitePMbusMasterCore;
 
 architecture rtl of AxiLitePMbusMasterCore is
 
-   -- BIT2 = regAddrSkip, BIT[1:0] = regDataSize
-   type AccessArray is array (0 to 255) of slv(2 downto 0);
-
-   -- Refer to Table 26 in http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
-   constant ACCESS_ROM_C : AccessArray := (
-      16#00# to 16#02# => "000",
-      16#03# to 16#03# => "100",
-      16#04# to 16#10# => "000",
-      16#11# to 16#12# => "100",
-      16#13# to 16#14# => "000",
-      16#15# to 16#16# => "100",
-      16#17# to 16#20# => "000",
-      16#21# to 16#39# => "001",
-      16#3A# to 16#3A# => "000",
-      16#3B# to 16#3C# => "001",
-      16#3D# to 16#3D# => "000",
-      16#3E# to 16#40# => "001",
-      16#41# to 16#41# => "000",
-      16#42# to 16#44# => "001",
-      16#45# to 16#45# => "000",
-      16#46# to 16#46# => "001",
-      16#47# to 16#47# => "000",
-      16#48# to 16#48# => "001",
-      16#49# to 16#49# => "000",
-      16#4A# to 16#4B# => "001",
-      16#4C# to 16#4E# => "000",
-      16#4F# to 16#4F# => "001",
-      16#50# to 16#50# => "000",
-      16#51# to 16#53# => "001",
-      16#54# to 16#54# => "000",
-      16#55# to 16#55# => "001",
-      16#56# to 16#56# => "000",
-      16#57# to 16#59# => "001",
-      16#5A# to 16#5A# => "000",
-      16#5B# to 16#5B# => "001",
-      16#5C# to 16#5C# => "000",
-      16#5D# to 16#62# => "001",
-      16#63# to 16#63# => "000",
-      16#64# to 16#68# => "001",
-      16#69# to 16#69# => "000",
-      16#6A# to 16#6B# => "001",
-      16#6C# to 16#78# => "000",
-      16#79# to 16#79# => "001",
-      16#7A# to 16#87# => "000",
-      16#88# to 16#97# => "001",
-      16#98# to 16#98# => "000",
-      16#99# to 16#9F# => "011",
-      16#A0# to 16#A9# => "001",
-      16#AA# to 16#FF# => "000");
+   -- Refer to PMbusPkg for details on the access ROM
+   constant ACCESS_ROM_C : PMbusAccessArray := ACCESS_ROM_INIT_G;
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
