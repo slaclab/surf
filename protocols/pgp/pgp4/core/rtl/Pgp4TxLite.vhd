@@ -60,9 +60,9 @@ architecture rtl of Pgp4TxLite is
 
    -- Synchronized statuses
    signal syncLocRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
-   signal syncLocRxLinkReady : sl                                      := '1';
+   signal syncLocRxLinkReady : sl                                      ; -- Removed init value := '1';
    signal syncRemRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
-   signal syncRemRxLinkReady : sl                                      := '1';
+   signal syncRemRxLinkReady : sl                                      ; -- Removed init value := '1';
 
    -- Pipeline signals
    signal disableSel    : slv(NUM_VC_G-1 downto 0);
@@ -187,6 +187,8 @@ begin
    NO_MUX : if (NUM_VC_G = 1) and (FLOW_CTRL_EN_G = false) generate
       muxedTxMaster  <= pgpTxMasters(0);
       pgpTxSlaves(0) <= muxedTxSlave;
+      syncLocRxLinkReady <= '1'; 
+      syncRemRxLinkReady <= '1';
    end generate NO_MUX;
 
    ----------------------------------------------------------------------------------------
