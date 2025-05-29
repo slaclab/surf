@@ -204,7 +204,9 @@ architecture mapping of Pgp3GtyUsIpWrapper is
          rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
          rxstartofseq_out                   : out std_logic_vector(1 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
+         rxpmareset_in                      : in  std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -328,7 +330,9 @@ architecture mapping of Pgp3GtyUsIpWrapper is
          rxprgdivresetdone_out              : out std_logic_vector(0 downto 0);
          rxstartofseq_out                   : out std_logic_vector(1 downto 0);
          txpmaresetdone_out                 : out std_logic_vector(0 downto 0);
-         txprgdivresetdone_out              : out std_logic_vector(0 downto 0)
+         txprgdivresetdone_out              : out std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
+         rxpmareset_in                      : in  std_logic_vector(0 downto 0)
          );
    end component;
 
@@ -572,12 +576,14 @@ begin
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
-            rxpmaresetdone_out(0)                 => dummy8,
+            rxpmaresetdone_out(0)                 => rxPmaRstDone,
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
             txpmaresetdone_out(0)                 => dummy10,
-            txprgdivresetdone_out(0)              => dummy11);
+            txprgdivresetdone_out(0)              => dummy11,
+            eyescanreset_in(0)                    => rxEyeRst,
+            rxpmareset_in(0)                      => rxPmaRst);
    end generate GEN_12G;
 
    GEN_10G : if (RATE_G = "10.3125Gbps") generate
@@ -703,12 +709,14 @@ begin
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
-            rxpmaresetdone_out(0)                 => dummy8,
+            rxpmaresetdone_out(0)                 => rxPmaRstDone,
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
             txpmaresetdone_out(0)                 => dummy10,
-            txprgdivresetdone_out(0)              => dummy11);
+            txprgdivresetdone_out(0)              => dummy11,
+            eyescanreset_in(0)                    => rxEyeRst,
+            rxpmareset_in(0)                      => rxPmaRst);
    end generate GEN_6G;
 
    GEN_3G : if (RATE_G = "3.125Gbps") generate
@@ -767,7 +775,7 @@ begin
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
-            rxpmaresetdone_out(0)                 => dummy8,
+            rxpmaresetdone_out(0)                 => rxPmaRstDone,
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,

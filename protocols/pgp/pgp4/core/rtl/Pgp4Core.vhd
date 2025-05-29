@@ -76,7 +76,7 @@ entity Pgp4Core is
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
       phyRxSlip     : out sl := '0';
-      phyRxEyeRst   : out sl := '1';
+      phyRxEyeRst   : out sl := '0';
       phyRxPmaRst   : out sl;
       phyRxPmaRstDone : in  sl;
 

@@ -100,7 +100,7 @@ architecture mapping of Pgp4AxiL is
       txDiffCtrl     => (others => '1'),
       txPreCursor    => "00111",
       txPostCursor   => "00111",
-      phyRxEyeRst    => '1',
+      phyRxEyeRst    => '0',
       phyRxPmaRst    => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
