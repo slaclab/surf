@@ -16,15 +16,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.math_real.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
-library UNISIM;
-use UNISIM.VCOMPONENTS.all;
+library unisim;
+use unisim.vcomponents.all;
 
 entity Gtx7Core is
-
    generic (
       TPD_G : time := 1 ns;
 
@@ -47,10 +45,10 @@ entity Gtx7Core is
       TX_CLK25_DIV_G    : integer    := 5;  -- Set by wizard
 
 
-      PMA_RSV_G   : bit_vector := X"00018480";            -- Use X"00018480" when RXPLL=CPLL
-                                                          -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
+      PMA_RSV_G   : bit_vector := X"00018480";  -- Use X"00018480" when RXPLL=CPLL
+                                                -- Use X"001E7080" when RXPLL=QPLL and QPLL > 6.6GHz
       RX_OS_CFG_G : bit_vector := "0000010000000";        -- Set by wizard
-      RXCDR_CFG_G : bit_vector := x"03000023ff40200020";  -- Set by wizard
+      RXCDR_CFG_G : bit_vector := x"03000023FF40200020";  -- Set by wizard
 
 
       -- Configure PLL sources
@@ -69,15 +67,15 @@ entity Gtx7Core is
       -- Configure Buffer usage
       TX_BUF_EN_G        : boolean := true;
       TX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
-      TX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
+      TX_DLY_BYPASS_G    : sl      := '1';  -- 1 for bypass, 0 for delay
       TX_PHASE_ALIGN_G   : string  := "AUTO";       -- Or "MANUAL" or "NONE"
       TX_BUF_ADDR_MODE_G : string  := "FAST";       -- Or "FULL"
 
       RX_BUF_EN_G        : boolean := true;
       RX_OUTCLK_SRC_G    : string  := "PLLREFCLK";  -- or "OUTCLKPMA" when bypassing buffer
       RX_USRCLK_SRC_G    : string  := "RXOUTCLK";   -- or "TXOUTCLK"
-      RX_DLY_BYPASS_G    : sl      := '1';          -- 1 for bypass, 0 for delay
-      RX_DDIEN_G         : sl      := '0';          -- Supposed to be '1' when bypassing rx buffer
+      RX_DLY_BYPASS_G    : sl      := '1';  -- 1 for bypass, 0 for delay
+      RX_DDIEN_G         : sl      := '0';  -- Supposed to be '1' when bypassing rx buffer
       RX_BUF_ADDR_MODE_G : string  := "FAST";
 
       -- Configure RX comma alignment
@@ -155,11 +153,9 @@ entity Gtx7Core is
       RX_CM_TRIM_G     : bit_vector := "010";
       RX_DFE_LPM_CFG_G : bit_vector := x"0954";
       RXDFELFOVRDEN_G  : sl         := '1';
-      RXDFEXYDEN_G     : sl         := '1'           -- This should always be 1
-      );
-
+      RXDFEXYDEN_G     : sl         := '1');         -- This should always be 1
    port (
-      stableClkIn : in sl;              -- Freerunning clock needed to drive reset logic
+      stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
 
       cPllRefClkIn : in  sl := '0';     -- Drives CPLL if used
       cPllLockOut  : out sl;
@@ -239,7 +235,6 @@ entity Gtx7Core is
       drpAddr        : in  slv(8 downto 0)  := "000000000";
       drpDi          : in  slv(15 downto 0) := X"0000";
       drpDo          : out slv(15 downto 0));
-
 end entity Gtx7Core;
 
 architecture rtl of Gtx7Core is
@@ -375,7 +370,7 @@ architecture rtl of Gtx7Core is
    signal txDlyEn              : sl;    -- GT TXDLYEN
 
    -- Tx Data Signals
-   signal txDataFull : slv(63 downto 0) := (others => '0');
+   signal txDataFull     : slv(63 downto 0) := (others => '0');
    signal txCharIsKFull  : slv(7 downto 0)  := (others => '0');
    signal txCharDispMode : slv(7 downto 0)  := (others => '0');
    signal txCharDispVal  : slv(7 downto 0)  := (others => '0');
@@ -483,21 +478,21 @@ begin
          SOFT_RESET             => rxUserResetInt,
          PLLREFCLKLOST          => rxPllRefClkLost,
          PLLLOCK                => rxPllLock,
-         RXRESETDONE            => rxResetDone,           -- From GT
+         RXRESETDONE            => rxResetDone,    -- From GT
          MMCM_LOCK              => rxMmcmLockedIn,
-         RECCLK_STABLE          => rxRecClkStable,        -- Asserted after 50,000 UI as per DS183
+         RECCLK_STABLE          => rxRecClkStable,  -- Asserted after 50,000 UI as per DS183
          RECCLK_MONITOR_RESTART => rxRecClkMonitorRestart,
-         DATA_VALID             => rxDataValidIn,         -- From external decoder if used
-         TXUSERRDY              => rxRstTxUserRdy,        -- Need to know when txUserRdy
-         GTRXRESET              => gtRxReset,             -- To GT
+         DATA_VALID             => rxDataValidIn,  -- From external decoder if used
+         TXUSERRDY              => rxRstTxUserRdy,  -- Need to know when txUserRdy
+         GTRXRESET              => gtRxReset,      -- To GT
          MMCM_RESET             => rxMmcmResetOut,
          PLL_RESET              => rxPllReset,
          RX_FSM_RESET_DONE      => rxFsmResetDone,
-         RXUSERRDY              => rxUserRdyInt,          -- To GT
-         RUN_PHALIGNMENT        => rxRunPhAlignment,      -- To Phase Alignment module
+         RXUSERRDY              => rxUserRdyInt,   -- To GT
+         RUN_PHALIGNMENT        => rxRunPhAlignment,  -- To Phase Alignment module
          PHALIGNMENT_DONE       => rxPhaseAlignmentDone,  -- From Phase Alignment module
-         RESET_PHALIGNMENT      => open,                  -- For manual phase align
-         RXDFEAGCHOLD           => rxDfeAgcHold,          -- Explore using these later
+         RESET_PHALIGNMENT      => open,           -- For manual phase align
+         RXDFEAGCHOLD           => rxDfeAgcHold,   -- Explore using these later
          RXDFELFHOLD            => rxDfeLfHold,
          RXLPMLFHOLD            => rxLpmLfHold,
          RXLPMHFHOLD            => rxLpmHfHold,
@@ -543,23 +538,23 @@ begin
 --    end generate;
 
 --   RX_NO_RECCLK_MON_GEN : if (RX_BUF_EN_G) generate
-      rxRecClkMonitorRestart <= '0';
-      process(stableClkIn)
-      begin
-         if rising_edge(stableClkIn) then
-            if gtRxReset = '1' then
-               rxRecClkStable <= '0' after TPD_G;
-               rxCdrLockCnt   <= 0   after TPD_G;
-            elsif rxRecClkStable = '0' then
-               if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
-                  rxRecClkStable <= '1'          after TPD_G;
-                  rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
-               else
-                  rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
-               end if;
+   rxRecClkMonitorRestart <= '0';
+   process(stableClkIn)
+   begin
+      if rising_edge(stableClkIn) then
+         if gtRxReset = '1' then
+            rxRecClkStable <= '0' after TPD_G;
+            rxCdrLockCnt   <= 0   after TPD_G;
+         elsif rxRecClkStable = '0' then
+            if rxCdrLockCnt = WAIT_TIME_CDRLOCK_C then
+               rxRecClkStable <= '1'          after TPD_G;
+               rxCdrLockCnt   <= rxCdrLockCnt after TPD_G;
+            else
+               rxCdrLockCnt <= rxCdrLockCnt + 1 after TPD_G;
             end if;
          end if;
-      end process;
+      end if;
+   end process;
 --   end generate RX_NO_RECCLK_MON_GEN;
 
    -------------------------------------------------------------------------------------------------
@@ -579,7 +574,7 @@ begin
             DLYSRESET            => rxDlySReset,           -- To gt
             DLYSRESETDONE        => rxDlySResetDone,       -- From gt
             RECCLKSTABLE         => rxRecClkStable);
-      rxSlide      <= rxSlideIn;                           -- User controlled rxSlide
+      rxSlide      <= rxSlideIn;        -- User controlled rxSlide
       rxAlignReset <= '0';
    end generate;
 
@@ -671,7 +666,7 @@ begin
          RUN_PHALIGNMENT   => txRunPhAlignment,
          RESET_PHALIGNMENT => txResetPhAlignment,  -- Used for manual alignment
          PHALIGNMENT_DONE  => txPhaseAlignmentDone,
-         RETRY_COUNTER     => open);               -- Might be interesting to look at
+         RETRY_COUNTER     => open);    -- Might be interesting to look at
 
    --------------------------------------------------------------------------------------------------
    -- Synchronize rxFsmResetDone to rxUsrClk to use as reset for external logic.
@@ -741,9 +736,7 @@ begin
    -- GTX Instantiation
    --------------------------------------------------------------------------------------------------
    gtxe2_i : GTXE2_CHANNEL
-      generic map
-      (
-
+      generic map (
          --_______________________ Simulation-Only Attributes ___________________
 
          SIM_RECEIVER_DETECT_PASS => ("TRUE"),
@@ -1012,12 +1005,8 @@ begin
          RX_DFE_XYD_CFG => ("0000000000000"),
 
          -------------------------TX Configurable Driver Attributes--------------------------
-         TX_PREDRIVER_MODE => ('0')
-
-
-         )
-      port map
-      (
+         TX_PREDRIVER_MODE => ('0'))
+      port map (
          ---------------------------------- Channel ---------------------------------
          CFGRESET         => '0',
          CLKRSVD          => "0000",
@@ -1104,7 +1093,7 @@ begin
          RXBYTEISALIGNED  => open,
          RXBYTEREALIGN    => open,
          RXCOMMADET       => open,
-         RXCOMMADETEN     => toSl(RX_ALIGN_MODE_G /= "NONE"),     -- Enables RXSLIDE
+         RXCOMMADETEN     => toSl(RX_ALIGN_MODE_G /= "NONE"),  -- Enables RXSLIDE
          RXMCOMMAALIGNEN  => toSl(ALIGN_MCOMMA_EN_G = '1' and (RX_ALIGN_MODE_G = "GT")),
          RXPCOMMAALIGNEN  => toSl(ALIGN_PCOMMA_EN_G = '1' and (RX_ALIGN_MODE_G = "GT")),
          RXSLIDE          => rxSlide,
@@ -1119,7 +1108,7 @@ begin
          RXOUTCLKFABRIC   => open,
          RXOUTCLKPCS      => open,
          RXOUTCLKSEL      => to_stdlogicvector(RX_OUTCLK_SEL_C),  -- Selects rx recovered clk for rxoutclk
-         RXPCSRESET       => '0',       -- Don't bother with component level resets
+         RXPCSRESET       => '0',  -- Don't bother with component level resets
          RXPMARESET       => '0',
          RXUSRCLK         => rxUsrClkIn,
          RXUSRCLK2        => rxUsrClk2In,
@@ -1144,7 +1133,7 @@ begin
          RXDFEVPOVRDEN    => '0',
          RXDFEVSEN        => '0',
          -- RXDFEXYDEN       => RXDFEXYDEN_G,
-         RXDFEXYDEN       => '1',-- This should always be 1
+         RXDFEXYDEN       => '1',       -- This should always be 1
          RXDFEXYDHOLD     => '0',
          RXDFEXYDOVRDEN   => '0',
          RXMONITOROUT     => open,
@@ -1283,9 +1272,6 @@ begin
          TXCOMFINISH      => open,
          TXCOMINIT        => '0',
          TXCOMSAS         => '0',
-         TXCOMWAKE        => '0'
-
-         );
-
+         TXCOMWAKE        => '0');
 
 end architecture rtl;

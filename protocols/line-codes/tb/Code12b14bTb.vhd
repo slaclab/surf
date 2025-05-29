@@ -17,20 +17,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Code12b14bPkg.all;
 use surf.TextUtilPkg.all;
 
-
-----------------------------------------------------------------------------------------------------
-
 entity Code12b14bTb is
-
 end entity Code12b14bTb;
-
-----------------------------------------------------------------------------------------------------
 
 architecture sim of Code12b14bTb is
 
@@ -71,7 +64,7 @@ architecture sim of Code12b14bTb is
    signal decCodeError : sl;                       -- [out]
    signal decDispError : sl;                       -- [out]
 
-   signal dlyDataOut : slv(11 downto 0);
+   signal dlyDataOut  : slv(11 downto 0);
    signal dlyDataKOut : sl;
 
 begin
@@ -164,6 +157,7 @@ begin
          end loop;
          return false;
       end function isKCode;
+
    begin
 
       wait until clk = '1';
@@ -236,7 +230,7 @@ begin
                     (encDataOut = K_120_3_CODE_C) or
                     (encDataOut = K_120_11_CODE_C) or
                     (encDataOut = K_120_19_CODE_C))
-               report "Run length violation: "&
+               report "Run length violation: " &
                "encDataOut: " & str(encDataOut) &
                " runVar: " & str(runVar) &
                " lastEncDataOut: " & str(lastEncDataOut)
@@ -295,8 +289,4 @@ begin
          dataOut(11 downto 0) => dlyDataOut,    -- [out]
          dataOut(12)          => dlyDataKOut);  -- [out]
 
-
-
 end architecture sim;
-
-----------------------------------------------------------------------------------------------------

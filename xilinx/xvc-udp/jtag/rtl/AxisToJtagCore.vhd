@@ -18,11 +18,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
-
 
 -- Convert an AXI Stream into JTAG and return the TDO reply as an AXI Stream.
 --
@@ -95,8 +93,7 @@ entity AxisToJtagCore is
       LEN_POS0_G     : natural  := 0;
       LEN_POSN_G     : natural  := 17;
       CLK_DIV2_G     : positive := 8;   -- half-period of TCK in axisClk cycles
-      TLAST_IGNORE_G : boolean  := false  -- don't wait for TLAST on input
-      );
+      TLAST_IGNORE_G : boolean  := false);  -- don't wait for TLAST on input
    port (
       axisClk : in sl;
       axisRst : in sl;
@@ -112,12 +109,10 @@ entity AxisToJtagCore is
       tck : out sl;
       tdi : out sl;
       tms : out sl;
-      tdo : in  sl
-      );
+      tdo : in  sl);
 end entity AxisToJtagCore;
 
 architecture AxisToJtagCoreImpl of AxisToJtagCore is
-
 
    type StateType is (IDLE_S, GET_TMS_S, GET_TDI_S, SHIFT_S, ALIGN_S, DISCARD_S);
 
@@ -158,13 +153,11 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
       iCnt      => (others => '0'),
       oCnt      => (others => '0'),
       tLast     => '0',
-      running   => '0'
-      );
+      running   => '0');
 
    signal tdoData : slv(AXIS_BW_C - 1 downto 0);
 
-   signal r : RegType := REG_INIT_C;
-
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    signal tdiReady    : sl;
@@ -174,6 +167,7 @@ architecture AxisToJtagCoreImpl of AxisToJtagCore is
    signal tdoReady : sl;
 
 begin
+
    running <= r.running;
 
    sAxisTmsTdi.tReady <= r.sReady;
@@ -194,8 +188,7 @@ begin
       generic map (
          TPD_G      => TPD_G,
          WIDTH_G    => AXIS_BW_C,
-         CLK_DIV2_G => CLK_DIV2_G
-         )
+         CLK_DIV2_G => CLK_DIV2_G)
       port map (
          clk => axisClk,
          rst => axisRst,
@@ -214,8 +207,7 @@ begin
          tck => tck,
          tms => tms,
          tdi => tdi,
-         tdo => tdo
-         );
+         tdo => tdo);
 
    P_COMB : process(mAxisTmsTdi, r, sAxisTdo, tdiReady, tdoData, tdoReady,
                     tdoValid, tdoValidLoc)

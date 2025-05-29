@@ -25,22 +25,22 @@ use surf.Pgp4Pkg.all;
 entity Pgp4TxLiteWrapper is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false);
    port (
       -- Clock and Reset
       clk        : in  sl;
       rst        : in  sl;
       -- 64-bit Input Framing Interface
-      txValid    : in  sl;                 -- tValid
-      txReady    : out sl;                 -- tReady
+      txValid    : in  sl;              -- tValid
+      txReady    : out sl;              -- tReady
       txData     : in  slv(63 downto 0);   -- tData
-      txSof      : in  sl;                 -- tUser.FirstByte.BIT1
-      txEof      : in  sl;                 -- tLast
-      txEofe     : in  sl;                 -- tUser.LastByte.BIT0
+      txSof      : in  sl;              -- tUser.FirstByte.BIT1
+      txEof      : in  sl;              -- tLast
+      txEofe     : in  sl;              -- tUser.LastByte.BIT0
       -- 66-bit Output Interface
-      phyTxValid : out sl;                 -- tValid
-      phyTxReady : in  sl;                 -- tReady
+      phyTxValid : out sl;              -- tValid
+      phyTxReady : in  sl;              -- tReady
       phyTxData  : out slv(65 downto 0));  -- 2-bit header packed on MSB
 end entity Pgp4TxLiteWrapper;
 
@@ -74,30 +74,30 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         NUM_VC_G       => 1,      -- Only 1 VC per PGPv4 link
+         NUM_VC_G       => 1,           -- Only 1 VC per PGPv4 link
          SKIP_EN_G      => false,  -- No skips (assumes clock source synchronous system)
          FLOW_CTRL_EN_G => false)  -- no pause flow control from PGPv4.RX side
       port map (
          -- Transmit interface
-         pgpTxClk        => clk,
-         pgpTxRst        => rst,
-         pgpTxIn         => pgpTxIn,
-         pgpTxOut        => open,
-         pgpTxActive     => '1',
-         pgpTxMasters(0) => pgpTxMaster,
-         pgpTxSlaves(0)  => pgpTxSlave,
+         pgpTxClk         => clk,
+         pgpTxRst         => rst,
+         pgpTxIn          => pgpTxIn,
+         pgpTxOut         => open,
+         pgpTxActive      => '1',
+         pgpTxMasters(0)  => pgpTxMaster,
+         pgpTxSlaves(0)   => pgpTxSlave,
          -- Status of receive and remote FIFOs (Asynchronous)
-         locRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
-         locRxLinkReady  => '1',
-         remRxFifoCtrl(0)=> AXI_STREAM_CTRL_UNUSED_C,
-         remRxLinkReady  => '1',
+         locRxFifoCtrl(0) => AXI_STREAM_CTRL_UNUSED_C,
+         locRxLinkReady   => '1',
+         remRxFifoCtrl(0) => AXI_STREAM_CTRL_UNUSED_C,
+         remRxLinkReady   => '1',
          -- PHY interface
-         phyTxActive     => rstL,
-         phyTxReady      => phyTxReady,
-         phyTxValid      => phyTxValid,
-         phyTxStart      => open,
-         phyTxData       => phyTxData(63 downto 0),
-         phyTxHeader     => phyTxData(65 downto 64));
+         phyTxActive      => rstL,
+         phyTxReady       => phyTxReady,
+         phyTxValid       => phyTxValid,
+         phyTxStart       => open,
+         phyTxData        => phyTxData(63 downto 0),
+         phyTxHeader      => phyTxData(65 downto 64));
 
    -- not using ite to prevent errors in ASIC synth flow
    rstL <= not(rst) when RST_POLARITY_G = '1' else rst;

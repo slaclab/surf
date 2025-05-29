@@ -69,9 +69,9 @@ entity Pgp3GthUsIpWrapper is
       txHeader       : in  slv(1 downto 0);
       txOutClk       : out sl;
       loopback       : in  slv(2 downto 0);
-      txDiffCtrl     : in slv(4 downto 0);
-      txPreCursor    : in slv(4 downto 0);
-      txPostCursor   : in slv(4 downto 0);
+      txDiffCtrl     : in  slv(4 downto 0);
+      txPreCursor    : in  slv(4 downto 0);
+      txPostCursor   : in  slv(4 downto 0);
 
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';

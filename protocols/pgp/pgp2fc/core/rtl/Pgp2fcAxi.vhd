@@ -18,9 +18,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use IEEE.STD_LOGIC_ARITH.all;
-use IEEE.STD_LOGIC_UNSIGNED.all;
-
+use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -38,7 +37,6 @@ entity Pgp2fcAxi is
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 32;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 4);
    port (
-
       -- TX PGP Interface (pgpTxClk domain)
       pgpTxClk    : in  sl;
       pgpTxClkRst : in  sl;
@@ -63,8 +61,7 @@ entity Pgp2fcAxi is
       axilReadMaster  : in  AxiLiteReadMasterType;
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType
-      );
+      axilWriteSlave  : out AxiLiteWriteSlaveType);
 end Pgp2fcAxi;
 
 architecture structure of Pgp2fcAxi is
@@ -126,8 +123,7 @@ architecture structure of Pgp2fcAxi is
       alignSlide     => '0',
       alignPhaseReq  => '0',
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C
-      );
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -176,9 +172,6 @@ architecture structure of Pgp2fcAxi is
    signal txstatusSync : TxStatusType;
 
 begin
-
-
-
 
    ---------------------------------------
    -- Receive Status
@@ -265,7 +258,7 @@ begin
          rdClk                 => axilClk,
          rdRst                 => axilRst);
 
-   U_RxErrorIrqEn : process (r.autoStatus)
+   U_RxErrorIrqEn : process (r)
    begin
       rxErrorIrqEn     <= (others => '0');
       rxErrorIrqEn(1)  <= r.autoStatus;
@@ -553,7 +546,8 @@ begin
    end process;
 
    -- Async
-   process (axilRst, axilReadMaster, axilWriteMaster, r, rxStatusSync, txStatusSync) is
+   process (axilReadMaster, axilRst, axilWriteMaster, r, rxStatusSync,
+            txStatusSync) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin

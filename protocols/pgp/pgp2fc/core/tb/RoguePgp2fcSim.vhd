@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -56,7 +55,6 @@ architecture sim of RoguePgp2fcSim is
    constant FC_AXIS_CFG_C   : AxiStreamConfigType := ssiAxiStreamConfig(2*FC_WORDS_G, TKEEP_COMP_C);
    constant BYTE_AXIS_CFG_C : AxiStreamConfigType := ssiAxiStreamConfig(2, TKEEP_COMP_C);
 
-
    signal txOut : Pgp2fcTxOutType := PGP2FC_TX_OUT_INIT_C;
    signal rxOut : Pgp2fcRxOutType := PGP2FC_RX_OUT_INIT_C;
 
@@ -71,8 +69,6 @@ architecture sim of RoguePgp2fcSim is
    signal txByteAxisSlave  : AxiStreamSlaveType;
    signal rxByteAxisMaster : AxiStreamMasterType := axiStreamMasterInit(BYTE_AXIS_CFG_C);
    signal rxByteAxisSlave  : AxiStreamSlaveType;
-
-
 
 begin
 
@@ -122,7 +118,6 @@ begin
          rxOpCodeEn => open,                -- [out]
          rxRemData  => rxOut.remLinkData);  -- [out]
 
-
    -- Send a single txn frame for FC word
    txFcAxisMaster.tValid                          <= pgpTxIn.fcValid;
    txFcAxisMaster.tData(FC_WORDS_G*16-1 downto 0) <= pgpTxIn.fcWord(FC_WORDS_G*16-1 downto 0);
@@ -157,8 +152,8 @@ begin
          TDEST_MASK_G  => "00000000",
          AXIS_CONFIG_G => BYTE_AXIS_CFG_C)
       port map (
-         axisClk     => pgpClk,          -- [in]
-         axisRst     => pgpClkRst,       -- [in]
+         axisClk     => pgpClk,            -- [in]
+         axisRst     => pgpClkRst,         -- [in]
          sAxisMaster => txByteAxisMaster,  -- [in]
          sAxisSlave  => txByteAxisSlave,   -- [out]
          mAxisMaster => rxByteAxisMaster,  -- [out]

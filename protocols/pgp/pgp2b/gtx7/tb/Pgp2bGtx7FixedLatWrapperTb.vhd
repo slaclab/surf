@@ -58,14 +58,14 @@ architecture tb of Pgp2bGtx7FixedLatWrapperTb is
    constant RX_CM_CLKFBOUT_MULT_F_G : real                 := 8.000;
    constant RX_CM_CLKOUT_DIVIDE_F_G : real                 := 8.000;
    constant RX_OS_CFG_G             : bit_vector           := "0000010000000";
-   constant RXCDR_CFG_G             : bit_vector           := x"03000023ff40200020";
+   constant RXCDR_CFG_G             : bit_vector           := x"03000023FF40200020";
    constant RXDFEXYDEN_G            : sl                   := '0';
    constant RX_DFE_KL_CFG2_G        : bit_vector           := x"3008E56A";
    constant STABLE_CLK_SRC_G        : string               := "gtClk0";
    constant TX_REFCLK_SRC_G         : string               := "gtClk0";
    constant RX_REFCLK_SRC_G         : string               := "gtClk1";
-   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(250.0E6, 3.125E9);
-   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(156.25e6, 3.125e9);
+   constant CPLL_CFG_G              : Gtx7CPllCfgType      := getGtx7CPllCfg(250.0E+6, 3.125E+9);
+   constant QPLL_CFG_G              : Gtx7QPllCfgType      := getGtx7QPllCfg(156.25E+6, 3.125E+9);
    constant TX_PLL_G                : string               := "QPLL";
    constant RX_PLL_G                : string               := "CPLL";
 
@@ -80,33 +80,33 @@ architecture tb of Pgp2bGtx7FixedLatWrapperTb is
    signal stableClkOut : sl;            -- [out]
 
    signal pgpRxIn          : Pgp2bRxInType                    := PGP2B_RX_IN_INIT_C;  -- [in]
-   signal pgpRxOut         : Pgp2bRxOutType;                                          -- [out]
+   signal pgpRxOut         : Pgp2bRxOutType;                    -- [out]
    signal pgpTxIn          : Pgp2bTxInType                    := PGP2B_TX_IN_INIT_C;  -- [in]
-   signal pgpTxOut         : Pgp2bTxOutType;                                          -- [out]
+   signal pgpTxOut         : Pgp2bTxOutType;                    -- [out]
    signal pgpTxMasters     : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);  -- [in]
-   signal pgpTxSlaves      : AxiStreamSlaveArray(3 downto 0);                         -- [out]
-   signal pgpRxMasters     : AxiStreamMasterArray(3 downto 0);                        -- [out]
-   signal pgpRxMasterMuxed : AxiStreamMasterType;                                     -- [out]
+   signal pgpTxSlaves      : AxiStreamSlaveArray(3 downto 0);   -- [out]
+   signal pgpRxMasters     : AxiStreamMasterArray(3 downto 0);  -- [out]
+   signal pgpRxMasterMuxed : AxiStreamMasterType;               -- [out]
    signal pgpRxCtrl        : AxiStreamCtrlArray(3 downto 0)   := (others => AXI_STREAM_CTRL_UNUSED_C);  -- [in]
 
-   signal gtgClk          : sl                     := '0';                           -- [in]
-   signal gtClk0P         : sl                     := '0';                           -- [in]
-   signal gtClk0N         : sl                     := '0';                           -- [in]
-   signal gtClk1P         : sl                     := '0';                           -- [in]
-   signal gtClk1N         : sl                     := '0';                           -- [in]
-   signal gtTxP           : sl;                                                      -- [out]
-   signal gtTxN           : sl;                                                      -- [out]
-   signal gtRxP           : sl;                                                      -- [in]
-   signal gtRxN           : sl;                                                      -- [in]
-   signal txPreCursor     : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txPostCursor    : slv(4 downto 0)        := (others => '0');               -- [in]
-   signal txDiffCtrl      : slv(3 downto 0)        := "1000";                        -- [in]
-   signal axilClk         : sl                     := '0';                           -- [in]
-   signal axilRst         : sl                     := '0';                           -- [in]
-   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;   -- [in]
-   signal axilReadSlave   : AxiLiteReadSlaveType;                                    -- [out]
+   signal gtgClk          : sl                     := '0';              -- [in]
+   signal gtClk0P         : sl                     := '0';              -- [in]
+   signal gtClk0N         : sl                     := '0';              -- [in]
+   signal gtClk1P         : sl                     := '0';              -- [in]
+   signal gtClk1N         : sl                     := '0';              -- [in]
+   signal gtTxP           : sl;         -- [out]
+   signal gtTxN           : sl;         -- [out]
+   signal gtRxP           : sl;         -- [in]
+   signal gtRxN           : sl;         -- [in]
+   signal txPreCursor     : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txPostCursor    : slv(4 downto 0)        := (others => '0');  -- [in]
+   signal txDiffCtrl      : slv(3 downto 0)        := "1000";           -- [in]
+   signal axilClk         : sl                     := '0';              -- [in]
+   signal axilRst         : sl                     := '0';              -- [in]
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;  -- [in]
+   signal axilReadSlave   : AxiLiteReadSlaveType;   -- [out]
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;  -- [in]
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;                                   -- [out]
+   signal axilWriteSlave  : AxiLiteWriteSlaveType;  -- [out]
 
 begin
 

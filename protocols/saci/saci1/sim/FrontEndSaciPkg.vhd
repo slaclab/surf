@@ -22,39 +22,39 @@ use surf.StdRtlPkg.all;
 
 package FrontEndSaciPkg is
 
-  -- Register Interface
-  type FrontEndSaciRegCntlInType is record
-    regAck    : sl;
-    regFail   : sl;
-    regDataIn : slv(31 downto 0);
-  end record;
+   -- Register Interface
+   type FrontEndSaciRegCntlInType is record
+      regAck    : sl;
+      regFail   : sl;
+      regDataIn : slv(31 downto 0);
+   end record;
 
-  type FrontEndSaciRegCntlOutType is record
-    regInp     : sl;                    -- Operation in progress
-    regReq     : sl;                    -- Request reg transaction
-    regOp      : sl;                    -- Read (0) or write (1)
-    regAddr    : slv(23 downto 0);      -- Address
-    regDataOut : slv(31 downto 0);      -- Write Data
-  end record;
+   type FrontEndSaciRegCntlOutType is record
+      regInp     : sl;                  -- Operation in progress
+      regReq     : sl;                  -- Request reg transaction
+      regOp      : sl;                  -- Read (0) or write (1)
+      regAddr    : slv(23 downto 0);    -- Address
+      regDataOut : slv(31 downto 0);    -- Write Data
+   end record;
 
-  -- Command Interface
-  type FrontEndSaciCmdCntlOutType is record
-    cmdEn     : sl;                     -- Command available
-    cmdOpCode : slv(7 downto 0);        -- Command Op Code
-    cmdCtxOut : slv(23 downto 0);       -- Command Context
-  end record;
+   -- Command Interface
+   type FrontEndSaciCmdCntlOutType is record
+      cmdEn     : sl;                   -- Command available
+      cmdOpCode : slv(7 downto 0);      -- Command Op Code
+      cmdCtxOut : slv(23 downto 0);     -- Command Context
+   end record;
 
-  -- Upstream Data Buffer Interface
-  type FrontEndSaciUsDataOutType is record
-    frameTxAfull : sl;
-  end record;
+   -- Upstream Data Buffer Interface
+   type FrontEndSaciUsDataOutType is record
+      frameTxAfull : sl;
+   end record;
 
-  type FrontEndSaciUsDataInType is record
-    frameTxEnable : sl;
-    frameTxSOF    : sl;
-    frameTxEOF    : sl;
-    frameTxEOFE   : sl;
-    frameTxData   : slv(63 downto 0);
-  end record;
+   type FrontEndSaciUsDataInType is record
+      frameTxEnable : sl;
+      frameTxSOF    : sl;
+      frameTxEOF    : sl;
+      frameTxEOFE   : sl;
+      frameTxData   : slv(63 downto 0);
+   end record;
 
 end package FrontEndSaciPkg;

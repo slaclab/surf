@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 entity Max5443 is
    generic (
       TPD_G        : time     := 1 ns;
-      CLK_PERIOD_G : real     := 10.0e-9;
+      CLK_PERIOD_G : real     := 10.0E-9;
       NUM_CHIPS_G  : positive := 1);
    port (
       -- AXI-Lite Register Interface

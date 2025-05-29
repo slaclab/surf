@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -69,6 +68,7 @@ architecture mapping of AxiXadcMinimumCore is
          eos_out       : out sl;
          busy_out      : out sl);
    end component;
+
    attribute SYN_BLACK_BOX                       : boolean;
    attribute SYN_BLACK_BOX of AxiXadcMinimum     : component is true;
    attribute BLACK_BOX_PAD_PIN                   : string;

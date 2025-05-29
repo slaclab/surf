@@ -45,7 +45,7 @@ architecture testbed of RawEthFramerTb is
    constant MAC_ADDR_C : Slv48Array(2 downto 0) := (0 => x"010300564400", 1 => x"020300564400", 2 => x"030300564400");
    constant IP_ADDR_C  : Slv32Array(2 downto 0) := (0 => x"0A02A8C0", 1 => x"0B02A8C0", 2 => x"0C02A8C0");
 
-   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := ( others => EMAC_AXIS_CONFIG_C);
+   constant AXIS_CONFIG_C : AxiStreamConfigArray(3 downto 0) := (others => EMAC_AXIS_CONFIG_C);
 
    signal clk : sl;
    signal rst : sl;
@@ -89,7 +89,7 @@ begin
    ClkRst_Inst : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
       port map (
          clkP => clk,

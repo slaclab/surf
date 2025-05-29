@@ -248,23 +248,23 @@ begin
 
    U_SwFifos : entity surf.AxiLiteFifoPushPop
       generic map (
-         TPD_G             => TPD_G,
-         POP_FIFO_COUNT_G  => 2,
-         POP_SYNC_FIFO_G   => true,
-         POP_MEMORY_TYPE_G => "block",
-         POP_ADDR_WIDTH_G  => POP_ADDR_WIDTH_C,
-         POP_FULL_THRES_G  => POP_FIFO_PFULL_C,
-         LOOP_FIFO_EN_G    => false,
-         LOOP_FIFO_COUNT_G => 1,
-         LOOP_MEMORY_TYPE_G=> "distributed",
-         LOOP_ADDR_WIDTH_G => 9,
-         PUSH_FIFO_COUNT_G => 2,
-         PUSH_SYNC_FIFO_G  => true,
-         PUSH_MEMORY_TYPE_G=> "block",
-         PUSH_ADDR_WIDTH_G => PUSH_ADDR_WIDTH_C,
-         RANGE_LSB_G       => 8,
-         VALID_POSITION_G  => 31,
-         VALID_POLARITY_G  => '1')
+         TPD_G              => TPD_G,
+         POP_FIFO_COUNT_G   => 2,
+         POP_SYNC_FIFO_G    => true,
+         POP_MEMORY_TYPE_G  => "block",
+         POP_ADDR_WIDTH_G   => POP_ADDR_WIDTH_C,
+         POP_FULL_THRES_G   => POP_FIFO_PFULL_C,
+         LOOP_FIFO_EN_G     => false,
+         LOOP_FIFO_COUNT_G  => 1,
+         LOOP_MEMORY_TYPE_G => "distributed",
+         LOOP_ADDR_WIDTH_G  => 9,
+         PUSH_FIFO_COUNT_G  => 2,
+         PUSH_SYNC_FIFO_G   => true,
+         PUSH_MEMORY_TYPE_G => "block",
+         PUSH_ADDR_WIDTH_G  => PUSH_ADDR_WIDTH_C,
+         RANGE_LSB_G        => 8,
+         VALID_POSITION_G   => 31,
+         VALID_POLARITY_G   => '1')
       port map (
          axiClk         => axiClk,
          axiClkRst      => axiRst,
@@ -424,7 +424,7 @@ begin
 
          when IDLE_S =>
             v.ibReq.address(31 downto 0) := pushFifoDout(IB_FIFO_C)(31 downto 0);
-            v.ibReq.maxSize := x"00" & r.maxRxSize;
+            v.ibReq.maxSize              := x"00" & r.maxRxSize;
 
             if pushFifoValid(IB_FIFO_C) = '1' and popFifoPFull(IB_FIFO_C) = '0' then
                v.ibReq.request := '1';

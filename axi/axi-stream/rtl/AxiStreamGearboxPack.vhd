@@ -50,7 +50,7 @@ architecture rtl of AxiStreamGearboxPack is
 
    -- Vivado chokes if you try to calculate these on the fly inside the comb process.
    -- Pre-compute all of the assignment indices instead
-   function computeIndices      return IntegerArray is
+   function computeIndices return IntegerArray is
       variable ret : IntegerArray(0 to STREAM_WIDTH_C/SIZE_DIFFERENCE_C-1);
    begin
       for i in ret'range loop
@@ -120,7 +120,7 @@ begin
             v.data(STREAM_WIDTH_C-1 downto 0) := r.data(STREAM_WIDTH_C*2-1 downto STREAM_WIDTH_C);
 
             -- Assign new data at proper index
-            indexInt := ASSIGNMENT_INDECIES_C(conv_integer(r.index));
+            indexInt                                       := ASSIGNMENT_INDECIES_C(conv_integer(r.index));
             v.data(indexInt+PACK_SIZE_C-1 downto indexInt) := rawSsiMaster.data(RANGE_HIGH_G downto RANGE_LOW_G);
 
             -- Disable write until we have enough data

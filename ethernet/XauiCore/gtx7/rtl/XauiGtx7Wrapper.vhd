@@ -28,17 +28,17 @@ use unisim.vcomponents.all;
 
 entity XauiGtx7Wrapper is
    generic (
-      TPD_G           : time                := 1 ns;
-      JUMBO_G         : boolean             := true;
-      PAUSE_EN_G      : boolean             := true;
-      ROCEV2_EN_G     : boolean             := false;
+      TPD_G          : time                := 1 ns;
+      JUMBO_G        : boolean             := true;
+      PAUSE_EN_G     : boolean             := true;
+      ROCEV2_EN_G    : boolean             := false;
       -- QUAD PLL Configurations
-      USE_GTREFCLK_G  : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
-      REFCLK_DIV2_G   : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
+      USE_GTREFCLK_G : boolean             := false;  --  FALSE: gtClkP/N,  TRUE: gtRefClk
+      REFCLK_DIV2_G  : boolean             := false;  --  FALSE: gtClkP/N = 156.25 MHz,  TRUE: gtClkP/N = 312.5 MHz
       -- AXI-Lite Configurations
-      EN_AXI_REG_G    : boolean             := false;
+      EN_AXI_REG_G   : boolean             := false;
       -- AXI Streaming Configurations
-      AXIS_CONFIG_G   : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
+      AXIS_CONFIG_G  : AxiStreamConfigType := EMAC_AXIS_CONFIG_C);
    port (
       -- Local Configurations
       localMac           : in  slv(47 downto 0)       := MAC_ADDR_INIT_C;
@@ -96,14 +96,14 @@ begin
    ----------------------
    XauiGtx7_Inst : entity surf.XauiGtx7
       generic map (
-         TPD_G           => TPD_G,
-         JUMBO_G         => JUMBO_G,
-         PAUSE_EN_G      => PAUSE_EN_G,
-         ROCEV2_EN_G     => ROCEV2_EN_G,
+         TPD_G         => TPD_G,
+         JUMBO_G       => JUMBO_G,
+         PAUSE_EN_G    => PAUSE_EN_G,
+         ROCEV2_EN_G   => ROCEV2_EN_G,
          -- AXI-Lite Configurations
-         EN_AXI_REG_G    => EN_AXI_REG_G,
+         EN_AXI_REG_G  => EN_AXI_REG_G,
          -- AXI Streaming Configurations
-         AXIS_CONFIG_G   => AXIS_CONFIG_G)
+         AXIS_CONFIG_G => AXIS_CONFIG_G)
       port map (
          -- Local Configurations
          localMac           => localMac,

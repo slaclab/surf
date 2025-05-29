@@ -63,37 +63,37 @@ entity Pgp2bGth7VarLat is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
-      VC_INTERLEAVE_G   : integer              := 0;      -- No interleave Frames
-      PAYLOAD_CNT_TOP_G : integer              := 7;      -- Top bit for payload counter
+      VC_INTERLEAVE_G   : integer              := 0;  -- No interleave Frames
+      PAYLOAD_CNT_TOP_G : integer              := 7;  -- Top bit for payload counter
       NUM_VC_EN_G       : integer range 1 to 4 := 4;
       TX_POLARITY_G     : sl                   := '0';
       RX_POLARITY_G     : sl                   := '0';
-      TX_ENABLE_G       : boolean              := true;   -- Enable TX direction
+      TX_ENABLE_G       : boolean              := true;  -- Enable TX direction
       RX_ENABLE_G       : boolean              := true);  -- Enable RX direction
    port (
       -- GT Clocking
-      stableClk        : in  sl;                          -- GT needs a stable clock to "boot up"
-      gtCPllRefClk     : in  sl;                          -- Drives CPLL if used
+      stableClk        : in  sl;        -- GT needs a stable clock to "boot up"
+      gtCPllRefClk     : in  sl;        -- Drives CPLL if used
       gtCPllLock       : out sl;
-      gtQPllRefClk     : in  sl;                          -- Signals from QPLL if used
+      gtQPllRefClk     : in  sl;        -- Signals from QPLL if used
       gtQPllClk        : in  sl;
       gtQPllLock       : in  sl;
       gtQPllRefClkLost : in  sl;
       gtQPllReset      : out sl;
       -- Gt Serial IO
-      gtTxP            : out sl;                          -- GT Serial Transmit Positive
-      gtTxN            : out sl;                          -- GT Serial Transmit Negative
-      gtRxP            : in  sl;                          -- GT Serial Receive Positive
-      gtRxN            : in  sl;                          -- GT Serial Receive Negative
+      gtTxP            : out sl;        -- GT Serial Transmit Positive
+      gtTxN            : out sl;        -- GT Serial Transmit Negative
+      gtRxP            : in  sl;        -- GT Serial Receive Positive
+      gtRxN            : in  sl;        -- GT Serial Receive Negative
       -- Tx Clocking
       pgpTxReset       : in  sl;
       pgpTxClk         : in  sl;
-      pgpTxRecClk      : out sl;                          -- recovered clock
+      pgpTxRecClk      : out sl;        -- recovered clock
       pgpTxMmcmReset   : out sl;
       pgpTxMmcmLocked  : in  sl;
       -- Rx clocking
       pgpRxReset       : in  sl;
-      pgpRxRecClk      : out sl;                          -- recovered clock
+      pgpRxRecClk      : out sl;        -- recovered clock
       pgpRxClk         : in  sl;
       pgpRxMmcmReset   : out sl;
       pgpRxMmcmLocked  : in  sl;

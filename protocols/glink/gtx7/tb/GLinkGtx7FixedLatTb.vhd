@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.GlinkPkg.all;
@@ -24,26 +23,26 @@ entity GLinkGtx7FixedLatTb is end GLinkGtx7FixedLatTb;
 
 architecture testbed of GLinkGtx7FixedLatTb is
 
-   signal gtClk,
-      stableClock,
-      stableRst,
-      txClock,
-      txRst,
-      rxClock,
-      rxRecClk,
-      pllRefClk,
-      gtCPllRefClk,
-      gtCPllLock,
-      qPllOutClk,
-      qPllOutRefClk,
-      qPllLock,
-      pllLockDetClk,
-      qPllRefClkLost,
-      qPllReset,
-      gtQPllReset : sl := '0';
+   signal gtClk          : sl := '0';
+   signal stableClock    : sl := '0';
+   signal stableRst      : sl := '0';
+   signal txClock        : sl := '0';
+   signal txRst          : sl := '0';
+   signal rxClock        : sl := '0';
+   signal rxRecClk       : sl := '0';
+   signal pllRefClk      : sl := '0';
+   signal gtCPllRefClk   : sl := '0';
+   signal gtCPllLock     : sl := '0';
+   signal qPllOutClk     : sl := '0';
+   signal qPllOutRefClk  : sl := '0';
+   signal qPllLock       : sl := '0';
+   signal pllLockDetClk  : sl := '0';
+   signal qPllRefClkLost : sl := '0';
+   signal qPllReset      : sl := '0';
+   signal gtQPllReset    : sl := '0';
 
-   signal gLinkTx    : GLinkTxType := GLINK_TX_INIT_C;
-   signal gLinkRx    : GLinkRxType := GLINK_RX_INIT_C;
+   signal gLinkTx : GLinkTxType := GLINK_TX_INIT_C;
+   signal gLinkRx : GLinkRxType := GLINK_RX_INIT_C;
 
 begin
 
@@ -92,7 +91,7 @@ begin
    QPllCore_1 : entity surf.Gtx7QuadPll
       generic map (
          QPLL_REFCLK_SEL_G  => "111",
-         QPLL_FBDIV_G       => "0100100000",-- N = 80
+         QPLL_FBDIV_G       => "0100100000",  -- N = 80
          QPLL_FBDIV_RATIO_G => '1',
          QPLL_REFCLK_DIV_G  => 1)
       port map (
@@ -110,24 +109,24 @@ begin
          SIM_GTRESET_SPEEDUP_G => "TRUE",
          SIMULATION_G          => true,
          -- GLink Settings
-         FLAGSEL_G         => false,
+         FLAGSEL_G             => false,
          -- CPLL Settings -
-         CPLL_REFCLK_SEL_G => "111",
-         CPLL_FBDIV_G         => 4,
-         CPLL_FBDIV_45_G      => 5,
-         CPLL_REFCLK_DIV_G    => 1,
+         CPLL_REFCLK_SEL_G     => "111",
+         CPLL_FBDIV_G          => 4,
+         CPLL_FBDIV_45_G       => 5,
+         CPLL_REFCLK_DIV_G     => 1,
          -- CDR Settings -
-         RXOUT_DIV_G          => 8,
-         TXOUT_DIV_G          => 16,
-         RX_CLK25_DIV_G       => 7,    -- Set by wizard
-         TX_CLK25_DIV_G       => 7,    -- Set by wizard
-         RX_OS_CFG_G          => "0000010000000",  -- Set by wizard
-         RXCDR_CFG_G          => x"03000023ff40080020",  -- Set by wizard
-         RXDFEXYDEN_G         => '1',  -- Set by wizard
-         RX_DFE_KL_CFG2_G     => x"301148AC",
+         RXOUT_DIV_G           => 8,
+         TXOUT_DIV_G           => 16,
+         RX_CLK25_DIV_G        => 7,                      -- Set by wizard
+         TX_CLK25_DIV_G        => 7,                      -- Set by wizard
+         RX_OS_CFG_G           => "0000010000000",        -- Set by wizard
+         RXCDR_CFG_G           => x"03000023ff40080020",  -- Set by wizard
+         RXDFEXYDEN_G          => '1',                    -- Set by wizard
+         RX_DFE_KL_CFG2_G      => x"301148AC",
          -- Configure PLL sources
-         TX_PLL_G             => "QPLL",
-         RX_PLL_G             => "CPLL")
+         TX_PLL_G              => "QPLL",
+         RX_PLL_G              => "CPLL")
       port map (
          -- TX Signals
          gLinkTx          => gLinkTx,

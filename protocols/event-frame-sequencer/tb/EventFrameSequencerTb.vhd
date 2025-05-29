@@ -74,25 +74,25 @@ entity EventFrameSequencerTb is
       M_AXIS1_TUSER  : out std_logic_vector(TUSER_WIDTH_G-1 downto 0);
       M_AXIS1_TREADY : in  std_logic;
       -- AXI-Lite Interface
-      S_AXIL_AWADDR   : in  std_logic_vector(31 downto 0);
-      S_AXIL_AWPROT   : in  std_logic_vector(2 downto 0);
-      S_AXIL_AWVALID  : in  std_logic;
-      S_AXIL_AWREADY  : out std_logic;
-      S_AXIL_WDATA    : in  std_logic_vector(31 downto 0);
-      S_AXIL_WSTRB    : in  std_logic_vector(3 downto 0);
-      S_AXIL_WVALID   : in  std_logic;
-      S_AXIL_WREADY   : out std_logic;
-      S_AXIL_BRESP    : out std_logic_vector(1 downto 0);
-      S_AXIL_BVALID   : out std_logic;
-      S_AXIL_BREADY   : in  std_logic;
-      S_AXIL_ARADDR   : in  std_logic_vector(31 downto 0);
-      S_AXIL_ARPROT   : in  std_logic_vector(2 downto 0);
-      S_AXIL_ARVALID  : in  std_logic;
-      S_AXIL_ARREADY  : out std_logic;
-      S_AXIL_RDATA    : out std_logic_vector(31 downto 0);
-      S_AXIL_RRESP    : out std_logic_vector(1 downto 0);
-      S_AXIL_RVALID   : out std_logic;
-      S_AXIL_RREADY   : in  std_logic);
+      S_AXIL_AWADDR  : in  std_logic_vector(31 downto 0);
+      S_AXIL_AWPROT  : in  std_logic_vector(2 downto 0);
+      S_AXIL_AWVALID : in  std_logic;
+      S_AXIL_AWREADY : out std_logic;
+      S_AXIL_WDATA   : in  std_logic_vector(31 downto 0);
+      S_AXIL_WSTRB   : in  std_logic_vector(3 downto 0);
+      S_AXIL_WVALID  : in  std_logic;
+      S_AXIL_WREADY  : out std_logic;
+      S_AXIL_BRESP   : out std_logic_vector(1 downto 0);
+      S_AXIL_BVALID  : out std_logic;
+      S_AXIL_BREADY  : in  std_logic;
+      S_AXIL_ARADDR  : in  std_logic_vector(31 downto 0);
+      S_AXIL_ARPROT  : in  std_logic_vector(2 downto 0);
+      S_AXIL_ARVALID : in  std_logic;
+      S_AXIL_ARREADY : out std_logic;
+      S_AXIL_RDATA   : out std_logic_vector(31 downto 0);
+      S_AXIL_RRESP   : out std_logic_vector(1 downto 0);
+      S_AXIL_RVALID  : out std_logic;
+      S_AXIL_RREADY  : in  std_logic);
 end EventFrameSequencerTb;
 
 architecture mapping of EventFrameSequencerTb is

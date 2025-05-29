@@ -15,15 +15,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library UNISIM;
-use UNISIM.vcomponents.all;
-
-
 library surf;
 use surf.StdRtlPkg.all;
 
-entity Ad9249 is
+library unisim;
+use unisim.vcomponents.all;
 
+entity Ad9249 is
    generic (
       TPD_G            : time    := 1 ns;
       CLK_PERIOD_G     : time    := 24 ns;
@@ -31,7 +29,6 @@ entity Ad9249 is
       CLKFBOUT_MULT_G  : integer := 49;
       CLK_DCO_DIVIDE_G : integer := 49;
       CLK_FCO_DIVIDE_G : integer := 7);
-
    port (
       clkP : in    sl;
       clkN : in    sl;
@@ -45,7 +42,6 @@ entity Ad9249 is
       sclk : in    sl;
       sdio : inout sl;
       csb  : in    slv(1 downto 0));
-
 end entity Ad9249;
 
 architecture top of Ad9249 is
@@ -59,8 +55,6 @@ begin
          I  => clkP,
          IB => clkN,
          O  => clk);
-
-
 
    U_Ad9249Group_0 : entity surf.Ad9249Group
       generic map (
@@ -103,6 +97,5 @@ begin
          sclk => sclk,                  -- [in]
          sdio => sdio,                  -- [inout]
          csb  => csb(1));               -- [in]
-
 
 end architecture top;

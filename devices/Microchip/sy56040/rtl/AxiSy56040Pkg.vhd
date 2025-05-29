@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -27,7 +26,8 @@ package AxiSy56040Pkg is
       config : sl;
       load   : sl;
    end record;
+
    type AxiSy56040OutArray is array (natural range <>) of AxiSy56040OutType;
    type AxiSy56040OutVectorArray is array (integer range<>, integer range<>)of AxiSy56040OutType;
 
-end package;
+end package AxiSy56040Pkg;

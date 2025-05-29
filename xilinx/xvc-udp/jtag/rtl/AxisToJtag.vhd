@@ -20,7 +20,6 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -175,8 +174,7 @@ entity AxisToJtag is
       -- Setting to zero disables memory.
       MEM_DEPTH_G  : natural range 0 to 65535 := 4;
       -- Memory type inference (Vivado) - use 'auto', 'block' or 'distributed'
-      MEM_STYLE_G  : string                   := "auto"
-      );
+      MEM_STYLE_G  : string                   := "auto");
    port (
       axisClk : in sl;
       axisRst : in sl;
@@ -192,8 +190,7 @@ entity AxisToJtag is
       tck : out sl;
       tdi : out sl;
       tms : out sl;
-      tdo : in  sl
-      );
+      tdo : in  sl);
 end entity AxisToJtag;
 
 architecture AxisToJtagImpl of AxisToJtag is
@@ -243,14 +240,9 @@ architecture AxisToJtagImpl of AxisToJtag is
       ridx      => ADDR_ZERO_C,
       widx      => ADDR_ZERO_C,
       memValid  => false,
-      xid       => (others => '0')
-      );
+      xid       => (others => '0'));
 
-   function xidIsNew(
-      data     : in slv;
-      xid      : in XidType;
-      memValid : in boolean
-      ) return boolean is
+   function xidIsNew(data : in slv; xid : in XidType; memValid : in boolean) return boolean is
    begin
       if (MEM_DEPTH_G = 0 or not memValid) then
          return true;
@@ -259,9 +251,7 @@ architecture AxisToJtagImpl of AxisToJtag is
       end if;
    end function xidIsNew;
 
-   function checkLen(
-      data : in slv
-      ) return boolean is
+   function checkLen(data : in slv) return boolean is
       -- one guard bit more than LenType
       subtype UNum is unsigned(LenType'left + 1 downto LenType'right);
       constant ALGN_C : natural := log2(WORD_SIZE_C);
@@ -278,13 +268,12 @@ architecture AxisToJtagImpl of AxisToJtag is
       else
          return true;
       end if;
-   end function;
+   end function checkLen;
 
    procedure setQueryData(
       wordLength : in    natural range 4 to 16;
       memDepth   : in    natural range 0 to 65535;
-      data       : inout slv
-      ) is
+      data       : inout slv) is
    begin
       data(LEN_SHIFT_C + LEN_WIDTH_C - 1 downto LEN_SHIFT_C) := (others => '0');
       data(QWL_SHIFT_C + QWL_WIDTH_C - 1 downto QWL_SHIFT_C) := toSlv(wordLength - 1, QWL_WIDTH_C);
@@ -292,17 +281,14 @@ architecture AxisToJtagImpl of AxisToJtag is
       data(QPD_SHIFT_C + QPD_WIDTH_C - 1 downto QPD_SHIFT_C) := toSlv(TCK_BITS_C, QPD_WIDTH_C);
    end procedure setQueryData;
 
-   procedure sendHeaderNow(
-      v : inout RegType
-      ) is
+   procedure sendHeaderNow(v : inout RegType) is
    begin
       v.replyData.tValid := '1';
       v.replyData.tLast  := '1';
       v.state            := SEND_REP_S;
    end procedure sendHeaderNow;
 
-   signal r : RegType := REG_INIT_C;
-
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
    -- group signals so it's easier not to forget one
@@ -338,14 +324,14 @@ architecture AxisToJtagImpl of AxisToJtag is
    -- buffer memory
    signal bufMem : MemType;
 
-   attribute ram_style : string;
-
+   attribute ram_style           : string;
    attribute ram_style of bufMem : signal is MEM_STYLE_G;
 
    -- memory readout port
    signal memOut : slv(WORD_SIZE_C - 1 downto 0);
 
 begin
+
    assert (AXIS_FREQ_G >= 0.0)
       report "AXIS_FREQ_G cannot be negative"
       severity failure;
@@ -424,8 +410,7 @@ begin
    -- memory playback data) into the output stream.
    U_MUX : entity surf.AxiStreamSelector
       generic map (
-         TPD_G => TPD_G
-         )
+         TPD_G => TPD_G)
       port map (
          clk => axisClk,
          rst => axisRst,
@@ -435,8 +420,7 @@ begin
          mIb => s.mIb,
          sIb => s.sIb,
          mOb => s.mOb,
-         sOb => s.sOb
-         );
+         sOb => s.sOb);
 
    -- The core which does all the JTAG work (while this module deals with
    -- the protocol and housekeeping.
@@ -446,8 +430,7 @@ begin
          AXIS_WIDTH_G => AXIS_WIDTH_G,
          LEN_POS0_G   => LEN_SHIFT_C,
          LEN_POSN_G   => (LEN_SHIFT_C + LEN_WIDTH_C - 1),
-         CLK_DIV2_G   => CLK_DIV2_G
-         )
+         CLK_DIV2_G   => CLK_DIV2_G)
       port map (
          axisClk => axisClk,
          axisRst => axisRst,
@@ -463,8 +446,7 @@ begin
          tck => tck,
          tdi => tdi,
          tms => tms,
-         tdo => tdo
-         );
+         tdo => tdo);
 
    P_COMB : process(mAxisReq, memOut, r, s)
       variable v : RegType;

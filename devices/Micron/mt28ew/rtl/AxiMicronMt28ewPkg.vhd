@@ -15,7 +15,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -37,4 +36,4 @@ package AxiMicronMt28ewPkg is
    type AxiMicronMt28ewOutArray is array (natural range <>) of AxiMicronMt28ewOutType;
    type AxiMicronMt28ewOutVectorArray is array (integer range<>, integer range<>)of AxiMicronMt28ewOutType;
 
-end package;
+end package AxiMicronMt28ewPkg;

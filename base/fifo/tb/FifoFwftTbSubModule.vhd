@@ -37,18 +37,20 @@ end FifoTbSubModule;
 
 architecture mapping of FifoTbSubModule is
 
-   signal wrEn,
-      aFull,
-      valid,
-      rdEn,
-      passedDet,
-      failedDet,
-      ready : sl := '0';
-   signal readDelay,
-      writeDelay : slv(4 downto 0) := (others => '0');
-   signal din,
-      dout,
-      check : slv(15 downto 0) := (others => '0');
+   signal wrEn      : sl := '0';
+   signal aFull     : sl := '0';
+   signal valid     : sl := '0';
+   signal rdEn      : sl := '0';
+   signal passedDet : sl := '0';
+   signal failedDet : sl := '0';
+   signal ready     : sl := '0';
+
+   signal readDelay  : slv(4 downto 0) := (others => '0');
+   signal writeDelay : slv(4 downto 0) := (others => '0');
+
+   signal din   : slv(15 downto 0) := (others => '0');
+   signal dout  : slv(15 downto 0) := (others => '0');
+   signal check : slv(15 downto 0) := (others => '0');
 
 begin
 

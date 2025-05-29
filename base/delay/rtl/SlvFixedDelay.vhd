@@ -27,15 +27,15 @@ use surf.StdRtlPkg.all;
 
 entity SlvFixedDelay is
    generic (
-      TPD_G          : time      := 1 ns;
-      XIL_DEVICE_G   : string    := "ULTRASCALE_PLUS";
-      DELAY_STYLE_G  : string    := "srl_reg"; -- "reg", "srl", "srl_reg", "reg_srl", "reg_srl_reg" or "block"
-      DELAY_G        : integer   := 256;
-      WIDTH_G        : positive  := 16);
+      TPD_G         : time     := 1 ns;
+      XIL_DEVICE_G  : string   := "ULTRASCALE_PLUS";
+      DELAY_STYLE_G : string   := "srl_reg";  -- "reg", "srl", "srl_reg", "reg_srl", "reg_srl_reg" or "block"
+      DELAY_G       : integer  := 256;
+      WIDTH_G       : positive := 16);
    port (
-      clk      : in  sl;
-      din      : in  slv(WIDTH_G - 1 downto 0);
-      dout     : out slv(WIDTH_G - 1 downto 0));
+      clk  : in  sl;
+      din  : in  slv(WIDTH_G - 1 downto 0);
+      dout : out slv(WIDTH_G - 1 downto 0));
 end entity SlvFixedDelay;
 
 architecture rtl of SlvFixedDelay is
@@ -52,45 +52,45 @@ architecture rtl of SlvFixedDelay is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   attribute srl_style      : STRING;
+   attribute srl_style      : string;
    attribute srl_style of r : signal is DELAY_STYLE_G;
 
 begin
 
-   GEN_SRL16_DELAY : if ( (DELAY_G > 3) and (DELAY_G < 18) and (DELAY_STYLE_G /= "block") ) generate
-       -- This will always be srl_reg style
-       U_SRL16_DELAY : entity surf.Srl16Delay
-       generic map (
-          TPD_G        => TPD_G,
-          XIL_DEVICE_G => XIL_DEVICE_G,
-          DELAY_G      => DELAY_G,
-          WIDTH_G      => WIDTH_G)
-       port map (
-          clk          => clk,
-          din          => din,
-          dout         => dout);
+   GEN_SRL16_DELAY : if ((DELAY_G > 3) and (DELAY_G < 18) and (DELAY_STYLE_G /= "block")) generate
+      -- This will always be srl_reg style
+      U_SRL16_DELAY : entity surf.Srl16Delay
+         generic map (
+            TPD_G        => TPD_G,
+            XIL_DEVICE_G => XIL_DEVICE_G,
+            DELAY_G      => DELAY_G,
+            WIDTH_G      => WIDTH_G)
+         port map (
+            clk  => clk,
+            din  => din,
+            dout => dout);
    end generate GEN_SRL16_DELAY;
 
-   GEN_RAM_DELAY : if ( (DELAY_G > 32) and (DELAY_G < 258) and (DELAY_STYLE_G /= "block") ) generate
+   GEN_RAM_DELAY : if ((DELAY_G > 32) and (DELAY_G < 258) and (DELAY_STYLE_G /= "block")) generate
       -- Manually pack into Xilinx primitives
       U_RAM_DELAY : entity surf.LutFixedDelay
-      generic map (
-         TPD_G         => TPD_G,
-         DELAY_G       => DELAY_G,
-         WIDTH_G       => WIDTH_G)
-      port map (
-         clk           => clk,
-         din           => din,
-         dout          => dout);
+         generic map (
+            TPD_G   => TPD_G,
+            DELAY_G => DELAY_G,
+            WIDTH_G => WIDTH_G)
+         port map (
+            clk  => clk,
+            din  => din,
+            dout => dout);
    end generate GEN_RAM_DELAY;
 
-   GEN_INFERRED_DELAY : if ( (DELAY_G < 4) or (DELAY_G > 17 and DELAY_G < 33) or (DELAY_G > 257) or (DELAY_STYLE_G = "block") ) generate
+   GEN_INFERRED_DELAY : if ((DELAY_G < 4) or (DELAY_G > 17 and DELAY_G < 33) or (DELAY_G > 257) or (DELAY_STYLE_G = "block")) generate
       comb : process (din, r) is
          variable v : RegType;
       begin
          v.shift(0) := din;
          for i in v.shift'high downto 1 loop
-             v.shift(i) := r.shift(i-1);
+            v.shift(i) := r.shift(i-1);
          end loop;
 
          rin  <= v;

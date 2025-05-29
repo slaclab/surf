@@ -51,19 +51,19 @@ entity JesdTxReg is
       statusTxArr_i : in txStatuRegisterArray(L_G-1 downto 0);
 
       -- Control
-      muxOutSelArr_o  : out Slv3Array(L_G-1 downto 0);
-      sigTypeArr_o    : out Slv2Array(L_G-1 downto 0);
-      sysrefDlyTx_o   : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
-      enableTx_o      : out slv(L_G-1 downto 0);
-      replEnable_o    : out sl;
-      scrEnable_o     : out sl;
-      invertData_o    : out slv(L_G-1 downto 0);
-      rampStep_o      : out slv(PER_STEP_WIDTH_C-1 downto 0);
-      squarePeriod_o  : out slv(PER_STEP_WIDTH_C-1 downto 0);
-      subClass_o      : out sl;
-      gtReset_o       : out sl;
-      clearErr_o      : out sl;
-      invertSync_o    : out sl;
+      muxOutSelArr_o : out Slv3Array(L_G-1 downto 0);
+      sigTypeArr_o   : out Slv2Array(L_G-1 downto 0);
+      sysrefDlyTx_o  : out slv(SYSRF_DLY_WIDTH_C-1 downto 0);
+      enableTx_o     : out slv(L_G-1 downto 0);
+      replEnable_o   : out sl;
+      scrEnable_o    : out sl;
+      invertData_o   : out slv(L_G-1 downto 0);
+      rampStep_o     : out slv(PER_STEP_WIDTH_C-1 downto 0);
+      squarePeriod_o : out slv(PER_STEP_WIDTH_C-1 downto 0);
+      subClass_o     : out sl;
+      gtReset_o      : out sl;
+      clearErr_o     : out sl;
+      invertSync_o   : out sl;
 
       posAmplitude_o : out slv(F_G*8-1 downto 0);
       negAmplitude_o : out slv(F_G*8-1 downto 0);
@@ -263,7 +263,7 @@ begin
       end if;
 
       if (axilStatus.readEnable = '1') then
-         axilReadResp          := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
+         axilReadResp := ite(axilReadMaster.araddr(1 downto 0) = "00", AXI_RESP_OK_C, AXI_RESP_DECERR_C);
          case (s_RdAddr) is
             when 16#00# =>              -- ADDR (0x0)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.enableTx;

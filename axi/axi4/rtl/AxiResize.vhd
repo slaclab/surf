@@ -29,7 +29,7 @@ use surf.AxiPkg.all;
 entity AxiResize is
    generic (
       -- General Configurations
-      TPD_G               : time          := 1 ns;
+      TPD_G               : time := 1 ns;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiConfigType;
       MASTER_AXI_CONFIG_G : AxiConfigType);

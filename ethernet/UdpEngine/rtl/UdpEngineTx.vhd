@@ -81,6 +81,7 @@ architecture rtl of UdpEngineTx is
       chPntr      : natural range 0 to SIZE_G-1;
       index       : natural range 0 to SIZE_G-1;
       arpPos      : Slv8Array(SIZE_G-1 downto 0);
+      arpTabPos   : Slv8Array(SIZE_G-1 downto 0);
       obDhcpSlave : AxiStreamSlaveType;
       ibSlaves    : AxiStreamSlaveArray(SIZE_G-1 downto 0);
       txMaster    : AxiStreamMasterType;
@@ -95,6 +96,7 @@ architecture rtl of UdpEngineTx is
       chPntr      => 0,
       index       => 0,
       arpPos      => (others => (others => '0')),
+      arpTabPos   => (others => (others => '0')),
       obDhcpSlave => AXI_STREAM_SLAVE_INIT_C,
       ibSlaves    => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
@@ -111,11 +113,10 @@ architecture rtl of UdpEngineTx is
 
 begin
 
-   comb : process (ibMasters, localIp, localMac, obDhcpMaster, r, remoteIp,
-                   remoteMac, remotePort, rst, txSlave) is
-      variable v       : RegType;
-      variable arpPosV : Slv8Array(SIZE_G-1 downto 0);
-      variable i       : natural;
+   comb : process (arpTabFound, arpTabIpAddr, arpTabMacAddr, ibMasters,
+                   localIp, localMac, obDhcpMaster, r, remoteIp, remoteMac,
+                   remotePort, rst, txSlave) is
+      variable v : RegType;
    begin
       -- Latch the current value
       v := r;
@@ -133,11 +134,11 @@ begin
       for i in SIZE_G-1 downto 0 loop
          -- Check if link is up
          if (localMac /= 0) and         -- Non-zero local MAC address
-                       (localIp /= 0) and       -- Non-zero local IP address
-                       (PORT_G(i) /= 0) and     -- Non-zero local UDP port
-                       (remoteMac(i) /= 0) and  -- Non-zero remote MAC address
-                       (remoteIp(i) /= 0) and   -- Non-zero remote IP address
-                       (remotePort(i) /= 0) then  -- Non-zero remote UDP port
+                           (localIp /= 0) and      -- Non-zero local IP address
+                           (PORT_G(i) /= 0) and    -- Non-zero local UDP port
+                           (remoteMac(i) /= 0) and  -- Non-zero remote MAC address
+                           (remoteIp(i) /= 0) and  -- Non-zero remote IP address
+                           (remotePort(i) /= 0) then  -- Non-zero remote UDP port
             -- Link Up
             v.linkUp(i) := '1';
          else
@@ -204,14 +205,14 @@ begin
                      v.ibSlaves(r.index).tReady := '1';
                   end if;
                else
-                  v.chPntr         := r.index;
-                  arpPosV(r.index) := ibMasters(r.index).tDest;
-                  v.state          := ACC_ARP_TAB_S;
+                  v.chPntr             := r.index;
+                  v.arpTabPos(r.index) := ibMasters(r.index).tDest;
+                  v.state              := ACC_ARP_TAB_S;
                end if;
             end if;
          -----------------------------------------------------------------------
          when ACC_ARP_TAB_S =>
-            arpPosV(r.chPntr) := ibMasters(r.chPntr).tDest;
+            v.arpTabPos(r.chPntr) := ibMasters(r.chPntr).tDest;
             if arpTabFound(r.chPntr) = '0' then
                v.linkUp(r.chPntr)          := '0';
                -- Blow off the data..
@@ -444,7 +445,7 @@ begin
       obDhcpSlave <= v.obDhcpSlave;
       txMaster    <= r.txMaster;
       linkUp      <= r.linkUp;
-      arpTabPos   <= arpPosV;
+      arpTabPos   <= v.arpTabPos;
 
       -- Reset
       if (rst = '1') then

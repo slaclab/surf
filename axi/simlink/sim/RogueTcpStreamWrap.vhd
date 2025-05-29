@@ -100,6 +100,7 @@ architecture RogueTcpStreamWrap of RogueTcpStreamWrap is
    signal mxSlaves  : AxiStreamSlaveArray(CHAN_COUNT_C-1 downto 0);
 
    signal portMap : Slv16Array(CHAN_COUNT_C-1 downto 0);
+
 begin
 
    PORT_MAP : for i in portMap'range generate

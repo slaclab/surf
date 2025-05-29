@@ -55,8 +55,10 @@ entity AxiSpiMaster is
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
       -- Copy of the shadow memory (SHADOW_EN_G=true)
-      shadowAddr     : in  slv(ADDRESS_SIZE_G-1 downto 0) := (others => '0');
-      shadowData     : out slv(DATA_SIZE_G-1 downto 0)    := (others => '0');
+      -- Same width as ADDRESS_SIZE_G if NUM_CHIPS_G=1
+      -- Else ADDRESS_SIZE_G+log2(NUM_CHIPS_G)
+      shadowAddr     : in  slv(ite(SPI_NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G-1 downto 0) := (others => '0');
+      shadowData     : out slv(DATA_SIZE_G-1 downto 0)                                                       := (others => '0');
       -- SPI Interface
       coreSclk       : out sl;
       coreSDin       : in  sl;
@@ -68,8 +70,9 @@ end entity AxiSpiMaster;
 architecture rtl of AxiSpiMaster is
 
    -- AdcCore Outputs
-   constant PACKET_SIZE_C : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
-   constant CHIP_BITS_C   : integer  := log2(SPI_NUM_CHIPS_G);
+   constant PACKET_SIZE_C          : positive := ite(MODE_G = "RW", 1, 0) + ADDRESS_SIZE_G + DATA_SIZE_G;  -- "1+" For R/W command bit
+   constant CHIP_BITS_C            : integer  := log2(SPI_NUM_CHIPS_G);
+   constant SHADOW_MEM_ADDR_SIZE_C : integer  := ite(SPI_NUM_CHIPS_G = 1, 0, log2(SPI_NUM_CHIPS_G))+ADDRESS_SIZE_G;
 
    signal rdData : slv(PACKET_SIZE_C-1 downto 0);
    signal rdEn   : sl;
@@ -77,7 +80,8 @@ architecture rtl of AxiSpiMaster is
    type StateType is (WAIT_AXI_TXN_S, WAIT_CYCLE_S, WAIT_CYCLE_SHADOW_S, WAIT_SPI_TXN_DONE_S, SHADOW_READ_DONE_S);
 
 
-   signal memData : slv(DATA_SIZE_G-1 downto 0) := (others => '0');
+   signal memData : slv(DATA_SIZE_G-1 downto 0)            := (others => '0');
+   signal memAddr : slv(SHADOW_MEM_ADDR_SIZE_C-1 downto 0) := (others => '0');
 
    -- Registers
    type RegType is record
@@ -105,31 +109,41 @@ architecture rtl of AxiSpiMaster is
 begin
 
    SHADOW_RAM_GEN : if (SHADOW_EN_G) generate
+      NO_CHIP_SEL : if (SPI_NUM_CHIPS_G = 1) generate
+         memAddr <= r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
+      end generate NO_CHIP_SEL;
+
+      CHIP_SEL : if (SPI_NUM_CHIPS_G > 1) generate
+         memAddr <= r.chipSel & r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G);
+      end generate CHIP_SEL;
+
+
       U_DualPortRam_1 : entity surf.DualPortRam
          generic map (
             TPD_G         => TPD_G,
             MEMORY_TYPE_G => SHADOW_MEM_TYPE_G,
             REG_EN_G      => false,
             DATA_WIDTH_G  => DATA_SIZE_G,
-            ADDR_WIDTH_G  => ADDRESS_SIZE_G)
+            ADDR_WIDTH_G  => SHADOW_MEM_ADDR_SIZE_C)
          port map (
-            clka  => axiClk,                                                     -- [in]
-            ena   => '1',                                                        -- [in]
-            wea   => r.wrEn,                                                     -- [in]
-            rsta  => axiRst,                                                     -- [in]
-            addra => r.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G),  -- [in]
-            dina  => r.wrData(DATA_SIZE_G-1 downto 0),                           -- [in]
-            douta => memData,                                                    -- [out]
-            clkb  => axiClk,                                                     -- [in]
-            enb   => '1',                                                        -- [in]
-            rstb  => axiRst,                                                     -- [in]
-            addrb => shadowAddr,                                                 -- [in]
-            doutb => shadowData);                                                -- [out]
+            clka  => axiClk,                            -- [in]
+            ena   => '1',                               -- [in]
+            wea   => r.wrEn,                            -- [in]
+            rsta  => axiRst,                            -- [in]
+            addra => memAddr,                           -- [in]
+            dina  => r.wrData(DATA_SIZE_G-1 downto 0),  -- [in]
+            douta => memData,                           -- [out]
+            clkb  => axiClk,                            -- [in]
+            enb   => '1',                               -- [in]
+            rstb  => axiRst,                            -- [in]
+            addrb => shadowAddr,                        -- [in]
+            doutb => shadowData);                       -- [out]
 
    end generate SHADOW_RAM_GEN;
 
 
-   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData, rdEn) is
+   comb : process (axiReadMaster, axiRst, axiWriteMaster, memData, r, rdData,
+                   rdEn) is
       variable v         : RegType;
       variable axiStatus : AxiLiteStatusType;
    begin
@@ -147,6 +161,7 @@ begin
                   if (ADDRESS_SIZE_G > 0) then
                      v.wrData(DATA_SIZE_G+ADDRESS_SIZE_G-1 downto DATA_SIZE_G) := axiReadMaster.araddr(2+ADDRESS_SIZE_G-1 downto 2);  -- setup memAddr
                   end if;
+                  v.chipSel := axiReadMaster.araddr(CHIP_BITS_C+ADDRESS_SIZE_G+1 downto 2+ADDRESS_SIZE_G);
                elsif (MODE_G = "WO") then
                   axiSlaveReadResponse(v.axiReadSlave, AXI_RESP_DECERR_C);
                else

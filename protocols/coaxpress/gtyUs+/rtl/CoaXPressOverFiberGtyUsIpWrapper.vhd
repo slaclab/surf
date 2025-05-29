@@ -182,14 +182,14 @@ begin
          syncRst  => txLinkUp);
 
    -- U_txLinkUp : entity surf.PwrUpRst
-      -- generic map (
-         -- TPD_G          => TPD_G,
-         -- IN_POLARITY_G  => '1',
-         -- OUT_POLARITY_G => '0')
-      -- port map (
-         -- clk    => phyClk312,
-         -- arst   => txReset,
-         -- rstOut => txLinkUp);
+   -- generic map (
+   -- TPD_G          => TPD_G,
+   -- IN_POLARITY_G  => '1',
+   -- OUT_POLARITY_G => '0')
+   -- port map (
+   -- clk    => phyClk312,
+   -- arst   => txReset,
+   -- rstOut => txLinkUp);
 
    rxClk   <= phyClk312;
    rxReset <= phyRst312 or not(rxPhyReady);
@@ -206,14 +206,14 @@ begin
          syncRst  => rxRst);
 
    -- U_rxLinkUp : entity surf.PwrUpRst
-      -- generic map (
-         -- TPD_G          => TPD_G,
-         -- IN_POLARITY_G  => '1',
-         -- OUT_POLARITY_G => '0')
-      -- port map (
-         -- clk    => phyClk312,
-         -- arst   => rxReset,
-         -- rstOut => rxLinkUp);
+   -- generic map (
+   -- TPD_G          => TPD_G,
+   -- IN_POLARITY_G  => '1',
+   -- OUT_POLARITY_G => '0')
+   -- port map (
+   -- clk    => phyClk312,
+   -- arst   => rxReset,
+   -- rstOut => rxLinkUp);
 
    U_rxLinkUp : entity surf.RstSync
       generic map (

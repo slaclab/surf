@@ -14,7 +14,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.NUMERIC_STD.all;
+use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -155,7 +155,6 @@ package AxiLitePkg is
       -- Write ack channel
       bresp   : slv(1 downto 0);
       bvalid  : sl;
-
    end record;
 
    -- Initialization constants
@@ -788,7 +787,7 @@ package body AxiLitePkg is
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
              std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             if (constVal /= "X") then
-               reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
+               reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal, (REG_HIGH_BIT_C-reg'low)+1);
             else
                reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
             end if;
@@ -838,9 +837,9 @@ package body AxiLitePkg is
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
              std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
             -- if (constVal /= "X") then
-               -- reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
+            -- reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
             -- else
-               reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
+            reg(REG_HIGH_BIT_C downto reg'low) := ep.axiWriteMaster.wdata(BUS_HIGH_BIT_C downto NORMAL_OFFSET_C);
             -- end if;
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;

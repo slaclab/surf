@@ -135,14 +135,14 @@ begin
 
       TenGigEthGtx7_Inst : entity surf.TenGigEthGtx7
          generic map (
-            TPD_G           => TPD_G,
-            JUMBO_G         => JUMBO_G,
-            PAUSE_EN_G      => PAUSE_EN_G,
-            ROCEV2_EN_G     => ROCEV2_EN_G,
+            TPD_G         => TPD_G,
+            JUMBO_G       => JUMBO_G,
+            PAUSE_EN_G    => PAUSE_EN_G,
+            ROCEV2_EN_G   => ROCEV2_EN_G,
             -- AXI-Lite Configurations
-            EN_AXI_REG_G    => EN_AXI_REG_G,
+            EN_AXI_REG_G  => EN_AXI_REG_G,
             -- AXI Streaming Configurations
-            AXIS_CONFIG_G   => AXIS_CONFIG_G(i))
+            AXIS_CONFIG_G => AXIS_CONFIG_G(i))
          port map (
             -- Local Configurations
             localMac           => localMac(i),

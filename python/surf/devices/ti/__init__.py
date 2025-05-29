@@ -11,6 +11,7 @@ from surf.devices.ti._Adc16Dx370        import *
 from surf.devices.ti._Adc32Rf45         import *
 from surf.devices.ti._Adc32Rf45Channel  import *
 from surf.devices.ti._Ads42Lbx9         import *
+from surf.devices.ti._Ads54J54          import *
 from surf.devices.ti._Ads54J60          import *
 from surf.devices.ti._Ads54J60Channel   import *
 from surf.devices.ti._AxiCdcm6208       import *

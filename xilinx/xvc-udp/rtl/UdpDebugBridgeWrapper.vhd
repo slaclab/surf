@@ -27,7 +27,7 @@ use surf.EthMacPkg.all;
 entity UdpDebugBridgeWrapper is
    generic (
       TPD_G           : time := 1 ns;
-      AXIS_CLK_FREQ_G : real := 156.25e6);
+      AXIS_CLK_FREQ_G : real := 156.25E+6);
    port (
       -- Clock and Reset
       clk            : in  sl;
@@ -48,22 +48,22 @@ architecture rtl of UdpDebugBridgeWrapper is
          axisClk            : in  std_logic;
          axisRst            : in  std_logic;
          \mAxisReq[tValid]\ : in  std_logic;
-         \mAxisReq[tData]\  : in  std_logic_vector (511 downto 0);
-         \mAxisReq[tStrb]\  : in  std_logic_vector (63 downto 0);
-         \mAxisReq[tKeep]\  : in  std_logic_vector (63 downto 0);
+         \mAxisReq[tData]\  : in  std_logic_vector(1023 downto 0);
+         \mAxisReq[tStrb]\  : in  std_logic_vector(127 downto 0);
+         \mAxisReq[tKeep]\  : in  std_logic_vector(127 downto 0);
          \mAxisReq[tLast]\  : in  std_logic;
-         \mAxisReq[tDest]\  : in  std_logic_vector (7 downto 0);
-         \mAxisReq[tId]\    : in  std_logic_vector (7 downto 0);
-         \mAxisReq[tUser]\  : in  std_logic_vector (511 downto 0);
+         \mAxisReq[tDest]\  : in  std_logic_vector(7 downto 0);
+         \mAxisReq[tId]\    : in  std_logic_vector(7 downto 0);
+         \mAxisReq[tUser]\  : in  std_logic_vector(1023 downto 0);
          \sAxisReq[tReady]\ : out std_logic;
          \mAxisTdo[tValid]\ : out std_logic;
-         \mAxisTdo[tData]\  : out std_logic_vector (511 downto 0);
-         \mAxisTdo[tStrb]\  : out std_logic_vector (63 downto 0);
-         \mAxisTdo[tKeep]\  : out std_logic_vector (63 downto 0);
+         \mAxisTdo[tData]\  : out std_logic_vector(1023 downto 0);
+         \mAxisTdo[tStrb]\  : out std_logic_vector(127 downto 0);
+         \mAxisTdo[tKeep]\  : out std_logic_vector(127 downto 0);
          \mAxisTdo[tLast]\  : out std_logic;
-         \mAxisTdo[tDest]\  : out std_logic_vector (7 downto 0);
-         \mAxisTdo[tId]\    : out std_logic_vector (7 downto 0);
-         \mAxisTdo[tUser]\  : out std_logic_vector (511 downto 0);
+         \mAxisTdo[tDest]\  : out std_logic_vector(7 downto 0);
+         \mAxisTdo[tId]\    : out std_logic_vector(7 downto 0);
+         \mAxisTdo[tUser]\  : out std_logic_vector(1023 downto 0);
          \sAxisTdo[tReady]\ : in  std_logic
          );
    end component UdpDebugBridge;

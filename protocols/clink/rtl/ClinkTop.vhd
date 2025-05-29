@@ -23,6 +23,7 @@ use surf.StdRtlPkg.all;
 use surf.ClinkPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
+
 library unisim;
 use unisim.vcomponents.all;
 
@@ -314,7 +315,8 @@ begin
       -- Connector 1, Half 0, Control Base, Data Z for Med, Full, Deca
       ----------------------------------------------------------------
       U_Cbl1Half0 : entity surf.ClinkData
-         generic map (TPD_G => TPD_G)
+         generic map (
+            TPD_G => TPD_G)
          port map (
             cblHalfP        => cbl1Half0P,
             cblHalfM        => cbl1Half0M,
@@ -348,7 +350,8 @@ begin
    -- Connector 1, Half 1, Data X for Base, Data Y for Med, Full, Deca
    -------------------------------------------------------------------
    U_Cbl1Half1 : entity surf.ClinkData
-      generic map (TPD_G => TPD_G)
+      generic map (
+         TPD_G => TPD_G)
       port map (
          cblHalfP        => cbl1Half1P,
          cblHalfM        => cbl1Half1M,

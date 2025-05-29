@@ -23,7 +23,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -40,7 +39,7 @@ entity SrpV3AxiLite is
       FIFO_SYNTH_MODE_G     : string                  := "inferred";
       FIFO_ADDR_WIDTH_G     : integer range 9 to 48   := 9;  -- Need at least 9 to avoid logjams on large txns
       TX_VALID_THOLD_G      : positive range 1 to 511 := 500;  -- >1 = only when frame ready or # entries
-      TX_VALID_BURST_MODE_G : boolean                 := true;       -- only used in VALID_THOLD_G>1
+      TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
       SLAVE_READY_EN_G      : boolean                 := false;
       GEN_SYNC_FIFO_G       : boolean                 := false;
       ENABLE_TIMER_G        : boolean                 := true;
@@ -227,13 +226,13 @@ begin
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
-         VALID_THOLD_G       => 0,                  -- = 0 = only when frame ready
+         VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
          -- FIFO configurations
          SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
@@ -737,7 +736,7 @@ begin
                end if;
             end if;
             -- Check if transaction is done
-            if (v.mAxilWriteMaster.awvalid = '0') and(v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
+            if (v.mAxilWriteMaster.awvalid = '0') and (v.mAxilWriteMaster.wvalid = '0') and (v.mAxilWriteMaster.bready = '0') then
                -- Check for memory bus error
                if v.memResp /= 0 then
                   -- Next State
@@ -819,7 +818,7 @@ begin
          MEMORY_TYPE_G       => "block",
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
-         INT_DATA_WIDTH_G    => 16,                 -- 128-bit
+         INT_DATA_WIDTH_G    => 16,     -- 128-bit
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,

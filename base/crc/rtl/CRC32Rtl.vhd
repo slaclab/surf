@@ -34,28 +34,32 @@ entity CRC32Rtl is
       RST_ASYNC_G : boolean          := false;
       CRC_INIT    : slv(31 downto 0) := x"FFFFFFFF");
    port (
-      CRCOUT       : out slv(31 downto 0);         -- CRC output
-      CRCCLK       : in  sl;     -- system clock
-      CRCCLKEN     : in  sl                     := '1';  -- system clock enable
-      CRCDATAVALID : in  sl;     -- indicate that new data arrived and CRC can be computed
+      CRCOUT       : out slv(31 downto 0);  -- CRC output
+      CRCCLK       : in  sl;            -- system clock
+      CRCCLKEN     : in  sl               := '1';  -- system clock enable
+      CRCDATAVALID : in  sl;  -- indicate that new data arrived and CRC can be computed
       CRCDATAWIDTH : in  slv(2 downto 0);  -- indicate width in bytes minus 1, 0 - 1 byte, 1 - 2 bytes
-      CRCIN        : in  slv(31 downto 0);         -- input data for CRC calculation
+      CRCIN        : in  slv(31 downto 0);  -- input data for CRC calculation
       CRCINIT      : in  slv(31 downto 0) := CRC_INIT;
-      CRCRESET     : in  sl);    -- to set CRC logic to value in crc_cNIT
+      CRCRESET     : in  sl);  -- to set CRC logic to value in crc_cNIT
 end CRC32Rtl;
 
 architecture rtl of CRC32Rtl is
 
-   -- Local Signals
-   signal data             : slv(31 downto 0);
-   signal crc              : slv(31 downto 0);
-   signal CRCDATAVALID_d   : sl;
-   signal CRCDATAWIDTH_d   : slv(2 downto 0);
-   constant Polyval        : slv(31 downto 0) := X"04C11DB7";
-   type fb_array is array (32 downto 0) of slv(31 downto 0);
-   signal MSBVect, TempXOR : fb_array;
+   constant Polyval : slv(31 downto 0) := X"04C11DB7";
+
+   type FbArray is array (32 downto 0) of slv(31 downto 0);
+
+   signal data           : slv(31 downto 0);
+   signal crc            : slv(31 downto 0);
+   signal CRCDATAVALID_d : sl;
+   signal CRCDATAWIDTH_d : slv(2 downto 0);
+
+   signal MSBVect : FbArray;
+   signal TempXOR : FbArray;
 
 begin
+
    TempXOR(0) <= crc xor data;
 
    MS0 : for i in 0 to 31 generate
@@ -102,7 +106,7 @@ begin
       end if;
    end process;
 
-   CRCP : process (CRCCLK, CRCRESET)
+   CRCP : process (CRCCLK, CRCINIT, CRCRESET)
    begin
       if (RST_ASYNC_G and CRCRESET = '1') then
          crc <= CRCINIT after TPD_G;
@@ -128,5 +132,5 @@ begin
                  & crc(16) & crc(17) & crc(18) & crc(19) & crc(20) & crc(21) & crc(22) & crc(23)
                  & crc(8) & crc(9) & crc(10) & crc(11) & crc(12) & crc(13) & crc(14) & crc(15)
                  & crc(0) & crc(1) & crc(2) & crc(3) & crc(4) & crc(5) & crc(6) & crc(7));
-end rtl;
 
+end rtl;

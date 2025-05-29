@@ -34,7 +34,6 @@ architecture mapping of SaciAxiLiteMasterTbWrapper is
    signal axilWriteMaster : AxiLiteWriteMasterType;
    signal axilWriteSlave  : AxiLiteWriteSlaveType;
 
-
 begin
 
    U_SaciAxiLiteMasterTb_1 : entity surf.SaciAxiLiteMasterTb
@@ -95,7 +94,7 @@ begin
 
       assert (wrData = rdData) report "Data Mismatch" severity error;
 
-      wrData := X"9abcdef0";
+      wrData := X"9ABCDEF0";
       axiLiteBusSimWrite(
          axilClk,
          axilWriteMaster,
@@ -113,7 +112,7 @@ begin
       assert (wrData = rdData) report "Data Mismatch" severity error;
 
 
-      wrData := X"deadbeef";
+      wrData := X"DEADBEEF";
       axiLiteBusSimWrite(
          axilClk,
          axilWriteMaster,

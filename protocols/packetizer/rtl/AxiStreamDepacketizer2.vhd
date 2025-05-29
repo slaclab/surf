@@ -30,7 +30,7 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamDepacketizer2 is
    generic (
       TPD_G                : time                  := 1 ns;
-      RST_POLARITY_G       : sl                    := '1';    -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G       : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean               := false;
       MEMORY_TYPE_G        : string                := "distributed";
       REG_EN_G             : boolean               := false;
@@ -91,6 +91,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
       crcReset         : sl;
+      crcOut           : slv(31 downto 0);
       linkGoodDly      : sl;
       rdLat            : natural range 0 to 2;
       debug            : Packetizer2DebugType;
@@ -110,6 +111,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
       crcReset         => '1',
+      crcOut           => (others => '0'),
       linkGoodDly      => '0',
       rdLat            => 2,
       debug            => PACKETIZER2_DEBUG_INIT_C,
@@ -272,7 +274,7 @@ begin
 
    end generate;
 
-   comb : process (inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem, crcOut,
+   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem,
                    ramPacketActiveOut, ramPacketSeqOut, ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
@@ -330,6 +332,7 @@ begin
             v.debug.eop    := '1';
          end if;
       end procedure doTail;
+
    begin
       -- Latch the current value
       v := r;
@@ -345,6 +348,9 @@ begin
       v.crcDataValid := '0';
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer
+
+      -- Register crcOut in case we need it.
+      v.crcOut := crcOut;
 
       -- Reset tready by default
       v.inputAxisSlave.tready := '0';
@@ -450,7 +456,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';  -- Clear any frame error
+                     v.sentEofe     := '0';                   -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;

@@ -14,7 +14,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-
 use ieee.numeric_std.all;
 
 library surf;
@@ -22,8 +21,9 @@ use surf.StdRtlPkg.all;
 
 package Jesd204bPkg is
 
--- Constant definitions
---------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   -- Constant definitions
+   --------------------------------------------------------------------------
    -- Number of bytes in MGT word (2 or 4).
    constant GT_WORD_SIZE_C : positive := 4;
 
@@ -53,46 +53,48 @@ package Jesd204bPkg is
    -- Scrambler/Descrambler PBRS taps for 1 + x^14 + x^15
    constant JESD_PRBS_TAPS_C : NaturalArray := (0 => 14, 1 => 15);
 
--- Sub-types
---------------------------------------------------------------------------
-   type jesdGtRxLaneType is record
+   --------------------------------------------------------------------------
+   -- Sub-types
+   --------------------------------------------------------------------------
+   type JesdGtRxLaneType is record
       data      : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK     : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data is K character
       dispErr   : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data has disparity error
       decErr    : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data not in table
       rstDone   : sl;
       cdrStable : sl;
-   end record jesdGtRxLaneType;
+   end record JesdGtRxLaneType;
 
-   constant JESD_GT_RX_LANE_INIT_C : jesdGtRxLaneType := (
+   constant JESD_GT_RX_LANE_INIT_C : JesdGtRxLaneType := (
       data      => (others => '0'),
       dataK     => (others => '0'),
       dispErr   => (others => '0'),
       decErr    => (others => '0'),
       rstDone   => '0',
-      cdrStable => '0'
-      );
+      cdrStable => '0');
 
-   type jesdGtTxLaneType is record
+   type JesdGtTxLaneType is record
       data  : slv((GT_WORD_SIZE_C*8)-1 downto 0);  -- PHY receive data
       dataK : slv(GT_WORD_SIZE_C-1 downto 0);  -- PHY receive data is K character
-   end record jesdGtTxLaneType;
-   constant JESD_GT_TX_LANE_INIT_C : jesdGtTxLaneType := (
+   end record JesdGtTxLaneType;
+   constant JESD_GT_TX_LANE_INIT_C : JesdGtTxLaneType := (
       data  => (others => '0'),
       dataK => (others => '0'));
 
    -- Arrays
-   type jesdGtRxLaneTypeArray is array (natural range <>) of jesdGtRxLaneType;
-   type jesdGtTxLaneTypeArray is array (natural range <>) of jesdGtTxLaneType;
-   type fixLatDataArray is array (natural range <>) of slv((GT_WORD_SIZE_C*8+GT_WORD_SIZE_C*2)-1 downto 0);
-   type sampleDataArray is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
-   type sampleDataVectorArray is array (natural range<>, natural range<>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
-   type rxStatuRegisterArray is array (natural range <>) of slv((RX_STAT_WIDTH_C)-1 downto 0);
-   type txStatuRegisterArray is array (natural range <>) of slv((TX_STAT_WIDTH_C)-1 downto 0);
-   type alignTxArray is array (natural range <>) of slv((GT_WORD_SIZE_C)-1 downto 0);
+   type JesdGtRxLaneTypeArray is array (natural range <>) of JesdGtRxLaneType;
+   type JesdGtTxLaneTypeArray is array (natural range <>) of JesdGtTxLaneType;
+   type FixLatDataArray is array (natural range <>) of slv((GT_WORD_SIZE_C*8+GT_WORD_SIZE_C*2)-1 downto 0);
+   type SampleDataArray is array (natural range <>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+   type SampleDataVectorArray is array (natural range<>, natural range<>) of slv((GT_WORD_SIZE_C*8)-1 downto 0);
+   type RxStatuRegisterArray is array (natural range <>) of slv((RX_STAT_WIDTH_C)-1 downto 0);
+   type TxStatuRegisterArray is array (natural range <>) of slv((TX_STAT_WIDTH_C)-1 downto 0);
+   type AlignTxArray is array (natural range <>) of slv((GT_WORD_SIZE_C)-1 downto 0);
 
--- Functions
---------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   -- Functions
+   --------------------------------------------------------------------------
+
    -- Detect K character
    function detKcharFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic;
 
@@ -138,12 +140,14 @@ package Jesd204bPkg is
       dataOut : inout slv(15 downto 0);
       lfsrOut : inout slv(14 downto 0));
 
-end Jesd204bPkg;
+end package Jesd204bPkg;
 
 package body Jesd204bPkg is
 
--- Functions
---------------------------------------------------------------------------
+   --------------------------------------------------------------------------
+   -- Functions
+   --------------------------------------------------------------------------
+
    -- Detect K character
    function detKcharFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic is
    begin
@@ -170,7 +174,7 @@ package body Jesd204bPkg is
       else
          return '0';
       end if;
-   end detKcharFunc;
+   end function detKcharFunc;
 
    -- Output variable index from SLV (use in variable length shift register)
    function varIndexOutFunc(shft_slv : slv; index_slv : slv) return std_logic is
@@ -180,7 +184,7 @@ package body Jesd204bPkg is
       i := to_integer(unsigned(index_slv));
       return shft_slv(i);
 
-   end varIndexOutFunc;
+   end function varIndexOutFunc;
 
    -- Detect position of first non K character
    function detectPosFunc(data_slv : slv; charisk_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -234,7 +238,7 @@ package body Jesd204bPkg is
       else
          return (bytes_int-1 downto 0 => '1');
       end if;
-   end detectPosFunc;
+   end function detectPosFunc;
 
 
    -- Detect position of first non K character (Swapped bits/bytes)
@@ -289,7 +293,7 @@ package body Jesd204bPkg is
       else
          return (bytes_int-1 downto 0 => '1');
       end if;
-   end detectPosFuncSwap;
+   end function detectPosFuncSwap;
 
    -- Byte swap slv (bytes int 2 or 4)
    function byteSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -302,7 +306,7 @@ package body Jesd204bPkg is
       else
          return data_slv;
       end if;
-   end byteSwapSlv;
+   end function byteSwapSlv;
 
    -- Swap little or big endian (bytes int 2 or 4)
    function endianSwapSlv(data_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -315,7 +319,7 @@ package body Jesd204bPkg is
       else
          return data_slv;
       end if;
-   end endianSwapSlv;
+   end function endianSwapSlv;
 
    -- Align the data within the data buffer according to the position of the byte alignment word
    function JesdDataAlign(data_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -343,7 +347,7 @@ package body Jesd204bPkg is
       else
          return data_slv;
       end if;
-   end JesdDataAlign;
+   end function JesdDataAlign;
 
    -- Align the char within the buffer according to the position of the byte alignment word
    function JesdCharAlign(char_slv : slv; position_slv : slv; bytes_int : positive) return std_logic_vector is
@@ -371,19 +375,19 @@ package body Jesd204bPkg is
       else
          return char_slv;
       end if;
-   end JesdCharAlign;
+   end function JesdCharAlign;
 
    -- Convert standard logic vector to integer
    function slvToInt(data_slv : slv) return integer is
    begin
       return to_integer(unsigned(data_slv));
-   end slvToInt;
+   end function slvToInt;
 
    -- Convert integer to standard logic vector
    function intToSlv(data_int : integer; bytes_int : positive) return std_logic_vector is
    begin
       return std_logic_vector(to_unsigned(data_int, bytes_int));
-   end IntToSlv;
+   end function IntToSlv;
 
    -- Output zero sample data depending on word size and Frame size
    function outSampleZero(F_int : positive; bytes_int : positive) return std_logic_vector is
@@ -399,7 +403,7 @@ package body Jesd204bPkg is
 
       return vSlv;
 
-   end outSampleZero;
+   end function outSampleZero;
 
    -- Invert Signed
    function invSigned(input : slv) return std_logic_vector is
@@ -407,7 +411,7 @@ package body Jesd204bPkg is
    begin
       vOutput := - signed(input);
       return std_logic_vector(vOutput);
-   end invSigned;
+   end function invSigned;
 
    -- Output zero sample data depending on word size and Frame size
    function invData(data : slv; F_int : positive; bytes_int : positive) return std_logic_vector is
@@ -423,7 +427,7 @@ package body Jesd204bPkg is
 
       return vSlv;
 
-   end invData;
+   end function invData;
 
    -- lfsr(14:0)=1+x^14+x^15
    procedure jesdScrambler (

@@ -17,16 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity AxiSy56040Reg is
    generic (
-      TPD_G            : time                  := 1 ns;
-      AXI_CLK_FREQ_G   : real                  := 200.0E+6;  -- units of Hz
-      XBAR_DEFAULT_G   : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
+      TPD_G          : time                  := 1 ns;
+      AXI_CLK_FREQ_G : real                  := 200.0E+6;  -- units of Hz
+      XBAR_DEFAULT_G : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
       -- XBAR Ports
       xBarSin        : out slv(1 downto 0);
@@ -45,11 +44,11 @@ end AxiSy56040Reg;
 
 architecture rtl of AxiSy56040Reg is
 
-   constant PULSE_WIDTH_C : real    := 10.0E-9;              -- units of seconds
+   constant PULSE_WIDTH_C : real    := 10.0E-9;  -- units of seconds
    constant PULSE_FREQ_C  : real    := 1.0 / PULSE_WIDTH_C;  -- units of Hz
    constant MAX_CNT_C     : natural := getTimeRatio(AXI_CLK_FREQ_G, PULSE_FREQ_C);
 
-   type stateType is (
+   type StateType is (
       IDLE_S,
       SETUP_S,
       LOAD_S,
@@ -108,7 +107,7 @@ begin
          when IDLE_S =>
             -- Check for a read request
             if (axiStatus.readEnable = '1') then
-               axiReadResp          := AXI_RESP_OK_C;
+               axiReadResp := AXI_RESP_OK_C;
                -- Decode address and assign read data
                case (axiReadMaster.araddr(3 downto 0)) is
                   when x"0" =>          -- OUT[0] Mapping

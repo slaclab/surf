@@ -76,10 +76,10 @@ architecture tb of Pgp4Tb is
    signal axisRst : sl;                 -- [in]
 
    -- TX
-   signal pgpTxIn        : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxOut       : Pgp4TxOutType;
-   signal pgpTxMasters   : AxiStreamMasterArray(NUM_VC_G-1 downto 0);  -- [in]
-   signal pgpTxSlaves    : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);   -- [out]
+   signal pgpTxIn      : Pgp4TxInType := PGP4_TX_IN_INIT_C;
+   signal pgpTxOut     : Pgp4TxOutType;
+   signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);  -- [in]
+   signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);   -- [out]
 
    -- status from rx to tx
    signal locRxLinkReady : sl;
@@ -179,24 +179,24 @@ begin
          TPD_G    => TPD_G,
          NUM_VC_G => NUM_VC_G)
       port map (
-         pgpRxClk         => axisClk,         -- [in]
-         pgpRxRst         => axisRst,         -- [in]
-         pgpRxIn          => pgpRxIn,         -- [in]
-         pgpRxOut         => pgpRxOut,        -- [out]
-         pgpRxMasters     => pgpRxMasters,    -- [out]
-         pgpRxCtrl        => pgpRxCtrl,       -- [in]
-         remRxFifoCtrl    => remRxFifoCtrl,   -- [out]
-         remRxLinkReady   => remRxLinkReady,  -- [out]
-         locRxLinkReady   => locRxLinkReady,  -- [out]
-         phyRxClk         => '0',             -- [in]
-         phyRxRst         => axisRst,         -- [in]
-         phyRxActive      => '1',             -- [in]
-         phyRxInit        => open,            -- [out]
-         phyRxHeader      => phyRxHeader,     -- [in]
-         phyRxValid       => '1',             -- [in]
-         phyRxData        => phyRxData,       -- [in]
-         phyRxStartSeq    => '0',             -- [in]
-         phyRxSlip        => open);           -- [out]
+         pgpRxClk       => axisClk,         -- [in]
+         pgpRxRst       => axisRst,         -- [in]
+         pgpRxIn        => pgpRxIn,         -- [in]
+         pgpRxOut       => pgpRxOut,        -- [out]
+         pgpRxMasters   => pgpRxMasters,    -- [out]
+         pgpRxCtrl      => pgpRxCtrl,       -- [in]
+         remRxFifoCtrl  => remRxFifoCtrl,   -- [out]
+         remRxLinkReady => remRxLinkReady,  -- [out]
+         locRxLinkReady => locRxLinkReady,  -- [out]
+         phyRxClk       => '0',             -- [in]
+         phyRxRst       => axisRst,         -- [in]
+         phyRxActive    => '1',             -- [in]
+         phyRxInit      => open,            -- [out]
+         phyRxHeader    => phyRxHeader,     -- [in]
+         phyRxValid     => '1',             -- [in]
+         phyRxData      => phyRxData,       -- [in]
+         phyRxStartSeq  => '0',             -- [in]
+         phyRxSlip      => open);           -- [out]
 
 
    U_ClkRst_2 : entity surf.ClkRst

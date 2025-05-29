@@ -38,7 +38,7 @@ entity Odelaye3Wrapper is
       SIM_DEVICE       : string  := "ULTRASCALE";  -- Set the device version (ULTRASCALE, ULTRASCALE_PLUS)
       UPDATE_MODE      : string  := "ASYNC");  -- Determines when updates to the delay will take effect (ASYNC, MANUAL, SYNC)
    port (
-      BUSY        : out sl;  -- 1-bit output: Patch module is busy
+      BUSY        : out sl;             -- 1-bit output: Patch module is busy
       CASC_OUT    : out sl;  -- 1-bit output: Cascade delay output to IDELAY input cascade
       CNTVALUEOUT : out slv(8 downto 0);  -- 9-bit output: Counter value output
       DATAOUT     : out sl;  -- 1-bit output: Delayed data from ODATAIN input port

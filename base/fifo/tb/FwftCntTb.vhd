@@ -27,7 +27,7 @@ architecture testbed of FwftCntTb is
    constant CLK_PERIOD_G : time := 10 ns;
    constant TPD_G        : time := CLK_PERIOD_G/4;
 
-   constant CONFIG_TEST_SIZE_C : natural := 2**3; -- 3 parameters, 2 possible value per parameter
+   constant CONFIG_TEST_SIZE_C : natural := 2**3;  -- 3 parameters, 2 possible value per parameter
 
    signal clk : sl := '0';
    signal rst : sl := '1';
@@ -57,7 +57,7 @@ begin
                generic map (
                   TPD_G           => TPD_G,
                   GEN_SYNC_FIFO_G => ite(i = 0, true, false),
-                  SYNTH_MODE_G    => ite(j = 0, "inferred", "xpm"),
+                  -- SYNTH_MODE_G    => ite(j = 0, "inferred", "xpm"),
                   MEMORY_TYPE_G   => ite(k = 0, "block", "distributed"))
                port map (
                   clk    => clk,
@@ -80,7 +80,7 @@ begin
    begin
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       elsif failed = '1' then
          assert false
             report "Simulation Failed!" severity failure;

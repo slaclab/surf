@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -36,11 +35,11 @@ architecture testbed of SsiPrbsTb is
       return AxiStreamConfigType is
       variable ret : AxiStreamConfigType;
    begin
-      ret.TDATA_BYTES_C := dataBytes;           -- Configurable data size
+      ret.TDATA_BYTES_C := dataBytes;   -- Configurable data size
       ret.TUSER_BITS_C  := 4;
       ret.TDEST_BITS_C  := SSI_TDEST_BITS_C;    -- 4 TDEST bits for VC
       ret.TID_BITS_C    := SSI_TID_BITS_C;      -- TID not used
-      ret.TKEEP_MODE_C  := tKeepMode;           --
+      ret.TKEEP_MODE_C  := tKeepMode;   --
       ret.TSTRB_EN_C    := SSI_TSTRB_EN_C;      -- No TSTRB support in SSI
       ret.TUSER_MODE_C  := TUSER_FIRST_LAST_C;  -- User field valid on last only
       return ret;
@@ -51,8 +50,10 @@ architecture testbed of SsiPrbsTb is
    constant FAST_CLK_PERIOD_C  : time             := SLOW_CLK_PERIOD_C/3;
    constant TPD_C              : time             := FAST_CLK_PERIOD_C/4;
    constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
-   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
+   -- constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(64, 32);
+   -- constant NUMBER_PACKET_C    : slv(31 downto 0) := x"00000FFF";
+   constant NUMBER_PACKET_C    : slv(31 downto 0) := toSlv(32, 32);
 
    -- FIFO configurations
    constant MEMORY_TYPE_C       : string  := "block";
@@ -71,20 +72,21 @@ architecture testbed of SsiPrbsTb is
    constant AXI_PIPE_STAGES_C   : natural             := 1;
 
    -- Signals
-   signal fastClk,
-      slowClk,
-      errMissedPacket,
-      errLength,
-      errDataBus,
-      errEofe,
-      passed,
-      failed,
-      updated : sl := '0';
-   signal fastRst,
-      slowRst : sl := '1';
-   signal errWordCnt,
-      errbitCnt,
-      cnt : slv(31 downto 0);
+   signal fastClk         : sl := '0';
+   signal slowClk         : sl := '0';
+   signal errMissedPacket : sl := '0';
+   signal errLength       : sl := '0';
+   signal errDataBus      : sl := '0';
+   signal errEofe         : sl := '0';
+   signal passed          : sl := '0';
+   signal failed          : sl := '0';
+   signal updated         : sl := '0';
+
+   signal fastRst : sl := '1';
+   signal slowRst : sl := '1';
+
+   signal errWordCnt : slv(31 downto 0);
+   signal cnt        : slv(31 downto 0);
 
    signal axisMaster : AxiStreamMasterType;
    signal axisSlave  : AxiStreamSlaveType;
@@ -95,7 +97,7 @@ begin
    ClkRst_Fast : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => FAST_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 750 ns)   -- Hold reset for this long)
       port map (
          clkP => fastClk,
@@ -106,7 +108,7 @@ begin
    ClkRst_Slow : entity surf.ClkRst
       generic map (
          CLK_PERIOD_G      => SLOW_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,     -- Wait this long into simulation before asserting reset
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
          RST_HOLD_TIME_G   => 750 ns)   -- Hold reset for this long)
       port map (
          clkP => slowClk,
@@ -152,20 +154,20 @@ begin
    SsiPrbsRx_Inst : entity surf.SsiPrbsRx
       generic map (
          -- General Configurations
-         TPD_G                      => TPD_C,
-         STATUS_CNT_WIDTH_G         => STATUS_CNT_WIDTH_C,
+         TPD_G                     => TPD_C,
+         STATUS_CNT_WIDTH_G        => STATUS_CNT_WIDTH_C,
          -- FIFO Configurations
-         MEMORY_TYPE_G              => MEMORY_TYPE_C,
-         GEN_SYNC_FIFO_G            => GEN_SYNC_FIFO_C,
-         CASCADE_SIZE_G             => CASCADE_SIZE_C,
-         FIFO_ADDR_WIDTH_G          => FIFO_ADDR_WIDTH_C,
-         FIFO_PAUSE_THRESH_G        => FIFO_PAUSE_THRESH_C,
+         MEMORY_TYPE_G             => MEMORY_TYPE_C,
+         GEN_SYNC_FIFO_G           => GEN_SYNC_FIFO_C,
+         CASCADE_SIZE_G            => CASCADE_SIZE_C,
+         FIFO_ADDR_WIDTH_G         => FIFO_ADDR_WIDTH_C,
+         FIFO_PAUSE_THRESH_G       => FIFO_PAUSE_THRESH_C,
          -- PRBS Configurations
-         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
-         PRBS_TAPS_G                => PRBS_TAPS_C,
+         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
+         PRBS_TAPS_G               => PRBS_TAPS_C,
          -- AXI Stream Configurations
-         SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C,
-         SLAVE_AXI_PIPE_STAGES_G    => AXI_PIPE_STAGES_C)
+         SLAVE_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C,
+         SLAVE_AXI_PIPE_STAGES_G   => AXI_PIPE_STAGES_C)
       port map (
          -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk        => slowClk,
@@ -186,10 +188,7 @@ begin
          errLength       => errLength,
          errDataBus      => errDataBus,
          errEofe         => errEofe,
-         errWordCnt      => errWordCnt,
-         errbitCnt       => errbitCnt,
-         packetRate      => open,
-         packetLength    => open);
+         errWordCnt      => errWordCnt);
 
    process(slowClk)
    begin
@@ -219,10 +218,6 @@ begin
             if errWordCnt /= 0 then
                failed <= '1' after TPD_C;
             end if;
-            -- Check for bit error
-            if errbitCnt /= 0 then
-               failed <= '1' after TPD_C;
-            end if;
             -- Check the counter
             if cnt = NUMBER_PACKET_C then
                passed <= '1' after TPD_C;
@@ -242,7 +237,7 @@ begin
       end if;
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 

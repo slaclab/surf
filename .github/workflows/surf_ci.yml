@@ -51,32 +51,36 @@ jobs:
             echo "Error: Trailing whitespace found in the repository!"
             exit 1
           fi
-          
+
           # Check for tab characters instead of spaces
           if grep -rnI $'\t' --include=\*.{vhd,tcl,py} .; then
             echo "Error: Tab characters found in the repository! Please use spaces for indentation."
             exit 1
           fi
 
-      - name: Python Syntax and Linter Checking
+      - name: Python Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/
           flake8 --count python/ scripts/ tests/
 
-#      - name: C/C++ Linter
-#        run: |
-#          find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
+      - name: C/C++ Linter Checking
+        run: |
+          find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
+
+      - name: VHDL Linter Checking
+        run: |
+          source scripts/vsg_linter.sh
 
       - name: VHDL Regression Testing
         run: |
           make MODULES=$PWD
-          python -m pytest --cov -v tests/
+          python -m pytest --cov -v -n auto tests/
 
-#      # Code Coverage
-#      - name: Code Coverage
-#        run: |
-#          codecov
-#          coverage report -m
+      # Code Coverage
+      - name: Code Coverage
+        run: |
+          codecov
+          coverage report -m
 
       - name: Generate Documentation
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'

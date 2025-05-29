@@ -17,13 +17,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.Jesd204bPkg.all;
 
 entity ScramblerTb is
-end entity;
+end entity ScramblerTb;
 
 architecture testbed of ScramblerTb is
 
@@ -63,18 +62,18 @@ begin
       if (rising_edge(clk)) then
          failedDly  <= failed  after TPD_C;
          rxValidDly <= rxValid after TPD_C;
-         rxDataDly  <= rxData after TPD_C;
+         rxDataDly  <= rxData  after TPD_C;
          if (rst = '1') then
             txData <= (others => '0');
          elsif (rxValidDly = '1') then
             txData <= txData + 1 after TPD_C;
             if (rxData /= 0) or (cnt /= 1) then
                -- Check for COMMA
-               if (rxData=rxDataDly) then
+               if (rxData = rxDataDly) then
                   cnt <= rxData + 2 after TPD_C;
                else
                   -- Check for skip
-                  if (rxData /= cnt)   then
+                  if (rxData /= cnt) then
                      failed <= '1' after TPD_C;
                   end if;
                   cnt <= rxData + 1 after TPD_C;

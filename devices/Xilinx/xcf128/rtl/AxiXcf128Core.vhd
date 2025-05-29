@@ -27,8 +27,8 @@ use unisim.vcomponents.all;
 
 entity AxiXcf128Core is
    generic (
-      TPD_G            : time            := 1 ns;
-      AXI_CLK_FREQ_G   : real            := 200.0E+6);  -- units of Hz
+      TPD_G          : time := 1 ns;
+      AXI_CLK_FREQ_G : real := 200.0E+6);  -- units of Hz
    port (
       -- XCF128 Ports
       xcfInOut       : inout AxiXcf128InOutType;
@@ -55,9 +55,9 @@ begin
       IOBUF_inst : entity surf.IoBufWrapper
          port map (
             O  => status.data(i),       -- Buffer output
-            IO => xcfInOut.data(i),     -- Buffer inout port (connect directly to top-level port)
+            IO => xcfInOut.data(i),  -- Buffer inout port (connect directly to top-level port)
             I  => config.data(i),       -- Buffer input
-            T  => config.tristate);     -- 3-state enable input, high=input, low=output
+            T  => config.tristate);  -- 3-state enable input, high=input, low=output
    end generate GEN_IOBUF;
 
    xcfOut.ceL   <= config.ceL;
@@ -68,8 +68,8 @@ begin
 
    AxiXcf128Reg_Inst : entity surf.AxiXcf128Reg
       generic map(
-         TPD_G            => TPD_G,
-         AXI_CLK_FREQ_G   => AXI_CLK_FREQ_G)
+         TPD_G          => TPD_G,
+         AXI_CLK_FREQ_G => AXI_CLK_FREQ_G)
       port map(
          -- AXI-Lite Register Interface
          axiReadMaster  => axiReadMaster,

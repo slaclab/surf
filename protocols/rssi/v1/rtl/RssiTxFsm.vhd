@@ -102,7 +102,7 @@ entity RssiTxFsm is
       rdHeaderData_i : in  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       --
       headerRdy_i    : in  sl;
-      headerLength_i : in  positive;    -- Unconnected for now will be used when EACK
+      headerLength_i : in  positive;  -- Unconnected for now will be used when EACK
 
       -- Checksum control
       chksumValid_i  : in  sl;
@@ -275,7 +275,7 @@ architecture rtl of RssiTxFsm is
       tspSsiSlave  : SsiSlaveType;
 
       -- State Machine
-      tspState : tspStateType;
+      tspState   : tspStateType;
       txTspState : slv(7 downto 0);
    end record RegType;
 
@@ -371,8 +371,11 @@ begin
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
 
    -----------------------------------------------------------------------------------------------
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
-                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
+   comb : process (ackN_i, ack_i, appSsiMaster_i, bufferSize_i, chksumValid_i,
+                   closed_i, connActive_i, headerLength_i, headerRdy_i,
+                   initSeqN_i, injectFault_i, r, rdBuffData_i, rdHeaderData_i,
+                   rst_i, s_headerAndChksum, sndAck_i, sndNull_i, sndResend_i,
+                   sndRst_i, sndSyn_i, tspSsiSlave_i, windowSize_i) is
 
       variable v : RegType;
 
@@ -646,7 +649,7 @@ begin
 
                -- Blowing off the data
                else
-                  v.appDrop := '1'; -- Used in simulation and chipscope debugging
+                  v.appDrop := '1';  -- Used in simulation and chipscope debugging
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -1316,9 +1319,9 @@ begin
                v.tspSsiMaster.eofe                               := '0';
                v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
-               v.txSegmentAddr      := r.txSegmentAddr;
+               v.txSegmentAddr                                   := r.txSegmentAddr;
                --
-               v.tspState           := DATA_SENT_S;
+               v.tspState                                        := DATA_SENT_S;
 
             -- Increment segment address and assert valid only when not paused
             elsif (tspSsiSlave_i.pause = '0') then
@@ -1353,7 +1356,7 @@ begin
             --
             v.txRdy        := '0';
             v.buffWe       := '0';
-            v.buffSent     := '1';      -- Increment buffer last sent address(txBuffer)
+            v.buffSent     := '1';  -- Increment buffer last sent address(txBuffer)
 
             -- SSI master (Initialize - stop transmission)
             v.tspSsiMaster := SSI_MASTER_INIT_C;
@@ -1510,9 +1513,9 @@ begin
                v.tspSsiMaster.eofe                               := '0';
                v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
-               v.txSegmentAddr      := r.txSegmentAddr;
+               v.txSegmentAddr                                   := r.txSegmentAddr;
                --
-               v.tspState           := RESEND_PP_S;
+               v.tspState                                        := RESEND_PP_S;
 
             -- Increment segment address only when Slave is ready
             elsif (tspSsiSlave_i.pause = '0') then

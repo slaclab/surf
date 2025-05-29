@@ -27,8 +27,8 @@ use surf.SsiPkg.all;
 entity AxiStreamScatterGather is
 
    generic (
-      TPD_G                   : time                := 1 ns;
-      AXIS_SLAVE_FRAME_SIZE_G : integer             := 129;
+      TPD_G                   : time    := 1 ns;
+      AXIS_SLAVE_FRAME_SIZE_G : integer := 129;
       SLAVE_AXIS_CONFIG_G     : AxiStreamConfigType;
       MASTER_AXIS_CONFIG_G    : AxiStreamConfigType);
    port (
@@ -179,8 +179,8 @@ begin
    sAxisCtrl  <= AXI_STREAM_CTRL_UNUSED_C;
    sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C;
 
-   comb : process (axiRst, axilReadMaster, axilWriteMaster, r, sSsiMaster, txFifoRdData,
-                   txFifoValid, txRamRdData) is
+   comb : process (axiRst, axilReadMaster, axilWriteMaster, r, sSsiMaster,
+                   txFifoRdData, txFifoValid, txRamRdData) is
       variable v          : RegType;
       variable mDataLow   : integer;
       variable mDataHigh  : integer;

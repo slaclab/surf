@@ -28,7 +28,7 @@ use surf.AxiLitePkg.all;
 entity UartAxiLiteMaster is
    generic (
       TPD_G             : time                  := 1 ns;
-      AXIL_CLK_FREQ_G   : real                  := 125.0e6;
+      AXIL_CLK_FREQ_G   : real                  := 125.0E+6;
       BAUD_RATE_G       : integer               := 115200;
       STOP_BITS_G       : integer range 1 to 2  := 1;
       PARITY_G          : string                := "NONE";  -- "NONE" "ODD" "EVEN"

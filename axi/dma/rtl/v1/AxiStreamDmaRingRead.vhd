@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -28,7 +27,6 @@ use surf.AxiDmaPkg.all;
 use surf.AxiStreamDmaRingPkg.all;
 
 entity AxiStreamDmaRingRead is
-
    generic (
       TPD_G                 : time                     := 1 ns;
       BUFFERS_G             : natural range 2 to 64    := 64;
@@ -67,7 +65,6 @@ entity AxiStreamDmaRingRead is
       axiRst        : in  sl;
       axiReadMaster : out AxiReadMasterType;
       axiReadSlave  : in  AxiReadSlaveType);
-
 end entity AxiStreamDmaRingRead;
 
 architecture rtl of AxiStreamDmaRingRead is
@@ -111,15 +108,13 @@ architecture rtl of AxiStreamDmaRingRead is
    signal axilAck : AxiLiteAckType;
    signal dmaAck  : AxiReadDmaAckType;
 
-
    -- axiClk signals
    signal dmaReqAxi : AxiReadDmaReqType;
    signal dmaAckAxi : AxiReadDmaAckType;
 
-
 begin
-   -- Assert that stream config has enough tdest bits for the number of buffers being tracked
 
+   -- Assert that stream config has enough tdest bits for the number of buffers being tracked
 
    -- Axi Lite Bus master
    U_AxiLiteMaster_1 : entity surf.AxiLiteMaster
