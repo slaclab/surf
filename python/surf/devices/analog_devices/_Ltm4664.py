@@ -66,7 +66,7 @@ NOT_IMPLEMENTED = [
     'MFR_LOCATION',
     'MFR_DATE',
     'MFR_SERIAL',
-]    
+]
 
 class Ltm4664(surf.protocols.i2c.PMBus):
     def __init__(self, **kwargs):
