@@ -176,11 +176,11 @@ begin
                   -- SACI Commands
                   v.req        := '1';
                   v.op         := '1';
-                  v.chip       := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+CHIP_BITS_C-1 downto SACI_ADDR_BITS_G);
+                  v.chip       := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+CHIP_BITS_C+1 downto SACI_ADDR_BITS_G+2);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
-                  v.addr(SACI_ADDR_BITS_G-3 downto 0) := axilWriteMaster.awaddr(SACI_ADDR_BITS_G-1 downto 2);
+                  v.addr(SACI_ADDR_BITS_G-1 downto 0) := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+1 downto 2);
                   v.wrData                            := axilWriteMaster.wdata;
                   -- Next state
                   v.state                             := SACI_REQ_S;
@@ -190,11 +190,11 @@ begin
                   -- SACI Commands
                   v.req        := '1';
                   v.op         := '0';
-                  v.chip       := axilReadMaster.araddr(SACI_ADDR_BITS_G+CHIP_BITS_C-1 downto SACI_ADDR_BITS_G);
+                  v.chip       := axilReadMaster.araddr(SACI_ADDR_BITS_G+CHIP_BITS_C+1 downto SACI_ADDR_BITS_G+2);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
-                  v.addr(SACI_ADDR_BITS_G-3 downto 0) := axilReadMaster.araddr(SACI_ADDR_BITS_G-1 downto 2);
+                  v.addr(SACI_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(SACI_ADDR_BITS_G+1 downto 2);
                   v.wrData                            := (others => '0');
                   -- Next state
                   v.state                             := SACI_REQ_S;
