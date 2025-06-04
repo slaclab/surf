@@ -176,7 +176,7 @@ begin
                   -- SACI Commands
                   v.req        := '1';
                   v.op         := '1';
-                  v.chip       := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+CHIP_BITS_C-1 downto SACI_ADDR_BITS_G);
+                  v.chip       := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+CHIP_BITS_C+1 downto SACI_ADDR_BITS_G+2);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
@@ -190,7 +190,7 @@ begin
                   -- SACI Commands
                   v.req        := '1';
                   v.op         := '0';
-                  v.chip       := axilReadMaster.araddr(SACI_ADDR_BITS_G+CHIP_BITS_C-1 downto SACI_ADDR_BITS_G);
+                  v.chip       := axilReadMaster.araddr(SACI_ADDR_BITS_G+CHIP_BITS_C+1 downto SACI_ADDR_BITS_G+2);
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
