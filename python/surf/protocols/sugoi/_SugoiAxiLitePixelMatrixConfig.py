@@ -186,3 +186,9 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
                     click.secho( f'.CSV file must be {self.numCol} X {self.numRow} (cols X rows) pixels')
             else:
                 click.secho( "Warning: ASIC enable is set to False!")
+
+        @self.command(value='',description="",)
+        def ReadAllMatrix(arg):
+            for i in range (self.numRow):
+                click.secho(f' Row: {i}')
+                click.secho(f' Read: {self._PixData[i].get()}')
