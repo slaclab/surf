@@ -180,7 +180,7 @@ begin
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
-                  v.addr(SACI_ADDR_BITS_G-1 downto 0) := axilWriteMaster.awaddr(SACI_ADDR_BITS_G+1 downto 2);
+                  v.addr(SACI_ADDR_BITS_G-3 downto 0) := axilWriteMaster.awaddr(SACI_ADDR_BITS_G-1 downto 2);
                   v.wrData                            := axilWriteMaster.wdata;
                   -- Next state
                   v.state                             := SACI_REQ_S;
@@ -194,7 +194,7 @@ begin
                   if (SACI_NUM_CHIPS_G = 1) then
                      v.chip := "0";
                   end if;
-                  v.addr(SACI_ADDR_BITS_G-1 downto 0) := axilReadMaster.araddr(SACI_ADDR_BITS_G+1 downto 2);
+                  v.addr(SACI_ADDR_BITS_G-3 downto 0) := axilReadMaster.araddr(SACI_ADDR_BITS_G-1 downto 2);
                   v.wrData                            := (others => '0');
                   -- Next state
                   v.state                             := SACI_REQ_S;
