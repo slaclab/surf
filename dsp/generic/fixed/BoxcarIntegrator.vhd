@@ -145,7 +145,7 @@ begin
          if r.rAddr = r.intCount then
             v.rAddr := (others => '0');
          else
-            v.rAddr := r.rAddr + '1';
+            v.rAddr := r.rAddr + 1;
          end if;
 
          -- Write lags read
