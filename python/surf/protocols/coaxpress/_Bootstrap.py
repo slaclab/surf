@@ -629,46 +629,46 @@ class Bootstrap(pr.Device):
             dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
         ))
 
-        @self.command(description='Initialize the device discovery',)
-        def DeviceDiscovery():
-            # Switch to 20.83 Mb/s mode without tags and give device 1 second to downgrade speed
-            self.CoaXPressAxiL.TxLsRate.set(0)
-            self.CoaXPressAxiL.ConfigPktTag.set(0)
-            time.sleep(1.0)
+    def DeviceDiscovery(self, arg=None):
+        # Switch to 20.83 Mb/s mode without tags and give device 1 second to downgrade speed
+        self.CoaXPressAxiL.TxLsRate.set(0)
+        self.CoaXPressAxiL.ConfigPktTag.set(0)
+        time.sleep(1.0)
 
-            # Execute a connection reset
-            self.ConnectionReset()
+        # Execute a connection reset
+        self.ConnectionReset()
 
-            # Host shall wait 200ms to allow for the Device to complete connection configuration
-            time.sleep(0.2)
+        # Host shall wait 200ms to allow for the Device to complete connection configuration
+        time.sleep(0.2)
 
-            # Updates all the local device register values
-            self.readBlocks(recurse=True)
-            self.checkBlocks(recurse=True)
+        # Updates all the local device register values
+        self.readBlocks(recurse=True)
+        self.checkBlocks(recurse=True)
 
-            # Match the device revision to host revision
-            self.VersionUsedCmd.set(self.Revision.value())
+        # Match the device revision to host revision
+        self.VersionUsedCmd.set(self.Revision.value())
 
-            # The Host shall read the ConnectionConfigDefault register to find the required bit rate
-            # and number of connections operating at this bit rate
-            self.ConnectionConfig.set(self.ConnectionConfigDefault.value())
+        # The Host shall read the ConnectionConfigDefault register to find the required bit rate
+        # and number of connections operating at this bit rate
+        ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
+        self.ConnectionConfig.set(ConnectionConfigDefault)
 
-            # If the new high speed connection bit rate requires a change in low speed connection bit rate,
-            # it shall also change the low speed upconnection speed to the value defined in Table 6.
-            if (self.ConnectionConfigDefault.value() & 0xFF) >= 0x50:
-                # Switch to 41.66 Mb/s mode
-                self.CoaXPressAxiL.TxLsRate.set(1)
+        # If the new high speed connection bit rate requires a change in low speed connection bit rate,
+        # it shall also change the low speed upconnection speed to the value defined in Table 6.
+        if (ConnectionConfigDefault & 0xFF) >= 0x50:
+            # Switch to 41.66 Mb/s mode
+            self.CoaXPressAxiL.TxLsRate.set(1)
 
-            # After it is sending a stable low speed upconnection at the defined rate the Host
-            # shall wait 200ms to allow the Device to complete connection re-configuration.
-            time.sleep(0.2)
+        # After it is sending a stable low speed upconnection at the defined rate the Host
+        # shall wait 200ms to allow the Device to complete connection re-configuration.
+        time.sleep(0.5)
 
-            # Updates all the local device register values
-            self.readBlocks(recurse=True)
-            self.checkBlocks(recurse=True)
+        # Updates all the local device register values
+        self.readBlocks(recurse=True)
+        self.checkBlocks(recurse=True)
 
-            # Reset the RX lane index pointer and flush the elastic buffers
-            self.CoaXPressAxiL.RxFsmRst()
+        # Reset the RX lane index pointer and flush the elastic buffers
+        self.CoaXPressAxiL.RxFsmRst()
 
-            # Setup for 4KB packets
-            self.StreamPacketSizeMax.set(4096)
+        # Setup for 4KB packets
+        self.StreamPacketSizeMax.set(4096)
