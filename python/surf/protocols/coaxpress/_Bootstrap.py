@@ -672,7 +672,3 @@ class Bootstrap(pr.Device):
 
             # Setup for 4KB packets
             self.StreamPacketSizeMax.set(4096)
-
-    def _stop(self):
-        self.CoaXPressAxiL.TxLsRate.set(0)
-        super()._stop()
