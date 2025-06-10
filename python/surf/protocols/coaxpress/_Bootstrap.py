@@ -630,9 +630,14 @@ class Bootstrap(pr.Device):
         ))
 
     def DeviceDiscovery(self, arg=None):
+        # Updates all the local device register values
+        self.CoaXPressAxiL.readBlocks(recurse=True)
+        self.CoaXPressAxiL.checkBlocks(recurse=True)
+
         # Switch to 20.83 Mb/s mode without tags and give device 1 second to downgrade speed
         self.CoaXPressAxiL.TxLsRate.set(0)
         self.CoaXPressAxiL.ConfigPktTag.set(0)
+        self.CoaXPressAxiL.TxLsLaneEnable.set(1)
         time.sleep(1.0)
 
         # Execute a connection reset
