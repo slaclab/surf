@@ -646,9 +646,17 @@ class Bootstrap(pr.Device):
         # Host shall wait 200ms to allow for the Device to complete connection configuration
         time.sleep(0.2)
 
-        # Updates all the local device register values
-        self.readBlocks(recurse=True)
-        self.checkBlocks(recurse=True)
+        # Update local device register values with error handling
+        try:
+            self.readBlocks(recurse=True)
+            self.checkBlocks(recurse=True)
+        except Exception as e:
+            raise RuntimeError(
+                "Failed to communicate with the camera after ConnectionReset().\n"
+                "This may indicate the camera is in a bad state or there's a hardware issue\n"
+                "(e.g., faulty or loose cabling).\n"
+                "Try power cycling the camera and verifying all connections before restarting the software."
+            ) from e
 
         # Match the device revision to host revision
         self.VersionUsedCmd.set(self.Revision.value())
