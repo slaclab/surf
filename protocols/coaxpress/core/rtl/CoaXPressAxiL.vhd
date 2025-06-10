@@ -35,6 +35,7 @@ entity CoaXPressAxiL is
       AXIS_CLK_FREQ_G    : real                   := 156.25E+6;  -- dataClk frequency (units of Hz)
       AXIS_CONFIG_G      : AxiStreamConfigType);
    port (
+      gtRstAll        : out sl;
       -- Tx Interface (txClk domain)
       txClk           : in  sl;
       txRst           : in  sl;
@@ -83,6 +84,7 @@ architecture rtl of CoaXPressAxiL is
    constant RX_STATUS_CNT_C : positive := 2;
 
    type RegType is record
+      gtRstAll        : sl;
       rxNumberOfLane  : slv(3 downto 0);
       rxLaneMinusOne  : slv(3 downto 0);
       txTrigInv       : sl;
@@ -100,6 +102,7 @@ architecture rtl of CoaXPressAxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      gtRstAll        => '0',
       rxNumberOfLane  => toSlv(NUM_LANES_G, 4),
       rxLaneMinusOne  => toSlv(NUM_LANES_G-1, 4),
       txTrigInv       => '0',
@@ -210,6 +213,8 @@ begin
       axiSlaveRegisterR(axilEp, x"934", 0, frameSizeMax);
       axiSlaveRegisterR(axilEp, x"938", 0, frameSizeMin);
 
+      axiSlaveRegister (axilEp, X"FDC", 0, v.gtRstAll);
+
       axiSlaveRegisterR(axilEp, x"FE0", 0, toSlv(NUM_LANES_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 8, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"FE0", 16, toSlv(RX_FSM_CNT_WIDTH_G, 8));
@@ -241,6 +246,7 @@ begin
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
+      gtRstAll       <= r.gtRstAll;
 
       -- Reset
       if (axilRst = '1') then

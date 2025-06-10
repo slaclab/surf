@@ -37,6 +37,7 @@ entity CoaXPressOverFiberGtyUsIpWrapper is
       gtRxN           : in  sl;
       gtTxP           : out sl;
       gtTxN           : out sl;
+      gtRstAll        : in  sl;
       -- Tx Interface (txClk domain)
       txClk           : out sl;
       txRst           : out sl;
@@ -154,6 +155,8 @@ architecture mapping of CoaXPressOverFiberGtyUsIpWrapper is
    signal xgmiiRxd : slv(63 downto 0);
    signal xgmiiRxc : slv(7 downto 0);
 
+   signal gtResetAll : sl;
+
 begin
 
    txClk   <= phyClk312;
@@ -237,6 +240,8 @@ begin
          asyncRst => rxRstDone,
          syncRst  => rxPhyRst);
 
+   gtResetAll <= gtRstAll or axilRst;
+
    U_GT : CoaXPressOverFiberGtyUsIp
       port map (
          gt_txp_out(0)                       => gtTxP,
@@ -263,7 +268,7 @@ begin
          gtwiz_reset_qpll1reset_out          => qpllRst(1),
          gt_reset_tx_done_out_0              => txRstDone,
          gt_reset_rx_done_out_0              => rxRstDone,
-         gt_reset_all_in_0                   => axilRst,
+         gt_reset_all_in_0                   => gtResetAll,
          gt_tx_reset_in_0                    => axilRst,
          gt_rx_reset_in_0                    => axilRst,
          rx_reset_0                          => rxPhyRst,

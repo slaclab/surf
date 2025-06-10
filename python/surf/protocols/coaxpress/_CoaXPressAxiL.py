@@ -173,6 +173,14 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = "GtRstAll",
+            description  = "Used to reset the GTs",
+            offset       = 0xFDC,
+            bitSize      = 1,
+            mode         = "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'NUM_LANES_G',
             offset       = 0xFE0,
             bitSize      = 8,
