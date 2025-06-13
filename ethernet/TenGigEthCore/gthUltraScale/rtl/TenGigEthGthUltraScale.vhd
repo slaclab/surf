@@ -203,6 +203,11 @@ architecture mapping of TenGigEthGthUltraScale is
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
 
+   -- Bug fix for building with Vivado 2025.1
+   -- ERROR: [Opt 31-67] Problem: A LUT2 cell in the design is missing a connection on input pin I0, which is used by the LUT equation. This pin has either been left unconnected in the design or the connection was removed due to the trimming of unused logic.
+   attribute dont_touch                        : string;
+   attribute dont_touch of configurationVector : signal is "TRUE";
+
 begin
 
    phyClk          <= phyClock;
