@@ -53,21 +53,34 @@ end Pgp3GtyUsQpll;
 
 architecture mapping of Pgp3GtyUsQpll is
 
+   constant QPLL_PPF0_CFG_C : slv(15 downto 0) := ite((RATE_G = "13.75Gbps"), b"0000100100000000", b"0000011000000000");
+   constant QPLL_PPF1_CFG_C : slv(15 downto 0) := ite((RATE_G = "20.625Gbps"), b"0000011000000000", b"0000010000000000");
+
    constant QPLL_CFG2_C : slv(15 downto 0) :=
       ite((RATE_G = "10.3125Gbps"), b"0000111111000000",
           ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
               b"0000111111000011"));
-   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0001111111", b"0000001111");
+
+   constant QPLL_CFG4_C : slv(15 downto 0) := ite((RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), b"0000000000000011", b"0000000000000010");
+
+   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), b"0001111111", b"0000001111");
+
    constant QPLL_FBDIV_C : positive :=
       ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
-          ite((RATE_G = "15.46875Gbps"), 99,
-              66));
-   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps"), 80, 160);
-   constant QPLL_LPF_C      : slv(9 downto 0) :=
+          ite((RATE_G = "13.75Gbps"), 88,
+              ite((RATE_G = "15.46875Gbps"), 99,
+                  ite((RATE_G = "17.1875Gbps"), 55,
+                      ite((RATE_G = "18.75Gbps"), 60,
+                          66)))));
+
+   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), 80, 160);
+
+   constant QPLL_LPF_C : slv(9 downto 0) :=
       ite((RATE_G = "10.3125Gbps"), b"1000111111",
           ite((RATE_G = "15.46875Gbps"), b"1101111111",
               b"1000011111"));
-   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps"), b"0111010100", b"0111010101");
+
+   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), b"0111010100", b"0111010101");
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -83,8 +96,8 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"))
+      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps]"
       severity error;
 
    GEN_VEC :
@@ -132,7 +145,7 @@ begin
          QPLL_CFG2_G        => (others => QPLL_CFG2_C),
          QPLL_CFG2_G3_G     => (others => QPLL_CFG2_C),
          QPLL_CFG3_G        => (others => b"0000000100100000"),
-         QPLL_CFG4_G        => (others => b"0000000000000010"),
+         QPLL_CFG4_G        => (others => QPLL_CFG4_C),
          QPLL_CP_G          => (others => b"0011111111"),
          QPLL_CP_G3_G       => (others => QPLL_CP_G3_C),
          QPLL_FBDIV_G       => (others => QPLL_FBDIV_C),
@@ -144,6 +157,9 @@ begin
          QPLL_LPF_G         => (others => QPLL_LPF_C),
          QPLL_LPF_G3_G      => (others => QPLL_LPF_G3_C),
          QPLL_REFCLK_DIV_G  => (others => 1),
+         PPF_CFG_G          => (0 => QPLL_PPF0_CFG_C, 1 => QPLL_PPF1_CFG_C),
+         -- QSFP[1] Only
+         QPLL1CLKOUT_RATE_G => "FULL",
          -- Clock Selects
          QPLL_REFCLK_SEL_G  => (others => QPLL_REFCLK_SEL_G))
       port map (
@@ -155,7 +171,7 @@ begin
          qPllLockDetClk   => pllLockDetClk,
          qPllRefClkLost   => pllRefClkLost,
          qPllPowerDown(0) => '0',       -- Never power down QPLL[0]
-         qPllPowerDown(1) => '1',       -- Power down QPLL[1]
+         qPllPowerDown(1) => '0',  -- Never power down QPLL[1]:  QPLL1 must use GTREFCLK1 when the channel is operating above 16.375 Gb/s (UG578)
          qPllReset        => pllReset,
          -- AXI Lite interface
          axilClk          => axilClk,
