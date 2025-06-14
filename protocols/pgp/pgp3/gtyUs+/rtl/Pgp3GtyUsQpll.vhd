@@ -58,24 +58,25 @@ architecture mapping of Pgp3GtyUsQpll is
           ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
               b"0000111111000011"));
 
-   constant QPLL_CFG4_C : slv(15 downto 0) := ite((RATE_G = "17.1875Gbps"), b"0000000000000011", b"0000000000000010");
+   constant QPLL_CFG4_C : slv(15 downto 0) := ite((RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps"), b"0000000000000011", b"0000000000000010");
 
-   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps"), b"0001111111", b"0000001111");
+   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps"), b"0001111111", b"0000001111");
 
    constant QPLL_FBDIV_C : positive :=
       ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
           ite((RATE_G = "15.46875Gbps"), 99,
               ite((RATE_G = "17.1875Gbps"), 55,
-                  66)));
+                  ite((RATE_G = "18.75Gbps"), 60,
+                      66))));
 
-   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps"), 80, 160);
+   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps"), 80, 160);
 
    constant QPLL_LPF_C : slv(9 downto 0) :=
       ite((RATE_G = "10.3125Gbps"), b"1000111111",
           ite((RATE_G = "15.46875Gbps"), b"1101111111",
               b"1000011111"));
 
-   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps"), b"0111010100", b"0111010101");
+   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps"), b"0111010100", b"0111010101");
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -91,8 +92,8 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps or 17.1875Gbps"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps"))
+      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps or 17.1875Gbps or 18.75Gbps"
       severity error;
 
    GEN_VEC :
