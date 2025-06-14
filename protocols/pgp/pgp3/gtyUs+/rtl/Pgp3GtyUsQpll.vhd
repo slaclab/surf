@@ -53,6 +53,7 @@ end Pgp3GtyUsQpll;
 
 architecture mapping of Pgp3GtyUsQpll is
 
+   constant QPLL_PPF0_CFG_C : slv(15 downto 0) := ite((RATE_G = "13.75Gbps"), b"0000100100000000", b"0000011000000000");
    constant QPLL_PPF1_CFG_C : slv(15 downto 0) := ite((RATE_G = "20.625Gbps"), b"0000011000000000", b"0000010000000000");
 
    constant QPLL_CFG2_C : slv(15 downto 0) :=
@@ -66,10 +67,11 @@ architecture mapping of Pgp3GtyUsQpll is
 
    constant QPLL_FBDIV_C : positive :=
       ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
-          ite((RATE_G = "15.46875Gbps"), 99,
-              ite((RATE_G = "17.1875Gbps"), 55,
-                  ite((RATE_G = "18.75Gbps"), 60,
-                      66))));
+          ite((RATE_G = "13.75Gbps"), 88,
+              ite((RATE_G = "15.46875Gbps"), 99,
+                  ite((RATE_G = "17.1875Gbps"), 55,
+                      ite((RATE_G = "18.75Gbps"), 60,
+                          66)))));
 
    constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), 80, 160);
 
@@ -94,8 +96,8 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"))
-      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps]"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"))
+      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps]"
       severity error;
 
    GEN_VEC :
@@ -155,7 +157,7 @@ begin
          QPLL_LPF_G         => (others => QPLL_LPF_C),
          QPLL_LPF_G3_G      => (others => QPLL_LPF_G3_C),
          QPLL_REFCLK_DIV_G  => (others => 1),
-         PPF_CFG_G          => (0 => b"0000011000000000", 1 => QPLL_PPF1_CFG_C),
+         PPF_CFG_G          => (0 => QPLL_PPF0_CFG_C, 1 => QPLL_PPF1_CFG_C),
          -- QSFP[1] Only
          QPLL1CLKOUT_RATE_G => "FULL",
          -- Clock Selects
