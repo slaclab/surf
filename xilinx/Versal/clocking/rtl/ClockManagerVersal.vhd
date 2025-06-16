@@ -126,7 +126,7 @@ architecture rtl of ClockManagerVersal is
 
 begin
 
-   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G <= 4)or (TYPE_G = "DPLL" and NUM_CLOCKS_G <= 4))
+   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G <= 4) or (TYPE_G = "DPLL" and NUM_CLOCKS_G <= 4))
       report "ClockManagerVersal(TYPE_G=PLL/DPLL): Cannot have more than 4 clock outputs" severity failure;
 
    assert (TYPE_G = "MMCM" or TYPE_G = "PLL" or TYPE_G = "DPLL")
