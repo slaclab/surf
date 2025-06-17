@@ -119,7 +119,7 @@ architecture rtl of AxiStreamPacketizer is
 begin
 
    assert ((MAX_PACKET_BYTES_G rem 8) = 0)
-      report "MAX_PACKET_BYTES_G must be a multiple of 8" severity error;
+      report "MAX_PACKET_BYTES_G must be a multiple of 8" severity failure;
 
    maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
 

@@ -152,10 +152,10 @@ architecture rtl of AxiStreamDepacketizer2 is
 begin
 
    assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
-      report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
+      report "CRC_MODE_G must be NONE or DATA or FULL" severity failure;
 
    assert (TDEST_BITS_G <= 8)
-      report "TDEST_BITS_G must be less than or equal to 8" severity error;
+      report "TDEST_BITS_G must be less than or equal to 8" severity failure;
 
    -----------------
    -- Input pipeline

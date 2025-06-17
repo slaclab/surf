@@ -153,7 +153,7 @@ begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
       report "RATE_G: Must be either 3.125Gbps, 6.25Gbps or 10.3125Gbps"
-      severity error;
+      severity failure;
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
