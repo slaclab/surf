@@ -125,7 +125,7 @@ begin
 
    assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
       report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
-      severity error;
+      severity failure;
 
    noneZeroCheck : for i in MASTERS_CONFIG_G'range generate
       assert (MASTERS_CONFIG_G(i).baseAddr(MASTERS_CONFIG_G(i).addrBits-1 downto 0) = 0)
@@ -135,7 +135,7 @@ begin
                 "  - addrBits          : " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
                 "  - connectivity      : 0x" & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
                 "  => baseAddr must be zero within the specified addrBits range."
-         severity error;
+         severity failure;
    end generate noneZeroCheck;
 
 -- synopsys translate_off
