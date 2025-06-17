@@ -117,14 +117,23 @@ architecture rtl of GtRxAlignCheck is
    signal rxClkFreq  : slv(31 downto 0);
    signal refClkFreq : slv(31 downto 0);
    
-   attribute dont_touch           : string;
-   attribute dont_touch of r      : signal is "TRUE";
-   attribute dont_touch of resetIn : signal is "TRUE";
-   attribute dont_touch of resetErr : signal is "TRUE";
+   signal debug : slv(1 downto 0);
+   
+   attribute dont_touch              : string;
+   attribute dont_touch of r         : signal is "TRUE";
+   attribute dont_touch of resetIn   : signal is "TRUE";
+   attribute dont_touch of resetErr  : signal is "TRUE";
    attribute dont_touch of resetDone : signal is "TRUE";
+   attribute dont_touch of debug     : signal is "TRUE";
    
 begin
 
+
+  debug(1 downto 0) <= "00" when r.state = RESET_S   else
+                       "01" when r.state = READ_S else
+                       "10" when r.state = ACK_S   else
+                       "11" when r.state = LOCKED_S;
+                       
    U_refClkFreq : entity surf.SyncClockFreq
       generic map (
          TPD_G          => TPD_G,
