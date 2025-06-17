@@ -131,9 +131,9 @@ begin
       assert (MASTERS_CONFIG_G(i).baseAddr(MASTERS_CONFIG_G(i).addrBits-1 downto 0) = 0)
          report "AXI_LITE_CROSSBAR Configuration Error:" & LF &
                 "  - Array Index       : " & integer'image(i) & LF &
-                "  - baseAddr          : " & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+                "  - baseAddr          : 0x" & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
                 "  - addrBits          : " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
-                "  - connectivity      : " & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
+                "  - connectivity      : 0x" & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
                 "  => baseAddr must be zero within the specified addrBits range."
          severity error;
    end generate noneZeroCheck;
