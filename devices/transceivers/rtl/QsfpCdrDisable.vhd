@@ -91,8 +91,7 @@ begin
    -- AXI Lite Interface
    ---------------------
    comb : process (ack, axilRst, r) is
-      variable v      : RegType;
-      variable regCon : AxiLiteEndPointType;
+      variable v : RegType;
    begin
       -- Latch the current value
       v := r;
