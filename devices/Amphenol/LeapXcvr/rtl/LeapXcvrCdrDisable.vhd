@@ -21,11 +21,11 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
-entity QsfpCdrDisable is
+entity LeapXcvrCdrDisable is
    generic (
       TPD_G             : time     := 1 ns;
       PERIODIC_UPDATE_G : positive := 30;  -- Units of seconds
-      QSFP_BASE_ADDR_G  : Slv32Array;  -- List of the QSFP base address offsets
+      LEAP_BASE_ADDR_G  : Slv32Array;  -- List of the LEAP base address offsets
       AXIL_CLK_FREQ_G   : real);        -- Units of Hz
    port (
       -- AXI-Lite Register Interface (axilClk domain)
@@ -35,13 +35,13 @@ entity QsfpCdrDisable is
       mAxilReadSlave   : in  AxiLiteReadSlaveType;
       mAxilWriteMaster : out AxiLiteWriteMasterType;
       mAxilWriteSlave  : in  AxiLiteWriteSlaveType);
-end QsfpCdrDisable;
+end LeapXcvrCdrDisable;
 
-architecture rtl of QsfpCdrDisable is
+architecture rtl of LeapXcvrCdrDisable is
 
    constant TIMEOUT_1SEC_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0);
 
-   constant NUM_CH_G : natural := QSFP_BASE_ADDR_G'length;
+   constant NUM_CH_G : natural := LEAP_BASE_ADDR_G'length;
 
    type StateType is (
       IDLE_S,
@@ -49,6 +49,7 @@ architecture rtl of QsfpCdrDisable is
       ACK_S);
 
    type RegType is record
+      wrd   : natural range 0 to 1;
       ch    : natural range 0 to NUM_CH_G-1;
       cnt   : natural range 0 to PERIODIC_UPDATE_G-1;
       timer : natural range 0 to TIMEOUT_1SEC_C-1;
@@ -57,6 +58,7 @@ architecture rtl of QsfpCdrDisable is
    end record;
 
    constant REG_INIT_C : RegType := (
+      wrd   => 0,
       ch    => 0,
       cnt   => PERIODIC_UPDATE_G-1,
       timer => TIMEOUT_1SEC_C-1,
@@ -134,8 +136,15 @@ begin
                -- Setup the AXI-Lite Master request
                v.req.request := '1';
                v.req.rnw     := '0';    -- Write operation
-               v.req.address := QSFP_BASE_ADDR_G(r.ch) + x"0000_0188";  -- 0x188 = 98 x 4 (Page 00h, byte 98: Tx and Rx CDR control bits)
-               v.req.wrData  := x"0000_0000";  -- Turn off all the TX and RX CDR channels
+
+               -- Check the word index
+               if (r.wrd = 0) then
+                  v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00AC";  -- RxLower.GlobalRxCdr=0x0AC
+                  v.req.wrData  := x"0000_0001";  -- Globally turn off all RX CDR channels
+               else
+                  v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_08AC";  -- TxLower.GlobalTxCdr=0x8AC
+                  v.req.wrData  := x"0000_0001";  -- Globally turn off all TX CDR channels
+               end if;
 
                -- Next state
                v.state := ACK_S;
@@ -155,8 +164,24 @@ begin
                   -- Reset the index
                   v.ch := 0;
 
-                  -- Next state
-                  v.state := IDLE_S;
+                  -- Check the word index
+                  if (r.wrd = 0) then
+
+                     -- Increment the channel
+                     v.wrd := r.wrd + 1;
+
+                     -- Next state
+                     v.state := REQ_S;
+
+                  else
+
+                     -- Reset the index
+                     v.wrd := 0;
+
+                     -- Next state
+                     v.state := IDLE_S;
+
+                  end if;
 
                else
 
