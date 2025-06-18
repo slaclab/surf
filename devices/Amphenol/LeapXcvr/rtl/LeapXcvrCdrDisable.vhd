@@ -138,7 +138,7 @@ begin
                v.req.rnw     := '0';    -- Write operation
 
                -- Check the word index
-               if (wrd = 0) then
+               if (r.wrd = 0) then
                   v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00AC";  -- RxLower.GlobalRxCdr=0x0AC
                   v.req.wrData  := x"0000_0001";  -- Globally turn off all RX CDR channels
                else
@@ -165,7 +165,7 @@ begin
                   v.ch := 0;
 
                   -- Check the word index
-                  if (wrd = 0) then
+                  if (r.wrd = 0) then
 
                      -- Increment the channel
                      v.wrd := r.wrd + 1;
