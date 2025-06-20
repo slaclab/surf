@@ -41,7 +41,8 @@ architecture rtl of LeapXcvrCdrDisable is
 
    constant TIMEOUT_1SEC_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0);
 
-   constant NUM_CH_G : natural := LEAP_BASE_ADDR_G'length;
+   constant NUM_CH_G   : natural := LEAP_BASE_ADDR_G'length;
+   constant NUM_WORD_G : natural := 6;
 
    type StateType is (
       IDLE_S,
@@ -49,7 +50,7 @@ architecture rtl of LeapXcvrCdrDisable is
       ACK_S);
 
    type RegType is record
-      wrd   : natural range 0 to 1;
+      wrd   : natural range 0 to NUM_WORD_G-1;
       ch    : natural range 0 to NUM_CH_G-1;
       cnt   : natural range 0 to PERIODIC_UPDATE_G-1;
       timer : natural range 0 to TIMEOUT_1SEC_C-1;
@@ -138,13 +139,32 @@ begin
                v.req.rnw     := '0';    -- Write operation
 
                -- Check the word index
-               if (r.wrd = 0) then
-                  v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00AC";  -- RxLower.GlobalRxCdr=0x0AC
-                  v.req.wrData  := x"0000_0001";  -- Globally turn off all RX CDR channels
-               else
-                  v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_08AC";  -- TxLower.GlobalTxCdr=0x8AC
-                  v.req.wrData  := x"0000_0001";  -- Globally turn off all TX CDR channels
-               end if;
+               case (r.wrd) is
+                  --------------------------------
+                  -- Disabling the RX CDR Channels
+                  --------------------------------
+                  when 0 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00AC";  -- RxLower.GlobalRxCdr=0x0AC
+                     v.req.wrData  := x"0000_0001";  -- Globally turn off all RX CDR channels
+                  when 1 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00D8";  -- RxLower.RxCdrBypassMsb=0x0D8
+                     v.req.wrData  := x"0000_000F";  -- Bypass RX CDR channels [11:8]
+                  when 2 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_00DC";  -- RxLower.RxChDisableLsb=0x0DC
+                     v.req.wrData  := x"0000_00FF";  -- Bypass RX CDR channels [7:0]
+                  --------------------------------
+                  -- Disabling the TX CDR Channels
+                  --------------------------------
+                  when 3 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_08AC";  -- TxLower.GlobalTxCdr=0x8AC
+                     v.req.wrData  := x"0000_0001";  -- Globally turn off all TX CDR channels
+                  when 4 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_08D8";  -- TxLower.TxCdrBypassMsb=0x0D8
+                     v.req.wrData  := x"0000_000F";  -- Bypass TX CDR channels [11:8]
+                  when 5 =>
+                     v.req.address := LEAP_BASE_ADDR_G(r.ch) + x"0000_08DC";  -- TxLower.TxChDisableLsb=0x0DC
+                     v.req.wrData  := x"0000_00FF";  -- Bypass TX CDR channels [7:0]
+               end case;
 
                -- Next state
                v.state := ACK_S;
@@ -165,7 +185,7 @@ begin
                   v.ch := 0;
 
                   -- Check the word index
-                  if (r.wrd = 0) then
+                  if (r.wrd /= NUM_WORD_G-1) then
 
                      -- Increment the channel
                      v.wrd := r.wrd + 1;
