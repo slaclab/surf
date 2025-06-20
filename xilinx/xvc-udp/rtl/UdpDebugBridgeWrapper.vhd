@@ -83,7 +83,7 @@ begin
 
    assert (AXIS_CLK_FREQ_G = 156.25E+6)
       report "AXIS_CLK_FREQ_G: Must be 156.25E+6"
-      severity error;
+      severity failure;
 
    ----------------------------
    -- 'XVC' Server @2542 (modified protocol to work over UDP)

@@ -123,11 +123,22 @@ architecture rtl of AxiLiteCrossbar is
 
 begin
 
--- synopsys translate_off
    assert (NUM_MASTER_SLOTS_G = MASTERS_CONFIG_G'length)
       report "Mismatch between NUM_MASTER_SLOTS_G and MASTERS_CONFIG_G'length"
-      severity error;
+      severity failure;
 
+   noneZeroCheck : for i in MASTERS_CONFIG_G'range generate
+      assert (MASTERS_CONFIG_G(i).baseAddr(MASTERS_CONFIG_G(i).addrBits-1 downto 0) = 0)
+         report "AXI_LITE_CROSSBAR Configuration Error:" & LF &
+                "  - Array Index       : " & integer'image(i) & LF &
+                "  - baseAddr          : 0x" & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+                "  - addrBits          : " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
+                "  - connectivity      : 0x" & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
+                "  => baseAddr must be zero within the specified addrBits range."
+         severity failure;
+   end generate noneZeroCheck;
+
+-- synopsys translate_off
    print(DEBUG_G, "AXI_LITE_CROSSBAR: " & LF &
          "NUM_SLAVE_SLOTS_G: " & integer'image(NUM_SLAVE_SLOTS_G) & LF &
          "NUM_MASTER_SLOTS_G: " & integer'image(NUM_MASTER_SLOTS_G) & LF &
