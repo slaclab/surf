@@ -260,11 +260,9 @@ begin
    --------------------------
    U_Pgp3GthUsIpWrapper_1 : entity surf.Pgp3GthUsIpWrapper
       generic map (
-         TPD_G         => TPD_G,
-         TX_POLARITY_G => TX_POLARITY_G,
-         RX_POLARITY_G => RX_POLARITY_G,
-         RATE_G        => RATE_G,
-         EN_DRP_G      => EN_DRP_G)
+         TPD_G    => TPD_G,
+         RATE_G   => RATE_G,
+         EN_DRP_G => EN_DRP_G)
       port map (
          stableClk       => stableClk,                           -- [in]
          stableRst       => stableRst,                           -- [in]
@@ -289,6 +287,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                       -- [out]
          rxGearboxSlip   => phyRxSlip,                           -- [in]
          rxOutClk        => open,                                -- [out]
+         rxPolarity      => RX_POLARITY_G,                       -- [in]
          txReset         => '0',                                 -- [in]
          txUsrClkActive  => open,                                -- [out]
          txResetDone     => phyTxActive,                         -- [out]
@@ -298,6 +297,7 @@ begin
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
          txOutClk        => open,                                -- [out]
+         txPolarity      => TX_POLARITY_G,                       -- [in]
          loopback        => loopback,                            -- [in]
          txDiffCtrl      => txDiffCtrl,                          -- [in]
          txPreCursor     => txPreCursor,                         -- [in]
