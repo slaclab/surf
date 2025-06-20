@@ -544,6 +544,8 @@ var hierarchy =
       [ "ClinkFraming", "classClinkFraming.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "ClinkUart", "classClinkUart.html", null ],
+      [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ],
+      [ "MmcmEmulation", "classMmcmEmulation.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "CoaXPressConfig", "classCoaXPressConfig.html", [
         [ "SrpV3AxiLite", "classSrpV3AxiLite.html", [
@@ -1057,6 +1059,7 @@ var hierarchy =
         [ "I2cRegMaster", "classI2cRegMaster.html", null ]
       ] ],
       [ "IoBufWrapper", "classIoBufWrapper.html", null ],
+      [ "AxiLiteMaster", "classAxiLiteMaster.html", null ],
       [ "Encoder10b12b", "classEncoder10b12b.html", null ],
       [ "Decoder10b12b", "classDecoder10b12b.html", null ],
       [ "Encoder12b14b", "classEncoder12b14b.html", null ],
