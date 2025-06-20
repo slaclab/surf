@@ -1046,7 +1046,7 @@ package body AxiLitePkg is
          & lf & "base     = 0x" & hstr(base)
          & lf & "baseBot  = " & integer'image(baseBot)
          & lf & "addrBits = " & integer'image(addrBits)
-         severity error;
+         severity failure;
 
       -- Check that there is enough bits for the number of buses
       assert (2**(baseBot-addrBits) >= num)
@@ -1055,7 +1055,7 @@ package body AxiLitePkg is
          & lf & "base     = 0x" & hstr(base)
          & lf & "baseBot  = " & integer'image(baseBot)
          & lf & "addrBits = " & integer'image(addrBits)
-         severity error;
+         severity failure;
 
       -------------------------------------------------------------------------------------------
       -- Init

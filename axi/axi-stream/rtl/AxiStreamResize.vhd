@@ -102,7 +102,7 @@ begin
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamResize: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
-      severity error;
+      severity failure;
 
    comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is
       variable v       : RegType;
