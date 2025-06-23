@@ -100,8 +100,8 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       allCol         => '0',
       allRow         => '0',
       dataOut        => (others => '0'),
-      readWrite      => '0',
-      configTri      => '1',
+      readWrite      => '1',
+      configTri      => '0',
       globalRstL     => '1',
       cckReg         => '0',
       cckPix         => '0',
@@ -228,25 +228,53 @@ begin
             -- Check the read phase
             case (r.cnt) is
                when 0 =>
+                  -- TRI-STATE & READ MODE
+                  v.cckPix := '0';
+                  v.cckReg := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 1 =>
                   -- CCK PIX HIGH
                   v.cckPix := '1';
                   v.cckReg := '0';
-               when 1 =>
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 2 =>
                   -- CCK PIX LOW
                   v.cckPix := '0';
                   v.cckReg := '0';
-               when 2 =>
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 3 =>
                   -- CCK REG HIGH
                   v.cckPix := '0';
                   v.cckReg := '1';
-               when 3 =>
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 4 =>
                   -- CCK REG LOW
                   v.cckPix := '0';
                   v.cckReg := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 5 =>
+                  -- SAMPLE
+                  v.cckPix := '0';
+                  v.cckReg := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 6 =>
+                  -- RETURN TO WRITE
+                  v.cckPix := '0';
+                  v.cckReg := '0';
+                  v.configTri := '0';
+                  v.readWrite := '1';                  
                when others =>
                   -- Default
                   v.cckPix := '0';
                   v.cckReg := '0';
+                  v.configTri := '1';
+                  v.readWrite := '1';
             end case;
 
             -- Check for timeout
@@ -255,12 +283,18 @@ begin
                -- Set the timer
                v.timer := r.timerSize;
 
-               -- Check if "CCK REG LOW" phase
-               if (r.cnt = 3) then
+               -- Check if "SAMPLE" phase
+               if (r.cnt = 5) then
 
                   -- Assign read data
                   v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
 
+                  -- Increment the counter
+                  v.cnt := r.cnt + 1;
+
+               -- Check if "RETURN TO WRITE" phase
+               elsif (r.cnt = 6) then
+                  
                   -- Ack the read TXN
                   axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
 
@@ -280,7 +314,7 @@ begin
                when 0 =>
                   -- Disable pixel driver
                   v.readWrite := '1';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 1 =>
@@ -316,19 +350,19 @@ begin
                when 6 =>
                   -- Disable config driver
                   v.readWrite := '1';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 7 =>
                   -- Enable pixel driver
-                  v.readWrite := '0';
-                  v.configTri := '1';
+                  v.readWrite := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when others =>
                   -- Default
                   v.readWrite := '0';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
             end case;
