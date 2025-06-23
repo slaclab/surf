@@ -146,8 +146,8 @@ architecture rtl of Pgp4GtyUs is
    signal txPreCursor  : slv(4 downto 0);
    signal txPostCursor : slv(4 downto 0);
 
-   signal txPolarity   : sl;
-   signal rxPolarity   : sl;
+   signal txPolarity : sl;
+   signal rxPolarity : sl;
 
 begin
 
@@ -213,6 +213,7 @@ begin
          ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          TX_POLARITY_G               => TX_POLARITY_G,
          RX_POLARITY_G               => RX_POLARITY_G,
+         HIGH_BANDWIDTH_G            => (RATE_G = "20.625Gbps"),
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -292,7 +293,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                  -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
          rxOutClk        => open,       -- [out]
-         rxPolarity      => rxPolarity,                       -- [in]
+         rxPolarity      => rxPolarity,                     -- [in]
          txReset         => '0',        -- [in]
          txUsrClkActive  => open,       -- [out]
          txResetDone     => phyTxActive,                    -- [out]
@@ -302,7 +303,7 @@ begin
          txData          => phyTxData,  -- [in]
          txHeader        => phyTxHeader,                    -- [in]
          txOutClk        => open,       -- [out]
-         txPolarity      => txPolarity,                       -- [in]
+         txPolarity      => txPolarity,                     -- [in]
          loopback        => loopback,   -- [in]
          txDiffCtrl      => txDiffCtrl,                     -- [in]
          txPreCursor     => txPreCursor,                    -- [in]

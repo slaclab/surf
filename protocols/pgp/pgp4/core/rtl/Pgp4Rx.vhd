@@ -34,6 +34,7 @@ entity Pgp4Rx is
       NUM_VC_G          : integer range 1 to 16 := 4;
       SKIP_EN_G         : boolean               := true;  -- TRUE for Elastic Buffer
       LITE_EN_G         : boolean               := false;  -- TRUE: Lite does NOT support SOC/EOC
+      HIGH_BANDWIDTH_G  : boolean               := false;
       ALIGN_SLIP_WAIT_G : integer               := 32);
    port (
       -- User Transmit interface
@@ -165,10 +166,11 @@ begin
    -- Main RX protocol logic
    U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         NUM_VC_G       => NUM_VC_G)
+         TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
+         RST_ASYNC_G      => RST_ASYNC_G,
+         HIGH_BANDWIDTH_G => HIGH_BANDWIDTH_G,
+         NUM_VC_G         => NUM_VC_G)
       port map (
          pgpRxClk       => pgpRxClk,           -- [in]
          pgpRxRst       => pgpRxRst,           -- [in]
@@ -193,11 +195,12 @@ begin
          RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          MEMORY_TYPE_G       => "distributed",
+         REG_EN_G            => HIGH_BANDWIDTH_G,
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP4_CRC_POLY_C,
          SEQ_CNT_SIZE_G      => ite(LITE_EN_G, 0, 12),  -- ZERO: Pgp4TxLite does NOT support SOC/EOC
          TDEST_BITS_G        => ite(NUM_VC_G = 1, 0, bitSize(NUM_VC_G)),
-         INPUT_PIPE_STAGES_G => 1)
+         INPUT_PIPE_STAGES_G => 0)      -- pipeline in Pgp4RxProtocol
       port map (
          axisClk     => pgpRxClk,       -- [in]
          axisRst     => pgpRxRst,       -- [in]

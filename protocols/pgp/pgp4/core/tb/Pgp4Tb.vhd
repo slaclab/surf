@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -27,217 +26,207 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.Pgp4Pkg.all;
 
-----------------------------------------------------------------------------------------------------
 
 entity Pgp4Tb is
 
 end entity Pgp4Tb;
 
-----------------------------------------------------------------------------------------------------
+architecture testbed of Pgp4Tb is
 
-architecture tb of Pgp4Tb is
+   constant TPD_C : time := 1 ns;
 
-   -- component generics
-   constant TPD_G               : time    := 1 ns;
-   constant TX_CELL_WORDS_MAX_G : integer := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;
-   constant NUM_VC_G            : integer := 4;
-   constant SKP_INTERVAL_G      : integer := 5000;
-   constant SKP_BURST_SIZE_G    : integer := 8;
+   constant PGP_CLK_PERIOD_C : time := 16 ns;  -- Slow PGP clock to force back-to-back AXIS frames
+   constant LOC_CLK_PERIOD_C : time := 4 ns;
 
-   constant MUX_MODE_G                   : string               := "INDEXED";  -- Or "ROUTED"
-   constant MUX_TDEST_ROUTES_G           : Slv8Array            := (0 => "--------");  -- Only used in ROUTED mode
-   constant MUX_TDEST_LOW_G              : integer range 0 to 7 := 0;
-   constant MUX_INTERLEAVE_EN_G          : boolean              := true;
-   constant MUX_INTERLEAVE_ON_NOTVALID_G : boolean              := false;
+   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(128, 32);
+   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"000000FF";
 
-   constant PACKETIZER_IN_AXIS_CFG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 8,
-      TDEST_BITS_C  => 8,
-      TID_BITS_C    => 8,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 8,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+   constant PRBS_SEED_SIZE_C : positive := 8*PGP4_AXIS_CONFIG_C.TDATA_BYTES_C;
 
-   constant RX_AXIS_CFG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
-      TDEST_BITS_C  => 8,
-      TID_BITS_C    => 8,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+   signal pgpTxIn     : Pgp4TxInType        := PGP4_TX_IN_INIT_C;
+   signal pgpTxOut    : Pgp4TxOutType;
+   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   -- Clocking
-   signal rxClk : sl;
-   signal rxRst : sl;
+   signal phyValid  : sl := '0';
+   signal phyData   : slv(63 downto 0);
+   signal phyHeader : slv(1 downto 0);
 
-   signal axisClk : sl;                 -- [in]
-   signal axisRst : sl;                 -- [in]
+   signal pgpRxIn     : Pgp4RxInType        := PGP4_RX_IN_INIT_C;
+   signal pgpRxOut    : Pgp4RxOutType;
+   signal pgpRxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpRxCtrl   : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
 
-   -- TX
-   signal pgpTxIn      : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxOut     : Pgp4TxOutType;
-   signal pgpTxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);  -- [in]
-   signal pgpTxSlaves  : AxiStreamSlaveArray(NUM_VC_G-1 downto 0);   -- [out]
+   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   -- status from rx to tx
-   signal locRxLinkReady : sl;
-   signal remRxFifoCtrl  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
-   signal remRxLinkReady : sl;
-   -- Tx phy out
-   signal phyTxData      : slv(63 downto 0);
-   signal phyTxHeader    : slv(1 downto 0);
+   signal passed     : sl := '0';
+   signal failed     : sl := '0';
+   signal frameRxErr : sl := '0';
+   signal updated    : sl := '0';
+   signal errorDet   : sl := '0';
+   signal cnt        : slv(31 downto 0);
 
-   signal phyRxData   : slv(63 downto 0);
-   signal phyRxHeader : slv(1 downto 0);
+   signal pgpClk : sl := '0';
+   signal pgpRst : sl := '1';
 
-   signal pgpRxIn      : Pgp4RxInType                            := PGP4_RX_IN_INIT_C;
-   signal pgpRxOut     : Pgp4RxOutType;
-   signal pgpRxMasters : AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-   signal pgpRxCtrl    : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_UNUSED_C);
+   signal locClk : sl := '0';
+   signal locRst : sl := '1';
 
 begin
 
-   process is
+   U_pgpClkRst : entity surf.ClkRst
+      generic map (
+         CLK_PERIOD_G      => PGP_CLK_PERIOD_C,
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
+      port map (
+         clkP => pgpClk,
+         rst  => pgpRst);
+
+   U_locClkRst : entity surf.ClkRst
+      generic map (
+         CLK_PERIOD_G      => LOC_CLK_PERIOD_C,
+         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
+      port map (
+         clkP => locClk,
+         rst  => locRst);
+
+   U_SsiPrbsTx : entity surf.SsiPrbsTx
+      generic map (
+         TPD_G                      => TPD_C,
+         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
+         AXI_EN_G                   => '0',
+         MASTER_AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C)
+      port map (
+         -- Master Port (mAxisClk)
+         mAxisClk     => pgpClk,
+         mAxisRst     => pgpRst,
+         mAxisMaster  => pgpTxMaster,
+         mAxisSlave   => pgpTxSlave,
+         -- Trigger Signal (locClk domain)
+         locClk       => pgpClk,
+         locRst       => pgpRst,
+         trig         => pgpRxOut.linkReady,
+         packetLength => TX_PACKET_LENGTH_C);
+
+   U_DUT : entity surf.Pgp4Core
+      generic map (
+         TPD_G            => TPD_C,
+         NUM_VC_G         => 1,
+         HIGH_BANDWIDTH_G => true,
+         EN_PGP_MON_G     => false)
+      port map (
+         -- Tx User interface
+         pgpTxClk        => pgpClk,
+         pgpTxRst        => pgpRst,
+         pgpTxIn         => pgpTxIn,
+         pgpTxOut        => pgpTxOut,
+         pgpTxMasters(0) => pgpTxMaster,
+         pgpTxSlaves(0)  => pgpTxSlave,
+         -- Tx PHY interface
+         phyTxActive     => '1',
+         phyTxReady      => '1',
+         phyTxValid      => phyValid,
+         phyTxData       => phyData,
+         phyTxHeader     => phyHeader,
+         -- Rx User interface
+         pgpRxClk        => pgpClk,
+         pgpRxRst        => pgpRst,
+         pgpRxIn         => pgpRxIn,
+         pgpRxOut        => pgpRxOut,
+         pgpRxMasters(0) => pgpRxMaster,
+         pgpRxCtrl(0)    => pgpRxCtrl,
+         -- Rx PHY interface
+         phyRxClk        => pgpClk,
+         phyRxRst        => pgpRst,
+         phyRxActive     => '1',
+         phyRxStartSeq   => '0',
+         phyRxValid      => phyValid,
+         phyRxData       => phyData,
+         phyRxHeader     => phyHeader);
+
+   U_Rx_Fifo : entity surf.PgpRxVcFifo
+      generic map (
+         TPD_G               => TPD_C,
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 9,
+         FIFO_PAUSE_THRESH_G => 128,
+         PHY_AXI_CONFIG_G    => PGP4_AXIS_CONFIG_C,
+         APP_AXI_CONFIG_G    => PGP4_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         pgpClk      => pgpClk,
+         pgpRst      => pgpRst,
+         rxlinkReady => pgpRxOut.linkReady,
+         pgpRxMaster => pgpRxMaster,
+         pgpRxCtrl   => pgpRxCtrl,
+         -- Master Port
+         axisClk     => locClk,
+         axisRst     => locRst,
+         axisMaster  => rxMaster,
+         axisSlave   => rxSlave);
+
+   U_SsiPrbsRx : entity surf.SsiPrbsRx
+      generic map (
+         TPD_G                     => TPD_C,
+         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
+         SLAVE_READY_EN_G          => true,
+         SLAVE_AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C)
+      port map (
+         -- Streaming RX Data Interface (sAxisClk domain)
+         sAxisClk       => locClk,
+         sAxisRst       => locRst,
+         sAxisMaster    => rxMaster,
+         sAxisSlave     => rxSlave,
+         -- Error Detection Signals (sAxisClk domain)
+         updatedResults => updated,
+         errorDet       => errorDet);
+
+   U_frameRxErr : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_C)
+      port map (
+         clk     => locClk,
+         dataIn  => pgpRxOut.frameRxErr,
+         dataOut => frameRxErr);
+
+   process(locClk)
    begin
-      wait for 600 us;
-      pgpTxIn.disable <= '1';
-      wait for 100 us;
-      pgpTxIn.disable <= '0';
-      wait;
+      if rising_edge(locClk) then
+         if locRst = '1' then
+            cnt    <= (others => '0') after TPD_C;
+            passed <= '0'             after TPD_C;
+            failed <= '0'             after TPD_C;
+         elsif frameRxErr = '1' then
+            failed <= '1' after TPD_C;
+         elsif updated = '1' then
+            -- Check for packet error
+            if errorDet = '1' then
+               failed <= '1' after TPD_C;
+            end if;
+            -- Check the counter
+            if cnt = NUMBER_PACKET_C then
+               passed <= '1' after TPD_C;
+            else
+               -- Increment the counter
+               cnt <= cnt + 1 after TPD_C;
+            end if;
+         end if;
+      end if;
    end process;
 
+   process(failed, passed)
+   begin
+      if failed = '1' then
+         assert false
+            report "Simulation Failed!" severity failure;
+      end if;
+      if passed = '1' then
+         assert false
+            report "Simulation Passed!" severity note;
+      end if;
+   end process;
 
-   U_ClkRst_1 : entity surf.ClkRst
-      generic map (
-         CLK_PERIOD_G      => 10 ns,
-         CLK_DELAY_G       => 1 ns,
-         RST_START_DELAY_G => 0 ns,
-         RST_HOLD_TIME_G   => 5 us,
-         SYNC_RESET_G      => true)
-      port map (
-         clkP => axisClk,
-         rst  => axisRst);
-
-   PRBS_GEN : for i in 0 to NUM_VC_G-1 generate
-      U_SsiPrbsTx_1 : entity surf.SsiPrbsTx
-         generic map (
-            TPD_G                      => TPD_G,
-            GEN_SYNC_FIFO_G            => true,
-            PRBS_INCREMENT_G           => true,
-            MASTER_AXI_STREAM_CONFIG_G => PACKETIZER_IN_AXIS_CFG_C)
-         port map (
-            mAxisClk     => axisClk,          -- [in]
-            mAxisRst     => axisRst,          -- [in]
-            mAxisMaster  => pgpTxMasters(i),  -- [out]
-            mAxisSlave   => pgpTxSlaves(i),   -- [in]
-            locClk       => axisClk,          -- [in]
-            locRst       => axisRst,          -- [in]
-            trig         => '1',              -- [in]
-            packetLength => X"0000FFFF",      -- [in]
-            forceEofe    => '0',              -- [in]
-            busy         => open,             -- [out]
-            tDest        => toSlv(i, 8),      -- [in]
-            tId          => X"00");           -- [in]
-   end generate PRBS_GEN;
-
-   -------------------------------------------------------------------------------------------------
-   -- PGP4 Transmit
-   -------------------------------------------------------------------------------------------------
-   U_Pgp4Tx_1 : entity surf.Pgp4Tx
-      generic map (
-         TPD_G                    => TPD_G,
-         NUM_VC_G                 => NUM_VC_G,
-         CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
-         MUX_MODE_G               => MUX_MODE_G,
-         MUX_TDEST_ROUTES_G       => MUX_TDEST_ROUTES_G,
-         MUX_TDEST_LOW_G          => MUX_TDEST_LOW_G,
-         MUX_ILEAVE_EN_G          => MUX_INTERLEAVE_EN_G,
-         MUX_ILEAVE_ON_NOTVALID_G => MUX_INTERLEAVE_ON_NOTVALID_G)
-      port map (
-         pgpTxClk       => axisClk,         -- [in]
-         pgpTxRst       => axisRst,         -- [in]
-         pgpTxIn        => pgpTxIn,         -- [in]
-         pgpTxOut       => pgpTxOut,        -- [out]
-         pgpTxMasters   => pgpTxMasters,    -- [in]
-         pgpTxSlaves    => pgpTxSlaves,     -- [out]
-         locRxFifoCtrl  => pgpRxCtrl,       -- [in]
-         locRxLinkReady => locRxLinkReady,  -- [in]
-         remRxFifoCtrl  => remRxFifoCtrl,   -- [in]
-         remRxLinkReady => remRxLinkReady,  -- [in]
-         phyTxActive    => '1',             -- [in]
-         phyTxReady     => '1',             -- [in]
-         phyTxData      => phyTxData,       -- [out]
-         phyTxHeader    => phyTxHeader);    -- [out]
-
-   phyRxHeader <= phyTxHeader;
-   phyRxData   <= phyTxData;
-
-   U_Pgp4Rx_1 : entity surf.Pgp4Rx
-      generic map (
-         TPD_G    => TPD_G,
-         NUM_VC_G => NUM_VC_G)
-      port map (
-         pgpRxClk       => axisClk,         -- [in]
-         pgpRxRst       => axisRst,         -- [in]
-         pgpRxIn        => pgpRxIn,         -- [in]
-         pgpRxOut       => pgpRxOut,        -- [out]
-         pgpRxMasters   => pgpRxMasters,    -- [out]
-         pgpRxCtrl      => pgpRxCtrl,       -- [in]
-         remRxFifoCtrl  => remRxFifoCtrl,   -- [out]
-         remRxLinkReady => remRxLinkReady,  -- [out]
-         locRxLinkReady => locRxLinkReady,  -- [out]
-         phyRxClk       => '0',             -- [in]
-         phyRxRst       => axisRst,         -- [in]
-         phyRxActive    => '1',             -- [in]
-         phyRxInit      => open,            -- [out]
-         phyRxHeader    => phyRxHeader,     -- [in]
-         phyRxValid     => '1',             -- [in]
-         phyRxData      => phyRxData,       -- [in]
-         phyRxStartSeq  => '0',             -- [in]
-         phyRxSlip      => open);           -- [out]
-
-
-   U_ClkRst_2 : entity surf.ClkRst
-      generic map (
-         CLK_PERIOD_G      => 40 ns,
-         CLK_DELAY_G       => 1 ns,
-         RST_START_DELAY_G => 0 ns,
-         RST_HOLD_TIME_G   => 5 us,
-         SYNC_RESET_G      => true)
-      port map (
-         clkP => rxClk,
-         rst  => rxRst);
-
-
-   RX_BUFERS : for i in NUM_VC_G-1 downto 0 generate
-      U_AxiStreamFifoV2_1 : entity surf.AxiStreamFifoV2
-         generic map (
-            TPD_G               => TPD_G,
-            SLAVE_READY_EN_G    => false,
---            VALID_THOLD_G          => VALID_THOLD_G,
---            VALID_BURST_MODE_G     => VALID_BURST_MODE_G,
-            MEMORY_TYPE_G       => "distributed",
-            GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 5,
---            FIFO_FIXED_THRESH_G    => FIFO_FIXED_THRESH_G,
-            FIFO_PAUSE_THRESH_G => 16,
-            INT_WIDTH_SELECT_G  => "WIDE",
-            SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => RX_AXIS_CFG_C)
-         port map (
-            sAxisClk    => axisClk,                    -- [in]
-            sAxisRst    => axisRst,                    -- [in]
-            sAxisMaster => pgpRxMasters(i),            -- [in]
-            sAxisSlave  => open,                       -- [out]
-            sAxisCtrl   => pgpRxCtrl(i),               -- [out]
-            mAxisClk    => rxClk,                      -- [in]
-            mAxisRst    => rxRst,                      -- [in]
-            mAxisMaster => open,                       -- [out]
-            mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);  -- [in]
-   end generate RX_BUFERS;
-
-end architecture tb;
-
-----------------------------------------------------------------------------------------------------
+end testbed;
