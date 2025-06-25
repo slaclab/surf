@@ -95,7 +95,7 @@ architecture mapping of Pgp4AxiL is
       txPolarity     => TX_POLARITY_G,
       rxPolarity     => RX_POLARITY_G,
       countReset     => '0',
-      skpInterval    => ite(HIGH_BANDWIDTH_G, 128, PGP4_TX_IN_INIT_C.skpInterval),
+      skpInterval    => ite(HIGH_BANDWIDTH_G, toSlv(128, 32), PGP4_TX_IN_INIT_C.skpInterval),
       loopBack       => (others => '0'),
       flowCntlDis    => PGP4_TX_IN_INIT_C.flowCntlDis,
       txDisable      => PGP4_TX_IN_INIT_C.disable,
