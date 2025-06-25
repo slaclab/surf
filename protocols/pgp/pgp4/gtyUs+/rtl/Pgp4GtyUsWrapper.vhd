@@ -39,7 +39,7 @@ entity Pgp4GtyUsWrapper is
       NUM_LANES_G                 : positive range 1 to 4       := 1;
       NUM_VC_G                    : positive range 1 to 16      := 4;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
-      RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
+      RATE_G                      : string                      := "10.3125Gbps";
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------

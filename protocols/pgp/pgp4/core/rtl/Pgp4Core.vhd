@@ -187,7 +187,6 @@ begin
             ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             TX_POLARITY_G      => TX_POLARITY_G,
             RX_POLARITY_G      => RX_POLARITY_G,
-            HIGH_BANDWIDTH_G   => HIGH_BANDWIDTH_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
             pgpTxClk        => pgpTxClk,         -- [in]

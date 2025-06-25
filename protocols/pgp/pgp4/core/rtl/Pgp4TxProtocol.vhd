@@ -71,8 +71,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          : slv(31 downto 0);
       startupCount      : integer;
       pgpTxSlave        : AxiStreamSlaveType;
-      forceSkip         : sl;
-      forceIdle         : sl;
+      forceIdle         : slv(1 downto 0);
       opCodeReady       : sl;
       linkReady         : sl;
       frameTx           : sl;
@@ -94,8 +93,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
-      forceSkip         => '0',
-      forceIdle         => '0',
+      forceIdle         => (others => '0'),
       opCodeReady       => '0',
       linkReady         => '0',
       frameTx           => '0',
@@ -245,12 +243,6 @@ begin
                v.frameTx    := pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                v.frameTxErr := v.frameTx and ssiGetUserEofe(PGP4_AXIS_CONFIG_C, pgpTxMaster);
 
-               -- Support 2 cycle gap for depacketizer with CRC_LATENCY_G = CRC_LATENCY_G = true
-               if HIGH_BANDWIDTH_G then
-                  v.forceSkip := '1';
-                  v.forceIdle := '1';
-               end if;
-
             else
                -- Normal data
                v.protTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
@@ -278,11 +270,8 @@ begin
             v.protTxHeader                         := PGP4_K_HEADER_C;
             resetEventMetaData                     := false;
 
-         -- SKIP codes override data or force skip (HIGH_BANDWIDTH_G=true)
-         elsif (r.skpCount = r.skpInterval) or (r.forceSkip = '1') then
-
-            -- Reset the flag
-            v.forceSkip := '0';
+         -- SKIP codes override data
+         elsif (r.skpCount = r.skpInterval) then
 
             -- Reset the counter
             v.skpCount := (others => '0');
@@ -294,16 +283,27 @@ begin
             v.protTxHeader                       := PGP4_K_HEADER_C;
             resetEventMetaData                   := false;
 
+         -- HIGH_BANDWIDTH_G=true and new to send a IDLE
+         elsif HIGH_BANDWIDTH_G and (r.forceIdle /= 0) then
+
+            -- Update shift reg
+            v.forceIdle := r.forceIdle(0) & '0';
+
+            -- Send IDLE k-code to support large gap between depacketizer with CRC_LATENCY_G = CRC_LATENCY_G = true
+            v.pgpTxSlave.tReady := '0';
+            v.protTxData        := idleWord;
+            v.protTxHeader      := PGP4_K_HEADER_C;
+            resetEventMetaData  := true;
+
          else
 
             -- A local rx pause going high causes an IDLE char to be sent mid frame
             -- So that the sending end is notified with minimum latency
             for i in NUM_VC_G-1 downto 0 loop
 
-               -- Check for Pause event or force Idle (HIGH_BANDWIDTH_G=true)
-               if ((r.pauseEvent(i) = '1') and (r.pauseEventSent(i) = '0')) or (r.forceIdle = '1') then
-                  v.forceIdle         := '0';
-                  v.pauseEventSent(i) := r.pauseEvent(i);
+               -- Check for Pause event
+               if (r.pauseEvent(i) = '1') and (r.pauseEventSent(i) = '0') then
+                  v.pauseEventSent(i) := '1';
                   v.pgpTxSlave.tReady := '0';
                   v.protTxData        := idleWord;
                   v.protTxHeader      := PGP4_K_HEADER_C;
@@ -352,6 +352,11 @@ begin
          v.pauseEventSent    := (others => '0');
          v.overflowEvent     := (others => '0');
          v.overflowEventSent := (others => '0');
+      end if;
+
+      -- Check if need to make a two cycle gap after EOF/EOC starting in the next cycle
+      if HIGH_BANDWIDTH_G and (v.protTxHeader = PGP4_K_HEADER_C) and ((v.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOF_C) or (v.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOC_C)) then
+         v.forceIdle := (others => '1');
       end if;
 
       -- Outputs
