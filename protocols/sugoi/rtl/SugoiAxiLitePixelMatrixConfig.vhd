@@ -229,50 +229,50 @@ begin
             case (r.cnt) is
                when 0 =>
                   -- TRI-STATE & READ MODE
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 1 =>
                   -- CCK PIX HIGH
-                  v.cckPix := '1';
-                  v.cckReg := '0';
+                  v.cckPix    := '1';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 2 =>
                   -- CCK PIX LOW
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 3 =>
                   -- CCK REG HIGH
-                  v.cckPix := '0';
-                  v.cckReg := '1';
+                  v.cckPix    := '0';
+                  v.cckReg    := '1';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 4 =>
                   -- CCK REG LOW
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 5 =>
                   -- SAMPLE
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 6 =>
                   -- RETURN TO WRITE
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '0';
-                  v.readWrite := '1';                  
+                  v.readWrite := '1';
                when others =>
                   -- Default
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '1';
             end case;
@@ -294,7 +294,7 @@ begin
 
                -- Check if "RETURN TO WRITE" phase
                elsif (r.cnt = 6) then
-                  
+
                   -- Ack the read TXN
                   axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
 
