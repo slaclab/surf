@@ -243,6 +243,11 @@ begin
                v.frameTx    := pgpTxMaster.tData(PACKETIZER2_TAIL_EOF_BIT_C);
                v.frameTxErr := v.frameTx and ssiGetUserEofe(PGP4_AXIS_CONFIG_C, pgpTxMaster);
 
+               -- Check if need to make a two cycle gap after EOF/EOC starting in the next cycle
+               if HIGH_BANDWIDTH_G then
+                  v.forceIdle := "11";
+               end if;
+
             else
                -- Normal data
                v.protTxData(63 downto 0) := pgpTxMaster.tData(63 downto 0);
@@ -270,6 +275,15 @@ begin
             v.protTxHeader                         := PGP4_K_HEADER_C;
             resetEventMetaData                     := false;
 
+            -- Update the forceIdle flag
+            if (r.forceIdle = 0) then
+               -- OP-CODE overriding EOF/EOC corner case
+               v.forceIdle := "00";
+            else
+               -- Update shift reg
+               v.forceIdle := r.forceIdle(0) & '0';
+            end if;
+
          -- SKIP codes override data
          elsif (r.skpCount = r.skpInterval) then
 
@@ -282,6 +296,15 @@ begin
             v.protTxData(PGP4_BTF_FIELD_C)       := PGP4_SKP_C;
             v.protTxHeader                       := PGP4_K_HEADER_C;
             resetEventMetaData                   := false;
+
+            -- Update the forceIdle flag
+            if (r.forceIdle = 0) then
+               -- OP-CODE overriding EOF/EOC corner case
+               v.forceIdle := "00";
+            else
+               -- Update shift reg
+               v.forceIdle := r.forceIdle(0) & '0';
+            end if;
 
          -- HIGH_BANDWIDTH_G=true and new to send a IDLE
          elsif HIGH_BANDWIDTH_G and (r.forceIdle /= 0) then
@@ -352,11 +375,6 @@ begin
          v.pauseEventSent    := (others => '0');
          v.overflowEvent     := (others => '0');
          v.overflowEventSent := (others => '0');
-      end if;
-
-      -- Check if need to make a two cycle gap after EOF/EOC starting in the next cycle
-      if HIGH_BANDWIDTH_G and (v.protTxHeader = PGP4_K_HEADER_C) and ((v.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOF_C) or (v.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOC_C)) then
-         v.forceIdle := (others => '1');
       end if;
 
       -- Outputs
