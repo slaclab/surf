@@ -52,6 +52,16 @@ end entity AxiLiteCrossbar;
 
 architecture rtl of AxiLiteCrossbar is
 
+   function getHighAddr(config : AxiLiteCrossbarMasterConfigType) return slv is
+      variable result : slv(31 downto 0);
+   begin
+      result := config.baseAddr;
+      for k in 0 to config.addrBits - 1 loop
+         result(k) := '1';
+      end loop;
+      return result;
+   end function;
+
    type SlaveStateType is (S_WAIT_AXI_TXN_S, S_DEC_ERR_S, S_ACK_S, S_TXN_S);
 
    constant REQ_NUM_SIZE_C : integer := bitSize(NUM_MASTER_SLOTS_G-1);
@@ -130,13 +140,27 @@ begin
    noneZeroCheck : for i in MASTERS_CONFIG_G'range generate
       assert (MASTERS_CONFIG_G(i).baseAddr(MASTERS_CONFIG_G(i).addrBits-1 downto 0) = 0)
          report "AXI_LITE_CROSSBAR Configuration Error:" & LF &
-                "  - Array Index       : " & integer'image(i) & LF &
-                "  - baseAddr          : 0x" & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
-                "  - addrBits          : " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
-                "  - connectivity      : 0x" & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
-                "  => baseAddr must be zero within the specified addrBits range."
+         "  - Array Index       : " & integer'image(i) & LF &
+         "  - baseAddr          : 0x" & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+         "  - addrBits          : " & str(MASTERS_CONFIG_G(i).addrBits) & LF &
+         "  - connectivity      : 0x" & hstr(MASTERS_CONFIG_G(i).connectivity) & LF &
+         "  => baseAddr must be zero within the specified addrBits range."
          severity failure;
    end generate noneZeroCheck;
+
+   gen_assert_master_config : for i in 0 to NUM_MASTER_SLOTS_G-1 generate
+      gen_inner_loop : for j in 0 to NUM_MASTER_SLOTS_G-1 generate
+         -- Ensure that no two master regions overlap
+         assert (getHighAddr(MASTERS_CONFIG_G(i)) < MASTERS_CONFIG_G(j).baseAddr) or (getHighAddr(MASTERS_CONFIG_G(j)) < MASTERS_CONFIG_G(i).baseAddr) or (i = j)
+            report "AXI_LITE_CROSSBAR Configuration Error:" & LF &
+            "  - baseAddr(" & integer'image(i) & "): 0x" & hstr(MASTERS_CONFIG_G(i).baseAddr) & LF &
+            "  - highAddr(" & integer'image(i) & "): 0x" & hstr(getHighAddr(MASTERS_CONFIG_G(i))) & LF &
+            "  - baseAddr(" & integer'image(j) & "): 0x" & hstr(MASTERS_CONFIG_G(j).baseAddr) & LF &
+            "  - highAddr(" & integer'image(j) & "): 0x" & hstr(getHighAddr(MASTERS_CONFIG_G(j))) & LF &
+            "  => Address space overlap between master slot."
+            severity failure;
+      end generate;
+   end generate;
 
 -- synopsys translate_off
    print(DEBUG_G, "AXI_LITE_CROSSBAR: " & LF &
