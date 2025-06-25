@@ -213,7 +213,7 @@ begin
          ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          TX_POLARITY_G               => TX_POLARITY_G,
          RX_POLARITY_G               => RX_POLARITY_G,
-         HIGH_BANDWIDTH_G            => (RATE_G = "20.625Gbps"),
+         HIGH_BANDWIDTH_G            => (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.78125Gbps"),
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface

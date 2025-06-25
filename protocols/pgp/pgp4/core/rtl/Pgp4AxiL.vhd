@@ -36,6 +36,7 @@ entity Pgp4AxiL is
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 8;
       TX_POLARITY_G      : sl                    := '0';
       RX_POLARITY_G      : sl                    := '0';
+      HIGH_BANDWIDTH_G   : boolean               := false;
       AXIL_CLK_FREQ_G    : real                  := 125.0E+6);
    port (
       -- TX PGP Interface (pgpTxClk)
@@ -94,7 +95,7 @@ architecture mapping of Pgp4AxiL is
       txPolarity     => TX_POLARITY_G,
       rxPolarity     => RX_POLARITY_G,
       countReset     => '0',
-      skpInterval    => PGP4_TX_IN_INIT_C.skpInterval,
+      skpInterval    => ite(HIGH_BANDWIDTH_G, 128, PGP4_TX_IN_INIT_C.skpInterval),
       loopBack       => (others => '0'),
       flowCntlDis    => PGP4_TX_IN_INIT_C.flowCntlDis,
       txDisable      => PGP4_TX_IN_INIT_C.disable,

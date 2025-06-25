@@ -34,6 +34,7 @@ entity AxiStreamDepacketizer2 is
       RST_ASYNC_G          : boolean               := false;
       MEMORY_TYPE_G        : string                := "distributed";
       REG_EN_G             : boolean               := false;
+      CRC_LATENCY_G        : boolean               := false;  -- True: 1+ cycle latency to add pipelining to making timing
       CRC_MODE_G           : string                := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0)      := x"04C11DB7";
       SEQ_CNT_SIZE_G       : natural range 0 to 16 := 16;
@@ -77,6 +78,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       HEADER_S,
       MOVE_S,
       TERMINATE_S,
+      CRC_WAIT_S,
       CRC_S);
 
    type RegType is record
@@ -91,6 +93,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     : slv(2 downto 0);
       crcInit          : slv(31 downto 0);
       crcReset         : sl;
+      crcIn            : slv(63 downto 0);
       crcOut           : slv(31 downto 0);
       linkGoodDly      : sl;
       rdLat            : natural range 0 to 2;
@@ -111,6 +114,7 @@ architecture rtl of AxiStreamDepacketizer2 is
       crcDataWidth     => (others => '1'),
       crcInit          => (others => '1'),
       crcReset         => '1',
+      crcIn            => (others => '0'),
       crcOut           => (others => '0'),
       linkGoodDly      => '0',
       rdLat            => 2,
@@ -118,8 +122,9 @@ architecture rtl of AxiStreamDepacketizer2 is
       inputAxisSlave   => AXI_STREAM_SLAVE_INIT_C,
       outputAxisMaster => (others => axiStreamMasterInit(AXIS_CONFIG_C)));
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r    : RegType := REG_INIT_C;
+   signal rin  : RegType;
+   signal crcR : RegType;
 
    signal inputAxisMaster  : AxiStreamMasterType;
    signal inputAxisSlave   : AxiStreamSlaveType;
@@ -225,7 +230,7 @@ begin
    end generate NO_SEQ;
 
    ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0) else (others => '0');
-   crcIn    <= endianSwap(inputAxisMaster.tData(63 downto 0));
+   crcR     <= r               when (CRC_LATENCY_G)    else rin;
 
    GEN_CRC : if (CRC_EN_C) generate
 
@@ -243,11 +248,11 @@ begin
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
+               crcDataValid => crcR.crcDataValid,
+               crcDataWidth => crcR.crcDataWidth,
+               crcIn        => crcR.crcIn,
+               crcInit      => crcR.crcInit,
+               crcReset     => crcR.crcReset);
       end generate;
 
       GENERNAL_CRC : if (CRC_POLY_G /= x"04C11DB7") generate
@@ -265,17 +270,18 @@ begin
                crcOut       => crcOut,
                crcRem       => crcRem,
                crcClk       => axisClk,
-               crcDataValid => rin.crcDataValid,
-               crcDataWidth => rin.crcDataWidth,
-               crcIn        => crcIn,
-               crcInit      => rin.crcInit,
-               crcReset     => rin.crcReset);
+               crcDataValid => crcR.crcDataValid,
+               crcDataWidth => crcR.crcDataWidth,
+               crcIn        => crcR.crcIn,
+               crcInit      => crcR.crcInit,
+               crcReset     => crcR.crcReset);
       end generate;
 
    end generate;
 
-   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r, ramCrcRem,
-                   ramPacketActiveOut, ramPacketSeqOut, ramSentEofeOut) is
+   comb : process (crcOut, inputAxisMaster, linkGood, outputAxisSlave, r,
+                   ramCrcRem, ramPacketActiveOut, ramPacketSeqOut,
+                   ramSentEofeOut) is
       variable v         : RegType;
       variable sof       : sl;
       variable lastBytes : integer;
@@ -349,7 +355,8 @@ begin
       v.crcReset     := '0';
       v.crcDataWidth := "111";          -- 64-bit transfer
 
-      -- Register crcOut in case we need it.
+      -- Register crcIn/crcOut in case we need it.
+      v.crcIn  := endianSwap(inputAxisMaster.tData(63 downto 0));
       v.crcOut := crcOut;
 
       -- Reset tready by default
@@ -378,13 +385,22 @@ begin
 
             -- Check for data
             if (inputAxisMaster.tValid = '1') then
-               -- Check for 2 read cycle latency
-               if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
-                  v.state := WAIT_S;
-               -- Else 1 read cycle latency
+
+               -- Must have SOF
+               if (ssiGetuserSof(AXIS_CONFIG_C, inputAxisMaster) = '1') then
+                  -- Check for 2 read cycle latency
+                  if (MEMORY_TYPE_G /= "distributed") and (REG_EN_G) then
+                     v.state := WAIT_S;
+                  -- Else 1 read cycle latency
+                  else
+                     v.state := HEADER_S;
+                  end if;
+
                else
-                  v.state := HEADER_S;
+                  -- Blow off non-SOF data
+                  v.inputAxisSlave.tready := '1';
                end if;
+
             end if;
          ----------------------------------------------------------------------
          when WAIT_S =>
@@ -456,7 +472,7 @@ begin
                      -- Set packetActive in ram for this tdest
                      -- v.packetSeq is already correct
                      v.packetActive := '1';
-                     v.sentEofe     := '0';                   -- Clear any frame error
+                     v.sentEofe     := '0';  -- Clear any frame error
                      v.ramWe        := '1';
                      v.debug.sop    := '1';
                      v.debug.sof    := sof;
@@ -533,21 +549,40 @@ begin
                      -- Need to calculate CRC on tail data
                      -- Hold everything
                      v.outputAxisMaster(0).tValid := '0';
-                     v.state                      := CRC_S;
-                  else
-                     -- Can sent tail right now
-                     doTail;
-                     -- Check for BRAM used
-                     if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
-                        -- Next state (1 or 2 cycle read latency)
-                        v.state := IDLE_S;
+                     if CRC_LATENCY_G then
+                        -- Next state (1 cycle read latency)
+                        v.state := CRC_WAIT_S;
                      else
                         -- Next state (0 cycle read latency)
-                        v.state := HEADER_S;
+                        v.state := CRC_S;
+                     end if;
+
+                  else
+                     if CRC_LATENCY_G then
+                        -- Need to calculate CRC on tail data
+                        -- Hold everything
+                        v.outputAxisMaster(0).tValid := '0';
+                        -- Next state (1 cycle read latency)
+                        v.state := CRC_S;
+                     else
+                        -- Can sent tail right now
+                        doTail;
+                        -- Check for BRAM used
+                        if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
+                           -- Next state (1 or 2 cycle read latency)
+                           v.state := IDLE_S;
+                        else
+                           -- Next state (0 cycle read latency)
+                           v.state := HEADER_S;
+                        end if;
                      end if;
                   end if;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when CRC_WAIT_S =>
+            -- Next state
+            v.state := CRC_S;
          ----------------------------------------------------------------------
          when CRC_S =>
             -- Move the data (Note: v.outputAxisMaster(0).tValid = '0' in previous state)

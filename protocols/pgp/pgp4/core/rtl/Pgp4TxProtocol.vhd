@@ -71,6 +71,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          : slv(31 downto 0);
       startupCount      : integer;
       pgpTxSlave        : AxiStreamSlaveType;
+      forceIdle         : sl;
       opCodeReady       : sl;
       linkReady         : sl;
       frameTx           : sl;
@@ -92,6 +93,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
+      forceIdle         => '0',
       opCodeReady       => '0',
       linkReady         => '0',
       frameTx           => '0',
@@ -284,7 +286,22 @@ begin
          -- HIGH_BANDWIDTH_G=true and EOF/EOC was sent on the previous cycle
          elsif HIGH_BANDWIDTH_G and (r.protTxHeader = PGP4_K_HEADER_C) and ((r.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOF_C) or (r.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOC_C)) then
 
-            -- Send IDLE k-code to support large gap between depacketizer with REG_G = true
+            -- Set the flag
+            v.forceIdle := '1';
+
+            -- Send IDLE k-code to support large gap between depacketizer with CRC_LATENCY_G = CRC_LATENCY_G = true
+            v.pgpTxSlave.tReady := '0';
+            v.protTxData        := idleWord;
+            v.protTxHeader      := PGP4_K_HEADER_C;
+            resetEventMetaData  := true;
+
+         -- HIGH_BANDWIDTH_G=true and EOF/EOC was sent on the previous cycle
+         elsif HIGH_BANDWIDTH_G and (r.forceIdle = '1') then
+
+            -- Reset the flag
+            v.forceIdle := '0';
+
+            -- Send IDLE k-code to support large gap between depacketizer with CRC_LATENCY_G = CRC_LATENCY_G = true
             v.pgpTxSlave.tReady := '0';
             v.protTxData        := idleWord;
             v.protTxHeader      := PGP4_K_HEADER_C;
