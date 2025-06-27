@@ -24,6 +24,7 @@ entity FirFilterTap is
       TPD_G         : time     := 1 ns;
       DATA_WIDTH_G  : positive := 12;
       COEFF_WIDTH_G : positive := 12;
+      COEFF_INIT_G  : slv      := X"000";
       CASC_WIDTH_G  : positive := 25);
    port (
       -- Clock Only (Infer into DSP)
@@ -32,6 +33,7 @@ entity FirFilterTap is
       -- Data and tap coefficient Interface
       datain  : in  slv(DATA_WIDTH_G-1 downto 0);
       coeffin : in  slv(COEFF_WIDTH_G-1 downto 0);
+      coeffce : in  sl;
       -- Cascade Interface
       cascin  : in  slv(CASC_WIDTH_G-1 downto 0);
       cascout : out slv(CASC_WIDTH_G-1 downto 0));
@@ -39,20 +41,23 @@ end FirFilterTap;
 
 architecture rtl of FirFilterTap is
 
-   constant PROD_WIDTH_C : integer := DATA_WIDTH_G + COEFF_WIDTH_G;
+   constant PROD_WIDTH_C : integer                       := DATA_WIDTH_G + COEFF_WIDTH_G;
+   constant COEFF_INIT_C : slv(COEFF_WIDTH_G-1 downto 0) := resize(COEFF_INIT_G, COEFF_WIDTH_G);
 
    type RegType is record
       accum : signed(CASC_WIDTH_G-1 downto 0);
+      coeff : signed(COEFF_WIDTH_G-1 downto 0);
    end record RegType;
    constant REG_INIT_C : RegType := (
-      accum => (others => '0'));
+      accum => (others => '0'),
+      coeff => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (cascin, coeffin, datain, r) is
+   comb : process (cascin, coeffce, coeffin, datain, en, r) is
       variable v       : RegType;
       variable din     : signed(DATA_WIDTH_G-1 downto 0);
       variable coeff   : signed(COEFF_WIDTH_G-1 downto 0);
@@ -62,16 +67,22 @@ begin
       -- Latch the current value
       v := r;
 
-      -- typecast from slv to signed
-      din     := signed(datain);
-      coeff   := signed(coeffin);
-      cascade := signed(cascin);
+      if (coeffce = '1') then
+         v.coeff := signed(coeffin);
+      end if;
 
-      -- Multiplier
-      product := din * coeff;
+      if (en = '1') then
+         -- typecast from slv to signed
+         din     := signed(datain);
+         cascade := signed(cascin);
 
-      -- Accumulator
-      v.accum := resize(product, PROD_WIDTH_C) + cascade;
+         -- Multiplier
+         product := din * r.coeff;
+
+         -- Accumulator
+         v.accum := resize(product, PROD_WIDTH_C) + cascade;
+
+      end if;
 
       -- Register the variable for next clock cycle
       rin <= v;
@@ -84,9 +95,7 @@ begin
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         if (en = '1') then
-            r <= rin after TPD_G;
-         end if;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
