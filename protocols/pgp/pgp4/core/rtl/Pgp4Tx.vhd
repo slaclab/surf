@@ -32,7 +32,7 @@ entity Pgp4Tx is
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
-      HIGH_BANDWIDTH_G         : boolean               := false;
+      RX_CRC_PIPELINE_G        : natural range 0 to 1  := 0;
       -- MUX configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -208,10 +208,10 @@ begin
    -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
    U_Pgp4TxProtocol_1 : entity surf.Pgp4TxProtocol
       generic map (
-         TPD_G            => TPD_G,
-         RST_ASYNC_G      => RST_ASYNC_G,
-         HIGH_BANDWIDTH_G => HIGH_BANDWIDTH_G,
-         NUM_VC_G         => NUM_VC_G)
+         TPD_G             => TPD_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
+         RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
+         NUM_VC_G          => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
          pgpTxRst       => pgpTxRst,            -- [in]

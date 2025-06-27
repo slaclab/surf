@@ -31,11 +31,11 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxProtocol is
    generic (
-      TPD_G            : time                  := 1 ns;
-      RST_POLARITY_G   : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G      : boolean               := false;
-      HIGH_BANDWIDTH_G : boolean               := false;
-      NUM_VC_G         : integer range 1 to 16 := 4);
+      TPD_G             : time                  := 1 ns;
+      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean               := false;
+      RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
+      NUM_VC_G          : integer range 1 to 16 := 4);
    port (
       -- User Transmit interface
       pgpRxClk       : in  sl;
@@ -298,7 +298,7 @@ begin
       end if;
    end process seq;
 
-   LOW_BANDWITH : if (HIGH_BANDWIDTH_G = false) generate
+   LOW_BANDWITH : if (RX_CRC_PIPELINE_G = 0) generate
       U_RegOutput : entity surf.AxiStreamPipeline
          generic map (
             TPD_G          => TPD_G,
@@ -313,7 +313,7 @@ begin
             mAxisSlave  => pgpRxSlave);
    end generate LOW_BANDWITH;
 
-   HIGH_BANDWITH : if (HIGH_BANDWIDTH_G = true) generate
+   HIGH_BANDWITH : if (RX_CRC_PIPELINE_G = 1) generate
       U_BuffOutput : entity surf.AxiStreamFifoV2
          generic map (
             TPD_G               => TPD_G,

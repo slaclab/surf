@@ -113,10 +113,10 @@ begin
 
    U_DUT : entity surf.Pgp4Core
       generic map (
-         TPD_G            => TPD_C,
-         NUM_VC_G         => 1,
-         HIGH_BANDWIDTH_G => true,
-         EN_PGP_MON_G     => false)
+         TPD_G             => TPD_C,
+         NUM_VC_G          => 1,
+         RX_CRC_PIPELINE_G => 1,
+         EN_PGP_MON_G      => false)
       port map (
          -- Tx User interface
          pgpTxClk        => pgpClk,
