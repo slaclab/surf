@@ -42,6 +42,7 @@ entity Pgp4Core is
       ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
+      RX_CRC_PIPELINE_G           : natural range 0 to 1  := 0;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Tx User interface
@@ -119,6 +120,7 @@ begin
             RST_ASYNC_G              => RST_ASYNC_G,
             NUM_VC_G                 => NUM_VC_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+            RX_CRC_PIPELINE_G        => RX_CRC_PIPELINE_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
             MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
             MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -148,6 +150,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RST_ASYNC_G       => RST_ASYNC_G,
+            RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
             NUM_VC_G          => NUM_VC_G,
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
