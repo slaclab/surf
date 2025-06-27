@@ -294,7 +294,7 @@ begin
             -- Update shift reg
             v.forceIdle := r.forceIdle(0) & '0';
 
-            -- Send IDLE k-code to support large gap between depacketizer with CRC_LATENCY_G = CRC_LATENCY_G = true
+            -- Send IDLE k-code to support large gap between depacketizer with (HIGH_BANDWIDTH_G=true) & (CRC_LATENCY_G=1)
             v.pgpTxSlave.tReady := '0';
             v.protTxData        := idleWord;
             v.protTxHeader      := PGP4_K_HEADER_C;

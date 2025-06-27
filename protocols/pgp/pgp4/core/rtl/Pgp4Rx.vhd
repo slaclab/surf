@@ -196,7 +196,7 @@ begin
          RST_ASYNC_G         => RST_ASYNC_G,
          MEMORY_TYPE_G       => "distributed",
          REG_EN_G            => HIGH_BANDWIDTH_G,
-         CRC_LATENCY_G       => HIGH_BANDWIDTH_G,
+         CRC_LATENCY_G       => ite(HIGH_BANDWIDTH_G, 1, 0),
          CRC_MODE_G          => "DATA",
          CRC_POLY_G          => PGP4_CRC_POLY_C,
          SEQ_CNT_SIZE_G      => ite(LITE_EN_G, 0, 12),  -- ZERO: Pgp4TxLite does NOT support SOC/EOC

@@ -34,7 +34,7 @@ entity AxiStreamDepacketizer2 is
       RST_ASYNC_G          : boolean               := false;
       MEMORY_TYPE_G        : string                := "distributed";
       REG_EN_G             : boolean               := false;
-      CRC_LATENCY_G        : boolean               := false;  -- True: 1+ cycle latency to add pipelining to making timing
+      CRC_LATENCY_G        : natural range 0 to 1  := 0;  -- True: 1+ cycle latency to add pipelining to making timing
       CRC_MODE_G           : string                := "DATA";  -- or "NONE" or "FULL"
       CRC_POLY_G           : slv(31 downto 0)      := x"04C11DB7";
       SEQ_CNT_SIZE_G       : natural range 0 to 16 := 16;
@@ -229,8 +229,8 @@ begin
       end process;
    end generate NO_SEQ;
 
-   ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0) else (others => '0');
-   crcR     <= r               when (CRC_LATENCY_G)    else rin;
+   ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0)  else (others => '0');
+   crcR     <= r               when (CRC_LATENCY_G = 1) else rin;
 
    GEN_CRC : if (CRC_EN_C) generate
 
@@ -549,7 +549,7 @@ begin
                      -- Need to calculate CRC on tail data
                      -- Hold everything
                      v.outputAxisMaster(0).tValid := '0';
-                     if CRC_LATENCY_G then
+                     if (CRC_LATENCY_G = 1) then
                         -- Next state (1 cycle read latency)
                         v.state := CRC_WAIT_S;
                      else
@@ -558,12 +558,12 @@ begin
                      end if;
 
                   else
-                     if CRC_LATENCY_G then
+                     if (CRC_LATENCY_G = 1) then
                         -- Need to calculate CRC on tail data
                         -- Hold everything
                         v.outputAxisMaster(0).tValid := '0';
                         -- Next state (1 cycle read latency)
-                        v.state := CRC_S;
+                        v.state                      := CRC_S;
                      else
                         -- Can sent tail right now
                         doTail;
