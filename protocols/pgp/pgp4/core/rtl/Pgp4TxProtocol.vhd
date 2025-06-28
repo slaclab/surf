@@ -35,6 +35,7 @@ entity Pgp4TxProtocol is
       RST_ASYNC_G       : boolean               := false;
       NUM_VC_G          : integer range 1 to 16 := 4;
       RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
+      PGP_FEC_ENABLE_G  : boolean               := false;
       STARTUP_HOLD_G    : integer               := 1000);
    port (
       -- User Transmit interface
@@ -54,6 +55,7 @@ entity Pgp4TxProtocol is
       protTxReady    : in  sl;
       protTxValid    : out sl;
       protTxStart    : out sl;
+      protTxFecCw    : out sl;
       protTxData     : out slv(63 downto 0);
       protTxHeader   : out slv(1 downto 0));
 end entity Pgp4TxProtocol;
@@ -78,6 +80,8 @@ architecture rtl of Pgp4TxProtocol is
       frameTxErr        : sl;
       protTxValid       : sl;
       protTxStart       : sl;
+      protTxFecCw       : sl;
+      protTxFecCnt      : slv(16 downto 0);
       protTxData        : slv(63 downto 0);
       protTxHeader      : slv(1 downto 0);
    end record RegType;
@@ -100,6 +104,8 @@ architecture rtl of Pgp4TxProtocol is
       frameTxErr        => '0',
       protTxValid       => '0',
       protTxStart       => '0',
+      protTxFecCw       => '0',
+      protTxFecCnt      => (others => '0'),
       protTxData        => (others => '0'),
       protTxHeader      => (others => '0'));
 
@@ -173,8 +179,19 @@ begin
       v.pgpTxSlave.tReady := '0';
       v.opCodeReady       := '0';
 
-      v.frameTx    := '0';
-      v.frameTxErr := '0';
+      v.frameTx     := '0';
+      v.frameTxErr  := '0';
+      v.protTxFecCw := '0';
+
+      -- IEEE 802.3 Clause 91.5.3.3:
+      -- The FEC block alignment marker insertion point shall occur once every 81920 66-bit blocks.
+      if PGP_FEC_ENABLE_G then
+         if (r.protTxFecCnt = 0) then
+            v.protTxFecCnt := toSlv(81920-1, 17);
+         else
+            v.protTxFecCnt := r.protTxFecCnt - 1;
+         end if;
+      end if;
 
       -- Check the handshaking
       if (protTxReady = '1') then
@@ -260,11 +277,23 @@ begin
          --                   Commands and Metadata                        --
          --------------------------------------------------------------------
 
-         -- USER codes override data and delay SKP if they happen to coincide
-         if (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
+         -- IEEE 802.3 Clause 91.5.3.3:
+         -- The alignment marker control indication shall be asserted for four consecutive 66b blocks,
+         -- beginning with the block that contains the alignment marker.
+         if PGP_FEC_ENABLE_G and (r.protTxFecCnt(16 downto 2) = 0) then
+
+            -- Set the flag
+            v.protTxFecCw := '1';
 
             -- Override any data acceptance.
             v.pgpTxSlave.tReady := '0';
+
+            -- Update the TX data bus
+            v.protTxHeader     := PGP4_K_HEADER_C;
+            resetEventMetaData := false;
+
+         -- USER codes override data and delay SKP if they happen to coincide
+         elsif (pgpTxIn.opCodeEn = '1' and dataEn = '1') then
 
             -- Accept the op-code
             v.opCodeReady := '1';
@@ -366,6 +395,7 @@ begin
       protTxHeader <= r.protTxHeader;
       protTxValid  <= r.protTxValid;
       protTxStart  <= r.protTxStart;
+      protTxFecCw  <= r.protTxFecCw;
 
       pgpTxOut.phyTxActive <= phyTxActive;
       pgpTxOut.linkReady   <= r.linkReady;

@@ -27,6 +27,7 @@ entity Pgp4Core is
       TPD_G                       : time                  := 1 ns;
       RST_ASYNC_G                 : boolean               := false;
       NUM_VC_G                    : integer range 1 to 16 := 4;
+      PGP_FEC_ENABLE_G            : boolean               := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
@@ -58,6 +59,7 @@ entity Pgp4Core is
       phyTxReady  : in  sl;
       phyTxValid  : out sl               := '0';
       phyTxStart  : out sl               := '0';
+      phyTxFecCw  : out sl               := '0';
       phyTxData   : out slv(63 downto 0) := (others => '0');
       phyTxHeader : out slv(1 downto 0)  := (others => '0');
 
@@ -75,6 +77,7 @@ entity Pgp4Core is
       phyRxInit     : out sl := '0';
       phyRxActive   : in  sl;
       phyRxValid    : in  sl;
+      phyRxFecCw    : in  sl := '0';
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
@@ -121,6 +124,7 @@ begin
             NUM_VC_G                 => NUM_VC_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
             RX_CRC_PIPELINE_G        => RX_CRC_PIPELINE_G,
+            PGP_FEC_ENABLE_G         => PGP_FEC_ENABLE_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
             MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
             MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -141,6 +145,7 @@ begin
             phyTxReady     => phyTxReady,      -- [in]
             phyTxValid     => phyTxValid,      -- [out]
             phyTxStart     => phyTxStart,      -- [out]
+            phyTxFecCw     => phyTxFecCw,      -- [out]
             phyTxData      => phyTxData,       -- [out]
             phyTxHeader    => phyTxHeader);    -- [out]
    end generate GEN_TX;
@@ -150,6 +155,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RST_ASYNC_G       => RST_ASYNC_G,
+            PGP_FEC_ENABLE_G  => PGP_FEC_ENABLE_G,
             RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
             NUM_VC_G          => NUM_VC_G,
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
@@ -168,6 +174,7 @@ begin
             phyRxInit      => phyRxInit,       -- [out]
             phyRxActive    => phyRxActive,     -- [in]
             phyRxValid     => phyRxValid,      -- [in]
+            phyRxFecCw     => phyRxFecCw,      -- [in]
             phyRxHeader    => phyRxHeader,     -- [in]
             phyRxData      => phyRxData,       -- [in]
             phyRxStartSeq  => phyRxStartSeq,   -- [in]

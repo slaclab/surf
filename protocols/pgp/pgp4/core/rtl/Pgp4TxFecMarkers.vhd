@@ -48,36 +48,11 @@ end entity Pgp4TxFecMarkers;
 architecture rtl of Pgp4TxFecMarkers is
 
    -- IEEE 802.3 25G RS-FEC: Code words
-   -- constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := (-- Config[0] - does not work
-      -- 0 => bitReverse(endianSwap(x"C16821333E97DECC")),
-      -- 1 => bitReverse(endianSwap(x"F0C4E6330F3B19CC")),
-      -- 2 => bitReverse(endianSwap(x"C5659B333A9A64CC")),
-      -- 3 => bitReverse(endianSwap(x"A2793D335D86C2CC")));
-
-   constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := (-- Config[1] - does not work (but looks better)
+   constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := (
       0 => endianSwap(x"C16821333E97DECC"),
       1 => endianSwap(x"F0C4E6330F3B19CC"),
       2 => endianSwap(x"C5659B333A9A64CC"),
       3 => endianSwap(x"A2793D335D86C2CC"));
-
-   -- constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := (-- Config[2] - does not work
-      -- 0 => x"C16821333E97DECC",
-      -- 1 => x"F0C4E6330F3B19CC",
-      -- 2 => x"C5659B333A9A64CC",
-      -- 3 => x"A2793D335D86C2CC");
-
-   -- constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := ( -- Config[3] - does not work
-      -- 0 => bitReverse(x"C16821333E97DECC"),
-      -- 1 => bitReverse(x"F0C4E6330F3B19CC"),
-      -- 2 => bitReverse(x"C5659B333A9A64CC"),
-      -- 3 => bitReverse(x"A2793D335D86C2CC"));
-
-
-   -- constant PGP4_FEC_CW_C : Slv64Array(3 downto 0) := (-- Config[4] - does not work
-      -- 0 => endianSwap(bitReverse(x"C16821333E97DECC")),
-      -- 1 => endianSwap(bitReverse(x"F0C4E6330F3B19CC")),
-      -- 2 => endianSwap(bitReverse(x"C5659B333A9A64CC")),
-      -- 3 => endianSwap(bitReverse(x"A2793D335D86C2CC")));
 
    type RegType is record
       ibTxReady  : sl;
