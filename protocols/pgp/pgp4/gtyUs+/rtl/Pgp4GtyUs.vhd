@@ -36,6 +36,7 @@ entity Pgp4GtyUs is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
+      PGP_FEC_ENABLE_G            : boolean                     := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
@@ -198,6 +199,7 @@ begin
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
+         PGP_FEC_ENABLE_G            => PGP_FEC_ENABLE_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
@@ -268,6 +270,7 @@ begin
       generic map (
          TPD_G    => TPD_G,
          RATE_G   => RATE_G,
+         EN_FEC_G => PGP_FEC_ENABLE_G,
          EN_DRP_G => EN_DRP_G)
       port map (
          stableClk       => stableClk,  -- [in]

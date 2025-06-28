@@ -40,3 +40,13 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2020.1 (or later)\n\n"
 }
+
+# Load Source Code
+if { $::env(VIVADO_VERSION) >= 2025.1 } {
+
+   loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GtyUsIpFec/Pgp3GtyUsIpFec.dcp"
+   # loadIpCore -path "$::DIR_PATH/ip/Pgp3GtyUsIpFec/Pgp3GtyUsIpFec.xci"
+
+} else {
+   puts "\n\nWARNING: $::DIR_PATH requires Vivado 2025.1 (or later)\n\n"
+}
