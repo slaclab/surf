@@ -33,36 +33,7 @@ end entity Pgp4FecTb;
 
 architecture testbed of Pgp4FecTb is
 
-   component Pgp3GtyUsIpFec
-      port (
-         tx_clk                           : in  std_logic;
-         tx_resetn                        : in  std_logic;
-         rx_clk                           : in  std_logic;
-         rx_resetn                        : in  std_logic;
-         consortium_25g                   : in  std_logic;
-         tx_pcs_data                      : in  std_logic_vector(65 downto 0);
-         rx_pcs_data                      : out std_logic_vector(65 downto 0);
-         rx_serdes_data                   : in  std_logic_vector(65 downto 0);
-         tx_serdes_data                   : out std_logic_vector(65 downto 0);
-         tx_cwm_flag                      : in  std_logic;
-         rx_cwm_flag                      : out std_logic;
-         fec_bypass_correction_enable     : in  std_logic;
-         fec_bypass_indication_enable     : in  std_logic;
-         fec_enable                       : in  std_logic;
-         fec_ieee_error_indication_enable : in  std_logic;
-         rx_hi_ser                        : out std_logic;
-         rx_corrected_cw_inc              : out std_logic;
-         rx_uncorrected_cw_inc            : out std_logic;
-         rx_cw_inc                        : out std_logic;
-         rx_symbol_error_count_inc        : out std_logic_vector(2 downto 0);
-         tx_align_status                  : out std_logic;
-         rx_align_status                  : out std_logic;
-         rx_ts_1588_in                    : in  std_logic_vector(79 downto 0);
-         rx_ts_1588_out                   : out std_logic_vector(79 downto 0)
-         );
-   end component;
-
-   constant TPD_C : time := 3 ns;
+   constant TPD_C : time := 1 ns;
 
    constant PGP_CLK_PERIOD_C : time := 4 ns;
    constant LOC_CLK_PERIOD_C : time := 4 ns;
@@ -99,34 +70,23 @@ architecture testbed of Pgp4FecTb is
    signal locClk : sl := '0';
    signal locRst : sl := '1';
 
-   signal txFecCw  : sl := '0';
-   signal txData   : slv(63 downto 0);
-   signal txHeader : slv(1 downto 0);
+   signal txFecCw     : sl := '0';
+   signal txHeader    : slv(1 downto 0);
+   signal txData      : slv(63 downto 0);
+   signal txFecLock   : sl := '0';
+   signal txFecInjErr : sl := '0';
 
-   signal rxFecCw  : sl := '0';
-   signal rxData   : slv(63 downto 0);
-   signal rxHeader : slv(1 downto 0);
+   signal loopbackHeader : slv(1 downto 0);
+   signal loopbackData   : slv(63 downto 0);
 
-   signal fecTxCw         : sl               := '0';
-   signal fecTxPcsData    : slv(65 downto 0) := (others => '0');
-   signal fecTxSerdesData : slv(65 downto 0) := (others => '0');
-
-   signal fecRxCw         : sl               := '0';
-   signal fecRxPcsData    : slv(65 downto 0) := (others => '0');
-   signal fecRxSerdesData : slv(65 downto 0) := (others => '0');
-
-   signal txDataInt   : slv(63 downto 0) := (others => '0');
-   signal txHeaderInt : slv(1 downto 0)  := (others => '0');
-
-   signal rxDataInt   : slv(63 downto 0) := (others => '0');
-   signal rxHeaderInt : slv(1 downto 0)  := (others => '0');
-
-   signal fecTxAligned     : sl              := '0';
-   signal fecRxAligned     : sl              := '0';
-   signal fecRxCorrected   : sl              := '0';
-   signal fecRxUnCorrected : sl              := '0';
-   signal fecRxCwInc       : sl              := '0';
-   signal fecRxErrCnt      : slv(2 downto 0) := (others => '0');
+   signal rxFecCw       : sl              := '0';
+   signal rxHeader      : slv(1 downto 0);
+   signal rxData        : slv(63 downto 0);
+   signal rxFecLock     : sl              := '0';
+   signal rxFecCorInc   : sl              := '0';
+   signal rxFecUnCorInc : sl              := '0';
+   signal rxFecCwInc    : sl              := '0';
+   signal rxFecErrCnt   : slv(2 downto 0) := (others => '0');
 
 begin
 
@@ -175,11 +135,11 @@ begin
 
    U_DUT : entity surf.Pgp4Core
       generic map (
-         TPD_G            => TPD_C,
-         NUM_VC_G         => 1,
-         HIGH_BANDWIDTH_G => true,
-         PGP_FEC_ENABLE_G => true,
-         EN_PGP_MON_G     => false)
+         TPD_G             => TPD_C,
+         NUM_VC_G          => 1,
+         PGP_FEC_ENABLE_G  => true,
+         RX_CRC_PIPELINE_G => 1,
+         EN_PGP_MON_G      => false)
       port map (
          -- Tx User interface
          pgpTxClk        => pgpClk,
@@ -212,78 +172,33 @@ begin
          phyRxData       => rxData,
          phyRxHeader     => rxHeader);
 
-   U_FEC : Pgp3GtyUsIpFec
+   U_FEC : entity surf.Pgp4GtyUsIpFecWrapper
+      generic map (
+         TPD_G => TPD_C)
       port map (
-         -- Clocks and resets
-         tx_clk                           => pgpClk,
-         tx_resetn                        => pgpRstL,
-         rx_clk                           => pgpClk,
-         rx_resetn                        => pgpRstL,
-         -- PCS Interface Data
-         tx_pcs_data                      => fecTxPcsData,
-         rx_pcs_data                      => fecRxPcsData,
-         -- PMA Interface Data
-         tx_serdes_data                   => fecTxSerdesData,
-         -- rx_serdes_data                   => fecRxSerdesData,
-         rx_serdes_data                   => fecTxSerdesData,
-         -- Broadside control and status bus
-         fec_bypass_correction_enable     => '1',
-         fec_bypass_indication_enable     => '0',
-         fec_enable                       => '1',
-         fec_ieee_error_indication_enable => '0',
-         consortium_25g                   => '0',
-         -- hi_ser
-         rx_hi_ser                        => open,
-         -- alignment status
-         tx_align_status                  => fecTxAligned,
-         rx_align_status                  => fecRxAligned,
-         -- correction flags
-         rx_corrected_cw_inc              => fecRxCorrected,
-         rx_uncorrected_cw_inc            => fecRxUnCorrected,
-         rx_cw_inc                        => fecRxCwInc,
-         rx_symbol_error_count_inc        => fecRxErrCnt,
-         -- alginment flags to and from the XXVMAC
-         tx_cwm_flag                      => fecTxCw,
-         rx_cwm_flag                      => fecRxCw,
-         rx_ts_1588_in                    => x"00000000000000000000",
-         rx_ts_1588_out                   => open);
-
-   process(pgpClk)
-   begin
-      if rising_edge(pgpClk) then
-
-         fecTxCw                   <= txFecCw;
-         fecTxPcsData(65 downto 2) <= txData;
-
-         fecTxPcsData(1 downto 0) <= bitReverse(txHeader);
-
-         txDataInt   <= bitReverse(fecTxSerdesData(65 downto 2));
-         txHeaderInt <= bitReverse(fecTxSerdesData(1 downto 0));
-
-      end if;
-   end process;
-
-   rxDataInt   <= txDataInt;
-   rxHeaderInt <= txHeaderInt;
-
-   process(pgpClk)
-   begin
-      if rising_edge(pgpClk) then
-
-         fecRxSerdesData(65 downto 2) <= bitReverse(rxDataInt)   after TPD_C;
-         fecRxSerdesData(1 downto 0)  <= bitReverse(rxHeaderInt) after TPD_C;
-
-         rxFecCw  <= fecRxCw                              after TPD_C;
-         rxData   <= fecRxPcsData(65 downto 2)            after TPD_C;
-         rxHeader <= bitReverse(fecRxPcsData(1 downto 0)) after TPD_C;
-
-
-         -- rxFecCw  <= txFecCw  after TPD_C;
-         -- rxData   <= txData   after TPD_C;
-         -- rxHeader <= txHeader after TPD_C;         
-
-      end if;
-   end process;
+         -- TX Interface
+         txClk         => pgpClk,
+         txRstL        => pgpRstL,
+         txFecCw       => txFecCw,
+         txHeaderIn    => txHeader,
+         txDataIn      => txData,
+         txHeaderOut   => loopbackHeader,
+         txDataOut     => loopbackData,
+         txFecInjErr   => txFecInjErr,
+         txFecLock     => txFecLock,
+         -- RX Interface
+         rxClk         => pgpClk,
+         rxRstL        => pgpRstL,
+         rxFecCw       => rxFecCw,
+         rxHeaderIn    => loopbackHeader,
+         rxDataIn      => loopbackData,
+         rxHeaderOut   => rxHeader,
+         rxDataOut     => rxData,
+         rxFecLock     => rxFecLock,
+         rxFecCorInc   => rxFecCorInc,
+         rxFecUnCorInc => rxFecUnCorInc,
+         rxFecCwInc    => rxFecCwInc,
+         rxFecErrCnt   => rxFecErrCnt);
 
    U_Rx_Fifo : entity surf.PgpRxVcFifo
       generic map (

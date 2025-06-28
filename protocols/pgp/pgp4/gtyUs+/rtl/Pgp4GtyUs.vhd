@@ -150,9 +150,8 @@ architecture rtl of Pgp4GtyUs is
    signal txPolarity : sl;
    signal rxPolarity : sl;
 
-   signal phyTxFecCw   : sl;
-   signal phyRxFecCw   : sl;
-   signal phyRxFecLock : sl;
+   signal phyTxFecCw : sl;
+   signal phyRxFecCw : sl;
 
 begin
 
@@ -252,7 +251,6 @@ begin
          phyRxHeader     => phyRxHeader,                         -- [in]
          phyRxData       => phyRxData,                           -- [in]
          phyRxStartSeq   => phyRxStartSeq,                       -- [in]
-         phyRxFecLock    => phyRxFecLock,                        -- [in]
          phyRxSlip       => phyRxSlip,                           -- [out]
          -- Debug Interface
          loopback        => loopback,                            -- [out]
@@ -301,7 +299,6 @@ begin
          rxHeaderValid   => open,       -- [out]
          rxFecCw         => phyRxFecCw,                     -- [out]
          rxStartOfSeq    => phyRxStartSeq,                  -- [out]
-         rxFecLock       => phyRxFecLock,                   -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
          rxOutClk        => open,       -- [out]
          rxPolarity      => rxPolarity,                     -- [in]

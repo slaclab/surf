@@ -1,13 +1,13 @@
 {
   "schema": "xilinx.com:schema:json_instance:1.0",
   "ip_inst": {
-    "xci_name": "Pgp3GtyUsIpFec",
+    "xci_name": "Pgp4GtyUsIpFec",
     "component_reference": "xilinx.com:ip:ieee802d3_25g_rs_fec:1.0",
     "ip_revision": "32",
-    "gen_directory": "../../../../XilinxVariumC1100Pgp4_25Gbps_project.gen/sources_1/ip/Pgp3GtyUsIpFec",
+    "gen_directory": "../../../../XilinxVariumC1100Pgp4_25Gbps_Fec_project.gen/sources_1/ip/Pgp4GtyUsIpFec",
     "parameters": {
       "component_parameters": {
-        "Component_Name": [ { "value": "Pgp3GtyUsIpFec", "resolve_type": "user", "usage": "all" } ],
+        "Component_Name": [ { "value": "Pgp4GtyUsIpFec", "resolve_type": "user", "usage": "all" } ],
         "AXI_lite": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "Low_Latency": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "FEC_only": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
@@ -64,7 +64,7 @@
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "32" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../XilinxVariumC1100Pgp4_25Gbps_project.gen/sources_1/ip/Pgp3GtyUsIpFec" } ],
+        "OUTPUTDIR": [ { "value": "../../../../XilinxVariumC1100Pgp4_25Gbps_Fec_project.gen/sources_1/ip/Pgp4GtyUsIpFec" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2025.1" } ],

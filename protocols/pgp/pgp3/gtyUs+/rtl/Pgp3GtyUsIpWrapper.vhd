@@ -25,6 +25,7 @@ entity Pgp3GtyUsIpWrapper is
    generic (
       TPD_G    : time    := 1 ns;
       EN_DRP_G : boolean := true;
+      EN_FEC_G : boolean := false;
       RATE_G   : string  := "10.3125Gbps");
    port (
       stableClk      : in  sl;
@@ -50,6 +51,7 @@ entity Pgp3GtyUsIpWrapper is
       rxDataValid    : out sl;
       rxHeader       : out slv(1 downto 0);
       rxHeaderValid  : out sl;
+      rxFecCw        : out sl              := '0';
       rxStartOfSeq   : out sl;
       rxGearboxSlip  : in  sl;
       rxOutClk       : out sl;
@@ -63,6 +65,7 @@ entity Pgp3GtyUsIpWrapper is
       txUsrClkRst    : out sl;
       txData         : in  slv(63 downto 0);
       txHeader       : in  slv(1 downto 0);
+      txFecCw        : in  sl              := '0';
       txOutClk       : out sl;
       loopback       : in  slv(2 downto 0);
       txDiffCtrl     : in  slv(4 downto 0);
@@ -719,6 +722,15 @@ architecture mapping of Pgp3GtyUsIpWrapper is
    signal drpWe   : sl               := '0';
    signal drpRdy  : sl               := '0';
 
+   signal rxUsrClkRstL : sl := '0';
+   signal txUsrClkRstL : sl := '0';
+
+   signal txHeaderInt : slv(1 downto 0)  := (others => '0');
+   signal txDataInt   : slv(63 downto 0) := (others => '0');
+
+   signal rxHeaderInt : slv(1 downto 0)  := (others => '0');
+   signal rxDataInt   : slv(63 downto 0) := (others => '0');
+
 begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"))
@@ -727,30 +739,71 @@ begin
 
    rxUsrClk2      <= rxUsrClk2Int;
    rxUsrClkActive <= rxUsrClkActiveInt;
+   rxUsrClkRst    <= not(rxUsrClkRstL);
+
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
+   txUsrClkRst    <= not(txUsrClkRstL);
 
    U_RstSync_TX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1',
+         OUT_POLARITY_G => '0',
          OUT_REG_RST_G  => true)
       port map (
          clk      => txUsrClk2Int,       -- [in]
          asyncRst => txUsrClkActiveInt,  -- [in]
-         syncRst  => txUsrClkRst);       -- [out]
+         syncRst  => txUsrClkRstL);      -- [out]
 
    U_RstSync_RX : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
          IN_POLARITY_G  => '0',
-         OUT_POLARITY_G => '1',
+         OUT_POLARITY_G => '0',
          OUT_REG_RST_G  => true)
       port map (
          clk      => rxUsrClk2Int,       -- [in]
          asyncRst => rxUsrClkActiveInt,  -- [in]
-         syncRst  => rxUsrClkRst);       -- [out]
+         syncRst  => rxUsrClkRstL);      -- [out]
+
+   GEN_FEC : if (EN_FEC_G) generate
+      U_FEC : entity surf.Pgp4GtyUsIpFecWrapper
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            -- TX Interface
+            txClk         => txUsrClk2Int,
+            txRstL        => txUsrClkRstL,
+            txFecCw       => txFecCw,
+            txHeaderIn    => txHeader,
+            txDataIn      => txData,
+            txHeaderOut   => txHeaderInt,
+            txDataOut     => txDataInt,
+            txFecInjErr   => '1',
+            txFecLock     => open,
+            -- RX Interface
+            rxClk         => rxUsrClk2Int,
+            rxRstL        => rxUsrClkRstL,
+            rxFecCw       => rxFecCw,
+            rxHeaderIn    => rxHeaderInt,
+            rxDataIn      => rxDataInt,
+            rxHeaderOut   => rxHeader,
+            rxDataOut     => rxData,
+            rxFecLock     => open,
+            rxFecCorInc   => open,
+            rxFecUnCorInc => open,
+            rxFecCwInc    => open,
+            rxFecErrCnt   => open);
+   end generate GEN_FEC;
+
+   NO_FEC : if (not EN_FEC_G) generate
+      txHeaderInt <= txHeader;
+      txDataInt   <= txData;
+      rxHeader    <= rxHeaderInt;
+      rxData      <= rxDataInt;
+      rxFecCw     <= '0';
+   end generate NO_FEC;
 
    GEN_25G : if (RATE_G = "25.625Gbps") generate
       U_Pgp3GtyUsIp : Pgp3GtyUsIp25G
@@ -776,8 +829,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll1reset_out(0)         => qpllRst(1),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -804,7 +857,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -840,8 +893,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll1reset_out(0)         => qpllRst(1),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -868,7 +921,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -904,8 +957,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll1reset_out(0)         => qpllRst(1),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -932,7 +985,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -968,8 +1021,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll1reset_out(0)         => qpllRst(1),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -996,7 +1049,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1032,8 +1085,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1060,7 +1113,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1096,8 +1149,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1124,7 +1177,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1160,8 +1213,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1188,7 +1241,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1224,8 +1277,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1252,7 +1305,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1288,8 +1341,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1316,7 +1369,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1352,8 +1405,8 @@ begin
             gtwiz_reset_tx_done_out(0)            => txResetDone,
             gtwiz_reset_rx_done_out(0)            => rxResetDone,
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
-            gtwiz_userdata_tx_in                  => txData,
-            gtwiz_userdata_rx_out                 => rxData,
+            gtwiz_userdata_tx_in                  => txDataInt,
+            gtwiz_userdata_rx_out                 => rxDataInt,
             drpclk_in(0)                          => stableClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
@@ -1380,7 +1433,7 @@ begin
             gtytxp_out(0)                         => gtTxP,
             rxdatavalid_out(0)                    => rxDataValid,
             rxdatavalid_out(1)                    => dummy1,
-            rxheader_out(1 downto 0)              => rxHeader,
+            rxheader_out(1 downto 0)              => rxHeaderInt,
             rxheader_out(5 downto 2)              => dummy3,
             rxheadervalid_out(0)                  => rxHeaderValid,
             rxheadervalid_out(1)                  => dummy4,
@@ -1396,7 +1449,7 @@ begin
    txsequence_in(6)          <= '0';
    txsequence_in(5 downto 0) <= (others => '0');
    txheader_in(5 downto 2)   <= (others => '0');
-   txheader_in(1 downto 0)   <= txHeader;
+   txheader_in(1 downto 0)   <= txHeaderInt;
 
    GEN_DRP : if (EN_DRP_G) generate
       U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
