@@ -122,11 +122,11 @@ architecture rtl of Pgp4GtyUs is
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
-   signal phyTxActive    : sl;
-   signal phyTxStart     : sl;
-   signal phyTxData      : slv(63 downto 0);
-   signal phyTxHeader    : slv(1 downto 0);
-   signal phyTxFecByp    : sl;
+   signal phyTxActive : sl;
+   signal phyTxStart  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
+   signal phyTxFecByp : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
