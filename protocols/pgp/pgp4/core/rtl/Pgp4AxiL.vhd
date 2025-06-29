@@ -513,7 +513,7 @@ begin
          cntRstIn     => r.countReset,
          rollOverEnIn => (others => '0'),
          wrClk        => phyRxClk,
-         wrRst        => phyRxRst,
+         wrRst        => '0',           -- Don't clear counters on PHY RX reset
          rdClk        => axilClk,
          rdRst        => axilRst);
 
