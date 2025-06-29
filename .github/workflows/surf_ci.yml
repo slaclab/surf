@@ -67,9 +67,10 @@ jobs:
         run: |
           find . -name '*.h' -o -name '*.cpp' -o -name '*.c' | xargs cpplint
 
-      - name: VHDL Linter Checking
-        run: |
-          source scripts/vsg_linter.sh
+# Waiting for this issue to be resolved: https://github.com/jeremiah-c-leary/vhdl-style-guide/issues/1461
+#      - name: VHDL Linter Checking
+#        run: |
+#          source scripts/vsg_linter.sh
 
       - name: VHDL Regression Testing
         run: |
