@@ -730,9 +730,6 @@ architecture mapping of Pgp3GtyUsIpWrapper is
    signal rxUsrClkReset : sl := '0';
    signal txUsrClkReset : sl := '0';
 
-   signal rxFecSlip    : sl := '0';
-   signal rxFecLockInt : sl := '0';
-
    signal rxGearboxSlipInt : sl := '0';
    signal rxDataValidInt   : sl := '0';
    signal rxHeaderValidInt : sl := '0';
@@ -809,7 +806,7 @@ begin
             -- RX Control/Status
             rxBypassFec      => rxBypassFec,
             rxFecInjErr      => rxFecInjErr,
-            rxFecLock        => rxFecLockInt,
+            rxFecLock        => rxFecLock,
             rxFecCorInc      => rxFecCorInc,
             rxFecUnCorInc    => rxFecUnCorInc);
    end generate GEN_FEC;
