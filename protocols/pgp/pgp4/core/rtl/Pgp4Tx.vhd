@@ -33,7 +33,6 @@ entity Pgp4Tx is
       NUM_VC_G                 : integer range 1 to 16 := 1;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
       RX_CRC_PIPELINE_G        : natural range 0 to 1  := 0;
-      PGP_FEC_ENABLE_G         : boolean               := false;
       -- MUX configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -60,7 +59,6 @@ entity Pgp4Tx is
       phyTxReady  : in  sl;
       phyTxValid  : out sl;
       phyTxStart  : out sl;
-      phyTxFecCw  : out sl;
       phyTxData   : out slv(63 downto 0);
       phyTxHeader : out slv(1 downto 0));
 end entity Pgp4Tx;
@@ -85,16 +83,8 @@ architecture rtl of Pgp4Tx is
    signal protTxValid  : sl;
    signal protTxReady  : sl;
    signal protTxStart  : sl;
-   signal protTxFecCw  : sl;
    signal protTxData   : slv(63 downto 0);
    signal protTxHeader : slv(1 downto 0);
-
-   signal fecTxValid  : sl;
-   signal fecTxReady  : sl;
-   signal fecTxStart  : sl;
-   signal fecTxFecCw  : sl;
-   signal fecTxData   : slv(63 downto 0);
-   signal fecTxHeader : slv(1 downto 0);
 
 begin
 
@@ -221,7 +211,6 @@ begin
          TPD_G             => TPD_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
-         PGP_FEC_ENABLE_G  => PGP_FEC_ENABLE_G,
          NUM_VC_G          => NUM_VC_G)
       port map (
          pgpTxClk       => pgpTxClk,            -- [in]
@@ -237,7 +226,6 @@ begin
          protTxReady    => protTxReady,         -- [in]
          protTxValid    => protTxValid,         -- [out]
          protTxStart    => protTxStart,         -- [out]
-         protTxFecCw    => protTxFecCw,         -- [out]
          protTxData     => protTxData,          -- [out]
          protTxHeader   => protTxHeader);       -- [out]
 
@@ -257,50 +245,15 @@ begin
          inputValid                 => protTxValid,   -- [in]
          inputReady                 => protTxReady,   -- [out]
          inputData                  => protTxData,    -- [in]
-         inputBypass                => protTxFecCw,   -- [in]
          inputSideband(1 downto 0)  => protTxHeader,  -- [in]
          inputSideband(2)           => protTxStart,   -- [in]
          -- Output Interface
-         outputValid                => fecTxValid,    -- [out]
-         outputBypass               => fecTxFecCw,    -- [out]
-         outputReady                => fecTxReady,    -- [in]
-         outputData                 => fecTxData,     -- [out]
-         outputSideband(1 downto 0) => fecTxHeader,   -- [out]
-         outputSideband(2)          => fecTxStart);   -- [out]
+         outputValid                => phyTxValid,    -- [out]
+         outputReady                => phyTxReady,    -- [in]
+         outputData                 => phyTxData,     -- [out]
+         outputSideband(1 downto 0) => phyTxHeader,   -- [out]
+         outputSideband(2)          => phyTxStart);   -- [out]
 
    phyTxActiveL <= not(phyTxActive);
-
-   GEN_FEC : if (PGP_FEC_ENABLE_G) generate
-      U_Pgp4TxFecMarkers : entity surf.Pgp4TxFecMarkers
-         generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G)
-         port map (
-            pgpTxClk   => pgpTxClk,
-            pgpTxRst   => pgpTxRst,
-            -- Inbound Interface
-            ibTxValid  => fecTxValid,
-            ibTxReady  => fecTxReady,
-            ibTxData   => fecTxData,
-            ibTxHeader => fecTxHeader,
-            ibTxStart  => fecTxStart,
-            ibTxFecCw  => fecTxFecCw,
-            -- Inbound Interface
-            obTxValid  => phyTxValid,
-            obTxReady  => phyTxReady,
-            obTxData   => phyTxData,
-            obTxHeader => phyTxHeader,
-            obTxStart  => phyTxStart,
-            obTxFecCw  => phyTxFecCw);
-   end generate GEN_FEC;
-
-   NO_FEC : if (not PGP_FEC_ENABLE_G) generate
-      phyTxValid  <= fecTxValid;
-      fecTxReady  <= phyTxReady;
-      phyTxData   <= fecTxData;
-      phyTxHeader <= fecTxHeader;
-      phyTxStart  <= fecTxStart;
-      phyTxFecCw  <= '0';
-   end generate NO_FEC;
 
 end architecture rtl;

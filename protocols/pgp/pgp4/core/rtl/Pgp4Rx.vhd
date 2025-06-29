@@ -35,7 +35,6 @@ entity Pgp4Rx is
       SKIP_EN_G         : boolean               := true;  -- TRUE for Elastic Buffer
       LITE_EN_G         : boolean               := false;  -- TRUE: Lite does NOT support SOC/EOC
       RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
-      PGP_FEC_ENABLE_G  : boolean               := false;
       ALIGN_SLIP_WAIT_G : integer               := 32);
    port (
       -- User Transmit interface
@@ -57,7 +56,6 @@ entity Pgp4Rx is
       phyRxInit     : out sl;
       phyRxActive   : in  sl;
       phyRxValid    : in  sl;
-      phyRxFecCw    : in  sl := '0';
       phyRxHeader   : in  slv(1 downto 0);
       phyRxData     : in  slv(63 downto 0);
       phyRxStartSeq : in  sl;
@@ -106,7 +104,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         SLIP_WAIT_G    => ite(PGP_FEC_ENABLE_G, (3*81920), ALIGN_SLIP_WAIT_G))  -- PGP_FEC_ENABLE_G[TRUE]: Wait up to 3 x (FEC block alignment marker) cycle
+         SLIP_WAIT_G    => ALIGN_SLIP_WAIT_G)
       port map (
          clk           => phyRxClk,     -- [in]
          rst           => phyRxRst,     -- [in]
@@ -115,8 +113,8 @@ begin
          slip          => phyRxSlip,    -- [out]
          locked        => gearboxAligned);                      -- [out]
 
-   -- Unscramble the data for 64b66b and not a FEC code word
-   unscramblerValid <= gearboxAligned and phyRxValid and not phyRxFecCw;
+   -- Unscramble the data for 64b66b
+   unscramblerValid <= gearboxAligned and phyRxValid;
    U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,

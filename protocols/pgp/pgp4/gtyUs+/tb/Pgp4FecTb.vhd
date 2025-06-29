@@ -33,6 +33,8 @@ end entity Pgp4FecTb;
 
 architecture testbed of Pgp4FecTb is
 
+   constant BYP_MODE_C : sl := '0';
+
    constant TPD_C : time := 1 ns;
 
    constant PGP_CLK_PERIOD_C : time := 4 ns;
@@ -56,12 +58,12 @@ architecture testbed of Pgp4FecTb is
    signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal passed     : sl := '0';
-   signal failed     : sl := '0';
-   signal frameRxErr : sl := '0';
-   signal updated    : sl := '0';
-   signal errorDet   : sl := '0';
-   signal cnt        : slv(31 downto 0);
+   signal passed     : sl               := '0';
+   signal failed     : sl               := '0';
+   signal frameRxErr : sl               := '0';
+   signal updated    : sl               := '0';
+   signal errorDet   : sl               := '0';
+   signal cnt        : slv(31 downto 0) := (others => '0');
 
    signal pgpClk  : sl := '0';
    signal pgpRst  : sl := '1';
@@ -70,23 +72,22 @@ architecture testbed of Pgp4FecTb is
    signal locClk : sl := '0';
    signal locRst : sl := '1';
 
-   signal txFecCw     : sl := '0';
-   signal txHeader    : slv(1 downto 0);
-   signal txData      : slv(63 downto 0);
-   signal txFecLock   : sl := '0';
-   signal txFecInjErr : sl := '0';
+   signal txHeader : slv(1 downto 0)  := (others => '0');
+   signal txData   : slv(63 downto 0) := (others => '0');
 
-   signal loopbackHeader : slv(1 downto 0);
-   signal loopbackData   : slv(63 downto 0);
+   signal loopbackHeader : slv(1 downto 0)  := (others => '0');
+   signal loopbackData   : slv(63 downto 0) := (others => '0');
 
-   signal rxFecCw       : sl              := '0';
-   signal rxHeader      : slv(1 downto 0);
-   signal rxData        : slv(63 downto 0);
-   signal rxFecLock     : sl              := '0';
-   signal rxFecCorInc   : sl              := '0';
-   signal rxFecUnCorInc : sl              := '0';
-   signal rxFecCwInc    : sl              := '0';
-   signal rxFecErrCnt   : slv(2 downto 0) := (others => '0');
+   signal rxValid  : sl               := '0';
+   signal rxHeader : slv(1 downto 0)  := (others => '0');
+   signal rxData   : slv(63 downto 0) := (others => '0');
+
+   signal rxFecLock     : sl := '0';
+   signal rxFecCorInc   : sl := '0';
+   signal rxFecUnCorInc : sl := '0';
+
+   signal rxFecInjErr : sl               := '0';
+   signal injErrCnt   : slv(11 downto 0) := (others => '1');
 
 begin
 
@@ -117,27 +118,20 @@ begin
          MASTER_AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C)
       port map (
          -- Master Port (mAxisClk)
-         mAxisClk    => pgpClk,
-         mAxisRst    => pgpRst,
-         mAxisMaster => pgpTxMaster,
-         mAxisSlave  => pgpTxSlave,
+         mAxisClk     => pgpClk,
+         mAxisRst     => pgpRst,
+         mAxisMaster  => pgpTxMaster,
+         mAxisSlave   => pgpTxSlave,
          -- Trigger Signal (locClk domain)
-         locClk      => pgpClk,
-         locRst      => pgpRst,
-
-
-
-         -- trig         => pgpRxOut.linkReady,
-         trig => '0',
-
-
+         locClk       => pgpClk,
+         locRst       => pgpRst,
+         trig         => pgpRxOut.linkReady,
          packetLength => TX_PACKET_LENGTH_C);
 
    U_DUT : entity surf.Pgp4Core
       generic map (
          TPD_G             => TPD_C,
          NUM_VC_G          => 1,
-         PGP_FEC_ENABLE_G  => true,
          RX_CRC_PIPELINE_G => 1,
          EN_PGP_MON_G      => false)
       port map (
@@ -154,7 +148,6 @@ begin
          phyTxValid      => open,
          phyTxData       => txData,
          phyTxHeader     => txHeader,
-         phyTxFecCw      => txFecCw,
          -- Rx User interface
          pgpRxClk        => pgpClk,
          pgpRxRst        => pgpRst,
@@ -167,8 +160,7 @@ begin
          phyRxRst        => pgpRst,
          phyRxActive     => '1',
          phyRxStartSeq   => '0',
-         phyRxValid      => '1',
-         phyRxFecCw      => rxFecCw,
+         phyRxValid      => rxValid,
          phyRxData       => rxData,
          phyRxHeader     => rxHeader);
 
@@ -177,28 +169,56 @@ begin
          TPD_G => TPD_C)
       port map (
          -- TX Interface
-         txClk         => pgpClk,
-         txRstL        => pgpRstL,
-         txFecCw       => txFecCw,
-         txHeaderIn    => txHeader,
-         txDataIn      => txData,
-         txHeaderOut   => loopbackHeader,
-         txDataOut     => loopbackData,
-         txFecInjErr   => txFecInjErr,
-         txFecLock     => txFecLock,
+         txClk            => pgpClk,
+         txRst            => pgpRst,
+         txHeaderIn       => txHeader,
+         txDataIn         => txData,
+         txHeaderOut      => loopbackHeader,
+         txDataOut        => loopbackData,
+         -- TX Control
+         txBypassFec      => BYP_MODE_C,
          -- RX Interface
-         rxClk         => pgpClk,
-         rxRstL        => pgpRstL,
-         rxFecCw       => rxFecCw,
-         rxHeaderIn    => loopbackHeader,
-         rxDataIn      => loopbackData,
-         rxHeaderOut   => rxHeader,
-         rxDataOut     => rxData,
-         rxFecLock     => rxFecLock,
-         rxFecCorInc   => rxFecCorInc,
-         rxFecUnCorInc => rxFecUnCorInc,
-         rxFecCwInc    => rxFecCwInc,
-         rxFecErrCnt   => rxFecErrCnt);
+         rxClk            => pgpClk,
+         rxRst            => pgpRst,
+         rxHeaderIn       => loopbackHeader,
+         rxDataIn         => loopbackData,
+         rxDataValidIn    => '1',
+         rxHeaderValidIn  => '1',
+         rxGearboxSlipIn  => '0',
+         rxHeaderOut      => rxHeader,
+         rxDataOut        => rxData,
+         rxDataValidOut   => rxValid,
+         rxHeaderValidOut => open,
+         rxGearboxSlipOut => open,
+         -- RX Control/Status
+         rxBypassFec      => BYP_MODE_C,
+         rxFecInjErr      => rxFecInjErr,
+         rxFecLock        => rxFecLock,
+         rxFecCorInc      => rxFecCorInc,
+         rxFecUnCorInc    => rxFecUnCorInc);
+
+   process(pgpClk)
+   begin
+      if rising_edge(pgpClk) then
+
+         -- Reset the flag
+         rxFecInjErr <= '0' after TPD_C;
+
+         -- Decrement the counter
+         injErrCnt <= injErrCnt - 1 after TPD_C;
+
+         -- Check for reset of bypass FEC mode
+         if (locRst = '1') or (BYP_MODE_C = '1') then
+            -- Reset the counter
+            injErrCnt <= (others => '1') after TPD_C;
+
+         -- Check if we need to inject a bit error
+         elsif (injErrCnt = 0) then
+            rxFecInjErr <= '1' after TPD_C;
+         end if;
+
+      end if;
+   end process;
 
    U_Rx_Fifo : entity surf.PgpRxVcFifo
       generic map (

@@ -29,70 +29,67 @@ entity Pgp4GtyUsIpFecWrapper is
       RST_ASYNC_G : boolean := false);
    port (
       -- TX Interface
-      txClk         : in  sl;
-      txRstL        : in  sl;
-      txFecCw       : in  sl;
-      txHeaderIn    : in  slv(1 downto 0);
-      txDataIn      : in  slv(63 downto 0);
-      txHeaderOut   : out slv(1 downto 0);
-      txDataOut     : out slv(63 downto 0);
-      txFecInjErr   : in  sl;
-      txFecLock     : out sl;
+      txClk            : in  sl;
+      txRst            : in  sl;
+      txHeaderIn       : in  slv(1 downto 0);
+      txDataIn         : in  slv(63 downto 0);
+      txHeaderOut      : out slv(1 downto 0);
+      txDataOut        : out slv(63 downto 0);
+      -- TX Control
+      txBypassFec      : in  sl;
       -- RX Interface
-      rxClk         : in  sl;
-      rxRstL        : in  sl;
-      rxFecCw       : out sl;
-      rxHeaderIn    : in  slv(1 downto 0);
-      rxDataIn      : in  slv(63 downto 0);
-      rxHeaderOut   : out slv(1 downto 0);
-      rxDataOut     : out slv(63 downto 0);
-      rxFecLock     : out sl;
-      rxFecCorInc   : out sl;
-      rxFecUnCorInc : out sl;
-      rxFecCwInc    : out sl;
-      rxFecErrCnt   : out slv(2 downto 0));
+      rxClk            : in  sl;
+      rxRst            : in  sl;
+      rxHeaderIn       : in  slv(1 downto 0);
+      rxDataIn         : in  slv(63 downto 0);
+      rxDataValidIn    : in  sl;
+      rxHeaderValidIn  : in  sl;
+      rxGearboxSlipIn  : in  sl;
+      rxHeaderOut      : out slv(1 downto 0);
+      rxDataOut        : out slv(63 downto 0);
+      rxDataValidOut   : out sl;
+      rxHeaderValidOut : out sl;
+      rxGearboxSlipOut : out sl;
+      -- RX Control/Status
+      rxBypassFec      : in  sl;
+      rxFecInjErr      : in  sl;
+      rxFecLock        : out sl;
+      rxFecCorInc      : out sl;
+      rxFecUnCorInc    : out sl);
 end entity Pgp4GtyUsIpFecWrapper;
 
 architecture mapping of Pgp4GtyUsIpFecWrapper is
 
    component Pgp4GtyUsIpFec
       port (
-         tx_clk                           : in  std_logic;
-         tx_resetn                        : in  std_logic;
-         rx_clk                           : in  std_logic;
-         rx_resetn                        : in  std_logic;
-         consortium_25g                   : in  std_logic;
-         tx_pcs_data                      : in  std_logic_vector(65 downto 0);
-         rx_pcs_data                      : out std_logic_vector(65 downto 0);
-         rx_serdes_data                   : in  std_logic_vector(65 downto 0);
-         tx_serdes_data                   : out std_logic_vector(65 downto 0);
-         tx_cwm_flag                      : in  std_logic;
-         rx_cwm_flag                      : out std_logic;
-         fec_bypass_correction_enable     : in  std_logic;
-         fec_bypass_indication_enable     : in  std_logic;
-         fec_enable                       : in  std_logic;
-         fec_ieee_error_indication_enable : in  std_logic;
-         rx_hi_ser                        : out std_logic;
-         rx_corrected_cw_inc              : out std_logic;
-         rx_uncorrected_cw_inc            : out std_logic;
-         rx_cw_inc                        : out std_logic;
-         rx_symbol_error_count_inc        : out std_logic_vector(2 downto 0);
-         tx_align_status                  : out std_logic;
-         rx_align_status                  : out std_logic;
-         rx_ts_1588_in                    : in  std_logic_vector(79 downto 0);
-         rx_ts_1588_out                   : out std_logic_vector(79 downto 0)
+         tx_clk                 : in  std_logic;
+         tx_reset               : in  std_logic;
+         rx_clk                 : in  std_logic;
+         rx_reset               : in  std_logic;
+         tx_din                 : in  std_logic_vector(65 downto 0);
+         tx_din_start           : in  std_logic;
+         tx_dout                : out std_logic_vector(65 downto 0);
+         tx_dout_start          : out std_logic;
+         rx_din                 : in  std_logic_vector(65 downto 0);
+         rx_din_slip            : out std_logic;
+         rx_dout                : out std_logic_vector(65 downto 0);
+         rx_dout_start          : out std_logic;
+         ctrl_rx_header_mark    : in  std_logic_vector(31 downto 0);
+         ctrl_rx_indication_en  : in  std_logic;
+         stat_rx_aligned        : out std_logic;
+         stat_rx_cw_uncorrected : out std_logic;
+         stat_rx_cw_corrected   : out std_logic;
+         stat_rx_cw_inc         : out std_logic
          );
    end component;
 
    type TxRegType is record
-      fecTxCw      : sl;
       fecTxPcsData : slv(65 downto 0);
       txDataOut    : slv(63 downto 0);
       txHeaderOut  : slv(1 downto 0);
    end record TxRegType;
 
    constant TX_REG_INIT_C : TxRegType := (
-      fecTxCw      => '0',
       fecTxPcsData => (others => '0'),
       txDataOut    => (others => '0'),
       txHeaderOut  => (others => '0'));
@@ -101,19 +98,23 @@ architecture mapping of Pgp4GtyUsIpFecWrapper is
    signal txRin : TxRegType;
 
    type RxRegType is record
-      fecRxSerdesData : slv(65 downto 0);
-      rxFecCw         : sl;
-      rxFecLock       : sl;
-      rxDataOut       : slv(63 downto 0);
-      rxHeaderOut     : slv(1 downto 0);
+      fecRxSerdesData  : slv(65 downto 0);
+      rxFecLock        : sl;
+      rxDataValidOut   : sl;
+      rxHeaderValidOut : sl;
+      rxGearboxSlipOut : sl;
+      rxDataOut        : slv(63 downto 0);
+      rxHeaderOut      : slv(1 downto 0);
    end record RxRegType;
 
    constant RX_REG_INIT_C : RxRegType := (
-      fecRxSerdesData => (others => '0'),
-      rxFecCw         => '0',
-      rxFecLock       => '0',
-      rxDataOut       => (others => '0'),
-      rxHeaderOut     => (others => '0'));
+      fecRxSerdesData  => (others => '0'),
+      rxFecLock        => '0',
+      rxDataValidOut   => '0',
+      rxHeaderValidOut => '0',
+      rxGearboxSlipOut => '0',
+      rxDataOut        => (others => '0'),
+      rxHeaderOut      => (others => '0'));
 
    signal rxR   : RxRegType := RX_REG_INIT_C;
    signal rxRin : RxRegType;
@@ -124,50 +125,39 @@ architecture mapping of Pgp4GtyUsIpFecWrapper is
    signal fecTxSerdesData : slv(65 downto 0);
    signal fecRxSerdesData : slv(65 downto 0);
 
-   signal fecTxCw : sl;
-   signal fecRxCw : sl;
-
    signal rxAligned : sl;
+   signal rxFecSlip : sl;
 
 begin
 
    U_FEC : Pgp4GtyUsIpFec
       port map (
          -- Clocks and resets
-         tx_clk                           => txClk,
-         tx_resetn                        => txRstL,
-         rx_clk                           => rxClk,
-         rx_resetn                        => rxRstL,
+         tx_clk                 => txClk,
+         tx_reset               => txRst,
+         rx_clk                 => rxClk,
+         rx_reset               => rxRst,
          -- PCS Interface Data
-         tx_pcs_data                      => fecTxPcsData,
-         rx_pcs_data                      => fecRxPcsData,
+         tx_din                 => fecTxPcsData,
+         tx_din_start           => '0',  -- The use of the tx_din_start port is optional. If this port is not used (tied Low)
+         rx_dout                => fecRxPcsData,
+         rx_dout_start          => open,
          -- PMA Interface Data
-         tx_serdes_data                   => fecTxSerdesData,
-         rx_serdes_data                   => fecRxSerdesData,
-         -- Broadside control and status bus
-         fec_bypass_correction_enable     => '1',
-         fec_bypass_indication_enable     => '0',
-         fec_enable                       => '1',
-         fec_ieee_error_indication_enable => '0',
-         consortium_25g                   => '0',
-         -- hi_ser
-         rx_hi_ser                        => open,
-         -- alignment status
-         tx_align_status                  => txFecLock,
-         rx_align_status                  => rxAligned,
-         -- correction flags
-         rx_corrected_cw_inc              => rxFecCorInc,
-         rx_uncorrected_cw_inc            => rxFecUnCorInc,
-         rx_cw_inc                        => rxFecCwInc,
-         rx_symbol_error_count_inc        => rxFecErrCnt,  -- TODO: Add this to status monitoring
-         -- alginment flags to and from the XXVMAC
-         tx_cwm_flag                      => fecTxCw,
-         rx_cwm_flag                      => fecRxCw,
-         rx_ts_1588_in                    => x"00000000000000000000",
-         rx_ts_1588_out                   => open);
+         tx_dout                => fecTxSerdesData,
+         tx_dout_start          => open,
+         rx_din                 => fecRxSerdesData,
+         rx_din_slip            => rxFecSlip,
+         -- Control Interface - The ctrl_rx_indication_en and ctrl_rx_header_mark[31:0] signals can be tied to all-zero if not required.
+         ctrl_rx_header_mark    => x"0000_0000",
+         ctrl_rx_indication_en  => '0',
+         -- Status Interface
+         stat_rx_aligned        => rxAligned,
+         stat_rx_cw_corrected   => rxFecCorInc,
+         stat_rx_cw_uncorrected => rxFecUnCorInc,
+         stat_rx_cw_inc         => open);
 
-   txComb : process (fecTxSerdesData, txDataIn, txFecCw, txFecInjErr,
-                     txHeaderIn, txR, txRstL) is
+   txComb : process (fecTxSerdesData, txBypassFec, txDataIn, txHeaderIn, txR,
+                     txRst) is
       variable v : TxRegType;
 
    begin
@@ -175,27 +165,26 @@ begin
       v := txR;
 
       -- Register and remap PCS stream
-      v.fecTxCw                   := txFecCw;
       v.fecTxPcsData(65 downto 2) := txDataIn;
-      v.fecTxPcsData(1 downto 0)  := bitReverse(txHeaderIn);
+      v.fecTxPcsData(1 downto 0)  := txHeaderIn;
 
       -- Register and remap SERDES stream
-      v.txDataOut   := bitReverse(fecTxSerdesData(65 downto 2));
-      v.txHeaderOut := bitReverse(fecTxSerdesData(1 downto 0));
-
-      -- Check if need are injecting a bit error
-      if (txFecInjErr = '1') then
-         v.txHeaderOut(0) := not(v.txHeaderOut(0));
+      if (txBypassFec = '0') then
+         v.txDataOut   := fecTxSerdesData(65 downto 2);
+         v.txHeaderOut := fecTxSerdesData(1 downto 0);
+      else
+         -- Bypass FEC mode
+         v.txDataOut   := txDataIn;
+         v.txHeaderOut := txHeaderIn;
       end if;
 
       -- Outputs
-      fecTxCw      <= txR.fecTxCw;
       fecTxPcsData <= txR.fecTxPcsData;
       txDataOut    <= txR.txDataOut;
       txHeaderOut  <= txR.txHeaderOut;
 
       -- Reset
-      if (RST_ASYNC_G = false and txRstL = '0') then
+      if (RST_ASYNC_G = false and txRst = '1') then
          v := TX_REG_INIT_C;
       end if;
 
@@ -204,17 +193,18 @@ begin
 
    end process txComb;
 
-   txSeq : process (txClk, txRstL) is
+   txSeq : process (txClk, txRst) is
    begin
-      if (RST_ASYNC_G) and (txRstL = '0') then
+      if (RST_ASYNC_G) and (txRst = '1') then
          txR <= TX_REG_INIT_C after TPD_G;
       elsif rising_edge(txClk) then
          txR <= txRin after TPD_G;
       end if;
    end process txSeq;
 
-   rxComb : process (fecRxCw, fecRxPcsData, rxAligned, rxDataIn, rxHeaderIn,
-                     rxR, rxRstL) is
+   rxComb : process (fecRxPcsData, rxAligned, rxBypassFec, rxDataIn,
+                     rxDataValidIn, rxFecInjErr, rxFecSlip, rxGearboxSlipIn,
+                     rxHeaderIn, rxHeaderValidIn, rxR, rxRst) is
       variable v : RxRegType;
 
    begin
@@ -222,29 +212,42 @@ begin
       v := rxR;
 
       -- Register and remap SERDES stream
-      v.fecRxSerdesData(65 downto 2) := bitReverse(rxDataIn);
-      v.fecRxSerdesData(1 downto 0)  := bitReverse(rxHeaderIn);
+      v.fecRxSerdesData(65 downto 2) := rxDataIn;
+      v.fecRxSerdesData(1 downto 0)  := rxHeaderIn;
+
+      -- Check if need are injecting a bit error
+      if (rxFecInjErr = '1') then
+         v.fecRxSerdesData(0) := not(v.fecRxSerdesData(0));
+      end if;
 
       -- Register and remap PCS stream
-      v.rxFecCw   := fecRxCw;
       v.rxFecLock := rxAligned;
-      v.rxDataOut := fecRxPcsData(65 downto 2);
-      if (rxAligned = '1') then
-         v.rxHeaderOut := bitReverse(fecRxPcsData(1 downto 0));
+      if (rxBypassFec = '0') then
+         v.rxDataOut        := fecRxPcsData(65 downto 2);
+         v.rxHeaderOut      := fecRxPcsData(1 downto 0);
+         v.rxGearboxSlipOut := rxFecSlip;
+         v.rxDataValidOut   := rxAligned;
+         v.rxHeaderValidOut := rxAligned;
       else
-         -- Force PgpRxGearboxAligner to send slips when FEC is not locked
-         v.rxHeaderOut := "00";
+         -- Bypass FEC mode
+         v.rxDataOut        := rxDataIn;
+         v.rxHeaderOut      := rxHeaderIn;
+         v.rxGearboxSlipOut := rxGearboxSlipIn;
+         v.rxDataValidOut   := rxDataValidIn;
+         v.rxHeaderValidOut := rxHeaderValidIn;
       end if;
 
       -- Outputs
-      fecRxSerdesData <= rxR.fecRxSerdesData;
-      rxFecCw         <= rxR.rxFecCw;
-      rxFecLock       <= rxR.rxFecLock;
-      rxDataOut       <= rxR.rxDataOut;
-      rxHeaderOut     <= rxR.rxHeaderOut;
+      fecRxSerdesData  <= rxR.fecRxSerdesData;
+      rxFecLock        <= rxR.rxFecLock;
+      rxDataOut        <= rxR.rxDataOut;
+      rxHeaderOut      <= rxR.rxHeaderOut;
+      rxGearboxSlipOut <= rxR.rxGearboxSlipOut;
+      rxDataValidOut   <= rxR.rxDataValidOut;
+      rxHeaderValidOut <= rxR.rxHeaderValidOut;
 
       -- Reset
-      if (RST_ASYNC_G = false and rxRstL = '0') then
+      if (RST_ASYNC_G = false and rxRst = '1') then
          v := RX_REG_INIT_C;
       end if;
 
@@ -253,9 +256,9 @@ begin
 
    end process rxComb;
 
-   rxSeq : process (rxClk, rxRstL) is
+   rxSeq : process (rxClk, rxRst) is
    begin
-      if (RST_ASYNC_G) and (rxRstL = '0') then
+      if (RST_ASYNC_G) and (rxRst = '1') then
          rxR <= RX_REG_INIT_C after TPD_G;
       elsif rising_edge(rxClk) then
          rxR <= rxRin after TPD_G;
