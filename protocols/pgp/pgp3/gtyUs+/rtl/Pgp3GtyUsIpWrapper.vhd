@@ -742,8 +742,8 @@ architecture mapping of Pgp3GtyUsIpWrapper is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"))
-      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps, 25.78125Gbps]"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"))
+      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps, 25.0Gbps]"
       severity error;
 
    rxUsrClk2      <= rxUsrClk2Int;
@@ -825,7 +825,7 @@ begin
 
    end generate NO_FEC;
 
-   GEN_25G : if (RATE_G = "25.625Gbps") generate
+   GEN_25G : if (RATE_G = "25.0Gbps") generate
       U_Pgp3GtyUsIp : Pgp3GtyUsIp25G
          port map (
             gtwiz_userclk_tx_reset_in(0)          => txReset,
