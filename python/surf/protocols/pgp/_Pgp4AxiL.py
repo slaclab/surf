@@ -127,6 +127,15 @@ class Pgp4AxiLCtrl(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name      = 'BypassFec',
+            offset    = 0x00C,
+            bitOffset = 7,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'TxDiffCtrl',
             mode         = mode,
             offset       = 0x00C,
@@ -140,24 +149,6 @@ class Pgp4AxiLCtrl(pr.Device):
             offset       = 0x00C,
             bitOffset    = 16,
             bitSize      = 5,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'TxFecBypass',
-            offset    = 0x00C,
-            bitOffset = 22,
-            bitSize   = 1,
-            base      = pr.Bool,
-            mode      = mode,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'RxFecBypass',
-            offset    = 0x00C,
-            bitOffset = 23,
-            bitSize   = 1,
-            base      = pr.Bool,
-            mode      = mode,
         ))
 
         self.add(pr.RemoteVariable(

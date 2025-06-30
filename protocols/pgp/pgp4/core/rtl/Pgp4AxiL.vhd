@@ -86,8 +86,6 @@ architecture mapping of Pgp4AxiL is
    constant TX_ERROR_CNT_SIZE_C  : integer := 3;
 
    type RegType is record
-      phyTxFecByp    : sl;
-      phyRxFecByp    : sl;
       phyRxFecInjErr : sl;
       txPolarity     : sl;
       rxPolarity     : sl;
@@ -98,6 +96,7 @@ architecture mapping of Pgp4AxiL is
       txDisable      : sl;
       resetTx        : sl;
       resetRx        : sl;
+      bypassFec      : sl;
       txDiffCtrl     : slv(4 downto 0);
       txPreCursor    : slv(4 downto 0);
       txPostCursor   : slv(4 downto 0);
@@ -106,8 +105,6 @@ architecture mapping of Pgp4AxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      phyTxFecByp    => ite(PGP_FEC_ENABLE_G, '0', '1'),
-      phyRxFecByp    => ite(PGP_FEC_ENABLE_G, '0', '1'),
       phyRxFecInjErr => '0',
       txPolarity     => TX_POLARITY_G,
       rxPolarity     => RX_POLARITY_G,
@@ -118,6 +115,7 @@ architecture mapping of Pgp4AxiL is
       txDisable      => PGP4_TX_IN_INIT_C.disable,
       resetTx        => PGP4_TX_IN_INIT_C.resetTx,
       resetRx        => PGP4_RX_IN_INIT_C.resetRx,
+      bypassFec      => ite(PGP_FEC_ENABLE_G, '0', '1'),
       txDiffCtrl     => (others => '1'),
       txPreCursor    => "00111",
       txPostCursor   => "00111",
@@ -225,10 +223,13 @@ begin
          axiSlaveRegister (axilEp, x"00C", 4, v.txDisable);
          axiSlaveRegister (axilEp, x"00C", 5, v.resetTx);
          axiSlaveRegister (axilEp, x"00C", 6, v.resetRx);
+         if PGP_FEC_ENABLE_G then
+            axiSlaveRegister (axilEp, x"00C", 7, v.bypassFec);
+         else
+            axiSlaveRegisterR(axilEp, x"00C", 7, r.bypassFec);
+         end if;
          axiSlaveRegister (axilEp, x"00C", 8, v.txDiffCtrl);
          axiSlaveRegister (axilEp, x"00C", 16, v.txPreCursor);
-         axiSlaveRegister (axilEp, x"00C", 22, v.phyTxFecByp);
-         axiSlaveRegister (axilEp, x"00C", 23, v.phyRxFecByp);
          axiSlaveRegister (axilEp, x"00C", 24, v.txPostCursor);
          axiSlaveRegister (axilEp, x"00C", 30, v.txPolarity);
          axiSlaveRegister (axilEp, x"00C", 31, v.rxPolarity);
@@ -242,15 +243,13 @@ begin
          axiSlaveRegisterR(axilEp, x"00C", 4, r.txDisable);
          axiSlaveRegisterR(axilEp, x"00C", 5, r.resetTx);
          axiSlaveRegisterR(axilEp, x"00C", 6, r.resetRx);
+         axiSlaveRegisterR(axilEp, x"00C", 7, r.bypassFec);
          axiSlaveRegisterR(axilEp, x"00C", 8, r.txDiffCtrl);
          axiSlaveRegisterR(axilEp, x"00C", 16, r.txPreCursor);
-         axiSlaveRegisterR(axilEp, x"00C", 22, r.phyTxFecByp);
-         axiSlaveRegisterR(axilEp, x"00C", 23, r.phyRxFecByp);
          axiSlaveRegisterR(axilEp, x"00C", 24, r.txPostCursor);
          axiSlaveRegisterR(axilEp, x"00C", 30, r.txPolarity);
          axiSlaveRegisterR(axilEp, x"00C", 31, r.rxPolarity);
       end if;
-
 
       ----------------------------------------------------------------------------------------------
       -- RX Status: Offset = 0x400 in SW
@@ -485,7 +484,7 @@ begin
          RST_ASYNC_G => RST_ASYNC_G)
       port map (
          clk     => phyRxClk,
-         dataIn  => r.phyRxFecByp,
+         dataIn  => r.bypassFec,
          dataOut => phyRxFecByp);
 
    U_phyRxFecInjErr : entity surf.SynchronizerOneShot
@@ -555,7 +554,7 @@ begin
          dataIn(0)  => r.flowCntlDis,
          dataIn(1)  => r.txDisable,
          dataIn(2)  => r.resetTx,
-         dataIn(3)  => r.phyTxFecByp,
+         dataIn(3)  => r.bypassFec,
          dataOut(0) => flowCntlDis,
          dataOut(1) => txDisable,
          dataOut(2) => resetTx,
