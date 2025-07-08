@@ -40,7 +40,7 @@ architecture mapping of FifoTbSubModule is
    signal wrEn      : sl := '0';
    signal aFull     : sl := '0';
    signal valid     : sl := '0';
-   signal rdE       : sl := '0';
+   signal rdEn      : sl := '0';
    signal passedDet : sl := '0';
    signal failedDet : sl := '0';
    signal ready     : sl := '0';

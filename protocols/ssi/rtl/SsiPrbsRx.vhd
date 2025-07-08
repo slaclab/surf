@@ -277,7 +277,6 @@ begin
          dataOut => bypCheck);
 
    comb : process (bypCheck, r, rxAxisMaster, sAxisRst, txAxisSlave) is
-      variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
@@ -371,7 +370,10 @@ begin
                      v.state := LENGTH_S;
 
                   end if;
-
+               else
+                  -- Set the error flags for missing SOF and not bypCheck
+                  v.errorDet       := not (bypCheck);
+                  v.updatedResults := not (bypCheck);
                end if;
             end if;
          ----------------------------------------------------------------------

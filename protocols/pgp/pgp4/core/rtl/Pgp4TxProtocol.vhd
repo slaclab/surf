@@ -31,10 +31,11 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4TxProtocol is
    generic (
-      TPD_G          : time                  := 1 ns;
-      RST_ASYNC_G    : boolean               := false;
-      NUM_VC_G       : integer range 1 to 16 := 4;
-      STARTUP_HOLD_G : integer               := 1000);
+      TPD_G             : time                  := 1 ns;
+      RST_ASYNC_G       : boolean               := false;
+      NUM_VC_G          : integer range 1 to 16 := 4;
+      RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
+      STARTUP_HOLD_G    : integer               := 1000);
    port (
       -- User Transmit interface
       pgpTxClk       : in  sl;
@@ -70,6 +71,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          : slv(31 downto 0);
       startupCount      : integer;
       pgpTxSlave        : AxiStreamSlaveType;
+      forceIdle         : slv(1 downto 0);
       opCodeReady       : sl;
       linkReady         : sl;
       frameTx           : sl;
@@ -91,6 +93,7 @@ architecture rtl of Pgp4TxProtocol is
       skpCount          => (others => '0'),
       startupCount      => 0,
       pgpTxSlave        => AXI_STREAM_SLAVE_INIT_C,
+      forceIdle         => (others => '0'),
       opCodeReady       => '0',
       linkReady         => '0',
       frameTx           => '0',
@@ -248,6 +251,11 @@ begin
             end if;
          end if;
 
+         -- Check if need to make a two cycle gap after EOF/EOC starting in the next cycle
+         if (RX_CRC_PIPELINE_G = 1) and (r.protTxHeader = PGP4_K_HEADER_C) and ((r.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOF_C) or (r.protTxData(PGP4_BTF_FIELD_C) = PGP4_EOC_C)) then
+            v.forceIdle := "11";
+         end if;
+
          --------------------------------------------------------------------
          --                   Commands and Metadata                        --
          --------------------------------------------------------------------
@@ -279,6 +287,18 @@ begin
             v.protTxData(PGP4_BTF_FIELD_C)       := PGP4_SKP_C;
             v.protTxHeader                       := PGP4_K_HEADER_C;
             resetEventMetaData                   := false;
+
+         -- (RX_CRC_PIPELINE_G=1) and new to send a IDLE
+         elsif (RX_CRC_PIPELINE_G = 1) and (r.forceIdle /= 0) then
+
+            -- Update shift reg
+            v.forceIdle := r.forceIdle(0) & '0';
+
+            -- Send IDLE k-code to support large gap between depacketizer with CRC_LATENCY_G=1)
+            v.pgpTxSlave.tReady := '0';
+            v.protTxData        := idleWord;
+            v.protTxHeader      := PGP4_K_HEADER_C;
+            resetEventMetaData  := true;
 
          else
 

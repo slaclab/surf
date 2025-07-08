@@ -720,59 +720,59 @@ class PhantomS641(pr.Device):
             },
         ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'UserSerialTxReg',
-            description  = 'FOR User Serial Rx/Tx',
-            offset       = 0x8148,
-            base         = pr.UIntBE,
-            mode         = 'RW',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'UserSerialTxReg',
+            # description  = 'FOR User Serial Rx/Tx',
+            # offset       = 0x8148,
+            # base         = pr.UIntBE,
+            # mode         = 'RW',
+            # hidden       = True,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'UserSerialRxReg',
-            description  = 'FOR User Serial Rx/Tx',
-            offset       = 0x8154,
-            base         = pr.UIntBE,
-            mode         = 'RO',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'UserSerialRxReg',
+            # description  = 'FOR User Serial Rx/Tx',
+            # offset       = 0x8154,
+            # base         = pr.UIntBE,
+            # mode         = 'RO',
+            # hidden       = True,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'UserSerialBaudRateReg',
-            description  = 'FOR User Serial Rx/Tx',
-            offset       = 0x8164,
-            base         = pr.UIntBE,
-            mode         = 'RW',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'UserSerialBaudRateReg',
+            # description  = 'FOR User Serial Rx/Tx',
+            # offset       = 0x8164,
+            # base         = pr.UIntBE,
+            # mode         = 'RW',
+            # hidden       = True,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'FactorySerialTxReg',
-            description  = 'FOR Factory Serial Rx/Tx',
-            offset       = 0x8140,
-            base         = pr.UIntBE,
-            mode         = 'RW',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'FactorySerialTxReg',
+            # description  = 'FOR Factory Serial Rx/Tx',
+            # offset       = 0x8140,
+            # base         = pr.UIntBE,
+            # mode         = 'RW',
+            # hidden       = True,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'FactorySerialRxReg',
-            description  = 'FOR Factory Serial Rx/Tx',
-            offset       = 0x8144,
-            base         = pr.UIntBE,
-            mode         = 'RO',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'FactorySerialRxReg',
+            # description  = 'FOR Factory Serial Rx/Tx',
+            # offset       = 0x8144,
+            # base         = pr.UIntBE,
+            # mode         = 'RO',
+            # hidden       = True,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name         = 'FactorySerialUpdateReg',
-            description  = 'FOR Factory Serial Rx/Tx',
-            offset       = 0x8130,
-            base         = pr.UIntBE,
-            mode         = 'RW',
-            hidden       = True,
-        ))
+        # self.add(pr.RemoteVariable(
+            # name         = 'FactorySerialUpdateReg',
+            # description  = 'FOR Factory Serial Rx/Tx',
+            # offset       = 0x8130,
+            # base         = pr.UIntBE,
+            # mode         = 'RW',
+            # hidden       = True,
+        # ))
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceFeaturesMaskReg',
