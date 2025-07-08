@@ -165,13 +165,13 @@ architecture rtl of AxiStreamPacketizer2 is
 begin
 
    assert ((MAX_PACKET_BYTES_G rem WORD_SIZE_C) = 0)
-      report "MAX_PACKET_BYTES_G must be a multiple of " & integer'image(WORD_SIZE_C) severity error;
+      report "MAX_PACKET_BYTES_G must be a multiple of " & integer'image(WORD_SIZE_C) severity failure;
 
    assert ((CRC_MODE_G = "NONE") or (CRC_MODE_G = "DATA") or (CRC_MODE_G = "FULL"))
-      report "CRC_MODE_G must be NONE or DATA or FULL" severity error;
+      report "CRC_MODE_G must be NONE or DATA or FULL" severity failure;
 
    assert (TDEST_BITS_G <= 8)
-      report "TDEST_BITS_G must be less than or equal to 8" severity error;
+      report "TDEST_BITS_G must be less than or equal to 8" severity failure;
 
    maxWords <= WordCounterType(maxPktBytes(maxPktBytes'left downto LD_WORD_SIZE_C));
 

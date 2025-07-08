@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
@@ -43,10 +42,10 @@ architecture testbed of AxiRamTb is
    signal rst  : sl := '0';
    signal rstL : sl := '1';
 
-   signal memReady    : sl := '0';
-   signal memError    : sl := '0';
-   signal memReadyDly : sl := '0';
-   signal memErrorDly : sl := '0';
+   signal memReady : sl := '0';
+   signal memError : sl := '0';
+   signal passed   : sl := '0';
+   signal failed   : sl := '0';
 
    signal axiWriteMaster : AxiWriteMasterType := AXI_WRITE_MASTER_INIT_C;
    signal axiWriteSlave  : AxiWriteSlaveType  := AXI_WRITE_SLAVE_INIT_C;
@@ -137,13 +136,13 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
-         memErrorDly <= memError after TPD_G;
-         memReadyDly <= memReady after TPD_G;
-         if (memErrorDly = '1') then
+         failed <= memError after TPD_G;
+         passed <= memReady after TPD_G;
+         if (failed = '1') then
             assert false
                report "Simulation Failed!" severity failure;
          end if;
-         if (memReadyDly = '1') then
+         if (passed = '1') then
             assert false
                report "Simulation Passed!" severity note;
          end if;

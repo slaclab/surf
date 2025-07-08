@@ -25,9 +25,7 @@ entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G         : time    := 1 ns;
       EN_DRP_G      : boolean := true;
-      RATE_G        : string  := "10.3125Gbps";  -- or "6.25Gbps"
-      TX_POLARITY_G : sl      := '0';
-      RX_POLARITY_G : sl      := '0');
+      RATE_G        : string  := "10.3125Gbps");  -- or "6.25Gbps"
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -55,6 +53,7 @@ entity Pgp3GthUsIpWrapper is
       rxStartOfSeq   : out sl;
       rxGearboxSlip  : in  sl;
       rxOutClk       : out sl;
+      rxPolarity     : in  sl;
       -- Tx Ports
       txReset        : in  sl;
       txUsrClkActive : out sl;
@@ -69,6 +68,7 @@ entity Pgp3GthUsIpWrapper is
       txDiffCtrl     : in  slv(4 downto 0);
       txPreCursor    : in  slv(4 downto 0);
       txPostCursor   : in  slv(4 downto 0);
+      txPolarity     : in  sl;
 
       -- AXI-Lite DRP Interface
       axilClk         : in  sl                     := '0';
@@ -484,10 +484,10 @@ begin
             qpll1clk_in(0)                        => qpllclk(1),
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
-            rxpolarity_in(0)                      => RX_POLARITY_G,
+            rxpolarity_in(0)                      => rxPolarity,
             txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
-            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpolarity_in(0)                      => txPolarity,
             txpostcursor_in                       => txPostCursor,
             txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
@@ -548,10 +548,10 @@ begin
             qpll1clk_in(0)                        => qpllclk(1),
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
-            rxpolarity_in(0)                      => RX_POLARITY_G,
+            rxpolarity_in(0)                      => rxPolarity,
             txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
-            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpolarity_in(0)                      => txPolarity,
             txpostcursor_in                       => txPostCursor,
             txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
@@ -612,10 +612,10 @@ begin
             qpll1clk_in(0)                        => qpllclk(1),
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
-            rxpolarity_in(0)                      => RX_POLARITY_G,
+            rxpolarity_in(0)                      => rxPolarity,
             txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
-            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpolarity_in(0)                      => txPolarity,
             txpostcursor_in                       => txPostCursor,
             txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
@@ -676,10 +676,10 @@ begin
             qpll1clk_in(0)                        => qpllclk(1),
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
-            rxpolarity_in(0)                      => RX_POLARITY_G,
+            rxpolarity_in(0)                      => rxPolarity,
             txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
-            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpolarity_in(0)                      => txPolarity,
             txpostcursor_in                       => txPostCursor,
             txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,
@@ -740,10 +740,10 @@ begin
             qpll1clk_in(0)                        => qpllclk(1),
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
-            rxpolarity_in(0)                      => RX_POLARITY_G,
+            rxpolarity_in(0)                      => rxPolarity,
             txdiffctrl_in                         => txDiffCtrl,
             txheader_in                           => txheader_in,
-            txpolarity_in(0)                      => TX_POLARITY_G,
+            txpolarity_in(0)                      => txPolarity,
             txpostcursor_in                       => txPostCursor,
             txprecursor_in                        => txPreCursor,
             txsequence_in                         => txsequence_in,

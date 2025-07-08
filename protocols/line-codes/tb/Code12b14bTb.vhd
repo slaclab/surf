@@ -241,7 +241,7 @@ begin
 
          assert (decDispError = '0') report "Disparity Error" severity failure;
          assert (decCodeError = '0') report "Code Error" severity failure;
-         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity error;
+         assert (decDataOut = dlyDataOut and decDataKOut = dlyDataKOut) report "Encode/Decode mismatch" severity failure;
       end if;
 
       run <= runVar;

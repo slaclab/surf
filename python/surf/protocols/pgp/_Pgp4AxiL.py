@@ -141,6 +141,24 @@ class Pgp4AxiLCtrl(pr.Device):
             bitSize      = 5,
         ))
 
+        self.add(pr.RemoteVariable(
+            name      = 'TxPolarity',
+            offset    = 0x00C,
+            bitOffset = 30,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name      = 'RxPolarity',
+            offset    = 0x00C,
+            bitOffset = 31,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
+        ))
+
     def countReset(self):
         self.CountReset()
 
