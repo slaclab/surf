@@ -48,9 +48,10 @@ entity HtspAxiL is
       htspRxIn        : out HtspRxInType;
       htspRxOut       : in  HtspRxOutType;
       locRxIn         : in  HtspRxInType := HTSP_RX_IN_INIT_C;
-      -- Ethernet Configuration
-      remoteMac       : in  slv(47 downto 0);
-      localMac        : in  slv(47 downto 0);
+      -- Ethernet Configuration (htspClk domain)
+      remoteMacIn     : in  slv(47 downto 0);
+      localMacIn      : in  slv(47 downto 0);
+      localMacOut     : out slv(47 downto 0);
       broadcastMac    : out slv(47 downto 0);
       etherType       : out slv(15 downto 0);
       -- Misc Debug Interfaces
@@ -82,6 +83,7 @@ architecture rtl of HtspAxiL is
       cntRst         : sl;
       rollOverEn     : slv(63 downto 0);
       broadcastMac   : slv(47 downto 0);
+      localMac       : slv(47 downto 0);
       etherType      : slv(15 downto 0);
       loopback       : slv(2 downto 0);
       rxPolarity     : slv(9 downto 0);
@@ -98,6 +100,7 @@ architecture rtl of HtspAxiL is
       cntRst         => '0',
       rollOverEn     => x"0C05_0000_FFFF_FFFF",
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
+      localMac       => x"01_02_03_56_44_00",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
       loopBack       => LOOPBACK_G,
       rxPolarity     => RX_POLARITY_G,
@@ -129,6 +132,9 @@ architecture rtl of HtspAxiL is
    signal statusOut : slv(STATUS_SIZE_C-1 downto 0);
 
    signal syncTxIn : HtspTxInType;
+
+   signal localMac  : slv(47 downto 0);
+   signal remoteMac : slv(47 downto 0);
 
 begin
 
@@ -232,6 +238,24 @@ begin
          dataMin => frameRxMinSize,
          dataMax => frameRxMaxSize);
 
+   U_localMacIn : entity surf.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => axilClk,
+         dataIn  => localMacIn,
+         dataOut => localMac);
+
+   U_remoteMacIn : entity surf.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => axilClk,
+         dataIn  => remoteMacIn,
+         dataOut => remoteMac);
+
    process (axilReadMasters, axilRst, axilWriteMasters, frameRxMaxSize,
             frameRxMinSize, frameTxMaxSize, frameTxMinSize, freqMeasured,
             localMac, r, remoteMac, statusOut) is
@@ -279,10 +303,14 @@ begin
             axiSlaveRegister(axilEp, toSlv(64+(4*i), 8), 16, v.txPostCursor(i));
          end loop;
 
+         axiSlaveRegister(axilEp, x"C0", 0, v.localMac);
          axiSlaveRegister(axilEp, x"D0", 0, v.broadcastMac);
          axiSlaveRegister(axilEp, x"D8", 0, v.etherType);
 
       else
+
+         -- Update the register from external value
+         v.localMac := localMac;
 
          axiSlaveRegisterR(axilEp, x"30", 0, r.loopback);
          axiSlaveRegisterR(axilEp, x"30", 8, r.htspTxIn.disable);
@@ -299,12 +327,12 @@ begin
             axiSlaveRegisterR(axilEp, toSlv(64+(4*i), 8), 16, r.txPostCursor(i));
          end loop;
 
+         axiSlaveRegisterR(axilEp, x"C0", 0, r.localMac);
          axiSlaveRegisterR(axilEp, x"D0", 0, r.broadcastMac);
          axiSlaveRegisterR(axilEp, x"D8", 0, r.etherType);
 
       end if;
 
-      axiSlaveRegisterR(axilEp, x"C0", 0, localMac);
       axiSlaveRegisterR(axilEp, x"C8", 0, remoteMac);
 
       axiSlaveRegister(axilEp, x"F0", 0, v.rollOverEn);
@@ -317,7 +345,8 @@ begin
 
       -- Reset
       if (axilRst = '1') then
-         v := REG_INIT_C;
+         v          := REG_INIT_C;
+         v.localMac := localMac;
       end if;
 
       -- Next register assignment
@@ -359,6 +388,15 @@ begin
          clk     => htspClk,
          dataIn  => r.broadcastMac,
          dataOut => broadcastMac);
+
+   U_localMacOut : entity surf.SynchronizerVector
+      generic map(
+         TPD_G   => TPD_G,
+         WIDTH_G => 48)
+      port map (
+         clk     => htspClk,
+         dataIn  => r.localMac,
+         dataOut => localMacOut);
 
    U_nullInterval : entity surf.SynchronizerVector
       generic map(
