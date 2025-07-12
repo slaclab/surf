@@ -202,7 +202,7 @@ begin
          htspRxOut       => htspRxOutInt,
          locRxIn         => htspRxIn,
          -- Ethernet Configuration
-         remoteMac       => remoteMac,
+         remoteMacIn     => remoteMac,
          localMacIn      => localMacIn,
          localMacOut     => localMac,
          broadcastMac    => broadcastMac,
