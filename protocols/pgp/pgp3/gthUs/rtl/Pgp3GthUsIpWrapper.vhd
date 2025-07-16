@@ -25,6 +25,7 @@ entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G         : time    := 1 ns;
       EN_DRP_G      : boolean := true;
+      EN_IBERT_G    : boolean := true;  -- added generic for IBERT IP core
       RATE_G        : string  := "10.3125Gbps");  -- or "6.25Gbps"
    port (
       stableClk      : in  sl;
@@ -264,6 +265,26 @@ architecture mapping of Pgp3GthUsIpWrapper is
          );
    end component;
 
+   COMPONENT in_system_ibert_0
+      PORT (
+         drpclk_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         gt0_drpen_o : OUT STD_LOGIC;
+         gt0_drpwe_o : OUT STD_LOGIC;
+         gt0_drpaddr_o : OUT STD_LOGIC_VECTOR(8 DOWNTO 0);
+         gt0_drpdi_o : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+         gt0_drprdy_i : IN STD_LOGIC;
+         gt0_drpdo_i : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+         eyescanreset_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxrate_o : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
+         txdiffctrl_o : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
+         txprecursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+         txpostcursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+         rxlpmen_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxoutclk_i : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+         clk : IN STD_LOGIC 
+         );
+   END COMPONENT;
+
    signal dummy1  : sl;
    signal dummy2  : sl;
    signal dummy3  : slv(3 downto 0);
@@ -285,6 +306,9 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal txUsrClk2Int      : sl;
    signal txUsrClkActiveInt : sl;
 
+   signal drpClk : sl;
+   signal ibertDrpClk : sl;
+
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
    signal drpDo   : slv(15 downto 0) := (others => '0');
@@ -298,6 +322,7 @@ begin
    rxUsrClkActive <= rxUsrClkActiveInt;
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
+   drpClk         <= ibertDrpClk when (EN_IBERT_G) else stableClk;
 
    U_RstSync_TX : entity surf.RstSync
       generic map (
@@ -347,7 +372,7 @@ begin
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
-            drpclk_in(0)                          => stableClk,
+            drpclk_in(0)                          => drpClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
@@ -411,7 +436,7 @@ begin
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
-            drpclk_in(0)                          => stableClk,
+            drpclk_in(0)                          => drpClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
@@ -475,7 +500,7 @@ begin
             gtwiz_reset_qpll0reset_out(0)         => qpllRst(0),
             gtwiz_userdata_tx_in                  => txData,
             gtwiz_userdata_rx_out                 => rxData,
-            drpclk_in(0)                          => stableClk,
+            drpclk_in(0)                          => drpClk,
             drpaddr_in                            => drpAddr,
             drpdi_in                              => drpDi,
             drpen_in(0)                           => drpEn,
@@ -520,6 +545,10 @@ begin
    txheader_in(5 downto 2)   <= (others => '0');
    txheader_in(1 downto 0)   <= txHeader;
 
+   assert not (EN_IBERT_G and EN_DRP_G)
+      report "Cannot have both EN_IBERT_G and EN_DRP_G true"
+      severity error;
+   
    GEN_DRP : if (EN_DRP_G) generate
       U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
@@ -546,5 +575,25 @@ begin
             drpDi           => drpDi,            -- [out]
             drpDo           => drpDo);           -- [in]
    end generate GEN_DRP;
+
+   GEN_IBERT : if(EN_IBERT_G) generate
+      U_in_system_ibert_0 : in_system_ibert_0
+        PORT MAP (
+           drpclk_o => ibertDrpClk,
+           gt0_drpen_o => drpEn,
+           gt0_drpwe_o => drpWe,
+           gt0_drpaddr_o => drpAddr,
+           gt0_drpdi_o => drpDi,
+           gt0_drprdy_i => drpRdy,
+           gt0_drpdo_i => drpDo,
+           eyescanreset_o => open,
+           rxrate_o => open,
+           txdiffctrl_o => open,
+           txprecursor_o => open,
+           txpostcursor_o => open,
+           rxlpmen_o => open,
+           rxoutclk_i => rxUsrClk2Int,
+           clk => stableClk
+        );
 
 end architecture mapping;
