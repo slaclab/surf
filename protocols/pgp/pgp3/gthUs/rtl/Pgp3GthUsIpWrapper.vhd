@@ -265,7 +265,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          );
    end component;
 
-   COMPONENT in_system_ibert_0
+   COMPONENT Pgp3GthUsIbert
       PORT (
          drpclk_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
          gt0_drpen_o : OUT STD_LOGIC;
@@ -577,7 +577,7 @@ begin
    end generate GEN_DRP;
 
    GEN_IBERT : if(EN_IBERT_G) generate
-      U_in_system_ibert_0 : in_system_ibert_0
+      U_Pgp3GthUsIbert_0 : Pgp3GthUsIbert
         PORT MAP (
            drpclk_o => ibertDrpClk,
            gt0_drpen_o => drpEn,
