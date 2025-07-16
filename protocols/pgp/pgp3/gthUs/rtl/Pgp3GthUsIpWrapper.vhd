@@ -267,7 +267,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
 
    COMPONENT Pgp3GthUsIbert
       PORT (
-         drpclk_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+         drpclk_o : OUT STD_LOGIC;
          gt0_drpen_o : OUT STD_LOGIC;
          gt0_drpwe_o : OUT STD_LOGIC;
          gt0_drpaddr_o : OUT STD_LOGIC_VECTOR(8 DOWNTO 0);
@@ -280,7 +280,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          txprecursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
          txpostcursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
          rxlpmen_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxoutclk_i : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+         rxoutclk_i : IN STD_LOGIC;
          clk : IN STD_LOGIC 
          );
    END COMPONENT;
@@ -595,5 +595,6 @@ begin
            rxoutclk_i => rxUsrClk2Int,
            clk => stableClk
         );
+   end generate GEN_IBERT;
 
 end architecture mapping;
