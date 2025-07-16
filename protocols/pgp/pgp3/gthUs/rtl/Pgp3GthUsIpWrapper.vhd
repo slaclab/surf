@@ -24,7 +24,7 @@ use surf.AxiLitePkg.all;
 entity Pgp3GthUsIpWrapper is
    generic (
       TPD_G         : time    := 1 ns;
-      EN_DRP_G      : boolean := true;
+      EN_DRP_G      : boolean := false;
       EN_IBERT_G    : boolean := true;  -- added generic for IBERT IP core
       RATE_G        : string  := "10.3125Gbps");  -- or "6.25Gbps"
    port (

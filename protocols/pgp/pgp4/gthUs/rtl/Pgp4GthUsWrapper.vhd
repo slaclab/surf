@@ -55,6 +55,7 @@ entity Pgp4GthUsWrapper is
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean                     := true;
       EN_PGP_MON_G                : boolean                     := false;
       EN_GTH_DRP_G                : boolean                     := false;
+      EN_GTH_IBERT_G              : boolean                     := true; -- added generic for optional IBERT IP core
       EN_QPLL_DRP_G               : boolean                     := false;
       WRITE_EN_G                  : boolean                     := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : slv(3 downto 0)             := x"0";
@@ -227,6 +228,7 @@ begin
                TX_MUX_ILEAVE_EN_G          => TX_MUX_ILEAVE_EN_G,
                TX_MUX_ILEAVE_ON_NOTVALID_G => TX_MUX_ILEAVE_ON_NOTVALID_G,
                EN_PGP_MON_G                => EN_PGP_MON_G,
+               EN_IBERT_G                  => EN_GTH_IBERT_G,
                WRITE_EN_G                  => WRITE_EN_G,
                EN_DRP_G                    => EN_GTH_DRP_G,
                TX_POLARITY_G               => TX_POLARITY_G(i),

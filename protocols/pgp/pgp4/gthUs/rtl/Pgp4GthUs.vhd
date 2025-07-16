@@ -45,8 +45,9 @@ entity Pgp4GthUs is
       TX_MUX_TDEST_LOW_G          : integer range 0 to 7  := 0;
       TX_MUX_ILEAVE_EN_G          : boolean               := true;
       TX_MUX_ILEAVE_ON_NOTVALID_G : boolean               := true;
-      EN_DRP_G                    : boolean               := false;
       EN_PGP_MON_G                : boolean               := false;
+      EN_DRP_G                    : boolean               := false;
+      EN_IBERT_G                  : boolean               := true;
       WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
       TX_POLARITY_G               : sl                    := '0';
       RX_POLARITY_G               : sl                    := '0';
@@ -270,7 +271,8 @@ begin
       generic map (
          TPD_G    => TPD_G,
          RATE_G   => RATE_G,
-         EN_DRP_G => EN_DRP_G)
+         EN_DRP_G => EN_DRP_G,
+         EN_IBERT_G => EN_IBERT_G)
       port map (
          stableClk       => stableClk,  -- [in]
          stableRst       => stableRst,  -- [in]
