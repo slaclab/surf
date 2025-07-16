@@ -1,8 +1,6 @@
 # Load RUCKUS library
 source $::env(RUCKUS_PROC_TCL)
 
-loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIbert/Pgp3GthUsIbert.xci"
-
 # Load the Core
 loadRuckusTcl "$::DIR_PATH/core"
 
