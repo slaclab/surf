@@ -7,7 +7,7 @@ if { $::env(VIVADO_VERSION) >= 2020.1 } {
    # Load Source Code
    loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
-   loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIbert/Pgp3GthUsIbert.dcp"
+   loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIbert/Pgp3GthUsIbert.xci"
    
    loadSource -lib surf   -path "$::DIR_PATH/ip/Pgp3GthUsIp15G/Pgp3GthUsIp15G.dcp"
    # loadIpCore -path "$::DIR_PATH/ip/Pgp3GthUsIp15G/Pgp3GthUsIp15G.xci"
