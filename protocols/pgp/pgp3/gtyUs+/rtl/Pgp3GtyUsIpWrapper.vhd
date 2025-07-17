@@ -56,7 +56,6 @@ entity Pgp3GtyUsIpWrapper is
       rxFecLock      : out sl;
       rxFecCorInc    : out sl;
       rxFecUnCorInc  : out sl;
-      rxFecCwInc     : out sl;
       rxStartOfSeq   : out sl;
       rxGearboxSlip  : in  sl;
       rxOutClk       : out sl;
@@ -712,13 +711,13 @@ architecture mapping of Pgp3GtyUsIpWrapper is
    signal dummy11 : sl;
    signal zeroBit : sl;
 
-   signal txsequence_in : slv(6 downto 0);
-   signal txheader_in   : slv(5 downto 0);
+   signal txsequence_in : slv(6 downto 0) := (others => '0');
+   signal txheader_in   : slv(5 downto 0) := (others => '0');
 
-   signal rxUsrClk2Int      : sl;
-   signal rxUsrClkActiveInt : sl;
-   signal txUsrClk2Int      : sl;
-   signal txUsrClkActiveInt : sl;
+   signal rxUsrClk2Int      : sl := '0';
+   signal rxUsrClkActiveInt : sl := '0';
+   signal txUsrClk2Int      : sl := '0';
+   signal txUsrClkActiveInt : sl := '0';
 
    signal drpAddr : slv(9 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
@@ -813,15 +812,35 @@ begin
 
    NO_FEC : if (not EN_FEC_G) generate
 
-      txHeaderInt <= txHeader;
-      txDataInt   <= txData;
+      rxFecLock     <= '0';
+      rxFecCorInc   <= '0';
+      rxFecUnCorInc <= '0';
 
-      rxHeader <= rxHeaderInt;
-      rxData   <= rxDataInt;
+      -- Register to help with making timing
+      process(txUsrClk2Int)
+      begin
+         if rising_edge(txUsrClk2Int) then
 
-      rxDataValid      <= rxDataValidInt;
-      rxHeaderValid    <= rxHeaderValidInt;
-      rxGearboxSlipInt <= rxGearboxSlip;
+            txHeaderInt <= txHeader after TPD_G;
+            txDataInt   <= txData   after TPD_G;
+
+         end if;
+      end process;
+
+      -- Register to help with making timing
+      process(rxUsrClk2Int)
+      begin
+         if rising_edge(rxUsrClk2Int) then
+
+            rxHeader <= rxHeaderInt after TPD_G;
+            rxData   <= rxDataInt   after TPD_G;
+
+            rxDataValid      <= rxDataValidInt   after TPD_G;
+            rxHeaderValid    <= rxHeaderValidInt after TPD_G;
+            rxGearboxSlipInt <= rxGearboxSlip    after TPD_G;
+
+         end if;
+      end process;
 
    end generate NO_FEC;
 
