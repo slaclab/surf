@@ -45,6 +45,7 @@ class Adc32Rf45(pr.Device):
                                    numValues    = 0x400, # 0x400 * 4 = 4096 Bytes
                                    valueBits    = 32,
                                    valueStride  = 32,
+                                   mode         = 'WO',
                                    updateNotify = False,
                                    bulkOpEn     = False,
                                    hidden       = True,
@@ -71,7 +72,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             hidden       =  True,
             overlapEn    =  True,
         ))
@@ -86,6 +87,7 @@ class Adc32Rf45(pr.Device):
                                    numValues    = 0x80,
                                    valueBits    = 32,
                                    valueStride  = 32,
+                                   mode         = 'WO',
                                    updateNotify = False,
                                    bulkOpEn     = False,
                                    hidden       = True,
@@ -98,6 +100,7 @@ class Adc32Rf45(pr.Device):
                                    numValues    = 0x10,
                                    valueBits    = 32,
                                    valueStride  = 32,
+                                   mode         = 'WO',
                                    updateNotify = False,
                                    bulkOpEn     = False,
                                    hidden       = True,
@@ -110,6 +113,7 @@ class Adc32Rf45(pr.Device):
                                    numValues    = 0x100,
                                    valueBits    = 32,
                                    valueStride  = 32,
+                                   mode         = 'WO',
                                    updateNotify = False,
                                    bulkOpEn     = False,
                                    hidden       = True,
@@ -125,7 +129,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -136,7 +140,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -147,7 +151,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -158,7 +162,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  5,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -195,7 +199,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -206,7 +210,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -217,7 +221,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  6,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -228,7 +232,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -239,7 +243,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -250,7 +254,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  3,
             bitOffset    =  5,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -261,7 +265,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -272,7 +276,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  3,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -283,7 +287,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  5,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -297,7 +301,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
@@ -308,7 +312,7 @@ class Adc32Rf45(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = "RW",
+            mode         = 'WO',
             verify       = verify,
         ))
 
