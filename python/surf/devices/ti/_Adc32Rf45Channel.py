@@ -626,7 +626,7 @@ class Adc32Rf45Channel(pr.Device):
             bitOffset    =  0,
             base         = pr.UInt,
             mode         = 'WO',
-            value        = 0x00,
+            # value        = 0x00,
             verify       = verify,
             overlapEn    = True,
         ))
@@ -640,7 +640,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x4e, # 748.8 Mhz
+            # value        = 0x4e, # 748.8 Mhz
             overlapEn    = True,
         ))
 
@@ -653,7 +653,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
@@ -666,7 +666,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
@@ -679,7 +679,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
@@ -692,7 +692,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
@@ -705,7 +705,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
@@ -718,7 +718,7 @@ class Adc32Rf45Channel(pr.Device):
             base         = pr.UInt,
             mode         = 'WO',
             verify       = verify,
-            value        = 0x00,
+            # value        = 0x00,
             overlapEn    = True,
         ))
 
