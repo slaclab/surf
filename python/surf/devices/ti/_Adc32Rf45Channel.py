@@ -40,7 +40,7 @@ class Adc32Rf45Channel(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
                                    hidden       = True,
                                    verify       = False))
@@ -135,7 +135,7 @@ class Adc32Rf45Channel(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
                                    hidden       = True,
                                    verify       = False))
@@ -175,7 +175,7 @@ class Adc32Rf45Channel(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
                                    hidden       = True,
                                    verify       = False))

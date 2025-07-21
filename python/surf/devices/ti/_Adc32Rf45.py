@@ -46,7 +46,7 @@ class Adc32Rf45(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    hidden       = True,
                                    overlapEn    = True,
                                    verify       = False))
@@ -87,7 +87,7 @@ class Adc32Rf45(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    hidden       = True,
                                    verify       = False))
 
@@ -99,7 +99,7 @@ class Adc32Rf45(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    hidden       = True,
                                    verify       = False))
 
@@ -111,7 +111,7 @@ class Adc32Rf45(pr.Device):
                                    valueBits    = 32,
                                    valueStride  = 32,
                                    updateNotify = False,
-                                   bulkOpEn     = False,
+                                   bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    hidden       = True,
                                    verify       = False))
 
