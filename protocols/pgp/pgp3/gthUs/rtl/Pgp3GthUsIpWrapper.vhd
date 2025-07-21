@@ -322,7 +322,7 @@ begin
    rxUsrClkActive <= rxUsrClkActiveInt;
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
-   drpClk         <= ibertDrpClk when (EN_IBERT_G) else stableClk;
+   drpClk         <= stableClk;
 
    U_RstSync_TX : entity surf.RstSync
       generic map (
