@@ -72,42 +72,35 @@ set +m
 
 # Run vsg in parallel, printing only blocks with violations
 pids=()
+exit_codes=()
 for filelist in "${split_file_list[@]}"; do
     (
         mapfile -t files < "$filelist"
-        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml")
+        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic)
 
-        echo "$output" | awk -v base="$PWD/" '
-            BEGIN { block=""; printing=0; }
-            # Save block and reset if delimiter line appears
-            /^=+$/ && block != "" {
-                if (printing) print block;
-                block=""; printing=0;
-            }
-            {
-                # Rewrite absolute file paths into relative paths
-                if ($0 ~ /^File:[[:space:]]+/) {
-                    gsub(base, "", $0);  # Remove leading directory
-                }
-                block = block $0 ORS;
-
-                # Enable printing if violations exist
-                if ($0 ~ /Total Violations:[[:space:]]*[1-9][0-9]*/) {
-                    printing=1;
-                }
-            }
-            END {
-                if (printing) print block;
-            }
-        '
+        # If output is non-empty, print it and exit with error
+        if [[ -n "$output" ]]; then
+            echo "$output"
+            exit 1
+        fi
     ) &
     pids+=($!)
 done
 
-# Wait for all jobs to finish
+# Wait for all jobs to finish and collect exit statuses
+error=0
 for pid in "${pids[@]}"; do
-    wait "$pid"
+    wait "$pid" || error=1
 done
 
 # Clean up
 rm -rf "$TMP_DIR"
+
+# Final error status based on children
+if [[ $error -ne 0 ]]; then
+    echo "ERROR: Linting failed (see messages above)"
+    return 1 2>/dev/null || exit 1
+else
+    echo "No issues found"
+    return 0 2>/dev/null || exit 0
+fi
