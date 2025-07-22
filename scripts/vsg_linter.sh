@@ -75,12 +75,9 @@ pids=()
 for filelist in "${split_file_list[@]}"; do
     (
         mapfile -t files < "$filelist"
-        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1 | tee /dev/stderr | grep -q . && exit 1)
-        # If output is non-empty, print it and exit with error
-        if [[ -n "$output" ]]; then
-            echo "$output"
-            exit 1
-        fi
+        vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1 | tee /dev/stderr
+        exit_code=${PIPESTATUS[0]}
+        exit $exit_code
     ) &
     pids+=($!)
 done
