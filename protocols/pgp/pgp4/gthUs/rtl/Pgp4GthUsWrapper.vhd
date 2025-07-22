@@ -112,6 +112,8 @@ architecture rtl of Pgp4GthUsWrapper is
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
    signal pgpRefClkDiv2 : sl;
+   signal pgpRefClkDiv2BufgInt : sl;
+   signal pgpRefClkDiv2Rst : sl;      
    signal pgpRefClk     : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
@@ -139,7 +141,7 @@ begin
             CEMASK  => '1',
             CLRMASK => '1',
             DIV     => "000",           -- Divide by 1
-            O       => pgpRefClkDiv2Bufg);
+            O       => pgpRefClkDiv2BufgInt);
 
       U_pgpRefClk : IBUFDS_GTE3
          generic map (
@@ -152,6 +154,17 @@ begin
             CEB   => '0',
             ODIV2 => pgpRefClkDiv2,
             O     => pgpRefClk);
+
+      pgpRefClkDiv2Bufg <= pgpRefClkDiv2BufgInt;
+
+      U_PwrUpRst_1: entity surf.PwrUpRst
+         generic map (
+            TPD_G          => TPD_G,
+            DURATION_G     => 100)
+         port map (
+            arst   => '0',             -- [in]
+            clk    => pgpRefClkDiv2BufgInt,              -- [in]
+            rstOut => pgpRefClkDiv2Rst);          -- [out]
 
    end generate;
 
@@ -239,8 +252,8 @@ begin
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
-               stableClk       => stableClk,
-               stableRst       => stableRst,
+               stableClk       => pgpRefClkDiv2BufgInt,
+               stableRst       => pgpRefClkDiv2Rst,
                -- QPLL Interface
                qpllLock        => qpllLock(i),
                qpllClk         => qpllClk(i),
