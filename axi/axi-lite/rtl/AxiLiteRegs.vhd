@@ -28,7 +28,7 @@ entity AxiLiteRegs is
       RST_ASYNC_G     : boolean               := false;
       NUM_WRITE_REG_G : integer range 1 to 32 := 1;
       INI_WRITE_REG_G : Slv32Array            := (0 => x"0000_0000");
-      NUM_READ_REG_g  : integer range 1 to 32 := 1);
+      NUM_READ_REG_G  : integer range 1 to 32 := 1);
    port (
       -- AXI-Lite Bus
       axiClk         : in  sl;
