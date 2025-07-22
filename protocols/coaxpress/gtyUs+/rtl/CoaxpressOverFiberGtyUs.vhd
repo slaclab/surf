@@ -104,6 +104,8 @@ architecture mapping of CoaxpressOverFiberGtyUs is
    signal rxDecErr  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
    signal rxLinkUp  : slv(NUM_LANES_G-1 downto 0)        := (others => '0');
 
+   signal gtRstAll : sl;
+
 begin
 
    trigClk <= txClk(0);
@@ -138,6 +140,7 @@ begin
          AXIS_CLK_FREQ_G    => AXIS_CLK_FREQ_G,
          AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
       port map (
+         gtRstAll        => gtRstAll,
          -- Data Interface (dataClk domain)
          dataClk         => dataClk,
          dataRst         => dataRst,
@@ -198,6 +201,7 @@ begin
             gtRxN           => gtRxN(i),
             gtTxP           => gtTxP(i),
             gtTxN           => gtTxN(i),
+            gtRstAll        => gtRstAll,
             -- Tx Interface (txClk domain)
             txClk           => txClk(i),
             txRst           => txRst(i),

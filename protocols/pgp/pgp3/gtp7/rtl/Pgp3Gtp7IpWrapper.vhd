@@ -35,9 +35,7 @@ entity Pgp3Gtp7IpWrapper is
       CLKFBOUT_MULT_G  : positive;
       CLKOUT0_DIVIDE_G : positive;
       CLKOUT1_DIVIDE_G : positive;
-      CLKOUT2_DIVIDE_G : positive;
-      TX_POLARITY_G    : sl      := '0';
-      RX_POLARITY_G    : sl      := '0');
+      CLKOUT2_DIVIDE_G : positive);
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
@@ -68,6 +66,7 @@ entity Pgp3Gtp7IpWrapper is
       rxData          : out slv(63 downto 0);
       rxSlip          : in  sl;
       rxAligned       : in  sl;
+      rxPolarity      : in  sl;
       -- Tx Ports
       txUsrClk        : out sl;
       txUsrClkRst     : out sl;
@@ -77,6 +76,7 @@ entity Pgp3Gtp7IpWrapper is
       txData          : in  slv(63 downto 0);
       txValid         : in  sl;
       txReady         : out sl;
+      txPolarity      : in  sl;
       -- Debug Interface
       loopback        : in  slv(2 downto 0);
       txDiffCtrl      : in  slv(4 downto 0);
@@ -522,7 +522,7 @@ begin
             gt0_rxpcsreset_in           => '0',
             gt0_rxpmareset_in           => '0',
             ----------------- Receive Ports - RX Polarity Control Ports ----------------
-            gt0_rxpolarity_in           => RX_POLARITY_G,
+            gt0_rxpolarity_in           => rxPolarity,
             -------------- Receive Ports -RX Initialization and Reset Ports ------------
             gt0_rxresetdone_out         => open,
             ------------------------ TX Configurable Driver Ports ----------------------
@@ -553,7 +553,7 @@ begin
             gt0_txpmareset_in           => '0',
             gt0_txresetdone_out         => open,
             ----------------- Transmit Ports - TX Polarity Control Ports ---------------
-            gt0_txpolarity_in           => TX_POLARITY_G,
+            gt0_txpolarity_in           => txPolarity,
             --____________________________COMMON PORTS________________________________
             GT0_PLL0OUTCLK_IN           => qPllOutClk(0),
             GT0_PLL0OUTREFCLK_IN        => qPllOutRefClk(0),
@@ -635,7 +635,7 @@ begin
             gt0_rxpcsreset_in           => '0',
             gt0_rxpmareset_in           => '0',
             ----------------- Receive Ports - RX Polarity Control Ports ----------------
-            gt0_rxpolarity_in           => RX_POLARITY_G,
+            gt0_rxpolarity_in           => rxPolarity,
             -------------- Receive Ports -RX Initialization and Reset Ports ------------
             gt0_rxresetdone_out         => open,
             ------------------------ TX Configurable Driver Ports ----------------------
@@ -666,7 +666,7 @@ begin
             gt0_txpmareset_in           => '0',
             gt0_txresetdone_out         => open,
             ----------------- Transmit Ports - TX Polarity Control Ports ---------------
-            gt0_txpolarity_in           => TX_POLARITY_G,
+            gt0_txpolarity_in           => txPolarity,
             --____________________________COMMON PORTS________________________________
             GT0_PLL0OUTCLK_IN           => qPllOutClk(0),
             GT0_PLL0OUTREFCLK_IN        => qPllOutRefClk(0),

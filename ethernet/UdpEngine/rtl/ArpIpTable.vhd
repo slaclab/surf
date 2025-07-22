@@ -208,7 +208,7 @@ begin
             ipFound      := '0';
             foundMacAddr := (others => '0');
             foundIpAddr  := (others => '0');
-            assert false report "Position in the LUT outside of bounds" severity error;
+            assert false report "Position in the LUT outside of bounds" severity failure;
          end if;
       else
          for i in 0 to ENTRIES_G-1 loop

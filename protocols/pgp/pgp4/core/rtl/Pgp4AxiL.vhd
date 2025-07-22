@@ -34,6 +34,8 @@ entity Pgp4AxiL is
       NUM_VC_G           : integer range 1 to 16 := 4;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 16;
       ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 8;
+      TX_POLARITY_G      : sl                    := '0';
+      RX_POLARITY_G      : sl                    := '0';
       AXIL_CLK_FREQ_G    : real                  := 125.0E+6);
    port (
       -- TX PGP Interface (pgpTxClk)
@@ -52,9 +54,14 @@ entity Pgp4AxiL is
       txDiffCtrl      : out slv(4 downto 0);
       txPreCursor     : out slv(4 downto 0);
       txPostCursor    : out slv(4 downto 0);
+
       phyRxEyeRst     : out sl;
       phyRxPmaRst     : out sl;
       phyRxPmaRstDone : in  sl;
+
+      txPolarity      : out sl;
+      rxPolarity      : out sl;
+
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -73,6 +80,8 @@ architecture mapping of Pgp4AxiL is
    constant TX_ERROR_CNT_SIZE_C  : integer := 3;
 
    type RegType is record
+      txPolarity     : sl;
+      rxPolarity     : sl;
       countReset     : sl;
       skpInterval    : slv(31 downto 0);
       loopBack       : slv(2 downto 0);
@@ -90,6 +99,8 @@ architecture mapping of Pgp4AxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      txPolarity     => TX_POLARITY_G,
+      rxPolarity     => RX_POLARITY_G,
       countReset     => '0',
       skpInterval    => PGP4_TX_IN_INIT_C.skpInterval,
       loopBack       => (others => '0'),
@@ -192,7 +203,7 @@ begin
       axiSlaveRegisterR(axilEp, x"004", 16, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 24, toSlv(ERROR_CNT_WIDTH_G, 8));
       
-      axiSlaveRegisterR (axilEp, x"00C", 31, phyRxPmaRstDone);
+      axiSlaveRegisterR (axilEp, x"00C", 27, phyRxPmaRstDone);
 
       if (WRITE_EN_G) then
          axiSlaveRegister (axilEp, x"008", 0, v.skpInterval);
@@ -204,9 +215,11 @@ begin
          axiSlaveRegister (axilEp, x"00C", 8, v.txDiffCtrl);
          axiSlaveRegister (axilEp, x"00C", 16, v.txPreCursor);
          axiSlaveRegister (axilEp, x"00C", 22, v.txPostCursor);
-         axiSlaveRegister (axilEp, x"00C", 29, v.phyRxEyeRst);
-         axiSlaveRegister (axilEp, x"00C", 30, v.phyRxPmaRst);
-         
+         axiSlaveRegister (axilEp, x"00C", 28, v.phyRxEyeRst);
+         axiSlaveRegister (axilEp, x"00C", 29, v.phyRxPmaRst);
+         axiSlaveRegister (axilEp, x"00C", 30, v.txPolarity);
+         axiSlaveRegister (axilEp, x"00C", 31, v.rxPolarity);
+
       else
          axiSlaveRegisterR(axilEp, x"008", 0, r.skpInterval);
          axiSlaveRegisterR(axilEp, x"00C", 0, r.loopback);
@@ -216,9 +229,11 @@ begin
          axiSlaveRegisterR(axilEp, x"00C", 6, r.resetTx);
          axiSlaveRegisterR(axilEp, x"00C", 8, r.txDiffCtrl);
          axiSlaveRegisterR(axilEp, x"00C", 16, r.txPreCursor);
-         axiSlaveRegisterR(axilEp, x"00C", 24, r.txPostCursor);
-         axiSlaveRegisterR(axilEp, x"00C", 31, r.phyRxEyeRst);
-         
+         axiSlaveRegisterR(axilEp, x"00C", 22, r.txPostCursor);
+         axiSlaveRegisterR(axilEp, x"00C", 28, r.phyRxEyeRst);
+         axiSlaveRegisterR(axilEp, x"00C", 29, r.phyRxPmaRst);
+         axiSlaveRegisterR(axilEp, x"00C", 30, r.txPolarity);
+         axiSlaveRegisterR(axilEp, x"00C", 31, r.rxPolarity);
       end if;
 
       ----------------------------------------------------------------------------------------------
@@ -277,8 +292,12 @@ begin
       txDiffCtrl     <= r.txDiffCtrl;
       txPreCursor    <= r.txPreCursor;
       txPostCursor   <= r.txPostCursor;
+
       phyRxEyeRst    <= r.phyRxEyeRst;
       phyRxPmaRst    <= r.phyRxPmaRst;
+
+      txPolarity     <= r.txPolarity;
+      rxPolarity     <= r.rxPolarity;
 
       -- Reset
       if (RST_ASYNC_G = false and axilRst = '1') then

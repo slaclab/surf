@@ -120,7 +120,7 @@ class Pgp4AxiLCtrl(pr.Device):
         self.add(pr.RemoteVariable(
             name      = 'ResetEye',
             offset    = 0x00C,
-            bitOffset = 29,
+            bitOffset = 28,
             bitSize   = 1,
             base      = pr.Bool,
             mode      = mode,
@@ -129,7 +129,7 @@ class Pgp4AxiLCtrl(pr.Device):
         self.add(pr.RemoteVariable(
             name      = 'ResetRxPma',
             offset    = 0x00C,
-            bitOffset = 30,
+            bitOffset = 29,
             bitSize   = 1,
             base      = pr.Bool,
             mode      = mode,
@@ -138,7 +138,7 @@ class Pgp4AxiLCtrl(pr.Device):
         self.add(pr.RemoteVariable(
             name      = 'ResetRxPmaDone',
             offset    = 0x00C,
-            bitOffset = 31,
+            bitOffset = 27,
             bitSize   = 1,
             base      = pr.Bool,
             mode      = 'RO',
@@ -166,6 +166,24 @@ class Pgp4AxiLCtrl(pr.Device):
             offset       = 0x00C,
             bitOffset    = 22,
             bitSize      = 5,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name      = 'TxPolarity',
+            offset    = 0x00C,
+            bitOffset = 30,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name      = 'RxPolarity',
+            offset    = 0x00C,
+            bitOffset = 31,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
         ))
 
     def countReset(self):

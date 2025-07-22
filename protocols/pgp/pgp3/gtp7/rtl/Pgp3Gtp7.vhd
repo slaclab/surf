@@ -173,7 +173,7 @@ begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps"))
       report "RATE_G: Must be either 3.125Gbps, 6.25Gbps"
-      severity error;
+      severity failure;
 
    pgpClk    <= phyTxClk;
    pgpClkRst <= phyTxRst;
@@ -288,8 +288,6 @@ begin
          CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
          CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
          CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G,
-         TX_POLARITY_G    => TX_POLARITY_G,
-         RX_POLARITY_G    => RX_POLARITY_G,
          EN_DRP_G         => EN_DRP_G,
          RATE_G           => RATE_G)
       port map (
@@ -322,6 +320,7 @@ begin
          rxData          => phyRxData,
          rxSlip          => phyRxSlip,
          rxAligned       => locRxOut.gearboxAligned,
+         rxPolarity      => RX_POLARITY_G,
          -- Tx Ports
          txUsrClk        => phyTxClk,
          txUsrClkRst     => phyTxRst,
@@ -331,6 +330,7 @@ begin
          txData          => phyTxData,
          txValid         => phyTxValid,
          txReady         => phyTxDataRdy,
+         txPolarity      => TX_POLARITY_G,
          -- Debug Interface
          loopback        => loopback,
          txPreCursor     => txPreCursor,

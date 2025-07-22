@@ -147,13 +147,13 @@ architecture rtl of Pgp4GtyUs is
    signal txDiffCtrl   : slv(4 downto 0);
    signal txPreCursor  : slv(4 downto 0);
    signal txPostCursor : slv(4 downto 0);
-   signal phyRxEyeRst  : sl;
-   
-begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
-      report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
-      severity error;
+   signal phyRxEyeRst  : sl;
+
+   signal txPolarity   : sl;
+   signal rxPolarity   : sl;
+
+begin
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
@@ -215,6 +215,8 @@ begin
          WRITE_EN_G                  => WRITE_EN_G,
          STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
          ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
+         TX_POLARITY_G               => TX_POLARITY_G,
+         RX_POLARITY_G               => RX_POLARITY_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -255,6 +257,8 @@ begin
          txDiffCtrl      => txDiffCtrl,                          -- [out]
          txPreCursor     => txPreCursor,                         -- [out]
          txPostCursor    => txPostCursor,                        -- [out]
+         txPolarity      => txPolarity,                          -- [out]
+         rxPolarity      => rxPolarity,                          -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
@@ -268,11 +272,9 @@ begin
    --------------------------
    U_Pgp3GtyUsIpWrapper_1 : entity surf.Pgp3GtyUsIpWrapper  -- Same IP core for both PGPv3 and PGPv4
       generic map (
-         TPD_G         => TPD_G,
-         TX_POLARITY_G => TX_POLARITY_G,
-         RX_POLARITY_G => RX_POLARITY_G,
-         RATE_G        => RATE_G,
-         EN_DRP_G      => EN_DRP_G)
+         TPD_G    => TPD_G,
+         RATE_G   => RATE_G,
+         EN_DRP_G => EN_DRP_G)
       port map (
          stableClk       => stableClk,  -- [in]
          stableRst       => stableRst,  -- [in]
@@ -300,6 +302,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                  -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
          rxOutClk        => open,       -- [out]
+         rxPolarity      => rxPolarity,                       -- [in]
          txReset         => '0',        -- [in]
          txUsrClkActive  => open,       -- [out]
          txResetDone     => phyTxActive,                    -- [out]
@@ -309,6 +312,7 @@ begin
          txData          => phyTxData,  -- [in]
          txHeader        => phyTxHeader,                    -- [in]
          txOutClk        => open,       -- [out]
+         txPolarity      => txPolarity,                       -- [in]
          loopback        => loopback,   -- [in]
          txDiffCtrl      => txDiffCtrl,                     -- [in]
          txPreCursor     => txPreCursor,                    -- [in]

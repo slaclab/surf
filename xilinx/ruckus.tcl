@@ -33,3 +33,7 @@ if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplusRFSOC} } {
    loadRuckusTcl "$::DIR_PATH/UltraScale+"
 }
+
+if { ${family} eq {versal} } {
+   loadRuckusTcl "$::DIR_PATH/Versal"
+}
