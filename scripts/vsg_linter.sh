@@ -76,7 +76,7 @@ exit_codes=()
 for filelist in "${split_file_list[@]}"; do
     (
         mapfile -t files < "$filelist"
-        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic)
+        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1)
 
         # If output is non-empty, print it and exit with error
         if [[ -n "$output" ]]; then
