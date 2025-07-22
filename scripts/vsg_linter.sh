@@ -72,19 +72,14 @@ set +m
 
 # Run vsg in parallel, printing only blocks with violations
 pids=()
-exit_codes=()
 for filelist in "${split_file_list[@]}"; do
-    (
-        mapfile -t files < "$filelist"
-        output=$(vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1)
-
-        # If output is non-empty, print it and exit with error
-        if [[ -n "$output" ]]; then
-            echo "$output"
-            exit 1
-        fi
-    ) &
-    pids+=($!)
+   (
+      mapfile -t files < "$filelist"
+      echo "=== VSG OUTPUT START ($filelist) ===" >&2
+      vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1 | tee /dev/stderr | grep -q . && exit 1
+      echo "=== VSG OUTPUT END ($filelist) ===" >&2
+   ) &
+   pids+=($!)
 done
 
 # Wait for all jobs to finish and collect exit statuses
