@@ -39,7 +39,7 @@ class Adc32Rf45Channel(pr.Device):
                                    numValues    = 0x80,
                                    valueBits    = 32,
                                    valueStride  = 32,
-                                   mode         = 'WO',
+                                   mode         = "RW",
                                    updateNotify = False,
                                    bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
@@ -53,7 +53,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -65,7 +65,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -91,7 +91,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -120,7 +120,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -135,7 +135,7 @@ class Adc32Rf45Channel(pr.Device):
                                    numValues    = 0x100,
                                    valueBits    = 32,
                                    valueStride  = 32,
-                                   mode         = 'WO',
+                                   mode         = "RW",
                                    updateNotify = False,
                                    bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
@@ -149,7 +149,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  3,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -161,7 +161,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -176,7 +176,7 @@ class Adc32Rf45Channel(pr.Device):
                                    numValues    = 0x80,
                                    valueBits    = 32,
                                    valueStride  = 32,
-                                   mode         = 'WO',
+                                   mode         = "RW",
                                    updateNotify = False,
                                    bulkOpEn     = True, # bulkOpEn=True required when overlap with YAML loaded registers
                                    overlapEn    = True,
@@ -190,7 +190,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -202,7 +202,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -214,7 +214,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -226,7 +226,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -238,7 +238,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -250,7 +250,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -262,7 +262,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  6,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -274,7 +274,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -286,7 +286,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -298,7 +298,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  3,
             bitOffset    =  5,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -310,7 +310,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -322,7 +322,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  3,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -334,7 +334,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -346,7 +346,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -358,7 +358,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -370,7 +370,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -382,7 +382,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  7,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -394,7 +394,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  5,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -406,7 +406,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  3,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -418,7 +418,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  3,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -430,7 +430,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -442,7 +442,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -454,7 +454,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -466,7 +466,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  6,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -478,7 +478,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  6,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -490,7 +490,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  6,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -502,7 +502,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  6,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -514,7 +514,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  6,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -526,7 +526,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -538,7 +538,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  6,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -550,7 +550,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  5,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -565,7 +565,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -577,7 +577,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  3,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -589,7 +589,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -601,7 +601,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -613,7 +613,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -625,7 +625,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             value        = 0x00,
             verify       = verify,
             overlapEn    = True,
@@ -638,7 +638,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x4e, # 748.8 Mhz
             overlapEn    = True,
@@ -651,7 +651,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -664,7 +664,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -677,7 +677,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -690,7 +690,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -703,7 +703,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -716,7 +716,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             value        = 0x00,
             overlapEn    = True,
@@ -729,7 +729,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -741,7 +741,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -753,7 +753,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -765,7 +765,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -777,7 +777,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -789,7 +789,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  3,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -801,7 +801,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -813,7 +813,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -825,7 +825,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -837,7 +837,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -849,7 +849,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -861,7 +861,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -873,7 +873,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -885,7 +885,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -900,7 +900,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -912,7 +912,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -924,7 +924,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -936,7 +936,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -948,7 +948,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -960,7 +960,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -972,7 +972,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -984,7 +984,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -996,7 +996,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1008,7 +1008,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1020,7 +1020,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1032,7 +1032,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  4,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1044,7 +1044,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1056,7 +1056,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1068,7 +1068,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1080,7 +1080,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1092,7 +1092,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1104,7 +1104,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1116,7 +1116,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1128,7 +1128,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1140,7 +1140,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1152,7 +1152,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1164,7 +1164,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1176,7 +1176,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1188,7 +1188,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1200,7 +1200,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  5,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1212,7 +1212,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1224,7 +1224,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1236,7 +1236,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1248,7 +1248,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1260,7 +1260,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1272,7 +1272,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1284,7 +1284,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1296,7 +1296,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1308,7 +1308,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1320,7 +1320,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  8,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1332,7 +1332,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  3,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1344,7 +1344,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  2,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1356,7 +1356,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  1,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1368,7 +1368,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  1,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1380,7 +1380,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  4,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
@@ -1392,7 +1392,7 @@ class Adc32Rf45Channel(pr.Device):
             bitSize      =  2,
             bitOffset    =  0,
             base         = pr.UInt,
-            mode         = 'WO',
+            mode         = "RW",
             verify       = verify,
             overlapEn    = True,
         ))
