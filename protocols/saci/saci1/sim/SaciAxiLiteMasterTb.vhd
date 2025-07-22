@@ -118,9 +118,9 @@ begin
    U_AxiLiteSaciMaster_1 : entity surf.AxiLiteSaciMaster
       generic map (
          TPD_G              => 1 ns,
-         AXIL_CLK_PERIOD_G  => 8.0e-9,
-         AXIL_TIMEOUT_G     => 1.0e-3,
-         SACI_CLK_PERIOD_G  => 50.0e-9,
+         AXIL_CLK_PERIOD_G  => 8.0E-9,
+         AXIL_TIMEOUT_G     => 1.0E-3,
+         SACI_CLK_PERIOD_G  => 50.0E-9,
          SACI_CLK_FREERUN_G => false,
          SACI_NUM_CHIPS_G   => 1,
          SACI_RSP_BUSSED_G  => false)
