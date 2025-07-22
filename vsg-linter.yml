@@ -735,6 +735,10 @@ rule:
   instantiation_034:
     disable: true
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/instantiation_rules.html#instantiation-036
+  instantiation_036:
+    disable: true
+
   ##############################################################################################################
   # Length Rules
   ##############################################################################################################
@@ -1236,6 +1240,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-011
   variable_011:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/variable_rules.html#variable-015
+  variable_015:
     disable: true
 
   ##############################################################################################################
