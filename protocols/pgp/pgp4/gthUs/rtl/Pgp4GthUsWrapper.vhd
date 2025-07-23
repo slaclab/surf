@@ -36,7 +36,7 @@ entity Pgp4GthUsWrapper is
       ROGUE_SIM_SIDEBAND_G        : boolean                     := true;
       ROGUE_SIM_PORT_NUM_G        : natural range 1024 to 49151 := 9000;
       NUM_LANES_G                 : positive range 1 to 4       := 1;
-      NUM_VC_G                    : positive range 1 to 16      := 4;
+      NUM_VC_G                    : positive range 1 to 16      := 1;
       REFCLK_G                    : boolean                     := false;  --  FALSE: pgpRefClkP/N,  TRUE: pgpRefClkIn
       RATE_G                      : string                      := "10.3125Gbps";  -- or "6.25Gbps" or "3.125Gbps"
       REFCLK_FREQ_G               : real                        := 156.25E+6;
@@ -112,8 +112,6 @@ architecture rtl of Pgp4GthUsWrapper is
    signal qpllRst    : Slv2Array(3 downto 0) := (others => "00");
 
    signal pgpRefClkDiv2 : sl;
-   signal pgpRefClkDiv2BufgInt : sl;
-   signal pgpRefClkDiv2Rst : sl;      
    signal pgpRefClk     : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := NUM_LANES_G+1;
@@ -141,7 +139,7 @@ begin
             CEMASK  => '1',
             CLRMASK => '1',
             DIV     => "000",           -- Divide by 1
-            O       => pgpRefClkDiv2BufgInt);
+            O       => pgpRefClkDiv2Bufg);
 
       U_pgpRefClk : IBUFDS_GTE3
          generic map (
@@ -154,17 +152,6 @@ begin
             CEB   => '0',
             ODIV2 => pgpRefClkDiv2,
             O     => pgpRefClk);
-
-      pgpRefClkDiv2Bufg <= pgpRefClkDiv2BufgInt;
-
-      U_PwrUpRst_1: entity surf.PwrUpRst
-         generic map (
-            TPD_G          => TPD_G,
-            DURATION_G     => 100)
-         port map (
-            arst   => '0',             -- [in]
-            clk    => pgpRefClkDiv2BufgInt,              -- [in]
-            rstOut => pgpRefClkDiv2Rst);          -- [out]
 
    end generate;
 
@@ -252,8 +239,8 @@ begin
                AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
             port map (
                -- Stable Clock and Reset
-               stableClk       => pgpRefClkDiv2BufgInt,
-               stableRst       => pgpRefClkDiv2Rst,
+               stableClk       => stableClk,
+               stableRst       => stableRst,
                -- QPLL Interface
                qpllLock        => qpllLock(i),
                qpllClk         => qpllClk(i),
