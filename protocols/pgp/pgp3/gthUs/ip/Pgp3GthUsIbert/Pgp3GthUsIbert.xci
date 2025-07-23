@@ -3,13 +3,13 @@
   "ip_inst": {
     "xci_name": "Pgp3GthUsIbert",
     "component_reference": "xilinx.com:ip:in_system_ibert:1.0",
-    "ip_revision": "22",
-    "gen_directory": ".",
+    "ip_revision": "23",
+    "gen_directory": "../../../../Simple1GbeRudpKcu105Example_project.gen/sources_1/ip/Pgp3GthUsIbert",
     "parameters": {
       "component_parameters": {
         "C_COMPONENT_NAME": [ { "value": "in_system_ibert_0", "resolve_type": "user", "usage": "all" } ],
         "C_GT_TYPE": [ { "value": "GTH", "resolve_type": "user", "usage": "all" } ],
-        "C_GTS_USED": [ { "value": " X0Y0", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
+        "C_GTS_USED": [ { "value": " X0Y16", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "C_NUM_GT": [ { "value": "1", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "C_ENABLE_INPUT_PORTS": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
         "C_USE_MDM": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
@@ -101,7 +101,7 @@
         "C_GT_COORDINATE_3": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_GT_COORDINATE_2": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_GT_COORDINATE_1": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
-        "C_GT_COORDINATE_0": [ { "value": "\"0000000000000000\"", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
+        "C_GT_COORDINATE_0": [ { "value": "\"0000000000010000\"", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_GT_COORDINATE_80": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_GT_COORDINATE_81": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_GT_COORDINATE_82": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
@@ -285,7 +285,7 @@
         "C_QUAD_NUMBER_3": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_QUAD_NUMBER_2": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_QUAD_NUMBER_1": [ { "value": "0000000000000000", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
-        "C_QUAD_NUMBER_0": [ { "value": "\"0000000011100000\"", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
+        "C_QUAD_NUMBER_0": [ { "value": "\"0000000011100100\"", "resolve_type": "generated", "format": "bitString", "usage": "all" } ],
         "C_BUILD_REVISION": [ { "value": "0", "format": "long", "usage": "all" } ],
         "C_CORE_MAJOR_VER": [ { "value": "3", "format": "long", "usage": "all" } ],
         "C_CORE_MINOR_VER": [ { "value": "0", "format": "long", "usage": "all" } ],
@@ -309,12 +309,12 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
-        "IPREVISION": [ { "value": "22" } ],
+        "IPREVISION": [ { "value": "23" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "." } ],
+        "OUTPUTDIR": [ { "value": "../../../../Simple1GbeRudpKcu105Example_project.gen/sources_1/ip/Pgp3GthUsIbert" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
-        "SWVERSION": [ { "value": "2024.1" } ],
+        "SWVERSION": [ { "value": "2024.2" } ],
         "SYNTHESISFLOW": [ { "value": "OUT_OF_CONTEXT" } ]
       }
     },
