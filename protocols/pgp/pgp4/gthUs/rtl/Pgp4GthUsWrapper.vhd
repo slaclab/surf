@@ -69,10 +69,10 @@ entity Pgp4GthUsWrapper is
       stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
       stableRst         : in  sl;
       -- Gt Serial IO
-      pgpGtTxP          : out slv(NUM_LANES_G-1 downto 0);
-      pgpGtTxN          : out slv(NUM_LANES_G-1 downto 0);
-      pgpGtRxP          : in  slv(NUM_LANES_G-1 downto 0);
-      pgpGtRxN          : in  slv(NUM_LANES_G-1 downto 0);
+      pgpGtTxP          : out sl;
+      pgpGtTxN          : out sl;
+      pgpGtRxP          : in  sl;
+      pgpGtRxN          : in  sl;
       -- GT Clocking
       pgpRefClkP        : in  sl                                                     := '0';  -- REFCLK_FREQ_G
       pgpRefClkN        : in  sl                                                     := '1';  -- REFCLK_FREQ_G
