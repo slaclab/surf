@@ -247,10 +247,10 @@ begin
                qpllRefclk      => qpllRefclk(i),
                qpllRst         => qpllRst(i),
                -- Gt Serial IO
-               pgpGtTxP        => pgpGtTxP(i),
-               pgpGtTxN        => pgpGtTxN(i),
-               pgpGtRxP        => pgpGtRxP(i),
-               pgpGtRxN        => pgpGtRxN(i),
+               pgpGtTxP        => pgpGtTxP,
+               pgpGtTxN        => pgpGtTxN,
+               pgpGtRxP        => pgpGtRxP,
+               pgpGtRxN        => pgpGtRxN,
                -- Clocking
                pgpClk          => pgpClk(i),
                pgpClkRst       => pgpClkRst(i),
