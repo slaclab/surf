@@ -3,7 +3,7 @@
   "ip_inst": {
     "xci_name": "Pgp3GthUsIbert",
     "component_reference": "xilinx.com:ip:in_system_ibert:1.0",
-    "ip_revision": "23",
+    "ip_revision": "22",
     "gen_directory": "../../../../Simple1GbeRudpKcu105Example_project.gen/sources_1/ip/Pgp3GthUsIbert",
     "parameters": {
       "component_parameters": {
@@ -309,12 +309,12 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
-        "IPREVISION": [ { "value": "23" } ],
+        "IPREVISION": [ { "value": "22" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../Simple1GbeRudpKcu105Example_project.gen/sources_1/ip/Pgp3GthUsIbert" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
-        "SWVERSION": [ { "value": "2024.2" } ],
+        "SWVERSION": [ { "value": "2024.1" } ],
         "SYNTHESISFLOW": [ { "value": "OUT_OF_CONTEXT" } ]
       }
     },
