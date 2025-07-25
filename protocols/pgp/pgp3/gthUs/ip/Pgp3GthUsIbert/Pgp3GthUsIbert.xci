@@ -11,7 +11,7 @@
         "C_GT_TYPE": [ { "value": "GTH", "resolve_type": "user", "usage": "all" } ],
         "C_GTS_USED": [ { "value": " X0Y16", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "C_NUM_GT": [ { "value": "1", "resolve_type": "user", "format": "long", "usage": "all" } ],
-        "C_ENABLE_INPUT_PORTS": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
+        "C_ENABLE_INPUT_PORTS": [ { "value": "false", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "C_USE_MDM": [ { "value": "0", "resolve_type": "user", "usage": "all" } ],
         "C_USE_PCIE_ELF": [ { "value": "false", "resolve_type": "user", "format": "bool", "usage": "all" } ],
         "Component_Name": [ { "value": "Pgp3GthUsIbert", "resolve_type": "user", "usage": "all" } ]

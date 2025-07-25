@@ -23,10 +23,10 @@ use surf.AxiLitePkg.all;
 
 entity Pgp3GthUsIpWrapper is
    generic (
-      TPD_G         : time    := 1 ns;
-      EN_DRP_G      : boolean := false;
-      EN_IBERT_G    : boolean := true;  -- added generic for IBERT IP core
-      RATE_G        : string  := "10.3125Gbps");  -- or "6.25Gbps"
+      TPD_G      : time    := 1 ns;
+      EN_DRP_G   : boolean := false;
+      EN_IBERT_G : boolean := true;            -- added generic for IBERT IP core
+      RATE_G     : string  := "10.3125Gbps");  -- or "6.25Gbps"
    port (
       stableClk      : in  sl;
       stableRst      : in  sl;
@@ -112,6 +112,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
          gthrxn_in                          : in  std_logic_vector(0 downto 0);
          gthrxp_in                          : in  std_logic_vector(0 downto 0);
          loopback_in                        : in  std_logic_vector(2 downto 0);
@@ -121,6 +122,8 @@ architecture mapping of Pgp3GthUsIpWrapper is
          qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
          rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
          rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxlpmen_in                         : in  std_logic_vector(0 downto 0);
+         rxrate_in                          : in  std_logic_vector(2 downto 0);
          txdiffctrl_in                      : in  std_logic_vector(3 downto 0);
          txheader_in                        : in  std_logic_vector(5 downto 0);
          txpolarity_in                      : in  std_logic_vector(0 downto 0);
@@ -173,6 +176,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
          gthrxn_in                          : in  std_logic_vector(0 downto 0);
          gthrxp_in                          : in  std_logic_vector(0 downto 0);
          loopback_in                        : in  std_logic_vector(2 downto 0);
@@ -182,6 +186,8 @@ architecture mapping of Pgp3GthUsIpWrapper is
          qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
          rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
          rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxlpmen_in                         : in  std_logic_vector(0 downto 0);
+         rxrate_in                          : in  std_logic_vector(2 downto 0);
          txdiffctrl_in                      : in  std_logic_vector(3 downto 0);
          txheader_in                        : in  std_logic_vector(5 downto 0);
          txpolarity_in                      : in  std_logic_vector(0 downto 0);
@@ -234,6 +240,7 @@ architecture mapping of Pgp3GthUsIpWrapper is
          drpdi_in                           : in  std_logic_vector(15 downto 0);
          drpen_in                           : in  std_logic_vector(0 downto 0);
          drpwe_in                           : in  std_logic_vector(0 downto 0);
+         eyescanreset_in                    : in  std_logic_vector(0 downto 0);
          gthrxn_in                          : in  std_logic_vector(0 downto 0);
          gthrxp_in                          : in  std_logic_vector(0 downto 0);
          loopback_in                        : in  std_logic_vector(2 downto 0);
@@ -243,6 +250,8 @@ architecture mapping of Pgp3GthUsIpWrapper is
          qpll1refclk_in                     : in  std_logic_vector(0 downto 0);
          rxgearboxslip_in                   : in  std_logic_vector(0 downto 0);
          rxpolarity_in                      : in  std_logic_vector(0 downto 0);
+         rxlpmen_in                         : in  std_logic_vector(0 downto 0);
+         rxrate_in                          : in  std_logic_vector(2 downto 0);
          txdiffctrl_in                      : in  std_logic_vector(3 downto 0);
          txheader_in                        : in  std_logic_vector(5 downto 0);
          txpolarity_in                      : in  std_logic_vector(0 downto 0);
@@ -265,25 +274,25 @@ architecture mapping of Pgp3GthUsIpWrapper is
          );
    end component;
 
-   COMPONENT Pgp3GthUsIbert
-      PORT (
-         drpclk_o : OUT STD_LOGIC;
-         gt0_drpen_o : OUT STD_LOGIC;
-         gt0_drpwe_o : OUT STD_LOGIC;
-         gt0_drpaddr_o : OUT STD_LOGIC_VECTOR(8 DOWNTO 0);
-         gt0_drpdi_o : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-         gt0_drprdy_i : IN STD_LOGIC;
-         gt0_drpdo_i : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-         eyescanreset_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxrate_o : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-         txdiffctrl_o : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-         txprecursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
-         txpostcursor_o : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
-         rxlpmen_o : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
-         rxoutclk_i : IN STD_LOGIC;
-         clk : IN STD_LOGIC 
+   component Pgp3GthUsIbert
+      port (
+         drpclk_o       : out std_logic;
+         gt0_drpen_o    : out std_logic;
+         gt0_drpwe_o    : out std_logic;
+         gt0_drpaddr_o  : out std_logic_vector(8 downto 0);
+         gt0_drpdi_o    : out std_logic_vector(15 downto 0);
+         gt0_drprdy_i   : in  std_logic;
+         gt0_drpdo_i    : in  std_logic_vector(15 downto 0);
+         eyescanreset_o : out std_logic_vector(0 downto 0);
+         rxrate_o       : out std_logic_vector(2 downto 0);
+         txdiffctrl_o   : out std_logic_vector(3 downto 0);
+         txprecursor_o  : out std_logic_vector(4 downto 0);
+         txpostcursor_o : out std_logic_vector(4 downto 0);
+         rxlpmen_o      : out std_logic_vector(0 downto 0);
+         rxoutclk_i     : in  std_logic;
+         clk            : in  std_logic
          );
-   END COMPONENT;
+   end component;
 
    signal dummy1  : sl;
    signal dummy2  : sl;
@@ -306,8 +315,22 @@ architecture mapping of Pgp3GthUsIpWrapper is
    signal txUsrClk2Int      : sl;
    signal txUsrClkActiveInt : sl;
 
-   signal drpClk : sl;
+   signal drpClk      : sl;
    signal ibertDrpClk : sl;
+
+   signal txPreCursor_in  : slv(4 downto 0);
+   signal txPostCursor_in : slv(4 downto 0);
+   signal eyescanreset_in : slv(0 downto 0);
+   signal rxlpmen_in      : slv(0 downto 0);
+   signal rxrate_in       : slv(2 downto 0);
+   signal txdiffctrl_in   : slv(3 downto 0);
+
+   signal txPreCursorIbert  : slv(4 downto 0);
+   signal txPostCursorIbert : slv(4 downto 0);
+   signal eyescanresetIbert : slv(0 downto 0);
+   signal rxlpmenIbert      : slv(0 downto 0);
+   signal rxrateIbert       : slv(2 downto 0);
+   signal txdiffctrlIbert   : slv(3 downto 0);
 
    signal drpAddr : slv(8 downto 0)  := (others => '0');
    signal drpDi   : slv(15 downto 0) := (others => '0');
@@ -323,6 +346,13 @@ begin
    txUsrClk2      <= txUsrClk2Int;
    txUsrClkActive <= txUsrClkActiveInt;
    drpClk         <= stableClk;
+
+   txPreCursor_in  <= txPreCursorIbert  when (EN_IBERT_G) else txPreCursor;
+   txPostCursor_in <= txPostCursorIbert when (EN_IBERT_G) else txPostCursor;
+   txdiffctrl_in   <= txdiffctrlIbert   when (EN_IBERT_G) else txDiffCtrl(4 downto 1);
+   eyescanreset_in <= eyescanresetIbert when (EN_IBERT_G) else (others => '0');
+   rxlpmen_in      <= rxlpmenIbert      when (EN_IBERT_G) else (others => '0');
+   rxrate_in       <= rxrateIbert       when (EN_IBERT_G) else (others => '0');
 
    U_RstSync_TX : entity surf.RstSync
       generic map (
@@ -379,6 +409,7 @@ begin
             drpwe_in(0)                           => drpWe,
             drpdo_out                             => drpDo,
             drprdy_out(0)                         => drpRdy,
+            eyescanreset_in                       => eyescanreset_in,
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             loopback_in                           => loopback,
@@ -388,11 +419,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => rxPolarity,
-            txdiffctrl_in                         => txDiffCtrl(4 downto 1),
+            txdiffctrl_in                         => txdiffctrl_in,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => txPolarity,
-            txpostcursor_in                       => txPostCursor,
-            txprecursor_in                        => txPreCursor,
+            txpostcursor_in                       => txpostcursor_in,
+            txprecursor_in                        => txprecursor_in,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,
@@ -406,6 +437,8 @@ begin
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
+            rxlpmen_in                            => rxlpmen_in,
+            rxrate_in                             => rxrate_in,
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_10G;
@@ -443,6 +476,7 @@ begin
             drpwe_in(0)                           => drpWe,
             drpdo_out                             => drpDo,
             drprdy_out(0)                         => drpRdy,
+            eyescanreset_in                       => eyescanreset_in,
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             loopback_in                           => loopback,
@@ -452,11 +486,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => rxPolarity,
-            txdiffctrl_in                         => txDiffCtrl(4 downto 1),
+            txdiffctrl_in                         => txdiffctrl_in,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => txPolarity,
-            txpostcursor_in                       => txPostCursor,
-            txprecursor_in                        => txPreCursor,
+            txpostcursor_in                       => txpostcursor_in,
+            txprecursor_in                        => txprecursor_in,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,
@@ -470,6 +504,8 @@ begin
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
+            rxlpmen_in                            => rxlpmen_in,
+            rxrate_in                             => rxrate_in,
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_6G;
@@ -507,6 +543,7 @@ begin
             drpwe_in(0)                           => drpWe,
             drpdo_out                             => drpDo,
             drprdy_out(0)                         => drpRdy,
+            eyescanreset_in                       => eyescanreset_in,
             gthrxn_in(0)                          => gtRxN,
             gthrxp_in(0)                          => gtRxP,
             loopback_in                           => loopback,
@@ -516,11 +553,11 @@ begin
             qpll1refclk_in(0)                     => qpllrefclk(1),
             rxgearboxslip_in(0)                   => rxGearboxSlip,
             rxpolarity_in(0)                      => rxPolarity,
-            txdiffctrl_in                         => txDiffCtrl(4 downto 1),
+            txdiffctrl_in                         => txdiffctrl_in,
             txheader_in                           => txheader_in,
             txpolarity_in(0)                      => txPolarity,
-            txpostcursor_in                       => txPostCursor,
-            txprecursor_in                        => txPreCursor,
+            txpostcursor_in                       => txpostcursor_in,
+            txprecursor_in                        => txprecursor_in,
             txsequence_in                         => txsequence_in,
             gthtxn_out(0)                         => gtTxN,
             gthtxp_out(0)                         => gtTxP,
@@ -534,6 +571,8 @@ begin
             rxprgdivresetdone_out(0)              => dummy9,
             rxstartofseq_out(1)                   => dummy2,
             rxstartofseq_out(0)                   => rxStartOfSeq,
+            rxlpmen_in                            => rxlpmen_in,
+            rxrate_in                             => rxrate_in,
             txpmaresetdone_out(0)                 => dummy10,
             txprgdivresetdone_out(0)              => dummy11);
    end generate GEN_3G;
@@ -548,7 +587,7 @@ begin
    assert not (EN_IBERT_G and EN_DRP_G)
       report "Cannot have both EN_IBERT_G and EN_DRP_G true"
       severity error;
-   
+
    GEN_DRP : if (EN_DRP_G) generate
       U_AxiLiteToDrp_1 : entity surf.AxiLiteToDrp
          generic map (
@@ -578,23 +617,23 @@ begin
 
    GEN_IBERT : if(EN_IBERT_G) generate
       U_Pgp3GthUsIbert_0 : Pgp3GthUsIbert
-        PORT MAP (
-           drpclk_o => ibertDrpClk,
-           gt0_drpen_o => drpEn,
-           gt0_drpwe_o => drpWe,
-           gt0_drpaddr_o => drpAddr,
-           gt0_drpdi_o => drpDi,
-           gt0_drprdy_i => drpRdy,
-           gt0_drpdo_i => drpDo,
-           eyescanreset_o => open,
-           rxrate_o => open,
-           txdiffctrl_o => open,
-           txprecursor_o => open,
-           txpostcursor_o => open,
-           rxlpmen_o => open,
-           rxoutclk_i => rxUsrClk2Int,
-           clk => stableClk
-        );
+         port map (
+            drpclk_o       => ibertDrpClk,
+            gt0_drpen_o    => drpEn,
+            gt0_drpwe_o    => drpWe,
+            gt0_drpaddr_o  => drpAddr,
+            gt0_drpdi_o    => drpDi,
+            gt0_drprdy_i   => drpRdy,
+            gt0_drpdo_i    => drpDo,
+            eyescanreset_o => eyescanresetIbert,
+            rxrate_o       => rxrateIbert,
+            txdiffctrl_o   => txdiffctrlIbert,
+            txprecursor_o  => txPreCursorIbert,
+            txpostcursor_o => txPostCursorIbert,
+            rxlpmen_o      => rxlpmenIbert,
+            rxoutclk_i     => rxUsrClk2Int,
+            clk            => stableClk
+            );
    end generate GEN_IBERT;
 
 end architecture mapping;
