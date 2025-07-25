@@ -31,7 +31,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
       ROW_WIDTH_G     : positive range 1 to 10 := 6;
-      DATA_WIDTH_G    : positive range 1 to 11 := 9;
+      DATA_WIDTH_G    : positive range 1 to 32 := 9;
       TIMER_WIDTH_G   : positive range 1 to 16 := 12);
    port (
       -- Matrix periphery: coldec and rowdec
@@ -161,7 +161,7 @@ begin
                         v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
                         v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
                         v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
-                        v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(23 downto 16) := toSlv(DATA_WIDTH_G, 8);
                         v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
                         axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                      when x"C" =>
