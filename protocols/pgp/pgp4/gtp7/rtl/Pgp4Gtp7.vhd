@@ -170,11 +170,14 @@ architecture rtl of Pgp4Gtp7 is
    -- attribute dont_touch of phyTxValid   : signal is "TRUE";
    -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
 
+   signal txPolarity   : sl;
+   signal rxPolarity   : sl;
+
 begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps"))
       report "RATE_G: Must be either 3.125Gbps, 6.25Gbps"
-      severity error;
+      severity failure;
 
    pgpClk    <= phyTxClk;
    pgpClkRst <= phyTxRst;
@@ -233,6 +236,8 @@ begin
          WRITE_EN_G                  => WRITE_EN_G,
          STATUS_CNT_WIDTH_G          => STATUS_CNT_WIDTH_G,
          ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
+         TX_POLARITY_G               => TX_POLARITY_G,
+         RX_POLARITY_G               => RX_POLARITY_G,
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
@@ -270,6 +275,8 @@ begin
          txDiffCtrl      => txDiffCtrl,                          -- [out]
          txPreCursor     => txPreCursor,                         -- [out]
          txPostCursor    => txPostCursor,                        -- [out]
+         txPolarity      => txPolarity,                          -- [out]
+         rxPolarity      => rxPolarity,                          -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => axilClk,                             -- [in]
          axilRst         => axilRst,                             -- [in]
@@ -290,8 +297,6 @@ begin
          CLKOUT0_DIVIDE_G => CLKOUT0_DIVIDE_G,
          CLKOUT1_DIVIDE_G => CLKOUT1_DIVIDE_G,
          CLKOUT2_DIVIDE_G => CLKOUT2_DIVIDE_G,
-         TX_POLARITY_G    => TX_POLARITY_G,
-         RX_POLARITY_G    => RX_POLARITY_G,
          EN_DRP_G         => EN_DRP_G,
          RATE_G           => RATE_G)
       port map (
@@ -324,6 +329,7 @@ begin
          rxData          => phyRxData,
          rxSlip          => phyRxSlip,
          rxAligned       => locRxOut.gearboxAligned,
+         rxPolarity      => rxPolarity,
          -- Tx Ports
          txUsrClk        => phyTxClk,
          txUsrClkRst     => phyTxRst,
@@ -333,6 +339,7 @@ begin
          txData          => phyTxData,
          txValid         => phyTxValid,
          txReady         => phyTxDataRdy,
+         txPolarity      => txPolarity,
          -- Debug Interface
          loopback        => loopback,
          txPreCursor     => txPreCursor,

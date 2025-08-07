@@ -125,8 +125,8 @@ architecture rtl of ClockManager7 is
 
 begin
 
-   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G < 7))
-      report "ClockManager7: Cannot have 7 clocks if TYPE_G is PLL" severity failure;
+   assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G <= 6))
+      report "ClockManager7(TYPE_G=PLL): Cannot have more than 6 clock outputs" severity failure;
 
    assert (TYPE_G = "MMCM" or TYPE_G = "PLL")
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;

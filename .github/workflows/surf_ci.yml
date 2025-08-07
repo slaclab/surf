@@ -76,7 +76,6 @@ jobs:
           make MODULES=$PWD
           python -m pytest --cov -v -n auto tests/
 
-      # Code Coverage
       - name: Code Coverage
         run: |
           codecov

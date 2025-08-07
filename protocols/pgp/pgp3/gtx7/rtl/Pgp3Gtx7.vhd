@@ -152,7 +152,7 @@ begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps"))
       report "RATE_G: Must be either 3.125Gbps, 6.25Gbps or 10.3125Gbps"
-      severity error;
+      severity failure;
 
    pgpClk    <= pgpTxClkInt;
    pgpClkRst <= pgpTxRstInt;
@@ -260,11 +260,9 @@ begin
    --------------------------
    U_Pgp3Gtx7IpWrapper : entity surf.Pgp3Gtx7IpWrapper
       generic map (
-         TPD_G         => TPD_G,
-         TX_POLARITY_G => TX_POLARITY_G,
-         RX_POLARITY_G => RX_POLARITY_G,
-         EN_DRP_G      => EN_DRP_G,
-         RATE_G        => RATE_G)
+         TPD_G    => TPD_G,
+         EN_DRP_G => EN_DRP_G,
+         RATE_G   => RATE_G)
       port map (
          stableClk       => stableClk,                           -- [in]
          stableRst       => stableRst,                           -- [in]
@@ -296,6 +294,7 @@ begin
          rxHeader        => phyRxHeader,                         -- [out]
          rxHeaderValid   => open,                                -- [out]
          rxGearboxSlip   => phyRxSlip,                           -- [in]
+         rxPolarity      => RX_POLARITY_G,                       -- [in]
          -- Tx Ports
          txReset         => '0',                                 -- [in]
          txResetDone     => phyTxActive,                         -- [out]
@@ -306,6 +305,7 @@ begin
          txData          => phyTxData,                           -- [in]
          txHeader        => phyTxHeader,                         -- [in]
          txStart         => phyTxStart,                          -- [in]
+         txPolarity      => TX_POLARITY_G,                       -- [in]
          -- Debug Interface
          loopback        => loopback,                            -- [in]
          txPreCursor     => txPreCursor,                         -- [in]

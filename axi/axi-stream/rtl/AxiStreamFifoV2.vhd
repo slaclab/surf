@@ -28,6 +28,7 @@ entity AxiStreamFifoV2 is
    generic (
       -- General Configurations
       TPD_G             : time                  := 1 ns;
+      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean               := false;
       INT_PIPE_STAGES_G : natural range 0 to 16 := 0;  -- Internal FIFO setting
       PIPE_STAGES_G     : natural range 0 to 16 := 1;
@@ -177,7 +178,7 @@ begin
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
-      severity error;
+      severity failure;
 
    -------------------------
    -- Slave Resize
@@ -185,6 +186,7 @@ begin
    U_SlaveResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          READY_EN_G          => SLAVE_READY_EN_G,
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
@@ -235,11 +237,11 @@ begin
    U_Fifo : entity surf.FifoCascade
       generic map (
          TPD_G              => TPD_G,
+         RST_POLARITY_G     => RST_POLARITY_G,
+         RST_ASYNC_G        => RST_ASYNC_G,
          CASCADE_SIZE_G     => CASCADE_SIZE_G,
          LAST_STAGE_ASYNC_G => true,
          PIPE_STAGES_G      => INT_PIPE_STAGES_G,
-         RST_POLARITY_G     => '1',
-         RST_ASYNC_G        => false,  -- Synchronous reset might be required here
          GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
          FWFT_EN_G          => true,
          SYNTH_MODE_G       => SYNTH_MODE_G,
@@ -272,11 +274,11 @@ begin
       U_LastFifo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
             CASCADE_SIZE_G     => CASCADE_SIZE_G,
             LAST_STAGE_ASYNC_G => true,
             PIPE_STAGES_G      => INT_PIPE_STAGES_G,
-            RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => false,  -- Synchronous reset might be required here
             GEN_SYNC_FIFO_G    => GEN_SYNC_FIFO_G,
             MEMORY_TYPE_G      => "distributed",
             FWFT_EN_G          => true,
@@ -391,6 +393,7 @@ begin
    U_MasterResize : entity surf.AxiStreamGearbox
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          READY_EN_G          => true,
          SIDE_BAND_WIDTH_G   => 8,
@@ -414,6 +417,7 @@ begin
    Synchronizer_1 : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '0')         -- invert
       port map (
@@ -429,6 +433,7 @@ begin
    U_Pipe : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => 8,
          PIPE_STAGES_G     => PIPE_STAGES_G)
