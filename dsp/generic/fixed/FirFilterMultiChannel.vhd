@@ -338,7 +338,7 @@ begin
                en      => cascEn,
                -- Data and tap coefficient Interface
                datain  => datain(j),  -- Common data input because Transpose Multiply-Accumulate architecture
-               coeffin => axiWrData(COEFF_WIDTH_G-1 downto 0),  --r.coeffin(NUM_TAPS_G-1-i),  
+               coeffin => axiWrData(COEFF_WIDTH_G-1 downto 0),  --r.coeffin(NUM_TAPS_G-1-i),
                coeffce => r.coeffce(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
                -- Cascade Interface
                cascin  => cascin(i, j),
