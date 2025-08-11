@@ -265,6 +265,19 @@ class ClinkChannel(pr.Device):
                     expand      = False,
                 ))
 
+            # Check for Jai GO-5000M-PMCL-UV camera
+            elif (camType=='JaiGo500m'):
+
+                # Override defaults
+                self.BaudRate._default = 9600
+                self.SerThrottle._default = 30000
+
+                # Add the device
+                self.add(surf.protocols.clink.UartJaiGo500m(
+                    name        = 'UartJaiGo500m',
+                    serial      = serial,
+                    expand      = False,
+                ))
 
             # Check for Imperx C1921 camera
             elif (camType=='ImperxC1921'):
