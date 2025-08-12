@@ -79,6 +79,7 @@ architecture rtl of AxiStreamDmaV2Write is
       dmaWrTrack   : AxiWriteDmaTrackType;
       dmaWrDescRet : AxiWriteDmaDescRetType;
       result       : slv(1 downto 0);
+      axiLenValid  : slv(1 downto 0);
       reqCount     : slv(31 downto 0);
       ackCount     : slv(31 downto 0);
       stCount      : slv(31 downto 0);
@@ -98,6 +99,7 @@ architecture rtl of AxiStreamDmaV2Write is
       dmaWrTrack   => AXI_WRITE_DMA_TRACK_INIT_C,
       dmaWrDescRet => AXI_WRITE_DMA_DESC_RET_INIT_C,
       result       => (others => '0'),
+      axiLenValid  => (others => '0'),
       reqCount     => (others => '0'),
       ackCount     => (others => '0'),
       stCount      => (others => '0'),
@@ -119,9 +121,12 @@ architecture rtl of AxiStreamDmaV2Write is
    signal trackDin      : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackDout     : slv(AXI_WRITE_DMA_TRACK_SIZE_C-1 downto 0);
    signal trackData     : AxiWriteDmaTrackType;
+   --debug
+   signal debugSt      : slv(3 downto 0);
 
     attribute dont_touch      : string;
     attribute dont_touch of r : signal is "true";
+    attribute dont_touch of debugSt : signal is "true";
 
 begin
 
@@ -144,6 +149,19 @@ begin
    -- Pause when enabled
    pause <= '0' when (AXI_READY_EN_G) else axiWriteCtrl.pause;
 
+   -- debug state
+   debugSt(3 downto 0) <= "0000" when r.state = RESET_S   else
+                       "0001" when r.state = INIT_S    else
+                       "0010" when r.state = IDLE_S    else
+                       "0011" when r.state = REQ_S     else
+                       "0100" when r.state = ADDR_S    else
+                       "0101" when r.state = MOVE_S    else
+                       "0110" when r.state = PAD_S    else
+                       "0111" when r.state = META_S    else
+                       "1000" when r.state = RETURN_S    else
+                       "1001" when r.state = DUMP_S    else
+                       "1010";
+                       
    -- State machine
    comb : process (axiCache, axiRst, axiWriteSlave, dmaWrDescAck,
                    dmaWrDescRetAck, intAxisMaster, pause, r, trackData) is
@@ -290,6 +308,8 @@ begin
             v.stCount  := (others => '0');
             v.continue := '0';
             v.lastUser := (others => '0');
+            -- debug axiLenValid
+            v.axiLenValid   := (others => '0');
             -- Determine transfer size aligned to 4k boundaries
             getAxiLenProc(AXI_CONFIG_G, BURST_BYTES_G, r.dmaWrTrack.maxSize, r.dmaWrTrack.address, r.axiLen, v.axiLen);
             -- Address can be sent
@@ -300,6 +320,8 @@ begin
                -- Latch AXI awlen value
                v.wMaster.awlen := v.axiLen.value;
                v.awlen         := v.axiLen.value(AXI_CONFIG_G.LEN_BITS_C-1 downto 0);
+               -- debug axilenValid
+               v.axiLenValid   := "11";
                -- Check if enough room
                if pause = '0' then
                   -- Set the flag
@@ -310,6 +332,9 @@ begin
                   -- Next state
                   v.state           := MOVE_S;
                end if;
+             else 
+               -- debug axiLenValid
+               v.axiLenValid   := v.axiLen.valid;
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
