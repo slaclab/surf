@@ -16,7 +16,7 @@
 import pyrogue as pr
 import surf.protocols.clink as clink
 
-class UartJaiGo500mTx(clink.ClinkSerialTx):
+class UartJaiGo5000mTx(clink.ClinkSerialTx):
     def sendString(self,st):
         print( f'{self._path}: SendString: {st}' )
         ba = bytearray((len(st)+2)*4)
@@ -31,7 +31,7 @@ class UartJaiGo500mTx(clink.ClinkSerialTx):
         frame.write(ba,0)
         self._sendFrame(frame)
 
-class UartJaiGo500mRx(clink.ClinkSerialRx):
+class UartJaiGo5000mRx(clink.ClinkSerialRx):
     def _acceptFrame(self,frame):
         ba = bytearray(frame.getPayload())
         frame.read(ba,0)
@@ -47,15 +47,15 @@ class UartJaiGo500mRx(clink.ClinkSerialRx):
             elif c != '':
                 self._cur.append(c)
 
-class UartJaiGo500m(pr.Device):
+class UartJaiGo5000m(pr.Device):
     def __init__(self, serial=None, **kwargs):
         super().__init__(**kwargs)
 
         # Attach the serial devices
-        self._rx = UartJaiGo500mRx(self.path)
+        self._rx = UartJaiGo5000mRx(self.path)
         pr.streamConnect(serial,self._rx)
 
-        self._tx = UartJaiGo500mTx(self.path)
+        self._tx = UartJaiGo5000mTx(self.path)
         pr.streamConnect(self._tx,serial)
 
         @self.command(value='', name='SendString', description='Send a command string')

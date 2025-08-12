@@ -19,7 +19,7 @@ from surf.protocols.clink._UartGeneric     import *
 from surf.protocols.clink._UartBaslerAce   import *
 from surf.protocols.clink._UartImperxC1921 import *
 from surf.protocols.clink._UartJaiCm140    import *
-from surf.protocols.clink._UartJaiGo500m   import *
+from surf.protocols.clink._UartJaiGo5000m  import *
 from surf.protocols.clink._UartOpal1000    import *
 from surf.protocols.clink._UartPiranha4    import *
 from surf.protocols.clink._UartUp900cl12b  import *
