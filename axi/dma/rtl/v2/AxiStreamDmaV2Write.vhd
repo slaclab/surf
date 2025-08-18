@@ -428,24 +428,18 @@ begin
             end if;
          ----------------------------------------------------------------------
          when META_S =>
-
-            -- Wair for existing transactions to complete
-            if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
-
-               -- Init
-               v.wMaster := axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000");
+            -- Wait for existing transactions to complete
+            if (v.wMaster.wvalid = '0') and (v.wMaster.awvalid = '0') then
 
                -- Write address channel
-               v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
-               v.wMaster.awlen  := x"00";  -- Single transaction
+               v.wMaster.awvalid := '1';
+               v.wMaster.awaddr  := r.dmaWrTrack.metaAddr;
+               v.wMaster.awlen   := x"00";  -- Single transaction
 
                -- Write data channel
-               v.wMaster.wlast := '1';
-
-               -- Increment the counter
-               v.reqCount := r.reqCount + 1;
-
-               -- Descriptor data, 64-bits
+               v.wMaster.wvalid              := '1';
+               v.wMaster.wlast               := '1';
+               v.wMaster.wstrb               := resize(x"FF", 128);  -- Descriptor data, 64-bits
                v.wMaster.wdata(63 downto 32) := r.dmaWrTrack.size;
                v.wMaster.wdata(31 downto 24) := r.dmaWrTrack.firstUser;
                v.wMaster.wdata(23 downto 16) := r.lastUser;
@@ -454,11 +448,11 @@ begin
                v.wMaster.wdata(2)            := r.dmaWrTrack.overflow;
                v.wMaster.wdata(1 downto 0)   := r.result;
 
-               v.wMaster.wstrb := resize(x"FF", 128);
+               -- Increment the counter
+               v.reqCount := r.reqCount + 1;
 
-               v.wMaster.awvalid := '1';
-               v.wMaster.wvalid  := '1';
-               v.state           := RETURN_S;
+               -- Next state
+               v.state := RETURN_S;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
