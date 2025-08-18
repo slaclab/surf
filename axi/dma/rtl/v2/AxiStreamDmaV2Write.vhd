@@ -320,7 +320,7 @@ begin
                if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := PAD_S;
                -- Overflow detect
-               elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then  -- Assumes max AXIS.TDATA width of 128-bits
+               elsif (r.dmaWrTrack.maxSize(31 downto log2(DATA_BYTES_C)) = 0) then
                   -- Multi-descriptor DMA is supported
                   if r.dmaWrTrack.contEn = '1' then
                      v.continue         := '1';
