@@ -362,7 +362,7 @@ begin
                      v.dmaWrTrack.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
                         axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster, 0);
                   end if;
-                  -- -- Check for last AXIS word
+                  -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      -- Latch the tUser value
                      v.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
@@ -392,7 +392,9 @@ begin
                      v.awlen := r.awlen - 1;
                   end if;
                end if;
-            -- Timeout on stalled writes to avoid locking AXI crossbar
+            -- If the incoming AXI stream data stalled out ('timeout event') while we are in the
+            -- middle of a write, we treat it like a destination change and complete the write
+            -- with the valid strobes as '0' and re-start it when data is available
             elsif r.stCount = 100 then
                v.state := PAD_S;
             else
@@ -505,7 +507,7 @@ begin
                else
                   -- Accept the data
                   v.slave.tReady := '1';
-                  -- -- Check for last AXIS word
+                  -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
                      if r.dmaWrTrack.metaEnable = '1' then
