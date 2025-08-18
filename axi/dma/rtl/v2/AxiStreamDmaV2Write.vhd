@@ -477,13 +477,9 @@ begin
                   v.state              := IDLE_S;
                -- Check for ACK timeout
                elsif (r.stCount = r.dmaWrTrack.timeout) then
-                  -- Set the flags
+                  -- Latch the errors flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
-                  v.dmaWrDescRet.valid              := '1';
                   v.dmaWrDescRet.result(3)          := '1';
-                  v.reqCount                        := (others => '0');
-                  v.ackCount                        := (others => '0');
-                  v.state                           := IDLE_S;
                else
                   -- Increment the counter
                   v.stCount := r.stCount + 1;
