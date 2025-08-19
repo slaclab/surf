@@ -24,10 +24,10 @@ entity FirFilterSingleChannel is
    generic (
       TPD_G            : time         := 1 ns;
       COMMON_CLK_G     : boolean      := false;
-      NUM_TAPS_G       : positive;      -- Number of filter taps
+      NUM_TAPS_G       : positive;                   -- Number of filter taps
       SIDEBAND_WIDTH_G : natural      := 0;
-      DATA_WIDTH_G     : positive;      -- Number of bits per data word
-      COEFF_WIDTH_G    : positive range 1 to 32;  -- Number of bits per coefficient word
+      DATA_WIDTH_G     : positive;                   -- Number of bits per data word
+      COEFF_WIDTH_G    : positive range 1 to 32;     -- Number of bits per coefficient word
       COEFFICIENTS_G   : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
@@ -78,6 +78,7 @@ architecture mapping of FirFilterSingleChannel is
 
    type RegType is record
       coeffin    : CoeffArray;
+      coeffce    : slv(NUM_TAPS_G-1 downto 0);
       ibReady    : sl;
       tdata      : slv(DATA_WIDTH_G-1 downto 0);
       sideband   : SidebandPipelineArray;
@@ -87,6 +88,7 @@ architecture mapping of FirFilterSingleChannel is
    end record RegType;
    constant REG_INIT_C : RegType := (
       coeffin    => COEFFICIENTS_C,
+      coeffce    => (others => '0'),
       ibReady    => '0',
       tdata      => (others => '0'),
       tValid     => (others => '0'),
@@ -132,8 +134,7 @@ begin
          axiWrAddr      => axiWrAddr,        -- [out]
          axiWrData      => axiWrData);       -- [out]
 
-   comb : process (axiWrAddr, axiWrData, axiWrValid, cascout, ibValid, obReady,
-                   r, rst, sbIn) is
+   comb : process (axiWrAddr, axiWrValid, cascout, ibValid, obReady, r, rst, sbIn) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin
@@ -141,8 +142,9 @@ begin
       v := r;
 
       -- Capture coefficients in shadow registers when updated in AxiDualPortRam
+      v.coeffce := (others => '0');
       if (axiWrValid = '1') then
-         v.coeffin(to_integer(unsigned(axiWrAddr))) := axiWrData(COEFF_WIDTH_G-1 downto 0);
+         v.coeffce(to_integer(unsigned(axiWrAddr))) := '1';
       end if;
 
       -- Flow Control
@@ -212,6 +214,7 @@ begin
             TPD_G         => TPD_G,
             DATA_WIDTH_G  => DATA_WIDTH_G,
             COEFF_WIDTH_G => COEFF_WIDTH_G,
+            COEFF_INIT_G  => COEFFICIENTS_C(NUM_TAPS_G-1-i),
             CASC_WIDTH_G  => CASC_WIDTH_C)
          port map (
             -- Clock Only (Infer into DSP)
@@ -219,7 +222,8 @@ begin
             en      => cascTapEn,
             -- Data and tap coefficient Interface
             datain  => din,  -- Common data input because Transpose Multiply-Accumulate architecture
-            coeffin => r.coeffin(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
+            coeffin => axiWrData(COEFF_WIDTH_G-1 downto 0),  --r.coeffin(NUM_TAPS_G-1-i),
+            coeffce => r.coeffce(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
             -- Cascade Interface
             cascin  => cascin(i),
             cascout => cascout(i));

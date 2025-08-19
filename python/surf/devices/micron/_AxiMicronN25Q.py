@@ -169,7 +169,7 @@ class AxiMicronN25Q(pr.Device):
             value       = '',
         ))
 
-    def _LoadMcsFile(self,arg):
+    def _LoadMcsFile(self,arg,iprogPrint=True):
         # arg = value
 
         click.secho( f'{self.path}.LoadMcsFile: {arg}', fg='green')
@@ -207,17 +207,18 @@ class AxiMicronN25Q(pr.Device):
 
         # Add a power cycle reminder
         self._progDone = True
-        click.secho(
-            "\n\n\
-            ***************************************************\n\
-            ***************************************************\n\
-            The MCS data has been written into the PROM.       \n\
-            To reprogram the FPGA with the new PROM data,      \n\
-            a IPROG CMD or power cycle is be required.\n\
-            ***************************************************\n\
-            ***************************************************\n\n"
-            , bg='green',
-        )
+        if iprogPrint:
+            click.secho(
+                "\n\n\
+                ***************************************************\n\
+                ***************************************************\n\
+                The MCS data has been written into the PROM.       \n\
+                To reprogram the FPGA with the new PROM data,      \n\
+                a IPROG CMD or power cycle is be required.\n\
+                ***************************************************\n\
+                ***************************************************\n\n"
+                , bg='green',
+            )
 
     def eraseProm(self):
         # Set the starting address index

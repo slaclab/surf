@@ -24,12 +24,12 @@ use surf.AxiStreamPkg.all;
 entity FirFilterMultiChannel is
    generic (
       TPD_G          : time         := 1 ns;
-      COMMON_CLK_G   : boolean      := false;  -- True if axisClk and axiClk are the same
-      NUM_TAPS_G     : positive;        -- Number of filter taps
-      NUM_CHANNELS_G : positive;        -- Number of data channels
-      PARALLEL_G     : positive;  -- Number of parallel channel processing
-      DATA_WIDTH_G   : positive;        -- Number of bits per data word
-      COEFF_WIDTH_G  : positive range 1 to 32;  -- Number of bits per coefficient
+      COMMON_CLK_G   : boolean      := false;     -- True if axisClk and axiClk are the same
+      NUM_TAPS_G     : positive;                  -- Number of filter taps
+      NUM_CHANNELS_G : positive;                  -- Number of data channels
+      PARALLEL_G     : positive;                  -- Number of parallel channel processing
+      DATA_WIDTH_G   : positive;                  -- Number of bits per data word
+      COEFF_WIDTH_G  : positive range 1 to 32;    -- Number of bits per coefficient
       COEFFICIENTS_G : IntegerArray := (0 => 0);  -- Initial coefficients
       MEMORY_TYPE_G  : string       := "distributed";
       SYNTH_MODE_G   : string       := "inferred");
@@ -109,6 +109,7 @@ architecture mapping of FirFilterMultiChannel is
       ramWe       : sl;
       addr        : slv(CASC_RAM_ADDR_WIDTH_C-1 downto 0);
       coeffin     : CoeffArray;
+      coeffce     : slv(NUM_TAPS_G-1 downto 0);
       sAxisSlave  : AxiStreamSlaveType;
       axisMeta    : AxiStreamMasterType;
       mAxisMaster : AxiStreamMasterType;
@@ -118,6 +119,7 @@ architecture mapping of FirFilterMultiChannel is
       ramWe       => '0',
       addr        => (others => '0'),
       coeffin     => COEFFICIENTS_C,
+      coeffce     => (others => '0'),
       sAxisSlave  => AXI_STREAM_SLAVE_INIT_C,
       axisMeta    => AXI_STREAM_MASTER_INIT_C,
       mAxisMaster => AXI_STREAM_MASTER_INIT_C);
@@ -201,16 +203,16 @@ begin
 
    end generate;
 
-   comb : process (axiWrAddr, axiWrData, axiWrValid, axisRst, cascout,
-                   mAxisSlave, r, sAxisMaster) is
+   comb : process (axiWrAddr, axiWrValid, axisRst, cascout, mAxisSlave, r, sAxisMaster) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
 
       -- Capture coefficients in shadow registers when updated in AxiDualPortRam
+      v.coeffce := (others => '0');
       if (axiWrValid = '1') then
-         v.coeffin(to_integer(unsigned(axiWrAddr))) := axiWrData(COEFF_WIDTH_G-1 downto 0);
+         v.coeffce(to_integer(unsigned(axiWrAddr))) := '1';
       end if;
 
 
@@ -328,6 +330,7 @@ begin
                TPD_G         => TPD_G,
                DATA_WIDTH_G  => DATA_WIDTH_G,
                COEFF_WIDTH_G => COEFF_WIDTH_G,
+               COEFF_INIT_G  => COEFFICIENTS_C(NUM_TAPS_G-1-i),
                CASC_WIDTH_G  => CASC_WIDTH_C)
             port map (
                -- Clock Only (Infer into DSP)
@@ -335,7 +338,8 @@ begin
                en      => cascEn,
                -- Data and tap coefficient Interface
                datain  => datain(j),  -- Common data input because Transpose Multiply-Accumulate architecture
-               coeffin => r.coeffin(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
+               coeffin => axiWrData(COEFF_WIDTH_G-1 downto 0),  --r.coeffin(NUM_TAPS_G-1-i),
+               coeffce => r.coeffce(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
                -- Cascade Interface
                cascin  => cascin(i, j),
                cascout => cascout(i, j));

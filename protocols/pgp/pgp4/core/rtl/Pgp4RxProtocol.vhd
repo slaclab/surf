@@ -31,10 +31,11 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxProtocol is
    generic (
-      TPD_G          : time                  := 1 ns;
-      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean               := false;
-      NUM_VC_G       : integer range 1 to 16 := 4);
+      TPD_G             : time                  := 1 ns;
+      RST_POLARITY_G    : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean               := false;
+      RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
+      NUM_VC_G          : integer range 1 to 16 := 4);
    port (
       -- User Transmit interface
       pgpRxClk       : in  sl;
@@ -274,7 +275,6 @@ begin
       -- Outputs
       pgpRxOut       <= r.pgpRxOut;
       protRxPhyInit  <= r.protRxPhyInit;
-      pgpRxMaster    <= r.pgpRxMaster;
       remRxFifoCtrl  <= r.remRxFifoCtrl;
       remRxLinkReady <= r.remRxLinkReady;
       locRxLinkReady <= r.pgpRxOut.linkReady;
@@ -297,5 +297,44 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   LOW_BANDWITH : if (RX_CRC_PIPELINE_G = 0) generate
+      U_RegOutput : entity surf.AxiStreamPipeline
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            PIPE_STAGES_G  => 1)
+         port map (
+            axisClk     => pgpRxClk,
+            axisRst     => pgpRxRst,
+            sAxisMaster => r.pgpRxMaster,
+            mAxisMaster => pgpRxMaster,
+            mAxisSlave  => pgpRxSlave);
+   end generate LOW_BANDWITH;
+
+   HIGH_BANDWITH : if (RX_CRC_PIPELINE_G = 1) generate
+      U_BuffOutput : entity surf.AxiStreamFifoV2
+         generic map (
+            TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
+            INT_PIPE_STAGES_G   => 0,
+            PIPE_STAGES_G       => 1,
+            SLAVE_READY_EN_G    => false,
+            GEN_SYNC_FIFO_G     => true,
+            FIFO_ADDR_WIDTH_G   => 4,
+            MEMORY_TYPE_G       => "distributed",
+            SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => PGP4_AXIS_CONFIG_C)
+         port map (
+            sAxisClk    => pgpRxClk,
+            sAxisRst    => pgpRxRst,
+            sAxisMaster => r.pgpRxMaster,
+            mAxisClk    => pgpRxClk,
+            mAxisRst    => pgpRxRst,
+            mAxisMaster => pgpRxMaster,
+            mAxisSlave  => pgpRxSlave);
+   end generate HIGH_BANDWITH;
 
 end rtl;
