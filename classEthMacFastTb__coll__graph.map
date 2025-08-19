@@ -54,8 +54,8 @@
 <area shape="poly" id="edge50_Node000045_Node000010" title=" " alt="" coords="325,578,428,595,541,609,688,623,762,627,831,624,889,615,912,607,932,597,945,585,952,572,957,542,960,510,967,494,980,479,999,466,1002,470,983,483,971,497,965,512,962,543,957,574,949,588,935,602,915,612,890,620,831,630,762,632,687,629,541,614,428,601,324,584"/>
 <area shape="rect" id="Node000011" href="$classFifoXpm.html" title=" " alt="" coords="39,560,115,585"/>
 <area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="128,570,264,570,264,575,128,575"/>
-<area shape="rect" id="Node000016" href="$classSynchronizer.html" title=" " alt="" coords="480,208,587,233"/>
-<area shape="poly" id="edge12_Node000005_Node000016" title=" " alt="" coords="601,230,745,256,744,261,600,235"/>
+<area shape="rect" id="Node000013" href="$classSynchronizer.html" title=" " alt="" coords="480,208,587,233"/>
+<area shape="poly" id="edge12_Node000005_Node000013" title=" " alt="" coords="601,230,745,256,744,261,600,235"/>
 <area shape="rect" id="Node000022" href="$classEthMacTx.html" title=" " alt="" coords="1403,360,1489,385"/>
 <area shape="poly" id="edge14_Node000003_Node000022" title=" " alt="" coords="1485,352,1573,308,1576,313,1487,356"/>
 <area shape="rect" id="Node000023" href="$classEthMacTxBypass.html" title=" " alt="" coords="1202,367,1335,392"/>

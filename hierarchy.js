@@ -165,6 +165,7 @@ var hierarchy =
       [ "FifoCascade", "classFifoCascade.html", [
         [ "Fifo", "classFifo.html", [
           [ "FifoXpm", "classFifoXpm.html", [
+            [ "RstSync", "classRstSync.html", null ],
             [ "FifoOutputPipeline", "classFifoOutputPipeline.html", null ]
           ] ],
           [ "FifoAlteraMf", "classFifoAlteraMf.html", [
@@ -1385,7 +1386,9 @@ var hierarchy =
             [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ]
           ] ],
           [ "Pgp4RxProtocol", "classPgp4RxProtocol.html", [
-            [ "SynchronizerEdge", "classSynchronizerEdge.html", null ]
+            [ "SynchronizerEdge", "classSynchronizerEdge.html", null ],
+            [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+            [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
           ] ],
           [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
           [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
@@ -1462,9 +1465,9 @@ var hierarchy =
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "Pgp4Tx", "classPgp4Tx.html", null ],
-      [ "Pgp4Rx", "classPgp4Rx.html", null ],
-      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+      [ "Pgp4Core", "classPgp4Core.html", null ],
+      [ "PgpRxVcFifo", "classPgpRxVcFifo.html", null ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "Pgp4TxLite", "classPgp4TxLite.html", null ],

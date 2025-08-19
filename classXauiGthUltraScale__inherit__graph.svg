@@ -441,19 +441,19 @@ var sectionId = 'dynsection-0';
 </a>
 </g>
 </g>
-<!-- Node15 -->
-<g id="Node000015" class="node">
-<title>Node15</title>
-<g id="a_Node000015"><a xlink:href="classSynchronizer.html" target="_top" xlink:title=" ">
+<!-- Node12 -->
+<g id="Node000012" class="node">
+<title>Node12</title>
+<g id="a_Node000012"><a xlink:href="classSynchronizer.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="orangered" points="252,-465 172,-465 172,-446 252,-446 252,-465"/>
 <text text-anchor="middle" x="212" y="-453" font-family="Helvetica,sans-Serif" font-size="10.00">Synchronizer</text>
 </a>
 </g>
 </g>
-<!-- Node15&#45;&gt;Node4 -->
-<g id="edge7_Node000004_Node000015" class="edge">
-<title>Node15&#45;&gt;Node4</title>
-<g id="a_edge7_Node000004_Node000015"><a xlink:title=" ">
+<!-- Node12&#45;&gt;Node4 -->
+<g id="edge7_Node000004_Node000012" class="edge">
+<title>Node12&#45;&gt;Node4</title>
+<g id="a_edge7_Node000004_Node000012"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M262.36,-454.74C292.43,-454.28 330.66,-453.69 360.48,-453.24"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="262.04,-451.25 252.09,-454.9 262.15,-458.25 262.04,-451.25"/>
 </a>

@@ -40,8 +40,8 @@
 <area shape="poly" id="edge62_Node000058_Node000007" title=" " alt="" coords="85,457,98,510,120,580,153,655,174,691,198,724,227,750,258,768,256,773,224,754,194,728,169,694,148,658,115,582,93,512,80,458"/>
 <area shape="rect" id="Node000008" href="$classFifoCascade.html" title=" " alt="" coords="237,594,339,620"/>
 <area shape="poly" id="edge6_Node000004_Node000008" title=" " alt="" coords="352,593,485,567,486,572,353,598"/>
-<area shape="rect" id="Node000015" href="$classSynchronizer.html" title=" " alt="" coords="235,545,341,570"/>
-<area shape="poly" id="edge7_Node000004_Node000015" title=" " alt="" coords="355,555,486,555,486,560,355,560"/>
+<area shape="rect" id="Node000012" href="$classSynchronizer.html" title=" " alt="" coords="235,545,341,570"/>
+<area shape="poly" id="edge7_Node000004_Node000012" title=" " alt="" coords="355,555,486,555,486,560,355,560"/>
 <area shape="rect" id="Node000021" href="$classEthMacTx.html" title=" " alt="" coords="1249,644,1336,669"/>
 <area shape="poly" id="edge9_Node000002_Node000021" title=" " alt="" coords="1349,646,1417,636,1418,641,1350,651"/>
 <area shape="rect" id="Node000022" href="$classEthMacTxBypass.html" title=" " alt="" coords="999,745,1132,770"/>

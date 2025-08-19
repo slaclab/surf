@@ -1,5 +1,9 @@
 <map id="FifoXpm" name="FifoXpm">
-<area shape="rect" id="Node000001" title=" " alt="" coords="39,79,115,104"/>
-<area shape="rect" id="Node000002" href="$classFifoOutputPipeline.html" title=" " alt="" coords="5,5,148,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,44,79,79,74,79,74,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="87,152,163,177"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,79,96,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,113,116,150,113,154,77,116"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
+<area shape="rect" id="Node000004" href="$classFifoOutputPipeline.html" title=" " alt="" coords="121,79,263,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="173,116,138,154,134,150,170,113"/>
 </map>

@@ -105,7 +105,7 @@ var NAVTREEINDEX4 =
 "classPgp4RxProtocol_1_1rtl.html":[0,0,560,0],
 "classPgp4Rx_1_1rtl.html":[0,0,556,0],
 "classPgp4Tb.html":[0,0,561],
-"classPgp4Tb_1_1tb.html":[0,0,561,0],
+"classPgp4Tb_1_1testbed.html":[0,0,561,0],
 "classPgp4Tx.html":[0,0,562],
 "classPgp4TxLite.html":[0,0,563],
 "classPgp4TxLiteProtocol.html":[0,0,564],

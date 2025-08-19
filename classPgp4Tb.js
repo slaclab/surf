@@ -1,4 +1,4 @@
 var classPgp4Tb =
 [
-    [ "Pgp4Tb.tb", "classPgp4Tb_1_1tb.html", null ]
+    [ "Pgp4Tb.testbed", "classPgp4Tb_1_1testbed.html", null ]
 ];
