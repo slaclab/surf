@@ -19,7 +19,7 @@ import pyrogue as pr
 from surf.devices import transceivers
 
 class Qsfp(pr.Device):
-    def __init__(self, advDebug=False, **kwargs):
+    def __init__(self, advDebug=False, tryCount=1, **kwargs):
         super().__init__(**kwargs)
 
         ################
@@ -33,6 +33,7 @@ class Qsfp(pr.Device):
             bitSize      = 5,
             mode         = 'RO',
             enum         = transceivers.IdentifierDict,
+            retryCount   = tryCount,
         ))
 
         if advDebug:
@@ -55,6 +56,7 @@ class Qsfp(pr.Device):
                     0x08: 'SFF-8636 Rev 2.8, 2.9 and 2.10',
                     0xFF: 'Reserved',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -64,6 +66,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 2,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -73,6 +76,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 1,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -82,6 +86,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -91,6 +96,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -100,6 +106,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -109,6 +116,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -118,6 +126,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -127,6 +136,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -136,6 +146,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -145,6 +156,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 7,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -154,6 +166,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 6,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -163,6 +176,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 5,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -172,6 +186,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -181,6 +196,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 1,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -190,6 +206,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -199,6 +216,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 7,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -208,6 +226,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 6,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -217,6 +236,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 5,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -226,6 +246,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
         # 8 All Vendor Specific
@@ -247,6 +268,7 @@ class Qsfp(pr.Device):
             number       = 2, # BYTE22:BYTE23
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -270,6 +292,7 @@ class Qsfp(pr.Device):
             number       = 2, # BYTE26:BYTE27
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -294,6 +317,7 @@ class Qsfp(pr.Device):
             number       = 8, # BYTE34:BYTE41
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         for i in range(4):
@@ -316,6 +340,7 @@ class Qsfp(pr.Device):
             number       = 8, # BYTE42:BYTE49
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         for i in range(4):
@@ -338,6 +363,7 @@ class Qsfp(pr.Device):
             number       = 8, # BYTE50:BYTE57
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         for i in range(4):
@@ -365,6 +391,7 @@ class Qsfp(pr.Device):
                 bitOffset    = i,
                 mode         = 'RW',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
         if advDebug:
@@ -378,6 +405,7 @@ class Qsfp(pr.Device):
                     bitOffset    = 2*i,
                     mode         = 'RW',
                     hidden       = True,
+                    retryCount   = tryCount,
                 ))
 
             for i in range(4):
@@ -389,6 +417,7 @@ class Qsfp(pr.Device):
                     bitOffset    = 2*i,
                     mode         = 'RW',
                     hidden       = True,
+                    retryCount   = tryCount,
                 ))
 
         # 89-92 All Reserved (Prior to Rev 2.10 used for SFF-8079 – now deprecated.)
@@ -411,6 +440,7 @@ class Qsfp(pr.Device):
                 bitSize      = 2,
                 bitOffset    = 2,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -421,6 +451,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 1,
                 mode         = 'RW',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -431,6 +462,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 0,
                 mode         = 'RW',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
         # 94-97 All Reserved
@@ -444,6 +476,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 4+i,
                 mode         = 'RW',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
         for i in range(4):
@@ -455,6 +488,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 0+i,
                 mode         = 'RW',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
         if advDebug:
@@ -470,6 +504,7 @@ class Qsfp(pr.Device):
                     0x0: 'LPMode',
                     0x1: 'TxDis',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -483,6 +518,7 @@ class Qsfp(pr.Device):
                     0x0: 'IntL',
                     0x1: 'LOSL',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -492,6 +528,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -501,6 +538,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -510,6 +548,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -519,6 +558,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -528,6 +568,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -537,6 +578,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -546,6 +588,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 7,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -555,6 +598,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 6,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -564,6 +608,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 5,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -573,6 +618,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 4,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -582,6 +628,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 1,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -591,6 +638,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 7,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -600,6 +648,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 6,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -609,6 +658,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 5,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -618,6 +668,7 @@ class Qsfp(pr.Device):
                 bitSize      = 1,
                 bitOffset    = 4,
                 mode         = 'RW',
+                retryCount   = tryCount,
             ))
 
         # 105-106 Vendor Specific
@@ -631,6 +682,7 @@ class Qsfp(pr.Device):
                 bitSize      = 8,
                 mode         = 'RO',
                 units        = '0.1W',
+                retryCount   = tryCount,
             ))
 
             self.addRemoteVariables(
@@ -642,6 +694,7 @@ class Qsfp(pr.Device):
                 number       = 2, # BYTE108:BYTE109
                 stride       = 4,
                 hidden       = True,
+                retryCount   = tryCount,
             )
 
             self.add(pr.RemoteVariable(
@@ -658,6 +711,7 @@ class Qsfp(pr.Device):
                     0x3: 'no more than 0.5 W',
                     0xF: 'UNDEFINED',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -668,6 +722,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 3,
                 mode         = 'RO',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -683,6 +738,7 @@ class Qsfp(pr.Device):
                     0x2: '1.8 V',
                     0x7: 'UNDEFINED',
                 },
+                retryCount   = tryCount,
             ))
 
         # 111-112 Assigned for use by PCI Express
@@ -706,6 +762,7 @@ class Qsfp(pr.Device):
                     0x6: '2 far-ends with 1 channel implemented in each (i.e. 2x1 break out)',
                     0xF: 'UNDEFINED',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -715,6 +772,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -724,6 +782,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -733,6 +792,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -742,6 +802,7 @@ class Qsfp(pr.Device):
                 bitSize      = 3,
                 bitOffset    = 5,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -751,6 +812,7 @@ class Qsfp(pr.Device):
                 bitSize      = 5,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -760,6 +822,7 @@ class Qsfp(pr.Device):
                 bitSize      = 8,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
 
@@ -770,6 +833,7 @@ class Qsfp(pr.Device):
                 bitSize      = 4,
                 bitOffset    = 4,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -779,6 +843,7 @@ class Qsfp(pr.Device):
                 bitSize      = 2,
                 bitOffset    = 0,
                 mode         = 'RO',
+                retryCount   = tryCount,
             ))
 
         # 118 118 Reserved
@@ -799,6 +864,7 @@ class Qsfp(pr.Device):
                 bitSize      = 5,
                 mode         = 'RO',
                 enum         = transceivers.IdentifierDict,
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -814,6 +880,7 @@ class Qsfp(pr.Device):
                     0x2: 'Power Class 3 (2.5 W max.)',
                     0x3: 'Power Class 4 (3.5 W max.) and Power Classes 5, 6 or 7',
                 },
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -824,6 +891,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 5,
                 mode         = 'RO',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -834,6 +902,7 @@ class Qsfp(pr.Device):
                 bitOffset    = 4,
                 mode         = 'RO',
                 base         = pr.Bool,
+                retryCount   = tryCount,
             ))
 
         self.add(pr.RemoteVariable(
@@ -844,6 +913,7 @@ class Qsfp(pr.Device):
             bitOffset    = 3,
             mode         = 'RO',
             base         = pr.Bool,
+            retryCount   = tryCount,
         ))
 
         self.add(pr.RemoteVariable(
@@ -854,6 +924,7 @@ class Qsfp(pr.Device):
             bitOffset    = 2,
             mode         = 'RO',
             base         = pr.Bool,
+            retryCount   = tryCount,
         ))
 
         if advDebug:
@@ -870,6 +941,7 @@ class Qsfp(pr.Device):
                     0x2: 'Power Class 6 (4.5 W max.) See Byte 93 bit 2 to enable.',
                     0x3: 'Power Class 7 (5.0 W max.) See Byte 93 bit 2 to enable',
                 },
+                retryCount   = tryCount,
             ))
 
         self.add(pr.RemoteVariable(
@@ -879,6 +951,7 @@ class Qsfp(pr.Device):
             bitSize     = 8,
             mode        = 'RO',
             enum        = transceivers.ConnectorDict,
+            retryCount   = tryCount,
         ))
 
         ###############################################################
@@ -893,6 +966,7 @@ class Qsfp(pr.Device):
                 offset      = (139 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -901,6 +975,7 @@ class Qsfp(pr.Device):
                 offset      = (140 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -909,6 +984,7 @@ class Qsfp(pr.Device):
                 offset      = (141 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -917,6 +993,7 @@ class Qsfp(pr.Device):
                 offset      = (142 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -925,6 +1002,7 @@ class Qsfp(pr.Device):
                 offset      = (143 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -933,6 +1011,7 @@ class Qsfp(pr.Device):
                 offset      = (145 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -941,6 +1020,7 @@ class Qsfp(pr.Device):
                 offset      = (144 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -949,6 +1029,7 @@ class Qsfp(pr.Device):
                 offset      = (146 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
             self.add(pr.RemoteVariable(
@@ -957,6 +1038,7 @@ class Qsfp(pr.Device):
                 offset      = (147 << 2),
                 bitSize     = 8,
                 mode        = 'RO',
+                retryCount   = tryCount,
             ))
 
         self.addRemoteVariables(
@@ -969,6 +1051,7 @@ class Qsfp(pr.Device):
             number       = 16,  # BYTE148:BYTE163
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -992,6 +1075,7 @@ class Qsfp(pr.Device):
             number       = 16, # BYTE168:BYTE183
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -1012,6 +1096,7 @@ class Qsfp(pr.Device):
             number       = 2, # BYTE184:BYTE185
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -1039,6 +1124,7 @@ class Qsfp(pr.Device):
             number       = 16, # BYTE196:BYTE211
             stride       = 4,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(
@@ -1059,6 +1145,7 @@ class Qsfp(pr.Device):
             stride       = 4,
             base         = pr.String,
             hidden       = True,
+            retryCount   = tryCount,
         )
 
         self.add(pr.LinkVariable(

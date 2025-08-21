@@ -809,7 +809,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 0,      -- HOLD until full packet without gaps can be sent
+         VALID_THOLD_G       => 0,  -- HOLD until full packet without gaps can be sent
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,      -- Help with making timing
          -- FIFO configurations

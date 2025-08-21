@@ -149,8 +149,8 @@ architecture rtl of Pgp4Gtx7 is
    signal txPreCursor  : slv(4 downto 0);
    signal txPostCursor : slv(4 downto 0);
 
-   signal txPolarity   : sl;
-   signal rxPolarity   : sl;
+   signal txPolarity : sl;
+   signal rxPolarity : sl;
 
 begin
 
@@ -303,7 +303,7 @@ begin
          rxHeader        => phyRxHeader,                -- [out]
          rxHeaderValid   => open,       -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
-         rxPolarity      => rxPolarity,                       -- [in]
+         rxPolarity      => rxPolarity,                 -- [in]
          -- Tx Ports
          txReset         => '0',        -- [in]
          txResetDone     => phyTxActive,                -- [out]
@@ -314,7 +314,7 @@ begin
          txData          => phyTxData,  -- [in]
          txHeader        => phyTxHeader,                -- [in]
          txStart         => phyTxStart,                 -- [in]
-         txPolarity      => txPolarity,                       -- [in]
+         txPolarity      => txPolarity,                 -- [in]
          -- Debug Interface
          loopback        => loopback,   -- [in]
          txPreCursor     => txPreCursor,                -- [in]
