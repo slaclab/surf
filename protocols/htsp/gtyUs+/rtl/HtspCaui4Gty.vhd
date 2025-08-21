@@ -205,7 +205,7 @@ begin
             phyRxRdy        => phyReady,
             phyRxMaster     => phyRxMasterReg1,
             -- Debug Interface
-            localMac        => localMac,
+            localMacIn      => localMac,
             loopback        => loopback,
             rxPolarity      => rxPolarity,
             txPolarity      => txPolarity,

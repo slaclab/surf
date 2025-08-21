@@ -61,7 +61,7 @@ entity HtspCore is
       phyRxRdy        : in  sl;
       phyRxMaster     : in  AxiStreamMasterType;
       -- Misc Debug Interfaces
-      localMac        : in  slv(47 downto 0)       := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
+      localMacIn      : in  slv(47 downto 0)       := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
       loopback        : out slv(2 downto 0);
       rxPolarity      : out slv(9 downto 0);
       txPolarity      : out slv(9 downto 0);
@@ -91,6 +91,7 @@ architecture mapping of HtspCore is
 
    signal broadcastMac : slv(47 downto 0);
    signal remoteMac    : slv(47 downto 0);
+   signal localMac     : slv(47 downto 0);
    signal etherType    : slv(15 downto 0);
 
    signal remRxFifoCtrlReg  : AxiStreamCtrlArray(NUM_VC_G-1 downto 0) := (others => AXI_STREAM_CTRL_INIT_C);
@@ -201,8 +202,9 @@ begin
          htspRxOut       => htspRxOutInt,
          locRxIn         => htspRxIn,
          -- Ethernet Configuration
-         remoteMac       => remoteMac,
-         localMac        => localMac,
+         remoteMacIn     => remoteMac,
+         localMacIn      => localMacIn,
+         localMacOut     => localMac,
          broadcastMac    => broadcastMac,
          etherType       => etherType,
          -- Misc Debug Interfaces
