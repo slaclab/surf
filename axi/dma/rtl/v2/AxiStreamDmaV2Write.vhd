@@ -212,6 +212,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.stCount := (others => '0');
             -- Set write dma request data
             v.dmaWrDescReq.dest := intAxisMaster.tDest;
             v.dmaWrDescReq.id   := intAxisMaster.tId;
@@ -260,7 +261,6 @@ begin
             end if;
          ----------------------------------------------------------------------
          when REQ_S =>
-            v.stCount := (others => '0');
             -- Wait for response and latch fields
             if dmaWrDescAck.valid = '1' then
                v.dmaWrTrack.inUse      := '1';
@@ -287,8 +287,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ADDR_S =>
-            -- Reset counter, continue and last user
-            v.stCount  := (others => '0');
+            -- Reset continue and last user
             v.continue := '0';
             v.lastUser := (others => '0');
             -- Determine transfer size aligned to 4k boundaries
