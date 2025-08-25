@@ -260,6 +260,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when REQ_S =>
+            v.stCount := (others => '0');
             -- Wait for response and latch fields
             if dmaWrDescAck.valid = '1' then
                v.dmaWrTrack.inUse      := '1';
