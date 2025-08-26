@@ -61,6 +61,7 @@ entity SsiPrbsTx is
       locClk          : in  sl;
       locRst          : in  sl                     := '0';
       trig            : in  sl                     := '1';
+      trigAccept      : out sl;
       packetLength    : in  slv(31 downto 0)       := x"00000FFF";
       forceEofe       : in  sl                     := '0';
       busy            : out sl;
@@ -109,6 +110,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          : sl;
       oneShot        : sl;
       trig           : sl;
+      trigAccept     : sl;
       trigger        : sl;
       cntData        : sl;
       tDest          : slv(7 downto 0);
@@ -134,6 +136,7 @@ architecture rtl of SsiPrbsTx is
       axiEn          => AXI_EN_G,
       oneShot        => '0',
       trig           => '0',
+      trigAccept     => '0',
       trigger        => '0',
       cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
@@ -211,6 +214,9 @@ begin
          v.tId          := tId;
       end if;
 
+      -- trigAccept is pulsed each time trigger is seen to start a new frame
+      v.trigAccept := '0';
+
       -- Check for overflow condition or forced EOFE
       if (txCtrl.overflow = '1') or (forceEofe = '1') then
          -- Latch the overflow error bit for the data packet
@@ -235,6 +241,7 @@ begin
                -- Reset the one shot
                v.oneShot                                 := '0';
                v.trigger                                 := '0';
+               v.trigAccept                              := '1';
                -- Latch the generator seed
                v.randomData                              := (others => '0');
                v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
@@ -347,6 +354,7 @@ begin
 
       -- Outputs
       busy           <= r.busy;
+      trigAccept     <= r.trigAccept;
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
 
