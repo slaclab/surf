@@ -244,7 +244,7 @@ begin
                   v.configTri := '1';
                   v.readWrite := '0';
                when 2 =>
-                  -- CCK PIX LOW
+                  -- CCK PIX HIGH
                   v.cckPix    := '1';
                   v.cckReg    := '0';
                   v.configTri := '1';
