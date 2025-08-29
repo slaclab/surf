@@ -335,7 +335,7 @@ package body TextUtilPkg is
          assert (tmp < base and tmp >= 0) report
             "TextUtilPkg::int(string, integer): Input string (" & s & ") " &
             "has character (" & s(i) & ") outside of base (" & str(base) & ") character set."
-            severity error;
+            severity failure;
          ret := ret * base + tmp;
       end loop;
       return ret;

@@ -45,26 +45,26 @@ end Sff8472;
 
 architecture mapping of Sff8472 is
 
-   constant DEVICE_MAP_C : I2cAxiLiteDevArray(0 to 1) := (
+   constant SFF8472_I2C_CONFIG_C : I2cAxiLiteDevArray(0 to 1) := (
       0              => MakeI2cAxiLiteDevType(
-         i2cAddress  => "1010000",              -- Configuration PROM
-         dataSize    => 8,                      -- in units of bits
-         addrSize    => 8,                      -- in units of bits
-         endianness  => '0',                    -- Little endian
-         repeatStart => '0'),                   -- Repeat start
-      1              => MakeI2cAxiLiteDevType(  -- Enhanced interface
-         i2cAddress  => "1010001",              -- Diagnostic Monitoring
-         dataSize    => 8,                      -- in units of bits
-         addrSize    => 8,                      -- in units of bits
-         endianness  => '0',                    -- Little endian
-         repeatStart => '0'));                  -- Repeat Start
+         i2cAddress  => "1010000",      -- 2 wire address 1010000X (A0h)
+         dataSize    => 8,              -- in units of bits
+         addrSize    => 8,              -- in units of bits
+         endianness  => '0',            -- Little endian
+         repeatStart => '1'),           -- Repeat Start
+      1              => MakeI2cAxiLiteDevType(
+         i2cAddress  => "1010001",      -- 2 wire address 1010001X (A2h)
+         dataSize    => 8,              -- in units of bits
+         addrSize    => 8,              -- in units of bits
+         endianness  => '0',            -- Little endian
+         repeatStart => '1'));          -- Repeat Start
 
 begin
 
    U_AxiI2C : entity surf.AxiI2cRegMaster
       generic map (
          TPD_G           => TPD_G,
-         DEVICE_MAP_G    => DEVICE_MAP_C,
+         DEVICE_MAP_G    => SFF8472_I2C_CONFIG_C,
          I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
          I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
          AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)

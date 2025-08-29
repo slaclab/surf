@@ -26,11 +26,11 @@ entity Caui4GtyIpWrapper is
    generic (
       TPD_G              : time     := 1 ns;
       SIM_SPEEDUP_G      : boolean  := false;
-      REFCLK_TYPE_G      : boolean  := true;  -- false = 156.25 MHz, true = 161.1328125 MHz
+      REFCLK_TYPE_G      : string   := "161MHz";  -- or "156.25MHz"
       MAX_PAYLOAD_SIZE_G : positive := 8192);
    port (
       -- Stable Clock and Reset Reference
-      stableClk    : in  sl;            -- 156.25 MHz
+      stableClk    : in  sl;                      -- 156.25 MHz
       stableRst    : in  sl;
       -- PHY Clock and Reset
       phyClk       : out sl;
@@ -809,7 +809,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 0,  -- HOLD until full packet without gaps can be sent
+         VALID_THOLD_G       => 0,      -- HOLD until full packet without gaps can be sent
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,      -- Help with making timing
          -- FIFO configurations
@@ -831,7 +831,7 @@ begin
          mAxisMaster => txMaster,
          mAxisSlave  => txSlave);
 
-   USE_REFCLK156MHz : if (REFCLK_TYPE_G = false) generate
+   USE_REFCLK156MHz : if (REFCLK_TYPE_G = "156.25MHz") generate
       U_CAUI4 : Caui4GtyIpCore156MHz
          port map (
             gt_txp_out                           => gtTxP,
@@ -930,7 +930,7 @@ begin
             rx_axis_tvalid                       => rxAxis.tvalid,
             rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
             rx_axis_tlast                        => rxAxis.tlast,
-            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tkeep                        => rxAxis.tkeep(63 downto 0),
             rx_axis_tuser                        => rxAxis.tuser(0),
             rx_otn_bip8_0                        => open,
             rx_otn_bip8_1                        => open,
@@ -1060,7 +1060,7 @@ begin
             drp_we                               => '0');
    end generate;
 
-   USE_REFCLK161MHz : if (REFCLK_TYPE_G = true) generate
+   USE_REFCLK161MHz : if (REFCLK_TYPE_G = "161MHz") generate
       U_CAUI4 : Caui4GtyIpCore161MHz
          port map (
             gt_txp_out                           => gtTxP,
@@ -1159,7 +1159,7 @@ begin
             rx_axis_tvalid                       => rxAxis.tvalid,
             rx_axis_tdata                        => rxAxis.tdata(511 downto 0),
             rx_axis_tlast                        => rxAxis.tlast,
-            rx_axis_tkeep                        => rxAxis.tkeep,
+            rx_axis_tkeep                        => rxAxis.tkeep(63 downto 0),
             rx_axis_tuser                        => rxAxis.tuser(0),
             rx_otn_bip8_0                        => open,
             rx_otn_bip8_1                        => open,

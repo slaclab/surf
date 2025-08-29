@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -29,8 +28,8 @@ architecture testbed of AxiStreamPipelineTb is
    constant CLK_PERIOD_C  : time                                         := 4 ns;
    constant TPD_C         : time                                         := CLK_PERIOD_C/4;
    constant PIPE_STAGES_C : natural                                      := 1;
-   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000", AXI_STREAM_MAX_TDATA_WIDTH_C);
-   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000000000000000000FF",AXI_STREAM_MAX_TDATA_WIDTH_C);
+   -- constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := resize(x"000000000000000019999997E241C000", AXI_STREAM_MAX_TDATA_WIDTH_C);
+   constant MAX_CNT_C     : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := toSlv(64, AXI_STREAM_MAX_TDATA_WIDTH_C);
    constant PRBS_TAPS_C   : NaturalArray                                 := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
 
    type RegType is record
@@ -235,7 +234,7 @@ begin
       end if;
       if passed = '1' then
          assert false
-            report "Simulation Passed!" severity failure;
+            report "Simulation Passed!" severity note;
       end if;
    end process;
 

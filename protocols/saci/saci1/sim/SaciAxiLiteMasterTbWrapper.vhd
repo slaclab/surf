@@ -92,7 +92,7 @@ begin
          X"00000000",
          rdData);
 
-      assert (wrData = rdData) report "Data Mismatch" severity error;
+      assert (wrData = rdData) report "Data Mismatch" severity failure;
 
       wrData := X"9ABCDEF0";
       axiLiteBusSimWrite(
@@ -109,7 +109,7 @@ begin
          X"00000004",
          rdData);
 
-      assert (wrData = rdData) report "Data Mismatch" severity error;
+      assert (wrData = rdData) report "Data Mismatch" severity failure;
 
 
       wrData := X"DEADBEEF";
@@ -127,7 +127,7 @@ begin
          X"00100008",
          rdData);
 
-      assert (wrData = rdData) report "Data Mismatch" severity error;
+      assert (wrData = rdData) report "Data Mismatch" severity failure;
 
 
 

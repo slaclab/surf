@@ -117,7 +117,7 @@ architecture rtl of AxiStreamBatcher is
 begin
 
    assert (AXIS_WORD_SIZE_C >= 2)
-      report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 2" severity error;
+      report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 2" severity failure;
 
    -----------------
    -- Input pipeline

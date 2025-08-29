@@ -256,7 +256,7 @@ package body AxiStreamPkg is
       lsb := axisConfig.TUSER_BITS_C*pos;
 
       if axisConfig.TUSER_BITS_C > 0 then
-         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         for i in 0 to AXI_STREAM_MAX_TDATA_WIDTH_C-ret'high-ret'low-1 loop
             if lsb = i then
                ret := axisMaster.tUser(ret'high+i downto ret'low+i);
             end if;
@@ -303,7 +303,7 @@ package body AxiStreamPkg is
 
       if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
 
-         for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         for i in 0 to AXI_STREAM_MAX_TDATA_WIDTH_C-fieldValue'high-fieldValue'low-1 loop
             if lsb = i then
                axisMaster.tUser(fieldValue'high+i downto fieldValue'low+i) := fieldValue;
             end if;
@@ -382,7 +382,6 @@ package body AxiStreamPkg is
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural is
       variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
       variable retVar    : natural;
-      variable i         : natural;
    begin
       -- Init
       retVar    := 0;

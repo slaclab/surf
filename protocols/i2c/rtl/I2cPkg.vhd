@@ -247,7 +247,7 @@ package body I2cPkg is
          ret.i2cAddress := i2cAddress;
          ret.i2cTenbit  := '1';
       else
-         report "i2cAddress param must have length of 7 or 10" severity error;
+         report "i2cAddress param must have length of 7 or 10" severity failure;
       end if;
 
       ret.dataSize    := dataSize;

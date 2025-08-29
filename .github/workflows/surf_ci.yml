@@ -74,13 +74,12 @@ jobs:
       - name: VHDL Regression Testing
         run: |
           make MODULES=$PWD
-          python -m pytest --cov -v tests/
+          python -m pytest --cov -v -n auto tests/
 
-#      # Code Coverage
-#      - name: Code Coverage
-#        run: |
-#          codecov
-#          coverage report -m
+      - name: Code Coverage
+        run: |
+          codecov
+          coverage report -m
 
       - name: Generate Documentation
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/pre-release'

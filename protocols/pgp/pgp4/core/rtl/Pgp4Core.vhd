@@ -40,6 +40,9 @@ entity Pgp4Core is
       WRITE_EN_G                  : boolean               := true;  -- Set to false when on remote end of a link
       STATUS_CNT_WIDTH_G          : natural range 1 to 32 := 16;
       ERROR_CNT_WIDTH_G           : natural range 1 to 32 := 8;
+      TX_POLARITY_G               : sl                    := '0';
+      RX_POLARITY_G               : sl                    := '0';
+      RX_CRC_PIPELINE_G           : natural range 0 to 1  := 0;
       AXIL_CLK_FREQ_G             : real                  := 125.0E+6);
    port (
       -- Tx User interface
@@ -82,6 +85,8 @@ entity Pgp4Core is
       txDiffCtrl   : out slv(4 downto 0);
       txPreCursor  : out slv(4 downto 0);
       txPostCursor : out slv(4 downto 0);
+      txPolarity   : out sl;
+      rxPolarity   : out sl;
 
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
@@ -115,6 +120,7 @@ begin
             RST_ASYNC_G              => RST_ASYNC_G,
             NUM_VC_G                 => NUM_VC_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
+            RX_CRC_PIPELINE_G        => RX_CRC_PIPELINE_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
             MUX_TDEST_ROUTES_G       => TX_MUX_TDEST_ROUTES_G,
             MUX_TDEST_LOW_G          => TX_MUX_TDEST_LOW_G,
@@ -144,6 +150,7 @@ begin
          generic map (
             TPD_G             => TPD_G,
             RST_ASYNC_G       => RST_ASYNC_G,
+            RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
             NUM_VC_G          => NUM_VC_G,
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
@@ -178,6 +185,8 @@ begin
             NUM_VC_G           => NUM_VC_G,
             STATUS_CNT_WIDTH_G => STATUS_CNT_WIDTH_G,
             ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
+            TX_POLARITY_G      => TX_POLARITY_G,
+            RX_POLARITY_G      => RX_POLARITY_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
             pgpTxClk        => pgpTxClk,         -- [in]
@@ -193,6 +202,8 @@ begin
             txDiffCtrl      => txDiffCtrl,       -- [out]
             txPreCursor     => txPreCursor,      -- [out]
             txPostCursor    => txPostCursor,     -- [out]
+            txPolarity      => txPolarity,       -- [out]
+            rxPolarity      => rxPolarity,       -- [out]
             axilClk         => axilClk,          -- [in]
             axilRst         => axilRst,          -- [in]
             axilReadMaster  => axilReadMaster,   -- [in]
@@ -207,6 +218,8 @@ begin
       txDiffCtrl   <= (others => '1');
       txPreCursor  <= "00111";
       txPostCursor <= "00111";
+      txPolarity   <= TX_POLARITY_G;
+      rxPolarity   <= RX_POLARITY_G;
    end generate NO_PGP_MON;
 
    loopback <= pgpRxInInt.loopback;

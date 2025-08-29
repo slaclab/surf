@@ -158,6 +158,10 @@ architecture mapping of TenGigEthGth7 is
    signal macTxAxisMaster : AxiStreamMasterType;
    signal macTxAxisSlave  : AxiStreamSlaveType;
 
+   -- Bug fix for building with Vivado 2025.1
+   attribute dont_touch                        : string;
+   attribute dont_touch of configurationVector : signal is "TRUE";
+
 begin
 
    phyReady        <= status.phyReady;
