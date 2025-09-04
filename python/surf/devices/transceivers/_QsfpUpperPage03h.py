@@ -16,8 +16,6 @@
 
 import pyrogue as pr
 
-from surf.devices import transceivers
-
 #################################################
 #               Upper Page 03h
 #################################################

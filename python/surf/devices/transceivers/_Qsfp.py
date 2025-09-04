@@ -18,7 +18,6 @@ import pyrogue as pr
 import rogue.interfaces.memory as rim
 
 import threading
-import time
 import queue
 
 from surf.devices import transceivers
