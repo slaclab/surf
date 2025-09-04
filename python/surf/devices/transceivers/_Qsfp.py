@@ -798,7 +798,6 @@ class Qsfp(pr.Device):
             memBase  = self.proxy,
             advDebug = advDebug,
             offset   = (0+1)<<10, # Page00 plus 1 mem addres region offset
-            enabled  = False, # enabled=False because I2C are slow transactions
         ))
 
         self.add(transceivers.QsfpUpperPage03h(
@@ -806,7 +805,6 @@ class Qsfp(pr.Device):
             memBase  = self.proxy,
             advDebug = advDebug,
             offset   = (3+1)<<10, # Page03 plus 1 mem addres region offset
-            enabled  = False, # enabled=False because I2C are slow transactions
         ))
 
     def add(self, node):
@@ -826,6 +824,8 @@ class _UpperPageProxy(pr.Device):
         self._queue = queue.Queue()
         self._pollThread = threading.Thread(target=self._pollWorker)
         self._pollThread.start()
+
+        self._armed = False
 
         self.add(pr.RemoteVariable(
             name         = 'PageSelectByte',
@@ -867,7 +867,10 @@ class _UpperPageProxy(pr.Device):
                 regIndex   = ((transaction.address()>>2)&0xFF)-128
 
                 # Check if the page select has changed
-                if (self.PageSelectByte.value() != pageSelect):
+                if (self.PageSelectByte.value() != pageSelect) or not self._armed:
+
+                    # Set the flag
+                    self._armed = True
 
                     # Perform the hardware write
                     self.PageSelectByte.set(value=pageSelect, write=True)
