@@ -15,6 +15,11 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue.interfaces.memory as rim
+
+import threading
+import time
+import queue
 
 from surf.devices import transceivers
 
@@ -784,11 +789,132 @@ class Qsfp(pr.Device):
         # 118 118 Reserved
         # 119 122 Optional Password Change
         # 123 126 Optional Password Entry
-        # 127 127 Page Select Byte
 
-        ################
-        # Upper Page 00h
-        ################
+
+        # 127 127 Page Select Byte
+        self.add(_UpperPageProxy(
+            name    = 'UpperPageProxy',
+            memBase = self,
+            offset  = 0x0000,
+            hidden  = True,
+        ))
+        self.proxy = _ProxySlave(self.UpperPageProxy)
+
+        self.add(UpperPage00h(
+            memBase    = self.proxy,
+            advDebug   = advDebug,
+            offset     = (0+1)<<10, # Page00 plus 1 mem addres region offset
+        ))
+
+    def add(self, node):
+        pr.Node.add(self, node)
+
+        if isinstance(node, pr.Device):
+            if node._memBase is None:
+                node._setSlave(self.proxy)
+
+#################################################
+#               Upper Page Proxy
+#################################################
+class _UpperPageProxy(pr.Device):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._queue = queue.Queue()
+        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread.start()
+
+        self.add(pr.RemoteVariable(
+            name         = 'PageSelectByte',
+            description  = 'Byte 127 is used to select the upper page',
+            offset       = (127 << 2),
+            bitSize      = 1,
+            mode         = 'WO',
+            hidden       = True,
+            groups        = ['NoStream','NoState','NoConfig'],
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'UpperPage',
+            offset      = (128 << 2),
+            mode        = 'RW',
+            numValues   = 128, # Upper Page has 128 register offset
+            valueBits   = 8,   # Only 8b data values
+            valueStride = 32,  # 32b AXI-Lite word stride
+            updateNotify= False,
+            bulkOpEn    = False,
+            hidden      = True,
+            verify      = False, # Do not verify because some upper page are RO
+            groups      = ['NoStream','NoState','NoConfig'],
+        ))
+
+    def proxyTransaction(self, transaction):
+        self._queue.put(transaction)
+
+    def _pollWorker(self):
+        while True:
+            #print('Main thread loop start')
+            transaction = self._queue.get()
+            if transaction is None:
+                return
+            with self._memLock, transaction.lock():
+
+                # Determine the page select and register index
+                pageSelect = ((transaction.address()>>10)&0xFF)-1
+                regIndex   = ((transaction.address()>>2)&0xFF)-128
+
+                # Check if the page select has changed
+                if (self.PageSelectByte.value() != pageSelect):
+
+                    # Perform the hardware write
+                    self.PageSelectByte.set(value=pageSelect, write=True)
+
+                # Check for a write or post TXN
+                if (transaction.type() == rim.Write) or (transaction.type() == rim.Post):
+
+                    # Convert from TXN.data to the write byte array
+                    dataBa = bytearray(4)
+                    transaction.getData(dataBa, 0)
+                    data = int.from_bytes(dataBa, 'little', signed=False)
+
+                    # Perform the hardware write
+                    self.UpperPage.set(index=regIndex, value=data, write=True)
+
+                    # Close out the transaction
+                    transaction.done()
+
+                # Else this is a read or verify TXN
+                else:
+
+                    # Perform the hardware read
+                    data = self.UpperPage.get(index=regIndex, read=True)
+
+                    # Convert from write byte array to TXN.data to the
+                    dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
+                    transaction.setData(dataBa, 0)
+
+                    # Close out the transaction
+                    transaction.done()
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
+class _ProxySlave(rim.Slave):
+
+    def __init__(self, UpperPageProxy):
+        super().__init__(4,4)
+        self._UpperPageProxy = UpperPageProxy
+
+    def _doTransaction(self, transaction):
+        self._UpperPageProxy.proxyTransaction(transaction)
+
+#################################################
+#               Upper Page 00h
+#################################################
+class UpperPage00h(pr.Device):
+    def __init__(self, advDebug=False, **kwargs):
+        super().__init__(**kwargs)
 
         if advDebug:
 
