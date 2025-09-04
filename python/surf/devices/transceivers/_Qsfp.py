@@ -360,16 +360,14 @@ class Qsfp(pr.Device):
         # 74-81 Vendor Specific
         # 82-85 All Reserved
 
-        for i in range(4):
-            self.add(pr.RemoteVariable(
-                name         = f'TxDisable[{i}]',
-                description  = 'Tx_Disable bit that allows software disable of transmitters, Writing 1 disables the laser of the channel',
-                offset       = (86 << 2),
-                bitSize      = 1,
-                bitOffset    = i,
-                mode         = 'RW',
-                base         = pr.Bool,
-            ))
+        self.add(pr.RemoteVariable(
+            name         = 'TxDisable',
+            description  = 'Tx_Disable bit that allows software disable of transmitters, Writing 1 disables the laser of the channel',
+            offset       = (86 << 2),
+            bitSize      = 4,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
 
         if advDebug:
 
@@ -439,27 +437,23 @@ class Qsfp(pr.Device):
 
         # 94-97 All Reserved
 
-        for i in range(4):
-            self.add(pr.RemoteVariable(
-                name         = f'TxCdrEnable[{i}]',
-                description  = f'Enable CDR for Tx lane {i}',
-                offset       = (98 << 2),
-                bitSize      = 1,
-                bitOffset    = 4+i,
-                mode         = 'RW',
-                base         = pr.Bool,
-            ))
+        self.add(pr.RemoteVariable(
+            name         = 'TxCdrEnable',
+            description  = 'Enable CDR for Tx lane[3:0]',
+            offset       = (98 << 2),
+            bitSize      = 4,
+            bitOffset    = 4+i,
+            mode         = 'RW',
+        ))
 
-        for i in range(4):
-            self.add(pr.RemoteVariable(
-                name         = f'RxCdrEnable[{i}]',
-                description  = f'Enable CDR for Rx lane {i}',
-                offset       = (98 << 2),
-                bitSize      = 1,
-                bitOffset    = 0+i,
-                mode         = 'RW',
-                base         = pr.Bool,
-            ))
+        self.add(pr.RemoteVariable(
+            name         = 'RxCdrEnable',
+            description  = 'Enable CDR for Rx lane[3:0]',
+            offset       = (98 << 2),
+            bitSize      = 4,
+            bitOffset    = 0,
+            mode         = 'RW',
+        ))
 
         if advDebug:
 
