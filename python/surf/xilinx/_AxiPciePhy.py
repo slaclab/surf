@@ -301,9 +301,10 @@ class AxiPciePhy(pr.Device):
                 linkStatus = dev_spec_values[ptrOffset + 0x12] | (dev_spec_values[ptrOffset + 0x13] << 8)
 
                 # Set the link speed and width capabilities
-                self.LnkCapSpeed.set((linkCap >> 0) & 0xF)
-                self.LnkCapWidth.set((linkCap >> 4) & 0xFF)
+                self.LnkCapSpeed.set( int((linkCap >> 0) & 0xF) )
+                self.LnkCapWidth.set( int((linkCap >> 4) & 0xFF) )
 
                 # Set the link speed and width status
-                self.LnkStaSpeed.set((linkStatus >> 0) & 0xF)
-                self.LnkStaWidth.set((linkStatus >> 4) & 0xFF)
+                self.LnkStaSpeed.set( int((linkStatus >> 0) & 0xF) )
+                self.LnkStaWidth.set( int((linkStatus >> 4) & 0xFF) )
+
