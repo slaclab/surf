@@ -24,6 +24,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamMon is
    generic (
       TPD_G           : time    := 1 ns;
+      RST_POLARITY_G  : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean := false;
       COMMON_CLK_G    : boolean := false;      -- true if axisClk = statusClk
       AXIS_CLK_FREQ_G : real    := 156.25E+6;  -- units of Hz
@@ -103,7 +104,8 @@ begin
 
    U_RstSync : entity surf.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => axisClk,
          asyncRst => statusRst,
@@ -112,6 +114,7 @@ begin
    U_packetRate : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          COMMON_CLK_G   => true,
          REF_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
@@ -133,10 +136,11 @@ begin
 
    SyncOut_frameRate : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         DATA_WIDTH_G => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         DATA_WIDTH_G   => 32)
       port map (
          wr_clk => axisClk,
          wr_en  => frameRateUpdate,
@@ -146,10 +150,11 @@ begin
 
    SyncOut_frameRateMax : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         DATA_WIDTH_G => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         DATA_WIDTH_G   => 32)
       port map (
          wr_clk => axisClk,
          wr_en  => frameRateUpdate,
@@ -159,10 +164,11 @@ begin
 
    SyncOut_frameRateMin : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         DATA_WIDTH_G => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         DATA_WIDTH_G   => 32)
       port map (
          wr_clk => axisClk,
          wr_en  => frameRateUpdate,
@@ -172,10 +178,11 @@ begin
 
    SyncOut_frameCnt : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         DATA_WIDTH_G => 64)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         DATA_WIDTH_G   => 64)
       port map (
          wr_clk => axisClk,
          din    => r.frameCnt,
@@ -257,7 +264,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -268,7 +275,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
@@ -277,10 +284,11 @@ begin
 
    Sync_frameSize : entity surf.SyncMinMax
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         WIDTH_G      => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         WIDTH_G        => 32)
       port map (
          -- ASYNC statistics reset
          rstStat => statusRst,
@@ -296,10 +304,11 @@ begin
 
    Sync_bandwidth : entity surf.SyncMinMax
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_CLK_G,
-         WIDTH_G      => 40)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_CLK_G,
+         WIDTH_G        => 40)
       port map (
          -- ASYNC statistics reset
          rstStat => statusRst,
