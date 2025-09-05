@@ -23,6 +23,8 @@ use surf.StdRtlPkg.all;
 entity ArpIpTable is
    generic (
       TPD_G          : time                    := 1 ns;
+      RST_POLARITY_G : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean                 := false;
       CLK_FREQ_G     : real                    := 156.25E+06;
       COMM_TIMEOUT_G : positive                := 30;
       ENTRIES_G      : positive range 1 to 255 := 4);
@@ -162,7 +164,7 @@ begin
       end if;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := WR_REG_INIT_C;
       end if;
 
@@ -171,12 +173,14 @@ begin
 
    end process wrComb;
 
-   wrSeq : process (clk) is
+   wrSeq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         wR <= WR_REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          wR <= wRin after TPD_G;
       end if;
-   end process wrSeq;
+   end process seq;
 
    -- Read process
    -- Check for a match
@@ -294,7 +298,7 @@ begin
       end loop;  -- i
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := EXP_REG_INIT_C;
       end if;
 
@@ -303,18 +307,22 @@ begin
 
    end process expComb;
 
-   expSeq : process (clk) is
+   expSeq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         eR <= EXP_REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          eR <= eRin after TPD_G;
       end if;
-   end process expSeq;
+   end process seq;
 
    -- Arbiter
    U_Arbiter : entity surf.Arbiter
       generic map (
-         TPD_G      => TPD_G,
-         REQ_SIZE_G => ENTRIES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         REQ_SIZE_G     => ENTRIES_G)
       port map (
          clk      => clk,
          rst      => rst,
@@ -329,6 +337,8 @@ begin
    U_ExpFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          GEN_SYNC_FIFO_G => true,
          FWFT_EN_G       => false,
          DATA_WIDTH_G    => 8,
