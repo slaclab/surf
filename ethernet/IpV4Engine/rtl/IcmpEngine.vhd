@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -26,7 +25,9 @@ use surf.EthMacPkg.all;
 
 entity IcmpEngine is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       -- Local Configurations
       localIp      : in  slv(31 downto 0);  --  big-Endian configuration
@@ -213,7 +214,7 @@ begin
       ibIcmpSlave <= v.ibIcmpSlave;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -227,7 +228,9 @@ begin
 
    seq : process (clk) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and ethRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

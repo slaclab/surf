@@ -27,6 +27,8 @@ use surf.EthMacPkg.all;
 entity IpV4EngineTx is
    generic (
       TPD_G           : time            := 1 ns;
+      RST_POLARITY_G  : sl              := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean         := false;
       PROTOCOL_SIZE_G : positive        := 1;
       PROTOCOL_G      : Slv8Array       := (0 => UDP_C);
       TTL_G           : slv(7 downto 0) := x"20");
@@ -95,9 +97,11 @@ begin
 
    AxiStreamMux_Inst : entity surf.AxiStreamMux
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0,
-         NUM_SLAVES_G  => PROTOCOL_SIZE_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 0,
+         NUM_SLAVES_G   => PROTOCOL_SIZE_G)
       port map (
          -- Clock and reset
          axisClk      => clk,
@@ -301,7 +305,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -315,15 +319,19 @@ begin
 
    seq : process (clk) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and ethRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 0)
       port map (
          axisClk     => clk,
          axisRst     => rst,
@@ -334,9 +342,11 @@ begin
 
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1,
-         NUM_MASTERS_G => 2)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 1,
+         NUM_MASTERS_G  => 2)
       port map (
          -- Clock and reset
          axisClk         => clk,
