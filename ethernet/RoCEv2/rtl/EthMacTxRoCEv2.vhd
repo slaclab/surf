@@ -24,7 +24,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxRoCEv2 is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
    port (
       -- Clock and Reset
       ethClk        : in  sl;
@@ -91,11 +92,12 @@ begin
    ----------------------------------------------------------------------------
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
-         TPD_G         => TPD_G,
-         NUM_MASTERS_G => 2,
-         MODE_G        => "INDEXED",
-         TDEST_HIGH_G  => 1,
-         TDEST_LOW_G   => 0)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         NUM_MASTERS_G  => 2,
+         MODE_G         => "INDEXED",
+         TDEST_HIGH_G   => 1,
+         TDEST_LOW_G    => 0)
       port map (
          axisClk      => ethClk,
          axisRst      => ethRst,
@@ -107,8 +109,9 @@ begin
    -- double the stream
    U_Repeater : entity surf.AxiStreamRepeater
       generic map (
-         TPD_G         => TPD_G,
-         NUM_MASTERS_G => 2)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         NUM_MASTERS_G  => 2)
       port map (
          axisClk      => ethClk,
          axisRst      => ethRst,
@@ -120,6 +123,7 @@ begin
    U_FifoV2 : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          GEN_SYNC_FIFO_G     => true,
          FIFO_ADDR_WIDTH_G   => 5,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
@@ -136,7 +140,8 @@ begin
 
    U_iCrc : entity surf.EthMacPrepareForICrc
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G)
       port map (
          ethClk      => ethClk,
          ethRst      => ethRst,
@@ -148,6 +153,7 @@ begin
    U_Compact : entity surf.AxiStreamCompact
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => ROCE_CRC32CALC_AXI_CONFIG_C)
       port map (
@@ -159,6 +165,9 @@ begin
          mAxisSlave  => readyForiCrcSlave);
 
    CrcAxiStreamWrapperSend_1 : entity surf.EthMacCrcAxiStreamWrapperSend
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G)
       port map (
          ethClk      => ethClk,
          ethRst      => ethRst,
@@ -170,6 +179,7 @@ begin
    U_TrailerAppend : entity surf.AxiStreamTrailerAppend
       generic map (
          TPD_G                     => TPD_G,
+         RST_POLARITY_G            => RST_POLARITY_G,
          TRAILER_AXI_CONFIG_G      => ROCE_CRC32_AXI_CONFIG_C,
          MASTER_SLAVE_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
@@ -185,6 +195,7 @@ begin
    U_Compact_1 : entity surf.AxiStreamCompact
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
@@ -201,6 +212,7 @@ begin
    U_FifoPacketizer_Roce : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          VALID_THOLD_G       => 0,
          GEN_SYNC_FIFO_G     => true,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
@@ -218,6 +230,7 @@ begin
    U_FifoPacketizer_Udp : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          VALID_THOLD_G       => 0,
          GEN_SYNC_FIFO_G     => true,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
@@ -238,6 +251,7 @@ begin
    AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
          NUM_SLAVES_G         => 2,
          ILEAVE_EN_G          => true,
          ILEAVE_ON_NOTVALID_G => true,
