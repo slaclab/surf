@@ -29,6 +29,7 @@ entity SsiIncrementingTx is
    generic (
       -- General Configurations
       TPD_G                      : time                       := 1 ns;
+      RST_POLARITY_G             : sl                         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G                : boolean                    := false;
       -- FIFO configurations
       MEMORY_TYPE_G              : string                     := "block";
@@ -209,7 +210,7 @@ begin
       end case;
 
       -- Reset
-      if (RST_ASYNC_G = false and locRst = '1') then
+      if (RST_ASYNC_G = false and locRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -224,7 +225,7 @@ begin
 
    seq : process (locClk, locRst) is
    begin
-      if (RST_ASYNC_G) and (locRst = '1') then
+      if (RST_ASYNC_G) and (locRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(locClk) then
          r <= rin after TPD_G;
@@ -235,6 +236,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          -- FIFO configurations
