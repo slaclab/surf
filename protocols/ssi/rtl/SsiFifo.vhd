@@ -32,8 +32,9 @@ entity SsiFifo is
    generic (
       -- General Configurations
       TPD_G                  : time     := 1 ns;
+      RST_POLARITY_G         : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G            : boolean  := false;
-      INT_PIPE_STAGES_G      : natural  := 0;      -- Internal FIFO setting
+      INT_PIPE_STAGES_G      : natural  := 0;    -- Internal FIFO setting
       PIPE_STAGES_G          : natural  := 1;
       SLAVE_READY_EN_G       : boolean  := true;
       -- Valid threshold should always be 1 when using interleaved TDEST
@@ -138,6 +139,7 @@ begin
    U_IbFilter : entity surf.SsiIbFrameFilter
       generic map (
          TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
          RST_ASYNC_G      => RST_ASYNC_G,
          SLAVE_READY_EN_G => SLAVE_READY_EN_G,
          AXIS_CONFIG_G    => SLAVE_AXI_CONFIG_G)
@@ -163,6 +165,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G                  => TPD_G,
+         RST_POLARITY_G         => RST_POLARITY_G,
          RST_ASYNC_G            => RST_ASYNC_G,
          INT_PIPE_STAGES_G      => INT_PIPE_STAGES_G,
          PIPE_STAGES_G          => PIPE_STAGES_G,
@@ -258,7 +261,7 @@ begin
          fifoRst        <= r.fifoRst or sAxisRst;
 
          -- Synchronous Reset
-         if (RST_ASYNC_G = false and sAxisRst = '1') then
+         if (RST_ASYNC_G = false and sAxisRst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -269,7 +272,7 @@ begin
 
       seq : process (sAxisClk, sAxisRst) is
       begin
-         if (RST_ASYNC_G) and (sAxisRst = '1') then
+         if (RST_ASYNC_G) and (sAxisRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          elsif rising_edge(sAxisClk) then
             r <= rin after TPD_G;
@@ -283,11 +286,12 @@ begin
    -----------------------
    U_ObFilter : entity surf.SsiObFrameFilter
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         VALID_THOLD_G => VALID_THOLD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G,
-         AXIS_CONFIG_G => SLAVE_AXI_CONFIG_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         VALID_THOLD_G  => VALID_THOLD_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G,
+         AXIS_CONFIG_G  => SLAVE_AXI_CONFIG_G)
       port map (
          -- Slave Interface (sAxisClk domain)
          sAxisMaster    => txMaster,
@@ -310,6 +314,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
@@ -342,6 +347,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => SLAVE_READY_EN_G,
             -- AXI Stream Port Configurations

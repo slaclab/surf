@@ -51,7 +51,7 @@ entity SsiIncrementingTx is
 
       -- Trigger Signal (locClk domain)
       locClk       : in  sl;
-      locRst       : in  sl               := '0';
+      locRst       : in  sl               := not RST_POLARITY_G;
       trig         : in  sl               := '1';
       packetLength : in  slv(31 downto 0) := X"FFFFFFFF";
       busy         : out sl;
