@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 entity AsyncGearbox is
    generic (
       TPD_G                : time     := 1 ns;
+      RST_POLARITY_G       : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean  := false;
       SLAVE_WIDTH_G        : positive;
       SLAVE_BIT_REVERSE_G  : boolean  := false;
@@ -116,13 +117,14 @@ begin
    SLAVE_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            FWFT_EN_G     => true,
-            DATA_WIDTH_G  => SLAVE_WIDTH_G,
-            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
-            PIPE_STAGES_G => INPUT_PIPE_STAGES_G,
-            ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            FWFT_EN_G      => true,
+            DATA_WIDTH_G   => SLAVE_WIDTH_G,
+            MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
+            PIPE_STAGES_G  => INPUT_PIPE_STAGES_G,
+            ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G)
          port map (
             rst         => asyncFifoRst,     -- [in]
             wr_clk      => slaveClk,         -- [in]
@@ -140,10 +142,11 @@ begin
    NO_SLAVE_FIFO_GEN : if (SLAVE_FASTER_C) generate
       U_Input : entity surf.FifoOutputPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            DATA_WIDTH_G  => SLAVE_WIDTH_G,
-            PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => SLAVE_WIDTH_G,
+            PIPE_STAGES_G  => INPUT_PIPE_STAGES_G)
          port map (
             -- Clock and Reset
             clk    => slaveClk,
@@ -161,6 +164,7 @@ begin
    U_Gearbox_1 : entity surf.Gearbox
       generic map (
          TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
          RST_ASYNC_G          => RST_ASYNC_G,
          SLAVE_WIDTH_G        => SLAVE_WIDTH_G,
          SLAVE_BIT_REVERSE_G  => SLAVE_BIT_REVERSE_G,
@@ -182,13 +186,14 @@ begin
    MASTER_FIFO_GEN : if (SLAVE_FASTER_C) generate
       U_FifoAsync_1 : entity surf.FifoAsync
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            FWFT_EN_G     => true,
-            DATA_WIDTH_G  => MASTER_WIDTH_G,
-            MEMORY_TYPE_G => FIFO_MEMORY_TYPE_G,
-            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G,
-            ADDR_WIDTH_G  => FIFO_ADDR_WIDTH_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            FWFT_EN_G      => true,
+            DATA_WIDTH_G   => MASTER_WIDTH_G,
+            MEMORY_TYPE_G  => FIFO_MEMORY_TYPE_G,
+            PIPE_STAGES_G  => OUTPUT_PIPE_STAGES_G,
+            ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G)
          port map (
             rst         => asyncFifoRst,    -- [in]
             wr_clk      => fastClk,         -- [in]
@@ -206,10 +211,11 @@ begin
    NO_MASTER_FIFO_GEN : if (not SLAVE_FASTER_C) generate
       U_Output : entity surf.FifoOutputPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            DATA_WIDTH_G  => MASTER_WIDTH_G,
-            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => MASTER_WIDTH_G,
+            PIPE_STAGES_G  => OUTPUT_PIPE_STAGES_G)
          port map (
             -- Clock and Reset
             clk    => masterClk,
