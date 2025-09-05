@@ -106,7 +106,8 @@ begin
       LOC_S2M_RstSync : entity surf.RstSync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            IN_POLARITY_G  => RST_POLARITY_G,
+            OUT_POLARITY_G => RST_POLARITY_G,
             OUT_REG_RST_G  => false)
          port map (
             clk      => mAxiClk,
@@ -116,7 +117,8 @@ begin
       LOC_M2S_RstSync : entity surf.RstSync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            IN_POLARITY_G  => RST_POLARITY_G,
+            OUT_POLARITY_G => RST_POLARITY_G,
             OUT_REG_RST_G  => false)
          port map (
             clk      => sAxiClk,

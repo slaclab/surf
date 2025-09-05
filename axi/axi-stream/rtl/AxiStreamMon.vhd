@@ -105,7 +105,8 @@ begin
    U_RstSync : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G)
+         IN_POLARITY_G  => RST_POLARITY_G,
+         OUT_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => axisClk,
          asyncRst => statusRst,

@@ -269,7 +269,8 @@ begin
    U_RstSync_axilRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G)
+         IN_POLARITY_G  => RST_POLARITY_G,
+         OUT_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => dataClk,
          asyncRst => axilRst,
@@ -388,7 +389,8 @@ begin
    U_RstSync_dataRst : entity surf.RstSync
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G)
+         IN_POLARITY_G  => RST_POLARITY_G,
+         OUT_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => axilClk,
          asyncRst => dataRst,
