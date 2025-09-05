@@ -221,15 +221,15 @@ class AxiPciePhy(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "DevSpecRegion",
-            description  = "The memory range from offset 0x40 to 0xFF in the PCI configuration header is referred to as the 'Device Specific Region'. This area is reserved for use by the device vendor and can contain any vendor-specific configuration or control registers.",
-            offset       =  0x40,
-            valueBits      =  8,
-            valueStride    =  8,
+            name         = 'DevSpecRegion',
+            description  = 'The memory range from offset 0x40 to 0xFF in the PCI configuration header is referred to as the 'Device Specific Region'. This area is reserved for use by the device vendor and can contain any vendor-specific configuration or control registers.',
+            offset       = 0x40,
+            valueBits    = 8,
+            valueStride  = 8,
             base         = pr.UInt,
-            mode         = "RO",
-            numValues       =  192,
-            hidden       =  True,
+            mode         = 'RO',
+            numValues    = 192,
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -283,11 +283,12 @@ class AxiPciePhy(pr.Device):
             disp   = '{:d}',
         ))
 
-
     def updateLinkStatus(self):
         with self.root.updateGroup():
+
             # Check if value points to the Device Specific Region
             ptr = self.CapabilitiesPointer.value()
+
             if ptr >= 0x40:
                 # Adjust the pointer to the start of the Device Specific Region
                 adjusted_ptr = ptr - 0x40
@@ -307,4 +308,3 @@ class AxiPciePhy(pr.Device):
                 # Set the link speed and width status
                 self.LnkStaSpeed.set( int((linkStatus >> 0) & 0xF) )
                 self.LnkStaWidth.set( int((linkStatus >> 4) & 0xFF) )
-
