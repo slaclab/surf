@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteAsync is
    generic (
       TPD_G            : time                  := 1 ns;
+      RST_POLARITY_G   : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean               := false;
       AXI_ERROR_RESP_G : slv(1 downto 0)       := AXI_RESP_SLVERR_C;
       COMMON_CLK_G     : boolean               := false;
@@ -104,8 +105,9 @@ begin
       -- Synchronize each reset across to the other clock domain
       LOC_S2M_RstSync : entity surf.RstSync
          generic map (
-            TPD_G         => TPD_G,
-            OUT_REG_RST_G => false)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_REG_RST_G  => false)
          port map (
             clk      => mAxiClk,
             asyncRst => sAxiClkRst,
@@ -113,8 +115,9 @@ begin
 
       LOC_M2S_RstSync : entity surf.RstSync
          generic map (
-            TPD_G         => TPD_G,
-            OUT_REG_RST_G => false)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            OUT_REG_RST_G  => false)
          port map (
             clk      => sAxiClk,
             asyncRst => mAxiClkRst,
@@ -128,6 +131,7 @@ begin
       U_ReadSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
@@ -191,6 +195,7 @@ begin
       U_ReadMastToSlaveFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
@@ -249,6 +254,7 @@ begin
       U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
@@ -312,6 +318,7 @@ begin
       U_WriteDataSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
@@ -370,6 +377,7 @@ begin
       U_WriteMastToSlaveFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
             RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
