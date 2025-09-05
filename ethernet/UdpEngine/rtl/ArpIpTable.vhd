@@ -180,7 +180,7 @@ begin
       elsif rising_edge(clk) then
          wR <= wRin after TPD_G;
       end if;
-   end process seq;
+   end process wrSeq;
 
    -- Read process
    -- Check for a match
@@ -314,7 +314,7 @@ begin
       elsif rising_edge(clk) then
          eR <= eRin after TPD_G;
       end if;
-   end process seq;
+   end process expSeq;
 
    -- Arbiter
    U_Arbiter : entity surf.Arbiter
