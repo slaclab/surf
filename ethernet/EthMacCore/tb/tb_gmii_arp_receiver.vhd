@@ -38,7 +38,7 @@ architecture sim of tb_gmii_arp_receiver is
         x"0a", x"f0", x"e5", x"fa",
         x"cc", x"fe", x"a9", x"c5", x"c0", x"01",
         x"0a", x"f0", x"e5", x"16",
-        x"dc", x"5a", x"d6", x"26" -- FCS ("CRC")
+        x"a5", x"8a", x"47", x"ec" -- FCS ("CRC")
     );
   signal m_core_rx_tdata  : std_logic_vector(127 downto 0);
   signal m_core_rx_tuser  : std_logic_vector(1 downto 0);
