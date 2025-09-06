@@ -115,7 +115,6 @@ begin
    U_packetRate : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          COMMON_CLK_G   => true,
          REF_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
@@ -285,11 +284,10 @@ begin
 
    Sync_frameSize : entity surf.SyncMinMax
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         COMMON_CLK_G   => COMMON_CLK_G,
-         WIDTH_G        => 32)
+         TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         WIDTH_G      => 32)
       port map (
          -- ASYNC statistics reset
          rstStat => statusRst,
@@ -305,11 +303,10 @@ begin
 
    Sync_bandwidth : entity surf.SyncMinMax
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         COMMON_CLK_G   => COMMON_CLK_G,
-         WIDTH_G        => 40)
+         TPD_G        => TPD_G,
+         RST_ASYNC_G  => RST_ASYNC_G,
+         COMMON_CLK_G => COMMON_CLK_G,
+         WIDTH_G      => 40)
       port map (
          -- ASYNC statistics reset
          rstStat => statusRst,

@@ -135,7 +135,6 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
             SYNC_STAGES_G  => 3,
@@ -199,7 +198,6 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
             SYNC_STAGES_G  => 3,
@@ -258,7 +256,6 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
             SYNC_STAGES_G  => 3,
@@ -322,7 +319,6 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
             SYNC_STAGES_G  => 3,
@@ -381,7 +377,6 @@ begin
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
             RST_ASYNC_G    => RST_ASYNC_G,
-            RST_POLARITY_G => '1',
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
             SYNC_STAGES_G  => 3,
