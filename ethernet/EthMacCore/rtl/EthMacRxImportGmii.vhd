@@ -160,7 +160,11 @@ begin
          v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
          -- Check for CRC reset
-         v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         if RST_POLARITY_G = '1' then
+            v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         else
+            v.crcReset := r.delRxDvSr(2) or (not ethRst) or (not phyReady);
+         end if;
 
          -- State Machine
          case r.state is
