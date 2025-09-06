@@ -258,7 +258,11 @@ begin
 
          -- Outputs
          lockupRstEvent <= r.fifoRst;
-         fifoRst        <= r.fifoRst or sAxisRst;
+         if RST_POLARITY_G = '1' then
+            fifoRst <= r.fifoRst or sAxisRst;
+         else
+            fifoRst <= not(r.fifoRst) and sAxisRst;
+         end if;
 
          -- Synchronous Reset
          if (RST_ASYNC_G = false and sAxisRst = RST_POLARITY_G) then
