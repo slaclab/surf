@@ -376,7 +376,6 @@ begin
          TPD_G               => TPD_G,
          RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
-         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
          SLAVE_READY_EN_G    => true,
