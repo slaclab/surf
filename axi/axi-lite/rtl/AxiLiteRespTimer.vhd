@@ -24,8 +24,9 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteRespTimer is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       -- Slave AXI-Lite Interface
       axilClk         : in  sl;
@@ -114,7 +115,7 @@ begin
       end case;
 
       -- Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -129,7 +130,7 @@ begin
 
    seq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
+      if (RST_ASYNC_G and axilRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          r <= rin after TPD_G;

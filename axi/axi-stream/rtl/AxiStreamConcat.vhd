@@ -35,6 +35,8 @@ use surf.SsiPkg.all;
 entity AxiStreamConcat is
    generic (
       TPD_G                        : time     := 1 ns;
+      RST_POLARITY_G               : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G                  : boolean  := false;
       MAX_NUMBER_SUB_FRAMES_G      : positive := 32;   -- Units of sub-frames
       SUPER_FRAME_BYTE_THRESHOLD_G : natural  := 8192;  -- Units of bytes
       MAX_CLK_GAP_G                : natural  := 256;  -- Units of clock cycles
@@ -128,8 +130,10 @@ begin
    -----------------
    U_Input : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
@@ -325,8 +329,8 @@ begin
          idle <= '0';
       end if;
 
-      -- Reset
-      if (axisRst = '1') then
+      -- Synchronous Reset
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -335,9 +339,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -347,8 +353,10 @@ begin
    ------------------
    U_Output : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

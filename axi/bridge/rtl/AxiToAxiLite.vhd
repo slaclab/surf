@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -28,6 +27,8 @@ use surf.AxiPkg.all;
 entity AxiToAxiLite is
    generic (
       TPD_G           : time    := 1 ns;
+      RST_POLARITY_G  : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean := false;
       EN_SLAVE_RESP_G : boolean := true);
    port (
       -- Clocks & Reset
@@ -104,10 +105,13 @@ begin
    end process;
 
    -- ID Tracking
-   process (axiClk)
+   process (axiClk, axiClkRst)
    begin
-      if rising_edge(axiClk) then
-         if axiClkRst = '1' then
+      if (RST_ASYNC_G and axiClkRst = RST_POLARITY_G) then
+         axiReadSlave.rid  <= (others => '0') after TPD_G;
+         axiWriteSlave.bid <= (others => '0') after TPD_G;
+      elsif rising_edge(axiClk) then
+         if (RST_ASYNC_G = false and axiClkRst = RST_POLARITY_G) then
             axiReadSlave.rid  <= (others => '0') after TPD_G;
             axiWriteSlave.bid <= (others => '0') after TPD_G;
          else

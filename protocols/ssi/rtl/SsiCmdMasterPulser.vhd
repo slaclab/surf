@@ -25,6 +25,7 @@ use surf.SsiCmdMasterPkg.all;
 entity SsiCmdMasterPulser is
    generic (
       TPD_G          : time     := 1 ns;  -- Simulation FF output delay
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean  := false;
       OUT_POLARITY_G : sl       := '1';
       PULSE_WIDTH_G  : positive := 1);
@@ -51,11 +52,11 @@ begin
 
    process(locClk, locRst)
    begin
-      if (RST_ASYNC_G and locRst = '1') then
+      if (RST_ASYNC_G and locRst = RST_POLARITY_G) then
          pulse <= not(OUT_POLARITY_G) after TPD_G;
          cnt   <= 1                   after TPD_G;
       elsif rising_edge(locClk) then
-         if (RST_ASYNC_G = false and locRst = '1') then
+         if (RST_ASYNC_G = false and locRst = RST_POLARITY_G) then
             pulse <= not(OUT_POLARITY_G) after TPD_G;
             cnt   <= 1                   after TPD_G;
          else

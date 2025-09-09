@@ -25,10 +25,10 @@ entity FifoCascade is
    -- MEMORY_TYPE_G: Altera Options: {"auto", "MLAB", "M20K" and "M144K"}
    generic (
       TPD_G              : time                       := 1 ns;
-      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
-      LAST_STAGE_ASYNC_G : boolean                    := true;  -- If set to true, the last stage will be the ASYNC FIFO
       RST_POLARITY_G     : sl                         := '1';  -- '1' for active high rst, '0' for active low
       RST_ASYNC_G        : boolean                    := false;
+      CASCADE_SIZE_G     : integer range 1 to (2**24) := 1;  -- Number of FIFOs to cascade (if set to 1, then no FIFO cascading)
+      LAST_STAGE_ASYNC_G : boolean                    := true;  -- If set to true, the last stage will be the ASYNC FIFO
       GEN_SYNC_FIFO_G    : boolean                    := false;
       FWFT_EN_G          : boolean                    := false;
       SYNTH_MODE_G       : string                     := "inferred";

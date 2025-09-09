@@ -23,6 +23,7 @@ use surf.EthMacPkg.all;
 entity EthMacTxFifo is
    generic (
       TPD_G             : time                := 1 ns;
+      RST_POLARITY_G    : sl                  := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       PRIM_COMMON_CLK_G : boolean             := false;
       PRIM_CONFIG_G     : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean             := false;
@@ -63,6 +64,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             INT_PIPE_STAGES_G   => 0,
             PIPE_STAGES_G       => 1,
             SLAVE_READY_EN_G    => true,
@@ -104,6 +106,7 @@ begin
             generic map (
                -- General Configurations
                TPD_G               => TPD_G,
+               RST_POLARITY_G      => RST_POLARITY_G,
                INT_PIPE_STAGES_G   => 0,
                PIPE_STAGES_G       => 1,
                SLAVE_READY_EN_G    => true,

@@ -30,6 +30,7 @@ entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
+      RST_POLARITY_G             : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G                : boolean                 := false;
       AXI_EN_G                   : sl                      := '1';
       AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
@@ -59,7 +60,7 @@ entity SsiPrbsTx is
       mAxisSlave      : in  AxiStreamSlaveType;
       -- Trigger Signal (locClk domain)
       locClk          : in  sl;
-      locRst          : in  sl                     := '0';
+      locRst          : in  sl                     := not RST_POLARITY_G;
       trig            : in  sl                     := '1';
       trigAccept      : out sl;
       packetLength    : in  slv(31 downto 0)       := x"00000FFF";
@@ -345,7 +346,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and locRst = '1') then
+      if (RST_ASYNC_G = false and locRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -362,7 +363,7 @@ begin
 
    seq : process (locClk, locRst) is
    begin
-      if (RST_ASYNC_G) and (locRst = '1') then
+      if (RST_ASYNC_G) and (locRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(locClk) then
          r <= rin after TPD_G;
@@ -373,6 +374,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,
