@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -25,7 +24,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxExportGmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
    port (
       -- Clock and Reset
       ethClkEn       : in  sl;
@@ -123,6 +123,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          READY_EN_G          => true,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,  -- 128-bit AXI stream interface
@@ -274,7 +275,7 @@ begin
       crcIn        <= v.crcIn;
 
       -- Reset
-      if (ethRst = '1') then
+      if (ethRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -301,6 +302,7 @@ begin
    -- CRC
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
+         TPD_G        => TPD_G,
          BYTE_WIDTH_G => 1)
       port map (
          crcOut       => crcOut,

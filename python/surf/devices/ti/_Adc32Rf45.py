@@ -38,18 +38,60 @@ class Adc32Rf45(pr.Device):
         ##################
         # General Register
         ##################
-        self.add(pr.RemoteVariable(name='GeneralAddr',
-                                   offset       = generalAddr + (4*0x0000),  # 0x00000 - 0x00FFF, 4096 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x400, # 0x400 * 4 = 4096 Bytes
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   hidden       = True,
-                                   overlapEn    = True,
-                                   verify       = False))
+        indexList = [
+            0x012,
+            0x056,
+            0x057,
+            0x020,
+            0x000,
+            0x011,
+            0x022,
+            0x032,
+            0x033,
+            0x042,
+            0x043,
+            0x045,
+            0x046,
+            0x047,
+            0x053,
+            0x054,
+            0x064,
+            0x072,
+            0x08C,
+            0x097,
+            0x0F0,
+            0x0F1,
+            0x025,
+            0x026,
+            0x027,
+            0x029,
+            0x02A,
+            0x02C,
+            0x02D,
+            0x02F,
+            0x034,
+            0x03F,
+            0x039,
+            0x03B,
+            0x040,
+            0x048,
+            0x049,
+            0x04B,
+            0x059,
+            0x05B,
+            0x05C,
+            0x083,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'GeneralAddr_index_0x{index:03X}',
+                offset       = (generalAddr + (4*0x0000) + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
         self.add(pr.RemoteCommand(
             name         = "RESET",
@@ -79,41 +121,157 @@ class Adc32Rf45(pr.Device):
         ##################
         # Raw Interface
         ##################
-        self.add(pr.RemoteVariable(name='RawInterface0',
-                                   offset       = rawInterface + (4*0x0000), # 0x40000 - 0x401FF, 512 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x80,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   hidden       = True,
-                                   verify       = False))
+        indexList = [
+            0x011,
+            0x012,
+            0x05c,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'RawInterface0_index_0x{index:03X}',
+                offset       = (rawInterface + (4*0x0000) + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
-        self.add(pr.RemoteVariable(name='RawInterface4',
-                                   offset       = rawInterface + (4*0x4000), # 0x50000 - 0x5003F, 64 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x10,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   hidden       = True,
-                                   verify       = False))
 
-        self.add(pr.RemoteVariable(name='RawInterface6',
-                                   offset       = rawInterface + (4*0x6000), # 0x58000 - 0x583FF, 1024 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x100,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   hidden       = True,
-                                   verify       = False))
+        indexList = [
+            0x001,
+            0x002,
+            0x003,
+            0x004,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'RawInterface4_index_0x{index:03X}',
+                offset       = (rawInterface + (4*0x4000) + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
+
+        indexList = [
+            0x03C,
+            0x03D,
+            0x03E,
+            0x03F,
+            0x040,
+            0x041,
+            0x053,
+            0x054,
+            0x055,
+            0x056,
+            0x057,
+            0x058,
+            0x06A,
+            0x06B,
+            0x06C,
+            0x06D,
+            0x06E,
+            0x06F,
+            0x081,
+            0x082,
+            0x083,
+            0x084,
+            0x085,
+            0x086,
+            0x098,
+            0x099,
+            0x09A,
+            0x09B,
+            0x09C,
+            0x09D,
+            0x0AF,
+            0x0B0,
+            0x0B1,
+            0x0B2,
+            0x0B3,
+            0x0B4,
+            0x0C6,
+            0x0C7,
+            0x0C8,
+            0x0C9,
+            0x0CA,
+            0x0CB,
+            0x0DD,
+            0x0DE,
+            0x0DF,
+            0x0E0,
+            0x0E1,
+            0x0E2,
+            0x0F4,
+            0x0F5,
+            0x0FB,
+            0x0FC,
+            0x074,
+            0x075,
+            0x076,
+            0x077,
+            0x078,
+            0x079,
+            0x08B,
+            0x08C,
+            0x08D,
+            0x08E,
+            0x08F,
+            0x090,
+            0x0A2,
+            0x0A3,
+            0x0A4,
+            0x0A5,
+            0x0A6,
+            0x0A7,
+            0x0B9,
+            0x0BA,
+            0x0BB,
+            0x0BC,
+            0x0BD,
+            0x0BE,
+            0x0D0,
+            0x0D1,
+            0x0D2,
+            0x0D3,
+            0x0D4,
+            0x0D5,
+            0x0E7,
+            0x0E8,
+            0x0E9,
+            0x0EA,
+            0x0EB,
+            0x0EC,
+            0x0FE,
+            0x0FF,
+            0x000,
+            0x001,
+            0x002,
+            0x003,
+            0x015,
+            0x016,
+            0x017,
+            0x018,
+            0x019,
+            0x01A,
+            0x02C,
+            0x02D,
+            0x033,
+            0x034,
+            0x068,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'RawInterface6_index_0x{index:03X}',
+                offset       = (rawInterface + (4*0x6000) + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
         #############
         # Master Page
@@ -318,12 +476,12 @@ class Adc32Rf45(pr.Device):
         ##############################
         @self.command(description  = "Device Initiation")
         def Init():
-            self.GeneralAddr.set(value=0x04,index=0x012) # write 4 to address 12 page select
-            self.GeneralAddr.set(value=0x00,index=0x056) # sysref dis - check this was written earlier
-            self.GeneralAddr.set(value=0x00,index=0x057) # sysref dis - whether it has to be zero
-            self.GeneralAddr.set(value=0x00,index=0x020)
-            self.CH[0].JesdDigital.set(value=0x00,index=0x03E)
-            self.CH[1].JesdDigital.set(value=0x00,index=0x03E)
+            self.GeneralAddr_index_0x012.set(value=0x04) # write 4 to address 12 page select
+            self.GeneralAddr_index_0x056.set(value=0x00) # sysref dis - check this was written earlier
+            self.GeneralAddr_index_0x057.set(value=0x00) # sysref dis - whether it has to be zero
+            self.GeneralAddr_index_0x020.set(value=0x00)
+            self.CH[0].JesdDigital_index_0x03E.set(value=0x00)
+            self.CH[1].JesdDigital_index_0x03E.set(value=0x00)
 
             self.IL_Config_Nyq1_ChA()
             self.IL_Config_Nyq1_ChB()
@@ -338,266 +496,266 @@ class Adc32Rf45(pr.Device):
 
             time.sleep(0.250)
 
-            self.CH[0].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
-            self.CH[1].OffsetCorrector.set(value=0xA2,index=0x068) #... freeze offset estimation
+            self.CH[0].OffsetCorrector_index_0x068.set(value=0xA2) #... freeze offset estimation
+            self.CH[1].OffsetCorrector_index_0x068.set(value=0xA2) #... freeze offset estimation
 
-            self.GeneralAddr.set(value=0x04,index=0x012) # write 4 to address 12 page select
-            self.GeneralAddr.set(value=0x00,index=0x056) # sysref dis - check this was written earlier
-            self.GeneralAddr.set(value=0x00,index=0x057) # sysref dis - whether it has to be zero
-            self.GeneralAddr.set(value=0x00,index=0x020)
+            self.GeneralAddr_index_0x012.set(value=0x04) # write 4 to address 12 page select
+            self.GeneralAddr_index_0x056.set(value=0x00) # sysref dis - check this was written earlier
+            self.GeneralAddr_index_0x057.set(value=0x00) # sysref dis - whether it has to be zero
+            self.GeneralAddr_index_0x020.set(value=0x00)
 
-            self.GeneralAddr.set(value=0x04,index=0x012) # write 4 to address 12 page select
-            self.CH[0].JesdDigital.set(value=0x40,index=0x03E) #... MASK CLKDIV SYSREF
-            self.CH[1].JesdDigital.set(value=0x40,index=0x03E) #... MASK CLKDIV SYSREF
+            self.GeneralAddr_index_0x012.set(value=0x04) # write 4 to address 12 page select
+            self.CH[0].JesdDigital_index_0x03E.set(value=0x40,) #... MASK CLKDIV SYSREF
+            self.CH[1].JesdDigital_index_0x03E.set(value=0x40) #... MASK CLKDIV SYSREF
 
-            self.CH[0].JesdDigital.set(value=0x60,index=0x03E) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
-            self.CH[1].JesdDigital.set(value=0x60,index=0x03E) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
+            self.CH[0].JesdDigital_index_0x03E.set(value=0x60) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
+            self.CH[1].JesdDigital_index_0x03E.set(value=0x60) #... MASK CLKDIV SYSREF + MASK NCO SYSREF
 
-            self.GeneralAddr.set(value=0x10,index=0x020) # PDN_SYSREF = 0x1
+            self.GeneralAddr_index_0x020.set(value=0x10) # PDN_SYSREF = 0x1
 
         @self.command()
         def Powerup_AnalogConfig():
-            self.GeneralAddr.set(value=0x81,index=0x000) # Global software reset. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
-            self.GeneralAddr.set(value=0xFF,index=0x011) # Select ADC page.
-            self.GeneralAddr.set(value=0xC0,index=0x022) # Analog trims start here.
-            self.GeneralAddr.set(value=0x80,index=0x032) # ...
-            self.GeneralAddr.set(value=0x08,index=0x033) # ...
-            self.GeneralAddr.set(value=0x03,index=0x042) # ...
-            self.GeneralAddr.set(value=0x03,index=0x043) # ...
-            self.GeneralAddr.set(value=0x58,index=0x045) # ...
-            self.GeneralAddr.set(value=0xC4,index=0x046) # ...
-            self.GeneralAddr.set(value=0x01,index=0x047) # ...
-            self.GeneralAddr.set(value=0x01,index=0x053) # ...
-            self.GeneralAddr.set(value=0x08,index=0x054) # ...
-            self.GeneralAddr.set(value=0x05,index=0x064) # ...
-            self.GeneralAddr.set(value=0x84,index=0x072) # ...
-            self.GeneralAddr.set(value=0x80,index=0x08C) # ...
-            self.GeneralAddr.set(value=0x80,index=0x097) # ...
-            self.GeneralAddr.set(value=0x38,index=0x0F0) # ...
-            self.GeneralAddr.set(value=0xBF,index=0x0F1) # Analog trims ended here.
-            self.GeneralAddr.set(value=0x00,index=0x011) # Disable ADC Page
-            self.GeneralAddr.set(value=0x04,index=0x012) # Select Master Page
-            self.GeneralAddr.set(value=0x01,index=0x025) # Global Analog Trims start here.
-            self.GeneralAddr.set(value=0x40,index=0x026) #...
-            self.GeneralAddr.set(value=0x80,index=0x027) #...
-            self.GeneralAddr.set(value=0x40,index=0x029) #...
-            self.GeneralAddr.set(value=0x80,index=0x02A) #...
-            self.GeneralAddr.set(value=0x40,index=0x02C) #...
-            self.GeneralAddr.set(value=0x80,index=0x02D) #...
-            self.GeneralAddr.set(value=0x40,index=0x02F) #...
-            self.GeneralAddr.set(value=0x01,index=0x034) #...
-            self.GeneralAddr.set(value=0x01,index=0x03F) #...
-            self.GeneralAddr.set(value=0x50,index=0x039) #...
-            self.GeneralAddr.set(value=0x28,index=0x03B) #...
-            self.GeneralAddr.set(value=0x80,index=0x040) #...
-            self.GeneralAddr.set(value=0x40,index=0x042) #...
-            self.GeneralAddr.set(value=0x80,index=0x043) #...
-            self.GeneralAddr.set(value=0x40,index=0x045) #...
-            self.GeneralAddr.set(value=0x80,index=0x046) #...
-            self.GeneralAddr.set(value=0x40,index=0x048) #...
-            self.GeneralAddr.set(value=0x80,index=0x049) #...
-            self.GeneralAddr.set(value=0x40,index=0x04B) #...
-            self.GeneralAddr.set(value=0x60,index=0x053) #...
-            self.GeneralAddr.set(value=0x02,index=0x059) #...
-            self.GeneralAddr.set(value=0x08,index=0x05B) #...
-            self.GeneralAddr.set(value=0x07,index=0x05C) #...
-            self.GeneralAddr.set(value=0x10,index=0x057) # Register control for SYSREF --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x18,index=0x057) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x10,index=0x057) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x18,index=0x057) # Pulse SYSREF, pull high --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x10,index=0x057) # Pulse SYSREF, pull back low --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x00,index=0x057) # Give SYSREF control back to device pin --these lines are added in revision SBAA226C.
-            self.GeneralAddr.set(value=0x00,index=0x056) # sysref dis - check this was written earlier
-            self.GeneralAddr.set(value=0x00,index=0x020) # Pdn sysref = 0
-            self.GeneralAddr.set(value=0x00,index=0x012) # Master page disabled
-            self.GeneralAddr.set(value=0xFF,index=0x011) # Select ADC Page
-            self.GeneralAddr.set(value=0x07,index=0x083) # Additioanal Analog trims
-            self.GeneralAddr.set(value=0x00,index=0x05C) #...
-            self.GeneralAddr.set(value=0x01,index=0x05C) #...
-            self.GeneralAddr.set(value=0x00,index=0x011) #Disable ADC Page. Power up Analog writes end here. Program appropriate -->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
+            self.GeneralAddr_index_0x000.set(value=0x81)
+            self.GeneralAddr_index_0x011.set(value=0xFF)
+            self.GeneralAddr_index_0x022.set(value=0xC0)
+            self.GeneralAddr_index_0x032.set(value=0x80)
+            self.GeneralAddr_index_0x033.set(value=0x08)
+            self.GeneralAddr_index_0x042.set(value=0x03)
+            self.GeneralAddr_index_0x043.set(value=0x03)
+            self.GeneralAddr_index_0x045.set(value=0x58)
+            self.GeneralAddr_index_0x046.set(value=0xC4)
+            self.GeneralAddr_index_0x047.set(value=0x01)
+            self.GeneralAddr_index_0x053.set(value=0x01)
+            self.GeneralAddr_index_0x054.set(value=0x08)
+            self.GeneralAddr_index_0x064.set(value=0x05)
+            self.GeneralAddr_index_0x072.set(value=0x84)
+            self.GeneralAddr_index_0x08C.set(value=0x80)
+            self.GeneralAddr_index_0x097.set(value=0x80)
+            self.GeneralAddr_index_0x0F0.set(value=0x38)
+            self.GeneralAddr_index_0x0F1.set(value=0xBF)
+            self.GeneralAddr_index_0x011.set(value=0x00)
+            self.GeneralAddr_index_0x012.set(value=0x04)
+            self.GeneralAddr_index_0x025.set(value=0x01)
+            self.GeneralAddr_index_0x026.set(value=0x40)
+            self.GeneralAddr_index_0x027.set(value=0x80)
+            self.GeneralAddr_index_0x029.set(value=0x40)
+            self.GeneralAddr_index_0x02A.set(value=0x80)
+            self.GeneralAddr_index_0x02C.set(value=0x40)
+            self.GeneralAddr_index_0x02D.set(value=0x80)
+            self.GeneralAddr_index_0x02F.set(value=0x40)
+            self.GeneralAddr_index_0x034.set(value=0x01)
+            self.GeneralAddr_index_0x03F.set(value=0x01)
+            self.GeneralAddr_index_0x039.set(value=0x50)
+            self.GeneralAddr_index_0x03B.set(value=0x28)
+            self.GeneralAddr_index_0x040.set(value=0x80)
+            self.GeneralAddr_index_0x042.set(value=0x40)
+            self.GeneralAddr_index_0x043.set(value=0x80)
+            self.GeneralAddr_index_0x045.set(value=0x40)
+            self.GeneralAddr_index_0x046.set(value=0x80)
+            self.GeneralAddr_index_0x048.set(value=0x40)
+            self.GeneralAddr_index_0x049.set(value=0x80)
+            self.GeneralAddr_index_0x04B.set(value=0x40)
+            self.GeneralAddr_index_0x053.set(value=0x60)
+            self.GeneralAddr_index_0x059.set(value=0x02)
+            self.GeneralAddr_index_0x05B.set(value=0x08)
+            self.GeneralAddr_index_0x05C.set(value=0x07)
+            self.GeneralAddr_index_0x057.set(value=0x10)
+            self.GeneralAddr_index_0x057.set(value=0x18)
+            self.GeneralAddr_index_0x057.set(value=0x10)
+            self.GeneralAddr_index_0x057.set(value=0x18)
+            self.GeneralAddr_index_0x057.set(value=0x10)
+            self.GeneralAddr_index_0x057.set(value=0x00)
+            self.GeneralAddr_index_0x056.set(value=0x00)
+            self.GeneralAddr_index_0x020.set(value=0x00)
+            self.GeneralAddr_index_0x012.set(value=0x00)
+            self.GeneralAddr_index_0x011.set(value=0xFF)
+            self.GeneralAddr_index_0x083.set(value=0x07)
+            self.GeneralAddr_index_0x05C.set(value=0x00)
+            self.GeneralAddr_index_0x05C.set(value=0x01)
+            self.GeneralAddr_index_0x011.set(value=0x00)
 
-            self.RawInterface4.set(value=0x00,index=0x001) #DC corrector Bandwidth settings
-            self.RawInterface4.set(value=0x00,index=0x002) #...
-            self.RawInterface4.set(value=0x00,index=0x003) #...
-            self.RawInterface4.set(value=0x61,index=0x004)  #...
-            self.RawInterface6.set(value=0x22,index=0x068)  #...
-            self.RawInterface4.set(value=0x01,index=0x003)  #...
-            self.RawInterface6.set(value=0x22,index=0x068)  #...
+            self.RawInterface4_index_0x001.set(value=0x00)
+            self.RawInterface4_index_0x002.set(value=0x00)
+            self.RawInterface4_index_0x003.set(value=0x00)
+            self.RawInterface4_index_0x004.set(value=0x61)
+            self.RawInterface6_index_0x068.set(value=0x22)
+            self.RawInterface4_index_0x003.set(value=0x01)
+            self.RawInterface6_index_0x068.set(value=0x22)
 
         @self.command(description = "Set IL ChA")
         def IL_Config_Nyq1_ChA():
-            self.CH[0].MainDigital.set(value=0x01,index=0x044) # Program global settings for Interleaving Corrector
-            self.CH[0].MainDigital.set(value=0x04,index=0x068) #
-            self.CH[0].MainDigital.set(value=0xC0,index=0x0FF) #...
-            self.CH[0].MainDigital.set(value=0x08,index=0x0A2) # Progam nyquist zone 1 for chA, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A
-            self.CH[0].MainDigital.set(value=0x03,index=0x0A9) #...
-            self.CH[0].MainDigital.set(value=0x77,index=0x0AB) #...
-            self.CH[0].MainDigital.set(value=0x01,index=0x0AC) #...
-            self.CH[0].MainDigital.set(value=0x77,index=0x0AD) #...
-            self.CH[0].MainDigital.set(value=0x01,index=0x0AE) #...
-            self.CH[0].MainDigital.set(value=0x0F,index=0x096) #...
-            self.CH[0].MainDigital.set(value=0x26,index=0x097) #...
-            self.CH[0].MainDigital.set(value=0x0C,index=0x08F) #...
-            self.CH[0].MainDigital.set(value=0x08,index=0x08C) #...
-            self.CH[0].MainDigital.set(value=0x0F,index=0x080) #...
-            self.CH[0].MainDigital.set(value=0xCB,index=0x081) #...
-            self.CH[0].MainDigital.set(value=0x03,index=0x07D) #...
-            self.CH[0].MainDigital.set(value=0x75,index=0x056) #...
-            self.CH[0].MainDigital.set(value=0x75,index=0x057) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x053) #...
-            self.CH[0].MainDigital.set(value=0x03,index=0x04B) #...
-            self.CH[0].MainDigital.set(value=0x80,index=0x049) #...
-            self.CH[0].MainDigital.set(value=0x26,index=0x043) #...
-            self.CH[0].MainDigital.set(value=0x01,index=0x05E) #...
-            self.CH[0].MainDigital.set(value=0x38,index=0x042) #...
-            self.CH[0].MainDigital.set(value=0x04,index=0x05A) #...
-            self.CH[0].MainDigital.set(value=0x20,index=0x071) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x062) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x098) #...
-            self.CH[0].MainDigital.set(value=0x08,index=0x099) #...
-            self.CH[0].MainDigital.set(value=0x08,index=0x09C) #...
-            self.CH[0].MainDigital.set(value=0x20,index=0x09D) #...
-            self.CH[0].MainDigital.set(value=0x03,index=0x0BE) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x069) #...
-            self.CH[0].MainDigital.set(value=0x10,index=0x045) #...
-            self.CH[0].MainDigital.set(value=0x64,index=0x08D) #...
-            self.CH[0].MainDigital.set(value=0x20,index=0x08B) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x000) # Dig Core reset
-            self.CH[0].MainDigital.set(value=0x01,index=0x000) #...
-            self.CH[0].MainDigital.set(value=0x00,index=0x000) #...
+            self.CH[0].MainDigital_index_0x044.set(value=0x01)
+            self.CH[0].MainDigital_index_0x068.set(value=0x04)
+            self.CH[0].MainDigital_index_0x0FF.set(value=0xC0)
+            self.CH[0].MainDigital_index_0x0A2.set(value=0x08)
+            self.CH[0].MainDigital_index_0x0A9.set(value=0x03)
+            self.CH[0].MainDigital_index_0x0AB.set(value=0x77)
+            self.CH[0].MainDigital_index_0x0AC.set(value=0x01)
+            self.CH[0].MainDigital_index_0x0AD.set(value=0x77)
+            self.CH[0].MainDigital_index_0x0AE.set(value=0x01)
+            self.CH[0].MainDigital_index_0x096.set(value=0x0F)
+            self.CH[0].MainDigital_index_0x097.set(value=0x26)
+            self.CH[0].MainDigital_index_0x08F.set(value=0x0C)
+            self.CH[0].MainDigital_index_0x08C.set(value=0x08)
+            self.CH[0].MainDigital_index_0x080.set(value=0x0F)
+            self.CH[0].MainDigital_index_0x081.set(value=0xCB)
+            self.CH[0].MainDigital_index_0x07D.set(value=0x03)
+            self.CH[0].MainDigital_index_0x056.set(value=0x75)
+            self.CH[0].MainDigital_index_0x057.set(value=0x75)
+            self.CH[0].MainDigital_index_0x053.set(value=0x00)
+            self.CH[0].MainDigital_index_0x04B.set(value=0x03)
+            self.CH[0].MainDigital_index_0x049.set(value=0x80)
+            self.CH[0].MainDigital_index_0x043.set(value=0x26)
+            self.CH[0].MainDigital_index_0x05E.set(value=0x01)
+            self.CH[0].MainDigital_index_0x042.set(value=0x38)
+            self.CH[0].MainDigital_index_0x05A.set(value=0x04)
+            self.CH[0].MainDigital_index_0x071.set(value=0x20)
+            self.CH[0].MainDigital_index_0x062.set(value=0x00)
+            self.CH[0].MainDigital_index_0x098.set(value=0x00)
+            self.CH[0].MainDigital_index_0x099.set(value=0x08)
+            self.CH[0].MainDigital_index_0x09C.set(value=0x08)
+            self.CH[0].MainDigital_index_0x09D.set(value=0x20)
+            self.CH[0].MainDigital_index_0x0BE.set(value=0x03)
+            self.CH[0].MainDigital_index_0x069.set(value=0x00)
+            self.CH[0].MainDigital_index_0x045.set(value=0x10)
+            self.CH[0].MainDigital_index_0x08D.set(value=0x64)
+            self.CH[0].MainDigital_index_0x08B.set(value=0x20)
+            self.CH[0].MainDigital_index_0x000.set(value=0x00)
+            self.CH[0].MainDigital_index_0x000.set(value=0x01)
+            self.CH[0].MainDigital_index_0x000.set(value=0x00)
 
         @self.command()
         def IL_Config_Nyq1_ChB():
-            self.CH[1].MainDigital.set(value=0x80,index=0x049) # Special setting for chB
-            self.CH[1].MainDigital.set(value=0x20,index=0x042) # Special setting for chB
-            self.CH[1].MainDigital.set(value=0x08,index=0x0A2) # Progam nyquist zone 1 for chB, nyquist zone = 1 : 0x08, nyquist zone = 2 : 0x09, nyquist zone = 3 : 0x0A
-            self.CH[1].MainDigital.set(value=0x00,index=0x003) # Main digital page selected for chA
-            self.CH[1].MainDigital.set(value=0x00,index=0x000) #...
-            self.CH[1].MainDigital.set(value=0x01,index=0x000) #...
-            self.CH[1].MainDigital.set(value=0x00,index=0x000) #...
+            self.CH[1].MainDigital_index_0x049.set(value=0x80)
+            self.CH[1].MainDigital_index_0x042.set(value=0x20)
+            self.CH[1].MainDigital_index_0x0A2.set(value=0x08)
+            self.CH[1].MainDigital_index_0x003.set(value=0x00)
+            self.CH[1].MainDigital_index_0x000.set(value=0x00)
+            self.CH[1].MainDigital_index_0x000.set(value=0x01)
+            self.CH[1].MainDigital_index_0x000.set(value=0x00)
 
         @self.command(description  = "Set nonlinear trims")
         def SetNLTrim():
             # Nonlinearity trims
-            self.RawInterface4.set(value=0x00,index=0x003) #chA Non Linearity Trims for Nyq1. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
-            self.RawInterface4.set(value=0x20,index=0x004) #...
-            self.RawInterface4.set(value=0xF8,index=0x002) #...
-            self.RawInterface6.set(value=0xF5,index=0x03C) #...
-            self.RawInterface6.set(value=0x01,index=0x03D) #...
-            self.RawInterface6.set(value=0xF0,index=0x03E) #...
-            self.RawInterface6.set(value=0x0C,index=0x03F) #...
-            self.RawInterface6.set(value=0x0A,index=0x040) #...
-            self.RawInterface6.set(value=0xFE,index=0x041) #...
-            self.RawInterface6.set(value=0xF5,index=0x053) #...
-            self.RawInterface6.set(value=0x01,index=0x054) #...
-            self.RawInterface6.set(value=0xEE,index=0x055) #...
-            self.RawInterface6.set(value=0x0E,index=0x056) #...
-            self.RawInterface6.set(value=0x0B,index=0x057) #...
-            self.RawInterface6.set(value=0xFE,index=0x058) #...
-            self.RawInterface6.set(value=0xF4,index=0x06A) #...
-            self.RawInterface6.set(value=0x01,index=0x06B) #...
-            self.RawInterface6.set(value=0xF0,index=0x06C) #...
-            self.RawInterface6.set(value=0x0B,index=0x06D) #...
-            self.RawInterface6.set(value=0x09,index=0x06E) #...
-            self.RawInterface6.set(value=0xFE,index=0x06F) #...
-            self.RawInterface6.set(value=0xF5,index=0x081) #...
-            self.RawInterface6.set(value=0x01,index=0x082) #...
-            self.RawInterface6.set(value=0xEE,index=0x083) #...
-            self.RawInterface6.set(value=0x0D,index=0x084) #...
-            self.RawInterface6.set(value=0x0A,index=0x085) #...
-            self.RawInterface6.set(value=0xFE,index=0x086) #...
-            self.RawInterface6.set(value=0xFD,index=0x098) #...
-            self.RawInterface6.set(value=0x00,index=0x099) #...
-            self.RawInterface6.set(value=0x00,index=0x09A) #...
-            self.RawInterface6.set(value=0x00,index=0x09B) #...
-            self.RawInterface6.set(value=0x00,index=0x09C) #...
-            self.RawInterface6.set(value=0x00,index=0x09D) #...
-            self.RawInterface6.set(value=0xFF,index=0x0AF) #...
-            self.RawInterface6.set(value=0x00,index=0x0B0) #...
-            self.RawInterface6.set(value=0x01,index=0x0B1) #...
-            self.RawInterface6.set(value=0xFF,index=0x0B2) #...
-            self.RawInterface6.set(value=0xFF,index=0x0B3) #...
-            self.RawInterface6.set(value=0x00,index=0x0B4) #...
-            self.RawInterface6.set(value=0xFE,index=0x0C6) #...
-            self.RawInterface6.set(value=0x00,index=0x0C7) #...
-            self.RawInterface6.set(value=0x00,index=0x0C8) #...
-            self.RawInterface6.set(value=0x02,index=0x0C9) #...
-            self.RawInterface6.set(value=0x00,index=0x0CA) #...
-            self.RawInterface6.set(value=0x00,index=0x0CB) #...
-            self.RawInterface6.set(value=0xFF,index=0x0DD) #...
-            self.RawInterface6.set(value=0x00,index=0x0DE) #...
-            self.RawInterface6.set(value=0x02,index=0x0DF) #...
-            self.RawInterface6.set(value=0x00,index=0x0E0) #...
-            self.RawInterface6.set(value=0xFE,index=0x0E1) #...
-            self.RawInterface6.set(value=0x00,index=0x0E2) #...
-            self.RawInterface6.set(value=0x00,index=0x0F4) #...
-            self.RawInterface6.set(value=0x00,index=0x0F5) #...
-            self.RawInterface6.set(value=0x01,index=0x0FB) #...
-            self.RawInterface6.set(value=0x01,index=0x0FC) #...
-            self.RawInterface4.set(value=0x00,index=0x003) #chB Non Linearity Trims for Nyq1. Remember the sequence of programming the config files is Powerup_Analog_Config-->IL_Config_Nyqx_chA-->IL_Config_Nyqx_chB-->NL_Config_Nyqx_chA-->NL_Config_Nyqx_chB-->JESD_Config
-            self.RawInterface4.set(value=0x20,index=0x004) #...
-            self.RawInterface4.set(value=0xF9,index=0x002) #...
-            self.RawInterface6.set(value=0xF4,index=0x074) #...
-            self.RawInterface6.set(value=0x01,index=0x075) #...
-            self.RawInterface6.set(value=0xEF,index=0x076) #...
-            self.RawInterface6.set(value=0x0C,index=0x077) #...
-            self.RawInterface6.set(value=0x0A,index=0x078) #...
-            self.RawInterface6.set(value=0xFE,index=0x079) #...
-            self.RawInterface6.set(value=0xF4,index=0x08B) #...
-            self.RawInterface6.set(value=0x01,index=0x08C) #...
-            self.RawInterface6.set(value=0xEE,index=0x08D) #...
-            self.RawInterface6.set(value=0x0D,index=0x08E) #...
-            self.RawInterface6.set(value=0x0A,index=0x08F) #...
-            self.RawInterface6.set(value=0xFE,index=0x090) #...
-            self.RawInterface6.set(value=0xF4,index=0x0A2) #...
-            self.RawInterface6.set(value=0x01,index=0x0A3) #...
-            self.RawInterface6.set(value=0xEF,index=0x0A4) #...
-            self.RawInterface6.set(value=0x0C,index=0x0A5) #...
-            self.RawInterface6.set(value=0x0A,index=0x0A6) #...
-            self.RawInterface6.set(value=0xFE,index=0x0A7) #...
-            self.RawInterface6.set(value=0xF4,index=0x0B9) #...
-            self.RawInterface6.set(value=0x01,index=0x0BA) #...
-            self.RawInterface6.set(value=0xEF,index=0x0BB) #...
-            self.RawInterface6.set(value=0x0D,index=0x0BC) #...
-            self.RawInterface6.set(value=0x0A,index=0x0BD) #...
-            self.RawInterface6.set(value=0xFE,index=0x0BE) #...
-            self.RawInterface6.set(value=0xFF,index=0x0D0) #...
-            self.RawInterface6.set(value=0x00,index=0x0D1) #...
-            self.RawInterface6.set(value=0xFF,index=0x0D2) #...
-            self.RawInterface6.set(value=0x01,index=0x0D3) #...
-            self.RawInterface6.set(value=0x00,index=0x0D4) #...
-            self.RawInterface6.set(value=0x00,index=0x0D5) #...
-            self.RawInterface6.set(value=0xFF,index=0x0E7) #...
-            self.RawInterface6.set(value=0x00,index=0x0E8) #...
-            self.RawInterface6.set(value=0x01,index=0x0E9) #...
-            self.RawInterface6.set(value=0x00,index=0x0EA) #...
-            self.RawInterface6.set(value=0x00,index=0x0EB) #...
-            self.RawInterface6.set(value=0x00,index=0x0EC) #...
-            self.RawInterface6.set(value=0xFE,index=0x0FE) #...
-            self.RawInterface6.set(value=0x00,index=0x0FF) #...
-            self.RawInterface4.set(value=0xFA,index=0x002) #...
-            self.RawInterface6.set(value=0xFF,index=0x000) #...
-            self.RawInterface6.set(value=0x02,index=0x001) #...
-            self.RawInterface6.set(value=0x01,index=0x002) #...
-            self.RawInterface6.set(value=0x00,index=0x003) #...
-            self.RawInterface6.set(value=0xFF,index=0x015) #...
-            self.RawInterface6.set(value=0x00,index=0x016) #...
-            self.RawInterface6.set(value=0x01,index=0x017) #...
-            self.RawInterface6.set(value=0x00,index=0x018) #...
-            self.RawInterface6.set(value=0xFF,index=0x019) #...
-            self.RawInterface6.set(value=0x00,index=0x01A) #...
-            self.RawInterface6.set(value=0x00,index=0x02C) #...
-            self.RawInterface6.set(value=0x00,index=0x02D) #...
-            self.RawInterface6.set(value=0x01,index=0x033) #...
-            self.RawInterface6.set(value=0x01,index=0x034) #...
-            self.RawInterface4.set(value=0x00,index=0x002) #...
-            self.RawInterface4.set(value=0x00,index=0x003) #...
-            self.RawInterface4.set(value=0x68,index=0x004) #...
-            self.RawInterface6.set(value=0x00,index=0x068) #...
-            self.RawInterface0.set(value=0x00,index=0x011) #...
-            self.RawInterface0.set(value=0x04,index=0x012) #...
-            self.RawInterface0.set(value=0x87,index=0x05c) #...
-            self.RawInterface0.set(value=0x00,index=0x012) #...
+            self.RawInterface4_index_0x003.set(value=0x00)
+            self.RawInterface4_index_0x004.set(value=0x20)
+            self.RawInterface4_index_0x002.set(value=0xF8)
+            self.RawInterface6_index_0x03C.set(value=0xF5)
+            self.RawInterface6_index_0x03D.set(value=0x01)
+            self.RawInterface6_index_0x03E.set(value=0xF0)
+            self.RawInterface6_index_0x03F.set(value=0x0C)
+            self.RawInterface6_index_0x040.set(value=0x0A)
+            self.RawInterface6_index_0x041.set(value=0xFE)
+            self.RawInterface6_index_0x053.set(value=0xF5)
+            self.RawInterface6_index_0x054.set(value=0x01)
+            self.RawInterface6_index_0x055.set(value=0xEE)
+            self.RawInterface6_index_0x056.set(value=0x0E)
+            self.RawInterface6_index_0x057.set(value=0x0B)
+            self.RawInterface6_index_0x058.set(value=0xFE)
+            self.RawInterface6_index_0x06A.set(value=0xF4)
+            self.RawInterface6_index_0x06B.set(value=0x01)
+            self.RawInterface6_index_0x06C.set(value=0xF0)
+            self.RawInterface6_index_0x06D.set(value=0x0B)
+            self.RawInterface6_index_0x06E.set(value=0x09)
+            self.RawInterface6_index_0x06F.set(value=0xFE)
+            self.RawInterface6_index_0x081.set(value=0xF5)
+            self.RawInterface6_index_0x082.set(value=0x01)
+            self.RawInterface6_index_0x083.set(value=0xEE)
+            self.RawInterface6_index_0x084.set(value=0x0D)
+            self.RawInterface6_index_0x085.set(value=0x0A)
+            self.RawInterface6_index_0x086.set(value=0xFE)
+            self.RawInterface6_index_0x098.set(value=0xFD)
+            self.RawInterface6_index_0x099.set(value=0x00)
+            self.RawInterface6_index_0x09A.set(value=0x00)
+            self.RawInterface6_index_0x09B.set(value=0x00)
+            self.RawInterface6_index_0x09C.set(value=0x00)
+            self.RawInterface6_index_0x09D.set(value=0x00)
+            self.RawInterface6_index_0x0AF.set(value=0xFF)
+            self.RawInterface6_index_0x0B0.set(value=0x00)
+            self.RawInterface6_index_0x0B1.set(value=0x01)
+            self.RawInterface6_index_0x0B2.set(value=0xFF)
+            self.RawInterface6_index_0x0B3.set(value=0xFF)
+            self.RawInterface6_index_0x0B4.set(value=0x00)
+            self.RawInterface6_index_0x0C6.set(value=0xFE)
+            self.RawInterface6_index_0x0C7.set(value=0x00)
+            self.RawInterface6_index_0x0C8.set(value=0x00)
+            self.RawInterface6_index_0x0C9.set(value=0x02)
+            self.RawInterface6_index_0x0CA.set(value=0x00)
+            self.RawInterface6_index_0x0CB.set(value=0x00)
+            self.RawInterface6_index_0x0DD.set(value=0xFF)
+            self.RawInterface6_index_0x0DE.set(value=0x00)
+            self.RawInterface6_index_0x0DF.set(value=0x02)
+            self.RawInterface6_index_0x0E0.set(value=0x00)
+            self.RawInterface6_index_0x0E1.set(value=0xFE)
+            self.RawInterface6_index_0x0E2.set(value=0x00)
+            self.RawInterface6_index_0x0F4.set(value=0x00)
+            self.RawInterface6_index_0x0F5.set(value=0x00)
+            self.RawInterface6_index_0x0FB.set(value=0x01)
+            self.RawInterface6_index_0x0FC.set(value=0x01)
+            self.RawInterface4_index_0x003.set(value=0x00)
+            self.RawInterface4_index_0x004.set(value=0x20)
+            self.RawInterface4_index_0x002.set(value=0xF9)
+            self.RawInterface6_index_0x074.set(value=0xF4)
+            self.RawInterface6_index_0x075.set(value=0x01)
+            self.RawInterface6_index_0x076.set(value=0xEF)
+            self.RawInterface6_index_0x077.set(value=0x0C)
+            self.RawInterface6_index_0x078.set(value=0x0A)
+            self.RawInterface6_index_0x079.set(value=0xFE)
+            self.RawInterface6_index_0x08B.set(value=0xF4)
+            self.RawInterface6_index_0x08C.set(value=0x01)
+            self.RawInterface6_index_0x08D.set(value=0xEE)
+            self.RawInterface6_index_0x08E.set(value=0x0D)
+            self.RawInterface6_index_0x08F.set(value=0x0A)
+            self.RawInterface6_index_0x090.set(value=0xFE)
+            self.RawInterface6_index_0x0A2.set(value=0xF4)
+            self.RawInterface6_index_0x0A3.set(value=0x01)
+            self.RawInterface6_index_0x0A4.set(value=0xEF)
+            self.RawInterface6_index_0x0A5.set(value=0x0C)
+            self.RawInterface6_index_0x0A6.set(value=0x0A)
+            self.RawInterface6_index_0x0A7.set(value=0xFE)
+            self.RawInterface6_index_0x0B9.set(value=0xF4)
+            self.RawInterface6_index_0x0BA.set(value=0x01)
+            self.RawInterface6_index_0x0BB.set(value=0xEF)
+            self.RawInterface6_index_0x0BC.set(value=0x0D)
+            self.RawInterface6_index_0x0BD.set(value=0x0A)
+            self.RawInterface6_index_0x0BE.set(value=0xFE)
+            self.RawInterface6_index_0x0D0.set(value=0xFF)
+            self.RawInterface6_index_0x0D1.set(value=0x00)
+            self.RawInterface6_index_0x0D2.set(value=0xFF)
+            self.RawInterface6_index_0x0D3.set(value=0x01)
+            self.RawInterface6_index_0x0D4.set(value=0x00)
+            self.RawInterface6_index_0x0D5.set(value=0x00)
+            self.RawInterface6_index_0x0E7.set(value=0xFF)
+            self.RawInterface6_index_0x0E8.set(value=0x00)
+            self.RawInterface6_index_0x0E9.set(value=0x01)
+            self.RawInterface6_index_0x0EA.set(value=0x00)
+            self.RawInterface6_index_0x0EB.set(value=0x00)
+            self.RawInterface6_index_0x0EC.set(value=0x00)
+            self.RawInterface6_index_0x0FE.set(value=0xFE)
+            self.RawInterface6_index_0x0FF.set(value=0x00)
+            self.RawInterface4_index_0x002.set(value=0xFA)
+            self.RawInterface6_index_0x000.set(value=0xFF)
+            self.RawInterface6_index_0x001.set(value=0x02)
+            self.RawInterface6_index_0x002.set(value=0x01)
+            self.RawInterface6_index_0x003.set(value=0x00)
+            self.RawInterface6_index_0x015.set(value=0xFF)
+            self.RawInterface6_index_0x016.set(value=0x00)
+            self.RawInterface6_index_0x017.set(value=0x01)
+            self.RawInterface6_index_0x018.set(value=0x00)
+            self.RawInterface6_index_0x019.set(value=0xFF)
+            self.RawInterface6_index_0x01A.set(value=0x00)
+            self.RawInterface6_index_0x02C.set(value=0x00)
+            self.RawInterface6_index_0x02D.set(value=0x00)
+            self.RawInterface6_index_0x033.set(value=0x01)
+            self.RawInterface6_index_0x034.set(value=0x01)
+            self.RawInterface4_index_0x002.set(value=0x00)
+            self.RawInterface4_index_0x003.set(value=0x00)
+            self.RawInterface4_index_0x004.set(value=0x68)
+            self.RawInterface6_index_0x068.set(value=0x00)
+            self.RawInterface0_index_0x011.set(value=0x00)
+            self.RawInterface0_index_0x012.set(value=0x04)
+            self.RawInterface0_index_0x05C.set(value=0x87)
+            self.RawInterface0_index_0x012.set(value=0x00)
 
         @self.command()
         def JESD_DDC_config():
@@ -660,18 +818,18 @@ class Adc32Rf45(pr.Device):
         def DigRst():
             # Wait for 50 ms for the device to estimate the interleaving errors
             time.sleep(0.250) # TODO: Optimize this timeout
-            self.CH[0].JesdDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[1].JesdDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[0].JesdDigital.set(value=0x01,index=0x000) # CHA digital reset
-            self.CH[1].JesdDigital.set(value=0x01,index=0x000) # CHB digital reset
-            self.CH[0].JesdDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[1].JesdDigital.set(value=0x00,index=0x000) # clear reset
+            self.CH[0].JesdDigital_index_0x000.set(value=0x00)
+            self.CH[1].JesdDigital_index_0x000.set(value=0x00)
+            self.CH[0].JesdDigital_index_0x000.set(value=0x01)
+            self.CH[1].JesdDigital_index_0x000.set(value=0x01)
+            self.CH[0].JesdDigital_index_0x000.set(value=0x00)
+            self.CH[1].JesdDigital_index_0x000.set(value=0x00)
 
             # Wait for 50 ms for the device to estimate the interleaving errors
             time.sleep(0.250) # TODO: Optimize this timeout
-            self.CH[0].MainDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[1].MainDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[0].MainDigital.set(value=0x01,index=0x000) # CHA digital reset
-            self.CH[1].MainDigital.set(value=0x01,index=0x000) # CHB digital reset
-            self.CH[0].MainDigital.set(value=0x00,index=0x000) # clear reset
-            self.CH[1].MainDigital.set(value=0x00,index=0x000) # clear reset
+            self.CH[0].MainDigital_index_0x000.set(value=0x00)
+            self.CH[1].MainDigital_index_0x000.set(value=0x00)
+            self.CH[0].MainDigital_index_0x000.set(value=0x01)
+            self.CH[1].MainDigital_index_0x000.set(value=0x01)
+            self.CH[0].MainDigital_index_0x000.set(value=0x00)
+            self.CH[1].MainDigital_index_0x000.set(value=0x00)

@@ -26,11 +26,11 @@ use surf.SsiPkg.all;
 entity AxiStreamGearboxUnpack is
    generic (
       TPD_G               : time    := 1 ns;
+      RST_POLARITY_G      : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean := false;
       AXI_STREAM_CONFIG_G : AxiStreamConfigType;
       RANGE_HIGH_G        : integer := 119;
       RANGE_LOW_G         : integer := 8);
---      PACK_SIZE_G         : integer);
    port (
       axisClk : in sl;
       axisRst : in sl;
@@ -189,7 +189,7 @@ begin
       ----------------------------------------------------------------------------------------------
       -- Reset
       ----------------------------------------------------------------------------------------------
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -206,7 +206,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
@@ -216,28 +216,5 @@ begin
    rawAxisMaster   <= locRawAxisMaster;
    locRawAxisSlave <= rawAxisSlave;
    locRawAxisCtrl  <= rawAxisCtrl;
-
-   -- Could probably get rid of this
---   AxiStreamFifo_1 : entity surf.AxiStreamFifoV2
---      generic map (
---         TPD_G               => TPD_G,
---         RST_ASYNC_G         => RST_ASYNC_G,
---         MEMORY_TYPE_G       => "distributed",
---         GEN_SYNC_FIFO_G     => true,
---         FIFO_ADDR_WIDTH_G   => 4,
---         FIFO_FIXED_THRESH_G => true,
---         FIFO_PAUSE_THRESH_G => 15,
---         SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
---         MASTER_AXI_CONFIG_G => AXI_STREAM_CONFIG_G)
---      port map (
---         sAxisClk    => axisClk,
---         sAxisRst    => axisRst,
---         sAxisMaster => locRawAxisMaster,
---         sAxisSlave  => locRawAxisSlave,
---         sAxisCtrl   => locRawAxisCtrl,
---         mAxisClk    => axisClk,
---         mAxisRst    => axisRst,
---         mAxisMaster => rawAxisMaster,
---         mAxisSlave  => rawAxisSlave);
 
 end architecture rtl;

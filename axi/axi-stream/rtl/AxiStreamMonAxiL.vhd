@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiStreamMonAxiL is
    generic (
       TPD_G            : time     := 1 ns;
+      RST_POLARITY_G   : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean  := false;
       COMMON_CLK_G     : boolean  := false;      -- true if axisClk = axilClk
       AXIS_CLK_FREQ_G  : real     := 156.25E+6;  -- units of Hz
@@ -111,7 +112,9 @@ begin
 
    U_RstSync : entity surf.RstSync
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         IN_POLARITY_G  => RST_POLARITY_G,
+         OUT_POLARITY_G => RST_POLARITY_G)
       port map (
          clk      => axisClk,
          asyncRst => localReset,
@@ -122,6 +125,7 @@ begin
       U_AxiStreamMon : entity surf.AxiStreamMon
          generic map(
             TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
             RST_ASYNC_G     => RST_ASYNC_G,
             COMMON_CLK_G    => true,             -- true if axisClk = statusClk
             AXIS_CLK_FREQ_G => AXIS_CLK_FREQ_G,  -- units of Hz
@@ -155,6 +159,7 @@ begin
    U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          SYNTH_MODE_G   => "inferred",
          MEMORY_TYPE_G  => ite(ADDR_WIDTH_C > 5, "block", "distributed"),
@@ -273,7 +278,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -284,7 +289,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;

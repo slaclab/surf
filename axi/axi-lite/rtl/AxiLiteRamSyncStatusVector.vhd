@@ -24,6 +24,8 @@ use surf.AxiLitePkg.all;
 entity AxiLiteRamSyncStatusVector is
    generic (
       TPD_G          : time                   := 1 ns;  -- Simulation FF output delay
+      RST_POLARITY_G : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
       --------------------------
       -- AxiDualPortRam Generics
       --------------------------
@@ -33,8 +35,6 @@ entity AxiLiteRamSyncStatusVector is
       ----------------------------
       -- SyncStatusVector Generics
       ----------------------------
-      RST_POLARITY_G : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean                := false;  -- true if reset is asynchronous, false if reset is synchronous
       COMMON_CLK_G   : boolean                := false;  -- True if wrClk and rdClk are the same clock
       IN_POLARITY_G  : slv                    := "1";  -- 0 for active LOW, 1 for active HIGH (for statusIn port)
       OUT_POLARITY_G : sl                     := '1';  -- 0 for active LOW, 1 for active HIGH (for irqOut port)
@@ -92,6 +92,7 @@ begin
    U_AxiDualPortRam : entity surf.AxiDualPortRam
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          SYNTH_MODE_G   => SYNTH_MODE_G,
          MEMORY_TYPE_G  => MEMORY_TYPE_G,
@@ -119,6 +120,7 @@ begin
    U_SyncStatusVector : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => true,
@@ -158,7 +160,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -169,7 +171,7 @@ begin
 
    seq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
+      if (RST_ASYNC_G and axilRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          r <= rin after TPD_G;

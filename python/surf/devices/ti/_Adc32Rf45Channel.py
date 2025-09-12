@@ -32,18 +32,19 @@ class Adc32Rf45Channel(pr.Device):
         ##################
         # Offset Corr Page
         ##################
-        self.add(pr.RemoteVariable(name='OffsetCorrector',
-                                   offset       = offsetCorrector, # 0x04000 - 0x041FF, 512 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x80,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   overlapEn    = True,
-                                   hidden       = True,
-                                   verify       = False))
+        indexList = [
+            0x068,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'OffsetCorrector_index_0x{index:03X}',
+                offset       = (offsetCorrector + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
         self.add(pr.RemoteVariable(
             name         = "SEL_EXT_EST",
@@ -127,18 +128,56 @@ class Adc32Rf45Channel(pr.Device):
         ###################
         # Main Digital Page
         ###################
-        self.add(pr.RemoteVariable(name='MainDigital',
-                                   offset       = mainDigital, # 0x0C000 - 0x0C3FF, 1024 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x100,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   overlapEn    = True,
-                                   hidden       = True,
-                                   verify       = False))
+        indexList = [
+            0x044,
+            0x068,
+            0x0FF,
+            0x0A2,
+            0x0A9,
+            0x0AB,
+            0x0AC,
+            0x0AD,
+            0x0AE,
+            0x096,
+            0x097,
+            0x08F,
+            0x08C,
+            0x080,
+            0x081,
+            0x07D,
+            0x056,
+            0x057,
+            0x053,
+            0x04B,
+            0x049,
+            0x043,
+            0x05E,
+            0x042,
+            0x05A,
+            0x071,
+            0x062,
+            0x098,
+            0x099,
+            0x09C,
+            0x09D,
+            0x0BE,
+            0x069,
+            0x045,
+            0x08D,
+            0x08B,
+            0x003,
+            0x000,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'MainDigital_index_0x{index:03X}',
+                offset       = (mainDigital + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
         self.add(pr.RemoteVariable(
             name         = "NQ_ZONE_EN",
@@ -167,18 +206,20 @@ class Adc32Rf45Channel(pr.Device):
         ###################
         # JESD DIGITAL PAGE
         ###################
-        self.add(pr.RemoteVariable(name='JesdDigital',
-                                   offset       = jesdDigital, # 0x10000 - 0x101FF, 512 Bytes
-                                   base         = pr.UInt,
-                                   bitOffset    = 0,
-                                   numValues    = 0x80,
-                                   valueBits    = 32,
-                                   valueStride  = 32,
-                                   updateNotify = False,
-                                   bulkOpEn     = False,
-                                   overlapEn    = True,
-                                   hidden       = True,
-                                   verify       = False))
+        indexList = [
+            0x000,
+            0x03E,
+        ]
+        for index in indexList:
+            self.add(pr.RemoteVariable(
+                name         = f'JesdDigital_index_0x{index:03X}',
+                offset       = (jesdDigital + (4*index)),
+                bitSize      = 32,
+                mode         = "WO",
+                hidden       = True,
+                verify       = False,
+                overlapEn    = True,
+            ))
 
         self.add(pr.RemoteVariable(
             name         = "CTRL_K",

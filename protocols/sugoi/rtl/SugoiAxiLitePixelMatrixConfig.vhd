@@ -31,8 +31,9 @@ entity SugoiAxiLitePixelMatrixConfig is
       COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
       ROW_WIDTH_G     : positive range 1 to 10 := 6;
-      DATA_WIDTH_G    : positive range 1 to 11 := 9;
-      TIMER_WIDTH_G   : positive range 1 to 16 := 12);
+      DATA_WIDTH_G    : positive range 1 to 32 := 9;
+      TIMER_WIDTH_G   : positive range 1 to 16 := 12
+   );
    port (
       -- Matrix periphery: coldec and rowdec
       colAddr         : out   slv(COL_WIDTH_G-1 downto 0);
@@ -51,7 +52,8 @@ entity SugoiAxiLitePixelMatrixConfig is
       axilReadMaster  : in    AxiLiteReadMasterType;
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType);
+      axilWriteSlave  : out   AxiLiteWriteSlaveType
+   );
 end entity SugoiAxiLitePixelMatrixConfig;
 
 architecture rtl of SugoiAxiLitePixelMatrixConfig is
@@ -69,7 +71,8 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
    type StateType is (
       IDLE_S,
       READ_CMD_S,
-      WRITE_CMD_S);
+      WRITE_CMD_S
+   );
 
    type RegType is record
       colReg         : slv(COL_WIDTH_G-1 downto 0);
@@ -102,7 +105,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       dataOut        => (others => '0'),
       readWrite      => '1',
       configTri      => '0',
-      globalRstL     => '1',
+      globalRstL     => '0',
       cckReg         => '0',
       cckPix         => '0',
       cnt            => 0,
@@ -110,7 +113,8 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       timerSize      => (others => '1'),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      state          => IDLE_S);
+      state          => IDLE_S
+   );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -161,7 +165,7 @@ begin
                         v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
                         v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
                         v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
-                        v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(23 downto 16) := toSlv(DATA_WIDTH_G, 8);
                         v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
                         axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                      when x"C" =>
@@ -240,25 +244,25 @@ begin
                   v.configTri := '1';
                   v.readWrite := '0';
                when 2 =>
-                  -- CCK PIX LOW
-                  v.cckPix    := '0';
+                  -- CCK PIX HIGH
+                  v.cckPix    := '1';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 3 =>
                   -- CCK REG HIGH
-                  v.cckPix    := '0';
+                  v.cckPix    := '1';
                   v.cckReg    := '1';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 4 =>
-                  -- CCK REG LOW
+                  -- SAMPLE & CCK LOW
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 5 =>
-                  -- SAMPLE
+                  -- HOLD
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
@@ -284,7 +288,7 @@ begin
                v.timer := r.timerSize;
 
                -- Check if "SAMPLE" phase
-               if (r.cnt = 5) then
+               if (r.cnt = 4) then
 
                   -- Assign read data
                   v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
