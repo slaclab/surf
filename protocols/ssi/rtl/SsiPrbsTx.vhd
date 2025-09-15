@@ -176,6 +176,7 @@ begin
       axiSlaveRegisterR(axilEp, X"00", 2, r.busy);
       axiSlaveRegisterR(axilEp, X"00", 3, r.overflow);
       axiSlaveRegister(axilEp, X"00", 5, v.cntData);
+      axiSlaveRegister(axilEp, X"00", 6, v.trigSrc);
 
       axiSlaveRegister(axilEp, X"04", 0, v.packetLength);
       axiSlaveRegister(axilEp, X"08", 0, v.tDest);
@@ -213,6 +214,11 @@ begin
          v.packetLength := packetLength;
          v.tDest        := tDest;
          v.tId          := tId;
+      end if;
+
+      -- Special mode with axi settings and external triggers
+      if (r.axiEn = '1' and r.trigSrc = '1') then
+         v.trigger := trig;
       end if;
 
       -- trigAccept is pulsed each time trigger is seen to start a new frame
