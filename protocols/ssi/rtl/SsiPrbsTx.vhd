@@ -88,6 +88,9 @@ architecture rtl of SsiPrbsTx is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TUSER_MODE_C);
 
+   constant TRIG_SRC_AXI_C : sl := '0';
+   constant TRIG_SRC_EXT_C : sl := '1';
+
    type StateType is (
       IDLE_S,
       SEED_RAND_S,
@@ -109,6 +112,7 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
       axiEn          : sl;
+      trigSrc        : sl;
       oneShot        : sl;
       trig           : sl;
       trigAccept     : sl;
@@ -135,6 +139,7 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   => axiStreamMasterInit(PRBS_SSI_CONFIG_C),
       state          => IDLE_S,
       axiEn          => AXI_EN_G,
+      trigSrc        => ite(AXI_EN_G = '1', TRIG_SRC_AXI_C, TRIG_SRC_EXT_C),
       oneShot        => '0',
       trig           => '0',
       trigAccept     => '0',
@@ -217,7 +222,7 @@ begin
       end if;
 
       -- Special mode with axi settings and external triggers
-      if (r.axiEn = '1' and r.trigSrc = '1') then
+      if (r.axiEn = '1' and r.trigSrc = TRIG_SRC_EXT_C) then
          v.trigger := trig;
       end if;
 

@@ -40,7 +40,7 @@ class SsiPrbsTx(pr.Device):
             base         = pr.UInt,
             mode         = "RW",
             enum = {
-                0 : 'AXI_TxEn',
+                0 : 'AXI',
                 1 : 'EXT'}
         ))
 
