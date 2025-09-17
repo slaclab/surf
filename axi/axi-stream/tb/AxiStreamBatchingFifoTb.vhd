@@ -66,7 +66,7 @@ architecture testbed of AxiStreamBatchingFifoTb is
       TUSER_MODE_C  => TUSER_NORMAL_C);
    constant AXIS_TX_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => true,
-      TDATA_BYTES_C => (8),
+      TDATA_BYTES_C => (16),
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,

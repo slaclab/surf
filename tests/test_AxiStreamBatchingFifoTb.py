@@ -26,34 +26,37 @@ async def dut_tb(dut):
     clk_period_ns = 4.0 # 4ns
     number_of_frames = 7
 
-    master_timer = Timer(timeout_us, "us")
 
     source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.clk, dut.rst)
     program = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "s_axil"), dut.clk, dut.rst)
 
     clk_task = cocotb.start_soon(Clock(dut.clk, clk_period_ns, "ns").start())
 
-    # Assert reset 
-    dut.rst.value = 1
-    await Timer(40, "ns")
-    dut.rst.value = 0
-    await Timer(40, "ns")
+    for i in range(3):
+        master_timer = Timer(timeout_us, "us")
 
-    # Write frame number
-    await program.write(0x100, number_of_frames.to_bytes(4, "little"))
-    await Timer(40, "ns")
+        # Assert reset 
+        dut.rst.value = 1
+        await Timer(40, "ns")
+        dut.rst.value = 0
+        await Timer(40, "ns")
 
-    # Read data back
-    data = await program.read(0x000, 4)
-    dut._log.info(f"Read addr 0x0: {data}")
+        # Write frame number
+        await program.write(0x100, (number_of_frames+i*2).to_bytes(4, "little"))
+        await Timer(40, "ns")
 
-    # Send 40 frames
-    payload = bytearray(list(range(0,64)))
-    frame = AxiStreamFrame(payload)
-    for i in range(40):
-        await source.send(frame)
+        # Read data back
+        data = await program.read(0x000, 4)
+        dut._log.info(f"Read addr 0x0: {data}")
 
-    await master_timer
+        # Send 40 frames
+        payload = bytearray(list(range(0,64)))
+        frame = AxiStreamFrame(payload)
+        for i in range(40):
+            await source.send(frame)
+
+        await master_timer
+
 
 tests_dir = os.path.dirname(__file__)
 tests_module = 'AxiStreamBatchingFifoTb'
@@ -105,5 +108,5 @@ def test_AxiStreamBatchingFifoTb(parameters):
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
         ########################################################################
-        sim_args =[f'--wave={tests_module}.ghw'],
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
