@@ -10,7 +10,6 @@
 
 # dut_tb
 import cocotb
-from cocotb.triggers import RisingEdge
 from cocotbext.axi import AxiStreamBus, AxiStreamSource, AxiStreamFrame, AxiLiteBus, AxiLiteMaster
 from cocotb.clock import Clock, Timer
 
@@ -30,12 +29,12 @@ async def dut_tb(dut):
     source = AxiStreamSource(AxiStreamBus.from_prefix(dut, "s_axis"), dut.clk, dut.rst)
     program = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "s_axil"), dut.clk, dut.rst)
 
-    clk_task = cocotb.start_soon(Clock(dut.clk, clk_period_ns, "ns").start())
+    cocotb.start_soon(Clock(dut.clk, clk_period_ns, "ns").start())
 
     for i in range(3):
         master_timer = Timer(timeout_us, "us")
 
-        # Assert reset 
+        # Assert reset
         dut.rst.value = 1
         await Timer(40, "ns")
         dut.rst.value = 0
