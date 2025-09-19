@@ -21,6 +21,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 package PMbusPkg is
+
    -- BIT[2] = regAddrSkip, BIT[1:0] = regDataSize
    type PMbusAccessArray is array (0 to 255) of slv(2 downto 0);
 
