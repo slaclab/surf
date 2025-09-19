@@ -8,6 +8,8 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.devices.transceivers._Sfp  import *
+from surf.devices.transceivers._QsfpUpperPage00h import *
+from surf.devices.transceivers._QsfpUpperPage03h import *
 from surf.devices.transceivers._Qsfp import *
 
 import math
@@ -114,6 +116,10 @@ IdentifierDict = {
     0x1F: 'SFP-DD',
 }
 
+# Fill 0x20 through 0xFF with 'Undefined'
+for code in range(0x20, 0x100):  # 0x100 is 256 (exclusive)
+    IdentifierDict[code] = 'Undefined'
+
 ExtIdentifierDict = {
     0x00: 'Unspecified',
     0x01: '100G AOC (Active Optical Cable) or 25GAUI C2M AOC',
@@ -179,6 +185,10 @@ ExtIdentifierDict = {
     0x81: 'Capable of 128GFC',
 }
 
+# Fill 0x82 through 0xFF with 'Undefined'
+for code in range(0x82, 0x100):  # 0x100 is 256 (exclusive)
+    ExtIdentifierDict[code] = 'Undefined'
+
 ConnectorDict = {
     0x00: 'Unspecified',
     0x01: 'SC',
@@ -205,6 +215,10 @@ ConnectorDict = {
     0x28: 'MPO 1x16',
 }
 
+# Fill 0x29 through 0xFF with 'Undefined'
+for code in range(0x29, 0x100):  # 0x100 is 256 (exclusive)
+    ConnectorDict[code] = 'Undefined'
+
 EncodingDict = {
     0x0: 'Unspecified',
     0x1: '8B10B',
@@ -214,6 +228,10 @@ EncodingDict = {
     0x5: 'SONET Scrambled',
     0x6: '64B/66B',
 }
+
+# Fill 0x7 through 0xF with 'Undefined'
+for code in range(0x7, 0x10):  # 0x10 is 16 (exclusive)
+    EncodingDict[code] = 'Undefined'
 
 RateIdDict = {
     0x0: 'Unspecified',
@@ -227,4 +245,8 @@ RateIdDict = {
     0x8: 'FC-PI-5 (16/8/4G RX Rate Select Only) High=16G, Low=8/4G',
     0x9: 'Unspecified',
     0xA: 'FC-PI-5 (16/8/4G Independent TX and RX Rate Select) High=16G, Low=8/4G',
-},
+}
+
+# Fill 0xB through 0xF with 'Undefined'
+for code in range(0xB, 0x10):  # 0x10 is 16 (exclusive)
+    RateIdDict[code] = 'Undefined'

@@ -638,6 +638,7 @@ rule:
       - 'IBUFDS_GTE2'
       - 'IBUFDS_GTE3'
       - 'IBUFDS_GTE4'
+      - 'IBUFDS_GTE5'
       - 'IDELAYE2'
       - 'IDELAYE3'
       - 'IDELAYCTRL'
@@ -659,10 +660,13 @@ rule:
       - 'MMCME2_ADV'
       - 'MMCME3_ADV'
       - 'MMCME4_ADV'
+      - 'MMCME5'
       - 'PLL_BASE'
       - 'PLLE2_ADV'
       - 'PLLE3_ADV'
       - 'PLLE4_ADV'
+      - 'XPLL'
+      - 'DPLL'
       - 'BUFG'
       - 'BUFG_GT'
       - 'BUFGMUX_CTRL'
@@ -729,6 +733,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-034
   instantiation_034:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/instantiation_rules.html#instantiation-036
+  instantiation_036:
     disable: true
 
   ##############################################################################################################
@@ -1232,6 +1240,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-011
   variable_011:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/variable_rules.html#variable-015
+  variable_015:
     disable: true
 
   ##############################################################################################################

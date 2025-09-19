@@ -74,18 +74,17 @@ begin
    assert (MODE_G /= "INDEXED" or (TDEST_HIGH_G - TDEST_LOW_G + 1 >= log2(NUM_MASTERS_G)))
       report "In INDEXED mode, TDest range " & integer'image(TDEST_HIGH_G) & " downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_MASTERS_G=" & integer'image(NUM_MASTERS_G)
-      severity error;
+      severity failure;
 
    assert (MODE_G /= "ROUTED" or (TDEST_ROUTES_G'length = NUM_MASTERS_G))
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_MASTERS_G: " & integer'image(NUM_MASTERS_G)
-      severity error;
+      severity failure;
 
    comb : process (axisRst, dynamicRouteDests, dynamicRouteMasks,
                    pipeAxisSlaves, r, sAxisMaster) is
       variable v   : RegType;
       variable idx : natural;
-      variable i   : natural;
    begin
       -- Latch the current value
       v := r;

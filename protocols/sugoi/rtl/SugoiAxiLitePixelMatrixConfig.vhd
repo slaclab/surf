@@ -31,8 +31,9 @@ entity SugoiAxiLitePixelMatrixConfig is
       COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
       ROW_WIDTH_G     : positive range 1 to 10 := 6;
-      DATA_WIDTH_G    : positive range 1 to 11 := 9;
-      TIMER_WIDTH_G   : positive range 1 to 16 := 12);
+      DATA_WIDTH_G    : positive range 1 to 32 := 9;
+      TIMER_WIDTH_G   : positive range 1 to 16 := 12
+   );
    port (
       -- Matrix periphery: coldec and rowdec
       colAddr         : out   slv(COL_WIDTH_G-1 downto 0);
@@ -51,7 +52,8 @@ entity SugoiAxiLitePixelMatrixConfig is
       axilReadMaster  : in    AxiLiteReadMasterType;
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType);
+      axilWriteSlave  : out   AxiLiteWriteSlaveType
+   );
 end entity SugoiAxiLitePixelMatrixConfig;
 
 architecture rtl of SugoiAxiLitePixelMatrixConfig is
@@ -69,7 +71,8 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
    type StateType is (
       IDLE_S,
       READ_CMD_S,
-      WRITE_CMD_S);
+      WRITE_CMD_S
+   );
 
    type RegType is record
       colReg         : slv(COL_WIDTH_G-1 downto 0);
@@ -100,9 +103,9 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       allCol         => '0',
       allRow         => '0',
       dataOut        => (others => '0'),
-      readWrite      => '0',
-      configTri      => '1',
-      globalRstL     => '1',
+      readWrite      => '1',
+      configTri      => '0',
+      globalRstL     => '0',
       cckReg         => '0',
       cckPix         => '0',
       cnt            => 0,
@@ -110,7 +113,8 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       timerSize      => (others => '1'),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
-      state          => IDLE_S);
+      state          => IDLE_S
+   );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -161,7 +165,7 @@ begin
                         v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
                         v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
                         v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
-                        v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(23 downto 16) := toSlv(DATA_WIDTH_G, 8);
                         v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
                         axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                      when x"C" =>
@@ -228,25 +232,53 @@ begin
             -- Check the read phase
             case (r.cnt) is
                when 0 =>
-                  -- CCK PIX HIGH
-                  v.cckPix := '1';
-                  v.cckReg := '0';
+                  -- TRI-STATE & READ MODE
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
                when 1 =>
-                  -- CCK PIX LOW
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  -- CCK PIX HIGH
+                  v.cckPix    := '1';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
                when 2 =>
-                  -- CCK REG HIGH
-                  v.cckPix := '0';
-                  v.cckReg := '1';
+                  -- CCK PIX HIGH
+                  v.cckPix    := '1';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
                when 3 =>
-                  -- CCK REG LOW
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  -- CCK REG HIGH
+                  v.cckPix    := '1';
+                  v.cckReg    := '1';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 4 =>
+                  -- SAMPLE & CCK LOW
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 5 =>
+                  -- HOLD
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 6 =>
+                  -- RETURN TO WRITE
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '0';
+                  v.readWrite := '1';
                when others =>
                   -- Default
-                  v.cckPix := '0';
-                  v.cckReg := '0';
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '1';
             end case;
 
             -- Check for timeout
@@ -255,11 +287,17 @@ begin
                -- Set the timer
                v.timer := r.timerSize;
 
-               -- Check if "CCK REG LOW" phase
-               if (r.cnt = 3) then
+               -- Check if "SAMPLE" phase
+               if (r.cnt = 4) then
 
                   -- Assign read data
                   v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
+
+                  -- Increment the counter
+                  v.cnt := r.cnt + 1;
+
+               -- Check if "RETURN TO WRITE" phase
+               elsif (r.cnt = 6) then
 
                   -- Ack the read TXN
                   axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
@@ -280,7 +318,7 @@ begin
                when 0 =>
                   -- Disable pixel driver
                   v.readWrite := '1';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 1 =>
@@ -316,19 +354,19 @@ begin
                when 6 =>
                   -- Disable config driver
                   v.readWrite := '1';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when 7 =>
                   -- Enable pixel driver
-                  v.readWrite := '0';
-                  v.configTri := '1';
+                  v.readWrite := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                when others =>
                   -- Default
                   v.readWrite := '0';
-                  v.configTri := '1';
+                  v.configTri := '0';
                   v.cckPix    := '0';
                   v.cckReg    := '0';
             end case;

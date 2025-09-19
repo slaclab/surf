@@ -116,7 +116,7 @@ begin
          COMMON_CLK_G => COMMON_CLOCK_G)
       port map (
          sAxiClk         => axilClk,              -- [in]
-         sAxiClkRst      => axilClk,              -- [in]
+         sAxiClkRst      => axilRst,              -- [in]
          sAxiReadMaster  => axilReadMaster,       -- [in]
          sAxiReadSlave   => axilReadSlave,        -- [out]
          sAxiWriteMaster => axilWriteMaster,      -- [in]

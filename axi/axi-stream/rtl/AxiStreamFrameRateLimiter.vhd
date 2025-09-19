@@ -25,13 +25,14 @@ use surf.AxiLitePkg.all;
 entity AxiStreamFrameRateLimiter is
    generic (
       TPD_G              : time     := 1 ns;
+      RST_POLARITY_G     : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean  := false;
       PIPE_STAGES_G      : natural  := 0;
       COMMON_CLK_G       : boolean  := false;  -- True if axisClk and axilClk are the same clock
       BACKPRESSURE_G     : boolean  := false;  -- Set the default for the back pressure register
       AXIS_CLK_FREQ_G    : real     := 156.25E+6;  -- Units of Hz
       REFRESH_RATE_G     : real     := 1.0E+0;     -- units of Hz
-      DEFAULT_MAX_RATE_G : positive := 1);     -- Units of 'REFRESH_RATE_G'
+      DEFAULT_MAX_RATE_G : positive := 1);   -- Units of 'REFRESH_RATE_G'
    port (
       -- AXI Stream Interface (axisClk domain)
       axisClk         : in  sl;
@@ -101,6 +102,7 @@ begin
    U_AxiLiteRegs : entity surf.AxiLiteRegs
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          NUM_WRITE_REG_G => 2,
          INI_WRITE_REG_G => INI_WRITE_REG_C,
@@ -119,9 +121,11 @@ begin
 
    U_rateLimit : entity surf.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         BYPASS_SYNC_G => COMMON_CLK_G,
-         WIDTH_G       => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_CLK_G,
+         WIDTH_G        => 32)
       port map (
          clk     => axisClk,
          dataIn  => writeReg(0),
@@ -129,8 +133,10 @@ begin
 
    U_backpressure : entity surf.Synchronizer
       generic map (
-         TPD_G         => TPD_G,
-         BYPASS_SYNC_G => COMMON_CLK_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_CLK_G)
       port map (
          clk     => axisClk,
          dataIn  => writeReg(1)(0),
@@ -246,7 +252,7 @@ begin
       sAxisSlave <= v.sAxisSlave;
 
       -- Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -257,7 +263,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
@@ -267,9 +273,10 @@ begin
    -- Optional output pipeline registers to ease timing
    U_AxiStreamPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

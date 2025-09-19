@@ -34,6 +34,7 @@ entity CoaXPressCore is
       DATA_AXIS_CONFIG_G : AxiStreamConfigType;
       CFG_AXIS_CONFIG_G  : AxiStreamConfigType);
    port (
+      gtRstAll        : out sl;
       -- Data Interface (dataClk domain)
       dataClk         : in  sl;
       dataRst         : in  sl;
@@ -204,6 +205,7 @@ begin
          AXIS_CLK_FREQ_G    => AXIS_CLK_FREQ_G,
          AXIS_CONFIG_G      => DATA_AXIS_CONFIG_G)
       port map (
+         gtRstAll        => gtRstAll,
          -- Tx Interface (txClk domain)
          txClk           => txClk,
          txRst           => txRst,

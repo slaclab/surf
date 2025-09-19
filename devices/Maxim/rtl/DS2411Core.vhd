@@ -25,11 +25,13 @@ use unisim.vcomponents.all;
 
 entity DS2411Core is
    generic (
-      TPD_G        : time             := 1 ns;
-      SIMULATION_G : boolean          := false;
-      SIM_OUTPUT_G : slv(63 downto 0) := x"0123456789ABCDEF";
-      CLK_PERIOD_G : real             := 6.4E-9;    --units of seconds
-      SMPL_TIME_G  : real             := 13.1E-6);  --move sample time
+      TPD_G          : time             := 1 ns;
+      RST_POLARITY_G : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean          := false;
+      SIMULATION_G   : boolean          := false;
+      SIM_OUTPUT_G   : slv(63 downto 0) := x"0123456789ABCDEF";
+      CLK_PERIOD_G   : real             := 6.4E-9;    --units of seconds
+      SMPL_TIME_G    : real             := 13.1E-6);  --move sample time
    port (
       -- Clock & Reset Signals
       clk       : in    sl;
@@ -73,6 +75,9 @@ architecture rtl of DS2411Core is
 
 begin
 
+   assert (RST_ASYNC_G = false)
+      report "RST_ASYNC_G = false not supported" severity failure;
+
    fdValue <= fdSerial when(fdValidSet = '1') else (others => '0');
 
    SIN_GEN : if (SIMULATION_G = true) generate
@@ -99,7 +104,7 @@ begin
       -- Sync state logic
       process (clk, rst)
       begin
-         if rst = '1' then
+         if rst = RST_POLARITY_G then
             fdSerial <= (others => '0') after TPD_G;
             fdValid  <= '0'             after TPD_G;
             timeCnt  <= (others => '0') after TPD_G;

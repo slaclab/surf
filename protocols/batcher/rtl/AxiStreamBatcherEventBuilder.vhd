@@ -56,6 +56,7 @@ entity AxiStreamBatcherEventBuilder is
       axisRst         : in  sl;
       -- Misc
       blowoffExt      : in  sl                     := '0';
+      blowoffInt      : out sl;
       -- AXI-Lite Interface
       axilReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave   : out AxiLiteReadSlaveType;
@@ -503,6 +504,7 @@ begin
       txMaster       <= r.txMaster;
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      blowoffInt     <= r.blowoff;
       axisReset      <= axisRst or r.hardRst or r.softRst;
 
       -- Reset

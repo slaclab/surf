@@ -30,6 +30,7 @@ entity SsiPrbsRx is
    generic (
       -- General Configurations
       TPD_G                     : time                     := 1 ns;
+      RST_POLARITY_G            : sl                       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G               : boolean                  := false;
       STATUS_CNT_WIDTH_G        : natural range 1 to 32    := 32;
       -- FIFO configurations
@@ -50,7 +51,7 @@ entity SsiPrbsRx is
    port (
       -- Streaming RX Data Interface (sAxisClk domain)
       sAxisClk        : in  sl;
-      sAxisRst        : in  sl                     := '0';
+      sAxisRst        : in  sl                     := not RST_POLARITY_G;
       sAxisMaster     : in  AxiStreamMasterType;
       sAxisSlave      : out AxiStreamSlaveType;
       sAxisCtrl       : out AxiStreamCtrlType;
@@ -59,7 +60,7 @@ entity SsiPrbsRx is
       mAxisSlave      : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- Optional: AXI-Lite Register Interface (axiClk domain)
       axiClk          : in  sl                     := '0';
-      axiRst          : in  sl                     := '0';
+      axiRst          : in  sl                     := not RST_POLARITY_G;
       axiReadMaster   : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axiReadSlave    : out AxiLiteReadSlaveType;
       axiWriteMaster  : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -218,6 +219,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => SLAVE_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
@@ -251,6 +253,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => SLAVE_AXI_PIPE_STAGES_G,
          -- AXI Stream Port Configurations
@@ -269,15 +272,15 @@ begin
 
    U_bypCheck : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => sAxisClk,
          dataIn  => rAxiLite.bypCheck,
          dataOut => bypCheck);
 
    comb : process (bypCheck, r, rxAxisMaster, sAxisRst, txAxisSlave) is
-      variable i : integer;
       variable v : RegType;
    begin
       -- Latch the current value
@@ -371,7 +374,10 @@ begin
                      v.state := LENGTH_S;
 
                   end if;
-
+               else
+                  -- Set the error flags for missing SOF and not bypCheck
+                  v.errorDet       := not (bypCheck);
+                  v.updatedResults := not (bypCheck);
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -508,7 +514,7 @@ begin
       errorDet        <= r.errorDet;
 
       -- Reset
-      if (RST_ASYNC_G = false and sAxisRst = '1') then
+      if (RST_ASYNC_G = false and sAxisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -519,7 +525,7 @@ begin
 
    seq : process (sAxisClk, sAxisRst) is
    begin
-      if (RST_ASYNC_G) and (sAxisRst = '1') then
+      if (RST_ASYNC_G) and (sAxisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(sAxisClk) then
          r <= rin after TPD_G;
@@ -528,9 +534,10 @@ begin
 
    SyncFifo_Inst : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         DATA_WIDTH_G => 96)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => 96)
       port map (
          wr_en              => r.updatedResults,
          wr_clk             => sAxisClk,
@@ -545,6 +552,7 @@ begin
    SyncStatusVec_Inst : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          OUT_POLARITY_G => '1',
          CNT_RST_EDGE_G => false,
@@ -652,7 +660,7 @@ begin
       axiSlaveDefault(axilEp, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = RST_POLARITY_G) then
          v := LOC_REG_INIT_C;
       end if;
 
@@ -667,7 +675,7 @@ begin
 
    seqAxiLite : process (axiClk, axiRst) is
    begin
-      if (RST_ASYNC_G) and (axiRst = '1') then
+      if (RST_ASYNC_G) and (axiRst = RST_POLARITY_G) then
          rAxiLite <= LOC_REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          rAxiLite <= rinAxiLite after TPD_G;

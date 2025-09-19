@@ -132,7 +132,7 @@ architecture mapping of Pgp3GthUsQpll is
          -- Only support 10.3125 Gb/s
          assert (rate = "10.3125Gbps")
             report "Pgp3GthUsQpll.getQpllConfig(): (RATE_G = 10.3125Gbps) condition not meet"
-            severity error;
+            severity failure;
 
          -- Init
          retVar.QPLL_CP    := "0111111111";
@@ -169,11 +169,11 @@ begin
 
    assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "15.46875Gbps"))
       report "RATE_G: Must be either 3.125Gbps or 6.25Gbps or 10.3125Gbps or 12.5Gbps or 15.46875Gbps"
-      severity error;
+      severity failure;
 
    assert ((REFCLK_FREQ_G = 156.25E+6) or (REFCLK_FREQ_G = 185.7142855E+6) or (REFCLK_FREQ_G = 312.5E+6) or (REFCLK_FREQ_G = 371.428571E+6))
       report "REFCLK_FREQ_G: Must be either 156.25E+6, 185.7142855E+6, 312.5E+6 or 371.428571E+6"
-      severity error;
+      severity failure;
 
    GEN_VEC :
    for i in 3 downto 0 generate

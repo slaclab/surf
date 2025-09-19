@@ -67,20 +67,35 @@ for ((i=0; i<${#INCLUDED_FILES[@]}; i+=split_size)); do
     split_file_list+=("$filelist")
 done
 
-# Run vsg in parallel
+# Disable job control messages to suppress "[N] Done" output
+set +m
+
+# Run vsg in parallel, printing only blocks with violations
 pids=()
 for filelist in "${split_file_list[@]}"; do
     (
         mapfile -t files < "$filelist"
-        vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml"
+        vsg -f "${files[@]}" -c "$SCRIPT_DIR/../vsg-linter.yml" -of syntastic 2>&1 | tee /dev/stderr
+        exit_code=${PIPESTATUS[0]}
+        exit $exit_code
     ) &
     pids+=($!)
 done
 
-# Wait for all jobs to finish
+# Wait for all jobs to finish and collect exit statuses
+error=0
 for pid in "${pids[@]}"; do
-    wait "$pid"
+    wait "$pid" || error=1
 done
 
 # Clean up
 rm -rf "$TMP_DIR"
+
+# Final error status based on children
+if [[ $error -ne 0 ]]; then
+    echo "ERROR: Linting failed (see messages above)"
+    return 1 2>/dev/null || exit 1
+else
+    echo "No issues found"
+    return 0 2>/dev/null || exit 0
+fi

@@ -381,7 +381,7 @@ class HtspAxiL(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'LocalMacRaw',
             description  = 'Local MAC Address (big-Endian configuration)',
-            mode         = 'RO',
+            mode         = writeAccess,
             offset       = 0x1C0,
             bitSize      = 48,
             hidden       = True,
@@ -390,8 +390,9 @@ class HtspAxiL(pr.Device):
         self.add(pr.LinkVariable(
             name         = "LocalMac",
             description  = "Local MAC Address (human readable)",
-            mode         = 'RO',
+            mode         = writeAccess,
             linkedGet    = udp.getMacValue,
+            linkedSet    = udp.setMacValue,
             dependencies = [self.variables["LocalMacRaw"]],
         ))
 

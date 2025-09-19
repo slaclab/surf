@@ -27,8 +27,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineTx is
    generic (
-      -- Simulation Generics
       TPD_G          : time          := 1 ns;
+      RST_POLARITY_G : sl            := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean       := false;
       -- UDP General Generic
       SIZE_G         : positive      := 1;
       TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
@@ -81,6 +82,7 @@ architecture rtl of UdpEngineTx is
       chPntr      : natural range 0 to SIZE_G-1;
       index       : natural range 0 to SIZE_G-1;
       arpPos      : Slv8Array(SIZE_G-1 downto 0);
+      arpTabPos   : Slv8Array(SIZE_G-1 downto 0);
       obDhcpSlave : AxiStreamSlaveType;
       ibSlaves    : AxiStreamSlaveArray(SIZE_G-1 downto 0);
       txMaster    : AxiStreamMasterType;
@@ -95,6 +97,7 @@ architecture rtl of UdpEngineTx is
       chPntr      => 0,
       index       => 0,
       arpPos      => (others => (others => '0')),
+      arpTabPos   => (others => (others => '0')),
       obDhcpSlave => AXI_STREAM_SLAVE_INIT_C,
       ibSlaves    => (others => AXI_STREAM_SLAVE_INIT_C),
       txMaster    => AXI_STREAM_MASTER_INIT_C,
@@ -114,9 +117,7 @@ begin
    comb : process (arpTabFound, arpTabIpAddr, arpTabMacAddr, ibMasters,
                    localIp, localMac, obDhcpMaster, r, remoteIp, remoteMac,
                    remotePort, rst, txSlave) is
-      variable v       : RegType;
-      variable arpPosV : Slv8Array(SIZE_G-1 downto 0);
-      variable i       : natural;
+      variable v : RegType;
    begin
       -- Latch the current value
       v := r;
@@ -205,14 +206,14 @@ begin
                      v.ibSlaves(r.index).tReady := '1';
                   end if;
                else
-                  v.chPntr         := r.index;
-                  arpPosV(r.index) := ibMasters(r.index).tDest;
-                  v.state          := ACC_ARP_TAB_S;
+                  v.chPntr             := r.index;
+                  v.arpTabPos(r.index) := ibMasters(r.index).tDest;
+                  v.state              := ACC_ARP_TAB_S;
                end if;
             end if;
          -----------------------------------------------------------------------
          when ACC_ARP_TAB_S =>
-            arpPosV(r.chPntr) := ibMasters(r.chPntr).tDest;
+            v.arpTabPos(r.chPntr) := ibMasters(r.chPntr).tDest;
             if arpTabFound(r.chPntr) = '0' then
                v.linkUp(r.chPntr)          := '0';
                -- Blow off the data..
@@ -445,10 +446,10 @@ begin
       obDhcpSlave <= v.obDhcpSlave;
       txMaster    <= r.txMaster;
       linkUp      <= r.linkUp;
-      arpTabPos   <= arpPosV;
+      arpTabPos   <= v.arpTabPos;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -457,17 +458,21 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 1)
       port map (
          axisClk     => clk,
          axisRst     => rst,

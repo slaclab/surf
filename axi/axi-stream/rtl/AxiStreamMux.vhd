@@ -115,32 +115,30 @@ begin
 
    assert ((MODE_G = "PASSTHROUGH") or (MODE_G = "INDEXED") or (MODE_G = "ROUTED"))
       report "MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
-      severity error;
+      severity failure;
 
    assert ((MODE_G = "INDEXED") and (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))) or (MODE_G /= "INDEXED")
       report "In INDEXED mode, TDest range 7 downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
    assert ((MODE_G = "ROUTED") and (TDEST_ROUTES_G'length = NUM_SLAVES_G)) or (MODE_G /= "ROUTED")
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
    assert ((TID_MODE_G = "PASSTHROUGH") or (TID_MODE_G = "INDEXED") or (TID_MODE_G = "ROUTED"))
       report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
-      severity error;
+      severity failure;
 
    assert ((TID_MODE_G = "ROUTED") and (TID_ROUTES_G'length = NUM_SLAVES_G)) or (TID_MODE_G /= "ROUTED")
       report "In ROUTED mode, length of TID_ROUTES_G: " & integer'image(TID_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
    -- Override TDESTS and TIDs according to the routing tables
    ROUTE_TABLE_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
-      variable i   : natural;
-      variable j   : natural;
    begin
       -- Latch the current value
       tmp := sAxisMasters;
@@ -208,7 +206,6 @@ begin
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
-      variable i        : natural;
    begin
       -- Latch the current value
       v := r;

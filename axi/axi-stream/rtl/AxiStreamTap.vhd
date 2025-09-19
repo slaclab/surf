@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamTap is
    generic (
       TPD_G                : time                   := 1 ns;
+      RST_POLARITY_G       : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean                := false;
       TAP_DEST_G           : natural range 0 to 255 := 0;
       PIPE_STAGES_G        : natural range 0 to 16  := 0;
@@ -60,6 +61,7 @@ begin
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          PIPE_STAGES_G  => PIPE_STAGES_G,
          NUM_MASTERS_G  => 2,
@@ -78,6 +80,7 @@ begin
    U_Mux : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
          RST_ASYNC_G          => RST_ASYNC_G,
          PIPE_STAGES_G        => PIPE_STAGES_G,
          NUM_SLAVES_G         => 2,

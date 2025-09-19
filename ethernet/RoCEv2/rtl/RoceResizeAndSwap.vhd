@@ -26,10 +26,11 @@ entity RoceResizeAndSwap is
    generic (
       -- General Configurations
       TPD_G             : time     := 1 ns;
+      RST_POLARITY_G    : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G       : boolean  := false;
       READY_EN_G        : boolean  := true;
       PIPE_STAGES_G     : natural  := 0;
-      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
+      SIDE_BAND_WIDTH_G : positive := 1;    -- General purpose sideband
       SWAP_ENDIAN_G     : boolean  := false;
       LITTLE_ENDIAN_G   : boolean  := true;
 
@@ -123,7 +124,7 @@ begin
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamResize: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
-      severity error;
+      severity failure;
 
    comb : process (pipeAxisSlave, r, sAxisMaster, sSideBand) is
       variable v         : RegType;
@@ -323,10 +324,10 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+         if (RST_ASYNC_G = false) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -338,6 +339,7 @@ begin
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
          PIPE_STAGES_G     => PIPE_STAGES_G)

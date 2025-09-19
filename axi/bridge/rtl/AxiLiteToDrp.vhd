@@ -25,6 +25,8 @@ use surf.AxiLitePkg.all;
 entity AxiLiteToDrp is
    generic (
       TPD_G            : time                   := 1 ns;
+      RST_POLARITY_G   : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G      : boolean                := false;
       COMMON_CLK_G     : boolean                := false;
       EN_ARBITRATION_G : boolean                := false;
       TIMEOUT_G        : positive               := 4096;
@@ -101,7 +103,9 @@ begin
 
       U_AxiLiteAsync : entity surf.AxiLiteAsync
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
          port map (
             -- Slave Port
             sAxiClk         => axilClk,
@@ -258,7 +262,7 @@ begin
       end case;
 
       -- Synchronous Reset
-      if (drpRst = '1') then
+      if (RST_ASYNC_G = false and drpRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -277,9 +281,11 @@ begin
 
    end process comb;
 
-   seq : process (drpClk) is
+   seq : process (drpClk, drpRst) is
    begin
-      if (rising_edge(drpClk)) then
+      if (RST_ASYNC_G) and (drpRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(drpClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

@@ -125,10 +125,10 @@ architecture rtl of ClockManagerUltraScale is
 begin
 
    assert (TYPE_G = "MMCM" or (TYPE_G = "PLL" and NUM_CLOCKS_G <= 2))
-      report "ClockManager7: Cannot have 2 clocks if TYPE_G is PLL" severity failure;
+      report "ClockManagerUltraScale(TYPE_G=PLL): Cannot have more than 2 clock outputs" severity failure;
 
    assert (TYPE_G = "MMCM" or TYPE_G = "PLL")
-      report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
+      report "ClockManagerUltraScale: TYPE_G must be either MMCM or PLL" severity failure;
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
 

@@ -24,7 +24,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImportXgmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -209,7 +210,7 @@ begin
    seq : process (ethClk) is
    begin
       if (rising_edge(ethClk)) then
-         if (ethRst = '1') then
+         if (ethRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -221,6 +222,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          READY_EN_G          => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  64-bit AXI stream interface
@@ -243,7 +245,7 @@ begin
       if rising_edge(ethClk) then
          varMaster := AXI_STREAM_MASTER_INIT_C;
 
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
          else
             varMaster.tData(63 downto 0) := macData;
             varMaster.tLast              := intLastLine;
@@ -321,7 +323,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if (ethRst = '1') or (phyReady = '0') then
+         if (ethRst = RST_POLARITY_G) or (phyReady = '0') then
             crcInit      <= '1'             after TPD_G;
             frameShift0  <= '0'             after TPD_G;
             frameShift1  <= '0'             after TPD_G;
@@ -421,7 +423,7 @@ begin
    U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
+         RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
@@ -458,7 +460,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             macSize      <= (others => '0') after TPD_G;
             macData      <= (others => '0') after TPD_G;
             crcShift0    <= '0'             after TPD_G;

@@ -22,14 +22,15 @@ use surf.StdRtlPkg.all;
 
 entity Heartbeat is
    generic (
-      TPD_G        : time    := 1 ns;
-      RST_ASYNC_G  : boolean := false;
-      USE_DSP_G    : string  := "no";
-      PERIOD_IN_G  : real    := 6.4E-9;   --units of seconds
-      PERIOD_OUT_G : real    := 1.0E-0);  --units of seconds
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
+      USE_DSP_G      : string  := "no";
+      PERIOD_IN_G    : real    := 6.4E-9;   --units of seconds
+      PERIOD_OUT_G   : real    := 1.0E-0);  --units of seconds
    port (
       clk : in  sl;
-      rst : in  sl := '0';
+      rst : in  sl := not RST_POLARITY_G;   -- Optional reset
       o   : out sl);
 end entity Heartbeat;
 
@@ -71,7 +72,7 @@ begin
          end if;
       end if;
 
-      if (RST_ASYNC_G = false and rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -82,7 +83,7 @@ begin
 
    seq : process (clk, rst) is
    begin
-      if (RST_ASYNC_G and rst = '1') then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;

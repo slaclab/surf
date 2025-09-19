@@ -25,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineWrapper is
    generic (
-      -- Simulation Generics
       TPD_G               : time                  := 1 ns;
+      RST_POLARITY_G      : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G         : boolean               := false;
       -- UDP Server Generics
       SERVER_EN_G         : boolean               := true;
       SERVER_SIZE_G       : positive              := 1;
@@ -128,6 +129,8 @@ begin
    IpV4Engine_Inst : entity surf.IpV4Engine
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => 1,
          PROTOCOL_G      => (0 => UDP_C),
          CLIENT_SIZE_G   => CLIENT_SIZE_G,
@@ -164,8 +167,9 @@ begin
    -------------
    UdpEngine_Inst : entity surf.UdpEngine
       generic map (
-         -- Simulation Generics
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          IGMP_G         => IGMP_G,
          IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
          -- UDP Server Generics
@@ -222,7 +226,6 @@ begin
                    serverRemotePort) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
-      variable i      : natural;
    begin
       -- Latch the current value
       v := r;
@@ -261,7 +264,7 @@ begin
       softMac        <= r.softMac;
 
       -- Synchronous Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -276,9 +279,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
