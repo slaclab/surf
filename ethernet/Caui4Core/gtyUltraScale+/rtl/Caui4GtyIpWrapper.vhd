@@ -51,6 +51,7 @@ entity Caui4GtyIpWrapper is
       -- GT FPGA Ports
       gtRefClkP    : in  sl;
       gtRefClkN    : in  sl;
+      gtRefClkOut  : out sl;
       gtRxP        : in  slv(3 downto 0);
       gtRxN        : in  slv(3 downto 0);
       gtTxP        : out slv(3 downto 0);
@@ -809,7 +810,7 @@ begin
          -- General Configurations
          TPD_G               => TPD_G,
          SLAVE_READY_EN_G    => true,
-         VALID_THOLD_G       => 0,      -- HOLD until full packet without gaps can be sent
+         VALID_THOLD_G       => 0,  -- HOLD until full packet without gaps can be sent
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,      -- Help with making timing
          -- FIFO configurations
@@ -854,7 +855,7 @@ begin
             gt_txprbsforceerr                    => (others => '0'),
             gt_txprecursor                       => gtTxPreCursor,
             gt_eyescandataerror                  => open,
-            gt_ref_clk_out                       => open,
+            gt_ref_clk_out                       => gtRefClkOut,
             gt_rxrecclkout                       => open,
             gt_powergoodout                      => open,
             gt_txbufstatus                       => open,
@@ -1083,7 +1084,7 @@ begin
             gt_txprbsforceerr                    => (others => '0'),
             gt_txprecursor                       => gtTxPreCursor,
             gt_eyescandataerror                  => open,
-            gt_ref_clk_out                       => open,
+            gt_ref_clk_out                       => gtRefClkOut,
             gt_rxrecclkout                       => open,
             gt_powergoodout                      => open,
             gt_txbufstatus                       => open,

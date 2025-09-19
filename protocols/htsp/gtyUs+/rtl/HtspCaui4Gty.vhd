@@ -81,6 +81,7 @@ entity HtspCaui4Gty is
       -- GT Ports
       gtRefClkP       : in  sl;
       gtRefClkN       : in  sl;
+      gtRefClkOut     : out sl;
       gtRxP           : in  slv(3 downto 0);
       gtRxN           : in  slv(3 downto 0);
       gtTxP           : out slv(3 downto 0);
@@ -264,6 +265,7 @@ begin
             -- GT Ports
             gtRefClkP    => gtRefClkP,
             gtRefClkN    => gtRefClkN,
+            gtRefClkOut  => gtRefClkOut,
             gtRxP        => gtRxP,
             gtRxN        => gtRxN,
             gtTxP        => gtTxP,
