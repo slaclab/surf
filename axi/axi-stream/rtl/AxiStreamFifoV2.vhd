@@ -50,8 +50,8 @@ entity AxiStreamFifoV2 is
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT_G : string                := "WIDE";
-      INT_DATA_WIDTH_G   : natural range 1 to 16 := 16;
+      INT_WIDTH_SELECT_G : string                                          := "WIDE";
+      INT_DATA_WIDTH_G   : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C := 16;
 
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
