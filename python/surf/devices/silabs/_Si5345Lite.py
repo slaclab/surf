@@ -108,6 +108,14 @@ class Si5345Lite(pr.Device):
             linkedGet    = lambda read: (False if self.Page0.LOL.get(read=read) else True)
         ))
 
+        self.add(pr.RemoteCommand(
+            name         = 'ReloadFromRom',
+            description  = 'Reconfigure the PLL from the ROM in Si5345.vhd',
+            offset       = (0x1<<14),
+            bitSize      = 1,
+            function     = lambda cmd: cmd.post(1),
+        ))
+
     def _setValue(self,offset,data):
         # Note: index is byte index (not word index)
         self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
