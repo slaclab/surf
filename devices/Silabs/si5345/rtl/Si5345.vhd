@@ -181,16 +181,31 @@ begin
             v.timer := 0;
             -- Check if write transaction
             if (axiStatus.writeEnable = '1') then
-               -- Set the flag
-               v.axiRd := '0';
-               -- Save the data/address
-               v.data  := axiWriteMaster.wdata(7 downto 0);
-               v.addr  := axiWriteMaster.awaddr(9 downto 2);
-               v.page  := x"0" & axiWriteMaster.awaddr(13 downto 10);
+
                -- Send the write response
                axiSlaveWriteResponse(v.axiWriteSlave);
-               -- Next State
-               v.state := INIT_S;
+
+               -- Check manual access
+               if (axiWriteMaster.awaddr(14) = '0') then
+                  -- Set the flag
+                  v.axiRd := '0';
+                  -- Save the data/address
+                  v.data  := axiWriteMaster.wdata(7 downto 0);
+                  v.addr  := axiWriteMaster.awaddr(9 downto 2);
+                  v.page  := x"0" & axiWriteMaster.awaddr(13 downto 10);
+                  -- Next State
+                  v.state := INIT_S;
+
+               -- Check if booting comand and BOOT ROM generated
+               elsif (axiWriteMaster.awaddr(14) = '1') and BOOT_ROM_C then
+                  -- Reset the counter
+                  v.ramAddr := (others => '0');
+                  -- Set the flag
+                  v.booting := '1';
+                  -- Next State
+                  v.state   := BOOT_ROM_S;
+               end if;
+
             -- Check if read transaction
             elsif (axiStatus.readEnable = '1') then
                -- Set the flag

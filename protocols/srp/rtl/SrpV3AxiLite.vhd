@@ -37,6 +37,7 @@ entity SrpV3AxiLite is
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
       FIFO_SYNTH_MODE_G     : string                  := "inferred";
+      FIFO_MEMORY_TYPE_G    : string                  := "block";
       FIFO_ADDR_WIDTH_G     : integer range 9 to 48   := 9;  -- Need at least 9 to avoid logjams on large txns
       TX_VALID_THOLD_G      : positive range 1 to 511 := 500;  -- >1 = only when frame ready or # entries
       TX_VALID_BURST_MODE_G : boolean                 := true;  -- only used in VALID_THOLD_G>1
@@ -229,7 +230,7 @@ begin
          VALID_THOLD_G       => 0,      -- = 0 = only when frame ready
          -- FIFO configurations
          SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
-         MEMORY_TYPE_G       => "block",
+         MEMORY_TYPE_G       => FIFO_MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit
@@ -815,7 +816,7 @@ begin
          VALID_BURST_MODE_G  => TX_VALID_BURST_MODE_G,
          -- FIFO configurations
          SYNTH_MODE_G        => FIFO_SYNTH_MODE_G,
-         MEMORY_TYPE_G       => "block",
+         MEMORY_TYPE_G       => FIFO_MEMORY_TYPE_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => 16,     -- 128-bit
