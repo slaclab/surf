@@ -1,11 +1,13 @@
 <map id="SsiInsertSof" name="SsiInsertSof">
 <area shape="rect" id="Node000001" title=" " alt="" coords="267,445,365,471"/>
-<area shape="rect" id="Node000019" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="88,519,237,544"/>
-<area shape="poly" id="edge29_Node000001_Node000019" title=" " alt="" coords="280,479,189,521,187,516,278,474"/>
-<area shape="rect" id="Node000020" href="$classCoaXPressRx.html" title=" " alt="" coords="262,519,370,544"/>
-<area shape="poly" id="edge30_Node000001_Node000020" title=" " alt="" coords="319,484,319,519,313,519,313,484"/>
-<area shape="rect" id="Node000024" href="$classMicroblazeBasicCoreWrapper.html" title=" " alt="" coords="395,519,608,544"/>
-<area shape="poly" id="edge34_Node000001_Node000024" title=" " alt="" coords="359,473,472,516,470,521,357,478"/>
+<area shape="rect" id="Node000019" href="$classAxiStreamResizeTb.html" title=" " alt="" coords="35,519,184,544"/>
+<area shape="poly" id="edge29_Node000001_Node000019" title=" " alt="" coords="271,478,144,521,142,516,269,473"/>
+<area shape="rect" id="Node000020" href="$classHtspTxFifo.html" title=" " alt="" coords="209,519,301,544"/>
+<area shape="poly" id="edge30_Node000001_Node000020" title=" " alt="" coords="299,483,267,520,263,517,295,480"/>
+<area shape="rect" id="Node000021" href="$classCoaXPressRx.html" title=" " alt="" coords="325,519,433,544"/>
+<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="337,479,371,517,367,520,333,483"/>
+<area shape="rect" id="Node000025" href="$classMicroblazeBasicCoreWrapper.html" title=" " alt="" coords="457,519,671,544"/>
+<area shape="poly" id="edge35_Node000001_Node000025" title=" " alt="" coords="370,472,525,516,523,521,368,477"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="251,372,381,397"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,411,319,445,313,445,313,411"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="89,299,234,324"/>
@@ -51,10 +53,10 @@
 <area shape="poly" id="edge20_Node000013_Node000017" title=" " alt="" coords="788,109,509,158,508,153,787,104"/>
 <area shape="poly" id="edge25_Node000018_Node000017" title=" " alt="" coords="811,110,642,156,641,150,809,105"/>
 <area shape="poly" id="edge22_Node000007_Node000018" title=" " alt="" coords="551,184,384,232,383,227,550,179"/>
-<area shape="rect" id="Node000021" href="$classCoaXPressCore.html" title=" " alt="" coords="255,592,377,617"/>
-<area shape="poly" id="edge31_Node000020_Node000021" title=" " alt="" coords="319,558,319,592,313,592,313,558"/>
-<area shape="rect" id="Node000022" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="111,665,305,691"/>
-<area shape="poly" id="edge32_Node000021_Node000022" title=" " alt="" coords="289,627,227,667,224,663,286,623"/>
-<area shape="rect" id="Node000023" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="329,665,522,691"/>
-<area shape="poly" id="edge33_Node000021_Node000023" title=" " alt="" coords="346,623,409,663,406,667,344,627"/>
+<area shape="rect" id="Node000022" href="$classCoaXPressCore.html" title=" " alt="" coords="318,592,439,617"/>
+<area shape="poly" id="edge32_Node000021_Node000022" title=" " alt="" coords="381,558,381,592,376,592,376,558"/>
+<area shape="rect" id="Node000023" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="174,665,367,691"/>
+<area shape="poly" id="edge33_Node000022_Node000023" title=" " alt="" coords="351,627,290,667,287,663,349,623"/>
+<area shape="rect" id="Node000024" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="391,665,585,691"/>
+<area shape="poly" id="edge34_Node000022_Node000024" title=" " alt="" coords="409,623,472,663,469,667,406,627"/>
 </map>

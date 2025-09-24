@@ -13,5 +13,7 @@ var searchData=
   ['htspcoretb_10',['HtspCoreTb',['../classHtspCoreTb.html',1,'']]],
   ['htsppkg_11',['HtspPkg',['../classHtspPkg.html',1,'']]],
   ['htsprx_12',['HtspRx',['../classHtspRx.html',1,'']]],
-  ['htsptx_13',['HtspTx',['../classHtspTx.html',1,'']]]
+  ['htsprxfifo_13',['HtspRxFifo',['../classHtspRxFifo.html',1,'']]],
+  ['htsptx_14',['HtspTx',['../classHtspTx.html',1,'']]],
+  ['htsptxfifo_15',['HtspTxFifo',['../classHtspTxFifo.html',1,'']]]
 ];

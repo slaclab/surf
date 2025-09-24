@@ -1,0 +1,12 @@
+<map id="DebouncerTb" name="DebouncerTb">
+<area shape="rect" id="Node000001" title=" " alt="" coords="34,225,142,251"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,152,69,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,187,82,224,78,227,52,190"/>
+<area shape="rect" id="Node000003" href="$classDebouncer.html" title=" " alt="" coords="94,152,186,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="126,190,99,227,94,224,121,187"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="87,5,193,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="136,44,131,73,131,104,140,151,134,152,125,104,126,72,131,43"/>
+<area shape="rect" id="Node000005" href="$classRstSync.html" title=" " alt="" coords="140,79,215,104"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="155,42,174,77,169,80,150,44"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="167,117,148,153,144,151,163,115"/>
+</map>
