@@ -196,7 +196,6 @@ begin
                RST_ASYNC_G        => RST_ASYNC_G,
                CASCADE_SIZE_G     => 1,
                LAST_STAGE_ASYNC_G => true,
-               RST_POLARITY_G     => '1',
                MEMORY_TYPE_G      => LOOP_MEMORY_TYPE_G,
                FWFT_EN_G          => true,
                SYNC_STAGES_G      => 3,
