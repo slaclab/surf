@@ -13,3 +13,4 @@ from surf.devices.analog_devices._AttHmc624 import *
 from surf.devices.analog_devices._Adt7420   import *
 from surf.devices.analog_devices._Ad9681    import *
 from surf.devices.analog_devices._Ad5541    import *
+from surf.devices.analog_devices._Ltm4664   import *
