@@ -158,7 +158,6 @@ begin
          generic map (
             TPD_G               => TPD_G,
             RST_POLARITY_G      => RST_POLARITY_G,
-            RST_ASYNC_G         => RST_ASYNC_G,
             COMMON_CLK_G        => true,
             MEMORY_TYPE_G       => MEMORY_TYPE_G,
             MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
@@ -186,7 +185,6 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G,
             COMMON_CLK_G   => true,
             MEMORY_TYPE_G  => MEMORY_TYPE_G,
             READ_LATENCY_G => READ_LATENCY_G,
