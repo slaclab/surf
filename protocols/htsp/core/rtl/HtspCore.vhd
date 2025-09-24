@@ -30,14 +30,13 @@ entity HtspCore is
       TX_MAX_PAYLOAD_SIZE_G : positive               := 8192;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
       LOOPBACK_G            : slv(2 downto 0)        := (others => '0');
-      RX_POLARITY_G         : slv(9 downto 0)        := (others => '0');
-      TX_POLARITY_G         : slv(9 downto 0)        := (others => '0');
-      TX_DIFF_CTRL_G        : Slv5Array(9 downto 0)  := (others => "11000");
-      TX_PRE_CURSOR_G       : Slv5Array(9 downto 0)  := (others => "00000");
-      TX_POST_CURSOR_G      : Slv5Array(9 downto 0)  := (others => "00000");
+      RX_POLARITY_G         : slv(3 downto 0)        := (others => '0');
+      TX_POLARITY_G         : slv(3 downto 0)        := (others => '0');
+      TX_DIFF_CTRL_G        : Slv5Array(3 downto 0)  := (others => "11000");
+      TX_PRE_CURSOR_G       : Slv5Array(3 downto 0)  := (others => "00011");
+      TX_POST_CURSOR_G      : Slv5Array(3 downto 0)  := (others => "00011");
       -- AXI-Lite Settings
       AXIL_WRITE_EN_G       : boolean                := false;  -- Set to false when on remote end of a link
-      AXIL_BASE_ADDR_G      : slv(31 downto 0)       := (others => '0');
       AXIL_CLK_FREQ_G       : real                   := 156.25E+6);
    port (
       -- Clock and Reset
@@ -63,11 +62,11 @@ entity HtspCore is
       -- Misc Debug Interfaces
       localMacIn      : in  slv(47 downto 0)       := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
       loopback        : out slv(2 downto 0);
-      rxPolarity      : out slv(9 downto 0);
-      txPolarity      : out slv(9 downto 0);
-      txDiffCtrl      : out Slv5Array(9 downto 0);
-      txPreCursor     : out Slv5Array(9 downto 0);
-      txPostCursor    : out Slv5Array(9 downto 0);
+      rxPolarity      : out slv(3 downto 0);
+      txPolarity      : out slv(3 downto 0);
+      txDiffCtrl      : out Slv5Array(3 downto 0);
+      txPreCursor     : out Slv5Array(3 downto 0);
+      txPostCursor    : out Slv5Array(3 downto 0);
       phyUsrRst       : out sl;
       -- AXI-Lite Register Interface (axilClk domain)
       axilClk         : in  sl                     := '0';
@@ -181,7 +180,6 @@ begin
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,
-         AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          LOOPBACK_G       => LOOPBACK_G,
          RX_POLARITY_G    => RX_POLARITY_G,

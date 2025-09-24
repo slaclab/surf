@@ -2,7 +2,7 @@
 -- Title      : HTSP: https://confluence.slac.stanford.edu/x/pQmODw
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
- -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Description: HTPS RX FIFO wrapper for the Application Side
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
