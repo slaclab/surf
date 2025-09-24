@@ -210,16 +210,7 @@ begin
    ---------------
    -- Set RX input
    ---------------
-   htspRxIn.resetRx <= locRxIn.resetRx or resetRx;
-
-   U_RxSyncVec : entity surf.SynchronizerVector
-      generic map (
-         TPD_G   => TPD_G,
-         WIDTH_G => 1)
-      port map (
-         clk        => htspClk,
-         dataIn(0)  => r.htspRxIn.resetRx,
-         dataOut(0) => resetRx);
+   htspRxIn.resetRx <= locRxIn.resetRx or r.htspRxIn.resetRx;
 
    -------------------------
    -- Ethernet Configuration
