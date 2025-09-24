@@ -21,14 +21,15 @@ use surf.StdRtlPkg.all;
 
 entity Debouncer is
    generic (
-      TPD_G             : time    := 1 ns;
-      RST_POLARITY_G    : sl      := '1';  -- '1' for active high rst, '0' for active low
-      RST_ASYNC_G       : boolean := false;
-      INPUT_POLARITY_G  : sl      := '0';
-      OUTPUT_POLARITY_G : sl      := '1';
-      CLK_FREQ_G        : real    := 156.250E+6;  -- units of Hz
-      DEBOUNCE_PERIOD_G : real    := 1.0E-3;      -- units of seconds
-      SYNCHRONIZE_G     : boolean := true);  -- Run input through 2 FFs before filtering
+      TPD_G             : time     := 1 ns;
+      RST_POLARITY_G    : sl       := '1';         -- '1' for active high rst, '0' for active low
+      RST_ASYNC_G       : boolean  := false;
+      INPUT_POLARITY_G  : sl       := '0';
+      OUTPUT_POLARITY_G : sl       := '1';
+      CLK_FREQ_G        : real     := 156.250E+6;  -- units of Hz
+      DEBOUNCE_PERIOD_G : real     := 1.0E-3;      -- units of seconds
+      SYNCHRONIZE_G     : boolean  := true;        -- Run input through 2 FFs before filtering
+      SYNC_EDGE_TRIG_G  : boolean  := false);      -- TRUE: debouncer fire on the leading edge detected
    port (
       clk : in  sl;
       rst : in  sl := not RST_POLARITY_G;
@@ -38,15 +39,15 @@ end entity Debouncer;
 
 architecture rtl of Debouncer is
 
-   constant CLK_PERIOD_C  : real            := 1.0/CLK_FREQ_G;
-   constant CNT_MAX_C     : natural         := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_C) - 1;
-   constant POLARITY_EQ_C : boolean         := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
-   constant SYNC_INIT_C   : slv(1 downto 0) := (others => not INPUT_POLARITY_G);
+   constant CLK_PERIOD_C   : real            := 1.0/CLK_FREQ_G;
+   constant CNT_MAX_C      : natural         := getTimeRatio(DEBOUNCE_PERIOD_G, CLK_PERIOD_C) - 1;
+   constant POLARITY_EQ_C  : boolean         := ite(INPUT_POLARITY_G = OUTPUT_POLARITY_G, true, false);
+   constant SYNC_INIT_C    : slv(1 downto 0) := (others => not INPUT_POLARITY_G);
 
    type RegType is record
-      filter     : integer range 0 to CNT_MAX_C;
-      iSyncedDly : sl;
-      o          : sl;
+      filter      : integer range 0 to CNT_MAX_C;
+      iSyncedDly  : sl;
+      o           : sl;
    end record RegType;
 
    constant REG_RESET_C : RegType := (
@@ -54,40 +55,59 @@ architecture rtl of Debouncer is
       iSyncedDly => not INPUT_POLARITY_G,
       o          => not OUTPUT_POLARITY_G);
 
-   signal r   : RegType := REG_RESET_C;
-   signal rin : RegType;
+   signal r       : RegType := REG_RESET_C;
+   signal rin     : RegType;
 
    signal iSynced : sl := INPUT_POLARITY_G;
 
 begin
 
    SynchronizerGen : if (SYNCHRONIZE_G) generate
-      Synchronizer_1 : entity surf.Synchronizer
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G,
-            STAGES_G       => 2,
-            INIT_G         => SYNC_INIT_C)
-         port map (
-            clk     => clk,
-            rst     => rst,
-            dataIn  => i,
-            dataOut => iSynced);
+
+      GenSync : if (not SYNC_EDGE_TRIG_G) generate
+         Synchronizer_1 : entity surf.Synchronizer
+            generic map (
+               TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
+               STAGES_G       => 2,
+               INIT_G         => SYNC_INIT_C)
+            port map (
+               clk     => clk,
+               rst     => rst,
+               dataIn  => i,
+               dataOut => iSynced);
+      end generate GenSync;
+
+      GenEdgeSync : if (SYNC_EDGE_TRIG_G) generate
+         RstSync_1 : entity surf.RstSync
+            generic map (
+               TPD_G          => TPD_G,
+               IN_POLARITY_G   => INPUT_POLARITY_G,
+               OUT_POLARITY_G  => INPUT_POLARITY_G, -- Maintain the input polarity through the module and normalize OUTPUT_POLARITY_G in "comb" process
+               OUT_REG_RST_G   => false)  -- Don't apply async reset to final reg stage
+            port map (
+               clk      => clk,
+               asyncRst => i,
+               syncRst  => iSynced);
+      end generate GenEdgeSync;
+
    end generate SynchronizerGen;
 
    NoSynchronizerGen : if (not SYNCHRONIZE_G) generate
       iSynced <= i;
    end generate NoSynchronizerGen;
 
-   comb : process (iSynced, r, rst) is
+   comb : process (r, iSynced, rst) is
       variable v : RegType;
    begin
       v := r;
 
       v.iSyncedDly := iSynced;
 
-      if (r.iSyncedDly /= iSynced) then  -- any edge
+      if SYNCHRONIZE_G and SYNC_EDGE_TRIG_G and (iSynced = INPUT_POLARITY_G) then -- leading edge feature case
+         v.filter := 0;
+      elsif (r.iSyncedDly /= iSynced) then  -- any edge
          v.filter := CNT_MAX_C;
       elsif (r.filter /= 0) then
          v.filter := r.filter - 1;

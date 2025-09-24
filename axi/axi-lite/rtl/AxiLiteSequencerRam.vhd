@@ -49,6 +49,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteSequencerRam is
    generic (
       TPD_G               : time                 := 1 ns;
+      RST_POLARITY_G      : sl                   := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean              := false;
       SYNTH_MODE_G        : string               := "inferred";
       MEMORY_TYPE_G       : string               := "block";
@@ -139,8 +140,9 @@ begin
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,
@@ -155,6 +157,7 @@ begin
       U_RAM : entity surf.TrueDualPortRamXpm
          generic map (
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             COMMON_CLK_G        => true,
             MEMORY_TYPE_G       => MEMORY_TYPE_G,
             MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
@@ -181,6 +184,7 @@ begin
       U_RAM : entity surf.TrueDualPortRamAlteraMf
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
             COMMON_CLK_G   => true,
             MEMORY_TYPE_G  => MEMORY_TYPE_G,
             READ_LATENCY_G => READ_LATENCY_G,
@@ -204,14 +208,15 @@ begin
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
       U_RAM : entity surf.TrueDualPortRam
          generic map (
-            TPD_G        => TPD_G,
-            RST_ASYNC_G  => RST_ASYNC_G,
-            BYTE_WR_EN_G => true,
-            DOA_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-            DOB_REG_G    => ite(READ_LATENCY_G >= 2, true, false),
-            DATA_WIDTH_G => 64,
-            BYTE_WIDTH_G => 8,
-            ADDR_WIDTH_G => ADDR_WIDTH_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYTE_WR_EN_G   => true,
+            DOA_REG_G      => ite(READ_LATENCY_G >= 2, true, false),
+            DOB_REG_G      => ite(READ_LATENCY_G >= 2, true, false),
+            DATA_WIDTH_G   => 64,
+            BYTE_WIDTH_G   => 8,
+            ADDR_WIDTH_G   => ADDR_WIDTH_G)
          port map (
             -- Port A
             clka    => axilClk,
@@ -479,7 +484,7 @@ begin
       extDone         <= v.extDone;
 
       -- Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -490,7 +495,7 @@ begin
 
    seq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
+      if (RST_ASYNC_G and axilRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          r <= rin after TPD_G;

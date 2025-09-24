@@ -50,8 +50,8 @@ entity AxiStreamFifoV2 is
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT_G : string                := "WIDE";
-      INT_DATA_WIDTH_G   : natural range 1 to 16 := 16;
+      INT_WIDTH_SELECT_G : string                                          := "WIDE";
+      INT_DATA_WIDTH_G   : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C := 16;
 
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
@@ -208,10 +208,10 @@ begin
    begin
       if FIFO_FIXED_THRESH_G then
          sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
-      elsif (RST_ASYNC_G) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
+      elsif (RST_ASYNC_G) and (sAxisRst = RST_POLARITY_G or fifoWrCount >= fifoPauseThresh) then
          sAxisCtrl.pause <= '1' after TPD_G;
       elsif (rising_edge(sAxisClk)) then
-         if (RST_ASYNC_G = false) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
+         if (RST_ASYNC_G = false) and (sAxisRst = RST_POLARITY_G or fifoWrCount >= fifoPauseThresh) then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
@@ -302,13 +302,13 @@ begin
 
          process (fifoReadLast, fifoValidInt, mAxisClk, mAxisRst) is
          begin
-            if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
+            if (RST_ASYNC_G) and (mAxisRst = RST_POLARITY_G or fifoReadLast = '1' or fifoValidInt = '0') then
                fifoInFrame <= '0' after TPD_G;
 
             elsif (rising_edge(mAxisClk)) then
 
                -- Stop output if fifo valid goes away, wait until another block is ready
-               if (RST_ASYNC_G = false) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
+               if (RST_ASYNC_G = false) and (mAxisRst = RST_POLARITY_G or fifoReadLast = '1' or fifoValidInt = '0') then
                   fifoInFrame <= '0' after TPD_G;
 
                -- Start output when a block or end of frame is available
@@ -329,13 +329,13 @@ begin
 
          process (mAxisClk, mAxisRst) is
          begin
-            if (RST_ASYNC_G and mAxisRst = '1') then
+            if (RST_ASYNC_G and mAxisRst = RST_POLARITY_G) then
                fifoInFrame <= '0' after TPD_G;
                burstEn     <= '0' after TPD_G;
                burstLast   <= '0' after TPD_G;
                firstCycle  <= '1' after TPD_G;
             elsif (rising_edge(mAxisClk)) then
-               if (RST_ASYNC_G = false and mAxisRst = '1') or (fifoReadLast = '1') then
+               if (RST_ASYNC_G = false and mAxisRst = RST_POLARITY_G) or (fifoReadLast = '1') then
                   -- Reset the flags
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;

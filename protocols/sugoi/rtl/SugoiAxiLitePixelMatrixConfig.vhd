@@ -105,7 +105,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       dataOut        => (others => '0'),
       readWrite      => '1',
       configTri      => '0',
-      globalRstL     => '1',
+      globalRstL     => '0',
       cckReg         => '0',
       cckPix         => '0',
       cnt            => 0,
@@ -244,25 +244,25 @@ begin
                   v.configTri := '1';
                   v.readWrite := '0';
                when 2 =>
-                  -- CCK PIX LOW
-                  v.cckPix    := '0';
+                  -- CCK PIX HIGH
+                  v.cckPix    := '1';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 3 =>
                   -- CCK REG HIGH
-                  v.cckPix    := '0';
+                  v.cckPix    := '1';
                   v.cckReg    := '1';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 4 =>
-                  -- CCK REG LOW
+                  -- SAMPLE & CCK LOW
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 5 =>
-                  -- SAMPLE
+                  -- HOLD
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
@@ -288,7 +288,7 @@ begin
                v.timer := r.timerSize;
 
                -- Check if "SAMPLE" phase
-               if (r.cnt = 5) then
+               if (r.cnt = 4) then
 
                   -- Assign read data
                   v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;

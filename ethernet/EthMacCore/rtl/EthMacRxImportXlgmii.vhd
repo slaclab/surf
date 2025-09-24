@@ -24,7 +24,8 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImportXlgmii is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
    port (
       -- Clock and Reset
       ethClk      : in  sl;

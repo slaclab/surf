@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -26,6 +25,8 @@ use surf.EthMacPkg.all;
 entity EthMacRxBypass is
    generic (
       TPD_G          : time             := 1 ns;
+      RST_POLARITY_G : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean          := false;
       BYP_EN_G       : boolean          := false;
       BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000");
    port (
@@ -125,7 +126,7 @@ begin
          end case;
 
          -- Reset
-         if ethRst = '1' then
+         if (RST_ASYNC_G = false and ethRst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -138,9 +139,11 @@ begin
 
       end process;
 
-      seq : process (ethClk) is
+      seq : process (ethClk, ethRst) is
       begin
-         if rising_edge(ethClk) then
+         if (RST_ASYNC_G and ethRst = RST_POLARITY_G) then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(ethClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;

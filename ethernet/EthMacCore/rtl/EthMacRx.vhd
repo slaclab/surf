@@ -26,6 +26,7 @@ entity EthMacRx is
    generic (
       -- Simulation Generics
       TPD_G          : time             := 1 ns;
+      RST_POLARITY_G : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       -- MAC Configurations
       PAUSE_EN_G     : boolean          := true;
       PHY_TYPE_G     : string           := "XGMII";
@@ -83,9 +84,10 @@ begin
    -------------------
    U_Import : entity surf.EthMacRxImport
       generic map (
-         TPD_G        => TPD_G,
-         PHY_TYPE_G   => PHY_TYPE_G,
-         SYNTH_MODE_G => SYNTH_MODE_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PHY_TYPE_G     => PHY_TYPE_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset
          ethClkEn    => ethClkEn,
@@ -113,8 +115,9 @@ begin
    ------------------
    U_Pause : entity surf.EthMacRxPause
       generic map (
-         TPD_G      => TPD_G,
-         PAUSE_EN_G => PAUSE_EN_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PAUSE_EN_G     => PAUSE_EN_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -132,9 +135,10 @@ begin
    ---------------------
    U_Csum : entity surf.EthMacRxCsum
       generic map (
-         TPD_G       => TPD_G,
-         JUMBO_G     => JUMBO_G,
-         ROCEV2_EN_G => ROCEV2_EN_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         JUMBO_G        => JUMBO_G,
+         ROCEV2_EN_G    => ROCEV2_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -153,7 +157,8 @@ begin
    GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
       U_RoCEv2 : entity surf.EthMacRxRoCEv2
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
          port map (
             -- Clock and Reset
             ethClk         => ethClk,
@@ -174,6 +179,7 @@ begin
    U_Bypass : entity surf.EthMacRxBypass
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G)
       port map (
@@ -192,8 +198,9 @@ begin
    -------------------
    U_Filter : entity surf.EthMacRxFilter
       generic map (
-         TPD_G     => TPD_G,
-         FILT_EN_G => FILT_EN_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         FILT_EN_G      => FILT_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,

@@ -23,10 +23,11 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilter is
    generic (
-      TPD_G         : time       := 1 ns;
-      RST_ASYNC_G   : boolean    := false;
-      FILTER_SIZE_G : positive   := 1;  -- Number of filter addresses
-      FILTER_ADDR_G : Slv32Array := (0 => x"00000000"));  -- Filter addresses that will be allowed through
+      TPD_G          : time       := 1 ns;
+      RST_POLARITY_G : sl         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean    := false;
+      FILTER_SIZE_G  : positive   := 1;  -- Number of filter addresses
+      FILTER_ADDR_G  : Slv32Array := (0 => x"00000000"));  -- Filter addresses that will be allowed through
    port (
       -- Clock and reset
       axilClk          : in  sl;
@@ -187,7 +188,7 @@ begin
       end case;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -202,7 +203,7 @@ begin
 
    seq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
+      if (RST_ASYNC_G and axilRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          r <= rin after TPD_G;

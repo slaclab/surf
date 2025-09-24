@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 entity AxiStreamSplitter is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_POLARITY_G      : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean  := false;
       LANES_G             : positive := 4;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
@@ -139,7 +140,7 @@ begin
       mAxisMasters <= r.masters;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -150,7 +151,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;

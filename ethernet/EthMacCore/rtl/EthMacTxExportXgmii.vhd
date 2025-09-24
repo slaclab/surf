@@ -24,8 +24,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxExportXgmii is
    generic (
-      TPD_G        : time   := 1 ns;
-      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
+      TPD_G          : time   := 1 ns;
+      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      SYNTH_MODE_G   : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -141,6 +142,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
@@ -185,7 +187,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if (ethRst = '1') or (phyReady = '0') then
+         if (ethRst = RST_POLARITY_G) or (phyReady = '0') then
             crcInit       <= '1'             after TPD_G;
             curState      <= ST_IDLE_C       after TPD_G;
             intError      <= '0'             after TPD_G;
@@ -260,7 +262,7 @@ begin
             intDump       <= '0';
 
             -- Wait for start flag
-            if macMaster.tValid = '1' and ethRst = '0' then
+            if macMaster.tValid = '1' and ethRst = (not RST_POLARITY_G) then
                wordCountRst <= '1';
 
                -- Phy is ready
@@ -380,7 +382,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             frameShift0  <= '0'             after TPD_G;
             frameShift1  <= '0'             after TPD_G;
             txEnable0    <= '0'             after TPD_G;
@@ -460,7 +462,7 @@ begin
    U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
+         RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
@@ -496,7 +498,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             phyTxd <= (others => '0') after TPD_G;
             phyTxc <= (others => '0') after TPD_G;
             nxtEOF <= '0'             after TPD_G;

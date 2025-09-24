@@ -21,7 +21,8 @@ use surf.AxiStreamPkg.all;
 
 entity EthMacCrcAxiStreamWrapperRecv is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -65,7 +66,7 @@ architecture rtl of EthMacCrcAxiStreamWrapperRecv is
 
 begin
 
-   blueRstN <= not ethRst;
+   blueRstN <= not ethRst when (RST_POLARITY_G = '1') else ethRst;
 
    -----------------------------------------------------------------------------
    -- IP integrator
