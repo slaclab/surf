@@ -291,7 +291,7 @@ class HtspAxiLRxStatus(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'RemLinkData',
             offset       = (0x720-devOffset),
-            bitSize      = 48,
+            bitSize      = 128,
             mode         = 'RO',
             pollInterval = 1,
         ))
@@ -299,7 +299,7 @@ class HtspAxiLRxStatus(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'RemOpCodeData',
             offset       = (0x730-devOffset),
-            bitSize      = 48,
+            bitSize      = 128,
             mode         = 'RO',
             pollInterval = 1,
         ))
@@ -409,7 +409,7 @@ class HtspAxiLTxStatus(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'LocLinkData',
             offset       = (0xB20-devOffset),
-            bitSize      = 48,
+            bitSize      = 128,
             mode         = 'RO',
             pollInterval = 1,
         ))
@@ -417,7 +417,7 @@ class HtspAxiLTxStatus(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'LocOpCodeData',
             offset       = (0xB30-devOffset),
-            bitSize      = 48,
+            bitSize      = 128,
             mode         = 'RO',
             pollInterval = 1,
         ))

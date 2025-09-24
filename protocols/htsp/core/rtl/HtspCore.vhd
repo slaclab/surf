@@ -26,7 +26,7 @@ entity HtspCore is
    generic (
       TPD_G                 : time                   := 1 ns;
       -- HTSP Settings
-      NUM_VC_G              : positive range 1 to 16 := 4;
+      NUM_VC_G              : positive range 1 to 16 := 1;
       TX_MAX_PAYLOAD_SIZE_G : positive               := 8192;  -- Must be a multiple of 64B (in units of bytes)
       -- Misc Debug Settings
       LOOPBACK_G            : slv(2 downto 0)        := (others => '0');
@@ -180,6 +180,7 @@ begin
       generic map (
          TPD_G            => TPD_G,
          WRITE_EN_G       => AXIL_WRITE_EN_G,
+         NUM_VC_G         => NUM_VC_G,
          AXIL_CLK_FREQ_G  => AXIL_CLK_FREQ_G,
          LOOPBACK_G       => LOOPBACK_G,
          RX_POLARITY_G    => RX_POLARITY_G,
