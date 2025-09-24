@@ -30,32 +30,34 @@ entity Caui4GtyIpWrapper is
       MAX_PAYLOAD_SIZE_G : positive := 8192);
    port (
       -- Stable Clock and Reset Reference
-      stableClk    : in  sl;                      -- 156.25 MHz
-      stableRst    : in  sl;
+      stableClk     : in  sl;                     -- 156.25 MHz
+      stableRst     : in  sl;
       -- PHY Clock and Reset
-      phyClk       : out sl;
-      phyRst       : out sl;
+      phyClk        : out sl;
+      phyRst        : out sl;
       -- Rx PHY Interface
-      phyRxMaster  : out AxiStreamMasterType;
+      phyRxMaster   : out AxiStreamMasterType;
       -- Tx PHY Interface
-      phyTxMaster  : in  AxiStreamMasterType;
-      phyTxSlave   : out AxiStreamSlaveType;
+      phyTxMaster   : in  AxiStreamMasterType;
+      phyTxSlave    : out AxiStreamSlaveType;
       -- Misc Debug Interfaces
-      phyReady     : out sl;
-      loopback     : in  slv(2 downto 0)       := (others => '0');
-      rxPolarity   : in  slv(3 downto 0)       := (others => '0');
-      txPolarity   : in  slv(3 downto 0)       := (others => '0');
-      txDiffCtrl   : in  Slv5Array(3 downto 0) := (others => "11000");
-      txPreCursor  : in  Slv5Array(3 downto 0) := (others => "00000");
-      txPostCursor : in  Slv5Array(3 downto 0) := (others => "00000");
+      phyReady      : out sl;
+      rxFecCorInc   : out sl;
+      rxFecUnCorInc : out sl;
+      loopback      : in  slv(2 downto 0)       := (others => '0');
+      rxPolarity    : in  slv(3 downto 0)       := (others => '0');
+      txPolarity    : in  slv(3 downto 0)       := (others => '0');
+      txDiffCtrl    : in  Slv5Array(3 downto 0) := (others => "11000");
+      txPreCursor   : in  Slv5Array(3 downto 0) := (others => "00000");
+      txPostCursor  : in  Slv5Array(3 downto 0) := (others => "00000");
       -- GT FPGA Ports
-      gtRefClkP    : in  sl;
-      gtRefClkN    : in  sl;
-      gtRefClkOut  : out sl;
-      gtRxP        : in  slv(3 downto 0);
-      gtRxN        : in  slv(3 downto 0);
-      gtTxP        : out slv(3 downto 0);
-      gtTxN        : out slv(3 downto 0));
+      gtRefClkP     : in  sl;
+      gtRefClkN     : in  sl;
+      gtRefClkOut   : out sl;
+      gtRxP         : in  slv(3 downto 0);
+      gtRxN         : in  slv(3 downto 0);
+      gtTxP         : out slv(3 downto 0);
+      gtTxN         : out slv(3 downto 0));
 end entity Caui4GtyIpWrapper;
 
 architecture mapping of Caui4GtyIpWrapper is
@@ -700,8 +702,9 @@ architecture mapping of Caui4GtyIpWrapper is
    signal usr_tx_reset : sl;
    signal usr_rx_reset : sl;
 
-   signal stat_rx_aligned     : sl;
-   signal stat_rx_aligned_err : sl;
+   signal stat_rx_aligned                  : sl;
+   signal stat_rx_rsfec_uncorrected_cw_inc : sl;
+   signal stat_rx_rsfec_corrected_cw_inc   : sl;
 
    signal phyClock : sl;
    signal phyReset : sl;
@@ -772,7 +775,7 @@ begin
             master.tUser(8*i) := rxAxis.tUser(0);
          end loop;
          -- Check if not aligned
-         if (stat_rx_aligned_err = '1') or (stat_rx_aligned = '0') then
+         if (stat_rx_rsfec_uncorrected_cw_inc = '1') or (stat_rx_aligned = '0') then
             master.tValid := '0';
          end if;
          -- Outputs
@@ -904,7 +907,7 @@ begin
             stat_rx_rsfec_am_lock1               => open,
             stat_rx_rsfec_am_lock2               => open,
             stat_rx_rsfec_am_lock3               => open,
-            stat_rx_rsfec_corrected_cw_inc       => open,
+            stat_rx_rsfec_corrected_cw_inc       => stat_rx_rsfec_corrected_cw_inc,
             stat_rx_rsfec_cw_inc                 => open,
             stat_rx_rsfec_err_count0_inc         => open,
             stat_rx_rsfec_err_count1_inc         => open,
@@ -917,7 +920,7 @@ begin
             stat_rx_rsfec_lane_fill_2            => open,
             stat_rx_rsfec_lane_fill_3            => open,
             stat_rx_rsfec_lane_mapping           => open,
-            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_aligned_err,
+            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_rsfec_uncorrected_cw_inc,
             sys_reset                            => stableReset,
             gt_ref_clk_p                         => gtRefClkP,
             gt_ref_clk_n                         => gtRefClkN,
@@ -1133,7 +1136,7 @@ begin
             stat_rx_rsfec_am_lock1               => open,
             stat_rx_rsfec_am_lock2               => open,
             stat_rx_rsfec_am_lock3               => open,
-            stat_rx_rsfec_corrected_cw_inc       => open,
+            stat_rx_rsfec_corrected_cw_inc       => stat_rx_rsfec_corrected_cw_inc,
             stat_rx_rsfec_cw_inc                 => open,
             stat_rx_rsfec_err_count0_inc         => open,
             stat_rx_rsfec_err_count1_inc         => open,
@@ -1146,7 +1149,7 @@ begin
             stat_rx_rsfec_lane_fill_2            => open,
             stat_rx_rsfec_lane_fill_3            => open,
             stat_rx_rsfec_lane_mapping           => open,
-            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_aligned_err,
+            stat_rx_rsfec_uncorrected_cw_inc     => stat_rx_rsfec_uncorrected_cw_inc,
             sys_reset                            => stableReset,
             gt_ref_clk_p                         => gtRefClkP,
             gt_ref_clk_n                         => gtRefClkN,
@@ -1290,7 +1293,8 @@ begin
             drp_we                               => '0');
    end generate;
 
-   comb : process (r, stat_rx_aligned, stat_rx_aligned_err, usr_rx_reset) is
+   comb : process (r, stat_rx_aligned, stat_rx_rsfec_uncorrected_cw_inc,
+                   usr_rx_reset) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -1319,7 +1323,7 @@ begin
             -- 4. Data transmission and reception can be performed.
             v.phyRdy := '1';
             -- Check for error or not aligned
-            if (stat_rx_aligned_err = '1') or (stat_rx_aligned = '0') then
+            if (stat_rx_rsfec_uncorrected_cw_inc = '1') or (stat_rx_aligned = '0') then
                -- Reset the state machine to re-align
                v := REG_INIT_C;
             end if;
@@ -1352,5 +1356,21 @@ begin
          dataIn  => r.phyRdy,
          -- Outputs
          dataOut => phyReady);
+
+   U_rxFecCorInc : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => phyClock,
+         dataIn  => stat_rx_rsfec_corrected_cw_inc,
+         dataOut => rxFecCorInc);
+
+   U_rxFecUnCorInc : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => phyClock,
+         dataIn  => stat_rx_rsfec_uncorrected_cw_inc,
+         dataOut => rxFecUnCorInc);
 
 end mapping;
