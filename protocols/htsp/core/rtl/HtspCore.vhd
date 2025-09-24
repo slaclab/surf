@@ -61,6 +61,8 @@ entity HtspCore is
       phyRxMaster     : in  AxiStreamMasterType;
       -- Misc Debug Interfaces
       localMacIn      : in  slv(47 downto 0)       := x"01_02_03_56_44_00";  -- 00:44:56:03:02:01
+      rxFecCorInc     : in  sl;
+      rxFecUnCorInc   : in  sl;
       loopback        : out slv(2 downto 0);
       rxPolarity      : out slv(3 downto 0);
       txPolarity      : out slv(3 downto 0);
@@ -207,6 +209,8 @@ begin
          broadcastMac    => broadcastMac,
          etherType       => etherType,
          -- Misc Debug Interfaces
+         rxFecCorInc     => rxFecCorInc,
+         rxFecUnCorInc   => rxFecUnCorInc,
          loopback        => loopback,
          rxPolarity      => rxPolarity,
          txPolarity      => txPolarity,

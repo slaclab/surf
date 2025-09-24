@@ -268,6 +268,8 @@ class HtspAxiLRxStatus(pr.Device):
             ['RemRxLinkReady',True],
             ['FrameError',False],
             ['LinkDown',False],
+            ['FecCorrectedCodeWord',False],
+            ['FecUncorrectedCodeWord',False],
         ]
 
         for i in range(len(statusList)):

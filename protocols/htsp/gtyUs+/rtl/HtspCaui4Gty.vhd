@@ -108,8 +108,12 @@ architecture mapping of HtspCaui4Gty is
    signal txDiffCtrl   : Slv5Array(3 downto 0);
    signal txPreCursor  : Slv5Array(3 downto 0);
    signal txPostCursor : Slv5Array(3 downto 0);
-   signal stableReset  : sl;
-   signal phyReady     : sl;
+
+   signal stableReset : sl;
+   signal phyReady    : sl;
+
+   signal rxFecCorInc   : sl;
+   signal rxFecUnCorInc : sl;
 
 begin
 
@@ -169,6 +173,8 @@ begin
             phyRxMaster     => phyRxMasterReg1,
             -- Debug Interface
             localMacIn      => localMac,
+            rxFecCorInc     => rxFecCorInc,
+            rxFecUnCorInc   => rxFecUnCorInc,
             loopback        => loopback,
             rxPolarity      => rxPolarity,
             txPolarity      => txPolarity,
@@ -206,32 +212,34 @@ begin
             SIM_SPEEDUP_G      => SIM_SPEEDUP_G)
          port map (
             -- Stable Clock and Reset Reference
-            stableClk    => stableClk,
-            stableRst    => stableReset,
+            stableClk     => stableClk,
+            stableRst     => stableReset,
             -- PHY Clock and Reset
-            phyClk       => phyClk,
-            phyRst       => phyRst,
+            phyClk        => phyClk,
+            phyRst        => phyRst,
             -- Rx PHY Interface
-            phyRxMaster  => phyRxMaster,
+            phyRxMaster   => phyRxMaster,
             -- Tx PHY Interface
-            phyTxMaster  => phyTxMaster,
-            phyTxSlave   => phyTxSlave,
+            phyTxMaster   => phyTxMaster,
+            phyTxSlave    => phyTxSlave,
             -- Misc Debug Interfaces
-            phyReady     => phyReady,
-            loopback     => loopback,
-            rxPolarity   => rxPolarity,
-            txPolarity   => txPolarity,
-            txDiffCtrl   => txDiffCtrl,
-            txPreCursor  => txPreCursor,
-            txPostCursor => txPostCursor,
+            phyReady      => phyReady,
+            rxFecCorInc   => rxFecCorInc,
+            rxFecUnCorInc => rxFecUnCorInc,
+            loopback      => loopback,
+            rxPolarity    => rxPolarity,
+            txPolarity    => txPolarity,
+            txDiffCtrl    => txDiffCtrl,
+            txPreCursor   => txPreCursor,
+            txPostCursor  => txPostCursor,
             -- GT Ports
-            gtRefClkP    => gtRefClkP,
-            gtRefClkN    => gtRefClkN,
-            gtRefClkOut  => gtRefClkOut,
-            gtRxP        => gtRxP,
-            gtRxN        => gtRxN,
-            gtTxP        => gtTxP,
-            gtTxN        => gtTxN);
+            gtRefClkP     => gtRefClkP,
+            gtRefClkN     => gtRefClkN,
+            gtRefClkOut   => gtRefClkOut,
+            gtRxP         => gtRxP,
+            gtRxN         => gtRxN,
+            gtTxP         => gtTxP,
+            gtTxN         => gtTxN);
 
    end generate REAL_HTSP;
 

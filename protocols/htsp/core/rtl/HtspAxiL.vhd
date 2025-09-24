@@ -57,6 +57,8 @@ entity HtspAxiL is
       broadcastMac    : out slv(47 downto 0);
       etherType       : out slv(15 downto 0);
       -- Misc Debug Interfaces
+      rxFecCorInc     : in  sl;
+      rxFecUnCorInc   : in  sl;
       loopback        : out slv(2 downto 0);
       rxPolarity      : out slv(3 downto 0);
       txPolarity      : out slv(3 downto 0);
@@ -75,7 +77,7 @@ end HtspAxiL;
 architecture rtl of HtspAxiL is
 
    constant RX_STATUS_CNT_SIZE_C : integer := 2;
-   constant RX_ERROR_CNT_SIZE_C  : integer := 5;
+   constant RX_ERROR_CNT_SIZE_C  : integer := 7;
 
    constant TX_STATUS_CNT_SIZE_C : integer := 2;
    constant TX_ERROR_CNT_SIZE_C  : integer := 3;
@@ -491,6 +493,8 @@ begin
          statusIn(2)  => htspRxOut.remRxLinkReady,
          statusIn(3)  => htspRxOut.frameRxErr,
          statusIn(4)  => htspRxOut.linkDown,
+         statusIn(5)  => rxFecCorInc,
+         statusIn(6)  => rxFecUnCorInc,
          statusOut    => rxError,
          cntOut       => rxErrorCnt,
          cntRstIn     => r.countReset,
