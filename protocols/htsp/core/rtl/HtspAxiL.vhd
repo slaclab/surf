@@ -77,13 +77,15 @@ end HtspAxiL;
 architecture rtl of HtspAxiL is
 
    constant RX_STATUS_CNT_SIZE_C : integer := 2;
-   constant RX_ERROR_CNT_SIZE_C  : integer := 7;
+   constant RX_ERROR_CNT_SIZE_C  : integer := 5;
 
    constant TX_STATUS_CNT_SIZE_C : integer := 2;
    constant TX_ERROR_CNT_SIZE_C  : integer := 3;
 
    type RegType is record
       countReset     : sl;
+      rxFecUnCorCnt  : slv(31 downto 0);
+      rxFecCorCnt    : slv(31 downto 0);
       broadcastMac   : slv(47 downto 0);
       localMac       : slv(47 downto 0);
       etherType      : slv(15 downto 0);
@@ -100,6 +102,8 @@ architecture rtl of HtspAxiL is
    end record RegType;
    constant REG_INIT_C : RegType := (
       countReset     => '0',
+      rxFecUnCorCnt  => (others => '0')
+      rxFecCorCnt    => (others => '0')
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
       localMac       => x"01_02_03_56_44_00",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
@@ -163,7 +167,26 @@ architecture rtl of HtspAxiL is
    signal txError    : slv(TX_ERROR_CNT_SIZE_C-1 downto 0);
    signal txErrorCnt : SlVectorArray(TX_ERROR_CNT_SIZE_C-1 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
 
+   signal rxFecCorEvent   : sl;
+   signal rxFecUnCorEvent : sl;
+
 begin
+
+   U_rxFecCorEvent : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => rxFecCorInc,
+         dataOut => rxFecCorEvent);
+
+   U_rxFecUnCorEvent : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => rxFecUnCorInc,
+         dataOut => rxFecUnCorEvent);
 
    U_ClockFreq : entity surf.SyncClockFreq
       generic map (
@@ -266,8 +289,8 @@ begin
             frameRxMinSize, frameTxMaxSize, frameTxMinSize, freqMeasured,
             locData, locOverflowCnt, locPause, locPauseCnt, localMac, r,
             remLinkData, remRxPause, remRxPauseCnt, remoteMac, rxError,
-            rxErrorCnt, rxOpCodeData, rxStatusCnt, txError, txErrorCnt,
-            txOpCodeData, txStatusCnt) is
+            rxErrorCnt, rxFecCorEvent, rxFecUnCorEvent, rxOpCodeData,
+            rxStatusCnt, txError, txErrorCnt, txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -355,6 +378,8 @@ begin
       for i in 0 to RX_ERROR_CNT_SIZE_C-1 loop
          axiSlaveRegisterR(axilEp, x"600"+toSlv(i*4, 12), 0, muxSlVectorArray(rxErrorCnt, i));
       end loop;
+      axiSlaveRegisterR(axilEp, x"614", 0, r.rxFecCorCnt);
+      axiSlaveRegisterR(axilEp, x"618", 0, r.rxFecUnCorCnt);
 
       axiSlaveRegisterR(axilEp, x"710", 0, rxError);
       axiSlaveRegisterR(axilEp, x"720", 0, remLinkData);
@@ -362,8 +387,6 @@ begin
       axiSlaveRegisterR(axilEp, x"740", 0, remRxPause);
       axiSlaveRegisterR(axilEp, x"750", 0, frameRxMinSize);
       axiSlaveRegisterR(axilEp, x"750", 16, frameRxMaxSize);
-
-
 
       ----------------------------------------------------------------------------------------------
       -- TX Status: Offset = 0x800 in SW
@@ -389,12 +412,27 @@ begin
       axiSlaveRegisterR(axilEp, x"B50", 0, frameTxMinSize);
       axiSlaveRegisterR(axilEp, x"B50", 16, frameTxMaxSize);
 
-      ----------------------------------------------------------------------------------------------
-
       -------------------------------------
       -- Close out the AXI-Lite transaction
       -------------------------------------
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      ----------------------------------------------------------------------------------------------
+
+      if (rxFecCorEvent = '1') and (r.rxFecCorCnt /= x"FFFF_FFFF") then
+         v.rxFecCorCnt := r.rxFecCorCnt + 1;
+      end if;
+
+      if (rxFecUnCorEvent = '1') and (r.rxFecUnCorCnt /= x"FFFF_FFFF") then
+         v.rxFecUnCorCnt := r.rxFecUnCorCnt + 1;
+      end if;
+
+      if (r.countReset = '1') then
+         v.rxFecCorCnt   := (others => '0');
+         v.rxFecUnCorCnt := (others => '0');
+      end if;
+
+      ----------------------------------------------------------------------------------------------
 
       -- Reset
       if (axilRst = '1') then
@@ -493,8 +531,6 @@ begin
          statusIn(2)  => htspRxOut.remRxLinkReady,
          statusIn(3)  => htspRxOut.frameRxErr,
          statusIn(4)  => htspRxOut.linkDown,
-         statusIn(5)  => rxFecCorInc,
-         statusIn(6)  => rxFecUnCorInc,
          statusOut    => rxError,
          cntOut       => rxErrorCnt,
          cntRstIn     => r.countReset,
