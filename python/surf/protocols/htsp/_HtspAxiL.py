@@ -268,8 +268,6 @@ class HtspAxiLRxStatus(pr.Device):
             ['RemRxLinkReady',True],
             ['FrameError',False],
             ['LinkDown',False],
-            ['FecCorrectedCodeWord',False],
-            ['FecUncorrectedCodeWord',False],
         ]
 
         for i in range(len(statusList)):
@@ -277,6 +275,22 @@ class HtspAxiLRxStatus(pr.Device):
                 name   = (statusList[i][0]+'Cnt'),
                 offset = (0x600+(4*i)-devOffset),
             )
+
+        self.add(pr.RemoteVariable(
+            name         = 'FecCorrectedCodeWordCnt',
+            offset       = (0x614-devOffset),
+            bitSize      = 32,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'FecUncorrectedCodeWordCnt',
+            offset       = (0x618-devOffset),
+            bitSize      = 32,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
 
         for i in range(len(statusList)):
             if statusList[i][1]:
