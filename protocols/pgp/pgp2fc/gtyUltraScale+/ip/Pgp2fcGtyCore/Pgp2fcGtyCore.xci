@@ -821,20 +821,6 @@
         "C_TX_USRCLK_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ],
         "C_TX_USRCLK2_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ]
       },
-      "project_parameters": {
-        "ARCHITECTURE": [ { "value": "kintexuplus" } ],
-        "BASE_BOARD_PART": [ { "value": "" } ],
-        "BOARD_CONNECTIONS": [ { "value": "" } ],
-        "DEVICE": [ { "value": "xcau25p" } ],
-        "NEXTGEN_VERSAL": [ { "value": "0" } ],
-        "PACKAGE": [ { "value": "sfvb784" } ],
-        "PREFHDL": [ { "value": "VHDL" } ],
-        "SILICON_REVISION": [ { "value": "" } ],
-        "SIMULATOR_LANGUAGE": [ { "value": "MIXED" } ],
-        "SPEEDGRADE": [ { "value": "-2" } ],
-        "STATIC_POWER": [ { "value": "" } ],
-        "TEMPERATURE_GRADE": [ { "value": "E" } ]
-      },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "18" } ],
