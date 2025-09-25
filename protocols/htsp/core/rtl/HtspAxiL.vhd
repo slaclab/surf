@@ -102,8 +102,8 @@ architecture rtl of HtspAxiL is
    end record RegType;
    constant REG_INIT_C : RegType := (
       countReset     => '0',
-      rxFecUnCorCnt  => (others => '0')
-      rxFecCorCnt    => (others => '0')
+      rxFecUnCorCnt  => (others => '0'),
+      rxFecCorCnt    => (others => '0'),
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
       localMac       => x"01_02_03_56_44_00",
       etherType      => x"11_01",       -- EtherType = 0x0111 ("Experimental")
