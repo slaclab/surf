@@ -17,11 +17,14 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;  -- Dependence with AxiStreamPkg due to DMA
 
 package AxiPkg is
+
+   constant AXI_MAX_DATA_WIDTH_C  : positive := AXI_STREAM_MAX_TDATA_WIDTH_C;  -- Units of bits
+   constant AXI_MAX_WSTRB_WIDTH_C : positive := AXI_STREAM_MAX_TKEEP_WIDTH_C;  -- Units of bytes
 
    -------------------------------------
    -- AXI bus, read master signal record
@@ -77,7 +80,7 @@ package AxiPkg is
       -- Read Address channel
       arready : sl;                     -- Slave is ready for address
       -- Read data channel
-      rdata   : slv(1023 downto 0);     -- Read data from slave
+      rdata   : slv(AXI_MAX_DATA_WIDTH_C-1 downto 0);  -- Read data from slave
       rlast   : sl;                     -- Read data last strobe
       rvalid  : sl;                     -- Read data is valid
       rid     : slv(31 downto 0);       -- Read ID tag
@@ -116,11 +119,11 @@ package AxiPkg is
       awqos    : slv(3 downto 0);       -- QoS value
       awregion : slv(3 downto 0);       -- Region identifier
       -- Write data channel
-      wdata    : slv(1023 downto 0);    -- Write data
+      wdata    : slv(AXI_MAX_DATA_WIDTH_C-1 downto 0);   -- Write data
       wlast    : sl;                    -- Write data is last
       wvalid   : sl;                    -- Write data is valid
       wid      : slv(31 downto 0);      -- Write ID tag
-      wstrb    : slv(127 downto 0);     -- Write enable strobes, 1 per byte
+      wstrb    : slv(AXI_MAX_WSTRB_WIDTH_C-1 downto 0);  -- Write enable strobes, 1 per byte
       -- Write ack channel
       bready   : sl;                    -- Write master is ready for status
    end record;
@@ -209,16 +212,16 @@ package AxiPkg is
    ------------------------
    type AxiConfigType is record
       ADDR_WIDTH_C : positive range 12 to 64;
-      DATA_BYTES_C : positive range 1 to 128;
+      DATA_BYTES_C : positive range 1 to AXI_MAX_WSTRB_WIDTH_C;
       ID_BITS_C    : positive range 1 to 32;
       LEN_BITS_C   : natural range 0 to 8;
    end record AxiConfigType;
 
    function axiConfig (
-      constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
-      constant DATA_BYTES_C : in positive range 1 to 128 := 4;
-      constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
+      constant ADDR_WIDTH_C : in positive range 12 to 64                   := 32;
+      constant DATA_BYTES_C : in positive range 1 to AXI_MAX_WSTRB_WIDTH_C := 4;
+      constant ID_BITS_C    : in positive range 1 to 32                    := 12;
+      constant LEN_BITS_C   : in natural range 0 to 8                      := 4)
       return AxiConfigType;
 
    constant AXI_CONFIG_INIT_C : AxiConfigType := axiConfig(
@@ -293,10 +296,10 @@ end package AxiPkg;
 package body AxiPkg is
 
    function axiConfig (
-      constant ADDR_WIDTH_C : in positive range 12 to 64 := 32;
-      constant DATA_BYTES_C : in positive range 1 to 128 := 4;
-      constant ID_BITS_C    : in positive range 1 to 32  := 12;
-      constant LEN_BITS_C   : in natural range 0 to 8    := 4)
+      constant ADDR_WIDTH_C : in positive range 12 to 64                   := 32;
+      constant DATA_BYTES_C : in positive range 1 to AXI_MAX_WSTRB_WIDTH_C := 4;
+      constant ID_BITS_C    : in positive range 1 to 32                    := 12;
+      constant LEN_BITS_C   : in natural range 0 to 8                      := 4)
       return AxiConfigType is
       variable ret : AxiConfigType;
    begin

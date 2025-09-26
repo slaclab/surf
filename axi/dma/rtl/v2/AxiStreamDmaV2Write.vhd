@@ -212,7 +212,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
-            v.stCount := (others => '0');
+            v.stCount           := (others => '0');
             -- Set write dma request data
             v.dmaWrDescReq.dest := intAxisMaster.tDest;
             v.dmaWrDescReq.id   := intAxisMaster.tId;
@@ -439,7 +439,7 @@ begin
                -- Write data channel
                v.wMaster.wvalid              := '1';
                v.wMaster.wlast               := '1';
-               v.wMaster.wstrb               := resize(x"FF", 128);  -- Descriptor data, 64-bits
+               v.wMaster.wstrb               := resize(x"FF", AXI_MAX_WSTRB_WIDTH_C);  -- Descriptor data, 64-bits
                v.wMaster.wdata(63 downto 32) := r.dmaWrTrack.size;
                v.wMaster.wdata(31 downto 24) := r.dmaWrTrack.firstUser;
                v.wMaster.wdata(23 downto 16) := r.lastUser;
