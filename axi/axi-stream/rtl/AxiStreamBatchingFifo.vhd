@@ -184,7 +184,7 @@ begin
    mAxisMaster.tId   <= axisMasterFifo.tId;
    mAxisMaster.tUser <= axisMasterFifo.tUser;
 
-   comb : process (r, axisMasterFifo, axisSlaveFifo, axisMasterSync, axisSlaveSync) is
+   comb : process (r, axisMasterFifo, axisSlaveFifo, axisMasterSync, axisSlaveSync, BatchSize, mAxisSlave) is
       variable v               : RegType;
       variable isAcceptedFrame : sl;
       variable isOutputFrame   : sl;
