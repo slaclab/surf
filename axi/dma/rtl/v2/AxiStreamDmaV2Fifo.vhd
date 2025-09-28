@@ -483,7 +483,7 @@ begin
       -- Map the read registers
       axiSlaveRegisterR(axilEp, x"00", 0, toSlv(1, 4));  -- Version 1
 
-      axiSlaveRegisterR(axilEp, x"04", 8, AXI_BASE_ADDR_G);
+      axiSlaveRegisterR(axilEp, x"04", 0, AXI_BASE_ADDR_G);
 
       axiSlaveRegisterR(axilEp, x"0C", 0, AXI_CACHE_G);
       axiSlaveRegisterR(axilEp, x"0C", 8, AXI_BURST_G);
