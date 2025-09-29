@@ -14,8 +14,6 @@ if { $::env(VIVADO_VERSION) >= 2024.1 } {
        loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGtyCore/Pgp2fcGtyCore.dcp"
        loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGtyCore_refclk2x/Pgp2fcGtyCore_refclk2x.dcp"       
    }
-   #loadSource -lib surf    -path "$::DIR_PATH/ip/Pgp2fcGtyCore.dcp"
-   #loadIpCore  -path "$::DIR_PATH/ip/Pgp2fcGtyCore.xci"
 
 } else {
    puts "\n\nWARNING: $::DIR_PATH requires Vivado 2024.1 (or later)\n\n"
