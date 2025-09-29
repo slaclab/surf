@@ -23,4 +23,4 @@ from surf.axi._AxiStreamFrameRateLimiter    import *
 from surf.axi._AxiStreamRingBuffer          import *
 from surf.axi._AxiStreamScatterGather       import *
 from surf.axi._AxiLiteMasterProxy           import *
-
+from surf.axi._AxiStreamBatchingFifo        import *
