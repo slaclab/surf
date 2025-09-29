@@ -205,16 +205,14 @@ begin
 
       if isOutputFrame = '1' then
             v.frameBatched := v.frameBatched - 1;
-         if r.sending = '1' then
-                v.frameToSend  := r.frameToSend  - 1;
-         end if;
+            v.frameToSend  := r.frameToSend  - 1;
       end if;
 
       if v.frameToSend = 0 then
             v.sending := '0';
       end if;
 
-      if v.sending = '0' and r.frameBatched >= BatchSize then
+      if r.sending = '0' and r.frameBatched >= BatchSize then
             v.sending     := '1';
             v.frameToSend := BatchSize;
       end if;
