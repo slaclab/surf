@@ -272,8 +272,8 @@ package AxiPkg is
    constant AXI_LEN_INIT_C : AxiLenType := (
       valid => "00",
       value => (others => '0'),
-      max   => 0,
-      req   => 0);
+      max   => 1,
+      req   => 1);
    procedure getAxiLenProc (
       -- Input
       axiConfig  : in    AxiConfigType;
