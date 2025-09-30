@@ -17,15 +17,15 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiPkg.all;                    -- Dependence with AxiPkg due to DMA
 -- use surf.TextUtilPkg.all;
 
 package AxiStreamPkg is
 
-   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := 1024;  -- Units of bits
-   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := (AXI_STREAM_MAX_TDATA_WIDTH_C/8);  -- Units of bytes
+   constant AXI_STREAM_MAX_TDATA_WIDTH_C : positive := AXI_MAX_DATA_WIDTH_C;  -- Units of bits
+   constant AXI_STREAM_MAX_TKEEP_WIDTH_C : positive := AXI_MAX_WSTRB_WIDTH_C;  -- Units of bytes
 
    type AxiStreamMasterType is record
       tValid : sl;
