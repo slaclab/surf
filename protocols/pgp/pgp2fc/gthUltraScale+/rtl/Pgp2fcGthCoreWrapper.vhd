@@ -420,7 +420,7 @@ begin
    end generate GEN_1X_REFCLK_GT;
 
    GEN_2X_REFCLK_GT : if (USE_2X_REFCLK_G = true) generate
-      U_Pgp2fcGtyCore : Pgp2fcGtyCore_refclk2x
+      U_Pgp2fcGtyCore : Pgp2fcGthCore_refclk2x
          port map (
             gtwiz_userclk_tx_active_in(0)         => txUsrActive,
             gtwiz_userclk_rx_active_in(0)         => rxUsrActive,
