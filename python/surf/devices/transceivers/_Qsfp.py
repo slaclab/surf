@@ -442,7 +442,7 @@ class Qsfp(pr.Device):
             description  = 'Enable CDR for Tx lane[3:0]',
             offset       = (98 << 2),
             bitSize      = 4,
-            bitOffset    = 4+i,
+            bitOffset    = 4,
             mode         = 'RW',
         ))
 

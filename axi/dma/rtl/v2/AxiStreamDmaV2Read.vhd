@@ -273,8 +273,11 @@ begin
             v.reqState             := DLY_S;
          ----------------------------------------------------------------------
          when DLY_S =>  -- 1 cycle latency between v.reqCnt to r.pending/notReqDone
-            -- Next state
-            v.reqState := ADDR_S;
+            -- Check if more to request
+            if (r.reqSize /= 0) then
+               -- Next state
+               v.reqState := ADDR_S;
+            end if;
       ----------------------------------------------------------------------
       end case;
 

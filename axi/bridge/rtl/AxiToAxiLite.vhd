@@ -82,7 +82,7 @@ begin
       variable wdata : slv(31 downto 0);
    begin
       wdata := (others => '0');
-      for i in 0 to (1024/8)-1 loop
+      for i in 0 to AXI_MAX_WSTRB_WIDTH_C-1 loop
          byte := (8*i) mod 32;
          if axiWriteMaster.wstrb(i) = '1' then
             wdata(byte+7 downto byte) := wdata(byte+7 downto byte) or axiWriteMaster.wdata(8*i+7 downto 8*i);
@@ -94,10 +94,10 @@ begin
 
    process(axilReadSlave)
       variable i     : integer;
-      variable rdata : slv(1023 downto 0);
+      variable rdata : slv(AXI_MAX_DATA_WIDTH_C-1 downto 0);
    begin
       -- Copy the responds read bus bus to all word boundaries
-      for i in 0 to 31 loop
+      for i in 0 to (AXI_MAX_WSTRB_WIDTH_C/4)-1 loop
          rdata((32*i)+31 downto (32*i)) := axilReadSlave.rdata;
       end loop;
       -- Return the value to the output
