@@ -30,6 +30,7 @@ entity AxiStreamDmaV2Fifo is
    generic (
       TPD_G              : time                     := 1 ns;
       COMMON_CLK_G       : boolean                  := false;  -- true if axilClk=axiClk
+      REVERSE_INDEX_G    : boolean                  := false;  -- true if using a reserve bit ordering of indexes (helpful if load balancing on HBM memory)
       -- FIFO Configuration
       BUFF_FRAME_WIDTH_G : positive                 := 20;  -- Buffer Frame size (units of address bits)
       AXI_BUFFER_WIDTH_G : positive                 := 30;  -- Total AXI Memory for FIFO buffering (units of address bits)
@@ -146,6 +147,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
       wrIndexValid    : sl;
       wrIndexReady    : sl;
       wrIndex         : slv(ADDR_WIDTH_C-1 downto 0);
+      loadCnt         : slv(ADDR_WIDTH_C-1 downto 0);
       dmaWrDescAck    : AxiWriteDmaDescAckType;
       dmaWrDescRetAck : sl;
       rdQueueValid    : sl;
@@ -167,6 +169,7 @@ architecture rtl of AxiStreamDmaV2Fifo is
       wrIndexValid    => '0',
       wrIndexReady    => '0',
       wrIndex         => (others => '1'),
+      loadCnt         => (others => '1'),
       dmaWrDescAck    => AXI_WRITE_DMA_DESC_ACK_INIT_C,
       dmaWrDescRetAck => '0',
       rdQueueValid    => '0',
@@ -392,10 +395,19 @@ begin
             v.wrIndexValid := '1';
 
             -- Increment the counter
-            v.wrIndex := r.wrIndex + 1;
+            v.loadCnt := r.loadCnt + 1;
+
+            -- Check if using reserved loaded index
+            if REVERSE_INDEX_G then
+               v.wrIndex := bitReverse(v.loadCnt);
+
+            -- Check normal sequencing of indexes during init() loading
+            else
+               v.wrIndex := v.loadCnt;
+            end if;
 
             -- Check the counter
-            if v.wrIndex = (2**ADDR_WIDTH_C)-1 then
+            if v.loadCnt = (2**ADDR_WIDTH_C)-1 then
                -- Next State
                v.state := IDLE_S;
             end if;
