@@ -965,6 +965,7 @@ var hierarchy =
             [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
           ] ],
           [ "HtspAxiL", "classHtspAxiL.html", [
+            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
             [ "SyncClockFreq", "classSyncClockFreq.html", null ],
             [ "SyncStatusVector", "classSyncStatusVector.html", null ],
             [ "SyncMinMax", "classSyncMinMax.html", null ]
