@@ -4,7 +4,7 @@
     "xci_name": "Pgp2fcGthCore_refclk2x",
     "component_reference": "xilinx.com:ip:gtwizard_ultrascale:1.7",
     "ip_revision": "18",
-    "gen_directory": "../../../../zCCM_kria_project.gen/sources_1/ip/Pgp2fcGthCore_refclk2x",
+    "gen_directory": ".",
     "parameters": {
       "component_parameters": {
         "GT_TYPE": [ { "value": "GTH", "resolve_type": "user", "usage": "all" } ],
@@ -821,25 +821,11 @@
         "C_TX_USRCLK_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ],
         "C_TX_USRCLK2_FREQUENCY": [ { "value": "185.7142850", "resolve_type": "generated", "format": "float", "usage": "all" } ]
       },
-      "project_parameters": {
-        "ARCHITECTURE": [ { "value": "zynquplus" } ],
-        "BASE_BOARD_PART": [ { "value": "xilinx.com:k26c:part0:1.4" } ],
-        "BOARD_CONNECTIONS": [ { "value": "" } ],
-        "DEVICE": [ { "value": "xck26" } ],
-        "NEXTGEN_VERSAL": [ { "value": "0" } ],
-        "PACKAGE": [ { "value": "sfvc784" } ],
-        "PREFHDL": [ { "value": "VHDL" } ],
-        "SILICON_REVISION": [ { "value": "" } ],
-        "SIMULATOR_LANGUAGE": [ { "value": "MIXED" } ],
-        "SPEEDGRADE": [ { "value": "-2LV" } ],
-        "STATIC_POWER": [ { "value": "" } ],
-        "TEMPERATURE_GRADE": [ { "value": "C" } ]
-      },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Flow" } ],
         "IPREVISION": [ { "value": "18" } ],
         "MANAGED": [ { "value": "TRUE" } ],
-        "OUTPUTDIR": [ { "value": "../../../../zCCM_kria_project.gen/sources_1/ip/Pgp2fcGthCore_refclk2x" } ],
+        "OUTPUTDIR": [ { "value": "." } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],
         "SHAREDDIR": [ { "value": "." } ],
         "SWVERSION": [ { "value": "2024.1" } ],
