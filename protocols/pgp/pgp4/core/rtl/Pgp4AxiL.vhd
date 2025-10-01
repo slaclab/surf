@@ -33,39 +33,51 @@ entity Pgp4AxiL is
       WRITE_EN_G         : boolean               := true;  -- Set to false when on remote end of a link
       NUM_VC_G           : integer range 1 to 16 := 4;
       STATUS_CNT_WIDTH_G : natural range 1 to 32 := 16;
-      ERROR_CNT_WIDTH_G  : natural range 1 to 32 := 8;
+      ERROR_CNT_WIDTH_G  : natural range 1 to 16 := 8;
       TX_POLARITY_G      : sl                    := '0';
       RX_POLARITY_G      : sl                    := '0';
+      PGP_FEC_ENABLE_G   : boolean               := false;
       AXIL_CLK_FREQ_G    : real                  := 125.0E+6);
    port (
       -- TX PGP Interface (pgpTxClk)
-      pgpTxClk        : in  sl;
-      pgpTxRst        : in  sl;
-      pgpTxIn         : out Pgp4TxInType;
-      pgpTxOut        : in  Pgp4TxOutType;
-      locTxIn         : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
+      pgpTxClk         : in  sl;
+      pgpTxRst         : in  sl;
+      pgpTxIn          : out Pgp4TxInType;
+      pgpTxOut         : in  Pgp4TxOutType;
+      locTxIn          : in  Pgp4TxInType := PGP4_TX_IN_INIT_C;
+      phyTxFecByp      : out sl;        -- phyTxClk=pgpTxClk
       -- RX PGP Interface (pgpRxClk)
-      pgpRxClk        : in  sl;
-      pgpRxRst        : in  sl;
-      pgpRxIn         : out Pgp4RxInType;
-      pgpRxOut        : in  Pgp4RxOutType;
-      locRxIn         : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
+      pgpRxClk         : in  sl;
+      pgpRxRst         : in  sl;
+      pgpRxIn          : out Pgp4RxInType;
+      pgpRxOut         : in  Pgp4RxOutType;
+      locRxIn          : in  Pgp4RxInType := PGP4_RX_IN_INIT_C;
+      -- RX PHY Interface (pgpRxClk)
+      phyRxClk         : in  sl;
+      phyRxRst         : in  sl;
+      phyRxFecByp      : out sl;
+      phyRxFecInjErr   : out sl           := '0';
+      phyRxFecLock     : in  sl;
+      phyRxFecCorInc   : in  sl;
+      phyRxFecUnCorInc : in  sl;
       -- Debug Interface (axilClk domain)
-      txDiffCtrl      : out slv(4 downto 0);
-      txPreCursor     : out slv(4 downto 0);
-      txPostCursor    : out slv(4 downto 0);
-      txPolarity      : out sl;
-      rxPolarity      : out sl;
+      txDiffCtrl       : out slv(4 downto 0);
+      txPreCursor      : out slv(4 downto 0);
+      txPostCursor     : out slv(4 downto 0);
+      txPolarity       : out sl;
+      rxPolarity       : out sl;
       -- AXI-Lite Register Interface (axilClk domain)
-      axilClk         : in  sl;
-      axilRst         : in  sl;
-      axilReadMaster  : in  AxiLiteReadMasterType;
-      axilReadSlave   : out AxiLiteReadSlaveType;
-      axilWriteMaster : in  AxiLiteWriteMasterType;
-      axilWriteSlave  : out AxiLiteWriteSlaveType);
+      axilClk          : in  sl;
+      axilRst          : in  sl;
+      axilReadMaster   : in  AxiLiteReadMasterType;
+      axilReadSlave    : out AxiLiteReadSlaveType;
+      axilWriteMaster  : in  AxiLiteWriteMasterType;
+      axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp4AxiL;
 
 architecture mapping of Pgp4AxiL is
+
+   constant FEC_CNT_SIZE_C : integer := 3;
 
    constant RX_STATUS_CNT_SIZE_C : integer := 2;
    constant RX_ERROR_CNT_SIZE_C  : integer := 16;
@@ -74,6 +86,7 @@ architecture mapping of Pgp4AxiL is
    constant TX_ERROR_CNT_SIZE_C  : integer := 3;
 
    type RegType is record
+      phyRxFecInjErr : sl;
       txPolarity     : sl;
       rxPolarity     : sl;
       countReset     : sl;
@@ -83,6 +96,7 @@ architecture mapping of Pgp4AxiL is
       txDisable      : sl;
       resetTx        : sl;
       resetRx        : sl;
+      bypassFec      : sl;
       txDiffCtrl     : slv(4 downto 0);
       txPreCursor    : slv(4 downto 0);
       txPostCursor   : slv(4 downto 0);
@@ -91,6 +105,7 @@ architecture mapping of Pgp4AxiL is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      phyRxFecInjErr => '0',
       txPolarity     => TX_POLARITY_G,
       rxPolarity     => RX_POLARITY_G,
       countReset     => '0',
@@ -100,6 +115,7 @@ architecture mapping of Pgp4AxiL is
       txDisable      => PGP4_TX_IN_INIT_C.disable,
       resetTx        => PGP4_TX_IN_INIT_C.resetTx,
       resetRx        => PGP4_RX_IN_INIT_C.resetRx,
+      bypassFec      => ite(PGP_FEC_ENABLE_G, '0', '1'),
       txDiffCtrl     => (others => '1'),
       txPreCursor    => "00111",
       txPostCursor   => "00111",
@@ -126,6 +142,9 @@ architecture mapping of Pgp4AxiL is
 
    signal rxError    : slv(RX_ERROR_CNT_SIZE_C-1 downto 0);
    signal rxErrorCnt : SlVectorArray(RX_ERROR_CNT_SIZE_C-1 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+
+   signal phyFec    : slv(FEC_CNT_SIZE_C-1 downto 0);
+   signal phyFecCnt : SlVectorArray(FEC_CNT_SIZE_C-1 downto 0, 15 downto 0);
 
    -- TX
    signal txClkFreq    : slv(31 downto 0);
@@ -171,15 +190,18 @@ begin
    -- AXI-Lite Registers
    ---------------------
    process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
-            locPause, locPauseCnt, r, remLinkData, remRxOverflowCnt,
-            remRxPause, remRxPauseCnt, rxClkFreq, rxError, rxErrorCnt,
-            rxOpCodeData, rxStatusCnt, txClkFreq, txError, txErrorCnt,
-            txOpCodeData, txStatusCnt) is
+            locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
+            remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
+            rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
+            txErrorCnt, txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := r;
+
+      -- Reset strobe
+      v.phyRxFecInjErr := '0';
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -189,6 +211,7 @@ begin
 
       axiSlaveRegister (axilEp, x"000", 0, v.countReset);
       axiSlaveRegisterR(axilEp, x"004", 0, ite(WRITE_EN_G, '1', '0'));
+      axiSlaveRegisterR(axilEp, x"004", 1, ite(PGP_FEC_ENABLE_G, '1', '0'));
       axiSlaveRegisterR(axilEp, x"004", 8, toSlv(NUM_VC_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 16, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 24, toSlv(ERROR_CNT_WIDTH_G, 8));
@@ -200,11 +223,19 @@ begin
          axiSlaveRegister (axilEp, x"00C", 4, v.txDisable);
          axiSlaveRegister (axilEp, x"00C", 5, v.resetTx);
          axiSlaveRegister (axilEp, x"00C", 6, v.resetRx);
+         if PGP_FEC_ENABLE_G then
+            axiSlaveRegister (axilEp, x"00C", 7, v.bypassFec);
+         else
+            axiSlaveRegisterR(axilEp, x"00C", 7, r.bypassFec);
+         end if;
          axiSlaveRegister (axilEp, x"00C", 8, v.txDiffCtrl);
          axiSlaveRegister (axilEp, x"00C", 16, v.txPreCursor);
          axiSlaveRegister (axilEp, x"00C", 24, v.txPostCursor);
          axiSlaveRegister (axilEp, x"00C", 30, v.txPolarity);
          axiSlaveRegister (axilEp, x"00C", 31, v.rxPolarity);
+
+         axiSlaveRegister (axilEp, x"010", 0, v.phyRxFecInjErr);
+
       else
          axiSlaveRegisterR(axilEp, x"008", 0, r.skpInterval);
          axiSlaveRegisterR(axilEp, x"00C", 0, r.loopback);
@@ -212,6 +243,7 @@ begin
          axiSlaveRegisterR(axilEp, x"00C", 4, r.txDisable);
          axiSlaveRegisterR(axilEp, x"00C", 5, r.resetTx);
          axiSlaveRegisterR(axilEp, x"00C", 6, r.resetRx);
+         axiSlaveRegisterR(axilEp, x"00C", 7, r.bypassFec);
          axiSlaveRegisterR(axilEp, x"00C", 8, r.txDiffCtrl);
          axiSlaveRegisterR(axilEp, x"00C", 16, r.txPreCursor);
          axiSlaveRegisterR(axilEp, x"00C", 24, r.txPostCursor);
@@ -234,9 +266,13 @@ begin
 
       for i in 0 to RX_ERROR_CNT_SIZE_C-1 loop
          axiSlaveRegisterR(axilEp, x"600"+toSlv(i*4, 12), 0, muxSlVectorArray(rxErrorCnt, i));
+         if (i < FEC_CNT_SIZE_C) then
+            axiSlaveRegisterR(axilEp, x"600"+toSlv(i*4, 12), 16, muxSlVectorArray(phyFecCnt, i));
+         end if;
       end loop;
 
       axiSlaveRegisterR(axilEp, x"710", 0, rxError);
+      axiSlaveRegisterR(axilEp, x"710", 16, phyFec);
       axiSlaveRegisterR(axilEp, x"720", 0, remLinkData);
       axiSlaveRegisterR(axilEp, x"730", 0, rxOpCodeData);
       axiSlaveRegisterR(axilEp, x"740", 0, remRxPause);
@@ -298,7 +334,7 @@ begin
    end process seqAxil;
 
    ----------------------------------------------------------------------------------------------
-   -- RX SYNC
+   -- PGP RX SYNC
    ----------------------------------------------------------------------------------------------
    U_RxClkFreq : entity surf.SyncClockFreq
       generic map (
@@ -309,7 +345,7 @@ begin
          CNT_WIDTH_G    => 32)
       port map (
          freqOut => rxClkFreq,
-         clkIn   => pgpRxClk,
+         clkIn   => phyRxClk,  -- Better to measure phyRxClk (instead of pgpRxClk) because common to connect pgpRxClk=pgpTxClk in wrapper containing Pgp4Core
          locClk  => axilClk,
          refClk  => axilClk);
 
@@ -439,7 +475,53 @@ begin
          rdRst        => axilRst);
 
    ----------------------------------------------------------------------------------------------
-   -- TX SYNC
+   -- PHY RX SYNC
+   ----------------------------------------------------------------------------------------------
+
+   U_phyRxFecByp : entity surf.Synchronizer
+      generic map (
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => RST_ASYNC_G)
+      port map (
+         clk     => phyRxClk,
+         dataIn  => r.bypassFec,
+         dataOut => phyRxFecByp);
+
+   GEN_RX_FEC : if (PGP_FEC_ENABLE_G) generate
+
+      U_phyRxFecInjErr : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
+         port map (
+            clk     => phyRxClk,
+            dataIn  => r.phyRxFecInjErr,
+            dataOut => phyRxFecInjErr);
+
+      U_phyRxFecCnt : entity surf.SyncStatusVector
+         generic map (
+            TPD_G        => TPD_G,
+            RST_ASYNC_G  => RST_ASYNC_G,
+            COMMON_CLK_G => false,
+            CNT_WIDTH_G  => 16,
+            WIDTH_G      => FEC_CNT_SIZE_C)
+         port map (
+            statusIn(0)  => phyRxFecLock,
+            statusIn(1)  => phyRxFecCorInc,
+            statusIn(2)  => phyRxFecUnCorInc,
+            statusOut    => phyFec,
+            cntOut       => phyFecCnt,
+            cntRstIn     => r.countReset,
+            rollOverEnIn => (others => '0'),
+            wrClk        => phyRxClk,
+            wrRst        => '0',        -- Don't clear counters on PHY RX reset
+            rdClk        => axilClk,
+            rdRst        => axilRst);
+
+   end generate GEN_RX_FEC;
+
+   ----------------------------------------------------------------------------------------------
+   -- PGP TX SYNC
    ----------------------------------------------------------------------------------------------
    U_TxClkFreq : entity surf.SyncClockFreq
       generic map (
@@ -470,15 +552,17 @@ begin
          TPD_G         => TPD_G,
          RST_ASYNC_G   => RST_ASYNC_G,
          BYPASS_SYNC_G => COMMON_TX_CLK_G,
-         WIDTH_G       => 3)
+         WIDTH_G       => 4)
       port map (
          clk        => pgpTxClk,
          dataIn(0)  => r.flowCntlDis,
          dataIn(1)  => r.txDisable,
          dataIn(2)  => r.resetTx,
+         dataIn(3)  => r.bypassFec,
          dataOut(0) => flowCntlDis,
          dataOut(1) => txDisable,
-         dataOut(2) => resetTx);
+         dataOut(2) => resetTx,
+         dataOut(3) => phyTxFecByp);
 
    U_locData : entity surf.SynchronizerFifo
       generic map (

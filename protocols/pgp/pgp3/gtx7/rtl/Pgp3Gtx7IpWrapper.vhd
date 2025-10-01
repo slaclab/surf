@@ -27,9 +27,9 @@ use unisim.vcomponents.all;
 
 entity Pgp3Gtx7IpWrapper is
    generic (
-      TPD_G         : time    := 1 ns;
-      EN_DRP_G      : boolean := true;
-      RATE_G        : string  := "10.3125Gbps");  -- or "6.25Gbps" or "3.125Gbps"
+      TPD_G    : time    := 1 ns;
+      EN_DRP_G : boolean := true;
+      RATE_G   : string  := "10.3125Gbps");  -- or "6.25Gbps" or "3.125Gbps"
    port (
       stableClk       : in  sl;
       stableRst       : in  sl;
