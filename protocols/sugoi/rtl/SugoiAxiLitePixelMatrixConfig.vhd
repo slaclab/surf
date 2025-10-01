@@ -32,8 +32,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       ROW_GRAY_CODE_G : boolean                := true;
       ROW_WIDTH_G     : positive range 1 to 10 := 6;
       DATA_WIDTH_G    : positive range 1 to 32 := 9;
-      TIMER_WIDTH_G   : positive range 1 to 16 := 12
-      );
+      TIMER_WIDTH_G   : positive range 1 to 16 := 12);
    port (
       -- Matrix periphery: coldec and rowdec
       colAddr         : out   slv(COL_WIDTH_G-1 downto 0);
@@ -52,8 +51,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       axilReadMaster  : in    AxiLiteReadMasterType;
       axilReadSlave   : out   AxiLiteReadSlaveType;
       axilWriteMaster : in    AxiLiteWriteMasterType;
-      axilWriteSlave  : out   AxiLiteWriteSlaveType
-      );
+      axilWriteSlave  : out   AxiLiteWriteSlaveType);
 end entity SugoiAxiLitePixelMatrixConfig;
 
 architecture rtl of SugoiAxiLitePixelMatrixConfig is
@@ -71,8 +69,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
    type StateType is (
       IDLE_S,
       READ_CMD_S,
-      WRITE_CMD_S
-      );
+      WRITE_CMD_S);
 
    type RegType is record
       colReg         : slv(COL_WIDTH_G-1 downto 0);
