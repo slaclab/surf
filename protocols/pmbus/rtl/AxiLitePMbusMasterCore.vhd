@@ -34,16 +34,16 @@ entity AxiLitePMbusMasterCore is
       AXI_CLK_FREQ_G    : real             := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
-      i2ci              : in  i2c_in_type;
-      i2co              : out i2c_out_type;
+      i2ci            : in  i2c_in_type;
+      i2co            : out i2c_out_type;
       -- AXI-Lite Register Interface
-      axilReadMaster    : in  AxiLiteReadMasterType;
-      axilReadSlave     : out AxiLiteReadSlaveType;
-      axilWriteMaster   : in  AxiLiteWriteMasterType;
-      axilWriteSlave    : out AxiLiteWriteSlaveType;
+      axilReadMaster  : in  AxiLiteReadMasterType;
+      axilReadSlave   : out AxiLiteReadSlaveType;
+      axilWriteMaster : in  AxiLiteWriteMasterType;
+      axilWriteSlave  : out AxiLiteWriteSlaveType;
       -- Clocks and Resets
-      axilClk           : in  sl;
-      axilRst           : in  sl);
+      axilClk         : in  sl;
+      axilRst         : in  sl);
 end AxiLitePMbusMasterCore;
 
 architecture rtl of AxiLitePMbusMasterCore is
