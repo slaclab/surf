@@ -208,9 +208,9 @@ class Pgp4AxiLRxStatus(pr.Device):
                 pollInterval = 1,
                 **ecvkwargs))
 
-        def addErrorCountVar(bitOffset=0, **ecvkwargs):
+        def addErrorCountVar(bitOffset=0, bitSize=errorCountBits, **ecvkwargs):
             self.add(pr.RemoteVariable(
-                bitSize      = errorCountBits,
+                bitSize      = bitSize,
                 mode         = 'RO',
                 disp         = '{:d}',
                 bitOffset    = bitOffset,
@@ -287,6 +287,7 @@ class Pgp4AxiLRxStatus(pr.Device):
                 name      = (fecList[i][0]+'Cnt'),
                 offset    = (0x600+(4*i)-devOffset),
                 bitOffset = 16,
+                bitSize   = 16,
             )
 
         for i in range(len(fecList)):

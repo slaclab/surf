@@ -56,7 +56,7 @@ entity Pgp4AxiL is
       phyRxClk         : in  sl;
       phyRxRst         : in  sl;
       phyRxFecByp      : out sl;
-      phyRxFecInjErr   : out sl;
+      phyRxFecInjErr   : out sl           := '0';
       phyRxFecLock     : in  sl;
       phyRxFecCorInc   : in  sl;
       phyRxFecUnCorInc : in  sl;
@@ -144,7 +144,7 @@ architecture mapping of Pgp4AxiL is
    signal rxErrorCnt : SlVectorArray(RX_ERROR_CNT_SIZE_C-1 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
 
    signal phyFec    : slv(FEC_CNT_SIZE_C-1 downto 0);
-   signal phyFecCnt : SlVectorArray(FEC_CNT_SIZE_C-1 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+   signal phyFecCnt : SlVectorArray(FEC_CNT_SIZE_C-1 downto 0, 15 downto 0);
 
    -- TX
    signal txClkFreq    : slv(31 downto 0);
@@ -487,34 +487,38 @@ begin
          dataIn  => r.bypassFec,
          dataOut => phyRxFecByp);
 
-   U_phyRxFecInjErr : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
-      port map (
-         clk     => phyRxClk,
-         dataIn  => r.phyRxFecInjErr,
-         dataOut => phyRxFecInjErr);
+   GEN_RX_FEC : if (PGP_FEC_ENABLE_G) generate
 
-   U_phyRxFecCnt : entity surf.SyncStatusVector
-      generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => false,
-         CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
-         WIDTH_G      => FEC_CNT_SIZE_C)
-      port map (
-         statusIn(0)  => phyRxFecLock,
-         statusIn(1)  => phyRxFecCorInc,
-         statusIn(2)  => phyRxFecUnCorInc,
-         statusOut    => phyFec,
-         cntOut       => phyFecCnt,
-         cntRstIn     => r.countReset,
-         rollOverEnIn => (others => '0'),
-         wrClk        => phyRxClk,
-         wrRst        => '0',           -- Don't clear counters on PHY RX reset
-         rdClk        => axilClk,
-         rdRst        => axilRst);
+      U_phyRxFecInjErr : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
+         port map (
+            clk     => phyRxClk,
+            dataIn  => r.phyRxFecInjErr,
+            dataOut => phyRxFecInjErr);
+
+      U_phyRxFecCnt : entity surf.SyncStatusVector
+         generic map (
+            TPD_G        => TPD_G,
+            RST_ASYNC_G  => RST_ASYNC_G,
+            COMMON_CLK_G => false,
+            CNT_WIDTH_G  => 16,
+            WIDTH_G      => FEC_CNT_SIZE_C)
+         port map (
+            statusIn(0)  => phyRxFecLock,
+            statusIn(1)  => phyRxFecCorInc,
+            statusIn(2)  => phyRxFecUnCorInc,
+            statusOut    => phyFec,
+            cntOut       => phyFecCnt,
+            cntRstIn     => r.countReset,
+            rollOverEnIn => (others => '0'),
+            wrClk        => phyRxClk,
+            wrRst        => '0',        -- Don't clear counters on PHY RX reset
+            rdClk        => axilClk,
+            rdRst        => axilRst);
+
+   end generate GEN_RX_FEC;
 
    ----------------------------------------------------------------------------------------------
    -- PGP TX SYNC
