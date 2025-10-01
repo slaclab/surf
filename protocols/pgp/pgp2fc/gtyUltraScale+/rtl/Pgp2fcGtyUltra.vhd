@@ -32,6 +32,7 @@ entity Pgp2fcGtyUltra is
       TPD_G               : time                 := 1 ns;
       SIMULATION_G        : boolean              := false;
       -- GT Settings
+      USE_2X_REFCLK_G     : boolean              := false;
       SEL_FABRIC_REFCLK_G : boolean              := false;
       -- PGP Settings
       FC_WORDS_G          : integer range 1 to 8 := 1;
@@ -46,7 +47,7 @@ entity Pgp2fcGtyUltra is
       NUM_VC_EN_G         : integer range 1 to 4 := 4);
    port (
       -- GT Clocking
-      stableClk         : in  sl;       -- GT needs a stable clock to "boot up"
+      stableClk         : in  sl;                       -- GT needs a stable clock to "boot up"
       stableRst         : in  sl;
       gtRefClk          : in  sl;
       gtFabricRefClk    : in  sl;
@@ -59,14 +60,14 @@ entity Pgp2fcGtyUltra is
       -- Tx Clocking
       pgpTxReset        : in  sl;
       pgpTxResetDone    : out sl;
-      pgpTxOutClk       : out sl;       -- recovered clock
+      pgpTxOutClk       : out sl;                       -- recovered clock
       pgpTxClk          : in  sl;
       pgpTxMmcmLocked   : in  sl;
       -- Rx clocking
       pgpRxReset        : in  sl;
       pgpRxResetDone    : out sl;
       pgpRxPmaResetDone : out sl;
-      pgpRxOutClk       : out sl;       -- recovered clock
+      pgpRxOutClk       : out sl;                       -- recovered clock
       pgpRxClk          : in  sl;
       pgpRxMmcmLocked   : in  sl;
       -- Non VC Rx Signals
@@ -120,9 +121,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetGt,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => resetGtSync);        -- [out]
+         arst   => pgpTxIn.resetGt,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => resetGtSync);                           -- [out]
 
    gtHardReset <= resetGtSync or stableRst;
 
@@ -140,9 +141,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpRxIn.resetRx,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => resetRxSync);        -- [out]
+         arst   => pgpRxIn.resetRx,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => resetRxSync);                           -- [out]
 
    gtRxUserReset <= phyRxInitSync or resetRxSync;
 
@@ -151,9 +152,9 @@ begin
          TPD_G      => TPD_G,
          DURATION_G => ite(SIMULATION_G, 9285, 92850000))  -- 100us in sim; 1s in silicon
       port map (
-         arst   => pgpTxIn.resetTx,     -- [in]
-         clk    => stableClk,           -- [in]
-         rstOut => gtTxUserReset);      -- [out]
+         arst   => pgpTxIn.resetTx,                        -- [in]
+         clk    => stableClk,                              -- [in]
+         rstOut => gtTxUserReset);                         -- [out]
 
    U_Pgp2fcLane : entity surf.Pgp2fcLane
       generic map (
@@ -192,6 +193,7 @@ begin
          TPD_G               => TPD_G,
          SIMULATION_G        => SIMULATION_G,
          SEL_FABRIC_REFCLK_G => SEL_FABRIC_REFCLK_G,
+         USE_2X_REFCLK_G     => USE_2X_REFCLK_G,
          AXI_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G     => AXI_BASE_ADDR_G)
       port map (

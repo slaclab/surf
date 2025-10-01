@@ -205,6 +205,8 @@ rule:
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
       - 'i2c_master_byte_ctrl'
+      - 'Pgp2fcGthCore_refclk2x'
+      - 'Pgp2fcGtyCore_refclk2x'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-012
   component_012:
@@ -702,6 +704,8 @@ rule:
       - 'mkAxiSTransportLayer'
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
+      - 'Pgp2fcGthCore_refclk2x'
+      - 'Pgp2fcGtyCore_refclk2x'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-010
   instantiation_010:
