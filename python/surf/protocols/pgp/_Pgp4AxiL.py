@@ -38,6 +38,15 @@ class Pgp4AxiLCtrl(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name      = 'PGP_FEC_ENABLE_G',
+            offset    = 0x004,
+            bitOffset = 1,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
             name      = 'NUM_VC_G',
             offset    = 0x004,
             bitOffset = 8,
@@ -118,6 +127,15 @@ class Pgp4AxiLCtrl(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name      = 'BypassFec',
+            offset    = 0x00C,
+            bitOffset = 7,
+            bitSize   = 1,
+            base      = pr.Bool,
+            mode      = mode,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'TxDiffCtrl',
             mode         = mode,
             offset       = 0x00C,
@@ -159,6 +177,15 @@ class Pgp4AxiLCtrl(pr.Device):
             mode      = mode,
         ))
 
+        if writeEn:
+            self.add(pr.RemoteCommand(
+                name         = 'FecInjectBitError',
+                offset       = 0x010,
+                bitSize      = 1,
+                bitOffset    = 0,
+                function     = lambda cmd: cmd.post(1),
+            ))
+
     def countReset(self):
         self.CountReset()
 
@@ -181,11 +208,12 @@ class Pgp4AxiLRxStatus(pr.Device):
                 pollInterval = 1,
                 **ecvkwargs))
 
-        def addErrorCountVar(**ecvkwargs):
+        def addErrorCountVar(bitOffset=0, bitSize=errorCountBits, **ecvkwargs):
             self.add(pr.RemoteVariable(
-                bitSize      = errorCountBits,
+                bitSize      = bitSize,
                 mode         = 'RO',
                 disp         = '{:d}',
+                bitOffset    = bitOffset,
                 pollInterval = 1,
                 **ecvkwargs))
 
@@ -230,6 +258,12 @@ class Pgp4AxiLRxStatus(pr.Device):
             ['CellEofeError',False],
         ]
 
+        fecList = [
+            ['phyRxFecLock',True],
+            ['phyRxFecCorInc',False],
+            ['phyRxFecUnCorInc',False],
+        ]
+
         for i in range(len(statusList)):
             addErrorCountVar(
                 name   = (statusList[i][0]+'Cnt'),
@@ -242,6 +276,26 @@ class Pgp4AxiLRxStatus(pr.Device):
                     name         = statusList[i][0],
                     offset       = (0x710-devOffset),
                     bitOffset    = i,
+                    bitSize      = 1,
+                    base         = pr.Bool,
+                    mode         = 'RO',
+                    pollInterval = 1,
+                ))
+
+        for i in range(len(fecList)):
+            addErrorCountVar(
+                name      = (fecList[i][0]+'Cnt'),
+                offset    = (0x600+(4*i)-devOffset),
+                bitOffset = 16,
+                bitSize   = 16,
+            )
+
+        for i in range(len(fecList)):
+            if fecList[i][1]:
+                self.add(pr.RemoteVariable(
+                    name         = fecList[i][0],
+                    offset       = (0x710-devOffset),
+                    bitOffset    = i+16,
                     bitSize      = 1,
                     base         = pr.Bool,
                     mode         = 'RO',

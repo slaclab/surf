@@ -146,8 +146,8 @@ architecture rtl of Pgp4GthUs is
    signal txPreCursor  : slv(4 downto 0);
    signal txPostCursor : slv(4 downto 0);
 
-   signal txPolarity   : sl;
-   signal rxPolarity   : sl;
+   signal txPolarity : sl;
+   signal rxPolarity : sl;
 
 begin
 
@@ -296,7 +296,7 @@ begin
          rxStartOfSeq    => phyRxStartSeq,                  -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
          rxOutClk        => open,       -- [out]
-         rxPolarity      => rxPolarity,                       -- [in]
+         rxPolarity      => rxPolarity,                     -- [in]
          txReset         => '0',        -- [in]
          txUsrClkActive  => open,       -- [out]
          txResetDone     => phyTxActive,                    -- [out]
@@ -306,7 +306,7 @@ begin
          txData          => phyTxData,  -- [in]
          txHeader        => phyTxHeader,                    -- [in]
          txOutClk        => open,       -- [out]
-         txPolarity      => txPolarity,                       -- [in]
+         txPolarity      => txPolarity,                     -- [in]
          loopback        => loopback,   -- [in]
          txDiffCtrl      => txDiffCtrl,                     -- [in]
          txPreCursor     => txPreCursor,                    -- [in]

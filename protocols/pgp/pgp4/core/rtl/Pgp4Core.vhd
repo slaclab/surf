@@ -27,6 +27,7 @@ entity Pgp4Core is
       TPD_G                       : time                  := 1 ns;
       RST_ASYNC_G                 : boolean               := false;
       NUM_VC_G                    : integer range 1 to 16 := 4;
+      PGP_FEC_ENABLE_G            : boolean               := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
@@ -60,6 +61,7 @@ entity Pgp4Core is
       phyTxStart  : out sl               := '0';
       phyTxData   : out slv(63 downto 0) := (others => '0');
       phyTxHeader : out slv(1 downto 0)  := (others => '0');
+      phyTxFecByp : out sl               := '1';
 
       -- Rx User interface
       pgpRxClk     : in  sl;
@@ -70,15 +72,20 @@ entity Pgp4Core is
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Rx PHY interface
-      phyRxClk      : in  sl;
-      phyRxRst      : in  sl;
-      phyRxInit     : out sl := '0';
-      phyRxActive   : in  sl;
-      phyRxValid    : in  sl;
-      phyRxHeader   : in  slv(1 downto 0);
-      phyRxData     : in  slv(63 downto 0);
-      phyRxStartSeq : in  sl;
-      phyRxSlip     : out sl := '0';
+      phyRxClk         : in  sl;
+      phyRxRst         : in  sl;
+      phyRxInit        : out sl := '0';
+      phyRxActive      : in  sl;
+      phyRxValid       : in  sl;
+      phyRxHeader      : in  slv(1 downto 0);
+      phyRxData        : in  slv(63 downto 0);
+      phyRxStartSeq    : in  sl;
+      phyRxSlip        : out sl := '0';
+      phyRxFecByp      : out sl := '1';
+      phyRxFecInjErr   : out sl := '0';
+      phyRxFecLock     : in  sl := '0';
+      phyRxFecCorInc   : in  sl := '0';
+      phyRxFecUnCorInc : in  sl := '0';
 
       -- Debug Interface
       loopback     : out slv(2 downto 0);
@@ -187,39 +194,61 @@ begin
             ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             TX_POLARITY_G      => TX_POLARITY_G,
             RX_POLARITY_G      => RX_POLARITY_G,
+            PGP_FEC_ENABLE_G   => PGP_FEC_ENABLE_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
-            pgpTxClk        => pgpTxClk,         -- [in]
-            pgpTxRst        => pgpTxRst,         -- [in]
-            pgpTxIn         => pgpTxInInt,       -- [out]
-            pgpTxOut        => pgpTxOutInt,      -- [in]
-            locTxIn         => pgpTxIn,          -- [in]
-            pgpRxClk        => pgpRxClk,         -- [in]
-            pgpRxRst        => pgpRxRst,         -- [in]
-            pgpRxIn         => pgpRxInInt,       -- [out]
-            pgpRxOut        => pgpRxOutInt,      -- [in]
-            locRxIn         => pgpRxIn,          -- [in]
-            txDiffCtrl      => txDiffCtrl,       -- [out]
-            txPreCursor     => txPreCursor,      -- [out]
-            txPostCursor    => txPostCursor,     -- [out]
-            txPolarity      => txPolarity,       -- [out]
-            rxPolarity      => rxPolarity,       -- [out]
-            axilClk         => axilClk,          -- [in]
-            axilRst         => axilRst,          -- [in]
-            axilReadMaster  => axilReadMaster,   -- [in]
-            axilReadSlave   => axilReadSlave,    -- [out]
-            axilWriteMaster => axilWriteMaster,  -- [in]
-            axilWriteSlave  => axilWriteSlave);  -- [out]
+            -- TX PGP Interface (pgpTxClk)
+            pgpTxClk         => pgpTxClk,          -- [in]
+            pgpTxRst         => pgpTxRst,          -- [in]
+            pgpTxIn          => pgpTxInInt,        -- [out]
+            pgpTxOut         => pgpTxOutInt,       -- [in]
+            locTxIn          => pgpTxIn,           -- [in]
+            phyTxFecByp      => phyTxFecByp,       -- [out]
+            -- RX PGP Interface (pgpRxClk)
+            pgpRxClk         => pgpRxClk,          -- [in]
+            pgpRxRst         => pgpRxRst,          -- [in]
+            pgpRxIn          => pgpRxInInt,        -- [out]
+            pgpRxOut         => pgpRxOutInt,       -- [in]
+            locRxIn          => pgpRxIn,           -- [in]
+            -- RX PHY Interface (pgpRxClk)
+            phyRxClk         => phyRxClk,          -- [in]
+            phyRxRst         => phyRxRst,          -- [in]
+            phyRxFecByp      => phyRxFecByp,       -- [out]
+            phyRxFecInjErr   => phyRxFecInjErr,    -- [out]
+            phyRxFecLock     => phyRxFecLock,      -- [in]
+            phyRxFecCorInc   => phyRxFecCorInc,    -- [in]
+            phyRxFecUnCorInc => phyRxFecUnCorInc,  -- [in]
+            -- Debug Interface (axilClk domain)
+            txDiffCtrl       => txDiffCtrl,        -- [out]
+            txPreCursor      => txPreCursor,       -- [out]
+            txPostCursor     => txPostCursor,      -- [out]
+            txPolarity       => txPolarity,        -- [out]
+            rxPolarity       => rxPolarity,        -- [out]
+            -- AXI-Lite Register Interface (axilClk domain)
+            axilClk          => axilClk,           -- [in]
+            axilRst          => axilRst,           -- [in]
+            axilReadMaster   => axilReadMaster,    -- [in]
+            axilReadSlave    => axilReadSlave,     -- [out]
+            axilWriteMaster  => axilWriteMaster,   -- [in]
+            axilWriteSlave   => axilWriteSlave);   -- [out]
    end generate GEN_PGP_MON;
 
    NO_PGP_MON : if (not EN_PGP_MON_G) generate
-      pgpTxInInt   <= pgpTxIn;
-      pgpRxInInt   <= pgpRxIn;
+
+      pgpTxInInt <= pgpTxIn;
+      pgpRxInInt <= pgpRxIn;
+
       txDiffCtrl   <= (others => '1');
       txPreCursor  <= "00111";
       txPostCursor <= "00111";
-      txPolarity   <= TX_POLARITY_G;
-      rxPolarity   <= RX_POLARITY_G;
+
+      txPolarity <= TX_POLARITY_G;
+      rxPolarity <= RX_POLARITY_G;
+
+      phyTxFecByp    <= '0' when PGP_FEC_ENABLE_G else '1';
+      phyRxFecByp    <= '0' when PGP_FEC_ENABLE_G else '1';
+      phyRxFecInjErr <= '0';
+
    end generate NO_PGP_MON;
 
    loopback <= pgpRxInInt.loopback;
