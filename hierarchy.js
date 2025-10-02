@@ -1368,6 +1368,7 @@ var hierarchy =
         [ "Pgp3Core", "classPgp3Core.html", null ],
         [ "Pgp3GtyUsIpWrapper", "classPgp3GtyUsIpWrapper.html", [
           [ "RstSync", "classRstSync.html", null ],
+          [ "Pgp4GtyUsIpFecWrapper", "classPgp4GtyUsIpFecWrapper.html", null ],
           [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
         ] ]
       ] ],
@@ -1415,23 +1416,29 @@ var hierarchy =
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "Pgp4Core", "classPgp4Core.html", [
+        [ "Pgp4Tx", "classPgp4Tx.html", [
+          [ "Synchronizer", "classSynchronizer.html", null ],
+          [ "SynchronizerVector", "classSynchronizerVector.html", null ],
+          [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
+          [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+          [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", null ],
+          [ "Pgp4TxProtocol", "classPgp4TxProtocol.html", null ],
+          [ "Scrambler", "classScrambler.html", null ]
+        ] ],
+        [ "Pgp4Rx", "classPgp4Rx.html", null ],
+        [ "Pgp4AxiL", "classPgp4AxiL.html", null ]
+      ] ],
+      [ "Pgp4GtyUsIpFecWrapper", "classPgp4GtyUsIpFecWrapper.html", null ],
+      [ "PgpRxVcFifo", "classPgpRxVcFifo.html", null ],
+      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "Pgp3GthUsQpll", "classPgp3GthUsQpll.html", null ],
       [ "Pgp4GthUs", "classPgp4GthUs.html", [
         [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
-        [ "Pgp4Core", "classPgp4Core.html", [
-          [ "Pgp4Tx", "classPgp4Tx.html", [
-            [ "Synchronizer", "classSynchronizer.html", null ],
-            [ "SynchronizerVector", "classSynchronizerVector.html", null ],
-            [ "SynchronizerOneShot", "classSynchronizerOneShot.html", null ],
-            [ "AxiStreamMux", "classAxiStreamMux.html", null ],
-            [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", null ],
-            [ "Pgp4TxProtocol", "classPgp4TxProtocol.html", null ],
-            [ "Scrambler", "classScrambler.html", null ]
-          ] ],
-          [ "Pgp4Rx", "classPgp4Rx.html", null ],
-          [ "Pgp4AxiL", "classPgp4AxiL.html", null ]
-        ] ],
+        [ "Pgp4Core", "classPgp4Core.html", null ],
         [ "Pgp3GthUsIpWrapper", "classPgp3GthUsIpWrapper.html", null ]
       ] ],
       [ "RoguePgp4Sim", "classRoguePgp4Sim.html", [

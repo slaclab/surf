@@ -1,11 +1,13 @@
 <map id="PgpRxVcFifo" name="PgpRxVcFifo">
 <area shape="rect" id="Node000001" title=" " alt="" coords="195,445,298,471"/>
-<area shape="rect" id="Node000020" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="63,519,187,544"/>
-<area shape="poly" id="edge30_Node000001_Node000020" title=" " alt="" coords="216,480,147,521,144,516,214,475"/>
-<area shape="rect" id="Node000021" href="$classPgp4Tb.html" title=" " alt="" coords="211,519,282,544"/>
-<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="249,484,249,519,244,519,244,484"/>
-<area shape="rect" id="Node000022" href="$classPgpXvcWrapper.html" title=" " alt="" coords="307,519,432,544"/>
-<area shape="poly" id="edge32_Node000001_Node000022" title=" " alt="" coords="279,475,351,516,348,521,277,480"/>
+<area shape="rect" id="Node000020" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="11,519,135,544"/>
+<area shape="poly" id="edge30_Node000001_Node000020" title=" " alt="" coords="207,478,103,521,101,516,205,473"/>
+<area shape="rect" id="Node000021" href="$classPgp4Tb.html" title=" " alt="" coords="159,519,230,544"/>
+<area shape="poly" id="edge31_Node000001_Node000021" title=" " alt="" coords="232,483,205,520,201,517,228,480"/>
+<area shape="rect" id="Node000022" href="$classPgp4FecTb.html" title=" " alt="" coords="254,519,346,544"/>
+<area shape="poly" id="edge32_Node000001_Node000022" title=" " alt="" coords="266,480,293,517,289,520,261,483"/>
+<area shape="rect" id="Node000023" href="$classPgpXvcWrapper.html" title=" " alt="" coords="371,519,496,544"/>
+<area shape="poly" id="edge33_Node000001_Node000023" title=" " alt="" coords="290,473,404,516,402,521,288,478"/>
 <area shape="rect" id="Node000002" href="$classRstPipeline.html" title=" " alt="" coords="131,372,226,397"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,405,238,443,234,447,197,409"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="251,372,381,397"/>

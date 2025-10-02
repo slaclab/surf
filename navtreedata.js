@@ -40,8 +40,8 @@ var NAVTREEINDEX =
 "classEncoder10b12b.html",
 "classHeartbeatTb_1_1testbed.html",
 "classPgp2fcLane.html",
-"classSaltRxDeser_1_1mapping.html",
-"classTenGigEthGthUltraScaleClk.html"
+"classSaltDelayCtrl.html",
+"classTenGigEthGth7Wrapper.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
