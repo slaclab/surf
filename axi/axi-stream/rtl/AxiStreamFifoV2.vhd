@@ -136,41 +136,41 @@ architecture rtl of AxiStreamFifoV2 is
    -- FIFO Signals
    ----------------
 
-   signal fifoWriteMaster : AxiStreamMasterType;
-   signal fifoWriteSlave  : AxiStreamSlaveType;
-   signal fifoReadMaster  : AxiStreamMasterType;
-   signal fifoReadSlave   : AxiStreamSlaveType;
-   signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoWrite       : sl;
-   signal fifoWriteLast   : sl;
+   signal fifoWriteMaster : AxiStreamMasterType                          := AXI_STREAM_MASTER_INIT_C;
+   signal fifoWriteSlave  : AxiStreamSlaveType                           := AXI_STREAM_SLAVE_INIT_C;
+   signal fifoReadMaster  : AxiStreamMasterType                          := AXI_STREAM_MASTER_INIT_C;
+   signal fifoReadSlave   : AxiStreamSlaveType                           := AXI_STREAM_SLAVE_INIT_C;
+   signal fifoDin         : slv(FIFO_BITS_C-1 downto 0)                  := (others => '0');
+   signal fifoWrite       : sl                                           := '0';
+   signal fifoWriteLast   : sl                                           := '0';
    signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others => '0');
-   signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal fifoAFull       : sl;
-   signal fifoReady       : sl;
-   signal fifoPFull       : sl;
-   signal fifoPFullVec    : slv(CASCADE_SIZE_G-1 downto 0);
-   signal fifoDout        : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoRead        : sl;
-   signal fifoReadLast    : sl;
-   signal fifoReadUser    : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
-   signal fifoValidInt    : sl;
-   signal fifoValid       : sl;
-   signal fifoValidLast   : sl;
-   signal fifoInFrame     : sl;
+   signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0)            := (others => '0');
+   signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0)            := (others => '0');
+   signal fifoAFull       : sl                                           := '0';
+   signal fifoReady       : sl                                           := '0';
+   signal fifoPFull       : sl                                           := '0';
+   signal fifoPFullVec    : slv(CASCADE_SIZE_G-1 downto 0)               := (others => '0');
+   signal fifoDout        : slv(FIFO_BITS_C-1 downto 0)                  := (others => '0');
+   signal fifoRead        : sl                                           := '0';
+   signal fifoReadLast    : sl                                           := '0';
+   signal fifoReadUser    : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others => '0');
+   signal fifoValidInt    : sl                                           := '0';
+   signal fifoValid       : sl                                           := '0';
+   signal fifoValidLast   : sl                                           := '0';
+   signal fifoInFrame     : sl                                           := '0';
 
-   signal burstEn    : sl;
-   signal burstLast  : sl;
+   signal burstEn    : sl                               := '0';
+   signal burstLast  : sl                               := '0';
    signal burstCnt   : natural range 0 to VALID_THOLD_G := 0;
-   signal firstCycle : sl;
+   signal firstCycle : sl                               := '0';
 
-   signal sideBand : Slv8Array(1 downto 0);
+   signal sideBand : Slv8Array(1 downto 0) := (others => (others => '0'));
 
    ---------------
    -- Sync Signals
    ---------------
-   signal axisMaster : AxiStreamMasterType;
-   signal axisSlave  : AxiStreamSlaveType;
+   signal axisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal axisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
