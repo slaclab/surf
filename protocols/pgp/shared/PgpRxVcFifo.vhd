@@ -54,10 +54,10 @@ end PgpRxVcFifo;
 
 architecture mapping of PgpRxVcFifo is
 
-   signal pgpMaster : AxiStreamMasterType;
+   signal pgpMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
-   signal axisReset : sl;
-   signal pgpReset  : sl;
+   signal axisReset : sl := '0';
+   signal pgpReset  : sl := '0';
 
 begin
 
