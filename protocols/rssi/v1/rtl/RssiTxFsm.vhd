@@ -102,7 +102,7 @@ entity RssiTxFsm is
       rdHeaderData_i : in  slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
       --
       headerRdy_i    : in  sl;
-      headerLength_i : in  positive;    -- Unconnected for now will be used when EACK
+      headerLength_i : in  positive;  -- Unconnected for now will be used when EACK
 
       -- Checksum control
       chksumValid_i  : in  sl;
@@ -124,6 +124,11 @@ entity RssiTxFsm is
       dataSt_o     : out sl;
       rstHeadSt_o  : out sl;
       nullHeadSt_o : out sl;
+
+      -- Debug
+      txTspState_o : out slv(7 downto 0);
+      txAppState_o : out slv(3 downto 0);
+      txAckState_o : out slv(3 downto 0);
 
       -- Last acked number (Used in Rx FSM to determine if AcnN is valid)
       lastAckN_o : out slv(7 downto 0);
@@ -214,7 +219,8 @@ architecture rtl of RssiTxFsm is
       ackErr      : sl;
 
       -- State Machine
-      ackState : AckStateType;
+      ackState   : AckStateType;
+      txAckState : slv(3 downto 0);
 
       -- Application side FSM
       -----------------------------------------
@@ -229,7 +235,8 @@ architecture rtl of RssiTxFsm is
       appSsiMaster : SsiMasterType;
       appSsiSlave  : SsiSlaveType;
 
-      appState : AppStateType;
+      appState   : AppStateType;
+      txAppState : slv(3 downto 0);
 
       -- Transport side FSM
       -----------------------------------------
@@ -268,7 +275,8 @@ architecture rtl of RssiTxFsm is
       tspSsiSlave  : SsiSlaveType;
 
       -- State Machine
-      tspState : tspStateType;
+      tspState   : tspStateType;
+      txTspState : slv(7 downto 0);
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -288,7 +296,8 @@ architecture rtl of RssiTxFsm is
       windowArray => (0 to 2 ** WINDOW_ADDR_SIZE_G-1 => WINDOW_INIT_C),
       ackErr      => '0',
 
-      ackState => IDLE_S,
+      ackState   => IDLE_S,
+      txAckState => (others => '0'),
 
       -- Application side FSM
       -----------------------------------------
@@ -303,7 +312,8 @@ architecture rtl of RssiTxFsm is
       appSsiMaster => SSI_MASTER_INIT_C,
       appSsiSlave  => SSI_SLAVE_NOTRDY_C,
 
-      appState => IDLE_S,
+      appState   => IDLE_S,
+      txAppState => (others => '0'),
 
       -- Transport side FSM
       -----------------------------------------
@@ -340,7 +350,8 @@ architecture rtl of RssiTxFsm is
       tspSsiSlave  => SSI_SLAVE_NOTRDY_C,
 
       -- State Machine
-      tspState => INIT_S
+      tspState   => INIT_S,
+      txTspState => (others => '0')
       );
 
    signal r                 : RegType := REG_INIT_C;
@@ -360,8 +371,11 @@ begin
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
 
    -----------------------------------------------------------------------------------------------
-   comb : process (r, rst_i, appSsiMaster_i, sndSyn_i, sndAck_i, connActive_i, closed_i, sndRst_i, initSeqN_i, windowSize_i, headerRdy_i, ack_i, ackN_i, bufferSize_i,
-                   sndResend_i, sndNull_i, tspSsiSlave_i, rdHeaderData_i, rdBuffData_i, s_headerAndChksum, chksumValid_i, headerLength_i, injectFault_i) is
+   comb : process (ackN_i, ack_i, appSsiMaster_i, bufferSize_i, chksumValid_i,
+                   closed_i, connActive_i, headerLength_i, headerRdy_i,
+                   initSeqN_i, injectFault_i, r, rdBuffData_i, rdHeaderData_i,
+                   rst_i, s_headerAndChksum, sndAck_i, sndNull_i, sndResend_i,
+                   sndRst_i, sndSyn_i, tspSsiSlave_i, windowSize_i) is
 
       variable v : RegType;
 
@@ -434,6 +448,7 @@ begin
       case r.ackState is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.txAckState := x"0";
 
             -- Hold ACK address
             v.firstUnackAddr := r.firstUnackAddr;
@@ -448,6 +463,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ACK_S =>
+            v.txAckState := x"1";
 
             -- If the same ackN received do nothing
             if (r.lastAckSeqN = ackN_i) then
@@ -488,6 +504,7 @@ begin
             end if;
             ----------------------------------------------------------------------
             -- when EACK_S =>
+            -- v.txAckState := x"2";
 
             -- -- Increment EACK address from firstUnackAddr to nextSentAddr
             -- if r.eackAddr < (windowSize_i-1) then
@@ -513,6 +530,8 @@ begin
          -- end if;
          ----------------------------------------------------------------------
          when ERR_S =>
+            v.txAckState := x"3";
+
             -- Outputs
             v.firstUnackAddr := r.firstUnackAddr;
             --v.eackAddr       := r.firstUnackAddr;
@@ -523,6 +542,8 @@ begin
             v.ackState := IDLE_S;
          ----------------------------------------------------------------------
          when others =>
+            v.txAckState := x"4";
+
             -- Outputs
             v.firstUnackAddr := r.firstUnackAddr;
             -- v.eackAddr       := r.firstUnackAddr;
@@ -546,6 +567,7 @@ begin
       case r.appState is
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.txAppState := x"0";
 
             -- Not ready for application data
             v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
@@ -566,6 +588,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when WAIT_SOF_S =>
+            v.txAppState := x"1";
 
             -- Not ready for application data
             v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
@@ -626,11 +649,12 @@ begin
 
                -- Blowing off the data
                else
-                  v.appDrop := '1'; -- Used in simulation and chipscope debugging
+                  v.appDrop := '1';  -- Used in simulation and chipscope debugging
                end if;
             end if;
          ----------------------------------------------------------------------
          when SEG_RCV_S =>
+            v.txAppState := x"2";
 
             -- SSI
             v.appSsiSlave  := SSI_SLAVE_RDY_C;
@@ -670,6 +694,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SEG_RDY_S =>
+            v.txAppState := x"3";
 
             -- SSI
             v.appSsiSlave := SSI_SLAVE_NOTRDY_C;
@@ -696,6 +721,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SEG_LEN_ERR =>
+            v.txAppState := x"4";
 
             -- SSI
             v.appSsiSlave          := SSI_SLAVE_NOTRDY_C;
@@ -773,6 +799,8 @@ begin
       case r.tspState is
          ----------------------------------------------------------------------
          when INIT_S =>
+            v.txTspState := x"00";
+
             -- Initialize all
             v := REG_INIT_C;
 
@@ -786,6 +814,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DISS_CONN_S =>
+            v.txTspState := x"01";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -824,6 +854,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when CONN_S =>
+            v.txTspState := x"02";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -870,6 +902,8 @@ begin
          -- SYN packet
          ----------------------------------------------------------------------
          when SYN_H_S =>
+            v.txTspState := x"03";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -932,6 +966,8 @@ begin
          -- ACK packet
          ----------------------------------------------------------------------
          when ACK_H_S =>
+            v.txTspState := x"04";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -987,6 +1023,8 @@ begin
          -- RST packet
          ----------------------------------------------------------------------
          when RST_WE_S =>
+            v.txTspState := x"05";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -1016,7 +1054,8 @@ begin
             v.tspState := RST_H_S;
          ----------------------------------------------------------------------
          when RST_H_S =>
-            --
+            v.txTspState := x"06";
+
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
 
@@ -1067,6 +1106,8 @@ begin
          -- NULL packet
          ----------------------------------------------------------------------
          when NULL_WE_S =>
+            v.txTspState := x"07";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -1097,6 +1138,8 @@ begin
             v.tspState := NULL_H_S;
          ----------------------------------------------------------------------
          when NULL_H_S =>
+            v.txTspState := x"08";
+
             -- Counters
             v.nextSeqN     := r.nextSeqN;
             v.seqN         := r.nextSeqN;
@@ -1149,6 +1192,8 @@ begin
          -- DATA packet
          ----------------------------------------------------------------------
          when DATA_WE_S =>
+            v.txTspState := x"09";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -1180,6 +1225,8 @@ begin
             v.tspState := DATA_H_S;
          ----------------------------------------------------------------------
          when DATA_H_S =>
+            v.txTspState := x"0A";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -1233,6 +1280,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
+            v.txTspState := x"0B";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;
             v.seqN     := r.nextSeqN;
@@ -1270,9 +1319,9 @@ begin
                v.tspSsiMaster.eofe                               := '0';
                v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
-               v.txSegmentAddr      := r.txSegmentAddr;
+               v.txSegmentAddr                                   := r.txSegmentAddr;
                --
-               v.tspState           := DATA_SENT_S;
+               v.tspState                                        := DATA_SENT_S;
 
             -- Increment segment address and assert valid only when not paused
             elsif (tspSsiSlave_i.pause = '0') then
@@ -1285,6 +1334,8 @@ begin
 
          -----------------------------------------------------------------------------
          when DATA_SENT_S =>
+            v.txTspState := x"0C";
+
             -- Outputs
             v.nextSeqN := r.nextSeqN+1;  -- Increment SEQ number at the end of segment transmission
             v.seqN     := r.nextSeqN+1;
@@ -1305,7 +1356,7 @@ begin
             --
             v.txRdy        := '0';
             v.buffWe       := '0';
-            v.buffSent     := '1';      -- Increment buffer last sent address(txBuffer)
+            v.buffSent     := '1';  -- Increment buffer last sent address(txBuffer)
 
             -- SSI master (Initialize - stop transmission)
             v.tspSsiMaster := SSI_MASTER_INIT_C;
@@ -1318,6 +1369,8 @@ begin
          -- Packets between r.firstUnackAddr and r.lastSentAddr
          ----------------------------------------------------------------------
          when RESEND_INIT_S =>
+            v.txTspState := x"0D";
+
             -- Start from first unack address
             v.txBufferAddr := r.firstUnackAddr;
 
@@ -1350,6 +1403,8 @@ begin
             v.tspState := RESEND_H_S;
          ----------------------------------------------------------------------
          when RESEND_H_S =>
+            v.txTspState := x"0E";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;   -- Never increment seqN while resending
             v.seqN     := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -1415,6 +1470,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when RESEND_DATA_S =>
+            v.txTspState := x"0F";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;   -- Never increment seqN while resending
             v.seqN     := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -1456,9 +1513,9 @@ begin
                v.tspSsiMaster.eofe                               := '0';
                v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
                --
-               v.txSegmentAddr      := r.txSegmentAddr;
+               v.txSegmentAddr                                   := r.txSegmentAddr;
                --
-               v.tspState           := RESEND_PP_S;
+               v.tspState                                        := RESEND_PP_S;
 
             -- Increment segment address only when Slave is ready
             elsif (tspSsiSlave_i.pause = '0') then
@@ -1470,6 +1527,8 @@ begin
             end if;
          ----------------------------------------------------------------------
          when RESEND_PP_S =>
+            v.txTspState := x"10";
+
             -- Counters
             v.nextSeqN := r.nextSeqN;   -- Never increment seqN while resending
             v.seqN     := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -1565,7 +1624,10 @@ begin
       tspSsiMaster_o <= r.tspSsiMaster;
 
       --
-      lastAckN_o <= r.lastAckSeqN;
+      lastAckN_o   <= r.lastAckSeqN;
+      txTspState_o <= r.txTspState;
+      txAppState_o <= r.txAppState;
+      txAckState_o <= r.txAckState;
    ---------------------------------------------------------------------
    end process comb;
 

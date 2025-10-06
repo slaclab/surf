@@ -1,5 +1,4 @@
 # Load RUCKUS library
-source -quiet $::env(RUCKUS_DIR)/vivado_proc.tcl
+source $::env(RUCKUS_PROC_TCL)
 
 loadRuckusTcl "$::DIR_PATH/v1"
-loadRuckusTcl "$::DIR_PATH/v1b"

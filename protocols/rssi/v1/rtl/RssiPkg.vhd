@@ -28,7 +28,7 @@ package RssiPkg is
    --------------------------------------------------------------------------
    -- Common constant definitions
    --------------------------------------------------------------------------
-   constant RSSI_WORD_WIDTH_C  : positive            := 8;  -- 64 bit word (FIXED)
+   constant RSSI_WORD_WIDTH_C  : positive := 8;  -- 64 bit word (FIXED)
    constant RSSI_AXIS_CONFIG_C : AxiStreamConfigType :=
       ssiAxiStreamConfig(
          dataBytes => RSSI_WORD_WIDTH_C,

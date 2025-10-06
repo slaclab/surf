@@ -26,36 +26,43 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamMux is
    generic (
-      TPD_G                : time                   := 1 ns;
-      PIPE_STAGES_G        : integer range 0 to 16  := 0;
-      NUM_SLAVES_G         : integer range 1 to 256 := 4;
+      TPD_G                : time                    := 1 ns;
+      RST_POLARITY_G       : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G          : boolean                 := false;
+      PIPE_STAGES_G        : integer range 0 to 16   := 0;
+      NUM_SLAVES_G         : integer range 1 to 256  := 4;
       -- In INDEXED mode, the output TDEST is set based on the selected slave index (default)
       -- In ROUTED mode, TDEST is set according to the TDEST_ROUTES_G table
       -- In PASSTHROUGH mode, TDEST is passed through from the slave untouched
-      MODE_G               : string                 := "INDEXED"; -- Note: Planning to rename "MODE_G" to "TDEST_MODE_G" in a future MAJOR release of SURF
+      MODE_G               : string                  := "INDEXED";  -- Note: Planning to rename "MODE_G" to "TDEST_MODE_G" in a future MAJOR release of SURF
       -- In ROUTED mode, an array mapping how TDEST should be assigned for each slave port
       -- Each TDEST bit can be set to '0', '1' or '-' for passthrough from slave TDEST.
-      TDEST_ROUTES_G       : Slv8Array              := (0 => "--------");
+      TDEST_ROUTES_G       : Slv8Array               := (0 => "--------");
       -- In INDEXED mode, the output TID is set based on the selected slave index
       -- In ROUTED mode, TID is set according to the TID_ROUTES_G table
       -- In PASSTHROUGH mode, TID is passed through from the slave untouched (default)
-      TID_MODE_G           : string                 := "PASSTHROUGH";
+      TID_MODE_G           : string                  := "PASSTHROUGH";
       -- In ROUTED mode, an array mapping how TID should be assigned for each slave port
-      TID_ROUTES_G         : Slv8Array              := (0 => "--------");
+      TID_ROUTES_G         : Slv8Array               := (0 => "--------");
+      -- Assign a priority for each input stream index.
+      -- Higher priority streams will be selected over those with lower priority of both are active.
+      -- Format is (index => priority)
+      -- Leave unchanged for equal priority round-robbin
+      PRIORITY_G           : IntegerArray            := (0 => 0);
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
-      TDEST_LOW_G          : integer range 0 to 7   := 0;
+      TDEST_LOW_G          : integer range 0 to 7    := 0;
       -- Set to true if interleaving dests
-      ILEAVE_EN_G          : boolean                := false;
+      ILEAVE_EN_G          : boolean                 := false;
       -- Rearbitrate when tValid drops on selected channel, ignored when ILEAVE_EN_G=false
-      ILEAVE_ON_NOTVALID_G : boolean                := false;
+      ILEAVE_ON_NOTVALID_G : boolean                 := false;
       -- Max number of transactions between arbitrations, 0 = unlimited, ignored when ILEAVE_EN_G=false
-      ILEAVE_REARB_G      : natural range 0 to 4095 := 0;
+      ILEAVE_REARB_G       : natural range 0 to 4095 := 0;
       -- One cycle gap in stream between during re-arbitration.
       -- Set true for better timing, false for higher throughput.
-      REARB_DELAY_G        : boolean                := true;
+      REARB_DELAY_G        : boolean                 := true;
       -- Block selected slave txns arriving on same cycle as rearbitrate or disableSel from going through,
       -- creating 1 cycle gap. This might be needed logically but decreases throughput.
-      FORCED_REARB_HOLD_G  : boolean                := false);
+      FORCED_REARB_HOLD_G  : boolean                 := false);
 
    port (
       -- Clock and reset
@@ -64,7 +71,7 @@ entity AxiStreamMux is
       -- Slaves
       disableSel   : in  slv(NUM_SLAVES_G-1 downto 0) := (others => '0');
       rearbitrate  : in  sl                           := '0';
-      ileaveRearb  : in slv(11 downto 0)              := toSlv(ILEAVE_REARB_G,12);
+      ileaveRearb  : in  slv(11 downto 0)             := toSlv(ILEAVE_REARB_G, 12);
       sAxisMasters : in  AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
       sAxisSlaves  : out AxiStreamSlaveArray(NUM_SLAVES_G-1 downto 0);
 
@@ -102,36 +109,36 @@ architecture rtl of AxiStreamMux is
    signal pipeAxisMaster  : AxiStreamMasterType;
    signal pipeAxisSlave   : AxiStreamSlaveType;
 
+   signal intDisableSel : slv(NUM_SLAVES_G-1 downto 0);
+
 begin
 
-   assert ( (MODE_G = "PASSTHROUGH") or (MODE_G = "INDEXED") or (MODE_G = "ROUTED") )
+   assert ((MODE_G = "PASSTHROUGH") or (MODE_G = "INDEXED") or (MODE_G = "ROUTED"))
       report "MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
-      severity error;
+      severity failure;
 
-   assert ( (MODE_G = "INDEXED") and (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G)) ) or (MODE_G /= "INDEXED")
+   assert ((MODE_G = "INDEXED") and (7 - TDEST_LOW_G + 1 >= log2(NUM_SLAVES_G))) or (MODE_G /= "INDEXED")
       report "In INDEXED mode, TDest range 7 downto " & integer'image(TDEST_LOW_G) &
       " is too small for NUM_SLAVES_G=" & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
-   assert ( (MODE_G = "ROUTED") and (TDEST_ROUTES_G'length = NUM_SLAVES_G) ) or (MODE_G /= "ROUTED")
+   assert ((MODE_G = "ROUTED") and (TDEST_ROUTES_G'length = NUM_SLAVES_G)) or (MODE_G /= "ROUTED")
       report "In ROUTED mode, length of TDEST_ROUTES_G: " & integer'image(TDEST_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
-   assert ( (TID_MODE_G = "PASSTHROUGH") or (TID_MODE_G = "INDEXED") or (TID_MODE_G = "ROUTED") )
+   assert ((TID_MODE_G = "PASSTHROUGH") or (TID_MODE_G = "INDEXED") or (TID_MODE_G = "ROUTED"))
       report "TID_MODE_G must be either [PASSTHROUGH,INDEXED,ROUTED]"
-      severity error;
+      severity failure;
 
-   assert ( (TID_MODE_G = "ROUTED") and (TID_ROUTES_G'length = NUM_SLAVES_G) ) or (TID_MODE_G /= "ROUTED")
+   assert ((TID_MODE_G = "ROUTED") and (TID_ROUTES_G'length = NUM_SLAVES_G)) or (TID_MODE_G /= "ROUTED")
       report "In ROUTED mode, length of TID_ROUTES_G: " & integer'image(TID_ROUTES_G'length) &
       " must equal NUM_SLAVES_G: " & integer'image(NUM_SLAVES_G)
-      severity error;
+      severity failure;
 
    -- Override TDESTS and TIDs according to the routing tables
    ROUTE_TABLE_REMAP : process (sAxisMasters) is
       variable tmp : AxiStreamMasterArray(NUM_SLAVES_G-1 downto 0);
-      variable i   : natural;
-      variable j   : natural;
    begin
       -- Latch the current value
       tmp := sAxisMasters;
@@ -171,11 +178,34 @@ begin
 
    end process;
 
-   comb : process (axisRst, disableSel, ileaveRearb, pipeAxisSlave, r, rearbitrate, sAxisMastersTmp) is
+   -- When in INDEXED priority mode, tvalid on a given slave side index disables selection
+   -- for all channels with higer index
+   PRIORITY_CONTROL : process (disableSel, sAxisMasters) is
+      variable tmp : slv(NUM_SLAVES_G-1 downto 0);
+   begin
+      tmp := disableSel;
+
+      for ch in NUM_SLAVES_G-1 downto 0 loop
+         if (sAxisMasters(ch).tValid = '1') then
+            if (ch < PRIORITY_G'length) then
+               for sel in PRIORITY_G'range loop
+                  if (PRIORITY_G(ch) > PRIORITY_G(sel)) then
+                     tmp(sel) := '1';
+                  end if;
+               end loop;
+            end if;
+         end if;
+      end loop;
+
+      intDisableSel <= tmp;
+
+   end process PRIORITY_CONTROL;
+
+   comb : process (axisRst, ileaveRearb, intDisableSel, pipeAxisSlave, r,
+                   rearbitrate, sAxisMastersTmp) is
       variable v        : RegType;
       variable requests : slv(ARB_BITS_C-1 downto 0);
       variable selData  : AxiStreamMasterType;
-      variable i        : natural;
    begin
       -- Latch the current value
       v := r;
@@ -223,7 +253,7 @@ begin
       -- Format requests
       requests := (others => '0');
       for i in 0 to (NUM_SLAVES_G-1) loop
-         requests(i) := sAxisMastersTmp(i).tValid and not disableSel(i);
+         requests(i) := sAxisMastersTmp(i).tValid and not intDisableSel(i);
       end loop;
 
       if (r.valid = '1') then
@@ -231,7 +261,7 @@ begin
          -- Also allow disableSel and rearbitrate to work at any time
          if (ILEAVE_EN_G) then
             if ((ILEAVE_ON_NOTVALID_G and selData.tValid = '0') or
-                (rearbitrate = '1' or disableSel(conv_integer(r.ackNum)) = '1')) then
+                (rearbitrate = '1' or intDisableSel(conv_integer(r.ackNum)) = '1')) then
                v.valid := '0';
             end if;
          end if;
@@ -261,7 +291,7 @@ begin
          end if;
       end if;
 
-      -- v.valid = 0 indicates rearbitration, so reset arbCnt
+      -- v.valid = 0 indicates re-arbitration, so reset arbCnt
       if (v.valid = '0') then
          v.arbCnt := (others => '0');
       end if;
@@ -276,7 +306,7 @@ begin
       sAxisSlaves <= v.slaves;
 
       -- Reset
-      if (axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -288,9 +318,11 @@ begin
 
    end process comb;
 
-   seq : process (axisClk) is
+   seq : process (axisClk, axisRst) is
    begin
-      if (rising_edge(axisClk)) then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -298,8 +330,10 @@ begin
    -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
