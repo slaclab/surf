@@ -253,6 +253,26 @@ class RssiCore(pr.Device):
         # ))
 
         self.add(pr.RemoteVariable(
+            name         = 'LocalBusy',
+            description  = 'Local Busy flag.  Asserts when AppFifoOut_INST FIFO has 1 or more SEGMENTs filled',
+            offset       = 0x40,
+            bitSize      = 1,
+            bitOffset    = 7,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RemoteBusy',
+            description  = 'Current status of the remote busy flag',
+            offset       = 0x40,
+            bitSize      = 1,
+            bitOffset    = 8,
+            mode         = 'RO',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = 'ValidCnt',
             description  = 'Number of valid segments [31:0]',
             offset       = 0x44,
@@ -329,6 +349,167 @@ class RssiCore(pr.Device):
             units        = 'B/s',
             offset       = 0x64,
             bitSize      = 64,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxTspState',
+            description  = 'TX Transport FSM state',
+            offset       = 0x6C,
+            bitSize      = 8,
+            bitOffset    = 0,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'INIT_S',
+                1: 'DISS_CONN_S',
+                2: 'CONN_S',
+                3: 'SYN_H_S',
+                4: 'ACK_H_S',
+                5: 'RST_WE_S',
+                6: 'RST_H_S',
+                7: 'NULL_WE_S',
+                8: 'NULL_H_S',
+                9: 'DATA_WE_S',
+                10: 'DATA_H_S',
+                11: 'DATA_S',
+                12: 'DATA_SENT_S',
+                13: 'RESEND_INIT_S',
+                14: 'RESEND_H_S',
+                15: 'RESEND_DATA_S',
+                16: 'RESEND_PP_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxAppState',
+            description  = 'TX Application FSM state',
+            offset       = 0x6C,
+            bitSize      = 4,
+            bitOffset    = 8,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'IDLE_S',
+                1: 'WAIT_SOF_S',
+                2: 'SEG_RCV_S',
+                3: 'SEG_RDY_S',
+                4: 'SEG_LEN_ERR',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxAckState',
+            description  = 'TX Acknowledge FSM state',
+            offset       = 0x6C,
+            bitSize      = 4,
+            bitOffset    = 12,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'IDLE_S',
+                1: 'ACK_S',
+                2: 'EACK_S',
+                3: 'ERR_S',
+                4: 'UNDEFINED',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxTspState',
+            description  = 'RX Transport FSM state',
+            offset       = 0x6C,
+            bitSize      = 4,
+            bitOffset    = 16,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'WAIT_SOF_S',
+                1: 'CHECK_S',
+                2: 'SYN_CHECK_S',
+                3: 'DATA_S',
+                4: 'VALID_S',
+                5: 'DROP_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxAppState',
+            description  = 'RX Application FSM state',
+            offset       = 0x6C,
+            bitSize      = 4,
+            bitOffset    = 20,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'CHECK_BUFFER_S',
+                1: 'DATA_S',
+                2: 'SENT_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'ConnState',
+            description  = 'Connection FSM state',
+            offset       = 0x6C,
+            bitSize      = 4,
+            bitOffset    = 24,
+            mode         = 'RO',
+            pollInterval = 1,
+            enum         = {
+                0: 'CLOSED_S',
+                1: 'SEND_SYN_S',
+                2: 'WAIT_SYN_S',
+                3: 'SEND_ACK_S',
+                4: 'LISTEN_S',
+                5: 'SEND_SYN_ACK_S',
+                6: 'WAIT_ACK_S',
+                7: 'OPEN_S',
+                8: 'SEND_RST_S',
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'TxLastAckN',
+            description  = 'Last acknowledged Sequence number connected to TX module',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 0,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxSeqN',
+            description  = 'Current received seqN',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 8,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxAckN',
+            description  = 'Current received ackN',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 16,
+            mode         = 'RO',
+            disp         = '{:d}',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'RxLastSeqN',
+            description  = 'Last seqN received and sent to application (this is the ackN transmitted)',
+            offset       = 0x70,
+            bitSize      = 8,
+            bitOffset    = 24,
             mode         = 'RO',
             disp         = '{:d}',
             pollInterval = 1,
