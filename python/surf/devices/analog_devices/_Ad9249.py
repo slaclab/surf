@@ -530,7 +530,7 @@ class Ad9249ReadoutGroup2(pr.Device):
                 mode = 'RO',
                 disp = '{:1.9f}',
                 variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>16, 14)/2**14,
                 units = 'V'))
 
         self.add(pr.RemoteCommand(
