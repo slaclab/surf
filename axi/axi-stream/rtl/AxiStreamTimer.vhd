@@ -71,10 +71,10 @@ architecture rtl of AxiStreamTimer is
       startEof    : Slv32Array(EVENT_NUM_G-1 downto 0);
       stopSof     : Slv32Array(EVENT_NUM_G-1 downto 0);
       stopEof     : Slv32Array(EVENT_NUM_G-1 downto 0);
-      startSofidx : integer range 0 to 6;
-      startEofidx : integer range 0 to 6;
-      stopSofidx  : integer range 0 to 6;
-      stopEofidx  : integer range 0 to 6;
+      startSofidx : integer range 0 to EVENT_NUM_G;
+      startEofidx : integer range 0 to EVENT_NUM_G;
+      stopSofidx  : integer range 0 to EVENT_NUM_G;
+      stopEofidx  : integer range 0 to EVENT_NUM_G;
       wasStartEof : sl;
       wasStopEof  : sl;
    end record;
