@@ -5,6 +5,7 @@ source $::env(RUCKUS_PROC_TCL)
 loadRuckusTcl "$::DIR_PATH/general"
 loadRuckusTcl "$::DIR_PATH/xadc"
 loadRuckusTcl "$::DIR_PATH/sem"
+loadSource -lib surf -dir  "$::DIR_PATH/dummy"
 
 # Get the family type
 set family [getFpgaArch]
