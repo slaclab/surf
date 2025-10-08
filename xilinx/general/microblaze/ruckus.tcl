@@ -27,4 +27,7 @@ if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
 
    }
 
+   # Do not include the microblaze in simulation by default
+   set_property USED_IN_SIMULATION 0 [get_files -all {MicroblazeBasicCore.bd}]
+
 }
