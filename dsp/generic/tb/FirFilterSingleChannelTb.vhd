@@ -26,7 +26,7 @@ architecture testbed of FirFilterSingleChannelTb is
    constant TPD_G : time := 1 ns;
 
    constant WIDTH_C    : positive := 12;
-   constant TAP_SIZE_C : positive := 101;
+   constant NUM_TAPS_C : positive := 101;
 
    ---------------------------------------------------------------
    -- Python Code to generate FIR taps for 1 MHz low pass filter
@@ -36,7 +36,7 @@ architecture testbed of FirFilterSingleChannelTb is
    --       taps[i] = floor(taps[i]*4096);
    --       print( f'{i} => {int(taps[i])},' )
    ---------------------------------------------------------------
-   constant COEFFICIENTS_C : IntegerArray(TAP_SIZE_C-1 downto 0) := (
+   constant COEFFICIENTS_C : IntegerArray(NUM_TAPS_C-1 downto 0) := (
       0   => 0,
       1   => 0,
       2   => 0,
@@ -169,8 +169,9 @@ begin
    U_Fir : entity surf.FirFilterSingleChannel
       generic map (
          TPD_G          => TPD_G,
-         TAP_SIZE_G     => TAP_SIZE_C,      -- Number of programmable taps
-         WIDTH_G        => WIDTH_C,         -- Number of bits per data word
+         NUM_TAPS_G     => NUM_TAPS_C,      -- Number of programmable taps
+         DATA_WIDTH_G   => WIDTH_C,         -- Number of bits per data word
+         COEFF_WIDTH_G  => WIDTH_C,         -- Number of bits per data word
          COEFFICIENTS_G => COEFFICIENTS_C)  -- Tap Coefficients Init Constants
       port map (
          -- Clock and Reset
