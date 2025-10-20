@@ -76,6 +76,8 @@ end HtspAxiL;
 
 architecture rtl of HtspAxiL is
 
+   constant TIMEOUT_1HZ_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0) - 1;
+
    constant RX_STATUS_CNT_SIZE_C : integer := 2;
    constant RX_ERROR_CNT_SIZE_C  : integer := 5;
 
@@ -84,6 +86,8 @@ architecture rtl of HtspAxiL is
 
    type RegType is record
       countReset     : sl;
+      upTimeCnt      : slv(31 downto 0);
+      timer          : natural range 0 to TIMEOUT_1HZ_C;
       rxFecUnCorCnt  : slv(31 downto 0);
       rxFecCorCnt    : slv(31 downto 0);
       broadcastMac   : slv(47 downto 0);
@@ -102,6 +106,8 @@ architecture rtl of HtspAxiL is
    end record RegType;
    constant REG_INIT_C : RegType := (
       countReset     => '0',
+      upTimeCnt      => (others => '0'),
+      timer          => 0,
       rxFecUnCorCnt  => (others => '0'),
       rxFecCorCnt    => (others => '0'),
       broadcastMac   => x"FF_FF_FF_FF_FF_FF",
@@ -298,6 +304,25 @@ begin
       v := r;
 
       ---------------------------------
+      -- Uptime counter
+      ---------------------------------
+
+      -- Check for timout
+      if r.timer = TIMEOUT_1HZ_C then
+
+         -- Reset the timer
+         v.timer := 0;
+
+         -- Increment the counter
+         v.upTimeCnt := r.upTimeCnt + 1;
+
+      else
+         -- Increment the timer
+         v.timer := r.timer + 1;
+
+      end if;
+
+      ---------------------------------
       -- Determine the transaction type
       ---------------------------------
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
@@ -312,6 +337,7 @@ begin
       axiSlaveRegisterR(axilEp, x"004", 16, toSlv(STATUS_CNT_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"004", 24, toSlv(ERROR_CNT_WIDTH_G, 8));
 
+      axiSlaveRegisterR(axilEp, x"00C", 0, r.upTimeCnt);
       axiSlaveRegisterR(axilEp, x"010", 0, freqMeasured);
 
       if (WRITE_EN_G) then
@@ -430,6 +456,7 @@ begin
       if (r.countReset = '1') then
          v.rxFecCorCnt   := (others => '0');
          v.rxFecUnCorCnt := (others => '0');
+         v.upTimeCnt     := (others => '0');
       end if;
 
       ----------------------------------------------------------------------------------------------
