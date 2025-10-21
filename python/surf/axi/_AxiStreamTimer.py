@@ -1,59 +1,52 @@
 import pyrogue as pr
 
 class AxiStreamTimer(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, NStreams=1, NEvents=1, **kwargs):
         super().__init__(**kwargs)
+
+        self.NStreams = NStreams
+        self.NEvents  = NEvents
 
         self.add(pr.RemoteVariable(
             name         = 'MeasureTime',
-            offset       = 0x100,
+            offset       = 0x000,
             bitSize      = 1,
             base         = pr.Bool,
-            mode         = 'WO',
+            mode         = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'EVENT_NUM_G',
-            offset       = 0x000,
+            name         = 'NumStreamsG',
+            offset       = 0x004,
             bitSize      = 32,
             mode         = 'RO',
             disp         = '{:d}',
         ))
 
-        # for evt_n in range(self.EVENT_NUM_G.get()):
-        for evt_n in range(7):
-            self.add(pr.RemoteVariable(
-                name         = f'StartSOF[{evt_n}]',
-                offset       = 0x004+0x004*evt_n,
-                bitSize      = 32,
-                mode         = 'RO',
-                units        = 'Clock Cycles',
-                disp         = '{:d}',
-            ))
+        self.add(pr.RemoteVariable(
+            name         = 'NumEventG',
+            offset       = 0x008,
+            bitSize      = 32,
+            mode         = 'RO',
+            disp         = '{:d}',
+        ))
 
-            self.add(pr.RemoteVariable(
-                name         = f'StartEOF[{evt_n}]',
-                offset       = 0x020+0x004*evt_n,
-                bitSize      = 32,
-                mode         = 'RO',
-                units        = 'Clock Cycles',
-                disp         = '{:d}',
-            ))
+        for ev in range(self.NEvents):
+            for ch in range(self.NStreams):
+                self.add(pr.RemoteVariable(
+                    name         = f'Channel{ch}SOF{ev}',
+                    offset       = 12+(ch*8)+(8*self.NStreams*ev),
+                    bitSize      = 32,
+                    mode         = 'RO',
+                    units        = 'Clock Cycles',
+                    disp         = '{:d}',
+                ))
 
-            self.add(pr.RemoteVariable(
-                name         = f'StopSOF[{evt_n}]',
-                offset       = 0x03c+0x004*evt_n,
-                bitSize      = 32,
-                mode         = 'RO',
-                units        = 'Clock Cycles',
-                disp         = '{:d}',
-            ))
-
-            self.add(pr.RemoteVariable(
-                name         = f'StopEOF[{evt_n}]',
-                offset       = 0x058+0x004*evt_n,
-                bitSize      = 32,
-                mode         = 'RO',
-                units        = 'Clock Cycles',
-                disp         = '{:d}',
-            ))
+                self.add(pr.RemoteVariable(
+                    name         = f'Channel{ch}EOF{ev}',
+                    offset       = 16+(ch*8)+(8*self.NStreams*ev),
+                    bitSize      = 32,
+                    mode         = 'RO',
+                    units        = 'Clock Cycles',
+                    disp         = '{:d}',
+                ))
