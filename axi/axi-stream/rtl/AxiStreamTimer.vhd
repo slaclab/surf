@@ -25,20 +25,18 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamTimer is
    generic (
-      TPD_G             : time                 := 1 ns;
-      EVENT_NUM_G       : integer range 1 to 7 := 1
+      TPD_G             : time                  := 1 ns;
+      NUM_STREAMS_G     : integer range 1 to 8  := 1;
+      NUM_EVENT_G       : integer range 1 to 16 := 1
    );
    port (
-        -- AXI-Stream interfaces
-      axisClk           : in sl;
-      axisRst           : in sl;
-      startStreamMaster : in AxiStreamMasterType;
-      startStreamSlave  : in AxiStreamSlaveType;
-      stopStreamMaster  : in AxiStreamMasterType;
-      stopStreamSlave   : in AxiStreamSlaveType;
+      -- AXI-Stream interfaces
+      axisClk         : in sl;
+      axisRst         : in sl;
+      streamMasters   : in AxiStreamMasterArray(NUM_STREAMS_G-1 downto 0);
+      streamSlaves    : in AxiStreamSlaveArray(NUM_STREAMS_G-1 downto 0);
 
-
-        -- AXI-Lite Interface
+      -- AXI-Lite Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -56,173 +54,165 @@ architecture rtl of AxiStreamTimer is
    signal axilWriteIntMaster : AxiLiteWriteMasterType;
    signal axilWriteIntSlave  : AxiLiteWriteSlaveType;
 
-   constant READ_REGISTER_NUM_C : integer := 4*EVENT_NUM_G+1;
-
-   signal writeRegister  : Slv32Array(0           downto 0);
-   signal readRegister   : Slv32Array(READ_REGISTER_NUM_C-1 downto 0) := (others => (others => '0'));
-
    type StateType is (
       IDLE_S,
       RUNNING_S,
       DONE_S);
 
-   type EventType is record
-      startSof    : Slv32Array(EVENT_NUM_G-1 downto 0);
-      startEof    : Slv32Array(EVENT_NUM_G-1 downto 0);
-      stopSof     : Slv32Array(EVENT_NUM_G-1 downto 0);
-      stopEof     : Slv32Array(EVENT_NUM_G-1 downto 0);
-      startSofidx : integer range 0 to EVENT_NUM_G;
-      startEofidx : integer range 0 to EVENT_NUM_G;
-      stopSofidx  : integer range 0 to EVENT_NUM_G;
-      stopEofidx  : integer range 0 to EVENT_NUM_G;
-      wasStartEof : sl;
-      wasStopEof  : sl;
+   type ChannelStateType is record
+      timeSof : Slv32Array(NUM_EVENT_G-1 downto 0);
+      timeEof : Slv32Array(NUM_EVENT_G-1 downto 0);
+      sofIdx  : integer range 0 to NUM_EVENT_G;
+      eofIdx  : integer range 0 to NUM_EVENT_G;
+      wasEof  : sl;
    end record;
 
-   constant EVENT_INIT_C : EventType := (
-        startSof     => (others => (others => '0')),
-        startEof     => (others => (others => '0')),
-        stopSof      => (others => (others => '0')),
-        stopEof      => (others => (others => '0')),
-        startSofidx  => 0,
-        startEofidx  => 0,
-        stopSofidx   => 0,
-        stopEofidx   => 0,
-        wasStartEof  => '1',
-        wasStopEof   => '1');
+   constant CHANNEL_STATE_INIT_C : ChannelStateType := (
+      timeSof => (others => (others => '0')),
+      timeEof => (others => (others => '0')),
+      sofIdx  => 0,
+      eofIdx  => 0,
+      wasEof  => '1');
+
+   type ChannelStateArray is array (natural range <>) of ChannelStateType;
 
    type RegType is record
-      timer      : slv(31 downto 0);
-      state      : StateType;
-      eventTimes : EventType;
+      timer          : slv(31 downto 0);
+      state          : StateType;
+      channels       : ChannelStateArray(NUM_STREAMS_G-1 downto 0);
+      axilReadSlave  : AxiLiteReadSlaveType;
+      axilWriteSlave : AxiLiteWriteSlaveType;
+      runCmd         : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-        timer => (others => '0'),
-        state => IDLE_S,
-        eventTimes => EVENT_INIT_C);
+      timer          => (others => '0'),
+      state          => IDLE_S,
+      channels       => (others => CHANNEL_STATE_INIT_C),
+      axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
+      axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
+      runCmd         => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   -- Procedure used to monitor a single channel
+   procedure monitorChannel(
+      timer      : slv(31 downto 0);
+      axisMaster : in AxiStreamMasterType;
+      axisSlave  : in AxiStreamSlaveType;
+      channel    : in ChannelStateType;
+      variable vchannel   : inout ChannelStateType;
+      variable notDoneSof : inout sl;
+      variable notDoneEof : inout sl)
+   is
+      variable handshake  : sl;
+      variable hasSof     : sl;
+      variable hasEof     : sl;
+   begin
+      -- Find handshake
+      handshake := axisMaster.tValid and axisSlave.tReady;
+
+      -- Detect events
+      hasSof := handshake and channel.wasEof;
+      hasEof := handshake and axisMaster.tLast;
+
+      -- Update future handshakes
+      if handshake = '1' then
+         vchannel.wasEof := axisMaster.tLast;
+      end if;
+
+      -- Check if we are done with listening for events
+      if channel.sofIdx /= NUM_EVENT_G then
+         notDoneSof := '1';
+      else
+         notDoneSof := '0';
+      end if;
+
+      if channel.eofIdx /= NUM_EVENT_G then
+         notDoneEof := '1';
+      else
+         notDoneEof := '0';
+      end if;
+
+      if (hasSof = '1' and notDoneSof = '1') then
+         vchannel.timeSof(channel.sofIdx) := timer;
+         vchannel.sofIdx := channel.sofIdx + 1;
+      end if;
+
+      if (hasEof = '1' and notDoneEof = '1') then
+         vchannel.timeEof(channel.eofIdx) := timer;
+         vchannel.eofIdx := channel.eofIdx + 1;
+      end if;
+   end procedure;
+
 begin
 
-   comb : process (startStreamMaster, startStreamSlave, stopStreamMaster, stopStreamSlave, writeRegister, axisRst, r) is
-      variable v               : RegType;
-      variable handshakeStart  : sl;
-      variable handshakeStop   : sl;
-      variable hasStartSof     : sl;
-      variable hasStartEof     : sl;
-      variable hasStopSof      : sl;
-      variable hasStopEof      : sl;
-      variable notDoneStartSof : sl;
-      variable notDoneStartEof : sl;
-      variable notDoneStopSof  : sl;
-      variable notDoneStopEof  : sl;
+   comb : process (streamMasters, streamSlaves, axisRst, r, axilWriteIntMaster, axilReadIntMaster) is
+      variable v           : RegType;
+      variable notDoneSofs : slv(NUM_STREAMS_G-1 downto 0);
+      variable notDoneEofs : slv(NUM_STREAMS_G-1 downto 0);
+      variable axilEp      : AxiLiteEndPointType;
    begin
-        -- Latch current value
-        v := r;
+      -- Latch current value
+      v := r;
 
-        -- Find handshakes
-        handshakeStart := startStreamMaster.tValid and startStreamSlave.tReady;
-        handshakeStop  := stopStreamMaster.tValid  and stopStreamSlave.tReady;
-
-        -- Detect events
-        hasStartSof := handshakeStart and r.eventTimes.wasStartEof;
-        hasStartEof := handshakeStart and startStreamMaster.tLast;
-        hasStopSof  := handshakeStop  and r.eventTimes.wasStopEof;
-        hasStopEof  := handshakeStop  and stopStreamMaster.tLast;
-
-        -- Update future handshakes
-      if handshakeStart = '1' then
-            v.eventTimes.wasStartEof := startStreamMaster.tLast;
-      end if;
-      if handshakeStop = '1' then
-            v.eventTimes.wasStopEof  := stopStreamMaster.tLast;
-      end if;
-
-        -- Check if we are done with listening for events
-      if r.eventTimes.startSofidx /= EVENT_NUM_G then
-            notDoneStartSof := '1';
-      else
-            notDoneStartSof := '0';
-      end if;
-
-      if r.eventTimes.startEofidx /= EVENT_NUM_G then
-            notDoneStartEof := '1';
-      else
-            notDoneStartEof := '0';
-      end if;
-
-      if r.eventTimes.stopSofidx  /= EVENT_NUM_G then
-            notDoneStopSof  := '1';
-      else
-            notDoneStopSof  := '0';
-      end if;
-
-      if r.eventTimes.stopEofidx  /= EVENT_NUM_G then
-            notDoneStopEof  := '1';
-      else
-            notDoneStopEof  := '0';
-      end if;
-
-        -- State machine
+      -- State machine
       case (r.state) is
          when IDLE_S =>
-            if (writeRegister(0)(0) = '1') then
-                    v.state := RUNNING_S;
-                    v.timer := (others => '0');
-                    v.eventTimes := EVENT_INIT_C;
+            if (r.runCmd = '1') then
+               v.state    := RUNNING_S;
+               v.timer    := (others => '0');
+               v.channels := (others => CHANNEL_STATE_INIT_C);
             end if;
          when RUNNING_S =>
-                -- Increment timer
-                v.timer := r.timer + 1;
+            -- Increment timer
+            v.timer := r.timer + 1;
 
-                -- Listen for events
-            if (hasStartSof = '1' and notDoneStartSof = '1') then
-                    v.eventTimes.startSof(r.eventTimes.startSofidx) := v.timer;
-                    v.eventTimes.startSofidx := r.eventTimes.startSofidx + 1;
-            end if;
-            if (hasStartEof = '1' and notDoneStartEof = '1') then
-                    v.eventTimes.startEof(r.eventTimes.startEofidx) := v.timer;
-                    v.eventTimes.startEofidx := r.eventTimes.startEofidx + 1;
-            end if;
-            if (hasStopSof = '1' and notDoneStopSof = '1') then
-                    v.eventTimes.stopSof(r.eventTimes.stopSofidx) := v.timer;
-                    v.eventTimes.stopSofidx := r.eventTimes.stopSofidx + 1;
-            end if;
-            if (hasStopEof = '1' and notDoneStopEof = '1') then
-                    v.eventTimes.stopEof(r.eventTimes.stopEofidx) := v.timer;
-                    v.eventTimes.stopEofidx := r.eventTimes.stopEofidx + 1;
-            end if;
+            -- Create monitor all streams
+            for ch in NUM_STREAMS_G-1 downto 0  loop
+               monitorChannel(r.timer, streamMasters(ch), streamSlaves(ch), r.channels(ch), v.channels(ch), notDoneSofs(ch), notDoneEofs(ch)); 
+            end loop;
 
-                -- Check DONE conditions
-            if ((notDoneStartSof or notDoneStartEof or notDoneStopSof or notDoneStopEof) = '0') then
-                    v.state := DONE_S;
+            -- Check DONE conditions
+            if ((uOr(notDoneSofs) or uOr(notDoneEofs)) = '0') then
+               v.state := DONE_S;
             end if;
 
          when DONE_S =>
-            if (writeRegister(0)(0) = '0') then
-                    v := REG_INIT_C;
+            if (r.runCmd = '0') then
+               v := REG_INIT_C;
             end if;
          when others =>
-                v := REG_INIT_C;
+            v := REG_INIT_C;
       end case;
 
-        -- Reset logic
+      -- Axi Lite registers
+      axiSlaveWaitTxn(axilEp, axilWriteIntMaster, axilReadIntMaster, v.axilWriteSlave, v.axilReadSlave);
+      axiSlaveRegister(axilEp, toSlv(0, 11), 0, v.runCmd);
+      axiSlaveRegisterR(axilEp, toSlv(4, 11), 0, toSlv(NUM_STREAMS_G, 32));
+      axiSlaveRegisterR(axilEp, toSlv(8, 11), 0, toSlv(NUM_EVENT_G, 32));
+
+      for ev in NUM_EVENT_G-1 downto 0 loop
+         for ch in NUM_STREAMS_G-1 downto 0 loop
+            axiSlaveRegisterR(axilEp, toSlv(12+(ch*8)+(8*NUM_STREAMS_G*ev), 11), 0, r.channels(ch).timeSof(ev));
+            axiSlaveRegisterR(axilEp, toSlv(16+(ch*8)+(8*NUM_STREAMS_G*ev), 11), 0, r.channels(ch).timeEof(ev));
+         end loop;
+      end loop;
+
+      axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      -- Reset logic
       if (axisRst = '1') then
-            v := REG_INIT_C;
+         v := REG_INIT_C;
       end if;
 
-        -- Register the variable for next clock cycle
+      -- Register the variable for next clock cycle
       rin <= v;
 
-        -- Send outputs to regs
-      readRegister(0) <= std_logic_vector(to_unsigned(EVENT_NUM_G, readRegister(0)'length));
-      readRegister(EVENT_NUM_G    downto  1) <= r.eventTimes.startSof;
-      readRegister(EVENT_NUM_G+ 7 downto  8) <= r.eventTimes.startEof;
-      readRegister(EVENT_NUM_G+14 downto 15) <= r.eventTimes.stopSof;
-      readRegister(EVENT_NUM_G+21 downto 22) <= r.eventTimes.stopEof;
+      -- Write outputs
+      axilReadIntSlave  <= r.axilReadSlave;
+      axilWriteIntSlave <= r.axilWriteSlave;
    end process comb;
 
    seq : process (axisClk) is
@@ -232,23 +222,7 @@ begin
       end if;
    end process seq;
 
-    -- Get registers to/from AXI Lite
-   U_AXIL_REGS : entity surf.AxiLiteRegs
-      generic map(
-         TPD_G => TPD_G,
-         NUM_WRITE_REG_G => 1,
-         NUM_READ_REG_G  => READ_REGISTER_NUM_C)
-      port map(
-         axiClk        => axisClk,
-         axiClkRst     => axisRst,
-         axiReadMaster  => axilReadIntMaster,
-         axiReadSlave   => axilReadIntSlave,
-         axiWriteMaster => axilWriteIntMaster,
-         axiWriteSlave  => axilWriteIntSlave,
-         writeRegister  => writeRegister,
-         readRegister   => readRegister);
-
-    -- Synch AXI Lite with axisClk
+   -- Synch AXI Lite with axisClk
    U_AXIL_CDC : entity surf.AxiLiteAsync
       generic map(
          TPD_G => TPD_G)
