@@ -170,8 +170,8 @@ begin
             v.timer := r.timer + 1;
 
             -- Create monitor all streams
-            for ch in NUM_STREAMS_G-1 downto 0  loop
-               monitorChannel(r.timer, streamMasters(ch), streamSlaves(ch), r.channels(ch), v.channels(ch), notDoneSofs(ch), notDoneEofs(ch)); 
+            for ch in NUM_STREAMS_G-1 downto 0 loop
+               monitorChannel(r.timer, streamMasters(ch), streamSlaves(ch), r.channels(ch), v.channels(ch), notDoneSofs(ch), notDoneEofs(ch));
             end loop;
 
             -- Check DONE conditions
