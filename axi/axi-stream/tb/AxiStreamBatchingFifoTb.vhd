@@ -32,10 +32,10 @@ entity AxiStreamBatchingFifoTb is
       s_axis_tlast  : in  sl;
       s_axis_tready : out sl;
 
-      s_axil_ARADDR  : in  std_logic_vector(10 downto 0);
+      s_axil_ARADDR  : in  std_logic_vector(3 downto 0);
       s_axil_ARREADY : out std_logic;
       s_axil_ARVALID : in  std_logic;
-      s_axil_AWADDR  : in  std_logic_vector(10 downto 0);
+      s_axil_AWADDR  : in  std_logic_vector(3 downto 0);
       s_axil_AWREADY : out std_logic;
       s_axil_AWVALID : in  std_logic;
       s_axil_BREADY  : in  std_logic;
@@ -121,13 +121,13 @@ begin
    fromFifoSlave.tReady <= '1';
 
     -- Map AXI LITE
-   sAxilWriteMaster.awaddr(10 downto 0) <= s_axil_AWADDR;
+   sAxilWriteMaster.awaddr(3 downto 0)  <= s_axil_AWADDR;
    sAxilWriteMaster.awvalid             <= s_axil_AWVALID;
    sAxilWriteMaster.wdata               <= s_axil_WDATA;
    sAxilWriteMaster.wstrb               <= s_axil_WSTRB;
    sAxilWriteMaster.wvalid              <= s_axil_WVALID;
    sAxilWriteMaster.bready              <= s_axil_BREADY;
-   sAxilReadMaster.araddr(10 downto 0)  <= s_axil_ARADDR;
+   sAxilReadMaster.araddr(3 downto 0)   <= s_axil_ARADDR;
    sAxilReadMaster.arvalid              <= s_axil_ARVALID;
    sAxilReadMaster.rready               <= s_axil_RREADY;
    s_axil_ARREADY                       <= sAxilReadSlave.arready;

@@ -41,7 +41,7 @@ async def dut_tb(dut):
         await Timer(40, "ns")
 
         # Write frame number
-        await program.write(0x100, (number_of_frames+i*2).to_bytes(4, "little"))
+        await program.write(0x0, (number_of_frames+i*2).to_bytes(4, "little"))
         await Timer(40, "ns")
 
         # Read data back
@@ -107,5 +107,5 @@ def test_AxiStreamBatchingFifoTb(parameters):
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
         ########################################################################
-        # sim_args =[f'--wave={tests_module}.ghw'],
+        sim_args =[f'--wave={tests_module}.ghw'],
     )

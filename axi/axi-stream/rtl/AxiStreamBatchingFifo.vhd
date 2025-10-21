@@ -56,8 +56,8 @@ end AxiStreamBatchingFifo;
 
 architecture rtl of AxiStreamBatchingFifo is
 
-   signal BatchSizeAxiL   : slv(31 downto 0);
-   signal BatchSize       : slv(31 downto 0);
+   signal batchSizeAxiL   : slv(31 downto 0);
+   signal batchSize       : slv(31 downto 0);
 
    signal axisMasterSync : AxiStreamMasterType;
    signal axisSlaveSync  : AxiStreamSlaveType;
@@ -72,13 +72,21 @@ architecture rtl of AxiStreamBatchingFifo is
    end record;
 
    constant REG_INIT_C : RegType := (
-        frameBatched => (others => '0'),
-        frameToSend  => (others => '0'),
-        sending      => '0'
+      frameBatched => (others => '0'),
+      frameToSend  => (others => '0'),
+      sending      => '0'
     );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal rAxilWriteSlave   : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal rAxilReadSlave    : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+   signal rinAxilWriteSlave : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal rinAxilReadSlave  : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+
+   signal combAxisMaster : AxiStreamMasterType;
+   signal combAxisSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -86,19 +94,49 @@ begin
     ------- CONTROL  INTERFACE -------
     ----------------------------------
 
-   U_Control_AxiL : entity surf.AxiLiteRegs
-      generic map(
-         TPD_G           => TPD_G,
-         INI_WRITE_REG_G => (0 => x"0000_0001"))
-      port map(
-         axiClk           => axilClk,
-         axiClkRst        => axilRst,
-         axiReadMaster    => sAxilReadMaster,
-         axiReadSlave     => sAxilReadSlave,
-         axiWriteMaster   => sAxilWriteMaster,
-         axiWriteSlave    => sAxilWriteSlave,
-         writeRegister(0) => BatchSizeAxiL,
-         readRegister(0)  => BatchSizeAxiL);
+   comb_axil : process (sAxilReadMaster, sAxilWriteMaster, axilRst, rAxilWriteSlave, rAxilReadSlave) is
+      variable vAxilWriteSlave : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
+      variable vAxilReadSlave  : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+      variable regCon          : AxiLiteEndPointType;
+      variable vBatchSize      : slv(31 downto 0);
+   begin
+
+      -- Latch input values
+      vAxilWriteSlave := rAxilWriteSlave;
+      vAxilReadSlave  := rAxilReadSlave;
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, vAxilWriteSlave, vAxilReadSlave);
+
+      -- Read batch size
+      axiSlaveRegister(regCon, "0000", 0, vBatchSize); -- 2-bit wide because only one reg
+
+      -- Closeout the transaction
+      axiSlaveDefault(regCon, vAxilWriteSlave, vAxilReadSlave, AXI_RESP_DECERR_C);
+
+      -- Synchronous reset
+      if (axilRst = '1') then
+         vAxilWriteSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
+         vAxilReadSlave  := AXI_LITE_READ_SLAVE_INIT_C;
+      end if;
+
+      -- Combinatory output
+      rinAxilReadSlave  <= vAxilReadSlave;
+      rinAxilWriteSlave <= vAxilWriteSlave;
+      batchSizeAxiL     <= vBatchSize;
+
+      -- Outputs
+      sAxilReadSlave  <= rAxilReadSlave;
+      sAxilWriteSlave <= rAxilWriteSlave;
+   end process comb_axil;
+
+   seq_axil : process (axilClk) is
+   begin
+      if rising_edge(axilClk) then
+         rAxilReadSlave  <= rinAxilReadSlave  after TPD_G;
+         rAxilWriteSlave <= rinAxilWriteSlave after TPD_G;
+      end if;
+   end process seq_axil;
 
     ----------------------------------
     ----- END CONTROL  INTERFACE -----
@@ -130,16 +168,16 @@ begin
          mAxisMaster => axisMasterSync,
          mAxisSlave  => axisSlaveSync );
 
-   U_BatchSize_CDC : entity surf.SynchronizerVector
+   U_BatchSize_CDC : entity surf.SynchronizerFifo
       generic map(
-         TPD_G    => TPD_G,
-         STAGES_G => 3,
-         INIT_G   => x"0000_0001",
-         WIDTH_G  => 32)
+         TPD_G        => TPD_G,
+         DATA_WIDTH_G => 32,
+         INIT_G       => x"0000_0001")
       port map(
-         clk     => mAxisClk,
-         dataIn  => BatchSizeAxiL,
-         dataOut => BatchSize    );
+         wr_clk  => axilClk,
+         din     => batchSizeAxiL,
+         rd_clk  => mAxisClk,
+         dout    => batchSize);
 
     ----------------------------------
     --- END CLOCK DOMAIN CROSSINGS ---
@@ -176,49 +214,49 @@ begin
 
     -- These signals are not responsible for hanshakes and can
     -- just be forwarded
-   mAxisMaster.tData <= axisMasterFifo.tData;
-   mAxisMaster.tStrb <= axisMasterFifo.tStrb;
-   mAxisMaster.tKeep <= axisMasterFifo.tKeep;
-   mAxisMaster.tLast <= axisMasterFifo.tLast;
-   mAxisMaster.tDest <= axisMasterFifo.tDest;
-   mAxisMaster.tId   <= axisMasterFifo.tId;
-   mAxisMaster.tUser <= axisMasterFifo.tUser;
+   combAxisMaster.tData <= axisMasterFifo.tData;
+   combAxisMaster.tStrb <= axisMasterFifo.tStrb;
+   combAxisMaster.tKeep <= axisMasterFifo.tKeep;
+   combAxisMaster.tLast <= axisMasterFifo.tLast;
+   combAxisMaster.tDest <= axisMasterFifo.tDest;
+   combAxisMaster.tId   <= axisMasterFifo.tId;
+   combAxisMaster.tUser <= axisMasterFifo.tUser;
 
-   comb : process (r, axisMasterFifo, axisSlaveFifo, axisMasterSync, axisSlaveSync, BatchSize, mAxisSlave) is
+   comb : process (r, axisMasterFifo, axisSlaveFifo, axisMasterSync, axisSlaveSync, batchSize, combAxisSlave) is
       variable v               : RegType;
       variable isAcceptedFrame : sl;
       variable isOutputFrame   : sl;
    begin
-        -- Latch current state
-        v := r;
+      -- Latch current state
+      v := r;
 
-        -- Check if there is a frame accepted
-        isAcceptedFrame := axisMasterSync.tValid and axisMasterSync.tLast and axisSlaveSync.tReady;
-        isOutputFrame   := r.sending and axisMasterFifo.tValid and axisMasterFifo.tLast and axisSlaveFifo.tReady;
+      -- Check if there is a frame accepted
+      isAcceptedFrame := axisMasterSync.tValid and axisMasterSync.tLast and axisSlaveSync.tReady;
+      isOutputFrame   := r.sending and axisMasterFifo.tValid and axisMasterFifo.tLast and axisSlaveFifo.tReady;
 
-        -- Update counters
+      -- Update counters
       if isAcceptedFrame = '1' then
-            v.frameBatched := r.frameBatched + 1;
+         v.frameBatched := r.frameBatched + 1;
       else
-            v.frameBatched := r.frameBatched;
+         v.frameBatched := r.frameBatched;
       end if;
 
       if isOutputFrame = '1' then
-            v.frameBatched := v.frameBatched - 1;
-            v.frameToSend  := r.frameToSend  - 1;
+         v.frameBatched := v.frameBatched - 1;
+         v.frameToSend  := r.frameToSend  - 1;
       end if;
 
       if v.frameToSend = 0 then
-            v.sending := '0';
+         v.sending := '0';
       end if;
 
-      if r.sending = '0' and r.frameBatched >= BatchSize then
-            v.sending     := '1';
-            v.frameToSend := BatchSize;
+      if r.sending = '0' and r.frameBatched >= batchSize then
+         v.sending     := '1';
+         v.frameToSend := batchSize;
       end if;
 
-      mAxisMaster.tValid   <= r.sending and axisMasterFifo.tValid;
-      axisSlaveFifo.tReady <= r.sending and mAxisSlave.tReady;
+      combAxisMaster.tValid   <= r.sending and axisMasterFifo.tValid;
+      axisSlaveFifo.tReady <= r.sending and combAxisSlave.tReady;
 
       rin <= v;
    end process comb;
@@ -233,5 +271,20 @@ begin
          end if;
       end if;
    end process seq;
+
+   -- Avoid having combinatorial outputs on the output
+   -- AxiStream by adding a pipeline stage
+   U_Output_Pipeline : entity surf.AxiStreamPipeline
+      generic map(
+         TPD_G             => TPD_G)
+      port map(
+         axisClk => mAxisClk,
+         axisRst => mAxisRst,
+
+         sAxisMaster => combAxisMaster,
+         sAxisSlave  => combAxisSlave,
+
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
 
 end rtl;
