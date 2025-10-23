@@ -22,27 +22,31 @@ use surf.AxiLitePkg.all;
 
 entity FirFilterSingleChannel is
    generic (
-      TPD_G            : time         := 1 ns;
-      COMMON_CLK_G     : boolean      := false;
-      NUM_TAPS_G       : positive;      -- Number of filter taps
-      SIDEBAND_WIDTH_G : natural      := 0;
-      DATA_WIDTH_G     : positive;      -- Number of bits per data word
-      COEFF_WIDTH_G    : positive range 1 to 32;  -- Number of bits per coefficient word
-      COEFFICIENTS_G   : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
+      TPD_G             : time         := 1 ns;
+      COMMON_CLK_G      : boolean      := false;
+      NUM_TAPS_G        : positive;     -- Number of filter taps
+      SIDEBAND_WIDTH_G  : positive     := 1;
+      IBREADY_DEFAULT_G : sl           := '1';
+      DATA_WIDTH_G      : positive;     -- Number of bits per data word
+      COEFF_WIDTH_G     : positive range 1 to 32;  -- Number of bits per coefficient word
+      COEFFICIENTS_G    : IntegerArray := (0 => 0));  -- Tap Coefficients Init Constants
    port (
       -- Clock and Reset
-      clk             : in  sl;
-      rst             : in  sl                     := '0';
-      -- Inbound Interface
-      ibValid         : in  sl                     := '1';
-      ibReady         : out sl;
-      din             : in  slv(DATA_WIDTH_G-1 downto 0);
-      sbIn            : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
-      -- Outbound Interface
-      obValid         : out sl;
-      obReady         : in  sl                     := '1';
-      dout            : out slv(DATA_WIDTH_G-1 downto 0);
-      sbOut           : out slv(SIDEBAND_WIDTH_G-1 downto 0);
+      clk : in sl;
+      rst : in sl;
+
+      -- Inbound Interface (clk domain)
+      ibValid : in  sl                               := '1';
+      ibReady : out sl;
+      din     : in  slv(DATA_WIDTH_G-1 downto 0);
+      sbIn    : in  slv(SIDEBAND_WIDTH_G-1 downto 0) := (others => '0');
+
+      -- Outbound Interface (clk domain)
+      obValid : out sl;
+      obReady : in  sl := '1';
+      dout    : out slv(DATA_WIDTH_G-1 downto 0);
+      sbOut   : out slv(SIDEBAND_WIDTH_G-1 downto 0);
+
       -- AXI-Lite Interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -58,6 +62,7 @@ architecture mapping of FirFilterSingleChannel is
 
    type CoeffArray is array (NUM_TAPS_G-1 downto 0) of slv(COEFF_WIDTH_G-1 downto 0);
    type CascArray is array (NUM_TAPS_G-1 downto 0) of slv(CASC_WIDTH_C-1 downto 0);
+   type DinArray is array (NUM_TAPS_G-1 downto 0) of slv(DATA_WIDTH_G-1 downto 0);
 
    impure function initCoeffArray return CoeffArray is
       variable retValue : CoeffArray := (others => (others => '0'));
@@ -80,6 +85,7 @@ architecture mapping of FirFilterSingleChannel is
       coeffin    : CoeffArray;
       coeffce    : slv(NUM_TAPS_G-1 downto 0);
       ibReady    : sl;
+      din        : DinArray;
       tdata      : slv(DATA_WIDTH_G-1 downto 0);
       sideband   : SidebandPipelineArray;
       tValid     : slv(FILTER_DELAY_C-1 downto 0);
@@ -88,8 +94,9 @@ architecture mapping of FirFilterSingleChannel is
    end record RegType;
    constant REG_INIT_C : RegType := (
       coeffin    => COEFFICIENTS_C,
-      coeffce    => (others => '0'),
-      ibReady    => '0',
+      coeffce    => (others => '1'),  -- Load the COEFFICIENTS_C right after reset
+      ibReady    => IBREADY_DEFAULT_G,
+      din        => (others => (others => '0')),
       tdata      => (others => '0'),
       tValid     => (others => '0'),
       sideband   => (others => (others => '0')),
@@ -99,54 +106,104 @@ architecture mapping of FirFilterSingleChannel is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal writeMaster : AxiLiteWriteMasterType;
+   signal readMaster  : AxiLiteReadMasterType;
+
    signal cascin    : CascArray;
    signal cascout   : CascArray;
    signal cascTapEn : sl;
 
-   signal axiWrValid : sl                              := '0';
-   signal axiWrAddr  : slv(NUM_ADDR_BITS_C-1 downto 0) := (others => '0');
-   signal axiWrData  : slv(31 downto 0)                := (others => '0');
-
 begin
 
-   U_AxiDualPortRam_1 : entity surf.AxiDualPortRam
+   U_AxiLiteAsync : entity surf.AxiLiteAsync
       generic map (
-         TPD_G            => TPD_G,
-         SYNTH_MODE_G     => "inferred",
-         MEMORY_TYPE_G    => "distributed",
-         READ_LATENCY_G   => 0,
-         AXI_WR_EN_G      => true,
-         SYS_WR_EN_G      => false,
-         SYS_BYTE_WR_EN_G => false,
-         COMMON_CLK_G     => COMMON_CLK_G,
-         ADDR_WIDTH_G     => NUM_ADDR_BITS_C,
-         DATA_WIDTH_G     => 32)
+         TPD_G           => TPD_G,
+         COMMON_CLK_G    => COMMON_CLK_G,
+         NUM_ADDR_BITS_G => NUM_ADDR_BITS_C+2)
       port map (
-         axiClk         => axilClk,          -- [in]
-         axiRst         => axilRst,          -- [in]
-         axiReadMaster  => axilReadMaster,   -- [in]
-         axiReadSlave   => axilReadSlave,    -- [out]
-         axiWriteMaster => axilWriteMaster,  -- [in]
-         axiWriteSlave  => axilWriteSlave,   -- [out]
-         clk            => clk,              -- [in]
-         rst            => rst,              -- [in]
-         axiWrValid     => axiWrValid,       -- [out]
-         axiWrAddr      => axiWrAddr,        -- [out]
-         axiWrData      => axiWrData);       -- [out]
+         -- Slave Interface
+         sAxiClk         => axilClk,
+         sAxiClkRst      => axilRst,
+         sAxiReadMaster  => axilReadMaster,
+         sAxiReadSlave   => axilReadSlave,
+         sAxiWriteMaster => axilWriteMaster,
+         sAxiWriteSlave  => axilWriteSlave,
+         -- Master Interface
+         mAxiClk         => clk,
+         mAxiClkRst      => rst,
+         mAxiReadMaster  => readMaster,
+         mAxiReadSlave   => r.readSlave,
+         mAxiWriteMaster => writeMaster,
+         mAxiWriteSlave  => r.writeSlave);
 
-   comb : process (axiWrAddr, axiWrValid, cascout, ibValid, obReady, r, rst,
-                   sbIn) is
-      variable v      : RegType;
-      variable axilEp : AxiLiteEndPointType;
+   comb : process (cascout, din, ibValid, obReady, r, readMaster, rst, sbIn,
+                   writeMaster) is
+      variable v         : RegType;
+      variable axiStatus : AxiLiteStatusType;
+      variable wrAddrInt : integer;
+      variable rdAddrInt : integer;
    begin
       -- Latch the current value
       v := r;
 
-      -- Capture coefficients in shadow registers when updated in AxiDualPortRam
+      ------------------------
+      -- AXI-Lite Transactions
+      ------------------------
+
+      -- Reset strobes
       v.coeffce := (others => '0');
-      if (axiWrValid = '1') then
-         v.coeffce(to_integer(unsigned(axiWrAddr))) := '1';
+
+      -- Convert write/read address into integers
+      wrAddrInt := to_integer(unsigned(writeMaster.awaddr(NUM_ADDR_BITS_C-1 downto 2)));
+      rdAddrInt := to_integer(unsigned(readMaster.araddr(NUM_ADDR_BITS_C-1 downto 2)));
+
+      -- Determine the transaction type
+      axiSlaveWaitTxn(writeMaster, readMaster, v.writeSlave, v.readSlave, axiStatus);
+
+      -- Check for write transaction
+      if (axiStatus.writeEnable = '1') then
+
+         -- Check that the address within bounds
+         if (wrAddrInt < NUM_TAPS_G) then
+
+            -- Update the coeff
+            v.coeffce            := (others => '1');
+            v.coeffin(wrAddrInt) := writeMaster.wdata(COEFF_WIDTH_G-1 downto 0);
+
+            -- Respond without error
+            axiSlaveWriteResponse(v.writeSlave, AXI_RESP_OK_C);
+
+         else
+            -- Respond with error
+            axiSlaveWriteResponse(v.writeSlave, AXI_RESP_SLVERR_C);
+
+         end if;
+
       end if;
+
+      -- Check for read transaction
+      if (axiStatus.readEnable = '1') then
+
+         -- Check that the address within bounds
+         if (rdAddrInt < NUM_TAPS_G) then
+
+            -- Read the coeff
+            v.readSlave.rdata(COEFF_WIDTH_G-1 downto 0) := r.coeffin(rdAddrInt);
+
+            -- Respond without error
+            axiSlaveReadResponse(v.readSlave, AXI_RESP_OK_C);
+
+         else
+            -- Respond with error
+            axiSlaveReadResponse(v.readSlave, AXI_RESP_SLVERR_C);
+
+         end if;
+
+      end if;
+
+      ------------------------
+      -- Data Flow Logic
+      ------------------------
 
       -- Flow Control
       v.ibReady := '0';
@@ -160,8 +217,9 @@ begin
          -- Accept the data
          v.ibReady := '1';
 
-         -- Move the sideband and valid pipelines
+         -- Move the data/sideband and valid pipelines
          v.tValid(0)   := '1';
+         v.din         := (others => din);  -- Using array to help with fanout
          v.sideband(0) := sbIn;
 
          v.tValid(FILTER_DELAY_C-1 downto 1)   := r.tValid(FILTER_DELAY_C-2 downto 0);
@@ -222,8 +280,8 @@ begin
             clk     => clk,
             en      => cascTapEn,
             -- Data and tap coefficient Interface
-            datain  => din,  -- Common data input because Transpose Multiply-Accumulate architecture
-            coeffin => axiWrData(COEFF_WIDTH_G-1 downto 0),  --r.coeffin(NUM_TAPS_G-1-i),
+            datain  => r.din(i),  -- Common data input because Transpose Multiply-Accumulate architecture
+            coeffin => r.coeffin(NUM_TAPS_G-1-i),
             coeffce => r.coeffce(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
             -- Cascade Interface
             cascin  => cascin(i),

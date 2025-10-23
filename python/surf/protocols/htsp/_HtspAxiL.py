@@ -12,6 +12,9 @@ import pyrogue as pr
 
 import surf.ethernet.udp as udp
 
+import click
+import datetime
+
 class HtspAxiLCtrl(pr.Device):
     def __init__(self, writeEn=False, **kwargs):
         super().__init__(**kwargs)
@@ -61,6 +64,36 @@ class HtspAxiLCtrl(pr.Device):
             bitSize   = 8,
             disp      = '{:d}',
             mode      = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = 'UpTimeCnt',
+            description  = 'Number of seconds since last reset',
+            hidden       = True,
+            offset       = 0x00C,
+            bitSize      = 32,
+            mode         = 'RO',
+            disp         = '{:d}',
+            units        = 'seconds',
+            pollInterval = 1,
+        ))
+
+        def parseUpTime(var,read):
+            seconds=var.dependencies[0].get(read=read)
+            if seconds == 0xFFFFFFFF:
+                click.secho(f'Invalid {var.path} detected', fg='red')
+                return 'Invalid'
+            else:
+                return str(datetime.timedelta(seconds=seconds))
+
+        self.add(pr.LinkVariable(
+            name         = 'UpTime',
+            description  = 'Time since power up or last CountReset event',
+            mode         = 'RO',
+            disp         = '{}',
+            variable     = self.UpTimeCnt,
+            linkedGet    = parseUpTime,
+            units        = 'HH:MM:SS',
         ))
 
         self.add(pr.RemoteVariable(
@@ -225,8 +258,12 @@ class HtspAxiLRxStatus(pr.Device):
                  numVc           = 1,
                  statusCountBits = 12,
                  errorCountBits  = 8,
+                 UpTimeCnt       = None,
                  **kwargs):
         super().__init__(**kwargs)
+
+        # Pointer to HtspAxiLCtrl.UpTimeCnt
+        self.UpTimeCnt = UpTimeCnt
 
         devOffset = 0x400
 
@@ -290,6 +327,40 @@ class HtspAxiLRxStatus(pr.Device):
             bitSize      = 32,
             mode         = 'RO',
             pollInterval = 1,
+        ))
+
+        def getBitErrorRate(var,read):
+            # Get the variable values from hardware
+            try:
+                seconds = float(var.dependencies[0].get(read=read))
+                numErrBits = float(var.dependencies[1].get(read=read))
+            except (TypeError, ValueError):
+                return float('nan')
+
+            # Check for the seconds=0 case
+            if seconds<1:
+                return float('nan')
+
+            # For zero observed errors, IBERT (and most BERT analyzers) estimate BER
+            # using a "3" to give 95% confidence that the true BER is lower than this value
+            if numErrBits<3:
+                numErrBits = 3.0 # Display the limit based on number of bits transmitted
+
+            # Calculate the number of bits transmitted (assuming 4 lane x 25.78125 Gb/s = 103.125 Gb/s)
+            LANE_RATE_Gbps = 25.78125
+            NUM_LANES = 4.0
+            totalBits = seconds * LANE_RATE_Gbps * NUM_LANES * 1e9
+
+            # Return the bit error rate
+            return (numErrBits/totalBits)
+
+        self.add(pr.LinkVariable(
+            name         = 'BitErrorRate',
+            description  = 'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 70 bits)',
+            mode         = 'RO',
+            disp         = '{:.3e}', # scientific notation with three decimal places
+            dependencies = [self.UpTimeCnt, self.FecCorrectedCodeWordCnt],
+            linkedGet    = getBitErrorRate,
         ))
 
         for i in range(len(statusList)):
@@ -489,6 +560,7 @@ class HtspAxiL(pr.Device):
             numVc           = numVc,
             statusCountBits = statusCountBits,
             errorCountBits  = errorCountBits,
+            UpTimeCnt       = self.Ctrl.UpTimeCnt,
         ))
 
         self.add(HtspAxiLTxStatus(

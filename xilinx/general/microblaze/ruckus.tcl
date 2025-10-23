@@ -18,13 +18,21 @@ if { [info exists ::env(VITIS_SRC_PATH)] != 1 }  {
       # Load the wrapper
       loadSource -lib surf -path "$::DIR_PATH/generate/MicroblazeBasicCoreWrapper.vhd"
 
-      # Load the .bd file
-      if { $::env(VIVADO_VERSION) >= 2021.1 } {
-         loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.tcl"
-      } else {
-         loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
+      # Check if the block design is already loaded into Vivado
+      if { [get_files {MicroblazeBasicCore.bd}] eq ""  } {
+
+         # Load the .bd file
+         if { $::env(VIVADO_VERSION) >= 2021.1 } {
+            loadBlockDesign -path "$::DIR_PATH/bd/2021.1/MicroblazeBasicCore.tcl"
+         } else {
+            loadBlockDesign -path "$::DIR_PATH/bd/2020.1/MicroblazeBasicCore.bd"
+         }
+
       }
 
    }
+
+   # Do not include the microblaze in simulation by default
+   set_property USED_IN_SIMULATION 0 [get_files -all {MicroblazeBasicCore.bd}]
 
 }
