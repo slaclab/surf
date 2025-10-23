@@ -64,15 +64,20 @@ entity Pgp4CoreLite is
       pgpRxCtrl    : in  AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
 
       -- Rx PHY interface
-      phyRxClk      : in  sl;
-      phyRxRst      : in  sl;
-      phyRxInit     : out sl := '0';
-      phyRxActive   : in  sl;
-      phyRxValid    : in  sl;
-      phyRxHeader   : in  slv(1 downto 0);
-      phyRxData     : in  slv(63 downto 0);
-      phyRxStartSeq : in  sl;
-      phyRxSlip     : out sl := '0';
+      phyRxClk         : in  sl;
+      phyRxRst         : in  sl;
+      phyRxInit        : out sl := '0';
+      phyRxActive      : in  sl;
+      phyRxValid       : in  sl;
+      phyRxHeader      : in  slv(1 downto 0);
+      phyRxData        : in  slv(63 downto 0);
+      phyRxStartSeq    : in  sl;
+      phyRxSlip        : out sl := '0';
+      phyRxFecByp      : out sl := '1';
+      phyRxFecInjErr   : out sl := '0';
+      phyRxFecLock     : in  sl := '0';
+      phyRxFecCorInc   : in  sl := '0';
+      phyRxFecUnCorInc : in  sl := '0';
 
       -- Debug Interface
       loopback     : out slv(2 downto 0);
@@ -176,25 +181,36 @@ begin
             ERROR_CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
             AXIL_CLK_FREQ_G    => AXIL_CLK_FREQ_G)
          port map (
-            pgpTxClk        => pgpTxClk,         -- [in]
-            pgpTxRst        => pgpTxRst,         -- [in]
-            pgpTxIn         => pgpTxInInt,       -- [out]
-            pgpTxOut        => pgpTxOutInt,      -- [in]
-            locTxIn         => pgpTxIn,          -- [in]
-            pgpRxClk        => pgpRxClk,         -- [in]
-            pgpRxRst        => pgpRxRst,         -- [in]
-            pgpRxIn         => pgpRxInInt,       -- [out]
-            pgpRxOut        => pgpRxOutInt,      -- [in]
-            locRxIn         => pgpRxIn,          -- [in]
-            txDiffCtrl      => txDiffCtrl,       -- [out]
-            txPreCursor     => txPreCursor,      -- [out]
-            txPostCursor    => txPostCursor,     -- [out]
-            axilClk         => axilClk,          -- [in]
-            axilRst         => axilRst,          -- [in]
-            axilReadMaster  => axilReadMaster,   -- [in]
-            axilReadSlave   => axilReadSlave,    -- [out]
-            axilWriteMaster => axilWriteMaster,  -- [in]
-            axilWriteSlave  => axilWriteSlave);  -- [out]
+            -- TX PGP Interface (pgpTxClk)
+            pgpTxClk         => pgpTxClk,          -- [in]
+            pgpTxRst         => pgpTxRst,          -- [in]
+            pgpTxIn          => pgpTxInInt,        -- [out]
+            pgpTxOut         => pgpTxOutInt,       -- [in]
+            locTxIn          => pgpTxIn,           -- [in]
+            -- RX PGP Interface (pgpRxClk)
+            pgpRxClk         => pgpRxClk,          -- [in]
+            pgpRxRst         => pgpRxRst,          -- [in]
+            pgpRxIn          => pgpRxInInt,        -- [out]
+            pgpRxOut         => pgpRxOutInt,       -- [in]
+            locRxIn          => pgpRxIn,           -- [in]
+            -- RX PHY Interface (pgpRxClk)
+            phyRxClk         => phyRxClk,          -- [in]
+            phyRxRst         => phyRxRst,          -- [in]
+            phyRxFecByp      => phyRxFecByp,       -- [out]
+            phyRxFecInjErr   => phyRxFecInjErr,    -- [out]
+            phyRxFecLock     => phyRxFecLock,      -- [in]
+            phyRxFecCorInc   => phyRxFecCorInc,    -- [in]
+            phyRxFecUnCorInc => phyRxFecUnCorInc,  -- [in]
+            -- Debug Interface (axilClk domain)
+            txDiffCtrl       => txDiffCtrl,        -- [out]
+            txPreCursor      => txPreCursor,       -- [out]
+            txPostCursor     => txPostCursor,      -- [out]
+            axilClk          => axilClk,           -- [in]
+            axilRst          => axilRst,           -- [in]
+            axilReadMaster   => axilReadMaster,    -- [in]
+            axilReadSlave    => axilReadSlave,     -- [out]
+            axilWriteMaster  => axilWriteMaster,   -- [in]
+            axilWriteSlave   => axilWriteSlave);   -- [out]
    end generate GEN_PGP_MON;
 
    NO_PGP_MON : if (not EN_PGP_MON_G) generate
