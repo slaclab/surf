@@ -1,7 +1,9 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI4-Stream Timer block File
+-- Description:
+-- AXI4-Stream Timer IP allowing to monitor NUM_EVENT_G start-of-frame and
+-- end-of-frame events on NUM_STREAMS_G
 -------------------------------------------------------------------------------
 -- This file is part of 'SNL GRIDNET'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
