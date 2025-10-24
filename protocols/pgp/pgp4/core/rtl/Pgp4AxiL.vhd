@@ -228,6 +228,13 @@ begin
 
       end if;
 
+      -- Check for counter reset condition
+      if (r.countReset = '1') then
+         -- Reset the counters
+         v.timer     := 0;
+         v.upTimeCnt := (others => '0');
+      end if;
+
       ---------------------------------
       -- Determine the transaction type
       ---------------------------------
