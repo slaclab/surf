@@ -10,6 +10,9 @@
 
 import pyrogue as pr
 
+import click
+import datetime
+
 class Pgp4AxiLCtrl(pr.Device):
     def __init__(self,
                  description = "Configuration of PGP 4 link",
@@ -186,6 +189,36 @@ class Pgp4AxiLCtrl(pr.Device):
                 function     = lambda cmd: cmd.post(1),
             ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'UpTimeCnt',
+            description  = 'Number of seconds since last reset',
+            hidden       = True,
+            offset       = 0x014,
+            bitSize      = 32,
+            mode         = 'RO',
+            disp         = '{:d}',
+            units        = 'seconds',
+            pollInterval = 1,
+        ))
+
+        def parseUpTime(var,read):
+            seconds=var.dependencies[0].get(read=read)
+            if seconds == 0xFFFFFFFF:
+                click.secho(f'Invalid {var.path} detected', fg='red')
+                return 'Invalid'
+            else:
+                return str(datetime.timedelta(seconds=seconds))
+
+        self.add(pr.LinkVariable(
+            name         = 'UpTime',
+            description  = 'Time since power up or last CountReset event',
+            mode         = 'RO',
+            disp         = '{}',
+            variable     = self.UpTimeCnt,
+            linkedGet    = parseUpTime,
+            units        = 'HH:MM:SS',
+        ))
+
     def countReset(self):
         self.CountReset()
 
@@ -195,8 +228,14 @@ class Pgp4AxiLRxStatus(pr.Device):
                  numVc           = 4,
                  statusCountBits = 16,
                  errorCountBits  = 8,
+                 UpTimeCnt       = None,
+                 BypassFec       = None,
                  **kwargs):
         super().__init__(description=description, **kwargs)
+
+        # Pointer to Pgp4AxiLCtrl.UpTimeCnt/BypassFec
+        self.UpTimeCnt = UpTimeCnt
+        self.BypassFec = BypassFec
 
         devOffset = 0x400
 
@@ -344,6 +383,47 @@ class Pgp4AxiLRxStatus(pr.Device):
             disp         = '{:0.3f}',
         ))
 
+        def getBitErrorRate(var,read):
+            # Get the variable values from hardware
+            try:
+                seconds     = var.dependencies[0].get(read=read)
+                numErrBits  = var.dependencies[1].get(read=read)
+                fecDisabled = var.dependencies[2].get(read=read)
+                rxClkFreq   = float(var.dependencies[3].get(read=read))
+            except (TypeError, ValueError):
+                return float('nan')
+
+            ###############################################################################
+            # Check for the following cases:
+            ###############################################################################
+            #   - seconds=0 (prevent divide by zero)
+            #   - max'd out error counter (BER calculation is corrupted)
+            #   - FEC disabled (phyRxFecCorIncCnt not valid)
+            #   - RX CLK not running yet
+            ###############################################################################
+            if (seconds<1) or (numErrBits == 0xFFFF) or (fecDisabled>0) or (rxClkFreq<1E6):
+                return float('nan')
+
+            # For zero observed errors, IBERT (and most BERT analyzers) estimate BER
+            # using a "3" to give 95% confidence that the true BER is lower than this value
+            if numErrBits<3:
+                numErrBits = 3 # Display the limit based on number of bits transmitted
+
+            # Calculate the number of bits transmitted
+            totalBits = float(seconds) * rxClkFreq * 66.0
+
+            # Return the bit error rate
+            return float(numErrBits)/totalBits
+
+        self.add(pr.LinkVariable(
+            name         = 'BitErrorRate',
+            description  = 'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 70 bits)',
+            mode         = 'RO',
+            disp         = '{:.3e}', # scientific notation with three decimal places
+            dependencies = [self.UpTimeCnt, self.phyRxFecCorIncCnt, self.BypassFec, self.RxClockFreqRaw],
+            linkedGet    = getBitErrorRate,
+        ))
+
 class Pgp4AxiLTxStatus(pr.Device):
     def __init__(self,
                  description     = "TX Status of PGP 4 link",
@@ -481,6 +561,8 @@ class Pgp4AxiL(pr.Device):
             numVc           = numVc,
             statusCountBits = statusCountBits,
             errorCountBits  = errorCountBits,
+            UpTimeCnt       = self.Ctrl.UpTimeCnt,
+            BypassFec       = self.Ctrl.BypassFec,
         ))
 
         self.add(Pgp4AxiLTxStatus(

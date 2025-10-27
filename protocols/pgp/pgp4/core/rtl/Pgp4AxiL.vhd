@@ -77,6 +77,8 @@ end Pgp4AxiL;
 
 architecture mapping of Pgp4AxiL is
 
+   constant TIMEOUT_1HZ_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0) - 1;
+
    constant FEC_CNT_SIZE_C : integer := 3;
 
    constant RX_STATUS_CNT_SIZE_C : integer := 2;
@@ -90,6 +92,8 @@ architecture mapping of Pgp4AxiL is
       txPolarity     : sl;
       rxPolarity     : sl;
       countReset     : sl;
+      upTimeCnt      : slv(31 downto 0);
+      timer          : natural range 0 to TIMEOUT_1HZ_C;
       skpInterval    : slv(31 downto 0);
       loopBack       : slv(2 downto 0);
       flowCntlDis    : sl;
@@ -109,6 +113,8 @@ architecture mapping of Pgp4AxiL is
       txPolarity     => TX_POLARITY_G,
       rxPolarity     => RX_POLARITY_G,
       countReset     => '0',
+      upTimeCnt      => (others => '0'),
+      timer          => 0,
       skpInterval    => PGP4_TX_IN_INIT_C.skpInterval,
       loopBack       => (others => '0'),
       flowCntlDis    => PGP4_TX_IN_INIT_C.flowCntlDis,
@@ -203,6 +209,35 @@ begin
       -- Reset strobe
       v.phyRxFecInjErr := '0';
 
+      ---------------------------------
+      -- Uptime counter
+      ---------------------------------
+
+      -- Check for timout
+      if r.timer = TIMEOUT_1HZ_C then
+
+         -- Reset the timer
+         v.timer := 0;
+
+         -- Increment the counter
+         v.upTimeCnt := r.upTimeCnt + 1;
+
+      else
+         -- Increment the timer
+         v.timer := r.timer + 1;
+
+      end if;
+
+      -- Check for counter reset condition
+      if (r.countReset = '1') then
+         -- Reset the counters
+         v.timer     := 0;
+         v.upTimeCnt := (others => '0');
+      end if;
+
+      ---------------------------------
+      -- Determine the transaction type
+      ---------------------------------
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       ----------------------------------------------------------------------------------------------
@@ -250,6 +285,8 @@ begin
          axiSlaveRegisterR(axilEp, x"00C", 30, r.txPolarity);
          axiSlaveRegisterR(axilEp, x"00C", 31, r.rxPolarity);
       end if;
+
+      axiSlaveRegisterR(axilEp, x"014", 0, r.upTimeCnt);
 
       ----------------------------------------------------------------------------------------------
       -- RX Status: Offset = 0x400 in SW
@@ -303,7 +340,12 @@ begin
 
       ----------------------------------------------------------------------------------------------
 
+      -------------------------------------
+      -- Close out the AXI-Lite transaction
+      -------------------------------------
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
+
+      ----------------------------------------------------------------------------------------------
 
       -- Outputs
       axilReadSlave  <= r.axilReadSlave;
