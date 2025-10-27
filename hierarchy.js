@@ -347,6 +347,11 @@ var hierarchy =
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
       [ "DspComparator", "classDspComparator.html", null ],
       [ "AxiStreamBatcher", "classAxiStreamBatcher.html", null ],
+      [ "AxiStreamBatchingFifo", "classAxiStreamBatchingFifo.html", [
+        [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
+        [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", null ],
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
@@ -479,6 +484,7 @@ var hierarchy =
       [ "AxiStreamSelector", "classAxiStreamSelector.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+      [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "AxiSy56040Reg", "classAxiSy56040Reg.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiVersion", "classAxiVersion.html", null ],
@@ -813,7 +819,7 @@ var hierarchy =
       [ "FirFilterTap", "classFirFilterTap.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "FirFilterSingleChannel", "classFirFilterSingleChannel.html", [
-        [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
         [ "FirFilterTap", "classFirFilterTap.html", null ]
       ] ],
       [ "ClkRst", "classClkRst.html", null ],
