@@ -87,7 +87,7 @@ entity ClockManagerUltraScale is
       );
    port (
       clkIn           : in  sl;
-      rstIn           : in  sl                    := '0';
+      rstIn           : in  sl                    := not(RST_IN_POLARITY_G);
       rstPllIn        : in  sl                    := not(RST_IN_POLARITY_G);
       clkOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       rstOut          : out slv(NUM_CLOCKS_G-1 downto 0);
