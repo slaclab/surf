@@ -75,13 +75,25 @@ entity ClockManagerUltraScale is
       CLKOUT3_RST_POLARITY_G : sl                               := '1';
       CLKOUT4_RST_POLARITY_G : sl                               := '1';
       CLKOUT5_RST_POLARITY_G : sl                               := '1';
-      CLKOUT6_RST_POLARITY_G : sl                               := '1');
+      CLKOUT6_RST_POLARITY_G : sl                               := '1';
+      CLKFBOUT_USE_FINE_PS   : string                           := "FALSE";
+      CLKOUT0_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT1_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT2_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT3_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT4_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT5_USE_FINE_PS    : string                           := "FALSE";
+      CLKOUT6_USE_FINE_PS    : string                           := "FALSE"
+      );
    port (
       clkIn           : in  sl;
-      rstIn           : in  sl                     := '0';
+      rstIn           : in  sl                    := '0';
+      rstPllIn        : in  sl                    := not(RST_IN_POLARITY_G);
       clkOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       rstOut          : out slv(NUM_CLOCKS_G-1 downto 0);
       locked          : out sl;
+      psEn            : in  sl                     := '0';
+      psIncDec        : in  sl                     := '0';
       -- AXI-Lite Interface
       axilClk         : in  sl                     := '0';
       axilRst         : in  sl                     := '0';
@@ -104,13 +116,14 @@ architecture rtl of ClockManagerUltraScale is
    constant CLKOUT0_DIVIDE_F_C : real := ite(CLKOUT0_DIVIDE_F_G = 1.0, real(CLKOUT0_DIVIDE_G), CLKOUT0_DIVIDE_F_G);
    constant CLKFBOUT_MULT_F_C  : real := ite(CLKFBOUT_MULT_F_G = 1.0, real(CLKFBOUT_MULT_G), CLKFBOUT_MULT_F_G);
 
-   signal rstInLoc   : sl;
-   signal clkInLoc   : sl;
-   signal lockedLoc  : sl;
-   signal clkOutMmcm : slv(6 downto 0);
-   signal clkOutLoc  : slv(6 downto 0);
-   signal clkFbOut   : sl;
-   signal clkFbIn    : sl;
+   signal rstInLoc    : sl;
+   signal rstPllInLoc : sl;
+   signal clkInLoc    : sl;
+   signal lockedLoc   : sl;
+   signal clkOutMmcm  : slv(6 downto 0);
+   signal clkOutLoc   : slv(6 downto 0);
+   signal clkFbOut    : sl;
+   signal clkFbIn     : sl;
 
    signal drpRdy  : sl;
    signal drpEn   : sl;
@@ -131,6 +144,7 @@ begin
       report "ClockManger7: TYPE_G must be either MMCM or PLL" severity failure;
 
    rstInLoc <= '1' when rstIn = RST_IN_POLARITY_G else '0';
+   rstPllInLoc <= '1' when rstIn = RST_IN_POLARITY_G or rstPllIn = RST_IN_POLARITY_G else '0';
 
    U_AxiLiteToDrp : entity surf.AxiLiteToDrp
       generic map (
@@ -161,33 +175,42 @@ begin
    MmcmGen : if (TYPE_G = "MMCM") and (SIMULATION_G = false) generate
       U_Mmcm : MMCME3_ADV
          generic map (
-            BANDWIDTH          => BANDWIDTH_G,
-            CLKOUT4_CASCADE    => "FALSE",
-            STARTUP_WAIT       => "FALSE",
-            CLKIN1_PERIOD      => CLKIN_PERIOD_G,
-            DIVCLK_DIVIDE      => DIVCLK_DIVIDE_G,
-            CLKFBOUT_MULT_F    => CLKFBOUT_MULT_F_C,
-            CLKOUT0_DIVIDE_F   => CLKOUT0_DIVIDE_F_C,
-            CLKOUT1_DIVIDE     => CLKOUT1_DIVIDE_G,
-            CLKOUT2_DIVIDE     => CLKOUT2_DIVIDE_G,
-            CLKOUT3_DIVIDE     => CLKOUT3_DIVIDE_G,
-            CLKOUT4_DIVIDE     => CLKOUT4_DIVIDE_G,
-            CLKOUT5_DIVIDE     => CLKOUT5_DIVIDE_G,
-            CLKOUT6_DIVIDE     => CLKOUT6_DIVIDE_G,
-            CLKOUT0_PHASE      => CLKOUT0_PHASE_G,
-            CLKOUT1_PHASE      => CLKOUT1_PHASE_G,
-            CLKOUT2_PHASE      => CLKOUT2_PHASE_G,
-            CLKOUT3_PHASE      => CLKOUT3_PHASE_G,
-            CLKOUT4_PHASE      => CLKOUT4_PHASE_G,
-            CLKOUT5_PHASE      => CLKOUT5_PHASE_G,
-            CLKOUT6_PHASE      => CLKOUT6_PHASE_G,
-            CLKOUT0_DUTY_CYCLE => CLKOUT0_DUTY_CYCLE_G,
-            CLKOUT1_DUTY_CYCLE => CLKOUT1_DUTY_CYCLE_G,
-            CLKOUT2_DUTY_CYCLE => CLKOUT2_DUTY_CYCLE_G,
-            CLKOUT3_DUTY_CYCLE => CLKOUT3_DUTY_CYCLE_G,
-            CLKOUT4_DUTY_CYCLE => CLKOUT4_DUTY_CYCLE_G,
-            CLKOUT5_DUTY_CYCLE => CLKOUT5_DUTY_CYCLE_G,
-            CLKOUT6_DUTY_CYCLE => CLKOUT6_DUTY_CYCLE_G)
+            BANDWIDTH            => BANDWIDTH_G,
+            CLKOUT4_CASCADE      => "FALSE",
+            STARTUP_WAIT         => "FALSE",
+            CLKIN1_PERIOD        => CLKIN_PERIOD_G,
+            DIVCLK_DIVIDE        => DIVCLK_DIVIDE_G,
+            CLKFBOUT_MULT_F      => CLKFBOUT_MULT_F_C,
+            CLKOUT0_DIVIDE_F     => CLKOUT0_DIVIDE_F_C,
+            CLKOUT1_DIVIDE       => CLKOUT1_DIVIDE_G,
+            CLKOUT2_DIVIDE       => CLKOUT2_DIVIDE_G,
+            CLKOUT3_DIVIDE       => CLKOUT3_DIVIDE_G,
+            CLKOUT4_DIVIDE       => CLKOUT4_DIVIDE_G,
+            CLKOUT5_DIVIDE       => CLKOUT5_DIVIDE_G,
+            CLKOUT6_DIVIDE       => CLKOUT6_DIVIDE_G,
+            CLKOUT0_PHASE        => CLKOUT0_PHASE_G,
+            CLKOUT1_PHASE        => CLKOUT1_PHASE_G,
+            CLKOUT2_PHASE        => CLKOUT2_PHASE_G,
+            CLKOUT3_PHASE        => CLKOUT3_PHASE_G,
+            CLKOUT4_PHASE        => CLKOUT4_PHASE_G,
+            CLKOUT5_PHASE        => CLKOUT5_PHASE_G,
+            CLKOUT6_PHASE        => CLKOUT6_PHASE_G,
+            CLKOUT0_DUTY_CYCLE   => CLKOUT0_DUTY_CYCLE_G,
+            CLKOUT1_DUTY_CYCLE   => CLKOUT1_DUTY_CYCLE_G,
+            CLKOUT2_DUTY_CYCLE   => CLKOUT2_DUTY_CYCLE_G,
+            CLKOUT3_DUTY_CYCLE   => CLKOUT3_DUTY_CYCLE_G,
+            CLKOUT4_DUTY_CYCLE   => CLKOUT4_DUTY_CYCLE_G,
+            CLKOUT5_DUTY_CYCLE   => CLKOUT5_DUTY_CYCLE_G,
+            CLKOUT6_DUTY_CYCLE   => CLKOUT6_DUTY_CYCLE_G,
+            CLKFBOUT_USE_FINE_PS => CLKFBOUT_USE_FINE_PS,
+            CLKOUT0_USE_FINE_PS  => CLKOUT0_USE_FINE_PS,
+            CLKOUT1_USE_FINE_PS  => CLKOUT1_USE_FINE_PS,
+            CLKOUT2_USE_FINE_PS  => CLKOUT2_USE_FINE_PS,
+            CLKOUT3_USE_FINE_PS  => CLKOUT3_USE_FINE_PS,
+            CLKOUT4_USE_FINE_PS  => CLKOUT4_USE_FINE_PS,
+            CLKOUT5_USE_FINE_PS  => CLKOUT5_USE_FINE_PS,
+            CLKOUT6_USE_FINE_PS  => CLKOUT6_USE_FINE_PS
+      )
          port map (
             DCLK     => axilClk,
             DRDY     => drpRdy,
@@ -197,11 +220,11 @@ begin
             DI       => drpDi,
             DO       => drpDo,
             CDDCREQ  => '0',
-            PSCLK    => '0',
-            PSEN     => '0',
-            PSINCDEC => '0',
+            PSCLK    => axilClk,
+            PSEN     => psEn,
+            PSINCDEC => psIncDec,
             PWRDWN   => '0',
-            RST      => rstInLoc,
+            RST      => rstPllInLoc,
             CLKIN1   => clkInLoc,
             CLKIN2   => '0',
             CLKINSEL => '1',
