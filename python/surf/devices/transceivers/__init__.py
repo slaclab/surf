@@ -78,7 +78,7 @@ def getTec(dev, var, read):
         return float(raw)*0.1
 
 ##############################################################################
-# Dictionaries based on SFF-8024 Rev 4.9 (24MAY2021)
+# Dictionaries based on SFF-8024 Rev 4.13 (11JULY2025)
 # https://members.snia.org/document/dl/26423
 ##############################################################################
 IdentifierDict = {
@@ -114,6 +114,12 @@ IdentifierDict = {
     0x1D: 'MiniLinkx8',
     0x1E: 'QSFP+',
     0x1F: 'SFP-DD',
+    0x20: 'SFP+',
+    0x21: 'OSFP-XD',
+    0x22: 'OIF-ELSFP',
+    0x23: 'CDFPx4',
+    0x24: 'CDFPx8',
+    0x25: 'CDFPx16',
 }
 
 # Fill 0x20 through 0xFF with 'Undefined'
