@@ -261,6 +261,9 @@ begin
                v.state := IDLE_S;
             end if;
 
+         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to IDLE_S state
+            v := REG_INIT_C;
+
       end case;
 
       if (sysRst = '1') then

@@ -145,6 +145,9 @@ begin
                v.state    := S_IDLE_C;
             end if;
 
+         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to S_IDLE_C state
+            v := REG_INIT_C;
+
       end case;
 
       if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
