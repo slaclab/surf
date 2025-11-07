@@ -240,6 +240,9 @@ begin
                v.state   := S_IS_ASIC_C;
             end if;
 
+         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to S_IDLE_C state
+            v := S_IDLE_C;
+
       end case;
 
       if (axilRst = '1') then
