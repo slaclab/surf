@@ -12,8 +12,6 @@ import pyrogue as pr
 
 from surf.devices import transceivers
 
-import math
-
 class LeapXcvrUpperRxPage01(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
