@@ -63,11 +63,11 @@ def getOpticalPwr(dev, var, read):
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
         if raw == 0:
-            pwr = 0.0001 # Prevent log10(zero) case
+            pwrWatts = 0.1e-6 # Prevent log10(zero) case by forcing 0.1 µW if raw=0
         else:
-            pwr = float(raw)*0.0001 # units of mW
+            pwrWatts = float(raw) * 1e-7  # convert 0.1 µW to W
         # Return value in units of dBm
-        return 10.0*math.log10(pwr)
+        return 10.0*math.log10(pwrWatts / 1e-3)  # convert to dBm = 10*log10(Power_W/1mW)
 
 def getTec(dev, var, read):
     with dev.root.updateGroup():
