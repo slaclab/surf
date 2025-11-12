@@ -241,7 +241,7 @@ begin
             end if;
 
          when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_IDLE_C state
-            v := S_IDLE_C;
+            v := REG_INIT_C;
 
       end case;
 
