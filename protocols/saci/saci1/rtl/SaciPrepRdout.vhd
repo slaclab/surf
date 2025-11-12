@@ -240,8 +240,8 @@ begin
                v.state   := S_IS_ASIC_C;
             end if;
 
-         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to S_IDLE_C state
-            v := S_IDLE_C;
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_IDLE_C state
+            v := REG_INIT_C;
 
       end case;
 

@@ -112,7 +112,7 @@ begin
                v.timer := r.timer - 1;
             end if;
          ----------------------------------------------------------------------
-         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to IDLE_S state
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to IDLE_S state
             v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;

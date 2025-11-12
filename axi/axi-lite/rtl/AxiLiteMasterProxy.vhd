@@ -132,7 +132,7 @@ begin
                v.state       := READY_S;
             end if;
          ----------------------------------------------------------------------
-         when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to READY_S state
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to READY_S state
             v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;

@@ -275,7 +275,7 @@ begin
                      end if;
                   end if;
                end loop;
-            when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to S_WAIT_AXI_TXN_S state
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_WAIT_AXI_TXN_S state
                v := REG_INIT_C;
          end case;
 
@@ -346,7 +346,7 @@ begin
                      end if;
                   end if;
                end loop;
-            when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to S_WAIT_AXI_TXN_S state
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_WAIT_AXI_TXN_S state
                v := REG_INIT_C;
          end case;
       end loop;
@@ -409,7 +409,7 @@ begin
                   v.master(m).wrValid := '0';
                end if;
 
-            when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to M_WAIT_REQ_S state
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to M_WAIT_REQ_S state
                v := REG_INIT_C;
          end case;
 
@@ -465,7 +465,7 @@ begin
                   v.master(m).rdValid := '0';
                end if;
 
-            when others =>  -- For ASIC designs it is best to declare a ’Default’ state which returns to M_WAIT_REQ_S state
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to M_WAIT_REQ_S state
                v := REG_INIT_C;
          end case;
 
