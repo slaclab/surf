@@ -21,105 +21,130 @@ use ieee.std_logic_arith.all;
 
 library surf;
 use surf.StdRtlPkg.all;
-use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
-use surf.SsiPkg.all;
 use surf.Pgp4Pkg.all;
 
 entity Pgp4CoreLiteTb is
-
+   port (
+      LINK_READY    : out std_logic;
+      -- Clock and Reset
+      AXIS_ACLK     : in  std_logic                     := '0';
+      AXIS_ARESETN  : in  std_logic                     := '0';
+      -- IP Integrator Slave AXI Stream Interface
+      S_AXIS_TVALID : in  std_logic                     := '0';
+      S_AXIS_TDATA  : in  std_logic_vector(63 downto 0) := (others => '0');
+      S_AXIS_TSTRB  : in  std_logic_vector(7 downto 0)  := (others => '0');
+      S_AXIS_TKEEP  : in  std_logic_vector(7 downto 0)  := (others => '0');
+      S_AXIS_TLAST  : in  std_logic                     := '0';
+      S_AXIS_TDEST  : in  std_logic_vector(0 downto 0)  := (others => '0');
+      S_AXIS_TID    : in  std_logic_vector(0 downto 0)  := (others => '0');
+      S_AXIS_TUSER  : in  std_logic_vector(0 downto 0)  := (others => '0');
+      S_AXIS_TREADY : out std_logic;
+      -- IP Integrator Master AXI Stream Interface
+      M_AXIS_TVALID : out std_logic;
+      M_AXIS_TDATA  : out std_logic_vector(63 downto 0);
+      M_AXIS_TSTRB  : out std_logic_vector(7 downto 0);
+      M_AXIS_TKEEP  : out std_logic_vector(7 downto 0);
+      M_AXIS_TLAST  : out std_logic;
+      M_AXIS_TDEST  : out std_logic_vector(0 downto 0);
+      M_AXIS_TID    : out std_logic_vector(0 downto 0);
+      M_AXIS_TUSER  : out std_logic_vector(0 downto 0);
+      M_AXIS_TREADY : in  std_logic);
 end entity Pgp4CoreLiteTb;
 
 architecture testbed of Pgp4CoreLiteTb is
 
-   constant TPD_C : time := 1 ns;
+   constant TUSER_WIDTH_C     : positive := 1;
+   constant TID_WIDTH_C       : positive := 1;
+   constant TDEST_WIDTH_C     : positive := 1;
+   constant TDATA_NUM_BYTES_C : positive := 8;
 
-   constant PGP_CLK_PERIOD_C : time := 7 ns;
-   constant LOC_CLK_PERIOD_C : time := 51 ns;  -- slow than pgpClk to generate pause events
+   signal axisClk : sl := '0';
+   signal axisRst : sl := '0';
 
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(256, 32);
-   constant NUMBER_PACKET_C    : slv(31 downto 0) := x"000000FF";
+   signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   constant PRBS_SEED_SIZE_C : positive := 8*PGP4_AXIS_CONFIG_C.TDATA_BYTES_C;
-
-   signal pgpTxIn     : Pgp4TxInType        := PGP4_TX_IN_INIT_C;
-   signal pgpTxOut    : Pgp4TxOutType;
    signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal phyValid  : sl := '0';
-   signal phyData   : slv(63 downto 0);
-   signal phyHeader : slv(1 downto 0);
+   signal pgpTxIn  : Pgp4TxInType := PGP4_TX_IN_INIT_C;
+   signal pgpTxOut : Pgp4TxOutType;
 
-   signal pgpRxIn     : Pgp4RxInType        := PGP4_RX_IN_INIT_C;
-   signal pgpRxOut    : Pgp4RxOutType;
+   signal phyValid  : sl               := '0';
+   signal phyData   : slv(63 downto 0) := (others => '0');
+   signal phyHeader : slv(1 downto 0)  := (others => '0');
+
+   signal pgpRxIn  : Pgp4RxInType := PGP4_RX_IN_INIT_C;
+   signal pgpRxOut : Pgp4RxOutType;
+
    signal pgpRxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal pgpRxCtrl   : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
 
-   signal rxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal rxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-
-   signal passed     : sl := '0';
-   signal failed     : sl := '0';
-   signal frameRxErr : sl := '0';
-   signal updated    : sl := '0';
-   signal errorDet   : sl := '0';
-   signal cnt        : slv(31 downto 0);
-
-   signal pgpClk : sl := '0';
-   signal pgpRst : sl := '1';
-
-   signal locClk : sl := '0';
-   signal locRst : sl := '1';
+   signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin
 
-   U_pgpClkRst : entity surf.ClkRst
-      generic map (
-         CLK_PERIOD_G      => PGP_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
-      port map (
-         clkP => pgpClk,
-         rst  => pgpRst);
+   LINK_READY <= pgpRxOut.linkReady and pgpTxOut.linkReady;
 
-   U_locClkRst : entity surf.ClkRst
+   U_ShimLayerSlave : entity surf.SlaveAxiStreamIpIntegrator
       generic map (
-         CLK_PERIOD_G      => LOC_CLK_PERIOD_C,
-         RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-         RST_HOLD_TIME_G   => 1 us)     -- Hold reset for this long)
+         INTERFACENAME   => "S_AXIS",
+         HAS_TLAST       => 1,
+         HAS_TKEEP       => 1,
+         HAS_TSTRB       => 1,
+         HAS_TREADY      => 1,
+         TUSER_WIDTH     => TUSER_WIDTH_C,
+         TID_WIDTH       => TID_WIDTH_C,
+         TDEST_WIDTH     => TDEST_WIDTH_C,
+         TDATA_NUM_BYTES => TDATA_NUM_BYTES_C)
       port map (
-         clkP => locClk,
-         rst  => locRst);
+         -- IP Integrator AXI Stream Interface
+         S_AXIS_ACLK    => AXIS_ACLK,
+         S_AXIS_ARESETN => AXIS_ARESETN,
+         S_AXIS_TVALID  => S_AXIS_TVALID,
+         S_AXIS_TDATA   => S_AXIS_TDATA,
+         S_AXIS_TSTRB   => S_AXIS_TSTRB,
+         S_AXIS_TKEEP   => S_AXIS_TKEEP,
+         S_AXIS_TLAST   => S_AXIS_TLAST,
+         S_AXIS_TDEST   => S_AXIS_TDEST,
+         S_AXIS_TID     => S_AXIS_TID,
+         S_AXIS_TUSER   => S_AXIS_TUSER,
+         S_AXIS_TREADY  => S_AXIS_TREADY,
+         -- SURF AXI Stream Interface
+         axisClk        => axisClk,
+         axisRst        => axisRst,
+         axisMaster     => sAxisMaster,
+         axisSlave      => sAxisSlave);
 
-   U_SsiPrbsTx : entity surf.SsiPrbsTx
+   U_InsertSOF : entity surf.SsiInsertSof
       generic map (
-         TPD_G                      => TPD_C,
-         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
-         AXI_EN_G                   => '0',
-         MASTER_AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C)
+         COMMON_CLK_G        => true,
+         SLAVE_FIFO_G        => false,
+         MASTER_FIFO_G       => false,
+         SLAVE_AXI_CONFIG_G  => PGP4_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => PGP4_AXIS_CONFIG_C)
       port map (
-         -- Master Port (mAxisClk)
-         mAxisClk     => pgpClk,
-         mAxisRst     => pgpRst,
-         mAxisMaster  => pgpTxMaster,
-         mAxisSlave   => pgpTxSlave,
-         -- Trigger Signal (locClk domain)
-         locClk       => pgpClk,
-         locRst       => pgpRst,
-         trig         => pgpRxOut.linkReady,
-         packetLength => TX_PACKET_LENGTH_C);
+         -- Slave Port
+         sAxisClk    => axisClk,
+         sAxisRst    => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisClk    => axisClk,
+         mAxisRst    => axisRst,
+         mAxisMaster => pgpTxMaster,
+         mAxisSlave  => pgpTxSlave);
 
    U_DUT : entity surf.Pgp4CoreLite
       generic map (
-         TPD_G          => TPD_C,
          NUM_VC_G       => 1,           -- Only 1 VC per PGPv4 link
          SKIP_EN_G      => false,  -- No skips (assumes clock source synchronous system)
          FLOW_CTRL_EN_G => true)
       port map (
          -- Tx User interface
-         pgpTxClk        => pgpClk,
-         pgpTxRst        => pgpRst,
+         pgpTxClk        => axisClk,
+         pgpTxRst        => axisRst,
          pgpTxIn         => pgpTxIn,
          pgpTxOut        => pgpTxOut,
          pgpTxMasters(0) => pgpTxMaster,
@@ -131,101 +156,73 @@ begin
          phyTxData       => phyData,
          phyTxHeader     => phyHeader,
          -- Rx User interface
-         pgpRxClk        => pgpClk,
-         pgpRxRst        => pgpRst,
+         pgpRxClk        => axisClk,
+         pgpRxRst        => axisRst,
          pgpRxIn         => pgpRxIn,
          pgpRxOut        => pgpRxOut,
          pgpRxMasters(0) => pgpRxMaster,
          pgpRxCtrl(0)    => pgpRxCtrl,
          -- Rx PHY interface
-         phyRxClk        => pgpClk,
-         phyRxRst        => pgpRst,
+         phyRxClk        => axisClk,
+         phyRxRst        => axisRst,
          phyRxActive     => '1',
          phyRxStartSeq   => '0',
          phyRxValid      => phyValid,
          phyRxData       => phyData,
          phyRxHeader     => phyHeader);
 
-   U_Rx_Fifo : entity surf.PgpRxVcFifo
+   U_RxFifo : entity surf.PgpRxVcFifo
       generic map (
-         TPD_G               => TPD_C,
-         GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 9,
-         FIFO_PAUSE_THRESH_G => 128,
+         INT_PIPE_STAGES_G   => 0,
+         PIPE_STAGES_G       => 0,
+         SYNTH_MODE_G        => "inferred",
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,      -- 2^4 = 16 deep buffer
+         FIFO_PAUSE_THRESH_G => 4,      -- 4 sample deep water mark
          PHY_AXI_CONFIG_G    => PGP4_AXIS_CONFIG_C,
          APP_AXI_CONFIG_G    => PGP4_AXIS_CONFIG_C)
       port map (
-         -- Slave Port
-         pgpClk      => pgpClk,
-         pgpRst      => pgpRst,
+         -- PGP Interface (pgpClk domain)
+         pgpClk      => axisClk,
+         pgpRst      => axisRst,
          rxlinkReady => pgpRxOut.linkReady,
          pgpRxMaster => pgpRxMaster,
          pgpRxCtrl   => pgpRxCtrl,
-         -- Master Port
-         axisClk     => locClk,
-         axisRst     => locRst,
-         axisMaster  => rxMaster,
-         axisSlave   => rxSlave);
+         -- AXIS Interface (axisClk domain)
+         axisClk     => axisClk,
+         axisRst     => axisRst,
+         axisMaster  => mAxisMaster,
+         axisSlave   => mAxisSlave);
 
-   U_SsiPrbsRx : entity surf.SsiPrbsRx
+   U_ShimLayerMaster : entity surf.MasterAxiStreamIpIntegrator
       generic map (
-         TPD_G                     => TPD_C,
-         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
-         SLAVE_READY_EN_G          => true,
-         SLAVE_AXI_STREAM_CONFIG_G => PGP4_AXIS_CONFIG_C)
+         INTERFACENAME   => "M_AXIS",
+         HAS_TLAST       => 1,
+         HAS_TKEEP       => 1,
+         HAS_TSTRB       => 1,
+         HAS_TREADY      => 1,
+         TUSER_WIDTH     => TUSER_WIDTH_C,
+         TID_WIDTH       => TID_WIDTH_C,
+         TDEST_WIDTH     => TDEST_WIDTH_C,
+         TDATA_NUM_BYTES => TDATA_NUM_BYTES_C)
       port map (
-         -- Streaming RX Data Interface (sAxisClk domain)
-         sAxisClk       => locClk,
-         sAxisRst       => locRst,
-         sAxisMaster    => rxMaster,
-         sAxisSlave     => rxSlave,
-         -- Error Detection Signals (sAxisClk domain)
-         updatedResults => updated,
-         errorDet       => errorDet);
-
-   U_frameRxErr : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G => TPD_C)
-      port map (
-         clk     => locClk,
-         dataIn  => pgpRxOut.frameRxErr,
-         dataOut => frameRxErr);
-
-   process(locClk)
-   begin
-      if rising_edge(locClk) then
-         if locRst = '1' then
-            cnt    <= (others => '0') after TPD_C;
-            passed <= '0'             after TPD_C;
-            failed <= '0'             after TPD_C;
-         elsif frameRxErr = '1' then
-            failed <= '1' after TPD_C;
-         elsif updated = '1' then
-            -- Check for packet error
-            if errorDet = '1' then
-               failed <= '1' after TPD_C;
-            end if;
-            -- Check the counter
-            if cnt = NUMBER_PACKET_C then
-               passed <= '1' after TPD_C;
-            else
-               -- Increment the counter
-               cnt <= cnt + 1 after TPD_C;
-            end if;
-         end if;
-      end if;
-   end process;
-
-   process(failed, passed)
-   begin
-      if failed = '1' then
-         assert false
-            report "Simulation Failed!" severity failure;
-      end if;
-      if passed = '1' then
-         assert false
-            report "Simulation Passed!" severity note;
-      end if;
-   end process;
+         -- IP Integrator AXI Stream Interface
+         M_AXIS_ACLK    => AXIS_ACLK,
+         M_AXIS_ARESETN => AXIS_ARESETN,
+         M_AXIS_TVALID  => M_AXIS_TVALID,
+         M_AXIS_TDATA   => M_AXIS_TDATA,
+         M_AXIS_TSTRB   => M_AXIS_TSTRB,
+         M_AXIS_TKEEP   => M_AXIS_TKEEP,
+         M_AXIS_TLAST   => M_AXIS_TLAST,
+         M_AXIS_TDEST   => M_AXIS_TDEST,
+         M_AXIS_TID     => M_AXIS_TID,
+         M_AXIS_TUSER   => M_AXIS_TUSER,
+         M_AXIS_TREADY  => M_AXIS_TREADY,
+         -- SURF AXI Stream Interface
+         axisClk        => open,
+         axisRst        => open,
+         axisMaster     => mAxisMaster,
+         axisSlave      => mAxisSlave);
 
 end testbed;
