@@ -33,8 +33,8 @@ class TB:
         self.log = logging.getLogger("cocotb.tb")
         self.log.setLevel(logging.DEBUG)
 
-        # Start AXIS_ACLK clock (200 MHz) in a separate thread
-        cocotb.start_soon(Clock(dut.AXIS_ACLK, 5.0, units='ns').start())
+        # Start AXIS_ACLK clock (100 MHz) in a separate thread
+        cocotb.start_soon(Clock(dut.AXIS_ACLK, 10.0, units='ns').start())
 
         # Setup the AXI stream source
         self.source = AxiStreamSource(
@@ -74,7 +74,6 @@ class TB:
         # Wait for the PGP link to come up before sending data
         while( self.dut.LINK_READY.value != 1):
             await RisingEdge(self.dut.AXIS_ACLK)
-
 
 async def run_test(dut, payload_lengths=None, payload_data=None, idle_inserter=None, backpressure_inserter=None):
 
@@ -116,9 +115,8 @@ def cycle_pause():
     return itertools.cycle([1, 1, 1, 0])
 
 def size_list():
-    # Sweep AXI-Stream frame sizes from 1 to 256 bytes
-    # return list(range(1, 256+1))
-    return list(range(1, 4+1))
+    # Sweep AXI-Stream frame sizes in 8-byte increments from 8B to 32B
+    return list(range(8, 32+1, 8))
 
 def incrementing_payload(length):
     return bytearray(itertools.islice(itertools.cycle(range(256)), length))
@@ -183,5 +181,5 @@ def test_Pgp4CoreLiteTb(parameters):
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
         ########################################################################
-        sim_args =[f'--wave={tests_module}.ghw'],
+        # sim_args =[f'--wave={tests_module}.ghw'],
     )
