@@ -177,7 +177,7 @@ def test_AxiStreamDemuxMuxTb(parameters):
             '-Wno-hide',        # Declaration of "axiconfig" hides function in AxiPkg.vhd
             '-Wno-specs',       # Warning related to IP skim layers attributes
             '-O2',              # Optimize the generated simulation code for speed (no change to VHDL semantics)
-        ]
+        ],
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)
