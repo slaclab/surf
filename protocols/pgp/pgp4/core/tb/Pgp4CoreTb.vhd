@@ -138,9 +138,10 @@ begin
 
    U_DUT : entity surf.Pgp4Core
       generic map (
-         NUM_VC_G     => 1,             -- Only 1 VC per PGPv4 link
-         EN_PGP_MON_G => false,
-         WRITE_EN_G   => false)
+         NUM_VC_G          => 1,        -- Only 1 VC per PGPv4 link
+         EN_PGP_MON_G      => false,
+         WRITE_EN_G        => false,
+         RX_CRC_PIPELINE_G => 1)
       port map (
          -- Tx User interface
          pgpTxClk        => axisClk,
