@@ -358,7 +358,11 @@ begin
       txPostCursor   <= r.txPostCursor;
       txPolarity     <= r.txPolarity;
       rxPolarity     <= r.rxPolarity;
-      countReset     <= r.countReset when (RST_POLARITY_G = '1') else not(r.countReset);
+      if RST_POLARITY_G = '1' then
+         countReset <= r.countReset;
+      else
+         countReset <= not(r.countReset);
+      end if;
 
       -- Reset
       if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then

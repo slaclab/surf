@@ -25,12 +25,14 @@ use surf.Pgp4Pkg.all;
 entity Pgp4CoreLite is
    generic (
       TPD_G                : time                  := 1 ns;
+      RST_POLARITY_G       : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean               := false;
       NUM_VC_G             : integer range 1 to 16 := 4;
       PGP_RX_ENABLE_G      : boolean               := true;
       PGP_TX_ENABLE_G      : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G : integer               := 32;
       SKIP_EN_G            : boolean               := false;  -- FALSE: No skips (assumes clock source synchronous system)
+      PGP_COMMON_CLK_G     : boolean               := false;  -- true if pgpTxClk = pgpRxClk
       FLOW_CTRL_EN_G       : boolean               := true;
       EN_PGP_MON_G         : boolean               := false;
       WRITE_EN_G           : boolean               := false;  -- Set to false when on remote end of a link
@@ -113,11 +115,13 @@ begin
    GEN_TX : if (PGP_TX_ENABLE_G) generate
       U_Pgp4Tx_1 : entity surf.Pgp4TxLite
          generic map (
-            TPD_G          => TPD_G,
-            RST_ASYNC_G    => RST_ASYNC_G,
-            NUM_VC_G       => NUM_VC_G,
-            SKIP_EN_G      => SKIP_EN_G,
-            FLOW_CTRL_EN_G => FLOW_CTRL_EN_G)
+            TPD_G            => TPD_G,
+            RST_POLARITY_G   => RST_POLARITY_G,
+            RST_ASYNC_G      => RST_ASYNC_G,
+            NUM_VC_G         => NUM_VC_G,
+            SKIP_EN_G        => SKIP_EN_G,
+            PGP_COMMON_CLK_G => PGP_COMMON_CLK_G,
+            FLOW_CTRL_EN_G   => FLOW_CTRL_EN_G)
          port map (
             pgpTxClk       => pgpTxClk,        -- [in]
             pgpTxRst       => pgpTxRst,        -- [in]
@@ -142,6 +146,7 @@ begin
       U_Pgp4Rx_1 : entity surf.Pgp4Rx
          generic map (
             TPD_G             => TPD_G,
+            RST_POLARITY_G    => RST_POLARITY_G,
             RST_ASYNC_G       => RST_ASYNC_G,
             NUM_VC_G          => NUM_VC_G,
             SKIP_EN_G         => SKIP_EN_G,
@@ -172,6 +177,7 @@ begin
       U_Pgp4AxiL : entity surf.Pgp4AxiL
          generic map (
             TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
             RST_ASYNC_G        => RST_ASYNC_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,
