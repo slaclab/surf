@@ -25,12 +25,14 @@ use surf.Pgp4Pkg.all;
 entity Pgp4Core is
    generic (
       TPD_G                       : time                  := 1 ns;
+      RST_POLARITY_G              : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G                 : boolean               := false;
       NUM_VC_G                    : integer range 1 to 16 := 4;
       PGP_FEC_ENABLE_G            : boolean               := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       SKIP_EN_G                   : boolean               := true;  -- TRUE for Elastic Buffer
+      PGP_COMMON_CLK_G            : boolean               := false;  -- true if pgpTxClk = pgpRxClk
       PGP_TX_ENABLE_G             : boolean               := true;
       TX_CELL_WORDS_MAX_G         : integer               := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
@@ -125,9 +127,11 @@ begin
       U_Pgp4Tx_1 : entity surf.Pgp4Tx
          generic map (
             TPD_G                    => TPD_G,
+            RST_POLARITY_G           => RST_POLARITY_G,
             RST_ASYNC_G              => RST_ASYNC_G,
             NUM_VC_G                 => NUM_VC_G,
             SKIP_EN_G                => SKIP_EN_G,
+            PGP_COMMON_CLK_G         => PGP_COMMON_CLK_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
             RX_CRC_PIPELINE_G        => RX_CRC_PIPELINE_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
@@ -158,6 +162,7 @@ begin
       U_Pgp4Rx_1 : entity surf.Pgp4Rx
          generic map (
             TPD_G             => TPD_G,
+            RST_POLARITY_G    => RST_POLARITY_G,
             RST_ASYNC_G       => RST_ASYNC_G,
             RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
             NUM_VC_G          => NUM_VC_G,
@@ -188,6 +193,7 @@ begin
       U_Pgp4AxiL : entity surf.Pgp4AxiL
          generic map (
             TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
             RST_ASYNC_G        => RST_ASYNC_G,
             COMMON_TX_CLK_G    => false,
             COMMON_RX_CLK_G    => false,

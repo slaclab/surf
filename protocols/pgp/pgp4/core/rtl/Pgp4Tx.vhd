@@ -28,12 +28,14 @@ use surf.Pgp4Pkg.all;
 entity Pgp4Tx is
    generic (
       TPD_G                    : time                  := 1 ns;
+      RST_POLARITY_G           : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G              : boolean               := false;
       -- PGP configuration
       NUM_VC_G                 : integer range 1 to 16 := 1;
       SKIP_EN_G                : boolean               := true;
       CELL_WORDS_MAX_G         : integer               := 256;  -- Number of 64-bit words per cell
       RX_CRC_PIPELINE_G        : natural range 0 to 1  := 0;
+      PGP_COMMON_CLK_G         : boolean               := false;  -- true if pgpTxClk = pgpRxClk
       -- MUX configuration
       MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
       MUX_TDEST_ROUTES_G       : Slv8Array             := (0 => "--------");  -- Only used in ROUTED mode
@@ -92,8 +94,10 @@ begin
    -- Synchronize remote link and FIFO status to TX clock
    U_Synchronizer_REM : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
       port map (
          clk     => pgpTxClk,                              -- [in]
          rst     => pgpTxRst,                              -- [in]
@@ -102,9 +106,11 @@ begin
    REM_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
       U_SynchronizerVector_1 : entity surf.SynchronizerVector
          generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G,
-            WIDTH_G     => 2)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => PGP_COMMON_CLK_G,
+            WIDTH_G        => 2)
          port map (
             clk        => pgpTxClk,                        -- [in]
             rst        => pgpTxRst,                        -- [in]
@@ -117,8 +123,10 @@ begin
    -- Synchronize local RX status
    U_Synchronizer_LOC : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
       port map (
          clk     => pgpTxClk,                           -- [in]
          rst     => pgpTxRst,                           -- [in]
@@ -127,8 +135,10 @@ begin
    LOC_STATUS_SYNC : for i in NUM_VC_G-1 downto 0 generate
       U_Synchronizer_pause : entity surf.Synchronizer
          generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
          port map (
             clk     => pgpTxClk,                        -- [in]
             rst     => pgpTxRst,                        -- [in]
@@ -136,8 +146,10 @@ begin
             dataOut => syncLocRxFifoCtrl(i).pause);     -- [out]
       U_Synchronizer_overflow : entity surf.SynchronizerOneShot
          generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
          port map (
             clk     => pgpTxClk,                        -- [in]
             rst     => pgpTxRst,                        -- [in]
@@ -164,6 +176,7 @@ begin
    U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
          RST_ASYNC_G          => RST_ASYNC_G,
          NUM_SLAVES_G         => NUM_VC_G,
          MODE_G               => MUX_MODE_G,
@@ -189,6 +202,7 @@ begin
    U_AxiStreamPacketizer2_1 : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
          RST_ASYNC_G          => RST_ASYNC_G,
          CRC_MODE_G           => "DATA",
          CRC_POLY_G           => PGP4_CRC_POLY_C,
@@ -210,6 +224,7 @@ begin
    U_Pgp4TxProtocol_1 : entity surf.Pgp4TxProtocol
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
          SKIP_EN_G         => SKIP_EN_G,
@@ -235,6 +250,7 @@ begin
    U_Scrambler_1 : entity surf.Scrambler
       generic map (
          TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
          RST_ASYNC_G      => RST_ASYNC_G,
          DIRECTION_G      => "SCRAMBLER",
          DATA_WIDTH_G     => 64,
@@ -256,6 +272,7 @@ begin
          outputSideband(1 downto 0) => phyTxHeader,   -- [out]
          outputSideband(2)          => phyTxStart);   -- [out]
 
-   phyTxActiveL <= not(phyTxActive);
+   -- not using ite to prevent errors in ASIC synth flow
+   phyTxActiveL <= not(phyTxActive) when RST_POLARITY_G = '1' else phyTxActive;
 
 end architecture rtl;
