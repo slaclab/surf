@@ -72,7 +72,7 @@ class TB:
         await RisingEdge(self.dut.AXIS_ACLK)
 
         # Wait for the PGP link to come up before sending data
-        while( self.dut.LINK_READY.value != 1):
+        while (self.dut.LINK_READY.value != 1):
             await RisingEdge(self.dut.AXIS_ACLK)
 
 async def run_test(dut, payload_lengths=None, payload_data=None, idle_inserter=None, backpressure_inserter=None):
