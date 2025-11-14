@@ -27,6 +27,7 @@ use surf.Pgp4Pkg.all;
 entity Pgp4AxiL is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_POLARITY_G     : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean               := false;
       COMMON_TX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpTxClk are the same clock
       COMMON_RX_CLK_G    : boolean               := false;  -- Set to true if axiClk and pgpRxClk are the same clock
@@ -172,6 +173,8 @@ architecture mapping of Pgp4AxiL is
 
    signal txError    : slv(TX_ERROR_CNT_SIZE_C-1 downto 0);
    signal txErrorCnt : SlVectorArray(TX_ERROR_CNT_SIZE_C-1 downto 0, ERROR_CNT_WIDTH_G-1 downto 0);
+
+   signal countReset : sl;
 
 begin
 
@@ -355,9 +358,10 @@ begin
       txPostCursor   <= r.txPostCursor;
       txPolarity     <= r.txPolarity;
       rxPolarity     <= r.rxPolarity;
+      countReset     <= r.countReset when (RST_POLARITY_G = '1') else not(r.countReset);
 
       -- Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -368,7 +372,7 @@ begin
 
    seqAxil : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G) and (axilRst = '1') then
+      if (RST_ASYNC_G) and (axilRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
@@ -393,10 +397,11 @@ begin
 
    U_RxSyncVec : entity surf.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         BYPASS_SYNC_G => COMMON_RX_CLK_G,
-         WIDTH_G       => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_RX_CLK_G,
+         WIDTH_G        => 1)
       port map (
          clk        => pgpRxClk,
          dataIn(0)  => r.resetRx,
@@ -404,10 +409,11 @@ begin
 
    U_remLinkData : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         DATA_WIDTH_G => 48)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         DATA_WIDTH_G   => 48)
       port map (
          wr_clk => pgpRxClk,
          din    => pgpRxOut.remLinkData,
@@ -416,12 +422,13 @@ begin
 
    U_RxOpCode : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         DATA_WIDTH_G => 48)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         DATA_WIDTH_G   => 48)
       port map (
-         rst    => r.countReset,
+         rst    => countReset,
          wr_clk => pgpRxClk,
          wr_en  => pgpRxOut.opCodeEn,
          din    => pgpRxOut.opCodeData,
@@ -430,16 +437,17 @@ begin
 
    U_remRxPause : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
-         WIDTH_G      => NUM_VC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => NUM_VC_G)
       port map (
          statusIn     => pgpRxOut.remRxPause(NUM_VC_G-1 downto 0),
          statusOut    => remRxPause,
          cntOut       => remRxPauseCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '1'),
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
@@ -448,16 +456,17 @@ begin
 
    U_remRxOverflow : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
-         WIDTH_G      => NUM_VC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => NUM_VC_G)
       port map (
          statusIn     => pgpRxOut.remRxOverflow(NUM_VC_G-1 downto 0),
          statusOut    => remRxOverflow,
          cntOut       => remRxOverflowCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '0'),
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
@@ -466,17 +475,18 @@ begin
 
    U_rxStatusCnt : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
-         WIDTH_G      => RX_STATUS_CNT_SIZE_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => RX_STATUS_CNT_SIZE_C)
       port map (
          statusIn(0)  => pgpRxOut.frameRx,
          statusIn(1)  => pgpRxOut.opCodeEn,
          statusOut    => rxStatus,
          cntOut       => rxStatusCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '1'),
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
@@ -485,11 +495,12 @@ begin
 
    U_rxErrorCnt : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_RX_CLK_G,
-         CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
-         WIDTH_G      => RX_ERROR_CNT_SIZE_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_RX_CLK_G,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => RX_ERROR_CNT_SIZE_C)
       port map (
          statusIn(0)  => pgpRxOut.phyRxActive,
          statusIn(1)  => pgpRxOut.phyRxInit,
@@ -509,7 +520,7 @@ begin
          statusIn(15) => pgpRxOut.cellEofeError,
          statusOut    => rxError,
          cntOut       => rxErrorCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '0'),
          wrClk        => pgpRxClk,
          wrRst        => pgpRxRst,
@@ -522,8 +533,9 @@ begin
 
    U_phyRxFecByp : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => phyRxClk,
          dataIn  => r.bypassFec,
@@ -533,8 +545,9 @@ begin
 
       U_phyRxFecInjErr : entity surf.SynchronizerOneShot
          generic map (
-            TPD_G       => TPD_G,
-            RST_ASYNC_G => RST_ASYNC_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
          port map (
             clk     => phyRxClk,
             dataIn  => r.phyRxFecInjErr,
@@ -542,18 +555,19 @@ begin
 
       U_phyRxFecCnt : entity surf.SyncStatusVector
          generic map (
-            TPD_G        => TPD_G,
-            RST_ASYNC_G  => RST_ASYNC_G,
-            COMMON_CLK_G => false,
-            CNT_WIDTH_G  => 16,
-            WIDTH_G      => FEC_CNT_SIZE_C)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            COMMON_CLK_G   => false,
+            CNT_WIDTH_G    => 16,
+            WIDTH_G        => FEC_CNT_SIZE_C)
          port map (
             statusIn(0)  => phyRxFecLock,
             statusIn(1)  => phyRxFecCorInc,
             statusIn(2)  => phyRxFecUnCorInc,
             statusOut    => phyFec,
             cntOut       => phyFecCnt,
-            cntRstIn     => r.countReset,
+            cntRstIn     => countReset,
             rollOverEnIn => (others => '0'),
             wrClk        => phyRxClk,
             wrRst        => '0',        -- Don't clear counters on PHY RX reset
@@ -580,10 +594,11 @@ begin
 
    U_SKP_SYNC : entity surf.SynchronizerVector  -- Using Synchronizer (instead of Fifo) to save on LUTs and because rarely changed and Pgp4TxProtocol.vhd includes a register changed detection logic
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         BYPASS_SYNC_G => COMMON_TX_CLK_G,
-         WIDTH_G       => 32)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_TX_CLK_G,
+         WIDTH_G        => 32)
       port map (
          clk     => pgpTxClk,
          dataIn  => r.skpInterval,
@@ -591,10 +606,11 @@ begin
 
    U_TxSyncVec : entity surf.SynchronizerVector
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         BYPASS_SYNC_G => COMMON_TX_CLK_G,
-         WIDTH_G       => 4)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_SYNC_G  => COMMON_TX_CLK_G,
+         WIDTH_G        => 4)
       port map (
          clk        => pgpTxClk,
          dataIn(0)  => r.flowCntlDis,
@@ -608,10 +624,11 @@ begin
 
    U_locData : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         DATA_WIDTH_G => 48)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         DATA_WIDTH_G   => 48)
       port map (
          wr_clk => pgpTxClk,
          din    => locTxIn.locData,
@@ -620,12 +637,13 @@ begin
 
    U_TxOpCode : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         DATA_WIDTH_G => 48)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         DATA_WIDTH_G   => 48)
       port map (
-         rst    => r.countReset,
+         rst    => countReset,
          wr_clk => pgpTxClk,
          wr_en  => locTxIn.opCodeEn,
          din    => locTxIn.opCodeData,
@@ -634,16 +652,17 @@ begin
 
    U_locPause : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
-         WIDTH_G      => NUM_VC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => NUM_VC_G)
       port map (
          statusIn     => pgpTxOut.locPause(NUM_VC_G-1 downto 0),
          statusOut    => locPause,
          cntOut       => locPauseCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '1'),
          wrClk        => pgpTxClk,
          wrRst        => pgpTxRst,
@@ -652,16 +671,17 @@ begin
 
    U_locOverflow : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
-         WIDTH_G      => NUM_VC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => NUM_VC_G)
       port map (
          statusIn     => pgpTxOut.locOverflow(NUM_VC_G-1 downto 0),
          statusOut    => locOverflow,
          cntOut       => locOverflowCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '0'),
          wrClk        => pgpTxClk,
          wrRst        => pgpTxRst,
@@ -670,17 +690,18 @@ begin
 
    U_txStatusCnt : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         CNT_WIDTH_G  => STATUS_CNT_WIDTH_G,
-         WIDTH_G      => TX_STATUS_CNT_SIZE_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         CNT_WIDTH_G    => STATUS_CNT_WIDTH_G,
+         WIDTH_G        => TX_STATUS_CNT_SIZE_C)
       port map (
          statusIn(0)  => pgpTxOut.frameTx,
          statusIn(1)  => locTxIn.opCodeEn,
          statusOut    => txStatus,
          cntOut       => txStatusCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '1'),
          wrClk        => pgpTxClk,
          wrRst        => pgpTxRst,
@@ -689,18 +710,19 @@ begin
 
    U_txErrorCnt : entity surf.SyncStatusVector
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         COMMON_CLK_G => COMMON_TX_CLK_G,
-         CNT_WIDTH_G  => ERROR_CNT_WIDTH_G,
-         WIDTH_G      => TX_ERROR_CNT_SIZE_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         COMMON_CLK_G   => COMMON_TX_CLK_G,
+         CNT_WIDTH_G    => ERROR_CNT_WIDTH_G,
+         WIDTH_G        => TX_ERROR_CNT_SIZE_C)
       port map (
          statusIn(0)  => pgpTxOut.phyTxActive,
          statusIn(1)  => pgpTxOut.linkReady,
          statusIn(2)  => pgpTxOut.frameTxErr,
          statusOut    => txError,
          cntOut       => txErrorCnt,
-         cntRstIn     => r.countReset,
+         cntRstIn     => countReset,
          rollOverEnIn => (others => '0'),
          wrClk        => pgpTxClk,
          wrRst        => pgpTxRst,
