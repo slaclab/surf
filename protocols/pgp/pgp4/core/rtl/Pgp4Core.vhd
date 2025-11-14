@@ -30,6 +30,7 @@ entity Pgp4Core is
       PGP_FEC_ENABLE_G            : boolean               := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
+      SKIP_EN_G                   : boolean               := true;  -- TRUE for Elastic Buffer
       PGP_TX_ENABLE_G             : boolean               := true;
       TX_CELL_WORDS_MAX_G         : integer               := PGP4_DEFAULT_TX_CELL_WORDS_MAX_C;  -- Number of 64-bit words per cell
       TX_MUX_MODE_G               : string                := "INDEXED";  -- Or "ROUTED"
@@ -126,6 +127,7 @@ begin
             TPD_G                    => TPD_G,
             RST_ASYNC_G              => RST_ASYNC_G,
             NUM_VC_G                 => NUM_VC_G,
+            SKIP_EN_G                => SKIP_EN_G,
             CELL_WORDS_MAX_G         => TX_CELL_WORDS_MAX_G,
             RX_CRC_PIPELINE_G        => RX_CRC_PIPELINE_G,
             MUX_MODE_G               => TX_MUX_MODE_G,
@@ -159,6 +161,7 @@ begin
             RST_ASYNC_G       => RST_ASYNC_G,
             RX_CRC_PIPELINE_G => RX_CRC_PIPELINE_G,
             NUM_VC_G          => NUM_VC_G,
+            SKIP_EN_G         => SKIP_EN_G,
             ALIGN_SLIP_WAIT_G => RX_ALIGN_SLIP_WAIT_G)
          port map (
             pgpRxClk       => pgpRxClk,        -- [in]

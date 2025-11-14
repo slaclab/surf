@@ -34,6 +34,7 @@ entity Pgp4TxProtocol is
       TPD_G             : time                  := 1 ns;
       RST_ASYNC_G       : boolean               := false;
       NUM_VC_G          : integer range 1 to 16 := 4;
+      SKIP_EN_G         : boolean               := true;
       RX_CRC_PIPELINE_G : natural range 0 to 1  := 0;
       STARTUP_HOLD_G    : integer               := 1000);
    port (
@@ -156,17 +157,21 @@ begin
       end loop;
       idleWord(PGP4_BTF_FIELD_C) := PGP4_IDLE_C;
 
-      -- Keep delay copy of skip interval configuration
-      v.skpInterval := pgpTxIn.skpInterval;
+      if SKIP_EN_G then
 
-      -- Check for change in configuration
-      if (r.skpInterval /= v.skpInterval) then
-         -- Force a skip
-         v.skpCount := v.skpInterval;
-      -- Check for counter roll over
-      elsif (r.skpCount /= r.skpInterval) then
-         -- Increment the counter
-         v.skpCount := r.skpCount + 1;
+         -- Keep delay copy of skip interval configuration
+         v.skpInterval := pgpTxIn.skpInterval;
+
+         -- Check for change in configuration
+         if (r.skpInterval /= v.skpInterval) then
+            -- Force a skip
+            v.skpCount := v.skpInterval;
+         -- Check for counter roll over
+         elsif (r.skpCount /= r.skpInterval) then
+            -- Increment the counter
+            v.skpCount := r.skpCount + 1;
+         end if;
+
       end if;
 
       -- Don't accept new frame data by default
@@ -276,7 +281,7 @@ begin
             resetEventMetaData                     := false;
 
          -- SKIP codes override data
-         elsif (r.skpCount = r.skpInterval) then
+         elsif (r.skpCount = r.skpInterval) and SKIP_EN_G then
 
             -- Reset the counter
             v.skpCount := (others => '0');
