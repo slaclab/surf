@@ -137,7 +137,7 @@ begin
       if rising_edge(axilClk) then
          rAxilReadSlave  <= rinAxilReadSlave  after TPD_G;
          rAxilWriteSlave <= rinAxilWriteSlave after TPD_G;
-         batchSizeAxiL   <= batchSizeAxiLin;
+         batchSizeAxiL   <= batchSizeAxiLin   after TPD_G;
       end if;
    end process seq_axil;
 
