@@ -646,6 +646,9 @@ begin
                   end if;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to TERMINATE_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 

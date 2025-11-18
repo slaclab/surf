@@ -258,6 +258,11 @@ begin
          -- Send data if there is data to send
          if (pgpTxMaster.tValid = '1' and dataEn = '1') then
 
+            -- Check for a partial TKEEP
+            assert (pgpTxMaster.tKeep(7 downto 0) = x"FF")
+               report "Pgp4TxLiteProtocol does not support TKEEP byte. No partial AXIS allowed"
+               severity failure;
+
             -- Update the flag
             resetEventMetaData := false;
 

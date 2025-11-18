@@ -435,7 +435,7 @@ class Qsfp(pr.Device):
                 base         = pr.Bool,
             ))
 
-        # 94-97 All Reserved
+        # 94-97 All Reserved (Prior to Rev 2.10 used for SFF-8079 – now deprecated.)
 
         self.add(pr.RemoteVariable(
             name         = 'TxCdrEnable',
@@ -780,8 +780,8 @@ class Qsfp(pr.Device):
             ))
 
         # 118 118 Reserved
-        # 119 122 Optional Password Change
-        # 123 126 Optional Password Entry
+        # 119 122 Optional Password Change (Optional)
+        # 123 126 Optional Password Entry (Optional)
 
 
         # 127 127 Page Select Byte

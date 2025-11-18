@@ -417,7 +417,7 @@ class Pgp4AxiLRxStatus(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'BitErrorRate',
-            description  = 'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 70 bits)',
+            description  = 'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 11 bits)',
             mode         = 'RO',
             disp         = '{:.3e}', # scientific notation with three decimal places
             dependencies = [self.UpTimeCnt, self.phyRxFecCorIncCnt, self.BypassFec, self.RxClockFreqRaw],

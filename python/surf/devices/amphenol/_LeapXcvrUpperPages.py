@@ -12,39 +12,29 @@ import pyrogue as pr
 
 from surf.devices import transceivers
 
-import math
-
 class LeapXcvrUpperRxPage01(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        def getOpticalPwr(var, read):
-            raw = var.dependencies[0].get(read=read) # Units of 0.1 uW
-            if raw == 0:
-                pwr = 0.0001 # Prevent log10(zero) case
-            else:
-                pwr = float(raw)*0.0001 # units of mW
-
-            # Return value in units of dBm
-            return 10.0*math.log10(pwr)
+        self.addRemoteVariables(
+            name         = 'RxPwrRaw',
+            description  = 'Rx input power',
+            offset       = (206 << 2),
+            bitSize      = 8,
+            mode         = 'RO',
+            number       = 24, # BYTE206:BYTE229
+            stride       = 4,
+            hidden       = True,
+        )
 
         for i in range(12):
-            self.add(pr.RemoteVariable(
-                name        = f'InputOpticalPowerMonitorRaw[{11-i}]',
-                offset      = ((206+i) << 2),
-                bitSize     = 8,
-                bitOffset   = 0,
-                mode        = 'RO',
-                hidden      = True,
-            ))
-
             self.add(pr.LinkVariable(
                 name         = f'InputOpticalPowerMonitor[{11-i}]',
                 mode         = 'RO',
                 disp         = '{:1.1f}',
                 units        = 'dBm',
-                linkedGet    = getOpticalPwr,
-                dependencies = [self.InputOpticalPowerMonitorRaw[11-i]],
+                linkedGet    = transceivers.getOpticalPwr,
+                dependencies = [self.RxPwrRaw[2*i+0],self.RxPwrRaw[2*i+1]],
             ))
 
 class LeapXcvrUpperPage00(pr.Device):

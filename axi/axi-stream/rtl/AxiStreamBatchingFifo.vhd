@@ -57,6 +57,7 @@ end AxiStreamBatchingFifo;
 architecture rtl of AxiStreamBatchingFifo is
 
    signal batchSizeAxiL   : slv(31 downto 0);
+   signal batchSizeAxiLin : slv(31 downto 0);
    signal batchSize       : slv(31 downto 0);
 
    signal axisMasterSync : AxiStreamMasterType;
@@ -94,7 +95,7 @@ begin
     ------- CONTROL  INTERFACE -------
     ----------------------------------
 
-   comb_axil : process (sAxilReadMaster, sAxilWriteMaster, axilRst, rAxilWriteSlave, rAxilReadSlave) is
+   comb_axil : process (sAxilReadMaster, sAxilWriteMaster, axilRst, rAxilWriteSlave, rAxilReadSlave, batchSizeAxiL) is
       variable vAxilWriteSlave : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
       variable vAxilReadSlave  : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
       variable regCon          : AxiLiteEndPointType;
@@ -104,6 +105,7 @@ begin
       -- Latch input values
       vAxilWriteSlave := rAxilWriteSlave;
       vAxilReadSlave  := rAxilReadSlave;
+      vBatchSize      := batchSizeAxiL;
 
       -- Determine the transaction type
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, vAxilWriteSlave, vAxilReadSlave);
@@ -123,7 +125,7 @@ begin
       -- Combinatory output
       rinAxilReadSlave  <= vAxilReadSlave;
       rinAxilWriteSlave <= vAxilWriteSlave;
-      batchSizeAxiL     <= vBatchSize;
+      batchSizeAxiLin   <= vBatchSize;
 
       -- Outputs
       sAxilReadSlave  <= rAxilReadSlave;
@@ -135,6 +137,7 @@ begin
       if rising_edge(axilClk) then
          rAxilReadSlave  <= rinAxilReadSlave  after TPD_G;
          rAxilWriteSlave <= rinAxilWriteSlave after TPD_G;
+         batchSizeAxiL   <= batchSizeAxiLin   after TPD_G;
       end if;
    end process seq_axil;
 

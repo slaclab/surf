@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation Pgp4Lite Testbed
+-- Description: Simulation Pgp4 Testbed
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -24,7 +24,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.Pgp4Pkg.all;
 
-entity Pgp4CoreLiteTb is
+entity Pgp4CoreTb is
    port (
       LINK_READY    : out std_logic;
       -- Clock and Reset
@@ -50,9 +50,9 @@ entity Pgp4CoreLiteTb is
       M_AXIS_TID    : out std_logic_vector(0 downto 0);
       M_AXIS_TUSER  : out std_logic_vector(0 downto 0);
       M_AXIS_TREADY : in  std_logic);
-end entity Pgp4CoreLiteTb;
+end entity Pgp4CoreTb;
 
-architecture testbed of Pgp4CoreLiteTb is
+architecture testbed of Pgp4CoreTb is
 
    constant TUSER_WIDTH_C     : positive := 1;
    constant TID_WIDTH_C       : positive := 1;
@@ -136,11 +136,12 @@ begin
          mAxisMaster => pgpTxMaster,
          mAxisSlave  => pgpTxSlave);
 
-   U_DUT : entity surf.Pgp4CoreLite
+   U_DUT : entity surf.Pgp4Core
       generic map (
-         NUM_VC_G       => 1,           -- Only 1 VC per PGPv4 link
-         SKIP_EN_G      => false,  -- No skips (assumes clock source synchronous system)
-         FLOW_CTRL_EN_G => true)
+         NUM_VC_G          => 1,        -- Only 1 VC per PGPv4 link
+         EN_PGP_MON_G      => false,
+         WRITE_EN_G        => false,
+         RX_CRC_PIPELINE_G => 1)
       port map (
          -- Tx User interface
          pgpTxClk        => axisClk,
