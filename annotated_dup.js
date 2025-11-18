@@ -553,6 +553,7 @@ var annotated_dup =
     [ "Pgp4Core", "classPgp4Core.html", "classPgp4Core" ],
     [ "Pgp4CoreLite", "classPgp4CoreLite.html", "classPgp4CoreLite" ],
     [ "Pgp4CoreLiteTb", "classPgp4CoreLiteTb.html", "classPgp4CoreLiteTb" ],
+    [ "Pgp4CoreTb", "classPgp4CoreTb.html", "classPgp4CoreTb" ],
     [ "Pgp4FecTb", "classPgp4FecTb.html", "classPgp4FecTb" ],
     [ "Pgp4GthUs", "classPgp4GthUs.html", "classPgp4GthUs" ],
     [ "Pgp4GthUsWrapper", "classPgp4GthUsWrapper.html", "classPgp4GthUsWrapper" ],

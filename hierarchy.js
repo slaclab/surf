@@ -1384,8 +1384,8 @@ var hierarchy =
       [ "Pgp3Tx", "classPgp3Tx.html", null ],
       [ "Pgp3Rx", "classPgp3Rx.html", null ],
       [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "Pgp4CoreLite", "classPgp4CoreLite.html", [
         [ "Pgp4TxLite", "classPgp4TxLite.html", [
           [ "Synchronizer", "classSynchronizer.html", null ],
@@ -1421,9 +1421,9 @@ var hierarchy =
         [ "RstPipeline", "classRstPipeline.html", null ],
         [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ]
       ] ],
-      [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "SsiInsertSof", "classSsiInsertSof.html", null ],
       [ "Pgp4Core", "classPgp4Core.html", [
         [ "Pgp4Tx", "classPgp4Tx.html", [
           [ "Synchronizer", "classSynchronizer.html", null ],
@@ -1437,6 +1437,11 @@ var hierarchy =
         [ "Pgp4Rx", "classPgp4Rx.html", null ],
         [ "Pgp4AxiL", "classPgp4AxiL.html", null ]
       ] ],
+      [ "PgpRxVcFifo", "classPgpRxVcFifo.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "Pgp4Core", "classPgp4Core.html", null ],
       [ "Pgp4GtyUsIpFecWrapper", "classPgp4GtyUsIpFecWrapper.html", null ],
       [ "PgpRxVcFifo", "classPgpRxVcFifo.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
