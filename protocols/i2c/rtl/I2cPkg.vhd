@@ -166,6 +166,7 @@ package I2cPkg is
       addrSize    : integer;
       endianness  : sl;
       repeatStart : sl;
+      readDelayTime : time; -- delay time between address write and read
    end record I2cAxiLiteDevType;
 
    function MakeI2cAxiLiteDevType (
@@ -173,9 +174,20 @@ package I2cPkg is
       dataSize    : integer;
       addrSize    : integer;
       endianness  : sl;
-      repeatStart : sl := '0')
+      repeatStart : sl := '0'
+      readDelayTime : time := 0 ms) 
       return I2cAxiLiteDevType;
 
+   ------------------------------------------
+   -- helper function for computing number of
+   -- clock cycles for delay
+   ------------------------------------------
+   function calcDelayCycles (
+      delayTime : real;      -- Delay in seconds
+      clkFreq   : real)      -- Clock frequency in Hz
+      return natural;
+
+   
    type I2cAxiLiteDevArray is array (natural range <>) of I2cAxiLiteDevType;
 
    constant I2C_AXIL_DEV_ARRAY_DEFAULT_C : I2cAxiLiteDevArray(0 to 3) := (
@@ -231,12 +243,22 @@ end;
 
 package body I2cPkg is
 
+   function calcDelayCycles (
+     delayTime : time;
+     clkFreq   : real)
+     return natural
+   is
+   begin
+     return natural(ceil(real(delay / 1 ns) / 1.0e9 * clk_period));
+   end function calcDelayCycles;
+
    function MakeI2cAxiLiteDevType (
       i2cAddress  : slv;
       dataSize    : integer;
       addrSize    : integer;
       endianness  : sl;
-      repeatStart : sl := '0')
+      repeatStart : sl := '0';
+      readDelayTime : time := 0 ms)
       return I2cAxiLiteDevType
    is
       variable ret : I2cAxiLiteDevType;
@@ -251,10 +273,11 @@ package body I2cPkg is
          report "i2cAddress param must have length of 7 or 10" severity error;
       end if;
 
-      ret.dataSize    := dataSize;
-      ret.addrSize    := addrSize;
-      ret.endianness  := endianness;
-      ret.repeatStart := repeatStart;
+      ret.dataSize      := dataSize;
+      ret.addrSize      := addrSize;
+      ret.endianness    := endianness;
+      ret.repeatStart   := repeatStart;
+      ret.readDelayTime := readDelayTime;
       return ret;
    end function MakeI2cAxiLiteDevType;
 

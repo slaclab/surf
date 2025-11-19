@@ -35,6 +35,7 @@ entity I2cRegMaster is
       clk    : in  sl;
       srst   : in  sl := '0';
       arst   : in  sl := '0';
+      readDelayCycles : in  slv(31 downto 0) := (others => '0');
       regIn  : in  I2cRegMasterInType;
       regOut : out I2cRegMasterOutType;
       i2ci   : in  i2c_in_type;
@@ -48,6 +49,7 @@ architecture rtl of I2cRegMaster is
       WAIT_REQ_S,
       ADDR_S,
       WRITE_S,
+      WAIT_DELAY_S,
       READ_TXN_S,
       READ_S,
       BUS_ACK_S,
@@ -56,6 +58,8 @@ architecture rtl of I2cRegMaster is
    type RegType is record
       state       : StateType;
       byteCount   : unsigned(1 downto 0);
+      delayCount      : unsigned(31 downto 0);  -- Counter for delay
+      delayTarget     : unsigned(31 downto 0);  -- Target delay value (captured at start of read)
       regOut      : I2cRegMasterOutType;
       i2cMasterIn : I2cMasterInType;
    end record RegType;
@@ -63,6 +67,8 @@ architecture rtl of I2cRegMaster is
    constant REG_INIT_C : RegType := (
       state          => WAIT_REQ_S,
       byteCount      => (others => '0'),
+      delayCount     => (others => '0'),
+      delayTarget    => (others => '0'),
       regOut         => (
          regAck      => '0',
          regFail     => '0',
@@ -145,6 +151,10 @@ begin
                -- This is done by setting stop to 0 for the regAddr write txn
                -- Then the following read txn will be issued with repeated start
                v.i2cMasterIn.stop   := ite(regIn.regOp = '0' and regIn.repeatStart = '1', '0', '1');
+               -- If read delay != 0, always stop
+               if readDelayCycles > 0 then
+                 v.i2cMasterIn.stop := '1';
+               end if;
                v.i2cMasterIn.busReq := regIn.busReq;
                v.state              := ADDR_S;
                if regIn.busReq = '1' then
@@ -177,7 +187,12 @@ begin
                   if (regIn.regOp = '1' or (regIn.regOp = '0' and regIn.wrDataOnRd = '1')) then
                      v.state := WRITE_S;
                   else
-                     v.state := READ_TXN_S;
+                     if readDelayCycles = 0 then
+                       v.state := READ_TXN_S;
+                     else
+                       v.delayTarget := unsigned(readDelayCycles);
+                       v.state := WAIT_DELAY_S;
+                     end if;
                   end if;
                end if;
             end if;
@@ -200,6 +215,22 @@ begin
                      v.state     := READ_TXN_S;
                   end if;
 
+               end if;
+            end if;
+
+         -- NEW STATE: Wait for required delay before starting read transaction
+         when WAIT_DELAY_S =>
+            -- Check if delay is needed (delayTarget > 0)
+            if (r.delayTarget = 0) then
+               -- No delay needed, go directly to read
+               v.state := READ_TXN_S;
+            else
+               -- Count up to the delay target
+               v.delayCount := r.delayCount + 1;
+               if (r.delayCount >= r.delayTarget - 1) then
+                  -- Delay complete, proceed to read transaction
+                  v.delayCount := (others => '0');
+                  v.state := READ_TXN_S;
                end if;
             end if;
 

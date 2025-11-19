@@ -58,6 +58,7 @@ architecture mapping of AxiI2cRegMasterCore is
    signal proxyReadSlave   : AxiLiteReadSlaveType;
    signal proxyWriteMaster : AxiLiteWriteMasterType;
    signal proxyWriteSlave  : AxiLiteWriteSlaveType;
+   signal readDelayCycles  : slv (31 downto 0);
 
 begin
 
@@ -105,6 +106,17 @@ begin
          -- Clocks and Resets
          axiClk          => axiClk,
          axiRst          => axiRst);
+   
+   -- Mux the delay cycles based on which device is selected
+   process (deviceSelect)
+   begin
+      readDelayCycles <= 0;
+      for i in DEVICE_MAP_G'range loop
+         if deviceSelect(i) = '1' then
+            readDelayCycles <= toslv(calcDelayCycles(DEVICE_MAP_G(i).readDelayTime, AXI_CLK_FREQ_G));
+         end if;
+      end loop;
+   end process;
 
    U_I2cRegMaster : entity surf.I2cRegMaster
       generic map(
@@ -116,6 +128,8 @@ begin
          -- I2C Port Interface
          i2ci   => i2ci,
          i2co   => i2co,
+         -- per device readDelay
+         readDelayCycles => readDelayCycles,
          -- I2C Register Interface
          regIn  => i2cRegMasterIn,
          regOut => i2cRegMasterOut,
