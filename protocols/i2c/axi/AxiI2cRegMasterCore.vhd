@@ -59,9 +59,12 @@ architecture mapping of AxiI2cRegMasterCore is
    signal proxyWriteMaster : AxiLiteWriteMasterType;
    signal proxyWriteSlave  : AxiLiteWriteSlaveType;
    signal readDelayCycles  : slv (31 downto 0);
-
+   signal selInt           : slv (DEVICE_MAP_G'length-1 downto 0);
+   
 begin
 
+  sel <= selInt; 
+  
    BYP_PROXY : if (AXIL_PROXY_G = false) generate
       proxyReadMaster  <= axiReadMaster;
       axiReadSlave     <= proxyReadSlave;
@@ -97,7 +100,7 @@ begin
          -- I2C Register Interface
          i2cRegMasterIn  => i2cRegMasterIn,
          i2cRegMasterOut => i2cRegMasterOut,
-         i2cSelectOut    => sel,
+         i2cSelectOut    => selInt,
          -- AXI-Lite Register Interface
          axiReadMaster   => proxyReadMaster,
          axiReadSlave    => proxyReadSlave,
@@ -108,12 +111,12 @@ begin
          axiRst          => axiRst);
    
    -- Mux the delay cycles based on which device is selected
-   process (deviceSelect)
+   process (selInt)
    begin
-      readDelayCycles <= 0;
+      readDelayCycles <= toSlv(0,32);
       for i in DEVICE_MAP_G'range loop
-         if deviceSelect(i) = '1' then
-            readDelayCycles <= toslv(calcDelayCycles(DEVICE_MAP_G(i).readDelayTime, AXI_CLK_FREQ_G));
+         if selInt(i) = '1' then
+            readDelayCycles <= toSlv(calcDelayCycles(DEVICE_MAP_G(i).readDelayTime, AXI_CLK_FREQ_G),32);
          end if;
       end loop;
    end process;

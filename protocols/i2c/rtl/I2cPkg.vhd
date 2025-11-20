@@ -174,7 +174,7 @@ package I2cPkg is
       dataSize    : integer;
       addrSize    : integer;
       endianness  : sl;
-      repeatStart : sl := '0'
+      repeatStart : sl := '0';
       readDelayTime : time := 0 ms) 
       return I2cAxiLiteDevType;
 
@@ -183,7 +183,7 @@ package I2cPkg is
    -- clock cycles for delay
    ------------------------------------------
    function calcDelayCycles (
-      delayTime : real;      -- Delay in seconds
+      delayTime : time;      -- Delay
       clkFreq   : real)      -- Clock frequency in Hz
       return natural;
 
@@ -249,7 +249,7 @@ package body I2cPkg is
      return natural
    is
    begin
-     return natural(ceil(real(delay / 1 ns) / 1.0e9 * clk_period));
+     return natural(real(delayTime / 1 ns) / 1.0e9 * clkFreq);
    end function calcDelayCycles;
 
    function MakeI2cAxiLiteDevType (

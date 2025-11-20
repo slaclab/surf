@@ -152,7 +152,7 @@ begin
                -- Then the following read txn will be issued with repeated start
                v.i2cMasterIn.stop   := ite(regIn.regOp = '0' and regIn.repeatStart = '1', '0', '1');
                -- If read delay != 0, always stop
-               if readDelayCycles > 0 then
+               if readDelayCycles > toSlv(0,32) then
                  v.i2cMasterIn.stop := '1';
                end if;
                v.i2cMasterIn.busReq := regIn.busReq;
@@ -187,7 +187,7 @@ begin
                   if (regIn.regOp = '1' or (regIn.regOp = '0' and regIn.wrDataOnRd = '1')) then
                      v.state := WRITE_S;
                   else
-                     if readDelayCycles = 0 then
+                     if readDelayCycles = toSlv(0,32) then
                        v.state := READ_TXN_S;
                      else
                        v.delayTarget := unsigned(readDelayCycles);
