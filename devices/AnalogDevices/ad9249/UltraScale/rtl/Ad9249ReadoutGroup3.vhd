@@ -95,9 +95,9 @@ architecture rtl of Ad9249ReadoutGroup3 is
       relock          => '0',
       axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
-      frameDelay       => (others => '0'),
+      frameDelay       => DEFAULT_DELAY_G,
       frameDelaySet    => '0',
-      dataDelay        => (others => (others => '0')),
+      dataDelay        => (others => DEFAULT_DELAY_G),
       dataDelaySet     => (others => '0'),
       freezeDebug      => '0',
       readoutDebug0    => (others => (others => '0')),
@@ -317,7 +317,7 @@ begin
          axiSlaveRegister(axilEp, X"00"+toSlv(i*4, 8), 9, v.dataDelaySet(i), '1');
       end loop;
       axiSlaveRegister(axilEp, X"20", 0, v.frameDelay);
-      axiSlaveRegisterR(axilEp, X"20", 9, v.frameDelaySet);
+      axiSlaveRegister(axilEp, X"20", 9, v.frameDelaySet, '1');
 
       -- Debug output to see how many times the shift has needed a relock
       axiSlaveRegisterR(axilEp, X"30", 0, r.lostLockCount);

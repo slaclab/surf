@@ -592,7 +592,7 @@ class Ad9249ReadoutGroup3(pr.Device):
                 bitOffset    = 0,
                 base         = pr.UInt,
                 mode         = 'RW',
-                verify       = False,
+                verify       = True,
             ))
 
         self.add(pr.RemoteVariable(
@@ -603,7 +603,7 @@ class Ad9249ReadoutGroup3(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-            verify       = False,
+            verify       = True,
         ))
 
         self.add(pr.RemoteVariable(
