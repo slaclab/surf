@@ -29,7 +29,7 @@ use surf.Ad9249Pkg.all;
 library unisim;
 use unisim.vcomponents.all;
 
-entity Ad9249ReadoutGroup2 is
+entity Ad9249ReadoutGroup3 is
    generic (
       TPD_G           : time            := 1 ns;
       SIM_DEVICE_G    : string          := "ULTRASCALE";
@@ -57,9 +57,11 @@ entity Ad9249ReadoutGroup2 is
       -- Deserialized ADC Data
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) := (others => axiStreamMasterInit(AD9249_AXIS_CFG_G)));
-end Ad9249ReadoutGroup2;
+end Ad9249ReadoutGroup3;
 
-architecture rtl of Ad9249ReadoutGroup2 is
+architecture rtl of Ad9249ReadoutGroup3 is
+
+   constant FRAME_PATTERN_C : slv(13 downto 0) := "11111110000000";
 
 
    -------------------------------------------------------------------------------------------------
@@ -71,11 +73,12 @@ architecture rtl of Ad9249ReadoutGroup2 is
       locked           : sl;
       lostLockCount    : slv(15 downto 0);
       lostLockCountRst : sl;
+      relock          : sl;
       axilWriteSlave   : AxiLiteWriteSlaveType;
       axilReadSlave    : AxiLiteReadSlaveType;
       frameDelay       : slv(8 downto 0);
       frameDelaySet    : sl;
-      dataDelay        : slv8Array(7 downto 0);
+      dataDelay        : slv9Array(7 downto 0);
       dataDelaySet     : slv(7 downto 0);
       freezeDebug      : sl;
       readoutDebug0    : slv14Array(7 downto 0);
@@ -89,6 +92,7 @@ architecture rtl of Ad9249ReadoutGroup2 is
       locked           => '0',
       lostLockCount    => (others => '0'),
       lostLockCountRst => '0',
+      relock          => '0',
       axilWriteSlave   => AXI_LITE_WRITE_SLAVE_INIT_C,
       axilReadSlave    => AXI_LITE_READ_SLAVE_INIT_C,
       frameDelay       => (others => '0'),
@@ -100,16 +104,19 @@ architecture rtl of Ad9249ReadoutGroup2 is
       readoutDebug1    => (others => (others => '0')),
       invert           => '0');
 
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    -- Local Signals
    signal adcBitClk     : sl;
    signal adcBitRst     : sl;
    signal adcBitClkDiv4 : sl;
    signal adcBitRstDiv4 : sl;
 
-   signal adcFrame          : slv(13 downto 0);
-   signal adcFrameValid     : sl;
-   signal adcData           : slv14Array(NUM_CHANNELS_G-1 downto 0);
-   signal adcDataValid      : slv(NUM_CHANNELS_G-1 downto 0);
+   signal adcFrame      : slv(13 downto 0);
+   signal adcFrameValid : sl;
+   signal adcData       : slv14Array(NUM_CHANNELS_G-1 downto 0);
+   signal adcDataValid  : slv(NUM_CHANNELS_G-1 downto 0);
 
    signal syncAxilReadMaster  : AxiLiteReadMasterType;
    signal syncAxilReadSlave   : AxiLiteReadSlaveType;
@@ -180,19 +187,19 @@ begin
          TPD_G             => TPD_G,
          SIM_DEVICE_G      => SIM_DEVICE_G,
          DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
-         IDELAYCTRL_FREQ_G => 350.0,   
+         IDELAYCTRL_FREQ_G => 350.0,
          ADC_INVERT_CH_G   => '0',
          BIT_REV_G         => '1')
       port map (
          dClk          => adcBitClk,
          dRst          => adcBitRst,
          dClkDiv4      => adcBitClkDiv4,
-         dRstDiv4      => r.realign,
+         dRstDiv4      => r.relock,
          sDataP        => adcSerial.fClkP,
          sDataN        => adcSerial.fClkN,
          loadDelay     => r.frameDelaySet,
          delay         => r.frameDelay,
-         bitSlip       => r.bitSlip,
+         bitSlip       => r.slip,
          delayValueOut => open,
          adcData       => adcFrame,
          adcValid      => adcFrameValid);
@@ -209,17 +216,17 @@ begin
             DEFAULT_DELAY_G   => DEFAULT_DELAY_G,
             IDELAYCTRL_FREQ_G => 350.0,
             ADC_INVERT_CH_G   => ADC_INVERT_CH_G(ch),
-            BIT_REV_G         => '1')    
+            BIT_REV_G         => '1')
          port map (
             dClk          => adcBitClk,
             dRst          => adcBitRst,
             dClkDiv4      => adcBitClkDiv4,
-            dRstDiv4      => r.realign,
+            dRstDiv4      => r.relock,
             sDataP        => adcSerial.chP(ch),
             sDataN        => adcSerial.chN(ch),
             loadDelay     => r.dataDelaySet(ch),
             delay         => r.dataDelay(ch),
-            bitSlip       => r.bitSlip,
+            bitSlip       => r.slip,
             delayValueOut => open,
             adcData       => adcData(ch),
             adcValid      => adcDataValid(ch));
@@ -249,9 +256,9 @@ begin
 -------------------------------------------------------------------------------------------------
 -- AXIL Interface
 -------------------------------------------------------------------------------------------------
-   comb : process (adcBitRstDiv4, adcData, adcFrame, adcFrameValid, axilR, axilReadMaster,
-                   axilWriteMaster) is
-      variable v      : AxilRegType;
+   comb : process (adcBitRstDiv4, adcData, adcFrame, adcFrameValid, r, syncAxilReadMaster,
+                   syncAxilWriteMaster) is
+      variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       v := r;
@@ -272,18 +279,18 @@ begin
          end if;
       end if;
 
-      if (adcR.count /= 0) then
+      if (r.count /= 0) then
          v.count := r.count + 1;
       end if;
 
       if (r.locked = '1' and adcFrameValid = '1' and adcFrame /= FRAME_PATTERN_C) then
-         v.locked := '0';
+         v.locked        := '0';
          v.lostLockCount := r.lostLockCount + 1;
       end if;
 
       if (r.relock = '1') then
-         v.locked := '0';
-         v.lostLockCount := r.lostLockCount + 1;         
+         v.locked        := '0';
+         v.lostLockCount := r.lostLockCount + 1;
       end if;
 
 
@@ -295,10 +302,10 @@ begin
          end loop;
       end if;
 
-      v.frameDelaySet := '0';
-      v.dataDelaySet := (others => '0');
+      v.frameDelaySet    := '0';
+      v.dataDelaySet     := (others => '0');
       v.lostLockCountRst := '0';
-      v.relock := '0';
+      v.relock           := '0';
 
       axiSlaveWaitTxn(axilEp, syncAxilWriteMaster, syncAxilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
@@ -307,7 +314,7 @@ begin
       -- All writes go to same r.delay register,
       for i in 0 to NUM_CHANNELS_G-1 loop
          axiSlaveRegister(axilEp, X"00"+toSlv(i*4, 8), 0, v.dataDelay(i));
-         axiSlaveRegister(axilEp, X"00"+toSlv(i*4, 8), 9, v.dataDelaySet(i), '1');                  
+         axiSlaveRegister(axilEp, X"00"+toSlv(i*4, 8), 9, v.dataDelaySet(i), '1');
       end loop;
       axiSlaveRegister(axilEp, X"20", 0, v.frameDelay);
       axiSlaveRegisterR(axilEp, X"20", 9, v.frameDelaySet);
@@ -326,8 +333,8 @@ begin
 
       -- Debug registers. Output the last 2 words received
       for ch in 0 to 7 loop
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 0, axilR.readoutDebug0(ch));
-         axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 16, axilR.readoutDebug1(ch));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 0, r.readoutDebug0(ch));
+         axiSlaveRegisterR(axilEp, X"80"+toSlv((ch*4), 8), 16, r.readoutDebug1(ch));
       end loop;
 
       axiSlaveRegister(axilEp, X"A0", 0, v.freezeDebug);
@@ -335,7 +342,7 @@ begin
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
       if (adcBitRstDiv4 = '1') then
-         v := REG_INIT_C;
+         v               := REG_INIT_C;
          v.lostLockCount := r.lostLockCount;
       end if;
 
@@ -352,14 +359,14 @@ begin
 
    seq : process (adcBitClkDiv4) is
    begin
-      if (rising_edge(adcBitClkDiv4In)) then
+      if (rising_edge(adcBitClkDiv4)) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
 
 
-   GLUE_COMB : process (adcData, invertSync, locked) is
+   GLUE_COMB : process (adcData, r) is
    begin
       for ch in NUM_CHANNELS_G-1 downto 0 loop
          if (r.locked = '1') then
@@ -384,7 +391,6 @@ begin
    glue : for i in NUM_CHANNELS_G-1 downto 0 generate
       fifoDataIn(i*16+15 downto i*16)  <= fifoWrData(i);
       fifoDataTmp(i)                   <= fifoDataOut(i*16+15 downto i*16);
-      debugDataTmp(i)                  <= debugDataOut(i*16+15 downto i*16);
       adcStreams(i).tdata(15 downto 0) <= fifoDataTmp(i);
       adcStreams(i).tDest              <= toSlv(i, 8);
       adcStreams(i).tValid             <= fifoDataValid;
