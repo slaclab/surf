@@ -18,4 +18,4 @@ ghdl-build/
 ruckus/
 build/
 sim_build/
-.coverage
+.coverage*

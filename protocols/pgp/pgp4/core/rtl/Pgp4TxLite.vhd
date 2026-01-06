@@ -27,12 +27,13 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4TxLite is
    generic (
-      TPD_G          : time                  := 1 ns;
-      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean               := false;
-      NUM_VC_G       : integer range 1 to 16 := 1;
-      SKIP_EN_G      : boolean               := false;
-      FLOW_CTRL_EN_G : boolean               := false);
+      TPD_G            : time                  := 1 ns;
+      RST_POLARITY_G   : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G      : boolean               := false;
+      NUM_VC_G         : integer range 1 to 16 := 1;
+      PGP_COMMON_CLK_G : boolean               := false;  -- true if pgpTxClk = pgpRxClk
+      SKIP_EN_G        : boolean               := false;
+      FLOW_CTRL_EN_G   : boolean               := false);
    port (
       -- Transmit interface
       pgpTxClk       : in  sl;
@@ -85,7 +86,8 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G)
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
          port map (
             clk     => pgpTxClk,                              -- [in]
             rst     => pgpTxRst,                              -- [in]
@@ -97,6 +99,7 @@ begin
                TPD_G          => TPD_G,
                RST_POLARITY_G => RST_POLARITY_G,
                RST_ASYNC_G    => RST_ASYNC_G,
+               BYPASS_SYNC_G  => PGP_COMMON_CLK_G,
                WIDTH_G        => 2)
             port map (
                clk        => pgpTxClk,                        -- [in]
@@ -112,7 +115,8 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G)
+            RST_ASYNC_G    => RST_ASYNC_G,
+            BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
          port map (
             clk     => pgpTxClk,                           -- [in]
             rst     => pgpTxRst,                           -- [in]
@@ -123,7 +127,8 @@ begin
             generic map (
                TPD_G          => TPD_G,
                RST_POLARITY_G => RST_POLARITY_G,
-               RST_ASYNC_G    => RST_ASYNC_G)
+               RST_ASYNC_G    => RST_ASYNC_G,
+               BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
             port map (
                clk     => pgpTxClk,                        -- [in]
                rst     => pgpTxRst,                        -- [in]
@@ -133,7 +138,8 @@ begin
             generic map (
                TPD_G          => TPD_G,
                RST_POLARITY_G => RST_POLARITY_G,
-               RST_ASYNC_G    => RST_ASYNC_G)
+               RST_ASYNC_G    => RST_ASYNC_G,
+               BYPASS_SYNC_G  => PGP_COMMON_CLK_G)
             port map (
                clk     => pgpTxClk,                        -- [in]
                rst     => pgpTxRst,                        -- [in]

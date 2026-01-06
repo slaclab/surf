@@ -26,6 +26,7 @@ entity EthMacTx is
    generic (
       -- Simulation Generics
       TPD_G           : time                     := 1 ns;
+      RST_POLARITY_G  : sl                       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       -- MAC Configurations
       PAUSE_EN_G      : boolean                  := true;
       PAUSE_512BITS_G : positive range 1 to 1024 := 8;
@@ -92,8 +93,9 @@ begin
    -------------------
    U_Bypass : entity surf.EthMacTxBypass
       generic map (
-         TPD_G    => TPD_G,
-         BYP_EN_G => BYP_EN_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         BYP_EN_G       => BYP_EN_G)
       port map (
          -- Clock and Reset
          ethClk      => ethClk,
@@ -114,6 +116,7 @@ begin
    U_Csum : entity surf.EthMacTxCsum
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
          JUMBO_G        => JUMBO_G,
          ROCEV2_EN_G    => ROCEV2_EN_G,
@@ -138,7 +141,8 @@ begin
    GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
       U_RoCEv2 : entity surf.EthMacTxRoCEv2
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
          port map (
             -- Clock and Reset
             ethClk        => ethClk,
@@ -162,6 +166,7 @@ begin
    U_Pause : entity surf.EthMacTxPause
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G)
       port map (
@@ -191,9 +196,10 @@ begin
    -----------------------
    U_Export : entity surf.EthMacTxExport
       generic map (
-         TPD_G        => TPD_G,
-         PHY_TYPE_G   => PHY_TYPE_G,
-         SYNTH_MODE_G => SYNTH_MODE_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PHY_TYPE_G     => PHY_TYPE_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset
          ethClkEn       => ethClkEn,

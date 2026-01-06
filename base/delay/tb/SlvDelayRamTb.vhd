@@ -17,6 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;
 
+library std;
+use std.env.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 
@@ -109,9 +112,11 @@ begin
       -- Latch the current value
       v := r;
 
-
-
-      v.count := r.count + 1;
+      if r.count < (2**WIDTH_C - 1) then
+         v.count := r.count + 1;
+      else
+         v.count := 0;
+      end if;
 
       v.countDelay(0)                        := r.count;
       v.countDelay(MAX_DELAY_C - 1 downto 1) := r.countDelay(MAX_DELAY_C - 2 downto 0);
@@ -151,14 +156,21 @@ begin
       end if;
    end process seq;
 
-   process(failed, passed)
+   ---------------------
+   -- Report the Results
+   ---------------------
+   process(clk)
    begin
-      if passed = '1' then
-         assert false
-            report "Simulation Passed!" severity note;
-      elsif failed = '1' then
-         assert false
-            report "Simulation Failed!" severity failure;
+      if rising_edge(clk) then
+         if (failed = '1') then
+            assert false
+               report "Simulation Failed!" severity failure;
+         end if;
+         if (passed = '1') then
+            assert false
+               report "Simulation Passed!" severity note;
+            std.env.finish;
+         end if;
       end if;
    end process;
 

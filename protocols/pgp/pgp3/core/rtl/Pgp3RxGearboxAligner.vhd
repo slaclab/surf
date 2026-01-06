@@ -117,7 +117,9 @@ begin
                end if;
             end if;
 
-         when others => null;
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to UNLOCKED_S state
+            v := REG_INIT_C;
+
       end case;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

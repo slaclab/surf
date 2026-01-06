@@ -327,6 +327,9 @@ begin
             axiSlaveWriteResponse(v.sAxilWriteSlave, AXI_RESP_SLVERR_C);
             v.state              := S_IDLE_C;
 
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_IDLE_C state
+            v := REG_INIT_C;
+
       end case;
 
       if (axilRst = '1') then

@@ -30,6 +30,7 @@ entity SsiPrbsTx is
    generic (
       -- General Configurations
       TPD_G                      : time                    := 1 ns;
+      RST_POLARITY_G             : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G                : boolean                 := false;
       AXI_EN_G                   : sl                      := '1';
       AXI_DEFAULT_PKT_LEN_G      : slv(31 downto 0)        := x"00000FFF";
@@ -59,8 +60,9 @@ entity SsiPrbsTx is
       mAxisSlave      : in  AxiStreamSlaveType;
       -- Trigger Signal (locClk domain)
       locClk          : in  sl;
-      locRst          : in  sl                     := '0';
+      locRst          : in  sl                     := not RST_POLARITY_G;
       trig            : in  sl                     := '1';
+      trigAccept      : out sl;
       packetLength    : in  slv(31 downto 0)       := x"00000FFF";
       forceEofe       : in  sl                     := '0';
       busy            : out sl;
@@ -86,6 +88,9 @@ architecture rtl of SsiPrbsTx is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => MASTER_AXI_STREAM_CONFIG_G.TUSER_MODE_C);
 
+   constant TRIG_SRC_AXI_C : sl := '0';
+   constant TRIG_SRC_EXT_C : sl := '1';
+
    type StateType is (
       IDLE_S,
       SEED_RAND_S,
@@ -107,8 +112,10 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   : AxiStreamMasterType;
       state          : StateType;
       axiEn          : sl;
+      trigSrc        : sl;
       oneShot        : sl;
       trig           : sl;
+      trigAccept     : sl;
       trigger        : sl;
       cntData        : sl;
       tDest          : slv(7 downto 0);
@@ -132,8 +139,10 @@ architecture rtl of SsiPrbsTx is
       txAxisMaster   => axiStreamMasterInit(PRBS_SSI_CONFIG_C),
       state          => IDLE_S,
       axiEn          => AXI_EN_G,
+      trigSrc        => ite(AXI_EN_G = '1', TRIG_SRC_AXI_C, TRIG_SRC_EXT_C),
       oneShot        => '0',
       trig           => '0',
+      trigAccept     => '0',
       trigger        => '0',
       cntData        => toSl(PRBS_INCREMENT_G),
       tDest          => X"00",
@@ -172,6 +181,7 @@ begin
       axiSlaveRegisterR(axilEp, X"00", 2, r.busy);
       axiSlaveRegisterR(axilEp, X"00", 3, r.overflow);
       axiSlaveRegister(axilEp, X"00", 5, v.cntData);
+      axiSlaveRegister(axilEp, X"00", 6, v.trigSrc);
 
       axiSlaveRegister(axilEp, X"04", 0, v.packetLength);
       axiSlaveRegister(axilEp, X"08", 0, v.tDest);
@@ -211,6 +221,14 @@ begin
          v.tId          := tId;
       end if;
 
+      -- Special mode with axi settings and external triggers
+      if (r.axiEn = '1' and r.trigSrc = TRIG_SRC_EXT_C) then
+         v.trigger := trig;
+      end if;
+
+      -- trigAccept is pulsed each time trigger is seen to start a new frame
+      v.trigAccept := '0';
+
       -- Check for overflow condition or forced EOFE
       if (txCtrl.overflow = '1') or (forceEofe = '1') then
          -- Latch the overflow error bit for the data packet
@@ -235,6 +253,7 @@ begin
                -- Reset the one shot
                v.oneShot                                 := '0';
                v.trigger                                 := '0';
+               v.trigAccept                              := '1';
                -- Latch the generator seed
                v.randomData                              := (others => '0');
                v.randomData(EVENT_CNT_SIZE_C-1 downto 0) := r.eventCnt;
@@ -338,7 +357,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and locRst = '1') then
+      if (RST_ASYNC_G = false and locRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -347,6 +366,7 @@ begin
 
       -- Outputs
       busy           <= r.busy;
+      trigAccept     <= r.trigAccept;
       axilReadSlave  <= r.axilReadSlave;
       axilWriteSlave <= r.axilWriteSlave;
 
@@ -354,7 +374,7 @@ begin
 
    seq : process (locClk, locRst) is
    begin
-      if (RST_ASYNC_G) and (locRst = '1') then
+      if (RST_ASYNC_G) and (locRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(locClk) then
          r <= rin after TPD_G;
@@ -365,6 +385,7 @@ begin
       generic map(
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => MASTER_AXI_PIPE_STAGES_G,
          PIPE_STAGES_G       => MASTER_AXI_PIPE_STAGES_G,

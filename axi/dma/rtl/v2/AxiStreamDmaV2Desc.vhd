@@ -701,7 +701,7 @@ begin
             v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
             v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result(2 downto 0);
 
-            v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
+            v.axiWriteMaster.wstrb := resize(x"FFFF", AXI_MAX_WSTRB_WIDTH_C);
 
             v.axiWriteMaster.awvalid := '1';
             v.axiWriteMaster.wvalid  := '1';
@@ -732,7 +732,7 @@ begin
             v.axiWriteMaster.wdata(31 downto 3)   := (others => '0');
             v.axiWriteMaster.wdata(2 downto 0)    := dmaRdDescRet(descIndex).result;
 
-            v.axiWriteMaster.wstrb := resize(x"FFFF", 128);
+            v.axiWriteMaster.wstrb := resize(x"FFFF", AXI_MAX_WSTRB_WIDTH_C);
 
             v.axiWriteMaster.awvalid := '1';
             v.axiWriteMaster.wvalid  := '1';
@@ -751,7 +751,7 @@ begin
       end case;
 
       -- Copy the lowest words to the entire bus (refer to  "section 9.3 Narrow transfers" of the AMBA spec)
-      for i in 7 downto 1 loop
+      for i in (AXI_MAX_DATA_WIDTH_C/128)-1 downto 1 loop
          v.axiWriteMaster.wdata((128*i)+127 downto (128*i)) := v.axiWriteMaster.wdata(127 downto 0);
       end loop;
 

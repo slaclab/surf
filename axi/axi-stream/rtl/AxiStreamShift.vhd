@@ -28,6 +28,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamShift is
    generic (
       TPD_G          : time                  := 1 ns;
+      RST_POLARITY_G : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean               := false;
       AXIS_CONFIG_G  : AxiStreamConfigType;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
@@ -266,7 +267,7 @@ begin
          sAxisSlave <= v.slave;
 
          -- Reset
-         if (RST_ASYNC_G = false and axisRst = '1') then
+         if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -280,9 +281,10 @@ begin
 
       U_Pipeline : entity surf.AxiStreamPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            PIPE_STAGES_G => PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
             axisRst     => axisRst,
@@ -293,7 +295,7 @@ begin
 
       seq : process (axisClk, axisRst) is
       begin
-         if (RST_ASYNC_G) and (axisRst = '1') then
+         if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          elsif rising_edge(axisClk) then
             r <= rin after TPD_G;

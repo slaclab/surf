@@ -24,10 +24,11 @@ use surf.EthCrc32Pkg.all;
 
 entity EthCrc32Parallel is
    generic (
-      TPD_G        : time                   := 1 ns;
-      USE_DSP_G    : boolean                := false;  -- true is not tested yet
-      CRC_INIT_G   : slv(31 downto 0)       := x"FFFFFFFF";
-      BYTE_WIDTH_G : positive range 1 to 16 := 16);  -- Maximum byte width (1-16 supported)
+      TPD_G          : time                   := 1 ns;
+      RST_POLARITY_G : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      USE_DSP_G      : boolean                := false;  -- true is not tested yet
+      CRC_INIT_G     : slv(31 downto 0)       := x"FFFFFFFF";
+      BYTE_WIDTH_G   : positive range 1 to 16 := 16);  -- Maximum byte width (1-16 supported)
    port (
       crcClk       : in  sl;
       crcReset     : in  sl;
@@ -75,9 +76,10 @@ begin
 
             U_Xor : entity surf.DspXor
                generic map (
-                  TPD_G   => TPD_G,
-                  INIT_G  => CRC_INIT_G(i),
-                  WIDTH_G => 96)
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  INIT_G         => CRC_INIT_G(i),
+                  WIDTH_G        => 96)
                port map (
                   clk  => crcClk,
                   rst  => crcReset,     -- ASYNC RST
@@ -90,9 +92,10 @@ begin
 
             U_Xor : entity surf.DspXor
                generic map (
-                  TPD_G   => TPD_G,
-                  INIT_G  => CRC_INIT_G(i),
-                  WIDTH_G => 192)
+                  TPD_G          => TPD_G,
+                  RST_POLARITY_G => RST_POLARITY_G,
+                  INIT_G         => CRC_INIT_G(i),
+                  WIDTH_G        => 192)
                port map (
                   clk  => crcClk,
                   rst  => crcReset,     -- ASYNC RST
@@ -133,7 +136,7 @@ begin
       end loop;
 
       if (USE_DSP_G = false) then
-         if (crcReset = '0') then
+         if (crcReset = not RST_POLARITY_G) then
             prevCrc := r.crc;
          else
             prevCrc := CRC_INIT_G;

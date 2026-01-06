@@ -13,14 +13,13 @@ import cocotb
 from cocotb.clock    import Clock
 from cocotb.triggers import RisingEdge
 
-# test_DspComparator
+# test_LineCode8b10bTb
 from cocotb_test.simulator import run
 import pytest
 import glob
 import os
 
-@cocotb.coroutine
-def dut_init(dut):
+async def dut_init(dut):
 
     # Initialize the inputs
     dut.rst.value     = 1
@@ -33,16 +32,15 @@ def dut_init(dut):
 
     # Wait 5 clock cycle
     for i in range(5):
-        yield RisingEdge(dut.clk)
+        await RisingEdge(dut.clk)
 
     # De-assert the reset
     dut.rst.value = 0
 
     # Wait 1 clock cycle
-    yield RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
 
-@cocotb.coroutine
-def load_value(dut, dataIn, dataKIn):
+async def load_value(dut, dataIn, dataKIn):
 
     # Load the values
     dut.dataIn.value  = dataIn
@@ -52,14 +50,14 @@ def load_value(dut, dataIn, dataKIn):
     dut.validIn.value = 1
 
     # Wait 1 clock cycle
-    yield RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
 
     # De-assert valid flag
     dut.validIn.value = 0
 
     # Wait for the result
     while ( dut.validOut.value != 1 ):
-        yield RisingEdge(dut.clk)
+        await RisingEdge(dut.clk)
 
 
 def check_result(dut, dataIn, dataKIn):
@@ -74,10 +72,10 @@ def check_result(dut, dataIn, dataKIn):
         assert False
 
 @cocotb.test()
-def dut_tb(dut):
+async def dut_tb(dut):
 
     # Initialize the DUT
-    yield dut_init(dut)
+    await dut_init(dut)
 
     # Read the parameters back from the DUT to set up our model
     width = dut.NUM_BYTES_G.value.integer
@@ -88,7 +86,7 @@ def dut_tb(dut):
     for dataIn in range(2**(8*width)):
 
         # Load the values
-        yield load_value(dut, dataIn, dataKIn)
+        await load_value(dut, dataIn, dataKIn)
 
         # Check the results for errors
         check_result(dut, dataIn, dataKIn)
@@ -112,7 +110,7 @@ def dut_tb(dut):
     for dataIn in controlCodes:
 
         # Load the values
-        yield load_value(dut, dataIn, dataKIn)
+        await load_value(dut, dataIn, dataKIn)
 
         # Check the results for errors
         check_result(dut, dataIn, dataKIn)
@@ -161,6 +159,17 @@ def test_LineCode8b10bTb(parameters):
 
         # Select a simulator
         simulator="ghdl",
+
+        # VHDL compile arguments
+        vhdl_compile_args = [
+            '-fsynopsys',       # use of synopsys package "std_logic_arith" needs the -fsynopsys option
+            '-frelaxed-rules',  # -frelaxed-rules option to allow IP integrator attributes
+            '-fexplicit',       # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
+            '-Wno-elaboration', # Hide warnings about functions called before elaborated of its body
+            '-Wno-hide',        # Declaration of "axiconfig" hides function in AxiPkg.vhd
+            '-Wno-specs',       # Warning related to IP skim layers attributes
+            '-O2',              # Optimize the generated simulation code for speed (no change to VHDL semantics)
+        ],
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)

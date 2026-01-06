@@ -56,39 +56,38 @@ architecture mapping of Pgp3GtyUsQpll is
    constant QPLL_PPF0_CFG_C : slv(15 downto 0) := ite((RATE_G = "13.75Gbps"), b"0000100100000000", b"0000011000000000");
    constant QPLL_PPF1_CFG_C : slv(15 downto 0) :=
       ite((RATE_G = "20.625Gbps"), b"0000011000000000",
-          ite((RATE_G = "25.625Gbps"), b"0000100000000000",
+          ite((RATE_G = "25.0Gbps"), b"0000100000000000",
               b"0000010000000000"));
 
    constant QPLL_CFG2_C : slv(15 downto 0) :=
-      ite((RATE_G = "10.3125Gbps") or (RATE_G = "25.625Gbps"), b"0000111111000000",
+      ite((RATE_G = "10.3125Gbps") or (RATE_G = "25.0Gbps"), b"0000111111000000",
           ite((RATE_G = "15.46875Gbps"), b"0000111111000001",
               b"0000111111000011"));
 
    constant QPLL_CFG4_C : slv(15 downto 0) :=
       ite((RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps"), b"0000000000000011",
-          ite((RATE_G = "25.625Gbps"), b"0000000010000100",
+          ite((RATE_G = "25.0Gbps"), b"0000000010000100",
               b"0000000000000010"));
 
-   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"), b"0001111111", b"0000001111");
+   constant QPLL_CP_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"), b"0001111111", b"0000001111");
 
    constant QPLL_FBDIV_C : positive :=
-      ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps"), 80,
+      ite((RATE_G = "6.25Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "25.0Gbps"), 80,
           ite((RATE_G = "13.75Gbps"), 88,
               ite((RATE_G = "15.46875Gbps"), 99,
                   ite((RATE_G = "17.1875Gbps"), 55,
                       ite((RATE_G = "18.75Gbps"), 60,
-                          ite((RATE_G = "25.625Gbps"), 82,
-                              66))))));
+                          66)))));
 
-   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"), 80, 160);
+   constant QPLL_FBDIV_G3_C : positive := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"), 80, 160);
 
    constant QPLL_LPF_C : slv(9 downto 0) :=
       ite((RATE_G = "10.3125Gbps"), b"1000111111",
           ite((RATE_G = "15.46875Gbps"), b"1101111111",
-              ite((RATE_G = "25.625Gbps"), b"1100111111",
+              ite((RATE_G = "25.0Gbps"), b"1100111111",
                   b"1000011111")));
 
-   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"), b"0111010100", b"0111010101");
+   constant QPLL_LPF_G3_C : slv(9 downto 0) := ite((RATE_G = "3.125Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"), b"0111010100", b"0111010101");
 
    signal pllRefClk     : slv(1 downto 0);
    signal pllOutClk     : slv(1 downto 0);
@@ -104,8 +103,8 @@ architecture mapping of Pgp3GtyUsQpll is
 
 begin
 
-   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"))
-      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps, 25.78125Gbps]"
+   assert ((RATE_G = "3.125Gbps") or (RATE_G = "6.25Gbps") or (RATE_G = "10.3125Gbps") or (RATE_G = "12.5Gbps") or (RATE_G = "13.75Gbps") or (RATE_G = "15.46875Gbps") or (RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"))
+      report "RATE_G: Must be either [3.125Gbps, 6.25Gbps, 10.3125Gbps, 12.5Gbps, 13.75Gbps, 15.46875Gbps, 17.1875Gbps, 18.75Gbps, 20.625Gbps, 25.0Gbps]"
       severity error;
 
    GEN_VEC :

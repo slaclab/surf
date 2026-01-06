@@ -50,8 +50,8 @@ entity AxiStreamFifoV2 is
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT_G : string                := "WIDE";
-      INT_DATA_WIDTH_G   : natural range 1 to 16 := 16;
+      INT_WIDTH_SELECT_G : string                                          := "WIDE";
+      INT_DATA_WIDTH_G   : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C := 16;
 
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
@@ -136,28 +136,30 @@ architecture rtl of AxiStreamFifoV2 is
    -- FIFO Signals
    ----------------
 
-   signal fifoWriteMaster : AxiStreamMasterType;
-   signal fifoWriteSlave  : AxiStreamSlaveType;
-   signal fifoReadMaster  : AxiStreamMasterType;
-   signal fifoReadSlave   : AxiStreamSlaveType;
-   signal fifoDin         : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoWrite       : sl;
-   signal fifoWriteLast   : sl;
-   signal fifoWriteUser   : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others => '0');
-   signal fifoWrCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal fifoRdCount     : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
-   signal fifoAFull       : sl;
-   signal fifoReady       : sl;
-   signal fifoPFull       : sl;
-   signal fifoPFullVec    : slv(CASCADE_SIZE_G-1 downto 0);
-   signal fifoDout        : slv(FIFO_BITS_C-1 downto 0);
-   signal fifoRead        : sl;
-   signal fifoReadLast    : sl;
-   signal fifoReadUser    : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
-   signal fifoValidInt    : sl;
-   signal fifoValid       : sl;
-   signal fifoValidLast   : sl;
-   signal fifoInFrame     : sl;
+   signal fifoWriteMaster   : AxiStreamMasterType;
+   signal fifoWriteSlave    : AxiStreamSlaveType;
+   signal fifoReadMaster    : AxiStreamMasterType;
+   signal fifoReadSlave     : AxiStreamSlaveType;
+   signal fifoDin           : slv(FIFO_BITS_C-1 downto 0);
+   signal fifoWrite         : sl;
+   signal fifoWriteLast     : sl;
+   signal fifoWriteUser     : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0) := (others => '0');
+   signal fifoWrCount       : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+   signal fifoRdCount       : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+   signal fifoAFull         : sl;
+   signal fifoReady         : sl;
+   signal fifoPFull         : sl;
+   signal fifoPFullVec      : slv(CASCADE_SIZE_G-1 downto 0);
+   signal fifoPEmptyVec     : slv(CASCADE_SIZE_G-1 downto 0);
+   signal fifoUpperNotEmpty : slv(CASCADE_SIZE_G-1 downto 0);
+   signal fifoDout          : slv(FIFO_BITS_C-1 downto 0);
+   signal fifoRead          : sl;
+   signal fifoReadLast      : sl;
+   signal fifoReadUser      : slv(maximum(FIFO_USER_BITS_C-1, 0) downto 0);
+   signal fifoValidInt      : sl;
+   signal fifoValid         : sl;
+   signal fifoValidLast     : sl;
+   signal fifoInFrame       : sl;
 
    signal burstEn    : sl;
    signal burstLast  : sl;
@@ -204,14 +206,15 @@ begin
    -------------------------
 
    -- Pause generation
-   process (fifoPFullVec, fifoPauseThresh, fifoWrCount, sAxisClk, sAxisRst) is
+   process (fifoPFullVec, fifoPauseThresh, fifoUpperNotEmpty, fifoWrCount,
+            sAxisClk, sAxisRst) is
    begin
       if FIFO_FIXED_THRESH_G then
-         sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) after TPD_G;
-      elsif (RST_ASYNC_G) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
-         sAxisCtrl.pause <= '1' after TPD_G;
+         sAxisCtrl.pause <= fifoPFullVec(CASCADE_PAUSE_SEL_G) or uOr(fifoUpperNotEmpty);
+      elsif (RST_ASYNC_G) and (sAxisRst = RST_POLARITY_G or fifoWrCount >= fifoPauseThresh) then
+         sAxisCtrl.pause <= '1';
       elsif (rising_edge(sAxisClk)) then
-         if (RST_ASYNC_G = false) and (sAxisRst = '1' or fifoWrCount >= fifoPauseThresh) then
+         if (RST_ASYNC_G = false) and (sAxisRst = RST_POLARITY_G or fifoWrCount >= fifoPauseThresh) then
             sAxisCtrl.pause <= '1' after TPD_G;
          else
             sAxisCtrl.pause <= '0' after TPD_G;
@@ -251,7 +254,7 @@ begin
          ADDR_WIDTH_G       => FIFO_ADDR_WIDTH_G,
          INIT_G             => "0",
          FULL_THRES_G       => FIFO_PAUSE_THRESH_G,
-         EMPTY_THRES_G      => 1)
+         EMPTY_THRES_G      => 8)  -- few samples to prevent empty chattering on upper FIFO stages
       port map (
          rst           => sAxisRst,
          wr_clk        => sAxisClk,
@@ -265,9 +268,26 @@ begin
          full          => fifoFull,
          rd_clk        => mAxisClk,
          rd_en         => fifoRead,
+         progEmptyVec  => fifoPEmptyVec,
          dout          => fifoDout,
          rd_data_count => fifoRdCount,
          valid         => fifoValidInt);
+
+   -- Never use lower stage FIFOs in pause calculation
+   fifoUpperNotEmpty(CASCADE_PAUSE_SEL_G downto 0) <= (others => '0');
+
+   GEN_EMPTY_SYNC : if (CASCADE_SIZE_G /= 1) and CASCADE_SIZE_G > (CASCADE_PAUSE_SEL_G+1) generate
+      U_fifoPEmpty : entity surf.SynchronizerVector
+         generic map (
+            TPD_G          => TPD_G,
+            BYPASS_SYNC_G  => GEN_SYNC_FIFO_G,
+            OUT_POLARITY_G => '0',      -- Invert the output
+            WIDTH_G        => CASCADE_SIZE_G-CASCADE_PAUSE_SEL_G-1)
+         port map (
+            clk     => sAxisClk,
+            dataIn  => fifoPEmptyVec(CASCADE_SIZE_G-1 downto CASCADE_PAUSE_SEL_G+1),
+            dataOut => fifoUpperNotEmpty(CASCADE_SIZE_G-1 downto CASCADE_PAUSE_SEL_G+1));
+   end generate;
 
    U_LastFifoEnGen : if VALID_THOLD_G /= 1 generate
 
@@ -302,13 +322,13 @@ begin
 
          process (fifoReadLast, fifoValidInt, mAxisClk, mAxisRst) is
          begin
-            if (RST_ASYNC_G) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
+            if (RST_ASYNC_G) and (mAxisRst = RST_POLARITY_G or fifoReadLast = '1' or fifoValidInt = '0') then
                fifoInFrame <= '0' after TPD_G;
 
             elsif (rising_edge(mAxisClk)) then
 
                -- Stop output if fifo valid goes away, wait until another block is ready
-               if (RST_ASYNC_G = false) and (mAxisRst = '1' or fifoReadLast = '1' or fifoValidInt = '0') then
+               if (RST_ASYNC_G = false) and (mAxisRst = RST_POLARITY_G or fifoReadLast = '1' or fifoValidInt = '0') then
                   fifoInFrame <= '0' after TPD_G;
 
                -- Start output when a block or end of frame is available
@@ -329,13 +349,13 @@ begin
 
          process (mAxisClk, mAxisRst) is
          begin
-            if (RST_ASYNC_G and mAxisRst = '1') then
+            if (RST_ASYNC_G and mAxisRst = RST_POLARITY_G) then
                fifoInFrame <= '0' after TPD_G;
                burstEn     <= '0' after TPD_G;
                burstLast   <= '0' after TPD_G;
                firstCycle  <= '1' after TPD_G;
             elsif (rising_edge(mAxisClk)) then
-               if (RST_ASYNC_G = false and mAxisRst = '1') or (fifoReadLast = '1') then
+               if (RST_ASYNC_G = false and mAxisRst = RST_POLARITY_G) or (fifoReadLast = '1') then
                   -- Reset the flags
                   fifoInFrame <= '0' after TPD_G;
                   burstEn     <= '0' after TPD_G;

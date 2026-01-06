@@ -24,8 +24,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImportGmii is
    generic (
-      TPD_G        : time   := 1 ns;
-      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
+      TPD_G          : time   := 1 ns;
+      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      SYNTH_MODE_G   : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClkEn    : in  sl;
@@ -107,6 +108,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => true,
          VALID_THOLD_G       => 1,
@@ -158,7 +160,11 @@ begin
          v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
          -- Check for CRC reset
-         v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         if RST_POLARITY_G = '1' then
+            v.crcReset := r.delRxDvSr(2) or ethRst or (not phyReady);
+         else
+            v.crcReset := r.delRxDvSr(2) or (not ethRst) or (not phyReady);
+         end if;
 
          -- State Machine
          case r.state is
@@ -218,7 +224,7 @@ begin
       end if;
 
       -- Reset
-      if (ethRst = '1') then
+      if (ethRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -245,6 +251,7 @@ begin
    -- CRC
    U_Crc32 : entity surf.Crc32Parallel
       generic map (
+         TPD_G        => TPD_G,
          BYTE_WIDTH_G => 1)
       port map (
          crcOut       => crcOut,

@@ -80,7 +80,13 @@ async def dut_tb(dut):
     buildString = rdTxn.data.decode('utf-8')
     print( f'buildString={buildString}' )
 
-if cocotb.SIM_NAME:
+# Prevent pytest from trying to collect cocotb's TestFactory class
+TestFactory.__test__ = False
+
+# Safe SIM_NAME access for pytest collection and cocotb 2.x
+SIM_NAME = getattr(cocotb, "SIM_NAME", None)
+if SIM_NAME:
+
     factory = TestFactory(dut_tb)
     factory.generate_tests()
 
@@ -126,9 +132,16 @@ def test_AxiVersionIpIntegrator(parameters):
         # Select a simulator
         simulator="ghdl",
 
-        # use of synopsys package "std_logic_arith" needs the -fsynopsys option
-        # -frelaxed-rules option to allow IP integrator attributes
-        vhdl_compile_args = ['-fsynopsys','-frelaxed-rules'],
+        # VHDL compile arguments
+        vhdl_compile_args = [
+            '-fsynopsys',       # use of synopsys package "std_logic_arith" needs the -fsynopsys option
+            '-frelaxed-rules',  # -frelaxed-rules option to allow IP integrator attributes
+            '-fexplicit',       # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
+            '-Wno-elaboration', # Hide warnings about functions called before elaborated of its body
+            '-Wno-hide',        # Declaration of "axiconfig" hides function in AxiPkg.vhd
+            '-Wno-specs',       # Warning related to IP skim layers attributes
+            '-O2',              # Optimize the generated simulation code for speed (no change to VHDL semantics)
+        ],
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)

@@ -26,8 +26,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxPause is
    generic (
-      TPD_G      : time    := 1 ns;
-      PAUSE_EN_G : boolean := true);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      PAUSE_EN_G     : boolean := true);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -150,7 +151,7 @@ begin
          end case;
 
          -- Reset
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             v := REG_INIT_C;
          end if;
 

@@ -5,6 +5,7 @@ source $::env(RUCKUS_PROC_TCL)
 loadRuckusTcl "$::DIR_PATH/ad5541"
 loadRuckusTcl "$::DIR_PATH/ad5780"
 loadRuckusTcl "$::DIR_PATH/general"
+loadRuckusTcl "$::DIR_PATH/ltm4664"
 
 # Check for non-zero Vivado version (in-case non-Vivado project)
 if {  $::env(VIVADO_VERSION) > 0.0} {

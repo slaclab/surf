@@ -30,7 +30,7 @@ entity RogueHtspSim is
       TPD_G         : time                        := 1 ns;
       PORT_NUM_G    : natural range 1024 to 49151 := 9000;
       NUM_VC_G      : integer range 1 to 16       := 4;
-      EN_SIDEBAND_G : boolean                     := true);
+      EN_SIDEBAND_G : boolean                     := false);
    port (
       -- GT Ports
       htspRefClk      : in  sl;
@@ -63,8 +63,8 @@ architecture sim of RogueHtspSim is
    signal clk : sl := '0';
    signal rst : sl := '1';
 
-   signal txOut : HtspTxOutType := HTSP_ETH_TX_OUT_INIT_C;
-   signal rxOut : HtspRxOutType := HTSP_ETH_RX_OUT_INIT_C;
+   signal txOut : HtspTxOutType := HTSP_TX_OUT_INIT_C;
+   signal rxOut : HtspRxOutType := HTSP_RX_OUT_INIT_C;
 
 begin
 
@@ -93,7 +93,7 @@ begin
             PORT_NUM_G    => (PORT_NUM_G + i*2),
             SSI_EN_G      => true,
             CHAN_COUNT_G  => 1,
-            AXIS_CONFIG_G => HTSP_ETH_AXIS_CONFIG_C)
+            AXIS_CONFIG_G => HTSP_AXIS_CONFIG_C)
          port map (
             axisClk     => clk,
             axisRst     => rst,

@@ -32,6 +32,20 @@ class SsiPrbsTx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = "TrigSrc",
+            description  = "",
+            offset       =  0x00,
+            bitSize      =  1,
+            bitOffset    =  0x06,
+            base         = pr.UInt,
+            mode         = "RW",
+            enum = {
+                0 : 'AXI',
+                1 : 'EXT'}
+        ))
+
+
+        self.add(pr.RemoteVariable(
             name         = "TxEn",
             description  = "",
             offset       =  0x00,

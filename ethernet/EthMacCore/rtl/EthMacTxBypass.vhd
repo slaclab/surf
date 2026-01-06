@@ -19,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -27,8 +26,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxBypass is
    generic (
-      TPD_G    : time    := 1 ns;
-      BYP_EN_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      BYP_EN_G       : boolean := false);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -155,7 +155,7 @@ begin
          sBypSlave  <= v.sBypSlave;
 
          -- Reset
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             v := REG_INIT_C;
          end if;
 

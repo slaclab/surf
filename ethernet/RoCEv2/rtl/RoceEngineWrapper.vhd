@@ -25,6 +25,7 @@ use surf.RocePkg.all;
 entity RoceEngineWrapper is
    generic (
       TPD_G             : time    := 1 ns;
+      RST_POLARITY_G    : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       EXT_ROCE_CONFIG_G : boolean := false);
    port (
       clk                 : in  sl;
@@ -159,7 +160,7 @@ architecture mapping of RoceEngineWrapper is
 
 begin
 
-   roceRstN <= not rst;
+   roceRstN <= not rst when (RST_POLARITY_G = '1') else rst;
 
    -----------------------------------------------------------------------------
    -- Adjust Roce/SURF interface
@@ -312,7 +313,8 @@ begin
    ROCE_INT_CONFIG_GEN : if not EXT_ROCE_CONFIG_G generate
       RoceConfigurator_1 : entity surf.RoceConfigurator
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
          port map (
             clk                     => clk,
             rst                     => rst,

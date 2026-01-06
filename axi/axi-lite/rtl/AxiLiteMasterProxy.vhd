@@ -28,8 +28,9 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteMasterProxy is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       -- Clocks and Resets
       axiClk          : in  sl;
@@ -130,10 +131,14 @@ begin
                -- Next state
                v.state       := READY_S;
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to READY_S state
+            v := REG_INIT_C;
+      ----------------------------------------------------------------------
       end case;
 
       -- Reset
-      if (RST_ASYNC_G = false and axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -148,7 +153,7 @@ begin
 
    seq : process (axiClk, axiRst) is
    begin
-      if (RST_ASYNC_G and axiRst = '1') then
+      if (RST_ASYNC_G and axiRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          r <= rin after TPD_G;
@@ -157,8 +162,9 @@ begin
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,

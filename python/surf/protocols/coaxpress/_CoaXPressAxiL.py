@@ -215,7 +215,6 @@ class CoaXPressAxiL(pr.Device):
             offset   = 0xFE8,
             bitSize  = 1,
             function = lambda cmd: cmd.post(1),
-            hidden   = True,
         ))
 
         self.add(pr.RemoteVariable(

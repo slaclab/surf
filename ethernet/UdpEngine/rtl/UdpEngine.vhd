@@ -21,8 +21,9 @@ use surf.AxiStreamPkg.all;
 
 entity UdpEngine is
    generic (
-      -- Simulation Generics
       TPD_G             : time                    := 1 ns;
+      RST_POLARITY_G    : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean                 := false;
       -- UDP Server Generics
       SERVER_EN_G       : boolean                 := true;
       SERVER_SIZE_G     : positive                := 1;
@@ -117,6 +118,8 @@ begin
    U_UdpEngineRx : entity surf.UdpEngineRx
       generic map (
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          DHCP_G         => DHCP_G,
          IGMP_G         => IGMP_G,
          IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
@@ -156,8 +159,9 @@ begin
 
       U_UdpEngineDhcp : entity surf.UdpEngineDhcp
          generic map (
-            -- Simulation Generics
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             -- UDP ARP/DHCP Generics
             CLK_FREQ_G     => CLK_FREQ_G,
             COMM_TIMEOUT_G => COMM_TIMEOUT_G,
@@ -191,6 +195,8 @@ begin
       U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             SIZE_G         => SERVER_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             PORT_G         => SERVER_PORTS_G)
@@ -221,6 +227,8 @@ begin
          ArpIpTable_1 : entity surf.ArpIpTable
             generic map (
                TPD_G          => TPD_G,
+               RST_POLARITY_G => RST_POLARITY_G,
+               RST_ASYNC_G    => RST_ASYNC_G,
                CLK_FREQ_G     => CLK_FREQ_G,
                COMM_TIMEOUT_G => COMM_TIMEOUT_G,
                ENTRIES_G      => ARP_TAB_ENTRIES_G)
@@ -247,6 +255,8 @@ begin
       U_UdpEngineArp : entity surf.UdpEngineArp
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             CLIENT_SIZE_G  => CLIENT_SIZE_G,
             CLK_FREQ_G     => CLK_FREQ_G,
             COMM_TIMEOUT_G => COMM_TIMEOUT_G)
@@ -276,6 +286,8 @@ begin
       U_UdpEngineTx : entity surf.UdpEngineTx
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             SIZE_G         => CLIENT_SIZE_G,
             TX_FLOW_CTRL_G => TX_FLOW_CTRL_G,
             IS_CLIENT_G    => true,
@@ -306,8 +318,10 @@ begin
 
       U_AxiStreamMux : entity surf.AxiStreamMux
          generic map (
-            TPD_G        => TPD_G,
-            NUM_SLAVES_G => 2)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            NUM_SLAVES_G   => 2)
          port map (
             -- Clock and reset
             axisClk      => clk,

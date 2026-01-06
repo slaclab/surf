@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -26,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineDhcp is
    generic (
-      -- Simulation Generics
       TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;
       -- UDP ARP/DHCP Generics
       CLK_FREQ_G     : real     := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G : positive := 30;
@@ -146,6 +146,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => true,
@@ -546,7 +548,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') or (r.localMac /= v.localMac) or (r.localMac = 0) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) or (r.localMac /= v.localMac) or (r.localMac = 0) then
          -- Reset the DHCP FSM
          v                := REG_INIT_C;
          -- Don't touch the delayed copy of local MAC
@@ -564,9 +566,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -575,6 +579,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => true,

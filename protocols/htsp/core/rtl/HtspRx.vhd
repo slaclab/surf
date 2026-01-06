@@ -28,7 +28,7 @@ use surf.HtspPkg.all;
 entity HtspRx is
    generic (
       TPD_G    : time                  := 1 ns;
-      NUM_VC_G : integer range 1 to 16 := 4);
+      NUM_VC_G : integer range 1 to 16 := 1);
    port (
       -- Ethernet Configuration
       remoteMac      : out slv(47 downto 0);

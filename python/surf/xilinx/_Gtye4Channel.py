@@ -17,7 +17,6 @@ class Gtye4Channel(pr.Device):
 
     def _start(self):
         super()._start()
-        print(f'{self.path} - {len(self.variables)=}')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

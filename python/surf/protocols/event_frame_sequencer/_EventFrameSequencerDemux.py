@@ -13,7 +13,7 @@ import pyrogue as pr
 class EventFrameSequencerDemux(pr.Device):
     def __init__(
             self,
-            numberSlaves = 1,
+            numberMasters = 1,
             **kwargs):
         super().__init__(**kwargs)
 
@@ -23,7 +23,7 @@ class EventFrameSequencerDemux(pr.Device):
             offset       = 0x000,
             bitSize      = 32,
             mode         = 'RO',
-            number       = numberSlaves,
+            number       = numberMasters,
             stride       = 4,
             pollInterval = 1,
         )

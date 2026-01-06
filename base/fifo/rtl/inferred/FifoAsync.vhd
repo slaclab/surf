@@ -102,6 +102,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
+         OUT_POLARITY_G  => RST_POLARITY_G,
          RELEASE_DELAY_G => SYNC_STAGES_G)
       port map (
          clk      => wr_clk,
@@ -110,11 +111,12 @@ begin
 
    U_rdIndex : entity surf.SynchronizerVector
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         STAGES_G    => SYNC_STAGES_G,
-         WIDTH_G     => ADDR_WIDTH_G,
-         INIT_G      => GRAY_INIT_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => SYNC_STAGES_G,
+         WIDTH_G        => ADDR_WIDTH_G,
+         INIT_G         => GRAY_INIT_C)
       port map (
          clk     => wr_clk,
          rst     => wrRst,
@@ -123,10 +125,11 @@ begin
 
    U_rdRdy : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         STAGES_G    => SYNC_STAGES_G,
-         INIT_G      => SYNC_INIT_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => SYNC_STAGES_G,
+         INIT_G         => SYNC_INIT_C)
       port map (
          clk     => wr_clk,
          rst     => wrRst,
@@ -135,12 +138,13 @@ begin
 
    U_WR_FSM : entity surf.FifoWrFsm
       generic map(
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         FIFO_ASYNC_G => true,          -- ASYNC FIFO
-         DATA_WIDTH_G => DATA_WIDTH_G,
-         ADDR_WIDTH_G => ADDR_WIDTH_G,
-         FULL_THRES_G => FULL_THRES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         FIFO_ASYNC_G   => true,        -- ASYNC FIFO
+         DATA_WIDTH_G   => DATA_WIDTH_G,
+         ADDR_WIDTH_G   => ADDR_WIDTH_G,
+         FULL_THRES_G   => FULL_THRES_G)
       port map(
          -- Reset
          rst           => wrRst,
@@ -173,6 +177,7 @@ begin
       generic map (
          TPD_G           => TPD_G,
          IN_POLARITY_G   => RST_POLARITY_G,
+         OUT_POLARITY_G  => RST_POLARITY_G,
          RELEASE_DELAY_G => SYNC_STAGES_G)
       port map (
          clk      => rd_clk,
@@ -181,11 +186,12 @@ begin
 
    U_wrIndex : entity surf.SynchronizerVector
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         STAGES_G    => SYNC_STAGES_G,
-         WIDTH_G     => ADDR_WIDTH_G,
-         INIT_G      => GRAY_INIT_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => SYNC_STAGES_G,
+         WIDTH_G        => ADDR_WIDTH_G,
+         INIT_G         => GRAY_INIT_C)
       port map (
          clk     => rd_clk,
          rst     => rdRst,
@@ -194,10 +200,11 @@ begin
 
    U_wrRdy : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         STAGES_G    => SYNC_STAGES_G,
-         INIT_G      => SYNC_INIT_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         STAGES_G       => SYNC_STAGES_G,
+         INIT_G         => SYNC_INIT_C)
       port map (
          clk     => rd_clk,
          rst     => rdRst,
@@ -206,14 +213,15 @@ begin
 
    U_RD_FSM : entity surf.FifoRdFsm
       generic map(
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         FIFO_ASYNC_G  => true,         -- ASYNC FIFO
-         MEMORY_TYPE_G => MEMORY_TYPE_G,
-         FWFT_EN_G     => FWFT_EN_G,
-         DATA_WIDTH_G  => DATA_WIDTH_G,
-         ADDR_WIDTH_G  => ADDR_WIDTH_G,
-         EMPTY_THRES_G => EMPTY_THRES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         FIFO_ASYNC_G   => true,        -- ASYNC FIFO
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
+         FWFT_EN_G      => FWFT_EN_G,
+         DATA_WIDTH_G   => DATA_WIDTH_G,
+         ADDR_WIDTH_G   => ADDR_WIDTH_G,
+         EMPTY_THRES_G  => EMPTY_THRES_G)
       port map(
          -- Reset
          rst           => rdRst,
@@ -268,10 +276,11 @@ begin
 
       U_Pipeline : entity surf.FifoOutputPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            DATA_WIDTH_G  => DATA_WIDTH_G,
-            PIPE_STAGES_G => PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => DATA_WIDTH_G,
+            PIPE_STAGES_G  => PIPE_STAGES_G)
          port map (
             -- Slave Port
             sData  => localDout,

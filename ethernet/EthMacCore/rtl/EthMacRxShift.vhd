@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -25,8 +24,10 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxShift is
    generic (
-      TPD_G      : time    := 1 ns;
-      SHIFT_EN_G : boolean := false);
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
+      SHIFT_EN_G     : boolean := false);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -48,6 +49,8 @@ begin
       U_RxShift : entity surf.AxiStreamShift
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             AXIS_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
             ADD_VALID_EN_G => true)
          port map (

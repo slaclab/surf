@@ -26,6 +26,7 @@ use surf.TextUtilPkg.all;
 entity AxiLiteCrossbar is
    generic (
       TPD_G              : time                             := 1 ns;
+      RST_POLARITY_G     : sl                               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean                          := false;
       NUM_SLAVE_SLOTS_G  : natural range 1 to 16            := 4;
       NUM_MASTER_SLOTS_G : natural range 1 to 64            := 4;
@@ -274,6 +275,8 @@ begin
                      end if;
                   end if;
                end loop;
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_WAIT_AXI_TXN_S state
+               v := REG_INIT_C;
          end case;
 
          -- Read state machine
@@ -343,6 +346,8 @@ begin
                      end if;
                   end if;
                end loop;
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to S_WAIT_AXI_TXN_S state
+               v := REG_INIT_C;
          end case;
       end loop;
 
@@ -404,6 +409,8 @@ begin
                   v.master(m).wrValid := '0';
                end if;
 
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to M_WAIT_REQ_S state
+               v := REG_INIT_C;
          end case;
 
          -- Don't allow baseAddr bits to be overwritten
@@ -458,6 +465,8 @@ begin
                   v.master(m).rdValid := '0';
                end if;
 
+            when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to M_WAIT_REQ_S state
+               v := REG_INIT_C;
          end case;
 
          -- Don't allow baseAddr bits to be overwritten
@@ -470,7 +479,7 @@ begin
 
       end loop;
 
-      if (RST_ASYNC_G = false and axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -485,7 +494,7 @@ begin
 
    seq : process (axiClk, axiClkRst) is
    begin
-      if (RST_ASYNC_G and axiClkRst = '1') then
+      if (RST_ASYNC_G and axiClkRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          r <= rin after TPD_G;

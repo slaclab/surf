@@ -22,10 +22,11 @@ use surf.TextUtilPkg.all;
 entity DeviceDna is
    generic (
       TPD_G           : time     := 1 ns;
+      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean  := false;
       XIL_DEVICE_G    : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       USE_SLOWCLK_G   : boolean  := false;
       BUFR_CLK_DIV_G  : positive := 8;
-      RST_POLARITY_G  : sl       := '1';
       SIM_DNA_VALUE_G : slv      := X"000000000000000000000000");
    port (
       clk      : in  sl;

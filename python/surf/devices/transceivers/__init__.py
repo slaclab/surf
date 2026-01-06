@@ -8,6 +8,8 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.devices.transceivers._Sfp  import *
+from surf.devices.transceivers._QsfpUpperPage00h import *
+from surf.devices.transceivers._QsfpUpperPage03h import *
 from surf.devices.transceivers._Qsfp import *
 
 import math
@@ -61,11 +63,11 @@ def getOpticalPwr(dev, var, read):
         lsb = var.dependencies[1].get(read=read)
         raw = (msb << 8) | lsb
         if raw == 0:
-            pwr = 0.0001 # Prevent log10(zero) case
+            pwrWatts = 0.1e-6 # Prevent log10(zero) case by forcing 0.1 µW if raw=0
         else:
-            pwr = float(raw)*0.0001 # units of mW
+            pwrWatts = float(raw) * 1e-7  # convert 0.1 µW to W
         # Return value in units of dBm
-        return 10.0*math.log10(pwr)
+        return 10.0*math.log10(pwrWatts / 1e-3)  # convert to dBm = 10*log10(Power_W/1mW)
 
 def getTec(dev, var, read):
     with dev.root.updateGroup():
@@ -76,7 +78,7 @@ def getTec(dev, var, read):
         return float(raw)*0.1
 
 ##############################################################################
-# Dictionaries based on SFF-8024 Rev 4.9 (24MAY2021)
+# Dictionaries based on SFF-8024 Rev 4.13 (11JULY2025)
 # https://members.snia.org/document/dl/26423
 ##############################################################################
 IdentifierDict = {
@@ -112,7 +114,17 @@ IdentifierDict = {
     0x1D: 'MiniLinkx8',
     0x1E: 'QSFP+',
     0x1F: 'SFP-DD',
+    0x20: 'SFP+',
+    0x21: 'OSFP-XD',
+    0x22: 'OIF-ELSFP',
+    0x23: 'CDFPx4',
+    0x24: 'CDFPx8',
+    0x25: 'CDFPx16',
 }
+
+# Fill 0x20 through 0xFF with 'Undefined'
+for code in range(0x20, 0x100):  # 0x100 is 256 (exclusive)
+    IdentifierDict[code] = 'Undefined'
 
 ExtIdentifierDict = {
     0x00: 'Unspecified',
@@ -179,6 +191,10 @@ ExtIdentifierDict = {
     0x81: 'Capable of 128GFC',
 }
 
+# Fill 0x82 through 0xFF with 'Undefined'
+for code in range(0x82, 0x100):  # 0x100 is 256 (exclusive)
+    ExtIdentifierDict[code] = 'Undefined'
+
 ConnectorDict = {
     0x00: 'Unspecified',
     0x01: 'SC',
@@ -205,6 +221,10 @@ ConnectorDict = {
     0x28: 'MPO 1x16',
 }
 
+# Fill 0x29 through 0xFF with 'Undefined'
+for code in range(0x29, 0x100):  # 0x100 is 256 (exclusive)
+    ConnectorDict[code] = 'Undefined'
+
 EncodingDict = {
     0x0: 'Unspecified',
     0x1: '8B10B',
@@ -214,6 +234,10 @@ EncodingDict = {
     0x5: 'SONET Scrambled',
     0x6: '64B/66B',
 }
+
+# Fill 0x7 through 0xF with 'Undefined'
+for code in range(0x7, 0x10):  # 0x10 is 16 (exclusive)
+    EncodingDict[code] = 'Undefined'
 
 RateIdDict = {
     0x0: 'Unspecified',
@@ -227,4 +251,8 @@ RateIdDict = {
     0x8: 'FC-PI-5 (16/8/4G RX Rate Select Only) High=16G, Low=8/4G',
     0x9: 'Unspecified',
     0xA: 'FC-PI-5 (16/8/4G Independent TX and RX Rate Select) High=16G, Low=8/4G',
-},
+}
+
+# Fill 0xB through 0xF with 'Undefined'
+for code in range(0xB, 0x10):  # 0x10 is 16 (exclusive)
+    RateIdDict[code] = 'Undefined'

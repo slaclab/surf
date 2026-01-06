@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation testbed for AxiLiteSaciMaster2
+-- Description: Simulation testbed for AxiLiteSaciMaster
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -88,7 +88,7 @@ begin
          axilWriteSlave  => axilWriteSlave);  -- [out]
 
    SLAVE_GEN : for i in 0 to SACI_NUM_CHIPS_G-1 generate
-      U_SaciSlave2_1 : entity surf.SaciSlave2
+      U_SaciSlave_1 : entity surf.SaciSlave
          generic map (
             TPD_G => TPD_G)
          port map (

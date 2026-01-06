@@ -27,6 +27,8 @@ use surf.EthMacPkg.all;
 entity EthMacTxPause is
    generic (
       TPD_G           : time                    := 1 ns;
+      RST_POLARITY_G  : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean                 := false;
       PAUSE_EN_G      : boolean                 := true;
       PAUSE_512BITS_G : natural range 1 to 1024 := 8);
    port (
@@ -210,7 +212,7 @@ begin
          sAxisSlave <= v.sAxisSlave;
 
          -- Reset
-         if (ethRst = '1') then
+         if (RST_ASYNC_G = false and ethRst = RST_POLARITY_G) then
             v := REG_INIT_C;
          end if;
 
@@ -223,9 +225,11 @@ begin
 
       end process;
 
-      seq : process (ethClk) is
+      seq : process (ethClk, ethRst) is
       begin
-         if rising_edge(ethClk) then
+         if (RST_ASYNC_G and ethRst = RST_POLARITY_G) then
+            r <= REG_INIT_C after TPD_G;
+         elsif rising_edge(ethClk) then
             r <= rin after TPD_G;
          end if;
       end process seq;

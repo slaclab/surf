@@ -134,7 +134,13 @@ def size_list():
 def incrementing_payload(length):
     return bytearray(itertools.islice(itertools.cycle(range(256)), length))
 
-if cocotb.SIM_NAME:
+# Prevent pytest from trying to collect cocotb's TestFactory class
+TestFactory.__test__ = False
+
+# Safe SIM_NAME access for pytest collection and cocotb 2.x
+SIM_NAME = getattr(cocotb, "SIM_NAME", None)
+if SIM_NAME:
+
     factory = TestFactory(run_test)
     factory.add_option("payload_lengths", [size_list])
     factory.add_option("payload_data", [incrementing_payload])
@@ -201,10 +207,16 @@ def test_AxiStreamFifoV2IpIntegrator(parameters):
         # Select a simulator
         simulator="ghdl",
 
-        # use of synopsys package "std_logic_arith" needs the -fsynopsys option
-        # -frelaxed-rules option to allow IP integrator attributes
-        # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
-        vhdl_compile_args = ['-fsynopsys','-frelaxed-rules', '-fexplicit'],
+        # VHDL compile arguments
+        vhdl_compile_args = [
+            '-fsynopsys',       # use of synopsys package "std_logic_arith" needs the -fsynopsys option
+            '-frelaxed-rules',  # -frelaxed-rules option to allow IP integrator attributes
+            '-fexplicit',       # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
+            '-Wno-elaboration', # Hide warnings about functions called before elaborated of its body
+            '-Wno-hide',        # Declaration of "axiconfig" hides function in AxiPkg.vhd
+            '-Wno-specs',       # Warning related to IP skim layers attributes
+            '-O2',              # Optimize the generated simulation code for speed (no change to VHDL semantics)
+        ],
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)

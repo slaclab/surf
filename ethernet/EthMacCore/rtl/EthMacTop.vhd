@@ -26,6 +26,7 @@ entity EthMacTop is
    generic (
       -- Simulation Generics
       TPD_G             : time                     := 1 ns;
+      RST_POLARITY_G    : sl                       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       -- MAC Configurations
       PAUSE_EN_G        : boolean                  := true;
       PAUSE_512BITS_G   : positive range 1 to 1024 := 8;  -- For 10GbE: 8 clock cycles for 512 bits = one pause "quanta"
@@ -121,6 +122,7 @@ begin
    U_TxFifo : entity surf.EthMacTxFifo
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          PRIM_COMMON_CLK_G => PRIM_COMMON_CLK_G,
          PRIM_CONFIG_G     => PRIM_CONFIG_G,
          BYP_EN_G          => BYP_EN_G,
@@ -153,6 +155,7 @@ begin
       generic map (
          -- Simulation Generics
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
          -- MAC Configurations
          PAUSE_EN_G      => PAUSE_EN_G,
          PAUSE_512BITS_G => PAUSE_512BITS_G,
@@ -202,8 +205,9 @@ begin
    ---------------------
    U_FlowCtrl : entity surf.EthMacFlowCtrl
       generic map (
-         TPD_G    => TPD_G,
-         BYP_EN_G => BYP_EN_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         BYP_EN_G       => BYP_EN_G)
       port map (
          -- Clock and Reset
          ethClk   => ethClk,
@@ -221,6 +225,7 @@ begin
       generic map (
          -- Simulation Generics
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
          -- MAC Configurations
          PAUSE_EN_G     => PAUSE_EN_G,
          PHY_TYPE_G     => PHY_TYPE_G,
@@ -268,6 +273,7 @@ begin
    U_RxFifo : entity surf.EthMacRxFifo
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          SYNTH_MODE_G      => SYNTH_MODE_G,
          MEMORY_TYPE_G     => MEMORY_TYPE_G,
          DROP_ERR_PKT_G    => DROP_ERR_PKT_G,

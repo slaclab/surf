@@ -17,6 +17,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+library std;
+use std.env.all;
 
 library surf;
 use surf.StdRtlPkg.all;
@@ -286,15 +288,21 @@ begin
       end if;
    end process seq;
 
-   process(failed, passed)
+   ---------------------
+   -- Report the Results
+   ---------------------
+   process(clk)
    begin
-      if failed = '1' then
-         assert false
-            report "Simulation Failed!" severity failure;
-      end if;
-      if passed = '1' then
-         assert false
-            report "Simulation Passed!" severity note;
+      if rising_edge(clk) then
+         if (failed = '1') then
+            assert false
+               report "Simulation Failed!" severity failure;
+         end if;
+         if (passed = '1') then
+            assert false
+               report "Simulation Passed!" severity note;
+            std.env.finish;
+         end if;
       end if;
    end process;
 
