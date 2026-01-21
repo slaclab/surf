@@ -255,6 +255,7 @@ var hierarchy =
             [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
           ] ],
           [ "FifoCascade", "classFifoCascade.html", null ],
+          [ "SynchronizerVector", "classSynchronizerVector.html", null ],
           [ "Synchronizer", "classSynchronizer.html", null ],
           [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
         ] ]
@@ -1598,6 +1599,7 @@ var hierarchy =
         [ "Synchronizer", "classSynchronizer.html", null ],
         [ "AxiLiteMaster", "classAxiLiteMaster.html", null ]
       ] ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "SaciAxiLiteMasterTb", "classSaciAxiLiteMasterTb.html", [
         [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
