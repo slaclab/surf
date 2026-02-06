@@ -754,9 +754,12 @@ begin
          -- Always 16 byte WSTRB (64-bit case to break apart into two cycle implemented in surf.AxiStreamDmaV2WriteMux)
          v.axiWriteMaster.wstrb(15 downto 0) := x"FFFF";
 
-      -- Check for 256-bits (or more) case
-      elsif (AXI_CONFIG_G.DATA_BYTES_C >= 16) then
-         wStrbIdx                                                      := conv_integer(v.axiWriteMaster.awaddr(log2(AXI_CONFIG_G.DATA_BYTES_C) - 1 downto 4));
+      -- Else 256-bits (or more) case
+      else
+         -- Find the 128-bit word offset
+         wStrbIdx := conv_integer(v.axiWriteMaster.awaddr(log2(AXI_CONFIG_G.DATA_BYTES_C) - 1 downto 4));
+
+         -- Assign the WSTRB to this offset
          v.axiWriteMaster.wstrb((wStrbIdx*16+15) downto (wStrbIdx*16)) := x"FFFF";
       end if;
 
