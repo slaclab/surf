@@ -1279,6 +1279,7 @@ var hierarchy =
         [ "AxiLiteToDrp", "classAxiLiteToDrp.html", null ]
       ] ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "Pgp2fcLane", "classPgp2fcLane.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
@@ -1506,6 +1507,7 @@ var hierarchy =
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
       [ "Pgp4TxLite", "classPgp4TxLite.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
       [ "Pgp2bLane", "classPgp2bLane.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
@@ -1566,6 +1568,8 @@ var hierarchy =
       ] ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "SsiPrbsRx", "classSsiPrbsRx.html", null ],
+      [ "SyncTrigRate", "classSyncTrigRate.html", null ],
+      [ "SyncStatusVector", "classSyncStatusVector.html", null ],
       [ "RawEthFramer", "classRawEthFramer.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "RoceResizeAndSwap", "classRoceResizeAndSwap.html", [
@@ -1579,6 +1583,7 @@ var hierarchy =
       [ "RogueTcpStreamWrap", "classRogueTcpStreamWrap.html", null ],
       [ "RogueSideBandWrap", "classRogueSideBandWrap.html", null ],
       [ "RogueTcpMemory", "classRogueTcpMemory.html", null ],
+      [ "RssiChksum", "classRssiChksum.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "SrpV3AxiLite", "classSrpV3AxiLite.html", null ],

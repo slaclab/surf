@@ -8,10 +8,10 @@
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="267,106,383,149,381,154,265,111"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="167,5,279,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,44,225,79,220,79,220,44"/>
-<area shape="rect" id="Node000005" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="86,225,218,251"/>
+<area shape="rect" id="Node000005" href="$classSff8472Core.html" title=" " alt="" coords="101,225,203,251"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="203,189,165,227,162,223,199,185"/>
-<area shape="rect" id="Node000007" href="$classSff8472Core.html" title=" " alt="" coords="243,225,344,251"/>
-<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="246,185,284,223,280,227,242,189"/>
-<area shape="rect" id="Node000006" href="$classSff8472.html" title=" " alt="" coords="117,299,187,324"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="155,264,155,299,149,299,149,264"/>
+<area shape="rect" id="Node000006" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="227,225,359,251"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="246,185,284,223,280,227,242,189"/>
+<area shape="rect" id="Node000007" href="$classSff8472.html" title=" " alt="" coords="258,299,329,324"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="296,264,296,299,291,299,291,264"/>
 </map>

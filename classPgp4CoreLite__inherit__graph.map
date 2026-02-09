@@ -1,9 +1,9 @@
 <map id="Pgp4CoreLite" name="Pgp4CoreLite">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1636,660,1744,685"/>
-<area shape="rect" id="Node000042" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="1826,635,1950,660"/>
-<area shape="poly" id="edge71_Node000001_Node000042" title=" " alt="" coords="1757,661,1825,653,1826,658,1758,667"/>
-<area shape="rect" id="Node000043" href="$classPgp4RxLiteLowSpeedLane.html" title=" " alt="" coords="1792,684,1984,709"/>
-<area shape="poly" id="edge72_Node000001_Node000043" title=" " alt="" coords="1758,678,1792,682,1792,688,1757,683"/>
+<area shape="rect" id="Node000042" href="$classPgp4RxLiteLowSpeedLane.html" title=" " alt="" coords="1792,635,1984,660"/>
+<area shape="poly" id="edge71_Node000001_Node000042" title=" " alt="" coords="1757,661,1792,657,1792,662,1758,667"/>
+<area shape="rect" id="Node000044" href="$classPgp4CoreLiteTb.html" title=" " alt="" coords="1826,684,1950,709"/>
+<area shape="poly" id="edge73_Node000001_Node000044" title=" " alt="" coords="1758,678,1826,687,1825,692,1757,683"/>
 <area shape="rect" id="Node000002" href="$classPgp4TxLite.html" title=" " alt="" coords="827,660,921,685"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="935,670,1636,670,1636,675,935,675"/>
 <area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,660,112,685"/>
@@ -114,6 +114,6 @@
 <area shape="poly" id="edge64_Node000037_Node000039" title=" " alt="" coords="1414,879,1515,835,1517,840,1416,884"/>
 <area shape="poly" id="edge66_Node000039_Node000040" title=" " alt="" coords="1251,897,1304,897,1304,902,1251,902"/>
 <area shape="poly" id="edge68_Node000040_Node000041" title=" " alt="" coords="979,882,1013,885,1013,891,979,887"/>
-<area shape="rect" id="Node000044" href="$classPgp4LiteRxLowSpeed.html" title=" " alt="" coords="2032,684,2193,709"/>
-<area shape="poly" id="edge73_Node000043_Node000044" title=" " alt="" coords="1998,694,2032,694,2032,699,1998,699"/>
+<area shape="rect" id="Node000043" href="$classPgp4LiteRxLowSpeed.html" title=" " alt="" coords="2032,635,2193,660"/>
+<area shape="poly" id="edge72_Node000042_Node000043" title=" " alt="" coords="1998,645,2032,645,2032,650,1998,650"/>
 </map>

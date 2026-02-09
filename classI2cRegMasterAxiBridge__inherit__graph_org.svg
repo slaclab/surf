@@ -12,8 +12,8 @@
 <g id="Node000001" class="node">
 <title>Node1</title>
 <g id="a_Node000001"><a xlink:title=" ">
-<polygon fill="#999999" stroke="#666666" points="168,-184 37,-184 37,-165 168,-165 168,-184"/>
-<text text-anchor="middle" x="102.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegMasterAxiBridge</text>
+<polygon fill="#999999" stroke="#666666" points="156.5,-184 25.5,-184 25.5,-165 156.5,-165 156.5,-184"/>
+<text text-anchor="middle" x="91" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">I2cRegMasterAxiBridge</text>
 </a>
 </g>
 </g>
@@ -21,8 +21,8 @@
 <g id="Node000002" class="node">
 <title>Node2</title>
 <g id="a_Node000002"><a xlink:href="classAxiI2cRegMasterCore.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="163.5,-129 41.5,-129 41.5,-110 163.5,-110 163.5,-129"/>
-<text text-anchor="middle" x="102.5" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMasterCore</text>
+<polygon fill="white" stroke="#bfbfbf" points="152,-129 30,-129 30,-110 152,-110 152,-129"/>
+<text text-anchor="middle" x="91" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMasterCore</text>
 </a>
 </g>
 </g>
@@ -30,17 +30,17 @@
 <g id="edge1_Node000001_Node000002" class="edge">
 <title>Node1&#45;&gt;Node2</title>
 <g id="a_edge1_Node000001_Node000002"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M102.5,-154.66C102.5,-145.93 102.5,-135.99 102.5,-129.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="99,-154.75 102.5,-164.75 106,-154.75 99,-154.75"/>
+<path fill="none" stroke="#63b8ff" d="M91,-154.66C91,-145.93 91,-135.99 91,-129.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="87.5,-154.75 91,-164.75 94.5,-154.75 87.5,-154.75"/>
 </a>
 </g>
 </g>
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="classAxiI2cRegMaster.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="99,-74 0,-74 0,-55 99,-55 99,-74"/>
-<text text-anchor="middle" x="49.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMaster</text>
+<g id="a_Node000003"><a xlink:href="classSff8472Core.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="76,-74 0,-74 0,-55 76,-55 76,-74"/>
+<text text-anchor="middle" x="38" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">Sff8472Core</text>
 </a>
 </g>
 </g>
@@ -48,44 +48,44 @@
 <g id="edge2_Node000002_Node000003" class="edge">
 <title>Node2&#45;&gt;Node3</title>
 <g id="a_edge2_Node000002_Node000003"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M86.52,-102.52C77.18,-93.18 65.75,-81.75 58.09,-74.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="84.2,-105.15 93.75,-109.75 89.15,-100.2 84.2,-105.15"/>
-</a>
-</g>
-</g>
-<!-- Node5 -->
-<g id="Node000005" class="node">
-<title>Node5</title>
-<g id="a_Node000005"><a xlink:href="classSff8472Core.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="193.5,-74 117.5,-74 117.5,-55 193.5,-55 193.5,-74"/>
-<text text-anchor="middle" x="155.5" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">Sff8472Core</text>
-</a>
-</g>
-</g>
-<!-- Node2&#45;&gt;Node5 -->
-<g id="edge4_Node000002_Node000005" class="edge">
-<title>Node2&#45;&gt;Node5</title>
-<g id="a_edge4_Node000002_Node000005"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M118.48,-102.52C127.82,-93.18 139.25,-81.75 146.91,-74.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="115.85,-100.2 111.25,-109.75 120.8,-105.15 115.85,-100.2"/>
+<path fill="none" stroke="#63b8ff" d="M75.02,-102.52C65.68,-93.18 54.25,-81.75 46.59,-74.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="72.7,-105.15 82.25,-109.75 77.65,-100.2 72.7,-105.15"/>
 </a>
 </g>
 </g>
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="classSff8472.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="76,-19 23,-19 23,0 76,0 76,-19"/>
-<text text-anchor="middle" x="49.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Sff8472</text>
+<g id="a_Node000004"><a xlink:href="classAxiI2cRegMaster.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="193.5,-74 94.5,-74 94.5,-55 193.5,-55 193.5,-74"/>
+<text text-anchor="middle" x="144" y="-62" font-family="Helvetica,sans-Serif" font-size="10.00">AxiI2cRegMaster</text>
 </a>
 </g>
 </g>
-<!-- Node3&#45;&gt;Node4 -->
-<g id="edge3_Node000003_Node000004" class="edge">
-<title>Node3&#45;&gt;Node4</title>
-<g id="a_edge3_Node000003_Node000004"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M49.5,-44.66C49.5,-35.93 49.5,-25.99 49.5,-19.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="46,-44.75 49.5,-54.75 53,-44.75 46,-44.75"/>
+<!-- Node2&#45;&gt;Node4 -->
+<g id="edge3_Node000002_Node000004" class="edge">
+<title>Node2&#45;&gt;Node4</title>
+<g id="a_edge3_Node000002_Node000004"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M106.98,-102.52C116.32,-93.18 127.75,-81.75 135.41,-74.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="104.35,-100.2 99.75,-109.75 109.3,-105.15 104.35,-100.2"/>
+</a>
+</g>
+</g>
+<!-- Node5 -->
+<g id="Node000005" class="node">
+<title>Node5</title>
+<g id="a_Node000005"><a xlink:href="classSff8472.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="170.5,-19 117.5,-19 117.5,0 170.5,0 170.5,-19"/>
+<text text-anchor="middle" x="144" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">Sff8472</text>
+</a>
+</g>
+</g>
+<!-- Node4&#45;&gt;Node5 -->
+<g id="edge4_Node000004_Node000005" class="edge">
+<title>Node4&#45;&gt;Node5</title>
+<g id="a_edge4_Node000004_Node000005"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M144,-44.66C144,-35.93 144,-25.99 144,-19.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="140.5,-44.75 144,-54.75 147.5,-44.75 140.5,-44.75"/>
 </a>
 </g>
 </g>

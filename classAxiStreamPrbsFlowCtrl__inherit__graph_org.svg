@@ -20,9 +20,9 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="classSsiFifoTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="96,-19 35,-19 35,0 96,0 96,-19"/>
-<text text-anchor="middle" x="65.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SsiFifoTb</text>
+<g id="a_Node000005"><a xlink:href="classEthMacPauseTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="112,-19 19,-19 19,0 112,0 112,-19"/>
+<text text-anchor="middle" x="65.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">EthMacPauseTb</text>
 </a>
 </g>
 </g>
@@ -38,9 +38,9 @@
 <!-- Node6 -->
 <g id="Node000006" class="node">
 <title>Node6</title>
-<g id="a_Node000006"><a xlink:href="classEthMacPauseTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="207,-19 114,-19 114,0 207,0 207,-19"/>
-<text text-anchor="middle" x="160.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">EthMacPauseTb</text>
+<g id="a_Node000006"><a xlink:href="classSsiFifoTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="191,-19 130,-19 130,0 191,0 191,-19"/>
+<text text-anchor="middle" x="160.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SsiFifoTb</text>
 </a>
 </g>
 </g>

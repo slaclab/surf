@@ -8,14 +8,14 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="475,128,541,121,542,127,475,134"/>
 <area shape="rect" id="Node000007" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="520,153,704,179"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="475,150,520,154,520,159,475,155"/>
-<area shape="rect" id="Node000008" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,203,678,228"/>
+<area shape="rect" id="Node000008" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,203,689,228"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="419,157,510,189,553,200,551,205,509,194,417,162"/>
-<area shape="rect" id="Node000009" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,252,689,277"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="399,162,448,201,510,238,542,249,540,254,508,243,445,205,395,166"/>
+<area shape="rect" id="Node000010" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,252,678,277"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="399,162,448,201,510,238,546,251,545,256,508,243,445,205,395,166"/>
 <area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="160,129,235,155"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,139,283,139,283,145,248,145"/>
 <area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,129,112,155"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,139,160,139,160,145,126,145"/>
-<area shape="rect" id="Node000010" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,252,973,277"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="703,262,763,262,763,267,703,267"/>
+<area shape="rect" id="Node000009" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,203,973,228"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="703,213,763,213,763,218,703,218"/>
 </map>
