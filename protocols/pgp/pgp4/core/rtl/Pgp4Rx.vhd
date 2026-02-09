@@ -158,9 +158,13 @@ begin
             status      => ebStatus);          -- [out]
    end generate GEN_EB;
    NO_EB : if (SKIP_EN_G = false) generate
-      ebValid  <= unscrambledValid;
-      ebHeader <= unscrambledHeader;
-      ebData   <= unscrambledData;
+      ebValid     <= unscrambledValid;
+      ebData      <= unscrambledData;
+      ebHeader    <= unscrambledHeader;
+      remLinkData <= (others => '0');
+      ebOverflow  <= '0';
+      linkError   <= '0';
+      ebStatus    <= (others => '0');
    end generate NO_EB;
 
    -- Main RX protocol logic
@@ -242,6 +246,8 @@ begin
    pgpRxOut.linkReady   <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx     <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr  <= depacketizerDebug.eofe;
+   pgpRxOut.linkDown    <= pgpRxOutProtocol.linkDown;
+   pgpRxOut.linkError   <= pgpRxOutProtocol.linkError;
 
    pgpRxOut.cellError        <= depacketizerDebug.packetError;
    pgpRxOut.cellSofError     <= depacketizerDebug.sofError;

@@ -101,8 +101,8 @@ architecture rtl of AxiVersion is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaValue : slv(127 downto 0) := (others => '0');
-   signal fdValue  : slv(63 downto 0)  := (others => '0');
+   signal dnaValue : slv(127 downto 0);
+   signal fdValue  : slv(63 downto 0);
 
    attribute rom_style                         : string;
    attribute rom_style of BUILD_STRING_ROM_C   : constant is "distributed";
@@ -132,6 +132,9 @@ begin
             slowClk  => slowClk,
             dnaValue => dnaValue);
    end generate GEN_DEVICE_DNA;
+   BYP_DEVICE_DNA : if (not EN_DEVICE_DNA_G) generate
+      dnaValue <= (others => '0');
+   end generate BYP_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
       DS2411Core_1 : entity surf.DS2411Core
@@ -146,6 +149,9 @@ begin
             fdSerSdio => fdSerSdio,
             fdValue   => fdValue);
    end generate GEN_DS2411;
+   BYP_DS2411 : if (not EN_DS2411_G) generate
+      fdValue <= (others => '0');
+   end generate BYP_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
       Iprog_1 : entity surf.Iprog

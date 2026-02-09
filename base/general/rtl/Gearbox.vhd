@@ -135,9 +135,15 @@ begin
 
          -- Assign incoming data at proper location in shift reg
          if (slaveBitOrder = '1') then
-            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := bitReverse(slaveData);
+--            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := bitReverse(slaveData);
+            for i in 0 to SLAVE_WIDTH_G-1 loop
+               v.shiftReg(v.writeIndex + i) := bitReverse(slaveData)(i);
+            end loop;
          else
-            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
+--            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
+            for i in 0 to SLAVE_WIDTH_G-1 loop
+               v.shiftReg(v.writeIndex + i) := slaveData(i);
+            end loop;
          end if;
 
          -- Increment writeIndex

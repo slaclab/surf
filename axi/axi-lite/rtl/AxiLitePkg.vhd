@@ -440,6 +440,7 @@ package AxiLitePkg is
                               addrBits : integer range 0 to 31)
       return AxiLiteCrossbarMasterConfigArray;
 
+   function genAxiSlaveStrobeMask (busHighBit : natural; normalOffset : natural) return slv;
 
    -------------------------------------------------------------------------------------------------
    -- Simulation procedures
@@ -773,12 +774,8 @@ package body AxiLitePkg is
       -- Most significant data bus bit to be used in this recursion (max out at 31)
       constant BUS_HIGH_BIT_C  : integer := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
 
-      variable strobeMask : slv(3 downto 0) := (others => '-');
+      constant STROBE_MASK_C : slv(3 downto 0) := genAxiSlaveStrobeMask(BUS_HIGH_BIT_C, NORMAL_OFFSET_C);
    begin
-
-      for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
-         strobeMask(i/8) := '1';
-      end loop;
 
       -- Read must come first so as not to overwrite the variable if read and write happen at once
       if (ep.axiStatus.readEnable = '1') then
@@ -790,7 +787,7 @@ package body AxiLitePkg is
 
       if (ep.axiStatus.writeEnable = '1') then
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
-             std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
+             std_match(ep.axiWriteMaster.wstrb, STROBE_MASK_C)) then
             if (constVal /= "X") then
                reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal, (REG_HIGH_BIT_C-reg'low)+1);
             else
@@ -823,12 +820,8 @@ package body AxiLitePkg is
       -- Most significant data bus bit to be used in this recursion (max out at 31)
       constant BUS_HIGH_BIT_C  : integer := minimum(NORMAL_OFFSET_C+reg'length-1, 31);
 
-      variable strobeMask : slv(3 downto 0) := (others => '-');
+      constant STROBE_MASK_C : slv(3 downto 0) := genAxiSlaveStrobeMask(BUS_HIGH_BIT_C, NORMAL_OFFSET_C);
    begin
-
-      for i in BUS_HIGH_BIT_C downto NORMAL_OFFSET_C loop
-         strobeMask(i/8) := '1';
-      end loop;
 
       -- Read must come first so as not to overwrite the variable if read and write happen at once
       if (ep.axiStatus.readEnable = '1') then
@@ -840,7 +833,7 @@ package body AxiLitePkg is
 
       if (ep.axiStatus.writeEnable = '1') then
          if (std_match(ep.axiWriteMaster.awaddr(ADDR_LEN_C-1 downto 2), NORMAL_ADDR_C(ADDR_LEN_C-1 downto 2)) and
-             std_match(ep.axiWriteMaster.wstrb, strobeMask)) then
+             std_match(ep.axiWriteMaster.wstrb, STROBE_MASK_C)) then
             -- if (constVal /= "X") then
             -- reg(REG_HIGH_BIT_C downto reg'low) := resize(constVal,(REG_HIGH_BIT_C-reg'low)+1);
             -- else
@@ -1081,6 +1074,14 @@ package body AxiLitePkg is
       return retConf;
    end function;
 
+   function genAxiSlaveStrobeMask (busHighBit : natural; normalOffset : natural) return slv is
+      variable strobeMask : slv(3 downto 0) := (others => '-');
+   begin
+      for i in busHighBit downto normalOffset loop
+         strobeMask(i/8) := '1';
+      end loop;
+      return strobeMask;
+   end function;
 
    -------------------------------------------------------------------------------------------------
    -- Simulation procedures
