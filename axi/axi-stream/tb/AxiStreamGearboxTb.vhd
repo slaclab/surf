@@ -72,12 +72,12 @@ end AxiStreamGearboxTb;
 
 architecture mapping of AxiStreamGearboxTb is
 
-   constant BYTE_MODE_C     : boolean  := ite(BYTE_PACKER_MODE = 1, true, false);
-   constant MAX_NUM_BYTES_C : positive := maximum(S_TDATA_NUM_BYTES, M_TDATA_NUM_BYTES);
+   -- Byte packing feature of AxiStreamGearbox only works if (M_TDATA_NUM_BYTES > S_TDATA_NUM_BYTES)
+   constant MAX_NUM_BYTES_C : positive := ite(M_TDATA_NUM_BYTES > S_TDATA_NUM_BYTES, M_TDATA_NUM_BYTES, S_TDATA_NUM_BYTES);
 
    constant S_AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => ite(S_HAS_TSTRB = 1, true, false),
-      TDATA_BYTES_C => ite(BYTE_MODE_C, MAX_NUM_BYTES_C, S_TDATA_NUM_BYTES),
+      TDATA_BYTES_C => ite(BYTE_PACKER_MODE = 1, MAX_NUM_BYTES_C, S_TDATA_NUM_BYTES),
       TDEST_BITS_C  => S_TDEST_WIDTH,
       TID_BITS_C    => S_TID_WIDTH,
       TKEEP_MODE_C  => ite(S_HAS_TKEEP = 1, TKEEP_NORMAL_C, TKEEP_FIXED_C),
@@ -86,7 +86,7 @@ architecture mapping of AxiStreamGearboxTb is
 
    constant M_AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => ite(M_HAS_TSTRB = 1, true, false),
-      TDATA_BYTES_C => ite(BYTE_MODE_C, MAX_NUM_BYTES_C, M_TDATA_NUM_BYTES),
+      TDATA_BYTES_C => M_TDATA_NUM_BYTES,
       TDEST_BITS_C  => M_TDEST_WIDTH,
       TID_BITS_C    => M_TID_WIDTH,
       TKEEP_MODE_C  => ite(M_HAS_TKEEP = 1, TKEEP_NORMAL_C, TKEEP_FIXED_C),
