@@ -142,7 +142,7 @@ tests_module = 'AxiStreamGearboxTb'
 paramSweep = []
 # Sweep through different master/slave data sizes and byte packing modes
 for packMode in ['0','1']:
-    for sTdataByte in     ['1','3','4']:
+    for sTdataByte in ['1','3','4']:
         for mTdataByte in ['1','2','5']:
             tmpDict = {
               "BYTE_PACKER_MODE":  packMode,
