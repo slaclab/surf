@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-- Title      : AxiStream BatcherV2 Protocol: https://confluence.slac.stanford.edu/x/L2VlK
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -26,14 +27,15 @@ use surf.AxiLitePkg.all;
 
 entity AxiStreamBatcherAxil is
    generic (
-      TPD_G                        : time     := 1 ns;
-      COMMON_CLOCK_G               : boolean  := false;
-      MAX_NUMBER_SUB_FRAMES_G      : positive := 32;
-      SUPER_FRAME_BYTE_THRESHOLD_G : natural  := 8192;
-      MAX_CLK_GAP_G                : natural  := 256;
+      TPD_G                        : time                  := 1 ns;
+      VERSION_G                    : positive range 1 to 2 := 1;
+      COMMON_CLOCK_G               : boolean               := false;
+      MAX_NUMBER_SUB_FRAMES_G      : positive              := 32;
+      SUPER_FRAME_BYTE_THRESHOLD_G : natural               := 8192;
+      MAX_CLK_GAP_G                : natural               := 256;
       AXIS_CONFIG_G                : AxiStreamConfigType;
-      INPUT_PIPE_STAGES_G          : natural  := 0;
-      OUTPUT_PIPE_STAGES_G         : natural  := 1);
+      INPUT_PIPE_STAGES_G          : natural               := 0;
+      OUTPUT_PIPE_STAGES_G         : natural               := 1);
    port (
       -- AXIS Interfaces (axisClk domain)
       axisClk         : in  sl;
@@ -92,6 +94,7 @@ begin
    U_AxiStreamBatcher : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
+         VERSION_G                    => VERSION_G,
          MAX_NUMBER_SUB_FRAMES_G      => MAX_NUMBER_SUB_FRAMES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => SUPER_FRAME_BYTE_THRESHOLD_G,
          MAX_CLK_GAP_G                => MAX_CLK_GAP_G,
@@ -147,6 +150,7 @@ begin
       axiSlaveRegister (axilEp, X"04", 0, v.maxSubFrames);
       axiSlaveRegister (axilEp, X"08", 0, v.maxClkGap);
       axiSlaveRegisterR(axilEp, X"0C", 0, batcherIdle);
+      axiSlaveRegisterR(axilEp, x"0C", 24, toSlv(VERSION_G, 4));
       axiSlaveRegister (axilEp, x"F8", 0, v.blowOff);
       axiSlaveRegister (axilEp, x"FC", 0, v.softRst);
 

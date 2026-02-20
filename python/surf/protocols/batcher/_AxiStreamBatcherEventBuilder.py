@@ -125,6 +125,20 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         = "VERSION_G",
+            description  = "Batcher Protocol Version",
+            offset       =  0xFF4,
+            bitSize      =  4,
+            bitOffset    =  24,
+            mode         = "RO",
+            enum         = {
+                0 : "Version1", # legacy support
+                1 : "Version1",
+                2 : "Version2",
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
             name         = "Blowoff",
             description  = "Blows off the inbound AXIS stream (for debugging)",
             offset       =  0xFF8,
