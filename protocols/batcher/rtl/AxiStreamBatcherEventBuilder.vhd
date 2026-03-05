@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-- Title      : AxiStream BatcherV2 Protocol: https://confluence.slac.stanford.edu/x/L2VlK
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -19,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -29,6 +29,9 @@ use surf.SsiPkg.all;
 entity AxiStreamBatcherEventBuilder is
    generic (
       TPD_G : time := 1 ns;
+
+      -- Version Number
+      VERSION_G : positive range 1 to 2 := 1;
 
       -- Number of Inbound AXIS stream SLAVES
       NUM_SLAVES_G : positive := 2;
@@ -259,6 +262,7 @@ begin
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
       axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegisterR(axilEp, x"FF4", 24, toSlv(VERSION_G, 4));
       axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
@@ -530,6 +534,7 @@ begin
    U_AxiStreamBatcher : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
+         VERSION_G                    => VERSION_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => 0,  -- 0 = bypass super threshold check
          MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP
