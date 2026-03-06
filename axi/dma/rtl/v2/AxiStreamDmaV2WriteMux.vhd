@@ -25,9 +25,10 @@ use surf.AxiPkg.all;
 
 entity AxiStreamDmaV2WriteMux is
    generic (
-      TPD_G          : time    := 1 ns;
-      AXI_CONFIG_G   : AxiConfigType;
-      AXI_READY_EN_G : boolean := false);
+      TPD_G             : time    := 1 ns;
+      AXI_CONFIG_G      : AxiConfigType;
+      AXI_READY_EN_G    : boolean := false;
+      ACK_WAIT_BVALID_G : boolean := false);
    port (
       -- Clock and reset
       axiClk          : in  sl;
@@ -88,13 +89,13 @@ begin
       -- Valid/Ready Handshaking
       v.descSlave.awready := '0';
       v.descSlave.wready  := '0';
-      if (descWriteMaster.bready = '1') or (AXI_READY_EN_G = false) then
+      if (descWriteMaster.bready = '1') or (ACK_WAIT_BVALID_G = false) then
          v.descSlave.bvalid := '0';
       end if;
 
       v.dataSlave.awready := '0';
       v.dataSlave.wready  := '0';
-      if (dataWriteMaster.bready = '1') or (AXI_READY_EN_G = false) then
+      if (dataWriteMaster.bready = '1') or (ACK_WAIT_BVALID_G = false) then
          v.dataSlave.bvalid := '0';
       end if;
 
@@ -106,7 +107,7 @@ begin
          v.master.wvalid := '0';
       end if;
 
-      if AXI_READY_EN_G then
+      if ACK_WAIT_BVALID_G then
          v.master.bready := '0';
       else
          v.master.bready := '1';
@@ -167,7 +168,7 @@ begin
                      v.state         := DESC_S;
                   else
                      -- Check if using READY flow control
-                     if AXI_READY_EN_G then
+                     if ACK_WAIT_BVALID_G then
                         -- Next state
                         v.state := RESP_DESC_S;
                      else
@@ -194,7 +195,7 @@ begin
                -- Check for last transfer
                if (v.master.wlast = '1') then
                   -- Check if using READY flow control
-                  if AXI_READY_EN_G then
+                  if ACK_WAIT_BVALID_G then
                      -- Next state
                      v.state := RESP_DATA_S;
                   else
@@ -216,7 +217,7 @@ begin
                v.master.wlast              := '1';
                v.master.wdata(63 downto 0) := r.master.wdata(127 downto 64);
                -- Check if using READY flow control
-               if AXI_READY_EN_G then
+               if ACK_WAIT_BVALID_G then
                   -- Next state
                   v.state := RESP_DESC_S;
                else
@@ -271,7 +272,7 @@ begin
 
       -- MUX Outputs
       mAxiWriteMaster <= r.master;
-      if AXI_READY_EN_G then
+      if ACK_WAIT_BVALID_G then
          mAxiWriteMaster.bready <= v.master.bready;
       else
          mAxiWriteMaster.bready <= '1';
