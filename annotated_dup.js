@@ -139,6 +139,7 @@ var annotated_dup =
     [ "AxiStreamFrameRateLimiter", "classAxiStreamFrameRateLimiter.html", "classAxiStreamFrameRateLimiter" ],
     [ "AxiStreamGearbox", "classAxiStreamGearbox.html", "classAxiStreamGearbox" ],
     [ "AxiStreamGearboxPack", "classAxiStreamGearboxPack.html", "classAxiStreamGearboxPack" ],
+    [ "AxiStreamGearboxTb", "classAxiStreamGearboxTb.html", "classAxiStreamGearboxTb" ],
     [ "AxiStreamGearboxUnpack", "classAxiStreamGearboxUnpack.html", "classAxiStreamGearboxUnpack" ],
     [ "AxiStreamMon", "classAxiStreamMon.html", "classAxiStreamMon" ],
     [ "AxiStreamMonAxiL", "classAxiStreamMonAxiL.html", "classAxiStreamMonAxiL" ],

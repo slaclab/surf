@@ -342,7 +342,8 @@ var hierarchy =
       ] ],
       [ "AxisToJtag", "classAxisToJtag.html", null ],
       [ "AxiStreamBatcher", "classAxiStreamBatcher.html", [
-        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+        [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ]
       ] ],
       [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
@@ -436,6 +437,9 @@ var hierarchy =
       [ "SynchronizerVector", "classSynchronizerVector.html", null ],
       [ "Synchronizer", "classSynchronizer.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+      [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
+      [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ],
+      [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "AxiStreamMux", "classAxiStreamMux.html", null ],

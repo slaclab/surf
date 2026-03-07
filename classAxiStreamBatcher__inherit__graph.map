@@ -1,9 +1,15 @@
 <map id="AxiStreamBatcher" name="AxiStreamBatcher">
-<area shape="rect" id="Node000001" title=" " alt="" coords="127,79,267,104"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamBatcherAxil.html" title=" " alt="" coords="5,152,171,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,114,107,154,104,150,167,109"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamBatcherEventBuilder.html" title=" " alt="" coords="195,152,418,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="228,109,290,150,287,154,225,114"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="126,5,269,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,44,200,79,195,79,195,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="127,225,267,251"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamBatcherAxil.html" title=" " alt="" coords="5,299,171,324"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="170,260,107,301,104,296,167,256"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamBatcherEventBuilder.html" title=" " alt="" coords="195,299,418,324"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="228,256,290,296,287,301,225,260"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="122,5,265,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,44,171,105,168,141,172,177,181,202,192,224,188,226,176,204,167,178,163,141,166,104,181,43"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="181,152,326,177"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="202,44,221,103,248,151,243,153,216,105,197,45"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamResize.html" title=" " alt="" coords="231,79,364,104"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="223,36,282,76,279,81,220,41"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,190,208,227,204,224,233,187"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="285,117,263,153,258,150,281,114"/>
 </map>
