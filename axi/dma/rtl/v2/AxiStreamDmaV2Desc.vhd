@@ -409,6 +409,7 @@ begin
       variable regCon       : AxiLiteEndPointType;
       variable idIncrement  : slv(7 downto 0);
       variable idDecrement  : slv(7 downto 0);
+      variable wStrbIdx     : natural;
    begin
 
       -- Latch the current value
@@ -701,8 +702,6 @@ begin
             v.axiWriteMaster.wdata(3)              := dmaWrDescRet(descIndex).continue;
             v.axiWriteMaster.wdata(2 downto 0)     := dmaWrDescRet(descIndex).result(2 downto 0);
 
-            v.axiWriteMaster.wstrb := resize(x"FFFF", AXI_MAX_WSTRB_WIDTH_C);
-
             v.axiWriteMaster.awvalid := '1';
             v.axiWriteMaster.wvalid  := '1';
             v.wrIndex                := r.wrIndex + 1;
@@ -732,8 +731,6 @@ begin
             v.axiWriteMaster.wdata(31 downto 3)   := (others => '0');
             v.axiWriteMaster.wdata(2 downto 0)    := dmaRdDescRet(descIndex).result;
 
-            v.axiWriteMaster.wstrb := resize(x"FFFF", AXI_MAX_WSTRB_WIDTH_C);
-
             v.axiWriteMaster.awvalid := '1';
             v.axiWriteMaster.wvalid  := '1';
             v.rdIndex                := r.rdIndex + 1;
@@ -749,6 +746,22 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
+
+      -- Section A3.4.3 Data read and write structure: Write strobes - Narrow transfers
+      v.axiWriteMaster.wstrb        := (others => '0');
+      -- Check for 64-bit or 128-bit case
+      if (AXI_CONFIG_G.DATA_BYTES_C <= 16) then
+         -- Always 16 byte WSTRB (64-bit case to break apart into two cycle implemented in surf.AxiStreamDmaV2WriteMux)
+         v.axiWriteMaster.wstrb(15 downto 0) := x"FFFF";
+
+      -- Else 256-bits (or more) case
+      else
+         -- Find the 128-bit word offset
+         wStrbIdx := conv_integer(v.axiWriteMaster.awaddr(log2(AXI_CONFIG_G.DATA_BYTES_C) - 1 downto 4));
+
+         -- Assign the WSTRB to this offset
+         v.axiWriteMaster.wstrb((wStrbIdx*16+15) downto (wStrbIdx*16)) := x"FFFF";
+      end if;
 
       -- Copy the lowest words to the entire bus (refer to  "section 9.3 Narrow transfers" of the AMBA spec)
       for i in (AXI_MAX_DATA_WIDTH_C/128)-1 downto 1 loop
