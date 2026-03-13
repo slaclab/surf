@@ -154,8 +154,8 @@ begin
       v.coeffce := (others => '0');
 
       -- Convert write/read address into integers
-      wrAddrInt := to_integer(unsigned(writeMaster.awaddr(NUM_ADDR_BITS_C-1 downto 2)));
-      rdAddrInt := to_integer(unsigned(readMaster.araddr(NUM_ADDR_BITS_C-1 downto 2)));
+      wrAddrInt := to_integer(unsigned(writeMaster.awaddr(NUM_ADDR_BITS_C+1 downto 2)));
+      rdAddrInt := to_integer(unsigned(readMaster.araddr(NUM_ADDR_BITS_C+1 downto 2)));
 
       -- Determine the transaction type
       axiSlaveWaitTxn(writeMaster, readMaster, v.writeSlave, v.readSlave, axiStatus);
