@@ -48,6 +48,7 @@
 - Validated `tests/base/fifo/test_FifoAsync.py` locally with `python -m pytest -v tests/base/fifo/test_FifoAsync.py`.
 - Reorganized new regressions into subsystem packages under `tests/` and moved shared helpers to `tests/common/`.
 - Added `tests/README.md` to document the regression layout policy.
+- Ran a quick HDL coverage spike against the local Homebrew `ghdl` build and confirmed it does not expose `--coverage` or a `coverage` subcommand.
 
 ## Current In-Progress Item
 - Expand the organized shared-helper pattern and move to the next pilot module.
@@ -60,6 +61,7 @@
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
 - Wrapper policy must stay narrow or VHDL cruft will accumulate again.
+- HDL source coverage is not immediately available with the current local `ghdl` LLVM build; it needs a separate tooling decision if we want it later.
 
 ## Findings Worth Preserving
 - Existing Python regressions are generally the best reusable verification assets.
@@ -72,6 +74,7 @@
 - The bootstrap path is now working locally with `~/ruckus` linked into the repo.
 - The first shared-helper-based pilot is working; start simple and grow coverage incrementally rather than front-loading every edge case.
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
+- The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -82,3 +85,4 @@
 - 2026-03-20: Installed local toolchain and completed the first successful `make MODULES="$PWD" import`.
 - 2026-03-20: Added `tests/regression_utils.py` and landed the first passing pilot regression for `FifoAsync`.
 - 2026-03-20: Moved new regression infrastructure to `tests/common/`, relocated `FifoAsync` to `tests/base/fifo/`, and documented the subsystem-organized test layout.
+- 2026-03-20: Checked local HDL coverage viability; the installed LLVM-backed `ghdl` rejects `--coverage`, so HDL coverage is deferred pending a different simulator/backend decision.
