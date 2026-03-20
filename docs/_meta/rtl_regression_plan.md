@@ -66,7 +66,6 @@
 - The smoke/functional tier split is established in the plan and progress tracking.
 
 ## Open Questions And Deferred Decisions
-- Exact inventory file schema and location beyond the handoff artifacts.
 - Whether PR-vs-nightly split is needed immediately or only after runtime data.
 - Exact criteria for moving a vendor-heavy module out of `deferred_vendor_heavy`.
 - Which subsystem should be the first large-scale migration after the pilot modules.
