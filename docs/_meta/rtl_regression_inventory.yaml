@@ -26,13 +26,13 @@ modules:
     path: base/fifo/rtl/inferred/FifoAsync.vhd
     subsystem: base
     tier: functional_python
-    status: selected_not_started
+    status: implemented_validated_initial
     priority: pilot
     wrapper_path: ""
-    python_test: tests/test_FifoAsync.py
+    python_test: tests/base/fifo/test_FifoAsync.py
     reference_assets:
       - base/sync/tb/SynchronizerFifoTb.vhd
-    notes: "Low-level async FIFO pilot. Start with ordering, reset, full/empty, overflow/underflow, and async clock-ratio cases."
+    notes: "Low-level async FIFO pilot. Initial validated regression covers reset, ordering, and full/empty progression for a block-memory FWFT configuration. Overflow/underflow timing and distributed-memory coverage remain follow-up work."
     deferred_reason: ""
 
   - entity: AxiStreamFifoV2
@@ -42,7 +42,7 @@ modules:
     status: selected_not_started
     priority: pilot
     wrapper_path: axi/axi-stream/ip_integrator/AxiStreamFifoV2IpIntegrator.vhd
-    python_test: tests/test_AxiStreamFifoV2IpIntegrator.py
+    python_test: tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py
     reference_assets:
       - tests/test_AxiStreamFifoV2IpIntegrator.py
     notes: "Generic-heavy AXI-Stream pilot. Reuse the IP integrator wrapper and evolve the Python test into the shared framework pattern."
@@ -55,7 +55,7 @@ modules:
     status: selected_not_started
     priority: pilot
     wrapper_path: axi/axi-lite/tb/AxiLiteAsyncTb.vhd
-    python_test: tests/test_AxiLiteAsync.py
+    python_test: tests/axi/axi_lite/test_AxiLiteAsync.py
     reference_assets:
       - axi/axi-lite/tb/AxiLiteAsyncTb.vhd
     notes: "AXI-Lite CDC pilot. Likely needs a purpose-built thin wrapper later because the current tb file contains verification logic, not just interface exposure."

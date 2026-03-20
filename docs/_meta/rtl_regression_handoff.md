@@ -17,10 +17,12 @@ Planning is complete enough to start implementation. The agreed direction is a P
 
 The repo now has the initial handoff artifacts, a checked-in inventory scaffold at `docs/_meta/rtl_regression_inventory.yaml`, and local bootstrap helpers in `scripts/setup_regression_env.sh` plus `.vscode/tasks.json`. The first pilot modules are selected: `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`.
 
-The local machine now has `ghdl`, a working `.venv`, the Python regression packages, a repo-local `ruckus` link to `~/ruckus`, and a successful `make MODULES="$PWD" import` run. Local environment bootstrap is no longer the blocker.
+The local machine now has `ghdl`, a working `.venv`, the Python regression packages, a repo-local `ruckus` link to `~/ruckus`, and a successful `make MODULES="$PWD" import` run. Local environment bootstrap is no longer the blocker. The first shared-helper-based pilot regression now exists in `tests/base/fifo/test_FifoAsync.py` and passes locally.
+
+New regressions are now being organized by subsystem under `tests/`, with shared helpers in `tests/common/`. The `FifoAsync` pilot lives in `tests/base/fifo/test_FifoAsync.py`, and new work should follow that package layout instead of adding more flat files under `tests/`.
 
 ## Immediate Next Task
-Define the shared Python regression helper structure, then implement the first pilot regression starting with `FifoAsync`.
+Create the `tests/axi/axi_stream/` package and migrate `AxiStreamFifoV2` onto the shared helper structure there, then decide whether `AxiLiteAsync` needs a new thin wrapper under `tests/axi/axi_lite/`.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
@@ -28,7 +30,8 @@ Define the shared Python regression helper structure, then implement the first p
 3. `docs/_meta/rtl_regression_plan.md`
 
 ## Important Repo Facts
-- Current Python regressions live in `tests/`
+- New Python regressions should be organized under subsystem packages in `tests/`
+- Shared Python regression helper lives in `tests/common/regression_utils.py`
 - Many VHDL wrappers live under `*/tb/`
 - The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
 - Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
