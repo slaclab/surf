@@ -15,7 +15,9 @@
 ## Current Status
 Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
 
-The repo now has the initial handoff artifacts and a checked-in inventory scaffold at `docs/_meta/rtl_regression_inventory.yaml`. The first pilot modules are selected: `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`. The repo does not currently have `ruckus` checked out locally, so local import/build work will require explicit bootstrap before simulation can run.
+The repo now has the initial handoff artifacts, a checked-in inventory scaffold at `docs/_meta/rtl_regression_inventory.yaml`, and local bootstrap helpers in `scripts/setup_regression_env.sh` plus `.vscode/tasks.json`. The first pilot modules are selected: `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`.
+
+The local machine now has `ghdl`, a working `.venv`, the Python regression packages, a repo-local `ruckus` link to `~/ruckus`, and a successful `make MODULES="$PWD" import` run. Local environment bootstrap is no longer the blocker.
 
 ## Immediate Next Task
 Define the shared Python regression helper structure, then implement the first pilot regression starting with `FifoAsync`.
@@ -29,7 +31,8 @@ Define the shared Python regression helper structure, then implement the first p
 - Current Python regressions live in `tests/`
 - Many VHDL wrappers live under `*/tb/`
 - The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
-- `ruckus` bootstrap is required before `make import`
+- Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
+- Local `ruckus` is linked from `~/ruckus`
 
 ## Resume Rule
 If resuming implementation, update `docs/_meta/rtl_regression_progress.md` first.

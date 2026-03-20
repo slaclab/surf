@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "surf: setup regression env",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/setup_regression_env.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "surf: import HDL sources",
+      "type": "shell",
+      "command": "/bin/zsh",
+      "args": [
+        "-lc",
+        "source \"${workspaceFolder}/.venv/bin/activate\" && make MODULES=\"${workspaceFolder}\" import"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "surf: run regression tests",
+      "type": "shell",
+      "command": "/bin/zsh",
+      "args": [
+        "-lc",
+        "source \"${workspaceFolder}/.venv/bin/activate\" && python -m pytest -v tests/"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
