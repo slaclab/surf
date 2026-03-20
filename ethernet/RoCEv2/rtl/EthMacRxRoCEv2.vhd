@@ -220,6 +220,7 @@ begin
          RST_POLARITY_G      => RST_POLARITY_G,
          VALID_THOLD_G       => 0,
          GEN_SYNC_FIFO_G     => true,
+         FIFO_PAUSE_THRESH_G => (2**4),
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (

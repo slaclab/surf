@@ -2,7 +2,10 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to compact AXI-Streams if tKeep bits are not contiguous
+-- Packs non-full AXI-Stream beats into fully-utilised output words.
+-- Simplification assumed: tKeep is always a contiguous mask from bit 0
+-- (e.g. 0x00FF is legal, 0x0FF0 is not).
+-- Master bus width must be >= slave bus width.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,76 +28,58 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamCompact is
    generic (
       TPD_G               : time    := 1 ns;
-      RST_POLARITY_G      : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G      : sl      := '1';
       RST_ASYNC_G         : boolean := false;
       PIPE_STAGES_G       : natural := 0;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
-      -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
-      -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-      -- Master Port
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamCompact;
 
 architecture rtl of AxiStreamCompact is
 
-   function getTKeepMin (
-      tKeep      : slv;
-      axisConfig : AxiStreamConfigType)
-      return natural is
-      variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
-      variable i         : natural;
-   begin  -- function getTKeepRange
-      tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
-      for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
-         if tKeepFull(i) = '1' then
-            return i;
-         end if;
-      end loop;  -- i
-   end function getTKeepMin;
-
-   function getTKeepMax (
-      tKeep      : slv;
-      axisConfig : AxiStreamConfigType)
-      return natural is
-      variable tKeepFull : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
-      variable i         : natural;
-   begin  -- function getTKeepRange
-      tKeepFull := resize(tKeep, AXI_STREAM_MAX_TKEEP_WIDTH_C);
-      for i in axisConfig.TDATA_BYTES_C-1 downto 0 loop
-         if tKeepFull(i) = '1' then
-            return i;
-         end if;
-      end loop;  -- i
-   end function getTKeepMax;
-
    constant SLV_BYTES_C : positive := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant MST_BYTES_C : positive := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
+   -- Return number of asserted bits in tKeep[nBytes-1:0]
+   function countKeepBytes (tKeep : slv; nBytes : positive) return natural is
+      variable n : natural := 0;
+   begin
+      for i in 0 to nBytes-1 loop
+         if tKeep(i) = '1' then
+            n := n + 1;
+         end if;
+      end loop;
+      return n;
+   end function;
+
+   -- accData / accKeep are double-wide so we can always shift new bytes in
+   -- at offset r.count without overflow (count < MST_BYTES_C, new bytes
+   -- <= SLV_BYTES_C, MST_BYTES_C >= SLV_BYTES_C).
    type RegType is record
-      count       : natural;
+      accData     : slv(2*MST_BYTES_C*8 - 1 downto 0);
+      accKeep     : slv(2*MST_BYTES_C - 1 downto 0);
+      count       : natural range 0 to MST_BYTES_C - 1;  -- buffered byte count
+      pendingLast : boolean;  -- a tLast beat overflowed; remainder still in acc
       obMaster    : AxiStreamMasterType;
       ibSlave     : AxiStreamSlaveType;
-      tLastDet    : boolean;
-      tLastOnNext : boolean;
       tUserSet    : boolean;
-      fullBus     : boolean;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      accData     => (others => '0'),
+      accKeep     => (others => '0'),
       count       => 0,
+      pendingLast => false,
       obMaster    => axiStreamMasterInit(MASTER_AXI_CONFIG_G),
       ibSlave     => AXI_STREAM_SLAVE_INIT_C,
-      tLastDet    => false,
-      tLastOnNext => false,
-      tUserSet    => false,
-      fullBus     => false);
+      tUserSet    => false);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -102,161 +87,176 @@ architecture rtl of AxiStreamCompact is
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
-begin  -- architecture rtl
+begin
 
-   -- Make sure data widths are the same
    assert (MST_BYTES_C >= SLV_BYTES_C)
-      report "Master data widths must be greater or equal than slave" severity failure;
+      report "Master data width must be >= slave data width" severity failure;
 
    comb : process (axisRst, pipeAxisSlave, r, sAxisMaster) is
-      variable v          : RegType;
-      variable tKeepMin   : natural;
-      variable tKeepWidth : natural;
-      variable tDataWidth : natural;
-      variable tDataMin   : natural;
-      variable tDataCount : natural;
-      variable tDataVar   : slv(sAxisMaster.tData'range);
-   begin  -- process
-      -- Latch current value
+      variable v        : RegType;
+      variable newBytes : natural range 0 to SLV_BYTES_C;
+      variable total    : natural range 0 to MST_BYTES_C + SLV_BYTES_C;
+   begin
       v := r;
 
-      -- Init ready
+      -- Default: block input
       v.ibSlave.tReady := '0';
-      v.tLastDet       := false;
-      v.tLastOnNext    := false;
 
-      -- Choose ready source and clear valid
-      if (pipeAxisSlave.tReady = '1') then
+      -- Free the output slot when downstream consumes the beat
+      if pipeAxisSlave.tReady = '1' then
          v.obMaster.tValid := '0';
       end if;
 
-      -- Accept input data
-      if v.obMaster.tValid = '0' and not r.tLastOnNext then
+      -- Output slot is free – we can do work
+      if v.obMaster.tValid = '0' then
 
-         -- Ready to accept
-         v.ibSlave.tReady := '1';
+         -- Case A: a previous tLast beat overflowed; flush the remainder first
+         if r.pendingLast then
+            v.obMaster.tData := (others => '0');
+            v.obMaster.tData(MST_BYTES_C*8-1 downto 0) :=
+               r.accData(MST_BYTES_C*8-1 downto 0);
+            v.obMaster.tKeep := (others => '0');
+            v.obMaster.tKeep(MST_BYTES_C-1 downto 0) :=
+               r.accKeep(MST_BYTES_C-1 downto 0);
+            v.obMaster.tValid := '1';
+            v.obMaster.tLast  := '1';
+            -- Clear accumulator
+            v.accData         := (others => '0');
+            v.accKeep         := (others => '0');
+            v.count           := 0;
+            v.pendingLast     := false;
+            v.tUserSet        := false;
+            -- Do NOT accept new input this cycle
+            v.ibSlave.tReady  := '0';
 
-         -- Input data is valid
-         if sAxisMaster.tValid = '1' then
+         -- Case B: normal operation – accept input
+         else
+            v.ibSlave.tReady := '1';
 
-            -- Reset full flags
-            v.fullBus := false;
+            if sAxisMaster.tValid = '1' then
 
-            -- get tKeet boundaries
-            tKeepMin   := getTKeepMin(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
-            tKeepWidth := getTKeep(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
-            tDataWidth := to_integer(shift_left(to_unsigned(tKeepWidth, SLV_BYTES_C), 3));
-            tDataCount := to_integer(shift_left(to_unsigned(r.count, SLV_BYTES_C), 3));
-            tDataMin   := to_integer(shift_left(to_unsigned(tKeepMin, SLV_BYTES_C), 3));
+               newBytes := countKeepBytes(sAxisMaster.tKeep, SLV_BYTES_C);
 
-            -- Checks
-            -- -- Overflow
-            if tKeepWidth + r.count >= MASTER_AXI_CONFIG_G.TDATA_BYTES_C then
-               v.fullBus := true;
-            end if;
-            -- -- tLast
-            v.tLastDet := false;
-            if sAxisMaster.tLast = '1' then
-               v.tLastDet := true;
-               if tKeepWidth + r.count > MST_BYTES_C then
-                  v.tLastDet    := false;
-                  v.tLastOnNext := true;
+               -- Latch tUser from the first beat of each packet
+               if not r.tUserSet then
+                  v.obMaster.tUser := sAxisMaster.tUser;
+                  v.tUserSet       := true;
                end if;
-            end if;
 
-            -- Gen bus
-            -- Shift if bus was full
-            if r.fullBus and not r.tLastOnNext then
-               v.obMaster.tData := std_logic_vector(shift_right(unsigned(r.obMaster.tData), MST_BYTES_C*8));
-            end if;
-            ---- Remove initial bits
-            tDataVar                                                                 := std_logic_vector(shift_right(unsigned(sAxisMaster.tData), tDataMin));
-            v.obMaster.tData(v.obMaster.tData'length-1 downto tDataCount+tDataWidth) := (others => '0');
-            v.obMaster.tData(tDataCount+tDataWidth-1 downto tDataCount)              := tDataVar(tDataWidth-1 downto 0);
-            v.obMaster.tKeep                                                         := (others => '0');
-            v.obMaster.tKeep(r.count+tKeepWidth-1 downto 0)                          := (others => '1');
-            if not r.tUserSet then
-               v.obMaster.tUser := sAxisMaster.tUser;
-               v.tUserSet       := true;
-            end if;
+               -- Insert new bytes into accumulator at bit-offset r.count
+               v.accData := r.accData;
+               v.accData(r.count*8 + SLV_BYTES_C*8 - 1 downto r.count*8) :=
+                  sAxisMaster.tData(SLV_BYTES_C*8-1 downto 0);
 
-            -- Update counter
-            v.count := r.count + tKeepWidth;
+               v.accKeep := r.accKeep;
+               v.accKeep(r.count + SLV_BYTES_C - 1 downto r.count) :=
+                  sAxisMaster.tKeep(SLV_BYTES_C-1 downto 0);
 
-            -- Bus is full
-            if v.fullBus or v.tLastDet or r.tLastOnNext then
-               -- Set tValid
-               v.obMaster.tValid := '1';
-               -- Update bit counter and shift data
-               if v.fullBus then
-                  v.count := r.count + tKeepWidth - MST_BYTES_C;
+               total := r.count + newBytes;
+
+               -- Enough bytes to fill an output word?
+               if total >= MST_BYTES_C then
+
+                  -- Emit the lower MST_BYTES_C bytes
+                  v.obMaster.tData := (others => '0');
+                  v.obMaster.tData(MST_BYTES_C*8-1 downto 0) :=
+                     v.accData(MST_BYTES_C*8-1 downto 0);
+                  v.obMaster.tKeep                         := (others => '0');
+                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0) := (others => '1');
+                  v.obMaster.tValid                        := '1';
+                  v.obMaster.tLast                         := '0';
+
+                  -- Shift the remainder down
+                  v.accData := std_logic_vector(
+                     shift_right(unsigned(v.accData), MST_BYTES_C*8));
+                  v.accKeep := std_logic_vector(
+                     shift_right(unsigned(v.accKeep), MST_BYTES_C));
+
+                  v.count := total - MST_BYTES_C;
+
+                  if sAxisMaster.tLast = '1' then
+                     if total = MST_BYTES_C then
+                        -- Exact fit: tLast goes on this beat, nothing left over
+                        v.obMaster.tLast := '1';
+                        v.count          := 0;
+                        v.tUserSet       := false;
+                        v.accData        := (others => '0');
+                        v.accKeep        := (others => '0');
+                     else
+                        -- Overflow: remainder must go out next cycle
+                        v.pendingLast := true;
+                     end if;
+                  end if;
+
+               -- Not enough bytes yet, but this is the last beat – flush partial
+               elsif sAxisMaster.tLast = '1' then
+
+                  v.obMaster.tData := (others => '0');
+                  v.obMaster.tData(MST_BYTES_C*8-1 downto 0) :=
+                     v.accData(MST_BYTES_C*8-1 downto 0);
+                  v.obMaster.tKeep := (others => '0');
+                  v.obMaster.tKeep(MST_BYTES_C-1 downto 0) :=
+                     v.accKeep(MST_BYTES_C-1 downto 0);
+                  v.obMaster.tValid := '1';
+                  v.obMaster.tLast  := '1';
+                  v.count           := 0;
+                  v.tUserSet        := false;
+                  v.accData         := (others => '0');
+                  v.accKeep         := (others => '0');
+
+               -- Still accumulating
                else
-                  v.count := 0;
+                  v.count := total;
                end if;
-               -- Set tLast
-               if v.tLastDet and not v.tLastOnNext then
-                  v.obMaster.tLast := '1';
-               else
-                  v.obMaster.tLast := '0';
-               end if;
-               -- Set tData in case of forced tLast
-               if r.tLastOnNext then
-                  v.obMaster.tData := std_logic_vector(shift_right(unsigned(r.obMaster.tData), MST_BYTES_C*8));
-                  v.obMaster.tKeep := std_logic_vector(shift_right(unsigned(r.obMaster.tKeep), MST_BYTES_C));
-                  v.obMaster.tLast := '1';
-               end if;
-               v.tUserSet := false;
-            end if;
 
-         end if;
-      end if;
+            end if;  -- sAxisMaster.tValid
+         end if;  -- pendingLast / normal
+      end if;  -- output slot free
 
+      -- Drive registered outputs to pipeline stage
+      sAxisSlave <= v.ibSlave;
 
-      sAxisSlave                                                               <= v.ibSlave;
-      pipeAxisMaster.tData(pipeAxisMaster.tData'length-1 downto MST_BYTES_C*8) <= (others => '0');
-      pipeAxisMaster.tData((MST_BYTES_C*8)-1 downto 0)                         <= r.obMaster.tData((MST_BYTES_C*8)-1 downto 0);
-      pipeAxisMaster.tKeep(pipeAxisMaster.tKeep'length-1 downto MST_BYTES_C)   <= (others => '0');
-      pipeAxisMaster.tKeep((MST_BYTES_C)-1 downto 0)                           <= r.obMaster.tKeep((MST_BYTES_C)-1 downto 0);
-      pipeAxisMaster.tValid                                                    <= r.obMaster.tValid;
-      pipeAxisMaster.tUser                                                     <= r.obMaster.tUser;
-      pipeAxisMaster.tLast                                                     <= r.obMaster.tLast;
+      pipeAxisMaster.tData <= (others => '0');
+      pipeAxisMaster.tData(MST_BYTES_C*8-1 downto 0) <=
+         r.obMaster.tData(MST_BYTES_C*8-1 downto 0);
+      pipeAxisMaster.tKeep <= (others => '0');
+      pipeAxisMaster.tKeep(MST_BYTES_C-1 downto 0) <=
+         r.obMaster.tKeep(MST_BYTES_C-1 downto 0);
+      pipeAxisMaster.tValid <= r.obMaster.tValid;
+      pipeAxisMaster.tUser  <= r.obMaster.tUser;
+      pipeAxisMaster.tLast  <= r.obMaster.tLast;
+      pipeAxisMaster.tDest  <= r.obMaster.tDest;
+      pipeAxisMaster.tId    <= r.obMaster.tId;
 
-      -- Reset
+      -- Synchronous reset
       if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      -- Register the variable for next clock cycle
       rin <= v;
-
 
    end process comb;
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
+      if RST_ASYNC_G and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
-   -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         -- SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
-         PIPE_STAGES_G  => PIPE_STAGES_G)
+         TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
          sAxisMaster => pipeAxisMaster,
-         -- sSideBand   => pipeSideBand,
          sAxisSlave  => pipeAxisSlave,
          mAxisMaster => mAxisMaster,
-         -- mSideBand   => mSideBand,
          mAxisSlave  => mAxisSlave);
 
 end architecture rtl;

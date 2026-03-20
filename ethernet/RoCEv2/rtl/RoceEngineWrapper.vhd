@@ -54,7 +54,9 @@ entity RoceEngineWrapper is
       dmaReadRespMaster   : in  RoceDmaReadRespMasterType;
       dmaReadRespSlave    : out RoceDmaReadRespSlaveType;
       dmaReadReqMaster    : out RoceDmaReadReqMasterType;
-      dmaReadReqSlave     : in  RoceDmaReadReqSlaveType);
+      dmaReadReqSlave     : in  RoceDmaReadReqSlaveType;
+      -- CNP
+      cnp_received        : out sl);
 end RoceEngineWrapper;
 
 architecture mapping of RoceEngineWrapper is
@@ -125,7 +127,8 @@ architecture mapping of RoceEngineWrapper is
          s_dma_read_wr_id           : in  std_logic_vector(63 downto 0);
          s_dma_read_is_resp_err     : in  std_logic;
          s_dma_read_data_stream     : in  std_logic_vector(289 downto 0);
-         s_dma_read_ready           : out std_logic);
+         s_dma_read_ready           : out std_logic;
+         cnp_received               : out std_logic);
    end component;
 
    signal roceRstN               : sl;
@@ -158,9 +161,12 @@ architecture mapping of RoceEngineWrapper is
    signal s_axisMetaDataRespMasterMux : AxiStreamMasterType;
    signal s_axisMetaDataRespSlaveMux  : AxiStreamSlaveType;
 
+   signal s_cnp_received : sl;
+
 begin
 
-   roceRstN <= not rst when (RST_POLARITY_G = '1') else rst;
+   roceRstN     <= not rst when (RST_POLARITY_G = '1') else rst;
+   cnp_received <= s_cnp_received;
 
    -----------------------------------------------------------------------------
    -- Adjust Roce/SURF interface
@@ -298,7 +304,8 @@ begin
          s_dma_read_wr_id           => dmaReadRespMaster.wrId,
          s_dma_read_is_resp_err     => dmaReadRespMaster.isRespErr,
          s_dma_read_data_stream     => dmaReadRespMaster.dataStream,
-         s_dma_read_ready           => dmaReadRespSlave.ready);
+         s_dma_read_ready           => dmaReadRespSlave.ready,
+         cnp_received               => s_cnp_received);
 
    -----------------------------------------------------------------------------
    -- RoCE Metadata Configurator
