@@ -22,6 +22,18 @@ inventory_rules:
   - "Generic-heavy modules should prefer functional_python over smoke_python when actively implemented."
 
 modules:
+  - entity: Synchronizer
+    path: base/sync/rtl/Synchronizer.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_Synchronizer.py
+    reference_assets: []
+    notes: "High-reuse `base/sync` leaf selected from the instantiation graph. Validated curated matrix covers synchronous vs asynchronous reset handling, active-high vs active-low reset polarity, stage-depth latency, output inversion, and bypass behavior without introducing a wrapper."
+    deferred_reason: ""
+
   - entity: FifoSync
     path: base/fifo/rtl/inferred/FifoSync.vhd
     subsystem: base

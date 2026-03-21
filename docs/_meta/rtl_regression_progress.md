@@ -10,7 +10,7 @@
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
-| `base` | started | not started | started | Expanded validated matrices now exist for `FifoAsync` and `FifoSync` under `tests/base/fifo/` |
+| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, and `Synchronizer` under `tests/base/fifo/` and `tests/base/sync/` |
 | `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
@@ -47,7 +47,7 @@
 - Created `.venv`, installed Python regression dependencies, linked `~/ruckus`, and completed `make MODULES="$PWD" import`.
 - Added shared regression helpers in `tests/regression_utils.py`.
 - Implemented the first Python pilot regression in `tests/base/fifo/test_FifoAsync.py`.
-- Validated `tests/base/fifo/test_FifoAsync.py` locally with `python -m pytest -v tests/base/fifo/test_FifoAsync.py`.
+- Validated `tests/base/fifo/test_FifoAsync.py` locally with `./.venv/bin/python -m pytest -v tests/base/fifo/test_FifoAsync.py`.
 - Reorganized new regressions into subsystem packages under `tests/` and moved shared helpers to `tests/common/`.
 - Added `tests/README.md` to document the regression layout policy.
 - Ran a quick HDL coverage spike against the local Homebrew `ghdl` build and confirmed it does not expose `--coverage` or a `coverage` subcommand.
@@ -56,13 +56,14 @@
 - Added `pytest.ini` to default to `-n auto --dist=worksteal`, and aligned CI to rely on that default xdist configuration.
 - Implemented `tests/base/fifo/test_FifoSync.py` and validated its 11-case matrix locally under parallel pytest execution.
 - Added `scripts/build_rtl_instantiation_graph.py` and generated checked-in graph artifacts in `docs/_meta/rtl_instantiation_graph.{md,json}`.
+- Implemented `tests/base/sync/test_Synchronizer.py` and validated its 6-case matrix locally under parallel pytest execution.
 
 ## Current In-Progress Item
-- Use the checked-in instantiation graph to choose the next `base/` leaf or shared primitive after `FifoAsync` and `FifoSync`.
+- Use the checked-in instantiation graph to choose the next high-reuse `base/` follow-on after the validated `Synchronizer` leaf.
 
 ## Next 3 Concrete Tasks
-- Choose the next `base/` target from the graph-guided candidate list and extend the bottom-up pattern there.
-- Decide whether the next priority should favor highest reuse leaves (`Synchronizer`, `SynchronizerVector`) or FIFO-adjacent leaves (`FifoOutputPipeline`, `FifoRdFsm`, `FifoWrFsm`).
+- Choose the next high-reuse `base/` follow-on, likely `SynchronizerVector` or `RstPipeline`.
+- Decide whether to stay in `base/sync` for reuse leverage or switch back to another leaf such as `FifoOutputPipeline` or `SimpleDualPortRam`.
 - Keep the graph artifacts current as the inventory and rollout strategy evolve.
 
 ## Blockers And Risks
@@ -79,6 +80,7 @@
 - `AxiStreamFifoV2` already has a useful wrapper-plus-Python pattern; `AxiLiteAsync` likely needs wrapper cleanup before it fits the new model.
 - The local machine needs a reproducible one-command bootstrap path before test implementation work can move efficiently.
 - The bootstrap path is now working locally with `~/ruckus` linked into the repo.
+- Bare `python` should not be assumed to exist on `PATH` in this repo's shell environment; use `./.venv/bin/python` for local pytest and helper-script invocations unless the virtualenv is already activated.
 - The first shared-helper-based pilot is working; start simple and grow coverage incrementally rather than front-loading every edge case.
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
@@ -90,6 +92,7 @@
 - The instantiation graph is useful for rollout planning because it exposes both high-reuse leaves and likely duplicated coverage paths; it should guide prioritization, not dictate exact test depth.
 - The first graph pass surfaced `Synchronizer`, `SynchronizerVector`, `SimpleDualPortRam`, `FifoOutputPipeline`, `FifoRdFsm`, and `FifoWrFsm` as concrete `base/` bottom-up candidates after the FIFO pilots.
 - Duplicate entity names are common in SURF due to dummy/vendor variants, so graph consumers need to read path context rather than rely on entity names alone.
+- Direct cocotb tests for simple SURF leaf modules still need to account for `TPD_G` when sampling outputs after clock or reset events; sampling exactly at the nominal edge can create false negatives.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -108,3 +111,5 @@
 - 2026-03-20: Switched from pilot-only work to the bottom-up rollout and selected `FifoSync` as the next low-level target.
 - 2026-03-20: Implemented and validated an 11-case `FifoSync` matrix under `tests/base/fifo/test_FifoSync.py`.
 - 2026-03-20: Added and generated the first-pass RTL instantiation graph to guide bottom-up rollout decisions and reduce repeated test effort across the hierarchy.
+- 2026-03-20: Implemented and validated a 6-case `Synchronizer` matrix under `tests/base/sync/test_Synchronizer.py` as the next graph-guided `base` leaf.
+- 2026-03-20: Documented that local Python commands should use `./.venv/bin/python` unless the virtualenv is already activated, after a bare `python` invocation failed due to a missing shell shim.
