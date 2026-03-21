@@ -52,9 +52,15 @@
 - Keep VHDL wrappers only when they make Python stimulus materially cleaner.
 - Do not preserve old benches purely for historical reasons.
 
+## Rollout Planning Policy
+- Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.
+- Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them.
+- Use the graph to reduce repeated behavioral testing across adjacent hierarchy levels, not as a substitute for engineering judgment about externally visible behavior.
+
 ## Phase Breakdown
 ### Phase 1
 - Create the regression inventory and artifact scaffolding.
+- Generate and maintain a repo-wide RTL instantiation graph to guide bottom-up prioritization.
 - Establish shared Python regression helpers.
 - Add smoke coverage for simulator-friendly modules.
 - Add functional Python tests for the highest-value pilot modules and reusable blocks.

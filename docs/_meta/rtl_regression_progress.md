@@ -3,7 +3,7 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: base
-- Current focus module: `base` low-level FIFO rollout
+- Current focus module: graph-guided `base` bottom-up rollout
 - Last updated: 2026-03-20
 
 ## Status
@@ -55,14 +55,15 @@
 - Expanded `FifoAsync` into a curated 12-case matrix and validated it locally under parallel pytest execution.
 - Added `pytest.ini` to default to `-n auto --dist=worksteal`, and aligned CI to rely on that default xdist configuration.
 - Implemented `tests/base/fifo/test_FifoSync.py` and validated its 11-case matrix locally under parallel pytest execution.
+- Added `scripts/build_rtl_instantiation_graph.py` and generated checked-in graph artifacts in `docs/_meta/rtl_instantiation_graph.{md,json}`.
 
 ## Current In-Progress Item
-- Continue the bottom-up post-pilot rollout in `base/` after validating both low-level FIFO primitives.
+- Use the checked-in instantiation graph to choose the next `base/` leaf or shared primitive after `FifoAsync` and `FifoSync`.
 
 ## Next 3 Concrete Tasks
-- Choose the next adjacent low-level `base/` primitive and extend the bottom-up pattern there.
-- Keep the base FIFO helpers consistent if another FIFO-family module can reuse them directly.
-- Return to `AxiLiteAsync` only after the next bottom-up `base/` target is landed or a shared-helper need emerges.
+- Choose the next `base/` target from the graph-guided candidate list and extend the bottom-up pattern there.
+- Decide whether the next priority should favor highest reuse leaves (`Synchronizer`, `SynchronizerVector`) or FIFO-adjacent leaves (`FifoOutputPipeline`, `FifoRdFsm`, `FifoWrFsm`).
+- Keep the graph artifacts current as the inventory and rollout strategy evolve.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -86,6 +87,9 @@
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 - `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
+- The instantiation graph is useful for rollout planning because it exposes both high-reuse leaves and likely duplicated coverage paths; it should guide prioritization, not dictate exact test depth.
+- The first graph pass surfaced `Synchronizer`, `SynchronizerVector`, `SimpleDualPortRam`, `FifoOutputPipeline`, `FifoRdFsm`, and `FifoWrFsm` as concrete `base/` bottom-up candidates after the FIFO pilots.
+- Duplicate entity names are common in SURF due to dummy/vendor variants, so graph consumers need to read path context rather than rely on entity names alone.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -103,3 +107,4 @@
 - 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.
 - 2026-03-20: Switched from pilot-only work to the bottom-up rollout and selected `FifoSync` as the next low-level target.
 - 2026-03-20: Implemented and validated an 11-case `FifoSync` matrix under `tests/base/fifo/test_FifoSync.py`.
+- 2026-03-20: Added and generated the first-pass RTL instantiation graph to guide bottom-up rollout decisions and reduce repeated test effort across the hierarchy.
