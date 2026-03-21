@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a block-memory registered-output case and a distributed-memory
+#   unregistered active-low reset case to cover the RAM-backed delay line
+#   across its two main shapes.
+# - Stimulus: Drive known input patterns while programming delay, hold the
+#   enable low to freeze the output, and assert reset after the RAM has
+#   buffered data.
+# - Checks: The output must reproduce the delayed sample selected by the
+#   programmed latency, hold steady while disabled, and clear after reset.
+# - Timing: Checks are cycle-accurate against the programmed delay, with one
+#   extra observable cycle for the registered-output configuration before the
+#   delayed sample appears.
+
 import os
 
 import cocotb

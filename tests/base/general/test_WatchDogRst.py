@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep an active-high baseline, an active-low monitored input, and an
+#   active-low output case so both input and output polarity handling are
+#   covered.
+# - Stimulus: Allow the watchdog to expire once with no keepalive activity,
+#   then periodically kick it before timeout to prove the non-expiring path.
+# - Checks: The timeout pulse or reset output must assert only after the
+#   configured idle window and remain suppressed while keepalive pulses arrive
+#   in time.
+# - Timing: The bench counts the timeout interval in exact cycles and checks
+#   that each keepalive restarts the watchdog window rather than merely
+#   delaying the already-expiring event.
+
 import os
 
 import cocotb

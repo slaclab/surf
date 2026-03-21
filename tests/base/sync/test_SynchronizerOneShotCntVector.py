@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock case and an asynchronous multi-clock case so
+#   the vector counter is covered with and without CDC latency.
+# - Stimulus: Pulse several lanes independently, then continue pulsing until
+#   selected lanes hit rollover before asserting the counter-reset path.
+# - Checks: Each lane's counter must increment independently, rollover must
+#   occur only on the driven lanes that reach the limit, and reset must clear
+#   the whole vector.
+# - Timing: The bench checks per-lane updates after synchronization latency and
+#   confirms that one lane's activity does not shift another lane's count
+#   timing.
+
 import os
 from textwrap import dedent
 

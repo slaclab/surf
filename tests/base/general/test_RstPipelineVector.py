@@ -8,6 +8,16 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a four-bit, two-stage vector pipeline and a two-bit, one-stage
+#   pipeline so the bench covers both width and latency variation.
+# - Stimulus: Toggle individual bits in the reset vector independently instead
+#   of changing the whole bus as one unit.
+# - Checks: Each bit must propagate through its own pipeline lane with no
+#   coupling to neighboring bits.
+# - Timing: Per-bit latency is checked in exact stages so a change on one lane
+#   appears after the configured delay and not earlier or later.
+
 import os
 
 import cocotb

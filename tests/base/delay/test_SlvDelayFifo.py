@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a block-RAM synchronous-reset case and a distributed-RAM
+#   asynchronous-reset case so the FIFO-backed variable delay path is covered
+#   across both storage styles.
+# - Stimulus: Issue short and mixed-delay requests with explicit timestamps so
+#   multiple delayed outputs are queued and released out of order in wall-clock
+#   time but in programmed-delay order.
+# - Checks: Returned data must match the request payload associated with each
+#   timestamp and emerge in the same order implied by the requested delay
+#   schedule.
+# - Timing: The test checks the exact cycle at which each request becomes due
+#   and confirms that reset flushes any pending delayed entries before they can
+#   reappear.
+
 import os
 
 import cocotb

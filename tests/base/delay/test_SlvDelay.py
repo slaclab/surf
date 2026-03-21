@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep the baseline pipeline, a registered-output variant, and an
+#   active-low reset variant so the programmable delay line is exercised with
+#   and without its extra output register.
+# - Stimulus: Program several delay values, drive changing input patterns
+#   through the line, pause the enable, and then assert reset after valid
+#   history has accumulated.
+# - Checks: Each output sample must equal the input sample from the requested
+#   number of cycles earlier, disabled cycles must hold the current output, and
+#   reset must clear the stored history.
+# - Timing: Latency is checked in exact clock cycles, with the
+#   registered-output case expected to add one more cycle after the programmed
+#   delay before data becomes visible.
+
 import os
 
 import cocotb

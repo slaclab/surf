@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a synchronous baseline, an initialized-pattern case, and an
+#   asynchronous active-low reset case so vector capture is covered across
+#   startup/reset options.
+# - Stimulus: Drive changing input vectors and capture points so the bench can
+#   distinguish newly sampled data from previously held values.
+# - Checks: The output vector must capture on the intended edge, hold between
+#   captures, start or reset to the configured pattern, and ignore intermediate
+#   input changes until the next capture.
+# - Timing: The bench checks edge-aligned sampling and the exact point at which
+#   reset or initialization overrides the stored vector.
+
 import os
 
 import cocotb

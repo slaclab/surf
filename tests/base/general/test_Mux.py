@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a fully registered output case, a combinational output case,
+#   and an asynchronous active-low reset case so the mux is checked in both
+#   timing modes.
+# - Stimulus: Change the select input while driving distinct values on each
+#   lane so the chosen source is always identifiable.
+# - Checks: The selected lane must appear at the output, the registered case
+#   must hold the previous value until the next clock edge, and reset must
+#   drive the configured idle value.
+# - Timing: The bench explicitly distinguishes combinational select-to-output
+#   behavior from clocked output-update behavior and checks reset response in
+#   both modes.
+
 import os
 
 import cocotb

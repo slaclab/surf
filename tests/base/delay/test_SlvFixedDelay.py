@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep fixed delays of `4` and `6` cycles so the bench covers two
+#   distinct static pipeline lengths.
+# - Stimulus: Feed an ordered pattern stream into the DUT without changing the
+#   configuration so only the internal fixed delay determines when each word
+#   reappears.
+# - Checks: Every output word must equal the input word from exactly `DELAY_G`
+#   cycles earlier, and overall ordering must remain unchanged.
+# - Timing: The only timing claim is fixed latency, so the bench checks the
+#   startup fill period and then verifies that the offset stays constant for
+#   the rest of the stream.
+
 import os
 
 import cocotb

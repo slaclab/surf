@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a baseline comparator configuration and a pipelined active-low
+#   reset configuration so both the direct and delayed datapaths are covered.
+# - Stimulus: Drive signed input pairs that exercise less-than, equal, and
+#   greater-than outcomes, then hold the sink unready to force the comparator
+#   result to sit under backpressure.
+# - Checks: The comparison flags must match the full truth table, the pipelined
+#   result must hold stable while backpressured, and reset must clear the
+#   pipeline state.
+# - Timing: The bench checks the configured pipeline latency before a
+#   comparison becomes visible and then verifies that `valid` and result bits
+#   remain unchanged for every stalled cycle.
+
 import os
 
 import cocotb

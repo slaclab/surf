@@ -8,6 +8,17 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a slave-faster up-convert case and a master-faster
+#   down-convert case so both clock-ratio directions are covered.
+# - Stimulus: Stream ordered words across independent source and sink clocks
+#   while the gearbox packs and unpacks them into a different beat width.
+# - Checks: The received payload must reconstruct the original ordered data in
+#   both ratio directions, and reset must discard any partial assembly state.
+# - Timing: The test checks beat assembly and release across unrelated clocks,
+#   including the exact point at which enough source bits have accumulated to
+#   emit a sink word.
+
 import os
 from collections import deque
 from math import ceil

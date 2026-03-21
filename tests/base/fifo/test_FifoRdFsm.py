@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep standard and `FWFT` read behavior, block and distributed
+#   implementations, and both asynchronous and active-low reset handling so the
+#   read FSM is covered across its main modes.
+# - Stimulus: Model incoming FIFO occupancy and issue read requests that drive
+#   the FSM through count changes, empty transitions, underflow attempts, and
+#   `FWFT` prefetch conditions.
+# - Checks: The bench checks read-side counts and flags, standard underflow
+#   behavior, `FWFT` prefetch behavior, and reset recovery.
+# - Timing: Standard mode must return data only after the explicit read
+#   transaction, while `FWFT` must expose the next word ahead of time and reset
+#   must immediately or synchronously clear the read state.
+
 import os
 
 import cocotb

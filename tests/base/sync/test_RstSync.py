@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep release delays of `3` and `5`, an active-low reset case, a
+#   bypass case, and a no-output asynchronous-reset case so both latency and
+#   optional bypass behavior are covered.
+# - Stimulus: Assert and deassert the incoming reset while the destination
+#   clock runs so the synchronizer chain has to absorb assertion and release.
+# - Checks: The bench checks delayed release count, immediate or configured
+#   assertion behavior, bypass behavior, and the no-output option.
+# - Timing: Release is checked in exact destination-clock cycles through the
+#   synchronizer depth, while asynchronous assertion is expected to clear the
+#   chain immediately.
+
 import os
 
 import cocotb

@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep down-convert, up-convert, and bit-reverse asynchronous-reset
+#   cases so both width-conversion directions and the optional bit-order
+#   transform are covered.
+# - Stimulus: Drive a known ready/valid stream through the gearbox, then stall
+#   the sink to force the DUT to hold partially packed state.
+# - Checks: The packed or unpacked output words must match the local model,
+#   backpressure must preserve the current word and valid state, and reset must
+#   drop any partial conversion state.
+# - Timing: The bench checks exactly when output beats become available as bits
+#   accumulate and confirms that no extra advancement occurs while the sink is
+#   stalled.
+
 import os
 from math import ceil
 from collections import deque

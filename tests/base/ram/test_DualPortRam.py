@@ -8,33 +8,43 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep `read-first` and `write-first` mode, the optional port-B
+#   output register, block vs distributed memory, byte-write enable, and
+#   active-high vs active-low reset so the wrapper-facing RAM modes are all
+#   touched once.
+# - Stimulus: Write and read through both ports, create same-address read/write
+#   interactions to expose mode semantics, apply partial byte masks, and then
+#   assert reset on the B side.
+# - Checks: The bench checks cross-port readback, port-A read-during-write
+#   behavior, byte-lane merging, the extra hold behavior from `DOB_REG_G`, and
+#   reset clearing of the registered output.
+# - Timing: Results are checked on `clka` and `clkb` edges separately, and the
+#   registered B-output case is expected to hold the previous value for one
+#   extra destination cycle.
+
 import os
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.base.ram.ram_test_utils import DualClockRamTB
 from tests.common.regression_utils import (
     env_flag,
-    env_sl,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
 
 
-class TB:
+class TB(DualClockRamTB):
     def __init__(self, dut):
-        self.dut = dut
+        super().__init__(dut)
         self.mode = os.environ["MODE_G"]
-        self.async_reset = env_flag("RST_ASYNC_G", default=False)
-        self.rst_polarity = env_sl("RST_POLARITY_G", default=1)
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
         self.doa_reg_enabled = env_flag("DOA_REG_G", default=False)
         self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
-        self.clka_period_ns = float(os.environ["CLKA_PERIOD_NS"])
-        self.clkb_period_ns = float(os.environ["CLKB_PERIOD_NS"])
 
         dut.ena.value = 1
         dut.wea.value = 0
@@ -49,42 +59,13 @@ class TB:
         dut.addrb.value = 0
         dut.regceb.value = 1
 
-        cocotb.start_soon(Clock(dut.clka, self.clka_period_ns, unit="ns").start())
-        cocotb.start_soon(Clock(dut.clkb, self.clkb_period_ns, unit="ns").start())
-
-    def reset_active_value(self) -> int:
-        return self.rst_polarity
-
-    def reset_inactive_value(self) -> int:
-        return 1 - self.rst_polarity
-
-    def full_byte_mask(self) -> int:
-        return (1 << len(self.dut.weaByte)) - 1
-
-    async def settle(self) -> None:
-        await Timer(2, unit="ns")
-
-    async def cycle_a(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clka)
-            await self.settle()
-
-    async def cycle_b(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clkb)
-            await self.settle()
-
-    async def warmup(self) -> None:
-        await self.cycle_a(1)
-        await self.cycle_b(1)
-
     async def write_a(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
         # This wrapper exposes the full port-A write/read interface, so drive a
         # synchronous write exactly the same way a real client would.
         self.dut.addra.value = addr
         self.dut.dina.value = value
         self.dut.wea.value = 1
-        self.dut.weaByte.value = self.full_byte_mask() if byte_mask is None else byte_mask
+        self.dut.weaByte.value = self.full_byte_mask("weaByte") if byte_mask is None else byte_mask
         await RisingEdge(self.dut.clka)
         await self.settle()
         self.dut.wea.value = 0
@@ -141,7 +122,7 @@ async def port_a_mode_semantics_test(dut):
     tb.dut.addra.value = 0
     tb.dut.dina.value = 0x2222
     tb.dut.wea.value = 1
-    tb.dut.weaByte.value = tb.full_byte_mask()
+    tb.dut.weaByte.value = tb.full_byte_mask("weaByte")
     await RisingEdge(dut.clka)
     await tb.settle()
     tb.dut.wea.value = 0

@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock bypass case and an asynchronous active-low
+#   reset case so the small CDC FIFO is covered both in its fast path and in
+#   real CDC mode.
+# - Stimulus: Send an ordered data stream through the FIFO, run a common-clock
+#   bypass transfer, and then assert reset while data history exists.
+# - Checks: Data ordering must be preserved, the common-clock path must bypass
+#   the deeper CDC behavior, and reset must restore the configured initial
+#   output value.
+# - Timing: The asynchronous case is checked for CDC latency between write and
+#   read domains, while the common-clock case is expected to expose the
+#   shortcut path with no unnecessary delay.
+
 import os
 
 import cocotb

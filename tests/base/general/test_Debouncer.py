@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a baseline unsynchronized input case, a synchronized
+#   inverted-output case, and an asynchronous active-low reset case so debounce
+#   filtering is covered across the supported front-end options.
+# - Stimulus: Apply short chatter bursts that should be ignored, then hold the
+#   input stable beyond the debounce interval so the new level becomes eligible
+#   to transfer.
+# - Checks: Short chatter must never change the debounced output, a truly
+#   stable level must update the output once, and reset must restore the idle
+#   state.
+# - Timing: The accepted transition is checked only after the full debounce
+#   window elapses, and the synchronized-input case is expected to add the
+#   extra capture latency from the front-end synchronizer.
+
 import os
 
 import cocotb

@@ -8,33 +8,42 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep `read-first`, `write-first`, and `no-change` modes, add a
+#   byte-write plus `DOB`-registered case, and include an asynchronous
+#   active-low reset case.
+# - Stimulus: Alternate reads and writes on both ports, create same-address
+#   interactions to expose mode semantics, apply partial byte writes, and then
+#   reset after a registered capture.
+# - Checks: The bench verifies cross-port visibility, mode-specific
+#   read-during-write results, byte-lane masking, registered-output hold
+#   behavior, and reset recovery.
+# - Timing: Because both ports are active, the bench checks results relative to
+#   the specific `clka` or `clkb` edge that triggered the interaction and
+#   expects registered outputs to lag by one extra cycle.
+
 import os
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.base.ram.ram_test_utils import DualClockRamTB
 from tests.common.regression_utils import (
     env_flag,
-    env_sl,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
 
 
-class TB:
+class TB(DualClockRamTB):
     def __init__(self, dut):
-        self.dut = dut
+        super().__init__(dut)
         self.mode = os.environ["MODE_G"]
-        self.async_reset = env_flag("RST_ASYNC_G", default=False)
-        self.rst_polarity = env_sl("RST_POLARITY_G", default=1)
         self.doa_reg_enabled = env_flag("DOA_REG_G", default=False)
         self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
-        self.clka_period_ns = float(os.environ["CLKA_PERIOD_NS"])
-        self.clkb_period_ns = float(os.environ["CLKB_PERIOD_NS"])
 
         # Put every input into a defined idle state before the simulator starts.
         dut.ena.value = 1
@@ -52,37 +61,6 @@ class TB:
         dut.addrb.value = 0
         dut.dinb.value = 0
         dut.regceb.value = 1
-
-        cocotb.start_soon(Clock(dut.clka, self.clka_period_ns, unit="ns").start())
-        cocotb.start_soon(Clock(dut.clkb, self.clkb_period_ns, unit="ns").start())
-
-    def reset_active_value(self) -> int:
-        return self.rst_polarity
-
-    def reset_inactive_value(self) -> int:
-        return 1 - self.rst_polarity
-
-    def full_byte_mask(self, signal_name: str) -> int:
-        return (1 << len(getattr(self.dut, signal_name))) - 1
-
-    async def settle(self) -> None:
-        await Timer(2, unit="ns")
-
-    async def cycle_a(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clka)
-            await self.settle()
-
-    async def cycle_b(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clkb)
-            await self.settle()
-
-    async def warmup(self) -> None:
-        # Giving both ports one idle cycle before the first transaction avoids
-        # sampling startup transients from the just-started clocks.
-        await self.cycle_a(1)
-        await self.cycle_b(1)
 
     async def write_a(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
         self.dut.addra.value = addr

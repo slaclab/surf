@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep an active-high synchronous case, an active-low output case,
+#   and an asynchronous active-low input case to cover pulse polarity and
+#   trigger polarity choices.
+# - Stimulus: Pulse the trigger once, try retriggering during the output pulse,
+#   and try again during the enforced wait state.
+# - Checks: The output pulse must last the programmed width, retrigger attempts
+#   during the blocked interval must not create an extra pulse, and reset must
+#   clear the one-shot state.
+# - Timing: Pulse width and lockout duration are counted exactly in clock
+#   cycles so the bench proves both the active pulse interval and the
+#   subsequent wait interval.
+
 import os
 
 import cocotb

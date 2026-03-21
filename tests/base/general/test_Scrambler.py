@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep scrambling mode, descrambling mode, and a reverse-I/O
+#   asynchronous-reset case so the LFSR datapath is checked in both directions
+#   and with alternate port ordering.
+# - Stimulus: Feed a known payload stream through the datapath, enable bypass
+#   for a transparent pass-through run, and then reset the internal state
+#   mid-test.
+# - Checks: Scramble and descramble outputs must match the local LFSR model,
+#   bypass must reproduce the input exactly, and reset must reseed the state so
+#   the next sequence restarts predictably.
+# - Timing: The bench checks one word per accepted transfer, confirms that
+#   bypass does not add hidden latency, and verifies that reset restarts the
+#   sequence from the seed on the next eligible cycle.
+
 import os
 
 import cocotb

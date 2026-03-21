@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep parallel lane counts across `1`, `4`, and `8`, mix registered
+#   and unregistered input staging, and include synchronous and asynchronous
+#   active-low reset cases to cover the supported parallel wrapper modes.
+# - Stimulus: Present known parallel words built from deterministic byte
+#   streams, interrupt accumulation with a reset override, and inspect the
+#   startup CRC state before any traffic.
+# - Checks: The parallel CRC result must equal the software fold of the same
+#   bytes in the same order, and reset must immediately or synchronously
+#   restore the seed depending on configuration.
+# - Timing: The bench checks the extra cycle introduced by registered input
+#   staging, keeps unregistered cases edge-aligned with the presented word, and
+#   separates asynchronous from synchronous reset timing.
+
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, Timer

@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep combinational multiport reads, registered `read-first`,
+#   registered `write-first`, registered `no-change` with byte writes, and an
+#   asynchronous active-low reset case.
+# - Stimulus: Write identifiable values into the LUT RAM, observe the same
+#   locations through multiple read ports, and then create same-address
+#   read/write events with optional byte masking.
+# - Checks: The bench verifies multiport visibility, the three
+#   read-during-write mode semantics, byte-lane updates, and reset behavior for
+#   the registered outputs.
+# - Timing: Combinational read ports are checked after settle time rather than
+#   a clock edge, while registered modes are checked exactly on the next
+#   enabled edge after a write.
+
 import os
 
 import cocotb

@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a short toggle period, a longer toggle period, and an
+#   asynchronous active-low reset case so the wrapper is checked at more than
+#   one cadence.
+# - Stimulus: Let the heartbeat run for many cycles to observe repeated
+#   toggles, then assert reset in the middle of a period.
+# - Checks: The output must toggle only at the programmed period and reset must
+#   return the waveform to its defined idle phase before counting resumes.
+# - Timing: The bench measures cycles between toggles directly and checks that
+#   reset restarts the cadence from zero rather than preserving the partially
+#   elapsed interval.
+
 import os
 
 import cocotb

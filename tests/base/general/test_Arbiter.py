@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep request vector sizes `4` and `5` and include an asynchronous
+#   active-low reset case so the round-robin logic is exercised beyond a single
+#   fixed width.
+# - Stimulus: Present competing request patterns, keep the current requester
+#   asserted to exercise hold behavior, and then rotate the contenders.
+# - Checks: The grant must rotate in round-robin order, the hold case must keep
+#   serving the same requester, and reset must clear the selection history.
+# - Timing: Grant updates are checked on arbitration boundaries only, and the
+#   pointer must not advance during cycles where the design is expected to hold
+#   the current request.
+
 import os
 
 import cocotb

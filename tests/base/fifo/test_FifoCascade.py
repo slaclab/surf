@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a single-stage cascade and a three-stage cascade with an
+#   asynchronous tail so the bench covers both the minimal wrapper case and a
+#   real multi-stage chain.
+# - Stimulus: Push an ordered burst through the cascade and then inspect both
+#   the final output stream and the exported per-stage vector signals during
+#   movement.
+# - Checks: The final stream must preserve ordering across all stages, and the
+#   stage vector mapping must reflect the expected stage-local occupancy/data
+#   plumbing for the selected cascade depth.
+# - Timing: The bench checks that each added stage contributes latency in
+#   sequence and that the asynchronous-tail case still releases data in the
+#   same logical order.
+
 import os
 
 import cocotb

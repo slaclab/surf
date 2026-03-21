@@ -8,6 +8,21 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep equal-width, expansion, and contraction cases with
+#   `S_TDATA_NUM_BYTES` and `M_TDATA_NUM_BYTES` in `{2, 5, 6}`, then keep one
+#   `VALID_THOLD=0` / `FIFO_ADDR_WIDTH=4` case to cover the frame-ready
+#   buffering path without exploding the matrix.
+# - Stimulus: Drive 1-32 byte incrementing payloads through the source, and
+#   repeat each transfer with optional idle insertion on the input side and
+#   optional backpressure on the output side.
+# - Checks: The sink must receive the same byte stream and frame boundaries
+#   after the wrapper repacks equal-width, up-convert, and down-convert
+#   transfers, including the special low-threshold FIFO mode.
+# - Timing: Check AXI Stream handshake timing cycle-by-cycle so `tvalid`,
+#   `tready`, and frame progression stay correct when pauses land in the middle
+#   of a transfer.
+
 import itertools
 import logging
 

@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a synchronized single-pulse case, a bypass stretched-pulse
+#   case, an active-low output case, and an asynchronous-reset active-low input
+#   case.
+# - Stimulus: Issue one trigger pulse, hold or re-drive the input around it,
+#   and then assert reset so the one-shot state is exercised from idle and from
+#   active conditions.
+# - Checks: The destination pulse width must match the configured one-shot
+#   length, output polarity must match configuration, bypass must remove the
+#   normal CDC latency, and reset must clear the pulse state.
+# - Timing: The bench checks the pulse start after synchronizer latency in the
+#   normal path and counts the number of destination cycles that the one-shot
+#   output remains asserted.
+
 import os
 
 import cocotb

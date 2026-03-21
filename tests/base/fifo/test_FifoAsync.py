@@ -8,6 +8,22 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep memory type, `FWFT` vs standard read mode, output pipeline
+#   depth, reset style/polarity, synchronizer depth, width/depth scaling, and
+#   threshold placements with a small curated matrix instead of a Cartesian
+#   explosion.
+# - Stimulus: Drive burst writes and reads on independent clocks so the FIFO
+#   fills, drains, crosses programmable threshold points, and encounters both
+#   empty and full boundaries.
+# - Checks: The bench checks end-to-end ordering, `full`/`empty` behavior,
+#   programmable threshold flags, deeper and wider geometry variants, and the
+#   behavioral difference between `FWFT` and standard read mode.
+# - Timing: Read and write timing is checked against separate clocks, `FWFT`
+#   must prefetch data before an explicit read pop, standard mode must return
+#   data after the read event, and asynchronous reset must clear both sides
+#   immediately.
+
 import os
 
 import cocotb

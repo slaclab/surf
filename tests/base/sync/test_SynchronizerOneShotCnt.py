@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock baseline and an asynchronous-clock rollover
+#   case so the one-shot counter is exercised both in the simple path and at
+#   its counter-width boundary.
+# - Stimulus: Generate repeated source pulses until the counter increments
+#   several times and then reaches the rollover or saturation condition,
+#   followed by reset.
+# - Checks: Each synchronized pulse must increment the count once, the
+#   width-limited counter behavior at the top of range must match the design,
+#   and reset must clear the count.
+# - Timing: Updates are checked only after the pulse has crossed into the
+#   destination domain, and the rollover case is checked exactly at the
+#   boundary cycle rather than by a loose eventual assertion.
+
 import os
 
 import cocotb

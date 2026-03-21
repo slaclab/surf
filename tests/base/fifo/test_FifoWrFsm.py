@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a baseline synchronous case, a midpoint threshold case, an
+#   asynchronous Gray-index case, and an active-low reset case so the write FSM
+#   is covered across its counter and reset options.
+# - Stimulus: Issue write requests against modeled space availability until the
+#   FSM reaches threshold, full, overflow, and recovery conditions.
+# - Checks: The bench checks `ready`, write count, `full`, overflow, and
+#   threshold-release behavior, along with reset recovery.
+# - Timing: Counts and flags must advance only on accepted writes, threshold
+#   release must lag until space returns, and reset must clear the write-side
+#   state immediately or on the next edge depending on mode.
+
 import os
 
 import cocotb

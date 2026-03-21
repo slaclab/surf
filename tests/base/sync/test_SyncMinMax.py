@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Keep one common-clock case and focus the file on min/max behavior
+#   instead of spreading coverage across many clock combinations already
+#   exercised elsewhere.
+# - Stimulus: Present a sequence of values that deliberately creates new
+#   minima, new maxima, and in-range samples, then assert the statistics reset
+#   path.
+# - Checks: The minimum and maximum outputs must move only when a new extreme
+#   arrives and must reseed correctly after reset.
+# - Timing: The bench checks updates at the module's statistics boundary rather
+#   than on every sample so the recorded extrema correspond to the documented
+#   snapshot cadence.
+
 import os
 
 import cocotb

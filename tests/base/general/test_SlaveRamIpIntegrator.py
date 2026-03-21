@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep `32`-bit and `64`-bit bus widths so the reverse-direction RAM
+#   wrapper mapping is covered at both widths.
+# - Stimulus: Drive IPI-side request fields into the adapter and separately
+#   return read data from the surf-side RAM interface.
+# - Checks: Request fields must map correctly onto the surf interface, and surf
+#   read data must return to the IPI side without corruption or width-dependent
+#   bit slips.
+# - Timing: The timing claim is wrapper transparency, so the bench checks that
+#   the mapping and returned read data are visible in the expected cycle with
+#   no unintended staging.
+
 from pathlib import Path
 
 import cocotb

@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock locked case and an asynchronous too-slow case
+#   so frequency measurement is exercised both at nominal alignment and at an
+#   edge condition.
+# - Stimulus: Run the local and reference clocks long enough to cross several
+#   measurement windows, with one case intentionally using a reference
+#   relationship that exercises the slow-clock path.
+# - Checks: The reported frequency count and update pulse must match the
+#   expected measurement window in the locked case and the documented behavior
+#   in the too-slow case.
+# - Timing: The bench checks that outputs update only on refresh boundaries and
+#   that the common-clock and asynchronous cases differ only by the expected
+#   measurement latency, not by spurious intermediate updates.
+
 import os
 
 import cocotb

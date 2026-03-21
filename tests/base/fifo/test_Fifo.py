@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep the wrapper across the inferred synchronous and inferred
+#   asynchronous backends with `FWFT` enabled so this file proves wrapper
+#   selection rather than re-testing every leaf FIFO feature.
+# - Stimulus: Write an ordered burst into the wrapper and read it back, then in
+#   the synchronous case inspect the mirrored write and read count outputs
+#   while occupancy changes.
+# - Checks: The wrapper must preserve ordering through both backend branches
+#   and, in common-clock mode, expose the same internal count on both
+#   `wr_data_count` and `rd_data_count` aliases.
+# - Timing: The asynchronous branch is checked with independent write and read
+#   clocks, while the synchronous branch checks that count updates track
+#   occupancy on the same clock without extra wrapper skew.
+
 import os
 
 import cocotb

@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep vector widths `4` and `8`, synchronizer depths `2` and `4`, an
+#   asynchronous-reset stage-3 case, active-low reset, inverted output, and
+#   bypass with inversion.
+# - Stimulus: Drive changing source bit patterns, assert reset, and run bypass
+#   and inversion cases so each vector option is visible at the output.
+# - Checks: Each bit must propagate with the expected latency, reset must drive
+#   the configured idle vector, inversion must flip each bit, and bypass must
+#   remove the staged delay.
+# - Timing: The bench measures vector update latency in destination-clock
+#   cycles and confirms that all bits share the configured latency unless the
+#   bypass path is selected.
+
 import os
 
 import cocotb

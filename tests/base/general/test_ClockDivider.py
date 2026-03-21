@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep the baseline leading-edge case, a leading-low-edge variant,
+#   and an asynchronous active-low reset variant to cover output polarity and
+#   reset behavior.
+# - Stimulus: Let the divider free-run long enough to observe several output
+#   toggles and the associated `preRise`/`preFall` pulses.
+# - Checks: The divided clock must toggle at the programmed cadence, and the
+#   pre-rise and pre-fall indicators must assert at the expected phase points
+#   before each transition.
+# - Timing: The bench counts exact input cycles between toggles and pulse
+#   strobes, then confirms reset restarts the divider phase rather than
+#   resuming mid-count.
+
 import os
 
 import cocotb

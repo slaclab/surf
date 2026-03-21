@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock case and an asynchronous-clocks case so the
+#   status synchronizer and its bookkeeping are covered with and without CDC
+#   latency.
+# - Stimulus: Toggle status bits, hold selected lanes active long enough to
+#   accumulate counters, trigger IRQ conditions, and then pulse the
+#   counter-reset input.
+# - Checks: The synchronized status output, change/error counters, IRQ outputs,
+#   and explicit counter reset behavior must all match the driven status
+#   activity.
+# - Timing: The common-clock case is checked for near-immediate updates, while
+#   the asynchronous case expects extra CDC latency before the same status and
+#   IRQ effects become visible.
+
 import os
 from textwrap import dedent
 

@@ -8,6 +8,21 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep `BYTE_WIDTH_G` across `4` and `8`, `INPUT_REGISTER_G` across
+#   registered and direct input capture, the IEEE/Castagnoli/Koopman
+#   polynomials, and synchronous vs asynchronous active-high/low reset so the
+#   wrapper covers the supported datapath shapes.
+# - Stimulus: Drive fixed multi-byte words into the wrapper, assert the
+#   explicit CRC reset override in the middle of a stream, and sample the
+#   power-on state before any valid data arrives.
+# - Checks: The remainder and output CRC must match the Python model for each
+#   width and polynomial, and the reset override must discard partial
+#   accumulation and restart from the seed.
+# - Timing: Registered-input cases are checked one cycle later than
+#   unregistered cases, while asynchronous active-low reset is expected to take
+#   effect immediately and synchronous reset only on the next clock edge.
+
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, Timer

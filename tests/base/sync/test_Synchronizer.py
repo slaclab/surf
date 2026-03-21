@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep stage counts `2` and `4`, an asynchronous-reset stage-3 case,
+#   active-low reset, inverted output, and bypass with inversion so the scalar
+#   synchronizer is covered across its major options.
+# - Stimulus: Toggle the source input, assert reset, and run a bypass
+#   configuration so each feature changes the observed destination value at
+#   least once.
+# - Checks: The destination output must appear after the configured
+#   synchronizer depth, reset must drive the expected idle value, inversion
+#   must flip the sense, and bypass must short-circuit the latency.
+# - Timing: The bench counts exact destination-clock latency through the
+#   synchronizer chain and distinguishes bypass and asynchronous reset from the
+#   normal staged path.
+
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, Timer

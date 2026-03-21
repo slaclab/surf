@@ -8,6 +8,17 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep one-stage and four-stage pipelines plus inverted-input/output
+#   variants so both latency depth and polarity handling are covered.
+# - Stimulus: Toggle the reset input repeatedly and with short spacing so the
+#   pipeline has to propagate multiple events without collapsing state.
+# - Checks: The output reset must emerge after the configured number of stages
+#   and respect the inversion settings in each case.
+# - Timing: The test counts stage latency exactly and confirms that successive
+#   toggles move through the pipeline in order rather than skipping or merging
+#   cycles.
+
 import os
 
 import cocotb

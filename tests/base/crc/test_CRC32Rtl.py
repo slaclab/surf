@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a synchronous baseline, an asynchronous-reset variant, and an
+#   active-low reset variant to cover the fixed-polynomial RTL across its reset
+#   implementations.
+# - Stimulus: Feed a known byte sequence into the core, toggle the clock enable
+#   to hold state, and assert reset both after startup and after accumulation
+#   has begun.
+# - Checks: Compare the internal remainder and exposed CRC output against the
+#   local software model, confirm disabled cycles hold state, and confirm reset
+#   reloads the seed value.
+# - Timing: Sample on the active clock edge, require clock-disabled cycles to
+#   preserve the previous CRC state, and distinguish immediate asynchronous
+#   reset response from edge-qualified synchronous reset behavior.
+
 import os
 
 import cocotb

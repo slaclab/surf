@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a stage-3 baseline, a stage-4 asynchronous-reset case, an
+#   active-low output case, and a bypass case so edge detection is covered
+#   across latency and polarity options.
+# - Stimulus: Drive isolated rising and falling transitions with idle time
+#   between them so each edge is uniquely attributable.
+# - Checks: The DUT must emit exactly one destination-cycle pulse per
+#   qualifying source edge with the configured output polarity and reset state.
+# - Timing: Edge pulses are checked after the expected synchronizer latency and
+#   must last one destination cycle only, even when the source level remains
+#   steady afterward.
+
 import os
 
 import cocotb

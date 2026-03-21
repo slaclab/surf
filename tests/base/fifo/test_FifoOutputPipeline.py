@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep zero, one, and two output pipeline stages plus asynchronous
+#   and active-low reset variants to cover the wrapper across its supported
+#   latency shapes.
+# - Stimulus: Send ordered data through the pipeline, then stall the downstream
+#   side so valid data has to be held under backpressure before release.
+# - Checks: Zero-stage mode must behave as passthrough, staged modes must
+#   preserve ordering with the expected extra latency, backpressure must hold
+#   the current beat stable, and reset must clear any buffered word.
+# - Timing: The bench counts the exact number of added cycles from the selected
+#   stage depth and checks that `valid`/`data` stay stable for the entire
+#   duration of a downstream stall.
+
 import os
 
 import cocotb

@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Keep one explicit `split_to_narrow_little_endian` case so this file
+#   stays focused on the stable width-conversion path the wrapper is meant to
+#   expose.
+# - Stimulus: Write wider words that must be unpacked into several narrower
+#   output beats, then reset the write packer while it still holds partial
+#   state.
+# - Checks: The output beat order and byte ordering must match the
+#   little-endian split model, and reset must discard any partially assembled
+#   write-side state instead of leaking stale bytes.
+# - Timing: The test checks exactly when each narrow beat becomes valid
+#   relative to the source write and confirms that a reset prevents any
+#   deferred partial beat from appearing later.
+
 import os
 
 import cocotb

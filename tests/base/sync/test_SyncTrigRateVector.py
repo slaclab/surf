@@ -8,6 +8,17 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Keep one common-clock vector case and use it to cover lane-wise rate
+#   capture without adding redundant clocking variants already covered by the
+#   scalar test.
+# - Stimulus: Toggle several trigger lanes at different rates inside the same
+#   measurement window so each lane accumulates a different edge count.
+# - Checks: Each lane's rate snapshot must equal its own edge count, and the
+#   shared update strobe must indicate that the vector snapshot completed.
+# - Timing: The bench checks that all lane values update together at the
+#   refresh boundary while still preserving lane-specific counts.
+
 import os
 from textwrap import dedent
 

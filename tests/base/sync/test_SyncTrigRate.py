@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Keep one aligned common-clock edge-count case and use it to validate
+#   the wrapper's local/reference window logic rather than multiplying
+#   equivalent CDC variants.
+# - Stimulus: Drive bursts of trigger edges into successive aligned measurement
+#   windows, then reseed the statistics path and repeat with a fresh edge
+#   pattern.
+# - Checks: The rate output, min/max statistics, and `trigRateUpdated` strobe
+#   must match the number of counted edges per window before and after the
+#   reseed event.
+# - Timing: All observable outputs are checked only at aligned refresh-window
+#   boundaries, and `trigRateUpdated` must be a one-cycle pulse rather than a
+#   sticky status bit.
+
 import os
 
 import cocotb

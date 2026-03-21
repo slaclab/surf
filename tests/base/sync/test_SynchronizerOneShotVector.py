@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a baseline vector one-shot case and a bypass
+#   asynchronous-reset case so both the normal synchronized path and the bypass
+#   path are touched.
+# - Stimulus: Pulse different lanes in sequence rather than all at once so the
+#   bench can attribute each output pulse to a single source lane, then assert
+#   reset.
+# - Checks: Each lane must generate the configured one-shot pulse width
+#   independently, bypass must preserve the expected direct behavior, and reset
+#   must clear all pulse state.
+# - Timing: The bench checks synchronized pulse latency lane-by-lane and
+#   confirms that reset removes any in-flight pulse before it can persist
+#   longer than configured.
+
 import os
 
 import cocotb

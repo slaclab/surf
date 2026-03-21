@@ -8,6 +8,19 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep a common-clock case and an asynchronous-clock active-low input
+#   case so period measurement is covered across both CDC and input-polarity
+#   variation.
+# - Stimulus: Generate trigger pulses with deliberately varied gaps, then reset
+#   the statistics path to restart measurement.
+# - Checks: The reported trigger period, min/max history, and update pulse must
+#   reflect the actual spacing of the pulses after applying the configured
+#   input polarity.
+# - Timing: The bench checks period snapshots only when a new measurement
+#   window closes and confirms that reset clears the historical statistics
+#   before the next measured pulse pair.
+
 import os
 
 import cocotb

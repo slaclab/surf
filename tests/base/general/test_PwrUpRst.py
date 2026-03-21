@@ -8,6 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep the synchronous baseline, an asynchronous counter-reset path,
+#   and an active-low reset variant so startup-reset generation is covered
+#   across its reset styles.
+# - Stimulus: Release power-up, allow the internal counter to run to
+#   completion, and then reassert the control/reset path to restart the
+#   sequence.
+# - Checks: The generated reset must stay asserted for the programmed duration,
+#   deassert only after the counter expires, and restart correctly on a later
+#   reassertion.
+# - Timing: The bench counts the exact number of hold cycles and distinguishes
+#   the immediate effect of asynchronous reassertion from edge-qualified
+#   synchronous behavior.
+
 import os
 
 import cocotb

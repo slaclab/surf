@@ -8,6 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep `32`-bit and `64`-bit bus widths so the wrapper mapping is
+#   checked at both the default and wider data path.
+# - Stimulus: Drive surf-side RAM request fields into the wrapper and
+#   separately inject read data returning from the IPI side.
+# - Checks: All address, data, and control fields must map cleanly from the
+#   surf interface into the IPI ports, and IPI read data must come back to the
+#   surf-facing signals unchanged.
+# - Timing: This is a wrapper-level test, so the timing check is that the
+#   mapping is visible in the expected cycle with no hidden register stage
+#   inserted by the adapter.
+
 from pathlib import Path
 
 import cocotb

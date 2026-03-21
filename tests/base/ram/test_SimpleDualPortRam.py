@@ -8,31 +8,39 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Sweep block vs distributed implementations, optional `DOB` output
+#   registration, byte-write enable, and asynchronous plus active-low reset
+#   behavior.
+# - Stimulus: Write through port A and read through port B, apply partial byte
+#   masks to an existing word, and then reset after a registered output has
+#   captured data.
+# - Checks: The bench checks basic dual-port readback, byte-write merging, hold
+#   behavior of the optional B output register, and reset clearing of that
+#   registered output.
+# - Timing: Latency is checked across separate A and B clocks, with one
+#   additional cycle expected when the B-side output register is enabled.
+
 import os
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.base.ram.ram_test_utils import DualClockRamTB
 from tests.common.regression_utils import (
     env_flag,
-    env_sl,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
 
 
-class TB:
+class TB(DualClockRamTB):
     def __init__(self, dut):
-        self.dut = dut
+        super().__init__(dut)
         # This DUT has two independent clocks, so the cocotb testbench needs to
         # drive both domains explicitly.
-        self.clka_period_ns = float(os.environ["CLKA_PERIOD_NS"])
-        self.clkb_period_ns = float(os.environ["CLKB_PERIOD_NS"])
-        self.rst_polarity = env_sl("RST_POLARITY_G", default=1)
-        self.async_reset = env_flag("RST_ASYNC_G", default=False)
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
         self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
 
@@ -47,39 +55,13 @@ class TB:
         dut.rstb.value = self.reset_inactive_value()
         dut.addrb.value = 0
 
-        # Start both clocks as independent background coroutines.
-        cocotb.start_soon(Clock(dut.clka, self.clka_period_ns, unit="ns").start())
-        cocotb.start_soon(Clock(dut.clkb, self.clkb_period_ns, unit="ns").start())
-
-    def reset_active_value(self) -> int:
-        return self.rst_polarity
-
-    def reset_inactive_value(self) -> int:
-        return 1 - self.rst_polarity
-
-    def full_byte_mask(self) -> int:
-        return (1 << len(self.dut.weaByte)) - 1
-
-    async def settle(self) -> None:
-        await Timer(2, unit="ns")
-
-    async def cycle_a(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clka)
-            await self.settle()
-
-    async def cycle_b(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clkb)
-            await self.settle()
-
     async def write_word(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
         # Present address/data first, then pulse the write-enable for one
         # `clka` edge. That mirrors the synchronous write behavior of the RTL.
         self.dut.addra.value = addr
         self.dut.dina.value = value
         self.dut.wea.value = 1
-        self.dut.weaByte.value = self.full_byte_mask() if byte_mask is None else byte_mask
+        self.dut.weaByte.value = self.full_byte_mask("weaByte") if byte_mask is None else byte_mask
         await RisingEdge(self.dut.clka)
         await self.settle()
         # Drop the strobes after the write edge so the next cycle starts clean.
