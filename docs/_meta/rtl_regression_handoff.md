@@ -12,6 +12,7 @@
 - Whole-repo target
 - Vendor-heavy modules deferred in phase 1
 - Comment new Python regression code where intent or framework behavior is not obvious
+- Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Current Status
 Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.

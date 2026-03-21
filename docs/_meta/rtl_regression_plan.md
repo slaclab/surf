@@ -27,6 +27,13 @@
 - `deferred_vendor_heavy`
   - Module is intentionally excluded from phase 1 executable regression.
 
+## Package Coverage Policy
+- VHDL packages are not treated as standalone executable regression targets.
+- Type/constant packages are covered transitively through the modules that compile and use them.
+- Behavioral package functions and procedures should be covered through DUTs that exercise them whenever practical.
+- If an important package function or procedure is not well reached transitively, add a minimal VHDL wrapper and test that wrapper from Python.
+- Package-helper wrappers should be tracked separately from the main synthesizable-module inventory when they are introduced.
+
 ## Generic And Configuration Policy
 - Generic-heavy modules are Python-first by default.
 - Build curated configuration matrices in Python.
@@ -70,3 +77,4 @@
 - Whether PR-vs-nightly split is needed immediately or only after runtime data.
 - Exact criteria for moving a vendor-heavy module out of `deferred_vendor_heavy`.
 - Which subsystem should be the first large-scale migration after the pilot modules.
+- Whether a separate tracked list of high-risk behavioral package helpers is needed once the module inventory stabilizes.

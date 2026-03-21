@@ -30,6 +30,7 @@
 - Keep a tier-first CI model: `smoke` and `functional`.
 - Rewrite legacy VHDL TB logic in Python rather than preserving it by default.
 - Keep wrappers only when they make Python interaction cleaner.
+- Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper.
 
 ## Completed Work Items
 - Surveyed repo structure and existing verification flow.
@@ -82,6 +83,7 @@
 - The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
 - Future Python regression code should continue the current comment style: explain non-obvious intent and framework mechanics, but avoid line-by-line narration.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
+- VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -96,3 +98,4 @@
 - 2026-03-20: Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/` and validated the full current 10-case sweep in 146s.
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
 - 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.
+- 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.
