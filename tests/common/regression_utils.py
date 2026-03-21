@@ -49,6 +49,21 @@ def env_sl(name: str, *, default: int) -> int:
     raise ValueError(f"Unsupported std_logic environment value for {name}: {raw}")
 
 
+def env_hex(name: str, *, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+
+    normalized = raw.strip().strip('"').strip()
+    if normalized.lower().startswith("x\"") and normalized.endswith('"'):
+        normalized = normalized[2:-1]
+    if normalized.lower().startswith("0x"):
+        normalized = normalized[2:]
+    if normalized.lower().startswith("16#") and normalized.endswith("#"):
+        normalized = normalized[3:-1]
+    return int(normalized, 16)
+
+
 def parameter_case(case_id: str, **parameters: str):
     return pytest.param(parameters, id=case_id)
 
@@ -76,6 +91,22 @@ def _build_vhdl_sources() -> dict[str, list[str]]:
     }
 
 
+def _merge_vhdl_sources(
+    base_sources: dict[str, list[str]],
+    extra_sources: dict[str, list[str]] | None,
+) -> dict[str, list[str]]:
+    if not extra_sources:
+        return base_sources
+
+    merged = {library: list(paths) for library, paths in base_sources.items()}
+    for library, paths in extra_sources.items():
+        merged.setdefault(library, [])
+        # Append test-local sources after the imported SURF library so wrappers
+        # can instantiate the real RTL that was already compiled above.
+        merged[library].extend(str(Path(path)) for path in paths)
+    return merged
+
+
 def _module_name_from_test_file(test_file: Path) -> str:
     # cocotb expects a Python import path for the module that contains the
     # @cocotb.test() entrypoints, not a filesystem path.
@@ -100,6 +131,7 @@ def run_surf_vhdl_test(
     toplevel: str,
     parameters: dict[str, object] | None = None,
     extra_env: dict[str, object] | None = None,
+    extra_vhdl_sources: dict[str, list[str]] | None = None,
 ) -> None:
     test_file = Path(test_file)
 
@@ -107,7 +139,7 @@ def run_surf_vhdl_test(
         toplevel=toplevel,
         module=_module_name_from_test_file(test_file),
         toplevel_lang="vhdl",
-        vhdl_sources=_build_vhdl_sources(),
+        vhdl_sources=_merge_vhdl_sources(_build_vhdl_sources(), extra_vhdl_sources),
         parameters=parameters,
         sim_build=_sim_build_path(test_file, parameters),
         extra_env=extra_env if extra_env is not None else parameters,

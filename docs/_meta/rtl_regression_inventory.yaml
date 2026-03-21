@@ -22,6 +22,126 @@ inventory_rules:
   - "Generic-heavy modules should prefer functional_python over smoke_python when actively implemented."
 
 modules:
+  - entity: Crc32Parallel
+    path: base/crc/rtl/Crc32Parallel.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/crc/test_Crc32Parallel.py
+    reference_assets: []
+    notes: "Graph-guided CRC leaf with validated coverage for byte-width variation, registered vs direct input handling, and reset polarity/style variants against a shared Python CRC model."
+    deferred_reason: ""
+
+  - entity: Crc32
+    path: base/crc/rtl/Crc32.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_expanded
+    priority: phase1_low_level
+    wrapper_path: tests/base/crc/hdl/Crc32PolyWrapper.vhd
+    python_test: tests/base/crc/test_Crc32.py
+    reference_assets: []
+    notes: "Graph-guided generic CRC leaf with validated coverage for IEEE CRC-32, Castagnoli, and Koopman-style 32-bit polynomial cases plus byte-width, input-register, and reset polarity/style variation. Uses a thin test-only wrapper because the local GHDL flow rejects direct command-line overrides of the 32-bit `CRC_POLY_G` `slv` generic."
+    deferred_reason: ""
+
+  - entity: CRC32Rtl
+    path: base/crc/rtl/CRC32Rtl.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/crc/test_CRC32Rtl.py
+    reference_assets: []
+    notes: "Legacy-compatible fixed-polynomial CRC leaf with validated baseline behavioral coverage for synchronous and asynchronous reset handling and reset polarity variation."
+    deferred_reason: ""
+
+  - entity: RstSync
+    path: base/sync/rtl/RstSync.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_RstSync.py
+    reference_assets: []
+    notes: "High-fanout reset synchronizer from the graph-guided leaf set. Validated coverage includes release-delay behavior, active-high vs active-low reset polarity, asynchronous vs synchronous power-on reset handling, and bypass/no-output configurations."
+    deferred_reason: ""
+
+  - entity: PwrUpRst
+    path: base/general/rtl/PwrUpRst.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/general/test_PwrUpRst.py
+    reference_assets: []
+    notes: "Reusable reset-generator primitive with validated coverage for counter-based startup stretch behavior, synchronous vs asynchronous reset handling, and reset polarity variation."
+    deferred_reason: ""
+
+  - entity: SynchronizerEdge
+    path: base/sync/rtl/SynchronizerEdge.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SynchronizerEdge.py
+    reference_assets: []
+    notes: "Graph-guided edge-detect synchronizer with validated coverage for rising/falling pulse detection through different sync depths, reset polarity/style variation, and bypass handling."
+    deferred_reason: ""
+
+  - entity: SynchronizerOneShot
+    path: base/sync/rtl/SynchronizerOneShot.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SynchronizerOneShot.py
+    reference_assets: []
+    notes: "Graph-guided one-shot synchronizer with validated coverage for single-pulse capture, stretched output behavior, reset polarity/style variation, active-low output mode, and bypass operation."
+    deferred_reason: ""
+
+  - entity: TrueDualPortRam
+    path: base/ram/inferred/TrueDualPortRam.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/ram/test_TrueDualPortRam.py
+    reference_assets: []
+    notes: "Reusable dual-port RAM primitive with validated direct cocotb coverage for read-first, write-first, and no-change modes, registered output behavior, byte-write masking, and reset polarity/style variants."
+    deferred_reason: ""
+
+  - entity: LutRam
+    path: base/ram/inferred/LutRam.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/ram/test_LutRam.py
+    reference_assets: []
+    notes: "Reusable LUTRAM primitive with validated coverage for combinational and registered variants, read-first/write-first/no-change behavior, multiport access, byte-write masking, and reset polarity/style variants."
+    deferred_reason: ""
+
+  - entity: FifoRdFsm
+    path: base/fifo/rtl/inferred/FifoRdFsm.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoRdFsm.py
+    reference_assets: []
+    notes: "Graph-guided FIFO read-side primitive with validated coverage for standard vs FWFT behavior, block vs distributed memory modes, count progression, visible prefetch behavior, underflow-safe idle behavior, and reset polarity/style variants."
+    deferred_reason: ""
+
   - entity: SynchronizerVector
     path: base/sync/rtl/SynchronizerVector.vhd
     subsystem: base
