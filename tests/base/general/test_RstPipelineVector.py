@@ -34,6 +34,8 @@ class TB:
         self.clk_period_ns = float(os.environ["CLK_PERIOD_NS"])
         self.pipeline = [self.init_value for _ in range(self.pipe_stages)]
 
+        # Seed the vector input to the same value the DUT powers up with so the
+        # software pipeline model and the RTL start from identical history.
         dut.rstIn.value = self.init_value
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
@@ -50,6 +52,8 @@ class TB:
             await self.settle()
 
     def sampled_input(self) -> int:
+        # Sample the currently driven input in the same transformed polarity the
+        # scalar RstPipeline instances see internally.
         return self.expected_output(int(self.dut.rstIn.value))
 
     async def cycle_and_check(self, count: int = 1) -> None:
@@ -69,6 +73,8 @@ class TB:
 @cocotb.test()
 async def vector_pipeline_latency_test(dut):
     tb = TB(dut)
+    # First let the model and DUT march forward together for a couple cycles,
+    # then push distinct values through the whole pipeline latency.
     await tb.cycle_and_check(2)
     await tb.drive_and_expect_after_latency(0)
     await tb.drive_and_expect_after_latency(tb.mask)

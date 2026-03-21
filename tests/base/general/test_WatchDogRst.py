@@ -31,6 +31,8 @@ class TB:
         self.duration = int(os.environ["DURATION_G"])
         self.clk_period_ns = float(os.environ["CLK_PERIOD_NS"])
 
+        # Keep the monitor input in its non-timeout state at startup so the
+        # tests can decide explicitly when the watchdog should begin counting.
         dut.monIn.value = self.input_active_value()
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
@@ -74,6 +76,8 @@ async def keepalive_prevents_timeout_test(dut):
     tb = TB(dut)
     await tb.cycle(4)
 
+    # A short inactive window should start the watchdog timer, but reasserting
+    # the keepalive input before the duration expires must cancel the timeout.
     dut.monIn.value = tb.input_inactive_value()
     await tb.cycle(max(tb.duration - 1, 1))
     dut.monIn.value = tb.input_active_value()

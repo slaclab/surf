@@ -27,11 +27,13 @@ from tests.common.regression_utils import (
 
 
 def _bits_from_word(value: int, width: int, *, reverse: bool) -> list[int]:
+    # Convert a word into the bit arrival order the DUT sees on slaveData.
     bits = [(value >> bit) & 1 for bit in range(width)]
     return list(reversed(bits)) if reverse else bits
 
 
 def _word_from_bits(bits: list[int], *, reverse: bool) -> int:
+    # Reassemble one master-side output word using the configured bit order.
     ordered = list(reversed(bits)) if reverse else bits
     value = 0
     for bit_index, bit in enumerate(ordered):
@@ -59,6 +61,8 @@ class TB:
         dut.slaveBitOrder.value = 1 if self.slave_reverse else 0
         dut.masterBitOrder.value = 1 if self.master_reverse else 0
 
+        # Start the shared gearbox clock before any helper attempts to drive a
+        # transfer. All later stimulus is expressed as whole clock cycles.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -76,6 +80,8 @@ class TB:
             await self.settle()
 
     async def reset(self) -> None:
+        # Hold reset for a few edges so internal packing state is definitely
+        # cleared before streaming data into the gearbox.
         self.dut.rst.value = self.reset_active_value()
         if self.async_reset:
             await Timer(2, unit="ns")
@@ -125,6 +131,8 @@ class TB:
         input_index = 0
 
         for cycle_index in range(max_cycles):
+            # Keep offering the current word until the DUT raises slaveReady.
+            # That matches the source-side handshake used by the RTL wrapper.
             valid = input_index < len(words)
             current_word = words[input_index] if valid else None
             accepted_input, consumed_output = await self.step(
@@ -140,11 +148,13 @@ class TB:
                 input_index += 1
 
             if input_index == len(words) and len(observed) == expected_count:
+                # Once the final expected word has drained, explicitly drop the
+                # source handshake so later tests start from an idle interface.
                 self.dut.slaveValid.value = 0
                 self.dut.startOfSeq.value = 0
                 return observed
 
-        assert False, "Timed out streaming gearbox traffic"
+        assert False, f"Timed out streaming gearbox traffic after {cycle_index + 1} cycles"
         return observed
 
     async def wait_for_held_output(self, max_cycles: int = 64) -> int:
@@ -166,6 +176,8 @@ def _expected_outputs(
     master_reverse: bool,
     start_of_seq_at: int | None = None,
 ) -> list[int]:
+    # Model the gearbox in pure Python by pushing input bits into a queue and
+    # popping output words whenever enough bits are available.
     queue: deque[int] = deque()
     outputs: list[int] = []
 
@@ -187,6 +199,8 @@ async def width_conversion_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Feed a short stream through the software model first, then require the
+    # RTL to produce the same packed output words.
     words = [0x12, 0x34, 0x56]
     expected = _expected_outputs(
         words,
@@ -204,6 +218,8 @@ async def backpressure_hold_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Send just enough source words to build one output word while masterReady
+    # is low, which leaves that word parked on the output interface.
     words_needed = ceil(tb.master_width / tb.slave_width)
     words = [(0xAB + index) & ((1 << tb.slave_width) - 1) for index in range(words_needed)]
     await tb.run_stream(words, expected_count=0, master_ready=0)

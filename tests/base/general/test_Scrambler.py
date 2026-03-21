@@ -25,6 +25,8 @@ from tests.common.regression_utils import (
 
 
 def _bit_reverse(value: int, width: int) -> int:
+    # Several generic combinations reverse bit ordering on the way in or out,
+    # so keep the transform in one helper that both model and tests can reuse.
     reversed_value = 0
     for bit in range(width):
         reversed_value |= ((value >> bit) & 1) << (width - 1 - bit)
@@ -40,6 +42,9 @@ def _scramble_word(
     direction: str,
     reverse_in: bool,
 ) -> tuple[int, list[int]]:
+    # This helper mirrors the scrambler/descrambler bit-by-bit state update in
+    # Python so tests can reason about transformed words without hand decoding
+    # the LFSR behavior inline.
     working = _bit_reverse(data, width) if reverse_in else data
     output = 0
     next_state = list(state)
@@ -78,6 +83,8 @@ class TB:
         dut.inputSideband.value = 0
         dut.outputReady.value = 1
 
+        # Start the stream clock once during setup; all tests then interact with
+        # the DUT only through the send/reset helpers below.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -95,6 +102,8 @@ class TB:
             await self.settle()
 
     async def reset(self) -> None:
+        # Reset clears the scrambler state, so each test starts from a known
+        # all-zero LFSR history before any payload words are injected.
         self.dut.rst.value = self.reset_active_value()
         if self.async_reset:
             await Timer(2, unit="ns")
@@ -175,6 +184,8 @@ async def bypass_passthrough_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # The bypass path should skip the scrambling math but still honor the same
+    # configured input/output bit-order transforms as the normal datapath.
     observed_data, observed_sideband, observed_bypass = await tb.send_word(0x5A, 0x2, bypass=1)
     expected_data = _bit_reverse(0x5A, tb.data_width) if tb.reverse_in else 0x5A
     expected_sideband = _bit_reverse(0x2, tb.sideband_width) if tb.reverse_in else 0x2
@@ -191,6 +202,8 @@ async def bypass_passthrough_test(dut):
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
+    # First put one word through the datapath so the reset check is proving
+    # that outputValid is cleared from an active transaction state.
     await tb.send_word(0x33, 0x1)
 
     await FallingEdge(dut.clk)

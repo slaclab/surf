@@ -25,6 +25,8 @@ from tests.common.regression_utils import (
 
 
 def _priority_encode(req: int, width: int, pivot: int) -> int:
+    # The DUT rotates priority after the last granted requester. Mirror that in
+    # software so the expected winner is derived from the active request mask.
     bits = [(req >> i) & 1 for i in range(width)]
     rotated = [bits[(i + pivot) % width] for i in range(width)]
     best = 0
@@ -50,6 +52,8 @@ class TB:
         dut.rst.value = self.reset_active_value()
         dut.req.value = 0
 
+        # The arbiter is entirely clocked, so a single testbench clock drives
+        # all cases once construction is complete.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -67,6 +71,8 @@ class TB:
             await self.settle()
 
     async def reset(self) -> None:
+        # Reset also clears the "last selected" software tracker so the Python
+        # expectation model starts from the same pivot as the DUT.
         self.dut.rst.value = self.reset_active_value()
         if self.async_reset:
             await Timer(2, unit="ns")
@@ -76,6 +82,8 @@ class TB:
         self.last_selected = 0
 
     async def drive_and_check(self, req: int) -> None:
+        # Apply one request vector, advance one arbitration cycle, and then
+        # compare the externally visible grant against the software model.
         self.dut.req.value = req
         await self.cycle(1)
 
@@ -113,6 +121,8 @@ async def hold_current_request_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # If the winning requester never drops out, round-robin arbitration should
+    # not change the grant underneath an unchanged request vector.
     await tb.drive_and_check(0b0101)
     selected = int(dut.selected.value)
     ack = int(dut.ack.value)

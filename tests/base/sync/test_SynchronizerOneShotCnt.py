@@ -44,6 +44,8 @@ class TB:
         dut.rollOverEn.value = 1 if self.rollover_enabled else 0
         dut.cntRst.value = self.reset_inactive_value()
 
+        # Start the write and read domains before any pulses are issued so the
+        # helpers can speak in terms of source-side and destination-side cycles.
         cocotb.start_soon(Clock(dut.wrClk, self.clk_period_ns, unit="ns").start())
         if self.common_clk:
             cocotb.start_soon(Clock(dut.rdClk, self.clk_period_ns, unit="ns").start())
@@ -79,6 +81,8 @@ class TB:
             await self.settle()
 
     async def reset(self) -> None:
+        # Reset both domains together, then leave a couple of post-reset cycles
+        # for the synchronized pulse/counter state to settle before testing.
         self.dut.wrRst.value = self.reset_active_value()
         self.dut.rdRst.value = self.reset_active_value()
         if self.async_reset:
@@ -91,12 +95,16 @@ class TB:
         await self.cycle_rd(2)
 
     async def pulse_input(self) -> None:
+        # Generate a one-cycle source-domain pulse. The DUT should convert this
+        # into exactly one count increment after synchronization.
         self.dut.dataIn.value = self.input_active_value()
         await self.cycle_wr(1)
         self.dut.dataIn.value = self.input_inactive_value()
         await self.cycle_wr(1)
 
     async def wait_for_count(self, value: int) -> None:
+        # The count update can arrive several destination-clock edges later, so
+        # poll with a bounded wait instead of assuming a fixed CDC latency.
         for _ in range(20):
             await self.cycle_rd(1)
             if int(self.dut.cntOut.value) == value:
@@ -109,6 +117,7 @@ async def count_increment_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # One source pulse should become one destination-side count increment.
     await tb.pulse_input()
     await tb.wait_for_count(1)
 
@@ -118,6 +127,8 @@ async def saturation_and_reset_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Drive enough pulses to hit either the saturating limit or the rollover
+    # boundary, depending on the active generic configuration.
     pulse_count = tb.max_count + (1 if tb.rollover_enabled else 0)
     for _ in range(pulse_count + 1):
         await tb.pulse_input()
@@ -125,6 +136,8 @@ async def saturation_and_reset_test(dut):
     expected = 1 if tb.rollover_enabled else tb.max_count
     await tb.wait_for_count(expected)
 
+    # Then assert the dedicated counter reset and confirm the synchronized
+    # count returns to zero without needing a full module reset.
     tb.dut.cntRst.value = tb.reset_active_value()
     await tb.cycle_wr(1)
     tb.dut.cntRst.value = tb.reset_inactive_value()

@@ -38,6 +38,8 @@ class TB:
         dut.en.value = 0
         dut.sig_i.value = 0
 
+        # Start the free-running source clock once during TB setup so each test
+        # can focus on stimulus and checking rather than clock plumbing.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -51,10 +53,15 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
+            # Sample one full DUT cycle and then wait past TPD_G so assertions
+            # see the registered output after it has settled.
             await RisingEdge(self.dut.clk)
             await self.settle()
 
     async def reset(self) -> None:
+        # Drive reset exactly the way the DUT expects for the active-high and
+        # active-low parameter cases, then give the register one clean cycle to
+        # come out of reset before tests start applying traffic.
         self.dut.rst.value = self.reset_active_value()
         if self.async_reset:
             await Timer(2, unit="ns")
@@ -89,6 +96,8 @@ async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # First prove the register captured a non-zero value so the reset check is
+    # actually observing a state change instead of a trivial all-zero case.
     dut.en.value = 1
     dut.sig_i.value = 0xA5 & tb.mask
     await tb.cycle(1)

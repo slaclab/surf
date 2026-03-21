@@ -39,6 +39,8 @@ class TB:
         dut.din.value = 0
         dut.delay.value = 0
 
+        # Start the free-running source clock before any test traffic so every
+        # helper can express stimulus in "clock cycles" instead of raw delays.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
         self.history = [self.init_value for _ in range(self.delay_depth)]
         self.output_reg = self.init_value
@@ -62,6 +64,8 @@ class TB:
         await Timer(2, unit="ns")
 
     async def cycle(self, *, din: int | None = None, delay: int | None = None, en: int | None = None) -> int:
+        # Update whichever inputs this step wants to change, then leave the
+        # others alone so the helper mirrors a normal cycle-by-cycle driver.
         if din is not None:
             self.dut.din.value = din
             self.current_din = din
@@ -75,6 +79,8 @@ class TB:
         await RisingEdge(self.dut.clk)
         await self.settle()
 
+        # Maintain a tiny software model of the delay line so each cycle can
+        # check the RTL output immediately after the active edge.
         if int(self.dut.rst.value) == self.reset_active_value():
             self.history = [self.init_value for _ in range(self.delay_depth)]
             self.output_reg = self.init_value
@@ -97,6 +103,8 @@ class TB:
         return expected
 
     async def reset(self) -> None:
+        # Drive one reset cycle, release reset, then give the optional output
+        # register one more edge so all variants start from a known state.
         self.dut.rst.value = self.reset_active_value()
         await self.cycle()
         self.dut.rst.value = self.reset_inactive_value()
@@ -116,6 +124,8 @@ async def programmable_delay_test(dut):
     if tb.reg_output:
         return
 
+    # Change the selected tap while feeding distinct words so the test proves
+    # the mux picks the requested historical sample, not just the newest word.
     await tb.cycle(din=0x11, delay=0)
     await tb.cycle(din=0x22, delay=1)
     await tb.cycle(din=0x33, delay=2)
@@ -127,6 +137,8 @@ async def enable_hold_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Load one delayed sample, then drop enable and confirm later input changes
+    # stop shifting the history register until enable returns.
     await tb.cycle(din=0xAA, delay=1, en=1)
     held = await tb.cycle(din=0x55, delay=1, en=0)
     await tb.cycle(din=0x33, delay=1, en=0)
@@ -137,8 +149,13 @@ async def enable_hold_test(dut):
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
+
+    # First move away from the reset value so the test proves reset actually
+    # clears internal history instead of merely observing the power-up state.
     await tb.cycle(din=0xF0, delay=1)
 
+    # Assert reset between active edges to exercise the same asynchronous-looking
+    # test flow against both reset polarities and both output styles.
     await FallingEdge(dut.clk)
     await Timer(1, unit="ns")
     dut.rst.value = tb.reset_active_value()

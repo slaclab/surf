@@ -30,12 +30,16 @@ class TB:
         self.clk_period_ns = float(os.environ["CLK_PERIOD_NS"])
 
         dut.din.value = 0
+        # The DUT has no reset, so the testbench simply starts the clock and
+        # reasons about behavior after the pipeline has been filled.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     async def settle(self) -> None:
         await Timer(2, unit="ns")
 
     async def push(self, value: int) -> int:
+        # Apply one input word for exactly one cycle, then sample after a short
+        # post-edge settle so registered and inferred-delay implementations line up.
         self.dut.din.value = value
         await RisingEdge(self.dut.clk)
         await self.settle()
@@ -45,6 +49,8 @@ class TB:
 @cocotb.test()
 async def fixed_latency_test(dut):
     tb = TB(dut)
+    # Start by flushing zeros through the line so the first non-zero checks do
+    # not depend on unknown power-up contents inside the inferred storage.
     for _ in range(tb.delay + 2):
         assert await tb.push(0) == 0
 
@@ -66,6 +72,8 @@ async def ordering_test(dut):
     for _ in range(3):
         assert await tb.push(0x11) == 0x11
 
+    # Feed a different constant pattern and wait the same number of cycles. If
+    # the line preserves order, the new pattern must eventually take over.
     for _ in range(tb.delay + 3):
         await tb.push(0x22)
     for _ in range(3):

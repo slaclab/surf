@@ -25,6 +25,8 @@ from tests.common.regression_utils import (
 
 
 def _one_hot_input(select: int, width: int) -> int:
+    # Drive only the selected bit high so the expected mux output is always
+    # `1` for in-range selectors and easy to read in the assertions below.
     return 1 << select if select < (1 << width) else 0
 
 
@@ -43,6 +45,8 @@ class TB:
         dut.sel.value = 0
         dut.din.value = 0
 
+        # Start the single mux clock during TB construction so helper methods
+        # can focus on selector/input updates and output observations.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -68,6 +72,8 @@ class TB:
         await self.cycle(1)
 
     async def drive_and_observe(self, select: int) -> int:
+        # This helper applies a selector and matching one-hot input, then waits
+        # long enough for any optional input/output pipeline stages to flush.
         self.dut.sel.value = select
         self.dut.din.value = _one_hot_input(select, self.sel_width)
         await self.cycle(3)

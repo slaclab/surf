@@ -25,6 +25,8 @@ from tests.common.regression_utils import (
 
 
 def _active_run_lengths(samples: list[int], active_value: int) -> list[int]:
+    # Collapse a sampled output trace into contiguous pulse widths so tests can
+    # express expectations in clock cycles instead of hand-checking bit traces.
     runs: list[int] = []
     current = 0
     for sample in samples:
@@ -53,6 +55,8 @@ class TB:
         dut.trigIn.value = self.input_inactive_value()
         dut.pulseWidth.value = self.pulse_width
 
+        # Program the runtime pulse-width input once here so the tests can
+        # focus on trigger timing and output pulse shape.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -92,6 +96,8 @@ class TB:
     async def sample_output(self, cycles: int) -> list[int]:
         samples: list[int] = []
         for _ in range(cycles):
+            # Sample after each rising edge so the returned trace matches what
+            # a user would observe on the registered pulse output.
             await self.cycle(1)
             samples.append(int(self.dut.pulseOut.value))
         return samples
@@ -102,6 +108,8 @@ async def pulse_width_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Assert the trigger, watch through the programmed pulse width, and then
+    # drop the trigger so the output run length can be measured from samples.
     tb.dut.trigIn.value = tb.input_active_value()
     samples = await tb.sample_output(tb.pulse_width + 4)
     tb.dut.trigIn.value = tb.input_inactive_value()
@@ -130,6 +138,8 @@ async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # Start a pulse before asserting reset so the check proves the output is
+    # cleared from an active state rather than staying at its idle level.
     tb.dut.trigIn.value = tb.input_active_value()
     await tb.cycle(2)
 

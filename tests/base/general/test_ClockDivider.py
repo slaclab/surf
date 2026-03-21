@@ -40,6 +40,8 @@ class TB:
         dut.highCount.value = self.high_count
         dut.lowCount.value = self.low_count
 
+        # Program the divider counts up front so each test can concentrate on
+        # observing the generated waveform rather than restaging configuration.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
 
     def reset_active_value(self) -> int:
@@ -57,6 +59,8 @@ class TB:
             await self.settle()
 
     async def reset(self) -> None:
+        # Hold reset long enough to clear the internal counters, then release it
+        # and allow one extra cycle for the first post-reset state to settle.
         self.dut.rst.value = self.reset_active_value()
         if self.async_reset:
             await Timer(2, unit="ns")
@@ -92,6 +96,9 @@ async def prerise_prefall_pulse_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # `preRise` and `preFall` are short look-ahead pulses, so the test simply
+    # waits through a full divider period and confirms that at least one pulse
+    # becomes visible.
     saw_pre_edge = False
     for _ in range(tb.delay_count + tb.high_count + tb.low_count + 4):
         await tb.cycle(1)

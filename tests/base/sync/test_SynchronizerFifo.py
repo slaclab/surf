@@ -39,6 +39,8 @@ class TB:
         dut.rd_en.value = 1 if not self.common_clk else 0
         dut.din.value = 0
 
+        # Launch both clock domains up front so the rest of the helpers can
+        # describe behavior in terms of write-side and read-side cycles.
         cocotb.start_soon(Clock(dut.wr_clk, self.wr_clk_period_ns, unit="ns").start())
         if self.common_clk:
             cocotb.start_soon(Clock(dut.rd_clk, self.wr_clk_period_ns, unit="ns").start())
@@ -83,6 +85,8 @@ class TB:
         await self.cycle_rd(6)
 
     async def write(self, value: int) -> None:
+        # Present one write pulse for a single write-clock edge, then give the
+        # wrapper another cycle to update FIFO status flags cleanly.
         self.dut.din.value = value
         self.dut.wr_en.value = 1
         await self.cycle_wr(1)
@@ -116,6 +120,8 @@ class TB:
         return value
 
     async def _wait_valid(self) -> None:
+        # Poll on the read clock because valid is generated in that domain and
+        # can appear several cycles after the write that filled the FIFO.
         while int(self.dut.valid.value) == 0:
             await RisingEdge(self.dut.rd_clk)
             await self.settle()
@@ -128,10 +134,14 @@ async def data_order_test(dut):
 
     values = [0x11, 0x22, 0x33]
     if tb.common_clk:
+        # In common-clock mode the wrapper is intentionally just a handshake
+        # pass-through, so ordering reduces to immediate combinational delivery.
         for value in values:
             await tb.expect_common_clock_passthrough(value)
         return
 
+    # In dual-clock mode the DUT behaves like a tiny asynchronous FIFO. Write a
+    # known sequence, then verify reads emerge in the same order.
     for value in values:
         await tb.write(value)
 
