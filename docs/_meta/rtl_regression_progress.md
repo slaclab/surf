@@ -2,16 +2,16 @@
 
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
-- Current subsystem: axi
-- Current focus module: `AxiLiteAsync`
+- Current subsystem: base
+- Current focus module: `base` low-level FIFO rollout
 - Last updated: 2026-03-20
 
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
-| `base` | started | not started | started | Expanded validated `FifoAsync` matrix exists at `tests/base/fifo/test_FifoAsync.py` |
-| `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is next |
+| `base` | started | not started | started | Expanded validated matrices now exist for `FifoAsync` and `FifoSync` under `tests/base/fifo/` |
+| `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -54,14 +54,15 @@
 - Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py` and validated the current 10-case sweep locally.
 - Expanded `FifoAsync` into a curated 12-case matrix and validated it locally under parallel pytest execution.
 - Added `pytest.ini` to default to `-n auto --dist=worksteal`, and aligned CI to rely on that default xdist configuration.
+- Implemented `tests/base/fifo/test_FifoSync.py` and validated its 11-case matrix locally under parallel pytest execution.
 
 ## Current In-Progress Item
-- Start the `AxiLiteAsync` pilot with a purpose-built thin wrapper under the AXI-Lite test package.
+- Continue the bottom-up post-pilot rollout in `base/` after validating both low-level FIFO primitives.
 
 ## Next 3 Concrete Tasks
-- Add a thin cocotb-friendly wrapper for `AxiLiteAsync` because the existing VHDL tb contains verification logic, not just interface exposure.
-- Implement `tests/axi/axi_lite/test_AxiLiteAsync.py` using the shared helper structure and the new wrapper.
-- Expand `FifoAsync` coverage to include additional configurations or edge-case pulses after the next pilot is stable.
+- Choose the next adjacent low-level `base/` primitive and extend the bottom-up pattern there.
+- Keep the base FIFO helpers consistent if another FIFO-family module can reuse them directly.
+- Return to `AxiLiteAsync` only after the next bottom-up `base/` target is landed or a shared-helper need emerges.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -84,6 +85,7 @@
 - Future Python regression code should continue the current comment style: explain non-obvious intent and framework mechanics, but avoid line-by-line narration.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
+- `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -99,3 +101,5 @@
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
 - 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.
 - 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.
+- 2026-03-20: Switched from pilot-only work to the bottom-up rollout and selected `FifoSync` as the next low-level target.
+- 2026-03-20: Implemented and validated an 11-case `FifoSync` matrix under `tests/base/fifo/test_FifoSync.py`.

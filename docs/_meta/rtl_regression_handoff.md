@@ -23,10 +23,10 @@ The local machine now has `ghdl`, a working `.venv`, the Python regression packa
 
 New regressions are now being organized by subsystem under `tests/`, with shared helpers in `tests/common/`. The `FifoAsync` pilot lives in `tests/base/fifo/test_FifoAsync.py`, and `AxiStreamFifoV2` now lives in `tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py`. New work should follow that package layout instead of adding more flat files under `tests/`.
 
-`FifoAsync` now has a validated expanded 12-case matrix, and pytest defaults to `-n auto --dist=worksteal` through `pytest.ini` so parameterized regressions fan out across worker processes by default.
+`FifoAsync` now has a validated expanded 12-case matrix, `FifoSync` has a validated expanded 11-case matrix, and pytest defaults to `-n auto --dist=worksteal` through `pytest.ini` so parameterized regressions fan out across worker processes by default.
 
 ## Immediate Next Task
-Add a purpose-built thin wrapper for `AxiLiteAsync` and implement `tests/axi/axi_lite/test_AxiLiteAsync.py` with the shared helper structure.
+Choose the next adjacent low-level `base/` primitive and continue the bottom-up rollout from the validated FIFO foundation.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`

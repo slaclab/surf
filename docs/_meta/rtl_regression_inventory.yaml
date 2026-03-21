@@ -22,6 +22,20 @@ inventory_rules:
   - "Generic-heavy modules should prefer functional_python over smoke_python when actively implemented."
 
 modules:
+  - entity: FifoSync
+    path: base/fifo/rtl/inferred/FifoSync.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_expanded
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoSync.py
+    reference_assets:
+      - base/fifo/tb/FifoFwftTb.vhd
+      - base/fifo/tb/FwftCntTb.vhd
+    notes: "Bottom-up follow-on to FifoAsync. Expanded validated matrix covers FWFT vs standard mode, block vs distributed RAM, reset polarity/style variants, wider/deeper sizing, FWFT pipeline behavior, and threshold-focused cases for the synchronous implementation path."
+    deferred_reason: ""
+
   - entity: FifoAsync
     path: base/fifo/rtl/inferred/FifoAsync.vhd
     subsystem: base
