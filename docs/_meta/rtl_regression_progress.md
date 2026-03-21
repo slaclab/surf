@@ -106,7 +106,8 @@
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
 - The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
-- Future Python regression code should follow the user's preferred comment style: assume limited cocotb familiarity and explain the purpose of most major coroutine steps, waits, stimulus phases, and checks in-place without turning the file into pure prose.
+- Future Python regression code should follow the user's preferred two-layer comment style: keep a module-specific `Test methodology` header block under the SLAC banner and also explain major coroutine steps, waits, stimulus phases, and checks in-place for readers who are not already comfortable with cocotb.
+- The methodology block should use wrapped `Sweep`, `Stimulus`, `Checks`, and `Timing` bullets and describe the real bench behavior, not generic filler text.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 - `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
@@ -152,3 +153,4 @@
 - 2026-03-21: Implemented and validated the next 10-module wrapper/integration batch: `DspComparator`, `Fifo`, `FifoCascade`, `FifoMux`, `AsyncGearbox`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, and `SyncMinMax` (`18 passed`).
 - 2026-03-21: Added `start_lockstep_clocks()` in `tests/common/regression_utils.py` for `COMMON_CLK_G` style benches and recorded that `FifoCascade`/`FifoMux` should keep intentionally narrow wrapper coverage under the current GHDL flow instead of forcing unstable branches.
 - 2026-03-21: Implemented and validated the remaining non-vendor, non-dummy `base/` batch: `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `DualPortRam`, `SlvDelayRam`, `SlvDelayFifo`, `SyncClockFreq`, `SyncTrigRate`, and `SyncTrigRateVector` (`15 passed`). `LutFixedDelay` remains deferred because it still depends on `SinglePortRamPrimitive`.
+- 2026-03-21: Tightened the comment policy for Python regressions: header-level methodology comments and in-body tutorial comments are both required, the methodology block should use wrapped `Sweep`/`Stimulus`/`Checks`/`Timing` bullets, and the text should stay module-specific and editor-readable.

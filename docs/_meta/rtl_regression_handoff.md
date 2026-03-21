@@ -12,6 +12,7 @@
 - Whole-repo target
 - Vendor-heavy modules deferred in phase 1
 - Comment new Python regression code at a tutorial level, assuming the reader may be new to cocotb
+- Give each Python regression two distinct comment layers: a module-specific `Test methodology` block under the SLAC header and tutorial-style comments in the executable code body
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Current Status
@@ -60,7 +61,9 @@ Choose the first post-`base/` graph-guided simulator-friendly follow-on after th
 - Shared Python regression helper lives in `tests/common/regression_utils.py`
 - `tests/common/regression_utils.py` now supports both test-local extra VHDL source lists and generated test-local wrapper emission for wrapper-based cases
 - `tests/common/regression_utils.py` also now provides `start_lockstep_clocks()` for `COMMON_CLK_G` style benches that require truly shared edges
-- Default comment style for new cocotb tests is tutorial-style: explain what each coroutine step is doing and why, not just the non-obvious parts
+- Default comment style for new cocotb tests has two parts: a wrapped four-bullet `Test methodology` header (`Sweep`, `Stimulus`, `Checks`, `Timing`) plus tutorial-style in-body comments that explain what each coroutine step is doing and why
+- The methodology header should be module-specific and describe the real curated sweep, driven sequence, expected outputs/state changes, and timing checks; avoid generic boilerplate
+- Keep methodology comment lines to a normal readable width in the source file
 - Many VHDL wrappers live under `*/tb/`
 - The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
 - The RTL instantiation graph lives in `docs/_meta/rtl_instantiation_graph.{md,json}`

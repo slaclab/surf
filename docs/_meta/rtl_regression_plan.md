@@ -12,8 +12,14 @@
 - VHDL is allowed only for thin wrappers, shims, or required simulation models.
 - Existing VHDL testbenches are reference material, not execution constraints.
 - New Python regression code should use tutorial-style comments by default.
+- Every Python regression should also carry a short module-specific `Test methodology` block immediately under the SLAC header comment.
+- The header methodology block should use four wrapped bullets: `Sweep`, `Stimulus`, `Checks`, and `Timing`.
+- The methodology bullets must describe the actual curated parameter sweep, the actual driven input sequence, the expected outputs or state changes, and the timing/latency/pulse/backpressure behavior being checked for that specific module.
+- Do not use generic placeholder methodology prose; the header should tell a reader what this specific bench is proving.
+- Keep methodology comment lines at a normal source width so the block is readable in the editor instead of turning into single-line paragraphs.
 - Assume the reader is not already comfortable with cocotb.
 - Comment the purpose of each major step in the test flow, including clock startup, reset sequencing, trigger waits, stimulus phases, and result checks.
+- Treat the header methodology block and the in-body tutorial comments as separate requirements; one does not replace the other.
 - Shared helpers may stay somewhat denser, but module-level tests should still explain how the Python coroutine behavior maps onto DUT behavior.
 - When a DUT generic assumes truly common clocks, drive those clocks from one shared cocotb coroutine rather than starting two same-period clocks independently.
 
