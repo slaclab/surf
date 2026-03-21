@@ -361,6 +361,114 @@ modules:
     notes: "Validated common-clock min/max snapshot behavior, including `rstStat` reseeding. Current phase-1 coverage is intentionally limited to the stable common-clock path."
     deferred_reason: ""
 
+  - entity: MasterRamIpIntegrator
+    path: base/general/ip_integrator/MasterRamIpIntegrator.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/general/test_MasterRamIpIntegrator.py
+    reference_assets: []
+    notes: "Validated IP-integrator wrapper coverage for master-side write and read request forwarding, including handshake-safe addressing and shared comment-rich cocotb sequencing."
+    deferred_reason: ""
+
+  - entity: SlaveRamIpIntegrator
+    path: base/general/ip_integrator/SlaveRamIpIntegrator.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/general/test_SlaveRamIpIntegrator.py
+    reference_assets: []
+    notes: "Validated IP-integrator wrapper coverage for slave-side data return and write acceptance behavior using direct cocotb handshakes against the exported RAM-style ports."
+    deferred_reason: ""
+
+  - entity: DualPortRam
+    path: base/ram/inferred/DualPortRam.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/ram/test_DualPortRam.py
+    reference_assets: []
+    notes: "Validated inferred dual-port RAM wrapper with curated coverage for independent port readback, write-mode semantics, registered-output behavior, byte-write masking, and reset polarity variation."
+    deferred_reason: ""
+
+  - entity: SlvDelayRam
+    path: base/delay/rtl/SlvDelayRam.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/delay/test_SlvDelayRam.py
+    reference_assets: []
+    notes: "Validated RAM-backed delay line for configured latency, enable-hold behavior, and reset handling. The bench documents the observed GHDL-visible latency offset instead of pretending the comment-level ideal is cycle-exact."
+    deferred_reason: ""
+
+  - entity: SlvDelayFifo
+    path: base/delay/rtl/SlvDelayFifo.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/delay/test_SlvDelayFifo.py
+    reference_assets: []
+    notes: "Validated FIFO-backed delay line with curated coverage for timestamp-ordered delayed delivery and a short-delay smoke that stays inside the stable visible behavior under the current GHDL flow."
+    deferred_reason: ""
+
+  - entity: SyncClockFreq
+    path: base/sync/rtl/SyncClockFreq.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/base/sync/test_SyncClockFreq.py
+    reference_assets: []
+    notes: "Validated frequency-monitor wrapper using a generated real-generic shim and lockstep shared-clock helper. The common-clock case is checked against a bounded expected range because the current GHDL-visible quantization lands one count above the abstract target."
+    deferred_reason: ""
+
+  - entity: SyncTrigRate
+    path: base/sync/rtl/SyncTrigRate.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/base/sync/test_SyncTrigRate.py
+    reference_assets: []
+    notes: "Validated wrapper/integration coverage for aligned update publication, denser-window rate growth, reset-path liveness, and update-strobe pulse behavior. Exact min/max pipeline semantics remain intentionally covered by the dedicated `SyncMinMax` leaf regression."
+    deferred_reason: ""
+
+  - entity: SyncTrigRateVector
+    path: base/sync/rtl/SyncTrigRateVector.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/base/sync/test_SyncTrigRateVector.py
+    reference_assets: []
+    notes: "Validated vectorized trigger-rate wrapper with a generated flattening shim, per-lane rate independence checks, and shared update-strobe pulse behavior on the stable common-clock path."
+    deferred_reason: ""
+
+  - entity: LutFixedDelay
+    path: base/delay/rtl/LutFixedDelay.vhd
+    subsystem: base
+    tier: deferred_vendor_heavy
+    status: deferred_phase1
+    priority: phase1_deferred
+    wrapper_path: ""
+    python_test: ""
+    reference_assets: []
+    notes: "Single remaining non-dummy `base/` gap after the phase-1 practical rollout."
+    deferred_reason: "Depends on `SinglePortRamPrimitive`, so the current implementation path still drags vendor-specific infrastructure back into the open-source simulation flow."
+
   - entity: AxiStreamFifoV2
     path: axi/axi-stream/rtl/AxiStreamFifoV2.vhd
     subsystem: axi
