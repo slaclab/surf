@@ -15,6 +15,7 @@
 - Assume the reader is not already comfortable with cocotb.
 - Comment the purpose of each major step in the test flow, including clock startup, reset sequencing, trigger waits, stimulus phases, and result checks.
 - Shared helpers may stay somewhat denser, but module-level tests should still explain how the Python coroutine behavior maps onto DUT behavior.
+- When a DUT generic assumes truly common clocks, drive those clocks from one shared cocotb coroutine rather than starting two same-period clocks independently.
 
 ## Scope
 - Whole repo target.
@@ -45,6 +46,8 @@
 - Compute expected behavior dynamically in Python from the active generics.
 - If simulator limitations make direct generic overrides awkward, prefer generated test-local VHDL wrappers over checking in one-off wrapper files for each module.
 - Keep generated wrappers thin and declarative: expose cycle-friendly or cocotb-friendly generics, map them onto the real DUT generics, and emit them from shared Python helpers.
+- For integration wrappers, test the wrapper-specific behavior rather than replaying the full underlying leaf matrix through the wrapper.
+- If only a simulator-stable subset of a wrapper is practical in phase 1, keep that subset intentionally narrow and document the unvalidated branches explicitly in the handoff/progress docs.
 
 ## CI And Runtime Policy
 - Tier-first split.

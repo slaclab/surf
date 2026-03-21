@@ -3,14 +3,15 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: base
-- Current focus module: post-batch planning after the 15-module `base` general/delay/sync rollout
-- Last updated: 2026-03-20
+- Current focus module: selecting the next graph-guided simulator-friendly follow-on after validating `DspComparator`, `Fifo`, `FifoCascade`, `FifoMux`, `AsyncGearbox`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, and `SyncMinMax`
+- Last updated: 2026-03-21
 
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
-| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `SimpleDualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages |
+| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `SimpleDualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages |
+| `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
 | `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
@@ -73,14 +74,16 @@
 - Validated the full 15-module follow-on subset in one run with `./.venv/bin/python -m pytest -n 0 -q tests/base/general/test_Arbiter.py tests/base/general/test_ClockDivider.py tests/base/general/test_Debouncer.py tests/base/general/test_Gearbox.py tests/base/general/test_Heartbeat.py tests/base/general/test_Mux.py tests/base/general/test_OneShot.py tests/base/general/test_RegisterVector.py tests/base/general/test_RstPipelineVector.py tests/base/general/test_Scrambler.py tests/base/general/test_WatchDogRst.py tests/base/delay/test_SlvDelay.py tests/base/delay/test_SlvFixedDelay.py tests/base/sync/test_SynchronizerFifo.py tests/base/sync/test_SynchronizerOneShotCnt.py` (`41 passed`).
 - Added a shared generated-wrapper path in `tests/common/regression_utils.py` and migrated the `Heartbeat` and `Debouncer` regressions away from checked-in one-off VHDL wrappers.
 - Revalidated the generated-wrapper migration locally with `./.venv/bin/python -m pytest -n 0 -q tests/base/general/test_Heartbeat.py tests/base/general/test_Debouncer.py` (`6 passed`) and then revalidated the full 15-module batch (`41 passed`).
+- Implemented `tests/dsp/generic/test_DspComparator.py`, `tests/base/fifo/test_Fifo.py`, `tests/base/fifo/test_FifoCascade.py`, `tests/base/fifo/test_FifoMux.py`, `tests/base/general/test_AsyncGearbox.py`, `tests/base/sync/test_SynchronizerOneShotVector.py`, `tests/base/sync/test_SynchronizerOneShotCntVector.py`, `tests/base/sync/test_SyncStatusVector.py`, `tests/base/sync/test_SyncTrigPeriod.py`, and `tests/base/sync/test_SyncMinMax.py`.
+- Validated the combined 10-module wrapper/integration batch with `./.venv/bin/python -m pytest -n 0 -q tests/dsp/generic/test_DspComparator.py tests/base/fifo/test_Fifo.py tests/base/fifo/test_FifoCascade.py tests/base/fifo/test_FifoMux.py tests/base/general/test_AsyncGearbox.py tests/base/sync/test_SynchronizerOneShotVector.py tests/base/sync/test_SynchronizerOneShotCntVector.py tests/base/sync/test_SyncStatusVector.py tests/base/sync/test_SyncTrigPeriod.py tests/base/sync/test_SyncMinMax.py` (`18 passed`).
 
 ## Current In-Progress Item
-- Choose and scope the next graph-guided `base/` follow-on after the now-validated 15-module general/delay/sync batch and the generated-wrapper helper cleanup.
+- Choose the next graph-guided simulator-friendly follow-on after the now-validated wrapper/integration batch and decide where the next vendor-specific cutoff should be applied.
 
 ## Next 3 Concrete Tasks
-- Update the inventory and handoff artifacts to record the expanded covered primitive layer and the validated generated-wrapper helper path.
-- Choose the next graph-guided `base/` follow-on, likely from the remaining high-reuse wrappers such as `SyncStatusVector` and adjacent vectorized helper blocks.
-- Reuse the generated-wrapper helper the next time a real- or vector-generic leaf needs a cycle-friendly shim, instead of checking in another one-off HDL wrapper.
+- Pick the next bottom-up batch from the graph with the current vendor-heavy cutoff in mind, likely continuing through simulator-friendly wrappers and sync helpers before touching vendor-backed RAM/FIFO variants.
+- Reuse `start_lockstep_clocks()` whenever a DUT generic assumes truly common clocks instead of launching separate same-period oscillators and hoping they stay phase-aligned.
+- Keep wrapper coverage focused on wrapper-specific behavior only, and document any intentionally unvalidated branches explicitly when a full wrapper matrix is not stable under the current open-source flow.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -113,6 +116,8 @@
 - For leaf modules with combinational outputs derived from current request inputs, pulse-based tests should drop the request before sampling post-edge state or they may observe the next pending transaction instead of the one just accepted.
 - The local GHDL flow rejects direct command-line overrides of a 32-bit `slv` generic in `Crc32`; when a parameterized leaf still needs expanded coverage, prefer a thin test-only wrapper over simulator-specific literal hacks.
 - For repeated real-generic shim cases, generated test-local wrappers are a better default than checking in one VHDL file per module; they keep the workaround explicit without growing permanent HDL debris.
+- `COMMON_CLK_G` style benches need truly shared edges, not just same-period clocks. A single cocotb coroutine that drives both clocks in lockstep is the safer default for those wrappers.
+- Integration-wrapper tests should stay narrow and wrapper-specific. `Fifo` validated both inferred sync/async wrapper branches, `FifoCascade` validated public stage-vector plumbing plus a curated output smoke, and `FifoMux` is currently validated only on the stable split-to-narrow path while the packed-write branch remains deferred.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -139,3 +144,5 @@
 - 2026-03-20: Expanded `Crc32` coverage beyond the default IEEE polynomial to include Castagnoli and Koopman-style cases, using a thin test-only VHDL wrapper because local GHDL rejected direct runtime overrides of the 32-bit `CRC_POLY_G` vector generic.
 - 2026-03-20: Implemented and validated the next 15 graph-guided `base` regressions: `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `RstPipelineVector`, `Scrambler`, `WatchDogRst`, `SlvDelay`, `SlvFixedDelay`, `SynchronizerFifo`, and `SynchronizerOneShotCnt` (`41 passed`).
 - 2026-03-21: Replaced the checked-in `Heartbeat`/`Debouncer` wrapper files with a shared generated-wrapper helper in `tests/common/regression_utils.py` and revalidated both the targeted tests (`6 passed`) and the full 15-module batch (`41 passed`).
+- 2026-03-21: Implemented and validated the next 10-module wrapper/integration batch: `DspComparator`, `Fifo`, `FifoCascade`, `FifoMux`, `AsyncGearbox`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, and `SyncMinMax` (`18 passed`).
+- 2026-03-21: Added `start_lockstep_clocks()` in `tests/common/regression_utils.py` for `COMMON_CLK_G` style benches and recorded that `FifoCascade`/`FifoMux` should keep intentionally narrow wrapper coverage under the current GHDL flow instead of forcing unstable branches.

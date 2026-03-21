@@ -1,5 +1,5 @@
 version: 1
-last_updated: 2026-03-20
+last_updated: 2026-03-21
 
 field_guide:
   entity: "Synthesizable RTL entity name"
@@ -239,6 +239,126 @@ modules:
     reference_assets:
       - base/sync/tb/SynchronizerFifoTb.vhd
     notes: "Low-level async FIFO pilot. Expanded validated matrix covers FWFT vs standard mode, block vs distributed RAM, reset polarity/style variants, wider/deeper sizing, non-default sync depth, pipeline behavior, and threshold-focused cases. The matrix intentionally excludes TPD_G and INIT_G as non-behavioral here, and BYP_RAM_G because the current implementation does not exercise a separate bypass-RAM path."
+    deferred_reason: ""
+
+  - entity: DspComparator
+    path: dsp/generic/fixed/DspComparator.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_DspComparator.py
+    reference_assets: []
+    notes: "First validated `dsp/` leaf in the new cocotb flow. Coverage focuses on comparator truth behavior and pipeline/reset variation rather than a large DSP-generic sweep."
+    deferred_reason: ""
+
+  - entity: Fifo
+    path: base/fifo/rtl/Fifo.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_Fifo.py
+    reference_assets: []
+    notes: "Validated wrapper-focused coverage for the inferred backend only. The regression checks sync-vs-async branch selection, wrapper-level data flow, `INIT_G` forwarding, and the sync-mode `wr_data_count`/`rd_data_count` aliasing rule instead of replaying the full FIFO primitive matrix."
+    deferred_reason: ""
+
+  - entity: FifoCascade
+    path: base/fifo/rtl/FifoCascade.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoCascade.py
+    reference_assets: []
+    notes: "Validated wrapper-specific coverage for inferred FWFT paths. The regression checks public `progFullVec`/`progEmptyVec` stage mapping plus a curated output smoke; it intentionally does not claim full multi-stage drain ordering under the current GHDL flow."
+    deferred_reason: ""
+
+  - entity: FifoMux
+    path: base/fifo/rtl/FifoMux.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoMux.py
+    reference_assets: []
+    notes: "Validated wrapper-specific coverage currently targets the stable split-to-narrow path, including endian-aware slicing and reset-safe drain behavior. The pack-to-wide branch remains intentionally unclaimed in phase 1 because it did not surface a stable visible output in the current open-source flow."
+    deferred_reason: ""
+
+  - entity: AsyncGearbox
+    path: base/general/rtl/AsyncGearbox.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/base/general/test_AsyncGearbox.py
+    reference_assets: []
+    notes: "Validated asynchronous gearbox wrapper with a Python bit-level reference model, covering representative width conversion and reset behavior without trying to exhaust the full ratio space."
+    deferred_reason: ""
+
+  - entity: SynchronizerOneShotVector
+    path: base/sync/rtl/SynchronizerOneShotVector.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SynchronizerOneShotVector.py
+    reference_assets: []
+    notes: "Validated vectorized one-shot synchronizer coverage for lane independence and bypass behavior using a small curated lane matrix."
+    deferred_reason: ""
+
+  - entity: SynchronizerOneShotCntVector
+    path: base/sync/rtl/SynchronizerOneShotCntVector.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: generated_test_local
+    python_test: tests/base/sync/test_SynchronizerOneShotCntVector.py
+    reference_assets: []
+    notes: "Validated counted vector one-shot coverage using a generated test-local wrapper to flatten the array-typed output into a cocotb-friendly interface."
+    deferred_reason: ""
+
+  - entity: SyncStatusVector
+    path: base/sync/rtl/SyncStatusVector.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/base/sync/test_SyncStatusVector.py
+    reference_assets: []
+    notes: "Validated status-vector coverage for count/IRQ snapshot behavior. Uses a generated test-local wrapper for the vectorized count output and a lockstep shared-clock helper when `COMMON_CLK_G=true`."
+    deferred_reason: ""
+
+  - entity: SyncTrigPeriod
+    path: base/sync/rtl/SyncTrigPeriod.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SyncTrigPeriod.py
+    reference_assets: []
+    notes: "Validated trigger-period monitor with curated common-clock coverage for period accumulation and reset behavior."
+    deferred_reason: ""
+
+  - entity: SyncMinMax
+    path: base/sync/rtl/SyncMinMax.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SyncMinMax.py
+    reference_assets: []
+    notes: "Validated common-clock min/max snapshot behavior, including `rstStat` reseeding. Current phase-1 coverage is intentionally limited to the stable common-clock path."
     deferred_reason: ""
 
   - entity: AxiStreamFifoV2

@@ -26,6 +26,29 @@ COMMON_VHDL_COMPILE_ARGS = [
 ]
 
 
+def start_lockstep_clocks(*signals, period_ns: float) -> None:
+    import cocotb
+    from cocotb.triggers import Timer
+
+    async def drive() -> None:
+        half_period_ns = period_ns / 2
+        for signal in signals:
+            signal.value = 0
+
+        while True:
+            await Timer(half_period_ns, unit="ns")
+            for signal in signals:
+                signal.value = 1
+            await Timer(half_period_ns, unit="ns")
+            for signal in signals:
+                signal.value = 0
+
+    # Drive logically-common clocks from one coroutine so COMMON_CLK_G tests
+    # really exercise a shared clock, not two same-period oscillators that can
+    # drift in phase relative to each other.
+    cocotb.start_soon(drive())
+
+
 def env_flag(name: str, *, default: bool) -> bool:
     raw = os.environ.get(name)
     if raw is None:
