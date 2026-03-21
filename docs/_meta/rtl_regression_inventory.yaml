@@ -482,6 +482,32 @@ modules:
     notes: "Generic-heavy AXI-Stream pilot. Reused the IP integrator wrapper and migrated the Python regression into the shared package layout. Current validated sweep covers width-conversion cases plus one VALID_THOLD=0 configuration."
     deferred_reason: ""
 
+  - entity: AxiStreamPipeline
+    path: axi/axi-stream/rtl/AxiStreamPipeline.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd
+    python_test: tests/axi/axi_stream/test_AxiStreamPipeline.py
+    reference_assets:
+      - tests/test_AxiStreamPipelineTb.py
+    notes: "Validated AXI-Stream helper with a thin flat-port wrapper. The curated sweep covers zero-stage pass-through, staged pipeline ordering and sideband forwarding, backpressure stability, and synchronous/asynchronous reset handling. Staged cases are checked against the wrapper-visible latency of `PIPE_STAGES_G + 2` clocks plus bounded reset flush behavior."
+    deferred_reason: ""
+
+  - entity: AxiLiteCrossbar
+    path: axi/axi-lite/rtl/AxiLiteCrossbar.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-lite/tb/AxiLiteCrossbarTb.vhd
+    python_test: tests/axi/axi_lite/test_AxiLiteCrossbar.py
+    reference_assets:
+      - axi/axi-lite/tb/AxiLiteCrossbarTb.vhd
+    notes: "Validated AXI-Lite crossbar coverage through the existing cocotb-facing harness topology. The regression checks routed read/write correctness across the local and cascaded regions, decode-miss `DECERR` responses, and concurrent traffic without region cross-coupling."
+    deferred_reason: ""
+
   - entity: AxiLiteAsync
     path: axi/axi-lite/rtl/AxiLiteAsync.vhd
     subsystem: axi

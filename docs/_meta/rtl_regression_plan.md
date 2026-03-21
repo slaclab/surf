@@ -67,6 +67,10 @@
 - Keep VHDL wrappers only when they make Python stimulus materially cleaner.
 - Do not preserve old benches purely for historical reasons.
 - When a wrapper is needed only to adapt simulator-hostile generics, generate it into the test build area from shared helper code rather than keeping a permanent checked-in HDL shim.
+- For SURF AXI/AxiLite record ports, prefer the existing IP-integrator shim layers (`SlaveAxiStreamIpIntegrator`, `MasterAxiStreamIpIntegrator`, `SlaveAxiLiteIpIntegrator`, `MasterAxiLiteIpIntegrator`) instead of hand-writing record-to-flat unpacking in each test wrapper.
+- If a DUT has extra nonstandard side signals, compose those on top of the standard AXI shim pair rather than replacing the standard flattening pattern.
+- More generally, if a VHDL shim layer is needed to make a module practical to drive from cocotb, place that file in the nearest real subsystem `ip_integrator/` folder beside related adapter layers.
+- Do not place cocotb-facing shim/adaptor VHDL under `tests/` or generic `hdl/` buckets when it is serving the same integration role as the existing `*IpIntegrator.vhd` files.
 
 ## Rollout Planning Policy
 - Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.

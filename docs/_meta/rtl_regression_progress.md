@@ -2,8 +2,8 @@
 
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
-- Current subsystem: base
-- Current focus module: select the first post-`base/` simulator-friendly follow-on now that the non-vendor, non-dummy `base/` rollout is effectively complete
+- Current subsystem: axi
+- Current focus module: continue the first post-`base/` simulator-friendly `axi/` follow-on after validating `AxiStreamPipeline` and `AxiLiteCrossbar`
 - Last updated: 2026-03-21
 
 ## Status
@@ -12,7 +12,7 @@
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
-| `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
+| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, and `AxiLiteCrossbar` are now validated under subsystem-packaged `tests/axi/`; `AxiLiteAsync` remains deferred until its wrapper path is cleaned up |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -78,14 +78,17 @@
 - Validated the combined 10-module wrapper/integration batch with `./.venv/bin/python -m pytest -n 0 -q tests/dsp/generic/test_DspComparator.py tests/base/fifo/test_Fifo.py tests/base/fifo/test_FifoCascade.py tests/base/fifo/test_FifoMux.py tests/base/general/test_AsyncGearbox.py tests/base/sync/test_SynchronizerOneShotVector.py tests/base/sync/test_SynchronizerOneShotCntVector.py tests/base/sync/test_SyncStatusVector.py tests/base/sync/test_SyncTrigPeriod.py tests/base/sync/test_SyncMinMax.py` (`18 passed`).
 - Implemented `tests/base/general/test_MasterRamIpIntegrator.py`, `tests/base/general/test_SlaveRamIpIntegrator.py`, `tests/base/ram/test_DualPortRam.py`, `tests/base/delay/test_SlvDelayRam.py`, `tests/base/delay/test_SlvDelayFifo.py`, `tests/base/sync/test_SyncClockFreq.py`, `tests/base/sync/test_SyncTrigRate.py`, and `tests/base/sync/test_SyncTrigRateVector.py`.
 - Validated the combined remaining non-vendor, non-dummy `base/` batch with `./.venv/bin/python -m pytest -n 0 -q tests/base/general/test_MasterRamIpIntegrator.py tests/base/general/test_SlaveRamIpIntegrator.py tests/base/ram/test_DualPortRam.py tests/base/delay/test_SlvDelayRam.py tests/base/delay/test_SlvDelayFifo.py tests/base/sync/test_SyncClockFreq.py tests/base/sync/test_SyncTrigRate.py tests/base/sync/test_SyncTrigRateVector.py` (`15 passed`).
+- Implemented `tests/axi/axi_stream/test_AxiStreamPipeline.py` with a thin flat-port adapter at `axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd`, and validated its curated 3-case sweep locally.
+- Implemented `tests/axi/axi_lite/test_AxiLiteCrossbar.py` against the existing `axi/axi-lite/tb/AxiLiteCrossbarTb.vhd` harness and validated its routed-region, decode-error, and concurrent-traffic coverage locally.
+- Validated the first post-`base/` `axi/` pair with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`4 passed`).
 
 ## Current In-Progress Item
-- Select the next simulator-friendly post-`base/` target set, with `LutFixedDelay` remaining explicitly deferred because it still pulls in vendor-specific `SinglePortRamPrimitive` infrastructure.
+- Select the next simulator-friendly `axi/` follow-on after `AxiStreamPipeline` and `AxiLiteCrossbar`, with `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, and eventual `AxiLiteAsync` cleanup as the most obvious near-term candidates.
 
 ## Next 3 Concrete Tasks
-- Choose the first non-`base/` follow-on from the graph, likely in a still-simulator-friendly wrapper/helper layer such as the deferred `axi/` pilot path rather than the vendor-backed `devices/` or `xilinx/` trees.
+- Continue the `axi/` rollout with the next simulator-friendly stream helpers, starting with `AxiStreamMux`/`AxiStreamDeMux` or `AxiStreamResize`.
 - Keep `LutFixedDelay` out of phase 1 unless `SinglePortRamPrimitive` gets a practical open-source simulation path or a project-approved alternative implementation route.
-- Reuse `start_lockstep_clocks()` and the generated-wrapper helper whenever wrapper benches depend on truly common clocks or simulator-hostile generic interfaces, and keep any resulting wrapper coverage explicitly narrow and documented.
+- Reuse thin wrappers or existing harnesses only when they improve cocotb access materially, and keep wrapper coverage explicitly narrow and documented.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -124,6 +127,10 @@
 - `SyncClockFreq` is stable under the generated-wrapper approach, but the common-clock path quantizes one count above the abstract frequency target under GHDL, so the regression checks a bounded expected range instead of an over-precise exact integer.
 - `SyncTrigRate` is now covered as a wrapper/integration bench: it validates aligned update publication, denser-window rate growth, reset-path liveness, and update-strobe pulse behavior. Exact min/max pipeline arithmetic remains covered by the dedicated `SyncMinMax` leaf regression rather than being re-proven through the wrapper.
 - `LutFixedDelay` is the lone non-dummy `base/` entity still deferred in phase 1 because it depends on `SinglePortRamPrimitive`, which is currently only available through the vendor/dummy-backed path.
+- `AxiStreamPipeline` is stable with a thin flat-port wrapper. The zero-stage case should be checked as true pass-through, while staged cases should be checked against the wrapper-visible latency of `PIPE_STAGES_G + 2` clocks and a bounded reset flush rather than an over-precise internal-stage assumption.
+- `AxiLiteCrossbar` is practical under the current open-source flow by reusing the existing `AxiLiteCrossbarTb.vhd` harness as a cocotb-facing shell. The useful regression surface is routed-region correctness, decode-miss `DECERR` handling, and concurrent traffic through the cascaded topology, not a giant generic sweep.
+- SURF already has reusable AXI record-flattening shims. New AXI Stream and AXI-Lite wrappers should prefer the existing IP-integrator shim layers over hand-written record packing, and only custom-wire the DUT-specific extra side signals on top.
+- More generally, any VHDL shim layer added only to make a module fit cleanly into cocotb should live in the nearest real subsystem `ip_integrator/` tree, not under `tests/` and not under generic `hdl/` directories.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -154,3 +161,8 @@
 - 2026-03-21: Added `start_lockstep_clocks()` in `tests/common/regression_utils.py` for `COMMON_CLK_G` style benches and recorded that `FifoCascade`/`FifoMux` should keep intentionally narrow wrapper coverage under the current GHDL flow instead of forcing unstable branches.
 - 2026-03-21: Implemented and validated the remaining non-vendor, non-dummy `base/` batch: `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `DualPortRam`, `SlvDelayRam`, `SlvDelayFifo`, `SyncClockFreq`, `SyncTrigRate`, and `SyncTrigRateVector` (`15 passed`). `LutFixedDelay` remains deferred because it still depends on `SinglePortRamPrimitive`.
 - 2026-03-21: Tightened the comment policy for Python regressions: header-level methodology comments and in-body tutorial comments are both required, the methodology block should use wrapped `Sweep`/`Stimulus`/`Checks`/`Timing` bullets, and the text should stay module-specific and editor-readable.
+- 2026-03-21: Started the first post-`base/` simulator-friendly `axi/` follow-on with `AxiStreamPipeline` and `AxiLiteCrossbar` as the next migration targets, using the legacy flat Python benches only as intent/reference while keeping the new work under subsystem-packaged tests.
+- 2026-03-21: Implemented and validated `AxiStreamPipeline` and `AxiLiteCrossbar` as the first post-`base/` `axi/` follow-on. `AxiStreamPipeline` uses a thin flat-port wrapper plus a curated pass-through/staged/reset sweep, and `AxiLiteCrossbar` reuses the existing harness for routed-region, decode-error, and concurrent-traffic checks (`4 passed` combined).
+- 2026-03-21: Refactored the `AxiStreamPipeline` test adapter to reuse the existing `SlaveAxiStreamIpIntegrator`/`MasterAxiStreamIpIntegrator` shim pair for standard AXIS flattening, preserving only the pipeline-specific sideband wiring in the adapter (`3 passed` on the pipeline regression after the refactor).
+- 2026-03-21: Moved and renamed the `AxiStreamPipeline` adapter to `axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd` so its path and name match the existing AXI IP-integrator adapter conventions and live with the rest of the AXI adapter layer.
+- 2026-03-21: Tightened the planning rule for cocotb-facing shim placement: if a VHDL adapter is needed to fit a module into cocotb, place it in the nearest real subsystem `ip_integrator/` tree alongside the existing integration shims rather than under `tests/`.
