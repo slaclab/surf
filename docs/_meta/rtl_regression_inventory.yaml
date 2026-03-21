@@ -22,6 +22,66 @@ inventory_rules:
   - "Generic-heavy modules should prefer functional_python over smoke_python when actively implemented."
 
 modules:
+  - entity: SynchronizerVector
+    path: base/sync/rtl/SynchronizerVector.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/sync/test_SynchronizerVector.py
+    reference_assets: []
+    notes: "High-reuse `base/sync` vector leaf selected from the instantiation graph. Validated curated matrix covers width variation, stage-depth latency, synchronous vs asynchronous reset handling, active-high vs active-low reset polarity, output inversion, and bypass behavior."
+    deferred_reason: ""
+
+  - entity: RstPipeline
+    path: base/general/rtl/RstPipeline.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/general/test_RstPipeline.py
+    reference_assets: []
+    notes: "High-reuse `base/general` reset-distribution leaf selected from the instantiation graph. Validated matrix covers stage-depth latency and `INV_RST_G` behavior; timing-only and synthesis-only generics remain intentionally out of scope."
+    deferred_reason: ""
+
+  - entity: SimpleDualPortRam
+    path: base/ram/inferred/SimpleDualPortRam.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/ram/test_SimpleDualPortRam.py
+    reference_assets: []
+    notes: "Graph-guided shared RAM primitive with validated direct cocotb coverage for baseline port-A write/port-B read operation, optional output register behavior, byte-write masking, and synchronous/asynchronous reset polarity variants on the read side."
+    deferred_reason: ""
+
+  - entity: FifoOutputPipeline
+    path: base/fifo/rtl/FifoOutputPipeline.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoOutputPipeline.py
+    reference_assets: []
+    notes: "Graph-guided FIFO leaf with validated coverage for zero-latency passthrough, pipelined ordering, backpressure holding behavior, and synchronous/asynchronous reset polarity variants using a small FWFT-style source model."
+    deferred_reason: ""
+
+  - entity: FifoWrFsm
+    path: base/fifo/rtl/inferred/FifoWrFsm.vhd
+    subsystem: base
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/base/fifo/test_FifoWrFsm.py
+    reference_assets: []
+    notes: "Graph-guided FIFO write-side primitive with validated coverage for startup readiness, count/index progression, full and overflow behavior, programmable-full threshold behavior, gray-coded async mode, and reset polarity/style variants."
+    deferred_reason: ""
+
   - entity: Synchronizer
     path: base/sync/rtl/Synchronizer.vhd
     subsystem: base

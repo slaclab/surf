@@ -11,7 +11,10 @@
 - Local Python commands should use the repo virtualenv interpreter (`./.venv/bin/python`) unless the virtualenv has already been explicitly activated in that shell.
 - VHDL is allowed only for thin wrappers, shims, or required simulation models.
 - Existing VHDL testbenches are reference material, not execution constraints.
-- New Python regression code should include concise comments where test intent, runner plumbing, parametrization rationale, or cocotb/pytest interaction is not obvious from the code alone.
+- New Python regression code should use tutorial-style comments by default.
+- Assume the reader is not already comfortable with cocotb.
+- Comment the purpose of each major step in the test flow, including clock startup, reset sequencing, trigger waits, stimulus phases, and result checks.
+- Shared helpers may stay somewhat denser, but module-level tests should still explain how the Python coroutine behavior maps onto DUT behavior.
 
 ## Scope
 - Whole repo target.

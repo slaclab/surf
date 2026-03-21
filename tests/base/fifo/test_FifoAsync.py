@@ -15,14 +15,19 @@ import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, with_timeout
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import (
+    env_flag,
+    hdl_parameters_from,
+    parameter_case,
+    run_surf_vhdl_test,
+)
 
 
 class TB:
     def __init__(self, dut, *, wr_clk_period_ns: float, rd_clk_period_ns: float):
         self.dut = dut
-        self.reset_is_active_high = _env_flag("RST_ACTIVE_HIGH", default=True)
-        self.fwft_enabled = _env_flag("FWFT_EN_G", default=False)
+        self.reset_is_active_high = env_flag("RST_ACTIVE_HIGH", default=True)
+        self.fwft_enabled = env_flag("FWFT_EN_G", default=False)
 
         dut.wr_en.value = 0
         dut.rd_en.value = 0
@@ -43,7 +48,7 @@ class TB:
         # first transaction, then give the FIFO a few clean post-reset cycles.
         self.dut.rst.value = self._reset_active_value()
 
-        if _env_flag("RST_ASYNC_G", default=False):
+        if env_flag("RST_ASYNC_G", default=False):
             await Timer(3, unit="ns")
             for _ in range(6):
                 await RisingEdge(self.dut.wr_clk)
@@ -118,19 +123,6 @@ class TB:
             await RisingEdge(self.dut.rd_clk)
 
 
-def _env_flag(name: str, *, default: bool) -> bool:
-    raw = os.environ.get(name)
-    if raw is None:
-        return default
-
-    normalized = raw.strip().strip("'").lower()
-    if normalized in {"1", "true"}:
-        return True
-    if normalized in {"0", "false"}:
-        return False
-    raise ValueError(f"Unsupported boolean environment value for {name}: {raw}")
-
-
 @cocotb.test()
 async def basic_ordering_test(dut):
     tb = TB(
@@ -160,7 +152,7 @@ async def full_empty_flag_test(dut):
     )
     await tb.reset()
 
-    if not _env_flag("CHECK_FULL_EMPTY", default=True):
+    if not env_flag("CHECK_FULL_EMPTY", default=True):
         return
 
     # Standard mode exposes one slot less than the raw address space, while
@@ -179,7 +171,7 @@ async def full_empty_flag_test(dut):
 
 @cocotb.test()
 async def threshold_flag_test(dut):
-    if not _env_flag("CHECK_THRESHOLD_FLAGS", default=False):
+    if not env_flag("CHECK_THRESHOLD_FLAGS", default=False):
         return
 
     tb = TB(
@@ -218,16 +210,12 @@ async def threshold_flag_test(dut):
         await with_timeout(tb._wait_prog_empty(1), 5, "us")
 
 
-def _case(case_id: str, **parameters):
-    return pytest.param(parameters, id=case_id)
-
-
 PARAMETER_SWEEP = [
     # These cases cover the major functional axes of FifoAsync without trying
     # to brute-force every generic combination. TPD_G is timing-only, INIT_G is
     # not used in the current implementation, and BYP_RAM_G has no active
     # generate path here, so they are intentionally excluded from this matrix.
-    _case(
+    parameter_case(
         "block_fwft_baseline",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -245,7 +233,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "distributed_fwft",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -263,7 +251,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="11",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "block_standard_fifo",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -281,7 +269,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "distributed_standard_fifo",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -299,7 +287,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="11",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "block_fwft_pipeline2",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -317,7 +305,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "fwft_async_reset",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -335,7 +323,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "fwft_active_low_reset",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -353,7 +341,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="0",
     ),
-    _case(
+    parameter_case(
         "fwft_sync_stages4",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -371,7 +359,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "wider_deeper_fifo",
         DATA_WIDTH_G="32",
         ADDR_WIDTH_G="5",
@@ -389,7 +377,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="9",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "narrow_distributed_deeper_fifo",
         DATA_WIDTH_G="8",
         ADDR_WIDTH_G="5",
@@ -407,7 +395,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="11",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "fwft_threshold_midpoint",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -425,7 +413,7 @@ PARAMETER_SWEEP = [
         RD_CLK_PERIOD_NS="13",
         RST_ACTIVE_HIGH="1",
     ),
-    _case(
+    parameter_case(
         "standard_threshold_near_full",
         DATA_WIDTH_G="16",
         ADDR_WIDTH_G="4",
@@ -448,23 +436,9 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_FifoAsync(parameters):
-    # Keep simulator generics separate from runtime-only knobs such as the
-    # cocotb clock periods that do not exist on the HDL entity.
-    hdl_parameters = {
-        key: value
-        for key, value in parameters.items()
-        if key.endswith("_G")
-    }
-
-    runtime_env = {
-        key: value
-        for key, value in parameters.items()
-        if not key.endswith("_G")
-    }
-
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.fifoasync",
-        parameters=hdl_parameters,
-        extra_env={**hdl_parameters, **runtime_env},
+        parameters=hdl_parameters_from(parameters),
+        extra_env=parameters,
     )

@@ -10,7 +10,7 @@
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
-| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, and `Synchronizer` under `tests/base/fifo/` and `tests/base/sync/` |
+| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `Synchronizer`, `SynchronizerVector`, `RstPipeline`, and `SimpleDualPortRam` under subsystem-organized `tests/base/` packages |
 | `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
@@ -21,7 +21,7 @@
 - Use Python-only executable test logic.
 - Use `pytest + cocotb + GHDL + ruckus` as the primary stack.
 - Keep VHDL only for wrappers, shims, and required simulation models.
-- Comment new Python regression code so non-obvious test intent and framework behavior are documented in-place.
+- Comment new Python regression code at a tutorial level so readers who are new to cocotb can follow the flow in-place.
 - Whole repo is the long-term target.
 - Phase 1 focuses on simulator-friendly modules.
 - Vendor-heavy modules are deferred in phase 1.
@@ -57,13 +57,18 @@
 - Implemented `tests/base/fifo/test_FifoSync.py` and validated its 11-case matrix locally under parallel pytest execution.
 - Added `scripts/build_rtl_instantiation_graph.py` and generated checked-in graph artifacts in `docs/_meta/rtl_instantiation_graph.{md,json}`.
 - Implemented `tests/base/sync/test_Synchronizer.py` and validated its 6-case matrix locally under parallel pytest execution.
+- Implemented `tests/base/sync/test_SynchronizerVector.py` and validated its 6-case matrix locally under parallel pytest execution.
+- Implemented `tests/base/general/test_RstPipeline.py` and validated its 4-case matrix locally under parallel pytest execution.
+- Implemented `tests/base/ram/test_SimpleDualPortRam.py` and validated its 5-case matrix locally under parallel pytest execution.
+- Implemented `tests/base/fifo/test_FifoOutputPipeline.py` and validated its 5-case matrix locally under parallel pytest execution.
+- Implemented `tests/base/fifo/test_FifoWrFsm.py` and validated its 4-case matrix locally under parallel pytest execution.
 
 ## Current In-Progress Item
-- Use the checked-in instantiation graph to choose the next high-reuse `base/` follow-on after the validated `Synchronizer` leaf.
+- Use the checked-in instantiation graph to choose the next `base/` follow-on after validating the current five-module batch (`SynchronizerVector`, `RstPipeline`, `SimpleDualPortRam`, `FifoOutputPipeline`, `FifoWrFsm`).
 
 ## Next 3 Concrete Tasks
-- Choose the next high-reuse `base/` follow-on, likely `SynchronizerVector` or `RstPipeline`.
-- Decide whether to stay in `base/sync` for reuse leverage or switch back to another leaf such as `FifoOutputPipeline` or `SimpleDualPortRam`.
+- Choose the next `base/` target from the remaining graph-guided leaf set, likely `FifoRdFsm`, `Crc32Parallel`, or `Gearbox`.
+- Decide whether to finish the low-level FIFO cluster with `FifoRdFsm` next or switch to another high-reuse non-FIFO leaf.
 - Keep the graph artifacts current as the inventory and rollout strategy evolve.
 
 ## Blockers And Risks
@@ -85,7 +90,7 @@
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
 - The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
-- Future Python regression code should continue the current comment style: explain non-obvious intent and framework mechanics, but avoid line-by-line narration.
+- Future Python regression code should follow the user's preferred comment style: assume limited cocotb familiarity and explain the purpose of most major coroutine steps, waits, stimulus phases, and checks in-place without turning the file into pure prose.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 - `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
@@ -93,6 +98,8 @@
 - The first graph pass surfaced `Synchronizer`, `SynchronizerVector`, `SimpleDualPortRam`, `FifoOutputPipeline`, `FifoRdFsm`, and `FifoWrFsm` as concrete `base/` bottom-up candidates after the FIFO pilots.
 - Duplicate entity names are common in SURF due to dummy/vendor variants, so graph consumers need to read path context rather than rely on entity names alone.
 - Direct cocotb tests for simple SURF leaf modules still need to account for `TPD_G` when sampling outputs after clock or reset events; sampling exactly at the nominal edge can create false negatives.
+- Simple RAM tests benefit from a small startup warm-up and conservative read sampling so direct and registered output configurations share one stable helper.
+- For leaf modules with combinational outputs derived from current request inputs, pulse-based tests should drop the request before sampling post-edge state or they may observe the next pending transaction instead of the one just accepted.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -113,3 +120,5 @@
 - 2026-03-20: Added and generated the first-pass RTL instantiation graph to guide bottom-up rollout decisions and reduce repeated test effort across the hierarchy.
 - 2026-03-20: Implemented and validated a 6-case `Synchronizer` matrix under `tests/base/sync/test_Synchronizer.py` as the next graph-guided `base` leaf.
 - 2026-03-20: Documented that local Python commands should use `./.venv/bin/python` unless the virtualenv is already activated, after a bare `python` invocation failed due to a missing shell shim.
+- 2026-03-20: Implemented and validated the next five graph-guided `base` regressions: `SynchronizerVector`, `RstPipeline`, `SimpleDualPortRam`, `FifoOutputPipeline`, and `FifoWrFsm`.
+- 2026-03-20: Updated the planning and handoff docs to preserve the user's tutorial-style cocotb comment preference for future regressions.

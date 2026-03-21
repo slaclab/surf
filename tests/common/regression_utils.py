@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
+import pytest
 from cocotb_test.simulator import run
 
 
@@ -21,6 +23,42 @@ COMMON_VHDL_COMPILE_ARGS = [
     "-Wno-specs",
     "-O2",
 ]
+
+
+def env_flag(name: str, *, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+
+    normalized = raw.strip().strip("'").lower()
+    if normalized in {"1", "true"}:
+        return True
+    if normalized in {"0", "false"}:
+        return False
+    raise ValueError(f"Unsupported boolean environment value for {name}: {raw}")
+
+
+def env_sl(name: str, *, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+
+    normalized = raw.strip().strip("'")
+    if normalized in {"0", "1"}:
+        return int(normalized)
+    raise ValueError(f"Unsupported std_logic environment value for {name}: {raw}")
+
+
+def parameter_case(case_id: str, **parameters: str):
+    return pytest.param(parameters, id=case_id)
+
+
+def hdl_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in parameters.items()
+        if key.endswith("_G")
+    }
 
 
 def _build_vhdl_sources() -> dict[str, list[str]]:
