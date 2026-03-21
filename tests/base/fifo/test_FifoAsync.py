@@ -31,6 +31,8 @@ class TB:
         cocotb.start_soon(Clock(dut.rd_clk, rd_clk_period_ns, unit="ns").start())
 
     async def reset(self) -> None:
+        # Hold reset long enough for both clock domains to settle before the
+        # first transaction, then give the FIFO a few clean post-reset cycles.
         self.dut.rst.value = 1
         for _ in range(6):
             await RisingEdge(self.dut.wr_clk)
@@ -47,6 +49,7 @@ class TB:
         await RisingEdge(self.dut.wr_clk)
         self.dut.wr_en.value = 0
         await RisingEdge(self.dut.wr_clk)
+        # Let FWFT outputs settle before the next operation samples status.
         await Timer(2, unit="ns")
 
     async def read_word(self) -> int:
@@ -130,6 +133,8 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_FifoAsync(parameters):
+    # Keep simulator generics separate from runtime-only knobs such as the
+    # cocotb clock periods that do not exist on the HDL entity.
     hdl_parameters = {
         key: value
         for key, value in parameters.items()

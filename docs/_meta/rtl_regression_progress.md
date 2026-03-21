@@ -2,8 +2,8 @@
 
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
-- Current subsystem: cross-cutting infrastructure
-- Current focus module: `AxiStreamFifoV2`
+- Current subsystem: axi
+- Current focus module: `AxiLiteAsync`
 - Last updated: 2026-03-20
 
 ## Status
@@ -11,7 +11,7 @@
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; new regressions should be package-organized |
 | `base` | started | not started | started | Initial validated pilot regression exists at `tests/base/fifo/test_FifoAsync.py` |
-| `axi` | started | not started | not started | Pilots selected: `AxiStreamFifoV2` and `AxiLiteAsync` |
+| `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is next |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -21,6 +21,7 @@
 - Use Python-only executable test logic.
 - Use `pytest + cocotb + GHDL + ruckus` as the primary stack.
 - Keep VHDL only for wrappers, shims, and required simulation models.
+- Comment new Python regression code so non-obvious test intent and framework behavior are documented in-place.
 - Whole repo is the long-term target.
 - Phase 1 focuses on simulator-friendly modules.
 - Vendor-heavy modules are deferred in phase 1.
@@ -49,13 +50,14 @@
 - Reorganized new regressions into subsystem packages under `tests/` and moved shared helpers to `tests/common/`.
 - Added `tests/README.md` to document the regression layout policy.
 - Ran a quick HDL coverage spike against the local Homebrew `ghdl` build and confirmed it does not expose `--coverage` or a `coverage` subcommand.
+- Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py` and validated the current 10-case sweep locally.
 
 ## Current In-Progress Item
-- Expand the organized shared-helper pattern and move to the next pilot module.
+- Start the `AxiLiteAsync` pilot with a purpose-built thin wrapper under the AXI-Lite test package.
 
 ## Next 3 Concrete Tasks
-- Create the `tests/axi/axi_stream/` package and migrate `AxiStreamFifoV2` onto the shared helper structure there.
-- Decide whether `AxiLiteAsync` should get a new thin wrapper instead of reusing the legacy tb file directly, and place that regression under `tests/axi/axi_lite/`.
+- Add a thin cocotb-friendly wrapper for `AxiLiteAsync` because the existing VHDL tb contains verification logic, not just interface exposure.
+- Implement `tests/axi/axi_lite/test_AxiLiteAsync.py` using the shared helper structure and the new wrapper.
 - Expand `FifoAsync` coverage to include additional configurations or edge-case pulses after the next pilot is stable.
 
 ## Blockers And Risks
@@ -75,6 +77,8 @@
 - The first shared-helper-based pilot is working; start simple and grow coverage incrementally rather than front-loading every edge case.
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
+- The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
+- Future Python regression code should continue the current comment style: explain non-obvious intent and framework mechanics, but avoid line-by-line narration.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -86,3 +90,5 @@
 - 2026-03-20: Added `tests/regression_utils.py` and landed the first passing pilot regression for `FifoAsync`.
 - 2026-03-20: Moved new regression infrastructure to `tests/common/`, relocated `FifoAsync` to `tests/base/fifo/`, and documented the subsystem-organized test layout.
 - 2026-03-20: Checked local HDL coverage viability; the installed LLVM-backed `ghdl` rejects `--coverage`, so HDL coverage is deferred pending a different simulator/backend decision.
+- 2026-03-20: Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/` and validated the full current 10-case sweep in 146s.
+- 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.

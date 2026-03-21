@@ -39,13 +39,13 @@ modules:
     path: axi/axi-stream/rtl/AxiStreamFifoV2.vhd
     subsystem: axi
     tier: wrapper_required
-    status: selected_not_started
+    status: implemented_validated_initial
     priority: pilot
     wrapper_path: axi/axi-stream/ip_integrator/AxiStreamFifoV2IpIntegrator.vhd
     python_test: tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py
     reference_assets:
       - tests/test_AxiStreamFifoV2IpIntegrator.py
-    notes: "Generic-heavy AXI-Stream pilot. Reuse the IP integrator wrapper and evolve the Python test into the shared framework pattern."
+    notes: "Generic-heavy AXI-Stream pilot. Reused the IP integrator wrapper and migrated the Python regression into the shared package layout. Current validated sweep covers width-conversion cases plus one VALID_THOLD=0 configuration."
     deferred_reason: ""
 
   - entity: AxiLiteAsync

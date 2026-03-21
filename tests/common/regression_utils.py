@@ -5,6 +5,8 @@ from pathlib import Path
 from cocotb_test.simulator import run
 
 
+# Keep all repo-relative path resolution in one place so tests can move into
+# subsystem packages without having to duplicate build tree logic.
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = REPO_ROOT / "tests"
 BUILD_SRC_ROOT = REPO_ROOT / "build" / "SRC_VHDL"
@@ -37,6 +39,8 @@ def _build_vhdl_sources() -> dict[str, list[str]]:
 
 
 def _module_name_from_test_file(test_file: Path) -> str:
+    # cocotb expects a Python import path for the module that contains the
+    # @cocotb.test() entrypoints, not a filesystem path.
     return ".".join(test_file.resolve().relative_to(REPO_ROOT).with_suffix("").parts)
 
 
@@ -46,6 +50,8 @@ def _sim_build_path(test_file: Path, parameters: dict[str, object] | None) -> st
     if not parameters:
         return str(build_dir)
 
+    # Parameter-specific build directories keep parallel pytest runs from
+    # trampling each other's compile/elaboration artifacts.
     suffix = ",".join(f"{key}={value}" for key, value in parameters.items())
     return str(build_dir.with_name(f"{test_file.stem}.{suffix}"))
 

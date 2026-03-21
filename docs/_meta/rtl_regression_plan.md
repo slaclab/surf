@@ -10,6 +10,7 @@
 - Primary stack: `pytest + cocotb + GHDL + ruckus`.
 - VHDL is allowed only for thin wrappers, shims, or required simulation models.
 - Existing VHDL testbenches are reference material, not execution constraints.
+- New Python regression code should include concise comments where test intent, runner plumbing, parametrization rationale, or cocotb/pytest interaction is not obvious from the code alone.
 
 ## Scope
 - Whole repo target.
