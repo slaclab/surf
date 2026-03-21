@@ -3,14 +3,14 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: base
-- Current focus module: graph-guided `base` bottom-up rollout
+- Current focus module: post-batch planning after the 15-module `base` general/delay/sync rollout
 - Last updated: 2026-03-20
 
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
-| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `RstSync`, `RstPipeline`, `PwrUpRst`, `SimpleDualPortRam`, `TrueDualPortRam`, `LutRam`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages |
+| `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `SimpleDualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages |
 | `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is deferred while bottom-up base coverage expands |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
@@ -69,14 +69,18 @@
 - Implemented `tests/base/ram/test_TrueDualPortRam.py` and `tests/base/ram/test_LutRam.py` and validated their combined 9-case RAM batch locally under parallel pytest execution.
 - Implemented `tests/base/fifo/test_FifoRdFsm.py` and validated its 4-case matrix locally under parallel pytest execution.
 - Validated the full 10-module follow-on subset in one run with `./.venv/bin/python -m pytest -v tests/base/crc/test_Crc32Parallel.py tests/base/crc/test_Crc32.py tests/base/crc/test_CRC32Rtl.py tests/base/sync/test_RstSync.py tests/base/general/test_PwrUpRst.py tests/base/sync/test_SynchronizerEdge.py tests/base/sync/test_SynchronizerOneShot.py tests/base/ram/test_TrueDualPortRam.py tests/base/ram/test_LutRam.py tests/base/fifo/test_FifoRdFsm.py` (`38 passed`).
+- Implemented `tests/base/general/test_Arbiter.py`, `tests/base/general/test_ClockDivider.py`, `tests/base/general/test_Debouncer.py`, `tests/base/general/test_Gearbox.py`, `tests/base/general/test_Heartbeat.py`, `tests/base/general/test_Mux.py`, `tests/base/general/test_OneShot.py`, `tests/base/general/test_RegisterVector.py`, `tests/base/general/test_RstPipelineVector.py`, `tests/base/general/test_Scrambler.py`, `tests/base/general/test_WatchDogRst.py`, `tests/base/delay/test_SlvDelay.py`, `tests/base/delay/test_SlvFixedDelay.py`, `tests/base/sync/test_SynchronizerFifo.py`, and `tests/base/sync/test_SynchronizerOneShotCnt.py`.
+- Validated the full 15-module follow-on subset in one run with `./.venv/bin/python -m pytest -n 0 -q tests/base/general/test_Arbiter.py tests/base/general/test_ClockDivider.py tests/base/general/test_Debouncer.py tests/base/general/test_Gearbox.py tests/base/general/test_Heartbeat.py tests/base/general/test_Mux.py tests/base/general/test_OneShot.py tests/base/general/test_RegisterVector.py tests/base/general/test_RstPipelineVector.py tests/base/general/test_Scrambler.py tests/base/general/test_WatchDogRst.py tests/base/delay/test_SlvDelay.py tests/base/delay/test_SlvFixedDelay.py tests/base/sync/test_SynchronizerFifo.py tests/base/sync/test_SynchronizerOneShotCnt.py` (`41 passed`).
+- Added a shared generated-wrapper path in `tests/common/regression_utils.py` and migrated the `Heartbeat` and `Debouncer` regressions away from checked-in one-off VHDL wrappers.
+- Revalidated the generated-wrapper migration locally with `./.venv/bin/python -m pytest -n 0 -q tests/base/general/test_Heartbeat.py tests/base/general/test_Debouncer.py` (`6 passed`) and then revalidated the full 15-module batch (`41 passed`).
 
 ## Current In-Progress Item
-- Use the checked-in instantiation graph to choose the next `base/` follow-on after validating the current 10-module batch (`Crc32Parallel`, `Crc32`, `CRC32Rtl`, `RstSync`, `PwrUpRst`, `SynchronizerEdge`, `SynchronizerOneShot`, `TrueDualPortRam`, `LutRam`, `FifoRdFsm`).
+- Choose and scope the next graph-guided `base/` follow-on after the now-validated 15-module general/delay/sync batch and the generated-wrapper helper cleanup.
 
 ## Next 3 Concrete Tasks
-- Choose the next `base/` target from the remaining graph-guided leaf set, likely `Gearbox` or another still-uncovered reusable primitive.
-- Decide whether to keep extending the low-level `base/` primitive layer or start climbing one level higher where the new FIFO/sync/RAM/CRC leaves should already reduce duplicate effort.
-- Keep the graph artifacts current as the inventory and rollout strategy evolve.
+- Update the inventory and handoff artifacts to record the expanded covered primitive layer and the validated generated-wrapper helper path.
+- Choose the next graph-guided `base/` follow-on, likely from the remaining high-reuse wrappers such as `SyncStatusVector` and adjacent vectorized helper blocks.
+- Reuse the generated-wrapper helper the next time a real- or vector-generic leaf needs a cycle-friendly shim, instead of checking in another one-off HDL wrapper.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -108,6 +112,7 @@
 - Simple RAM tests benefit from a small startup warm-up and conservative read sampling so direct and registered output configurations share one stable helper.
 - For leaf modules with combinational outputs derived from current request inputs, pulse-based tests should drop the request before sampling post-edge state or they may observe the next pending transaction instead of the one just accepted.
 - The local GHDL flow rejects direct command-line overrides of a 32-bit `slv` generic in `Crc32`; when a parameterized leaf still needs expanded coverage, prefer a thin test-only wrapper over simulator-specific literal hacks.
+- For repeated real-generic shim cases, generated test-local wrappers are a better default than checking in one VHDL file per module; they keep the workaround explicit without growing permanent HDL debris.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -132,3 +137,5 @@
 - 2026-03-20: Updated the planning and handoff docs to preserve the user's tutorial-style cocotb comment preference for future regressions.
 - 2026-03-20: Implemented and validated the next 10 graph-guided `base` regressions: `Crc32Parallel`, `Crc32`, `CRC32Rtl`, `RstSync`, `PwrUpRst`, `SynchronizerEdge`, `SynchronizerOneShot`, `TrueDualPortRam`, `LutRam`, and `FifoRdFsm`.
 - 2026-03-20: Expanded `Crc32` coverage beyond the default IEEE polynomial to include Castagnoli and Koopman-style cases, using a thin test-only VHDL wrapper because local GHDL rejected direct runtime overrides of the 32-bit `CRC_POLY_G` vector generic.
+- 2026-03-20: Implemented and validated the next 15 graph-guided `base` regressions: `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `RstPipelineVector`, `Scrambler`, `WatchDogRst`, `SlvDelay`, `SlvFixedDelay`, `SynchronizerFifo`, and `SynchronizerOneShotCnt` (`41 passed`).
+- 2026-03-21: Replaced the checked-in `Heartbeat`/`Debouncer` wrapper files with a shared generated-wrapper helper in `tests/common/regression_utils.py` and revalidated both the targeted tests (`6 passed`) and the full 15-module batch (`41 passed`).

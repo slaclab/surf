@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from cocotb_test.simulator import run
@@ -123,6 +124,67 @@ def _sim_build_path(test_file: Path, parameters: dict[str, object] | None) -> st
     # trampling each other's compile/elaboration artifacts.
     suffix = ",".join(f"{key}={value}" for key, value in parameters.items())
     return str(build_dir.with_name(f"{test_file.stem}.{suffix}"))
+
+
+def build_vhdl_wrapper_source(
+    *,
+    wrapper_name: str,
+    wrapped_entity: str,
+    generic_declarations: list[str],
+    port_declarations: list[str],
+    generic_map: list[str],
+    port_map: list[str],
+) -> str:
+    generic_block = ""
+    if generic_declarations:
+        generic_lines = ";\n".join(f"      {line}" for line in generic_declarations)
+        generic_block = f"   generic (\n{generic_lines});\n"
+
+    port_lines = ";\n".join(f"      {line}" for line in port_declarations)
+    generic_map_lines = ",\n".join(f"         {line}" for line in generic_map)
+    port_map_lines = ",\n".join(f"         {line}" for line in port_map)
+
+    # Keep generated wrappers tiny and predictable so tests can use them as
+    # disposable shims instead of checking in one HDL file per generic issue.
+    return dedent(
+        f"""\
+        library ieee;
+        use ieee.std_logic_1164.all;
+
+        library surf;
+        use surf.StdRtlPkg.all;
+
+        entity {wrapper_name} is
+        {generic_block}   port (
+        {port_lines});
+        end entity {wrapper_name};
+
+        architecture rtl of {wrapper_name} is
+        begin
+           U_DUT : entity surf.{wrapped_entity}
+              generic map (
+        {generic_map_lines})
+              port map (
+        {port_map_lines});
+        end architecture rtl;
+        """
+    )
+
+
+def generate_vhdl_wrapper(
+    *,
+    test_file: str | Path,
+    wrapper_name: str,
+    source: str,
+    parameters: dict[str, object] | None = None,
+) -> str:
+    test_file = Path(test_file)
+    sim_build_dir = Path(_sim_build_path(test_file, parameters))
+    wrapper_dir = sim_build_dir / "generated_hdl"
+    wrapper_dir.mkdir(parents=True, exist_ok=True)
+    wrapper_path = wrapper_dir / f"{wrapper_name}.vhd"
+    wrapper_path.write_text(source)
+    return str(wrapper_path)
 
 
 def run_surf_vhdl_test(

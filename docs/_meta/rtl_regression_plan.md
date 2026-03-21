@@ -43,6 +43,8 @@
 - Build curated configuration matrices in Python.
 - Do not use naive full Cartesian products for broad generic spaces.
 - Compute expected behavior dynamically in Python from the active generics.
+- If simulator limitations make direct generic overrides awkward, prefer generated test-local VHDL wrappers over checking in one-off wrapper files for each module.
+- Keep generated wrappers thin and declarative: expose cycle-friendly or cocotb-friendly generics, map them onto the real DUT generics, and emit them from shared Python helpers.
 
 ## CI And Runtime Policy
 - Tier-first split.
@@ -55,6 +57,7 @@
 - Rewrite executable test logic in Python when migrating a module into the new regression system.
 - Keep VHDL wrappers only when they make Python stimulus materially cleaner.
 - Do not preserve old benches purely for historical reasons.
+- When a wrapper is needed only to adapt simulator-hostile generics, generate it into the test build area from shared helper code rather than keeping a permanent checked-in HDL shim.
 
 ## Rollout Planning Policy
 - Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.
@@ -69,6 +72,7 @@
 - Add smoke coverage for simulator-friendly modules.
 - Add functional Python tests for the highest-value pilot modules and reusable blocks.
 - Define the migration pattern for wrappers and generic-heavy modules.
+- Standardize the generated-wrapper pattern for real- or vector-generic leaves that need cycle-native test knobs under GHDL.
 
 ### Phase 2
 - Deepen randomized and adversarial coverage.
