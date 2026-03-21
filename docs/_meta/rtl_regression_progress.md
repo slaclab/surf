@@ -9,8 +9,8 @@
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
-| Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; new regressions should be package-organized |
-| `base` | started | not started | started | Initial validated pilot regression exists at `tests/base/fifo/test_FifoAsync.py` |
+| Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
+| `base` | started | not started | started | Expanded validated `FifoAsync` matrix exists at `tests/base/fifo/test_FifoAsync.py` |
 | `axi` | started | not started | started | `AxiStreamFifoV2` is now validated in `tests/axi/axi_stream/`; `AxiLiteAsync` is next |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
@@ -51,6 +51,8 @@
 - Added `tests/README.md` to document the regression layout policy.
 - Ran a quick HDL coverage spike against the local Homebrew `ghdl` build and confirmed it does not expose `--coverage` or a `coverage` subcommand.
 - Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py` and validated the current 10-case sweep locally.
+- Expanded `FifoAsync` into a curated 12-case matrix and validated it locally under parallel pytest execution.
+- Added `pytest.ini` to default to `-n auto --dist=worksteal`, and aligned CI to rely on that default xdist configuration.
 
 ## Current In-Progress Item
 - Start the `AxiLiteAsync` pilot with a purpose-built thin wrapper under the AXI-Lite test package.
@@ -79,6 +81,7 @@
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
 - The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
 - Future Python regression code should continue the current comment style: explain non-obvious intent and framework mechanics, but avoid line-by-line narration.
+- `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -92,3 +95,4 @@
 - 2026-03-20: Checked local HDL coverage viability; the installed LLVM-backed `ghdl` rejects `--coverage`, so HDL coverage is deferred pending a different simulator/backend decision.
 - 2026-03-20: Migrated `AxiStreamFifoV2` into `tests/axi/axi_stream/` and validated the full current 10-case sweep in 146s.
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
+- 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.

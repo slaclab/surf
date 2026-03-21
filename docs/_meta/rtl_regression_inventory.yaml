@@ -26,13 +26,13 @@ modules:
     path: base/fifo/rtl/inferred/FifoAsync.vhd
     subsystem: base
     tier: functional_python
-    status: implemented_validated_initial
+    status: implemented_validated_expanded
     priority: pilot
     wrapper_path: ""
     python_test: tests/base/fifo/test_FifoAsync.py
     reference_assets:
       - base/sync/tb/SynchronizerFifoTb.vhd
-    notes: "Low-level async FIFO pilot. Initial validated regression covers reset, ordering, and full/empty progression for a block-memory FWFT configuration. Overflow/underflow timing and distributed-memory coverage remain follow-up work."
+    notes: "Low-level async FIFO pilot. Expanded validated matrix covers FWFT vs standard mode, block vs distributed RAM, reset polarity/style variants, wider/deeper sizing, non-default sync depth, pipeline behavior, and threshold-focused cases. The matrix intentionally excludes TPD_G and INIT_G as non-behavioral here, and BYP_RAM_G because the current implementation does not exercise a separate bypass-RAM path."
     deferred_reason: ""
 
   - entity: AxiStreamFifoV2

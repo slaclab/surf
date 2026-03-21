@@ -96,7 +96,7 @@ jobs:
       - name: VHDL Regression Testing
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto tests/
+          python -m pytest --cov -v tests/
 
       - name: Code Coverage
         run: |
