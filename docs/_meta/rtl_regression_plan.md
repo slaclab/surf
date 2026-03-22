@@ -139,13 +139,13 @@ Completed foundation through the current `axi/` follow-on:
 54. `AxiLiteCrossbar`
 55. `AxiStreamMux`
 56. `AxiStreamDeMux`
-
-Current remaining phase-1 queue:
 57. `AxiStreamResize`
 58. `AxiLiteAsync`
 59. `AxiLiteMaster`
 60. `AxiLiteToDrp`
 61. `AxiDualPortRam`
+
+Current remaining phase-1 queue:
 62. `AxiStreamGearbox`
 63. `AxiRam`
 64. `AxiRingBuffer`

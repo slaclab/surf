@@ -3,7 +3,7 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: axi
-- Current focus module: continue the flat phase-1 build order at `AxiStreamResize`, the next queued item after the now-validated `AxiStreamDeMux`
+- Current focus module: continue the flat phase-1 build order at `AxiStreamGearbox`, the next queued item after the now-validated `AxiDualPortRam`
 - Last updated: 2026-03-21
 
 ## Status
@@ -12,7 +12,7 @@
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
-| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, and `AxiLiteCrossbar` are now validated under subsystem-packaged `tests/axi/`; `AxiStreamResize` is the next flat-queue item and `AxiLiteAsync` remains deferred until its wrapper path is cleaned up |
+| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync` and `AxiLiteToDrp` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async branches remain open. |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -87,12 +87,12 @@
 - Revalidated the current small `axi/` follow-on subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_stream/test_AxiStreamMux.py tests/axi/axi_stream/test_AxiStreamDeMux.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`10 passed`).
 
 ## Current In-Progress Item
-- Implement `AxiStreamResize` as the next flat-queue item after the now-validated `AxiStreamDeMux`, keeping the wrapper coverage narrow and resize-specific instead of reviving the older broad harness as the default execution path.
+- Implement `AxiStreamGearbox` as the next flat-queue item after the now-validated `AxiDualPortRam`, keeping the first wrapper bench intentionally narrow and gearbox-specific rather than inheriting an older broad harness by default.
 
 ## Next 3 Concrete Tasks
-- Implement `AxiStreamResize`, while keeping `LutFixedDelay` deferred and any wrapper coverage intentionally narrow unless a concrete blocker forces a reorder.
-- Revisit `AxiLiteAsync` only after the current AXI-Stream trio is in place or if a concrete wrapper cleanup makes it practical sooner.
-- Continue down the flat queue to `AxiLiteMaster` once `AxiStreamResize` is validated.
+- Implement `AxiStreamGearbox` as the next queued AXI leaf after the now-validated resize/lite bridge batch.
+- Continue down the flat queue to `AxiRam` once `AxiStreamGearbox` is validated.
+- Continue down the flat queue to `AxiRingBuffer` after `AxiRam`, while keeping `LutFixedDelay` and vendor-backed branches deferred unless a concrete blocker forces a reorder.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -105,14 +105,14 @@
 - Generic-heavy modules strongly favor Python-authored tests.
 - Broad repo coverage will require tiering and likely later sharding.
 - The initial inventory file should remain small and explicit rather than auto-generated until the schema stabilizes.
-- `AxiStreamFifoV2` already has a useful wrapper-plus-Python pattern; `AxiLiteAsync` likely needs wrapper cleanup before it fits the new model.
+- `AxiStreamFifoV2` already has a useful wrapper-plus-Python pattern, and the same shim-first approach works well for later AXI wrappers when the DUT-specific extra signals are kept thin.
 - The local machine needs a reproducible one-command bootstrap path before test implementation work can move efficiently.
 - The bootstrap path is now working locally with `~/ruckus` linked into the repo.
 - Bare `python` should not be assumed to exist on `PATH` in this repo's shell environment; use `./.venv/bin/python` for local pytest and helper-script invocations unless the virtualenv is already activated.
 - The first shared-helper-based pilot is working; start simple and grow coverage incrementally rather than front-loading every edge case.
 - New regressions need to live in subsystem packages from the start; do not add more flat `tests/test_*.py` files.
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
-- The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic.
+- The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic; `AxiLiteAsyncIpIntegrator.vhd` is now the cleaner cocotb-facing adapter.
 - Future Python regression code should follow the user's preferred two-layer comment style: keep a module-specific `Test methodology` header block under the SLAC banner and also explain major coroutine steps, waits, stimulus phases, and checks in-place for readers who are not already comfortable with cocotb.
 - The methodology block should use wrapped `Sweep`, `Stimulus`, `Checks`, and `Timing` bullets and describe the real bench behavior, not generic filler text.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
@@ -181,3 +181,5 @@
 - 2026-03-21: Started the next flat-queue `axi/` item, `AxiStreamDeMux`, and began evaluating whether a dedicated cocotb-facing adapter is cleaner than reusing the older combined DeMux/Mux harness for the first narrow wrapper bench.
 - 2026-03-21: Implemented and validated `AxiStreamDeMux` with `axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd` plus `tests/axi/axi_stream/test_AxiStreamDeMux.py`. The validated 3-case sweep covers indexed routing, exact-match routed decode under output backpressure, and dynamic-route/drop/reset behavior (`3 passed`).
 - 2026-03-21: Revalidated the current small `axi/` follow-on subset with `tests/axi/axi_stream/test_AxiStreamPipeline.py`, `tests/axi/axi_stream/test_AxiStreamMux.py`, `tests/axi/axi_stream/test_AxiStreamDeMux.py`, and `tests/axi/axi_lite/test_AxiLiteCrossbar.py` in one run (`10 passed`).
+- 2026-03-21: Started scoping the next five flat-queue modules after `AxiStreamDeMux`: `AxiStreamResize`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam`, beginning with a wrapper/reference-asset pass to separate straightforward benches from blocks that still need adapter cleanup.
+- 2026-03-21: Implemented and validated the next five flat-queue modules: `AxiStreamResize`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam`. The five-module batch passes with `10 passed`, and a broader AXI follow-on sanity run across pipeline, mux, demux, resize, crossbar, async, master, DRP bridge, and dual-port RAM passes with `20 passed`. `AxiLiteAsync` and `AxiLiteToDrp` intentionally keep only the stable common-clock subsets in this first batch; the async CDC/arbitration branches remain open.

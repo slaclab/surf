@@ -540,11 +540,61 @@ modules:
     path: axi/axi-lite/rtl/AxiLiteAsync.vhd
     subsystem: axi
     tier: wrapper_required
-    status: selected_not_started
-    priority: pilot
-    wrapper_path: axi/axi-lite/tb/AxiLiteAsyncTb.vhd
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-lite/ip_integrator/AxiLiteAsyncIpIntegrator.vhd
     python_test: tests/axi/axi_lite/test_AxiLiteAsync.py
     reference_assets:
       - axi/axi-lite/tb/AxiLiteAsyncTb.vhd
-    notes: "AXI-Lite CDC pilot. Likely needs a purpose-built thin wrapper later because the current tb file contains verification logic, not just interface exposure."
+    notes: "Validated AXI-Lite async-wrapper coverage with a purpose-built IP-integrator adapter. The current passing subset is intentionally narrow: common-clock pass-through plus restart/recovery on the stable wrapper path. The asynchronous reset-crossing branches remain open for later work because they were not simulator-stable enough for this initial batch."
+    deferred_reason: ""
+
+  - entity: AxiStreamResize
+    path: axi/axi-stream/rtl/AxiStreamResize.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-stream/ip_integrator/AxiStreamResizeIpIntegrator.vhd
+    python_test: tests/axi/axi_stream/test_AxiStreamResize.py
+    reference_assets:
+      - axi/axi-stream/tb/AxiStreamResizeTb.vhd
+    notes: "Validated AXI-Stream resize coverage with a thin flat-port adapter. The curated sweep covers equal-width pass-through, 2-byte to 4-byte upsize, and 4-byte to 2-byte downsize with sideband alignment checks plus staged reset flush in the resized cases."
+    deferred_reason: ""
+
+  - entity: AxiLiteMaster
+    path: axi/axi-lite/rtl/AxiLiteMaster.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-lite/ip_integrator/AxiLiteMasterIpIntegrator.vhd
+    python_test: tests/axi/axi_lite/test_AxiLiteMaster.py
+    reference_assets: []
+    notes: "Validated AXI-Lite master coverage with a thin request/ack-to-flat-port adapter and a cocotb slave model. The first bench covers write/read request sequencing, staggered AXI ready/valid handshakes, propagated `SLVERR` responses, and reset return to idle."
+    deferred_reason: ""
+
+  - entity: AxiLiteToDrp
+    path: axi/bridge/rtl/AxiLiteToDrp.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/bridge/ip_integrator/AxiLiteToDrpIpIntegrator.vhd
+    python_test: tests/axi/bridge/test_AxiLiteToDrp.py
+    reference_assets: []
+    notes: "Validated AXI-Lite-to-DRP bridge coverage with a thin flat-port wrapper. The current passing subset is intentionally narrow: common-clock non-arbitrated write/read mapping plus timeout-driven `SLVERR` and `drpUsrRst` recovery. The async arbitration branch remains open for later work."
+    deferred_reason: ""
+
+  - entity: AxiDualPortRam
+    path: axi/axi-lite/rtl/AxiDualPortRam.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-lite/ip_integrator/AxiDualPortRamIpIntegrator.vhd
+    python_test: tests/axi/axi_lite/test_AxiDualPortRam.py
+    reference_assets:
+      - axi/axi-lite/ip_integrator/AxiDualPortRamIpIntegrator.vhd
+    notes: "Validated AXI dual-port RAM coverage through the existing wrapper. The curated sweep covers AXI round-trips, system-port visibility of AXI writes, byte-masked system writes, and AXI write-disable `SLVERR` behavior when wrapper error responses are enabled."
     deferred_reason: ""
