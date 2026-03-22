@@ -82,7 +82,7 @@
 ## Flat Build Order
 This is the current phase-1 simulator-friendly default queue. It is intentionally flat so future windows can resume by taking the next unfinished, non-deferred item instead of re-deriving priorities from the graph JSON.
 
-Completed foundation before the current `axi/` follow-on:
+Completed foundation through the current `axi/` follow-on:
 1. `FifoAsync`
 2. `AxiStreamFifoV2`
 3. `FifoSync`
@@ -137,9 +137,9 @@ Completed foundation before the current `axi/` follow-on:
 52. `SyncTrigRateVector`
 53. `AxiStreamPipeline`
 54. `AxiLiteCrossbar`
+55. `AxiStreamMux`
 
 Current remaining phase-1 queue:
-55. `AxiStreamMux`
 56. `AxiStreamDeMux`
 57. `AxiStreamResize`
 58. `AxiLiteAsync`
