@@ -8,8 +8,8 @@
 - Packages are not graph nodes.
 
 ## Summary
-- Entities: `679`
-- Edges: `1317`
+- Entities: `686`
+- Edges: `1336`
 - Topological layers: `12`
 - Duplicate entity names: `51`
 
@@ -20,22 +20,22 @@
 | Synchronizer | 73 | 0 | base/sync/rtl/Synchronizer.vhd |
 | SynchronizerVector | 41 | 0 | base/sync/rtl/SynchronizerVector.vhd |
 | AxiStreamFifoV2 | 40 | 5 | axi/axi-stream/rtl/AxiStreamFifoV2.vhd |
-| AxiStreamPipeline | 37 | 0 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
+| AxiStreamPipeline | 38 | 0 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
 | SynchronizerFifo | 37 | 1 | base/sync/rtl/SynchronizerFifo.vhd |
 | PwrUpRst | 36 | 1 | base/general/rtl/PwrUpRst.vhd |
 | AxiLiteCrossbar | 29 | 0 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
+| AxiLiteToDrp | 28 | 1 | axi/bridge/rtl/AxiLiteToDrp.vhd |
 | SynchronizerOneShot | 28 | 2 | base/sync/rtl/SynchronizerOneShot.vhd |
-| AxiLiteToDrp | 27 | 1 | axi/bridge/rtl/AxiLiteToDrp.vhd |
-| AxiLiteAsync | 21 | 1 | axi/axi-lite/rtl/AxiLiteAsync.vhd |
+| AxiLiteAsync | 22 | 1 | axi/axi-lite/rtl/AxiLiteAsync.vhd |
 | Fifo | 17 | 4 | base/fifo/rtl/Fifo.vhd |
 | SynchronizerEdge | 16 | 1 | base/sync/rtl/SynchronizerEdge.vhd |
 | RstPipeline | 15 | 0 | base/general/rtl/RstPipeline.vhd |
 | SyncStatusVector | 15 | 2 | base/sync/rtl/SyncStatusVector.vhd |
+| AxiLiteMaster | 14 | 0 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
+| AxiStreamMux | 14 | 1 | axi/axi-stream/rtl/AxiStreamMux.vhd |
 | EthMacTop | 14 | 5 | ethernet/EthMacCore/rtl/EthMacTop.vhd |
 | IoBufWrapper | 14 | 0 | xilinx/dummy/IoBufWrapperDummy.vhd |
-| AxiLiteMaster | 13 | 0 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
-| AxiStreamMux | 13 | 1 | axi/axi-stream/rtl/AxiStreamMux.vhd |
-| AxiStreamDeMux | 12 | 1 | axi/axi-stream/rtl/AxiStreamDeMux.vhd |
+| AxiStreamDeMux | 13 | 1 | axi/axi-stream/rtl/AxiStreamDeMux.vhd |
 
 ## Top Assemblers
 | entity | instantiates_count | instantiated_by_count | path |
@@ -66,11 +66,11 @@
 | --- | --- | --- |
 | Synchronizer | 73 | base/sync/rtl/Synchronizer.vhd |
 | SynchronizerVector | 41 | base/sync/rtl/SynchronizerVector.vhd |
-| AxiStreamPipeline | 37 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
+| AxiStreamPipeline | 38 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
 | AxiLiteCrossbar | 29 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
 | RstPipeline | 15 | base/general/rtl/RstPipeline.vhd |
+| AxiLiteMaster | 14 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
 | IoBufWrapper | 14 | xilinx/dummy/IoBufWrapperDummy.vhd |
-| AxiLiteMaster | 13 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
 | Decoder8b10b | 10 | protocols/line-codes/rtl/Decoder8b10b.vhd |
 | SimpleDualPortRam | 9 | base/ram/inferred/SimpleDualPortRam.vhd |
 | Crc32Parallel | 7 | base/crc/rtl/Crc32Parallel.vhd |

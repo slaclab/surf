@@ -1,0 +1,5787 @@
+{
+  "generated_from": {
+    "scan_dirs": [
+      "base",
+      "axi",
+      "protocols",
+      "ethernet",
+      "devices",
+      "xilinx"
+    ],
+    "source_graph_script": "scripts/build_rtl_instantiation_graph.py",
+    "override_file": "docs/_meta/rtl_phase1_queue_overrides.json",
+    "queue_policy": "Path-qualified, phase-1 filtered, bottom-up instantiation order"
+  },
+  "summary": {
+    "phase1_module_count": 411,
+    "phase1_edge_count": 704,
+    "phase1_bottom_up_layers": 11,
+    "deferred_module_count": 331,
+    "unresolved_phase1_edges": 0,
+    "applied_order_overrides": 0
+  },
+  "phase1_rules": {
+    "force_include_entities": [],
+    "force_include_paths": [],
+    "deferred_subsystems": [
+      {
+        "name": "devices",
+        "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+      },
+      {
+        "name": "xilinx",
+        "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+      }
+    ],
+    "deferred_entities": [
+      {
+        "entity": "LutFixedDelay",
+        "reason": "Depends on SinglePortRamPrimitive under the current open-source flow."
+      }
+    ],
+    "deferred_paths": [],
+    "deferred_path_substrings": [
+      {
+        "pattern": "axi/simlink/",
+        "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+      },
+      {
+        "pattern": "/sim/",
+        "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+      },
+      {
+        "pattern": "/dummy/",
+        "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+      },
+      {
+        "pattern": "/altera/",
+        "reason": "Vendor-specific implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "/xilinx/",
+        "reason": "Vendor-specific implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "7Series",
+        "reason": "Family-specific implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "UltraScale",
+        "reason": "Family-specific implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "UltraScale+",
+        "reason": "Family-specific implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "/gth",
+        "reason": "GT-family implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "/gtp",
+        "reason": "GT-family implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "/gty",
+        "reason": "GT-family implementation branches are deferred in phase 1."
+      },
+      {
+        "pattern": "/gtx",
+        "reason": "GT-family implementation branches are deferred in phase 1."
+      }
+    ],
+    "preferred_paths_by_entity": {},
+    "order_overrides": []
+  },
+  "applied_order_overrides": [],
+  "queue": [
+    {
+      "order": 1,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteCrossbar",
+      "path": "axi/axi-lite/rtl/AxiLiteCrossbar.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 5
+    },
+    {
+      "order": 2,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteMaster",
+      "path": "axi/axi-lite/rtl/AxiLiteMaster.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 11
+    },
+    {
+      "order": 3,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteRegs",
+      "path": "axi/axi-lite/rtl/AxiLiteRegs.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 4,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteRespTimer",
+      "path": "axi/axi-lite/rtl/AxiLiteRespTimer.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 5,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteSlave",
+      "path": "axi/axi-lite/rtl/AxiLiteSlave.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 6,
+      "bottom_up_layer": 0,
+      "entity": "AxiLiteWriteFilter",
+      "path": "axi/axi-lite/rtl/AxiLiteWriteFilter.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 7,
+      "bottom_up_layer": 0,
+      "entity": "AxiVersion",
+      "path": "axi/axi-lite/rtl/AxiVersion.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 8,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamCombiner",
+      "path": "axi/axi-stream/rtl/AxiStreamCombiner.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 9,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamFlush",
+      "path": "axi/axi-stream/rtl/AxiStreamFlush.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 10,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamGearboxPack",
+      "path": "axi/axi-stream/rtl/AxiStreamGearboxPack.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 11,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamGearboxUnpack",
+      "path": "axi/axi-stream/rtl/AxiStreamGearboxUnpack.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 12,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamPipeline",
+      "path": "axi/axi-stream/rtl/AxiStreamPipeline.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 38
+    },
+    {
+      "order": 13,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamSplitter",
+      "path": "axi/axi-stream/rtl/AxiStreamSplitter.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 14,
+      "bottom_up_layer": 0,
+      "entity": "AxiReadPathMux",
+      "path": "axi/axi4/rtl/AxiReadPathMux.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 15,
+      "bottom_up_layer": 0,
+      "entity": "AxiResize",
+      "path": "axi/axi4/rtl/AxiResize.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 16,
+      "bottom_up_layer": 0,
+      "entity": "AxiWritePathMux",
+      "path": "axi/axi4/rtl/AxiWritePathMux.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 17,
+      "bottom_up_layer": 0,
+      "entity": "AxiToAxiLite",
+      "path": "axi/bridge/rtl/AxiToAxiLite.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 18,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamDmaV2WriteMux",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2WriteMux.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 19,
+      "bottom_up_layer": 0,
+      "entity": "CRC32Rtl",
+      "path": "base/crc/rtl/CRC32Rtl.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 20,
+      "bottom_up_layer": 0,
+      "entity": "Crc32",
+      "path": "base/crc/rtl/Crc32.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 21,
+      "bottom_up_layer": 0,
+      "entity": "Crc32Parallel",
+      "path": "base/crc/rtl/Crc32Parallel.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 7
+    },
+    {
+      "order": 22,
+      "bottom_up_layer": 0,
+      "entity": "SlvDelay",
+      "path": "base/delay/rtl/SlvDelay.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 23,
+      "bottom_up_layer": 0,
+      "entity": "SlvDelayRam",
+      "path": "base/delay/rtl/SlvDelayRam.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 24,
+      "bottom_up_layer": 0,
+      "entity": "SlvFixedDelay",
+      "path": "base/delay/rtl/SlvFixedDelay.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 25,
+      "bottom_up_layer": 0,
+      "entity": "FifoOutputPipeline",
+      "path": "base/fifo/rtl/FifoOutputPipeline.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 26,
+      "bottom_up_layer": 0,
+      "entity": "FifoRdFsm",
+      "path": "base/fifo/rtl/inferred/FifoRdFsm.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 27,
+      "bottom_up_layer": 0,
+      "entity": "FifoWrFsm",
+      "path": "base/fifo/rtl/inferred/FifoWrFsm.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 28,
+      "bottom_up_layer": 0,
+      "entity": "MasterRamIpIntegrator",
+      "path": "base/general/ip_integrator/MasterRamIpIntegrator.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 29,
+      "bottom_up_layer": 0,
+      "entity": "SlaveRamIpIntegrator",
+      "path": "base/general/ip_integrator/SlaveRamIpIntegrator.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 30,
+      "bottom_up_layer": 0,
+      "entity": "Arbiter",
+      "path": "base/general/rtl/Arbiter.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 31,
+      "bottom_up_layer": 0,
+      "entity": "ClockDivider",
+      "path": "base/general/rtl/ClockDivider.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 32,
+      "bottom_up_layer": 0,
+      "entity": "Gearbox",
+      "path": "base/general/rtl/Gearbox.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 5
+    },
+    {
+      "order": 33,
+      "bottom_up_layer": 0,
+      "entity": "Heartbeat",
+      "path": "base/general/rtl/Heartbeat.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 34,
+      "bottom_up_layer": 0,
+      "entity": "Mux",
+      "path": "base/general/rtl/Mux.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 35,
+      "bottom_up_layer": 0,
+      "entity": "OneShot",
+      "path": "base/general/rtl/OneShot.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 36,
+      "bottom_up_layer": 0,
+      "entity": "RegisterVector",
+      "path": "base/general/rtl/RegisterVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 37,
+      "bottom_up_layer": 0,
+      "entity": "RstPipeline",
+      "path": "base/general/rtl/RstPipeline.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 12
+    },
+    {
+      "order": 38,
+      "bottom_up_layer": 0,
+      "entity": "Scrambler",
+      "path": "base/general/rtl/Scrambler.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 5
+    },
+    {
+      "order": 39,
+      "bottom_up_layer": 0,
+      "entity": "LutRam",
+      "path": "base/ram/inferred/LutRam.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 40,
+      "bottom_up_layer": 0,
+      "entity": "SimpleDualPortRam",
+      "path": "base/ram/inferred/SimpleDualPortRam.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 6
+    },
+    {
+      "order": 41,
+      "bottom_up_layer": 0,
+      "entity": "TrueDualPortRam",
+      "path": "base/ram/inferred/TrueDualPortRam.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 42,
+      "bottom_up_layer": 0,
+      "entity": "Synchronizer",
+      "path": "base/sync/rtl/Synchronizer.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 39
+    },
+    {
+      "order": 43,
+      "bottom_up_layer": 0,
+      "entity": "SynchronizerVector",
+      "path": "base/sync/rtl/SynchronizerVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 27
+    },
+    {
+      "order": 44,
+      "bottom_up_layer": 0,
+      "entity": "EthCrc32Parallel",
+      "path": "ethernet/EthMacCore/rtl/EthCrc32Parallel.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 45,
+      "bottom_up_layer": 0,
+      "entity": "EthMacFlowCtrl",
+      "path": "ethernet/EthMacCore/rtl/EthMacFlowCtrl.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 46,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxBypass",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxBypass.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 47,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxCsum",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxCsum.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 48,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxFilter",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxFilter.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 49,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxImportXlgmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxImportXlgmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 50,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxPause",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxPause.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 51,
+      "bottom_up_layer": 0,
+      "entity": "EthMacTxBypass",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxBypass.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 52,
+      "bottom_up_layer": 0,
+      "entity": "EthMacTxExportXlgmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxExportXlgmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 53,
+      "bottom_up_layer": 0,
+      "entity": "EthMacTxPause",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxPause.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 54,
+      "bottom_up_layer": 0,
+      "entity": "ArpEngine",
+      "path": "ethernet/IpV4Engine/rtl/ArpEngine.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 55,
+      "bottom_up_layer": 0,
+      "entity": "IcmpEngine",
+      "path": "ethernet/IpV4Engine/rtl/IcmpEngine.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 56,
+      "bottom_up_layer": 0,
+      "entity": "IgmpV2Engine",
+      "path": "ethernet/IpV4Engine/rtl/IgmpV2Engine.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 57,
+      "bottom_up_layer": 0,
+      "entity": "IpV4EngineDeMux",
+      "path": "ethernet/IpV4Engine/rtl/IpV4EngineDeMux.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 58,
+      "bottom_up_layer": 0,
+      "entity": "RawEthFramerRx",
+      "path": "ethernet/RawEthFramer/rtl/RawEthFramerRx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 59,
+      "bottom_up_layer": 0,
+      "entity": "EthMacPrepareForICrc",
+      "path": "ethernet/RoCEv2/rtl/EthMacPrepareForICrc.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 60,
+      "bottom_up_layer": 0,
+      "entity": "EthMacRxCheckICrc",
+      "path": "ethernet/RoCEv2/rtl/EthMacRxCheckICrc.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 61,
+      "bottom_up_layer": 0,
+      "entity": "RoceConfigurator",
+      "path": "ethernet/RoCEv2/rtl/RoceConfigurator.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 62,
+      "bottom_up_layer": 0,
+      "entity": "UdpEngineArp",
+      "path": "ethernet/UdpEngine/rtl/UdpEngineArp.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 63,
+      "bottom_up_layer": 0,
+      "entity": "ClinkReg",
+      "path": "protocols/clink/rtl/ClinkReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 64,
+      "bottom_up_layer": 0,
+      "entity": "ClinkUartThrottle",
+      "path": "protocols/clink/rtl/ClinkUartThrottle.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 65,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressEventAckMsg",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressEventAckMsg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 66,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressOverFiberBridgeRx",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressOverFiberBridgeRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 67,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressOverFiberBridgeTx",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressOverFiberBridgeTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 68,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressRxLane",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressRxLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 69,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressRxWordPacker",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressRxWordPacker.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 70,
+      "bottom_up_layer": 0,
+      "entity": "CoaXPressTxLsFsm",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressTxLsFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 71,
+      "bottom_up_layer": 0,
+      "entity": "GLinkEncoder",
+      "path": "protocols/glink/core/rtl/GLinkEncoder.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 72,
+      "bottom_up_layer": 0,
+      "entity": "HammingEccDecoder",
+      "path": "protocols/hamming-ecc/rtl/HammingEccDecoder.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 73,
+      "bottom_up_layer": 0,
+      "entity": "HammingEccEncoder",
+      "path": "protocols/hamming-ecc/rtl/HammingEccEncoder.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 74,
+      "bottom_up_layer": 0,
+      "entity": "I2cRegMasterAxiBridge",
+      "path": "protocols/i2c/rtl/I2cRegMasterAxiBridge.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 75,
+      "bottom_up_layer": 0,
+      "entity": "I2cRegMasterMux",
+      "path": "protocols/i2c/rtl/I2cRegMasterMux.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 76,
+      "bottom_up_layer": 0,
+      "entity": "I2cSlave",
+      "path": "protocols/i2c/rtl/I2cSlave.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 77,
+      "bottom_up_layer": 0,
+      "entity": "i2c_master_bit_ctrl",
+      "path": "protocols/i2c/rtl/i2c_master_bit_ctrl.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 78,
+      "bottom_up_layer": 0,
+      "entity": "i2c2ahbx",
+      "path": "protocols/i2c/rtl/orig/i2c2ahbx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 79,
+      "bottom_up_layer": 0,
+      "entity": "i2cslv",
+      "path": "protocols/i2c/rtl/orig/i2cslv.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 80,
+      "bottom_up_layer": 0,
+      "entity": "JesdAlignChGen",
+      "path": "protocols/jesd204b/rtl/JesdAlignChGen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 81,
+      "bottom_up_layer": 0,
+      "entity": "JesdAlignFrRepCh",
+      "path": "protocols/jesd204b/rtl/JesdAlignFrRepCh.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 82,
+      "bottom_up_layer": 0,
+      "entity": "JesdIlasGen",
+      "path": "protocols/jesd204b/rtl/JesdIlasGen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 83,
+      "bottom_up_layer": 0,
+      "entity": "JesdLmfcGen",
+      "path": "protocols/jesd204b/rtl/JesdLmfcGen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 84,
+      "bottom_up_layer": 0,
+      "entity": "JesdSyncFsmRx",
+      "path": "protocols/jesd204b/rtl/JesdSyncFsmRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 85,
+      "bottom_up_layer": 0,
+      "entity": "JesdSyncFsmTx",
+      "path": "protocols/jesd204b/rtl/JesdSyncFsmTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 86,
+      "bottom_up_layer": 0,
+      "entity": "JesdSyncFsmTxTest",
+      "path": "protocols/jesd204b/rtl/JesdSyncFsmTxTest.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 87,
+      "bottom_up_layer": 0,
+      "entity": "JesdTestSigGen",
+      "path": "protocols/jesd204b/rtl/JesdTestSigGen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 88,
+      "bottom_up_layer": 0,
+      "entity": "JesdTestStreamTx",
+      "path": "protocols/jesd204b/rtl/JesdTestStreamTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 89,
+      "bottom_up_layer": 0,
+      "entity": "Decoder10b12b",
+      "path": "protocols/line-codes/rtl/Decoder10b12b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 90,
+      "bottom_up_layer": 0,
+      "entity": "Decoder12b14b",
+      "path": "protocols/line-codes/rtl/Decoder12b14b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 91,
+      "bottom_up_layer": 0,
+      "entity": "Decoder8b10b",
+      "path": "protocols/line-codes/rtl/Decoder8b10b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 92,
+      "bottom_up_layer": 0,
+      "entity": "Encoder10b12b",
+      "path": "protocols/line-codes/rtl/Encoder10b12b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 93,
+      "bottom_up_layer": 0,
+      "entity": "Encoder12b14b",
+      "path": "protocols/line-codes/rtl/Encoder12b14b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 94,
+      "bottom_up_layer": 0,
+      "entity": "Encoder8b10b",
+      "path": "protocols/line-codes/rtl/Encoder8b10b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 95,
+      "bottom_up_layer": 0,
+      "entity": "MdioCore",
+      "path": "protocols/mdio/rtl/MdioCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 96,
+      "bottom_up_layer": 0,
+      "entity": "AxiStreamBytePacker",
+      "path": "protocols/packetizer/rtl/AxiStreamBytePacker.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 97,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2bRxCell",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bRxCell.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 98,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2bRxPhy",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bRxPhy.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 99,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2bTxCell",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bTxCell.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 100,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2bTxPhy",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bTxPhy.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 101,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2bTxSched",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bTxSched.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 102,
+      "bottom_up_layer": 0,
+      "entity": "CRC7Rtl",
+      "path": "protocols/pgp/pgp2fc/core/rtl/CRC7Rtl.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 103,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2fcRxCell",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcRxCell.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 104,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2fcTxCell",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcTxCell.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 105,
+      "bottom_up_layer": 0,
+      "entity": "Pgp2fcTxSched",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcTxSched.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 106,
+      "bottom_up_layer": 0,
+      "entity": "Pgp3RxGearboxAligner",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3RxGearboxAligner.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 107,
+      "bottom_up_layer": 0,
+      "entity": "Pgp3TxProtocol",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3TxProtocol.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 108,
+      "bottom_up_layer": 0,
+      "entity": "Pgp4TxProtocol",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4TxProtocol.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 109,
+      "bottom_up_layer": 0,
+      "entity": "RssiChksum",
+      "path": "protocols/rssi/v1/rtl/RssiChksum.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 110,
+      "bottom_up_layer": 0,
+      "entity": "RssiConnFsm",
+      "path": "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 111,
+      "bottom_up_layer": 0,
+      "entity": "RssiHeaderReg",
+      "path": "protocols/rssi/v1/rtl/RssiHeaderReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 112,
+      "bottom_up_layer": 0,
+      "entity": "RssiMonitor",
+      "path": "protocols/rssi/v1/rtl/RssiMonitor.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 113,
+      "bottom_up_layer": 0,
+      "entity": "RssiRxFsm",
+      "path": "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 114,
+      "bottom_up_layer": 0,
+      "entity": "RssiTxFsm",
+      "path": "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 115,
+      "bottom_up_layer": 0,
+      "entity": "SaciMaster",
+      "path": "protocols/saci/saci1/rtl/SaciMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 116,
+      "bottom_up_layer": 0,
+      "entity": "SaciMasterSync",
+      "path": "protocols/saci/saci1/rtl/SaciMasterSync.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 117,
+      "bottom_up_layer": 0,
+      "entity": "SaciMultiPixel",
+      "path": "protocols/saci/saci1/rtl/SaciMultiPixel.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 118,
+      "bottom_up_layer": 0,
+      "entity": "SaciPrepRdout",
+      "path": "protocols/saci/saci1/rtl/SaciPrepRdout.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 119,
+      "bottom_up_layer": 0,
+      "entity": "SaciSlave",
+      "path": "protocols/saci/saci1/rtl/SaciSlave.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 120,
+      "bottom_up_layer": 0,
+      "entity": "SaciSlaveOld",
+      "path": "protocols/saci/saci1/rtl/SaciSlaveOld.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 121,
+      "bottom_up_layer": 0,
+      "entity": "Saci2Subordinate",
+      "path": "protocols/saci/saci2/rtl/Saci2Subordinate.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 122,
+      "bottom_up_layer": 0,
+      "entity": "SaltTxResize",
+      "path": "protocols/salt/rtl/SaltTxResize.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 123,
+      "bottom_up_layer": 0,
+      "entity": "SpiMaster",
+      "path": "protocols/spi/rtl/SpiMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 124,
+      "bottom_up_layer": 0,
+      "entity": "SsiCmdMasterPulser",
+      "path": "protocols/ssi/rtl/SsiCmdMasterPulser.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 125,
+      "bottom_up_layer": 0,
+      "entity": "SsiDbgTap",
+      "path": "protocols/ssi/rtl/SsiDbgTap.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 126,
+      "bottom_up_layer": 0,
+      "entity": "SsiIbFrameFilter",
+      "path": "protocols/ssi/rtl/SsiIbFrameFilter.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 127,
+      "bottom_up_layer": 0,
+      "entity": "SspDeframer",
+      "path": "protocols/ssp/rtl/SspDeframer.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 128,
+      "bottom_up_layer": 0,
+      "entity": "SspFramer",
+      "path": "protocols/ssp/rtl/SspFramer.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 129,
+      "bottom_up_layer": 0,
+      "entity": "SugoiAxiLitePixelMatrixConfig",
+      "path": "protocols/sugoi/rtl/SugoiAxiLitePixelMatrixConfig.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 130,
+      "bottom_up_layer": 0,
+      "entity": "SugoiManagerFsm",
+      "path": "protocols/sugoi/rtl/SugoiManagerFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 131,
+      "bottom_up_layer": 0,
+      "entity": "SugoiManagerRx",
+      "path": "protocols/sugoi/rtl/SugoiManagerRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 132,
+      "bottom_up_layer": 0,
+      "entity": "SugoiSubordinateFsm",
+      "path": "protocols/sugoi/rtl/SugoiSubordinateFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 133,
+      "bottom_up_layer": 0,
+      "entity": "UartBrg",
+      "path": "protocols/uart/rtl/UartBrg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 134,
+      "bottom_up_layer": 0,
+      "entity": "UartTx",
+      "path": "protocols/uart/rtl/UartTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 135,
+      "bottom_up_layer": 1,
+      "entity": "AxiLiteMasterProxy",
+      "path": "axi/axi-lite/rtl/AxiLiteMasterProxy.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 136,
+      "bottom_up_layer": 1,
+      "entity": "AxiLiteSequencerRam",
+      "path": "axi/axi-lite/rtl/AxiLiteSequencerRam.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 137,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamCompact",
+      "path": "axi/axi-stream/rtl/AxiStreamCompact.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 138,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamConcat",
+      "path": "axi/axi-stream/rtl/AxiStreamConcat.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 139,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamDeMux",
+      "path": "axi/axi-stream/rtl/AxiStreamDeMux.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 13
+    },
+    {
+      "order": 140,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamFrameRateLimiter",
+      "path": "axi/axi-stream/rtl/AxiStreamFrameRateLimiter.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 141,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamMux",
+      "path": "axi/axi-stream/rtl/AxiStreamMux.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 14
+    },
+    {
+      "order": 142,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamPrbsFlowCtrl",
+      "path": "axi/axi-stream/rtl/AxiStreamPrbsFlowCtrl.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 143,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamRepeater",
+      "path": "axi/axi-stream/rtl/AxiStreamRepeater.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 144,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamResize",
+      "path": "axi/axi-stream/rtl/AxiStreamResize.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 7
+    },
+    {
+      "order": 145,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamShift",
+      "path": "axi/axi-stream/rtl/AxiStreamShift.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 146,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamTrailerAppend",
+      "path": "axi/axi-stream/rtl/AxiStreamTrailerAppend.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 147,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamTrailerRemove",
+      "path": "axi/axi-stream/rtl/AxiStreamTrailerRemove.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 148,
+      "bottom_up_layer": 1,
+      "entity": "AxiRam",
+      "path": "axi/axi4/rtl/AxiRam.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 149,
+      "bottom_up_layer": 1,
+      "entity": "AxiLiteToIpBus",
+      "path": "axi/bridge/rtl/AxiLiteToIpBus.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 150,
+      "bottom_up_layer": 1,
+      "entity": "IpBusToAxiLite",
+      "path": "axi/bridge/rtl/IpBusToAxiLite.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 151,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamDmaV2Read",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 152,
+      "bottom_up_layer": 1,
+      "entity": "FifoSync",
+      "path": "base/fifo/rtl/inferred/FifoSync.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 153,
+      "bottom_up_layer": 1,
+      "entity": "RstPipelineVector",
+      "path": "base/general/rtl/RstPipelineVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 154,
+      "bottom_up_layer": 1,
+      "entity": "WatchDogRst",
+      "path": "base/general/rtl/WatchDogRst.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 155,
+      "bottom_up_layer": 1,
+      "entity": "DualPortRam",
+      "path": "base/ram/inferred/DualPortRam.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 6
+    },
+    {
+      "order": 156,
+      "bottom_up_layer": 1,
+      "entity": "RstSync",
+      "path": "base/sync/rtl/RstSync.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 21
+    },
+    {
+      "order": 157,
+      "bottom_up_layer": 1,
+      "entity": "SynchronizerEdge",
+      "path": "base/sync/rtl/SynchronizerEdge.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 158,
+      "bottom_up_layer": 1,
+      "entity": "RawEthFramerTx",
+      "path": "ethernet/RawEthFramer/rtl/RawEthFramerTx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 159,
+      "bottom_up_layer": 1,
+      "entity": "RoceResizeAndSwap",
+      "path": "ethernet/RoCEv2/rtl/RoceResizeAndSwap.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 160,
+      "bottom_up_layer": 1,
+      "entity": "TenGigEthRst",
+      "path": "ethernet/TenGigEthCore/core/rtl/TenGigEthRst.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 161,
+      "bottom_up_layer": 1,
+      "entity": "UdpEngineTx",
+      "path": "ethernet/UdpEngine/rtl/UdpEngineTx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 162,
+      "bottom_up_layer": 1,
+      "entity": "CoaXPressRxHsFsm",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressRxHsFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 163,
+      "bottom_up_layer": 1,
+      "entity": "CoaXPressRxLaneMux",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressRxLaneMux.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 164,
+      "bottom_up_layer": 1,
+      "entity": "EventFrameSequencerDemux",
+      "path": "protocols/event-frame-sequencer/rtl/EventFrameSequencerDemux.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 165,
+      "bottom_up_layer": 1,
+      "entity": "EventFrameSequencerMux",
+      "path": "protocols/event-frame-sequencer/rtl/EventFrameSequencerMux.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 166,
+      "bottom_up_layer": 1,
+      "entity": "GLinkDecoder",
+      "path": "protocols/glink/core/rtl/GLinkDecoder.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 167,
+      "bottom_up_layer": 1,
+      "entity": "I2cRegSlave",
+      "path": "protocols/i2c/rtl/I2cRegSlave.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 168,
+      "bottom_up_layer": 1,
+      "entity": "i2c_master_byte_ctrl",
+      "path": "protocols/i2c/rtl/i2c_master_byte_ctrl.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 169,
+      "bottom_up_layer": 1,
+      "entity": "i2c2ahb",
+      "path": "protocols/i2c/rtl/orig/i2c2ahb.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 170,
+      "bottom_up_layer": 1,
+      "entity": "i2c2ahb_apb",
+      "path": "protocols/i2c/rtl/orig/i2c2ahb_apb.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 171,
+      "bottom_up_layer": 1,
+      "entity": "JesdTxLane",
+      "path": "protocols/jesd204b/rtl/JesdTxLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 172,
+      "bottom_up_layer": 1,
+      "entity": "JesdTxTest",
+      "path": "protocols/jesd204b/rtl/JesdTxTest.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 173,
+      "bottom_up_layer": 1,
+      "entity": "MdioSeqCore",
+      "path": "protocols/mdio/rtl/MdioSeqCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 174,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamDepacketizer",
+      "path": "protocols/packetizer/rtl/AxiStreamDepacketizer.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 175,
+      "bottom_up_layer": 1,
+      "entity": "AxiStreamPacketizer",
+      "path": "protocols/packetizer/rtl/AxiStreamPacketizer.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 176,
+      "bottom_up_layer": 1,
+      "entity": "Pgp2bRx",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 177,
+      "bottom_up_layer": 1,
+      "entity": "Pgp2bTx",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 178,
+      "bottom_up_layer": 1,
+      "entity": "Pgp2fcRxPhy",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcRxPhy.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 179,
+      "bottom_up_layer": 1,
+      "entity": "Pgp2fcTxPhy",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcTxPhy.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 180,
+      "bottom_up_layer": 1,
+      "entity": "Pgp4TxLiteProtocol",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4TxLiteProtocol.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 181,
+      "bottom_up_layer": 1,
+      "entity": "RssiParamSync",
+      "path": "protocols/rssi/v1/rtl/RssiParamSync.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 182,
+      "bottom_up_layer": 1,
+      "entity": "SaciAxiLiteMaster",
+      "path": "protocols/saci/saci1/rtl/SaciAxiLiteMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 183,
+      "bottom_up_layer": 1,
+      "entity": "SaciMaster2",
+      "path": "protocols/saci/saci1/rtl/SaciMaster2.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 184,
+      "bottom_up_layer": 1,
+      "entity": "Saci2Coordinator",
+      "path": "protocols/saci/saci2/rtl/Saci2Coordinator.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 185,
+      "bottom_up_layer": 1,
+      "entity": "Saci2ToAxiLite",
+      "path": "protocols/saci/saci2/rtl/Saci2ToAxiLite.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 186,
+      "bottom_up_layer": 1,
+      "entity": "SpiSlave",
+      "path": "protocols/spi/rtl/SpiSlave.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 187,
+      "bottom_up_layer": 1,
+      "entity": "SsiObFrameFilter",
+      "path": "protocols/ssi/rtl/SsiObFrameFilter.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 188,
+      "bottom_up_layer": 1,
+      "entity": "SspDecoder10b12b",
+      "path": "protocols/ssp/rtl/SspDecoder10b12b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 189,
+      "bottom_up_layer": 1,
+      "entity": "SspDecoder12b14b",
+      "path": "protocols/ssp/rtl/SspDecoder12b14b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 190,
+      "bottom_up_layer": 1,
+      "entity": "SspDecoder8b10b",
+      "path": "protocols/ssp/rtl/SspDecoder8b10b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 191,
+      "bottom_up_layer": 1,
+      "entity": "SspEncoder10b12b",
+      "path": "protocols/ssp/rtl/SspEncoder10b12b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 192,
+      "bottom_up_layer": 1,
+      "entity": "SspEncoder12b14b",
+      "path": "protocols/ssp/rtl/SspEncoder12b14b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 193,
+      "bottom_up_layer": 1,
+      "entity": "SspEncoder8b10b",
+      "path": "protocols/ssp/rtl/SspEncoder8b10b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 194,
+      "bottom_up_layer": 1,
+      "entity": "SugoiSubordinateCore",
+      "path": "protocols/sugoi/rtl/SugoiSubordinateCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 195,
+      "bottom_up_layer": 1,
+      "entity": "UartAxiLiteMasterFsm",
+      "path": "protocols/uart/rtl/UartAxiLiteMasterFsm.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 196,
+      "bottom_up_layer": 2,
+      "entity": "MasterAxiLiteIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/MasterAxiLiteIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 197,
+      "bottom_up_layer": 2,
+      "entity": "SlaveAxiLiteIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 198,
+      "bottom_up_layer": 2,
+      "entity": "AxiLiteAsync",
+      "path": "axi/axi-lite/rtl/AxiLiteAsync.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 11
+    },
+    {
+      "order": 199,
+      "bottom_up_layer": 2,
+      "entity": "MasterAxiStreamIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 9
+    },
+    {
+      "order": 200,
+      "bottom_up_layer": 2,
+      "entity": "SlaveAxiStreamIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 9
+    },
+    {
+      "order": 201,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamGearbox",
+      "path": "axi/axi-stream/rtl/AxiStreamGearbox.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 5
+    },
+    {
+      "order": 202,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamTap",
+      "path": "axi/axi-stream/rtl/AxiStreamTap.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 203,
+      "bottom_up_layer": 2,
+      "entity": "MasterAxiIpIntegrator",
+      "path": "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 204,
+      "bottom_up_layer": 2,
+      "entity": "SlaveAxiIpIntegrator",
+      "path": "axi/axi4/ip_integrator/SlaveAxiIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 205,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamDmaRead",
+      "path": "axi/dma/rtl/v1/AxiStreamDmaRead.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 206,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamDmaV2Write",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Write.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 207,
+      "bottom_up_layer": 2,
+      "entity": "FifoAsync",
+      "path": "base/fifo/rtl/inferred/FifoAsync.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 6
+    },
+    {
+      "order": 208,
+      "bottom_up_layer": 2,
+      "entity": "Debouncer",
+      "path": "base/general/rtl/Debouncer.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 209,
+      "bottom_up_layer": 2,
+      "entity": "PwrUpRst",
+      "path": "base/general/rtl/PwrUpRst.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 210,
+      "bottom_up_layer": 2,
+      "entity": "SynchronizerOneShot",
+      "path": "base/sync/rtl/SynchronizerOneShot.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 19
+    },
+    {
+      "order": 211,
+      "bottom_up_layer": 2,
+      "entity": "EthMacRxShift",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxShift.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 212,
+      "bottom_up_layer": 2,
+      "entity": "EthMacTxExportGmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxExportGmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 213,
+      "bottom_up_layer": 2,
+      "entity": "EthMacTxShift",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxShift.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 214,
+      "bottom_up_layer": 2,
+      "entity": "IpV4EngineRx",
+      "path": "ethernet/IpV4Engine/rtl/IpV4EngineRx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 215,
+      "bottom_up_layer": 2,
+      "entity": "IpV4EngineTx",
+      "path": "ethernet/IpV4Engine/rtl/IpV4EngineTx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 216,
+      "bottom_up_layer": 2,
+      "entity": "RawEthFramer",
+      "path": "ethernet/RawEthFramer/rtl/RawEthFramer.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 217,
+      "bottom_up_layer": 2,
+      "entity": "UdpEngineRx",
+      "path": "ethernet/UdpEngine/rtl/UdpEngineRx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 218,
+      "bottom_up_layer": 2,
+      "entity": "GLinkTxToRx",
+      "path": "protocols/glink/core/rtl/GLinkTxToRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 219,
+      "bottom_up_layer": 2,
+      "entity": "HtspRx",
+      "path": "protocols/htsp/core/rtl/HtspRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 220,
+      "bottom_up_layer": 2,
+      "entity": "HtspTx",
+      "path": "protocols/htsp/core/rtl/HtspTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 221,
+      "bottom_up_layer": 2,
+      "entity": "I2cMaster",
+      "path": "protocols/i2c/rtl/I2cMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 222,
+      "bottom_up_layer": 2,
+      "entity": "i2cmst",
+      "path": "protocols/i2c/rtl/orig/i2cmst.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 223,
+      "bottom_up_layer": 2,
+      "entity": "JesdRxLane",
+      "path": "protocols/jesd204b/rtl/JesdRxLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 224,
+      "bottom_up_layer": 2,
+      "entity": "MdioLinkIrqHandler",
+      "path": "protocols/mdio/rtl/MdioLinkIrqHandler.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 225,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamDepacketizer2",
+      "path": "protocols/packetizer/rtl/AxiStreamDepacketizer2.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 226,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamPacketizer2",
+      "path": "protocols/packetizer/rtl/AxiStreamPacketizer2.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 227,
+      "bottom_up_layer": 2,
+      "entity": "Pgp2bLane",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 228,
+      "bottom_up_layer": 2,
+      "entity": "Pgp2fcAlignmentChecker",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcAlignmentChecker.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 229,
+      "bottom_up_layer": 2,
+      "entity": "Pgp2fcAlignmentController",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcAlignmentController.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 230,
+      "bottom_up_layer": 2,
+      "entity": "Pgp2fcRx",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 231,
+      "bottom_up_layer": 2,
+      "entity": "Pgp2fcTx",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 232,
+      "bottom_up_layer": 2,
+      "entity": "Pgp3RxProtocol",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3RxProtocol.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 233,
+      "bottom_up_layer": 2,
+      "entity": "AxiLiteSaciMaster",
+      "path": "protocols/saci/saci1/rtl/AxiLiteSaciMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 234,
+      "bottom_up_layer": 2,
+      "entity": "AxiLiteToSaci2",
+      "path": "protocols/saci/saci2/rtl/AxiLiteToSaci2.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 235,
+      "bottom_up_layer": 2,
+      "entity": "SaltDelayCtrl",
+      "path": "protocols/salt/rtl/SaltDelayCtrl.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 236,
+      "bottom_up_layer": 2,
+      "entity": "AxiSpiMaster",
+      "path": "protocols/spi/rtl/AxiSpiMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 237,
+      "bottom_up_layer": 2,
+      "entity": "SspLowSpeedDecoderLane",
+      "path": "protocols/ssp/rtl/SspLowSpeedDecoderLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 238,
+      "bottom_up_layer": 2,
+      "entity": "UartRx",
+      "path": "protocols/uart/rtl/UartRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 239,
+      "bottom_up_layer": 3,
+      "entity": "AxiLiteAsyncIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteAsyncIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 240,
+      "bottom_up_layer": 3,
+      "entity": "AxiLiteMasterIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteMasterIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 241,
+      "bottom_up_layer": 3,
+      "entity": "AxiVersionIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiVersionIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 242,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamDeMuxIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 243,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamMuxIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamMuxIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 244,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamPipelineIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 245,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamResizeIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamResizeIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 246,
+      "bottom_up_layer": 3,
+      "entity": "MasterAxiStreamTerminateIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/MasterAxiStreamTerminateIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 247,
+      "bottom_up_layer": 3,
+      "entity": "SlaveAxiStreamTerminateIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/SlaveAxiStreamTerminateIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 248,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamTimer",
+      "path": "axi/axi-stream/rtl/AxiStreamTimer.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 249,
+      "bottom_up_layer": 3,
+      "entity": "AxiRateGen",
+      "path": "axi/axi4/rtl/AxiRateGen.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 250,
+      "bottom_up_layer": 3,
+      "entity": "AxiLiteToDrp",
+      "path": "axi/bridge/rtl/AxiLiteToDrp.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 251,
+      "bottom_up_layer": 3,
+      "entity": "Fifo",
+      "path": "base/fifo/rtl/Fifo.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 17
+    },
+    {
+      "order": 252,
+      "bottom_up_layer": 3,
+      "entity": "AsyncGearbox",
+      "path": "base/general/rtl/AsyncGearbox.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 253,
+      "bottom_up_layer": 3,
+      "entity": "SyncTrigPeriod",
+      "path": "base/sync/rtl/SyncTrigPeriod.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 254,
+      "bottom_up_layer": 3,
+      "entity": "SynchronizerFifo",
+      "path": "base/sync/rtl/SynchronizerFifo.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 24
+    },
+    {
+      "order": 255,
+      "bottom_up_layer": 3,
+      "entity": "SynchronizerOneShotVector",
+      "path": "base/sync/rtl/SynchronizerOneShotVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 256,
+      "bottom_up_layer": 3,
+      "entity": "IpV4Engine",
+      "path": "ethernet/IpV4Engine/rtl/IpV4Engine.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 257,
+      "bottom_up_layer": 3,
+      "entity": "EthMacCrcAxiStreamWrapperRecv",
+      "path": "ethernet/RoCEv2/rtl/EthMacCrcAxiStreamWrapperRecv.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 258,
+      "bottom_up_layer": 3,
+      "entity": "EthMacCrcAxiStreamWrapperSend",
+      "path": "ethernet/RoCEv2/rtl/EthMacCrcAxiStreamWrapperSend.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 259,
+      "bottom_up_layer": 3,
+      "entity": "RoceEngineWrapper",
+      "path": "ethernet/RoCEv2/rtl/RoceEngineWrapper.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 260,
+      "bottom_up_layer": 3,
+      "entity": "AxiStreamBatcher",
+      "path": "protocols/batcher/rtl/AxiStreamBatcher.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 261,
+      "bottom_up_layer": 3,
+      "entity": "I2cRegMaster",
+      "path": "protocols/i2c/rtl/I2cRegMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 262,
+      "bottom_up_layer": 3,
+      "entity": "i2cmst_gen",
+      "path": "protocols/i2c/rtl/orig/i2cmst_gen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 263,
+      "bottom_up_layer": 3,
+      "entity": "Pgp2fcLane",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 264,
+      "bottom_up_layer": 3,
+      "entity": "Pgp3Tx",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3Tx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 265,
+      "bottom_up_layer": 3,
+      "entity": "Pgp4Tx",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4Tx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 266,
+      "bottom_up_layer": 3,
+      "entity": "Pgp4TxLite",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4TxLite.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 267,
+      "bottom_up_layer": 3,
+      "entity": "SugoiManagerCore",
+      "path": "protocols/sugoi/rtl/SugoiManagerCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 268,
+      "bottom_up_layer": 4,
+      "entity": "AxiDualPortRam",
+      "path": "axi/axi-lite/rtl/AxiDualPortRam.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 6
+    },
+    {
+      "order": 269,
+      "bottom_up_layer": 4,
+      "entity": "AxiLiteRingBuffer",
+      "path": "axi/axi-lite/rtl/AxiLiteRingBuffer.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 270,
+      "bottom_up_layer": 4,
+      "entity": "AxiStreamScatterGather",
+      "path": "axi/axi-stream/rtl/AxiStreamScatterGather.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 271,
+      "bottom_up_layer": 4,
+      "entity": "AxiMemTester",
+      "path": "axi/axi4/rtl/AxiMemTester.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 272,
+      "bottom_up_layer": 4,
+      "entity": "AxiLiteToDrpIpIntegrator",
+      "path": "axi/bridge/ip_integrator/AxiLiteToDrpIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 273,
+      "bottom_up_layer": 4,
+      "entity": "SlvArraytoAxiLite",
+      "path": "axi/bridge/rtl/SlvArraytoAxiLite.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 274,
+      "bottom_up_layer": 4,
+      "entity": "AxiStreamDmaV2Desc",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Desc.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 275,
+      "bottom_up_layer": 4,
+      "entity": "AxiStreamDmaV2Fifo",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Fifo.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 276,
+      "bottom_up_layer": 4,
+      "entity": "SlvDelayFifo",
+      "path": "base/delay/rtl/SlvDelayFifo.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 277,
+      "bottom_up_layer": 4,
+      "entity": "FifoCascade",
+      "path": "base/fifo/rtl/FifoCascade.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 8
+    },
+    {
+      "order": 278,
+      "bottom_up_layer": 4,
+      "entity": "SyncClockFreq",
+      "path": "base/sync/rtl/SyncClockFreq.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 6
+    },
+    {
+      "order": 279,
+      "bottom_up_layer": 4,
+      "entity": "SyncMinMax",
+      "path": "base/sync/rtl/SyncMinMax.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 280,
+      "bottom_up_layer": 4,
+      "entity": "SynchronizerOneShotCnt",
+      "path": "base/sync/rtl/SynchronizerOneShotCnt.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 281,
+      "bottom_up_layer": 4,
+      "entity": "EthMacRxImportXgmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxImportXgmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 282,
+      "bottom_up_layer": 4,
+      "entity": "ArpIpTable",
+      "path": "ethernet/UdpEngine/rtl/ArpIpTable.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 283,
+      "bottom_up_layer": 4,
+      "entity": "AxiStreamBatcherAxil",
+      "path": "protocols/batcher/rtl/AxiStreamBatcherAxil.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 284,
+      "bottom_up_layer": 4,
+      "entity": "AxiStreamBatcherEventBuilder",
+      "path": "protocols/batcher/rtl/AxiStreamBatcherEventBuilder.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 285,
+      "bottom_up_layer": 4,
+      "entity": "ClinkData",
+      "path": "protocols/clink/rtl/ClinkData.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 286,
+      "bottom_up_layer": 4,
+      "entity": "CoaXPressOverFiberBridge",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressOverFiberBridge.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 287,
+      "bottom_up_layer": 4,
+      "entity": "AxiI2cEepromCore",
+      "path": "protocols/i2c/axi/AxiI2cEepromCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 288,
+      "bottom_up_layer": 4,
+      "entity": "AxiI2cRegMasterCore",
+      "path": "protocols/i2c/axi/AxiI2cRegMasterCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 289,
+      "bottom_up_layer": 4,
+      "entity": "AxiLiteCrossbarI2cMux",
+      "path": "protocols/i2c/axi/AxiLiteCrossbarI2cMux.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 290,
+      "bottom_up_layer": 4,
+      "entity": "Jesd16bTo32b",
+      "path": "protocols/jesd204b/rtl/Jesd16bTo32b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 291,
+      "bottom_up_layer": 4,
+      "entity": "Jesd32bTo16b",
+      "path": "protocols/jesd204b/rtl/Jesd32bTo16b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 292,
+      "bottom_up_layer": 4,
+      "entity": "Jesd32bTo64b",
+      "path": "protocols/jesd204b/rtl/Jesd32bTo64b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 293,
+      "bottom_up_layer": 4,
+      "entity": "Jesd64bTo32b",
+      "path": "protocols/jesd204b/rtl/Jesd64bTo32b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 294,
+      "bottom_up_layer": 4,
+      "entity": "JesdSysrefMon",
+      "path": "protocols/jesd204b/rtl/JesdSysrefMon.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 295,
+      "bottom_up_layer": 4,
+      "entity": "iq16bTo32b",
+      "path": "protocols/jesd204b/rtl/iq16bTo32b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 296,
+      "bottom_up_layer": 4,
+      "entity": "iq32bTo16b",
+      "path": "protocols/jesd204b/rtl/iq32bTo16b.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 297,
+      "bottom_up_layer": 4,
+      "entity": "Pgp3RxEb",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3RxEb.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 298,
+      "bottom_up_layer": 4,
+      "entity": "Pgp4RxEb",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4RxEb.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 299,
+      "bottom_up_layer": 4,
+      "entity": "Pgp4TxLiteWrapper",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4TxLiteWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 300,
+      "bottom_up_layer": 4,
+      "entity": "AxiLitePMbusMasterCore",
+      "path": "protocols/pmbus/rtl/AxiLitePMbusMasterCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 301,
+      "bottom_up_layer": 4,
+      "entity": "RssiAxiLiteRegItf",
+      "path": "protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 302,
+      "bottom_up_layer": 4,
+      "entity": "SaltRxLvds",
+      "path": "protocols/salt/rtl/SaltRxLvds.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 303,
+      "bottom_up_layer": 4,
+      "entity": "SaltTxLvds",
+      "path": "protocols/salt/rtl/SaltTxLvds.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 304,
+      "bottom_up_layer": 4,
+      "entity": "UartWrapper",
+      "path": "protocols/uart/rtl/UartWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 305,
+      "bottom_up_layer": 5,
+      "entity": "AxiDualPortRamIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiDualPortRamIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 306,
+      "bottom_up_layer": 5,
+      "entity": "AxiLiteFifoPop",
+      "path": "axi/axi-lite/rtl/AxiLiteFifoPop.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 307,
+      "bottom_up_layer": 5,
+      "entity": "AxiLiteFifoPush",
+      "path": "axi/axi-lite/rtl/AxiLiteFifoPush.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 308,
+      "bottom_up_layer": 5,
+      "entity": "AxiLiteFifoPushPop",
+      "path": "axi/axi-lite/rtl/AxiLiteFifoPushPop.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 309,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamFifoV2",
+      "path": "axi/axi-stream/rtl/AxiStreamFifoV2.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 37
+    },
+    {
+      "order": 310,
+      "bottom_up_layer": 5,
+      "entity": "AxiReadPathFifo",
+      "path": "axi/axi4/rtl/AxiReadPathFifo.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 311,
+      "bottom_up_layer": 5,
+      "entity": "AxiWritePathFifo",
+      "path": "axi/axi4/rtl/AxiWritePathFifo.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 312,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamDmaV2",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 313,
+      "bottom_up_layer": 5,
+      "entity": "FifoMux",
+      "path": "base/fifo/rtl/FifoMux.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 314,
+      "bottom_up_layer": 5,
+      "entity": "SyncTrigRate",
+      "path": "base/sync/rtl/SyncTrigRate.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 315,
+      "bottom_up_layer": 5,
+      "entity": "SynchronizerOneShotCntVector",
+      "path": "base/sync/rtl/SynchronizerOneShotCntVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 316,
+      "bottom_up_layer": 5,
+      "entity": "RawEthFramerWrapper",
+      "path": "ethernet/RawEthFramer/rtl/RawEthFramerWrapper.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 317,
+      "bottom_up_layer": 5,
+      "entity": "AxiI2cEeprom",
+      "path": "protocols/i2c/axi/AxiI2cEeprom.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 318,
+      "bottom_up_layer": 5,
+      "entity": "AxiI2cRegMaster",
+      "path": "protocols/i2c/axi/AxiI2cRegMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 319,
+      "bottom_up_layer": 5,
+      "entity": "Pgp3Rx",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3Rx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 320,
+      "bottom_up_layer": 5,
+      "entity": "AxiLitePMbusMaster",
+      "path": "protocols/pmbus/rtl/AxiLitePMbusMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 321,
+      "bottom_up_layer": 5,
+      "entity": "UartAxiLiteMaster",
+      "path": "protocols/uart/rtl/UartAxiLiteMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 322,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamFifoV2IpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamFifoV2IpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 323,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamBatchingFifo",
+      "path": "axi/axi-stream/rtl/AxiStreamBatchingFifo.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 324,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamMon",
+      "path": "axi/axi-stream/rtl/AxiStreamMon.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 325,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamRingBuffer",
+      "path": "axi/axi-stream/rtl/AxiStreamRingBuffer.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 326,
+      "bottom_up_layer": 6,
+      "entity": "AxiReadEmulate",
+      "path": "axi/axi4/rtl/AxiReadEmulate.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 327,
+      "bottom_up_layer": 6,
+      "entity": "AxiRingBuffer",
+      "path": "axi/axi4/rtl/AxiRingBuffer.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 328,
+      "bottom_up_layer": 6,
+      "entity": "AxiWriteEmulate",
+      "path": "axi/axi4/rtl/AxiWriteEmulate.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 329,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamDmaRingRead",
+      "path": "axi/dma/rtl/v1/AxiStreamDmaRingRead.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 330,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamDmaWrite",
+      "path": "axi/dma/rtl/v1/AxiStreamDmaWrite.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 331,
+      "bottom_up_layer": 6,
+      "entity": "SyncStatusVector",
+      "path": "base/sync/rtl/SyncStatusVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 15
+    },
+    {
+      "order": 332,
+      "bottom_up_layer": 6,
+      "entity": "SyncTrigRateVector",
+      "path": "base/sync/rtl/SyncTrigRateVector.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 333,
+      "bottom_up_layer": 6,
+      "entity": "EthMacRxImportGmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxImportGmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 334,
+      "bottom_up_layer": 6,
+      "entity": "EthMacTxCsum",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxCsum.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 335,
+      "bottom_up_layer": 6,
+      "entity": "EthMacTxExportXgmii",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxExportXgmii.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 336,
+      "bottom_up_layer": 6,
+      "entity": "EthMacTxFifo",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxFifo.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 337,
+      "bottom_up_layer": 6,
+      "entity": "EthMacRxRoCEv2",
+      "path": "ethernet/RoCEv2/rtl/EthMacRxRoCEv2.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 10,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 338,
+      "bottom_up_layer": 6,
+      "entity": "EthMacTxRoCEv2",
+      "path": "ethernet/RoCEv2/rtl/EthMacTxRoCEv2.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 8,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 339,
+      "bottom_up_layer": 6,
+      "entity": "UdpEngineDhcp",
+      "path": "ethernet/UdpEngine/rtl/UdpEngineDhcp.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 340,
+      "bottom_up_layer": 6,
+      "entity": "ClinkFraming",
+      "path": "protocols/clink/rtl/ClinkFraming.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 341,
+      "bottom_up_layer": 6,
+      "entity": "ClinkUart",
+      "path": "protocols/clink/rtl/ClinkUart.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 342,
+      "bottom_up_layer": 6,
+      "entity": "CoaXPressTx",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 343,
+      "bottom_up_layer": 6,
+      "entity": "HtspRxFifo",
+      "path": "protocols/htsp/core/rtl/HtspRxFifo.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 344,
+      "bottom_up_layer": 6,
+      "entity": "Pgp4RxProtocol",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4RxProtocol.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 345,
+      "bottom_up_layer": 6,
+      "entity": "PgpRxVcFifo",
+      "path": "protocols/pgp/shared/PgpRxVcFifo.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 346,
+      "bottom_up_layer": 6,
+      "entity": "PgpTxVcFifo",
+      "path": "protocols/pgp/shared/PgpTxVcFifo.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 347,
+      "bottom_up_layer": 6,
+      "entity": "SaltTx",
+      "path": "protocols/salt/rtl/SaltTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 348,
+      "bottom_up_layer": 6,
+      "entity": "AxiLiteSrpV0",
+      "path": "protocols/srp/rtl/AxiLiteSrpV0.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 349,
+      "bottom_up_layer": 6,
+      "entity": "SsiAxiLiteMaster",
+      "path": "protocols/ssi/rtl/SsiAxiLiteMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 350,
+      "bottom_up_layer": 6,
+      "entity": "SsiCmdMaster",
+      "path": "protocols/ssi/rtl/SsiCmdMaster.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 351,
+      "bottom_up_layer": 6,
+      "entity": "SsiFifo",
+      "path": "protocols/ssi/rtl/SsiFifo.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 352,
+      "bottom_up_layer": 6,
+      "entity": "SsiFrameLimiter",
+      "path": "protocols/ssi/rtl/SsiFrameLimiter.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 353,
+      "bottom_up_layer": 6,
+      "entity": "SsiIncrementingTx",
+      "path": "protocols/ssi/rtl/SsiIncrementingTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 354,
+      "bottom_up_layer": 6,
+      "entity": "SsiInsertSof",
+      "path": "protocols/ssi/rtl/SsiInsertSof.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 355,
+      "bottom_up_layer": 6,
+      "entity": "SsiPrbsTx",
+      "path": "protocols/ssi/rtl/SsiPrbsTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 356,
+      "bottom_up_layer": 7,
+      "entity": "AxiLiteRamSyncStatusVector",
+      "path": "axi/axi-lite/rtl/AxiLiteRamSyncStatusVector.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 357,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamMonAxiL",
+      "path": "axi/axi-stream/rtl/AxiStreamMonAxiL.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 358,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamDma",
+      "path": "axi/dma/rtl/v1/AxiStreamDma.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 359,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamDmaFifo",
+      "path": "axi/dma/rtl/v1/AxiStreamDmaFifo.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 360,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamDmaRingWrite",
+      "path": "axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 361,
+      "bottom_up_layer": 7,
+      "entity": "EthMacRxFifo",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxFifo.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 362,
+      "bottom_up_layer": 7,
+      "entity": "EthMacRxImport",
+      "path": "ethernet/EthMacCore/rtl/EthMacRxImport.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 363,
+      "bottom_up_layer": 7,
+      "entity": "EthMacTxExport",
+      "path": "ethernet/EthMacCore/rtl/EthMacTxExport.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 364,
+      "bottom_up_layer": 7,
+      "entity": "GigEthReg",
+      "path": "ethernet/GigEthCore/core/rtl/GigEthReg.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 365,
+      "bottom_up_layer": 7,
+      "entity": "TenGigEthReg",
+      "path": "ethernet/TenGigEthCore/core/rtl/TenGigEthReg.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 366,
+      "bottom_up_layer": 7,
+      "entity": "UdpEngine",
+      "path": "ethernet/UdpEngine/rtl/UdpEngine.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 367,
+      "bottom_up_layer": 7,
+      "entity": "XauiReg",
+      "path": "ethernet/XauiCore/core/rtl/XauiReg.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 368,
+      "bottom_up_layer": 7,
+      "entity": "ClinkCtrl",
+      "path": "protocols/clink/rtl/ClinkCtrl.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 369,
+      "bottom_up_layer": 7,
+      "entity": "CoaXPressAxiL",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressAxiL.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 8,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 370,
+      "bottom_up_layer": 7,
+      "entity": "CoaXPressRx",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 371,
+      "bottom_up_layer": 7,
+      "entity": "HtspAxiL",
+      "path": "protocols/htsp/core/rtl/HtspAxiL.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 372,
+      "bottom_up_layer": 7,
+      "entity": "HtspTxFifo",
+      "path": "protocols/htsp/core/rtl/HtspTxFifo.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 373,
+      "bottom_up_layer": 7,
+      "entity": "JesdRxReg",
+      "path": "protocols/jesd204b/rtl/JesdRxReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 374,
+      "bottom_up_layer": 7,
+      "entity": "JesdTxReg",
+      "path": "protocols/jesd204b/rtl/JesdTxReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 375,
+      "bottom_up_layer": 7,
+      "entity": "Pgp2bAxi",
+      "path": "protocols/pgp/pgp2b/core/rtl/Pgp2bAxi.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 376,
+      "bottom_up_layer": 7,
+      "entity": "Pgp2fcAxi",
+      "path": "protocols/pgp/pgp2fc/core/rtl/Pgp2fcAxi.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 377,
+      "bottom_up_layer": 7,
+      "entity": "Pgp3AxiL",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3AxiL.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 378,
+      "bottom_up_layer": 7,
+      "entity": "Pgp4AxiL",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4AxiL.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 379,
+      "bottom_up_layer": 7,
+      "entity": "Pgp4Rx",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4Rx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 380,
+      "bottom_up_layer": 7,
+      "entity": "Pgp4RxLiteLowSpeedReg",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4RxLiteLowSpeedReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 381,
+      "bottom_up_layer": 7,
+      "entity": "RssiCore",
+      "path": "protocols/rssi/v1/rtl/RssiCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 11,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 382,
+      "bottom_up_layer": 7,
+      "entity": "SaltRx",
+      "path": "protocols/salt/rtl/SaltRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 383,
+      "bottom_up_layer": 7,
+      "entity": "SrpV0AxiLite",
+      "path": "protocols/srp/rtl/SrpV0AxiLite.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 384,
+      "bottom_up_layer": 7,
+      "entity": "SrpV3AxiLite",
+      "path": "protocols/srp/rtl/SrpV3AxiLite.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 385,
+      "bottom_up_layer": 7,
+      "entity": "SrpV3Core",
+      "path": "protocols/srp/rtl/SrpV3Core.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 386,
+      "bottom_up_layer": 7,
+      "entity": "SsiPrbsRateGen",
+      "path": "protocols/ssi/rtl/SsiPrbsRateGen.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 387,
+      "bottom_up_layer": 7,
+      "entity": "SsiPrbsRx",
+      "path": "protocols/ssi/rtl/SsiPrbsRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 388,
+      "bottom_up_layer": 7,
+      "entity": "SspLowSpeedDecoderReg",
+      "path": "protocols/ssp/rtl/SspLowSpeedDecoderReg.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 389,
+      "bottom_up_layer": 8,
+      "entity": "AxiMonAxiL",
+      "path": "axi/axi4/rtl/AxiMonAxiL.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 390,
+      "bottom_up_layer": 8,
+      "entity": "EthMacRx",
+      "path": "ethernet/EthMacCore/rtl/EthMacRx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 6,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 391,
+      "bottom_up_layer": 8,
+      "entity": "EthMacTx",
+      "path": "ethernet/EthMacCore/rtl/EthMacTx.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 392,
+      "bottom_up_layer": 8,
+      "entity": "UdpEngineWrapper",
+      "path": "ethernet/UdpEngine/rtl/UdpEngineWrapper.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 393,
+      "bottom_up_layer": 8,
+      "entity": "ClinkTop",
+      "path": "protocols/clink/rtl/ClinkTop.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 394,
+      "bottom_up_layer": 8,
+      "entity": "CoaXPressConfig",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressConfig.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 395,
+      "bottom_up_layer": 8,
+      "entity": "HtspCore",
+      "path": "protocols/htsp/core/rtl/HtspCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 396,
+      "bottom_up_layer": 8,
+      "entity": "Jesd204bRx",
+      "path": "protocols/jesd204b/rtl/Jesd204bRx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 397,
+      "bottom_up_layer": 8,
+      "entity": "Jesd204bTx",
+      "path": "protocols/jesd204b/rtl/Jesd204bTx.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 7,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 398,
+      "bottom_up_layer": 8,
+      "entity": "Pgp3Core",
+      "path": "protocols/pgp/pgp3/core/rtl/Pgp3Core.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 399,
+      "bottom_up_layer": 8,
+      "entity": "Pgp4Core",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4Core.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 400,
+      "bottom_up_layer": 8,
+      "entity": "Pgp4CoreLite",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4CoreLite.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 401,
+      "bottom_up_layer": 8,
+      "entity": "RssiCoreWrapper",
+      "path": "protocols/rssi/v1/rtl/RssiCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 8,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 402,
+      "bottom_up_layer": 8,
+      "entity": "SaltCore",
+      "path": "protocols/salt/rtl/SaltCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 403,
+      "bottom_up_layer": 8,
+      "entity": "SrpV3Axi",
+      "path": "protocols/srp/rtl/SrpV3Axi.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 404,
+      "bottom_up_layer": 8,
+      "entity": "SspLowSpeedDecoder10b12bWrapper",
+      "path": "protocols/ssp/rtl/SspLowSpeedDecoder10b12bWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 405,
+      "bottom_up_layer": 8,
+      "entity": "SspLowSpeedDecoder12b14bWrapper",
+      "path": "protocols/ssp/rtl/SspLowSpeedDecoder12b14bWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 406,
+      "bottom_up_layer": 8,
+      "entity": "SspLowSpeedDecoder8b10bWrapper",
+      "path": "protocols/ssp/rtl/SspLowSpeedDecoder8b10bWrapper.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 407,
+      "bottom_up_layer": 9,
+      "entity": "EthMacTop",
+      "path": "ethernet/EthMacCore/rtl/EthMacTop.vhd",
+      "subsystem": "ethernet",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 408,
+      "bottom_up_layer": 9,
+      "entity": "CoaXPressCore",
+      "path": "protocols/coaxpress/core/rtl/CoaXPressCore.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 409,
+      "bottom_up_layer": 9,
+      "entity": "Pgp4RxLiteLowSpeedLane",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4RxLiteLowSpeedLane.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 410,
+      "bottom_up_layer": 9,
+      "entity": "SrpV3AxiLiteFull",
+      "path": "protocols/srp/rtl/SrpV3AxiLiteFull.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 411,
+      "bottom_up_layer": 10,
+      "entity": "Pgp4LiteRxLowSpeed",
+      "path": "protocols/pgp/pgp4/core/rtl/Pgp4RxLiteLowSpeed.vhd",
+      "subsystem": "protocols",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    }
+  ],
+  "deferred": [
+    {
+      "entity": "RogueSideBand",
+      "path": "axi/simlink/ghdl/RogueSideBand.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "RogueTcpMemory",
+      "path": "axi/simlink/ghdl/RogueTcpMemory.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "RogueTcpStream",
+      "path": "axi/simlink/ghdl/RogueTcpStream.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "RogueSideBand",
+      "path": "axi/simlink/sim/RogueSideBand.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "RogueTcpMemory",
+      "path": "axi/simlink/sim/RogueTcpMemory.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "RogueTcpStream",
+      "path": "axi/simlink/sim/RogueTcpStream.vhd",
+      "subsystem": "axi",
+      "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "LutFixedDelay",
+      "path": "base/delay/rtl/LutFixedDelay.vhd",
+      "subsystem": "base",
+      "reason": "Depends on SinglePortRamPrimitive under the current open-source flow."
+    },
+    {
+      "entity": "FifoAlteraMf",
+      "path": "base/fifo/rtl/altera/FifoAlteraMf.vhd",
+      "subsystem": "base",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "FifoAlteraMf",
+      "path": "base/fifo/rtl/dummy/FifoAlteraMfDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "FifoXpm",
+      "path": "base/fifo/rtl/dummy/FifoXpmDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "FifoXpm",
+      "path": "base/fifo/rtl/xilinx/FifoXpm.vhd",
+      "subsystem": "base",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SimpleDualPortRamAlteraMf",
+      "path": "base/ram/dummy/SimpleDualPortRamAlteraMfDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "SimpleDualPortRamXpm",
+      "path": "base/ram/dummy/SimpleDualPortRamXpmDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "SinglePortRamPrimitive",
+      "path": "base/ram/dummy/SinglePortRamPrimitiveDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "TrueDualPortRamAlteraMf",
+      "path": "base/ram/dummy/TrueDualPortRamXpmAlteraMfDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "TrueDualPortRamXpm",
+      "path": "base/ram/dummy/TrueDualPortRamXpmDummy.vhd",
+      "subsystem": "base",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "SimpleDualPortRamXpm",
+      "path": "base/ram/xilinx/SimpleDualPortRamXpm.vhd",
+      "subsystem": "base",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SinglePortRamPrimitive",
+      "path": "base/ram/xilinx/SinglePortRamPrimitive.vhd",
+      "subsystem": "base",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TrueDualPortRamXpm",
+      "path": "base/ram/xilinx/TrueDualPortRamXpm.vhd",
+      "subsystem": "base",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "LeapXcvr",
+      "path": "devices/Amphenol/LeapXcvr/rtl/LeapXcvr.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "LeapXcvrCdrDisable",
+      "path": "devices/Amphenol/LeapXcvr/rtl/LeapXcvrCdrDisable.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "LeapXcvrCore",
+      "path": "devices/Amphenol/LeapXcvr/rtl/LeapXcvrCore.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd5541Core",
+      "path": "devices/AnalogDevices/ad5541/rtl/AxiAd5541Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd5780Core",
+      "path": "devices/AnalogDevices/ad5780/rtl/AxiAd5780Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd5780Reg",
+      "path": "devices/AnalogDevices/ad5780/rtl/AxiAd5780Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd5780Ser",
+      "path": "devices/AnalogDevices/ad5780/rtl/AxiAd5780Ser.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249ConfigNoPullup",
+      "path": "devices/AnalogDevices/ad9249/7Series/rtl/Ad9249ConfigNoPullup.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249Deserializer",
+      "path": "devices/AnalogDevices/ad9249/7Series/rtl/Ad9249Deserializer.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249ReadoutGroup",
+      "path": "devices/AnalogDevices/ad9249/7Series/rtl/Ad9249ReadoutGroup.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249Deserializer",
+      "path": "devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249Deserializer.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249ReadoutGroup",
+      "path": "devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249ReadoutGroup2",
+      "path": "devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup2.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9249Config",
+      "path": "devices/AnalogDevices/ad9249/core/Ad9249Config.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "StreamPatternTester",
+      "path": "devices/AnalogDevices/ad9249/core/StreamPatternTester.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Core",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Deser",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Deser.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467DeserBit",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467DeserBit.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Mon",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Mon.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Pll",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Pll.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Reg",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAd9467Spi",
+      "path": "devices/AnalogDevices/ad9467/rtl/AxiAd9467Spi.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681Deserializer",
+      "path": "devices/AnalogDevices/ad9681/7Series/rtl/Ad9681Deserializer.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681Readout",
+      "path": "devices/AnalogDevices/ad9681/7Series/rtl/Ad9681Readout.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681ReadoutManual",
+      "path": "devices/AnalogDevices/ad9681/7Series/rtl/Ad9681ReadoutManual.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681Config",
+      "path": "devices/AnalogDevices/ad9681/core/Ad9681Config.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681",
+      "path": "devices/AnalogDevices/ad9681/sim/Ad9681.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Ad9681Serializer",
+      "path": "devices/AnalogDevices/ad9681/sim/Ad9681Serializer.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AdiConfigSlave",
+      "path": "devices/AnalogDevices/general/rtl/AdiConfigSlave.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiLtc2270Core",
+      "path": "devices/Linear/lct2270/rtl/AxiLtc2270Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiLtc2270Deser",
+      "path": "devices/Linear/lct2270/rtl/AxiLtc2270Deser.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiLtc2270DeserBit",
+      "path": "devices/Linear/lct2270/rtl/AxiLtc2270DeserBit.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiLtc2270Reg",
+      "path": "devices/Linear/lct2270/rtl/AxiLtc2270Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sgmii88E1111Mdio",
+      "path": "devices/Marvell/Sgmii88E1111/core/Sgmii88E1111Mdio.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sgmii88E1111LvdsUltraScale",
+      "path": "devices/Marvell/Sgmii88E1111/lvdsUltraScale/Sgmii88E1111LvdsUltraScale.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DS2411Core",
+      "path": "devices/Maxim/dummy/DS2411CoreDummy.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DS2411Core",
+      "path": "devices/Maxim/rtl/DS2411Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Max5443",
+      "path": "devices/Maxim/rtl/Max5443.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Max5443DacCntrl",
+      "path": "devices/Maxim/rtl/Max5443DacCntrl.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiSy56040Core",
+      "path": "devices/Microchip/sy56040/rtl/AxiSy56040Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiSy56040Reg",
+      "path": "devices/Microchip/sy56040/rtl/AxiSy56040Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sy89297",
+      "path": "devices/Microchip/sy89297/rtl/Sy89297.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronMt28ewCore",
+      "path": "devices/Micron/mt28ew/rtl/AxiMicronMt28ewCore.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronMt28ewReg",
+      "path": "devices/Micron/mt28ew/rtl/AxiMicronMt28ewReg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronN25QCore",
+      "path": "devices/Micron/n25q/rtl/AxiMicronN25QCore.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronN25QReg",
+      "path": "devices/Micron/n25q/rtl/AxiMicronN25QReg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronP30Core",
+      "path": "devices/Micron/p30/rtl/AxiMicronP30Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiMicronP30Reg",
+      "path": "devices/Micron/p30/rtl/AxiMicronP30Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sc18Is602",
+      "path": "devices/Nxp/Sc18Is602/rtl/Sc18Is602.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sc18Is602Core",
+      "path": "devices/Nxp/Sc18Is602/rtl/Sc18Is602Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Si5324",
+      "path": "devices/Silabs/si5324/rtl/Si5324.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Si5345",
+      "path": "devices/Silabs/si5345/rtl/Si5345.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Si5394I2c",
+      "path": "devices/Silabs/si5394/rtl/Si5394I2c.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Si5394I2cCore",
+      "path": "devices/Silabs/si5394/rtl/Si5394I2cCore.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Lmk048Base",
+      "path": "devices/Ti/Lmk048Base/rtl/Lmk048Base.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "adc32rf45",
+      "path": "devices/Ti/adc32rf45/rtl/adc32rf45.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAds42lb69Core",
+      "path": "devices/Ti/ads42lb69/rtl/AxiAds42lb69Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAds42lb69Deser",
+      "path": "devices/Ti/ads42lb69/rtl/AxiAds42lb69Deser.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAds42lb69DeserBit",
+      "path": "devices/Ti/ads42lb69/rtl/AxiAds42lb69DeserBit.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAds42lb69Pll",
+      "path": "devices/Ti/ads42lb69/rtl/AxiAds42lb69Pll.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiAds42lb69Reg",
+      "path": "devices/Ti/ads42lb69/rtl/AxiAds42lb69Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ads54j60",
+      "path": "devices/Ti/ads54j60/rtl/ads54j60.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiDac7654Core",
+      "path": "devices/Ti/dac7654/rtl/AxiDac7654Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiDac7654Reg",
+      "path": "devices/Ti/dac7654/rtl/AxiDac7654Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiDac7654Spi",
+      "path": "devices/Ti/dac7654/rtl/AxiDac7654Spi.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SgmiiDp83867Mdio",
+      "path": "devices/Ti/dp83867/core/SgmiiDp83867Mdio.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SgmiiDp83867LvdsUltraScale",
+      "path": "devices/Ti/dp83867/lvdsUltraScale/SgmiiDp83867LvdsUltraScale.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiXcf128Core",
+      "path": "devices/Xilinx/xcf128/rtl/AxiXcf128Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiXcf128Reg",
+      "path": "devices/Xilinx/xcf128/rtl/AxiXcf128Reg.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "QsfpCdrDisable",
+      "path": "devices/transceivers/rtl/QsfpCdrDisable.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sff8472",
+      "path": "devices/transceivers/rtl/Sff8472.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Sff8472Core",
+      "path": "devices/transceivers/rtl/Sff8472Core.vhd",
+      "subsystem": "devices",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Caui4GtyIpWrapper",
+      "path": "ethernet/Caui4Core/gtyUltraScale+/rtl/Caui4GtyIpWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGth7",
+      "path": "ethernet/GigEthCore/gth7/rtl/GigEthGth7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGth7Wrapper",
+      "path": "ethernet/GigEthCore/gth7/rtl/GigEthGth7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGthUltraScale",
+      "path": "ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGthUltraScaleWrapper",
+      "path": "ethernet/GigEthCore/gthUltraScale+/rtl/GigEthGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGthUltraScale",
+      "path": "ethernet/GigEthCore/gthUltraScale/rtl/GigEthGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGthUltraScaleWrapper",
+      "path": "ethernet/GigEthCore/gthUltraScale/rtl/GigEthGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtp7",
+      "path": "ethernet/GigEthCore/gtp7/rtl/GigEthGtp7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtp7Wrapper",
+      "path": "ethernet/GigEthCore/gtp7/rtl/GigEthGtp7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtx7",
+      "path": "ethernet/GigEthCore/gtx7/rtl/GigEthGtx7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtx7Wrapper",
+      "path": "ethernet/GigEthCore/gtx7/rtl/GigEthGtx7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtyUltraScale",
+      "path": "ethernet/GigEthCore/gtyUltraScale+/rtl/GigEthGtyUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthGtyUltraScaleWrapper",
+      "path": "ethernet/GigEthCore/gtyUltraScale+/rtl/GigEthGtyUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GigEthLvdsUltraScale",
+      "path": "ethernet/GigEthCore/lvdsUltraScale/rtl/GigEthLvdsUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGth7",
+      "path": "ethernet/TenGigEthCore/gth7/rtl/TenGigEthGth7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGth7Clk",
+      "path": "ethernet/TenGigEthCore/gth7/rtl/TenGigEthGth7Clk.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGth7Wrapper",
+      "path": "ethernet/TenGigEthCore/gth7/rtl/TenGigEthGth7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScale",
+      "path": "ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleClk",
+      "path": "ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleClk.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleRst",
+      "path": "ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleRst.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleWrapper",
+      "path": "ethernet/TenGigEthCore/gthUltraScale+/rtl/TenGigEthGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScale",
+      "path": "ethernet/TenGigEthCore/gthUltraScale/rtl/TenGigEthGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleClk",
+      "path": "ethernet/TenGigEthCore/gthUltraScale/rtl/TenGigEthGthUltraScaleClk.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleRst",
+      "path": "ethernet/TenGigEthCore/gthUltraScale/rtl/TenGigEthGthUltraScaleRst.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGthUltraScaleWrapper",
+      "path": "ethernet/TenGigEthCore/gthUltraScale/rtl/TenGigEthGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtx7",
+      "path": "ethernet/TenGigEthCore/gtx7/rtl/TenGigEthGtx7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtx7Clk",
+      "path": "ethernet/TenGigEthCore/gtx7/rtl/TenGigEthGtx7Clk.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtx7Wrapper",
+      "path": "ethernet/TenGigEthCore/gtx7/rtl/TenGigEthGtx7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtyUltraScale",
+      "path": "ethernet/TenGigEthCore/gtyUltraScale+/rtl/TenGigEthGtyUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtyUltraScaleClk",
+      "path": "ethernet/TenGigEthCore/gtyUltraScale+/rtl/TenGigEthGtyUltraScaleClk.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtyUltraScaleRst",
+      "path": "ethernet/TenGigEthCore/gtyUltraScale+/rtl/TenGigEthGtyUltraScaleRst.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "TenGigEthGtyUltraScaleWrapper",
+      "path": "ethernet/TenGigEthCore/gtyUltraScale+/rtl/TenGigEthGtyUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGth7",
+      "path": "ethernet/XauiCore/gth7/rtl/XauiGth7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGth7Core",
+      "path": "ethernet/XauiCore/gth7/rtl/XauiGth7Core.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGth7Wrapper",
+      "path": "ethernet/XauiCore/gth7/rtl/XauiGth7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGthUltraScale",
+      "path": "ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGthUltraScaleWrapper",
+      "path": "ethernet/XauiCore/gthUltraScale+/rtl/XauiGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGthUltraScale",
+      "path": "ethernet/XauiCore/gthUltraScale/rtl/XauiGthUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGthUltraScaleWrapper",
+      "path": "ethernet/XauiCore/gthUltraScale/rtl/XauiGthUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGtx7",
+      "path": "ethernet/XauiCore/gtx7/rtl/XauiGtx7.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGtx7Core",
+      "path": "ethernet/XauiCore/gtx7/rtl/XauiGtx7Core.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGtx7Wrapper",
+      "path": "ethernet/XauiCore/gtx7/rtl/XauiGtx7Wrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGtyUltraScale",
+      "path": "ethernet/XauiCore/gtyUltraScale+/rtl/XauiGtyUltraScale.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "XauiGtyUltraScaleWrapper",
+      "path": "ethernet/XauiCore/gtyUltraScale+/rtl/XauiGtyUltraScaleWrapper.vhd",
+      "subsystem": "ethernet",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "ClinkDataClk",
+      "path": "protocols/clink/7Series/ClinkDataClk.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "ClinkDataShift",
+      "path": "protocols/clink/7Series/ClinkDataShift.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "ClinkDataClk",
+      "path": "protocols/clink/UltraScale/ClinkDataClk.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "ClinkDataShift",
+      "path": "protocols/clink/UltraScale/ClinkDataShift.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaXPressOverFiberGthUsIpWrapper",
+      "path": "protocols/coaxpress/gthUs+/rtl/CoaXPressOverFiberGthUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGthUs",
+      "path": "protocols/coaxpress/gthUs+/rtl/CoaxpressOverFiberGthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGthUsQpll",
+      "path": "protocols/coaxpress/gthUs+/rtl/CoaxpressOverFiberGthUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaXPressOverFiberGthUsIpWrapper",
+      "path": "protocols/coaxpress/gthUs/rtl/CoaXPressOverFiberGthUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGthUs",
+      "path": "protocols/coaxpress/gthUs/rtl/CoaxpressOverFiberGthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGthUsQpll",
+      "path": "protocols/coaxpress/gthUs/rtl/CoaxpressOverFiberGthUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaXPressOverFiberGtyUsIpWrapper",
+      "path": "protocols/coaxpress/gtyUs+/rtl/CoaXPressOverFiberGtyUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGtyUs",
+      "path": "protocols/coaxpress/gtyUs+/rtl/CoaxpressOverFiberGtyUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CoaxpressOverFiberGtyUsQpll",
+      "path": "protocols/coaxpress/gtyUs+/rtl/CoaxpressOverFiberGtyUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GLinkGtp7FixedLat",
+      "path": "protocols/glink/gtp7/rtl/GLinkGtp7FixedLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GLinkGtx7Core",
+      "path": "protocols/glink/gtx7/rtl/GLinkGtx7Core.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GLinkGtx7FixedLat",
+      "path": "protocols/glink/gtx7/rtl/GLinkGtx7FixedLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "GLinkGtx7RxRst",
+      "path": "protocols/glink/gtx7/rtl/GLinkGtx7RxRst.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "HtspCaui4Gty",
+      "path": "protocols/htsp/gtyUs+/rtl/HtspCaui4Gty.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "I2cRamSlave",
+      "path": "protocols/i2c/sim/I2cRamSlave.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "I2cRegTb",
+      "path": "protocols/i2c/sim/I2cRegTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "DescrambleTb",
+      "path": "protocols/jesd204b/sim/DescrambleTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "Jesd204bTb",
+      "path": "protocols/jesd204b/sim/Jesd204bTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "ScramblerTb",
+      "path": "protocols/jesd204b/sim/ScramblerTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "Pgp2bGth7Fixedlat",
+      "path": "protocols/pgp/pgp2b/gth7/rtl/Pgp2bGth7FixedLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGth7FixedLatWrapper",
+      "path": "protocols/pgp/pgp2b/gth7/rtl/Pgp2bGth7FixedLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGth7MultiLane",
+      "path": "protocols/pgp/pgp2b/gth7/rtl/Pgp2bGth7MultiLane.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGth7VarLat",
+      "path": "protocols/pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGth7VarLatWrapper",
+      "path": "protocols/pgp/pgp2b/gth7/rtl/Pgp2bGth7VarLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGthUltra",
+      "path": "protocols/pgp/pgp2b/gthUltraScale+/rtl/Pgp2bGthUltra.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "PgpGthCoreWrapper",
+      "path": "protocols/pgp/pgp2b/gthUltraScale+/rtl/PgpGthCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGthUltra",
+      "path": "protocols/pgp/pgp2b/gthUltraScale/rtl/Pgp2bGthUltra.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "PgpGthCoreWrapper",
+      "path": "protocols/pgp/pgp2b/gthUltraScale/rtl/PgpGthCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtp7FixedLat",
+      "path": "protocols/pgp/pgp2b/gtp7/rtl/Pgp2bGtp7FixedLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtp7FixedLatWrapper",
+      "path": "protocols/pgp/pgp2b/gtp7/rtl/Pgp2bGtp7FixedLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtp7MultiLane",
+      "path": "protocols/pgp/pgp2b/gtp7/rtl/Pgp2bGtp7MultiLane.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtp7VarLat",
+      "path": "protocols/pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtp7VarLatWrapper",
+      "path": "protocols/pgp/pgp2b/gtp7/rtl/Pgp2bGtp7VarLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtx7Fixedlat",
+      "path": "protocols/pgp/pgp2b/gtx7/rtl/Pgp2bGtx7FixedLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtx7FixedLatWrapper",
+      "path": "protocols/pgp/pgp2b/gtx7/rtl/Pgp2bGtx7FixedLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtx7MultiLane",
+      "path": "protocols/pgp/pgp2b/gtx7/rtl/Pgp2bGtx7MultiLane.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtx7VarLat",
+      "path": "protocols/pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLat.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtx7VarLatWrapper",
+      "path": "protocols/pgp/pgp2b/gtx7/rtl/Pgp2bGtx7VarLatWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2bGtyUltra",
+      "path": "protocols/pgp/pgp2b/gtyUltraScale+/rtl/Pgp2bGtyUltra.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "PgpGtyCoreWrapper",
+      "path": "protocols/pgp/pgp2b/gtyUltraScale+/rtl/PgpGtyCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGthCoreWrapper",
+      "path": "protocols/pgp/pgp2fc/gthUltraScale+/rtl/Pgp2fcGthCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGthUltra",
+      "path": "protocols/pgp/pgp2fc/gthUltraScale+/rtl/Pgp2fcGthUltra.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGtp7",
+      "path": "protocols/pgp/pgp2fc/gtp7/rtl/Pgp2fcGtp7.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGtp7Wrapper",
+      "path": "protocols/pgp/pgp2fc/gtp7/rtl/Pgp2fcGtp7Wrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGtyCoreWrapper",
+      "path": "protocols/pgp/pgp2fc/gtyUltraScale+/rtl/Pgp2fcGtyCoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp2fcGtyUltra",
+      "path": "protocols/pgp/pgp2fc/gtyUltraScale+/rtl/Pgp2fcGtyUltra.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUs",
+      "path": "protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsIpWrapper",
+      "path": "protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsQpll",
+      "path": "protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsWrapper",
+      "path": "protocols/pgp/pgp3/gthUs+/rtl/Pgp3GthUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUs",
+      "path": "protocols/pgp/pgp3/gthUs/rtl/Pgp3GthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsIpWrapper",
+      "path": "protocols/pgp/pgp3/gthUs/rtl/Pgp3GthUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsQpll",
+      "path": "protocols/pgp/pgp3/gthUs/rtl/Pgp3GthUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GthUsWrapper",
+      "path": "protocols/pgp/pgp3/gthUs/rtl/Pgp3GthUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7IpWrapper",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7IpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7Qpll",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7Qpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7RxGearbox",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7RxGearbox.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7TxGearbox",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7TxGearbox.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtp7Wrapper",
+      "path": "protocols/pgp/pgp3/gtp7/rtl/Pgp3Gtp7Wrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtx7",
+      "path": "protocols/pgp/pgp3/gtx7/rtl/Pgp3Gtx7.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtx7IpWrapper",
+      "path": "protocols/pgp/pgp3/gtx7/rtl/Pgp3Gtx7IpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtx7Qpll",
+      "path": "protocols/pgp/pgp3/gtx7/rtl/Pgp3Gtx7Qpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3Gtx7Wrapper",
+      "path": "protocols/pgp/pgp3/gtx7/rtl/Pgp3Gtx7Wrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GtyUs",
+      "path": "protocols/pgp/pgp3/gtyUs+/rtl/Pgp3GtyUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GtyUsIpWrapper",
+      "path": "protocols/pgp/pgp3/gtyUs+/rtl/Pgp3GtyUsIpWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GtyUsQpll",
+      "path": "protocols/pgp/pgp3/gtyUs+/rtl/Pgp3GtyUsQpll.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp3GtyUsWrapper",
+      "path": "protocols/pgp/pgp3/gtyUs+/rtl/Pgp3GtyUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GthUs",
+      "path": "protocols/pgp/pgp4/gthUs+/rtl/Pgp4GthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GthUsWrapper",
+      "path": "protocols/pgp/pgp4/gthUs+/rtl/Pgp4GthUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GthUs",
+      "path": "protocols/pgp/pgp4/gthUs/rtl/Pgp4GthUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GthUsWrapper",
+      "path": "protocols/pgp/pgp4/gthUs/rtl/Pgp4GthUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4Gtp7",
+      "path": "protocols/pgp/pgp4/gtp7/rtl/Pgp4Gtp7.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4Gtp7Wrapper",
+      "path": "protocols/pgp/pgp4/gtp7/rtl/Pgp4Gtp7Wrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4Gtx7",
+      "path": "protocols/pgp/pgp4/gtx7/rtl/Pgp4Gtx7.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4Gtx7Wrapper",
+      "path": "protocols/pgp/pgp4/gtx7/rtl/Pgp4Gtx7Wrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GtyUs",
+      "path": "protocols/pgp/pgp4/gtyUs+/rtl/Pgp4GtyUs.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GtyUsIpFecWrapper",
+      "path": "protocols/pgp/pgp4/gtyUs+/rtl/Pgp4GtyUsIpFecWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "Pgp4GtyUsWrapper",
+      "path": "protocols/pgp/pgp4/gtyUs+/rtl/Pgp4GtyUsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "GT-family implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "PgpXvcWrapper",
+      "path": "protocols/pgp/shared/xilinx/PgpXvcWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "AxiLiteSaciMasterTb",
+      "path": "protocols/saci/saci1/sim/AxiLiteSaciMasterTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "SaciAxiLiteMasterTb",
+      "path": "protocols/saci/saci1/sim/SaciAxiLiteMasterTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "SaciAxiLiteMasterTbWrapper",
+      "path": "protocols/saci/saci1/sim/SaciAxiLiteMasterTbWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "SaciSlaveRam",
+      "path": "protocols/saci/saci1/sim/SaciSlaveRam.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "SaciSlaveWrapper",
+      "path": "protocols/saci/saci1/sim/SaciSlaveWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "Saci2ToAxiLiteTb",
+      "path": "protocols/saci/saci2/sim/Saci2ToAxiLiteTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "SaltRxDeser",
+      "path": "protocols/salt/rtl/7Series/SaltRxDeser.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SaltTxSer",
+      "path": "protocols/salt/rtl/7Series/SaltTxSer.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SaltRxDeser",
+      "path": "protocols/salt/rtl/UltraScale/SaltRxDeser.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SaltTxSer",
+      "path": "protocols/salt/rtl/UltraScale/SaltTxSer.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SugoiManagerRx7Series",
+      "path": "protocols/sugoi/rtl/7Series/SugoiManagerRx7Series.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SugoiManagerRxUltrascale",
+      "path": "protocols/sugoi/rtl/UltraScale/SugoiManagerRxUltrascale.vhd",
+      "subsystem": "protocols",
+      "reason": "Family-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SugoiManagerRx7Series",
+      "path": "protocols/sugoi/rtl/dummy/SugoiManagerRx7SeriesDummy.vhd",
+      "subsystem": "protocols",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "SugoiManagerRxUltrascale",
+      "path": "protocols/sugoi/rtl/dummy/SugoiManagerRxUltrascaleDummy.vhd",
+      "subsystem": "protocols",
+      "reason": "Dummy-backed variants are deferred from the phase-1 executable queue."
+    },
+    {
+      "entity": "UartAxiLiteMasterTb",
+      "path": "protocols/uart/sim/UartAxiLiteMasterTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Simulation-only support modules are not part of the synthesizable phase-1 queue."
+    },
+    {
+      "entity": "Idelaye3Wrapper",
+      "path": "xilinx/7Series/dummy/Idelaye3WrapperDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Odelaye3Wrapper",
+      "path": "xilinx/7Series/dummy/Odelaye3WrapperDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClockManager7",
+      "path": "xilinx/7Series/general/rtl/ClockManager7.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DeviceDna7Series",
+      "path": "xilinx/7Series/general/rtl/DeviceDna7Series.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Dsp48Comparator4x12b",
+      "path": "xilinx/7Series/general/rtl/Dsp48Comparator4x12b.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "InputBufferReg",
+      "path": "xilinx/7Series/general/rtl/InputBufferReg.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Iprog7Series",
+      "path": "xilinx/7Series/general/rtl/Iprog7Series.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Iprog7SeriesCore",
+      "path": "xilinx/7Series/general/rtl/Iprog7SeriesCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "OutputBufferReg",
+      "path": "xilinx/7Series/general/rtl/OutputBufferReg.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SelectioDeser7Series",
+      "path": "xilinx/7Series/general/rtl/SelectioDeser7Series.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SelectioDeserLane7Series",
+      "path": "xilinx/7Series/general/rtl/SelectioDeserLane7Series.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7AutoPhaseAligner",
+      "path": "xilinx/7Series/gth7/rtl/Gth7AutoPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7Core",
+      "path": "xilinx/7Series/gth7/rtl/Gth7Core.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7QuadPll",
+      "path": "xilinx/7Series/gth7/rtl/Gth7QuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7RecClkMonitor",
+      "path": "xilinx/7Series/gth7/rtl/Gth7RecClkMonitor.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7RxFixedLatPhaseAligner",
+      "path": "xilinx/7Series/gth7/rtl/Gth7RxFixedLatPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7RxRst",
+      "path": "xilinx/7Series/gth7/rtl/Gth7RxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7RxRstSeq",
+      "path": "xilinx/7Series/gth7/rtl/Gth7RxRstSeq.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7TxManualPhaseAligner",
+      "path": "xilinx/7Series/gth7/rtl/Gth7TxManualPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gth7TxRst",
+      "path": "xilinx/7Series/gth7/rtl/Gth7TxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7AutoPhaseAligner",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7AutoPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7Core",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7Core.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7QuadPll",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7QuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7RecClkMonitor",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7RecClkMonitor.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7RxFixedLatPhaseAligner",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7RxFixedLatPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7RxRst",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7RxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7RxRstSeq",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7RxRstSeq.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7TxManualPhaseAligner",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7TxManualPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp7TxRst",
+      "path": "xilinx/7Series/gtp7/rtl/Gtp7TxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtpe2ChannelDummy",
+      "path": "xilinx/7Series/gtp7/rtl/Gtpe2ChannelDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7AutoPhaseAligner",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7AutoPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7Core",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7Core.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7QuadPll",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7QuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7RecClkMonitor",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7RecClkMonitor.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7RxFixedLatPhaseAligner",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7RxFixedLatPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7RxRst",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7RxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7TxManualPhaseAligner",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7TxManualPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtx7TxRst",
+      "path": "xilinx/7Series/gtx7/rtl/Gtx7TxRst.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtxe2ChannelDummy",
+      "path": "xilinx/7Series/gtx7/rtl/Gtxe2ChannelDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SemWrapper",
+      "path": "xilinx/7Series/sem/rtl/SemWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SsiSem",
+      "path": "xilinx/7Series/sem/rtl/SsiSem.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UartSem",
+      "path": "xilinx/7Series/sem/rtl/UartSem.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiXadcMinimumCore",
+      "path": "xilinx/7Series/xadc/rtl/AxiXadcMinimumCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "XadcSimpleCore",
+      "path": "xilinx/7Series/xadc/rtl/XadcSimpleCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClockManagerUltraScale",
+      "path": "xilinx/UltraScale+/clocking/rtl/ClockManagerUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GthUltraScaleQuadPll",
+      "path": "xilinx/UltraScale+/gthUs+/rtl/GthUltraScaleQuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gthe4ChannelDummy",
+      "path": "xilinx/UltraScale+/gthUs+/rtl/Gthe4ChannelDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GtyUltraScaleQuadPll",
+      "path": "xilinx/UltraScale+/gtyUs+/rtl/GtyUltraScaleQuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtye4ChannelDummy",
+      "path": "xilinx/UltraScale+/gtyUs+/rtl/Gtye4ChannelDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClockManagerUltraScale",
+      "path": "xilinx/UltraScale/clocking/rtl/ClockManagerUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Delaye3PatchFsm",
+      "path": "xilinx/UltraScale/general/rtl/Delaye3PatchFsm.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DeviceDnaUltraScale",
+      "path": "xilinx/UltraScale/general/rtl/DeviceDnaUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Idelaye3Wrapper",
+      "path": "xilinx/UltraScale/general/rtl/Idelaye3Wrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "InputBufferReg",
+      "path": "xilinx/UltraScale/general/rtl/InputBufferReg.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "IprogUltraScale",
+      "path": "xilinx/UltraScale/general/rtl/IprogUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Odelaye3Wrapper",
+      "path": "xilinx/UltraScale/general/rtl/Odelaye3Wrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "OutputBufferReg",
+      "path": "xilinx/UltraScale/general/rtl/OutputBufferReg.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SelectioDeserLaneUltraScale",
+      "path": "xilinx/UltraScale/general/rtl/SelectioDeserLaneUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SelectioDeserUltraScale",
+      "path": "xilinx/UltraScale/general/rtl/SelectioDeserUltraScale.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GthUltraScaleQuadPll",
+      "path": "xilinx/UltraScale/gthUs/rtl/GthUltraScaleQuadPll.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gthe3ChannelDummy",
+      "path": "xilinx/UltraScale/gthUs/rtl/Gthe3ChannelDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClockManagerVersal",
+      "path": "xilinx/Versal/clocking/rtl/ClockManagerVersal.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Gtp16FixedLatCore",
+      "path": "xilinx/Virtex5/gtp/rtl/Gtp16FixedLatCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GtpDualFixedLatCore",
+      "path": "xilinx/Virtex5/gtp/rtl/GtpDualFixedLatCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GtpRxCommaAligner",
+      "path": "xilinx/Virtex5/gtp/rtl/GtpRxCommaAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GtpTxPhaseAligner",
+      "path": "xilinx/Virtex5/gtp/rtl/GtpTxPhaseAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClkOutBufDiff",
+      "path": "xilinx/dummy/ClkOutBufDiffDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClkOutBufSingle",
+      "path": "xilinx/dummy/ClkOutBufSingleDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DeviceDna",
+      "path": "xilinx/dummy/DeviceDnaDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "IoBufWrapper",
+      "path": "xilinx/dummy/IoBufWrapperDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Iprog",
+      "path": "xilinx/dummy/IprogDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "OutputBufferReg",
+      "path": "xilinx/dummy/OutputBufferRegDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Srl16Delay",
+      "path": "xilinx/dummy/Srl16DelayDummy.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "MicroblazeBasicCoreWrapper",
+      "path": "xilinx/general/microblaze/bypass/MicroblazeBasicCoreWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "MicroblazeBasicCoreWrapper",
+      "path": "xilinx/general/microblaze/generate/MicroblazeBasicCoreWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClkOutBufDiff",
+      "path": "xilinx/general/rtl/ClkOutBufDiff.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "ClkOutBufSingle",
+      "path": "xilinx/general/rtl/ClkOutBufSingle.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DeviceDna",
+      "path": "xilinx/general/rtl/DeviceDna.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "GtRxAlignCheck",
+      "path": "xilinx/general/rtl/GtRxAlignCheck.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "IoBufWrapper",
+      "path": "xilinx/general/rtl/IoBufWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Iprog",
+      "path": "xilinx/general/rtl/Iprog.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "SelectIoRxGearboxAligner",
+      "path": "xilinx/general/rtl/SelectIoRxGearboxAligner.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "Srl16Delay",
+      "path": "xilinx/general/rtl/Srl16Delay.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/7Series/Impl/images/UdpDebugBridge_stub.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/7Series/Stub/images/UdpDebugBridge_stub.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/UltraScale/Impl/images/UdpDebugBridge_stub.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/UltraScale/Stub/images/UdpDebugBridge_stub.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/core/UdpDebugBridgeImplWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridge",
+      "path": "xilinx/xvc-udp/dcp/core/UdpDebugBridgeStubWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridgeWrapper",
+      "path": "xilinx/xvc-udp/dcp/core/UdpDebugBridgeWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxiStreamSelector",
+      "path": "xilinx/xvc-udp/jtag/rtl/AxiStreamSelector.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxisJtagDebugBridge",
+      "path": "xilinx/xvc-udp/jtag/rtl/AxisJtagDebugBridge.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxisToJtag",
+      "path": "xilinx/xvc-udp/jtag/rtl/AxisToJtag.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "AxisToJtagCore",
+      "path": "xilinx/xvc-udp/jtag/rtl/AxisToJtagCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "JtagSerDesCore",
+      "path": "xilinx/xvc-udp/jtag/rtl/JtagSerDesCore.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "DmaXvcWrapper",
+      "path": "xilinx/xvc-udp/rtl/DmaXvcWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "UdpDebugBridgeWrapper",
+      "path": "xilinx/xvc-udp/rtl/UdpDebugBridgeWrapper.vhd",
+      "subsystem": "xilinx",
+      "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    }
+  ],
+  "unresolved_phase1_edges": []
+}
