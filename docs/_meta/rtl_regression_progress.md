@@ -1,9 +1,9 @@
 # SURF RTL Regression Progress
 
 ## Summary
-- Current phase: Planning complete, implementation scaffolding started
-- Current subsystem: cross-cutting infrastructure
-- Current focus module: resume implementation from the generated path-qualified phase-1 queue and keep any justified defer/reorder exceptions in the override file only
+- Current phase: Phase-1 implementation active
+- Current subsystem: `axi`
+- Current focus module: `AxiReadPathMux`
 - Last updated: 2026-03-21
 
 ## Status
@@ -12,7 +12,7 @@
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini`; the phase-1 rollout queue is now generated into `docs/_meta/rtl_phase1_queue.{md,json}` with explicit inputs in `docs/_meta/rtl_phase1_queue_overrides.json` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
-| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync` and `AxiLiteToDrp` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async branches remain open. |
+| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, `AxiStreamSplitter`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiLiteToDrp`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync` and `AxiLiteToDrp` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async branches remain open. |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -86,14 +86,16 @@
 - Implemented `tests/axi/axi_stream/test_AxiStreamDeMux.py` with a thin two-output adapter at `axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd`, and validated its curated indexed-routing, routed-backpressure, and dynamic-route/drop/reset sweep locally (`3 passed`).
 - Revalidated the current small `axi/` follow-on subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_stream/test_AxiStreamMux.py tests/axi/axi_stream/test_AxiStreamDeMux.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`10 passed`).
 - Replaced the hand-curated flat phase-1 list with a generated path-qualified queue emitted by `scripts/build_rtl_instantiation_graph.py` into `docs/_meta/rtl_phase1_queue.{md,json}`, backed by explicit filters and manual-order inputs in `docs/_meta/rtl_phase1_queue_overrides.json`.
+- Implemented `tests/axi/axi_lite/test_AxiLiteRegs.py`, `tests/axi/axi_lite/test_AxiLiteRespTimer.py`, `tests/axi/axi_lite/test_AxiLiteSlave.py`, `tests/axi/axi_lite/test_AxiLiteWriteFilter.py`, `tests/axi/axi_lite/test_AxiVersion.py`, `tests/axi/axi_stream/test_AxiStreamCombiner.py`, `tests/axi/axi_stream/test_AxiStreamFlush.py`, `tests/axi/axi_stream/test_AxiStreamGearboxPack.py`, `tests/axi/axi_stream/test_AxiStreamGearboxUnpack.py`, and `tests/axi/axi_stream/test_AxiStreamSplitter.py` with thin subsystem-local adapters under `axi/axi-lite/ip_integrator/` and `axi/axi-stream/ip_integrator/`.
+- Validated the generated-queue 10-module AXI batch with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_lite/test_AxiLiteRegs.py tests/axi/axi_lite/test_AxiLiteRespTimer.py tests/axi/axi_lite/test_AxiLiteSlave.py tests/axi/axi_lite/test_AxiLiteWriteFilter.py tests/axi/axi_lite/test_AxiVersion.py tests/axi/axi_stream/test_AxiStreamCombiner.py tests/axi/axi_stream/test_AxiStreamFlush.py tests/axi/axi_stream/test_AxiStreamGearboxPack.py tests/axi/axi_stream/test_AxiStreamGearboxUnpack.py tests/axi/axi_stream/test_AxiStreamSplitter.py` (`14 passed`).
 
 ## Current In-Progress Item
-- Resume module implementation from the first unfinished, non-deferred entry in `docs/_meta/rtl_phase1_queue.md`, using the progress doc and inventory to identify the current completion frontier instead of relying on a hand-maintained queue embedded in the plan.
+- Resume the generated queue at `AxiReadPathMux`, then continue through `AxiResize`, `AxiWritePathMux`, and `AxiToAxiLite` unless a concrete simulator-scope defer is justified in `docs/_meta/rtl_phase1_queue_overrides.json`.
 
 ## Next 3 Concrete Tasks
-- Resume implementation from the first unfinished, non-deferred entry in `docs/_meta/rtl_phase1_queue.md`.
+- Implement `AxiReadPathMux`, the next unfinished non-deferred phase-1 queue entry.
+- Reassess whether `AxiResize` should get direct RTL-level coverage or continue to rely on the already-validated `AxiStreamResize` wrapper bench plus later integration coverage.
 - Add only justified simulator-scope deferrals or ordering exceptions to `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit module order in `docs/_meta/rtl_regression_plan.md`.
-- Keep higher-level protocol assemblies such as `Pgp3Core` and `Pgp4Core` behind their lower-level children now that those children are surfaced explicitly in the generated bottom-up queue.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -187,3 +189,4 @@
 - 2026-03-21: Started scoping the next five flat-queue modules after `AxiStreamDeMux`: `AxiStreamResize`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam`, beginning with a wrapper/reference-asset pass to separate straightforward benches from blocks that still need adapter cleanup.
 - 2026-03-21: Implemented and validated the next five flat-queue modules: `AxiStreamResize`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam`. The five-module batch passes with `10 passed`, and a broader AXI follow-on sanity run across pipeline, mux, demux, resize, crossbar, async, master, DRP bridge, and dual-port RAM passes with `20 passed`. `AxiLiteAsync` and `AxiLiteToDrp` intentionally keep only the stable common-clock subsets in this first batch; the async CDC/arbitration branches remain open.
 - 2026-03-21: Replaced the hand-maintained flat phase-1 list in the plan with a generated path-qualified bottom-up queue emitted by `scripts/build_rtl_instantiation_graph.py` into `docs/_meta/rtl_phase1_queue.{md,json}`. Checked in `docs/_meta/rtl_phase1_queue_overrides.json` as the only supported input for manual phase-1 deferrals and ordering exceptions; the initial generated queue contains `411` phase-1 modules with `0` unresolved duplicate-name phase-1 edges under the current filter set.
+- 2026-03-21: Implemented and validated the next 10 generated-queue AXI modules: `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, and `AxiStreamSplitter`. The combined validation command across those 10 module files passes with `14 passed`.
