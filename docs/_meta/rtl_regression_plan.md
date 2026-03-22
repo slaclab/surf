@@ -138,9 +138,9 @@ Completed foundation through the current `axi/` follow-on:
 53. `AxiStreamPipeline`
 54. `AxiLiteCrossbar`
 55. `AxiStreamMux`
+56. `AxiStreamDeMux`
 
 Current remaining phase-1 queue:
-56. `AxiStreamDeMux`
 57. `AxiStreamResize`
 58. `AxiLiteAsync`
 59. `AxiLiteMaster`

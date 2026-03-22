@@ -509,6 +509,20 @@ modules:
     notes: "Validated AXI-Stream mux coverage with a thin two-input wrapper. The curated sweep covers indexed arbitration with explicit priority plus `disableSel`, routed `TDEST`/`TID` remap under backpressure, and staged asynchronous active-low reset recovery in passthrough mode. Interleave and explicit rearbitrate branches remain intentionally open for later work."
     deferred_reason: ""
 
+  - entity: AxiStreamDeMux
+    path: axi/axi-stream/rtl/AxiStreamDeMux.vhd
+    subsystem: axi
+    tier: wrapper_required
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd
+    python_test: tests/axi/axi_stream/test_AxiStreamDeMux.py
+    reference_assets:
+      - axi/axi-stream/tb/AxiStreamDemuxMuxTb.vhd
+      - tests/test_AxiStreamDemuxMuxTb.py
+    notes: "Validated AXI-Stream demux coverage with a thin one-input/two-output wrapper. The curated sweep covers indexed routing, exact-match routed decode under output backpressure, and dynamic-route table behavior including unmatched-destination drop and staged asynchronous active-low reset flush. Wildcard-route patterns and larger fanout counts remain intentionally open for later work."
+    deferred_reason: ""
+
   - entity: AxiLiteCrossbar
     path: axi/axi-lite/rtl/AxiLiteCrossbar.vhd
     subsystem: axi

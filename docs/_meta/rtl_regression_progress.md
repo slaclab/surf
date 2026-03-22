@@ -3,7 +3,7 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: axi
-- Current focus module: continue the flat phase-1 build order at `AxiStreamDeMux`, the next queued item after the now-validated `AxiStreamMux`
+- Current focus module: continue the flat phase-1 build order at `AxiStreamResize`, the next queued item after the now-validated `AxiStreamDeMux`
 - Last updated: 2026-03-21
 
 ## Status
@@ -12,7 +12,7 @@
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
-| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, and `AxiLiteCrossbar` are now validated under subsystem-packaged `tests/axi/`; `AxiStreamDeMux` is the next flat-queue item and `AxiLiteAsync` remains deferred until its wrapper path is cleaned up |
+| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, and `AxiLiteCrossbar` are now validated under subsystem-packaged `tests/axi/`; `AxiStreamResize` is the next flat-queue item and `AxiLiteAsync` remains deferred until its wrapper path is cleaned up |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -83,14 +83,16 @@
 - Validated the first post-`base/` `axi/` pair with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`4 passed`).
 - Implemented `tests/axi/axi_stream/test_AxiStreamMux.py` with a thin two-input adapter at `axi/axi-stream/ip_integrator/AxiStreamMuxIpIntegrator.vhd`, and validated its curated indexed-priority, routed-remap, and asynchronous reset/recovery sweep locally (`3 passed`).
 - Revalidated the small post-`base/` `axi/` follow-on set with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_stream/test_AxiStreamMux.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`7 passed`).
+- Implemented `tests/axi/axi_stream/test_AxiStreamDeMux.py` with a thin two-output adapter at `axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd`, and validated its curated indexed-routing, routed-backpressure, and dynamic-route/drop/reset sweep locally (`3 passed`).
+- Revalidated the current small `axi/` follow-on subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_stream/test_AxiStreamMux.py tests/axi/axi_stream/test_AxiStreamDeMux.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`10 passed`).
 
 ## Current In-Progress Item
-- Implement `AxiStreamDeMux` as the next flat-queue item after the now-validated `AxiStreamMux`, keeping the wrapper coverage narrow and de-mux-specific instead of folding it back into a combined DeMux/Mux harness.
+- Implement `AxiStreamResize` as the next flat-queue item after the now-validated `AxiStreamDeMux`, keeping the wrapper coverage narrow and resize-specific instead of reviving the older broad harness as the default execution path.
 
 ## Next 3 Concrete Tasks
-- Implement `AxiStreamDeMux`.
 - Implement `AxiStreamResize`, while keeping `LutFixedDelay` deferred and any wrapper coverage intentionally narrow unless a concrete blocker forces a reorder.
-- Revisit `AxiLiteAsync` only after the AXI-Stream pair is in place or if a concrete wrapper cleanup makes it practical sooner.
+- Revisit `AxiLiteAsync` only after the current AXI-Stream trio is in place or if a concrete wrapper cleanup makes it practical sooner.
+- Continue down the flat queue to `AxiLiteMaster` once `AxiStreamResize` is validated.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -133,6 +135,7 @@
 - `AxiStreamPipeline` is stable with a thin flat-port wrapper. The zero-stage case should be checked as true pass-through, while staged cases should be checked against the wrapper-visible latency of `PIPE_STAGES_G + 2` clocks and a bounded reset flush rather than an over-precise internal-stage assumption.
 - `AxiStreamMux` is stable with a thin two-input adapter, but its `disableSel` handling composes with the separate priority-masking step in a non-obvious order: a disabled higher-priority source can still suppress lower-priority requesters. Disable-focused benches should either use equal priorities or mask the lower-priority source instead.
 - `AxiStreamMux` interleave and explicit rearbitrate branches remain intentionally out of scope for the first wrapper bench; the validated subset is indexed arbitration plus `disableSel`, routed `TDEST`/`TID` remap under backpressure, and staged reset/recovery in passthrough mode.
+- `AxiStreamDeMux` is stable with a thin one-input/two-output adapter. The first bench covers indexed decode, exact-match routed decode under output backpressure, and dynamic-route table behavior including unmatched-destination drop and staged reset flush. Broader wildcard-route patterns and larger fanout counts remain intentionally unproven in this first wrapper bench.
 - `AxiLiteCrossbar` is practical under the current open-source flow by reusing the existing `AxiLiteCrossbarTb.vhd` harness as a cocotb-facing shell. The useful regression surface is routed-region correctness, decode-miss `DECERR` handling, and concurrent traffic through the cascaded topology, not a giant generic sweep.
 - SURF already has reusable AXI record-flattening shims. New AXI Stream and AXI-Lite wrappers should prefer the existing IP-integrator shim layers over hand-written record packing, and only custom-wire the DUT-specific extra side signals on top.
 - More generally, any VHDL shim layer added only to make a module fit cleanly into cocotb should live in the nearest real subsystem `ip_integrator/` tree, not under `tests/` and not under generic `hdl/` directories.
@@ -175,3 +178,6 @@
 - 2026-03-21: Resumed the flat `axi/` queue at `AxiStreamMux` and chose a dedicated IP-integrator adapter over the existing combined DeMux/Mux harness so the new cocotb bench can stay mux-specific and exercise arbitration plus `TDEST`/`TID` remap behavior directly.
 - 2026-03-21: Implemented and validated `AxiStreamMux` with `axi/axi-stream/ip_integrator/AxiStreamMuxIpIntegrator.vhd` plus `tests/axi/axi_stream/test_AxiStreamMux.py`. The validated 3-case sweep covers indexed arbitration with explicit priority and `disableSel`, routed `TDEST`/`TID` remap under backpressure, and staged asynchronous active-low reset recovery (`3 passed`).
 - 2026-03-21: Revalidated the current small `axi/` follow-on subset with `tests/axi/axi_stream/test_AxiStreamPipeline.py`, `tests/axi/axi_stream/test_AxiStreamMux.py`, and `tests/axi/axi_lite/test_AxiLiteCrossbar.py` in one run (`7 passed`).
+- 2026-03-21: Started the next flat-queue `axi/` item, `AxiStreamDeMux`, and began evaluating whether a dedicated cocotb-facing adapter is cleaner than reusing the older combined DeMux/Mux harness for the first narrow wrapper bench.
+- 2026-03-21: Implemented and validated `AxiStreamDeMux` with `axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd` plus `tests/axi/axi_stream/test_AxiStreamDeMux.py`. The validated 3-case sweep covers indexed routing, exact-match routed decode under output backpressure, and dynamic-route/drop/reset behavior (`3 passed`).
+- 2026-03-21: Revalidated the current small `axi/` follow-on subset with `tests/axi/axi_stream/test_AxiStreamPipeline.py`, `tests/axi/axi_stream/test_AxiStreamMux.py`, `tests/axi/axi_stream/test_AxiStreamDeMux.py`, and `tests/axi/axi_lite/test_AxiLiteCrossbar.py` in one run (`10 passed`).
