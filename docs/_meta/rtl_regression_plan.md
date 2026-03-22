@@ -76,6 +76,115 @@
 - Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.
 - Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them.
 - Use the graph to reduce repeated behavioral testing across adjacent hierarchy levels, not as a substitute for engineering judgment about externally visible behavior.
+- Keep the graph artifacts for provenance, but use a checked-in flat module build order as the day-to-day source of truth once the order has been reviewed and written down.
+- Do not re-analyze `rtl_instantiation_graph.json` before every module. Take the next non-deferred item from the flat build order unless a concrete blocker forces a reorder.
+
+## Flat Build Order
+This is the current phase-1 simulator-friendly default queue. It is intentionally flat so future windows can resume by taking the next unfinished, non-deferred item instead of re-deriving priorities from the graph JSON.
+
+Completed foundation before the current `axi/` follow-on:
+1. `FifoAsync`
+2. `AxiStreamFifoV2`
+3. `FifoSync`
+4. `Synchronizer`
+5. `SynchronizerVector`
+6. `RstPipeline`
+7. `SimpleDualPortRam`
+8. `FifoOutputPipeline`
+9. `FifoWrFsm`
+10. `Crc32Parallel`
+11. `Crc32`
+12. `CRC32Rtl`
+13. `RstSync`
+14. `PwrUpRst`
+15. `SynchronizerEdge`
+16. `SynchronizerOneShot`
+17. `TrueDualPortRam`
+18. `LutRam`
+19. `FifoRdFsm`
+20. `Arbiter`
+21. `ClockDivider`
+22. `Debouncer`
+23. `Gearbox`
+24. `Heartbeat`
+25. `Mux`
+26. `OneShot`
+27. `RegisterVector`
+28. `RstPipelineVector`
+29. `Scrambler`
+30. `WatchDogRst`
+31. `SlvDelay`
+32. `SlvFixedDelay`
+33. `SynchronizerFifo`
+34. `SynchronizerOneShotCnt`
+35. `DspComparator`
+36. `Fifo`
+37. `FifoCascade`
+38. `FifoMux`
+39. `AsyncGearbox`
+40. `SynchronizerOneShotVector`
+41. `SynchronizerOneShotCntVector`
+42. `SyncStatusVector`
+43. `SyncTrigPeriod`
+44. `SyncMinMax`
+45. `MasterRamIpIntegrator`
+46. `SlaveRamIpIntegrator`
+47. `DualPortRam`
+48. `SlvDelayRam`
+49. `SlvDelayFifo`
+50. `SyncClockFreq`
+51. `SyncTrigRate`
+52. `SyncTrigRateVector`
+53. `AxiStreamPipeline`
+54. `AxiLiteCrossbar`
+
+Current remaining phase-1 queue:
+55. `AxiStreamMux`
+56. `AxiStreamDeMux`
+57. `AxiStreamResize`
+58. `AxiLiteAsync`
+59. `AxiLiteMaster`
+60. `AxiLiteToDrp`
+61. `AxiDualPortRam`
+62. `AxiStreamGearbox`
+63. `AxiRam`
+64. `AxiRingBuffer`
+65. `AxiStreamBatchingFifo`
+66. `AxiVersion`
+67. `AxiStreamMon`
+68. `AxiStreamShift`
+69. `AxiLiteMasterProxy`
+70. `AxiStreamFlush`
+71. `AxiStreamCompact`
+72. `AxiStreamRepeater`
+73. `Decoder8b10b`
+74. `Encoder8b10b`
+75. `SpiMaster`
+76. `I2cRegMaster`
+77. `SsiFifo`
+78. `AxiStreamPacketizer2`
+79. `AxiStreamDepacketizer2`
+80. `UartWrapper`
+81. `JesdLmfcGen`
+82. `JesdRxLane`
+83. `JesdTxLane`
+84. `AxiI2cRegMasterCore`
+85. `Pgp3RxGearboxAligner`
+86. `Pgp2bLane`
+87. `Pgp2fcLane`
+88. `Pgp3Core`
+89. `Pgp4Core`
+90. `EthCrc32Parallel`
+91. `EthMacTop`
+92. `GigEthReg`
+93. `TenGigEthReg`
+94. `XauiReg`
+95. `IpV4Engine`
+96. `UdpEngine`
+
+Deferred from this flat queue unless conditions change:
+1. `LutFixedDelay`
+2. vendor-heavy, dummy-backed, or otherwise simulator-hostile variants exposed by the graph
 
 ## Phase Breakdown
 ### Phase 1

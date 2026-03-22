@@ -3,7 +3,7 @@
 ## Summary
 - Current phase: Planning complete, implementation scaffolding started
 - Current subsystem: axi
-- Current focus module: continue the first post-`base/` simulator-friendly `axi/` follow-on after validating `AxiStreamPipeline` and `AxiLiteCrossbar`
+- Current focus module: continue the flat phase-1 build order at `AxiStreamMux`, the next queued item after `AxiStreamPipeline` and `AxiLiteCrossbar`
 - Last updated: 2026-03-21
 
 ## Status
@@ -83,12 +83,12 @@
 - Validated the first post-`base/` `axi/` pair with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_stream/test_AxiStreamPipeline.py tests/axi/axi_lite/test_AxiLiteCrossbar.py` (`4 passed`).
 
 ## Current In-Progress Item
-- Select the next simulator-friendly `axi/` follow-on after `AxiStreamPipeline` and `AxiLiteCrossbar`, with `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, and eventual `AxiLiteAsync` cleanup as the most obvious near-term candidates.
+- Execute the next unchecked item in the flat phase-1 build order from `rtl_regression_plan.md`, which is currently `AxiStreamMux`.
 
 ## Next 3 Concrete Tasks
-- Continue the `axi/` rollout with the next simulator-friendly stream helpers, starting with `AxiStreamMux`/`AxiStreamDeMux` or `AxiStreamResize`.
-- Keep `LutFixedDelay` out of phase 1 unless `SinglePortRamPrimitive` gets a practical open-source simulation path or a project-approved alternative implementation route.
-- Reuse thin wrappers or existing harnesses only when they improve cocotb access materially, and keep wrapper coverage explicitly narrow and documented.
+- Implement `AxiStreamMux`.
+- Implement `AxiStreamDeMux`.
+- Implement `AxiStreamResize`, while keeping `LutFixedDelay` deferred and any wrapper coverage intentionally narrow unless a concrete blocker forces a reorder.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -115,6 +115,7 @@
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 - `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
 - The instantiation graph is useful for rollout planning because it exposes both high-reuse leaves and likely duplicated coverage paths; it should guide prioritization, not dictate exact test depth.
+- The reviewed flat build order in `rtl_regression_plan.md` is now the operational queue. Use the graph for provenance or for justified reorder decisions, not for repeated day-to-day target selection.
 - The first graph pass surfaced `Synchronizer`, `SynchronizerVector`, `SimpleDualPortRam`, `FifoOutputPipeline`, `FifoRdFsm`, and `FifoWrFsm` as concrete `base/` bottom-up candidates after the FIFO pilots.
 - Duplicate entity names are common in SURF due to dummy/vendor variants, so graph consumers need to read path context rather than rely on entity names alone.
 - Direct cocotb tests for simple SURF leaf modules still need to account for `TPD_G` when sampling outputs after clock or reset events; sampling exactly at the nominal edge can create false negatives.
@@ -166,3 +167,4 @@
 - 2026-03-21: Refactored the `AxiStreamPipeline` test adapter to reuse the existing `SlaveAxiStreamIpIntegrator`/`MasterAxiStreamIpIntegrator` shim pair for standard AXIS flattening, preserving only the pipeline-specific sideband wiring in the adapter (`3 passed` on the pipeline regression after the refactor).
 - 2026-03-21: Moved and renamed the `AxiStreamPipeline` adapter to `axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd` so its path and name match the existing AXI IP-integrator adapter conventions and live with the rest of the AXI adapter layer.
 - 2026-03-21: Tightened the planning rule for cocotb-facing shim placement: if a VHDL adapter is needed to fit a module into cocotb, place it in the nearest real subsystem `ip_integrator/` tree alongside the existing integration shims rather than under `tests/`.
+- 2026-03-21: Collapsed the large instantiation-graph output into a reviewed flat phase-1 module build order in `rtl_regression_plan.md` so future windows can take the next queued module directly instead of re-analyzing the JSON graph before every step.
