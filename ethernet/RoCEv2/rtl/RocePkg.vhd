@@ -35,6 +35,7 @@ package RocePkg is
 
    constant SURF_DATA_STREAM_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
       dataBytes => TDATA_UDP_NUM_BYTES_C,
+      tKeepMode => TKEEP_NORMAL_C,
       tDestBits => 0
       );
 

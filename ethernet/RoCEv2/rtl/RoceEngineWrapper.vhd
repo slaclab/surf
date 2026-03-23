@@ -24,9 +24,10 @@ use surf.RocePkg.all;
 
 entity RoceEngineWrapper is
    generic (
-      TPD_G             : time    := 1 ns;
-      RST_POLARITY_G    : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      EXT_ROCE_CONFIG_G : boolean := false);
+      TPD_G             : time             := 1 ns;
+      RST_POLARITY_G    : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := x"00000000";
+      EXT_ROCE_CONFIG_G : boolean          := false);
    port (
       clk                 : in  sl;
       rst                 : in  sl;
@@ -129,7 +130,13 @@ architecture mapping of RoceEngineWrapper is
          s_dma_read_data_stream     : in  std_logic_vector(289 downto 0);
          s_dma_read_ready           : out std_logic;
          cnp_received               : out std_logic);
-   end component;
+   end component mkAxiSTransportLayer;
+
+   constant NUM_AXIL_MASTERS_C : positive := 2;
+   constant XBAR_CONFIG_C      : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0)
+      := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 24, 16);
+   constant XBAR_ROCE_CONFIG_C  : natural := 0;
+   constant XBAR_DCQCN_CONFIG_C : natural := 1;
 
    signal roceRstN               : sl;
    signal obUdpRoceMaster_tValid : sl;
@@ -147,10 +154,14 @@ architecture mapping of RoceEngineWrapper is
    signal ibUdpRoceMaster_tUser  : slv(1 downto 0);
    signal ibUdpRoceSlave_tReady  : sl;
 
-   signal obUdpRoceMaster : AxiStreamMasterType;
-   signal obUdpRoceSlave  : AxiStreamSlaveType;
-   signal ibUdpRoceMaster : AxiStreamMasterType;
-   signal ibUdpRoceSlave  : AxiStreamSlaveType;
+   signal obUdpRoceMaster  : AxiStreamMasterType;
+   signal obUdpRoceSlave   : AxiStreamSlaveType;
+   signal ibUdpRoceMaster  : AxiStreamMasterType;
+   signal ibUdpRoceSlave   : AxiStreamSlaveType;
+   signal obUdpMasterDcqcn : AxiStreamMasterType;
+   signal obUdpSlaveDcqcn  : AxiStreamSlaveType;
+   signal ibUdpMasterDcqcn : AxiStreamMasterType;
+   signal ibUdpSlaveDcqcn  : AxiStreamSlaveType;
 
    signal s_axisMetaDataReqMaster     : AxiStreamMasterType;
    signal s_axisMetaDataReqSlave      : AxiStreamSlaveType;
@@ -161,12 +172,58 @@ architecture mapping of RoceEngineWrapper is
    signal s_axisMetaDataRespMasterMux : AxiStreamMasterType;
    signal s_axisMetaDataRespSlaveMux  : AxiStreamSlaveType;
 
+   signal axilWriteMastersX : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlavesX  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_SLVERR_C);
+   signal axilReadMastersX  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlavesX   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
+
    signal s_cnp_received : sl;
 
 begin
 
    roceRstN     <= not rst when (RST_POLARITY_G = '1') else rst;
    cnp_received <= s_cnp_received;
+
+   ----------------------------------------------------------------------------
+   -- AxiLite Xbar
+   ----------------------------------------------------------------------------
+   U_XBAR : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => XBAR_CONFIG_C)
+      port map (
+         axiClk              => clk,
+         axiClkRst           => rst,
+         sAxiWriteMasters(0) => axilWriteMaster,
+         sAxiWriteSlaves(0)  => axilWriteSlave,
+         sAxiReadMasters(0)  => axilReadMaster,
+         sAxiReadSlaves(0)   => axilReadSlave,
+         mAxiWriteMasters    => axilWriteMastersX,
+         mAxiWriteSlaves     => axilWriteSlavesX,
+         mAxiReadMasters     => axilReadMastersX,
+         mAxiReadSlaves      => axilReadSlavesX);
+
+   -----------------------------------------------------------------------------
+   -- DCQCN Congestion Control
+   -----------------------------------------------------------------------------
+   Dcqcn_1 : entity surf.Dcqcn
+      generic map (
+         TPD_G         => TPD_G,
+         AXIS_CONFIG_G => SURF_DATA_STREAM_CONFIG_C)
+      port map (
+         axisClk         => clk,
+         axisRst         => rst,
+         cnp             => s_cnp_received,
+         axilReadMaster  => axilReadMastersX(XBAR_DCQCN_CONFIG_C),
+         axilReadSlave   => axilReadSlavesX(XBAR_DCQCN_CONFIG_C),
+         axilWriteMaster => axilWriteMastersX(XBAR_DCQCN_CONFIG_C),
+         axilWriteSlave  => axilWriteSlavesX(XBAR_DCQCN_CONFIG_C),
+         sAxisMaster     => ibUdpMasterDcqcn,
+         sAxisSlave      => ibUdpSlaveDcqcn,
+         mAxisMaster     => ibUdpMaster,
+         mAxisSlave      => ibUdpSlave);
 
    -----------------------------------------------------------------------------
    -- Adjust Roce/SURF interface
@@ -196,8 +253,8 @@ begin
          axisRst     => rst,
          sAxisMaster => ibUdpRoceMaster,
          sAxisSlave  => ibUdpRoceSlave,
-         mAxisMaster => ibUdpMaster,
-         mAxisSlave  => ibUdpSlave);
+         mAxisMaster => ibUdpMasterDcqcn,
+         mAxisSlave  => ibUdpSlaveDcqcn);
 
    -----------------------------------------------------------------------------
    -- IP Integrator
@@ -311,10 +368,10 @@ begin
    -- RoCE Metadata Configurator
    -----------------------------------------------------------------------------
    ROCE_EXT_CONFIG_GEN : if EXT_ROCE_CONFIG_G generate
-      s_axisMetaDataReqMaster <= AXI_STREAM_MASTER_INIT_C;
-      s_axisMetaDataRespSlave <= AXI_STREAM_SLAVE_FORCE_C;
-      axilReadSlave           <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteSlave          <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      s_axisMetaDataReqMaster              <= AXI_STREAM_MASTER_INIT_C;
+      s_axisMetaDataRespSlave              <= AXI_STREAM_SLAVE_FORCE_C;
+      axilReadSlavesX(XBAR_ROCE_CONFIG_C)  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
+      axilWriteSlavesX(XBAR_ROCE_CONFIG_C) <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
    end generate ROCE_EXT_CONFIG_GEN;
 
    ROCE_INT_CONFIG_GEN : if not EXT_ROCE_CONFIG_G generate
@@ -329,10 +386,10 @@ begin
             mAxisMetaDataReqSlave   => s_axisMetaDataReqSlave,
             sAxisMetaDataRespMaster => s_axisMetaDataRespMaster,
             sAxisMetaDataRespSlave  => s_axisMetaDataRespSlave,
-            axilReadMaster          => axilReadMaster,
-            axilReadSlave           => axilReadSlave,
-            axilWriteMaster         => axilWriteMaster,
-            axilWriteSlave          => axilWriteSlave);
+            axilReadMaster          => axilReadMastersX(XBAR_ROCE_CONFIG_C),
+            axilReadSlave           => axilReadSlavesX(XBAR_ROCE_CONFIG_C),
+            axilWriteMaster         => axilWriteMastersX(XBAR_ROCE_CONFIG_C),
+            axilWriteSlave          => axilWriteSlavesX(XBAR_ROCE_CONFIG_C));
    end generate ROCE_INT_CONFIG_GEN;
 
    -----------------------------------------------------------------------------
