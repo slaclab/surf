@@ -53,22 +53,29 @@ architecture rtl of RateDecProc is
   type StateType is (
     IDLE_S,
     COUNTING_S,
-    UPDATE_S);
+    UPDATE1_S,
+    UPDATE2_S);
 
   type RegType is record
-    timer : slv(15 downto 0);
-    newRc : slv(31 downto 0);
-    newRt : slv(31 downto 0);
-    valid : sl;
-    state : StateType;
+    timer     : slv(15 downto 0);
+    newRc     : slv(31 downto 0);
+    newRt     : slv(31 downto 0);
+    doUpdate  : sl;
+    mult      : slv(41 downto 0);
+    shift_val : integer;
+    valid     : sl;
+    state     : StateType;
   end record RegType;
 
   constant REG_INIT_C : RegType := (
-    timer => (others => '0'),
-    newRc => (others => '0'),
-    newRt => (others => '0'),
-    valid => '0',
-    state => IDLE_S);
+    timer     => (others => '0'),
+    newRc     => (others => '0'),
+    newRt     => (others => '0'),
+    doUpdate  => '0',
+    mult      => (others => '0'),
+    shift_val => 0,
+    valid     => '0',
+    state     => IDLE_S);
 
   signal r   : RegType := REG_INIT_C;
   signal rin : RegType;
@@ -79,8 +86,6 @@ begin  -- architecture rtl
                   dec_gain, r, rateDecInterval, rst, start, timeStage) is
     variable v         : RegType;
     variable clamp     : boolean;
-    variable mult      : slv(41 downto 0);
-    variable shift_val : integer;
     variable shifted   : slv(41 downto 0);
     variable delta     : slv(31 downto 0);
   begin  -- process comb
@@ -101,10 +106,10 @@ begin  -- architecture rtl
       when COUNTING_S =>
         v.timer := r.timer + 1;
         if r.timer >= rateDecInterval then
-          v.state := UPDATE_S;
+          v.state := UPDATE1_S;
         end if;
       -----------------------------------------------------------------------
-      when UPDATE_S =>
+      when UPDATE1_S =>
         if cnpDetected = '1' then
           -- Compute target rate
           if clampTgtRate = '0' and timeStage = x"00" then
@@ -115,18 +120,27 @@ begin  -- architecture rtl
           else
             v.newRt := curRt;
           end if;
-          -- Compute new current rate
-          mult                                     := curRc * alpha;
-          shift_val                                := conv_integer(dec_gain) + 10;
-          -- shifted   := mult srl shift_val;
-          shifted                                  := (others => '0');
-          shifted(shifted'high-shift_val downto 0) := mult(shifted'high downto shift_val);
-          delta                                    := shifted(31 downto 0);
-          v.newRc                                  := curRc - delta;
+          -- Multiply only (heavy op)
+          v.mult      := curRc * alpha;
+          -- store shift value if needed
+          v.shift_val := conv_integer(dec_gain) + 10;
+          v.doUpdate  := '1';
+        else
+          v.doUpdate := '0';
+        end if;
+        v.state := UPDATE2_S;
+      -----------------------------------------------------------------------
+      when UPDATE2_S =>
+        if r.doUpdate = '1' then
+          -- shift
+          shifted                                      := (others => '0');
+          shifted(shifted'high - r.shift_val downto 0) := r.mult(shifted'high downto r.shift_val);
+          delta                                        := shifted(31 downto 0);
+          -- subtraction
+          v.newRc                                      := curRc - delta;
           if v.newRc < Rmin then
             v.newRc := Rmin;
           end if;
-          -- set valid flag
           v.valid := '1';
         end if;
         v.timer := (others => '0');
