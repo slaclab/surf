@@ -3,8 +3,8 @@
 ## Summary
 - Current phase: Phase-1 implementation active
 - Current subsystem: `axi`
-- Current focus module: `AxiReadPathMux`
-- Last updated: 2026-03-21
+- Current focus module: `AxiStreamDmaV2WriteMux`
+- Last updated: 2026-03-26
 
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
@@ -12,7 +12,7 @@
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini`; the phase-1 rollout queue is now generated into `docs/_meta/rtl_phase1_queue.{md,json}` with explicit inputs in `docs/_meta/rtl_phase1_queue_overrides.json` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
-| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, `AxiStreamSplitter`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiLiteToDrp`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync` and `AxiLiteToDrp` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async branches remain open. |
+| `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, `AxiStreamSplitter`, `AxiReadPathMux`, `AxiWritePathMux`, `AxiResize`, `AxiToAxiLite`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiLiteToDrp`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync` and `AxiLiteToDrp` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async branches remain open. |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
 | `ethernet` | not started | not started | not started | Likely phase 1 later stage |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
@@ -88,13 +88,15 @@
 - Replaced the hand-curated flat phase-1 list with a generated path-qualified queue emitted by `scripts/build_rtl_instantiation_graph.py` into `docs/_meta/rtl_phase1_queue.{md,json}`, backed by explicit filters and manual-order inputs in `docs/_meta/rtl_phase1_queue_overrides.json`.
 - Implemented `tests/axi/axi_lite/test_AxiLiteRegs.py`, `tests/axi/axi_lite/test_AxiLiteRespTimer.py`, `tests/axi/axi_lite/test_AxiLiteSlave.py`, `tests/axi/axi_lite/test_AxiLiteWriteFilter.py`, `tests/axi/axi_lite/test_AxiVersion.py`, `tests/axi/axi_stream/test_AxiStreamCombiner.py`, `tests/axi/axi_stream/test_AxiStreamFlush.py`, `tests/axi/axi_stream/test_AxiStreamGearboxPack.py`, `tests/axi/axi_stream/test_AxiStreamGearboxUnpack.py`, and `tests/axi/axi_stream/test_AxiStreamSplitter.py` with thin subsystem-local adapters under `axi/axi-lite/ip_integrator/` and `axi/axi-stream/ip_integrator/`.
 - Validated the generated-queue 10-module AXI batch with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi_lite/test_AxiLiteRegs.py tests/axi/axi_lite/test_AxiLiteRespTimer.py tests/axi/axi_lite/test_AxiLiteSlave.py tests/axi/axi_lite/test_AxiLiteWriteFilter.py tests/axi/axi_lite/test_AxiVersion.py tests/axi/axi_stream/test_AxiStreamCombiner.py tests/axi/axi_stream/test_AxiStreamFlush.py tests/axi/axi_stream/test_AxiStreamGearboxPack.py tests/axi/axi_stream/test_AxiStreamGearboxUnpack.py tests/axi/axi_stream/test_AxiStreamSplitter.py` (`14 passed`).
+- Implemented `tests/axi/axi4/test_AxiReadPathMux.py`, `tests/axi/axi4/test_AxiWritePathMux.py`, `tests/axi/axi4/test_AxiResize.py`, and `tests/axi/bridge/test_AxiToAxiLite.py` with thin subsystem-local adapters at `axi/axi4/ip_integrator/AxiReadPathMuxIpIntegrator.vhd`, `axi/axi4/ip_integrator/AxiWritePathMuxIpIntegrator.vhd`, `axi/axi4/ip_integrator/AxiResizeIpIntegrator.vhd`, and `axi/bridge/ip_integrator/AxiToAxiLiteIpIntegrator.vhd`.
+- Validated the AXI4/bridge follow-on batch with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiReadPathMux.py tests/axi/axi4/test_AxiWritePathMux.py tests/axi/axi4/test_AxiResize.py tests/axi/bridge/test_AxiToAxiLite.py` (`6 passed`). `AxiResize` now includes equal-width, 32-bit-to-64-bit upsize, and 64-bit-to-32-bit downsize coverage after fixing the read-side wide-beat buffering bug in `axi/axi4/rtl/AxiResize.vhd`.
 
 ## Current In-Progress Item
-- Resume the generated queue at `AxiReadPathMux`, then continue through `AxiResize`, `AxiWritePathMux`, and `AxiToAxiLite` unless a concrete simulator-scope defer is justified in `docs/_meta/rtl_phase1_queue_overrides.json`.
+- Resume the generated queue at `AxiStreamDmaV2WriteMux`, the next unfinished phase-1 `axi/` entry after the completed `AxiReadPathMux`, `AxiResize`, `AxiWritePathMux`, and `AxiToAxiLite` batch.
 
 ## Next 3 Concrete Tasks
-- Implement `AxiReadPathMux`, the next unfinished non-deferred phase-1 queue entry.
-- Reassess whether `AxiResize` should get direct RTL-level coverage or continue to rely on the already-validated `AxiStreamResize` wrapper bench plus later integration coverage.
+- Implement `AxiStreamDmaV2WriteMux`, the next unfinished non-deferred phase-1 queue entry.
+- Keep an eye on runtime in the restored three-case `AxiResize` sweep; the new buffered read-path fix is functionally correct under GHDL but materially slower than the narrow two-case stopgap.
 - Add only justified simulator-scope deferrals or ordering exceptions to `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit module order in `docs/_meta/rtl_regression_plan.md`.
 
 ## Blockers And Risks
@@ -144,6 +146,9 @@
 - `AxiLiteCrossbar` is practical under the current open-source flow by reusing the existing `AxiLiteCrossbarTb.vhd` harness as a cocotb-facing shell. The useful regression surface is routed-region correctness, decode-miss `DECERR` handling, and concurrent traffic through the cascaded topology, not a giant generic sweep.
 - SURF already has reusable AXI record-flattening shims. New AXI Stream and AXI-Lite wrappers should prefer the existing IP-integrator shim layers over hand-written record packing, and only custom-wire the DUT-specific extra side signals on top.
 - More generally, any VHDL shim layer added only to make a module fit cleanly into cocotb should live in the nearest real subsystem `ip_integrator/` tree, not under `tests/` and not under generic `hdl/` directories.
+- `AxiReadPathMux` and `AxiWritePathMux` are more stable with tiny source-side pin drivers than with `cocotbext.axi` masters because the muxes rewrite IDs internally; the downstream shared-port checks can still use the library RAM models.
+- `AxiToAxiLite` is practical with a thin bridge-local adapter, but mixed-width checks need to stay single-beat on the AXI side when the downstream response path is fundamentally AXI-Lite-like.
+- `AxiResize` had a real read-path bug in the wide-master/narrow-slave branch: it was slicing live `mAxiReadSlave.rdata` instead of a buffered wide beat, which corrupted the `32-bit -> 64-bit` resize case under cocotb/GHDL. Buffering accepted wide read beats before emitting narrow slave slices fixed the issue and restored the full three-case sweep.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
@@ -190,3 +195,4 @@
 - 2026-03-21: Implemented and validated the next five flat-queue modules: `AxiStreamResize`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteToDrp`, and `AxiDualPortRam`. The five-module batch passes with `10 passed`, and a broader AXI follow-on sanity run across pipeline, mux, demux, resize, crossbar, async, master, DRP bridge, and dual-port RAM passes with `20 passed`. `AxiLiteAsync` and `AxiLiteToDrp` intentionally keep only the stable common-clock subsets in this first batch; the async CDC/arbitration branches remain open.
 - 2026-03-21: Replaced the hand-maintained flat phase-1 list in the plan with a generated path-qualified bottom-up queue emitted by `scripts/build_rtl_instantiation_graph.py` into `docs/_meta/rtl_phase1_queue.{md,json}`. Checked in `docs/_meta/rtl_phase1_queue_overrides.json` as the only supported input for manual phase-1 deferrals and ordering exceptions; the initial generated queue contains `411` phase-1 modules with `0` unresolved duplicate-name phase-1 edges under the current filter set.
 - 2026-03-21: Implemented and validated the next 10 generated-queue AXI modules: `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, and `AxiStreamSplitter`. The combined validation command across those 10 module files passes with `14 passed`.
+- 2026-03-26: Implemented and validated `AxiReadPathMux`, `AxiWritePathMux`, `AxiResize`, and `AxiToAxiLite` with subsystem-local IP-integrator adapters plus new `tests/axi/axi4/` and `tests/axi/bridge/` cocotb benches. The combined validation command across the four module files now passes with `6 passed` after fixing a real `AxiResize` read-path bug in the wide-master/narrow-slave branch by buffering accepted wide read beats before splitting them into narrow slave responses.
