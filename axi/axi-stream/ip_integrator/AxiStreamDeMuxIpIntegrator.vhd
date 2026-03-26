@@ -19,8 +19,8 @@ entity AxiStreamDeMuxIpIntegrator is
       TDEST_HIGH_G     : integer range 0 to 7 := 7;
       TDEST_LOW_G      : integer range 0 to 7 := 0);
    port (
-      axisClk          : in  sl;
-      axisRst          : in  sl;
+      axisClk           : in  sl;
+      axisRst           : in  sl;
       dynamicRouteMask0 : in slv(7 downto 0) := (others => '0');
       dynamicRouteDest0 : in slv(7 downto 0) := (others => '0');
       dynamicRouteMask1 : in slv(7 downto 0) := (others => '0');

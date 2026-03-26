@@ -13,8 +13,8 @@ entity AxiStreamCombinerIpIntegrator is
       DATA_BYTES_G   : positive := 2;
       TUSER_WIDTH_G  : positive range 1 to 8 := 2);
    port (
-      axisClk       : in  sl;
-      axisRst       : in  sl;
+      axisClk        : in  sl;
+      axisRst        : in  sl;
       S0_AXIS_TVALID : in  sl := '0';
       S0_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
       S0_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');

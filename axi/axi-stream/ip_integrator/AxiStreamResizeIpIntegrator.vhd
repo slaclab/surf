@@ -16,8 +16,8 @@ entity AxiStreamResizeIpIntegrator is
       SLAVE_DATA_BYTES_G  : positive := 4;
       MASTER_DATA_BYTES_G : positive := 4);
    port (
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk       : in  sl;
+      axisRst       : in  sl;
       S_AXIS_TVALID : in  sl;
       S_AXIS_TDATA  : in  slv(SLAVE_DATA_BYTES_G*8-1 downto 0);
       S_AXIS_TKEEP  : in  slv(SLAVE_DATA_BYTES_G-1 downto 0);

@@ -14,8 +14,8 @@ entity AxiStreamPipelineIpIntegrator is
       SIDE_BAND_WIDTH_G : positive := 1;
       PIPE_STAGES_G     : natural  := 0);
    port (
-      axisClk      : in  sl;
-      axisRst      : in  sl;
+      axisClk       : in  sl;
+      axisRst       : in  sl;
       S_AXIS_TVALID : in  sl;
       S_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0);
       S_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0);

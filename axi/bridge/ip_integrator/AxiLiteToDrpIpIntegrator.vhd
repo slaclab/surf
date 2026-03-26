@@ -16,12 +16,12 @@ entity AxiLiteToDrpIpIntegrator is
       ADDR_WIDTH_G     : positive range 1 to 32 := 16;
       DATA_WIDTH_G     : positive range 1 to 32 := 16);
    port (
-      axilClk      : in  sl;
-      axilRst      : in  sl;
-      drpClk       : in  sl;
-      drpRst       : in  sl;
-      S_AXI_AWADDR : in  slv(ADDR_WIDTH_G+1 downto 0);
-      S_AXI_AWPROT : in  slv(2 downto 0);
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      drpClk        : in  sl;
+      drpRst        : in  sl;
+      S_AXI_AWADDR  : in  slv(ADDR_WIDTH_G+1 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
       S_AXI_AWVALID : in  sl;
       S_AXI_AWREADY : out sl;
       S_AXI_WDATA   : in  slv(31 downto 0);
