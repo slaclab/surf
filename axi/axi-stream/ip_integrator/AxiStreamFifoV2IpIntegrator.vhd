@@ -26,26 +26,26 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamFifoV2IpIntegrator is
    generic (
       -- IP Integrator Slave AXI Stream Configuration
-      S_INTERFACENAME      : string                 := "S_AXIS";
-      S_HAS_TLAST          : natural range 0 to 1   := 1;
-      S_HAS_TKEEP          : natural range 0 to 1   := 1;
-      S_HAS_TSTRB          : natural range 0 to 1   := 0;
-      S_HAS_TREADY         : natural range 0 to 1   := 1;
-      S_TUSER_WIDTH        : natural range 1 to 8   := 2;
-      S_TID_WIDTH          : natural range 1 to 8   := 1;
-      S_TDEST_WIDTH        : natural range 1 to 8   := 1;
-      S_TDATA_NUM_BYTES    : natural range 1 to 128 := 1;
+      S_INTERFACENAME      : string                     := "S_AXIS";
+      S_HAS_TLAST          : natural range 0 to 1       := 1;
+      S_HAS_TKEEP          : natural range 0 to 1       := 1;
+      S_HAS_TSTRB          : natural range 0 to 1       := 0;
+      S_HAS_TREADY         : natural range 0 to 1       := 1;
+      S_TUSER_WIDTH        : natural range 1 to 8       := 2;
+      S_TID_WIDTH          : natural range 1 to 8       := 1;
+      S_TDEST_WIDTH        : natural range 1 to 8       := 1;
+      S_TDATA_NUM_BYTES    : natural range 1 to 128     := 1;
 
       -- IP Integrator Master AXI Stream Configuration
-      M_INTERFACENAME      : string                 := "M_AXIS";
-      M_HAS_TLAST          : natural range 0 to 1   := 1;
-      M_HAS_TKEEP          : natural range 0 to 1   := 1;
-      M_HAS_TSTRB          : natural range 0 to 1   := 0;
-      M_HAS_TREADY         : natural range 0 to 1   := 1;
-      M_TUSER_WIDTH        : natural range 1 to 8   := 2;
-      M_TID_WIDTH          : natural range 1 to 8   := 1;
-      M_TDEST_WIDTH        : natural range 1 to 8   := 1;
-      M_TDATA_NUM_BYTES    : natural range 1 to 128 := 1;
+      M_INTERFACENAME      : string                     := "M_AXIS";
+      M_HAS_TLAST          : natural range 0 to 1       := 1;
+      M_HAS_TKEEP          : natural range 0 to 1       := 1;
+      M_HAS_TSTRB          : natural range 0 to 1       := 0;
+      M_HAS_TREADY         : natural range 0 to 1       := 1;
+      M_TUSER_WIDTH        : natural range 1 to 8       := 2;
+      M_TID_WIDTH          : natural range 1 to 8       := 1;
+      M_TDEST_WIDTH        : natural range 1 to 8       := 1;
+      M_TDATA_NUM_BYTES    : natural range 1 to 128     := 1;
 
       -- General Configurations
       RST_ASYNC            : boolean                    := false;
@@ -67,14 +67,14 @@ entity AxiStreamFifoV2IpIntegrator is
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
       -- CUSOTM uses passed FIFO_DATA_WIDTH_G
-      INT_WIDTH_SELECT     : string                := "WIDE";
-      INT_DATA_WIDTH       : natural range 1 to 16 := 16;
+      INT_WIDTH_SELECT     : string                     := "WIDE";
+      INT_DATA_WIDTH       : natural range 1 to 16      := 16;
 
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast txns can be smaller.
       -- Set to 0 for same size as primary fifo (default)
       -- Set >4 for custom size.
       -- Use at own risk. Overflow of tLast fifo is not checked
-      LAST_FIFO_ADDR_WIDTH : integer range 0 to 48 := 0;
+      LAST_FIFO_ADDR_WIDTH : integer range 0 to 48      := 0;
 
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL    : integer range 0 to (2**24) := 0;

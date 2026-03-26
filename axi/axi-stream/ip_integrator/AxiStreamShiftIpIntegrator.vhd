@@ -7,27 +7,27 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamShiftIpIntegrator is
    generic (
-      TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';
-      RST_ASYNC_G    : boolean  := false;
-      DATA_BYTES_G   : positive := 4;
+      TPD_G          : time                  := 1 ns;
+      RST_POLARITY_G : sl                    := '1';
+      RST_ASYNC_G    : boolean               := false;
+      DATA_BYTES_G   : positive              := 4;
       TUSER_WIDTH_G  : positive range 1 to 8 := 1;
       PIPE_STAGES_G  : integer range 0 to 16 := 0;
-      ADD_VALID_EN_G : boolean  := false;
-      BYP_SHIFT_G    : boolean  := false);
+      ADD_VALID_EN_G : boolean               := false;
+      BYP_SHIFT_G    : boolean               := false);
    port (
       axisClk       : in  sl;
       axisRst       : in  sl;
-      axiStart      : in  sl := '0';
-      axiShiftDir   : in  sl := '0';
-      axiShiftCnt   : in  slv(3 downto 0) := (others => '0');
-      S_AXIS_TVALID : in  sl := '0';
+      axiStart      : in  sl                             := '0';
+      axiShiftDir   : in  sl                             := '0';
+      axiShiftCnt   : in  slv(3 downto 0)                := (others => '0');
+      S_AXIS_TVALID : in  sl                             := '0';
       S_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_AXIS_TLAST  : in  sl := '0';
-      S_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S_AXIS_TLAST  : in  sl                             := '0';
+      S_AXIS_TDEST  : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TID    : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
       S_AXIS_TREADY : out sl;
       M_AXIS_TVALID : out sl;
       M_AXIS_TDATA  : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -36,7 +36,7 @@ entity AxiStreamShiftIpIntegrator is
       M_AXIS_TDEST  : out slv(7 downto 0);
       M_AXIS_TID    : out slv(7 downto 0);
       M_AXIS_TUSER  : out slv(TUSER_WIDTH_G-1 downto 0);
-      M_AXIS_TREADY : in  sl := '0');
+      M_AXIS_TREADY : in  sl                             := '0');
 end entity AxiStreamShiftIpIntegrator;
 
 architecture rtl of AxiStreamShiftIpIntegrator is

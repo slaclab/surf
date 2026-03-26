@@ -18,21 +18,21 @@ entity AxiStreamTapIpIntegrator is
    port (
       axisClk        : in  sl;
       axisRst        : in  sl;
-      S_AXIS_TVALID  : in  sl := '0';
+      S_AXIS_TVALID  : in  sl                             := '0';
       S_AXIS_TDATA   : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP   : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_AXIS_TLAST   : in  sl := '0';
-      S_AXIS_TDEST   : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID     : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER   : in  slv(1 downto 0) := (others => '0');
+      S_AXIS_TKEEP   : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S_AXIS_TLAST   : in  sl                             := '0';
+      S_AXIS_TDEST   : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TID     : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TUSER   : in  slv(1 downto 0)                := (others => '0');
       S_AXIS_TREADY  : out sl;
-      TS_AXIS_TVALID : in  sl := '0';
+      TS_AXIS_TVALID : in  sl                             := '0';
       TS_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      TS_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      TS_AXIS_TLAST  : in  sl := '0';
-      TS_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      TS_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      TS_AXIS_TUSER  : in  slv(1 downto 0) := (others => '0');
+      TS_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      TS_AXIS_TLAST  : in  sl                             := '0';
+      TS_AXIS_TDEST  : in  slv(7 downto 0)                := (others => '0');
+      TS_AXIS_TID    : in  slv(7 downto 0)                := (others => '0');
+      TS_AXIS_TUSER  : in  slv(1 downto 0)                := (others => '0');
       TS_AXIS_TREADY : out sl;
       TM_AXIS_TVALID : out sl;
       TM_AXIS_TDATA  : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -41,7 +41,7 @@ entity AxiStreamTapIpIntegrator is
       TM_AXIS_TDEST  : out slv(7 downto 0);
       TM_AXIS_TID    : out slv(7 downto 0);
       TM_AXIS_TUSER  : out slv(1 downto 0);
-      TM_AXIS_TREADY : in  sl := '0';
+      TM_AXIS_TREADY : in  sl                             := '0';
       M_AXIS_TVALID  : out sl;
       M_AXIS_TDATA   : out slv(DATA_BYTES_G*8-1 downto 0);
       M_AXIS_TKEEP   : out slv(DATA_BYTES_G-1 downto 0);
@@ -49,7 +49,7 @@ entity AxiStreamTapIpIntegrator is
       M_AXIS_TDEST   : out slv(7 downto 0);
       M_AXIS_TID     : out slv(7 downto 0);
       M_AXIS_TUSER   : out slv(1 downto 0);
-      M_AXIS_TREADY  : in  sl := '0');
+      M_AXIS_TREADY  : in  sl                             := '0');
 end entity AxiStreamTapIpIntegrator;
 
 architecture rtl of AxiStreamTapIpIntegrator is

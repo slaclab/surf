@@ -15,12 +15,12 @@ entity AxiLiteAsyncIpIntegrator is
       NUM_ADDR_BITS_G  : natural               := 32;
       PIPE_STAGES_G    : integer range 0 to 16 := 0);
    port (
-      sAxiClk      : in  sl;
-      sAxiClkRst   : in  sl;
-      mAxiClk      : in  sl;
-      mAxiClkRst   : in  sl;
-      S_AXI_AWADDR : in  slv(NUM_ADDR_BITS_G-1 downto 0);
-      S_AXI_AWPROT : in  slv(2 downto 0);
+      sAxiClk       : in  sl;
+      sAxiClkRst    : in  sl;
+      mAxiClk       : in  sl;
+      mAxiClkRst    : in  sl;
+      S_AXI_AWADDR  : in  slv(NUM_ADDR_BITS_G-1 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
       S_AXI_AWVALID : in  sl;
       S_AXI_AWREADY : out sl;
       S_AXI_WDATA   : in  slv(31 downto 0);

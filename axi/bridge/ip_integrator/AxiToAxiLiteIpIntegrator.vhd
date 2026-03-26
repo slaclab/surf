@@ -8,14 +8,14 @@ use surf.AxiLitePkg.all;
 
 entity AxiToAxiLiteIpIntegrator is
    generic (
-      TPD_G              : time := 1 ns;
-      RST_POLARITY_G     : sl := '1';
-      RST_ASYNC_G        : boolean := false;
-      EN_SLAVE_RESP_G    : boolean := true;
-      AXI_ADDR_WIDTH_G   : positive range 12 to 64 := 16;
-      AXI_DATA_WIDTH_G   : positive range 32 to 1024 := 64;
-      AXI_ID_WIDTH_G     : positive := 4;
-      AXIL_ADDR_WIDTH_G  : positive := 16);
+      TPD_G             : time                      := 1 ns;
+      RST_POLARITY_G    : sl                        := '1';
+      RST_ASYNC_G       : boolean                   := false;
+      EN_SLAVE_RESP_G   : boolean                   := true;
+      AXI_ADDR_WIDTH_G  : positive range 12 to 64   := 16;
+      AXI_DATA_WIDTH_G  : positive range 32 to 1024 := 64;
+      AXI_ID_WIDTH_G    : positive                  := 4;
+      AXIL_ADDR_WIDTH_G : positive                  := 16);
    port (
       axiClk         : in  sl;
       axiRst         : in  sl;

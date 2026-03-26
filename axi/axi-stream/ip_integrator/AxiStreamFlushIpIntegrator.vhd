@@ -7,24 +7,24 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamFlushIpIntegrator is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';
-      RST_ASYNC_G    : boolean := false;
-      DATA_BYTES_G   : positive := 4;
+      TPD_G          : time                  := 1 ns;
+      RST_POLARITY_G : sl                    := '1';
+      RST_ASYNC_G    : boolean               := false;
+      DATA_BYTES_G   : positive              := 4;
       TUSER_WIDTH_G  : positive range 1 to 8 := 2;
-      SSI_EN_G       : boolean := false);
+      SSI_EN_G       : boolean               := false);
    port (
       axisClk       : in  sl;
       axisRst       : in  sl;
-      flushEn       : in  sl := '0';
-      M_AXIS_PAUSE  : in  sl := '0';
-      S_AXIS_TVALID : in  sl := '0';
+      flushEn       : in  sl                             := '0';
+      M_AXIS_PAUSE  : in  sl                             := '0';
+      S_AXIS_TVALID : in  sl                             := '0';
       S_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_AXIS_TLAST  : in  sl := '0';
-      S_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S_AXIS_TLAST  : in  sl                             := '0';
+      S_AXIS_TDEST  : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TID    : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
       S_AXIS_TREADY : out sl;
       M_AXIS_TVALID : out sl;
       M_AXIS_TDATA  : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -33,7 +33,7 @@ entity AxiStreamFlushIpIntegrator is
       M_AXIS_TDEST  : out slv(7 downto 0);
       M_AXIS_TID    : out slv(7 downto 0);
       M_AXIS_TUSER  : out slv(TUSER_WIDTH_G-1 downto 0);
-      M_AXIS_TREADY : in  sl := '1');
+      M_AXIS_TREADY : in  sl                             := '1');
 end entity AxiStreamFlushIpIntegrator;
 
 architecture rtl of AxiStreamFlushIpIntegrator is

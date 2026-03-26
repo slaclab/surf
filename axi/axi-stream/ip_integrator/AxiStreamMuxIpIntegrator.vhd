@@ -7,40 +7,40 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamMuxIpIntegrator is
    generic (
-      TPD_G           : time     := 1 ns;
-      RST_POLARITY_G  : sl       := '1';
-      RST_ASYNC_G     : boolean  := false;
-      DATA_BYTES_G    : positive := 4;
-      TUSER_WIDTH_G   : positive range 1 to 8 := 1;
-      PIPE_STAGES_G   : natural  := 0;
-      MODE_G          : string   := "INDEXED";
+      TPD_G           : time                   := 1 ns;
+      RST_POLARITY_G  : sl                     := '1';
+      RST_ASYNC_G     : boolean                := false;
+      DATA_BYTES_G    : positive               := 4;
+      TUSER_WIDTH_G   : positive range 1 to 8  := 1;
+      PIPE_STAGES_G   : natural                := 0;
+      MODE_G          : string                 := "INDEXED";
       TDEST_ROUTE_0_G : natural range 0 to 255 := 0;
       TDEST_ROUTE_1_G : natural range 0 to 255 := 1;
-      TID_MODE_G      : string   := "PASSTHROUGH";
+      TID_MODE_G      : string                 := "PASSTHROUGH";
       TID_ROUTE_0_G   : natural range 0 to 255 := 0;
       TID_ROUTE_1_G   : natural range 0 to 255 := 1;
-      PRIORITY_0_G    : integer  := 0;
-      PRIORITY_1_G    : integer  := 0;
-      TDEST_LOW_G     : integer range 0 to 7 := 0);
+      PRIORITY_0_G    : integer                := 0;
+      PRIORITY_1_G    : integer                := 0;
+      TDEST_LOW_G     : integer range 0 to 7   := 0);
    port (
       axisClk        : in  sl;
       axisRst        : in  sl;
-      disableSel     : in  slv(1 downto 0) := (others => '0');
-      S0_AXIS_TVALID : in  sl := '0';
+      disableSel     : in  slv(1 downto 0)                := (others => '0');
+      S0_AXIS_TVALID : in  sl                             := '0';
       S0_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S0_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S0_AXIS_TLAST  : in  sl := '0';
-      S0_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      S0_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      S0_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S0_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S0_AXIS_TLAST  : in  sl                             := '0';
+      S0_AXIS_TDEST  : in  slv(7 downto 0)                := (others => '0');
+      S0_AXIS_TID    : in  slv(7 downto 0)                := (others => '0');
+      S0_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
       S0_AXIS_TREADY : out sl;
-      S1_AXIS_TVALID : in  sl := '0';
+      S1_AXIS_TVALID : in  sl                             := '0';
       S1_AXIS_TDATA  : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S1_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S1_AXIS_TLAST  : in  sl := '0';
-      S1_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      S1_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      S1_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S1_AXIS_TKEEP  : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S1_AXIS_TLAST  : in  sl                             := '0';
+      S1_AXIS_TDEST  : in  slv(7 downto 0)                := (others => '0');
+      S1_AXIS_TID    : in  slv(7 downto 0)                := (others => '0');
+      S1_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
       S1_AXIS_TREADY : out sl;
       M_AXIS_TVALID  : out sl;
       M_AXIS_TDATA   : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -49,7 +49,7 @@ entity AxiStreamMuxIpIntegrator is
       M_AXIS_TDEST   : out slv(7 downto 0);
       M_AXIS_TID     : out slv(7 downto 0);
       M_AXIS_TUSER   : out slv(TUSER_WIDTH_G-1 downto 0);
-      M_AXIS_TREADY  : in  sl := '0');
+      M_AXIS_TREADY  : in  sl                             := '0');
 end entity AxiStreamMuxIpIntegrator;
 
 architecture rtl of AxiStreamMuxIpIntegrator is

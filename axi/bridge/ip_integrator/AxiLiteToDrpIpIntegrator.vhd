@@ -39,9 +39,9 @@ entity AxiLiteToDrpIpIntegrator is
       S_AXI_RRESP   : out slv(1 downto 0);
       S_AXI_RVALID  : out sl;
       S_AXI_RREADY  : in  sl;
-      drpGnt        : in  sl := '1';
+      drpGnt        : in  sl                           := '1';
       drpReq        : out sl;
-      drpRdy        : in  sl := '0';
+      drpRdy        : in  sl                           := '0';
       drpEn         : out sl;
       drpWe         : out sl;
       drpUsrRst     : out sl;

@@ -7,31 +7,31 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamConcatIpIntegrator is
    generic (
-      TPD_G                        : time     := 1 ns;
-      RST_POLARITY_G               : sl       := '1';
-      RST_ASYNC_G                  : boolean  := false;
-      DATA_BYTES_G                 : positive := 4;
+      TPD_G                        : time                  := 1 ns;
+      RST_POLARITY_G               : sl                    := '1';
+      RST_ASYNC_G                  : boolean               := false;
+      DATA_BYTES_G                 : positive              := 4;
       TUSER_WIDTH_G                : positive range 1 to 8 := 2;
-      MAX_NUMBER_SUB_FRAMES_G      : positive := 4;
-      SUPER_FRAME_BYTE_THRESHOLD_G : natural  := 32;
-      MAX_CLK_GAP_G                : natural  := 8;
-      INPUT_PIPE_STAGES_G          : natural  := 0;
-      OUTPUT_PIPE_STAGES_G         : natural  := 0);
+      MAX_NUMBER_SUB_FRAMES_G      : positive              := 4;
+      SUPER_FRAME_BYTE_THRESHOLD_G : natural               := 32;
+      MAX_CLK_GAP_G                : natural               := 8;
+      INPUT_PIPE_STAGES_G          : natural               := 0;
+      OUTPUT_PIPE_STAGES_G         : natural               := 0);
    port (
       axisClk                 : in  sl;
       axisRst                 : in  sl;
-      forceTerm               : in  sl := '0';
-      superFrameByteThreshold : in  slv(31 downto 0) := (others => '0');
-      maxSubFrames            : in  slv(15 downto 0) := (others => '0');
-      maxClkGap               : in  slv(31 downto 0) := (others => '0');
+      forceTerm               : in  sl                             := '0';
+      superFrameByteThreshold : in  slv(31 downto 0)               := (others => '0');
+      maxSubFrames            : in  slv(15 downto 0)               := (others => '0');
+      maxClkGap               : in  slv(31 downto 0)               := (others => '0');
       idle                    : out sl;
-      S_AXIS_TVALID           : in  sl := '0';
+      S_AXIS_TVALID           : in  sl                             := '0';
       S_AXIS_TDATA            : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP            : in  slv(DATA_BYTES_G-1 downto 0) := (others => '1');
-      S_AXIS_TLAST            : in  sl := '0';
-      S_AXIS_TDEST            : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID              : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER            : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S_AXIS_TKEEP            : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '1');
+      S_AXIS_TLAST            : in  sl                             := '0';
+      S_AXIS_TDEST            : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TID              : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TUSER            : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
       S_AXIS_TREADY           : out sl;
       M_AXIS_TVALID           : out sl;
       M_AXIS_TDATA            : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -40,7 +40,7 @@ entity AxiStreamConcatIpIntegrator is
       M_AXIS_TDEST            : out slv(7 downto 0);
       M_AXIS_TID              : out slv(7 downto 0);
       M_AXIS_TUSER            : out slv(TUSER_WIDTH_G-1 downto 0);
-      M_AXIS_TREADY           : in  sl := '0');
+      M_AXIS_TREADY           : in  sl                             := '0');
 end entity AxiStreamConcatIpIntegrator;
 
 architecture rtl of AxiStreamConcatIpIntegrator is

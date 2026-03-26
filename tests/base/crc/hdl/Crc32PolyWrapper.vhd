@@ -36,6 +36,7 @@ entity Crc32PolyWrapper is
 end entity Crc32PolyWrapper;
 
 architecture rtl of Crc32PolyWrapper is
+
 begin
 
    U_CRC : entity surf.Crc32

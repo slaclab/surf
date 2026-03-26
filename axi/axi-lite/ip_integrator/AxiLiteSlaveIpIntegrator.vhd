@@ -17,8 +17,8 @@ entity AxiLiteSlaveIpIntegrator is
       reqRnw        : out sl;
       reqAddress    : out slv(31 downto 0);
       reqWrData     : out slv(31 downto 0);
-      ackDone       : in  sl := '0';
-      ackResp       : in  slv(1 downto 0) := (others => '0');
+      ackDone       : in  sl               := '0';
+      ackResp       : in  slv(1 downto 0)  := (others => '0');
       ackRdData     : in  slv(31 downto 0) := (others => '0');
       S_AXI_AWADDR  : in  slv(31 downto 0);
       S_AXI_AWPROT  : in  slv(2 downto 0);

@@ -11,17 +11,17 @@ entity AxiLiteMasterIpIntegrator is
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false);
    port (
-      axilClk      : in  sl;
-      axilRst      : in  sl;
-      reqRequest   : in  sl := '0';
-      reqRnw       : in  sl := '1';
-      reqAddress   : in  slv(31 downto 0) := (others => '0');
-      reqWrData    : in  slv(31 downto 0) := (others => '0');
-      ackDone      : out sl;
-      ackResp      : out slv(1 downto 0);
-      ackRdData    : out slv(31 downto 0);
-      M_AXI_AWADDR : out slv(31 downto 0);
-      M_AXI_AWPROT : out slv(2 downto 0);
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      reqRequest    : in  sl               := '0';
+      reqRnw        : in  sl               := '1';
+      reqAddress    : in  slv(31 downto 0) := (others => '0');
+      reqWrData     : in  slv(31 downto 0) := (others => '0');
+      ackDone       : out sl;
+      ackResp       : out slv(1 downto 0);
+      ackRdData     : out slv(31 downto 0);
+      M_AXI_AWADDR  : out slv(31 downto 0);
+      M_AXI_AWPROT  : out slv(2 downto 0);
       M_AXI_AWVALID : out sl;
       M_AXI_AWREADY : in  sl;
       M_AXI_WDATA   : out slv(31 downto 0);

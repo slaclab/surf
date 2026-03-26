@@ -7,31 +7,31 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamTrailerAppendIpIntegrator is
    generic (
-      TPD_G                : time     := 1 ns;
-      RST_POLARITY_G       : sl       := '1';
-      RST_ASYNC_G          : boolean  := false;
-      DATA_BYTES_G         : positive := 4;
-      TRAILER_DATA_BYTES_G : positive := 2;
+      TPD_G                : time                  := 1 ns;
+      RST_POLARITY_G       : sl                    := '1';
+      RST_ASYNC_G          : boolean               := false;
+      DATA_BYTES_G         : positive              := 4;
+      TRAILER_DATA_BYTES_G : positive              := 2;
       TUSER_WIDTH_G        : positive range 1 to 8 := 1;
-      PIPE_STAGES_G        : natural  := 0);
+      PIPE_STAGES_G        : natural               := 0);
    port (
       axisClk               : in  sl;
       axisRst               : in  sl;
-      S_AXIS_TVALID         : in  sl := '0';
-      S_AXIS_TDATA          : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP          : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_AXIS_TLAST          : in  sl := '0';
-      S_AXIS_TDEST          : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID            : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER          : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S_AXIS_TVALID         : in  sl                                     := '0';
+      S_AXIS_TDATA          : in  slv(DATA_BYTES_G*8-1 downto 0)         := (others => '0');
+      S_AXIS_TKEEP          : in  slv(DATA_BYTES_G-1 downto 0)           := (others => '0');
+      S_AXIS_TLAST          : in  sl                                     := '0';
+      S_AXIS_TDEST          : in  slv(7 downto 0)                        := (others => '0');
+      S_AXIS_TID            : in  slv(7 downto 0)                        := (others => '0');
+      S_AXIS_TUSER          : in  slv(TUSER_WIDTH_G-1 downto 0)          := (others => '0');
       S_AXIS_TREADY         : out sl;
-      S_TRAILER_AXIS_TVALID : in  sl := '0';
+      S_TRAILER_AXIS_TVALID : in  sl                                     := '0';
       S_TRAILER_AXIS_TDATA  : in  slv(TRAILER_DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_TRAILER_AXIS_TKEEP  : in  slv(TRAILER_DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_TRAILER_AXIS_TLAST  : in  sl := '0';
-      S_TRAILER_AXIS_TDEST  : in  slv(7 downto 0) := (others => '0');
-      S_TRAILER_AXIS_TID    : in  slv(7 downto 0) := (others => '0');
-      S_TRAILER_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
+      S_TRAILER_AXIS_TKEEP  : in  slv(TRAILER_DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S_TRAILER_AXIS_TLAST  : in  sl                                     := '0';
+      S_TRAILER_AXIS_TDEST  : in  slv(7 downto 0)                        := (others => '0');
+      S_TRAILER_AXIS_TID    : in  slv(7 downto 0)                        := (others => '0');
+      S_TRAILER_AXIS_TUSER  : in  slv(TUSER_WIDTH_G-1 downto 0)          := (others => '0');
       S_TRAILER_AXIS_TREADY : out sl;
       M_AXIS_TVALID         : out sl;
       M_AXIS_TDATA          : out slv(DATA_BYTES_G*8-1 downto 0);
@@ -40,7 +40,7 @@ entity AxiStreamTrailerAppendIpIntegrator is
       M_AXIS_TDEST          : out slv(7 downto 0);
       M_AXIS_TID            : out slv(7 downto 0);
       M_AXIS_TUSER          : out slv(TUSER_WIDTH_G-1 downto 0);
-      M_AXIS_TREADY         : in  sl := '0');
+      M_AXIS_TREADY         : in  sl                                     := '0');
 end entity AxiStreamTrailerAppendIpIntegrator;
 
 architecture rtl of AxiStreamTrailerAppendIpIntegrator is
