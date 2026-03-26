@@ -21,8 +21,6 @@
 # - Timing: Latency is checked across separate A and B clocks, with one
 #   additional cycle expected when the B-side output register is enabled.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer

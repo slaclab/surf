@@ -183,4 +183,3 @@ def test_SyncTrigPeriod(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
     )
-

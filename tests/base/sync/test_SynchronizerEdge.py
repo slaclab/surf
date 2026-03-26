@@ -195,4 +195,3 @@ def test_SynchronizerEdge(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
     )
-

@@ -28,7 +28,6 @@ import logging
 import random
 
 import cocotb
-import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp

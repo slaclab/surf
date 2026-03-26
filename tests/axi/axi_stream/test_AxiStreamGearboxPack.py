@@ -26,7 +26,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, with_timeout
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
-from tests.axi.axi_stream.gearbox_reference import bytes_to_words, pack_words, words_to_bytes
+from tests.axi.axi_stream.gearbox_reference import pack_words, words_to_bytes
 from tests.common.regression_utils import run_surf_vhdl_test
 
 

@@ -23,8 +23,6 @@
 #   side so the DUT state machine has to step through its write and read
 #   phases instead of seeing zero-latency handshakes.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.clock import Clock

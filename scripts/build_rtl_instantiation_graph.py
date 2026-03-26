@@ -652,7 +652,10 @@ def _phase1_graph(
 def _bottom_up_layers(graph: dict[str, set[str]], definitions: dict[str, EntityDefinition]) -> list[list[str]]:
     reverse_graph = _reverse_graph(graph)
     remaining_children = {node_id: len(children) for node_id, children in graph.items()}
-    sort_key = lambda node_id: _definition_sort_key(definitions[node_id])
+
+    def sort_key(node_id: str) -> tuple[str, str]:
+        return _definition_sort_key(definitions[node_id])
+
     queue = deque(sorted((node_id for node_id, count in remaining_children.items() if count == 0), key=sort_key))
     layers: list[list[str]] = []
 
