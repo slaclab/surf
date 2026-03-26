@@ -104,10 +104,14 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: VHDL Regression Testing
+      - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v tests/
+          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp
+
+      - name: Serial Legacy-Style Testbenches
+        run: |
+          python -m pytest --cov --cov-append -v tests/test_*.py
 
       - name: Code Coverage
         run: |
