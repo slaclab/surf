@@ -9,8 +9,8 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Reuse the legacy `AxiStreamGearboxTb` shell but narrow it to one
-#   stable non-word-multiple case.
+# - Sweep: Keep one stable non-word-multiple gearbox case through a thin
+#   cocotb-facing wrapper.
 # - Stimulus: Send incrementing payload frames through the cocotb AXI-Stream
 #   agents already used by the historical bench.
 # - Checks: Output bytes, `tid`, and `tdest` must match end-to-end.
@@ -77,7 +77,10 @@ async def narrow_gearbox_payload_test(dut):
 def test_AxiStreamGearbox(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.axistreamgearboxtb",
+        toplevel="surf.axistreamgearboxipintegrator",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": ["axi/axi-stream/ip_integrator/AxiStreamGearboxIpIntegrator.vhd"],
+        },
     )
