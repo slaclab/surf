@@ -37,9 +37,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make python3 python3-pip tclsh ghdl
           python -m pip install --upgrade pip
-          pip install -r pip_requirements.txt
-          git clone https://github.com/slaclab/ruckus.git
-          pip install -r ruckus/scripts/pip_requirements.txt
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: Check for trailing whitespace and tabs
         run: |
@@ -89,9 +95,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make python3 python3-pip tclsh ghdl
           python -m pip install --upgrade pip
-          pip install -r pip_requirements.txt
-          git clone https://github.com/slaclab/ruckus.git
-          pip install -r ruckus/scripts/pip_requirements.txt
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: VHDL Regression Testing
         run: |
