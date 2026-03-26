@@ -19,3 +19,8 @@ ruckus/
 build/
 sim_build/
 .coverage*
+
+# Local editor/agent state
+.vscode/
+.cursor/
+.claude/
