@@ -60,6 +60,7 @@ architecture rtl of AxiResize is
 
    type RegType is record
       rdCount  : slv(BIT_CNT_C-1 downto 0);
+      rdHold   : AxiReadSlaveType;
       rdMaster : AxiReadMasterType;
       rdSlave  : AxiReadSlaveType;
       wrCount  : slv(BIT_CNT_C-1 downto 0);
@@ -69,6 +70,7 @@ architecture rtl of AxiResize is
 
    constant REG_INIT_C : RegType := (
       rdCount  => (others => '0'),
+      rdHold   => AXI_READ_SLAVE_INIT_C,
       rdMaster => axiReadMasterInit(MASTER_AXI_CONFIG_G),
       rdSlave  => AXI_READ_SLAVE_INIT_C,
       wrCount  => (others => '0'),
@@ -162,26 +164,36 @@ begin
 
                v.rdSlave := AXI_READ_SLAVE_INIT_C;
 
-               v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := ibRdM.rdata((SLV_BYTES_C*8*rdIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdIdx));
+               -- Buffer the accepted wide master beat so later narrow slave
+               -- slices do not depend on the live master-side bus after the
+               -- current handshake completes.
+               if (r.rdHold.rvalid = '0') then
+                  v.rdMaster.rready := '1';
 
-               v.rdSlave.rid   := ibRdM.rid;
-               v.rdSlave.rresp := ibRdM.rresp;
+                  if (ibRdM.rvalid = '1') then
+                     v.rdHold := AXI_READ_SLAVE_INIT_C;
+                     v.rdHold.rdata((MST_BYTES_C*8)-1 downto 0) := ibRdM.rdata((MST_BYTES_C*8)-1 downto 0);
+                     v.rdHold.rid   := ibRdM.rid;
+                     v.rdHold.rresp := ibRdM.rresp;
+                     v.rdHold.rlast := ibRdM.rlast;
+                     v.rdHold.rvalid := '1';
+                     v.rdCount       := (others => '0');
+                  end if;
+               else
+                  v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := r.rdHold.rdata((SLV_BYTES_C*8*rdIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdIdx));
+                  v.rdSlave.rid   := r.rdHold.rid;
+                  v.rdSlave.rresp := r.rdHold.rresp;
+                  v.rdSlave.rvalid := '1';
 
-               -- Determine if we move data
-               if (ibRdM.rvalid = '1') then
-                  if (r.rdCount = (COUNT_C-1)) or ((rdBytes >= rdByteCnt) and (ibRdM.rlast = '1')) then
+                  if (r.rdCount = (COUNT_C-1)) then
                      v.rdCount         := (others => '0');
-                     v.rdMaster.rready := '1';
-                     v.rdSlave.rlast   := ibRdM.rlast;
+                     v.rdHold.rvalid   := '0';
+                     v.rdSlave.rlast   := r.rdHold.rlast;
                   else
                      v.rdCount         := r.rdCount + 1;
-                     v.rdMaster.rready := '0';
                      v.rdSlave.rlast   := '0';
                   end if;
                end if;
-
-               -- Drop transfers, except on tLast
-               v.rdSlave.rvalid := ibRdM.rvalid or v.rdSlave.rlast;
 
             end if;
          end if;
