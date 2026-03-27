@@ -81,5 +81,6 @@ Then prepare HDL sources with:
   make MODULES="${ROOT_DIR}" import
 
 Then run regressions with:
-  python -m pytest -v tests/
+  python -m pytest -v -n auto --dist=worksteal tests/axi tests/base tests/dsp
+  python -m pytest -v tests/test_*.py
 EOF
