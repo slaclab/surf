@@ -26,7 +26,7 @@
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer, with_timeout
-from cocotbext.axi import AxiBus, AxiLiteBus, AxiLiteMaster, AxiMaster, AxiRam
+from cocotbext.axi import AxiBus, AxiLiteBus, AxiLiteMaster, AxiRam
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
