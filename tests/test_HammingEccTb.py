@@ -14,6 +14,7 @@ from cocotb.triggers import RisingEdge
 
 # test_HammingEccTb
 from cocotb_test.simulator import run
+from tests.regression_utils import COMMON_VHDL_COMPILE_ARGS
 import pytest
 import glob
 import os
@@ -85,16 +86,7 @@ def test_HammingEccTb(parameters):
         simulator="ghdl",
 
         # VHDL compile arguments
-        vhdl_compile_args = [
-            "--std=08",         # enable VHDL-2008
-            '-fsynopsys',       # use of synopsys package "std_logic_arith" needs the -fsynopsys option
-            '-frelaxed-rules',  # -frelaxed-rules option to allow IP integrator attributes
-            '-fexplicit',       # When two operators are overloaded, give preference to the explicit declaration (-fexplicit)
-            '-Wno-elaboration', # Hide warnings about functions called before elaborated of its body
-            '-Wno-hide',        # Declaration of "axiconfig" hides function in AxiPkg.vhd
-            '-Wno-specs',       # Warning related to IP skim layers attributes
-            '-O2',              # Optimize the generated simulation code for speed (no change to VHDL semantics)
-        ],
+        vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
 
         ########################################################################
         # Dump waveform to file ($ gtkwave sim_build/path/To/{tests_module}.ghw)

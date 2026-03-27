@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import os
 from pathlib import Path
+import shlex
+import subprocess
 from textwrap import dedent
 
 import pytest
@@ -14,14 +17,45 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = REPO_ROOT / "tests"
 BUILD_SRC_ROOT = REPO_ROOT / "build" / "SRC_VHDL"
 
-COMMON_VHDL_COMPILE_ARGS = [
+BASE_GHDL_COMPILE_ARGS = [
     "--std=08",
     "-fsynopsys",
     "-frelaxed-rules",
     "-fexplicit",
-    "-Wno-elaboration",
-    "-Wno-hide",
-    "-Wno-specs",
+]
+
+OPTIONAL_GHDL_WARNINGS = ("elaboration", "hide", "specs")
+
+
+@lru_cache(maxsize=1)
+def _supported_ghdl_warning_names() -> frozenset[str]:
+    try:
+        result = subprocess.run(
+            [*shlex.split(os.environ.get("GHDL_CMD", "ghdl")), "--help-warnings"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return frozenset()
+
+    names = set()
+    for line in result.stdout.splitlines():
+        token = line.strip().split(maxsplit=1)[0]
+        if not token.startswith("-W") or token == "-Wall":
+            continue
+        names.add(token.removeprefix("-W").removesuffix("*"))
+    return frozenset(names)
+
+
+def _optional_ghdl_warning_flags() -> list[str]:
+    supported_names = _supported_ghdl_warning_names()
+    return [f"-Wno-{name}" for name in OPTIONAL_GHDL_WARNINGS if name in supported_names]
+
+
+COMMON_VHDL_COMPILE_ARGS = [
+    *BASE_GHDL_COMPILE_ARGS,
+    *_optional_ghdl_warning_flags(),
     "-O2",
 ]
 
