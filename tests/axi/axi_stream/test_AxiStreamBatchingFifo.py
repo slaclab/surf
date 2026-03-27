@@ -22,8 +22,9 @@ import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, with_timeout
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
+from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
@@ -57,13 +58,10 @@ class TB:
             self.sink = AxiStreamSink(AxiStreamBus.from_prefix(self.dut, "M_AXIS"), self.dut.axiClk, self.dut.axiRst)
 
     async def read_reg(self, address: int) -> int:
-        txn = await self.axil.read(address, 4)
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await axil_read_u32(self.axil, address)
 
     async def write_reg(self, address: int, value: int):
-        txn = await self.axil.write(address, value.to_bytes(4, "little"))
-        assert txn.resp == AxiResp.OKAY
+        await axil_write_u32(self.axil, address, value)
 
 
 @cocotb.test()

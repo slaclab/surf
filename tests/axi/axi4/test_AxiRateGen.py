@@ -26,8 +26,9 @@
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer, with_timeout
-from cocotbext.axi import AxiBus, AxiLiteBus, AxiLiteMaster, AxiMaster, AxiRam, AxiResp
+from cocotbext.axi import AxiBus, AxiLiteBus, AxiLiteMaster, AxiMaster, AxiRam
 
+from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 
 
@@ -81,13 +82,10 @@ class TB:
         await self.cycle(3)
 
     async def read_reg(self, address: int) -> int:
-        txn = await with_timeout(self.axil.read(address, 4), 2, "us")
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await with_timeout(axil_read_u32(self.axil, address), 2, "us")
 
     async def write_reg(self, address: int, value: int):
-        txn = await with_timeout(self.axil.write(address, value.to_bytes(4, "little")), 2, "us")
-        assert txn.resp == AxiResp.OKAY
+        await with_timeout(axil_write_u32(self.axil, address, value), 2, "us")
 
     async def wait_for_count(self, store, expected: int, *, limit_cycles: int, label: str):
         for _ in range(limit_cycles):

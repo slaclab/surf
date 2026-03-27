@@ -21,8 +21,9 @@
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
+from tests.axi.utils import axil_read_u32
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 
 
@@ -51,21 +52,19 @@ class TB:
         self.dut.axilRst.value = 0
         await self.cycle(8)
 
-    def start_axil(self):
+    def start_agents(self):
         if self.axil is None:
             self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(self.dut, "S_AXI"), self.dut.axilClk, self.dut.axilRst)
 
     async def read_reg(self, address: int) -> int:
-        txn = await self.axil.read(address, 4)
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await axil_read_u32(self.axil, address)
 
 
 @cocotb.test()
 async def status_and_counter_visibility_test(dut):
     tb = TB(dut)
     await tb.reset()
-    tb.start_axil()
+    tb.start_agents()
 
     # Toggle two bits on different cycles so the counter writer sees distinct
     # events and the synchronized live-status output has to update as well.

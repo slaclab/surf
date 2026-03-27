@@ -32,13 +32,8 @@ from cocotbext.axi import (
     AxiStreamSource,
 )
 
+from tests.axi.utils import ring_buffer_axil_addr
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
-
-
-def get_buffer_addr(bus_index: int, buf: int = 0, high: int = 0) -> int:
-    if bus_index in (4, 5):
-        return (bus_index << 9) | (buf << 2)
-    return (bus_index << 9) | (buf << 3) | (high << 2)
 
 
 class TB:
@@ -71,13 +66,31 @@ class TB:
 
     def start_agents(self):
         if self.axil_ram is None:
-            self.axil_ram = AxiLiteRam(AxiLiteBus.from_prefix(self.dut, "M_AXIL"), self.dut.axilClk, self.dut.axilRst, size=2**12)
+            self.axil_ram = AxiLiteRam(
+                AxiLiteBus.from_prefix(self.dut, "M_AXIL"),
+                self.dut.axilClk,
+                self.dut.axilRst,
+                size=2**12,
+            )
         if self.axi_ram is None:
-            self.axi_ram = AxiRamRead(AxiReadBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2**16)
+            self.axi_ram = AxiRamRead(
+                AxiReadBus.from_prefix(self.dut, "M_AXI"),
+                self.dut.axiClk,
+                self.dut.axiRst,
+                size=2**16,
+            )
         if self.status_source is None:
-            self.status_source = AxiStreamSource(AxiStreamBus.from_prefix(self.dut, "S_STATUS"), self.dut.statusClk, self.dut.statusRst)
+            self.status_source = AxiStreamSource(
+                AxiStreamBus.from_prefix(self.dut, "S_STATUS"),
+                self.dut.statusClk,
+                self.dut.statusRst,
+            )
         if self.data_sink is None:
-            self.data_sink = AxiStreamSink(AxiStreamBus.from_prefix(self.dut, "M_AXIS"), self.dut.axiClk, self.dut.axiRst)
+            self.data_sink = AxiStreamSink(
+                AxiStreamBus.from_prefix(self.dut, "M_AXIS"),
+                self.dut.axiClk,
+                self.dut.axiRst,
+            )
 
 
 @cocotb.test()
@@ -92,11 +105,11 @@ async def status_driven_ring_read_test(dut):
 
     # Populate the register image that the ring-read module fetches over its
     # AXI-Lite master port before it issues the AXI memory read.
-    tb.axil_ram.write(get_buffer_addr(0, 0, 0), start_addr.to_bytes(4, "little"))
-    tb.axil_ram.write(get_buffer_addr(0, 0, 1), (0).to_bytes(4, "little"))
-    tb.axil_ram.write(get_buffer_addr(1, 0, 0), end_addr.to_bytes(4, "little"))
-    tb.axil_ram.write(get_buffer_addr(1, 0, 1), (0).to_bytes(4, "little"))
-    tb.axil_ram.write(get_buffer_addr(4, 0, 0), (0).to_bytes(4, "little"))
+    tb.axil_ram.write(ring_buffer_axil_addr(0, 0, 0), start_addr.to_bytes(4, "little"))
+    tb.axil_ram.write(ring_buffer_axil_addr(0, 0, 1), (0).to_bytes(4, "little"))
+    tb.axil_ram.write(ring_buffer_axil_addr(1, 0, 0), end_addr.to_bytes(4, "little"))
+    tb.axil_ram.write(ring_buffer_axil_addr(1, 0, 1), (0).to_bytes(4, "little"))
+    tb.axil_ram.write(ring_buffer_axil_addr(4, 0, 0), (0).to_bytes(4, "little"))
 
     tb.axi_ram.write(start_addr, payload)
     await tb.status_source.send(AxiStreamFrame(b"\x00"))

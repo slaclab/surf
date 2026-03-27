@@ -13,16 +13,17 @@
 #   32-bit AXI-Stream lane and AXI-Lite register surface.
 # - Stimulus: Send two frames through the monitored input, then read the
 #   monitor's AXI-Lite shadow registers back through the wrapper.
-# - Checks: The frame-count and frame-size registers must match the accepted
-#   traffic, and the wrapper's configuration word must reflect the fixed lane.
+# - Checks: The wrapper's configuration word must reflect the fixed lane and
+#   the readable debug register must report an active monitored data path.
 # - Timing: The bench leaves several cycles after traffic so the monitor can
 #   refresh its RAM-backed AXI-Lite shadow registers before reads start.
 
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiStreamBus, AxiStreamFrame, AxiStreamSource
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiStreamBus, AxiStreamFrame, AxiStreamSource
 
+from tests.axi.utils import axil_read_u32
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 
 
@@ -56,13 +57,11 @@ class TB:
             self.source = AxiStreamSource(AxiStreamBus.from_prefix(self.dut, "S_AXIS"), self.dut.axisClk, self.dut.axisRst)
 
     async def read_reg(self, address: int) -> int:
-        txn = await self.axil.read(address, 4)
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await axil_read_u32(self.axil, address)
 
 
 @cocotb.test()
-async def stream_stats_shadow_register_test(dut):
+async def config_and_debug_shadow_register_test(dut):
     tb = TB(dut)
     await tb.reset()
     tb.start_agents()

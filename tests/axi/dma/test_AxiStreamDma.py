@@ -23,8 +23,9 @@ import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
+from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
@@ -47,25 +48,22 @@ class TB:
         self.dut.axiRst.value = 0
         await self.cycle(6)
 
-    def start_axil(self):
+    def start_agents(self):
         if self.axil is None:
             self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(self.dut, "S_AXI"), self.dut.axiClk, self.dut.axiRst)
 
     async def read_reg(self, address: int) -> int:
-        txn = await self.axil.read(address, 4)
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await axil_read_u32(self.axil, address)
 
     async def write_reg(self, address: int, value: int):
-        txn = await self.axil.write(address, value.to_bytes(4, "little"))
-        assert txn.resp == AxiResp.OKAY
+        await axil_write_u32(self.axil, address, value)
 
 
 @cocotb.test()
 async def top_level_register_surface_test(dut):
     tb = TB(dut)
     await tb.reset()
-    tb.start_axil()
+    tb.start_agents()
 
     assert await tb.read_reg(0x00) == 0
     assert await tb.read_reg(0x18) == 0

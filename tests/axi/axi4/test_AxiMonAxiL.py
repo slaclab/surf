@@ -21,8 +21,9 @@
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
+from tests.axi.utils import axil_read_u32
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 
 
@@ -55,21 +56,19 @@ class TB:
         self.dut.axilRst.value = 0
         await self.cycle(6)
 
-    def start_axil(self):
+    def start_agents(self):
         if self.axil is None:
             self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(self.dut, "S_AXI"), self.dut.axilClk, self.dut.axilRst)
 
     async def read_reg(self, address: int) -> int:
-        txn = await self.axil.read(address, 4)
-        assert txn.resp == AxiResp.OKAY
-        return int.from_bytes(txn.data, "little")
+        return await axil_read_u32(self.axil, address)
 
 
 @cocotb.test()
-async def write_and_read_channel_stats_test(dut):
+async def config_and_debug_register_test(dut):
     tb = TB(dut)
     await tb.reset()
-    tb.start_axil()
+    tb.start_agents()
 
     await tb.cycle(16)
 

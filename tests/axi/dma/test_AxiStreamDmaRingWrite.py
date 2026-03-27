@@ -22,15 +22,22 @@
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer, with_timeout
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiRamWrite, AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource, AxiWriteBus
+from cocotbext.axi import (
+    AxiLiteBus,
+    AxiLiteMaster,
+    AxiRamWrite,
+    AxiStreamBus,
+    AxiStreamFrame,
+    AxiStreamSink,
+    AxiStreamSource,
+    AxiWriteBus,
+)
 
+from tests.axi.utils import (
+    axil_write_u32,
+    ring_buffer_axil_addr,
+)
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
-
-
-def get_buffer_addr(bus_index: int, buf: int = 0, high: int = 0) -> int:
-    if bus_index in (4, 5):
-        return (bus_index << 9) | (buf << 2)
-    return (bus_index << 9) | (buf << 3) | (high << 2)
 
 
 class TB:
@@ -67,13 +74,16 @@ class TB:
         if self.source is None:
             self.source = AxiStreamSource(AxiStreamBus.from_prefix(self.dut, "S_AXIS"), self.dut.axiClk, self.dut.axiRst)
         if self.status_sink is None:
-            self.status_sink = AxiStreamSink(AxiStreamBus.from_prefix(self.dut, "M_STATUS"), self.dut.axisStatusClk, self.dut.axisStatusRst)
+            self.status_sink = AxiStreamSink(
+                AxiStreamBus.from_prefix(self.dut, "M_STATUS"),
+                self.dut.axisStatusClk,
+                self.dut.axisStatusRst,
+            )
         if self.ram is None:
             self.ram = AxiRamWrite(AxiWriteBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2**16)
 
     async def write_reg(self, address: int, value: int):
-        txn = await self.axil.write(address, value.to_bytes(4, "little"))
-        assert txn.resp == AxiResp.OKAY
+        await axil_write_u32(self.axil, address, value)
 
     async def wait_until(self, predicate, cycles: int = 64):
         for _ in range(cycles):
@@ -89,13 +99,13 @@ async def configured_buffer_capture_test(dut):
     await tb.reset()
     tb.start_agents()
 
-    await tb.write_reg(get_buffer_addr(0, 0, 0), 0x20)
-    await tb.write_reg(get_buffer_addr(0, 0, 1), 0x00)
-    await tb.write_reg(get_buffer_addr(1, 0, 0), 0x40)
-    await tb.write_reg(get_buffer_addr(1, 0, 1), 0x00)
+    await tb.write_reg(ring_buffer_axil_addr(0, 0, 0), 0x20)
+    await tb.write_reg(ring_buffer_axil_addr(0, 0, 1), 0x00)
+    await tb.write_reg(ring_buffer_axil_addr(1, 0, 0), 0x40)
+    await tb.write_reg(ring_buffer_axil_addr(1, 0, 1), 0x00)
     # Initialize the active write pointer from the programmed start address and
     # arm a software trigger so the first stored frame completes the buffer.
-    await tb.write_reg(get_buffer_addr(4, 0, 0), 0x0C)
+    await tb.write_reg(ring_buffer_axil_addr(4, 0, 0), 0x0C)
     await tb.wait_until(lambda: (int(dut.bufferDone.value) & 0x1) == 0)
 
     frame = AxiStreamFrame(bytes(range(0x10, 0x20)))
