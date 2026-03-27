@@ -127,7 +127,7 @@ architecture rtl of AxiStreamDmaRingWriteIpIntegrator is
    signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
    signal axisDataMaster  : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
    signal axisDataSlave   : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
-   signal axisStatusMaster: AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal axisStatusMaster : AxiStreamMasterType   := AXI_STREAM_MASTER_INIT_C;
    signal axisStatusSlave : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
    signal axiReadMaster   : AxiReadMasterType      := AXI_READ_MASTER_INIT_C;
    signal axiReadSlave    : AxiReadSlaveType       := AXI_READ_SLAVE_INIT_C;

@@ -34,7 +34,7 @@ entity AxiReadEmulateIpIntegrator is
       S_AXI_ARLOCK  : in  slv(1 downto 0);
       S_AXI_ARCACHE : in  slv(3 downto 0);
       S_AXI_ARPROT  : in  slv(2 downto 0);
-      S_AXI_ARREGION: in  slv(3 downto 0);
+      S_AXI_ARREGION : in  slv(3 downto 0);
       S_AXI_ARQOS   : in  slv(3 downto 0);
       S_AXI_ARVALID : in  sl;
       S_AXI_ARREADY : out sl;
@@ -54,7 +54,7 @@ architecture rtl of AxiReadEmulateIpIntegrator is
       ID_BITS_C    => 8,
       LEN_BITS_C   => 8);
 
-   signal axiResetN    : sl := '1';
+   signal axiResetN     : sl := '1';
    signal axiReadMaster : AxiReadMasterType := AXI_READ_MASTER_INIT_C;
    signal axiReadSlave  : AxiReadSlaveType  := AXI_READ_SLAVE_INIT_C;
 
