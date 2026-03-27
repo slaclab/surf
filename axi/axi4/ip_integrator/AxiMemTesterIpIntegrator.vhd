@@ -23,7 +23,7 @@ use surf.AxiPkg.all;
 entity AxiMemTesterIpIntegrator is
    generic (
       TPD_G        : time                    := 1 ns;
-      ADDR_WIDTH_G : positive range 12 to 64 := 16;
+      ADDR_WIDTH_G : positive range 12 to 64 := 32;
       DATA_BYTES_G : positive                := 4;
       ID_WIDTH_G   : positive                := 4);
    port (
@@ -34,7 +34,7 @@ entity AxiMemTesterIpIntegrator is
       start         : in  sl;
       memReady      : out sl;
       memError      : out sl;
-      S_AXI_AWADDR  : in  slv(7 downto 0);
+      S_AXI_AWADDR  : in  slv(11 downto 0);
       S_AXI_AWPROT  : in  slv(2 downto 0);
       S_AXI_AWVALID : in  sl;
       S_AXI_AWREADY : out sl;
@@ -45,7 +45,7 @@ entity AxiMemTesterIpIntegrator is
       S_AXI_BRESP   : out slv(1 downto 0);
       S_AXI_BVALID  : out sl;
       S_AXI_BREADY  : in  sl;
-      S_AXI_ARADDR  : in  slv(7 downto 0);
+      S_AXI_ARADDR  : in  slv(11 downto 0);
       S_AXI_ARPROT  : in  slv(2 downto 0);
       S_AXI_ARVALID : in  sl;
       S_AXI_ARREADY : out sl;
@@ -102,6 +102,8 @@ architecture rtl of AxiMemTesterIpIntegrator is
       DATA_BYTES_C => DATA_BYTES_G,
       ID_BITS_C    => ID_WIDTH_G,
       LEN_BITS_C   => 8);
+   constant START_ADDR_C : slv(31 downto 0) := x"00000000";
+   constant STOP_ADDR_C  : slv(31 downto 0) := x"00000FFF";
 
    signal axilResetN      : sl := '1';
    signal axiResetN       : sl := '1';
@@ -132,7 +134,7 @@ begin
          EN_ERROR_RESP => true,
          HAS_PROT      => 1,
          HAS_WSTRB     => 1,
-         ADDR_WIDTH    => 8)
+         ADDR_WIDTH    => 12)
       port map (
          S_AXI_ACLK      => axilClk,
          S_AXI_ARESETN   => axilResetN,
@@ -224,6 +226,8 @@ begin
    U_DUT : entity surf.AxiMemTester
       generic map (
          TPD_G        => TPD_G,
+         START_ADDR_G => START_ADDR_C,
+         STOP_ADDR_G  => STOP_ADDR_C,
          AXI_CONFIG_G => AXI_CONFIG_C)
       port map (
          axilClk         => axilClk,

@@ -311,7 +311,7 @@ begin
          TPD_G              => TPD_G,
          COMMON_CLK_G       => true,
          BUFF_FRAME_WIDTH_G => 8,
-         AXI_BUFFER_WIDTH_G => 10,
+         AXI_BUFFER_WIDTH_G => 12,
          AXIS_CONFIG_G      => AXIS_CONFIG_C,
          AXI_CONFIG_G       => AXI_CONFIG_C,
          BURST_BYTES_G      => 16,

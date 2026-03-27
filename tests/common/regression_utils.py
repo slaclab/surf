@@ -219,6 +219,11 @@ def run_surf_vhdl_test(
     extra_vhdl_sources: dict[str, list[str]] | None = None,
 ) -> None:
     test_file = Path(test_file)
+    simulator_env = None
+    if extra_env is not None:
+        simulator_env = {key: str(value) for key, value in extra_env.items()}
+    elif parameters is not None:
+        simulator_env = {key: str(value) for key, value in parameters.items()}
 
     run(
         toplevel=toplevel,
@@ -227,7 +232,7 @@ def run_surf_vhdl_test(
         vhdl_sources=_merge_vhdl_sources(_build_vhdl_sources(), extra_vhdl_sources),
         parameters=parameters,
         sim_build=_sim_build_path(test_file, parameters),
-        extra_env=extra_env if extra_env is not None else parameters,
+        extra_env=simulator_env,
         simulator="ghdl",
         vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
     )
