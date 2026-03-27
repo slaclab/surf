@@ -6,6 +6,14 @@
 - Current focus module: `IpV4Engine`
 - Last updated: 2026-03-26
 
+## Current Frontier Snapshot
+- Next queue target: `IpV4Engine`
+- Known expected-open tests on this branch:
+  - `tests/axi/axi4/test_AxiResize.py`: restored `32-bit -> 64-bit` upsize case is still expected to fail until the separate RTL fix lands.
+  - `tests/axi/dma/test_AxiStreamDmaV2Read.py`: still fails immediately inside the DUT with a `std_logic_arith` `CONV_INTEGER` assertion under GHDL.
+- Most recent reusable bench pattern:
+  - Prefer the existing subsystem shims, cocotb protocol masters/RAM models, and explicit handshake monitoring when the behavior under test includes timing-visible protocol details.
+
 ## Status
 | Subsystem | Inventory | Smoke | Functional | Notes |
 | --- | --- | --- | --- | --- |
@@ -109,6 +117,7 @@
 - HDL source coverage is not immediately available with the current local `ghdl` LLVM build; it needs a separate tooling decision if we want it later.
 
 ## Findings Worth Preserving
+- For a quick resume, read this file’s `Current Frontier Snapshot`, `Current In-Progress Item`, `Next 3 Concrete Tasks`, and `Findings Worth Preserving` sections before digging through the full log.
 - Existing Python regressions are generally the best reusable verification assets.
 - Existing VHDL TBs contain useful behavioral intent but are inconsistent as a scalable execution framework.
 - Generic-heavy modules strongly favor Python-authored tests.
@@ -157,6 +166,7 @@
 - `AxiToAxiLite` is practical with a thin bridge-local adapter, but mixed-width checks need to stay single-beat on the AXI side when the downstream response path is fundamentally AXI-Lite-like.
 - `AxiResize` still has an expected verification-branch gap: the restored `32-bit -> 64-bit` upsize case in `tests/axi/axi4/test_AxiResize.py` should keep failing here until the separate RTL-fix branch is merged.
 - `AxiRateGen` is practical with the existing AXI4 and AXI-Lite IP-integrator shim pair plus a cocotb AXI RAM model, and the stable first-pass subset is the `COMMON_CLK_G=true` path with timer spacing, zero-fill writes, and generated-read completion rather than the asynchronous AXI-Lite crossing branches.
+- For protocol-generator or wrapper-style benches, pair end-state checks with explicit accepted-handshake monitoring whenever the externally visible contract includes timing, burst shape, sideband propagation, or arbitration order.
 - `AxiStreamDmaV2Read` now has a minimal cocotb bench on this branch, and it still trips an internal `std_logic_arith` `CONV_INTEGER` assertion at `31 ns` even for a one-beat aligned transfer. Treat that as a real current RTL/runtime issue on this branch, not as a missing-bench gap.
 
 ## Log

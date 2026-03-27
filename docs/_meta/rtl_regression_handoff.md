@@ -15,6 +15,31 @@
 - Give each Python regression two distinct comment layers: a module-specific `Test methodology` block under the SLAC header and tutorial-style comments in the executable code body
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
+## Quick Resume Snapshot
+- Current frontier: `IpV4Engine` is the next unfinished, non-deferred phase-1 queue entry after the now-validated `AxiRateGen` step.
+- Current validated-open issues:
+  - `tests/axi/axi4/test_AxiResize.py` intentionally keeps the known `32-bit -> 64-bit` upsize failure visible until the separate RTL-fix branch lands.
+  - `tests/axi/dma/test_AxiStreamDmaV2Read.py` is still an expected open failure because the DUT aborts under GHDL with `std_logic_arith` `CONV_INTEGER`.
+- Current queue discipline:
+  - Take the next unfinished item from `docs/_meta/rtl_phase1_queue.md`.
+  - Record only true defers or order exceptions in `docs/_meta/rtl_phase1_queue_overrides.json`.
+  - Do not hand-maintain queue order in the plan or handoff docs.
+- Current wrapper discipline:
+  - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
+  - Keep first-pass wrapper benches intentionally narrow and document any omitted branches explicitly.
+  - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
+
+## Session Learnings To Preserve
+- Start with the smallest stable wrapper that exposes the DUT cleanly to cocotb. Reuse the existing subsystem `ip_integrator/` shims before inventing bespoke flattening or a generated wrapper.
+- Prefer checked-in subsystem wrappers for durable integration patterns and generated wrappers only when the real problem is simulator-hostile generic binding.
+- For AXI and AXI-Lite benches, the practical first-pass shape is usually:
+  - cocotb protocol master on the control/request side,
+  - cocotb RAM or simple protocol model on the generated/response side,
+  - lightweight monitors on accepted handshakes when timing or burst shape matters.
+- Do not rely on final memory contents alone when the contract includes timing-visible behavior. Record accepted handshakes if the bench is supposed to prove spacing, burst length, sideband propagation, partial-last-beat strobes, or arbitration order.
+- For `COMMON_CLK_G` style wrappers, use one shared clock coroutine via `start_lockstep_clocks()` when the RTL expects true shared edges rather than merely equal nominal periods.
+- For first-pass wrapper benches, prove the externally visible stable path first and defer shakier simulator-sensitive branches explicitly in the docs instead of stretching one bench to cover everything.
+
 ## Current Status
 Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
 
