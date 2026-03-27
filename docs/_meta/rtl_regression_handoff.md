@@ -16,7 +16,7 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: `IpV4Engine` is the next unfinished, non-deferred phase-1 queue entry after the now-validated `AxiRateGen` step.
+- Current frontier: `EthMacRxShift` is the first unfinished, non-deferred phase-1 queue entry in `docs/_meta/rtl_phase1_queue.md`.
 - Current validated-open issues:
   - `tests/axi/axi4/test_AxiResize.py` intentionally keeps the known `32-bit -> 64-bit` upsize failure visible until the separate RTL-fix branch lands.
   - `tests/axi/dma/test_AxiStreamDmaV2Read.py` is still an expected open failure because the DUT aborts under GHDL with `std_logic_arith` `CONV_INTEGER`.
@@ -90,7 +90,7 @@ Keep the validated subset intentionally narrow for the two most timing-sensitive
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Resume implementation at `IpV4Engine`, the next unfinished, non-deferred entry now exposed after the validated `AxiRateGen` frontier in `docs/_meta/rtl_phase1_queue.md`. Continue from the generated queue after that unless a concrete simulator-scope defer is justified in `docs/_meta/rtl_phase1_queue_overrides.json`. Do not re-derive the next target from the raw graph or hand-maintain a separate queue in the plan doc.
+Resume implementation at `EthMacRxShift`, the first unfinished, non-deferred entry in `docs/_meta/rtl_phase1_queue.md`. After that, continue through `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx` unless a concrete simulator-scope defer is justified in `docs/_meta/rtl_phase1_queue_overrides.json`. Do not skip ahead to later queue layers just because recent validated work landed elsewhere.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`

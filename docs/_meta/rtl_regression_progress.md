@@ -3,11 +3,13 @@
 ## Summary
 - Current phase: Phase-1 implementation active
 - Current subsystem: `ethernet`
-- Current focus module: `IpV4Engine`
+- Current focus module: `EthMacRxShift`
 - Last updated: 2026-03-26
 
 ## Current Frontier Snapshot
-- Next queue target: `IpV4Engine`
+- Next queue target: `EthMacRxShift`
+- Queue note:
+  - The active frontier is the first unfinished, non-deferred entry in the generated queue, not the first item after the most recently validated module cluster.
 - Known expected-open tests on this branch:
   - `tests/axi/axi4/test_AxiResize.py`: restored `32-bit -> 64-bit` upsize case is still expected to fail until the separate RTL fix lands.
   - `tests/axi/dma/test_AxiStreamDmaV2Read.py`: still fails immediately inside the DUT with a `std_logic_arith` `CONV_INTEGER` assertion under GHDL.
@@ -104,10 +106,12 @@
 - Validated `AxiRateGen` locally with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiRateGen.py` (`1 passed`) and revalidated the nearby AXI4 subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiReadPathMux.py tests/axi/axi4/test_AxiWritePathMux.py tests/axi/axi4/test_AxiRam.py tests/axi/axi4/test_AxiRateGen.py` (`4 passed`).
 
 ## Current In-Progress Item
-- Resume the generated queue at `IpV4Engine`, the next unfinished phase-1 entry after the now-validated `AxiRateGen` frontier.
+- Resume the generated queue at `EthMacRxShift`, the first unfinished non-deferred phase-1 entry in the generated queue.
+- Re-scope the next 10 non-deferred queue entries starting at `EthMacRxShift` after correcting the mistaken jump ahead to the later `IpV4Engine` layer.
 
 ## Next 3 Concrete Tasks
-- Implement `IpV4Engine`, the next unfinished non-deferred phase-1 queue entry.
+- Implement `EthMacRxShift`, the next unfinished non-deferred phase-1 queue entry.
+- After that, take the next entries in order from the generated queue: `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx`, unless a concrete defer is recorded.
 - Keep `tests/axi/axi4/test_AxiResize.py` in place on this branch so the known `32-bit -> 64-bit` upsize failure stays visible until the separate RTL fix lands.
 - Add only justified simulator-scope deferrals or ordering exceptions to `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit module order in `docs/_meta/rtl_regression_plan.md`.
 
@@ -221,3 +225,4 @@
 - 2026-03-26: Retargeted the remaining legacy-entity holdouts in the current validated set. `AxiRam` now uses `AxiRamIpIntegrator.vhd` plus a cocotb AXI master round-trip bench, `AxiStreamGearbox` now targets `AxiStreamGearboxIpIntegrator.vhd` instead of the old `tb/` shell, and `AxiLiteCrossbar` now targets `AxiLiteCrossbarIpIntegrator.vhd` instead of `AxiLiteCrossbarTb.vhd` (`3 passed` across the retargeted tests).
 - 2026-03-26: Resumed the generated queue at `AxiRateGen` and started scoping the cocotb-facing AXI4/IP-integrator pattern for the next `axi/axi4/` regression.
 - 2026-03-26: Implemented and validated `AxiRateGen` with `axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd` plus `tests/axi/axi4/test_AxiRateGen.py`. The stable common-clock subset passes with `1 passed`, and a nearby AXI4 sanity run across `AxiReadPathMux`, `AxiWritePathMux`, `AxiRam`, and `AxiRateGen` passes with `4 passed`.
+- 2026-03-26: Corrected the queue frontier after noticing the prior resume notes had jumped ahead to `IpV4Engine`. The real next unfinished non-deferred queue entry is `EthMacRxShift`, followed by `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx`.

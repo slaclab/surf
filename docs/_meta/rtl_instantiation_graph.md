@@ -8,8 +8,8 @@
 - Packages are not graph nodes.
 
 ## Summary
-- Entities: `686`
-- Edges: `1336`
+- Entities: `721`
+- Edges: `1433`
 - Topological layers: `12`
 - Duplicate entity names: `51`
 
@@ -23,19 +23,19 @@
 | AxiStreamPipeline | 38 | 0 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
 | SynchronizerFifo | 37 | 1 | base/sync/rtl/SynchronizerFifo.vhd |
 | PwrUpRst | 36 | 1 | base/general/rtl/PwrUpRst.vhd |
-| AxiLiteCrossbar | 29 | 0 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
+| AxiLiteCrossbar | 30 | 0 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
 | AxiLiteToDrp | 28 | 1 | axi/bridge/rtl/AxiLiteToDrp.vhd |
 | SynchronizerOneShot | 28 | 2 | base/sync/rtl/SynchronizerOneShot.vhd |
+| MasterAxiStreamIpIntegrator | 26 | 1 | axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd |
+| SlaveAxiStreamIpIntegrator | 25 | 1 | axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd |
 | AxiLiteAsync | 22 | 1 | axi/axi-lite/rtl/AxiLiteAsync.vhd |
 | Fifo | 17 | 4 | base/fifo/rtl/Fifo.vhd |
+| SlaveAxiLiteIpIntegrator | 17 | 1 | axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd |
 | SynchronizerEdge | 16 | 1 | base/sync/rtl/SynchronizerEdge.vhd |
 | RstPipeline | 15 | 0 | base/general/rtl/RstPipeline.vhd |
 | SyncStatusVector | 15 | 2 | base/sync/rtl/SyncStatusVector.vhd |
 | AxiLiteMaster | 14 | 0 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
 | AxiStreamMux | 14 | 1 | axi/axi-stream/rtl/AxiStreamMux.vhd |
-| EthMacTop | 14 | 5 | ethernet/EthMacCore/rtl/EthMacTop.vhd |
-| IoBufWrapper | 14 | 0 | xilinx/dummy/IoBufWrapperDummy.vhd |
-| AxiStreamDeMux | 13 | 1 | axi/axi-stream/rtl/AxiStreamDeMux.vhd |
 
 ## Top Assemblers
 | entity | instantiates_count | instantiated_by_count | path |
@@ -67,7 +67,7 @@
 | Synchronizer | 73 | base/sync/rtl/Synchronizer.vhd |
 | SynchronizerVector | 41 | base/sync/rtl/SynchronizerVector.vhd |
 | AxiStreamPipeline | 38 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
-| AxiLiteCrossbar | 29 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
+| AxiLiteCrossbar | 30 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
 | RstPipeline | 15 | base/general/rtl/RstPipeline.vhd |
 | AxiLiteMaster | 14 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
 | IoBufWrapper | 14 | xilinx/dummy/IoBufWrapperDummy.vhd |
@@ -82,8 +82,8 @@
 | FifoOutputPipeline | 5 | base/fifo/rtl/FifoOutputPipeline.vhd |
 | Pgp3RxGearboxAligner | 5 | protocols/pgp/pgp3/core/rtl/Pgp3RxGearboxAligner.vhd |
 | Scrambler | 5 | base/general/rtl/Scrambler.vhd |
+| AxiStreamFlush | 4 | axi/axi-stream/rtl/AxiStreamFlush.vhd |
 | CRC32Rtl | 4 | base/crc/rtl/CRC32Rtl.vhd |
-| Encoder8b10b | 4 | protocols/line-codes/rtl/Encoder8b10b.vhd |
 
 ## Base Bottom-Up Candidates
 | entity | instantiated_by_count | instantiates_count | path |
