@@ -14,7 +14,7 @@ from cocotb.triggers import RisingEdge
 
 # test_SsiResizeFifoEofeTb
 from cocotb_test.simulator import run
-from tests.regression_utils import COMMON_VHDL_COMPILE_ARGS
+from tests.regression_utils import COMMON_VHDL_COMPILE_ARGS, cocotb_module_name_from_test_file
 import pytest
 import glob
 import os
@@ -60,7 +60,7 @@ def test_SsiResizeFifoEofeTb(parameters):
 
         # name of the file that contains @cocotb.test() -- this file
         # https://docs.cocotb.org/en/stable/building.html?#envvar-MODULE
-        module = f'test_{tests_module}',
+        module = cocotb_module_name_from_test_file(__file__),
 
         # https://docs.cocotb.org/en/stable/building.html?#var-TOPLEVEL_LANG
         toplevel_lang = 'vhdl',

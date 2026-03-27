@@ -171,6 +171,10 @@ def _module_name_from_test_file(test_file: Path) -> str:
     return ".".join(test_file.resolve().relative_to(REPO_ROOT).with_suffix("").parts)
 
 
+def cocotb_module_name_from_test_file(test_file: str | Path) -> str:
+    return _module_name_from_test_file(Path(test_file))
+
+
 def _sim_build_path(test_file: Path, parameters: dict[str, object] | None) -> str:
     rel_parent = test_file.resolve().relative_to(TESTS_ROOT).parent
     build_dir = TESTS_ROOT / "sim_build" / rel_parent / test_file.stem
