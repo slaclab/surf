@@ -80,6 +80,7 @@
 - Keep the graph artifacts for provenance, but use the generated path-qualified phase-1 queue in `docs/_meta/rtl_phase1_queue.{md,json}` as the day-to-day source of truth.
 - Record manual phase-1 deferrals and manual order exceptions only in `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit queue order in this plan.
 - Do not re-analyze `rtl_instantiation_graph.json` before every module. Regenerate the queue when needed and take the next non-deferred item from `rtl_phase1_queue.md` unless a concrete blocker forces a documented override.
+- The current manual rollout preference is to finish `axi/` first. That preference is encoded as temporary subsystem deferrals in `docs/_meta/rtl_phase1_queue_overrides.json`, not as a hand-maintained side list in this plan.
 
 ## Flat Build Order
 The phase-1 simulator-friendly queue is now generated from the checked-in graph as a path-qualified bottom-up order rather than maintained inline in this plan.

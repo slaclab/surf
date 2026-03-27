@@ -2,14 +2,15 @@
 
 ## Summary
 - Current phase: Phase-1 implementation active
-- Current subsystem: `ethernet`
-- Current focus module: `EthMacRxShift`
+- Current subsystem: `axi`
+- Current focus module: `AxiResize`
 - Last updated: 2026-03-26
 
 ## Current Frontier Snapshot
-- Next queue target: `EthMacRxShift`
+- Next queue target: `AxiResize`
 - Queue note:
-  - The active frontier is the first unfinished, non-deferred entry in the generated queue, not the first item after the most recently validated module cluster.
+  - The current rollout temporarily defers `ethernet` and `protocols` in `docs/_meta/rtl_phase1_queue_overrides.json` so the remaining axi queue can be completed first.
+  - Within that axi-first pass, the active frontier is the earliest unfinished axi entry in the regenerated queue.
 - Known expected-open tests on this branch:
   - `tests/axi/axi4/test_AxiResize.py`: restored `32-bit -> 64-bit` upsize case is still expected to fail until the separate RTL fix lands.
   - `tests/axi/dma/test_AxiStreamDmaV2Read.py`: still fails immediately inside the DUT with a `std_logic_arith` `CONV_INTEGER` assertion under GHDL.
@@ -24,7 +25,7 @@
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
 | `axi` | started | not started | started | `AxiStreamFifoV2`, `AxiStreamPipeline`, `AxiStreamMux`, `AxiStreamDeMux`, `AxiStreamResize`, `AxiStreamCombiner`, `AxiStreamFlush`, `AxiStreamGearboxPack`, `AxiStreamGearboxUnpack`, `AxiStreamSplitter`, `AxiStreamCompact`, `AxiStreamConcat`, `AxiStreamFrameRateLimiter`, `AxiStreamPrbsFlowCtrl`, `AxiStreamRepeater`, `AxiStreamShift`, `AxiStreamTrailerAppend`, `AxiStreamTrailerRemove`, `AxiStreamGearbox`, `AxiStreamTap`, `AxiStreamTimer`, `AxiStreamDmaRead`, `AxiStreamDmaV2Write`, `AxiStreamDmaV2WriteMux`, `AxiRam`, `AxiRateGen`, `AxiReadPathMux`, `AxiWritePathMux`, `AxiToAxiLite`, `AxiLiteCrossbar`, `AxiLiteAsync`, `AxiLiteMaster`, `AxiLiteMasterProxy`, `AxiLiteRegs`, `AxiLiteRespTimer`, `AxiLiteSequencerRam`, `AxiLiteSlave`, `AxiLiteWriteFilter`, `AxiVersion`, `AxiLiteToDrp`, `AxiLiteToIpBus`, `IpBusToAxiLite`, and `AxiDualPortRam` are now validated under subsystem-packaged `tests/axi/`. `AxiLiteAsync`, `AxiLiteToDrp`, and `AxiRateGen` currently keep intentionally narrow common-clock subsets while the more timing-sensitive async AXI-Lite crossing branches remain open. `AxiResize` has a bench on this branch, but the 32-bit-to-64-bit upsize case is expected to fail until the separate RTL-fix branch is merged. `AxiStreamCompact`, `AxiStreamFrameRateLimiter`, and `AxiStreamDmaV2WriteMux` currently keep intentionally narrow first-pass subsets on this branch rather than forcing unstable simulator corners. `AxiStreamDmaV2Read` now also has a bench on this branch, but even a one-beat aligned read currently fails immediately inside the RTL with a `std_logic_arith` `CONV_INTEGER` assertion under GHDL, so it remains an expected open issue rather than a validated module. |
 | `protocols` | not started | not started | not started | Large simulator-friendly surface area |
-| `ethernet` | not started | not started | not started | Likely phase 1 later stage |
+| `ethernet` | not started | not started | not started | Temporarily deferred during the current axi-first rollout pass |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
 | `xilinx` | not started | not started | not started | Many vendor-heavy cases |
 
@@ -106,12 +107,13 @@
 - Validated `AxiRateGen` locally with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiRateGen.py` (`1 passed`) and revalidated the nearby AXI4 subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiReadPathMux.py tests/axi/axi4/test_AxiWritePathMux.py tests/axi/axi4/test_AxiRam.py tests/axi/axi4/test_AxiRateGen.py` (`4 passed`).
 
 ## Current In-Progress Item
-- Resume the generated queue at `EthMacRxShift`, the first unfinished non-deferred phase-1 entry in the generated queue.
-- Re-scope the next 10 non-deferred queue entries starting at `EthMacRxShift` after correcting the mistaken jump ahead to the later `IpV4Engine` layer.
+- Resume the regenerated axi-first queue at `AxiResize`, the earliest unfinished axi entry under the temporary subsystem deferrals.
+- Keep `ethernet` and `protocols` deferred until the remaining axi queue is complete, then remove those temporary deferrals and regenerate the queue.
 
 ## Next 3 Concrete Tasks
-- Implement `EthMacRxShift`, the next unfinished non-deferred phase-1 queue entry.
-- After that, take the next entries in order from the generated queue: `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx`, unless a concrete defer is recorded.
+- Resolve or otherwise disposition `AxiResize`, the earliest unfinished axi queue entry.
+- Resolve or otherwise disposition `AxiStreamDmaV2Read`, the next already-known open axi queue entry after `AxiResize`.
+- Continue through the remaining unfinished axi entries in regenerated queue order before removing the temporary `ethernet`/`protocols` deferrals.
 - Keep `tests/axi/axi4/test_AxiResize.py` in place on this branch so the known `32-bit -> 64-bit` upsize failure stays visible until the separate RTL fix lands.
 - Add only justified simulator-scope deferrals or ordering exceptions to `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit module order in `docs/_meta/rtl_regression_plan.md`.
 
@@ -226,3 +228,4 @@
 - 2026-03-26: Resumed the generated queue at `AxiRateGen` and started scoping the cocotb-facing AXI4/IP-integrator pattern for the next `axi/axi4/` regression.
 - 2026-03-26: Implemented and validated `AxiRateGen` with `axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd` plus `tests/axi/axi4/test_AxiRateGen.py`. The stable common-clock subset passes with `1 passed`, and a nearby AXI4 sanity run across `AxiReadPathMux`, `AxiWritePathMux`, `AxiRam`, and `AxiRateGen` passes with `4 passed`.
 - 2026-03-26: Corrected the queue frontier after noticing the prior resume notes had jumped ahead to `IpV4Engine`. The real next unfinished non-deferred queue entry is `EthMacRxShift`, followed by `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx`.
+- 2026-03-26: Changed the rollout policy to finish `axi/` first before returning to other subsystems. Recorded temporary `ethernet` and `protocols` subsystem deferrals in `docs/_meta/rtl_phase1_queue_overrides.json`, regenerated the queue, and set the active axi frontier to `AxiResize`.
