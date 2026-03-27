@@ -12,6 +12,7 @@
 - VHDL is allowed only for thin wrappers, shims, or required simulation models.
 - Existing VHDL testbenches are reference material, not execution constraints.
 - New Python regression code should use tutorial-style comments by default.
+- New Python cocotb test files should start with the standard SURF/SLAC header block, not an ad hoc local header.
 - Every Python regression should also carry a short module-specific `Test methodology` block immediately under the SLAC header comment.
 - The header methodology block should use four wrapped bullets: `Sweep`, `Stimulus`, `Checks`, and `Timing`.
 - The methodology bullets must describe the actual curated parameter sweep, the actual driven input sequence, the expected outputs or state changes, and the timing/latency/pulse/backpressure behavior being checked for that specific module.
@@ -22,6 +23,16 @@
 - Treat the header methodology block and the in-body tutorial comments as separate requirements; one does not replace the other.
 - Shared helpers may stay somewhat denser, but module-level tests should still explain how the Python coroutine behavior maps onto DUT behavior.
 - When a DUT generic assumes truly common clocks, drive those clocks from one shared cocotb coroutine rather than starting two same-period clocks independently.
+- For Python cocotb files, the minimum first-draft structure is:
+  - standard SURF/SLAC file header,
+  - module-specific `Test methodology` block,
+  - tutorial-style comments in the executable body.
+- Checked-in cocotb-facing VHDL wrappers should follow the in-tree SURF style too: add the standard SLAC/SURF banner at the top and include brief section comments for the major adapter regions.
+- For `*IpIntegrator.vhd` wrappers, the minimum expected sectioning is usually:
+  - bus shim section,
+  - DUT instantiation section,
+  - output/status flattening section when present.
+- Do not leave permanent checked-in wrappers as uncommented bare port maps even if the logic is thin; future sessions should be able to scan the file and identify the adapter shape immediately.
 
 ## Scope
 - Whole repo target.
@@ -72,6 +83,8 @@
 - For wrapper-style protocol benches, prefer thin subsystem wrappers plus cocotb protocol masters/RAM models, and add accepted-handshake monitoring whenever timing-visible protocol behavior is part of the contract being proven.
 - More generally, if a VHDL shim layer is needed to make a module practical to drive from cocotb, place that file in the nearest real subsystem `ip_integrator/` folder beside related adapter layers.
 - Do not place cocotb-facing shim/adaptor VHDL under `tests/` or generic `hdl/` buckets when it is serving the same integration role as the existing `*IpIntegrator.vhd` files.
+- When a wrapper is checked in under `ip_integrator/`, treat it like production repo HDL for readability purposes: keep the standard file banner and add concise section comments instead of relying on file naming alone.
+- Treat checked-in Python cocotb tests the same way: use the normal repo header/comment style in the first draft instead of leaving cleanup for later.
 
 ## Rollout Planning Policy
 - Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.

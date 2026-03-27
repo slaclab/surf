@@ -109,6 +109,7 @@
 ## Current In-Progress Item
 - Resume the regenerated axi-first queue at `AxiResize`, the earliest unfinished axi entry under the temporary subsystem deferrals.
 - Keep `ethernet` and `protocols` deferred until the remaining axi queue is complete, then remove those temporary deferrals and regenerate the queue.
+- Scoping the next 10 unfinished axi queue entries under the regenerated axi-first queue before landing the next implementation batch.
 
 ## Next 3 Concrete Tasks
 - Resolve or otherwise disposition `AxiResize`, the earliest unfinished axi queue entry.
@@ -141,7 +142,9 @@
 - The current Homebrew `ghdl` install is sufficient for cocotb regressions but not for a simple built-in HDL coverage flow.
 - The existing `AxiLiteAsyncTb.vhd` is useful as intent/reference, but it is not an appropriate long-term wrapper because it embeds clocks, memories, and transaction logic; `AxiLiteAsyncIpIntegrator.vhd` is now the cleaner cocotb-facing adapter.
 - Future Python regression code should follow the user's preferred two-layer comment style: keep a module-specific `Test methodology` header block under the SLAC banner and also explain major coroutine steps, waits, stimulus phases, and checks in-place for readers who are not already comfortable with cocotb.
+- Future Python regression code should also keep the standard SURF/SLAC file header itself; do not treat the methodology block as a substitute for the normal repo banner.
 - The methodology block should use wrapped `Sweep`, `Stimulus`, `Checks`, and `Timing` bullets and describe the real bench behavior, not generic filler text.
+- The same “write it readable on the first pass” rule applies to permanent cocotb-facing VHDL wrappers: checked-in `*IpIntegrator.vhd` files should carry the standard SURF banner and short section comments for shim setup, DUT hookup, and flattening/status wiring.
 - `FifoAsync` needed a curated matrix rather than a naive Cartesian sweep: standard FIFO mode, FWFT mode, and pipelined FWFT do not share identical read/full semantics.
 - VHDL packages should not become top-level test targets by default; only high-value behavioral helpers warrant dedicated wrapper tests.
 - `FifoSync` benefits from the same curated-matrix approach as `FifoAsync`, but its threshold checks needed event-driven flag handling because `prog_full`/`prog_empty` timing did not line up with fixed write-count assumptions.
@@ -168,6 +171,8 @@
 - `AxiLiteCrossbar` is practical under the current open-source flow with a thin cocotb-facing wrapper around the cascaded topology. The useful regression surface is routed-region correctness, decode-miss `DECERR` handling, and concurrent traffic through the cascaded topology, not a giant generic sweep.
 - SURF already has reusable AXI record-flattening shims. New AXI Stream and AXI-Lite wrappers should prefer the existing IP-integrator shim layers over hand-written record packing, and only custom-wire the DUT-specific extra side signals on top.
 - More generally, any VHDL shim layer added only to make a module fit cleanly into cocotb should live in the nearest real subsystem `ip_integrator/` tree, not under `tests/` and not under generic `hdl/` directories.
+- If that shim layer is checked in instead of generated locally, treat it like normal repo HDL rather than disposable glue: add the standard header and enough section comments that the adapter structure is obvious during a later resume.
+- Apply the same “first-draft readability” rule to checked-in cocotb tests: standard header first, methodology block second, tutorial comments in the body.
 - `AxiReadPathMux` and `AxiWritePathMux` are more stable with tiny source-side pin drivers than with `cocotbext.axi` masters because the muxes rewrite IDs internally; the downstream shared-port checks can still use the library RAM models.
 - `AxiToAxiLite` is practical with a thin bridge-local adapter, but mixed-width checks need to stay single-beat on the AXI side when the downstream response path is fundamentally AXI-Lite-like.
 - `AxiResize` still has an expected verification-branch gap: the restored `32-bit -> 64-bit` upsize case in `tests/axi/axi4/test_AxiResize.py` should keep failing here until the separate RTL-fix branch is merged.
@@ -227,5 +232,7 @@
 - 2026-03-26: Retargeted the remaining legacy-entity holdouts in the current validated set. `AxiRam` now uses `AxiRamIpIntegrator.vhd` plus a cocotb AXI master round-trip bench, `AxiStreamGearbox` now targets `AxiStreamGearboxIpIntegrator.vhd` instead of the old `tb/` shell, and `AxiLiteCrossbar` now targets `AxiLiteCrossbarIpIntegrator.vhd` instead of `AxiLiteCrossbarTb.vhd` (`3 passed` across the retargeted tests).
 - 2026-03-26: Resumed the generated queue at `AxiRateGen` and started scoping the cocotb-facing AXI4/IP-integrator pattern for the next `axi/axi4/` regression.
 - 2026-03-26: Implemented and validated `AxiRateGen` with `axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd` plus `tests/axi/axi4/test_AxiRateGen.py`. The stable common-clock subset passes with `1 passed`, and a nearby AXI4 sanity run across `AxiReadPathMux`, `AxiWritePathMux`, `AxiRam`, and `AxiRateGen` passes with `4 passed`.
+- 2026-03-26: Tightened the planning docs so wrapper readability is explicit instead of implicit: permanent cocotb-facing `*IpIntegrator.vhd` files should include the standard SURF banner and brief section comments in the first edit, just like the Python benches are required to carry their methodology and tutorial comments.
+- 2026-03-26: Tightened the planning docs again so the Python-side header rule is explicit too: checked-in cocotb tests should keep the standard SURF/SLAC banner in addition to the required methodology block and tutorial comments; this is now documented as a first-draft requirement rather than an implied cleanup step.
 - 2026-03-26: Corrected the queue frontier after noticing the prior resume notes had jumped ahead to `IpV4Engine`. The real next unfinished non-deferred queue entry is `EthMacRxShift`, followed by `EthMacTxExportGmii`, `EthMacTxShift`, `IpV4EngineRx`, `IpV4EngineTx`, `RawEthFramer`, `UdpEngineRx`, `GLinkTxToRx`, `HtspRx`, and `HtspTx`.
 - 2026-03-26: Changed the rollout policy to finish `axi/` first before returning to other subsystems. Recorded temporary `ethernet` and `protocols` subsystem deferrals in `docs/_meta/rtl_phase1_queue_overrides.json`, regenerated the queue, and set the active axi frontier to `AxiResize`.

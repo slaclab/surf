@@ -12,7 +12,8 @@
 - Whole-repo target
 - Vendor-heavy modules deferred in phase 1
 - Comment new Python regression code at a tutorial level, assuming the reader may be new to cocotb
-- Give each Python regression two distinct comment layers: a module-specific `Test methodology` block under the SLAC header and tutorial-style comments in the executable code body
+- Give each Python regression the normal SURF/SLAC file header and two distinct comment layers: a module-specific `Test methodology` block under that header and tutorial-style comments in the executable code body
+- Give each checked-in cocotb-facing `*IpIntegrator.vhd` wrapper the normal SURF file banner plus section comments for shim setup, DUT instantiation, and any flattening/status wiring
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
@@ -30,10 +31,17 @@
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
   - Keep first-pass wrapper benches intentionally narrow and document any omitted branches explicitly.
   - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
+  - When a wrapper is checked in, write it like the surrounding repo HDL: include the SLAC/SURF banner and enough section comments that a new session can identify the shim, DUT, and flattening regions quickly.
+- Current cocotb-file discipline:
+  - New test files should start with the standard SURF/SLAC header block.
+  - The `Test methodology` block belongs directly under that header.
+  - In-body tutorial comments are still required; the methodology block does not replace them.
 
 ## Session Learnings To Preserve
 - Start with the smallest stable wrapper that exposes the DUT cleanly to cocotb. Reuse the existing subsystem `ip_integrator/` shims before inventing bespoke flattening or a generated wrapper.
 - Prefer checked-in subsystem wrappers for durable integration patterns and generated wrappers only when the real problem is simulator-hostile generic binding.
+- If a Python cocotb file is permanent enough to check in, do not leave it with a custom or abbreviated header. Use the standard repo header immediately, then add the methodology block and tutorial comments in the same first pass.
+- If a wrapper is permanent enough to check in, do not leave it as a bare anonymous adapter. Add the standard SURF banner and short section comments immediately, not as a cleanup pass later.
 - For AXI and AXI-Lite benches, the practical first-pass shape is usually:
   - cocotb protocol master on the control/request side,
   - cocotb RAM or simple protocol model on the generated/response side,
@@ -100,14 +108,21 @@ Resume implementation at `AxiResize`, the earliest unfinished axi entry in the r
 3. `docs/_meta/rtl_regression_plan.md`
 4. `docs/_meta/rtl_phase1_queue.md`
 
+Before writing code in a fresh session:
+1. Re-read the Python comment rules and the checked-in wrapper comment/header rules above.
+2. If adding a permanent `*IpIntegrator.vhd`, include the standard SURF banner and section comments in the first edit, not as an afterthought.
+3. If adding a Python regression, include the standard SURF/SLAC header, the `Test methodology` header block, and in-body tutorial comments in the first draft.
+
 ## Important Repo Facts
 - New Python regressions should be organized under subsystem packages in `tests/`
 - Shared Python regression helper lives in `tests/common/regression_utils.py`
 - `tests/common/regression_utils.py` now supports both test-local extra VHDL source lists and generated test-local wrapper emission for wrapper-based cases
 - `tests/common/regression_utils.py` also now provides `start_lockstep_clocks()` for `COMMON_CLK_G` style benches that require truly shared edges
 - Default comment style for new cocotb tests has two parts: a wrapped four-bullet `Test methodology` header (`Sweep`, `Stimulus`, `Checks`, `Timing`) plus tutorial-style in-body comments that explain what each coroutine step is doing and why
+- New cocotb tests should also use the standard SURF/SLAC file header, not a shortened local variant
 - The methodology header should be module-specific and describe the real curated sweep, driven sequence, expected outputs/state changes, and timing checks; avoid generic boilerplate
 - Keep methodology comment lines to a normal readable width in the source file
+- Checked-in cocotb-facing `*IpIntegrator.vhd` files should also follow repo style: standard SLAC/SURF banner at the top and short section comments marking shim setup, DUT hookup, and flattening/status export logic
 - For AXI Stream and AXI-Lite record ports, prefer the existing IP-integrator shim entities to flatten record interfaces for cocotb instead of hand-writing record packing in each wrapper
 - If an AXI wrapper needs DUT-specific extra signals, keep the standard shim pair for the bus itself and only wire the extra signals manually
 - More generally, if any module needs a VHDL shim layer to fit cleanly into the cocotb flow, that shim belongs in the nearest real subsystem `ip_integrator/` tree rather than under `tests/`
