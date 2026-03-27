@@ -17,15 +17,14 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: the repo is in an axi-first pass. `ethernet` and `protocols` are temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json` so the remaining axi queue can be completed first.
-- Current axi frontier: `AxiResize` is the earliest unfinished axi queue entry in the regenerated `docs/_meta/rtl_phase1_queue.md`.
+- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules. `ethernet` and `protocols` are still temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, but that deferral is now the next thing to unwind rather than an active implementation aid.
+- Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
   - `tests/axi/axi4/test_AxiResize.py` intentionally keeps the known `32-bit -> 64-bit` upsize failure visible until the separate RTL-fix branch lands.
   - `tests/axi/dma/test_AxiStreamDmaV2Read.py` is still an expected open failure because the DUT aborts under GHDL with `std_logic_arith` `CONV_INTEGER`.
 - Current queue discipline:
-  - During the current rollout, take the next unfinished axi item from the regenerated `docs/_meta/rtl_phase1_queue.md`.
-  - `ethernet` and `protocols` are temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json` to make that axi-first pass explicit.
-  - After axi is complete, remove those temporary subsystem deferrals and regenerate the queue before resuming cross-subsystem rollout.
+  - The next session should remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`.
+  - After removing those deferrals, regenerate `docs/_meta/rtl_phase1_queue.{md,json}` and resume from the regenerated cross-subsystem frontier.
   - Do not hand-maintain queue order in the plan or handoff docs.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
@@ -97,10 +96,40 @@ Keep the validated subset intentionally narrow for the two most timing-sensitive
 
 `AxiRateGen` is now also validated under `tests/axi/axi4/test_AxiRateGen.py` using `axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd`. The module-local validation command is `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiRateGen.py`, and it currently passes with `1 passed`. Keep the validated subset intentionally narrow here too: the stable `COMMON_CLK_G=true` path covers AXI-Lite register programming, timer-spaced generated AXI writes, and generated-read completion through a cocotb AXI RAM model, while the asynchronous AXI-Lite crossing branches remain open for later work.
 
+The remaining final 11 `axi/` modules from the axi-first pass are now also implemented and validated. The new checked-in benches are:
+- `tests/axi/axi4/test_AxiReadEmulate.py`
+- `tests/axi/axi4/test_AxiWriteEmulate.py`
+- `tests/axi/axi4/test_AxiRingBuffer.py`
+- `tests/axi/axi4/test_AxiMonAxiL.py`
+- `tests/axi/axi_lite/test_AxiLiteRamSyncStatusVector.py`
+- `tests/axi/axi_stream/test_AxiStreamMonAxiL.py`
+- `tests/axi/dma/test_AxiStreamDmaWrite.py`
+- `tests/axi/dma/test_AxiStreamDma.py`
+- `tests/axi/dma/test_AxiStreamDmaFifo.py`
+- `tests/axi/dma/test_AxiStreamDmaRingRead.py`
+- `tests/axi/dma/test_AxiStreamDmaRingWrite.py`
+
+The supporting wrappers added for that batch are:
+- `axi/axi4/ip_integrator/AxiReadEmulateIpIntegrator.vhd`
+- `axi/axi4/ip_integrator/AxiWriteEmulateIpIntegrator.vhd`
+- `axi/axi4/ip_integrator/AxiRingBufferIpIntegrator.vhd`
+- `axi/axi4/ip_integrator/AxiMonAxiLIpIntegrator.vhd`
+- `axi/axi-lite/ip_integrator/AxiLiteRamSyncStatusVectorIpIntegrator.vhd`
+- `axi/axi-stream/ip_integrator/AxiStreamMonAxiLIpIntegrator.vhd`
+- `axi/dma/ip_integrator/AxiStreamDmaWriteIpIntegrator.vhd`
+- `axi/dma/ip_integrator/AxiStreamDmaFifoIpIntegrator.vhd`
+- `axi/dma/ip_integrator/AxiStreamDmaIpIntegrator.vhd`
+- `axi/dma/ip_integrator/AxiStreamDmaRingReadIpIntegrator.vhd`
+- `axi/dma/ip_integrator/AxiStreamDmaRingWriteIpIntegrator.vhd`
+
+The combined validation command for that batch is `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiReadEmulate.py tests/axi/axi4/test_AxiWriteEmulate.py tests/axi/axi4/test_AxiRingBuffer.py tests/axi/axi4/test_AxiMonAxiL.py tests/axi/axi_lite/test_AxiLiteRamSyncStatusVector.py tests/axi/axi_stream/test_AxiStreamMonAxiL.py tests/axi/dma/test_AxiStreamDmaWrite.py tests/axi/dma/test_AxiStreamDma.py tests/axi/dma/test_AxiStreamDmaFifo.py tests/axi/dma/test_AxiStreamDmaRingRead.py tests/axi/dma/test_AxiStreamDmaRingWrite.py`, and it passes locally with `11 passed`.
+
+One small RTL fix landed during that validation pass because the new `AxiStreamDmaRingWrite` test exposed a real simulation-width hazard: `axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd` now slices `dmaAck.size` back to `RAM_DATA_WIDTH_C` before incrementing `nextAddr`. Keep that change; it is what allows the checked-in narrow wrapper to simulate cleanly under GHDL.
+
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Resume implementation at `AxiResize`, the earliest unfinished axi entry in the regenerated `docs/_meta/rtl_phase1_queue.md`. Continue through the remaining axi-only queue after that, keeping `ethernet` and `protocols` deferred until the axi-first pass is complete. Once the remaining axi queue is done, remove the temporary subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` and regenerate the queue before moving on.
+Remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate `docs/_meta/rtl_phase1_queue.{md,json}`, and then resume from the regenerated cross-subsystem frontier. Do not resume from the older stale `AxiResize` checkpoint.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
