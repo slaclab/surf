@@ -32,6 +32,7 @@ entity HeartbeatWrapper is
 end entity HeartbeatWrapper;
 
 architecture rtl of HeartbeatWrapper is
+
 begin
 
    -- Map the integer cycle count used by cocotb onto the Heartbeat module's

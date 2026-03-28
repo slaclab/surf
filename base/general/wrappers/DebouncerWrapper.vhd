@@ -37,6 +37,7 @@ entity DebouncerWrapper is
 end entity DebouncerWrapper;
 
 architecture rtl of DebouncerWrapper is
+
 begin
 
    -- Convert the cocotb-facing integer debounce window into the real-valued

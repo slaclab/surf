@@ -42,9 +42,9 @@ entity SyncStatusVectorFlatWrapper is
       irqEnIn      : in  slv(WIDTH_G-1 downto 0) := (others => '0');
       irqOut       : out sl;
       wrClk        : in  sl;
-      wrRst        : in  sl := '0';
+      wrRst        : in  sl                      := '0';
       rdClk        : in  sl;
-      rdRst        : in  sl := '0');
+      rdRst        : in  sl                      := '0');
 end entity SyncStatusVectorFlatWrapper;
 
 architecture rtl of SyncStatusVectorFlatWrapper is

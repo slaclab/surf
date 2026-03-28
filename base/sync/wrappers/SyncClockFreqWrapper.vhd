@@ -43,10 +43,12 @@ entity SyncClockFreqWrapper is
 end entity SyncClockFreqWrapper;
 
 architecture rtl of SyncClockFreqWrapper is
+
 begin
 
    -- Translate cocotb-friendly integer generics into the real-valued frequency
    -- and threshold generics used by the underlying monitor.
+
    U_DUT : entity surf.SyncClockFreq
       generic map (
          TPD_G             => TPD_G,

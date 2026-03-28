@@ -10,8 +10,8 @@ entity AxiRateGenIpIntegrator is
    generic (
       TPD_G            : time                        := 1 ns;
       COMMON_CLK_G     : boolean                     := true;
-      AXI_ADDR_WIDTH_G : positive range 12 to 64    := 16;
-      AXI_DATA_WIDTH_G : positive range 32 to 1024  := 32;
+      AXI_ADDR_WIDTH_G : positive range 12 to 64     := 16;
+      AXI_DATA_WIDTH_G : positive range 32 to 1024   := 32;
       AXI_ID_WIDTH_G   : positive                    := 4);
    port (
       axiClk         : in  sl;

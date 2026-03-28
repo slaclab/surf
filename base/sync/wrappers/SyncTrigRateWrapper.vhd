@@ -44,10 +44,12 @@ entity SyncTrigRateWrapper is
 end entity SyncTrigRateWrapper;
 
 architecture rtl of SyncTrigRateWrapper is
+
 begin
 
    -- Expose the measurement-window configuration as integers so the cocotb
    -- bench can override them cleanly under GHDL.
+
    U_DUT : entity surf.SyncTrigRate
       generic map (
          TPD_G          => TPD_G,

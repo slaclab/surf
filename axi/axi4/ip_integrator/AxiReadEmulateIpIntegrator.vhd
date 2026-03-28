@@ -24,26 +24,26 @@ entity AxiReadEmulateIpIntegrator is
       TPD_G     : time    := 1 ns;
       LATENCY_G : natural := 3);
    port (
-      axiClk        : in  sl;
-      axiRst        : in  sl;
-      S_AXI_ARID    : in  slv(7 downto 0);
-      S_AXI_ARADDR  : in  slv(15 downto 0);
-      S_AXI_ARLEN   : in  slv(7 downto 0);
-      S_AXI_ARSIZE  : in  slv(2 downto 0);
-      S_AXI_ARBURST : in  slv(1 downto 0);
-      S_AXI_ARLOCK  : in  slv(1 downto 0);
-      S_AXI_ARCACHE : in  slv(3 downto 0);
-      S_AXI_ARPROT  : in  slv(2 downto 0);
+      axiClk         : in  sl;
+      axiRst         : in  sl;
+      S_AXI_ARID     : in  slv(7 downto 0);
+      S_AXI_ARADDR   : in  slv(15 downto 0);
+      S_AXI_ARLEN    : in  slv(7 downto 0);
+      S_AXI_ARSIZE   : in  slv(2 downto 0);
+      S_AXI_ARBURST  : in  slv(1 downto 0);
+      S_AXI_ARLOCK   : in  slv(1 downto 0);
+      S_AXI_ARCACHE  : in  slv(3 downto 0);
+      S_AXI_ARPROT   : in  slv(2 downto 0);
       S_AXI_ARREGION : in  slv(3 downto 0);
-      S_AXI_ARQOS   : in  slv(3 downto 0);
-      S_AXI_ARVALID : in  sl;
-      S_AXI_ARREADY : out sl;
-      S_AXI_RID     : out slv(7 downto 0);
-      S_AXI_RDATA   : out slv(31 downto 0);
-      S_AXI_RRESP   : out slv(1 downto 0);
-      S_AXI_RLAST   : out sl;
-      S_AXI_RVALID  : out sl;
-      S_AXI_RREADY  : in  sl);
+      S_AXI_ARQOS    : in  slv(3 downto 0);
+      S_AXI_ARVALID  : in  sl;
+      S_AXI_ARREADY  : out sl;
+      S_AXI_RID      : out slv(7 downto 0);
+      S_AXI_RDATA    : out slv(31 downto 0);
+      S_AXI_RRESP    : out slv(1 downto 0);
+      S_AXI_RLAST    : out sl;
+      S_AXI_RVALID   : out sl;
+      S_AXI_RREADY   : in  sl);
 end entity AxiReadEmulateIpIntegrator;
 
 architecture rtl of AxiReadEmulateIpIntegrator is
