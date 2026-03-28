@@ -20,7 +20,7 @@
 #   refresh boundary while still preserving lane-specific counts.
 
 import os
-from textwrap import dedent
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -28,75 +28,11 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import (
     env_flag,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
     start_lockstep_clocks,
 )
-
-
-def _sync_trig_rate_vector_wrapper() -> str:
-    return dedent(
-        """\
-        library ieee;
-        use ieee.std_logic_1164.all;
-
-        library surf;
-        use surf.StdRtlPkg.all;
-
-        entity SyncTrigRateVectorFlatWrapper is
-           generic (
-              TPD_G              : time     := 1 ns;
-              RST_ASYNC_G        : boolean  := false;
-              COMMON_CLK_G       : boolean  := false;
-              ONE_SHOT_G         : boolean  := false;
-              IN_POLARITY_G      : slv      := "1";
-              REF_CLK_FREQ_INT_G : positive := 8;
-              REFRESH_RATE_INT_G : positive := 1;
-              CNT_WIDTH_G        : positive := 8;
-              WIDTH_G            : positive := 3);
-           port (
-              trigIn          : in  slv(WIDTH_G-1 downto 0);
-              trigRateUpdated : out sl;
-              trigRateOutFlat : out slv(WIDTH_G*CNT_WIDTH_G-1 downto 0);
-              locClkEn        : in  sl := '1';
-              locClk          : in  sl;
-              refClk          : in  sl);
-        end entity SyncTrigRateVectorFlatWrapper;
-
-        architecture rtl of SyncTrigRateVectorFlatWrapper is
-           signal trigRateOutArr : SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);
-        begin
-           U_DUT : entity surf.SyncTrigRateVector
-              generic map (
-                 TPD_G          => TPD_G,
-                 RST_ASYNC_G    => RST_ASYNC_G,
-                 COMMON_CLK_G   => COMMON_CLK_G,
-                 ONE_SHOT_G     => ONE_SHOT_G,
-                 IN_POLARITY_G  => IN_POLARITY_G,
-                 REF_CLK_FREQ_G => real(REF_CLK_FREQ_INT_G),
-                 REFRESH_RATE_G => real(REFRESH_RATE_INT_G),
-                 CNT_WIDTH_G    => CNT_WIDTH_G,
-                 WIDTH_G        => WIDTH_G)
-              port map (
-                 trigIn          => trigIn,
-                 trigRateUpdated => trigRateUpdated,
-                 trigRateOut     => trigRateOutArr,
-                 locClkEn        => locClkEn,
-                 locClk          => locClk,
-                 refClk          => refClk);
-
-           GEN_FLAT :
-           for i in 0 to WIDTH_G-1 generate
-              GEN_BITS :
-              for j in 0 to CNT_WIDTH_G-1 generate
-                 trigRateOutFlat(i*CNT_WIDTH_G + j) <= trigRateOutArr(i, j);
-              end generate GEN_BITS;
-           end generate GEN_FLAT;
-        end architecture rtl;
-        """
-    )
 
 
 class TB:
@@ -186,17 +122,10 @@ PARAMETER_SWEEP = [
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SyncTrigRateVector(parameters):
     hdl_parameters = hdl_parameters_from(parameters)
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="SyncTrigRateVectorFlatWrapper",
-        source=_sync_trig_rate_vector_wrapper(),
-        parameters=hdl_parameters,
-    )
-
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.synctrigratevectorflatwrapper",
         parameters=hdl_parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/sync/wrappers/SyncTrigRateVectorFlatWrapper.vhd"))]},
     )

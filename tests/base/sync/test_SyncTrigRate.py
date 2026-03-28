@@ -23,6 +23,7 @@
 #   sticky status bit.
 
 import os
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -30,68 +31,13 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import (
-    build_vhdl_wrapper_source,
     env_flag,
     env_sl,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
     start_lockstep_clocks,
 )
-
-
-def _sync_trig_rate_wrapper_source() -> str:
-    return build_vhdl_wrapper_source(
-        wrapper_name="SyncTrigRateWrapper",
-        wrapped_entity="SyncTrigRate",
-        generic_declarations=[
-            "TPD_G              : time     := 1 ns",
-            "RST_ASYNC_G        : boolean  := false",
-            "COMMON_CLK_G       : boolean  := false",
-            "ONE_SHOT_G         : boolean  := false",
-            "IN_POLARITY_G      : sl       := '1'",
-            "COUNT_EDGES_G      : boolean  := false",
-            "REF_CLK_FREQ_INT_G : positive := 8",
-            "REFRESH_RATE_INT_G : positive := 1",
-            "CNT_WIDTH_G        : positive := 32",
-        ],
-        port_declarations=[
-            "trigIn          : in  sl",
-            "trigRateUpdated : out sl",
-            "trigRateOut     : out slv(CNT_WIDTH_G-1 downto 0)",
-            "trigRateOutMax  : out slv(CNT_WIDTH_G-1 downto 0)",
-            "trigRateOutMin  : out slv(CNT_WIDTH_G-1 downto 0)",
-            "locClkEn        : in  sl := '1'",
-            "locClk          : in  sl",
-            "locRst          : in  sl := '0'",
-            "refClk          : in  sl",
-            "refRst          : in  sl := '0'",
-        ],
-        generic_map=[
-            "TPD_G          => TPD_G",
-            "RST_ASYNC_G    => RST_ASYNC_G",
-            "COMMON_CLK_G   => COMMON_CLK_G",
-            "ONE_SHOT_G     => ONE_SHOT_G",
-            "IN_POLARITY_G  => IN_POLARITY_G",
-            "COUNT_EDGES_G  => COUNT_EDGES_G",
-            "REF_CLK_FREQ_G => real(REF_CLK_FREQ_INT_G)",
-            "REFRESH_RATE_G => real(REFRESH_RATE_INT_G)",
-            "CNT_WIDTH_G    => CNT_WIDTH_G",
-        ],
-        port_map=[
-            "trigIn          => trigIn",
-            "trigRateUpdated => trigRateUpdated",
-            "trigRateOut     => trigRateOut",
-            "trigRateOutMax  => trigRateOutMax",
-            "trigRateOutMin  => trigRateOutMin",
-            "locClkEn        => locClkEn",
-            "locClk          => locClk",
-            "locRst          => locRst",
-            "refClk          => refClk",
-            "refRst          => refRst",
-        ],
-    )
 
 
 class TB:
@@ -247,17 +193,10 @@ PARAMETER_SWEEP = [
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SyncTrigRate(parameters):
     hdl_parameters = hdl_parameters_from(parameters)
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="SyncTrigRateWrapper",
-        source=_sync_trig_rate_wrapper_source(),
-        parameters=hdl_parameters,
-    )
-
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.synctrigratewrapper",
         parameters=hdl_parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/sync/wrappers/SyncTrigRateWrapper.vhd"))]},
     )
