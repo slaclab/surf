@@ -45,7 +45,7 @@ entity AxiRateGenIpIntegrator is
       M_AXI_AWLOCK   : out sl;
       M_AXI_AWCACHE  : out slv(3 downto 0);
       M_AXI_AWPROT   : out slv(2 downto 0);
-      M_AXI_AWREGION : out sl;
+      M_AXI_AWREGION : out slv(3 downto 0);
       M_AXI_AWQOS    : out slv(3 downto 0);
       M_AXI_AWVALID  : out sl;
       M_AXI_AWREADY  : in  sl;
