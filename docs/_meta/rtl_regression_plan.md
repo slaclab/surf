@@ -33,6 +33,8 @@
   - DUT instantiation section,
   - output/status flattening section when present.
 - Do not leave permanent checked-in wrappers as uncommented bare port maps even if the logic is thin; future sessions should be able to scan the file and identify the adapter shape immediately.
+- For any VHDL file you create or edit, run the `vsg` linter with the same configuration CI uses (`./.venv/bin/vsg -c vsg-linter.yml ...`) before considering the work done.
+- When `vsg` reports fixable issues, use `--fix`/autofix first, then rerun the same CI-configured lint command to confirm the file is clean.
 
 ## Scope
 - Whole repo target.

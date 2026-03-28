@@ -14,6 +14,7 @@
 - Comment new Python regression code at a tutorial level, assuming the reader may be new to cocotb
 - Give each Python regression the normal SURF/SLAC file header and two distinct comment layers: a module-specific `Test methodology` block under that header and tutorial-style comments in the executable code body
 - Give each checked-in cocotb-facing `*IpIntegrator.vhd` wrapper the normal SURF file banner plus section comments for shim setup, DUT instantiation, and any flattening/status wiring
+- For any VHDL file created or edited during this work, run `./.venv/bin/vsg` with `vsg-linter.yml`, the same config CI uses, and use `--fix`/autofix on fixable issues before moving on
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
@@ -141,6 +142,7 @@ Before writing code in a fresh session:
 1. Re-read the Python comment rules and the checked-in wrapper comment/header rules above.
 2. If adding a permanent `*IpIntegrator.vhd`, include the standard SURF banner and section comments in the first edit, not as an afterthought.
 3. If adding a Python regression, include the standard SURF/SLAC header, the `Test methodology` header block, and in-body tutorial comments in the first draft.
+4. If creating or editing any VHDL file, run `./.venv/bin/vsg -c vsg-linter.yml ...` on that file set, use `--fix` when possible, and rerun the same lint command until it is clean.
 
 ## Important Repo Facts
 - New Python regressions should be organized under subsystem packages in `tests/`

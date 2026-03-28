@@ -43,6 +43,7 @@
 - Keep a tier-first CI model: `smoke` and `functional`.
 - Rewrite legacy VHDL TB logic in Python rather than preserving it by default.
 - Keep wrappers only when they make Python interaction cleaner.
+- Run the `vsg` linter with CI's `vsg-linter.yml` settings on any created or edited VHDL files, and use autofix before doing manual cleanup when possible.
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper.
 
 ## Completed Work Items
@@ -181,6 +182,7 @@
 - `AxiRateGen` is practical with the existing AXI4 and AXI-Lite IP-integrator shim pair plus a cocotb AXI RAM model, and the stable first-pass subset is the `COMMON_CLK_G=true` path with timer spacing, zero-fill writes, and generated-read completion rather than the asynchronous AXI-Lite crossing branches.
 - For protocol-generator or wrapper-style benches, pair end-state checks with explicit accepted-handshake monitoring whenever the externally visible contract includes timing, burst shape, sideband propagation, or arbitration order.
 - `AxiStreamDmaV2Read` now has a minimal cocotb bench on this branch, and it still trips an internal `std_logic_arith` `CONV_INTEGER` assertion at `31 ns` even for a one-beat aligned transfer. Treat that as a real current RTL/runtime issue on this branch, not as a missing-bench gap.
+- For checked-in VHDL changes, use the repo virtualenv's `vsg` with `vsg-linter.yml` so local lint matches CI, and prefer `--fix` before manual spacing/alignment cleanup.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.
