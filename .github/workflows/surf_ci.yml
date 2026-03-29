@@ -107,7 +107,7 @@ jobs:
       - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp
+          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
 
       - name: Serial Legacy-Style Testbenches
         run: |
