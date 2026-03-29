@@ -76,4 +76,3 @@ def test_SaciAxiLiteMaster(parameters):
         extra_env=parameters,
         extra_vhdl_sources={"surf": ["protocols/saci/saci1/wrappers/SaciAxiLiteMasterWrapper.vhd"]},
     )
-

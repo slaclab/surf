@@ -84,4 +84,3 @@ def test_Saci2ToAxiLite(parameters):
         extra_env=parameters,
         extra_vhdl_sources={"surf": ["protocols/saci/saci2/wrappers/Saci2ToAxiLiteWrapper.vhd"]},
     )
-

@@ -90,4 +90,3 @@ def test_LineCode12b14b(parameters):
         extra_env=parameters,
         extra_vhdl_sources={"surf": ["protocols/line-codes/wrappers/LineCode12b14bWrapper.vhd"]},
     )
-

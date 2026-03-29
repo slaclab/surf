@@ -108,4 +108,3 @@ def test_Pgp4Core(parameters):
         extra_env=parameters,
         extra_vhdl_sources={"surf": ["protocols/pgp/pgp4/core/wrappers/Pgp4CoreWrapper.vhd"]},
     )
-
