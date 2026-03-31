@@ -63,8 +63,8 @@
 - Build curated configuration matrices in Python.
 - Do not use naive full Cartesian products for broad generic spaces.
 - Compute expected behavior dynamically in Python from the active generics.
-- If simulator limitations make direct generic overrides awkward, prefer generated test-local VHDL wrappers over checking in one-off wrapper files for each module.
-- Keep generated wrappers thin and declarative: expose cycle-friendly or cocotb-friendly generics, map them onto the real DUT generics, and emit them from shared Python helpers.
+- If simulator limitations make direct generic overrides awkward, prefer checked-in subsystem-local VHDL wrappers over ad hoc test-local copies.
+- Keep checked-in wrappers thin and declarative: expose cycle-friendly or cocotb-friendly generics, map them onto the real DUT generics, and keep them beside the subsystem RTL they adapt.
 - For integration wrappers, test the wrapper-specific behavior rather than replaying the full underlying leaf matrix through the wrapper.
 - If only a simulator-stable subset of a wrapper is practical in phase 1, keep that subset intentionally narrow and document the unvalidated branches explicitly in the handoff/progress docs.
 
@@ -79,13 +79,13 @@
 - Rewrite executable test logic in Python when migrating a module into the new regression system.
 - Keep VHDL wrappers only when they make Python stimulus materially cleaner.
 - Do not preserve old benches purely for historical reasons.
-- When a wrapper is needed only to adapt simulator-hostile generics, generate it into the test build area from shared helper code rather than keeping a permanent checked-in HDL shim.
+- When a wrapper is needed only to adapt simulator-hostile generics, check it into the nearest subsystem-local `wrappers/` or `ip_integrator/` folder instead of hiding it under `tests/` or a generic `hdl/` bucket.
 - For SURF AXI/AxiLite record ports, prefer the existing IP-integrator shim layers (`SlaveAxiStreamIpIntegrator`, `MasterAxiStreamIpIntegrator`, `SlaveAxiLiteIpIntegrator`, `MasterAxiLiteIpIntegrator`) instead of hand-writing record-to-flat unpacking in each test wrapper.
 - If a DUT has extra nonstandard side signals, compose those on top of the standard AXI shim pair rather than replacing the standard flattening pattern.
 - For wrapper-style protocol benches, prefer thin subsystem wrappers plus cocotb protocol masters/RAM models, and add accepted-handshake monitoring whenever timing-visible protocol behavior is part of the contract being proven.
-- More generally, if a VHDL shim layer is needed to make a module practical to drive from cocotb, place that file in the nearest real subsystem `ip_integrator/` folder beside related adapter layers.
+- More generally, if a VHDL shim layer is needed to make a module practical to drive from cocotb, place that file in the nearest real subsystem `wrappers/` or `ip_integrator/` folder beside related adapter layers.
 - Do not place cocotb-facing shim/adaptor VHDL under `tests/` or generic `hdl/` buckets when it is serving the same integration role as the existing `*IpIntegrator.vhd` files.
-- When a wrapper is checked in under `ip_integrator/`, treat it like production repo HDL for readability purposes: keep the standard file banner and add concise section comments instead of relying on file naming alone.
+- When a wrapper is checked in under `wrappers/` or `ip_integrator/`, treat it like production repo HDL for readability purposes: keep the standard file banner and add concise section comments instead of relying on file naming alone.
 - Treat checked-in Python cocotb tests the same way: use the normal repo header/comment style in the first draft instead of leaving cleanup for later.
 
 ## Rollout Planning Policy
@@ -119,7 +119,7 @@ Workflow:
 - Add smoke coverage for simulator-friendly modules.
 - Add functional Python tests for the highest-value pilot modules and reusable blocks.
 - Define the migration pattern for wrappers and generic-heavy modules.
-- Standardize the generated-wrapper pattern for real- or vector-generic leaves that need cycle-native test knobs under GHDL.
+- Standardize the subsystem-local checked-in wrapper pattern for real- or vector-generic leaves that need cycle-native test knobs under GHDL.
 
 ### Phase 2
 - Deepen randomized and adversarial coverage.
