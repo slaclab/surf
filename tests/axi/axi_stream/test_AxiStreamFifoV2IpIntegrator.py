@@ -9,11 +9,12 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Use a curated eight-case sweep that covers equal-width sync-FIFO
+# - Sweep: Use a curated ten-case sweep that covers equal-width sync-FIFO
 #   traffic, async upsize and custom-internal-width resize paths, downsize with
-#   a narrow internal FIFO width, metadata-width truncation, frame-ready and
-#   threshold-prefill release modes, thresholded burst mode, and a dynamic
-#   pause-threshold case.
+#   a narrow internal FIFO width, metadata-width truncation, multi-stage
+#   cascade buffering, frame-ready and threshold-prefill release modes,
+#   thresholded burst mode, and dynamic pause-threshold handling with and
+#   without slave-side `tready`.
 # - Stimulus: Use cocotbext AXI Stream agents for end-to-end traffic with idle
 #   insertion and backpressure in the general cases, then use manual single-
 #   byte driving in the thresholded cases so the bench can inspect output-valid
@@ -82,6 +83,7 @@ class TB:
         self.m_dest_width = int(os.environ["M_TDEST_WIDTH"])
         self.s_user_width = int(os.environ["S_TUSER_WIDTH"])
         self.m_user_width = int(os.environ["M_TUSER_WIDTH"])
+        self.source_has_tready = env_flag("S_HAS_TREADY", default=True)
         self.pipe_stages = int(os.environ["PIPE_STAGES"])
         self.int_pipe_stages = int(os.environ["INT_PIPE_STAGES"])
         self.fifo_addr_width = int(os.environ["FIFO_ADDR_WIDTH"])
@@ -304,7 +306,8 @@ async def stream_round_trip_test(dut):
     await tb.reset()
     tb.start_agents()
     tb.set_idle_generator(cycle_pause)
-    tb.set_backpressure_generator(cycle_pause)
+    if tb.source_has_tready:
+        tb.set_backpressure_generator(cycle_pause)
 
     frames = []
     source_tid_mask = mask(tb.s_tid_width)
@@ -502,6 +505,7 @@ def build_case(case_id: str, *, hdl: dict[str, str], env: dict[str, str] | None 
         "M_TDATA_NUM_BYTES": "1",
         "S_TUSER_WIDTH": "2",
         "M_TUSER_WIDTH": "2",
+        "S_HAS_TREADY": "1",
         "S_TID_WIDTH": "1",
         "M_TID_WIDTH": "1",
         "S_TDEST_WIDTH": "1",
@@ -649,6 +653,33 @@ PARAMETER_SWEEP = [
         },
     ),
     build_case(
+        "sync_cascade_two_stage",
+        hdl={
+            "S_TDATA_NUM_BYTES": "4",
+            "M_TDATA_NUM_BYTES": "4",
+            "S_TUSER_WIDTH": "2",
+            "M_TUSER_WIDTH": "2",
+            "S_TID_WIDTH": "2",
+            "M_TID_WIDTH": "2",
+            "S_TDEST_WIDTH": "2",
+            "M_TDEST_WIDTH": "2",
+            "INT_PIPE_STAGES": "0",
+            "PIPE_STAGES": "1",
+            "VALID_BURST_MODE": "false",
+            "VALID_THOLD": "1",
+            "GEN_SYNC_FIFO": "true",
+            "FIFO_ADDR_WIDTH": "4",
+            "FIFO_FIXED_THRESH": "true",
+            "FIFO_PAUSE_THRESH": "15",
+            "INT_WIDTH_SELECT": "WIDE",
+            "INT_DATA_WIDTH": "4",
+            "LAST_FIFO_ADDR_WIDTH": "0",
+            "CASCADE_PAUSE_SEL": "0",
+            "CASCADE_SIZE": "2",
+        },
+        env={"TEST_CLOCK_MODE": "lockstep"},
+    ),
+    build_case(
         "sync_frame_ready_last_user",
         hdl={
             "S_TDATA_NUM_BYTES": "1",
@@ -745,6 +776,37 @@ PARAMETER_SWEEP = [
             "M_TDATA_NUM_BYTES": "1",
             "S_TUSER_WIDTH": "1",
             "M_TUSER_WIDTH": "1",
+            "S_TID_WIDTH": "2",
+            "M_TID_WIDTH": "2",
+            "S_TDEST_WIDTH": "2",
+            "M_TDEST_WIDTH": "2",
+            "INT_PIPE_STAGES": "0",
+            "PIPE_STAGES": "0",
+            "VALID_BURST_MODE": "false",
+            "VALID_THOLD": "1",
+            "GEN_SYNC_FIFO": "true",
+            "FIFO_ADDR_WIDTH": "4",
+            "FIFO_FIXED_THRESH": "false",
+            "FIFO_PAUSE_THRESH": "15",
+            "INT_WIDTH_SELECT": "WIDE",
+            "INT_DATA_WIDTH": "1",
+            "LAST_FIFO_ADDR_WIDTH": "0",
+            "CASCADE_PAUSE_SEL": "0",
+            "CASCADE_SIZE": "1",
+        },
+        env={
+            "TEST_CLOCK_MODE": "lockstep",
+            "TEST_DYNAMIC_PAUSE": "true",
+        },
+    ),
+    build_case(
+        "sync_no_tready_dynamic_pause",
+        hdl={
+            "S_TDATA_NUM_BYTES": "1",
+            "M_TDATA_NUM_BYTES": "1",
+            "S_TUSER_WIDTH": "1",
+            "M_TUSER_WIDTH": "1",
+            "S_HAS_TREADY": "0",
             "S_TID_WIDTH": "2",
             "M_TID_WIDTH": "2",
             "S_TDEST_WIDTH": "2",
