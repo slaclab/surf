@@ -25,7 +25,7 @@ import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiRamWrite, AxiResp, AxiStreamBus, AxiStreamFrame, AxiStreamSource, AxiWriteBus
+from cocotbext.axi import AxiRamWrite, AxiStreamBus, AxiStreamFrame, AxiStreamSource, AxiWriteBus
 
 from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test
 
