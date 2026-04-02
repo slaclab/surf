@@ -9,21 +9,32 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one 32-bit single-frame descriptor case.
+# - Sweep: Cover both an aligned 4-byte read and a short 3-byte terminal beat.
 # - Stimulus: Preload downstream AXI RAM, issue one V2 read descriptor, and
-#   collect the emitted AXI-Stream frame.
-# - Checks: The stream payload, `tDest`, descriptor ack, and descriptor return
-#   fields must match the requested transfer.
+#   collect the emitted AXI-Stream frame without compacting away invalid bytes.
+# - Checks: The compacted payload, raw `tKeep`, `tDest`, `tId`, observable
+#   `tUser`, descriptor ack, and descriptor return fields must match the
+#   requested transfer.
 # - Timing: The bench uses the real read-address and stream handshakes, not a
 #   forced internal state advance.
 
+import os
+from pathlib import Path
+
 import cocotb
 import pytest
+from cocotb_test.simulator import run
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiRamRead, AxiReadBus, AxiStreamBus, AxiStreamSink
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import (
+    COMMON_VHDL_COMPILE_ARGS,
+    TESTS_ROOT,
+    _build_vhdl_sources,
+    _merge_vhdl_sources,
+    cocotb_module_name_from_test_file,
+)
 
 
 class TB:
@@ -74,48 +85,92 @@ class TB:
 @cocotb.test()
 async def single_descriptor_read_test(dut):
     tb = TB(dut)
+    read_addr = int(os.environ["READ_ADDR"], 0)
+    read_size = int(os.environ["READ_SIZE"], 0)
+    read_dest = int(os.environ["READ_DEST"], 0)
+    read_tid = int(os.environ["READ_TID"], 0)
+    read_buff_id = int(os.environ["READ_BUFF_ID"], 0)
+    payload = bytes.fromhex(os.environ["READ_PAYLOAD_HEX"])
+    raw_bytes = payload + bytes([0xEE] * (4 - len(payload)))
+
+    assert len(payload) == read_size
+
     await tb.reset()
     tb.start_agents()
 
-    tb.ram.write(0x20, b"\x10\x11\x12\x13")
-    await tb.issue_desc(address=0x20, size=4, buff_id=0x55AA, dest=0x44, tid=0x33)
+    tb.ram.write(read_addr, raw_bytes)
+    await tb.issue_desc(
+        address=read_addr,
+        size=read_size,
+        buff_id=read_buff_id,
+        dest=read_dest,
+        tid=read_tid,
+    )
 
-    rx_frame = await tb.sink.recv()
-    assert rx_frame.tdata == b"\x10\x11\x12\x13"
-    assert rx_frame.tdest == 0x44
-    assert rx_frame.tid == 0x33
+    rx_frame = await tb.sink.recv(compact=False)
+    assert bytes(rx_frame.tdata) == raw_bytes
+    assert list(rx_frame.tkeep) == ([1] * read_size) + ([0] * (len(raw_bytes) - read_size))
+    assert bytes(byte for byte, keep in zip(rx_frame.tdata, rx_frame.tkeep) if keep) == payload
+    assert all(dest == read_dest for dest in rx_frame.tdest[:read_size])
+    assert all(tid == read_tid for tid in rx_frame.tid[:read_size])
+    assert all(user == 0x12 for user in rx_frame.tuser[:read_size])
 
     while not int(dut.dmaRdDescRetValid.value):
         await tb.cycle(1)
-    assert int(dut.dmaRdDescRetBuffId.value) == 0x55AA
+    assert int(dut.dmaRdDescRetBuffId.value) == read_buff_id
     assert int(dut.dmaRdDescRetResult.value) == 0
     dut.dmaRdDescRetAck.value = 1
     await tb.cycle(1)
 
 
 @pytest.mark.parametrize(
-    "parameters",
+    "case_env",
     [
         pytest.param(
-            {},
-            id="single_frame_read",
-            marks=pytest.mark.xfail(
-                reason="Known RTL bug: AxiStreamDmaV2Read currently aborts in simulation",
-                strict=False,
-            ),
-        )
+            {
+                "READ_ADDR": 0x20,
+                "READ_SIZE": 4,
+                "READ_DEST": 0x44,
+                "READ_TID": 0x33,
+                "READ_BUFF_ID": 0x55AA,
+                "READ_PAYLOAD_HEX": "10111213",
+            },
+            id="aligned_4byte_frame",
+        ),
+        pytest.param(
+            {
+                "READ_ADDR": 0x40,
+                "READ_SIZE": 3,
+                "READ_DEST": 0x24,
+                "READ_TID": 0x11,
+                "READ_BUFF_ID": 0xA5A5,
+                "READ_PAYLOAD_HEX": "202122",
+            },
+            id="short_3byte_terminal_frame",
+        ),
     ],
 )
-def test_AxiStreamDmaV2Read(parameters):
-    run_surf_vhdl_test(
-        test_file=__file__,
+def test_AxiStreamDmaV2Read(case_env, request):
+    test_file = Path(__file__)
+    rel_parent = test_file.resolve().relative_to(TESTS_ROOT).parent
+
+    run(
+        module=cocotb_module_name_from_test_file(test_file),
         toplevel="surf.axistreamdmav2readipintegrator",
-        parameters=parameters,
-        extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
-                "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd",
-            ],
-        },
+        toplevel_lang="vhdl",
+        vhdl_sources=_merge_vhdl_sources(
+            _build_vhdl_sources(),
+            {
+                "surf": [
+                    "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
+                    "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
+                    "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd",
+                ],
+            },
+        ),
+        parameters={},
+        sim_build=str((TESTS_ROOT / "sim_build" / rel_parent / f"{test_file.stem}.{request.node.callspec.id}")),
+        extra_env={key: str(value) for key, value in case_env.items()},
+        simulator="ghdl",
+        vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
     )
