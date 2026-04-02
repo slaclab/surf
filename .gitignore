@@ -24,3 +24,6 @@ sim_build/
 .vscode/
 .cursor/
 .claude/
+.planning/
+planning/
+CLAUDE.md
