@@ -61,6 +61,13 @@ class TB:
             await RisingEdge(self.dut.sAxiClk)
             await Timer(1, unit="ns")
 
+    async def wait_for(self, predicate, *, cycles: int, message: str):
+        for _ in range(cycles):
+            if predicate():
+                return
+            await self.cycle(1)
+        raise AssertionError(message)
+
     async def reset(self):
         # Reset both domains and return the source-side handshake pins to idle
         # before launching any write transaction into the FIFO wrapper.
@@ -99,7 +106,7 @@ class TB:
 
         aw_done = False
         w_done = False
-        while not (aw_done and w_done):
+        for _ in range(64):
             await self.cycle(1)
             aw_done = aw_done or (
                 int(self.dut.S_AXI_AWVALID.value) and int(self.dut.S_AXI_AWREADY.value)
@@ -111,10 +118,17 @@ class TB:
                 self.dut.S_AXI_AWVALID.value = 0
             if w_done:
                 self.dut.S_AXI_WVALID.value = 0
+            if aw_done and w_done:
+                break
+        else:
+            raise AssertionError("Timed out waiting for source-side AXI write handshakes")
 
         self.dut.S_AXI_BREADY.value = 1
-        while not int(self.dut.S_AXI_BVALID.value):
-            await self.cycle(1)
+        await self.wait_for(
+            lambda: int(self.dut.S_AXI_BVALID.value),
+            cycles=64,
+            message="Timed out waiting for source-side AXI write response",
+        )
 
         resp = int(self.dut.S_AXI_BRESP.value)
         bid = int(self.dut.S_AXI_BID.value)
