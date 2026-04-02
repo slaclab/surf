@@ -9,102 +9,127 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Sweep the full 12-bit data space and the legal K-code set across the
-#   four explicit disparity seeds used in `Code12b14bTb.vhd`.
-# - Stimulus: Drive a combinational wrapper around the `encode12b14b` and
-#   `decode12b14b` package procedures, then run a curated two-symbol transition
-#   subset plus the historical mixed training pattern.
-# - Checks: The decoded symbol, K flag, and disparity state must round-trip
-#   with no code or disparity errors across the same explicit disparity seeds
-#   and preserved training/transition sequences used by the legacy bench.
-# - Timing: The wrapper is combinational, so the test yields one delta cycle
-#   after each input update before sampling outputs.
+# - Sweep: Exhaustively sweep the full 12-bit data space, the legal K-code
+#   table, explicit disparity seeds, and the legacy training/transition
+#   sequences, then add dedicated malformed-decode and `invalidK` checks.
+# - Stimulus: Use the package wrapper's encode ports to generate legal 14-bit
+#   words, then drive the decode ports independently so round-trip and
+#   malformed decoder behavior are both visible.
+# - Checks: Legal encodes must round-trip with the expected next disparity,
+#   illegal K requests must assert `invalidK`, and malformed decode words must
+#   assert a code or disparity error.
+# - Timing: The wrapper is combinational, so the bench yields one delta cycle
+#   after each encode or decode update before sampling outputs.
 
 import cocotb
 import pytest
 
 from tests.protocols.line_codes.line_code_test_utils import (
-    default_wrapper_parameter_sweep,
-    run_line_code_wrapper_test,
-    settle_combinational_line_code_wrapper,
+    DISPARITY_SEEDS_12B14B,
+    K_SYMBOLS_12B14B,
+    TRAINING_PATTERN_12B14B,
+    TRANSITION_SMOKE_SEQUENCE_12B14B,
+    all_ones,
+    assert_package_decode_matches,
+    default_parameter_sweep,
+    error_detected,
+    package_decode,
+    package_encode,
+    run_line_code_package_test,
 )
 
 
-DISPARITY_SEEDS_12B14B = {
-    -2: 0b10,
-    0: 0b11,
-    2: 0b00,
-    4: 0b01,
-}
-K_SYMBOLS_12B14B = [
-    0x078, 0x0F8, 0x178, 0x1F8, 0x278, 0x3F8, 0x478, 0x5F8,
-    0x878, 0x9F8, 0xBF8, 0xC78, 0xDF8, 0xEF8, 0xF78, 0xFF8,
-]
-TRANSITION_SMOKE_SEQUENCE = [
-    (0x000, 0), (0xFFF, 0), (0x0BD, 0), (0xEAD, 0), (0x5F8, 1), (0x078, 1),
-    (0x1F8, 1), (0x800, 0), (0x555, 0), (0xAAA, 0), (0xFF8, 1),
-]
-TRAINING_PATTERN = [
-    (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
-    (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
-    (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x078, 1), (0x5F8, 1), (0xEAD, 0),
-    (0x0BD, 0), (0xEAD, 0), (0x1BD, 0), (0xEAD, 0), (0x2BD, 0), (0xEAD, 0),
-    (0x3BD, 0), (0xEAD, 0), (0x4BD, 0), (0xEAD, 0), (0x5BD, 0), (0xEAD, 0),
-    (0x6BD, 0), (0xEAD, 0), (0x7BD, 0), (0xEAD, 0), (0x8BD, 0), (0xEAD, 0),
-    (0x9BD, 0), (0xEAD, 0), (0xABD, 0), (0xEAD, 0), (0xBBD, 0), (0x5F8, 1),
-    (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
+ILLEGAL_K_SYMBOLS = [0x000, 0x001, 0x123, 0x800]
+MALFORMED_SMOKE_SYMBOLS = [
+    (0x000, 0),
+    (0x0BD, 0),
+    (0xEAD, 0),
+    (0x5F8, 1),
+    (0x078, 1),
+    (0xFF8, 1),
 ]
 
 
-async def drive_package_symbol(dut, *, disp_in: int, data_in: int, data_k_in: int) -> None:
-    dut.dispIn.value = disp_in
-    dut.dataIn.value = data_in
-    dut.dataKIn.value = data_k_in
-    await settle_combinational_line_code_wrapper()
-
-
-def assert_package_round_trip(dut, *, data_in: int, data_k_in: int) -> None:
-    assert int(dut.decodedData.value) == data_in
-    assert int(dut.decodedK.value) == data_k_in
-    assert int(dut.codeError.value) == 0
-    assert int(dut.dispError.value) == 0
-    assert int(dut.encodedDisp.value) == int(dut.decodedDisp.value)
+async def assert_legal_round_trip(dut, *, disp_in: int, data_in: int, data_k_in: int) -> int:
+    encoded_data, encoded_disp, invalid_k = await package_encode(
+        dut,
+        disp_in=disp_in,
+        data_in=data_in,
+        data_k_in=data_k_in,
+    )
+    assert invalid_k == 0
+    await package_decode(dut, disp_in=disp_in, encoded_data=encoded_data)
+    assert_package_decode_matches(
+        dut,
+        data_in=data_in,
+        data_k_in=data_k_in,
+        expected_disp=encoded_disp,
+    )
+    return encoded_disp
 
 
 @cocotb.test()
-async def code_12b14b_package_round_trip_test(dut):
-    for disp_seed in DISPARITY_SEEDS_12B14B.values():
+async def code_12b14b_package_test(dut):
+    for disp_in in DISPARITY_SEEDS_12B14B.values():
         for data_in in range(2**12):
-            await drive_package_symbol(dut, disp_in=disp_seed, data_in=data_in, data_k_in=0)
-            assert_package_round_trip(dut, data_in=data_in, data_k_in=0)
+            await assert_legal_round_trip(dut, disp_in=disp_in, data_in=data_in, data_k_in=0)
 
         for data_in in K_SYMBOLS_12B14B:
-            await drive_package_symbol(dut, disp_in=disp_seed, data_in=data_in, data_k_in=1)
-            assert_package_round_trip(dut, data_in=data_in, data_k_in=1)
+            await assert_legal_round_trip(dut, disp_in=disp_in, data_in=data_in, data_k_in=1)
 
-        # The legacy VHDL bench also stresses chained transitions by feeding a
-        # second symbol with the first symbol's resulting disparity. Use a
-        # curated subset here to preserve that stateful behavior class without
-        # reproducing the original impractically large Cartesian product.
-        current_disp = disp_seed
-        for data_in, data_k_in in TRANSITION_SMOKE_SEQUENCE:
-            await drive_package_symbol(dut, disp_in=current_disp, data_in=data_in, data_k_in=data_k_in)
-            assert_package_round_trip(dut, data_in=data_in, data_k_in=data_k_in)
-            current_disp = int(dut.encodedDisp.value)
+        current_disp = disp_in
+        for data_in, data_k_in in TRANSITION_SMOKE_SEQUENCE_12B14B:
+            current_disp = await assert_legal_round_trip(
+                dut,
+                disp_in=current_disp,
+                data_in=data_in,
+                data_k_in=data_k_in,
+            )
+
+        for data_in, data_k_in in MALFORMED_SMOKE_SYMBOLS:
+            encoded_data, _, _ = await package_encode(
+                dut,
+                disp_in=disp_in,
+                data_in=data_in,
+                data_k_in=data_k_in,
+            )
+            malformed_detected = []
+            for malformed in (
+                0,
+                all_ones(dut.decDataIn),
+                encoded_data ^ 0x001,
+                encoded_data ^ 0x2000,
+            ):
+                await package_decode(dut, disp_in=disp_in, encoded_data=malformed)
+                malformed_detected.append(error_detected(dut))
+            assert any(malformed_detected)
 
     current_disp = DISPARITY_SEEDS_12B14B[4]
-    for data_in, data_k_in in TRAINING_PATTERN:
-        await drive_package_symbol(dut, disp_in=current_disp, data_in=data_in, data_k_in=data_k_in)
-        assert_package_round_trip(dut, data_in=data_in, data_k_in=data_k_in)
-        current_disp = int(dut.encodedDisp.value)
+    for data_in, data_k_in in TRAINING_PATTERN_12B14B:
+        current_disp = await assert_legal_round_trip(
+            dut,
+            disp_in=current_disp,
+            data_in=data_in,
+            data_k_in=data_k_in,
+        )
+
+    for disp_in in DISPARITY_SEEDS_12B14B.values():
+        for data_in in ILLEGAL_K_SYMBOLS:
+            _, _, invalid_k = await package_encode(
+                dut,
+                disp_in=disp_in,
+                data_in=data_in,
+                data_k_in=1,
+            )
+            assert invalid_k == 1
 
 
-PARAMETER_SWEEP = default_wrapper_parameter_sweep()
+PARAMETER_SWEEP = default_parameter_sweep()
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Code12b14bPkg(parameters):
-    run_line_code_wrapper_test(
+    run_line_code_package_test(
         test_file=__file__,
         toplevel="surf.code12b14bpkgwrapper",
         wrapper_source="protocols/line-codes/wrappers/Code12b14bPkgWrapper.vhd",

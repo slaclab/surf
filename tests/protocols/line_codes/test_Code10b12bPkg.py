@@ -9,68 +9,104 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Sweep the full 10-bit data space and the legal K.28.x subset for
-#   both legacy disparity seeds used by the VHDL package bench.
-# - Stimulus: Drive the package-procedure wrapper combinationally with one
-#   symbol and one explicit `dispIn` seed at a time.
-# - Checks: The encoded symbol must decode back to the launched data and K
-#   flag with no code or disparity errors, matching `Code10b12bTb.vhd`.
-# - Timing: The wrapper is combinational, so the test yields one delta cycle
+# - Sweep: Exhaustively sweep the full 10-bit data space, the legal K.28.x
+#   subset, and a curated malformed-decode subset for both package disparity
+#   seeds.
+# - Stimulus: Use the package wrapper's encode ports to generate legal 12-bit
+#   words, then drive the decode ports independently so legal and malformed
+#   decoder behavior are both exercised.
+# - Checks: Legal encodes must round-trip with the expected next disparity and
+#   no error flags, while malformed decode inputs must assert a code or
+#   disparity error.
+# - Timing: The wrapper is combinational, so the bench yields one delta cycle
 #   after each input update before sampling outputs.
 
 import cocotb
 import pytest
 
 from tests.protocols.line_codes.line_code_test_utils import (
-    default_wrapper_parameter_sweep,
-    run_line_code_wrapper_test,
-    settle_combinational_line_code_wrapper,
+    DISPARITY_SEEDS_1BIT,
+    K_SYMBOLS_10B12B,
+    all_ones,
+    assert_package_decode_matches,
+    default_parameter_sweep,
+    error_detected,
+    package_decode,
+    package_encode,
+    run_line_code_package_test,
 )
 
 
-DISPARITY_SEEDS = [0, 1]
-K_SYMBOLS_10B12B = [
-    0x07C, 0x17C, 0x27C, 0x0BC, 0x0DC, 0x13C, 0x15C, 0x19C, 0x1BC,
-    0x1DC, 0x23C, 0x25C, 0x29C, 0x2BC, 0x2DC, 0x33C, 0x35C,
+MALFORMED_SMOKE_SYMBOLS = [
+    (0x000, 0),
+    (0x0E7, 0),
+    (0x3FF, 0),
+    (0x07C, 1),
+    (0x1BC, 1),
+    (0x35C, 1),
 ]
 
 
-async def drive_package_symbol(dut, *, disp_in: int, data_in: int, data_k_in: int) -> None:
-    dut.dispIn.value = disp_in
-    dut.dataIn.value = data_in
-    dut.dataKIn.value = data_k_in
-    await settle_combinational_line_code_wrapper()
-
-
-def assert_package_round_trip(dut, *, disp_in: int, data_in: int, data_k_in: int) -> None:
-    assert int(dut.decodedData.value) == data_in
-    assert int(dut.decodedK.value) == data_k_in
-    assert int(dut.codeError.value) == 0
-    assert int(dut.dispError.value) == 0
-    # The package bench explicitly decodes with the same seed that encoded the
-    # word, so the decoder's next disparity should match the encoder's output.
-    assert int(dut.encodedDisp.value) == int(dut.decodedDisp.value) == int(dut.encodedDisp.value)
-    assert int(dut.encodedDisp.value) in {0, 1}
-
-
 @cocotb.test()
-async def code_10b12b_package_round_trip_test(dut):
-    for disp_in in DISPARITY_SEEDS:
+async def code_10b12b_package_test(dut):
+    for disp_in in DISPARITY_SEEDS_1BIT:
         for data_in in range(2**10):
-            await drive_package_symbol(dut, disp_in=disp_in, data_in=data_in, data_k_in=0)
-            assert_package_round_trip(dut, disp_in=disp_in, data_in=data_in, data_k_in=0)
+            encoded_data, encoded_disp, invalid_k = await package_encode(
+                dut,
+                disp_in=disp_in,
+                data_in=data_in,
+                data_k_in=0,
+            )
+            assert invalid_k == 0
+            await package_decode(dut, disp_in=disp_in, encoded_data=encoded_data)
+            assert_package_decode_matches(
+                dut,
+                data_in=data_in,
+                data_k_in=0,
+                expected_disp=encoded_disp,
+            )
 
         for data_in in K_SYMBOLS_10B12B:
-            await drive_package_symbol(dut, disp_in=disp_in, data_in=data_in, data_k_in=1)
-            assert_package_round_trip(dut, disp_in=disp_in, data_in=data_in, data_k_in=1)
+            encoded_data, encoded_disp, invalid_k = await package_encode(
+                dut,
+                disp_in=disp_in,
+                data_in=data_in,
+                data_k_in=1,
+            )
+            assert invalid_k == 0
+            await package_decode(dut, disp_in=disp_in, encoded_data=encoded_data)
+            assert_package_decode_matches(
+                dut,
+                data_in=data_in,
+                data_k_in=1,
+                expected_disp=encoded_disp,
+            )
+
+        for data_in, data_k_in in MALFORMED_SMOKE_SYMBOLS:
+            encoded_data, _, _ = await package_encode(
+                dut,
+                disp_in=disp_in,
+                data_in=data_in,
+                data_k_in=data_k_in,
+            )
+            malformed_detected = []
+            for malformed in (
+                0,
+                all_ones(dut.decDataIn),
+                encoded_data ^ 0x001,
+                encoded_data ^ 0x800,
+            ):
+                await package_decode(dut, disp_in=disp_in, encoded_data=malformed)
+                malformed_detected.append(error_detected(dut))
+            assert any(malformed_detected)
 
 
-PARAMETER_SWEEP = default_wrapper_parameter_sweep()
+PARAMETER_SWEEP = default_parameter_sweep()
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Code10b12bPkg(parameters):
-    run_line_code_wrapper_test(
+    run_line_code_package_test(
         test_file=__file__,
         toplevel="surf.code10b12bpkgwrapper",
         wrapper_source="protocols/line-codes/wrappers/Code10b12bPkgWrapper.vhd",

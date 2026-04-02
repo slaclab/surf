@@ -449,7 +449,7 @@ package body Code12b14bPkg is
       variable blockDisp56 : BlockDisparityType;
 
       variable debug      : boolean := false;
-      variable tmpDisp    : integer range -8 to 8;
+      variable tmpDisp    : integer range -8 to 8 := 0;
       variable compliment : sl;
    begin
 
@@ -521,12 +521,16 @@ package body Code12b14bPkg is
             end if;
          end loop;
 
-         if (blockDispIn = 0 or blockDispIn = 2 or blockDispIn = 4) then
-            dataOut := not dataOut;
-            tmpDisp := getDisparity(dataOut);
-         end if;
+         if (invalidK = '0') then
+            if (blockDispIn = 0 or blockDispIn = 2 or blockDispIn = 4) then
+               dataOut := not dataOut;
+               tmpDisp := getDisparity(dataOut);
+            end if;
 
-         dispOut := toSlv(blockDispIn + tmpDisp);
+            dispOut := toSlv(blockDispIn + tmpDisp);
+         else
+            dispOut := dispIn;
+         end if;
       end if;
 
    end procedure encode12b14b;

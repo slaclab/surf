@@ -21,14 +21,17 @@ use surf.Code10b12bPkg.all;
 
 entity Code10b12bPkgWrapper is
    port (
-      dispIn      : in  sl;
-      dataIn      : in  slv(9 downto 0);
-      dataKIn     : in  sl;
-      encodedData : out slv(11 downto 0);
-      encodedDisp : out sl;
-      decodedData : out slv(9 downto 0);
-      decodedK    : out sl;
-      decodedDisp : out sl;
+      encDispIn   : in  sl;
+      encDataIn   : in  slv(9 downto 0);
+      encDataKIn  : in  sl;
+      encDataOut  : out slv(11 downto 0);
+      encDispOut  : out sl;
+      decDispIn   : in  sl;
+      decDataIn   : in  slv(11 downto 0);
+      decDataOut  : out slv(9 downto 0);
+      decDataKOut : out sl;
+      decDispOut  : out sl;
+      invalidK    : out sl;
       codeError   : out sl;
       dispError   : out sl);
 end entity Code10b12bPkgWrapper;
@@ -41,7 +44,7 @@ begin
    -- Package-level encode/decode shim
    ---------------------------------------------------------------------------
 
-   comb : process (dispIn, dataIn, dataKIn) is
+   comb : process (encDispIn, encDataIn, encDataKIn, decDispIn, decDataIn) is
       variable encodedDataVar : slv(11 downto 0);
       variable encodedDispVar : sl;
       variable decodedDataVar : slv(9 downto 0);
@@ -51,29 +54,30 @@ begin
       variable dispErrorVar   : sl;
    begin
       encode10b12b(
-         dataIn  => dataIn,
-         dataKIn => dataKIn,
-         dispIn  => dispIn,
+         dataIn  => encDataIn,
+         dataKIn => encDataKIn,
+         dispIn  => encDispIn,
          dataOut => encodedDataVar,
          dispOut => encodedDispVar);
 
       decodedKVar    := '0';
-      decodedDispVar := dispIn;
+      decodedDispVar := decDispIn;
       dispErrorVar   := '0';
       decode10b12b(
-         dataIn    => encodedDataVar,
-         dispIn    => dispIn,
+         dataIn    => decDataIn,
+         dispIn    => decDispIn,
          dataOut   => decodedDataVar,
          dataKOut  => decodedKVar,
          dispOut   => decodedDispVar,
          codeError => codeErrorVar,
          dispError => dispErrorVar);
 
-      encodedData <= encodedDataVar;
-      encodedDisp <= encodedDispVar;
-      decodedData <= decodedDataVar;
-      decodedK    <= decodedKVar;
-      decodedDisp <= decodedDispVar;
+      encDataOut  <= encodedDataVar;
+      encDispOut  <= encodedDispVar;
+      decDataOut  <= decodedDataVar;
+      decDataKOut <= decodedKVar;
+      decDispOut  <= decodedDispVar;
+      invalidK    <= '0';
       codeError   <= codeErrorVar;
       dispError   <= dispErrorVar;
    end process comb;

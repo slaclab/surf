@@ -21,15 +21,17 @@ use surf.Code12b14bPkg.all;
 
 entity Code12b14bPkgWrapper is
    port (
-      dispIn      : in  slv(1 downto 0);
-      dataIn      : in  slv(11 downto 0);
-      dataKIn     : in  sl;
-      encodedData : out slv(13 downto 0);
-      encodedDisp : out slv(1 downto 0);
+      encDispIn   : in  slv(1 downto 0);
+      encDataIn   : in  slv(11 downto 0);
+      encDataKIn  : in  sl;
+      encDataOut  : out slv(13 downto 0);
+      encDispOut  : out slv(1 downto 0);
+      decDispIn   : in  slv(1 downto 0);
+      decDataIn   : in  slv(13 downto 0);
+      decDataOut  : out slv(11 downto 0);
+      decDataKOut : out sl;
+      decDispOut  : out slv(1 downto 0);
       invalidK    : out sl;
-      decodedData : out slv(11 downto 0);
-      decodedK    : out sl;
-      decodedDisp : out slv(1 downto 0);
       codeError   : out sl;
       dispError   : out sl);
 end entity Code12b14bPkgWrapper;
@@ -42,7 +44,7 @@ begin
    -- Package-level encode/decode shim
    ---------------------------------------------------------------------------
 
-   comb : process (dispIn, dataIn, dataKIn) is
+   comb : process (encDispIn, encDataIn, encDataKIn, decDispIn, decDataIn) is
       variable encodedDataVar : slv(13 downto 0);
       variable encodedDispVar : slv(1 downto 0);
       variable invalidKVar    : sl;
@@ -53,37 +55,40 @@ begin
       variable dispErrorVar   : sl;
    begin
       encodedDataVar := (others => '0');
-      encodedDispVar := dispIn;
+      encodedDispVar := encDispIn;
       invalidKVar    := '0';
       encode12b14b(
          CODES_C  => ENCODE_TABLE_C,
-         dataIn   => dataIn,
-         dataKIn  => dataKIn,
-         dispIn   => dispIn,
+         dataIn   => encDataIn,
+         dataKIn  => encDataKIn,
+         dispIn   => encDispIn,
          dataOut  => encodedDataVar,
          dispOut  => encodedDispVar,
          invalidK => invalidKVar);
+      if (encDataKIn = '0') then
+         invalidKVar := '0';
+      end if;
 
       decodedDataVar := (others => '0');
       decodedKVar    := '0';
-      decodedDispVar := dispIn;
+      decodedDispVar := decDispIn;
       dispErrorVar   := '0';
       decode12b14b(
          CODES_C   => ENCODE_TABLE_C,
-         dataIn    => encodedDataVar,
-         dispIn    => dispIn,
+         dataIn    => decDataIn,
+         dispIn    => decDispIn,
          dataOut   => decodedDataVar,
          dataKOut  => decodedKVar,
          dispOut   => decodedDispVar,
          codeError => codeErrorVar,
          dispError => dispErrorVar);
 
-      encodedData <= encodedDataVar;
-      encodedDisp <= encodedDispVar;
+      encDataOut  <= encodedDataVar;
+      encDispOut  <= encodedDispVar;
       invalidK    <= invalidKVar;
-      decodedData <= decodedDataVar;
-      decodedK    <= decodedKVar;
-      decodedDisp <= decodedDispVar;
+      decDataOut  <= decodedDataVar;
+      decDataKOut <= decodedKVar;
+      decDispOut  <= decodedDispVar;
       codeError   <= codeErrorVar;
       dispError   <= dispErrorVar;
    end process comb;
