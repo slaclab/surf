@@ -22,7 +22,6 @@
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
   - `tests/axi/axi4/test_AxiResize.py` intentionally keeps the known `32-bit -> 64-bit` upsize failure visible until the separate RTL-fix branch lands.
-  - `tests/axi/dma/test_AxiStreamDmaV2Read.py` is still an expected open failure because the DUT aborts under GHDL with `std_logic_arith` `CONV_INTEGER`.
 - Current queue discipline:
   - The next session should remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`.
   - After removing those deferrals, regenerate `docs/_meta/rtl_phase1_queue.{md,json}` and resume from the regenerated cross-subsystem frontier.
@@ -49,6 +48,7 @@
 - Do not rely on final memory contents alone when the contract includes timing-visible behavior. Record accepted handshakes if the bench is supposed to prove spacing, burst length, sideband propagation, partial-last-beat strobes, or arbitration order.
 - For `COMMON_CLK_G` style wrappers, use one shared clock coroutine via `start_lockstep_clocks()` when the RTL expects true shared edges rather than merely equal nominal periods.
 - For first-pass wrapper benches, prove the externally visible stable path first and defer shakier simulator-sensitive branches explicitly in the docs instead of stretching one bench to cover everything.
+- `AxiStreamDmaV2Read` needed a real RTL/runtime fix rather than a bench workaround: keep the bounded byte-count conversion fix in `axi/axi4/rtl/AxiPkg.vhd` and the direct terminal-mask generation in `axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd`. The current wrapper only exposes an 8-bit `TUSER`, so the observable contract in the checked-in bench is first-user propagation plus payload/keep/id/dest and descriptor return fields.
 
 ## Current Status
 Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
