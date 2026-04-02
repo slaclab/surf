@@ -32,7 +32,6 @@ entity Crc32PolyWrapper is
       CRC_POLY_INT_G   : integer          := 16#04C11DB7#);
    port (
       crcClk       : in  sl;
-      crcClkRst    : in  sl;
       crcDataValid : in  sl;
       crcDataWidth : in  slv(2 downto 0);
       crcIn        : in  slv((BYTE_WIDTH_G*8)-1 downto 0);
@@ -60,7 +59,6 @@ begin
          CRC_POLY_G       => CRC_POLY_C)
       port map (
          crcClk       => crcClk,
-         crcClkRst    => crcClkRst,
          crcDataValid => crcDataValid,
          crcDataWidth => crcDataWidth,
          crcIn        => crcIn,

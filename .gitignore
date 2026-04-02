@@ -15,6 +15,7 @@
 xvcSrv
 doxygen/
 ghdl-build/
+ruckus
 ruckus/
 build/
 sim_build/
