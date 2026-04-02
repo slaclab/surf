@@ -15,7 +15,16 @@
 xvcSrv
 doxygen/
 ghdl-build/
+ruckus
 ruckus/
 build/
 sim_build/
 .coverage*
+
+# Local editor/agent state
+.vscode/
+.cursor/
+.claude/
+.planning/
+planning/
+CLAUDE.md
