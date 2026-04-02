@@ -95,7 +95,7 @@ begin
          axisClk        => open,
          axisRst        => open,
          axisMaster     => axisMaster,
-         axisSlave      => open);
+         axisSlave      => axisSlave);
 
    ---------------------------------------------------------------------------
    -- DUT
