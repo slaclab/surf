@@ -1,3 +1,17 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: IP integrator wrapper for surf.AxiStreamDeMux
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -7,48 +21,48 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamDeMuxIpIntegrator is
    generic (
-      TPD_G            : time     := 1 ns;
-      RST_POLARITY_G   : sl       := '1';
-      RST_ASYNC_G      : boolean  := false;
-      DATA_BYTES_G     : positive := 4;
-      TUSER_WIDTH_G    : positive range 1 to 8 := 1;
-      PIPE_STAGES_G    : natural  := 0;
-      MODE_G           : string   := "INDEXED";
-      TDEST_ROUTE_0_G  : natural range 0 to 255 := 0;
-      TDEST_ROUTE_1_G  : natural range 0 to 255 := 1;
-      TDEST_HIGH_G     : integer range 0 to 7 := 7;
-      TDEST_LOW_G      : integer range 0 to 7 := 0);
+      TPD_G           : time                   := 1 ns;
+      RST_POLARITY_G  : sl                     := '1';
+      RST_ASYNC_G     : boolean                := false;
+      DATA_BYTES_G    : positive               := 4;
+      TUSER_WIDTH_G   : positive range 1 to 8  := 1;
+      PIPE_STAGES_G   : natural                := 0;
+      MODE_G          : string                 := "INDEXED";
+      TDEST_ROUTE_0_G : natural range 0 to 255 := 0;
+      TDEST_ROUTE_1_G : natural range 0 to 255 := 1;
+      TDEST_HIGH_G    : integer range 0 to 7   := 7;
+      TDEST_LOW_G     : integer range 0 to 7   := 0);
    port (
-      axisClk          : in  sl;
-      axisRst          : in  sl;
-      dynamicRouteMask0 : in slv(7 downto 0) := (others => '0');
-      dynamicRouteDest0 : in slv(7 downto 0) := (others => '0');
-      dynamicRouteMask1 : in slv(7 downto 0) := (others => '0');
-      dynamicRouteDest1 : in slv(7 downto 0) := (others => '0');
-      S_AXIS_TVALID    : in  sl := '0';
-      S_AXIS_TDATA     : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
-      S_AXIS_TKEEP     : in  slv(DATA_BYTES_G-1 downto 0) := (others => '0');
-      S_AXIS_TLAST     : in  sl := '0';
-      S_AXIS_TDEST     : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TID       : in  slv(7 downto 0) := (others => '0');
-      S_AXIS_TUSER     : in  slv(TUSER_WIDTH_G-1 downto 0) := (others => '0');
-      S_AXIS_TREADY    : out sl;
-      M0_AXIS_TVALID   : out sl;
-      M0_AXIS_TDATA    : out slv(DATA_BYTES_G*8-1 downto 0);
-      M0_AXIS_TKEEP    : out slv(DATA_BYTES_G-1 downto 0);
-      M0_AXIS_TLAST    : out sl;
-      M0_AXIS_TDEST    : out slv(7 downto 0);
-      M0_AXIS_TID      : out slv(7 downto 0);
-      M0_AXIS_TUSER    : out slv(TUSER_WIDTH_G-1 downto 0);
-      M0_AXIS_TREADY   : in  sl := '0';
-      M1_AXIS_TVALID   : out sl;
-      M1_AXIS_TDATA    : out slv(DATA_BYTES_G*8-1 downto 0);
-      M1_AXIS_TKEEP    : out slv(DATA_BYTES_G-1 downto 0);
-      M1_AXIS_TLAST    : out sl;
-      M1_AXIS_TDEST    : out slv(7 downto 0);
-      M1_AXIS_TID      : out slv(7 downto 0);
-      M1_AXIS_TUSER    : out slv(TUSER_WIDTH_G-1 downto 0);
-      M1_AXIS_TREADY   : in  sl := '0');
+      axisClk           : in  sl;
+      axisRst           : in  sl;
+      dynamicRouteMask0 : in  slv(7 downto 0)                := (others => '0');
+      dynamicRouteDest0 : in  slv(7 downto 0)                := (others => '0');
+      dynamicRouteMask1 : in  slv(7 downto 0)                := (others => '0');
+      dynamicRouteDest1 : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TVALID     : in  sl                             := '0';
+      S_AXIS_TDATA      : in  slv(DATA_BYTES_G*8-1 downto 0) := (others => '0');
+      S_AXIS_TKEEP      : in  slv(DATA_BYTES_G-1 downto 0)   := (others => '0');
+      S_AXIS_TLAST      : in  sl                             := '0';
+      S_AXIS_TDEST      : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TID        : in  slv(7 downto 0)                := (others => '0');
+      S_AXIS_TUSER      : in  slv(TUSER_WIDTH_G-1 downto 0)  := (others => '0');
+      S_AXIS_TREADY     : out sl;
+      M0_AXIS_TVALID    : out sl;
+      M0_AXIS_TDATA     : out slv(DATA_BYTES_G*8-1 downto 0);
+      M0_AXIS_TKEEP     : out slv(DATA_BYTES_G-1 downto 0);
+      M0_AXIS_TLAST     : out sl;
+      M0_AXIS_TDEST     : out slv(7 downto 0);
+      M0_AXIS_TID       : out slv(7 downto 0);
+      M0_AXIS_TUSER     : out slv(TUSER_WIDTH_G-1 downto 0);
+      M0_AXIS_TREADY    : in  sl                             := '0';
+      M1_AXIS_TVALID    : out sl;
+      M1_AXIS_TDATA     : out slv(DATA_BYTES_G*8-1 downto 0);
+      M1_AXIS_TKEEP     : out slv(DATA_BYTES_G-1 downto 0);
+      M1_AXIS_TLAST     : out sl;
+      M1_AXIS_TDEST     : out slv(7 downto 0);
+      M1_AXIS_TID       : out slv(7 downto 0);
+      M1_AXIS_TUSER     : out slv(TUSER_WIDTH_G-1 downto 0);
+      M1_AXIS_TREADY    : in  sl                             := '0');
 end entity AxiStreamDeMuxIpIntegrator;
 
 architecture rtl of AxiStreamDeMuxIpIntegrator is

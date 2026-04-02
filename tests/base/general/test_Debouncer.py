@@ -23,6 +23,7 @@
 #   extra capture latency from the front-end synchronizer.
 
 import os
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -30,10 +31,8 @@ from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import (
-    build_vhdl_wrapper_source,
     env_flag,
     env_sl,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
@@ -186,61 +185,12 @@ PARAMETER_SWEEP = [
     ),
 ]
 
-
-def _debouncer_wrapper_source() -> str:
-    return build_vhdl_wrapper_source(
-        wrapper_name="DebouncerWrapper",
-        wrapped_entity="Debouncer",
-        generic_declarations=[
-            "TPD_G             : time    := 1 ns",
-            "RST_POLARITY_G    : sl      := '1'",
-            "RST_ASYNC_G       : boolean := false",
-            "INPUT_POLARITY_G  : sl      := '0'",
-            "OUTPUT_POLARITY_G : sl      := '1'",
-            "SYNCHRONIZE_G     : boolean := true",
-            "SYNC_EDGE_TRIG_G  : boolean := false",
-            "DEBOUNCE_CYCLES_G : positive := 3",
-        ],
-        port_declarations=[
-            "clk : in  sl",
-            "rst : in  sl := not RST_POLARITY_G",
-            "i   : in  sl",
-            "o   : out sl",
-        ],
-        generic_map=[
-            "TPD_G             => TPD_G",
-            "RST_POLARITY_G    => RST_POLARITY_G",
-            "RST_ASYNC_G       => RST_ASYNC_G",
-            "INPUT_POLARITY_G  => INPUT_POLARITY_G",
-            "OUTPUT_POLARITY_G => OUTPUT_POLARITY_G",
-            "CLK_FREQ_G        => 1.0",
-            "DEBOUNCE_PERIOD_G => real(DEBOUNCE_CYCLES_G)",
-            "SYNCHRONIZE_G     => SYNCHRONIZE_G",
-            "SYNC_EDGE_TRIG_G  => SYNC_EDGE_TRIG_G",
-        ],
-        port_map=[
-            "clk => clk",
-            "rst => rst",
-            "i   => i",
-            "o   => o",
-        ],
-    )
-
-
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Debouncer(parameters):
-    # Generate the shim locally so future real-generic leaves can reuse the
-    # same path instead of adding another checked-in wrapper file.
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="DebouncerWrapper",
-        source=_debouncer_wrapper_source(),
-        parameters=parameters,
-    )
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.debouncerwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/general/wrappers/DebouncerWrapper.vhd"))]},
     )

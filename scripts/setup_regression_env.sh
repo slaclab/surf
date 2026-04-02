@@ -51,6 +51,11 @@ if [ ! -e "${RUCKUS_DIR}" ] && [ -d "${HOME_RUCKUS_DIR}" ]; then
   ln -s "${HOME_RUCKUS_DIR}" "${RUCKUS_DIR}"
 fi
 
+if [ -L "${RUCKUS_DIR}" ] && [ ! -d "${RUCKUS_DIR}" ]; then
+  echo "[surf-regress] removing broken ruckus symlink at ${RUCKUS_DIR}"
+  rm "${RUCKUS_DIR}"
+fi
+
 if [ ! -d "${RUCKUS_DIR}" ]; then
   if ! command -v git >/dev/null 2>&1; then
     echo "[surf-regress] error: git is required to clone ruckus" >&2
@@ -76,5 +81,6 @@ Then prepare HDL sources with:
   make MODULES="${ROOT_DIR}" import
 
 Then run regressions with:
-  python -m pytest -v tests/
+  python -m pytest -v -n auto --dist=worksteal tests/axi tests/base tests/dsp
+  python -m pytest -v tests/test_*.py
 EOF

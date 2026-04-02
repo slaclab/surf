@@ -15,6 +15,9 @@
 
 name: CI
 on: [push]
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
@@ -25,8 +28,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-python@v4
         with:
@@ -37,9 +38,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make python3 python3-pip tclsh ghdl
           python -m pip install --upgrade pip
-          pip install -r pip_requirements.txt
-          git clone https://github.com/slaclab/ruckus.git
-          pip install -r ruckus/scripts/pip_requirements.txt
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: Check for trailing whitespace and tabs
         run: |
@@ -77,8 +84,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-python@v4
         with:
@@ -89,14 +94,20 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y make python3 python3-pip tclsh ghdl
           python -m pip install --upgrade pip
-          pip install -r pip_requirements.txt
-          git clone https://github.com/slaclab/ruckus.git
-          pip install -r ruckus/scripts/pip_requirements.txt
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: VHDL Regression Testing
+      - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v tests/
+          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
 
       - name: Code Coverage
         run: |

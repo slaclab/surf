@@ -3,6 +3,14 @@
   "force_include_paths": [],
   "deferred_subsystems": [
     {
+      "name": "ethernet",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "name": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
       "name": "devices",
       "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
     },

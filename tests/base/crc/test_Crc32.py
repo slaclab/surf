@@ -155,6 +155,6 @@ def test_Crc32(parameters):
         parameters=hdl_parameters,
         extra_env=parameters,
         extra_vhdl_sources={
-            "surf": ["tests/base/crc/hdl/Crc32PolyWrapper.vhd"],
+            "surf": ["base/crc/wrappers/Crc32PolyWrapper.vhd"],
         },
     )

@@ -16,8 +16,8 @@
     ]
   },
   "summary": {
-    "entity_count": 686,
-    "edge_count": 1336,
+    "entity_count": 721,
+    "edge_count": 1433,
     "duplicate_entity_names": {
       "Ad9249Deserializer": [
         "devices/AnalogDevices/ad9249/7Series/rtl/Ad9249Deserializer.vhd",
@@ -274,7 +274,7 @@
       },
       {
         "entity": "AxiLiteCrossbar",
-        "instantiated_by_count": 29,
+        "instantiated_by_count": 30,
         "instantiates_count": 0,
         "path": "axi/axi-lite/rtl/AxiLiteCrossbar.vhd"
       },
@@ -291,6 +291,18 @@
         "path": "base/sync/rtl/SynchronizerOneShot.vhd"
       },
       {
+        "entity": "MasterAxiStreamIpIntegrator",
+        "instantiated_by_count": 26,
+        "instantiates_count": 1,
+        "path": "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd"
+      },
+      {
+        "entity": "SlaveAxiStreamIpIntegrator",
+        "instantiated_by_count": 25,
+        "instantiates_count": 1,
+        "path": "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd"
+      },
+      {
         "entity": "AxiLiteAsync",
         "instantiated_by_count": 22,
         "instantiates_count": 1,
@@ -301,6 +313,12 @@
         "instantiated_by_count": 17,
         "instantiates_count": 4,
         "path": "base/fifo/rtl/Fifo.vhd"
+      },
+      {
+        "entity": "SlaveAxiLiteIpIntegrator",
+        "instantiated_by_count": 17,
+        "instantiates_count": 1,
+        "path": "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd"
       },
       {
         "entity": "SynchronizerEdge",
@@ -331,24 +349,6 @@
         "instantiated_by_count": 14,
         "instantiates_count": 1,
         "path": "axi/axi-stream/rtl/AxiStreamMux.vhd"
-      },
-      {
-        "entity": "EthMacTop",
-        "instantiated_by_count": 14,
-        "instantiates_count": 5,
-        "path": "ethernet/EthMacCore/rtl/EthMacTop.vhd"
-      },
-      {
-        "entity": "IoBufWrapper",
-        "instantiated_by_count": 14,
-        "instantiates_count": 0,
-        "path": "xilinx/dummy/IoBufWrapperDummy.vhd"
-      },
-      {
-        "entity": "AxiStreamDeMux",
-        "instantiated_by_count": 13,
-        "instantiates_count": 1,
-        "path": "axi/axi-stream/rtl/AxiStreamDeMux.vhd"
       }
     ],
     "top_assemblers": [
@@ -491,7 +491,7 @@
       },
       {
         "entity": "AxiLiteCrossbar",
-        "instantiated_by_count": 29,
+        "instantiated_by_count": 30,
         "path": "axi/axi-lite/rtl/AxiLiteCrossbar.vhd"
       },
       {
@@ -565,14 +565,14 @@
         "path": "base/general/rtl/Scrambler.vhd"
       },
       {
+        "entity": "AxiStreamFlush",
+        "instantiated_by_count": 4,
+        "path": "axi/axi-stream/rtl/AxiStreamFlush.vhd"
+      },
+      {
         "entity": "CRC32Rtl",
         "instantiated_by_count": 4,
         "path": "base/crc/rtl/CRC32Rtl.vhd"
-      },
-      {
-        "entity": "Encoder8b10b",
-        "instantiated_by_count": 4,
-        "path": "protocols/line-codes/rtl/Encoder8b10b.vhd"
       }
     ],
     "base_bottom_up_candidates": [
@@ -1286,6 +1286,7 @@
       ],
       "instantiated_by": [
         "AxiDualPortRamIpIntegrator",
+        "AxiLiteCrossbarIpIntegrator",
         "AxiLiteRamSyncStatusVector",
         "AxiStreamDmaRingWrite",
         "AxiStreamMonAxiL",
@@ -1296,7 +1297,7 @@
         "UartAxiLiteMasterTb"
       ],
       "instantiates_count": 5,
-      "instantiated_by_count": 9,
+      "instantiated_by_count": 10,
       "topological_layer": 2
     },
     {
@@ -1444,6 +1445,7 @@
       "instantiates": [],
       "instantiated_by": [
         "AxiLiteCrossbarI2cMux",
+        "AxiLiteCrossbarIpIntegrator",
         "AxiStreamDma",
         "AxiStreamDmaRingWrite",
         "ClinkTop",
@@ -1474,7 +1476,7 @@
         "Saci2ToAxiLiteTb"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 29,
+      "instantiated_by_count": 30,
       "topological_layer": 2
     },
     {
@@ -1491,6 +1493,22 @@
       ],
       "instantiated_by": [],
       "instantiates_count": 4,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
+    },
+    {
+      "entity": "AxiLiteCrossbarIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteCrossbarIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiDualPortRam",
+        "AxiLiteCrossbar",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -1592,11 +1610,28 @@
       "instantiated_by": [
         "AxiI2cEeprom",
         "AxiI2cRegMasterCore",
-        "AxiLiteCrossbarI2cMux"
+        "AxiLiteCrossbarI2cMux",
+        "AxiLiteMasterProxyIpIntegrator"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 3,
+      "instantiated_by_count": 4,
       "topological_layer": 3
+    },
+    {
+      "entity": "AxiLiteMasterProxyIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteMasterProxyIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteMasterProxy",
+        "MasterAxiLiteIpIntegrator",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiLitePMbusMaster",
@@ -1652,11 +1687,27 @@
       "subsystem": "axi",
       "instantiates": [],
       "instantiated_by": [
+        "AxiLiteRegsIpIntegrator",
         "AxiStreamFrameRateLimiter"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 1,
-      "topological_layer": 1
+      "instantiated_by_count": 2,
+      "topological_layer": 2
+    },
+    {
+      "entity": "AxiLiteRegsIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteRegsIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteRegs",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiLiteRespTimer",
@@ -1665,8 +1716,25 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiLiteRespTimerIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiLiteRespTimerIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteRespTimerIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteRespTimer",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -1732,8 +1800,26 @@
         "TrueDualPortRamAlteraMf",
         "TrueDualPortRamXpm"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiLiteSequencerRamIpIntegrator"
+      ],
       "instantiates_count": 4,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiLiteSequencerRamIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteSequencerRamIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteSequencerRam",
+        "MasterAxiLiteIpIntegrator",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -1745,11 +1831,27 @@
       "subsystem": "axi",
       "instantiates": [],
       "instantiated_by": [
+        "AxiLiteSlaveIpIntegrator",
         "AxiLiteToIpBus"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 1,
-      "topological_layer": 1
+      "instantiated_by_count": 2,
+      "topological_layer": 2
+    },
+    {
+      "entity": "AxiLiteSlaveIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteSlaveIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteSlave",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiLiteSrpV0",
@@ -1832,8 +1934,25 @@
       "instantiates": [
         "AxiLiteSlave"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiLiteToIpBusIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiLiteToIpBusIpIntegrator",
+      "paths": [
+        "axi/bridge/ip_integrator/AxiLiteToIpBusIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteToIpBus",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -1860,8 +1979,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiLiteWriteFilterIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiLiteWriteFilterIpIntegrator",
+      "paths": [
+        "axi/axi-lite/ip_integrator/AxiLiteWriteFilterIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiLiteWriteFilter",
+        "MasterAxiLiteIpIntegrator",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2064,8 +2201,25 @@
         "SimpleDualPortRamAlteraMf",
         "SimpleDualPortRamXpm"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiRamIpIntegrator"
+      ],
       "instantiates_count": 3,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiRamIpIntegrator",
+      "paths": [
+        "axi/axi4/ip_integrator/AxiRamIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiRam",
+        "SlaveAxiIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2078,8 +2232,26 @@
       "instantiates": [
         "AxiLiteAsync"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiRateGenIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiRateGenIpIntegrator",
+      "paths": [
+        "axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiRateGen",
+        "MasterAxiIpIntegrator",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2121,8 +2293,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiReadPathMuxIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiReadPathMuxIpIntegrator",
+      "paths": [
+        "axi/axi4/ip_integrator/AxiReadPathMuxIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiReadPathMux",
+        "MasterAxiIpIntegrator",
+        "SlaveAxiIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2133,8 +2323,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiResizeIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiResizeIpIntegrator",
+      "paths": [
+        "axi/axi4/ip_integrator/AxiResizeIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiResize",
+        "MasterAxiIpIntegrator",
+        "SlaveAxiIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2261,8 +2469,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamCombinerIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamCombinerIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamCombinerIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamCombiner",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2276,12 +2502,29 @@
         "AxiStreamPipeline"
       ],
       "instantiated_by": [
+        "AxiStreamCompactIpIntegrator",
         "EthMacRxRoCEv2",
         "EthMacTxRoCEv2"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 2,
+      "instantiated_by_count": 3,
       "topological_layer": 5
+    },
+    {
+      "entity": "AxiStreamCompactIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamCompactIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamCompact",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamConcat",
@@ -2292,8 +2535,26 @@
       "instantiates": [
         "AxiStreamPipeline"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamConcatIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamConcatIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamConcatIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamConcat",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2425,12 +2686,29 @@
       "instantiated_by": [
         "AxiStreamDma",
         "AxiStreamDmaFifo",
+        "AxiStreamDmaReadIpIntegrator",
         "AxiStreamDmaRingRead",
         "SrpV3Axi"
       ],
       "instantiates_count": 2,
-      "instantiated_by_count": 4,
+      "instantiated_by_count": 5,
       "topological_layer": 2
+    },
+    {
+      "entity": "AxiStreamDmaReadIpIntegrator",
+      "paths": [
+        "axi/dma/ip_integrator/AxiStreamDmaReadIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamDmaRead",
+        "MasterAxiIpIntegrator",
+        "MasterAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamDmaRingRead",
@@ -2529,11 +2807,28 @@
       ],
       "instantiated_by": [
         "AxiStreamDmaV2",
-        "AxiStreamDmaV2Fifo"
+        "AxiStreamDmaV2Fifo",
+        "AxiStreamDmaV2ReadIpIntegrator"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 2,
+      "instantiated_by_count": 3,
       "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamDmaV2ReadIpIntegrator",
+      "paths": [
+        "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamDmaV2Read",
+        "MasterAxiIpIntegrator",
+        "MasterAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamDmaV2Write",
@@ -2547,11 +2842,28 @@
       ],
       "instantiated_by": [
         "AxiStreamDmaV2",
-        "AxiStreamDmaV2Fifo"
+        "AxiStreamDmaV2Fifo",
+        "AxiStreamDmaV2WriteIpIntegrator"
       ],
       "instantiates_count": 2,
-      "instantiated_by_count": 2,
+      "instantiated_by_count": 3,
       "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamDmaV2WriteIpIntegrator",
+      "paths": [
+        "axi/dma/ip_integrator/AxiStreamDmaV2WriteIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamDmaV2Write",
+        "MasterAxiIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamDmaV2WriteMux",
@@ -2561,11 +2873,26 @@
       "subsystem": "axi",
       "instantiates": [],
       "instantiated_by": [
-        "AxiStreamDmaV2"
+        "AxiStreamDmaV2",
+        "AxiStreamDmaV2WriteMuxIpIntegrator"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 1,
+      "instantiated_by_count": 2,
       "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamDmaV2WriteMuxIpIntegrator",
+      "paths": [
+        "axi/dma/ip_integrator/AxiStreamDmaV2WriteMuxIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamDmaV2WriteMux"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 1,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamDmaWrite",
@@ -2671,13 +2998,30 @@
       "subsystem": "axi",
       "instantiates": [],
       "instantiated_by": [
+        "AxiStreamFlushIpIntegrator",
         "EthMacRxRoCEv2",
         "HtspTxFifo",
         "PgpTxVcFifo"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 3,
+      "instantiated_by_count": 4,
       "topological_layer": 5
+    },
+    {
+      "entity": "AxiStreamFlushIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamFlushIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamFlush",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamFrameRateLimiter",
@@ -2690,6 +3034,25 @@
         "AxiStreamPipeline",
         "Synchronizer",
         "SynchronizerVector"
+      ],
+      "instantiated_by": [
+        "AxiStreamFrameRateLimiterIpIntegrator"
+      ],
+      "instantiates_count": 4,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamFrameRateLimiterIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamFrameRateLimiterIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamFrameRateLimiter",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiLiteIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
       ],
       "instantiated_by": [],
       "instantiates_count": 4,
@@ -2709,13 +3072,30 @@
       "instantiated_by": [
         "AxiStreamBatcher",
         "AxiStreamFifoV2",
+        "AxiStreamGearboxIpIntegrator",
         "SsiFifo",
         "SsiFrameLimiter",
         "SsiPrbsRx"
       ],
       "instantiates_count": 2,
-      "instantiated_by_count": 5,
+      "instantiated_by_count": 6,
       "topological_layer": 7
+    },
+    {
+      "entity": "AxiStreamGearboxIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamGearboxIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamGearbox",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamGearboxPack",
@@ -2724,8 +3104,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamGearboxPackIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamGearboxPackIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamGearboxPackIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamGearboxPack",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2736,8 +3134,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamGearboxUnpackIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamGearboxUnpackIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamGearboxUnpackIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamGearboxUnpack",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2939,8 +3355,26 @@
       "instantiates": [
         "AxiStreamPipeline"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamPrbsFlowCtrlIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamPrbsFlowCtrlIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamPrbsFlowCtrlIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamPrbsFlowCtrl",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -2954,12 +3388,29 @@
         "AxiStreamPipeline"
       ],
       "instantiated_by": [
+        "AxiStreamRepeaterIpIntegrator",
         "EthMacRxRoCEv2",
         "EthMacTxRoCEv2"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 2,
+      "instantiated_by_count": 3,
       "topological_layer": 5
+    },
+    {
+      "entity": "AxiStreamRepeaterIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamRepeaterIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamRepeater",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamResize",
@@ -3059,12 +3510,29 @@
       "instantiated_by": [
         "AxiStreamDmaRead",
         "AxiStreamDmaWrite",
+        "AxiStreamShiftIpIntegrator",
         "EthMacRxShift",
         "EthMacTxShift"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 4,
+      "instantiated_by_count": 5,
       "topological_layer": 3
+    },
+    {
+      "entity": "AxiStreamShiftIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamShiftIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamShift",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamSplitter",
@@ -3073,8 +3541,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamSplitterIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamSplitterIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamSplitterIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamSplitter",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -3088,8 +3574,26 @@
         "AxiStreamDeMux",
         "AxiStreamMux"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamTapIpIntegrator"
+      ],
       "instantiates_count": 2,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamTapIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamTapIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamTap",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -3102,8 +3606,25 @@
       "instantiates": [
         "AxiLiteAsync"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiStreamTimerIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiStreamTimerIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamTimerIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamTimer",
+        "SlaveAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -3117,11 +3638,28 @@
         "AxiStreamPipeline"
       ],
       "instantiated_by": [
+        "AxiStreamTrailerAppendIpIntegrator",
         "EthMacTxRoCEv2"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 1,
+      "instantiated_by_count": 2,
       "topological_layer": 5
+    },
+    {
+      "entity": "AxiStreamTrailerAppendIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamTrailerAppendIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamTrailerAppend",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiStreamTrailerRemove",
@@ -3133,11 +3671,28 @@
         "AxiStreamPipeline"
       ],
       "instantiated_by": [
+        "AxiStreamTrailerRemoveIpIntegrator",
         "EthMacRxRoCEv2"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 1,
+      "instantiated_by_count": 2,
       "topological_layer": 5
+    },
+    {
+      "entity": "AxiStreamTrailerRemoveIpIntegrator",
+      "paths": [
+        "axi/axi-stream/ip_integrator/AxiStreamTrailerRemoveIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiStreamTrailerRemove",
+        "MasterAxiStreamIpIntegrator",
+        "SlaveAxiStreamIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiSy56040Core",
@@ -3175,11 +3730,28 @@
       "subsystem": "axi",
       "instantiates": [],
       "instantiated_by": [
+        "AxiToAxiLiteIpIntegrator",
         "SrpV3AxiLiteFull"
       ],
       "instantiates_count": 0,
-      "instantiated_by_count": 1,
+      "instantiated_by_count": 2,
       "topological_layer": 1
+    },
+    {
+      "entity": "AxiToAxiLiteIpIntegrator",
+      "paths": [
+        "axi/bridge/ip_integrator/AxiToAxiLiteIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiToAxiLite",
+        "MasterAxiLiteIpIntegrator",
+        "SlaveAxiIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
+      "instantiated_by_count": 0,
+      "topological_layer": 0
     },
     {
       "entity": "AxiVersion",
@@ -3252,8 +3824,26 @@
       ],
       "subsystem": "axi",
       "instantiates": [],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiWritePathMuxIpIntegrator"
+      ],
       "instantiates_count": 0,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "AxiWritePathMuxIpIntegrator",
+      "paths": [
+        "axi/axi4/ip_integrator/AxiWritePathMuxIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "AxiWritePathMux",
+        "MasterAxiIpIntegrator",
+        "SlaveAxiIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 3,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -6421,8 +7011,25 @@
       "instantiates": [
         "AxiLiteMaster"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "IpBusToAxiLiteIpIntegrator"
+      ],
       "instantiates_count": 1,
+      "instantiated_by_count": 1,
+      "topological_layer": 1
+    },
+    {
+      "entity": "IpBusToAxiLiteIpIntegrator",
+      "paths": [
+        "axi/bridge/ip_integrator/IpBusToAxiLiteIpIntegrator.vhd"
+      ],
+      "subsystem": "axi",
+      "instantiates": [
+        "IpBusToAxiLite",
+        "MasterAxiLiteIpIntegrator"
+      ],
+      "instantiated_by": [],
+      "instantiates_count": 2,
       "instantiated_by_count": 0,
       "topological_layer": 0
     },
@@ -7042,10 +7649,18 @@
       "instantiates": [
         "RstSync"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiRateGenIpIntegrator",
+        "AxiReadPathMuxIpIntegrator",
+        "AxiResizeIpIntegrator",
+        "AxiStreamDmaReadIpIntegrator",
+        "AxiStreamDmaV2ReadIpIntegrator",
+        "AxiStreamDmaV2WriteIpIntegrator",
+        "AxiWritePathMuxIpIntegrator"
+      ],
       "instantiates_count": 1,
-      "instantiated_by_count": 0,
-      "topological_layer": 0
+      "instantiated_by_count": 7,
+      "topological_layer": 1
     },
     {
       "entity": "MasterAxiLiteIpIntegrator",
@@ -7058,10 +7673,15 @@
       ],
       "instantiated_by": [
         "AxiLiteAsyncIpIntegrator",
-        "AxiLiteMasterIpIntegrator"
+        "AxiLiteMasterIpIntegrator",
+        "AxiLiteMasterProxyIpIntegrator",
+        "AxiLiteSequencerRamIpIntegrator",
+        "AxiLiteWriteFilterIpIntegrator",
+        "AxiToAxiLiteIpIntegrator",
+        "IpBusToAxiLiteIpIntegrator"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 2,
+      "instantiated_by_count": 7,
       "topological_layer": 1
     },
     {
@@ -7074,18 +7694,35 @@
         "RstSync"
       ],
       "instantiated_by": [
+        "AxiStreamCombinerIpIntegrator",
+        "AxiStreamCompactIpIntegrator",
+        "AxiStreamConcatIpIntegrator",
         "AxiStreamDeMuxIpIntegrator",
+        "AxiStreamDmaReadIpIntegrator",
+        "AxiStreamDmaV2ReadIpIntegrator",
         "AxiStreamFifoV2IpIntegrator",
+        "AxiStreamFlushIpIntegrator",
+        "AxiStreamFrameRateLimiterIpIntegrator",
+        "AxiStreamGearboxIpIntegrator",
+        "AxiStreamGearboxPackIpIntegrator",
+        "AxiStreamGearboxUnpackIpIntegrator",
         "AxiStreamMuxIpIntegrator",
         "AxiStreamPipelineIpIntegrator",
+        "AxiStreamPrbsFlowCtrlIpIntegrator",
+        "AxiStreamRepeaterIpIntegrator",
         "AxiStreamResizeIpIntegrator",
+        "AxiStreamShiftIpIntegrator",
+        "AxiStreamSplitterIpIntegrator",
+        "AxiStreamTapIpIntegrator",
+        "AxiStreamTrailerAppendIpIntegrator",
+        "AxiStreamTrailerRemoveIpIntegrator",
         "EthMacCrcAxiStreamWrapperRecv",
         "EthMacCrcAxiStreamWrapperSend",
         "MasterAxiStreamTerminateIpIntegrator",
         "RoceEngineWrapper"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 9,
+      "instantiated_by_count": 26,
       "topological_layer": 6
     },
     {
@@ -10303,10 +10940,16 @@
       "instantiates": [
         "RstSync"
       ],
-      "instantiated_by": [],
+      "instantiated_by": [
+        "AxiRamIpIntegrator",
+        "AxiReadPathMuxIpIntegrator",
+        "AxiResizeIpIntegrator",
+        "AxiToAxiLiteIpIntegrator",
+        "AxiWritePathMuxIpIntegrator"
+      ],
       "instantiates_count": 1,
-      "instantiated_by_count": 0,
-      "topological_layer": 0
+      "instantiated_by_count": 5,
+      "topological_layer": 1
     },
     {
       "entity": "SlaveAxiLiteIpIntegrator",
@@ -10320,13 +10963,24 @@
       "instantiated_by": [
         "AxiDualPortRamIpIntegrator",
         "AxiLiteAsyncIpIntegrator",
+        "AxiLiteCrossbarIpIntegrator",
+        "AxiLiteMasterProxyIpIntegrator",
+        "AxiLiteRegsIpIntegrator",
+        "AxiLiteRespTimerIpIntegrator",
+        "AxiLiteSequencerRamIpIntegrator",
+        "AxiLiteSlaveIpIntegrator",
         "AxiLiteToDrpIpIntegrator",
+        "AxiLiteToIpBusIpIntegrator",
+        "AxiLiteWriteFilterIpIntegrator",
+        "AxiRateGenIpIntegrator",
+        "AxiStreamFrameRateLimiterIpIntegrator",
+        "AxiStreamTimerIpIntegrator",
         "AxiVersionIpIntegrator",
         "Saci2ToAxiLiteTb",
         "SaciAxiLiteMasterTb"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 6,
+      "instantiated_by_count": 17,
       "topological_layer": 2
     },
     {
@@ -10339,18 +10993,34 @@
         "RstSync"
       ],
       "instantiated_by": [
+        "AxiStreamCombinerIpIntegrator",
+        "AxiStreamCompactIpIntegrator",
+        "AxiStreamConcatIpIntegrator",
         "AxiStreamDeMuxIpIntegrator",
+        "AxiStreamDmaV2WriteIpIntegrator",
         "AxiStreamFifoV2IpIntegrator",
+        "AxiStreamFlushIpIntegrator",
+        "AxiStreamFrameRateLimiterIpIntegrator",
+        "AxiStreamGearboxIpIntegrator",
+        "AxiStreamGearboxPackIpIntegrator",
+        "AxiStreamGearboxUnpackIpIntegrator",
         "AxiStreamMuxIpIntegrator",
         "AxiStreamPipelineIpIntegrator",
+        "AxiStreamPrbsFlowCtrlIpIntegrator",
+        "AxiStreamRepeaterIpIntegrator",
         "AxiStreamResizeIpIntegrator",
+        "AxiStreamShiftIpIntegrator",
+        "AxiStreamSplitterIpIntegrator",
+        "AxiStreamTapIpIntegrator",
+        "AxiStreamTrailerAppendIpIntegrator",
+        "AxiStreamTrailerRemoveIpIntegrator",
         "EthMacCrcAxiStreamWrapperRecv",
         "EthMacCrcAxiStreamWrapperSend",
         "RoceEngineWrapper",
         "SlaveAxiStreamTerminateIpIntegrator"
       ],
       "instantiates_count": 1,
-      "instantiated_by_count": 9,
+      "instantiated_by_count": 25,
       "topological_layer": 6
     },
     {

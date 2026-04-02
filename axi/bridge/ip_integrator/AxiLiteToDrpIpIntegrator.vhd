@@ -1,3 +1,17 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: IP integrator wrapper for surf.AxiLiteToDrp
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -16,12 +30,12 @@ entity AxiLiteToDrpIpIntegrator is
       ADDR_WIDTH_G     : positive range 1 to 32 := 16;
       DATA_WIDTH_G     : positive range 1 to 32 := 16);
    port (
-      axilClk      : in  sl;
-      axilRst      : in  sl;
-      drpClk       : in  sl;
-      drpRst       : in  sl;
-      S_AXI_AWADDR : in  slv(ADDR_WIDTH_G+1 downto 0);
-      S_AXI_AWPROT : in  slv(2 downto 0);
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      drpClk        : in  sl;
+      drpRst        : in  sl;
+      S_AXI_AWADDR  : in  slv(ADDR_WIDTH_G+1 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
       S_AXI_AWVALID : in  sl;
       S_AXI_AWREADY : out sl;
       S_AXI_WDATA   : in  slv(31 downto 0);
@@ -39,9 +53,9 @@ entity AxiLiteToDrpIpIntegrator is
       S_AXI_RRESP   : out slv(1 downto 0);
       S_AXI_RVALID  : out sl;
       S_AXI_RREADY  : in  sl;
-      drpGnt        : in  sl := '1';
+      drpGnt        : in  sl                           := '1';
       drpReq        : out sl;
-      drpRdy        : in  sl := '0';
+      drpRdy        : in  sl                           := '0';
       drpEn         : out sl;
       drpWe         : out sl;
       drpUsrRst     : out sl;

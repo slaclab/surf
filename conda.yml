@@ -1,0 +1,22 @@
+name: surf-test
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - git
+  - make
+  - tcl
+  - ghdl
+  - pip:
+      - cocotb
+      - cocotbext-axi
+      - cocotb-test
+      - coverage
+      - pytest
+      - pytest-cov
+      - pytest-xdist
+      - gitpython
+      - pyyaml
+      - pygithub
+      - vhdeps

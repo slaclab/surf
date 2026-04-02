@@ -1,3 +1,17 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: IP integrator wrapper for surf.AxiWritePathMux
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -7,79 +21,79 @@ use surf.AxiPkg.all;
 
 entity AxiWritePathMuxIpIntegrator is
    generic (
-      TPD_G        : time := 1 ns;
-      ADDR_WIDTH_G : positive range 12 to 64 := 16;
+      TPD_G        : time                      := 1 ns;
+      ADDR_WIDTH_G : positive range 12 to 64   := 16;
       DATA_WIDTH_G : positive range 32 to 1024 := 32;
-      ID_WIDTH_G   : positive := 1);
+      ID_WIDTH_G   : positive                  := 1);
    port (
-      axiClk        : in  sl;
-      axiRst        : in  sl;
-      S0_AXI_AWID   : in  slv(ID_WIDTH_G-1 downto 0);
-      S0_AXI_AWADDR : in  slv(ADDR_WIDTH_G-1 downto 0);
-      S0_AXI_AWLEN  : in  slv(7 downto 0);
-      S0_AXI_AWSIZE : in  slv(2 downto 0);
-      S0_AXI_AWBURST : in slv(1 downto 0);
-      S0_AXI_AWLOCK : in  sl;
-      S0_AXI_AWCACHE : in slv(3 downto 0);
-      S0_AXI_AWPROT : in  slv(2 downto 0);
-      S0_AXI_AWREGION : in slv(3 downto 0);
-      S0_AXI_AWQOS  : in  slv(3 downto 0);
-      S0_AXI_AWVALID : in sl;
-      S0_AXI_AWREADY : out sl;
-      S0_AXI_WID    : in  slv(ID_WIDTH_G-1 downto 0);
-      S0_AXI_WDATA  : in  slv(DATA_WIDTH_G-1 downto 0);
-      S0_AXI_WSTRB  : in  slv((DATA_WIDTH_G/8)-1 downto 0);
-      S0_AXI_WLAST  : in  sl;
-      S0_AXI_WVALID : in  sl;
-      S0_AXI_WREADY : out sl;
-      S0_AXI_BID    : out slv(ID_WIDTH_G-1 downto 0);
-      S0_AXI_BRESP  : out slv(1 downto 0);
-      S0_AXI_BVALID : out sl;
-      S0_AXI_BREADY : in  sl;
-      S1_AXI_AWID   : in  slv(ID_WIDTH_G-1 downto 0);
-      S1_AXI_AWADDR : in  slv(ADDR_WIDTH_G-1 downto 0);
-      S1_AXI_AWLEN  : in  slv(7 downto 0);
-      S1_AXI_AWSIZE : in  slv(2 downto 0);
-      S1_AXI_AWBURST : in slv(1 downto 0);
-      S1_AXI_AWLOCK : in  sl;
-      S1_AXI_AWCACHE : in slv(3 downto 0);
-      S1_AXI_AWPROT : in  slv(2 downto 0);
-      S1_AXI_AWREGION : in slv(3 downto 0);
-      S1_AXI_AWQOS  : in  slv(3 downto 0);
-      S1_AXI_AWVALID : in sl;
-      S1_AXI_AWREADY : out sl;
-      S1_AXI_WID    : in  slv(ID_WIDTH_G-1 downto 0);
-      S1_AXI_WDATA  : in  slv(DATA_WIDTH_G-1 downto 0);
-      S1_AXI_WSTRB  : in  slv((DATA_WIDTH_G/8)-1 downto 0);
-      S1_AXI_WLAST  : in  sl;
-      S1_AXI_WVALID : in  sl;
-      S1_AXI_WREADY : out sl;
-      S1_AXI_BID    : out slv(ID_WIDTH_G-1 downto 0);
-      S1_AXI_BRESP  : out slv(1 downto 0);
-      S1_AXI_BVALID : out sl;
-      S1_AXI_BREADY : in  sl;
-      M_AXI_AWID    : out slv(ID_WIDTH_G-1 downto 0);
-      M_AXI_AWADDR  : out slv(ADDR_WIDTH_G-1 downto 0);
-      M_AXI_AWLEN   : out slv(7 downto 0);
-      M_AXI_AWSIZE  : out slv(2 downto 0);
-      M_AXI_AWBURST : out slv(1 downto 0);
-      M_AXI_AWLOCK  : out sl;
-      M_AXI_AWCACHE : out slv(3 downto 0);
-      M_AXI_AWPROT  : out slv(2 downto 0);
-      M_AXI_AWREGION : out slv(3 downto 0);
-      M_AXI_AWQOS   : out slv(3 downto 0);
-      M_AXI_AWVALID : out sl;
-      M_AXI_AWREADY : in  sl;
-      M_AXI_WID     : out slv(ID_WIDTH_G-1 downto 0);
-      M_AXI_WDATA   : out slv(DATA_WIDTH_G-1 downto 0);
-      M_AXI_WSTRB   : out slv((DATA_WIDTH_G/8)-1 downto 0);
-      M_AXI_WLAST   : out sl;
-      M_AXI_WVALID  : out sl;
-      M_AXI_WREADY  : in  sl;
-      M_AXI_BID     : in  slv(ID_WIDTH_G-1 downto 0);
-      M_AXI_BRESP   : in  slv(1 downto 0);
-      M_AXI_BVALID  : in  sl;
-      M_AXI_BREADY  : out sl);
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      S0_AXI_AWID     : in  slv(ID_WIDTH_G-1 downto 0);
+      S0_AXI_AWADDR   : in  slv(ADDR_WIDTH_G-1 downto 0);
+      S0_AXI_AWLEN    : in  slv(7 downto 0);
+      S0_AXI_AWSIZE   : in  slv(2 downto 0);
+      S0_AXI_AWBURST  : in  slv(1 downto 0);
+      S0_AXI_AWLOCK   : in  sl;
+      S0_AXI_AWCACHE  : in  slv(3 downto 0);
+      S0_AXI_AWPROT   : in  slv(2 downto 0);
+      S0_AXI_AWREGION : in  slv(3 downto 0);
+      S0_AXI_AWQOS    : in  slv(3 downto 0);
+      S0_AXI_AWVALID  : in  sl;
+      S0_AXI_AWREADY  : out sl;
+      S0_AXI_WID      : in  slv(ID_WIDTH_G-1 downto 0);
+      S0_AXI_WDATA    : in  slv(DATA_WIDTH_G-1 downto 0);
+      S0_AXI_WSTRB    : in  slv((DATA_WIDTH_G/8)-1 downto 0);
+      S0_AXI_WLAST    : in  sl;
+      S0_AXI_WVALID   : in  sl;
+      S0_AXI_WREADY   : out sl;
+      S0_AXI_BID      : out slv(ID_WIDTH_G-1 downto 0);
+      S0_AXI_BRESP    : out slv(1 downto 0);
+      S0_AXI_BVALID   : out sl;
+      S0_AXI_BREADY   : in  sl;
+      S1_AXI_AWID     : in  slv(ID_WIDTH_G-1 downto 0);
+      S1_AXI_AWADDR   : in  slv(ADDR_WIDTH_G-1 downto 0);
+      S1_AXI_AWLEN    : in  slv(7 downto 0);
+      S1_AXI_AWSIZE   : in  slv(2 downto 0);
+      S1_AXI_AWBURST  : in  slv(1 downto 0);
+      S1_AXI_AWLOCK   : in  sl;
+      S1_AXI_AWCACHE  : in  slv(3 downto 0);
+      S1_AXI_AWPROT   : in  slv(2 downto 0);
+      S1_AXI_AWREGION : in  slv(3 downto 0);
+      S1_AXI_AWQOS    : in  slv(3 downto 0);
+      S1_AXI_AWVALID  : in  sl;
+      S1_AXI_AWREADY  : out sl;
+      S1_AXI_WID      : in  slv(ID_WIDTH_G-1 downto 0);
+      S1_AXI_WDATA    : in  slv(DATA_WIDTH_G-1 downto 0);
+      S1_AXI_WSTRB    : in  slv((DATA_WIDTH_G/8)-1 downto 0);
+      S1_AXI_WLAST    : in  sl;
+      S1_AXI_WVALID   : in  sl;
+      S1_AXI_WREADY   : out sl;
+      S1_AXI_BID      : out slv(ID_WIDTH_G-1 downto 0);
+      S1_AXI_BRESP    : out slv(1 downto 0);
+      S1_AXI_BVALID   : out sl;
+      S1_AXI_BREADY   : in  sl;
+      M_AXI_AWID      : out slv(ID_WIDTH_G-1 downto 0);
+      M_AXI_AWADDR    : out slv(ADDR_WIDTH_G-1 downto 0);
+      M_AXI_AWLEN     : out slv(7 downto 0);
+      M_AXI_AWSIZE    : out slv(2 downto 0);
+      M_AXI_AWBURST   : out slv(1 downto 0);
+      M_AXI_AWLOCK    : out sl;
+      M_AXI_AWCACHE   : out slv(3 downto 0);
+      M_AXI_AWPROT    : out slv(2 downto 0);
+      M_AXI_AWREGION  : out slv(3 downto 0);
+      M_AXI_AWQOS     : out slv(3 downto 0);
+      M_AXI_AWVALID   : out sl;
+      M_AXI_AWREADY   : in  sl;
+      M_AXI_WID       : out slv(ID_WIDTH_G-1 downto 0);
+      M_AXI_WDATA     : out slv(DATA_WIDTH_G-1 downto 0);
+      M_AXI_WSTRB     : out slv((DATA_WIDTH_G/8)-1 downto 0);
+      M_AXI_WLAST     : out sl;
+      M_AXI_WVALID    : out sl;
+      M_AXI_WREADY    : in  sl;
+      M_AXI_BID       : in  slv(ID_WIDTH_G-1 downto 0);
+      M_AXI_BRESP     : in  slv(1 downto 0);
+      M_AXI_BVALID    : in  sl;
+      M_AXI_BREADY    : out sl);
 end entity AxiWritePathMuxIpIntegrator;
 
 architecture rtl of AxiWritePathMuxIpIntegrator is

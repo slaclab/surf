@@ -225,4 +225,3 @@ def test_DspComparator(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
     )
-

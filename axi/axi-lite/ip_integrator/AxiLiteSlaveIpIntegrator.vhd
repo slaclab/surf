@@ -1,3 +1,17 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: IP integrator wrapper for surf.AxiLiteSlave
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -17,8 +31,8 @@ entity AxiLiteSlaveIpIntegrator is
       reqRnw        : out sl;
       reqAddress    : out slv(31 downto 0);
       reqWrData     : out slv(31 downto 0);
-      ackDone       : in  sl := '0';
-      ackResp       : in  slv(1 downto 0) := (others => '0');
+      ackDone       : in  sl               := '0';
+      ackResp       : in  slv(1 downto 0)  := (others => '0');
       ackRdData     : in  slv(31 downto 0) := (others => '0');
       S_AXI_AWADDR  : in  slv(31 downto 0);
       S_AXI_AWPROT  : in  slv(2 downto 0);

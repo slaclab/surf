@@ -595,9 +595,11 @@ begin
                v.status(EMPTY_C) := '0';  -- Update empty status
                v.ramWe           := '1';  -- write new values into register ram
 
-               -- Increment address of last burst in buffer.
-               -- Wrap back to start when it hits the end of the buffer.
-               v.nextAddr := r.nextAddr + dmaAck.size;  --(BURST_SIZE_BYTES_G); --
+               -- Increment the stored write pointer by the acknowledged byte
+               -- count. Slice the DMA size back down to the local address
+               -- width so the arithmetic stays range-safe for narrower test
+               -- wrappers and smaller address maps.
+               v.nextAddr := r.nextAddr + dmaAck.size(RAM_DATA_WIDTH_C-1 downto 0);
                if (v.nextAddr = r.endAddr) then
                   v.status(FULL_C) := '1';
                   if (r.mode(DONE_WHEN_FULL_C) = '1') then
@@ -690,4 +692,3 @@ begin
    end process seq;
 
 end architecture rtl;
-

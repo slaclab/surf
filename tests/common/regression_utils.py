@@ -1,7 +1,20 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
 from __future__ import annotations
 
+from functools import lru_cache
 import os
 from pathlib import Path
+import shlex
+import subprocess
 from textwrap import dedent
 
 import pytest
@@ -14,14 +27,45 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 TESTS_ROOT = REPO_ROOT / "tests"
 BUILD_SRC_ROOT = REPO_ROOT / "build" / "SRC_VHDL"
 
-COMMON_VHDL_COMPILE_ARGS = [
+BASE_GHDL_COMPILE_ARGS = [
     "--std=08",
     "-fsynopsys",
     "-frelaxed-rules",
     "-fexplicit",
-    "-Wno-elaboration",
-    "-Wno-hide",
-    "-Wno-specs",
+]
+
+OPTIONAL_GHDL_WARNINGS = ("elaboration", "hide", "specs")
+
+
+@lru_cache(maxsize=1)
+def _supported_ghdl_warning_names() -> frozenset[str]:
+    try:
+        result = subprocess.run(
+            [*shlex.split(os.environ.get("GHDL_CMD", "ghdl")), "--help-warnings"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return frozenset()
+
+    names = set()
+    for line in result.stdout.splitlines():
+        token = line.strip().split(maxsplit=1)[0]
+        if not token.startswith("-W") or token == "-Wall":
+            continue
+        names.add(token.removeprefix("-W").removesuffix("*"))
+    return frozenset(names)
+
+
+def _optional_ghdl_warning_flags() -> list[str]:
+    supported_names = _supported_ghdl_warning_names()
+    return [f"-Wno-{name}" for name in OPTIONAL_GHDL_WARNINGS if name in supported_names]
+
+
+COMMON_VHDL_COMPILE_ARGS = [
+    *BASE_GHDL_COMPILE_ARGS,
+    *_optional_ghdl_warning_flags(),
     "-O2",
 ]
 
@@ -137,6 +181,10 @@ def _module_name_from_test_file(test_file: Path) -> str:
     return ".".join(test_file.resolve().relative_to(REPO_ROOT).with_suffix("").parts)
 
 
+def cocotb_module_name_from_test_file(test_file: str | Path) -> str:
+    return _module_name_from_test_file(Path(test_file))
+
+
 def _sim_build_path(test_file: Path, parameters: dict[str, object] | None) -> str:
     rel_parent = test_file.resolve().relative_to(TESTS_ROOT).parent
     build_dir = TESTS_ROOT / "sim_build" / rel_parent / test_file.stem
@@ -219,6 +267,11 @@ def run_surf_vhdl_test(
     extra_vhdl_sources: dict[str, list[str]] | None = None,
 ) -> None:
     test_file = Path(test_file)
+    simulator_env = None
+    if extra_env is not None:
+        simulator_env = {key: str(value) for key, value in extra_env.items()}
+    elif parameters is not None:
+        simulator_env = {key: str(value) for key, value in parameters.items()}
 
     run(
         toplevel=toplevel,
@@ -227,7 +280,7 @@ def run_surf_vhdl_test(
         vhdl_sources=_merge_vhdl_sources(_build_vhdl_sources(), extra_vhdl_sources),
         parameters=parameters,
         sim_build=_sim_build_path(test_file, parameters),
-        extra_env=extra_env if extra_env is not None else parameters,
+        extra_env=simulator_env,
         simulator="ghdl",
         vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
     )

@@ -23,6 +23,7 @@
 #   measurement latency, not by spurious intermediate updates.
 
 import os
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -30,63 +31,12 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import (
-    build_vhdl_wrapper_source,
     env_flag,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
     start_lockstep_clocks,
 )
-
-
-def _clock_freq_wrapper_source() -> str:
-    return build_vhdl_wrapper_source(
-        wrapper_name="SyncClockFreqWrapper",
-        wrapped_entity="SyncClockFreq",
-        generic_declarations=[
-            "TPD_G               : time     := 1 ns",
-            "RST_ASYNC_G         : boolean  := false",
-            "USE_DSP_G           : string   := \"no\"",
-            "REF_CLK_FREQ_INT_G  : positive := 8",
-            "REFRESH_RATE_INT_G  : positive := 1",
-            "CLK_LOWER_LIMIT_G   : natural  := 0",
-            "CLK_UPPER_LIMIT_G   : natural  := 16",
-            "COMMON_CLK_G        : boolean  := false",
-            "CNT_WIDTH_G         : positive := 32",
-        ],
-        port_declarations=[
-            "freqOut     : out slv(CNT_WIDTH_G-1 downto 0)",
-            "freqUpdated : out sl",
-            "locked      : out sl",
-            "tooFast     : out sl",
-            "tooSlow     : out sl",
-            "clkIn       : in  sl",
-            "locClk      : in  sl",
-            "refClk      : in  sl",
-        ],
-        generic_map=[
-            "TPD_G             => TPD_G",
-            "RST_ASYNC_G       => RST_ASYNC_G",
-            "USE_DSP_G         => USE_DSP_G",
-            "REF_CLK_FREQ_G    => real(REF_CLK_FREQ_INT_G)",
-            "REFRESH_RATE_G    => real(REFRESH_RATE_INT_G)",
-            "CLK_LOWER_LIMIT_G => real(CLK_LOWER_LIMIT_G)",
-            "CLK_UPPER_LIMIT_G => real(CLK_UPPER_LIMIT_G)",
-            "COMMON_CLK_G      => COMMON_CLK_G",
-            "CNT_WIDTH_G       => CNT_WIDTH_G",
-        ],
-        port_map=[
-            "freqOut     => freqOut",
-            "freqUpdated => freqUpdated",
-            "locked      => locked",
-            "tooFast     => tooFast",
-            "tooSlow     => tooSlow",
-            "clkIn       => clkIn",
-            "locClk      => locClk",
-            "refClk      => refClk",
-        ],
-    )
 
 
 class TB:
@@ -220,17 +170,10 @@ PARAMETER_SWEEP = [
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SyncClockFreq(parameters):
     hdl_parameters = hdl_parameters_from(parameters)
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="SyncClockFreqWrapper",
-        source=_clock_freq_wrapper_source(),
-        parameters=hdl_parameters,
-    )
-
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.syncclockfreqwrapper",
         parameters=hdl_parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/sync/wrappers/SyncClockFreqWrapper.vhd"))]},
     )

@@ -21,6 +21,7 @@
 #   elapsed interval.
 
 import os
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -28,10 +29,8 @@ from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import (
-    build_vhdl_wrapper_source,
     env_flag,
     env_sl,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
@@ -137,51 +136,12 @@ PARAMETER_SWEEP = [
     ),
 ]
 
-
-def _heartbeat_wrapper_source() -> str:
-    return build_vhdl_wrapper_source(
-        wrapper_name="HeartbeatWrapper",
-        wrapped_entity="Heartbeat",
-        generic_declarations=[
-            "TPD_G          : time     := 1 ns",
-            "RST_POLARITY_G : sl       := '1'",
-            "RST_ASYNC_G    : boolean  := false",
-            "TOGGLE_CYCLES_G : positive := 2",
-        ],
-        port_declarations=[
-            "clk : in  sl",
-            "rst : in  sl := not RST_POLARITY_G",
-            "o   : out sl",
-        ],
-        generic_map=[
-            "TPD_G          => TPD_G",
-            "RST_POLARITY_G => RST_POLARITY_G",
-            "RST_ASYNC_G    => RST_ASYNC_G",
-            "PERIOD_IN_G    => 1.0",
-            "PERIOD_OUT_G   => real(TOGGLE_CYCLES_G * 2)",
-        ],
-        port_map=[
-            "clk => clk",
-            "rst => rst",
-            "o   => o",
-        ],
-    )
-
-
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Heartbeat(parameters):
-    # Generate the thin wrapper inside the per-case sim build directory so we
-    # can keep this real-generic shim pattern out of the checked-in HDL tree.
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="HeartbeatWrapper",
-        source=_heartbeat_wrapper_source(),
-        parameters=parameters,
-    )
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.heartbeatwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/general/wrappers/HeartbeatWrapper.vhd"))]},
     )

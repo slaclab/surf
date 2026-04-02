@@ -21,7 +21,7 @@
 #   timing.
 
 import os
-from textwrap import dedent
+from pathlib import Path
 
 import cocotb
 import pytest
@@ -31,86 +31,10 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import (
     env_flag,
     env_sl,
-    generate_vhdl_wrapper,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
-
-
-def _build_cnt_vector_wrapper() -> str:
-    # Flatten SlVectorArray output into a plain slv so cocotb can inspect the
-    # per-lane counters without needing a permanent checked-in shim file.
-    return dedent(
-        """\
-        library ieee;
-        use ieee.std_logic_1164.all;
-
-        library surf;
-        use surf.StdRtlPkg.all;
-
-        entity SynchronizerOneShotCntVectorFlatWrapper is
-           generic (
-              TPD_G          : time     := 1 ns;
-              RST_POLARITY_G : sl       := '1';
-              RST_ASYNC_G    : boolean  := false;
-              COMMON_CLK_G   : boolean  := false;
-              IN_POLARITY_G  : slv      := "1";
-              OUT_POLARITY_G : slv      := "1";
-              USE_DSP_G      : string   := "no";
-              SYNTH_CNT_G    : slv      := "1";
-              CNT_RST_EDGE_G : boolean  := true;
-              CNT_WIDTH_G    : positive := 16;
-              WIDTH_G        : positive := 16);
-           port (
-              wrClk      : in  sl;
-              wrRst      : in  sl := not RST_POLARITY_G;
-              dataIn     : in  slv(WIDTH_G-1 downto 0);
-              rdClk      : in  sl;
-              rdRst      : in  sl := not RST_POLARITY_G;
-              rollOverEn : in  slv(WIDTH_G-1 downto 0);
-              cntRst     : in  sl := not RST_POLARITY_G;
-              dataOut    : out slv(WIDTH_G-1 downto 0);
-              cntOutFlat : out slv(WIDTH_G*CNT_WIDTH_G-1 downto 0));
-        end entity SynchronizerOneShotCntVectorFlatWrapper;
-
-        architecture rtl of SynchronizerOneShotCntVectorFlatWrapper is
-           signal cntOutArr : SlVectorArray(WIDTH_G-1 downto 0, CNT_WIDTH_G-1 downto 0);
-        begin
-           U_DUT : entity surf.SynchronizerOneShotCntVector
-              generic map (
-                 TPD_G          => TPD_G,
-                 RST_POLARITY_G => RST_POLARITY_G,
-                 RST_ASYNC_G    => RST_ASYNC_G,
-                 COMMON_CLK_G   => COMMON_CLK_G,
-                 IN_POLARITY_G  => IN_POLARITY_G,
-                 OUT_POLARITY_G => OUT_POLARITY_G,
-                 USE_DSP_G      => USE_DSP_G,
-                 SYNTH_CNT_G    => SYNTH_CNT_G,
-                 CNT_RST_EDGE_G => CNT_RST_EDGE_G,
-                 CNT_WIDTH_G    => CNT_WIDTH_G,
-                 WIDTH_G        => WIDTH_G)
-              port map (
-                 wrClk      => wrClk,
-                 wrRst      => wrRst,
-                 dataIn     => dataIn,
-                 rdClk      => rdClk,
-                 rdRst      => rdRst,
-                 rollOverEn => rollOverEn,
-                 cntRst     => cntRst,
-                 dataOut    => dataOut,
-                 cntOut     => cntOutArr);
-
-           GEN_FLAT :
-           for i in 0 to WIDTH_G-1 generate
-              GEN_BITS :
-              for j in 0 to CNT_WIDTH_G-1 generate
-                 cntOutFlat(i*CNT_WIDTH_G + j) <= cntOutArr(i, j);
-              end generate GEN_BITS;
-           end generate GEN_FLAT;
-        end architecture rtl;
-        """
-    )
 
 
 class TB:
@@ -259,17 +183,10 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SynchronizerOneShotCntVector(parameters):
-    wrapper_path = generate_vhdl_wrapper(
-        test_file=__file__,
-        wrapper_name="SynchronizerOneShotCntVectorFlatWrapper",
-        source=_build_cnt_vector_wrapper(),
-        parameters=parameters,
-    )
-
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.synchronizeroneshotcntvectorflatwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [wrapper_path]},
+        extra_vhdl_sources={"surf": [str(Path("base/sync/wrappers/SynchronizerOneShotCntVectorFlatWrapper.vhd"))]},
     )

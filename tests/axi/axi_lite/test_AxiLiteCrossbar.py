@@ -9,7 +9,7 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one fixed cocotb-facing harness topology in which a single
+# - Sweep: Keep one fixed cocotb-facing wrapper topology in which a single
 #   slave port fans into a local RAM window plus a cascaded secondary crossbar
 #   feeding two more RAM windows; the coverage focus is address decode and
 #   transaction routing rather than a broad generic sweep.
@@ -28,7 +28,6 @@ import logging
 import random
 
 import cocotb
-import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
@@ -176,5 +175,8 @@ async def concurrent_region_stress_test(dut):
 def test_AxiLiteCrossbar():
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.axilitecrossbartb",
+        toplevel="surf.axilitecrossbaripintegrator",
+        extra_vhdl_sources={
+            "surf": ["axi/axi-lite/ip_integrator/AxiLiteCrossbarIpIntegrator.vhd"],
+        },
     )

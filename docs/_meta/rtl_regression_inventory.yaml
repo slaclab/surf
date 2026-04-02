@@ -40,7 +40,7 @@ modules:
     tier: functional_python
     status: implemented_validated_expanded
     priority: phase1_low_level
-    wrapper_path: tests/base/crc/hdl/Crc32PolyWrapper.vhd
+    wrapper_path: base/crc/wrappers/Crc32PolyWrapper.vhd
     python_test: tests/base/crc/test_Crc32.py
     reference_assets: []
     notes: "Graph-guided generic CRC leaf with validated coverage for IEEE CRC-32, Castagnoli, and Koopman-style 32-bit polynomial cases plus byte-width, input-register, and reset polarity/style variation. Uses a thin test-only wrapper because the local GHDL flow rejects direct command-line overrides of the 32-bit `CRC_POLY_G` `slv` generic."

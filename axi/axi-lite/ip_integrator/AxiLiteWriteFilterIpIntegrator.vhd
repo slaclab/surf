@@ -1,3 +1,17 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: IP integrator wrapper for surf.AxiLiteWriteFilter
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -7,54 +21,54 @@ use surf.AxiLitePkg.all;
 
 entity AxiLiteWriteFilterIpIntegrator is
    generic (
-      TPD_G           : time    := 1 ns;
-      RST_POLARITY_G  : sl      := '1';
-      RST_ASYNC_G     : boolean := false;
+      TPD_G           : time     := 1 ns;
+      RST_POLARITY_G  : sl       := '1';
+      RST_ASYNC_G     : boolean  := false;
       FILTER_SIZE_G   : positive := 1;
-      FILTER_ADDR_0_G : natural := 0);
+      FILTER_ADDR_0_G : natural  := 0);
    port (
-      axilClk        : in  sl;
-      axilRst        : in  sl;
-      enFilter       : in  sl := '1';
-      blockAll       : in  sl := '1';
-      S_AXI_AWADDR   : in  slv(31 downto 0);
-      S_AXI_AWPROT   : in  slv(2 downto 0);
-      S_AXI_AWVALID  : in  sl;
-      S_AXI_AWREADY  : out sl;
-      S_AXI_WDATA    : in  slv(31 downto 0);
-      S_AXI_WSTRB    : in  slv(3 downto 0);
-      S_AXI_WVALID   : in  sl;
-      S_AXI_WREADY   : out sl;
-      S_AXI_BRESP    : out slv(1 downto 0);
-      S_AXI_BVALID   : out sl;
-      S_AXI_BREADY   : in  sl;
-      S_AXI_ARADDR   : in  slv(31 downto 0) := (others => '0');
-      S_AXI_ARPROT   : in  slv(2 downto 0) := (others => '0');
-      S_AXI_ARVALID  : in  sl := '0';
-      S_AXI_ARREADY  : out sl;
-      S_AXI_RDATA    : out slv(31 downto 0);
-      S_AXI_RRESP    : out slv(1 downto 0);
-      S_AXI_RVALID   : out sl;
-      S_AXI_RREADY   : in  sl := '0';
-      M_AXI_AWADDR   : out slv(31 downto 0);
-      M_AXI_AWPROT   : out slv(2 downto 0);
-      M_AXI_AWVALID  : out sl;
-      M_AXI_AWREADY  : in  sl;
-      M_AXI_WDATA    : out slv(31 downto 0);
-      M_AXI_WSTRB    : out slv(3 downto 0);
-      M_AXI_WVALID   : out sl;
-      M_AXI_WREADY   : in  sl;
-      M_AXI_BRESP    : in  slv(1 downto 0);
-      M_AXI_BVALID   : in  sl;
-      M_AXI_BREADY   : out sl;
-      M_AXI_ARADDR   : out slv(31 downto 0);
-      M_AXI_ARPROT   : out slv(2 downto 0);
-      M_AXI_ARVALID  : out sl;
-      M_AXI_ARREADY  : in  sl := '0';
-      M_AXI_RDATA    : in  slv(31 downto 0) := (others => '0');
-      M_AXI_RRESP    : in  slv(1 downto 0) := (others => '0');
-      M_AXI_RVALID   : in  sl := '0';
-      M_AXI_RREADY   : out sl);
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      enFilter      : in  sl               := '1';
+      blockAll      : in  sl               := '1';
+      S_AXI_AWADDR  : in  slv(31 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
+      S_AXI_AWVALID : in  sl;
+      S_AXI_AWREADY : out sl;
+      S_AXI_WDATA   : in  slv(31 downto 0);
+      S_AXI_WSTRB   : in  slv(3 downto 0);
+      S_AXI_WVALID  : in  sl;
+      S_AXI_WREADY  : out sl;
+      S_AXI_BRESP   : out slv(1 downto 0);
+      S_AXI_BVALID  : out sl;
+      S_AXI_BREADY  : in  sl;
+      S_AXI_ARADDR  : in  slv(31 downto 0) := (others => '0');
+      S_AXI_ARPROT  : in  slv(2 downto 0)  := (others => '0');
+      S_AXI_ARVALID : in  sl               := '0';
+      S_AXI_ARREADY : out sl;
+      S_AXI_RDATA   : out slv(31 downto 0);
+      S_AXI_RRESP   : out slv(1 downto 0);
+      S_AXI_RVALID  : out sl;
+      S_AXI_RREADY  : in  sl               := '0';
+      M_AXI_AWADDR  : out slv(31 downto 0);
+      M_AXI_AWPROT  : out slv(2 downto 0);
+      M_AXI_AWVALID : out sl;
+      M_AXI_AWREADY : in  sl;
+      M_AXI_WDATA   : out slv(31 downto 0);
+      M_AXI_WSTRB   : out slv(3 downto 0);
+      M_AXI_WVALID  : out sl;
+      M_AXI_WREADY  : in  sl;
+      M_AXI_BRESP   : in  slv(1 downto 0);
+      M_AXI_BVALID  : in  sl;
+      M_AXI_BREADY  : out sl;
+      M_AXI_ARADDR  : out slv(31 downto 0);
+      M_AXI_ARPROT  : out slv(2 downto 0);
+      M_AXI_ARVALID : out sl;
+      M_AXI_ARREADY : in  sl               := '0';
+      M_AXI_RDATA   : in  slv(31 downto 0) := (others => '0');
+      M_AXI_RRESP   : in  slv(1 downto 0)  := (others => '0');
+      M_AXI_RVALID  : in  sl               := '0';
+      M_AXI_RREADY  : out sl);
 end entity AxiLiteWriteFilterIpIntegrator;
 
 architecture rtl of AxiLiteWriteFilterIpIntegrator is
