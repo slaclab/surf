@@ -2,16 +2,16 @@
 
 ## Summary
 - Current phase: Phase-1 implementation active
-- Current subsystem: `post-axi transition`
-- Current focus module: `AxiStreamDmaV2Read` fixed; queue regeneration still next
+- Current subsystem: `protocols/line-codes`
+- Current focus module: `protocols/line-codes` family complete; shared helper pattern established
 - Last updated: 2026-04-02
 
 ## Current Frontier Snapshot
-- Next queue target: remove the temporary `ethernet` / `protocols` axi-first deferrals, regenerate `docs/_meta/rtl_phase1_queue.{md,json}`, and resume from the regenerated cross-subsystem frontier
+- Next queue target: use `protocols/line-codes` as the first cross-subsystem follow-on while preserving the queue-regeneration plan for the broader post-axi transition
 - Queue note:
   - The axi-first pass is now complete through the previously remaining final 11 `axi/` modules.
   - The queue snapshot in earlier notes that still pointed at `AxiReadEmulate` / `AxiResize` is now stale and should not be reused.
-  - The next implementation session should make the queue authoritative again by removing the temporary subsystem deferrals and regenerating it before taking the next module.
+  - The broader post-axi transition should still make the queue authoritative again by removing the temporary subsystem deferrals and regenerating it before taking the next non-line-codes module.
 - Known expected-open tests on this branch:
   - None currently recorded. `AxiResize` and `AxiStreamDmaV2Read` both pass on this merged branch.
 - Most recent reusable bench pattern:
@@ -24,7 +24,7 @@
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
 | `dsp` | started | not started | started | `DspComparator` is now validated under `tests/dsp/generic/` as the first `dsp/` leaf in the new cocotb flow |
 | `axi` | started | not started | started | The axi-first pass is now complete for the simulator-friendly queue. The final locally validated batch adds `AxiReadEmulate`, `AxiRingBuffer`, `AxiWriteEmulate`, `AxiStreamDmaRingRead`, `AxiStreamDmaWrite`, `AxiLiteRamSyncStatusVector`, `AxiStreamMonAxiL`, `AxiStreamDma`, `AxiStreamDmaFifo`, `AxiStreamDmaRingWrite`, and `AxiMonAxiL`, with a combined `11 passed` validation run on 2026-03-27. Added checked-in subsystem wrappers under `axi/axi4/ip_integrator/`, `axi/axi-lite/ip_integrator/`, `axi/axi-stream/ip_integrator/`, and `axi/dma/ip_integrator/` for those benches. `AxiStreamFifoV2` now has an expanded `10 passed` wrapper regression under `tests/axi/axi_stream/` covering async and sync width conversion, metadata truncation, `VALID_THOLD` frame-ready and burst-release modes, dynamic pause-threshold behavior, `CASCADE_SIZE=2`, and the `S_HAS_TREADY=0` pause-only source-side path. `AxiResize` now passes its equal-width, `32-bit -> 64-bit`, and `64-bit -> 32-bit` wrapper regression on this branch after the read-hold RTL fix. `AxiLiteAsync`, `AxiLiteToDrp`, and `AxiRateGen` still keep intentionally narrow common-clock subsets while the more timing-sensitive async AXI-Lite crossing branches remain open. `AxiStreamCompact`, `AxiStreamFrameRateLimiter`, and `AxiStreamDmaV2WriteMux` still keep intentionally narrow first-pass subsets. `AxiStreamDmaV2Read` is now validated with a two-case wrapper regression covering both aligned and short terminal-beat reads after fixing bounded byte-count conversion in `AxiPkg` and terminal-mask generation in `AxiStreamDmaV2Read`. |
-| `protocols` | not started | not started | not started | Large simulator-friendly surface area |
+| `protocols` | started | not started | started | `protocols/line-codes` is now validated under `tests/protocols/line_codes/` with shared Python helper coverage for `LineCode8b10b`, `LineCode10b12b`, and `LineCode12b14b`, plus package-level `Code8b10b`, `Code10b12b`, and `Code12b14b` cocotb coverage. The package benches preserve explicit disparity-seed sweeps, and the 12b14b package bench also preserves its historical training/transition sequences. |
 | `ethernet` | not started | not started | not started | Temporarily deferred during the current axi-first rollout pass |
 | `devices` | not started | not started | not started | Many vendor-heavy cases |
 | `xilinx` | not started | not started | not started | Many vendor-heavy cases |
@@ -109,18 +109,21 @@
 - Validated the stable 9-module subset of that generated-queue window with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiRam.py tests/axi/bridge/test_AxiLiteToIpBus.py tests/axi/bridge/test_IpBusToAxiLite.py tests/axi/dma/test_AxiStreamDmaRead.py tests/axi/dma/test_AxiStreamDmaV2Write.py tests/axi/axi_stream/test_AxiStreamGearbox.py tests/axi/axi_stream/test_AxiStreamTap.py tests/axi/axi_stream/test_AxiStreamTimer.py tests/axi/axi_stream/test_AxiStreamTrailerRemove.py` (`9 passed`). `tests/axi/dma/test_AxiStreamDmaV2Read.py` is present on this branch as a minimal one-beat aligned reproducer, but it still fails immediately inside `AxiStreamDmaV2Read` at `31 ns` with `std_logic_arith.vhdl:2014:9: ARG is too large in CONV_INTEGER`, so `AxiStreamDmaV2Read` remains open rather than counted as validated.
 - Implemented `tests/axi/axi4/test_AxiRateGen.py` with a thin subsystem-local adapter at `axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd`.
 - Validated `AxiRateGen` locally with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiRateGen.py` (`1 passed`) and revalidated the nearby AXI4 subset with `./.venv/bin/python -m pytest -n 0 -q tests/axi/axi4/test_AxiReadPathMux.py tests/axi/axi4/test_AxiWritePathMux.py tests/axi/axi4/test_AxiRam.py tests/axi/axi4/test_AxiRateGen.py` (`4 passed`).
+- Refactored the `protocols/line-codes` benches to share a common cocotb harness in `tests/protocols/line_codes/line_code_test_utils.py` for reset, launch, wait, and round-trip checks across the three line-code families.
+- Validated the combined line-code family sweep with `./.venv/bin/python -m pytest -n 0 -q tests/protocols/line_codes/test_LineCode8b10bWrapper.py tests/protocols/line_codes/test_LineCode10b12bWrapper.py tests/protocols/line_codes/test_LineCode12b14bWrapper.py` (`4 passed`).
+- Added a checked-in package-level wrapper at `protocols/line-codes/wrappers/Code8b10bPkgWrapper.vhd` so `Code8b10bPkg` now has the same explicit disparity-seed coverage style as the other line-code package benches.
+- Added checked-in package-level wrappers at `protocols/line-codes/wrappers/Code10b12bPkgWrapper.vhd` and `protocols/line-codes/wrappers/Code12b14bPkgWrapper.vhd` so the legacy VHDL package-bench disparity sweeps stay preserved without generated HDL.
+- Validated the expanded line-code suite with `./.venv/bin/python -m pytest -n 0 -q tests/protocols/line_codes/test_LineCode8b10bWrapper.py tests/protocols/line_codes/test_LineCode10b12bWrapper.py tests/protocols/line_codes/test_LineCode12b14bWrapper.py tests/protocols/line_codes/test_Code8b10bPkg.py tests/protocols/line_codes/test_Code10b12bPkg.py tests/protocols/line_codes/test_Code12b14bPkg.py` (`7 passed`).
 
 ## Current In-Progress Item
-- Resume the regenerated axi-first queue at `AxiResize`, the earliest unfinished axi entry under the temporary subsystem deferrals.
-- Keep `ethernet` and `protocols` deferred until the remaining axi queue is complete, then remove those temporary deferrals and regenerate the queue.
-- Scoping the next 10 unfinished axi queue entries under the regenerated axi-first queue before landing the next implementation batch.
+- Pick the next `protocols/` or `ethernet/` follow-on after the completed `protocols/line-codes` family.
+- Regenerate the queue once the temporary `protocols` and `ethernet` deferrals are removed so the broader post-axi frontier is authoritative again.
+- Preserve the line-code shared-helper pattern when adjacent protocol families have the same single-clock symbol-launch shape.
 
 ## Next 3 Concrete Tasks
-- Resolve or otherwise disposition `AxiResize`, the earliest unfinished axi queue entry.
-- Resolve or otherwise disposition `AxiStreamDmaV2Read`, the next already-known open axi queue entry after `AxiResize`.
-- Continue through the remaining unfinished axi entries in regenerated queue order before removing the temporary `ethernet`/`protocols` deferrals.
-- Keep `tests/axi/axi4/test_AxiResize.py` in place on this branch so the known `32-bit -> 64-bit` upsize failure stays visible until the separate RTL fix lands.
-- Add only justified simulator-scope deferrals or ordering exceptions to `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit module order in `docs/_meta/rtl_regression_plan.md`.
+- Remove the temporary `protocols` and `ethernet` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`.
+- Regenerate `docs/_meta/rtl_instantiation_graph.{md,json}` and `docs/_meta/rtl_phase1_queue.{md,json}` with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`.
+- Take the next regenerated cross-subsystem module after `protocols/line-codes`, keeping the line-code helper structure in mind for reuse opportunities.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -178,6 +181,10 @@
 - If that shim layer is checked in instead of generated locally, treat it like normal repo HDL rather than disposable glue: add the standard header and enough section comments that the adapter structure is obvious during a later resume.
 - Apply the same “first-draft readability” rule to checked-in cocotb tests: standard header first, methodology block second, tutorial comments in the body.
 - `AxiReadPathMux` and `AxiWritePathMux` are more stable with tiny source-side pin drivers than with `cocotbext.axi` masters because the muxes rewrite IDs internally; the downstream shared-port checks can still use the library RAM models.
+- The `protocols/line-codes` family shares enough structure that one reusable cocotb harness is the right maintenance boundary: common clock/reset startup, one-cycle symbol launch, `validOut`-based response waiting, and identical round-trip/error assertions.
+- For the line-code families, keep the shared harness generic and keep legality decisions local to each module bench. `8b10b` varies by byte-lane width, `10b12b` uses the curated `x & 28` K-symbol subset from the legacy bench, and `12b14b` also preserves its historical mixed training pattern.
+- For line-code package coverage, prefer checked-in subsystem wrappers when the package surface needs explicit disparity seeding or other direct visibility that the public family wrappers do not expose. `Code8b10bPkg`, `Code10b12bPkg`, and `Code12b14bPkg` all follow that pattern now. Keep the explicit disparity-sweep logic in Python and keep the HDL adapter thin.
+- The current `Code12b14b` cocotb coverage now preserves the legacy explicit disparity seeds plus the training/transition sequences, but it does not yet carry forward the old VHDL bench's stateful run-length monitor as a passing assertion. Treat that run-length monitor as a known follow-up gap rather than silently assuming it is covered.
 - `AxiToAxiLite` is practical with a thin bridge-local adapter, but mixed-width checks need to stay single-beat on the AXI side when the downstream response path is fundamentally AXI-Lite-like.
 - `AxiResize` still has an expected verification-branch gap: the restored `32-bit -> 64-bit` upsize case in `tests/axi/axi4/test_AxiResize.py` should keep failing here until the separate RTL-fix branch is merged.
 - `AxiRateGen` is practical with the existing AXI4 and AXI-Lite IP-integrator shim pair plus a cocotb AXI RAM model, and the stable first-pass subset is the `COMMON_CLK_G=true` path with timer spacing, zero-fill writes, and generated-read completion rather than the asynchronous AXI-Lite crossing branches.
@@ -200,6 +207,9 @@
 - 2026-04-02: Expanded `tests/axi/axi_stream/test_AxiStreamFifoV2IpIntegrator.py` to cover `VALID_THOLD` release behavior, burst gating, dynamic pause control, `CASCADE_SIZE=2`, and `S_HAS_TREADY=0`, and revalidated it locally with `10 passed`.
 - 2026-04-02: Merged `verification` into `fix-axi-resize`, reran `tests/axi/axi4/test_AxiResize.py`, and confirmed the previous `32-bit -> 64-bit` upsize `xfail` now passes on this branch; removed the stale `xfail`.
 - 2026-04-02: Expanded the `axi/dma/rtl/v2/` regression split without broad overlap. `tests/axi/dma/test_AxiStreamDmaV2Write.py` now covers both single-frame and multi-burst writes, `tests/axi/dma/test_AxiStreamDmaV2WriteMux.py` now covers descriptor-first, simultaneous-launch, and data-first arbitration cases, and `tests/axi/dma/test_AxiStreamDmaV2Fifo.py` now covers the integrated FIFO register map plus dynamic pause-threshold behavior against the live write-buffer count. The combined validation run across `tests/axi/dma/test_AxiStreamDmaV2.py`, `tests/axi/dma/test_AxiStreamDmaV2Desc.py`, `tests/axi/dma/test_AxiStreamDmaV2Read.py`, `tests/axi/dma/test_AxiStreamDmaV2Write.py`, `tests/axi/dma/test_AxiStreamDmaV2WriteMux.py`, and `tests/axi/dma/test_AxiStreamDmaV2Fifo.py` passes locally with `9 passed`.
+- 2026-04-02: Refactored the `protocols/line-codes` benches to share `tests/protocols/line_codes/line_code_test_utils.py`, keeping family-specific symbol legality in the module-local tests while reusing the common round-trip harness. The combined validation run across `tests/protocols/line_codes/test_LineCode8b10bWrapper.py`, `tests/protocols/line_codes/test_LineCode10b12bWrapper.py`, and `tests/protocols/line_codes/test_LineCode12b14bWrapper.py` passes locally with `4 passed`.
+- 2026-04-02: Compared the cocotb line-code coverage against the legacy VHDL benches under `protocols/line-codes/tb/`, then added `tests/protocols/line_codes/test_Code10b12bPkg.py` and `tests/protocols/line_codes/test_Code12b14bPkg.py` backed by checked-in wrappers at `protocols/line-codes/wrappers/Code10b12bPkgWrapper.vhd` and `protocols/line-codes/wrappers/Code12b14bPkgWrapper.vhd`. The expanded validation run across the three `LineCode*Wrapper` tests plus the two `Code*Pkg` tests passes locally with `6 passed`. The only explicit legacy-behavior gap still noted is the old `Code12b14bTb.vhd` run-length monitor, which is not yet preserved as a passing cocotb assertion.
+- 2026-04-02: Added `tests/protocols/line_codes/test_Code8b10bPkg.py` backed by `protocols/line-codes/wrappers/Code8b10bPkgWrapper.vhd` so `Code8b10bPkg` now has explicit disparity-seed package coverage alongside the existing clocked `LineCode8b10b` wrapper bench. The full line-code suite across the three `LineCode*Wrapper` tests plus `Code8b10bPkg`, `Code10b12bPkg`, and `Code12b14bPkg` passes locally with `7 passed`.
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
 - 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.
 - 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.

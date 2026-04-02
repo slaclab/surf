@@ -17,52 +17,16 @@
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
 
-from tests.common.regression_utils import run_surf_vhdl_test
-
-
-async def initialize_dut(dut) -> None:
-    dut.rst.value = 1
-    dut.validIn.value = 0
-    dut.dataIn.value = 0
-    dut.dataKIn.value = 0
-    cocotb.start_soon(Clock(dut.clk, 5.0, unit="ns").start())
-    for _ in range(5):
-        await RisingEdge(dut.clk)
-    dut.rst.value = 0
-    await RisingEdge(dut.clk)
-
-
-async def drive_symbol(dut, data_in: int, data_k_in: int) -> None:
-    dut.dataIn.value = data_in
-    dut.dataKIn.value = data_k_in
-    dut.validIn.value = 1
-    await RisingEdge(dut.clk)
-    dut.validIn.value = 0
-    while int(dut.validOut.value) != 1:
-        await RisingEdge(dut.clk)
-
-
-def assert_symbol_round_trip(dut, data_in: int, data_k_in: int) -> None:
-    assert int(dut.dataOut.value) == data_in
-    assert int(dut.dataKOut.value) == data_k_in
-    assert int(dut.codeErr.value) == 0
-    assert int(dut.dispErr.value) == 0
+from tests.protocols.line_codes.line_code_test_utils import (
+    default_wrapper_parameter_sweep,
+    run_line_code_round_trip_test,
+    run_line_code_wrapper_test,
+)
 
 
 @cocotb.test()
 async def line_code_12b14b_round_trip_test(dut):
-    await initialize_dut(dut)
-    for data_in in range(2**12):
-        await drive_symbol(dut, data_in, 0)
-        assert_symbol_round_trip(dut, data_in, 0)
-
-    for data_in in [0x078, 0x0F8, 0x178, 0x1F8, 0x278, 0x3F8, 0x478, 0x5F8, 0x878, 0x9F8, 0xBF8, 0xC78, 0xDF8, 0xEF8, 0xF78, 0xFF8]:
-        await drive_symbol(dut, data_in, 1)
-        assert_symbol_round_trip(dut, data_in, 1)
-
     training_pattern = [
         (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
         (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
@@ -73,20 +37,28 @@ async def line_code_12b14b_round_trip_test(dut):
         (0x9BD, 0), (0xEAD, 0), (0xABD, 0), (0xEAD, 0), (0xBBD, 0), (0x5F8, 1),
         (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1), (0x5F8, 1),
     ]
-    for data_in, data_k_in in training_pattern:
-        await drive_symbol(dut, data_in, data_k_in)
-        assert_symbol_round_trip(dut, data_in, data_k_in)
+    # The 12b14b family keeps the broadest historical coverage: the full data
+    # space, the explicit legal K-code table, and the mixed-symbol training
+    # pattern from the older VHDL regression.
+    await run_line_code_round_trip_test(
+        dut,
+        normal_symbols=range(2**12),
+        k_symbols=[
+            0x078, 0x0F8, 0x178, 0x1F8, 0x278, 0x3F8, 0x478, 0x5F8,
+            0x878, 0x9F8, 0xBF8, 0xC78, 0xDF8, 0xEF8, 0xF78, 0xFF8,
+        ],
+        extra_sequences=training_pattern,
+    )
 
 
-PARAMETER_SWEEP = [pytest.param({}, id="default_configuration")]
+PARAMETER_SWEEP = default_wrapper_parameter_sweep()
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
-def test_LineCode12b14b(parameters):
-    run_surf_vhdl_test(
+def test_LineCode12b14bWrapper(parameters):
+    run_line_code_wrapper_test(
         test_file=__file__,
         toplevel="surf.linecode12b14bwrapper",
+        wrapper_source="protocols/line-codes/wrappers/LineCode12b14bWrapper.vhd",
         parameters=parameters,
-        extra_env=parameters,
-        extra_vhdl_sources={"surf": ["protocols/line-codes/wrappers/LineCode12b14bWrapper.vhd"]},
     )
