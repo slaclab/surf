@@ -21,7 +21,6 @@
 - Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules. `ethernet` and `protocols` are still temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, but that deferral is now the next thing to unwind rather than an active implementation aid.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
-  - `tests/axi/axi4/test_AxiResize.py` intentionally keeps the known `32-bit -> 64-bit` upsize failure visible until the separate RTL-fix branch lands.
   - `tests/axi/dma/test_AxiStreamDmaV2Read.py` is still an expected open failure because the DUT aborts under GHDL with `std_logic_arith` `CONV_INTEGER`.
 - Current queue discipline:
   - The next session should remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`.
