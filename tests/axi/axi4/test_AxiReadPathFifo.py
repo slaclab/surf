@@ -58,6 +58,13 @@ class TB:
             await RisingEdge(self.dut.sAxiClk)
             await Timer(1, unit="ns")
 
+    async def wait_for(self, predicate, *, cycles: int, message: str):
+        for _ in range(cycles):
+            if predicate():
+                return
+            await self.cycle(1)
+        raise AssertionError(message)
+
     async def reset(self):
         # Hold both domains in reset long enough for the FIFO pointers and the
         # AXI shim layers to return to a known idle state.
@@ -86,15 +93,21 @@ class TB:
         self.dut.S_AXI_ARID.value = rid
         self.dut.S_AXI_ARVALID.value = 1
 
-        while not int(self.dut.S_AXI_ARREADY.value):
-            await self.cycle(1)
+        await self.wait_for(
+            lambda: int(self.dut.S_AXI_ARREADY.value),
+            cycles=64,
+            message="Timed out waiting for source-side AXI read address handshake",
+        )
 
         await self.cycle(1)
         self.dut.S_AXI_ARVALID.value = 0
         self.dut.S_AXI_RREADY.value = 1
 
-        while not int(self.dut.S_AXI_RVALID.value):
-            await self.cycle(1)
+        await self.wait_for(
+            lambda: int(self.dut.S_AXI_RVALID.value),
+            cycles=64,
+            message="Timed out waiting for source-side AXI read response",
+        )
 
         data = int(self.dut.S_AXI_RDATA.value)
         resp = int(self.dut.S_AXI_RRESP.value)
