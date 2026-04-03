@@ -3,6 +3,7 @@
     "scan_dirs": [
       "base",
       "axi",
+      "dsp",
       "protocols",
       "ethernet",
       "devices",
@@ -13,10 +14,10 @@
     "queue_policy": "Path-qualified, phase-1 filtered, bottom-up instantiation order"
   },
   "summary": {
-    "phase1_module_count": 174,
-    "phase1_edge_count": 294,
-    "phase1_bottom_up_layers": 9,
-    "deferred_module_count": 603,
+    "phase1_module_count": 219,
+    "phase1_edge_count": 392,
+    "phase1_bottom_up_layers": 10,
+    "deferred_module_count": 632,
     "unresolved_phase1_edges": 0,
     "applied_order_overrides": 0
   },
@@ -223,6 +224,15 @@
     {
       "order": 14,
       "bottom_up_layer": 0,
+      "entity": "AxiStreamPkgWrapper",
+      "path": "axi/axi-stream/wrappers/AxiStreamPkgWrapper.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 15,
+      "bottom_up_layer": 0,
       "entity": "AxiReadPathMux",
       "path": "axi/axi4/rtl/AxiReadPathMux.vhd",
       "subsystem": "axi",
@@ -230,7 +240,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 15,
+      "order": 16,
       "bottom_up_layer": 0,
       "entity": "AxiResize",
       "path": "axi/axi4/rtl/AxiResize.vhd",
@@ -239,7 +249,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 16,
+      "order": 17,
       "bottom_up_layer": 0,
       "entity": "AxiWritePathMux",
       "path": "axi/axi4/rtl/AxiWritePathMux.vhd",
@@ -248,7 +258,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 17,
+      "order": 18,
       "bottom_up_layer": 0,
       "entity": "AxiToAxiLite",
       "path": "axi/bridge/rtl/AxiToAxiLite.vhd",
@@ -257,7 +267,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 18,
+      "order": 19,
       "bottom_up_layer": 0,
       "entity": "AxiStreamDmaV2WriteMux",
       "path": "axi/dma/rtl/v2/AxiStreamDmaV2WriteMux.vhd",
@@ -266,7 +276,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 19,
+      "order": 20,
       "bottom_up_layer": 0,
       "entity": "CRC32Rtl",
       "path": "base/crc/rtl/CRC32Rtl.vhd",
@@ -275,16 +285,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 20,
+      "order": 21,
       "bottom_up_layer": 0,
       "entity": "Crc32",
       "path": "base/crc/rtl/Crc32.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 0,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 21,
+      "order": 22,
       "bottom_up_layer": 0,
       "entity": "Crc32Parallel",
       "path": "base/crc/rtl/Crc32Parallel.vhd",
@@ -293,7 +303,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 22,
+      "order": 23,
       "bottom_up_layer": 0,
       "entity": "SlvDelay",
       "path": "base/delay/rtl/SlvDelay.vhd",
@@ -302,7 +312,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 23,
+      "order": 24,
       "bottom_up_layer": 0,
       "entity": "SlvDelayRam",
       "path": "base/delay/rtl/SlvDelayRam.vhd",
@@ -311,7 +321,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 24,
+      "order": 25,
       "bottom_up_layer": 0,
       "entity": "SlvFixedDelay",
       "path": "base/delay/rtl/SlvFixedDelay.vhd",
@@ -320,16 +330,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 25,
+      "order": 26,
       "bottom_up_layer": 0,
       "entity": "FifoOutputPipeline",
       "path": "base/fifo/rtl/FifoOutputPipeline.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 0,
-      "instantiated_by_in_phase1_count": 3
+      "instantiated_by_in_phase1_count": 7
     },
     {
-      "order": 26,
+      "order": 27,
       "bottom_up_layer": 0,
       "entity": "FifoRdFsm",
       "path": "base/fifo/rtl/inferred/FifoRdFsm.vhd",
@@ -338,7 +348,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 27,
+      "order": 28,
       "bottom_up_layer": 0,
       "entity": "FifoWrFsm",
       "path": "base/fifo/rtl/inferred/FifoWrFsm.vhd",
@@ -347,7 +357,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 28,
+      "order": 29,
       "bottom_up_layer": 0,
       "entity": "MasterRamIpIntegrator",
       "path": "base/general/ip_integrator/MasterRamIpIntegrator.vhd",
@@ -356,7 +366,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 29,
+      "order": 30,
       "bottom_up_layer": 0,
       "entity": "SlaveRamIpIntegrator",
       "path": "base/general/ip_integrator/SlaveRamIpIntegrator.vhd",
@@ -365,7 +375,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 30,
+      "order": 31,
       "bottom_up_layer": 0,
       "entity": "Arbiter",
       "path": "base/general/rtl/Arbiter.vhd",
@@ -374,7 +384,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 31,
+      "order": 32,
       "bottom_up_layer": 0,
       "entity": "ClockDivider",
       "path": "base/general/rtl/ClockDivider.vhd",
@@ -383,7 +393,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 32,
+      "order": 33,
       "bottom_up_layer": 0,
       "entity": "Gearbox",
       "path": "base/general/rtl/Gearbox.vhd",
@@ -392,16 +402,16 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 33,
+      "order": 34,
       "bottom_up_layer": 0,
       "entity": "Heartbeat",
       "path": "base/general/rtl/Heartbeat.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 0,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 34,
+      "order": 35,
       "bottom_up_layer": 0,
       "entity": "Mux",
       "path": "base/general/rtl/Mux.vhd",
@@ -410,7 +420,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 35,
+      "order": 36,
       "bottom_up_layer": 0,
       "entity": "OneShot",
       "path": "base/general/rtl/OneShot.vhd",
@@ -419,7 +429,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 36,
+      "order": 37,
       "bottom_up_layer": 0,
       "entity": "RegisterVector",
       "path": "base/general/rtl/RegisterVector.vhd",
@@ -428,7 +438,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 37,
+      "order": 38,
       "bottom_up_layer": 0,
       "entity": "RstPipeline",
       "path": "base/general/rtl/RstPipeline.vhd",
@@ -437,7 +447,7 @@
       "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 38,
+      "order": 39,
       "bottom_up_layer": 0,
       "entity": "Scrambler",
       "path": "base/general/rtl/Scrambler.vhd",
@@ -446,7 +456,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 39,
+      "order": 40,
       "bottom_up_layer": 0,
       "entity": "LutRam",
       "path": "base/ram/inferred/LutRam.vhd",
@@ -455,16 +465,16 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 40,
+      "order": 41,
       "bottom_up_layer": 0,
       "entity": "SimpleDualPortRam",
       "path": "base/ram/inferred/SimpleDualPortRam.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 0,
-      "instantiated_by_in_phase1_count": 5
+      "instantiated_by_in_phase1_count": 6
     },
     {
-      "order": 41,
+      "order": 42,
       "bottom_up_layer": 0,
       "entity": "TrueDualPortRam",
       "path": "base/ram/inferred/TrueDualPortRam.vhd",
@@ -473,7 +483,7 @@
       "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 42,
+      "order": 43,
       "bottom_up_layer": 0,
       "entity": "Synchronizer",
       "path": "base/sync/rtl/Synchronizer.vhd",
@@ -482,7 +492,7 @@
       "instantiated_by_in_phase1_count": 13
     },
     {
-      "order": 43,
+      "order": 44,
       "bottom_up_layer": 0,
       "entity": "SynchronizerVector",
       "path": "base/sync/rtl/SynchronizerVector.vhd",
@@ -491,7 +501,16 @@
       "instantiated_by_in_phase1_count": 7
     },
     {
-      "order": 44,
+      "order": 45,
+      "bottom_up_layer": 0,
+      "entity": "FirFilterTap",
+      "path": "dsp/generic/fixed/FirFilterTap.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 0,
+      "instantiated_by_in_phase1_count": 2
+    },
+    {
+      "order": 46,
       "bottom_up_layer": 1,
       "entity": "AxiLiteMasterProxy",
       "path": "axi/axi-lite/rtl/AxiLiteMasterProxy.vhd",
@@ -500,7 +519,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 45,
+      "order": 47,
       "bottom_up_layer": 1,
       "entity": "AxiLiteSequencerRam",
       "path": "axi/axi-lite/rtl/AxiLiteSequencerRam.vhd",
@@ -509,7 +528,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 46,
+      "order": 48,
       "bottom_up_layer": 1,
       "entity": "AxiStreamCompact",
       "path": "axi/axi-stream/rtl/AxiStreamCompact.vhd",
@@ -518,7 +537,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 47,
+      "order": 49,
       "bottom_up_layer": 1,
       "entity": "AxiStreamConcat",
       "path": "axi/axi-stream/rtl/AxiStreamConcat.vhd",
@@ -527,7 +546,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 48,
+      "order": 50,
       "bottom_up_layer": 1,
       "entity": "AxiStreamDeMux",
       "path": "axi/axi-stream/rtl/AxiStreamDeMux.vhd",
@@ -536,7 +555,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 49,
+      "order": 51,
       "bottom_up_layer": 1,
       "entity": "AxiStreamFrameRateLimiter",
       "path": "axi/axi-stream/rtl/AxiStreamFrameRateLimiter.vhd",
@@ -545,7 +564,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 50,
+      "order": 52,
       "bottom_up_layer": 1,
       "entity": "AxiStreamMux",
       "path": "axi/axi-stream/rtl/AxiStreamMux.vhd",
@@ -554,16 +573,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 51,
-      "bottom_up_layer": 1,
-      "entity": "AxiStreamPrbsFlowCtrl",
-      "path": "axi/axi-stream/rtl/AxiStreamPrbsFlowCtrl.vhd",
-      "subsystem": "axi",
-      "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 1
-    },
-    {
-      "order": 52,
+      "order": 53,
       "bottom_up_layer": 1,
       "entity": "AxiStreamRepeater",
       "path": "axi/axi-stream/rtl/AxiStreamRepeater.vhd",
@@ -572,7 +582,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 53,
+      "order": 54,
       "bottom_up_layer": 1,
       "entity": "AxiStreamResize",
       "path": "axi/axi-stream/rtl/AxiStreamResize.vhd",
@@ -581,7 +591,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 54,
+      "order": 55,
       "bottom_up_layer": 1,
       "entity": "AxiStreamShift",
       "path": "axi/axi-stream/rtl/AxiStreamShift.vhd",
@@ -590,7 +600,7 @@
       "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 55,
+      "order": 56,
       "bottom_up_layer": 1,
       "entity": "AxiStreamTrailerAppend",
       "path": "axi/axi-stream/rtl/AxiStreamTrailerAppend.vhd",
@@ -599,7 +609,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 56,
+      "order": 57,
       "bottom_up_layer": 1,
       "entity": "AxiStreamTrailerRemove",
       "path": "axi/axi-stream/rtl/AxiStreamTrailerRemove.vhd",
@@ -608,7 +618,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 57,
+      "order": 58,
       "bottom_up_layer": 1,
       "entity": "AxiRam",
       "path": "axi/axi4/rtl/AxiRam.vhd",
@@ -617,7 +627,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 58,
+      "order": 59,
       "bottom_up_layer": 1,
       "entity": "AxiLiteToIpBus",
       "path": "axi/bridge/rtl/AxiLiteToIpBus.vhd",
@@ -626,7 +636,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 59,
+      "order": 60,
       "bottom_up_layer": 1,
       "entity": "IpBusToAxiLite",
       "path": "axi/bridge/rtl/IpBusToAxiLite.vhd",
@@ -635,7 +645,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 60,
+      "order": 61,
       "bottom_up_layer": 1,
       "entity": "AxiStreamDmaV2WriteMuxIpIntegrator",
       "path": "axi/dma/ip_integrator/AxiStreamDmaV2WriteMuxIpIntegrator.vhd",
@@ -644,16 +654,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 61,
+      "order": 62,
       "bottom_up_layer": 1,
-      "entity": "AxiStreamDmaV2Read",
-      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
-      "subsystem": "axi",
+      "entity": "Crc32PolyWrapper",
+      "path": "base/crc/wrappers/Crc32PolyWrapper.vhd",
+      "subsystem": "base",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 3
+      "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 62,
+      "order": 63,
       "bottom_up_layer": 1,
       "entity": "FifoSync",
       "path": "base/fifo/rtl/inferred/FifoSync.vhd",
@@ -662,7 +672,7 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 63,
+      "order": 64,
       "bottom_up_layer": 1,
       "entity": "RstPipelineVector",
       "path": "base/general/rtl/RstPipelineVector.vhd",
@@ -671,7 +681,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 64,
+      "order": 65,
       "bottom_up_layer": 1,
       "entity": "WatchDogRst",
       "path": "base/general/rtl/WatchDogRst.vhd",
@@ -680,16 +690,25 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 65,
+      "order": 66,
+      "bottom_up_layer": 1,
+      "entity": "HeartbeatWrapper",
+      "path": "base/general/wrappers/HeartbeatWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 67,
       "bottom_up_layer": 1,
       "entity": "DualPortRam",
       "path": "base/ram/inferred/DualPortRam.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 3
+      "instantiated_by_in_phase1_count": 4
     },
     {
-      "order": 66,
+      "order": 68,
       "bottom_up_layer": 1,
       "entity": "RstSync",
       "path": "base/sync/rtl/RstSync.vhd",
@@ -698,7 +717,7 @@
       "instantiated_by_in_phase1_count": 15
     },
     {
-      "order": 67,
+      "order": 69,
       "bottom_up_layer": 1,
       "entity": "SynchronizerEdge",
       "path": "base/sync/rtl/SynchronizerEdge.vhd",
@@ -707,52 +726,97 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 68,
+      "order": 70,
+      "bottom_up_layer": 1,
+      "entity": "BoxcarIntegrator",
+      "path": "dsp/generic/fixed/BoxcarIntegrator.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 71,
+      "bottom_up_layer": 1,
+      "entity": "DspAddSub",
+      "path": "dsp/generic/fixed/DspAddSub.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 72,
+      "bottom_up_layer": 1,
+      "entity": "DspComparator",
+      "path": "dsp/generic/fixed/DspComparator.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 4
+    },
+    {
+      "order": 73,
+      "bottom_up_layer": 1,
+      "entity": "DspPreSubMult",
+      "path": "dsp/generic/fixed/DspPreSubMult.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 74,
+      "bottom_up_layer": 1,
+      "entity": "DspSquareDiffMult",
+      "path": "dsp/generic/fixed/DspSquareDiffMult.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 75,
       "bottom_up_layer": 2,
       "entity": "MasterAxiLiteIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/MasterAxiLiteIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 7
+      "instantiated_by_in_phase1_count": 9
     },
     {
-      "order": 69,
+      "order": 76,
       "bottom_up_layer": 2,
       "entity": "SlaveAxiLiteIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 15
+      "instantiated_by_in_phase1_count": 32
     },
     {
-      "order": 70,
+      "order": 77,
       "bottom_up_layer": 2,
       "entity": "AxiLiteAsync",
       "path": "axi/axi-lite/rtl/AxiLiteAsync.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 6
+      "instantiated_by_in_phase1_count": 7
     },
     {
-      "order": 71,
+      "order": 78,
       "bottom_up_layer": 2,
       "entity": "MasterAxiStreamIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 23
+      "instantiated_by_in_phase1_count": 30
     },
     {
-      "order": 72,
+      "order": 79,
       "bottom_up_layer": 2,
       "entity": "SlaveAxiStreamIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 22
+      "instantiated_by_in_phase1_count": 30
     },
     {
-      "order": 73,
+      "order": 80,
       "bottom_up_layer": 2,
       "entity": "AxiStreamGearbox",
       "path": "axi/axi-stream/rtl/AxiStreamGearbox.vhd",
@@ -761,7 +825,16 @@
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 74,
+      "order": 81,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamPrbsFlowCtrl",
+      "path": "axi/axi-stream/rtl/AxiStreamPrbsFlowCtrl.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 82,
       "bottom_up_layer": 2,
       "entity": "AxiStreamTap",
       "path": "axi/axi-stream/rtl/AxiStreamTap.vhd",
@@ -770,25 +843,25 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 75,
+      "order": 83,
       "bottom_up_layer": 2,
       "entity": "MasterAxiIpIntegrator",
       "path": "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 7
+      "instantiated_by_in_phase1_count": 16
     },
     {
-      "order": 76,
+      "order": 84,
       "bottom_up_layer": 2,
       "entity": "SlaveAxiIpIntegrator",
       "path": "axi/axi4/ip_integrator/SlaveAxiIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 5
+      "instantiated_by_in_phase1_count": 9
     },
     {
-      "order": 77,
+      "order": 85,
       "bottom_up_layer": 2,
       "entity": "AxiStreamDmaRead",
       "path": "axi/dma/rtl/v1/AxiStreamDmaRead.vhd",
@@ -797,7 +870,16 @@
       "instantiated_by_in_phase1_count": 4
     },
     {
-      "order": 78,
+      "order": 86,
+      "bottom_up_layer": 2,
+      "entity": "AxiStreamDmaV2Read",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 3
+    },
+    {
+      "order": 87,
       "bottom_up_layer": 2,
       "entity": "AxiStreamDmaV2Write",
       "path": "axi/dma/rtl/v2/AxiStreamDmaV2Write.vhd",
@@ -806,7 +888,7 @@
       "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 79,
+      "order": 88,
       "bottom_up_layer": 2,
       "entity": "FifoAsync",
       "path": "base/fifo/rtl/inferred/FifoAsync.vhd",
@@ -815,16 +897,16 @@
       "instantiated_by_in_phase1_count": 4
     },
     {
-      "order": 80,
+      "order": 89,
       "bottom_up_layer": 2,
       "entity": "Debouncer",
       "path": "base/general/rtl/Debouncer.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 81,
+      "order": 90,
       "bottom_up_layer": 2,
       "entity": "PwrUpRst",
       "path": "base/general/rtl/PwrUpRst.vhd",
@@ -833,7 +915,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 82,
+      "order": 91,
       "bottom_up_layer": 2,
       "entity": "SynchronizerOneShot",
       "path": "base/sync/rtl/SynchronizerOneShot.vhd",
@@ -842,7 +924,16 @@
       "instantiated_by_in_phase1_count": 8
     },
     {
-      "order": 83,
+      "order": 92,
+      "bottom_up_layer": 2,
+      "entity": "BoxcarFilter",
+      "path": "dsp/generic/fixed/BoxcarFilter.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 93,
       "bottom_up_layer": 3,
       "entity": "AxiLiteAsyncIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteAsyncIpIntegrator.vhd",
@@ -851,7 +942,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 84,
+      "order": 94,
       "bottom_up_layer": 3,
       "entity": "AxiLiteMasterIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteMasterIpIntegrator.vhd",
@@ -860,7 +951,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 85,
+      "order": 95,
       "bottom_up_layer": 3,
       "entity": "AxiLiteMasterProxyIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteMasterProxyIpIntegrator.vhd",
@@ -869,7 +960,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 86,
+      "order": 96,
       "bottom_up_layer": 3,
       "entity": "AxiLiteRegsIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteRegsIpIntegrator.vhd",
@@ -878,7 +969,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 87,
+      "order": 97,
       "bottom_up_layer": 3,
       "entity": "AxiLiteRespTimerIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteRespTimerIpIntegrator.vhd",
@@ -887,7 +978,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 88,
+      "order": 98,
       "bottom_up_layer": 3,
       "entity": "AxiLiteSequencerRamIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteSequencerRamIpIntegrator.vhd",
@@ -896,7 +987,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 89,
+      "order": 99,
       "bottom_up_layer": 3,
       "entity": "AxiLiteSlaveIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteSlaveIpIntegrator.vhd",
@@ -905,7 +996,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 90,
+      "order": 100,
       "bottom_up_layer": 3,
       "entity": "AxiLiteWriteFilterIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteWriteFilterIpIntegrator.vhd",
@@ -914,7 +1005,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 91,
+      "order": 101,
       "bottom_up_layer": 3,
       "entity": "AxiVersionIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiVersionIpIntegrator.vhd",
@@ -923,7 +1014,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 92,
+      "order": 102,
       "bottom_up_layer": 3,
       "entity": "AxiStreamCombinerIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamCombinerIpIntegrator.vhd",
@@ -932,7 +1023,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 93,
+      "order": 103,
       "bottom_up_layer": 3,
       "entity": "AxiStreamCompactIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamCompactIpIntegrator.vhd",
@@ -941,7 +1032,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 94,
+      "order": 104,
       "bottom_up_layer": 3,
       "entity": "AxiStreamConcatIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamConcatIpIntegrator.vhd",
@@ -950,7 +1041,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 95,
+      "order": 105,
       "bottom_up_layer": 3,
       "entity": "AxiStreamDeMuxIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd",
@@ -959,7 +1050,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 96,
+      "order": 106,
       "bottom_up_layer": 3,
       "entity": "AxiStreamFlushIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamFlushIpIntegrator.vhd",
@@ -968,7 +1059,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 97,
+      "order": 107,
       "bottom_up_layer": 3,
       "entity": "AxiStreamFrameRateLimiterIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamFrameRateLimiterIpIntegrator.vhd",
@@ -977,7 +1068,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 98,
+      "order": 108,
       "bottom_up_layer": 3,
       "entity": "AxiStreamGearboxIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamGearboxIpIntegrator.vhd",
@@ -986,7 +1077,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 99,
+      "order": 109,
       "bottom_up_layer": 3,
       "entity": "AxiStreamGearboxPackIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamGearboxPackIpIntegrator.vhd",
@@ -995,7 +1086,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 100,
+      "order": 110,
       "bottom_up_layer": 3,
       "entity": "AxiStreamGearboxUnpackIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamGearboxUnpackIpIntegrator.vhd",
@@ -1004,7 +1095,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 101,
+      "order": 111,
       "bottom_up_layer": 3,
       "entity": "AxiStreamMuxIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamMuxIpIntegrator.vhd",
@@ -1013,7 +1104,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 102,
+      "order": 112,
       "bottom_up_layer": 3,
       "entity": "AxiStreamPipelineIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd",
@@ -1022,7 +1113,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 103,
+      "order": 113,
       "bottom_up_layer": 3,
       "entity": "AxiStreamPrbsFlowCtrlIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamPrbsFlowCtrlIpIntegrator.vhd",
@@ -1031,7 +1122,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 104,
+      "order": 114,
       "bottom_up_layer": 3,
       "entity": "AxiStreamRepeaterIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamRepeaterIpIntegrator.vhd",
@@ -1040,7 +1131,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 105,
+      "order": 115,
       "bottom_up_layer": 3,
       "entity": "AxiStreamResizeIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamResizeIpIntegrator.vhd",
@@ -1049,7 +1140,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 106,
+      "order": 116,
       "bottom_up_layer": 3,
       "entity": "AxiStreamShiftIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamShiftIpIntegrator.vhd",
@@ -1058,7 +1149,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 107,
+      "order": 117,
       "bottom_up_layer": 3,
       "entity": "AxiStreamSplitterIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamSplitterIpIntegrator.vhd",
@@ -1067,7 +1158,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 108,
+      "order": 118,
       "bottom_up_layer": 3,
       "entity": "AxiStreamTapIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamTapIpIntegrator.vhd",
@@ -1076,7 +1167,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 109,
+      "order": 119,
       "bottom_up_layer": 3,
       "entity": "AxiStreamTrailerAppendIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamTrailerAppendIpIntegrator.vhd",
@@ -1085,7 +1176,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 110,
+      "order": 120,
       "bottom_up_layer": 3,
       "entity": "AxiStreamTrailerRemoveIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamTrailerRemoveIpIntegrator.vhd",
@@ -1094,7 +1185,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 111,
+      "order": 121,
       "bottom_up_layer": 3,
       "entity": "MasterAxiStreamTerminateIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/MasterAxiStreamTerminateIpIntegrator.vhd",
@@ -1103,7 +1194,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 112,
+      "order": 122,
       "bottom_up_layer": 3,
       "entity": "SlaveAxiStreamTerminateIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/SlaveAxiStreamTerminateIpIntegrator.vhd",
@@ -1112,7 +1203,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 113,
+      "order": 123,
       "bottom_up_layer": 3,
       "entity": "AxiStreamTimer",
       "path": "axi/axi-stream/rtl/AxiStreamTimer.vhd",
@@ -1121,7 +1212,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 114,
+      "order": 124,
       "bottom_up_layer": 3,
       "entity": "AxiRamIpIntegrator",
       "path": "axi/axi4/ip_integrator/AxiRamIpIntegrator.vhd",
@@ -1130,7 +1221,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 115,
+      "order": 125,
       "bottom_up_layer": 3,
       "entity": "AxiReadPathMuxIpIntegrator",
       "path": "axi/axi4/ip_integrator/AxiReadPathMuxIpIntegrator.vhd",
@@ -1139,7 +1230,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 116,
+      "order": 126,
       "bottom_up_layer": 3,
       "entity": "AxiResizeIpIntegrator",
       "path": "axi/axi4/ip_integrator/AxiResizeIpIntegrator.vhd",
@@ -1148,7 +1239,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 117,
+      "order": 127,
       "bottom_up_layer": 3,
       "entity": "AxiWritePathMuxIpIntegrator",
       "path": "axi/axi4/ip_integrator/AxiWritePathMuxIpIntegrator.vhd",
@@ -1157,7 +1248,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 118,
+      "order": 128,
       "bottom_up_layer": 3,
       "entity": "AxiRateGen",
       "path": "axi/axi4/rtl/AxiRateGen.vhd",
@@ -1166,7 +1257,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 119,
+      "order": 129,
       "bottom_up_layer": 3,
       "entity": "AxiLiteToIpBusIpIntegrator",
       "path": "axi/bridge/ip_integrator/AxiLiteToIpBusIpIntegrator.vhd",
@@ -1175,7 +1266,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 120,
+      "order": 130,
       "bottom_up_layer": 3,
       "entity": "AxiToAxiLiteIpIntegrator",
       "path": "axi/bridge/ip_integrator/AxiToAxiLiteIpIntegrator.vhd",
@@ -1184,7 +1275,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 121,
+      "order": 131,
       "bottom_up_layer": 3,
       "entity": "IpBusToAxiLiteIpIntegrator",
       "path": "axi/bridge/ip_integrator/IpBusToAxiLiteIpIntegrator.vhd",
@@ -1193,7 +1284,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 122,
+      "order": 132,
       "bottom_up_layer": 3,
       "entity": "AxiLiteToDrp",
       "path": "axi/bridge/rtl/AxiLiteToDrp.vhd",
@@ -1202,7 +1293,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 123,
+      "order": 133,
       "bottom_up_layer": 3,
       "entity": "AxiStreamDmaReadIpIntegrator",
       "path": "axi/dma/ip_integrator/AxiStreamDmaReadIpIntegrator.vhd",
@@ -1211,7 +1302,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 124,
+      "order": 134,
       "bottom_up_layer": 3,
       "entity": "AxiStreamDmaV2ReadIpIntegrator",
       "path": "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd",
@@ -1220,7 +1311,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 125,
+      "order": 135,
       "bottom_up_layer": 3,
       "entity": "AxiStreamDmaV2WriteIpIntegrator",
       "path": "axi/dma/ip_integrator/AxiStreamDmaV2WriteIpIntegrator.vhd",
@@ -1229,16 +1320,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 126,
+      "order": 136,
       "bottom_up_layer": 3,
       "entity": "Fifo",
       "path": "base/fifo/rtl/Fifo.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 5
+      "instantiated_by_in_phase1_count": 6
     },
     {
-      "order": 127,
+      "order": 137,
       "bottom_up_layer": 3,
       "entity": "AsyncGearbox",
       "path": "base/general/rtl/AsyncGearbox.vhd",
@@ -1247,7 +1338,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 128,
+      "order": 138,
+      "bottom_up_layer": 3,
+      "entity": "DebouncerWrapper",
+      "path": "base/general/wrappers/DebouncerWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 139,
       "bottom_up_layer": 3,
       "entity": "SyncTrigPeriod",
       "path": "base/sync/rtl/SyncTrigPeriod.vhd",
@@ -1256,7 +1356,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 129,
+      "order": 140,
       "bottom_up_layer": 3,
       "entity": "SynchronizerFifo",
       "path": "base/sync/rtl/SynchronizerFifo.vhd",
@@ -1265,7 +1365,7 @@
       "instantiated_by_in_phase1_count": 11
     },
     {
-      "order": 130,
+      "order": 141,
       "bottom_up_layer": 3,
       "entity": "SynchronizerOneShotVector",
       "path": "base/sync/rtl/SynchronizerOneShotVector.vhd",
@@ -1274,25 +1374,34 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 131,
+      "order": 142,
+      "bottom_up_layer": 3,
+      "entity": "FirFilterSingleChannel",
+      "path": "dsp/generic/fixed/FirFilterSingleChannel.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 143,
       "bottom_up_layer": 4,
       "entity": "AxiDualPortRam",
       "path": "axi/axi-lite/rtl/AxiDualPortRam.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 3,
-      "instantiated_by_in_phase1_count": 5
+      "instantiated_by_in_phase1_count": 6
     },
     {
-      "order": 132,
+      "order": 144,
       "bottom_up_layer": 4,
       "entity": "AxiLiteRingBuffer",
       "path": "axi/axi-lite/rtl/AxiLiteRingBuffer.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 133,
+      "order": 145,
       "bottom_up_layer": 4,
       "entity": "AxiStreamTimerIpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamTimerIpIntegrator.vhd",
@@ -1301,16 +1410,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 134,
+      "order": 146,
       "bottom_up_layer": 4,
       "entity": "AxiStreamScatterGather",
       "path": "axi/axi-stream/rtl/AxiStreamScatterGather.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 135,
+      "order": 147,
       "bottom_up_layer": 4,
       "entity": "AxiRateGenIpIntegrator",
       "path": "axi/axi4/ip_integrator/AxiRateGenIpIntegrator.vhd",
@@ -1319,16 +1428,16 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 136,
+      "order": 148,
       "bottom_up_layer": 4,
       "entity": "AxiMemTester",
       "path": "axi/axi4/rtl/AxiMemTester.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 137,
+      "order": 149,
       "bottom_up_layer": 4,
       "entity": "AxiLiteToDrpIpIntegrator",
       "path": "axi/bridge/ip_integrator/AxiLiteToDrpIpIntegrator.vhd",
@@ -1337,34 +1446,34 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 138,
+      "order": 150,
       "bottom_up_layer": 4,
       "entity": "SlvArraytoAxiLite",
       "path": "axi/bridge/rtl/SlvArraytoAxiLite.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 139,
+      "order": 151,
       "bottom_up_layer": 4,
       "entity": "AxiStreamDmaV2Desc",
       "path": "axi/dma/rtl/v2/AxiStreamDmaV2Desc.vhd",
       "subsystem": "axi",
-      "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 1
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 140,
+      "order": 152,
       "bottom_up_layer": 4,
       "entity": "AxiStreamDmaV2Fifo",
       "path": "axi/dma/rtl/v2/AxiStreamDmaV2Fifo.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 141,
+      "order": 153,
       "bottom_up_layer": 4,
       "entity": "SlvDelayFifo",
       "path": "base/delay/rtl/SlvDelayFifo.vhd",
@@ -1373,7 +1482,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 142,
+      "order": 154,
       "bottom_up_layer": 4,
       "entity": "FifoCascade",
       "path": "base/fifo/rtl/FifoCascade.vhd",
@@ -1382,25 +1491,34 @@
       "instantiated_by_in_phase1_count": 8
     },
     {
-      "order": 143,
+      "order": 155,
       "bottom_up_layer": 4,
-      "entity": "SyncClockFreq",
-      "path": "base/sync/rtl/SyncClockFreq.vhd",
+      "entity": "FwftCntWrapper",
+      "path": "base/fifo/wrappers/FwftCntWrapper.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 1,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 144,
+      "order": 156,
+      "bottom_up_layer": 4,
+      "entity": "SyncClockFreq",
+      "path": "base/sync/rtl/SyncClockFreq.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 157,
       "bottom_up_layer": 4,
       "entity": "SyncMinMax",
       "path": "base/sync/rtl/SyncMinMax.vhd",
       "subsystem": "base",
-      "instantiates_in_phase1_count": 2,
+      "instantiates_in_phase1_count": 3,
       "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 145,
+      "order": 158,
       "bottom_up_layer": 4,
       "entity": "SynchronizerOneShotCnt",
       "path": "base/sync/rtl/SynchronizerOneShotCnt.vhd",
@@ -1409,7 +1527,7 @@
       "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 146,
+      "order": 159,
       "bottom_up_layer": 5,
       "entity": "AxiDualPortRamIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiDualPortRamIpIntegrator.vhd",
@@ -1418,7 +1536,7 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 147,
+      "order": 160,
       "bottom_up_layer": 5,
       "entity": "AxiLiteCrossbarIpIntegrator",
       "path": "axi/axi-lite/ip_integrator/AxiLiteCrossbarIpIntegrator.vhd",
@@ -1427,34 +1545,52 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 148,
+      "order": 161,
+      "bottom_up_layer": 5,
+      "entity": "AxiLiteRingBufferIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteRingBufferIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 162,
       "bottom_up_layer": 5,
       "entity": "AxiLiteFifoPop",
       "path": "axi/axi-lite/rtl/AxiLiteFifoPop.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 149,
+      "order": 163,
       "bottom_up_layer": 5,
       "entity": "AxiLiteFifoPush",
       "path": "axi/axi-lite/rtl/AxiLiteFifoPush.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 150,
+      "order": 164,
       "bottom_up_layer": 5,
       "entity": "AxiLiteFifoPushPop",
       "path": "axi/axi-lite/rtl/AxiLiteFifoPushPop.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 1
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 151,
+      "order": 165,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamScatterGatherIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamScatterGatherIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 166,
       "bottom_up_layer": 5,
       "entity": "AxiStreamFifoV2",
       "path": "axi/axi-stream/rtl/AxiStreamFifoV2.vhd",
@@ -1463,34 +1599,70 @@
       "instantiated_by_in_phase1_count": 7
     },
     {
-      "order": 152,
+      "order": 167,
+      "bottom_up_layer": 5,
+      "entity": "AxiMemTesterIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiMemTesterIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 168,
       "bottom_up_layer": 5,
       "entity": "AxiReadPathFifo",
       "path": "axi/axi4/rtl/AxiReadPathFifo.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 2
+      "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 153,
+      "order": 169,
       "bottom_up_layer": 5,
       "entity": "AxiWritePathFifo",
       "path": "axi/axi4/rtl/AxiWritePathFifo.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 2
+      "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 154,
+      "order": 170,
       "bottom_up_layer": 5,
-      "entity": "AxiStreamDmaV2",
-      "path": "axi/dma/rtl/v2/AxiStreamDmaV2.vhd",
+      "entity": "SlvArraytoAxiLiteIpIntegrator",
+      "path": "axi/bridge/ip_integrator/SlvArraytoAxiLiteIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 171,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamDmaV2DescIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaV2DescIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 172,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamDmaV2FifoIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaV2FifoIpIntegrator.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 5,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 155,
+      "order": 173,
+      "bottom_up_layer": 5,
+      "entity": "AxiStreamDmaV2",
+      "path": "axi/dma/rtl/v2/AxiStreamDmaV2.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 174,
       "bottom_up_layer": 5,
       "entity": "FifoMux",
       "path": "base/fifo/rtl/FifoMux.vhd",
@@ -1499,25 +1671,70 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 156,
+      "order": 175,
       "bottom_up_layer": 5,
       "entity": "SyncTrigRate",
       "path": "base/sync/rtl/SyncTrigRate.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 3,
-      "instantiated_by_in_phase1_count": 2
+      "instantiated_by_in_phase1_count": 3
     },
     {
-      "order": 157,
+      "order": 176,
       "bottom_up_layer": 5,
       "entity": "SynchronizerOneShotCntVector",
       "path": "base/sync/rtl/SynchronizerOneShotCntVector.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 1
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 158,
+      "order": 177,
+      "bottom_up_layer": 5,
+      "entity": "SyncClockFreqWrapper",
+      "path": "base/sync/wrappers/SyncClockFreqWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 178,
+      "bottom_up_layer": 5,
+      "entity": "FirFilterMultiChannel",
+      "path": "dsp/generic/fixed/FirFilterMultiChannel.vhd",
+      "subsystem": "dsp",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 179,
+      "bottom_up_layer": 6,
+      "entity": "AxiLiteFifoPopIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteFifoPopIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 180,
+      "bottom_up_layer": 6,
+      "entity": "AxiLiteFifoPushIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteFifoPushIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 181,
+      "bottom_up_layer": 6,
+      "entity": "AxiLiteFifoPushPopIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteFifoPushPopIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 182,
       "bottom_up_layer": 6,
       "entity": "AxiStreamFifoV2IpIntegrator",
       "path": "axi/axi-stream/ip_integrator/AxiStreamFifoV2IpIntegrator.vhd",
@@ -1526,147 +1743,336 @@
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 159,
+      "order": 183,
       "bottom_up_layer": 6,
       "entity": "AxiStreamBatchingFifo",
       "path": "axi/axi-stream/rtl/AxiStreamBatchingFifo.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 3,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 160,
+      "order": 184,
       "bottom_up_layer": 6,
       "entity": "AxiStreamMon",
       "path": "axi/axi-stream/rtl/AxiStreamMon.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 1
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 161,
+      "order": 185,
       "bottom_up_layer": 6,
       "entity": "AxiStreamRingBuffer",
       "path": "axi/axi-stream/rtl/AxiStreamRingBuffer.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 186,
+      "bottom_up_layer": 6,
+      "entity": "AxiReadPathFifoIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiReadPathFifoIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 162,
+      "order": 187,
+      "bottom_up_layer": 6,
+      "entity": "AxiWritePathFifoIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiWritePathFifoIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 188,
       "bottom_up_layer": 6,
       "entity": "AxiReadEmulate",
       "path": "axi/axi4/rtl/AxiReadEmulate.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 163,
+      "order": 189,
       "bottom_up_layer": 6,
       "entity": "AxiRingBuffer",
       "path": "axi/axi4/rtl/AxiRingBuffer.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 6,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 164,
+      "order": 190,
       "bottom_up_layer": 6,
       "entity": "AxiWriteEmulate",
       "path": "axi/axi4/rtl/AxiWriteEmulate.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 191,
+      "bottom_up_layer": 6,
+      "entity": "AxiStreamDmaV2IpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaV2IpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 165,
+      "order": 192,
       "bottom_up_layer": 6,
       "entity": "AxiStreamDmaRingRead",
       "path": "axi/dma/rtl/v1/AxiStreamDmaRingRead.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 5,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 166,
+      "order": 193,
       "bottom_up_layer": 6,
       "entity": "AxiStreamDmaWrite",
       "path": "axi/dma/rtl/v1/AxiStreamDmaWrite.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 3,
-      "instantiated_by_in_phase1_count": 3
+      "instantiated_by_in_phase1_count": 4
     },
     {
-      "order": 167,
+      "order": 194,
       "bottom_up_layer": 6,
       "entity": "SyncStatusVector",
       "path": "base/sync/rtl/SyncStatusVector.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 2,
-      "instantiated_by_in_phase1_count": 1
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 168,
+      "order": 195,
       "bottom_up_layer": 6,
       "entity": "SyncTrigRateVector",
       "path": "base/sync/rtl/SyncTrigRateVector.vhd",
       "subsystem": "base",
       "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 196,
+      "bottom_up_layer": 6,
+      "entity": "SyncTrigRateWrapper",
+      "path": "base/sync/wrappers/SyncTrigRateWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 169,
+      "order": 197,
+      "bottom_up_layer": 6,
+      "entity": "SynchronizerOneShotCntVectorFlatWrapper",
+      "path": "base/sync/wrappers/SynchronizerOneShotCntVectorFlatWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 198,
       "bottom_up_layer": 7,
       "entity": "AxiLiteRamSyncStatusVector",
       "path": "axi/axi-lite/rtl/AxiLiteRamSyncStatusVector.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 199,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamBatchingFifoIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamBatchingFifoIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 4,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 170,
+      "order": 200,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamMonIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamMonIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 201,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamRingBufferIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamRingBufferIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 202,
       "bottom_up_layer": 7,
       "entity": "AxiStreamMonAxiL",
       "path": "axi/axi-stream/rtl/AxiStreamMonAxiL.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 3,
-      "instantiated_by_in_phase1_count": 1
+      "instantiated_by_in_phase1_count": 2
     },
     {
-      "order": 171,
+      "order": 203,
+      "bottom_up_layer": 7,
+      "entity": "AxiReadEmulateIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiReadEmulateIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 204,
+      "bottom_up_layer": 7,
+      "entity": "AxiRingBufferIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiRingBufferIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 205,
+      "bottom_up_layer": 7,
+      "entity": "AxiWriteEmulateIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiWriteEmulateIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 206,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamDmaRingReadIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaRingReadIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 207,
+      "bottom_up_layer": 7,
+      "entity": "AxiStreamDmaWriteIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaWriteIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 208,
       "bottom_up_layer": 7,
       "entity": "AxiStreamDma",
       "path": "axi/dma/rtl/v1/AxiStreamDma.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 172,
+      "order": 209,
       "bottom_up_layer": 7,
       "entity": "AxiStreamDmaFifo",
       "path": "axi/dma/rtl/v1/AxiStreamDmaFifo.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
-      "instantiated_by_in_phase1_count": 0
+      "instantiated_by_in_phase1_count": 1
     },
     {
-      "order": 173,
+      "order": 210,
       "bottom_up_layer": 7,
       "entity": "AxiStreamDmaRingWrite",
       "path": "axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 4,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 211,
+      "bottom_up_layer": 7,
+      "entity": "SyncStatusVectorFlatWrapper",
+      "path": "base/sync/wrappers/SyncStatusVectorFlatWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
       "instantiated_by_in_phase1_count": 0
     },
     {
-      "order": 174,
+      "order": 212,
+      "bottom_up_layer": 7,
+      "entity": "SyncTrigRateVectorFlatWrapper",
+      "path": "base/sync/wrappers/SyncTrigRateVectorFlatWrapper.vhd",
+      "subsystem": "base",
+      "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 213,
+      "bottom_up_layer": 8,
+      "entity": "AxiLiteRamSyncStatusVectorIpIntegrator",
+      "path": "axi/axi-lite/ip_integrator/AxiLiteRamSyncStatusVectorIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 214,
+      "bottom_up_layer": 8,
+      "entity": "AxiStreamMonAxiLIpIntegrator",
+      "path": "axi/axi-stream/ip_integrator/AxiStreamMonAxiLIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 3,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 215,
       "bottom_up_layer": 8,
       "entity": "AxiMonAxiL",
       "path": "axi/axi4/rtl/AxiMonAxiL.vhd",
       "subsystem": "axi",
       "instantiates_in_phase1_count": 1,
+      "instantiated_by_in_phase1_count": 1
+    },
+    {
+      "order": 216,
+      "bottom_up_layer": 8,
+      "entity": "AxiStreamDmaFifoIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaFifoIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 217,
+      "bottom_up_layer": 8,
+      "entity": "AxiStreamDmaIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 218,
+      "bottom_up_layer": 8,
+      "entity": "AxiStreamDmaRingWriteIpIntegrator",
+      "path": "axi/dma/ip_integrator/AxiStreamDmaRingWriteIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 5,
+      "instantiated_by_in_phase1_count": 0
+    },
+    {
+      "order": 219,
+      "bottom_up_layer": 9,
+      "entity": "AxiMonAxiLIpIntegrator",
+      "path": "axi/axi4/ip_integrator/AxiMonAxiLIpIntegrator.vhd",
+      "subsystem": "axi",
+      "instantiates_in_phase1_count": 2,
       "instantiated_by_in_phase1_count": 0
     }
   ],
@@ -2216,6 +2622,108 @@
       "path": "devices/transceivers/rtl/Sff8472Core.vhd",
       "subsystem": "devices",
       "reason": "Subsystem is currently dominated by vendor-heavy modules in phase 1."
+    },
+    {
+      "entity": "add3",
+      "path": "dsp/xilinx/fixed/Add3.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CfixedAccumulator",
+      "path": "dsp/xilinx/fixed/CfixedAccumulator.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "cfixedDelay",
+      "path": "dsp/xilinx/fixed/CfixedDelay.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "cfixedMult",
+      "path": "dsp/xilinx/fixed/CfixedMult.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "cfixedMultAdd",
+      "path": "dsp/xilinx/fixed/CfixedMultAdd.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "CfixedPreAddMult",
+      "path": "dsp/xilinx/fixed/CfixedPreAddMult.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "csa3",
+      "path": "dsp/xilinx/fixed/Csa3.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "FirAverage",
+      "path": "dsp/xilinx/fixed/FirAverage.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "IirSimple",
+      "path": "dsp/xilinx/fixed/IirSimple.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SfixedAccumulator",
+      "path": "dsp/xilinx/fixed/SfixedAccumulator.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "sfixedDelay",
+      "path": "dsp/xilinx/fixed/SfixedDelay.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "sfixedMult",
+      "path": "dsp/xilinx/fixed/SfixedMult.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "sfixedMultAdd",
+      "path": "dsp/xilinx/fixed/SfixedMultAdd.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "sfixedPreAddMultAdd",
+      "path": "dsp/xilinx/fixed/SfixedPreAddMultAdd.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SinCosLut",
+      "path": "dsp/xilinx/fixed/SinCosLut.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "SinCosTaylor",
+      "path": "dsp/xilinx/fixed/SinCosTaylor.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
+    },
+    {
+      "entity": "DspXor",
+      "path": "dsp/xilinx/logic/DspXor.vhd",
+      "subsystem": "dsp",
+      "reason": "Vendor-specific implementation branches are deferred in phase 1."
     },
     {
       "entity": "Caui4GtyIpWrapper",
@@ -3046,6 +3554,12 @@
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
     {
+      "entity": "EventFrameSequencerWrapper",
+      "path": "protocols/event-frame-sequencer/wrappers/EventFrameSequencerWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
       "entity": "GLinkDecoder",
       "path": "protocols/glink/core/rtl/GLinkDecoder.vhd",
       "subsystem": "protocols",
@@ -3096,6 +3610,12 @@
     {
       "entity": "HammingEccEncoder",
       "path": "protocols/hamming-ecc/rtl/HammingEccEncoder.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "HammingEccWrapper",
+      "path": "protocols/hamming-ecc/wrappers/HammingEccWrapper.vhd",
       "subsystem": "protocols",
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
@@ -3456,6 +3976,24 @@
     {
       "entity": "Encoder8b10b",
       "path": "protocols/line-codes/rtl/Encoder8b10b.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "Code10b12bPkgWrapper",
+      "path": "protocols/line-codes/wrappers/Code10b12bPkgWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "Code12b14bPkgWrapper",
+      "path": "protocols/line-codes/wrappers/Code12b14bPkgWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "Code8b10bPkgWrapper",
+      "path": "protocols/line-codes/wrappers/Code8b10bPkgWrapper.vhd",
       "subsystem": "protocols",
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
@@ -4060,6 +4598,18 @@
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
     {
+      "entity": "Pgp4CoreLiteWrapper",
+      "path": "protocols/pgp/pgp4/core/wrappers/Pgp4CoreLiteWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "Pgp4CoreWrapper",
+      "path": "protocols/pgp/pgp4/core/wrappers/Pgp4CoreWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
       "entity": "Pgp4GthUs",
       "path": "protocols/pgp/pgp4/gthUs+/rtl/Pgp4GthUs.vhd",
       "subsystem": "protocols",
@@ -4300,6 +4850,12 @@
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
     {
+      "entity": "SaciAxiLiteMasterWrapper",
+      "path": "protocols/saci/saci1/wrappers/SaciAxiLiteMasterWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
       "entity": "AxiLiteToSaci2",
       "path": "protocols/saci/saci2/rtl/AxiLiteToSaci2.vhd",
       "subsystem": "protocols",
@@ -4326,6 +4882,12 @@
     {
       "entity": "Saci2ToAxiLiteTb",
       "path": "protocols/saci/saci2/sim/Saci2ToAxiLiteTb.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "Saci2ToAxiLiteWrapper",
+      "path": "protocols/saci/saci2/wrappers/Saci2ToAxiLiteWrapper.vhd",
       "subsystem": "protocols",
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
@@ -4450,6 +5012,12 @@
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },
     {
+      "entity": "SrpV3AxiWrapper",
+      "path": "protocols/srp/wrappers/SrpV3AxiWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
       "entity": "SsiAxiLiteMaster",
       "path": "protocols/ssi/rtl/SsiAxiLiteMaster.vhd",
       "subsystem": "protocols",
@@ -4524,6 +5092,18 @@
     {
       "entity": "SsiPrbsTx",
       "path": "protocols/ssi/rtl/SsiPrbsTx.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "SsiPrbsWrapper",
+      "path": "protocols/ssi/wrappers/SsiPrbsWrapper.vhd",
+      "subsystem": "protocols",
+      "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
+    },
+    {
+      "entity": "SsiResizeFifoEofeWrapper",
+      "path": "protocols/ssi/wrappers/SsiResizeFifoEofeWrapper.vhd",
       "subsystem": "protocols",
       "reason": "Temporarily deferred during the current rollout so the remaining axi/ queue can be completed first."
     },

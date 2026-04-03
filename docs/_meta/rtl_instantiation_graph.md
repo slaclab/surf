@@ -1,15 +1,15 @@
 # SURF RTL Instantiation Graph
 
 ## Scope
-- Scan dirs: `base, axi, protocols, ethernet, devices, xilinx`
+- Scan dirs: `base, axi, dsp, protocols, ethernet, devices, xilinx`
 - Included files: VHDL files outside `tb/`, `build/`, and `.venv/` paths.
 - Direct entity instantiations are parsed explicitly.
 - Component-style instantiations are included only when the instantiated token matches a known entity name inside an architecture body.
 - Packages are not graph nodes.
 
 ## Summary
-- Entities: `721`
-- Edges: `1433`
+- Entities: `795`
+- Edges: `1584`
 - Topological layers: `12`
 - Duplicate entity names: `51`
 
@@ -18,24 +18,24 @@
 | --- | --- | --- | --- |
 | RstSync | 75 | 1 | base/sync/rtl/RstSync.vhd |
 | Synchronizer | 73 | 0 | base/sync/rtl/Synchronizer.vhd |
+| AxiStreamFifoV2 | 41 | 5 | axi/axi-stream/rtl/AxiStreamFifoV2.vhd |
 | SynchronizerVector | 41 | 0 | base/sync/rtl/SynchronizerVector.vhd |
-| AxiStreamFifoV2 | 40 | 5 | axi/axi-stream/rtl/AxiStreamFifoV2.vhd |
 | AxiStreamPipeline | 38 | 0 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
+| MasterAxiStreamIpIntegrator | 37 | 1 | axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd |
+| SlaveAxiLiteIpIntegrator | 37 | 1 | axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd |
+| SlaveAxiStreamIpIntegrator | 37 | 1 | axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd |
 | SynchronizerFifo | 37 | 1 | base/sync/rtl/SynchronizerFifo.vhd |
 | PwrUpRst | 36 | 1 | base/general/rtl/PwrUpRst.vhd |
-| AxiLiteCrossbar | 30 | 0 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
+| AxiLiteCrossbar | 32 | 0 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
 | AxiLiteToDrp | 28 | 1 | axi/bridge/rtl/AxiLiteToDrp.vhd |
 | SynchronizerOneShot | 28 | 2 | base/sync/rtl/SynchronizerOneShot.vhd |
-| MasterAxiStreamIpIntegrator | 26 | 1 | axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd |
-| SlaveAxiStreamIpIntegrator | 25 | 1 | axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd |
-| AxiLiteAsync | 22 | 1 | axi/axi-lite/rtl/AxiLiteAsync.vhd |
-| Fifo | 17 | 4 | base/fifo/rtl/Fifo.vhd |
-| SlaveAxiLiteIpIntegrator | 17 | 1 | axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd |
+| AxiLiteAsync | 23 | 1 | axi/axi-lite/rtl/AxiLiteAsync.vhd |
+| Fifo | 18 | 4 | base/fifo/rtl/Fifo.vhd |
+| MasterAxiIpIntegrator | 16 | 1 | axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd |
+| SyncStatusVector | 16 | 2 | base/sync/rtl/SyncStatusVector.vhd |
 | SynchronizerEdge | 16 | 1 | base/sync/rtl/SynchronizerEdge.vhd |
 | RstPipeline | 15 | 0 | base/general/rtl/RstPipeline.vhd |
-| SyncStatusVector | 15 | 2 | base/sync/rtl/SyncStatusVector.vhd |
 | AxiLiteMaster | 14 | 0 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
-| AxiStreamMux | 14 | 1 | axi/axi-stream/rtl/AxiStreamMux.vhd |
 
 ## Top Assemblers
 | entity | instantiates_count | instantiated_by_count | path |
@@ -50,8 +50,8 @@
 | RssiCoreWrapper | 8 | 0 | protocols/rssi/v1/rtl/RssiCoreWrapper.vhd |
 | Ad9249ReadoutGroup | 7 | 0 | devices/AnalogDevices/ad9249/7Series/rtl/Ad9249ReadoutGroup.vhd |
 | Ad9249ReadoutGroup2 | 7 | 0 | devices/AnalogDevices/ad9249/UltraScale/rtl/Ad9249ReadoutGroup2.vhd |
-| AxiRingBuffer | 7 | 0 | axi/axi4/rtl/AxiRingBuffer.vhd |
-| AxiStreamRingBuffer | 7 | 0 | axi/axi-stream/rtl/AxiStreamRingBuffer.vhd |
+| AxiRingBuffer | 7 | 1 | axi/axi4/rtl/AxiRingBuffer.vhd |
+| AxiStreamRingBuffer | 7 | 1 | axi/axi-stream/rtl/AxiStreamRingBuffer.vhd |
 | ClinkTop | 7 | 0 | protocols/clink/rtl/ClinkTop.vhd |
 | CoaXPressRx | 7 | 1 | protocols/coaxpress/core/rtl/CoaXPressRx.vhd |
 | FifoAsync | 7 | 8 | base/fifo/rtl/inferred/FifoAsync.vhd |
@@ -67,19 +67,19 @@
 | Synchronizer | 73 | base/sync/rtl/Synchronizer.vhd |
 | SynchronizerVector | 41 | base/sync/rtl/SynchronizerVector.vhd |
 | AxiStreamPipeline | 38 | axi/axi-stream/rtl/AxiStreamPipeline.vhd |
-| AxiLiteCrossbar | 30 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
+| AxiLiteCrossbar | 32 | axi/axi-lite/rtl/AxiLiteCrossbar.vhd |
 | RstPipeline | 15 | base/general/rtl/RstPipeline.vhd |
 | AxiLiteMaster | 14 | axi/axi-lite/rtl/AxiLiteMaster.vhd |
 | IoBufWrapper | 14 | xilinx/dummy/IoBufWrapperDummy.vhd |
 | Decoder8b10b | 10 | protocols/line-codes/rtl/Decoder8b10b.vhd |
-| SimpleDualPortRam | 9 | base/ram/inferred/SimpleDualPortRam.vhd |
+| SimpleDualPortRam | 10 | base/ram/inferred/SimpleDualPortRam.vhd |
+| FifoOutputPipeline | 9 | base/fifo/rtl/FifoOutputPipeline.vhd |
 | Crc32Parallel | 7 | base/crc/rtl/Crc32Parallel.vhd |
 | SimpleDualPortRamXpm | 7 | base/ram/dummy/SimpleDualPortRamXpmDummy.vhd |
 | SpiMaster | 7 | protocols/spi/rtl/SpiMaster.vhd |
 | Gearbox | 6 | base/general/rtl/Gearbox.vhd |
 | SelectIoRxGearboxAligner | 6 | xilinx/general/rtl/SelectIoRxGearboxAligner.vhd |
 | ClkOutBufDiff | 5 | xilinx/dummy/ClkOutBufDiffDummy.vhd |
-| FifoOutputPipeline | 5 | base/fifo/rtl/FifoOutputPipeline.vhd |
 | Pgp3RxGearboxAligner | 5 | protocols/pgp/pgp3/core/rtl/Pgp3RxGearboxAligner.vhd |
 | Scrambler | 5 | base/general/rtl/Scrambler.vhd |
 | AxiStreamFlush | 4 | axi/axi-stream/rtl/AxiStreamFlush.vhd |
@@ -91,17 +91,17 @@
 | Synchronizer | 73 | 0 | base/sync/rtl/Synchronizer.vhd |
 | SynchronizerVector | 41 | 0 | base/sync/rtl/SynchronizerVector.vhd |
 | RstPipeline | 15 | 0 | base/general/rtl/RstPipeline.vhd |
-| SimpleDualPortRam | 9 | 0 | base/ram/inferred/SimpleDualPortRam.vhd |
+| SimpleDualPortRam | 10 | 0 | base/ram/inferred/SimpleDualPortRam.vhd |
+| FifoOutputPipeline | 9 | 0 | base/fifo/rtl/FifoOutputPipeline.vhd |
 | Crc32Parallel | 7 | 0 | base/crc/rtl/Crc32Parallel.vhd |
 | SimpleDualPortRamXpm | 7 | 0 | base/ram/dummy/SimpleDualPortRamXpmDummy.vhd |
 | Gearbox | 6 | 0 | base/general/rtl/Gearbox.vhd |
-| FifoOutputPipeline | 5 | 0 | base/fifo/rtl/FifoOutputPipeline.vhd |
 | Scrambler | 5 | 0 | base/general/rtl/Scrambler.vhd |
 | CRC32Rtl | 4 | 0 | base/crc/rtl/CRC32Rtl.vhd |
+| Crc32 | 3 | 0 | base/crc/rtl/Crc32.vhd |
 | SimpleDualPortRamAlteraMf | 3 | 0 | base/ram/dummy/SimpleDualPortRamAlteraMfDummy.vhd |
 | SlvDelay | 3 | 0 | base/delay/rtl/SlvDelay.vhd |
 | TrueDualPortRam | 3 | 0 | base/ram/inferred/TrueDualPortRam.vhd |
-| Crc32 | 2 | 0 | base/crc/rtl/Crc32.vhd |
 | FifoRdFsm | 2 | 0 | base/fifo/rtl/inferred/FifoRdFsm.vhd |
 | FifoWrFsm | 2 | 0 | base/fifo/rtl/inferred/FifoWrFsm.vhd |
 | LutRam | 2 | 0 | base/ram/inferred/LutRam.vhd |

@@ -253,6 +253,19 @@ modules:
     notes: "First validated `dsp/` leaf in the new cocotb flow. Coverage focuses on comparator truth behavior and pipeline/reset variation rather than a large DSP-generic sweep."
     deferred_reason: ""
 
+  - entity: DspAddSub
+    path: dsp/generic/fixed/DspAddSub.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_DspAddSub.py
+    reference_assets:
+      - dsp/generic/tb/DspAddSubTb.vhd
+    notes: "Validated signed add and subtract behavior with direct and pipelined output paths, including backpressure hold and reset clearing. The legacy VHDL bench only provided free-running stimulus, so the cocotb bench replaces it with explicit arithmetic and interface assertions."
+    deferred_reason: ""
+
   - entity: Fifo
     path: base/fifo/rtl/Fifo.vhd
     subsystem: base

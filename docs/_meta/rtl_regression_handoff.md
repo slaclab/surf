@@ -18,13 +18,14 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules. `ethernet` and `protocols` are still temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, but that deferral is now the next thing to unwind rather than an active implementation aid.
+- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules, and `dsp/` is now included in the generated phase-1 queue so DSP rollout can proceed on the normal tracked path. `ethernet` and `protocols` are still temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, but DSP work no longer depends on unwinding those deferrals first.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
   - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue regeneration is the next step.
 - Current queue discipline:
-  - The next session should remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`.
-  - After removing those deferrals, regenerate `docs/_meta/rtl_phase1_queue.{md,json}` and resume from the regenerated cross-subsystem frontier.
+  - Keep `dsp/` in the generated queue scope. Do not track DSP rollout in a separate hand-maintained list.
+  - `dsp/generic/fixed/DspAddSub.vhd` is now validated. The current DSP restart point is `dsp/generic/fixed/FirFilterTap.vhd`, followed by the remaining `dsp/generic/fixed` leaves in the regenerated queue.
+  - The later cross-subsystem cleanup still includes removing the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` and regenerating `docs/_meta/rtl_phase1_queue.{md,json}` when that broader transition is actually taken.
   - Do not hand-maintain queue order in the plan or handoff docs.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
@@ -130,7 +131,7 @@ One small RTL fix landed during that validation pass because the new `AxiStreamD
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Remove the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate `docs/_meta/rtl_phase1_queue.{md,json}`, and then resume from the regenerated cross-subsystem frontier. Do not resume from the older stale `AxiResize` checkpoint.
+Continue the DSP rollout from `dsp/generic/fixed/FirFilterTap.vhd` using the regenerated queue output now that `dsp/` is included in the planner. Keep the old VHDL benches under `dsp/generic/tb/` as reference material only, porting only the behavioral intent that is still worth asserting from Python.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
