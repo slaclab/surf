@@ -248,9 +248,10 @@ def generate_vhdl_wrapper(
     wrapper_name: str,
     source: str,
     parameters: dict[str, object] | None = None,
+    build_key: str | None = None,
 ) -> str:
     test_file = Path(test_file)
-    sim_build_dir = Path(_sim_build_path(test_file, parameters))
+    sim_build_dir = Path(build_key) if build_key is not None else Path(_sim_build_path(test_file, parameters))
     wrapper_dir = sim_build_dir / "generated_hdl"
     wrapper_dir.mkdir(parents=True, exist_ok=True)
     wrapper_path = wrapper_dir / f"{wrapper_name}.vhd"
@@ -265,11 +266,15 @@ def run_surf_vhdl_test(
     parameters: dict[str, object] | None = None,
     extra_env: dict[str, object] | None = None,
     extra_vhdl_sources: dict[str, list[str]] | None = None,
+    sim_build_key: str | None = None,
 ) -> None:
     test_file = Path(test_file)
     simulator_env = None
+    sim_build_parameters = parameters
     if extra_env is not None:
         simulator_env = {key: str(value) for key, value in extra_env.items()}
+        if sim_build_parameters is None:
+            sim_build_parameters = simulator_env
     elif parameters is not None:
         simulator_env = {key: str(value) for key, value in parameters.items()}
 
@@ -279,7 +284,7 @@ def run_surf_vhdl_test(
         toplevel_lang="vhdl",
         vhdl_sources=_merge_vhdl_sources(_build_vhdl_sources(), extra_vhdl_sources),
         parameters=parameters,
-        sim_build=_sim_build_path(test_file, parameters),
+        sim_build=sim_build_key if sim_build_key is not None else _sim_build_path(test_file, sim_build_parameters),
         extra_env=simulator_env,
         simulator="ghdl",
         vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,

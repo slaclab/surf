@@ -24,13 +24,14 @@
   - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue regeneration is the next step.
 - Current queue discipline:
   - Keep `dsp/` in the generated queue scope. Do not track DSP rollout in a separate hand-maintained list.
-  - `dsp/generic/fixed/DspAddSub.vhd` is now validated. The current DSP restart point is `dsp/generic/fixed/FirFilterTap.vhd`, followed by the remaining `dsp/generic/fixed` leaves in the regenerated queue.
+  - The planned `dsp/generic/fixed` leaf set is now validated: `FirFilterTap`, `DspAddSub`, `DspComparator`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`.
   - The later cross-subsystem cleanup still includes removing the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` and regenerating `docs/_meta/rtl_phase1_queue.{md,json}` when that broader transition is actually taken.
   - Do not hand-maintain queue order in the plan or handoff docs.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
   - Keep first-pass wrapper benches intentionally narrow and document any omitted branches explicitly.
   - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
+  - Prefer explicit short sim-build keys for generated-wrapper benches when case metadata would otherwise create fragile build paths.
   - When a wrapper is checked in, write it like the surrounding repo HDL: include the SLAC/SURF banner and enough section comments that a new session can identify the shim, DUT, and flattening regions quickly.
 - Current cocotb-file discipline:
   - New test files should start with the standard SURF/SLAC header block.
@@ -50,6 +51,7 @@
 - For `COMMON_CLK_G` style wrappers, use one shared clock coroutine via `start_lockstep_clocks()` when the RTL expects true shared edges rather than merely equal nominal periods.
 - For first-pass wrapper benches, prove the externally visible stable path first and defer shakier simulator-sensitive branches explicitly in the docs instead of stretching one bench to cover everything.
 - `AxiStreamDmaV2Read` needed a real RTL/runtime fix rather than a bench workaround: keep the bounded byte-count conversion fix in `axi/axi4/rtl/AxiPkg.vhd` and the direct terminal-mask generation in `axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd`. The current wrapper only exposes an 8-bit `TUSER`, so the observable contract in the checked-in bench is first-user propagation plus payload/keep/id/dest and descriptor return fields.
+- `tests/dsp/generic/dsp_test_utils.py` is now the shared home for DSP-specific signed helpers, rolling reference models, cocotb clock-settle timing, and generated FIR wrappers. Reuse it instead of cloning DSP arithmetic or wrapper boilerplate.
 
 ## Current Status
 Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
@@ -131,7 +133,7 @@ One small RTL fix landed during that validation pass because the new `AxiStreamD
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Continue the DSP rollout from `dsp/generic/fixed/FirFilterTap.vhd` using the regenerated queue output now that `dsp/` is included in the planner. Keep the old VHDL benches under `dsp/generic/tb/` as reference material only, porting only the behavioral intent that is still worth asserting from Python.
+Choose the next broader phase-1 target from the generated queue now that the planned `dsp/generic/fixed` leaf batch is complete. Keep using the old VHDL benches under `dsp/generic/tb/` only as behavioral reference material if another DSP-adjacent wrapper or integration target is taken later.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`

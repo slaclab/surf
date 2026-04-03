@@ -3,11 +3,11 @@
 ## Summary
 - Current phase: Phase-1 implementation active
 - Current subsystem: `dsp/generic/fixed`
-- Current focus module: `FirFilterTap`
+- Current focus module: `dsp/generic/fixed` planned leaf set complete
 - Last updated: 2026-04-03
 
 ## Current Frontier Snapshot
-- Next queue target: `dsp/generic/fixed/FirFilterTap.vhd`
+- Next queue target: broader phase-1 queue refresh needed after the completed `dsp/generic/fixed` leaf batch
 - Queue note:
   - The axi-first pass is now complete through the previously remaining final 11 `axi/` modules.
   - The queue snapshot in earlier notes that still pointed at `AxiReadEmulate` / `AxiResize` is now stale and should not be reused.
@@ -23,7 +23,7 @@
 | --- | --- | --- | --- | --- |
 | Cross-cutting infrastructure | started | not started | started | Shared helper structure now lives in `tests/common/regression_utils.py`; pytest now defaults to `xdist` parallel execution via `pytest.ini`; the phase-1 rollout queue is now generated into `docs/_meta/rtl_phase1_queue.{md,json}` with explicit inputs in `docs/_meta/rtl_phase1_queue_overrides.json` |
 | `base` | started | not started | started | Validated low-level regressions now exist for `FifoAsync`, `FifoSync`, `FifoOutputPipeline`, `FifoWrFsm`, `FifoRdFsm`, `Fifo`, `FifoCascade`, `FifoMux`, `Synchronizer`, `SynchronizerVector`, `SynchronizerEdge`, `SynchronizerOneShot`, `SynchronizerFifo`, `SynchronizerOneShotCnt`, `SynchronizerOneShotVector`, `SynchronizerOneShotCntVector`, `SyncStatusVector`, `SyncTrigPeriod`, `SyncMinMax`, `SyncClockFreq`, `SyncTrigRate`, `SyncTrigRateVector`, `RstSync`, `RstPipeline`, `RstPipelineVector`, `PwrUpRst`, `Arbiter`, `ClockDivider`, `Debouncer`, `Gearbox`, `AsyncGearbox`, `Heartbeat`, `Mux`, `OneShot`, `RegisterVector`, `WatchDogRst`, `Scrambler`, `MasterRamIpIntegrator`, `SlaveRamIpIntegrator`, `SimpleDualPortRam`, `DualPortRam`, `TrueDualPortRam`, `LutRam`, `SlvDelay`, `SlvFixedDelay`, `SlvDelayRam`, `SlvDelayFifo`, `Crc32Parallel`, `Crc32`, and `CRC32Rtl` under subsystem-organized `tests/base/` packages. Remaining uncovered `base/` entities are vendor-heavy, dummy-backed, or `LutFixedDelay`, which is deferred because it depends on `SinglePortRamPrimitive`. |
-| `dsp` | started | not started | started | `DspComparator` and `DspAddSub` are now validated under `tests/dsp/generic/` as the first `dsp/generic/fixed` leaves in the new cocotb flow. The regenerated queue now includes `dsp/`, with `FirFilterTap` as the current next uncovered DSP leaf. The remaining DSP rollout should treat the old VHDL benches under `dsp/generic/tb/` as behavioral reference material only rather than as an execution constraint. |
+| `dsp` | started | not started | started | The planned `dsp/generic/fixed` leaf batch is now validated under `tests/dsp/generic/`: `FirFilterTap`, `DspAddSub`, `DspComparator`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`. Shared DSP helpers now live in `tests/dsp/generic/dsp_test_utils.py`, and the legacy VHDL benches under `dsp/generic/tb/` were treated as behavioral reference material rather than as execution constraints. |
 | `axi` | started | not started | started | The axi-first pass is now complete for the simulator-friendly queue. The final locally validated batch adds `AxiReadEmulate`, `AxiRingBuffer`, `AxiWriteEmulate`, `AxiStreamDmaRingRead`, `AxiStreamDmaWrite`, `AxiLiteRamSyncStatusVector`, `AxiStreamMonAxiL`, `AxiStreamDma`, `AxiStreamDmaFifo`, `AxiStreamDmaRingWrite`, and `AxiMonAxiL`, with a combined `11 passed` validation run on 2026-03-27. Added checked-in subsystem wrappers under `axi/axi4/ip_integrator/`, `axi/axi-lite/ip_integrator/`, `axi/axi-stream/ip_integrator/`, and `axi/dma/ip_integrator/` for those benches. `AxiStreamFifoV2` now has an expanded `10 passed` wrapper regression under `tests/axi/axi_stream/` covering async and sync width conversion, metadata truncation, `VALID_THOLD` frame-ready and burst-release modes, dynamic pause-threshold behavior, `CASCADE_SIZE=2`, and the `S_HAS_TREADY=0` pause-only source-side path. `AxiResize` now passes its equal-width, `32-bit -> 64-bit`, and `64-bit -> 32-bit` wrapper regression on this branch after the read-hold RTL fix. `AxiLiteAsync`, `AxiLiteToDrp`, and `AxiRateGen` still keep intentionally narrow common-clock subsets while the more timing-sensitive async AXI-Lite crossing branches remain open. `AxiStreamCompact`, `AxiStreamFrameRateLimiter`, and `AxiStreamDmaV2WriteMux` still keep intentionally narrow first-pass subsets. `AxiStreamDmaV2Read` is now validated with a two-case wrapper regression covering both aligned and short terminal-beat reads after fixing bounded byte-count conversion in `AxiPkg` and terminal-mask generation in `AxiStreamDmaV2Read`. |
 | `protocols` | started | not started | started | `protocols/line-codes` is now validated under `tests/protocols/line_codes/` with shared Python helper coverage for `LineCode8b10b`, `LineCode10b12b`, and `LineCode12b14b`, plus package-level `Code8b10b`, `Code10b12b`, and `Code12b14b` cocotb coverage. The package benches preserve explicit disparity-seed sweeps, and the 12b14b package bench also preserves its historical training/transition sequences. |
 | `ethernet` | not started | not started | not started | Temporarily deferred during the current axi-first rollout pass |
@@ -52,6 +52,11 @@
 - Re-added `dsp/` to the generated phase-1 queue scope so DSP work is tracked by the same bottom-up planner as the other simulator-friendly subsystems.
 - Implemented `tests/dsp/generic/test_DspAddSub.py`.
 - Validated `tests/dsp/generic/test_DspAddSub.py` locally with `./.venv/bin/python -m pytest -n 0 -q tests/dsp/generic/test_DspAddSub.py`.
+- Added shared DSP helpers in `tests/dsp/generic/dsp_test_utils.py` for signed packing/truncation, rolling reference models, cocotb clock-settle timing, and generated FIR wrappers.
+- Extended `tests/common/regression_utils.py` so generated-wrapper benches can use short explicit sim-build keys instead of overloading generic/extra-env strings into fragile build paths.
+- Implemented `tests/dsp/generic/test_FirFilterTap.py`, `tests/dsp/generic/test_DspPreSubMult.py`, `tests/dsp/generic/test_DspSquareDiffMult.py`, `tests/dsp/generic/test_BoxcarIntegrator.py`, `tests/dsp/generic/test_BoxcarFilter.py`, `tests/dsp/generic/test_FirFilterSingleChannel.py`, and `tests/dsp/generic/test_FirFilterMultiChannel.py`.
+- Fixed DSP RTL issues exposed by the new benches in `dsp/generic/fixed/FirFilterTap.vhd`, `dsp/generic/fixed/BoxcarIntegrator.vhd`, and `dsp/generic/fixed/FirFilterSingleChannel.vhd`.
+- Validated the full planned DSP leaf batch locally with `./.venv/bin/python -m pytest -n 0 -q tests/dsp/generic` (`15 passed`).
 - Compared `cocotb + pytest`, `VUnit`, and `OSVVM` for SURF.
 - Chose Python-only executable regression logic.
 - Defined the context-handoff artifact set.
@@ -120,14 +125,14 @@
 - The new package-surface coverage exposed a real `Code12b14bPkg` invalid-K disparity bug; `protocols/line-codes/rtl/Code12b14bPkg.vhd` now leaves `dispOut` unchanged on illegal K requests instead of tripping a GHDL bound-check failure.
 
 ## Current In-Progress Item
-- Continue the `dsp/generic/fixed` rollout from `FirFilterTap`, which is now the earliest uncovered DSP leaf in the regenerated queue.
-- Keep using the generated queue output for DSP instead of tracking a separate hand-maintained DSP order.
+- Regenerate or reinterpret the broader phase-1 queue before choosing the next non-DSP target now that the planned `dsp/generic/fixed` leaf set is covered.
+- Keep using the generated queue output for subsystem order instead of tracking a separate hand-maintained DSP list.
 - Preserve the recent lesson from `dsp/generic/tb/`: port behavioral intent from the old VHDL benches when it is useful, but replace demo-style waveform drivers with explicit Python assertions.
 
 ## Next 3 Concrete Tasks
-- Implement `tests/dsp/generic/test_FirFilterTap.py` with a direct arithmetic/cascade reference model.
-- Follow with the remaining layer-1 DSP leaves from the regenerated queue: `BoxcarIntegrator`, `DspPreSubMult`, and `DspSquareDiffMult`.
-- Revisit `BoxcarFilter` and the FIR integrations only after the shared DSP leaf behavior is covered well enough to avoid redundant debugging at the wrapper level.
+- Record the completed DSP leaf coverage in the inventory and keep the queue notes aligned with the finished `tests/dsp/generic` batch.
+- Choose the next broader phase-1 target from the generated queue instead of continuing a now-stale DSP micro-plan.
+- Reuse `tests/dsp/generic/dsp_test_utils.py` and the short sim-build-key path in `tests/common/regression_utils.py` for the next generated-wrapper-heavy subsystem work.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
@@ -217,6 +222,7 @@
 - 2026-04-02: Completed the clean-slate line-code redesign: deleted the duplicated `LineCode*Wrapper.vhd` and `test_LineCode*Wrapper.py` layer, added direct `test_Encoder*.py` and `test_Decoder*.py` benches against the real RTL entities, reused `protocols/line-codes/tb/LineCode*Tb.vhd` as the thin integration shells, fixed an illegal-K disparity bug in `protocols/line-codes/rtl/Code12b14bPkg.vhd`, and validated the full `tests/protocols/line_codes` directory locally with `23 passed`.
 - 2026-04-03: Added `dsp/` back into `scripts/build_rtl_instantiation_graph.py` so the regenerated `docs/_meta/rtl_instantiation_graph.{md,json}` and `docs/_meta/rtl_phase1_queue.{md,json}` artifacts now track `dsp/generic/fixed` alongside the other phase-1 subsystems.
 - 2026-04-03: Implemented `tests/dsp/generic/test_DspAddSub.py` as the first post-resume DSP leaf bench, replacing the old free-running `dsp/generic/tb/DspAddSubTb.vhd` stimulus with explicit signed add/sub arithmetic checks plus backpressure-hold and reset-clearing assertions. The module-local validation run passes locally with `2 passed`.
+- 2026-04-03: Completed the planned `dsp/generic/fixed` cocotb leaf batch. Added new benches for `FirFilterTap`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`; centralized shared DSP timing/model/wrapper helpers in `tests/dsp/generic/dsp_test_utils.py`; added explicit sim-build-key support for generated wrappers in `tests/common/regression_utils.py`; fixed RTL issues in `FirFilterTap`, `BoxcarIntegrator`, and `FirFilterSingleChannel`; and validated the full directory with `15 passed`.
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
 - 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.
 - 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.

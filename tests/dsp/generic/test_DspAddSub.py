@@ -210,6 +210,14 @@ PARAMETER_SWEEP = [
         CLK_PERIOD_NS="5",
     ),
     parameter_case(
+        "one_bit_direct",
+        RST_POLARITY_G="'1'",
+        RST_ASYNC_G="false",
+        PIPE_STAGES_G="0",
+        WIDTH_G="1",
+        CLK_PERIOD_NS="6",
+    ),
+    parameter_case(
         "pipelined_active_low_reset",
         RST_POLARITY_G="'0'",
         RST_ASYNC_G="true",

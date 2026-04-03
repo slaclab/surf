@@ -266,6 +266,93 @@ modules:
     notes: "Validated signed add and subtract behavior with direct and pipelined output paths, including backpressure hold and reset clearing. The legacy VHDL bench only provided free-running stimulus, so the cocotb bench replaces it with explicit arithmetic and interface assertions."
     deferred_reason: ""
 
+  - entity: FirFilterTap
+    path: dsp/generic/fixed/FirFilterTap.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: generated_test_local
+    python_test: tests/dsp/generic/test_FirFilterTap.py
+    reference_assets: []
+    notes: "Validated signed multiply-accumulate behavior for both generic coefficient initialization and runtime coefficient updates through a generated wrapper. The bench also checks that disabled cycles hold the previous cascade output."
+    deferred_reason: ""
+
+  - entity: DspPreSubMult
+    path: dsp/generic/fixed/DspPreSubMult.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_DspPreSubMult.py
+    reference_assets: []
+    notes: "Validated signed pre-subtract multiply behavior, output hold under backpressure, and reset recovery with a direct arithmetic reference model."
+    deferred_reason: ""
+
+  - entity: DspSquareDiffMult
+    path: dsp/generic/fixed/DspSquareDiffMult.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_DspSquareDiffMult.py
+    reference_assets: []
+    notes: "Validated signed square-difference multiplication, output hold under backpressure, and reset recovery with explicit Python arithmetic checks."
+    deferred_reason: ""
+
+  - entity: BoxcarIntegrator
+    path: dsp/generic/fixed/BoxcarIntegrator.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_low_level
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_BoxcarIntegrator.py
+    reference_assets:
+      - dsp/generic/tb/BoxcarIntegratorTb.vhd
+    notes: "Validated unsigned and signed modes, direct and registered output paths, `obAck` hold behavior, and `intCount` reconfiguration. The cocotb bench keeps the useful rolling-sum intent from the legacy bench but adds explicit interface assertions."
+    deferred_reason: ""
+
+  - entity: BoxcarFilter
+    path: dsp/generic/fixed/BoxcarFilter.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: ""
+    python_test: tests/dsp/generic/test_BoxcarFilter.py
+    reference_assets:
+      - dsp/generic/tb/BoxcarFilterTb.vhd
+    notes: "Validated the integrated boxcar filter output scaling and hold behavior with a Python rolling-average model, replacing the legacy demo-style ramp-only bench with explicit output checks."
+    deferred_reason: ""
+
+  - entity: FirFilterSingleChannel
+    path: dsp/generic/fixed/FirFilterSingleChannel.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/dsp/generic/test_FirFilterSingleChannel.py
+    reference_assets:
+      - dsp/generic/tb/FirFilterSingleChannelTb.vhd
+    notes: "Validated common-clock FIR data flow, sideband alignment, and AXI-Lite coefficient programming through a generated wrapper. The new bench keeps the useful coefficient-programming intent from the legacy environment but replaces its unasserted waveform stimulus with explicit filtered-output checks."
+    deferred_reason: ""
+
+  - entity: FirFilterMultiChannel
+    path: dsp/generic/fixed/FirFilterMultiChannel.vhd
+    subsystem: dsp
+    tier: functional_python
+    status: implemented_validated_initial
+    priority: phase1_wrapper
+    wrapper_path: generated_test_local
+    python_test: tests/dsp/generic/test_FirFilterMultiChannel.py
+    reference_assets: []
+    notes: "Validated common-clock parallel multichannel FIR frame flow and AXI-Lite coefficient updates through a generated wrapper, using a per-channel Python FIR reference model and cocotbext-axi stream endpoints."
+    deferred_reason: ""
+
   - entity: Fifo
     path: base/fifo/rtl/Fifo.vhd
     subsystem: base
