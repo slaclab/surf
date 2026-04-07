@@ -24,6 +24,7 @@ class SsiBeat:
     keep: int
     last: int
     dest: int = 0
+    tid: int = 0
     sof: int = 0
     eofe: int = 0
 
@@ -43,6 +44,7 @@ class FlatSsiEndpoint:
             ("TKeep", 0),
             ("TLast", 0),
             ("TDest", 0),
+            ("TId", 0),
             ("Sof", 0),
             ("Eofe", 0),
         ):
@@ -56,6 +58,8 @@ class FlatSsiEndpoint:
         self._sig("TLast").value = beat.last
         if hasattr(self.dut, f"{self.prefix}TDest"):
             self._sig("TDest").value = beat.dest
+        if hasattr(self.dut, f"{self.prefix}TId"):
+            self._sig("TId").value = beat.tid
         if hasattr(self.dut, f"{self.prefix}Sof"):
             self._sig("Sof").value = beat.sof
         if hasattr(self.dut, f"{self.prefix}Eofe"):
@@ -79,6 +83,7 @@ class FlatSsiEndpoint:
             keep=int(self._sig("TKeep").value),
             last=int(self._sig("TLast").value),
             dest=0 if not hasattr(self.dut, f"{self.prefix}TDest") else int(self._sig("TDest").value),
+            tid=0 if not hasattr(self.dut, f"{self.prefix}TId") else int(self._sig("TId").value),
             sof=0 if not hasattr(self.dut, f"{self.prefix}Sof") else int(self._sig("Sof").value),
             eofe=0 if not hasattr(self.dut, f"{self.prefix}Eofe") else int(self._sig("Eofe").value),
         )
@@ -149,3 +154,21 @@ async def expect_no_output(endpoint: FlatSsiEndpoint, *, clk, cycles: int = 8) -
         await Timer(1, unit="ns")
         assert int(endpoint._sig("TValid").value) == 0
         await RisingEdge(clk)
+
+
+async def recv_frame(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal=None,
+    timeout_cycles: int = 128,
+) -> list[SsiBeat]:
+    beats = []
+    for _ in range(timeout_cycles):
+        beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
+        beats.append(beat)
+        if beat.last == 1:
+            if ready_signal is not None:
+                ready_signal.value = 0
+            return beats
+    raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
