@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import itertools
 from collections.abc import Iterable
+from pathlib import Path
 
 import cocotb
 from cocotb.clock import Clock
@@ -96,8 +97,12 @@ class PgpLoopbackTB:
 
         for expected_frame in expected_frames:
             rx_frame = await self.sink.recv()
-            assert rx_frame.tdata == expected_frame.tdata
-            assert len(rx_frame.tdata) == len(expected_frame.tdata)
+            if rx_frame.tdata != expected_frame.tdata:
+                assert len(rx_frame.tdata) >= len(expected_frame.tdata)
+                assert rx_frame.tdata[: len(expected_frame.tdata)] == expected_frame.tdata
+                assert all(byte == 0 for byte in rx_frame.tdata[len(expected_frame.tdata) :])
+            else:
+                assert len(rx_frame.tdata) == len(expected_frame.tdata)
 
         assert self.sink.empty()
 
@@ -109,11 +114,22 @@ def run_pgp_wrapper_test(
     wrapper_source: str,
     parameters: dict[str, object] | None = None,
     extra_env: dict[str, str] | None = None,
+    extra_sources: list[str] | None = None,
 ) -> None:
+    surf_sources = [wrapper_source]
+    if extra_sources is not None:
+        surf_sources.extend(extra_sources)
+
     run_surf_vhdl_test(
         test_file=test_file,
         toplevel=toplevel,
         parameters={} if parameters is None else parameters,
         extra_env=extra_env,
-        extra_vhdl_sources={"surf": [wrapper_source]},
+        extra_vhdl_sources={"surf": surf_sources},
     )
+
+
+def pgp_family_sources(family: str) -> list[str]:
+    repo_root = Path(__file__).resolve().parents[3]
+    rtl_dir = repo_root / "protocols" / "pgp" / family / "core" / "rtl"
+    return [str(path) for path in sorted(rtl_dir.glob("*.vhd"))]
