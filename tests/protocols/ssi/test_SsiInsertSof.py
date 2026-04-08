@@ -33,35 +33,13 @@ from tests.protocols.ssi.ssi_test_utils import (
     env_data_bytes,
     FlatSsiEndpoint,
     keep_mask,
+    recv_expected_beat,
     reset_dut,
     send_contiguous_frame,
     SsiBeat,
     start_clock,
+    wait_output_clear,
 )
-
-
-async def wait_output_clear(dut, *, cycles: int = 16):
-    dut.mAxisTReady.value = 1
-    for _ in range(cycles):
-        await cycle(dut.axisClk)
-        if int(dut.mAxisTValid.value) == 0:
-            dut.mAxisTReady.value = 0
-            return
-    dut.mAxisTReady.value = 0
-    raise AssertionError("Timed out waiting for SSI output to clear")
-
-
-async def recv_expected_beat(sink, dut, expected_data):
-    dut.mAxisTReady.value = 1
-    for _ in range(64):
-        await cycle(dut.axisClk)
-        if int(dut.mAxisTValid.value) == 1:
-            candidate = sink.snapshot()
-            if candidate.data == expected_data:
-                dut.mAxisTReady.value = 0
-                return candidate
-    dut.mAxisTReady.value = 0
-    raise AssertionError(f"Timed out waiting for SSI output data 0x{expected_data:04x}")
 
 
 @cocotb.test()
@@ -94,12 +72,12 @@ async def ssi_insert_sof_test(dut):
         header = await sink.wait_valid(clk=dut.axisClk)
         held_header = sink.snapshot()
         assert held_header == header
-        payload = await recv_expected_beat(sink, dut, 0x2211)
+        payload = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x2211)
         await payload_send
 
         assert (header.data, header.keep, header.last, header.dest, header.sof, header.eofe) == (0xBBAA, keep, 0, 0x5, 1, 0)
         assert (payload.data, payload.keep, payload.last, payload.dest, payload.sof, payload.eofe) == (0x2211, keep, 1, 0x5, 0, 1)
-        await wait_output_clear(dut)
+        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
     else:
         frame_send = cocotb.start_soon(
             send_contiguous_frame(
@@ -114,12 +92,12 @@ async def ssi_insert_sof_test(dut):
         first = await sink.wait_valid(clk=dut.axisClk)
         held_first = sink.snapshot()
         assert held_first == first
-        second = await recv_expected_beat(sink, dut, 0x4433)
+        second = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x4433)
         await frame_send
 
         assert (first.data, first.keep, first.last, first.dest, first.sof, first.eofe) == (0x2211, keep, 0, 0x5, 1, 1)
         assert (second.data, second.keep, second.last, second.dest, second.sof, second.eofe) == (0x4433, keep, 1, 0x5, 0, 1)
-        await wait_output_clear(dut)
+        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
 
     await cycle(dut.axisClk, 2)
     assert int(dut.mAxisTValid.value) == 0

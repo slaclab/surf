@@ -32,31 +32,21 @@ from tests.protocols.ssi.ssi_test_utils import (
     env_int,
     expect_no_output,
     FlatSsiEndpoint,
+    keep_mask,
     recv_visible_beat,
     SsiBeat,
-    recv_frame,
     reset_dut,
     send_contiguous_frame,
     start_clock,
+    wait_output_clear,
 )
-
-
-async def wait_output_clear(dut, *, cycles: int = 8):
-    dut.mAxisTReady.value = 1
-    for _ in range(cycles):
-        await cycle(dut.axisClk)
-        if int(dut.mAxisTValid.value) == 0:
-            dut.mAxisTReady.value = 0
-            return
-    dut.mAxisTReady.value = 0
-    raise AssertionError("Timed out waiting for frame limiter output to clear")
 
 
 @cocotb.test()
 async def enforces_frame_limit_and_timeout_policy(dut):
     data_bytes = env_data_bytes(default=2)
     frame_limit = env_int("FRAME_LIMIT_G", default=2)
-    keep = (1 << data_bytes) - 1
+    keep = keep_mask(data_bytes)
 
     start_clock(dut.axisClk)
     source = FlatSsiEndpoint(dut, prefix="sAxis")
@@ -75,7 +65,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     )
     beats = [await recv_visible_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)]
     assert [(beat.data, beat.last, beat.sof, beat.eofe) for beat in beats] == [(0x0011, 1, 1, 0)]
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, cycles=8)
 
     over_limit_payload = [0x1101 + index for index in range(frame_limit + 1)]
     await send_contiguous_frame(
@@ -100,7 +90,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     assert [beat.last for beat in beats[:-1]] == [0] * (frame_limit - 1)
     assert beats[-1].last == 1
     assert beats[-1].eofe == 1
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, cycles=8)
     await expect_no_output(sink, clk=dut.axisClk)
 
     await send_contiguous_frame(
@@ -123,7 +113,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     assert beats[1].last == 1
     assert beats[1].sof == 1
     assert beats[1].eofe == 1
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, cycles=8)
     await expect_no_output(sink, clk=dut.axisClk)
 
     await send_contiguous_frame(
@@ -135,7 +125,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
         clk=dut.axisClk,
     )
     await expect_no_output(sink, clk=dut.axisClk)
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, cycles=8)
 
     await source.send(
         SsiBeat(data=0x3301, keep=keep, last=0, dest=0x6, sof=1),
@@ -151,7 +141,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     assert beats[0].eofe == 0
     assert beats[1].last == 1
     assert beats[1].eofe == 1
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, cycles=8)
 
     await cycle(dut.axisClk, 2)
     assert int(dut.mAxisTValid.value) == 0
@@ -165,7 +155,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     )
     beats = [await recv_visible_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)]
     assert [(beat.data, beat.last, beat.sof, beat.eofe) for beat in beats] == [(0x4401, 1, 1, 0)]
-    await wait_output_clear(dut)
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
 
 
 PARAMETER_SWEEP = [

@@ -161,6 +161,38 @@ async def expect_no_output(endpoint: FlatSsiEndpoint, *, clk, cycles: int = 8) -
         await RisingEdge(clk)
 
 
+async def expect_no_output_data(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    forbidden_data: int,
+    cycles: int = 8,
+) -> None:
+    for _ in range(cycles):
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1:
+            assert endpoint.snapshot().data != forbidden_data
+        await RisingEdge(clk)
+
+
+async def wait_output_clear(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal,
+    cycles: int = 16,
+) -> None:
+    ready_signal.value = 1
+    for _ in range(cycles):
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 0:
+            ready_signal.value = 0
+            return
+    ready_signal.value = 0
+    raise AssertionError(f"Timed out waiting for {endpoint.prefix} output to clear")
+
+
 async def recv_frame(
     endpoint: FlatSsiEndpoint,
     *,
@@ -216,3 +248,75 @@ async def recv_visible_beat(
     await Timer(1, unit="ns")
     ready_signal.value = 0
     return beat
+
+
+async def recv_expected_beat(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal,
+    expected_data: int,
+    timeout_cycles: int = 64,
+) -> SsiBeat:
+    ready_signal.value = 1
+    last_seen = None
+    for _ in range(timeout_cycles):
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1:
+            candidate = endpoint.snapshot()
+            last_seen = candidate
+            if candidate.data == expected_data:
+                await RisingEdge(clk)
+                await Timer(1, unit="ns")
+                ready_signal.value = 0
+                return candidate
+        await RisingEdge(clk)
+    ready_signal.value = 0
+    raise AssertionError(
+        f"Timed out waiting for {endpoint.prefix} data 0x{expected_data:04x}, last_seen={last_seen}"
+    )
+
+
+async def recv_frame_by_data(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal,
+    expected_data: list[int],
+    timeout_cycles: int = 64,
+) -> list[SsiBeat]:
+    beats = []
+    for data_word in expected_data:
+        beats.append(
+            await recv_expected_beat(
+                endpoint,
+                clk=clk,
+                ready_signal=ready_signal,
+                expected_data=data_word,
+                timeout_cycles=timeout_cycles,
+            )
+        )
+    return beats
+
+
+def assert_beat_fields(actual: SsiBeat, expected: SsiBeat) -> None:
+    assert actual == expected
+
+
+def assert_beat_list(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
+    assert len(actual) == len(expected)
+    for actual_beat, expected_beat in zip(actual, expected):
+        assert_beat_fields(actual_beat, expected_beat)
+
+
+async def wait_signal_level(signal, *, clk, expected: int, cycles: int = 32) -> None:
+    for _ in range(cycles):
+        if int(signal.value) == expected:
+            return
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+    raise AssertionError(f"Timed out waiting for {signal}={expected}")
+
+
+async def wait_signal_pulse(signal, *, clk, cycles: int = 32) -> None:
+    await wait_signal_level(signal, clk=clk, expected=1, cycles=cycles)
