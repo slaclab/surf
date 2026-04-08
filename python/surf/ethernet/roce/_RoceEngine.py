@@ -17,14 +17,14 @@ class RoceEngine(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'SendMetaData',
-            offset = 0xF00,
+            offset = 0x0F00,
             bitSize = 1,
             mode = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
             name = 'MetaDataTx',
-            offset = 0xF04,
+            offset = 0x0F04,
             bitSize = 303,
             mode = 'RW',
         ))
@@ -32,7 +32,7 @@ class RoceEngine(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'RecvMetaData',
-            offset = 0xF00,
+            offset = 0x0F00,
             bitSize = 1,
             bitOffset = 1,
             mode = 'RO',
@@ -40,7 +40,7 @@ class RoceEngine(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'MetaDataRx',
-            offset = 0xF2C,
+            offset = 0x0F2C,
             bitSize = 276,
             mode = 'RO',
         ))
