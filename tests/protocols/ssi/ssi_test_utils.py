@@ -112,6 +112,11 @@ def env_data_bytes(name: str = "DATA_BYTES_G", default: int = 2) -> int:
     return default if raw is None else int(raw)
 
 
+def env_int(name: str, *, default: int) -> int:
+    raw = os.environ.get(name)
+    return default if raw is None else int(raw)
+
+
 def keep_mask(data_bytes: int) -> int:
     return (1 << data_bytes) - 1
 
@@ -172,3 +177,42 @@ async def recv_frame(
                 ready_signal.value = 0
             return beats
     raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
+
+
+async def recv_n_beats(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    count: int,
+    ready_signal=None,
+    timeout_cycles: int = 128,
+) -> list[SsiBeat]:
+    beats = []
+    for _ in range(count):
+        beats.append(
+            await endpoint.recv(
+                clk=clk,
+                ready_signal=ready_signal,
+                keep_ready=True,
+            )
+        )
+
+    if ready_signal is not None:
+        ready_signal.value = 0
+    return beats
+
+
+async def recv_visible_beat(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal,
+    timeout_cycles: int = 64,
+) -> SsiBeat:
+    ready_signal.value = 0
+    beat = await endpoint.wait_valid(clk=clk, timeout_cycles=timeout_cycles)
+    ready_signal.value = 1
+    await RisingEdge(clk)
+    await Timer(1, unit="ns")
+    ready_signal.value = 0
+    return beat

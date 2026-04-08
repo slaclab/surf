@@ -9,15 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep the first pass to one same-clock wrapper configuration with
-#   the normal `VALID_THOLD_G=1` path.
-# - Stimulus: Drive one well-formed frame and one malformed frame with a
-#   repeated `SOF` in the middle.
-# - Checks: Good traffic must pass unchanged, and the repeated-`SOF` case must
-#   end on the violating beat with `EOFE` asserted and `SOF` cleared.
-# - Timing: Keep the first pass in steady streaming mode and capture accepted
-#   beats by expected payload value so the bench stays aligned with the filter
-#   policy checks instead of overfitting to the downstream pipeline latency.
+# - Sweep: Cover two same-clock wrapper configurations: the normal
+#   `VALID_THOLD_G=1` path and the cached-last-user `VALID_THOLD_G=0` path.
+# - Stimulus: Drive one well-formed frame, one missing-SOF frame, one
+#   interleaved-`TDEST` frame, one repeated-`SOF` frame, and one cached-EOFE
+#   frame through the flat SSI wrapper contract.
+# - Checks: Good traffic must pass unchanged, missing-SOF traffic must be
+#   dropped, `TDEST` and repeated-`SOF` violations must terminate on the
+#   violating beat with `EOFE`, and the cached-EOFE path must drop the frame
+#   before any output becomes visible.
+# - Timing: The bench samples the first visible beat while the sink is stalled,
+#   then consumes the frame one accepted transfer at a time so the checks stay
+#   aligned with wrapper-visible framing policy instead of fixed latency.
 
 import cocotb
 import pytest
@@ -25,20 +28,30 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
-    FlatSsiEndpoint,
-    SsiBeat,
     cycle,
     env_data_bytes,
-    keep_mask,
+    env_int,
+    expect_no_output,
+    FlatSsiEndpoint,
     reset_dut,
     send_contiguous_frame,
+    SsiBeat,
     start_clock,
 )
 
 
+async def wait_output_clear(dut, *, cycles: int = 16):
+    dut.mAxisTReady.value = 1
+    for _ in range(cycles):
+        await cycle(dut.axisClk)
+        if int(dut.mAxisTValid.value) == 0:
+            dut.mAxisTReady.value = 0
+            return
+    dut.mAxisTReady.value = 0
+    raise AssertionError("Timed out waiting for SSI output to clear")
+
+
 async def recv_expected_beat(sink, dut, expected_data):
-    # The curated stimulus uses unique payload words, so wait for the exact
-    # word value before sampling the sidebands on the accepted transfer.
     dut.mAxisTReady.value = 1
     for _ in range(64):
         await Timer(2, unit="ns")
@@ -47,9 +60,11 @@ async def recv_expected_beat(sink, dut, expected_data):
             if candidate.data == expected_data:
                 await RisingEdge(dut.axisClk)
                 await Timer(2, unit="ns")
+                dut.mAxisTReady.value = 0
                 return candidate
         await RisingEdge(dut.axisClk)
         await Timer(2, unit="ns")
+    dut.mAxisTReady.value = 0
     raise AssertionError(f"Timed out waiting for SSI output data 0x{expected_data:04x}")
 
 
@@ -61,22 +76,11 @@ async def expect_no_output_data(sink, dut, forbidden_data, cycles=8):
         await RisingEdge(dut.axisClk)
 
 
-async def wait_output_clear(dut, max_cycles=8):
-    dut.mAxisTReady.value = 1
-    for _ in range(max_cycles):
-        await Timer(2, unit="ns")
-        if int(dut.mAxisTValid.value) == 0:
-            dut.mAxisTReady.value = 0
-            return
-        await RisingEdge(dut.axisClk)
-    dut.mAxisTReady.value = 0
-    raise AssertionError("Timed out waiting for SSI output to clear")
-
-
 @cocotb.test()
 async def ssi_ob_frame_filter_test(dut):
     data_bytes = env_data_bytes(default=2)
-    keep = keep_mask(data_bytes)
+    valid_thold = env_int("VALID_THOLD_G", default=1)
+    keep = (1 << data_bytes) - 1
 
     start_clock(dut.axisClk, period_ns=5.0)
 
@@ -89,7 +93,7 @@ async def ssi_ob_frame_filter_test(dut):
     dut.mAxisTReady.setimmediatevalue(0)
     await reset_dut(dut)
 
-    valid_task = cocotb.start_soon(
+    good_send = cocotb.start_soon(
         send_contiguous_frame(
             source,
             [
@@ -99,68 +103,72 @@ async def ssi_ob_frame_filter_test(dut):
             clk=dut.axisClk,
         )
     )
-
     first = await sink.wait_valid(clk=dut.axisClk)
-    assert first.data == 0x1111
-    assert first.keep == keep
-    assert first.last == 0
-    assert first.dest == 0x2
-    assert first.sof == 1
-    assert first.eofe == 0
-
-    dut.mAxisTReady.value = 1
-    await RisingEdge(dut.axisClk)
-    await Timer(2, unit="ns")
+    assert (first.data, first.keep, first.last, first.dest, first.sof, first.eofe) == (0x1111, keep, 0, 0x2, 1, 0)
     second = await recv_expected_beat(sink, dut, 0x2222)
-    dut.mAxisTReady.value = 0
-    await valid_task
-
-    frame = [first, second]
-
-    assert [beat.data for beat in frame] == [0x1111, 0x2222]
-    assert [beat.keep for beat in frame] == [keep, keep]
-    assert [beat.last for beat in frame] == [0, 1]
-    assert [beat.dest for beat in frame] == [0x2, 0x2]
-    assert [beat.sof for beat in frame] == [1, 0]
-    assert [beat.eofe for beat in frame] == [0, 0]
+    await good_send
+    assert (second.data, second.keep, second.last, second.dest, second.sof, second.eofe) == (0x2222, keep, 1, 0x2, 0, 0)
     await wait_output_clear(dut)
 
-    malformed_task = cocotb.start_soon(
-        send_contiguous_frame(
+    await send_contiguous_frame(
+        source,
+        [
+            SsiBeat(data=0x3001, keep=keep, last=0, dest=0x1),
+            SsiBeat(data=0x3002, keep=keep, last=1, dest=0x1),
+        ],
+        clk=dut.axisClk,
+    )
+    await expect_no_output(sink, clk=dut.axisClk)
+
+    if valid_thold == 0:
+        dut.sTLastEofe.value = 1
+        await send_contiguous_frame(
             source,
             [
-                SsiBeat(data=0x3333, keep=keep, last=0, dest=0x1, sof=1),
-                SsiBeat(data=0x4444, keep=keep, last=0, dest=0x1, sof=1),
-                SsiBeat(data=0x5555, keep=keep, last=1, dest=0x1),
+                SsiBeat(data=0x4001, keep=keep, last=1, dest=0x3, sof=1),
             ],
             clk=dut.axisClk,
         )
-    )
+        dut.sTLastEofe.value = 0
+        await expect_no_output(sink, clk=dut.axisClk)
+    else:
+        tdest_send = cocotb.start_soon(
+            send_contiguous_frame(
+                source,
+                [
+                    SsiBeat(data=0x5001, keep=keep, last=0, dest=0x4, sof=1),
+                    SsiBeat(data=0x5002, keep=keep, last=0, dest=0x5),
+                    SsiBeat(data=0x5003, keep=keep, last=1, dest=0x5),
+                ],
+                clk=dut.axisClk,
+            )
+        )
+        first = await sink.wait_valid(clk=dut.axisClk)
+        second = await recv_expected_beat(sink, dut, 0x5002)
+        await tdest_send
+        assert (first.data, first.last, first.dest, first.sof, first.eofe) == (0x5001, 0, 0x4, 1, 0)
+        assert (second.data, second.last, second.dest, second.sof, second.eofe) == (0x5002, 1, 0x5, 0, 1)
+        await expect_no_output_data(sink, dut, 0x5003)
+        await wait_output_clear(dut)
 
-    first = await sink.wait_valid(clk=dut.axisClk)
-    assert first.data == 0x3333
-    assert first.keep == keep
-    assert first.last == 0
-    assert first.dest == 0x1
-    assert first.sof == 1
-    assert first.eofe == 0
-
-    dut.mAxisTReady.value = 1
-    await RisingEdge(dut.axisClk)
-    await Timer(2, unit="ns")
-    second = await recv_expected_beat(sink, dut, 0x4444)
-    dut.mAxisTReady.value = 0
-    await malformed_task
-
-    frame = [first, second]
-
-    assert [beat.data for beat in frame] == [0x3333, 0x4444]
-    assert [beat.last for beat in frame] == [0, 1]
-    assert [beat.dest for beat in frame] == [0x1, 0x1]
-    assert [beat.sof for beat in frame] == [1, 0]
-    assert [beat.eofe for beat in frame] == [0, 1]
-    await expect_no_output_data(sink, dut, 0x5555)
-    await wait_output_clear(dut)
+        repeated_sof_send = cocotb.start_soon(
+            send_contiguous_frame(
+                source,
+                [
+                    SsiBeat(data=0x6001, keep=keep, last=0, dest=0x6, sof=1),
+                    SsiBeat(data=0x6002, keep=keep, last=0, dest=0x6, sof=1),
+                    SsiBeat(data=0x6003, keep=keep, last=1, dest=0x6),
+                ],
+                clk=dut.axisClk,
+            )
+        )
+        first = await sink.wait_valid(clk=dut.axisClk)
+        second = await recv_expected_beat(sink, dut, 0x6002)
+        await repeated_sof_send
+        assert (first.data, first.last, first.dest, first.sof, first.eofe) == (0x6001, 0, 0x6, 1, 0)
+        assert (second.data, second.last, second.dest, second.sof, second.eofe) == (0x6002, 1, 0x6, 0, 1)
+        await expect_no_output_data(sink, dut, 0x6003)
+        await wait_output_clear(dut)
 
     await cycle(dut.axisClk, 2)
     assert int(dut.mAxisTValid.value) == 0
@@ -171,6 +179,12 @@ PARAMETER_SWEEP = [
         "default_configuration",
         DATA_BYTES_G="2",
         VALID_THOLD_G="1",
+        PIPE_STAGES_G="0",
+    ),
+    parameter_case(
+        "cached_last_user_path",
+        DATA_BYTES_G="2",
+        VALID_THOLD_G="0",
         PIPE_STAGES_G="0",
     ),
 ]
