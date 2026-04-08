@@ -9,15 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover two same-clock wrapper configurations: the normal
-#   `VALID_THOLD_G=1` path and the cached-last-user `VALID_THOLD_G=0` path.
+# - Sweep: Cover a curated three-case same-clock wrapper matrix across the
+#   normal `VALID_THOLD_G=1` path, one pipelined `PIPE_STAGES_G=2` pass-through
+#   path, and the cached-last-user `VALID_THOLD_G=0` path.
 # - Stimulus: Drive one well-formed frame, one missing-SOF frame, one
 #   interleaved-`TDEST` frame, one repeated-`SOF` frame, and one cached-EOFE
 #   frame through the flat SSI wrapper contract.
 # - Checks: Good traffic must pass unchanged, missing-SOF traffic must be
 #   dropped, `TDEST` and repeated-`SOF` violations must terminate on the
 #   violating beat with `EOFE`, and the cached-EOFE path must drop the frame
-#   before any output becomes visible.
+#   before any output becomes visible while strobing the exported drop flags.
 # - Timing: The bench samples the first visible beat while the sink is stalled,
 #   then consumes the frame one accepted transfer at a time so the checks stay
 #   aligned with wrapper-visible framing policy instead of fixed latency.
@@ -39,6 +40,7 @@ from tests.protocols.ssi.ssi_test_utils import (
     setup_flat_ssi_testbench,
     SsiBeat,
     wait_output_clear,
+    wait_signal_pulse,
 )
 
 
@@ -99,6 +101,63 @@ async def ssi_ob_frame_filter_test(dut):
     )
     await expect_no_output(sink, clk=bench.clk)
 
+    # A mid-frame `TDEST` change should terminate the frame on the violating
+    # beat with `EOFE` in both cached and non-cached modes.
+    tdest_send = cocotb.start_soon(
+        send_contiguous_frame(
+            source,
+            [
+                SsiBeat(data=0x5001, keep=keep, last=0, dest=0x4, sof=1),
+                SsiBeat(data=0x5002, keep=keep, last=0, dest=0x5),
+                SsiBeat(data=0x5003, keep=keep, last=1, dest=0x5),
+            ],
+            clk=bench.clk,
+        )
+    )
+    first = await sink.wait_valid(clk=bench.clk)
+    second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x5002)
+    await tdest_send
+    assert_beat_view(
+        first,
+        fields=("data", "last", "dest", "sof", "eofe"),
+        expected=(0x5001, 0, 0x4, 1, 0),
+    )
+    assert_beat_view(
+        second,
+        fields=("data", "last", "dest", "sof", "eofe"),
+        expected=(0x5002, 1, 0x5, 0, 1),
+    )
+    await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0x5003)
+    await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
+
+    # Repeating `SOF` mid-frame should produce the same kind of early
+    # termination in both modes.
+    repeated_sof_send = cocotb.start_soon(
+        send_contiguous_frame(
+            source,
+            [
+                SsiBeat(data=0x6001, keep=keep, last=0, dest=0x6, sof=1),
+                SsiBeat(data=0x6002, keep=keep, last=0, dest=0x6, sof=1),
+                SsiBeat(data=0x6003, keep=keep, last=1, dest=0x6),
+            ],
+            clk=bench.clk,
+        )
+    )
+    first = await sink.wait_valid(clk=bench.clk)
+    second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x6002)
+    await repeated_sof_send
+    assert_beat_view(
+        first,
+        fields=("data", "last", "dest", "sof", "eofe"),
+        expected=(0x6001, 0, 0x6, 1, 0),
+    )
+    assert_beat_view(
+        second,
+        fields=("data", "last", "dest", "sof", "eofe"),
+        expected=(0x6002, 1, 0x6, 0, 1),
+    )
+    await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
+
     if valid_thold == 0:
         # In the cached-last-user path, an `EOFE` indication on the terminal
         # source beat should suppress the frame before any output appears.
@@ -111,64 +170,9 @@ async def ssi_ob_frame_filter_test(dut):
             clk=bench.clk,
         )
         dut.sTLastEofe.value = 0
+        await wait_signal_pulse(dut.mAxisDropWord, clk=bench.clk)
+        await wait_signal_pulse(dut.mAxisDropFrame, clk=bench.clk)
         await expect_no_output(sink, clk=bench.clk)
-    else:
-        # A mid-frame `TDEST` change should terminate the frame on the
-        # violating beat with `EOFE`.
-        tdest_send = cocotb.start_soon(
-            send_contiguous_frame(
-                source,
-                [
-                    SsiBeat(data=0x5001, keep=keep, last=0, dest=0x4, sof=1),
-                    SsiBeat(data=0x5002, keep=keep, last=0, dest=0x5),
-                    SsiBeat(data=0x5003, keep=keep, last=1, dest=0x5),
-                ],
-                clk=bench.clk,
-            )
-        )
-        first = await sink.wait_valid(clk=bench.clk)
-        second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x5002)
-        await tdest_send
-        assert_beat_view(
-            first,
-            fields=("data", "last", "dest", "sof", "eofe"),
-            expected=(0x5001, 0, 0x4, 1, 0),
-        )
-        assert_beat_view(
-            second,
-            fields=("data", "last", "dest", "sof", "eofe"),
-            expected=(0x5002, 1, 0x5, 0, 1),
-        )
-        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0x5003)
-        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
-
-        # Repeating `SOF` mid-frame should produce the same kind of early
-        # termination.
-        repeated_sof_send = cocotb.start_soon(
-            send_contiguous_frame(
-                source,
-                [
-                    SsiBeat(data=0x6001, keep=keep, last=0, dest=0x6, sof=1),
-                    SsiBeat(data=0x6002, keep=keep, last=0, dest=0x6, sof=1),
-                    SsiBeat(data=0x6003, keep=keep, last=1, dest=0x6),
-                ],
-                clk=bench.clk,
-            )
-        )
-        first = await sink.wait_valid(clk=bench.clk)
-        second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x6002)
-        await repeated_sof_send
-        assert_beat_view(
-            first,
-            fields=("data", "last", "dest", "sof", "eofe"),
-            expected=(0x6001, 0, 0x6, 1, 0),
-        )
-        assert_beat_view(
-            second,
-            fields=("data", "last", "dest", "sof", "eofe"),
-            expected=(0x6002, 1, 0x6, 0, 1),
-        )
-        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
     # Leave a short idle window so delayed stray output would still fail here.
     await cycle(bench.clk, 2)
@@ -187,6 +191,12 @@ PARAMETER_SWEEP = [
         DATA_BYTES_G="2",
         VALID_THOLD_G="0",
         PIPE_STAGES_G="0",
+    ),
+    parameter_case(
+        "pipelined_default_path",
+        DATA_BYTES_G="2",
+        VALID_THOLD_G="1",
+        PIPE_STAGES_G="2",
     ),
 ]
 
