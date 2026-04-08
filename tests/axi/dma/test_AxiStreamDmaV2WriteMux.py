@@ -9,17 +9,17 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one 32-bit single-beat wrapper case so the mux ordering can be
-#   checked without pulling in the wider descriptor-splitting branch.
-# - Stimulus: Issue one descriptor write and one data write into the shared
-#   downstream AXI RAM model, with the descriptor arriving first.
+# - Sweep: Cover descriptor-first, simultaneous-launch, and data-first ordering
+#   with the same narrow 32-bit wrapper so the bench stays focused on mux
+#   arbitration instead of descriptor splitting.
+# - Stimulus: Launch one descriptor write and one data write into the shared
+#   downstream AXI RAM model under different relative arrival timings.
 # - Checks: Both routed responses must return `OKAY`, the shared memory must
-#   contain both payloads at their requested addresses, and the downstream
-#   accepted address order must match the source launch order in this stable
-#   single-beat wrapper case.
-# - Timing: The requests are separated by a couple of clocks so the mux still
-#   steps through its address/data/response states rather than seeing one
-#   combinational burst of activity.
+#   contain both payloads, and the accepted downstream address order must match
+#   the expected arbitration behavior for each launch pattern.
+# - Timing: The requests are intentionally separated by a controlled number of
+#   clocks, or started in the same cycle, so the mux still steps through real
+#   address/data/response states.
 
 import cocotb
 import pytest
@@ -163,7 +163,51 @@ async def descriptor_then_data_write_test(dut):
     assert int(dut.dataWriteCtrlPause.value) == 0
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="single_beat_32bit")])
+@cocotb.test()
+async def simultaneous_launch_dual_accept_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    tb.start_agents()
+
+    desc_task = cocotb.start_soon(tb.desc.issue_write(0x0060, b"\xE0\xE1\xE2\xE3"))
+    data_task = cocotb.start_soon(tb.data.issue_write(0x0020, b"\x20\x21\x22\x23"))
+    desc_resp = await desc_task
+    data_resp = await data_task
+    await tb.cycle(2)
+
+    assert desc_resp == AxiResp.OKAY
+    assert data_resp == AxiResp.OKAY
+    assert tb.ram.read(0x0020, 4) == b"\x20\x21\x22\x23"
+    assert tb.ram.read(0x0060, 4) == b"\xE0\xE1\xE2\xE3"
+    assert set(tb.aw_order[:2]) == {0x0020, 0x0060}
+
+
+@cocotb.test()
+async def in_flight_data_not_preempted_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    tb.start_agents()
+
+    data_task = cocotb.start_soon(tb.data.issue_write(0x0030, b"\x30\x31\x32\x33"))
+    await tb.cycle(1)
+    desc_resp = await tb.desc.issue_write(0x0070, b"\xF0\xF1\xF2\xF3")
+    data_resp = await data_task
+    await tb.cycle(2)
+
+    assert data_resp == AxiResp.OKAY
+    assert desc_resp == AxiResp.OKAY
+    assert tb.ram.read(0x0030, 4) == b"\x30\x31\x32\x33"
+    assert tb.ram.read(0x0070, 4) == b"\xF0\xF1\xF2\xF3"
+    assert tb.aw_order[:2] == [0x0030, 0x0070]
+
+
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        pytest.param({}, id="single_beat_32bit"),
+        pytest.param({"ACK_WAIT_BVALID_G": True}, id="single_beat_ack_wait"),
+    ],
+)
 def test_AxiStreamDmaV2WriteMux(parameters):
     run_surf_vhdl_test(
         test_file=__file__,

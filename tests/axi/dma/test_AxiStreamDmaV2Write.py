@@ -9,22 +9,32 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one 32-bit single-frame case with descriptor ack supplied from
-#   the testbench.
-# - Stimulus: Send one AXI-Stream frame, respond to the descriptor request with
-#   a writable buffer, and capture the downstream AXI write traffic in RAM.
-# - Checks: The descriptor request fields, downstream written bytes, and return
-#   metadata must match the incoming frame.
+# - Sweep: Cover a stable 32-bit single-frame write and a longer frame that
+#   must cross multiple AXI bursts.
+# - Stimulus: Send AXI-Stream frames into the write engine, respond to the
+#   descriptor request from the bench, and capture the downstream AXI writes in
+#   RAM while monitoring accepted write addresses.
+# - Checks: The descriptor request and return metadata, written payload bytes,
+#   and expected burst-address progression must match the incoming stream.
 # - Timing: The descriptor ack is delayed by a cycle so the request handshake
 #   and write path both execute through their normal states.
+
+import os
 
 import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiRamWrite, AxiWriteBus, AxiStreamBus, AxiStreamFrame, AxiStreamSource
+from cocotbext.axi import AxiRamWrite, AxiStreamBus, AxiStreamFrame, AxiStreamSource, AxiWriteBus
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test
+
+
+def logic_int(value) -> int:
+    try:
+        return int(value)
+    except ValueError:
+        return 0
 
 
 class TB:
@@ -32,6 +42,7 @@ class TB:
         self.dut = dut
         self.source = None
         self.ram = None
+        self.aw_log = []
 
         cocotb.start_soon(Clock(dut.axiClk, 5.0, unit="ns").start())
         dut.axiRst.setimmediatevalue(1)
@@ -40,6 +51,7 @@ class TB:
         dut.dmaWrDescAckValid.setimmediatevalue(0)
         dut.dmaWrDescRetAck.setimmediatevalue(0)
         cocotb.start_soon(self._descriptor_responder())
+        cocotb.start_soon(self._monitor_aw())
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -59,53 +71,108 @@ class TB:
             self.ram = AxiRamWrite(AxiWriteBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2**16)
 
     async def _descriptor_responder(self):
+        max_size = int(os.environ.get("DESC_MAX_SIZE", "32"), 0)
+        timeout = int(os.environ.get("DESC_TIMEOUT", "32"), 0)
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
             self.dut.dmaWrDescAckValid.value = 0
             if int(self.dut.dmaWrDescReqValid.value):
-                self.dut.dmaWrDescAckAddress.value = 0x40
+                self.dut.dmaWrDescAckAddress.value = int(os.environ.get("WRITE_ADDR", "0x40"), 0)
                 self.dut.dmaWrDescAckMetaEnable.value = 0
                 self.dut.dmaWrDescAckMetaAddr.value = 0
                 self.dut.dmaWrDescAckDropEn.value = 0
-                self.dut.dmaWrDescAckMaxSize.value = 16
+                self.dut.dmaWrDescAckMaxSize.value = max_size
                 self.dut.dmaWrDescAckContEn.value = 0
-                self.dut.dmaWrDescAckBuffId.value = 0x1234
-                self.dut.dmaWrDescAckTimeout.value = 0x20
+                self.dut.dmaWrDescAckBuffId.value = int(os.environ.get("WRITE_BUFF_ID", "0x1234"), 0)
+                self.dut.dmaWrDescAckTimeout.value = timeout
                 self.dut.dmaWrDescAckValid.value = 1
 
-
+    async def _monitor_aw(self):
+        while True:
+            await RisingEdge(self.dut.axiClk)
+            await Timer(1, unit="ns")
+            if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
+                self.aw_log.append(
+                    (
+                        int(self.dut.M_AXI_AWADDR.value),
+                        int(self.dut.M_AXI_AWLEN.value),
+                    )
+                )
 @cocotb.test()
-async def single_frame_write_test(dut):
+async def write_descriptor_round_trip_test(dut):
     tb = TB(dut)
+    payload = bytes.fromhex(os.environ["PAYLOAD_HEX"])
+    frame_dest = int(os.environ["FRAME_DEST"], 0)
+    frame_id = int(os.environ["FRAME_ID"], 0)
+    write_addr = int(os.environ.get("WRITE_ADDR", "0x40"), 0)
+    write_buff_id = int(os.environ.get("WRITE_BUFF_ID", "0x1234"), 0)
+
     await tb.reset()
     tb.start_agents()
 
-    frame = AxiStreamFrame(b"\x10\x11\x12\x13\x20\x21")
-    frame.tdest = 0x44
-    frame.tid = 0x33
+    frame = AxiStreamFrame(payload)
+    frame.tdest = frame_dest
+    frame.tid = frame_id
     await tb.source.send(frame)
 
     while not int(dut.dmaWrDescRetValid.value):
         await tb.cycle(1)
 
-    assert int(dut.dmaWrDescReqId.value) == 0x33
-    assert int(dut.dmaWrDescReqDest.value) == 0x44
-    assert tb.ram.read(0x40, 6) == b"\x10\x11\x12\x13\x20\x21"
-    assert int(dut.dmaWrDescRetBuffId.value) == 0x1234
-    assert int(dut.dmaWrDescRetSize.value) == 6
-    assert int(dut.dmaWrDescRetDest.value) == 0x44
-    assert int(dut.dmaWrDescRetId.value) == 0x33
+    assert int(dut.dmaWrDescReqId.value) == frame_id
+    assert int(dut.dmaWrDescReqDest.value) == frame_dest
+    assert tb.ram.read(write_addr, len(payload)) == payload
+    assert int(dut.dmaWrDescRetBuffId.value) == write_buff_id
+    assert int(dut.dmaWrDescRetSize.value) == len(payload)
+    assert int(dut.dmaWrDescRetContinue.value) == 0
+    assert int(dut.dmaWrDescRetResult.value) == 0
+    assert int(dut.dmaWrDescRetDest.value) == frame_dest
+    assert int(dut.dmaWrDescRetId.value) == frame_id
+
+    if os.environ.get("EXPECT_MULTI_BURST", "0") == "1":
+        assert tb.aw_log[:2] == [(write_addr, 1), (write_addr + 0x8, 1)]
+
     dut.dmaWrDescRetAck.value = 1
     await tb.cycle(1)
+    dut.dmaWrDescRetAck.value = 0
+    await tb.cycle(1)
+    assert int(dut.dmaWrIdle.value) == 1
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="single_frame_write")])
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        pytest.param(
+            {
+                "PAYLOAD_HEX": "101112132021",
+                "FRAME_DEST": 0x44,
+                "FRAME_ID": 0x33,
+                "WRITE_ADDR": 0x40,
+                "WRITE_BUFF_ID": 0x1234,
+            },
+            id="single_frame_write",
+        ),
+        pytest.param(
+            {
+                "BURST_BYTES_G": 8,
+                "ACK_WAIT_BVALID_G": True,
+                "PAYLOAD_HEX": "303132333435363738393A3B",
+                "FRAME_DEST": 0x55,
+                "FRAME_ID": 0x21,
+                "WRITE_ADDR": 0x80,
+                "WRITE_BUFF_ID": 0x4321,
+                "DESC_MAX_SIZE": 32,
+                "EXPECT_MULTI_BURST": 1,
+            },
+            id="multi_burst_write",
+        ),
+    ],
+)
 def test_AxiStreamDmaV2Write(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.axistreamdmav2writeipintegrator",
-        parameters=parameters,
+        parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [

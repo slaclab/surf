@@ -9,14 +9,14 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one stable common-clock wrapper instance and limit the first
-#   pass to the AXI-Lite control/status surface while the integrated read path
-#   remains coupled to the separate open `AxiStreamDmaV2Read` issue.
-# - Stimulus: Read the baked-in configuration registers, update the pause
-#   threshold register, and sample the exported stream-control flags while idle.
-# - Checks: The exposed version/config words must match the wrapper constants,
-#   the writable pause-threshold register must retain the programmed value, and
-#   the idle-path status outputs must stay non-erroring.
+# - Sweep: Keep one stable common-clock wrapper and focus this bench on the
+#   AXI-Lite control and status surface that is unique to the integrated FIFO.
+# - Stimulus: Read the baked-in configuration registers, then program the
+#   pause-threshold register through multiple values while the datapath stays
+#   idle.
+# - Checks: The exposed version, geometry, and count registers must match the
+#   wrapper constants, the writable pause-threshold register must retain each
+#   programmed value, and the idle-path status outputs must stay non-erroring.
 # - Timing: The bench leaves several clock cycles after each AXI-Lite access so
 #   the DUT settles through its own register and synchronizer paths.
 
@@ -51,7 +51,7 @@ class TB:
         await self.cycle(6)
         self.dut.axiRst.value = 0
         self.dut.axilRst.value = 0
-        await self.cycle(12)
+        await self.cycle(16)
 
     def start_axil(self):
         if self.axil is None:
@@ -68,28 +68,62 @@ class TB:
 
 
 @cocotb.test()
-async def idle_register_surface_test(dut):
+async def integrated_fifo_register_map_test(dut):
     tb = TB(dut)
     await tb.reset()
     tb.start_axil()
 
     assert (await tb.read_reg(0x00) & 0xF) == 1
+    assert await tb.read_reg(0x04) == 0
+    assert (await tb.read_reg(0x0C) & 0xF) == 0xF
+    assert ((await tb.read_reg(0x0C) >> 8) & 0x3) == 1
     assert ((await tb.read_reg(0x10) >> 8) & 0xFF) == 8
     assert ((await tb.read_reg(0x10) >> 16) & 0xFF) == 4
     assert ((await tb.read_reg(0x10) >> 24) & 0xFF) == 16
+    assert ((await tb.read_reg(0x14) >> 24) & 0xFF) == 4
+    assert (await tb.read_reg(0x18) & 0xFF) == 8
+    assert ((await tb.read_reg(0x18) >> 8) & 0xFF) == 12
+    assert ((await tb.read_reg(0x18) >> 16) & 0xFFFF) == 16
+    queue_counts = await tb.read_reg(0x1C)
+    wr_buff_cnt = (queue_counts >> 16) & 0xFFFF
+    assert (queue_counts & 0xFFFF) == 0
+    # The integrated FIFO comes out of reset with the read queue empty and the
+    # write queue preloaded close to full. The exact exposed count depends on
+    # the queue's FWFT accounting and when the control plane samples it.
+    assert 8 < wr_buff_cnt < 0x10
     assert await tb.read_reg(0x24) == 8
 
-    await tb.write_reg(0x24, 1)
-    await tb.cycle(4)
 
-    assert await tb.read_reg(0x24) == 1
-    assert int(dut.sAxisPause.value) == 0
+@cocotb.test()
+async def pause_threshold_programming_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    tb.start_axil()
+
+    initial_status = await tb.read_reg(0x20)
+    initial_pause_cnt = initial_status & 0xFFFF
+    assert initial_pause_cnt >= 1
+    assert ((initial_status >> 16) & 0x1) == 0
+
+    for value, expected_pause in ((1, 0), (None, 1), (0, 0)):
+        if value is None:
+            queue_counts = await tb.read_reg(0x1C)
+            value = (queue_counts >> 16) & 0xFFFF
+        await tb.write_reg(0x24, value)
+        await tb.cycle(4)
+        assert await tb.read_reg(0x24) == value
+        status = await tb.read_reg(0x20)
+        assert ((status >> 16) & 0x1) == expected_pause
+        assert int(dut.sAxisPause.value) == expected_pause
+
+    final_status = await tb.read_reg(0x20)
+    assert (final_status & 0xFFFF) >= initial_pause_cnt + 1
+    assert ((final_status >> 16) & 0x1) == 0
     assert int(dut.sAxisOverflow.value) == 0
     assert int(dut.sAxisIdle.value) == 0
-    assert ((await tb.read_reg(0x20) >> 16) & 0x1) == 0
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="idle_control_surface")])
+@pytest.mark.parametrize("parameters", [pytest.param({}, id="integrated_fifo_control_surface")])
 def test_AxiStreamDmaV2Fifo(parameters):
     run_surf_vhdl_test(
         test_file=__file__,

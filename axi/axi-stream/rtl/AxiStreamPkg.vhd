@@ -185,6 +185,7 @@ package AxiStreamPkg is
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
    function genTKeep (bytes           : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv;
+   function genTKeep (bytes           : slv) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
@@ -361,6 +362,20 @@ package body AxiStreamPkg is
       retVar := (others => '0');
       for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
          if (bytes > i) then
+            retVar(i) := '1';
+         end if;
+      end loop;
+      return retVar;
+   end function genTKeep;
+
+   function genTKeep (bytes : slv) return slv is
+      variable retVar   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable bytesExt : slv(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0);
+   begin
+      retVar   := (others => '0');
+      bytesExt := resize(bytes, bytesExt'length);
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         if (bytesExt >= toSlv(i+1, bytesExt'length)) then
             retVar(i) := '1';
          end if;
       end loop;
@@ -762,4 +777,3 @@ package body AxiStreamPkg is
    end function;
 
 end package body AxiStreamPkg;
-
