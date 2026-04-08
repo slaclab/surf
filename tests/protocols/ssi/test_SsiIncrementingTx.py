@@ -25,12 +25,15 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
+    capture_accepted_beats,
     expect_no_output,
     FlatSsiEndpoint,
+    assert_beat_views,
     recv_frame_and_check,
     reset_dut,
     start_clock,
     wait_signal_level,
+    wait_output_clear,
 )
 
 
@@ -53,48 +56,58 @@ async def emits_incrementing_frames_and_clamps_short_length(dut):
     dut.mAxisTReady.setimmediatevalue(1)
     await reset_dut(dut)
 
+    recv_task = cocotb.start_soon(
+        recv_frame_and_check(
+            sink,
+            clk=dut.axisClk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "last", "sof", "dest", "tid"),
+            expected=[
+                (0x00000000, 0, 1, 0x02, 0x00),
+                (0x00000003, 0, 0, 0x02, 0x00),
+                (0x00000001, 0, 0, 0x02, 0x00),
+                (0x00000002, 1, 0, 0x02, 0x00),
+            ],
+        )
+    )
     await pulse_trigger(dut)
     await wait_signal_level(dut.busy, clk=dut.axisClk, expected=1, cycles=8)
-    await recv_frame_and_check(
-        sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "dest", "tid"),
-        expected=[
-            (0x00000000, 0, 1, 0x02, 0x00),
-            (0x00000001, 0, 0, 0x02, 0x00),
-            (0x00000002, 1, 0, 0x02, 0x00),
-        ],
-    )
+    await recv_task
     assert int(dut.busy.value) == 0
 
     dut.packetLength.value = 0
-    await pulse_trigger(dut)
-    await recv_frame_and_check(
-        sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof"),
-        expected=[
-            (0x00000001, 0, 1),
-            (0x00000002, 1, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        recv_frame_and_check(
+            sink,
+            clk=dut.axisClk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "last", "sof"),
+            expected=[
+                (0x00000001, 0, 1),
+                (0x00000002, 0, 0),
+                (0x00000002, 1, 0),
+            ],
+        )
     )
+    await pulse_trigger(dut)
+    await recv_task
     assert int(dut.busy.value) == 0
+    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
 
     dut.packetLength.value = 3
     dut.mAxisTReady.value = 0
     await pulse_trigger(dut)
     await wait_signal_level(dut.busy, clk=dut.axisClk, expected=1, cycles=8)
     await pulse_trigger(dut)
+    capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=dut.axisClk, cycles=16))
     dut.mAxisTReady.value = 1
-    await recv_frame_and_check(
-        sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
+    beats = await capture_task
+    assert_beat_views(
+        beats,
         fields=("data", "last", "sof"),
         expected=[
             (0x00000002, 0, 1),
+            (0x00000003, 0, 0),
             (0x00000003, 0, 0),
             (0x00000004, 1, 0),
         ],

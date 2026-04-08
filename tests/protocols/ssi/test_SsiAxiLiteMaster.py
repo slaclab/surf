@@ -181,6 +181,16 @@ def request_keep() -> int:
     return 0xF
 
 
+async def expect_response(tb: TB, *, expected: list[tuple[int, int, int, int]]):
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.dut.axisClk,
+        ready_signal=tb.dut.mAxisTReady,
+        fields=("data", "last", "sof", "eofe"),
+        expected=expected,
+    )
+
+
 async def send_write_request(tb: TB, *, echo: int, address: int, words: list[int]):
     payload = [
         SsiBeat(data=echo, keep=request_keep(), last=0, sof=1),
@@ -210,35 +220,36 @@ async def ssi_axi_lite_master_test(dut):
     tb = TB(dut)
     await tb.reset()
 
-    await send_write_request(tb, echo=0xA5A50001, address=0x10, words=[0xDEADBEEF])
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0xA5A50001, 0, 1, 0),
-            (0xDEADBEEF, 0, 0, 0),
-            (STATUS_OK, 1, 0, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0xA5A50001, 0, 1, 0),
+                (0x40000004, 0, 0, 0),
+                (0xDEADBEEF, 0, 0, 0),
+                (STATUS_OK, 1, 0, 0),
+            ],
+        )
     )
+    await send_write_request(tb, echo=0xA5A50001, address=0x10, words=[0xDEADBEEF])
+    await recv_task
     assert tb.axil.mem[0x10] == 0xDEADBEEF
     assert tb.axil.last_writes[-1] == (0x10, 0xDEADBEEF, 0xF, 0)
 
-    await send_write_request(tb, echo=0xA5A50002, address=0x20, words=[0x11112222, 0x33334444])
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0xA5A50002, 0, 1, 0),
-            (0x40000008, 0, 0, 0),
-            (0x11112222, 0, 0, 0),
-            (0x33334444, 0, 0, 0),
-            (STATUS_OK, 1, 0, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0xA5A50002, 0, 1, 0),
+                (0x40000008, 0, 0, 0),
+                (0x11112222, 0, 0, 0),
+                (0x33334444, 0, 0, 0),
+                (STATUS_OK, 1, 0, 0),
+            ],
+        )
     )
+    await send_write_request(tb, echo=0xA5A50002, address=0x20, words=[0x11112222, 0x33334444])
+    await recv_task
     assert tb.axil.mem[0x20] == 0x11112222
     assert tb.axil.mem[0x24] == 0x33334444
     assert tb.axil.last_writes[-2:] == [
@@ -248,21 +259,32 @@ async def ssi_axi_lite_master_test(dut):
 
     tb.axil.mem[0x30] = 0x12345678
     tb.axil.mem[0x34] = 0xCAFEBABE
-    await send_read_request(tb, echo=0x5A5A0003, address=0x30, count=1)
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0x5A5A0003, 0, 1, 0),
-            (0x12345678, 0, 0, 0),
-            (0xCAFEBABE, 0, 0, 0),
-            (STATUS_OK, 1, 0, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0x5A5A0003, 0, 1, 0),
+                (0x0000000C, 0, 0, 0),
+                (0x12345678, 0, 0, 0),
+                (0xCAFEBABE, 0, 0, 0),
+                (STATUS_OK, 1, 0, 0),
+            ],
+        )
     )
+    await send_read_request(tb, echo=0x5A5A0003, address=0x30, count=1)
+    await recv_task
     assert tb.axil.last_reads[-2:] == [(0x30, 0), (0x34, 0)]
 
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0xBAD00004, 0, 1, 0),
+                (0x4000000C, 0, 0, 0),
+                (STATUS_FAIL, 1, 0, 0),
+            ],
+        )
+    )
     await send_contiguous_frame(
         tb.source,
         [
@@ -271,47 +293,40 @@ async def ssi_axi_lite_master_test(dut):
         ],
         clk=tb.dut.axisClk,
     )
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0xBAD00004, 0, 1, 0),
-            (STATUS_FAIL, 1, 0, 0),
-        ],
-    )
+    await recv_task
 
     tb.axil.write_resp = AxiResp.SLVERR
-    await send_write_request(tb, echo=0xA5A50005, address=0x40, words=[0x55667788])
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0xA5A50005, 0, 1, 0),
-            (0x55667788, 0, 0, 0),
-            (STATUS_FAIL, 1, 0, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0xA5A50005, 0, 1, 0),
+                (0x40000010, 0, 0, 0),
+                (0x55667788, 0, 0, 0),
+                (STATUS_FAIL, 1, 0, 0),
+            ],
+        )
     )
+    await send_write_request(tb, echo=0xA5A50005, address=0x40, words=[0x55667788])
+    await recv_task
     assert 0x40 not in tb.axil.mem
 
     tb.axil.write_resp = AxiResp.OKAY
     tb.axil.read_resp = AxiResp.SLVERR
     tb.axil.mem[0x50] = 0x0F1E2D3C
-    await send_read_request(tb, echo=0x5A5A0006, address=0x50, count=0)
-    await recv_frame_and_check(
-        tb.sink,
-        clk=dut.axisClk,
-        ready_signal=dut.mAxisTReady,
-        fields=("data", "last", "sof", "eofe"),
-        expected=[
-            (0x5A5A0006, 0, 1, 0),
-            (0x0F1E2D3C, 0, 0, 0),
-            (STATUS_FAIL, 1, 0, 0),
-        ],
+    recv_task = cocotb.start_soon(
+        expect_response(
+            tb,
+            expected=[
+                (0x5A5A0006, 0, 1, 0),
+                (0x00000014, 0, 0, 0),
+                (0x0F1E2D3C, 0, 0, 0),
+                (STATUS_FAIL, 1, 0, 0),
+            ],
+        )
     )
+    await send_read_request(tb, echo=0x5A5A0006, address=0x50, count=0)
+    await recv_task
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="same_clk_error_and_multiword")])

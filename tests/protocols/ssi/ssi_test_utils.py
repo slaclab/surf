@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 
 @dataclass
@@ -66,15 +66,15 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
-        while int(self._sig("TReady").value) != 1:
+        while True:
             await RisingEdge(clk)
             await Timer(1, unit="ns")
+            if int(self._sig("TReady").value) == 1:
+                return
 
     async def send(self, beat: SsiBeat, *, clk):
         self.drive(beat)
         await self.wait_ready(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
         self.set_idle()
 
     def snapshot(self) -> SsiBeat:
@@ -149,8 +149,6 @@ async def send_contiguous_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat],
     for beat in beats:
         endpoint.drive(beat)
         await endpoint.wait_ready(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
     endpoint.set_idle()
 
 
@@ -200,14 +198,28 @@ async def recv_frame(
     ready_signal=None,
     timeout_cycles: int = 128,
 ) -> list[SsiBeat]:
+    if ready_signal is None:
+        beats = []
+        for _ in range(timeout_cycles):
+            beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
+            beats.append(beat)
+            if beat.last == 1:
+                return beats
+        raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
+
+    ready_signal.value = 1
     beats = []
     for _ in range(timeout_cycles):
-        beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
-        beats.append(beat)
-        if beat.last == 1:
-            if ready_signal is not None:
+        await FallingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
+            beat = endpoint.snapshot()
+            beats.append(beat)
+            if beat.last == 1:
                 ready_signal.value = 0
-            return beats
+                return beats
+
+    ready_signal.value = 0
     raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
 
 
@@ -219,19 +231,31 @@ async def recv_n_beats(
     ready_signal=None,
     timeout_cycles: int = 128,
 ) -> list[SsiBeat]:
-    beats = []
-    for _ in range(count):
-        beats.append(
-            await endpoint.recv(
-                clk=clk,
-                ready_signal=ready_signal,
-                keep_ready=True,
+    if ready_signal is None:
+        beats = []
+        for _ in range(count):
+            beats.append(
+                await endpoint.recv(
+                    clk=clk,
+                    ready_signal=ready_signal,
+                    keep_ready=True,
+                )
             )
-        )
+        return beats
 
-    if ready_signal is not None:
-        ready_signal.value = 0
-    return beats
+    ready_signal.value = 1
+    beats = []
+    for _ in range(timeout_cycles):
+        await FallingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
+            beats.append(endpoint.snapshot())
+            if len(beats) == count:
+                ready_signal.value = 0
+                return beats
+
+    ready_signal.value = 0
+    raise AssertionError(f"Timed out waiting for {count} {endpoint.prefix} beats")
 
 
 async def recv_visible_beat(
@@ -248,6 +272,21 @@ async def recv_visible_beat(
     await Timer(1, unit="ns")
     ready_signal.value = 0
     return beat
+
+
+async def capture_accepted_beats(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    cycles: int,
+) -> list[SsiBeat]:
+    beats = []
+    for _ in range(cycles):
+        await FallingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
+            beats.append(endpoint.snapshot())
+    return beats
 
 
 async def recv_expected_beat(

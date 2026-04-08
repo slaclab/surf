@@ -25,6 +25,7 @@ entity SsiFifoWrapper is
       DATA_BYTES_G      : positive range 1 to 8 := 2;
       FIFO_ADDR_WIDTH_G : positive              := 4;
       VALID_THOLD_G     : natural               := 1;
+      GEN_SYNC_FIFO_G   : boolean               := false;
       SLAVE_READY_EN_G  : boolean               := true);
    port (
       axisClk         : in  sl;
@@ -119,7 +120,7 @@ begin
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          VALID_THOLD_G       => VALID_THOLD_G,
-         GEN_SYNC_FIFO_G     => false,
+         GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => 1,
