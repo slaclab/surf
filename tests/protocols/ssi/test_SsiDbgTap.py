@@ -22,33 +22,41 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.protocols.ssi.ssi_test_utils import FlatSsiEndpoint, SsiBeat, cycle, reset_dut, send_contiguous_frame, start_clock
+from tests.protocols.ssi.ssi_test_utils import SsiBeat, cycle, send_contiguous_frame, setup_flat_ssi_testbench
 
 
 @cocotb.test()
 async def accepted_handshake_smoke_test(dut):
     keep = 0x3
 
-    start_clock(dut.axisClk)
-    source = FlatSsiEndpoint(dut, prefix="axis")
-    dut.axisRst.setimmediatevalue(1)
-    source.set_idle()
-    dut.axisTReady.setimmediatevalue(1)
-    await reset_dut(dut)
+    # Even for a smoke bench, start from a clean reset and explicit idle
+    # values so the accepted traffic is easy to reason about.
+    bench = await setup_flat_ssi_testbench(
+        dut,
+        source_prefix="axis",
+        initial_values={"axisTReady": 1},
+    )
+    source = bench.source
+    assert source is not None
 
+    # Send one short frame while the external ready input is high.
     await send_contiguous_frame(
         source,
         [
             SsiBeat(data=0x0011, keep=keep, last=0, dest=0x1, sof=1),
             SsiBeat(data=0x0022, keep=keep, last=1, dest=0x1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
 
+    # Toggle the observed ready signal to show the tap tolerates changing flow
+    # control between frames.
     dut.axisTReady.value = 0
-    await cycle(dut.axisClk, 2)
+    await cycle(bench.clk, 2)
     dut.axisTReady.value = 1
 
+    # Then send a longer frame after re-enabling ready. The smoke check here is
+    # simply that the DUT keeps consuming accepted handshakes without hanging.
     await send_contiguous_frame(
         source,
         [
@@ -56,10 +64,12 @@ async def accepted_handshake_smoke_test(dut):
             SsiBeat(data=0x0044, keep=keep, last=0, dest=0x2),
             SsiBeat(data=0x0055, keep=keep, last=1, dest=0x2),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
 
-    await cycle(dut.axisClk, 6)
+    # Leave the simulation running briefly so any latent protocol error has a
+    # chance to surface before the test exits.
+    await cycle(bench.clk, 6)
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="traffic_smoke")])

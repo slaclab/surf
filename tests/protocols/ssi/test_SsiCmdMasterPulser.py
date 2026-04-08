@@ -28,6 +28,7 @@ from tests.protocols.ssi.ssi_test_utils import cycle, env_int, reset_dut, start_
 
 
 async def pulse_command(dut, *, opcode: int, ctx: int = 0):
+    # Present one decoded command for exactly one local-clock cycle.
     dut.cmdValid.value = 1
     dut.cmdOpCode.value = opcode
     dut.cmdCtx.value = ctx
@@ -36,6 +37,7 @@ async def pulse_command(dut, *, opcode: int, ctx: int = 0):
 
 
 async def measure_pulse_width(dut, *, max_cycles: int = 16) -> int:
+    # Once the pulse starts, count how many full cycles it stays asserted.
     await wait_signal_level(dut.syncPulse, clk=dut.locClk, expected=1, cycles=max_cycles)
     width = 0
     while int(dut.syncPulse.value) == 1:
@@ -50,6 +52,8 @@ async def measure_pulse_width(dut, *, max_cycles: int = 16) -> int:
 async def opcode_match_generates_fixed_width_pulses(dut):
     pulse_width = env_int("PULSE_WIDTH_G", default=3)
 
+    # This module runs only on the local command clock, so the bench uses that
+    # single clock for reset, stimulus, and pulse-width measurements.
     start_clock(dut.locClk)
     dut.locRst.setimmediatevalue(1)
     dut.cmdValid.setimmediatevalue(0)
@@ -58,20 +62,28 @@ async def opcode_match_generates_fixed_width_pulses(dut):
     dut.opCode.setimmediatevalue(0x5A)
     await reset_dut(dut, clk_name="locClk", rst_name="locRst")
 
+    # A non-matching opcode should leave the output low for the full check
+    # window.
     await pulse_command(dut, opcode=0x33)
     for _ in range(pulse_width + 1):
         assert int(dut.syncPulse.value) == 0
         await cycle(dut.locClk)
 
+    # A matching opcode should create one pulse whose duration matches the
+    # configured generic exactly.
     await pulse_command(dut, opcode=0x5A, ctx=0x123456)
     assert await measure_pulse_width(dut, max_cycles=pulse_width + 4) == pulse_width
     await wait_signal_level(dut.syncPulse, clk=dut.locClk, expected=0, cycles=4)
 
+    # The next matching command should create a second independent pulse after
+    # the first one returns to zero.
     await pulse_command(dut, opcode=0x5A, ctx=0xABCDEF)
     assert await measure_pulse_width(dut, max_cycles=pulse_width + 4) == pulse_width
     await wait_signal_level(dut.syncPulse, clk=dut.locClk, expected=0, cycles=4)
 
     if pulse_width > 1:
+        # When the pulse is already high, another matching command must not
+        # stretch the pulse beyond its configured width.
         await pulse_command(dut, opcode=0x5A)
         await wait_signal_level(dut.syncPulse, clk=dut.locClk, expected=1, cycles=4)
         observed_width = 1
@@ -89,6 +101,8 @@ async def opcode_match_generates_fixed_width_pulses(dut):
 
         assert observed_width == pulse_width
 
+    # Leave a short post-check idle window so a delayed retrigger would still
+    # be caught here.
     for _ in range(3):
         assert int(dut.syncPulse.value) == 0
         await cycle(dut.locClk)

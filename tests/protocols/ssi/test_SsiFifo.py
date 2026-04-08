@@ -41,22 +41,22 @@ from tests.protocols.ssi.ssi_test_utils import (
     env_int,
     expect_no_output,
     expect_no_output_data,
-    FlatSsiEndpoint,
     keep_mask,
     recv_expected_beat,
     recv_frame,
     recv_frame_by_data,
     recv_visible_beat,
-    reset_dut,
     send_contiguous_frame,
+    setup_flat_ssi_testbench,
     SsiBeat,
-    start_clock,
     wait_output_clear,
     wait_signal_level,
 )
 
 
 async def drive_ready_pattern(ready_signal, *, clk, pattern: list[int], cycles: int) -> None:
+    # This background task creates sink backpressure patterns while the main
+    # coroutine keeps watching what traffic was actually accepted.
     for index in range(cycles):
         ready_signal.value = pattern[index % len(pattern)]
         await cocotb.triggers.RisingEdge(clk)
@@ -71,18 +71,26 @@ async def ssi_fifo_test(dut):
     slave_ready_en = env_flag("SLAVE_READY_EN_G", default=True)
     keep = keep_mask(data_bytes)
 
-    start_clock(dut.axisClk, period_ns=5.0)
-
-    source = FlatSsiEndpoint(dut, prefix="sAxis")
-    sink = FlatSsiEndpoint(dut, prefix="mAxis")
-
-    dut.axisRst.setimmediatevalue(1)
-    source.set_idle()
-    dut.fifoPauseThresh.setimmediatevalue(3)
-    dut.mAxisTReady.setimmediatevalue(0)
-    await reset_dut(dut)
+    # The wrapper exposes the source-side and sink-side SSI ports directly, so
+    # the cocotb test can describe frames in protocol terms instead of packing
+    # bits by hand.
+    # Start from reset with the sink stalled. Several checks below first look
+    # at a visible beat and only then begin accepting data.
+    bench = await setup_flat_ssi_testbench(
+        dut,
+        period_ns=5.0,
+        source_prefix="sAxis",
+        sink_prefix="mAxis",
+        initial_values={"fifoPauseThresh": 3, "mAxisTReady": 0},
+    )
+    source = bench.source
+    sink = bench.sink
+    assert source is not None
+    assert sink is not None
 
     if valid_thold == 1 and slave_ready_en:
+        # In the default mode, a clean three-beat frame should pass through
+        # intact even when the source drives it contiguously.
         good_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -91,12 +99,12 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x2222, keep=keep, last=0, dest=0x2),
                     SsiBeat(data=0x3333, keep=keep, last=1, dest=0x2),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
         frame = await recv_frame(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             timeout_cycles=64,
         )
@@ -110,16 +118,18 @@ async def ssi_fifo_test(dut):
             ],
         )
     else:
+        # The non-default branches still start with one simple good-frame smoke
+        # check before moving into their branch-specific behavior.
         await send_contiguous_frame(
             source,
             [
                 SsiBeat(data=0x1111, keep=keep, last=1, dest=0x2, sof=1),
             ],
-            clk=dut.axisClk,
+            clk=bench.clk,
         )
         frame = await recv_frame_by_data(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             expected_data=[0x1111],
         )
@@ -129,22 +139,27 @@ async def ssi_fifo_test(dut):
                 SsiBeat(data=0x1111, keep=keep, last=1, dest=0x2, sof=1, eofe=0),
             ],
         )
-    await wait_signal_level(dut.fifoWrCnt, clk=dut.axisClk, expected=0, cycles=64)
-    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+    # After the first frame drains, the wrapper-visible occupancy counter
+    # should return to zero and no lockup reset should have fired.
+    await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=0, cycles=64)
+    await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
     assert int(dut.lockupRstEvent.value) == 0
 
+    # Frames with no opening `SOF` are malformed and must disappear entirely.
     await send_contiguous_frame(
         source,
         [
             SsiBeat(data=0x6666, keep=keep, last=0, dest=0x3),
             SsiBeat(data=0x7777, keep=keep, last=1, dest=0x3),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
-    await expect_no_output(sink, clk=dut.axisClk)
-    await wait_signal_level(dut.fifoWrCnt, clk=dut.axisClk, expected=0, cycles=64)
+    await expect_no_output(sink, clk=bench.clk)
+    await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=0, cycles=64)
 
     if valid_thold == 1 and slave_ready_en:
+        # Hold the sink in a 1/0 ready pattern so the test proves the helper is
+        # capturing accepted transfers correctly across backpressure.
         stall_good_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -155,12 +170,12 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x1204, keep=keep, last=0, dest=0x2),
                     SsiBeat(data=0x1205, keep=keep, last=1, dest=0x2),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=dut.axisClk, cycles=32))
+        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=32))
         ready_task = cocotb.start_soon(
-            drive_ready_pattern(dut.mAxisTReady, clk=dut.axisClk, pattern=[1, 0], cycles=24)
+            drive_ready_pattern(dut.mAxisTReady, clk=bench.clk, pattern=[1, 0], cycles=24)
         )
         await stall_good_send
         beats = await capture_task
@@ -176,8 +191,10 @@ async def ssi_fifo_test(dut):
                 (0x1205, 1, 0x2, 0, 0),
             ],
         )
-        await expect_no_output(sink, clk=dut.axisClk)
+        await expect_no_output(sink, clk=bench.clk)
 
+        # A repeated `SOF` should terminate the frame on the violating beat and
+        # drop any trailing payload.
         repeated_sof_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -186,13 +203,13 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x8802, keep=keep, last=0, dest=0x5, sof=1),
                     SsiBeat(data=0x8803, keep=keep, last=1, dest=0x5),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        first = await sink.wait_valid(clk=dut.axisClk)
+        first = await sink.wait_valid(clk=bench.clk)
         frame = await recv_frame_by_data(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             expected_data=[0x8801, 0x8802],
         )
@@ -205,9 +222,12 @@ async def ssi_fifo_test(dut):
                 SsiBeat(data=0x8802, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
             ],
         )
-        await expect_no_output_data(sink, clk=dut.axisClk, forbidden_data=0x8803)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0x8803)
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+        # Repeat the malformed-frame case under sink backpressure so the same
+        # truncation policy is proven on accepted handshakes, not just on an
+        # always-ready sink.
         stalled_malformed_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -216,12 +236,12 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x8A02, keep=keep, last=0, dest=0x5, sof=1),
                     SsiBeat(data=0x8A03, keep=keep, last=1, dest=0x5),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=dut.axisClk, cycles=24))
+        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=24))
         ready_task = cocotb.start_soon(
-            drive_ready_pattern(dut.mAxisTReady, clk=dut.axisClk, pattern=[1, 0], cycles=20)
+            drive_ready_pattern(dut.mAxisTReady, clk=bench.clk, pattern=[1, 0], cycles=20)
         )
         await stalled_malformed_send
         beats = await capture_task
@@ -234,9 +254,11 @@ async def ssi_fifo_test(dut):
                 (0x8A02, 1, 0x5, 0, 1),
             ],
         )
-        await expect_no_output_data(sink, clk=dut.axisClk, forbidden_data=0x8A03)
-        await expect_no_output(sink, clk=dut.axisClk)
+        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0x8A03)
+        await expect_no_output(sink, clk=bench.clk)
     elif valid_thold == 0:
+        # In frame-ready mode the FIFO should hold a partial frame until the
+        # terminal beat arrives, so no output should be visible early.
         delayed_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -245,16 +267,16 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x9902, keep=keep, last=0, dest=0x4),
                     SsiBeat(data=0x9903, keep=keep, last=1, dest=0x4),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        await cycle(dut.axisClk, 2)
+        await cycle(bench.clk, 2)
         assert int(dut.mAxisTValid.value) == 0
         await delayed_send
         assert int(dut.fifoWrCnt.value) != 0
         frame = await recv_frame(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             timeout_cycles=64,
         )
@@ -266,8 +288,10 @@ async def ssi_fifo_test(dut):
                 SsiBeat(data=0x9903, keep=keep, last=1, dest=0x4, sof=0, eofe=0),
             ],
         )
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+        # A malformed frame should still be dropped before any output becomes
+        # visible in frame-ready mode.
         malformed_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -276,14 +300,16 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0x9A02, keep=keep, last=0, dest=0x4, sof=1),
                     SsiBeat(data=0x9A03, keep=keep, last=1, dest=0x4),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        await cycle(dut.axisClk, 2)
+        await cycle(bench.clk, 2)
         assert int(dut.mAxisTValid.value) == 0
         await malformed_send
-        await expect_no_output(sink, clk=dut.axisClk)
+        await expect_no_output(sink, clk=bench.clk)
     elif valid_thold == 2:
+        # In threshold mode the FIFO should not release data until the visible
+        # occupancy crosses the programmed pause threshold.
         dut.fifoPauseThresh.value = 1
         threshold_send = cocotb.start_soon(
             send_contiguous_frame(
@@ -293,16 +319,16 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0xA002, keep=keep, last=0, dest=0x6),
                     SsiBeat(data=0xA003, keep=keep, last=1, dest=0x6),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        await wait_signal_level(dut.fifoWrCnt, clk=dut.axisClk, expected=1, cycles=32)
+        await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
         assert int(dut.mAxisTValid.value) == 0
         dut.fifoPauseThresh.value = 3
         await threshold_send
         frame = await recv_frame(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             timeout_cycles=64,
         )
@@ -314,8 +340,10 @@ async def ssi_fifo_test(dut):
                 SsiBeat(data=0xA003, keep=keep, last=1, dest=0x6, sof=0, eofe=0),
             ],
         )
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+        # The same thresholded release should preserve early-truncation policy
+        # on a repeated-`SOF` malformed frame.
         dut.fifoPauseThresh.value = 1
         malformed_send = cocotb.start_soon(
             send_contiguous_frame(
@@ -325,16 +353,16 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0xAA02, keep=keep, last=0, dest=0x6, sof=1),
                     SsiBeat(data=0xAA03, keep=keep, last=1, dest=0x6),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        await wait_signal_level(dut.fifoWrCnt, clk=dut.axisClk, expected=1, cycles=32)
+        await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
         assert int(dut.mAxisTValid.value) == 0
         dut.fifoPauseThresh.value = 3
         await malformed_send
         frame = await recv_frame(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             timeout_cycles=64,
         )
@@ -345,9 +373,11 @@ async def ssi_fifo_test(dut):
                 SsiBeat(data=0xAA02, keep=keep, last=1, dest=0x6, sof=0, eofe=1),
             ],
         )
-        await expect_no_output_data(sink, clk=dut.axisClk, forbidden_data=0xAA03)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0xAA03)
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+        # Finally combine threshold release with sink backpressure and confirm
+        # the accepted beat sequence still matches the original five-beat frame.
         dut.fifoPauseThresh.value = 1
         stalled_threshold_send = cocotb.start_soon(
             send_contiguous_frame(
@@ -359,16 +389,16 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0xAB04, keep=keep, last=0, dest=0x6),
                     SsiBeat(data=0xAB05, keep=keep, last=1, dest=0x6),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        await wait_signal_level(dut.fifoWrCnt, clk=dut.axisClk, expected=1, cycles=32)
+        await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
         assert int(dut.mAxisTValid.value) == 0
         dut.fifoPauseThresh.value = 3
-        await sink.wait_valid(clk=dut.axisClk)
-        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=dut.axisClk, cycles=32))
+        await sink.wait_valid(clk=bench.clk)
+        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=32))
         ready_task = cocotb.start_soon(
-            drive_ready_pattern(dut.mAxisTReady, clk=dut.axisClk, pattern=[1, 0], cycles=24)
+            drive_ready_pattern(dut.mAxisTReady, clk=bench.clk, pattern=[1, 0], cycles=24)
         )
         await stalled_threshold_send
         beats = await capture_task
@@ -384,8 +414,11 @@ async def ssi_fifo_test(dut):
                 (0xAB05, 1, 0x6, 0, 0),
             ],
         )
-        await expect_no_output(sink, clk=dut.axisClk)
+        await expect_no_output(sink, clk=bench.clk)
     elif not slave_ready_en:
+        # In the no-ready mode the source keeps sending even when the sink is
+        # stalled, so overflow should end the visible frame with a terminal
+        # beat and suppress later payload data.
         overflow_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -394,18 +427,18 @@ async def ssi_fifo_test(dut):
                     SsiBeat(data=0xB002, keep=keep, last=0, dest=0x7),
                     SsiBeat(data=0xB003, keep=keep, last=1, dest=0x7),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
         first = await recv_expected_beat(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             expected_data=0xB001,
         )
         terminal = await recv_visible_beat(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
         )
         await overflow_send
@@ -414,8 +447,9 @@ async def ssi_fifo_test(dut):
         assert first.eofe == 0
         assert terminal.last == 1
         assert terminal.sof == 0
-        await expect_no_output_data(sink, clk=dut.axisClk, forbidden_data=0xB003)
+        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0xB003)
 
+    # None of the exercised paths should need the FIFO lockup recovery logic.
     assert int(dut.lockupRstEvent.value) == 0
 
 

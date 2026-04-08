@@ -29,15 +29,14 @@ import pytest
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
+    assert_beat_view,
     cycle,
     env_data_bytes,
-    FlatSsiEndpoint,
     keep_mask,
     recv_expected_beat,
-    reset_dut,
     send_contiguous_frame,
+    setup_flat_ssi_testbench,
     SsiBeat,
-    start_clock,
     wait_output_clear,
 )
 
@@ -48,37 +47,56 @@ async def ssi_insert_sof_test(dut):
     insert_user_header = env_flag("INSERT_USER_HDR_G", default=False)
     keep = keep_mask(data_bytes)
 
-    start_clock(dut.axisClk, period_ns=5.0)
+    # The wrapper turns SSI-specific SOF policy into flat ports that the test
+    # can drive directly, so set up one source and one sink endpoint first.
+    bench = await setup_flat_ssi_testbench(
+        dut,
+        period_ns=5.0,
+        source_prefix="sAxis",
+        sink_prefix="mAxis",
+        initial_values={"mUserHdr": 0, "mAxisTReady": 0},
+    )
+    source = bench.source
+    sink = bench.sink
+    assert source is not None
+    assert sink is not None
 
-    source = FlatSsiEndpoint(dut, prefix="sAxis")
-    sink = FlatSsiEndpoint(dut, prefix="mAxis")
-
-    dut.axisRst.setimmediatevalue(1)
-    source.set_idle()
-    dut.mUserHdr.setimmediatevalue(0)
-    dut.mAxisTReady.setimmediatevalue(0)
-    await reset_dut(dut)
-
+    # The wrapper can either insert a new header beat or simply force `SOF` on
+    # the first payload beat, depending on the generic under test.
     dut.mUserHdr.value = 0xBBAA
 
     if insert_user_header:
+        # Run the source in the background so the test can first observe the
+        # inserted header beat while the sink is still stalled.
         payload_send = cocotb.start_soon(
-            source.send(
-                SsiBeat(data=0x2211, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
-                clk=dut.axisClk,
+                source.send(
+                    SsiBeat(data=0x2211, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
+                clk=bench.clk,
             )
         )
 
-        header = await sink.wait_valid(clk=dut.axisClk)
+        header = await sink.wait_valid(clk=bench.clk)
         held_header = sink.snapshot()
         assert held_header == header
-        payload = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x2211)
+        # Once the header is confirmed stable, accept the payload beat and
+        # check that the original `EOFE` survives behind the new header.
+        payload = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x2211)
         await payload_send
 
-        assert (header.data, header.keep, header.last, header.dest, header.sof, header.eofe) == (0xBBAA, keep, 0, 0x5, 1, 0)
-        assert (payload.data, payload.keep, payload.last, payload.dest, payload.sof, payload.eofe) == (0x2211, keep, 1, 0x5, 0, 1)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        assert_beat_view(
+            header,
+            fields=("data", "keep", "last", "dest", "sof", "eofe"),
+            expected=(0xBBAA, keep, 0, 0x5, 1, 0),
+        )
+        assert_beat_view(
+            payload,
+            fields=("data", "keep", "last", "dest", "sof", "eofe"),
+            expected=(0x2211, keep, 1, 0x5, 0, 1),
+        )
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
     else:
+        # In direct mode the wrapper should leave the payload ordering alone,
+        # but it must still assert `SOF` on the first outgoing beat.
         frame_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -86,20 +104,32 @@ async def ssi_insert_sof_test(dut):
                     SsiBeat(data=0x2211, keep=keep, last=0, dest=0x5, sof=0, eofe=1),
                     SsiBeat(data=0x4433, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        first = await sink.wait_valid(clk=dut.axisClk)
+        first = await sink.wait_valid(clk=bench.clk)
         held_first = sink.snapshot()
         assert held_first == first
-        second = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x4433)
+        # Accept the final beat only after verifying the first beat stayed
+        # stable while `TREADY` was low.
+        second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x4433)
         await frame_send
 
-        assert (first.data, first.keep, first.last, first.dest, first.sof, first.eofe) == (0x2211, keep, 0, 0x5, 1, 1)
-        assert (second.data, second.keep, second.last, second.dest, second.sof, second.eofe) == (0x4433, keep, 1, 0x5, 0, 1)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        assert_beat_view(
+            first,
+            fields=("data", "keep", "last", "dest", "sof", "eofe"),
+            expected=(0x2211, keep, 0, 0x5, 1, 1),
+        )
+        assert_beat_view(
+            second,
+            fields=("data", "keep", "last", "dest", "sof", "eofe"),
+            expected=(0x4433, keep, 1, 0x5, 0, 1),
+        )
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
-    await cycle(dut.axisClk, 2)
+    # End with a short idle check so the wrapper proves it flushed the frame
+    # cleanly.
+    await cycle(bench.clk, 2)
     assert int(dut.mAxisTValid.value) == 0
 
 

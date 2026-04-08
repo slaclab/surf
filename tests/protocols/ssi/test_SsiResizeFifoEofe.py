@@ -31,6 +31,8 @@ TUSER_MODES = {"normal": 0, "first_last": 1, "last": 2, "none": 3}
 
 
 def legacy_cases():
+    # Keep the historical EOFE matrix, but express it as pytest parameter cases
+    # so each simulator run still reports a readable configuration id.
     cases = []
     for slave_data, master_data, slave_user_bits, master_user_bits in itertools.product(
         [1, 64], [1, 64], [2, 8], [2, 8]
@@ -73,9 +75,13 @@ class TB:
     def __init__(self, dut, slave_bytes):
         self.dut = dut
         self.slave_bytes = slave_bytes
+        # This older wrapper uses AXI-style signal names directly, so the bench
+        # drives the clock here instead of reusing the flat SSI helper.
         cocotb.start_soon(Clock(dut.AXIS_ACLK, 10.0, unit="ns").start())
 
     async def reset(self):
+        # Assert reset long enough for both resize and FIFO state to settle, and
+        # explicitly initialize every source-side port before releasing reset.
         self.dut.AXIS_ARESETN.setimmediatevalue(0)
         self.dut.S_AXIS_TVALID.setimmediatevalue(0)
         self.dut.S_AXIS_TDATA.setimmediatevalue(0)
@@ -91,6 +97,8 @@ class TB:
             await RisingEdge(self.dut.AXIS_ACLK)
 
     async def send_eofe_frame(self):
+        # Drive one single-beat frame that ends with `EOFE`. The test only
+        # cares whether that flag survives the resize/FIFO path.
         self.dut.S_AXIS_TVALID.value = 1
         self.dut.S_AXIS_TLAST.value = 1
         self.dut.S_AXIS_TDEST.value = 0
@@ -111,14 +119,19 @@ async def ssi_resize_fifo_eofe_test(dut):
     slave_user_mode = int(dut.SLAVE_TUSER_MODE_G)
     master_user_mode = int(dut.MASTER_TUSER_MODE_G)
     tb = TB(dut, slave_bytes)
+
+    # Reset first, then inject one terminal EOFE-tagged frame.
     await tb.reset()
     await tb.send_eofe_frame()
 
+    # Wait until the wrapper presents the outgoing terminal beat. The timeout
+    # keeps the test from hanging indefinitely if the frame is lost.
     while True:
         await with_timeout(RisingEdge(dut.AXIS_ACLK), 1, "ms")
         if int(dut.M_AXIS_TVALID.value) == 1 and int(dut.M_AXIS_TLAST.value) == 1:
             break
 
+    # EOFE is observable only when both ends preserve user metadata.
     expected_eofe = 1 if slave_user_mode != TUSER_MODES["none"] and master_user_mode != TUSER_MODES["none"] else 0
     assert int(dut.M_AXIS_EOFE.value) == expected_eofe
 

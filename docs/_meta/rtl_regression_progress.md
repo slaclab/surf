@@ -3,7 +3,7 @@
 ## Summary
 - Current phase: Phase-1 implementation active
 - Current subsystem: `protocols/ssi`
-- Current focus module: `protocols/ssi` helper infrastructure, `protocols/ssi/SsiIbFrameFilter`, and `protocols/ssi/SsiFifo`
+- Current focus module: `protocols/ssi` cleanup pass across the shared helper layer and the checked-in SSI cocotb benches, with emphasis on tutorial-style comments for readers new to cocotb
 - Last updated: 2026-04-07
 
 ## Current Frontier Snapshot

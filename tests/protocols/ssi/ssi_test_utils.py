@@ -20,6 +20,8 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 @dataclass
 class SsiBeat:
+    """One SSI transfer beat as seen on the flattened wrapper ports."""
+
     data: int
     keep: int
     last: int
@@ -27,6 +29,15 @@ class SsiBeat:
     tid: int = 0
     sof: int = 0
     eofe: int = 0
+
+
+@dataclass
+class FlatSsiBench:
+    """Common cocotb bench wiring for flattened SSI wrappers."""
+
+    clk: object
+    source: FlatSsiEndpoint | None = None
+    sink: FlatSsiEndpoint | None = None
 
 
 class FlatSsiEndpoint:
@@ -38,6 +49,8 @@ class FlatSsiEndpoint:
         return getattr(self.dut, f"{self.prefix}{suffix}")
 
     def set_idle(self):
+        # In cocotb we usually model an idle source by driving `TVALID` low and
+        # clearing the payload fields so stale values do not confuse debug.
         for suffix, value in (
             ("TValid", 0),
             ("TData", 0),
@@ -52,6 +65,8 @@ class FlatSsiEndpoint:
                 self._sig(suffix).value = value
 
     def drive(self, beat: SsiBeat):
+        # This writes the values that will be presented on the next cycle where
+        # the DUT samples a valid handshake.
         self._sig("TValid").value = 1
         self._sig("TData").value = beat.data
         self._sig("TKeep").value = beat.keep
@@ -66,6 +81,7 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
+        # A source keeps its beat stable until the sink raises `TREADY`.
         while True:
             await RisingEdge(clk)
             await Timer(1, unit="ns")
@@ -73,6 +89,8 @@ class FlatSsiEndpoint:
                 return
 
     async def send(self, beat: SsiBeat, *, clk):
+        # `send()` is the simplest source-side helper: drive one beat, wait for
+        # the handshake, then return the bus to idle.
         self.drive(beat)
         await self.wait_ready(clk=clk)
         self.set_idle()
@@ -89,6 +107,8 @@ class FlatSsiEndpoint:
         )
 
     async def wait_valid(self, *, clk, timeout_cycles: int = 64) -> SsiBeat:
+        # A sink-side test often wants to notice that a beat is visible before
+        # it decides whether to accept that beat.
         for _ in range(timeout_cycles):
             await Timer(1, unit="ns")
             if int(self._sig("TValid").value) == 1:
@@ -97,6 +117,8 @@ class FlatSsiEndpoint:
         raise AssertionError(f"Timed out waiting for {self.prefix} valid")
 
     async def recv(self, *, clk, ready_signal=None, keep_ready: bool = False) -> SsiBeat:
+        # `recv()` optionally raises `TREADY`, waits for one visible beat, then
+        # consumes that beat on the next rising clock edge.
         if ready_signal is not None:
             ready_signal.value = 1
         beat = await self.wait_valid(clk=clk)
@@ -122,16 +144,21 @@ def keep_mask(data_bytes: int) -> int:
 
 
 def start_clock(signal, *, period_ns: float = 5.0) -> None:
+    # cocotb clocks run in the background once started.
     cocotb.start_soon(Clock(signal, period_ns, unit="ns").start())
 
 
 async def cycle(clk, count: int = 1) -> None:
+    # Most SSI benches sample a little after each edge so registered outputs
+    # have time to settle before Python reads them.
     for _ in range(count):
         await RisingEdge(clk)
         await Timer(1, unit="ns")
 
 
 async def reset_dut(dut, *, clk_name: str = "axisClk", rst_name: str = "axisRst") -> None:
+    # Hold reset for a few cycles, then give the DUT a couple of recovery
+    # cycles before starting stimulus.
     clk = getattr(dut, clk_name)
     rst = getattr(dut, rst_name)
     rst.value = 1
@@ -140,12 +167,47 @@ async def reset_dut(dut, *, clk_name: str = "axisClk", rst_name: str = "axisRst"
     await cycle(clk, 2)
 
 
+async def setup_flat_ssi_testbench(
+    dut,
+    *,
+    clk_name: str = "axisClk",
+    rst_name: str = "axisRst",
+    period_ns: float = 5.0,
+    source_prefix: str | None = None,
+    sink_prefix: str | None = None,
+    initial_values: dict[str, int] | None = None,
+) -> FlatSsiBench:
+    # Most SSI wrapper benches share the same pattern: start one clock, drive
+    # reset high immediately, optionally create flat source/sink endpoints,
+    # seed a few sideband controls, then release reset.
+    clk = getattr(dut, clk_name)
+    rst = getattr(dut, rst_name)
+    start_clock(clk, period_ns=period_ns)
+    rst.setimmediatevalue(1)
+
+    source = None if source_prefix is None else FlatSsiEndpoint(dut, prefix=source_prefix)
+    sink = None if sink_prefix is None else FlatSsiEndpoint(dut, prefix=sink_prefix)
+
+    if source is not None:
+        source.set_idle()
+
+    if initial_values is not None:
+        for signal_name, value in initial_values.items():
+            getattr(dut, signal_name).setimmediatevalue(value)
+
+    await reset_dut(dut, clk_name=clk_name, rst_name=rst_name)
+    return FlatSsiBench(clk=clk, source=source, sink=sink)
+
+
 async def send_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat], *, clk) -> None:
+    # Send one beat at a time, returning to idle after each accepted transfer.
     for beat in beats:
         await endpoint.send(beat, clk=clk)
 
 
 async def send_contiguous_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat], *, clk) -> None:
+    # Some SSI modules care about uninterrupted frames, so this helper keeps
+    # `TVALID` asserted across the whole packet until each beat is accepted.
     for beat in beats:
         endpoint.drive(beat)
         await endpoint.wait_ready(clk=clk)
@@ -153,6 +215,8 @@ async def send_contiguous_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat],
 
 
 async def expect_no_output(endpoint: FlatSsiEndpoint, *, clk, cycles: int = 8) -> None:
+    # Use a bounded quiet window instead of assuming the DUT will stay silent
+    # forever after a dropped or truncated frame.
     for _ in range(cycles):
         await Timer(1, unit="ns")
         assert int(endpoint._sig("TValid").value) == 0
@@ -210,6 +274,8 @@ async def recv_frame(
     ready_signal.value = 1
     beats = []
     for _ in range(timeout_cycles):
+        # Capture only accepted handshakes. This avoids missing middle beats
+        # when the DUT keeps `TVALID` high across back-to-back transfers.
         await FallingEdge(clk)
         await Timer(1, unit="ns")
         if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
@@ -265,6 +331,8 @@ async def recv_visible_beat(
     ready_signal,
     timeout_cycles: int = 64,
 ) -> SsiBeat:
+    # This helper is for "look before consume" checks. It first waits until a
+    # beat is visible with `TREADY` low, then accepts exactly that beat.
     ready_signal.value = 0
     beat = await endpoint.wait_valid(clk=clk, timeout_cycles=timeout_cycles)
     ready_signal.value = 1
@@ -282,6 +350,8 @@ async def capture_accepted_beats(
 ) -> list[SsiBeat]:
     beats = []
     for _ in range(cycles):
+        # Sample only when both handshake signals are high so the capture list
+        # matches the transfers the DUT really completed.
         await FallingEdge(clk)
         await Timer(1, unit="ns")
         if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
@@ -361,6 +431,15 @@ def assert_beat_views(
     assert [beat_view(beat, fields) for beat in actual] == expected
 
 
+def assert_beat_view(
+    actual: SsiBeat,
+    *,
+    fields: tuple[str, ...],
+    expected: tuple[int, ...],
+) -> None:
+    assert beat_view(actual, fields) == expected
+
+
 async def recv_frame_and_check(
     endpoint: FlatSsiEndpoint,
     *,
@@ -373,6 +452,27 @@ async def recv_frame_and_check(
     beats = await recv_frame(
         endpoint,
         clk=clk,
+        ready_signal=ready_signal,
+        timeout_cycles=timeout_cycles,
+    )
+    assert_beat_views(beats, fields=fields, expected=expected)
+    return beats
+
+
+async def recv_n_beats_and_check(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    count: int,
+    ready_signal,
+    fields: tuple[str, ...],
+    expected: list[tuple[int, ...]],
+    timeout_cycles: int = 128,
+) -> list[SsiBeat]:
+    beats = await recv_n_beats(
+        endpoint,
+        clk=clk,
+        count=count,
         ready_signal=ready_signal,
         timeout_cycles=timeout_cycles,
     )

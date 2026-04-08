@@ -23,17 +23,17 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
-    FlatSsiEndpoint,
     SsiBeat,
     cycle,
-    reset_dut,
     send_contiguous_frame,
-    start_clock,
+    setup_flat_ssi_testbench,
     wait_signal_level,
 )
 
 
 async def wait_cmd_valid(dut, *, timeout_cycles: int = 32):
+    # The DUT emits a one-cycle decoded-command pulse, so poll each cycle until
+    # the pulse appears and then snapshot the decoded fields immediately.
     for _ in range(timeout_cycles):
         if int(dut.cmdValid.value) == 1:
             return int(dut.cmdCtx.value), int(dut.cmdOpCode.value)
@@ -42,6 +42,8 @@ async def wait_cmd_valid(dut, *, timeout_cycles: int = 32):
 
 
 async def expect_no_cmd(dut, *, cycles: int = 12):
+    # Use a bounded quiet window to prove that malformed traffic does not
+    # generate a stray decode pulse later.
     for _ in range(cycles):
         assert int(dut.cmdValid.value) == 0
         await cycle(dut.axisClk)
@@ -51,12 +53,14 @@ async def expect_no_cmd(dut, *, cycles: int = 12):
 async def decodes_complete_frame_and_rejects_eofe_frame(dut):
     keep = 0xF
 
-    start_clock(dut.axisClk)
-    source = FlatSsiEndpoint(dut, prefix="sAxis")
-    dut.axisRst.setimmediatevalue(1)
-    source.set_idle()
-    await reset_dut(dut)
+    # Start the SSI clock and drive every input to a known reset-time value
+    # before releasing reset.
+    bench = await setup_flat_ssi_testbench(dut, source_prefix="sAxis")
+    source = bench.source
+    assert source is not None
 
+    # A complete four-word command frame should decode into one context/opcode
+    # pulse after the module has collected the entire packet.
     await send_contiguous_frame(
         source,
         [
@@ -65,13 +69,15 @@ async def decodes_complete_frame_and_rejects_eofe_frame(dut):
             SsiBeat(data=0x00000000, keep=keep, last=0),
             SsiBeat(data=0x00000000, keep=keep, last=1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
 
     ctx, opcode = await wait_cmd_valid(dut)
     assert ctx == 0x123456
     assert opcode == 0x5A
 
+    # Repeat the good path with different field values so the bench proves the
+    # decoder is not stuck on the first command it saw after reset.
     await send_contiguous_frame(
         source,
         [
@@ -80,23 +86,27 @@ async def decodes_complete_frame_and_rejects_eofe_frame(dut):
             SsiBeat(data=0x00000000, keep=keep, last=0),
             SsiBeat(data=0x00000000, keep=keep, last=1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
     ctx, opcode = await wait_cmd_valid(dut)
     assert ctx == 0x654321
     assert opcode == 0x33
 
+    # A truncated command frame is malformed, so the DUT should discard it and
+    # then return to the idle ready state for the next packet.
     await send_contiguous_frame(
         source,
         [
             SsiBeat(data=0x0BADF011, keep=keep, last=0, sof=1),
             SsiBeat(data=0x00000077, keep=keep, last=1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
     await expect_no_cmd(dut)
-    await wait_signal_level(dut.sAxisTReady, clk=dut.axisClk, expected=1, cycles=8)
+    await wait_signal_level(dut.sAxisTReady, clk=bench.clk, expected=1, cycles=8)
 
+    # An otherwise well-formed frame with `EOFE` on the last beat must also be
+    # rejected, because the command decoder only accepts clean frames.
     await send_contiguous_frame(
         source,
         [
@@ -105,7 +115,7 @@ async def decodes_complete_frame_and_rejects_eofe_frame(dut):
             SsiBeat(data=0x00000000, keep=keep, last=0),
             SsiBeat(data=0x00000000, keep=keep, last=1, eofe=1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
 
     await expect_no_cmd(dut)

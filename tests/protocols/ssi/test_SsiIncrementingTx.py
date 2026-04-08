@@ -27,17 +27,17 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
     capture_accepted_beats,
     expect_no_output,
-    FlatSsiEndpoint,
     assert_beat_views,
     recv_frame_and_check,
-    reset_dut,
-    start_clock,
+    setup_flat_ssi_testbench,
     wait_signal_level,
     wait_output_clear,
 )
 
 
 async def pulse_trigger(dut):
+    # Pulse the packet trigger for one cycle, matching how software would kick
+    # the generator in hardware.
     dut.trig.value = 1
     await cocotb.triggers.RisingEdge(dut.axisClk)
     await cocotb.triggers.Timer(1, unit="ns")
@@ -46,20 +46,28 @@ async def pulse_trigger(dut):
 
 @cocotb.test()
 async def emits_incrementing_frames_and_clamps_short_length(dut):
-    start_clock(dut.axisClk)
-    sink = FlatSsiEndpoint(dut, prefix="mAxis")
-    dut.axisRst.setimmediatevalue(1)
-    dut.trig.setimmediatevalue(0)
-    dut.packetLength.setimmediatevalue(3)
-    dut.tDest.setimmediatevalue(0x02)
-    dut.tId.setimmediatevalue(0x00)
-    dut.mAxisTReady.setimmediatevalue(1)
-    await reset_dut(dut)
+    # This generator only has a sink side from the bench's perspective, so the
+    # test watches the outgoing SSI stream and a few control/status ports.
+    bench = await setup_flat_ssi_testbench(
+        dut,
+        sink_prefix="mAxis",
+        initial_values={
+            "trig": 0,
+            "packetLength": 3,
+            "tDest": 0x02,
+            "tId": 0x00,
+            "mAxisTReady": 1,
+        },
+    )
+    sink = bench.sink
+    assert sink is not None
 
+    # First prove the nominal packet format and metadata on a requested
+    # four-beat packet.
     recv_task = cocotb.start_soon(
         recv_frame_and_check(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             fields=("data", "last", "sof", "dest", "tid"),
             expected=[
@@ -70,16 +78,20 @@ async def emits_incrementing_frames_and_clamps_short_length(dut):
             ],
         )
     )
+    # The `busy` flag should assert while the DUT is actively producing the
+    # frame and return low once the sink has accepted it all.
     await pulse_trigger(dut)
-    await wait_signal_level(dut.busy, clk=dut.axisClk, expected=1, cycles=8)
+    await wait_signal_level(dut.busy, clk=bench.clk, expected=1, cycles=8)
     await recv_task
     assert int(dut.busy.value) == 0
 
+    # A too-small requested length should clamp up to the module's minimum
+    # packet size rather than producing an empty or malformed frame.
     dut.packetLength.value = 0
     recv_task = cocotb.start_soon(
         recv_frame_and_check(
             sink,
-            clk=dut.axisClk,
+            clk=bench.clk,
             ready_signal=dut.mAxisTReady,
             fields=("data", "last", "sof"),
             expected=[
@@ -92,14 +104,17 @@ async def emits_incrementing_frames_and_clamps_short_length(dut):
     await pulse_trigger(dut)
     await recv_task
     assert int(dut.busy.value) == 0
-    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+    await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+    # Finally, hold the sink not-ready so a second trigger arrives while the
+    # first frame is still blocked. The DUT should finish the visible frame
+    # cleanly without leaking extra traffic.
     dut.packetLength.value = 3
     dut.mAxisTReady.value = 0
     await pulse_trigger(dut)
-    await wait_signal_level(dut.busy, clk=dut.axisClk, expected=1, cycles=8)
+    await wait_signal_level(dut.busy, clk=bench.clk, expected=1, cycles=8)
     await pulse_trigger(dut)
-    capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=dut.axisClk, cycles=16))
+    capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=16))
     dut.mAxisTReady.value = 1
     beats = await capture_task
     assert_beat_views(
@@ -112,7 +127,7 @@ async def emits_incrementing_frames_and_clamps_short_length(dut):
             (0x00000004, 1, 0),
         ],
     )
-    await expect_no_output(sink, clk=dut.axisClk)
+    await expect_no_output(sink, clk=bench.clk)
     assert int(dut.busy.value) == 0
 
 

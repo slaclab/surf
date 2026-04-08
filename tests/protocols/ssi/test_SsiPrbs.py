@@ -34,6 +34,8 @@ from tests.common.regression_utils import run_surf_vhdl_test
 class TB:
     def __init__(self, dut):
         self.dut = dut
+        # The PRBS wrapper uses separate fast TX and slow status clocks, so the
+        # test starts both domains explicitly.
         cocotb.start_soon(Clock(dut.fastClk, 3333, unit="ps").start())
         cocotb.start_soon(Clock(dut.slowClk, 10.0, unit="ns").start())
 
@@ -48,6 +50,8 @@ class TB:
             await Timer(1, unit="ns")
 
     async def reset(self):
+        # Hold both domains in reset long enough for the internal loopback path
+        # to settle before any trigger pulses are issued.
         self.dut.fastRst.setimmediatevalue(1)
         self.dut.slowRst.setimmediatevalue(1)
         self.dut.trig.setimmediatevalue(0)
@@ -60,6 +64,8 @@ class TB:
         await self.slow_cycle(4)
 
     async def trigger_packet(self, *, packet_length: int, force_eofe: bool = False):
+        # `trig` is sampled in the fast clock domain, so pulse it for one fast
+        # cycle after programming the requested packet shape.
         self.dut.packetLength.value = packet_length
         self.dut.forceEofe.value = int(force_eofe)
         self.dut.trig.value = 1
@@ -67,6 +73,7 @@ class TB:
         self.dut.trig.value = 0
 
     async def wait_update(self):
+        # The RX status block raises `updated` when one packet result is ready.
         await with_timeout(RisingEdge(self.dut.updated), 2, "ms")
         return {
             "errMissedPacket": int(self.dut.errMissedPacket.value),
@@ -78,6 +85,8 @@ class TB:
         }
 
     async def pulse_fast_reset(self):
+        # Reset only the TX side so the RX side sees a discontinuity in the PRBS
+        # sequence and can flag the missed-packet condition.
         self.dut.fastRst.value = 1
         await self.fast_cycle(3)
         self.dut.fastRst.value = 0
@@ -89,6 +98,7 @@ async def ssi_prbs_directed_loopback_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # First prove a normal clean packet updates status with no error flags set.
     await tb.trigger_packet(packet_length=5)
     status = await tb.wait_update()
     assert status == {
@@ -100,6 +110,8 @@ async def ssi_prbs_directed_loopback_test(dut):
         "rxPacketLength": 5,
     }
 
+    # A zero request should clamp to the module's minimum visible packet
+    # length, not to an empty frame.
     await tb.trigger_packet(packet_length=0)
     status = await tb.wait_update()
     assert status == {
@@ -111,6 +123,8 @@ async def ssi_prbs_directed_loopback_test(dut):
         "rxPacketLength": 2,
     }
 
+    # Forcing `EOFE` should only raise the EOFE error bit, while the rest of
+    # the packet accounting stays correct.
     await tb.trigger_packet(packet_length=4, force_eofe=True)
     status = await tb.wait_update()
     assert status == {
@@ -123,10 +137,14 @@ async def ssi_prbs_directed_loopback_test(dut):
     }
     dut.forceEofe.value = 0
 
+    # Send one more clean packet before the TX-only reset to show the link is
+    # healthy immediately beforehand.
     await tb.trigger_packet(packet_length=5)
     status = await tb.wait_update()
     assert status["errMissedPacket"] == 0
 
+    # Resetting only the transmitter restarts the PRBS seed sequence, so the
+    # receiver should report a missed packet on the next update.
     await tb.pulse_fast_reset()
     await tb.trigger_packet(packet_length=5)
     status = await tb.wait_update()

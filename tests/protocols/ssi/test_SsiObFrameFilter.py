@@ -27,18 +27,17 @@ import pytest
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
+    assert_beat_view,
     cycle,
     env_data_bytes,
     env_int,
     expect_no_output,
     expect_no_output_data,
-    FlatSsiEndpoint,
     keep_mask,
     recv_expected_beat,
-    reset_dut,
     send_contiguous_frame,
+    setup_flat_ssi_testbench,
     SsiBeat,
-    start_clock,
     wait_output_clear,
 )
 
@@ -49,17 +48,21 @@ async def ssi_ob_frame_filter_test(dut):
     valid_thold = env_int("VALID_THOLD_G", default=1)
     keep = keep_mask(data_bytes)
 
-    start_clock(dut.axisClk, period_ns=5.0)
+    # The outbound filter bench keeps the sink stalled first so it can inspect
+    # each visible beat before deciding when to accept it.
+    bench = await setup_flat_ssi_testbench(
+        dut,
+        period_ns=5.0,
+        source_prefix="sAxis",
+        sink_prefix="mAxis",
+        initial_values={"sTLastEofe": 0, "mAxisTReady": 0},
+    )
+    source = bench.source
+    sink = bench.sink
+    assert source is not None
+    assert sink is not None
 
-    source = FlatSsiEndpoint(dut, prefix="sAxis")
-    sink = FlatSsiEndpoint(dut, prefix="mAxis")
-
-    dut.axisRst.setimmediatevalue(1)
-    source.set_idle()
-    dut.sTLastEofe.setimmediatevalue(0)
-    dut.mAxisTReady.setimmediatevalue(0)
-    await reset_dut(dut)
-
+    # A well-formed frame should appear unchanged at the output.
     good_send = cocotb.start_soon(
         send_contiguous_frame(
             source,
@@ -67,38 +70,51 @@ async def ssi_ob_frame_filter_test(dut):
                 SsiBeat(data=0x1111, keep=keep, last=0, dest=0x2, sof=1),
                 SsiBeat(data=0x2222, keep=keep, last=1, dest=0x2),
             ],
-            clk=dut.axisClk,
+            clk=bench.clk,
         )
     )
-    first = await sink.wait_valid(clk=dut.axisClk)
-    assert (first.data, first.keep, first.last, first.dest, first.sof, first.eofe) == (0x1111, keep, 0, 0x2, 1, 0)
-    second = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x2222)
+    first = await sink.wait_valid(clk=bench.clk)
+    assert_beat_view(
+        first,
+        fields=("data", "keep", "last", "dest", "sof", "eofe"),
+        expected=(0x1111, keep, 0, 0x2, 1, 0),
+    )
+    second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x2222)
     await good_send
-    assert (second.data, second.keep, second.last, second.dest, second.sof, second.eofe) == (0x2222, keep, 1, 0x2, 0, 0)
-    await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+    assert_beat_view(
+        second,
+        fields=("data", "keep", "last", "dest", "sof", "eofe"),
+        expected=(0x2222, keep, 1, 0x2, 0, 0),
+    )
+    await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+    # Missing-SOF traffic is invalid and should never become visible.
     await send_contiguous_frame(
         source,
         [
             SsiBeat(data=0x3001, keep=keep, last=0, dest=0x1),
             SsiBeat(data=0x3002, keep=keep, last=1, dest=0x1),
         ],
-        clk=dut.axisClk,
+        clk=bench.clk,
     )
-    await expect_no_output(sink, clk=dut.axisClk)
+    await expect_no_output(sink, clk=bench.clk)
 
     if valid_thold == 0:
+        # In the cached-last-user path, an `EOFE` indication on the terminal
+        # source beat should suppress the frame before any output appears.
         dut.sTLastEofe.value = 1
         await send_contiguous_frame(
             source,
             [
                 SsiBeat(data=0x4001, keep=keep, last=1, dest=0x3, sof=1),
             ],
-            clk=dut.axisClk,
+            clk=bench.clk,
         )
         dut.sTLastEofe.value = 0
-        await expect_no_output(sink, clk=dut.axisClk)
+        await expect_no_output(sink, clk=bench.clk)
     else:
+        # A mid-frame `TDEST` change should terminate the frame on the
+        # violating beat with `EOFE`.
         tdest_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -107,17 +123,27 @@ async def ssi_ob_frame_filter_test(dut):
                     SsiBeat(data=0x5002, keep=keep, last=0, dest=0x5),
                     SsiBeat(data=0x5003, keep=keep, last=1, dest=0x5),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        first = await sink.wait_valid(clk=dut.axisClk)
-        second = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x5002)
+        first = await sink.wait_valid(clk=bench.clk)
+        second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x5002)
         await tdest_send
-        assert (first.data, first.last, first.dest, first.sof, first.eofe) == (0x5001, 0, 0x4, 1, 0)
-        assert (second.data, second.last, second.dest, second.sof, second.eofe) == (0x5002, 1, 0x5, 0, 1)
-        await expect_no_output_data(sink, clk=dut.axisClk, forbidden_data=0x5003)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        assert_beat_view(
+            first,
+            fields=("data", "last", "dest", "sof", "eofe"),
+            expected=(0x5001, 0, 0x4, 1, 0),
+        )
+        assert_beat_view(
+            second,
+            fields=("data", "last", "dest", "sof", "eofe"),
+            expected=(0x5002, 1, 0x5, 0, 1),
+        )
+        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0x5003)
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
+        # Repeating `SOF` mid-frame should produce the same kind of early
+        # termination.
         repeated_sof_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -126,17 +152,26 @@ async def ssi_ob_frame_filter_test(dut):
                     SsiBeat(data=0x6002, keep=keep, last=0, dest=0x6, sof=1),
                     SsiBeat(data=0x6003, keep=keep, last=1, dest=0x6),
                 ],
-                clk=dut.axisClk,
+                clk=bench.clk,
             )
         )
-        first = await sink.wait_valid(clk=dut.axisClk)
-        second = await recv_expected_beat(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady, expected_data=0x6002)
+        first = await sink.wait_valid(clk=bench.clk)
+        second = await recv_expected_beat(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, expected_data=0x6002)
         await repeated_sof_send
-        assert (first.data, first.last, first.dest, first.sof, first.eofe) == (0x6001, 0, 0x6, 1, 0)
-        assert (second.data, second.last, second.dest, second.sof, second.eofe) == (0x6002, 1, 0x6, 0, 1)
-        await wait_output_clear(sink, clk=dut.axisClk, ready_signal=dut.mAxisTReady)
+        assert_beat_view(
+            first,
+            fields=("data", "last", "dest", "sof", "eofe"),
+            expected=(0x6001, 0, 0x6, 1, 0),
+        )
+        assert_beat_view(
+            second,
+            fields=("data", "last", "dest", "sof", "eofe"),
+            expected=(0x6002, 1, 0x6, 0, 1),
+        )
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
 
-    await cycle(dut.axisClk, 2)
+    # Leave a short idle window so delayed stray output would still fail here.
+    await cycle(bench.clk, 2)
     assert int(dut.mAxisTValid.value) == 0
 
 

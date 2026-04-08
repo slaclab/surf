@@ -60,6 +60,8 @@ class SimpleAxiLiteSlave:
         dut.M_AXIL_RRESP.setimmediatevalue(0)
         dut.M_AXIL_RDATA.setimmediatevalue(0)
 
+        # Run independent write and read responders so the DUT sees a realistic
+        # AXI-Lite target rather than zero-delay combinational acks.
         cocotb.start_soon(self._run_write())
         cocotb.start_soon(self._run_read())
 
@@ -75,6 +77,7 @@ class SimpleAxiLiteSlave:
             await cocotb.triggers.Timer(1, unit="ns")
 
     async def _wait_while_reset(self):
+        # While reset is active, keep every ready/valid output deasserted.
         while self.in_reset():
             self.dut.M_AXIL_AWREADY.value = 0
             self.dut.M_AXIL_WREADY.value = 0
@@ -87,11 +90,14 @@ class SimpleAxiLiteSlave:
         while True:
             await self._wait_while_reset()
 
+            # Wait for the DUT to present a write address.
             while not int(self.dut.M_AXIL_AWVALID.value):
                 await self._wait_while_reset()
                 if not self.in_reset():
                     await self.cycle()
 
+            # Delay the address handshake on purpose so the bridge has to hold
+            # its request stable across cycles.
             await self.cycle(1)
             awaddr = int(self.dut.M_AXIL_AWADDR.value)
             awprot = int(self.dut.M_AXIL_AWPROT.value)
@@ -99,11 +105,13 @@ class SimpleAxiLiteSlave:
             await self.cycle(1)
             self.dut.M_AXIL_AWREADY.value = 0
 
+            # Then wait independently for the write data channel.
             while not int(self.dut.M_AXIL_WVALID.value):
                 await self._wait_while_reset()
                 if not self.in_reset():
                     await self.cycle()
 
+            # Apply byte strobes exactly like a small memory-mapped target.
             await self.cycle(2)
             wdata = int(self.dut.M_AXIL_WDATA.value)
             wstrb = int(self.dut.M_AXIL_WSTRB.value)
@@ -119,6 +127,8 @@ class SimpleAxiLiteSlave:
                 self.mem[awaddr] = int.from_bytes(next_bytes, "little")
 
             self.dut.M_AXIL_WREADY.value = 1
+            # Return the configured write response only after both address and
+            # data have completed.
             await self.cycle(1)
             self.dut.M_AXIL_WREADY.value = 0
 
@@ -136,11 +146,14 @@ class SimpleAxiLiteSlave:
         while True:
             await self._wait_while_reset()
 
+            # Wait for one read address request.
             while not int(self.dut.M_AXIL_ARVALID.value):
                 await self._wait_while_reset()
                 if not self.in_reset():
                     await self.cycle()
 
+            # Delay address acceptance and data return separately so the DUT
+            # exercises both halves of its read state machine.
             await self.cycle(2)
             araddr = int(self.dut.M_AXIL_ARADDR.value)
             arprot = int(self.dut.M_AXIL_ARPROT.value)
@@ -168,6 +181,8 @@ class TB:
         self.sink = FlatSsiEndpoint(dut, prefix="mAxis")
         self.axil = SimpleAxiLiteSlave(dut)
 
+        # This testbench wrapper groups the SSI source/sink and the controllable
+        # AXI-Lite backend so each scenario reads like protocol intent.
         start_clock(dut.axisClk)
         dut.axisRst.setimmediatevalue(1)
         self.source.set_idle()
@@ -182,6 +197,8 @@ def request_keep() -> int:
 
 
 async def expect_response(tb: TB, *, expected: list[tuple[int, int, int, int]]):
+    # Compare the returned SSI frame against only the user-visible fields that
+    # matter for the bridge contract.
     await recv_frame_and_check(
         tb.sink,
         clk=tb.dut.axisClk,
@@ -192,6 +209,8 @@ async def expect_response(tb: TB, *, expected: list[tuple[int, int, int, int]]):
 
 
 async def send_write_request(tb: TB, *, echo: int, address: int, words: list[int]):
+    # SSI write requests carry an echo word, an encoded address word, the data
+    # payload, and a terminal status-placeholder beat.
     payload = [
         SsiBeat(data=echo, keep=request_keep(), last=0, sof=1),
         SsiBeat(data=0x40000000 | (address >> 2), keep=request_keep(), last=0),
@@ -203,6 +222,8 @@ async def send_write_request(tb: TB, *, echo: int, address: int, words: list[int
 
 
 async def send_read_request(tb: TB, *, echo: int, address: int, count: int):
+    # SSI read requests carry the echo word, base address, word count, and a
+    # terminal placeholder beat.
     await send_contiguous_frame(
         tb.source,
         [
@@ -220,6 +241,8 @@ async def ssi_axi_lite_master_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # First prove a single-word write round-trip, including the echoed request
+    # metadata and the final success status word.
     recv_task = cocotb.start_soon(
         expect_response(
             tb,
@@ -236,6 +259,8 @@ async def ssi_axi_lite_master_test(dut):
     assert tb.axil.mem[0x10] == 0xDEADBEEF
     assert tb.axil.last_writes[-1] == (0x10, 0xDEADBEEF, 0xF, 0)
 
+    # Then prove the bridge auto-increments the AXI-Lite address for a
+    # multi-word write burst carried over SSI.
     recv_task = cocotb.start_soon(
         expect_response(
             tb,
@@ -257,6 +282,8 @@ async def ssi_axi_lite_master_test(dut):
         (0x24, 0x33334444, 0xF, 0),
     ]
 
+    # A read request should echo the request header and then stream back the
+    # AXI-Lite read data in order.
     tb.axil.mem[0x30] = 0x12345678
     tb.axil.mem[0x34] = 0xCAFEBABE
     recv_task = cocotb.start_soon(
@@ -275,6 +302,8 @@ async def ssi_axi_lite_master_test(dut):
     await recv_task
     assert tb.axil.last_reads[-2:] == [(0x30, 0), (0x34, 0)]
 
+    # A malformed short write request should fail without needing the AXI-Lite
+    # backend to accept anything.
     recv_task = cocotb.start_soon(
         expect_response(
             tb,
@@ -295,6 +324,8 @@ async def ssi_axi_lite_master_test(dut):
     )
     await recv_task
 
+    # Next force a write-side SLVERR and confirm that the bridge reports the
+    # failure instead of updating memory.
     tb.axil.write_resp = AxiResp.SLVERR
     recv_task = cocotb.start_soon(
         expect_response(
@@ -311,6 +342,8 @@ async def ssi_axi_lite_master_test(dut):
     await recv_task
     assert 0x40 not in tb.axil.mem
 
+    # Finally, force a read-side SLVERR. The bridge still returns the observed
+    # read data word, but the trailing status word must report failure.
     tb.axil.write_resp = AxiResp.OKAY
     tb.axil.read_resp = AxiResp.SLVERR
     tb.axil.mem[0x50] = 0x0F1E2D3C
