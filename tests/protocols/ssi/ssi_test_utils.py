@@ -309,6 +309,38 @@ def assert_beat_list(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
         assert_beat_fields(actual_beat, expected_beat)
 
 
+def beat_view(beat: SsiBeat, fields: tuple[str, ...]) -> tuple[int, ...]:
+    return tuple(getattr(beat, field) for field in fields)
+
+
+def assert_beat_views(
+    actual: list[SsiBeat],
+    *,
+    fields: tuple[str, ...],
+    expected: list[tuple[int, ...]],
+) -> None:
+    assert [beat_view(beat, fields) for beat in actual] == expected
+
+
+async def recv_frame_and_check(
+    endpoint: FlatSsiEndpoint,
+    *,
+    clk,
+    ready_signal,
+    fields: tuple[str, ...],
+    expected: list[tuple[int, ...]],
+    timeout_cycles: int = 128,
+) -> list[SsiBeat]:
+    beats = await recv_frame(
+        endpoint,
+        clk=clk,
+        ready_signal=ready_signal,
+        timeout_cycles=timeout_cycles,
+    )
+    assert_beat_views(beats, fields=fields, expected=expected)
+    return beats
+
+
 async def wait_signal_level(signal, *, clk, expected: int, cycles: int = 32) -> None:
     for _ in range(cycles):
         if int(signal.value) == expected:

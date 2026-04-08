@@ -22,7 +22,15 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.protocols.ssi.ssi_test_utils import FlatSsiEndpoint, SsiBeat, cycle, reset_dut, send_contiguous_frame, start_clock
+from tests.protocols.ssi.ssi_test_utils import (
+    FlatSsiEndpoint,
+    SsiBeat,
+    cycle,
+    reset_dut,
+    send_contiguous_frame,
+    start_clock,
+    wait_signal_level,
+)
 
 
 async def wait_cmd_valid(dut, *, timeout_cycles: int = 32):
@@ -63,6 +71,31 @@ async def decodes_complete_frame_and_rejects_eofe_frame(dut):
     ctx, opcode = await wait_cmd_valid(dut)
     assert ctx == 0x123456
     assert opcode == 0x5A
+
+    await send_contiguous_frame(
+        source,
+        [
+            SsiBeat(data=0x65432111, keep=keep, last=0, sof=1),
+            SsiBeat(data=0x00000033, keep=keep, last=0),
+            SsiBeat(data=0x00000000, keep=keep, last=0),
+            SsiBeat(data=0x00000000, keep=keep, last=1),
+        ],
+        clk=dut.axisClk,
+    )
+    ctx, opcode = await wait_cmd_valid(dut)
+    assert ctx == 0x654321
+    assert opcode == 0x33
+
+    await send_contiguous_frame(
+        source,
+        [
+            SsiBeat(data=0x0BADF011, keep=keep, last=0, sof=1),
+            SsiBeat(data=0x00000077, keep=keep, last=1),
+        ],
+        clk=dut.axisClk,
+    )
+    await expect_no_cmd(dut)
+    await wait_signal_level(dut.sAxisTReady, clk=dut.axisClk, expected=1, cycles=8)
 
     await send_contiguous_frame(
         source,

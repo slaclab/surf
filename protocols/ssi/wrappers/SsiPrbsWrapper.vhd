@@ -27,12 +27,17 @@ entity SsiPrbsWrapper is
       fastRst         : in  sl;
       slowClk         : in  sl;
       slowRst         : in  sl;
+      trig            : in  sl;
+      packetLength    : in  slv(31 downto 0);
+      forceEofe       : in  sl;
       updated         : out sl;
+      txBusy          : out sl;
       errMissedPacket : out sl;
       errLength       : out sl;
       errDataBus      : out sl;
       errEofe         : out sl;
-      errWordCnt      : out slv(31 downto 0));
+      errWordCnt      : out slv(31 downto 0);
+      rxPacketLength  : out slv(31 downto 0));
 end entity SsiPrbsWrapper;
 
 architecture rtl of SsiPrbsWrapper is
@@ -92,10 +97,10 @@ begin
          mAxisSlave   => axisSlave,
          locClk       => fastClk,
          locRst       => fastRst,
-         trig         => '1',
-         packetLength => TX_PACKET_LENGTH_C,
-         forceEofe    => FORCE_EOFE_C,
-         busy         => open,
+         trig         => trig,
+         packetLength => packetLength,
+         forceEofe    => forceEofe,
+         busy         => txBusy,
          tDest        => (others => '0'),
          tId          => (others => '0'));
 
@@ -129,6 +134,7 @@ begin
          errLength       => errLength,
          errDataBus      => errDataBus,
          errEofe         => errEofe,
-         errWordCnt      => errWordCnt);
+         errWordCnt      => errWordCnt,
+         packetLength    => rxPacketLength);
 
 end architecture rtl;
