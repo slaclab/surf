@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 808;
+var viewWidth = 1068;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="classAxiStreamDma.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="800,-150 709,-150 709,-131 800,-131 800,-150"/>
-<text text-anchor="middle" x="754.5" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDma</text>
+<g id="a_Node000015"><a xlink:href="classAxiLiteFifoPushPopIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="876,-169 709,-169 709,-150 876,-150 876,-169"/>
+<text text-anchor="middle" x="792.5" y="-157" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteFifoPushPopIpIntegrator</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,26 @@ var sectionId = 'dynsection-0';
 <g id="edge22_Node000001_Node000015" class="edge">
 <title>Node1&#45;&gt;Node15</title>
 <g id="a_edge22_Node000001_Node000015"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M683.38,-140.5C692.01,-140.5 700.7,-140.5 708.88,-140.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="683.32,-137 673.32,-140.5 683.32,-144 683.32,-137"/>
+<path fill="none" stroke="#63b8ff" d="M683.15,-147.57C691.53,-148.49 700.21,-149.44 708.84,-150.4"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="683.43,-144.08 673.11,-146.46 682.66,-151.03 683.43,-144.08"/>
+</a>
+</g>
+</g>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="classAxiStreamDma.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="838,-132 747,-132 747,-113 838,-113 838,-132"/>
+<text text-anchor="middle" x="792.5" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDma</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node16 -->
+<g id="edge23_Node000001_Node000016" class="edge">
+<title>Node1&#45;&gt;Node16</title>
+<g id="a_edge23_Node000001_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M683.31,-133.79C704.46,-131.58 727.48,-129.18 746.84,-127.16"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="682.69,-130.34 673.11,-134.85 683.42,-137.3 682.69,-130.34"/>
 </a>
 </g>
 </g>
@@ -384,6 +402,24 @@ var sectionId = 'dynsection-0';
 <g id="a_edge17_Node000003_Node000014"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M334.47,-97.92C337.72,-99.74 340.95,-101.62 344,-103.5 358.05,-112.15 373.4,-123.17 383.86,-130.92"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="335.91,-94.72 325.45,-93.02 332.57,-100.87 335.91,-94.72"/>
+</a>
+</g>
+</g>
+<!-- Node17 -->
+<g id="Node000017" class="node">
+<title>Node17</title>
+<g id="a_Node000017"><a xlink:href="classAxiStreamDmaIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1060,-132 912,-132 912,-113 1060,-113 1060,-132"/>
+<text text-anchor="middle" x="986" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node16&#45;&gt;Node17 -->
+<g id="edge24_Node000016_Node000017" class="edge">
+<title>Node16&#45;&gt;Node17</title>
+<g id="a_edge24_Node000016_Node000017"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M848.45,-122.5C868.22,-122.5 890.84,-122.5 911.91,-122.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="848.4,-119 838.4,-122.5 848.4,-126 848.4,-119"/>
 </a>
 </g>
 </g>

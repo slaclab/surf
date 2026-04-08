@@ -1,22 +1,32 @@
 <map id="AxiStreamDmaRead" name="AxiStreamDmaRead">
-<area shape="rect" id="Node000001" title=" " alt="" coords="334,152,489,177"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamDma.html" title=" " alt="" coords="5,225,127,251"/>
-<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="343,183,122,228,121,223,342,177"/>
-<area shape="rect" id="Node000005" href="$classAxiStreamDmaFifo.html" title=" " alt="" coords="151,225,296,251"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="369,185,255,228,253,223,368,180"/>
-<area shape="rect" id="Node000006" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="320,225,503,251"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="414,191,414,225,409,225,409,191"/>
-<area shape="rect" id="Node000007" href="$classAxiStreamDmaReadTb.html" title=" " alt="" coords="527,225,698,251"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="458,179,581,223,579,228,456,184"/>
-<area shape="rect" id="Node000008" href="$classSrpV3Axi.html" title=" " alt="" coords="723,225,804,251"/>
-<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="484,177,711,223,723,225,722,231,709,228,482,183"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="340,5,483,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="402,44,391,79,391,99,394,119,407,151,402,153,389,120,385,99,386,78,397,42"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamShift.html" title=" " alt="" coords="401,79,520,104"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="429,41,455,77,450,80,425,44"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="447,117,422,153,417,150,443,114"/>
-<area shape="rect" id="Node000009" href="$classSrpV3AxiLiteFull.html" title=" " alt="" coords="631,299,759,324"/>
-<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="745,262,708,300,704,297,741,259"/>
-<area shape="rect" id="Node000010" href="$classSrpV3AxiTb.html" title=" " alt="" coords="784,299,881,324"/>
-<area shape="poly" id="edge10_Node000008_Node000010" title=" " alt="" coords="786,259,823,297,820,300,782,263"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="363,129,517,155"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDmaReadIpIntegrator.html" title=" " alt="" coords="565,5,796,31"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="461,118,506,77,534,57,564,40,595,28,597,33,566,44,537,61,509,82,464,122"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamDma.html" title=" " alt="" coords="620,55,741,80"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="481,121,565,90,619,76,620,81,566,95,483,126"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamDmaFifo.html" title=" " alt="" coords="608,104,753,129"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="531,130,607,122,608,127,532,135"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamDmaRingRead.html" title=" " alt="" coords="589,153,772,179"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="532,148,589,154,589,160,531,154"/>
+<area shape="rect" id="Node000011" href="$classAxiStreamDmaReadTb.html" title=" " alt="" coords="595,203,766,228"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="483,158,566,189,610,200,609,205,565,194,481,163"/>
+<area shape="rect" id="Node000012" href="$classSrpV3Axi.html" title=" " alt="" coords="640,252,721,277"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="465,162,509,202,537,222,566,238,604,251,640,258,639,264,602,256,564,243,534,226,506,206,461,166"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,129,148,155"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,139,362,139,362,145,162,145"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamShift.html" title=" " alt="" coords="196,155,315,180"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="162,151,196,156,195,162,161,157"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="328,155,362,150,363,155,329,160"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaIpIntegrator.html" title=" " alt="" coords="875,55,1072,80"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="755,65,874,65,874,70,755,70"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamDmaFifoIpIntegrator.html" title=" " alt="" coords="863,104,1084,129"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="767,114,862,114,862,119,767,119"/>
+<area shape="rect" id="Node000010" href="$classAxiStreamDmaRingReadIpIntegrator.html" title=" " alt="" coords="844,153,1103,179"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="786,163,844,163,844,169,786,169"/>
+<area shape="rect" id="Node000013" href="$classSrpV3AxiLiteFull.html" title=" " alt="" coords="909,203,1037,228"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="734,253,908,223,909,229,735,258"/>
+<area shape="rect" id="Node000014" href="$classSrpV3AxiTb.html" title=" " alt="" coords="925,252,1022,277"/>
+<area shape="poly" id="edge14_Node000012_Node000014" title=" " alt="" coords="735,262,925,262,925,267,735,267"/>
+<area shape="rect" id="Node000015" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="905,301,1041,327"/>
+<area shape="poly" id="edge15_Node000012_Node000015" title=" " alt="" coords="736,271,905,300,905,305,735,276"/>
 </map>

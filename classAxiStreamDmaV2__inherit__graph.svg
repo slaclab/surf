@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 846;
+var viewWidth = 1043;
 var viewHeight = 399;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="838,-93 734,-93 734,-74 838,-74 838,-93"/>
 <text text-anchor="middle" x="786" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaV2</text>
+</a>
+</g>
+</g>
+<!-- Node25 -->
+<g id="Node000025" class="node">
+<title>Node25</title>
+<g id="a_Node000025"><a xlink:href="classAxiStreamDmaV2IpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1035,-93 874,-93 874,-74 1035,-74 1035,-93"/>
+<text text-anchor="middle" x="954.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaV2IpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node25 -->
+<g id="edge36_Node000001_Node000025" class="edge">
+<title>Node1&#45;&gt;Node25</title>
+<g id="a_edge36_Node000001_Node000025"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M848.57,-83.5C856.82,-83.5 865.38,-83.5 873.88,-83.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="848.31,-80 838.31,-83.5 848.31,-87 848.31,-80"/>
 </a>
 </g>
 </g>

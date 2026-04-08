@@ -1,5 +1,7 @@
 <map id="Heartbeat" name="Heartbeat">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,5,100,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,173,31"/>
 <area shape="rect" id="Node000002" href="$classHeartbeatTb.html" title=" " alt="" coords="5,79,108,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,44,59,79,54,79,54,44"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,42,70,80,67,77,106,38"/>
+<area shape="rect" id="Node000003" href="$classHeartbeatWrapper.html" title=" " alt="" coords="132,79,275,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,38,193,77,190,80,150,42"/>
 </map>

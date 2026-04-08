@@ -1,0 +1,10 @@
+<map id="DebouncerWrapper" name="DebouncerWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,225,152,251"/>
+<area shape="rect" id="Node000002" href="$classDebouncer.html" title=" " alt="" coords="33,152,125,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,191,81,225,76,225,76,191"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="25,5,132,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="75,44,70,73,69,104,78,151,73,152,64,104,65,72,69,43"/>
+<area shape="rect" id="Node000004" href="$classRstSync.html" title=" " alt="" coords="79,79,153,104"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="93,42,112,77,108,80,89,44"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="106,117,87,153,82,151,101,115"/>
+</map>

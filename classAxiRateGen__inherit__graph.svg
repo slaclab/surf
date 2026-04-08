@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 565;
+var viewWidth = 732;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="557,-167 483,-167 483,-148 557,-148 557,-167"/>
 <text text-anchor="middle" x="520" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRateGen</text>
+</a>
+</g>
+</g>
+<!-- Node11 -->
+<g id="Node000011" class="node">
+<title>Node11</title>
+<g id="a_Node000011"><a xlink:href="classAxiRateGenIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="724,-167 593,-167 593,-148 724,-148 724,-167"/>
+<text text-anchor="middle" x="658.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRateGenIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node11 -->
+<g id="edge12_Node000001_Node000011" class="edge">
+<title>Node1&#45;&gt;Node11</title>
+<g id="a_edge12_Node000001_Node000011"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M567.34,-157.5C575.55,-157.5 584.25,-157.5 592.86,-157.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="567.22,-154 557.22,-157.5 567.22,-161 567.22,-154"/>
 </a>
 </g>
 </g>

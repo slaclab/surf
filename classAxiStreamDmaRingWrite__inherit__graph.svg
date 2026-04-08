@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 1168;
+var viewWidth = 1400;
 var viewHeight = 470;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="1160,-312.6 1021,-312.6 1021,-293.6 1160,-293.6 1160,-312.6"/>
 <text text-anchor="middle" x="1090.5" y="-300.6" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingWrite</text>
+</a>
+</g>
+</g>
+<!-- Node29 -->
+<g id="Node000029" class="node">
+<title>Node29</title>
+<g id="a_Node000029"><a xlink:href="classAxiStreamDmaRingWriteIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1392,-312.6 1196,-312.6 1196,-293.6 1392,-293.6 1392,-312.6"/>
+<text text-anchor="middle" x="1294" y="-300.6" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaRingWriteIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node29 -->
+<g id="edge45_Node000001_Node000029" class="edge">
+<title>Node1&#45;&gt;Node29</title>
+<g id="a_edge45_Node000001_Node000029"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1170.41,-303.1C1178.81,-303.1 1187.42,-303.1 1196,-303.1"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1170.28,-299.6 1160.28,-303.1 1170.28,-306.6 1170.28,-299.6"/>
 </a>
 </g>
 </g>

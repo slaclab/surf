@@ -1,5 +1,7 @@
 <map id="AxiStreamFrameRateLimiter" name="AxiStreamFrameRateLimiter">
 <area shape="rect" id="Node000001" title=" " alt="" coords="173,79,379,104"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamFrameRateLimiterIpIntegrator.html" title=" " alt="" coords="173,152,379,192"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="279,118,279,152,273,152,273,118"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteRegs.html" title=" " alt="" coords="5,5,104,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,32,241,76,239,81,102,37"/>
 <area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="128,5,275,31"/>

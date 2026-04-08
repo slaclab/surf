@@ -1,5 +1,7 @@
 <map id="AxiStreamDmaRingRead" name="AxiStreamDmaRingRead">
 <area shape="rect" id="Node000001" title=" " alt="" coords="575,445,757,471"/>
+<area shape="rect" id="Node000022" href="$classAxiStreamDmaRingReadIpIntegrator.html" title=" " alt="" coords="537,519,795,544"/>
+<area shape="poly" id="edge37_Node000001_Node000022" title=" " alt="" coords="669,484,669,519,663,519,663,484"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="414,372,526,397"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="515,399,635,443,633,448,513,404"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamDmaRead.html" title=" " alt="" coords="105,299,259,324"/>

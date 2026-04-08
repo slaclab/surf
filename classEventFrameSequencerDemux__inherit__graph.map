@@ -1,7 +1,9 @@
 <map id="EventFrameSequencerDemux" name="EventFrameSequencerDemux">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,220,104"/>
-<area shape="rect" id="Node000003" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="21,152,205,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,118,115,152,110,152,110,118"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="41,5,184,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,44,115,79,110,79,110,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="103,79,318,104"/>
+<area shape="rect" id="Node000003" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="5,152,189,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,114,117,154,114,150,179,109"/>
+<area shape="rect" id="Node000004" href="$classEventFrameSequencerWrapper.html" title=" " alt="" coords="214,152,437,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="242,109,308,150,305,154,239,113"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="139,5,282,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,44,213,79,208,79,208,44"/>
 </map>

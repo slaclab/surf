@@ -1,7 +1,25 @@
 <map id="SlaveAxiIpIntegrator" name="SlaveAxiIpIntegrator">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,160,177"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="45,79,120,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,118,85,152,80,152,80,118"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="29,5,136,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,44,85,79,80,79,80,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="283,203,437,228"/>
+<area shape="rect" id="Node000004" href="$classAxiRamIpIntegrator.html" title=" " alt="" coords="516,5,665,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="370,189,387,155,412,114,445,74,484,40,514,26,517,30,487,44,448,77,417,117,392,157,375,191"/>
+<area shape="rect" id="Node000005" href="$classAxiReadEmulateIpIntegrator.html" title=" " alt="" coords="487,55,694,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="376,190,421,138,451,112,484,89,511,78,513,82,487,94,454,116,425,142,380,193"/>
+<area shape="rect" id="Node000006" href="$classAxiReadPathFifoIpIntegrator.html" title=" " alt="" coords="489,104,693,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="389,192,432,164,484,138,519,127,521,132,486,143,435,169,391,197"/>
+<area shape="rect" id="Node000007" href="$classAxiReadPathMuxIpIntegrator.html" title=" " alt="" coords="487,153,695,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="433,197,530,176,531,181,434,202"/>
+<area shape="rect" id="Node000008" href="$classAxiResizeIpIntegrator.html" title=" " alt="" coords="509,203,672,228"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="452,213,509,213,509,218,452,218"/>
+<area shape="rect" id="Node000009" href="$classAxiWriteEmulateIpIntegrator.html" title=" " alt="" coords="487,252,695,277"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="434,228,531,249,530,255,433,233"/>
+<area shape="rect" id="Node000010" href="$classAxiWritePathFifoIpIntegrator.html" title=" " alt="" coords="487,301,694,327"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="391,234,435,262,486,288,521,299,519,304,484,292,432,266,389,238"/>
+<area shape="rect" id="Node000011" href="$classAxiWritePathMuxIpIntegrator.html" title=" " alt="" coords="485,351,696,376"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="380,237,425,289,454,315,487,337,513,348,511,353,484,342,451,319,421,292,376,241"/>
+<area shape="rect" id="Node000012" href="$classAxiToAxiLiteIpIntegrator.html" title=" " alt="" coords="501,400,680,425"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="375,239,392,273,417,313,448,353,487,386,509,397,506,402,484,391,445,357,412,317,387,276,370,242"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="160,203,235,228"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,213,283,213,283,218,249,218"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,203,112,228"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,213,160,213,160,218,126,218"/>
 </map>

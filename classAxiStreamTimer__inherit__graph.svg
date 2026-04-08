@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 587;
+var viewWidth = 776;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="579,-167 483,-167 483,-148 579,-148 579,-167"/>
 <text text-anchor="middle" x="531" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamTimer</text>
+</a>
+</g>
+</g>
+<!-- Node11 -->
+<g id="Node000011" class="node">
+<title>Node11</title>
+<g id="a_Node000011"><a xlink:href="classAxiStreamTimerIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="768,-167 615,-167 615,-148 768,-148 768,-167"/>
+<text text-anchor="middle" x="691.5" y="-155" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamTimerIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node11 -->
+<g id="edge12_Node000001_Node000011" class="edge">
+<title>Node1&#45;&gt;Node11</title>
+<g id="a_edge12_Node000001_Node000011"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M589.37,-157.5C597.62,-157.5 606.22,-157.5 614.76,-157.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="589.13,-154 579.13,-157.5 589.13,-161 589.13,-154"/>
 </a>
 </g>
 </g>

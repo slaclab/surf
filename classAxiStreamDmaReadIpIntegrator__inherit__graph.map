@@ -1,0 +1,19 @@
+<map id="AxiStreamDmaReadIpIntegrator" name="AxiStreamDmaReadIpIntegrator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="207,225,438,251"/>
+<area shape="rect" id="Node000002" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="5,152,216,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,179,289,223,287,228,157,184"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="255,79,329,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="251,111,141,154,139,149,249,106"/>
+<area shape="rect" id="Node000005" href="$classMasterAxiIpIntegrator.html" title=" " alt="" coords="241,152,405,177"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="305,116,320,151,315,153,300,118"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="239,5,345,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="295,44,295,79,289,79,289,44"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="325,191,325,225,320,225,320,191"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaRead.html" title=" " alt="" coords="429,152,584,177"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="465,185,354,228,352,223,463,180"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamPipeline.html" title=" " alt="" coords="402,5,545,31"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="470,45,467,73,471,103,483,129,498,150,494,153,478,132,465,105,462,73,465,44"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamShift.html" title=" " alt="" coords="479,79,598,104"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="495,39,530,77,526,80,491,43"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="530,118,514,153,509,151,525,116"/>
+</map>

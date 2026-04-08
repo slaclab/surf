@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 657;
+var viewWidth = 836;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="649,-150 563,-150 563,-131 649,-131 649,-150"/>
 <text text-anchor="middle" x="606" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteFifoPop</text>
+</a>
+</g>
+</g>
+<!-- Node15 -->
+<g id="Node000015" class="node">
+<title>Node15</title>
+<g id="a_Node000015"><a xlink:href="classAxiLiteFifoPopIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="828,-150 685,-150 685,-131 828,-131 828,-150"/>
+<text text-anchor="middle" x="756.5" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteFifoPopIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node15 -->
+<g id="edge22_Node000001_Node000015" class="edge">
+<title>Node1&#45;&gt;Node15</title>
+<g id="a_edge22_Node000001_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M659.37,-140.5C667.62,-140.5 676.27,-140.5 684.86,-140.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="659.16,-137 649.16,-140.5 659.16,-144 659.16,-137"/>
 </a>
 </g>
 </g>

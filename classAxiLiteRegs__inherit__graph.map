@@ -1,5 +1,9 @@
 <map id="AxiLiteRegs" name="AxiLiteRegs">
-<area shape="rect" id="Node000001" title=" " alt="" coords="59,5,158,31"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamFrameRateLimiter.html" title=" " alt="" coords="5,79,212,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="111,44,111,79,106,79,106,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,249,31"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteRegsIpIntegrator.html" title=" " alt="" coords="5,79,180,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,40,112,81,109,76,170,36"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamFrameRateLimiter.html" title=" " alt="" coords="204,79,411,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,36,291,76,288,81,227,40"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamFrameRateLimiterIpIntegrator.html" title=" " alt="" coords="204,152,411,192"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="310,118,310,152,305,152,305,118"/>
 </map>

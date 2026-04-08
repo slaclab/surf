@@ -1,15 +1,21 @@
 <map id="AxiStreamDmaV2Write" name="AxiStreamDmaV2Write">
-<area shape="rect" id="Node000001" title=" " alt="" coords="75,152,248,177"/>
-<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="5,225,144,251"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="139,188,91,227,87,223,135,184"/>
-<area shape="rect" id="Node000007" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="168,225,331,251"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="188,184,237,223,233,227,184,188"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="15,79,158,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,111,151,150,147,154,107,115"/>
-<area shape="rect" id="Node000003" href="$classDualPortRam.html" title=" " alt="" coords="182,79,290,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,115,175,154,172,150,212,111"/>
-<area shape="rect" id="Node000004" href="$classTrueDualPortRam.html" title=" " alt="" coords="105,5,239,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="194,39,228,77,224,80,190,43"/>
-<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="264,5,336,31"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="282,43,248,80,244,77,278,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="262,152,435,177"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2WriteIpIntegrator.html" title=" " alt="" coords="5,225,255,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="301,184,166,228,165,223,300,179"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="279,225,418,251"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="351,191,351,225,346,225,346,191"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamDmaV2Fifo.html" title=" " alt="" coords="479,225,642,251"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="396,179,527,223,525,228,395,184"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="203,79,345,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="298,111,338,150,335,154,294,115"/>
+<area shape="rect" id="Node000003" href="$classDualPortRam.html" title=" " alt="" coords="369,79,477,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="403,115,363,154,359,150,400,111"/>
+<area shape="rect" id="Node000004" href="$classTrueDualPortRam.html" title=" " alt="" coords="292,5,427,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="381,39,415,77,411,80,377,43"/>
+<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="451,5,523,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="470,43,436,80,432,77,466,39"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="223,299,437,324"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="345,265,336,299,330,298,340,263"/>
+<area shape="rect" id="Node000010" href="$classAxiStreamDmaV2FifoIpIntegrator.html" title=" " alt="" coords="461,299,700,324"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="570,263,580,298,575,299,565,265"/>
 </map>

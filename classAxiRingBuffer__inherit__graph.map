@@ -1,7 +1,9 @@
 <map id="AxiRingBuffer" name="AxiRingBuffer">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1157,203,1268,228"/>
-<area shape="rect" id="Node000023" href="$classAxiRingBufferTb.html" title=" " alt="" coords="1316,203,1443,228"/>
-<area shape="poly" id="edge40_Node000001_Node000023" title=" " alt="" coords="1282,213,1316,213,1316,218,1282,218"/>
+<area shape="rect" id="Node000023" href="$classAxiRingBufferIpIntegrator.html" title=" " alt="" coords="1316,177,1503,203"/>
+<area shape="poly" id="edge40_Node000001_Node000023" title=" " alt="" coords="1281,204,1316,199,1316,205,1282,209"/>
+<area shape="rect" id="Node000024" href="$classAxiRingBufferTb.html" title=" " alt="" coords="1346,227,1473,252"/>
+<area shape="poly" id="edge41_Node000001_Node000024" title=" " alt="" coords="1282,221,1346,229,1345,234,1281,226"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteAsync.html" title=" " alt="" coords="565,53,672,79"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="685,51,773,40,882,38,941,42,999,51,1056,67,1111,89,1145,113,1173,145,1208,201,1203,204,1169,148,1141,117,1108,94,1055,72,998,57,940,47,882,43,774,46,686,56"/>
 <area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="199,5,274,31"/>

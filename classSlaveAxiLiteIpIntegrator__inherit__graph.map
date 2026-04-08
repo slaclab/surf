@@ -1,21 +1,87 @@
 <map id="SlaveAxiLiteIpIntegrator" name="SlaveAxiLiteIpIntegrator">
-<area shape="rect" id="Node000001" title=" " alt="" coords="283,129,461,155"/>
-<area shape="rect" id="Node000004" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="509,5,715,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="395,118,445,78,508,40,539,28,541,33,510,44,448,82,399,122"/>
-<area shape="rect" id="Node000005" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="529,55,695,80"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="416,122,509,89,551,77,552,83,510,94,418,127"/>
-<area shape="rect" id="Node000006" href="$classAxiLiteCrossbarTb.html" title=" " alt="" coords="542,104,682,129"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="475,128,541,121,542,127,475,134"/>
-<area shape="rect" id="Node000007" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="520,153,704,179"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="475,150,520,154,520,159,475,155"/>
-<area shape="rect" id="Node000008" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="535,203,689,228"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="419,157,510,189,553,200,551,205,509,194,417,162"/>
-<area shape="rect" id="Node000010" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="546,252,678,277"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="399,162,448,201,510,238,546,251,545,256,508,243,445,205,395,166"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="160,129,235,155"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,139,283,139,283,145,248,145"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,129,112,155"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,139,160,139,160,145,126,145"/>
-<area shape="rect" id="Node000009" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="763,203,973,228"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="703,213,763,213,763,218,703,218"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="283,975,461,1000"/>
+<area shape="rect" id="Node000004" href="$classAxiDualPortRamIpIntegrator.html" title=" " alt="" coords="537,5,743,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="370,961,373,777,379,645,389,500,406,355,430,223,446,165,463,114,484,72,508,40,535,22,538,26,511,44,489,75,468,116,451,166,435,224,411,356,395,500,384,645,379,778,376,961"/>
+<area shape="rect" id="Node000005" href="$classAxiLiteAsyncIpIntegrator.html" title=" " alt="" coords="549,55,731,80"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="371,961,375,786,381,660,392,523,409,387,433,262,448,207,465,159,485,119,507,89,526,76,547,67,549,72,528,80,511,93,490,122,470,161,453,209,438,263,415,388,398,524,387,661,380,786,376,961"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteCrossbarIpIntegrator.html" title=" " alt="" coords="540,104,740,129"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="371,961,377,794,384,675,396,547,413,418,436,301,451,249,467,204,486,167,507,139,522,127,538,119,541,124,525,132,511,143,491,170,472,206,456,251,441,302,418,419,401,547,389,676,382,795,376,961"/>
+<area shape="rect" id="Node000007" href="$classAxiLiteFifoPopIpIntegrator.html" title=" " alt="" coords="545,153,735,179"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="371,961,378,803,399,571,416,450,439,340,469,249,487,214,507,188,524,175,543,167,545,172,527,180,511,192,492,217,474,251,444,341,421,451,404,571,384,804,377,961"/>
+<area shape="rect" id="Node000008" href="$classAxiLiteFifoPushIpIntegrator.html" title=" " alt="" coords="541,203,739,228"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="372,961,380,812,402,594,419,481,442,379,471,294,488,262,507,237,522,226,539,218,542,223,525,230,511,241,493,265,476,297,447,380,425,482,407,594,385,812,377,961"/>
+<area shape="rect" id="Node000009" href="$classAxiLiteFifoPushPopIpIntegrator.html" title=" " alt="" coords="529,252,751,277"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="372,961,382,821,405,618,423,513,445,418,473,340,490,310,507,287,527,273,530,277,511,291,494,312,478,342,450,419,428,514,410,618,387,821,377,961"/>
+<area shape="rect" id="Node000010" href="$classAxiLiteMasterProxyIpIntegrator.html" title=" " alt="" coords="527,301,753,327"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="372,961,384,830,408,642,426,546,449,458,475,386,491,358,507,337,525,324,528,329,511,341,495,361,480,388,454,460,432,547,414,643,389,830,378,961"/>
+<area shape="rect" id="Node000011" href="$classAxiLiteRamSyncStatusVectorIpIntegrator.html" title=" " alt="" coords="535,351,745,391"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="373,960,387,841,414,673,432,587,454,509,479,445,492,420,508,401,533,384,536,388,511,405,497,423,483,448,459,511,437,589,419,674,393,841,379,961"/>
+<area shape="rect" id="Node000012" href="$classAxiLiteRegsIpIntegrator.html" title=" " alt="" coords="553,416,727,441"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="374,960,389,850,416,696,434,618,455,547,480,490,507,451,528,437,552,428,553,433,531,441,511,455,485,492,461,549,439,620,421,697,394,850,379,961"/>
+<area shape="rect" id="Node000013" href="$classAxiLiteRespTimerIpIntegrator.html" title=" " alt="" coords="533,465,747,491"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="374,960,391,859,419,720,438,650,459,587,482,535,508,500,531,485,534,489,511,504,486,538,464,589,443,652,425,721,396,860,380,961"/>
+<area shape="rect" id="Node000014" href="$classAxiLiteRingBufferIpIntegrator.html" title=" " alt="" coords="535,515,745,540"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="370,961,374,880,381,826,392,768,409,708,433,650,466,596,508,549,533,534,536,538,511,553,470,599,438,652,414,710,397,770,386,827,379,880,376,961"/>
+<area shape="rect" id="Node000015" href="$classAxiLiteSequencerRamIpIntegrator.html" title=" " alt="" coords="519,564,761,589"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="371,961,378,888,398,790,416,737,439,686,469,639,508,599,525,587,528,592,511,603,474,642,444,689,421,739,404,791,384,889,377,961"/>
+<area shape="rect" id="Node000016" href="$classAxiLiteSlaveIpIntegrator.html" title=" " alt="" coords="551,613,729,639"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="373,961,383,896,405,811,423,766,445,723,473,682,508,648,528,635,550,628,552,633,530,640,511,652,477,686,450,725,428,768,410,813,388,897,378,961"/>
+<area shape="rect" id="Node000017" href="$classAxiLiteWriteFilterIpIntegrator.html" title=" " alt="" coords="535,663,745,688"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="375,960,388,905,412,833,430,795,451,759,477,726,508,697,533,683,536,688,511,701,481,729,456,762,434,798,417,835,393,906,380,962"/>
+<area shape="rect" id="Node000018" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="557,712,723,737"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="378,961,393,914,420,855,457,796,481,769,508,746,531,734,556,726,557,732,533,739,511,751,485,773,462,799,424,858,398,916,383,962"/>
+<area shape="rect" id="Node000019" href="$classAxiLiteCrossbarTb.html" title=" " alt="" coords="570,761,710,787"/>
+<area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="381,961,400,924,427,878,463,833,508,796,538,782,569,774,571,780,539,787,511,800,467,837,432,881,405,926,386,963"/>
+<area shape="rect" id="Node000020" href="$classAxiStreamBatchingFifoIpIntegrator.html" title=" " alt="" coords="517,811,763,836"/>
+<area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="388,962,437,903,470,872,508,846,539,834,541,838,511,851,474,876,440,906,392,965"/>
+<area shape="rect" id="Node000021" href="$classAxiStreamFrameRateLimiterIpIntegrator.html" title=" " alt="" coords="537,861,743,901"/>
+<area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="404,965,452,938,508,912,548,898,550,903,510,916,455,942,406,970"/>
+<area shape="rect" id="Node000022" href="$classAxiStreamMonAxiLIpIntegrator.html" title=" " alt="" coords="529,925,751,951"/>
+<area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="454,970,570,948,571,953,455,975"/>
+<area shape="rect" id="Node000023" href="$classAxiStreamRingBufferIpIntegrator.html" title=" " alt="" coords="523,975,757,1000"/>
+<area shape="poly" id="edge22_Node000001_Node000023" title=" " alt="" coords="475,985,522,985,522,990,475,990"/>
+<area shape="rect" id="Node000024" href="$classAxiStreamScatterGatherIpIntegrator.html" title=" " alt="" coords="544,1025,736,1065"/>
+<area shape="poly" id="edge23_Node000001_Node000024" title=" " alt="" coords="446,1000,547,1022,546,1027,445,1006"/>
+<area shape="rect" id="Node000025" href="$classAxiStreamTimerIpIntegrator.html" title=" " alt="" coords="538,1089,742,1115"/>
+<area shape="poly" id="edge24_Node000001_Node000025" title=" " alt="" coords="401,1006,450,1042,510,1074,550,1087,549,1092,508,1079,447,1046,397,1011"/>
+<area shape="rect" id="Node000026" href="$classAxiMemTesterIpIntegrator.html" title=" " alt="" coords="545,1139,735,1164"/>
+<area shape="poly" id="edge25_Node000001_Node000026" title=" " alt="" coords="391,1010,440,1069,473,1100,511,1125,545,1138,544,1143,508,1130,470,1104,436,1073,387,1013"/>
+<area shape="rect" id="Node000027" href="$classAxiMonAxiLIpIntegrator.html" title=" " alt="" coords="553,1188,727,1213"/>
+<area shape="poly" id="edge26_Node000001_Node000027" title=" " alt="" coords="386,1011,405,1049,432,1093,467,1138,511,1174,531,1185,553,1192,552,1197,529,1190,508,1179,463,1142,427,1096,400,1051,381,1014"/>
+<area shape="rect" id="Node000028" href="$classAxiRateGenIpIntegrator.html" title=" " alt="" coords="553,1237,727,1263"/>
+<area shape="poly" id="edge27_Node000001_Node000028" title=" " alt="" coords="383,1012,398,1059,424,1117,462,1176,485,1202,511,1224,531,1235,553,1242,552,1247,529,1240,508,1228,481,1205,457,1179,420,1119,393,1061,378,1014"/>
+<area shape="rect" id="Node000029" href="$classAxiLiteToDrpIpIntegrator.html" title=" " alt="" coords="550,1287,730,1312"/>
+<area shape="poly" id="edge28_Node000001_Node000029" title=" " alt="" coords="380,1013,393,1069,417,1140,434,1177,456,1213,481,1245,511,1273,530,1284,551,1292,549,1297,527,1289,508,1277,477,1249,451,1216,430,1179,412,1142,388,1070,375,1014"/>
+<area shape="rect" id="Node000030" href="$classAxiLiteToIpBusIpIntegrator.html" title=" " alt="" coords="543,1336,737,1361"/>
+<area shape="poly" id="edge29_Node000001_Node000030" title=" " alt="" coords="378,1013,388,1077,410,1162,428,1206,450,1249,477,1289,511,1323,545,1340,542,1345,508,1327,473,1292,445,1252,423,1209,405,1164,383,1078,373,1014"/>
+<area shape="rect" id="Node000031" href="$classAxiStreamDmaFifoIpIntegrator.html" title=" " alt="" coords="529,1385,751,1411"/>
+<area shape="poly" id="edge30_Node000001_Node000031" title=" " alt="" coords="377,1013,384,1086,404,1184,421,1235,444,1286,474,1332,511,1372,530,1384,527,1389,508,1376,469,1336,439,1288,416,1237,398,1185,378,1086,371,1014"/>
+<area shape="rect" id="Node000032" href="$classAxiStreamDmaIpIntegrator.html" title=" " alt="" coords="541,1435,739,1460"/>
+<area shape="poly" id="edge31_Node000001_Node000032" title=" " alt="" coords="376,1014,379,1094,386,1147,397,1205,414,1264,438,1322,470,1376,511,1421,542,1439,539,1443,508,1425,466,1379,433,1325,409,1266,392,1206,381,1148,374,1095,370,1014"/>
+<area shape="rect" id="Node000033" href="$classAxiStreamDmaRingWriteIpIntegrator.html" title=" " alt="" coords="509,1484,771,1509"/>
+<area shape="poly" id="edge32_Node000001_Node000033" title=" " alt="" coords="380,1013,396,1115,425,1253,443,1323,464,1386,486,1437,511,1471,526,1482,523,1486,507,1475,482,1440,459,1388,438,1324,419,1254,391,1116,374,1014"/>
+<area shape="rect" id="Node000034" href="$classAxiStreamDmaV2DescIpIntegrator.html" title=" " alt="" coords="517,1533,763,1559"/>
+<area shape="poly" id="edge33_Node000001_Node000034" title=" " alt="" coords="379,1014,394,1124,421,1277,439,1355,461,1425,485,1482,511,1520,526,1531,523,1535,507,1524,480,1485,455,1427,434,1356,416,1279,389,1125,374,1014"/>
+<area shape="rect" id="Node000035" href="$classAxiStreamDmaV2FifoIpIntegrator.html" title=" " alt="" coords="521,1583,759,1608"/>
+<area shape="poly" id="edge34_Node000001_Node000035" title=" " alt="" coords="378,1013,392,1133,418,1301,436,1387,457,1464,483,1528,496,1552,511,1569,526,1581,523,1585,508,1573,492,1555,478,1530,452,1466,431,1388,413,1302,386,1134,373,1014"/>
+<area shape="rect" id="Node000036" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="533,1632,747,1657"/>
+<area shape="poly" id="edge35_Node000001_Node000036" title=" " alt="" coords="378,1014,390,1142,414,1325,432,1419,454,1504,481,1573,495,1599,511,1619,534,1634,531,1638,508,1623,491,1602,476,1575,449,1505,427,1420,409,1326,384,1143,373,1014"/>
+<area shape="rect" id="Node000037" href="$classEventFrameSequencerTb.html" title=" " alt="" coords="548,1681,732,1707"/>
+<area shape="poly" id="edge36_Node000001_Node000037" title=" " alt="" coords="377,1014,388,1151,411,1349,429,1451,451,1543,479,1618,494,1647,511,1668,528,1681,549,1689,547,1694,526,1685,507,1672,490,1650,474,1620,446,1544,424,1452,406,1350,383,1152,372,1014"/>
+<area shape="rect" id="Node000038" href="$classEventFrameSequencerWrapper.html" title=" " alt="" coords="529,1731,751,1756"/>
+<area shape="poly" id="edge37_Node000001_Node000038" title=" " alt="" coords="377,1014,386,1159,408,1372,426,1482,448,1582,477,1663,493,1694,511,1717,530,1731,527,1735,507,1721,489,1697,472,1666,443,1583,420,1483,403,1373,381,1160,372,1014"/>
+<area shape="rect" id="Node000039" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="563,1780,717,1805"/>
+<area shape="poly" id="edge38_Node000001_Node000039" title=" " alt="" coords="377,1014,384,1168,405,1396,422,1514,445,1621,475,1709,492,1742,511,1767,535,1783,563,1791,562,1796,533,1788,508,1771,488,1745,470,1711,440,1622,417,1515,400,1397,379,1169,371,1014"/>
+<area shape="rect" id="Node000041" href="$classSaciAxiLiteMasterWrapper.html" title=" " alt="" coords="543,1829,737,1855"/>
+<area shape="poly" id="edge40_Node000001_Node000041" title=" " alt="" coords="376,1013,382,1176,390,1293,402,1419,419,1545,442,1660,457,1710,473,1754,491,1789,511,1816,526,1828,543,1835,541,1840,523,1832,507,1820,487,1792,468,1756,452,1712,437,1661,414,1546,396,1420,385,1293,377,1177,371,1014"/>
+<area shape="rect" id="Node000042" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="574,1879,706,1904"/>
+<area shape="poly" id="edge41_Node000001_Node000042" title=" " alt="" coords="376,1014,381,1185,387,1309,399,1443,416,1577,439,1699,454,1752,471,1799,490,1837,511,1865,525,1876,540,1884,574,1891,573,1897,538,1889,522,1881,507,1869,485,1840,466,1801,449,1754,434,1700,410,1577,393,1444,382,1309,375,1186,371,1014"/>
+<area shape="rect" id="Node000043" href="$classSaci2ToAxiLiteWrapper.html" title=" " alt="" coords="555,1928,725,1953"/>
+<area shape="poly" id="edge42_Node000001_Node000043" title=" " alt="" coords="376,1014,379,1194,385,1325,396,1467,412,1608,436,1738,452,1795,469,1844,489,1885,511,1915,531,1929,555,1938,554,1943,529,1934,507,1919,484,1887,464,1846,446,1796,431,1739,407,1609,390,1467,380,1325,374,1194,371,1014"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="160,975,235,1000"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,985,283,985,283,990,248,990"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,975,112,1000"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,985,160,985,160,990,126,990"/>
+<area shape="rect" id="Node000040" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="819,1780,1029,1805"/>
+<area shape="poly" id="edge39_Node000039_Node000040" title=" " alt="" coords="731,1790,818,1790,818,1795,731,1795"/>
 </map>

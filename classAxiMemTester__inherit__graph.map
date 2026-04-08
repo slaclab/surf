@@ -1,7 +1,9 @@
 <map id="AxiMemTester" name="AxiMemTester">
 <area shape="rect" id="Node000001" title=" " alt="" coords="147,299,261,324"/>
-<area shape="rect" id="Node000011" href="$classAxiRamTb.html" title=" " alt="" coords="159,372,249,397"/>
-<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="207,338,207,372,201,372,201,338"/>
+<area shape="rect" id="Node000011" href="$classAxiMemTesterIpIntegrator.html" title=" " alt="" coords="27,372,218,397"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="182,335,138,374,134,370,179,331"/>
+<area shape="rect" id="Node000012" href="$classAxiRamTb.html" title=" " alt="" coords="242,372,331,397"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="229,331,275,370,271,374,226,335"/>
 <area shape="rect" id="Node000002" href="$classSynchronizerVector.html" title=" " alt="" coords="5,79,152,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,115,200,297,195,300,90,118"/>
 <area shape="rect" id="Node000004" href="$classFifoAsync.html" title=" " alt="" coords="275,152,360,177"/>

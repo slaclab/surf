@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 1185;
+var viewWidth = 1445;
 var viewHeight = 341;
 var sectionId = 'dynsection-0';
 </script>
@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classAxiMonAxiL.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="1177,-211 1103,-211 1103,-192 1177,-192 1177,-211"/>
-<text text-anchor="middle" x="1140" y="-199" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMonAxiL</text>
+<g id="a_Node000023"><a xlink:href="classAxiStreamMonAxiLIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1270,-230 1103,-230 1103,-211 1270,-211 1270,-230"/>
+<text text-anchor="middle" x="1186.5" y="-218" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamMonAxiLIpIntegrator</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,26 @@ var sectionId = 'dynsection-0';
 <g id="edge34_Node000001_Node000023" class="edge">
 <title>Node1&#45;&gt;Node23</title>
 <g id="a_edge34_Node000001_Node000023"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1077.36,-201.5C1086.06,-201.5 1094.73,-201.5 1102.7,-201.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1077.17,-198 1067.17,-201.5 1077.17,-205 1077.17,-198"/>
+<path fill="none" stroke="#63b8ff" d="M1077.15,-208.57C1085.53,-209.49 1094.21,-210.44 1102.84,-211.4"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1077.43,-205.08 1067.11,-207.46 1076.66,-212.03 1077.43,-205.08"/>
+</a>
+</g>
+</g>
+<!-- Node24 -->
+<g id="Node000024" class="node">
+<title>Node24</title>
+<g id="a_Node000024"><a xlink:href="classAxiMonAxiL.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1223.5,-193 1149.5,-193 1149.5,-174 1223.5,-174 1223.5,-193"/>
+<text text-anchor="middle" x="1186.5" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMonAxiL</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node24 -->
+<g id="edge35_Node000001_Node000024" class="edge">
+<title>Node1&#45;&gt;Node24</title>
+<g id="a_edge35_Node000001_Node000024"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1077.35,-194.79C1101.66,-192.25 1128.46,-189.45 1149.3,-187.28"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1076.69,-191.34 1067.11,-195.85 1077.42,-198.3 1076.69,-191.34"/>
 </a>
 </g>
 </g>
@@ -564,6 +582,24 @@ var sectionId = 'dynsection-0';
 <g id="a_edge31_Node000020_Node000022"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M354.72,-87.5C378.7,-87.5 410.16,-87.5 434.82,-87.5"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="354.61,-84 344.61,-87.5 354.61,-91 354.61,-84"/>
+</a>
+</g>
+</g>
+<!-- Node25 -->
+<g id="Node000025" class="node">
+<title>Node25</title>
+<g id="a_Node000025"><a xlink:href="classAxiMonAxiLIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1437,-193 1306,-193 1306,-174 1437,-174 1437,-193"/>
+<text text-anchor="middle" x="1371.5" y="-181" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMonAxiLIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node24&#45;&gt;Node25 -->
+<g id="edge36_Node000024_Node000025" class="edge">
+<title>Node24&#45;&gt;Node25</title>
+<g id="a_edge36_Node000024_Node000025"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1233.67,-183.5C1255.56,-183.5 1282.06,-183.5 1305.9,-183.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1233.65,-180 1223.65,-183.5 1233.65,-187 1233.65,-180"/>
 </a>
 </g>
 </g>

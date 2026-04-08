@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 706;
+var viewWidth = 921;
 var viewHeight = 363;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="698,-225.21 576,-225.21 576,-206.21 698,-206.21 698,-225.21"/>
 <text text-anchor="middle" x="637" y="-213.21" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaV2Fifo</text>
+</a>
+</g>
+</g>
+<!-- Node22 -->
+<g id="Node000022" class="node">
+<title>Node22</title>
+<g id="a_Node000022"><a xlink:href="classAxiStreamDmaV2FifoIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="913,-225.21 734,-225.21 734,-206.21 913,-206.21 913,-225.21"/>
+<text text-anchor="middle" x="823.5" y="-213.21" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaV2FifoIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node22 -->
+<g id="edge33_Node000001_Node000022" class="edge">
+<title>Node1&#45;&gt;Node22</title>
+<g id="a_edge33_Node000001_Node000022"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M708.27,-215.71C716.68,-215.71 725.34,-215.71 733.97,-215.71"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="708.16,-212.21 698.16,-215.71 708.16,-219.21 708.16,-212.21"/>
 </a>
 </g>
 </g>

@@ -42,5 +42,6 @@ var searchData=
   ['ethmactxshift_39',['EthMacTxShift',['../classEthMacTxShift.html',1,'']]],
   ['eventframesequencerdemux_40',['EventFrameSequencerDemux',['../classEventFrameSequencerDemux.html',1,'']]],
   ['eventframesequencermux_41',['EventFrameSequencerMux',['../classEventFrameSequencerMux.html',1,'']]],
-  ['eventframesequencertb_42',['EventFrameSequencerTb',['../classEventFrameSequencerTb.html',1,'']]]
+  ['eventframesequencertb_42',['EventFrameSequencerTb',['../classEventFrameSequencerTb.html',1,'']]],
+  ['eventframesequencerwrapper_43',['EventFrameSequencerWrapper',['../classEventFrameSequencerWrapper.html',1,'']]]
 ];

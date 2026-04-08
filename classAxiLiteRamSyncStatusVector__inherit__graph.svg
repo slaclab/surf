@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 1283;
+var viewWidth = 1477;
 var viewHeight = 361;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,25 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="1275,-221 1117,-221 1117,-202 1275,-202 1275,-221"/>
 <text text-anchor="middle" x="1196" y="-209" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteRamSyncStatusVector</text>
+</a>
+</g>
+</g>
+<!-- Node22 -->
+<g id="Node000022" class="node">
+<title>Node22</title>
+<g id="a_Node000022"><a xlink:href="classAxiLiteRamSyncStatusVectorIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1469,-226.5 1311,-226.5 1311,-196.5 1469,-196.5 1469,-226.5"/>
+<text text-anchor="start" x="1319" y="-214.5" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteRamSyncStatusVector</text>
+<text text-anchor="middle" x="1390" y="-203.5" font-family="Helvetica,sans-Serif" font-size="10.00">IpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node22 -->
+<g id="edge28_Node000001_Node000022" class="edge">
+<title>Node1&#45;&gt;Node22</title>
+<g id="a_edge28_Node000001_Node000022"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1285.15,-211.5C1293.77,-211.5 1302.47,-211.5 1310.98,-211.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1285.09,-208 1275.09,-211.5 1285.09,-215 1285.09,-208"/>
 </a>
 </g>
 </g>

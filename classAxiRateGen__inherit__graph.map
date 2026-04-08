@@ -1,5 +1,7 @@
 <map id="AxiRateGen" name="AxiRateGen">
 <area shape="rect" id="Node000001" title=" " alt="" coords="649,107,748,132"/>
+<area shape="rect" id="Node000011" href="$classAxiRateGenIpIntegrator.html" title=" " alt="" coords="796,107,971,132"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="762,117,796,117,796,122,762,122"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteAsync.html" title=" " alt="" coords="495,107,601,132"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="615,117,649,117,649,122,615,122"/>
 <area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="199,5,274,31"/>

@@ -20,5 +20,6 @@ var searchData=
   ['firfiltertap_17',['FirFilterTap',['../classFirFilterTap.html',1,'']]],
   ['frontendsacipkg_18',['FrontEndSaciPkg',['../classFrontEndSaciPkg.html',1,'']]],
   ['fwftcnttb_19',['FwftCntTb',['../classFwftCntTb.html',1,'']]],
-  ['fwftcnttbsubmodule_20',['FwftCntTbSubModule',['../classFwftCntTbSubModule.html',1,'']]]
+  ['fwftcnttbsubmodule_20',['FwftCntTbSubModule',['../classFwftCntTbSubModule.html',1,'']]],
+  ['fwftcntwrapper_21',['FwftCntWrapper',['../classFwftCntWrapper.html',1,'']]]
 ];

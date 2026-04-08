@@ -1,0 +1,21 @@
+<map id="AxiStreamTapIpIntegrator" name="AxiStreamTapIpIntegrator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="243,225,431,251"/>
+<area shape="rect" id="Node000002" href="$classSlaveAxiStreamIpIntegrator.html" title=" " alt="" coords="5,152,208,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,179,301,223,299,228,156,184"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="231,79,305,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,112,134,154,132,149,229,107"/>
+<area shape="rect" id="Node000005" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="232,152,443,177"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="291,112,328,150,324,154,287,116"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="215,5,321,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="271,44,271,79,265,79,265,44"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="340,191,340,225,335,225,335,191"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamTap.html" title=" " alt="" coords="467,152,579,177"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="481,185,369,228,367,223,479,180"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamDeMux.html" title=" " alt="" coords="372,79,508,104"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="465,111,511,150,507,154,462,115"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamPipeline.html" title=" " alt="" coords="411,5,554,31"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="471,44,449,80,445,77,466,41"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamMux.html" title=" " alt="" coords="533,79,651,104"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="513,36,576,76,573,81,510,40"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="573,116,536,154,532,150,569,112"/>
+</map>

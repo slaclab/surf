@@ -1,5 +1,7 @@
 <map id="SyncTrigRateVector" name="SyncTrigRateVector">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1051,107,1197,132"/>
+<area shape="rect" id="Node000016" href="$classSyncTrigRateVectorFlatWrapper.html" title=" " alt="" coords="1245,107,1472,132"/>
+<area shape="poly" id="edge21_Node000001_Node000016" title=" " alt="" coords="1211,117,1245,117,1245,122,1211,122"/>
 <area shape="rect" id="Node000002" href="$classSyncTrigRate.html" title=" " alt="" coords="896,107,1003,132"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1016,117,1050,117,1050,122,1016,122"/>
 <area shape="rect" id="Node000003" href="$classSynchronizerOneShot.html" title=" " alt="" coords="533,56,695,81"/>

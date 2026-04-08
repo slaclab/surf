@@ -1,5 +1,7 @@
 <map id="AxiStreamDmaV2" name="AxiStreamDmaV2">
 <area shape="rect" id="Node000001" title=" " alt="" coords="984,403,1123,428"/>
+<area shape="rect" id="Node000025" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="1171,403,1385,428"/>
+<area shape="poly" id="edge36_Node000001_Node000025" title=" " alt="" coords="1137,413,1171,413,1171,418,1137,418"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="750,304,921,329"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="913,331,937,340,993,370,1037,400,1034,405,991,375,935,344,911,336"/>
 <area shape="rect" id="Node000003" href="$classFifo.html" title=" " alt="" coords="592,204,639,229"/>

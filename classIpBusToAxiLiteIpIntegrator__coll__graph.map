@@ -1,0 +1,13 @@
+<map id="IpBusToAxiLiteIpIntegrator" name="IpBusToAxiLiteIpIntegrator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="91,225,284,251"/>
+<area shape="rect" id="Node000002" href="$classMasterAxiLiteIpIntegrator.html" title=" " alt="" coords="5,152,193,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,184,175,223,171,227,122,188"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="62,79,137,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="102,118,102,152,97,152,97,118"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="46,5,153,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="102,44,102,79,97,79,97,44"/>
+<area shape="rect" id="Node000005" href="$classIpBusToAxiLite.html" title=" " alt="" coords="218,152,335,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="253,188,204,227,200,223,250,184"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteMaster.html" title=" " alt="" coords="221,79,333,104"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="279,118,279,152,274,152,274,118"/>
+</map>

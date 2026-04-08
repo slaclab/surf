@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 965;
+var viewWidth = 1047;
 var viewHeight = 251;
 var sectionId = 'dynsection-0';
 </script>
@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node15 -->
 <g id="Node000015" class="node">
 <title>Node15</title>
-<g id="a_Node000015"><a xlink:href="classAxiReadEmulate.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="793,-169 695,-169 695,-150 793,-150 793,-169"/>
-<text text-anchor="middle" x="744" y="-157" font-family="Helvetica,sans-Serif" font-size="10.00">AxiReadEmulate</text>
+<g id="a_Node000015"><a xlink:href="classAxiReadPathFifoIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="848,-187 695,-187 695,-168 848,-168 848,-187"/>
+<text text-anchor="middle" x="771.5" y="-175" font-family="Helvetica,sans-Serif" font-size="10.00">AxiReadPathFifoIpIntegrator</text>
 </a>
 </g>
 </g>
@@ -76,26 +76,44 @@ var sectionId = 'dynsection-0';
 <g id="edge22_Node000001_Node000015" class="edge">
 <title>Node1&#45;&gt;Node15</title>
 <g id="a_edge22_Node000001_Node000015"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M669.22,-148.8C677.79,-150.04 686.54,-151.31 694.89,-152.52"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="669.69,-145.33 659.29,-147.36 668.69,-152.26 669.69,-145.33"/>
+<path fill="none" stroke="#63b8ff" d="M662.79,-152.36C684.36,-157.39 709.18,-163.18 729.55,-167.94"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="663.35,-148.89 652.82,-150.03 661.76,-155.71 663.35,-148.89"/>
 </a>
 </g>
 </g>
-<!-- Node17 -->
-<g id="Node000017" class="node">
-<title>Node17</title>
-<g id="a_Node000017"><a xlink:href="classAxiRingBuffer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="785.5,-132 702.5,-132 702.5,-113 785.5,-113 785.5,-132"/>
-<text text-anchor="middle" x="744" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="classAxiReadEmulate.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="820.5,-150 722.5,-150 722.5,-131 820.5,-131 820.5,-150"/>
+<text text-anchor="middle" x="771.5" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">AxiReadEmulate</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node17 -->
-<g id="edge24_Node000001_Node000017" class="edge">
-<title>Node1&#45;&gt;Node17</title>
-<g id="a_edge24_Node000001_Node000017"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M669.35,-132.62C680.44,-131.1 691.85,-129.53 702.27,-128.1"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="668.72,-129.17 659.29,-134 669.68,-136.11 668.72,-129.17"/>
+<!-- Node1&#45;&gt;Node16 -->
+<g id="edge23_Node000001_Node000016" class="edge">
+<title>Node1&#45;&gt;Node16</title>
+<g id="a_edge23_Node000001_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M669.2,-140.5C686.66,-140.5 705.67,-140.5 722.46,-140.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="669.13,-137 659.13,-140.5 669.13,-144 669.13,-137"/>
+</a>
+</g>
+</g>
+<!-- Node19 -->
+<g id="Node000019" class="node">
+<title>Node19</title>
+<g id="a_Node000019"><a xlink:href="classAxiRingBuffer.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="813,-113 730,-113 730,-94 813,-94 813,-113"/>
+<text text-anchor="middle" x="771.5" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBuffer</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node19 -->
+<g id="edge26_Node000001_Node000019" class="edge">
+<title>Node1&#45;&gt;Node19</title>
+<g id="a_edge26_Node000001_Node000019"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M662.83,-128.63C684.49,-123.58 709.41,-117.76 729.82,-113"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="661.76,-125.29 652.82,-130.97 663.35,-132.11 661.76,-125.29"/>
 </a>
 </g>
 </g>
@@ -405,39 +423,75 @@ var sectionId = 'dynsection-0';
 </a>
 </g>
 </g>
-<!-- Node16 -->
-<g id="Node000016" class="node">
-<title>Node16</title>
-<g id="a_Node000016"><a xlink:href="classAxiStreamDmaReadTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="957,-169 829,-169 829,-150 957,-150 957,-169"/>
-<text text-anchor="middle" x="893" y="-157" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaReadTb</text>
+<!-- Node17 -->
+<g id="Node000017" class="node">
+<title>Node17</title>
+<g id="a_Node000017"><a xlink:href="classAxiReadEmulateIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1039,-187 884,-187 884,-168 1039,-168 1039,-187"/>
+<text text-anchor="middle" x="961.5" y="-175" font-family="Helvetica,sans-Serif" font-size="10.00">AxiReadEmulateIpIntegrator</text>
 </a>
 </g>
 </g>
-<!-- Node15&#45;&gt;Node16 -->
-<g id="edge23_Node000015_Node000016" class="edge">
-<title>Node15&#45;&gt;Node16</title>
-<g id="a_edge23_Node000015_Node000016"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M803.21,-159.5C811.61,-159.5 820.29,-159.5 828.78,-159.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="803.13,-156 793.13,-159.5 803.13,-163 803.13,-156"/>
+<!-- Node16&#45;&gt;Node17 -->
+<g id="edge24_Node000016_Node000017" class="edge">
+<title>Node16&#45;&gt;Node17</title>
+<g id="a_edge24_Node000016_Node000017"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M831.01,-152.02C857,-157.13 887.22,-163.08 911.92,-167.94"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="831.4,-148.53 820.91,-150.03 830.05,-155.39 831.4,-148.53"/>
 </a>
 </g>
 </g>
 <!-- Node18 -->
 <g id="Node000018" class="node">
 <title>Node18</title>
-<g id="a_Node000018"><a xlink:href="classAxiRingBufferTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="940.5,-132 845.5,-132 845.5,-113 940.5,-113 940.5,-132"/>
-<text text-anchor="middle" x="893" y="-120" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferTb</text>
+<g id="a_Node000018"><a xlink:href="classAxiStreamDmaReadTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1025.5,-150 897.5,-150 897.5,-131 1025.5,-131 1025.5,-150"/>
+<text text-anchor="middle" x="961.5" y="-138" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamDmaReadTb</text>
 </a>
 </g>
 </g>
-<!-- Node17&#45;&gt;Node18 -->
-<g id="edge25_Node000017_Node000018" class="edge">
-<title>Node17&#45;&gt;Node18</title>
-<g id="a_edge25_Node000017_Node000018"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M795.85,-122.5C811.92,-122.5 829.58,-122.5 845.34,-122.5"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="795.56,-119 785.56,-122.5 795.56,-126 795.56,-119"/>
+<!-- Node16&#45;&gt;Node18 -->
+<g id="edge25_Node000016_Node000018" class="edge">
+<title>Node16&#45;&gt;Node18</title>
+<g id="a_edge25_Node000016_Node000018"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M831.01,-140.5C852.07,-140.5 875.91,-140.5 897.35,-140.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="830.91,-137 820.91,-140.5 830.91,-144 830.91,-137"/>
+</a>
+</g>
+</g>
+<!-- Node20 -->
+<g id="Node000020" class="node">
+<title>Node20</title>
+<g id="a_Node000020"><a xlink:href="classAxiRingBufferIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1031.5,-113 891.5,-113 891.5,-94 1031.5,-94 1031.5,-113"/>
+<text text-anchor="middle" x="961.5" y="-101" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferIpIntegrator</text>
+</a>
+</g>
+</g>
+<!-- Node19&#45;&gt;Node20 -->
+<g id="edge27_Node000019_Node000020" class="edge">
+<title>Node19&#45;&gt;Node20</title>
+<g id="a_edge27_Node000019_Node000020"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M823.54,-103.5C844.41,-103.5 868.88,-103.5 891.32,-103.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="823.29,-100 813.29,-103.5 823.29,-107 823.29,-100"/>
+</a>
+</g>
+</g>
+<!-- Node21 -->
+<g id="Node000021" class="node">
+<title>Node21</title>
+<g id="a_Node000021"><a xlink:href="classAxiRingBufferTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1009,-76 914,-76 914,-57 1009,-57 1009,-76"/>
+<text text-anchor="middle" x="961.5" y="-64" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferTb</text>
+</a>
+</g>
+</g>
+<!-- Node19&#45;&gt;Node21 -->
+<g id="edge28_Node000019_Node000021" class="edge">
+<title>Node19&#45;&gt;Node21</title>
+<g id="a_edge28_Node000019_Node000021"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M823.35,-93.49C851.54,-87.94 886.34,-81.1 913.83,-75.69"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="822.43,-90.11 813.29,-95.47 823.78,-96.97 822.43,-90.11"/>
 </a>
 </g>
 </g>

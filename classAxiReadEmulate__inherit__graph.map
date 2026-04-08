@@ -1,7 +1,9 @@
 <map id="AxiReadEmulate" name="AxiReadEmulate">
 <area shape="rect" id="Node000001" title=" " alt="" coords="932,129,1063,155"/>
-<area shape="rect" id="Node000016" href="$classAxiStreamDmaReadTb.html" title=" " alt="" coords="1111,129,1281,155"/>
-<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="1076,139,1110,139,1110,145,1076,145"/>
+<area shape="rect" id="Node000016" href="$classAxiReadEmulateIpIntegrator.html" title=" " alt="" coords="1111,104,1317,129"/>
+<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="1076,130,1110,126,1111,131,1077,135"/>
+<area shape="rect" id="Node000017" href="$classAxiStreamDmaReadTb.html" title=" " alt="" coords="1129,153,1299,179"/>
+<area shape="poly" id="edge24_Node000001_Node000017" title=" " alt="" coords="1076,148,1129,154,1128,159,1076,153"/>
 <area shape="rect" id="Node000002" href="$classAxiReadPathFifo.html" title=" " alt="" coords="756,129,884,155"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="898,139,932,139,932,145,898,145"/>
 <area shape="rect" id="Node000003" href="$classFifoCascade.html" title=" " alt="" coords="607,129,708,155"/>

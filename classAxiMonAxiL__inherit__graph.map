@@ -1,5 +1,7 @@
 <map id="AxiMonAxiL" name="AxiMonAxiL">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1476,167,1575,193"/>
+<area shape="rect" id="Node000024" href="$classAxiMonAxiLIpIntegrator.html" title=" " alt="" coords="1623,167,1797,193"/>
+<area shape="poly" id="edge35_Node000001_Node000024" title=" " alt="" coords="1588,177,1622,177,1622,183,1588,183"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamMonAxiL.html" title=" " alt="" coords="1281,167,1428,193"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1442,177,1476,177,1476,183,1442,183"/>
 <area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="199,75,274,101"/>

@@ -1,7 +1,9 @@
 <map id="Saci2ToAxiLite" name="Saci2ToAxiLite">
 <area shape="rect" id="Node000001" title=" " alt="" coords="160,79,276,104"/>
-<area shape="rect" id="Node000005" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="152,152,284,177"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="221,118,221,152,215,152,215,118"/>
+<area shape="rect" id="Node000005" href="$classSaci2ToAxiLiteTb.html" title=" " alt="" coords="64,152,196,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="195,115,146,154,143,150,192,110"/>
+<area shape="rect" id="Node000006" href="$classSaci2ToAxiLiteWrapper.html" title=" " alt="" coords="221,152,391,177"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="244,110,293,150,290,154,241,115"/>
 <area shape="rect" id="Node000002" href="$classSaci2Subordinate.html" title=" " alt="" coords="5,5,140,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,34,195,76,193,81,107,39"/>
 <area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="165,5,271,31"/>

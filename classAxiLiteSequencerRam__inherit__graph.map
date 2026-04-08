@@ -1,5 +1,7 @@
 <map id="AxiLiteSequencerRam" name="AxiLiteSequencerRam">
 <area shape="rect" id="Node000001" title=" " alt="" coords="243,79,408,104"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteSequencerRamIpIntegrator.html" title=" " alt="" coords="205,152,446,177"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="328,118,328,152,323,152,323,118"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="5,5,117,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,32,283,76,282,81,116,37"/>
 <area shape="rect" id="Node000003" href="$classTrueDualPortRamXpm.html" title=" " alt="" coords="141,5,307,31"/>

@@ -1,5 +1,7 @@
 <map id="AxiLiteFifoPush" name="AxiLiteFifoPush">
 <area shape="rect" id="Node000001" title=" " alt="" coords="756,129,879,155"/>
+<area shape="rect" id="Node000015" href="$classAxiLiteFifoPushIpIntegrator.html" title=" " alt="" coords="927,129,1125,155"/>
+<area shape="poly" id="edge22_Node000001_Node000015" title=" " alt="" coords="892,139,926,139,926,145,892,145"/>
 <area shape="rect" id="Node000002" href="$classFifoCascade.html" title=" " alt="" coords="607,129,708,155"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="722,139,756,139,756,145,722,145"/>
 <area shape="rect" id="Node000003" href="$classFifo.html" title=" " alt="" coords="512,129,559,155"/>

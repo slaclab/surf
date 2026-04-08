@@ -1,5 +1,7 @@
 <map id="AxiLiteRingBuffer" name="AxiLiteRingBuffer">
 <area shape="rect" id="Node000001" title=" " alt="" coords="257,299,392,324"/>
+<area shape="rect" id="Node000016" href="$classAxiLiteRingBufferIpIntegrator.html" title=" " alt="" coords="219,372,430,397"/>
+<area shape="poly" id="edge19_Node000001_Node000016" title=" " alt="" coords="327,338,327,372,322,372,322,338"/>
 <area shape="rect" id="Node000002" href="$classDualPortRam.html" title=" " alt="" coords="137,225,245,251"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,255,304,296,302,301,223,259"/>
 <area shape="rect" id="Node000003" href="$classTrueDualPortRam.html" title=" " alt="" coords="5,152,140,177"/>

@@ -67,8 +67,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000042" class="node">
 <title>Node42</title>
 <g id="a_Node000042"><a xlink:href="classPgp4RxLiteLowSpeedLane.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="1484,-255.5 1340,-255.5 1340,-236.5 1484,-236.5 1484,-255.5"/>
-<text text-anchor="middle" x="1412" y="-243.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4RxLiteLowSpeedLane</text>
+<polygon fill="white" stroke="#bfbfbf" points="1484,-273.5 1340,-273.5 1340,-254.5 1484,-254.5 1484,-273.5"/>
+<text text-anchor="middle" x="1412" y="-261.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4RxLiteLowSpeedLane</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,8 @@ var sectionId = 'dynsection-0';
 <g id="edge71_Node000001_Node000042" class="edge">
 <title>Node1&#45;&gt;Node42</title>
 <g id="a_edge71_Node000001_Node000042"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1314.07,-233.43C1322.42,-234.51 1331.23,-235.65 1339.99,-236.79"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1314.51,-229.96 1304.15,-232.14 1313.61,-236.9 1314.51,-229.96"/>
+<path fill="none" stroke="#63b8ff" d="M1311.99,-238.99C1331.8,-244 1354.49,-249.73 1373.15,-254.44"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1312.78,-235.58 1302.23,-236.53 1311.07,-242.37 1312.78,-235.58"/>
 </a>
 </g>
 </g>
@@ -85,8 +85,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000044" class="node">
 <title>Node44</title>
 <g id="a_Node000044"><a xlink:href="classPgp4CoreLiteTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="1458.5,-218.5 1365.5,-218.5 1365.5,-199.5 1458.5,-199.5 1458.5,-218.5"/>
-<text text-anchor="middle" x="1412" y="-206.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4CoreLiteTb</text>
+<polygon fill="white" stroke="#bfbfbf" points="1458.5,-236.5 1365.5,-236.5 1365.5,-217.5 1458.5,-217.5 1458.5,-236.5"/>
+<text text-anchor="middle" x="1412" y="-224.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4CoreLiteTb</text>
 </a>
 </g>
 </g>
@@ -94,8 +94,26 @@ var sectionId = 'dynsection-0';
 <g id="edge73_Node000001_Node000044" class="edge">
 <title>Node1&#45;&gt;Node44</title>
 <g id="a_edge73_Node000001_Node000044"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1314.19,-220.89C1330.76,-218.86 1349.12,-216.6 1365.36,-214.61"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1313.64,-217.44 1304.15,-222.13 1314.5,-224.38 1313.64,-217.44"/>
+<path fill="none" stroke="#63b8ff" d="M1314.19,-227C1330.76,-227 1349.12,-227 1365.36,-227"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1314.15,-223.5 1304.15,-227 1314.14,-230.5 1314.15,-223.5"/>
+</a>
+</g>
+</g>
+<!-- Node45 -->
+<g id="Node000045" class="node">
+<title>Node45</title>
+<g id="a_Node000045"><a xlink:href="classPgp4CoreLiteWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1473,-199.5 1351,-199.5 1351,-180.5 1473,-180.5 1473,-199.5"/>
+<text text-anchor="middle" x="1412" y="-187.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4CoreLiteWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node45 -->
+<g id="edge74_Node000001_Node000045" class="edge">
+<title>Node1&#45;&gt;Node45</title>
+<g id="a_edge74_Node000001_Node000045"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M1311.99,-215.01C1331.8,-210 1354.49,-204.27 1373.15,-199.56"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1311.07,-211.63 1302.23,-217.47 1312.78,-218.42 1311.07,-211.63"/>
 </a>
 </g>
 </g>
@@ -1093,8 +1111,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000043" class="node">
 <title>Node43</title>
 <g id="a_Node000043"><a xlink:href="classPgp4LiteRxLowSpeed.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="1641,-255.5 1520,-255.5 1520,-236.5 1641,-236.5 1641,-255.5"/>
-<text text-anchor="middle" x="1580.5" y="-243.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4LiteRxLowSpeed</text>
+<polygon fill="white" stroke="#bfbfbf" points="1641,-273.5 1520,-273.5 1520,-254.5 1641,-254.5 1641,-273.5"/>
+<text text-anchor="middle" x="1580.5" y="-261.5" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4LiteRxLowSpeed</text>
 </a>
 </g>
 </g>
@@ -1102,8 +1120,8 @@ var sectionId = 'dynsection-0';
 <g id="edge72_Node000042_Node000043" class="edge">
 <title>Node42&#45;&gt;Node43</title>
 <g id="a_edge72_Node000042_Node000043"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M1494.22,-246C1502.88,-246 1511.56,-246 1519.9,-246"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="1494.09,-242.5 1484.09,-246 1494.09,-249.5 1494.09,-242.5"/>
+<path fill="none" stroke="#63b8ff" d="M1494.22,-264C1502.88,-264 1511.56,-264 1519.9,-264"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="1494.09,-260.5 1484.09,-264 1494.09,-267.5 1494.09,-260.5"/>
 </a>
 </g>
 </g>

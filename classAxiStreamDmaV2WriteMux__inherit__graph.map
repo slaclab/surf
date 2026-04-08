@@ -1,5 +1,9 @@
 <map id="AxiStreamDmaV2WriteMux" name="AxiStreamDmaV2WriteMux">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,207,31"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="37,79,175,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,44,109,79,103,79,103,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="111,5,313,31"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamDmaV2WriteMuxIpIntegrator.html" title=" " alt="" coords="5,79,219,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,41,138,81,134,76,185,37"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="243,86,381,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="239,37,299,84,296,88,236,41"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="205,167,419,192"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="315,125,315,166,309,166,309,125"/>
 </map>

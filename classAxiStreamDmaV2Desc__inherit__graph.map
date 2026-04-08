@@ -1,7 +1,9 @@
 <map id="AxiStreamDmaV2Desc" name="AxiStreamDmaV2Desc">
 <area shape="rect" id="Node000001" title=" " alt="" coords="637,299,808,324"/>
-<area shape="rect" id="Node000016" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="653,372,792,397"/>
-<area shape="poly" id="edge25_Node000001_Node000016" title=" " alt="" coords="725,338,725,372,720,372,720,338"/>
+<area shape="rect" id="Node000016" href="$classAxiStreamDmaV2DescIpIntegrator.html" title=" " alt="" coords="491,372,738,397"/>
+<area shape="poly" id="edge25_Node000001_Node000016" title=" " alt="" coords="695,334,634,374,631,370,693,329"/>
+<area shape="rect" id="Node000017" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="763,372,901,397"/>
+<area shape="poly" id="edge26_Node000001_Node000017" title=" " alt="" coords="753,329,816,370,813,374,750,334"/>
 <area shape="rect" id="Node000002" href="$classFifo.html" title=" " alt="" coords="581,225,627,251"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="636,255,705,296,702,301,634,260"/>
 <area shape="rect" id="Node000003" href="$classFifoXpm.html" title=" " alt="" coords="566,152,642,177"/>
@@ -40,4 +42,6 @@
 <area shape="poly" id="edge16_Node000002_Node000013" title=" " alt="" coords="397,178,581,228,580,233,395,183"/>
 <area shape="poly" id="edge21_Node000001_Node000014" title=" " alt="" coords="725,264,725,299,720,299,720,264"/>
 <area shape="poly" id="edge23_Node000001_Node000015" title=" " alt="" coords="825,259,746,301,743,296,822,255"/>
+<area shape="rect" id="Node000018" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="725,445,939,471"/>
+<area shape="poly" id="edge27_Node000017_Node000018" title=" " alt="" coords="835,411,835,445,829,445,829,411"/>
 </map>

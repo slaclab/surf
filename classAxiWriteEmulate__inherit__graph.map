@@ -1,5 +1,7 @@
 <map id="AxiWriteEmulate" name="AxiWriteEmulate">
 <area shape="rect" id="Node000001" title=" " alt="" coords="935,129,1067,155"/>
+<area shape="rect" id="Node000016" href="$classAxiWriteEmulateIpIntegrator.html" title=" " alt="" coords="1115,129,1323,155"/>
+<area shape="poly" id="edge23_Node000001_Node000016" title=" " alt="" coords="1081,139,1115,139,1115,145,1081,145"/>
 <area shape="rect" id="Node000002" href="$classAxiWritePathFifo.html" title=" " alt="" coords="756,129,887,155"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="901,139,934,139,934,145,901,145"/>
 <area shape="rect" id="Node000003" href="$classFifoCascade.html" title=" " alt="" coords="607,129,708,155"/>

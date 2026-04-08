@@ -1,5 +1,7 @@
 <map id="AxiLiteRamSyncStatusVector" name="AxiLiteRamSyncStatusVector">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1495,181,1705,207"/>
+<area shape="rect" id="Node000022" href="$classAxiLiteRamSyncStatusVectorIpIntegrator.html" title=" " alt="" coords="1753,174,1964,214"/>
+<area shape="poly" id="edge28_Node000001_Node000022" title=" " alt="" coords="1719,191,1753,191,1753,197,1719,197"/>
 <area shape="rect" id="Node000002" href="$classAxiDualPortRam.html" title=" " alt="" coords="836,119,965,144"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="980,136,1495,182,1494,187,979,141"/>
 <area shape="rect" id="Node000003" href="$classTrueDualPortRamXpm.html" title=" " alt="" coords="583,5,749,31"/>

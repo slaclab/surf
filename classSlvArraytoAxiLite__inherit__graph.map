@@ -1,5 +1,7 @@
 <map id="SlvArraytoAxiLite" name="SlvArraytoAxiLite">
 <area shape="rect" id="Node000001" title=" " alt="" coords="673,165,808,191"/>
+<area shape="rect" id="Node000012" href="$classSlvArraytoAxiLiteIpIntegrator.html" title=" " alt="" coords="856,165,1067,191"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="822,175,856,175,856,181,822,181"/>
 <area shape="rect" id="Node000002" href="$classSynchronizerFifo.html" title=" " alt="" coords="495,140,625,165"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="639,161,673,166,672,171,639,166"/>
 <area shape="rect" id="Node000003" href="$classFifoAsync.html" title=" " alt="" coords="361,140,447,165"/>

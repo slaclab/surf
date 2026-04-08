@@ -1,0 +1,20 @@
+<map id="AxiStreamDmaV2ReadIpIntegrator" name="AxiStreamDmaV2ReadIpIntegrator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="199,225,446,251"/>
+<area shape="rect" id="Node000002" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="5,152,216,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,179,289,223,287,228,157,184"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="201,79,276,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="207,113,133,154,130,149,205,108"/>
+<area shape="rect" id="Node000005" href="$classMasterAxiIpIntegrator.html" title=" " alt="" coords="241,152,405,177"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="264,111,311,150,307,154,261,115"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="185,5,292,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="241,44,241,79,236,79,236,44"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="325,191,325,225,320,225,320,191"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2Read.html" title=" " alt="" coords="429,152,600,177"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="472,185,355,228,353,223,470,180"/>
+<area shape="rect" id="Node000007" href="$classDspComparator.html" title=" " alt="" coords="374,79,498,104"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="461,111,504,150,500,154,457,115"/>
+<area shape="rect" id="Node000008" href="$classFifoOutputPipeline.html" title=" " alt="" coords="365,5,507,31"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="439,44,439,79,433,79,433,44"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamPipeline.html" title=" " alt="" coords="522,79,665,104"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="572,115,529,154,526,150,569,111"/>
+</map>

@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node11 -->
 <g id="Node000011" class="node">
 <title>Node11</title>
-<g id="a_Node000011"><a xlink:href="classAxiRamTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="182.5,-19 115.5,-19 115.5,0 182.5,0 182.5,-19"/>
-<text text-anchor="middle" x="149" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRamTb</text>
+<g id="a_Node000011"><a xlink:href="classAxiMemTesterIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="159.5,-19 16.5,-19 16.5,0 159.5,0 159.5,-19"/>
+<text text-anchor="middle" x="88" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiMemTesterIpIntegrator</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,26 @@ var sectionId = 'dynsection-0';
 <g id="edge12_Node000001_Node000011" class="edge">
 <title>Node1&#45;&gt;Node11</title>
 <g id="a_edge12_Node000001_Node000011"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M149,-44.66C149,-35.93 149,-25.99 149,-19.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="145.5,-44.75 149,-54.75 152.5,-44.75 145.5,-44.75"/>
+<path fill="none" stroke="#63b8ff" d="M131.53,-48.32C120.66,-38.87 107.06,-27.06 97.98,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="129.35,-51.07 139.2,-54.98 133.95,-45.78 129.35,-51.07"/>
+</a>
+</g>
+</g>
+<!-- Node12 -->
+<g id="Node000012" class="node">
+<title>Node12</title>
+<g id="a_Node000012"><a xlink:href="classAxiRamTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="244.5,-19 177.5,-19 177.5,0 244.5,0 244.5,-19"/>
+<text text-anchor="middle" x="211" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRamTb</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node12 -->
+<g id="edge13_Node000001_Node000012" class="edge">
+<title>Node1&#45;&gt;Node12</title>
+<g id="a_edge13_Node000001_Node000012"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M166.75,-48.32C177.81,-38.87 191.63,-27.06 200.86,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="164.29,-45.83 158.96,-54.98 168.84,-51.15 164.29,-45.83"/>
 </a>
 </g>
 </g>

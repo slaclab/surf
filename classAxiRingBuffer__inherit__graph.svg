@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 1086;
+var viewWidth = 1131;
 var viewHeight = 432;
 var sectionId = 'dynsection-0';
 </script>
@@ -66,9 +66,9 @@ var sectionId = 'dynsection-0';
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="classAxiRingBufferTb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="1078,-275.77 983,-275.77 983,-256.77 1078,-256.77 1078,-275.77"/>
-<text text-anchor="middle" x="1030.5" y="-263.77" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferTb</text>
+<g id="a_Node000023"><a xlink:href="classAxiRingBufferIpIntegrator.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1123,-294.77 983,-294.77 983,-275.77 1123,-275.77 1123,-294.77"/>
+<text text-anchor="middle" x="1053" y="-282.77" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferIpIntegrator</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,26 @@ var sectionId = 'dynsection-0';
 <g id="edge40_Node000001_Node000023" class="edge">
 <title>Node1&#45;&gt;Node23</title>
 <g id="a_edge40_Node000001_Node000023"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M957.3,-266.27C965.8,-266.27 974.58,-266.27 982.96,-266.27"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="957.12,-262.77 947.12,-266.27 957.12,-269.77 957.12,-262.77"/>
+<path fill="none" stroke="#63b8ff" d="M957.01,-272.86C965.4,-273.96 974.23,-275.11 982.98,-276.25"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="957.4,-269.38 947.03,-271.56 956.49,-276.32 957.4,-269.38"/>
+</a>
+</g>
+</g>
+<!-- Node24 -->
+<g id="Node000024" class="node">
+<title>Node24</title>
+<g id="a_Node000024"><a xlink:href="classAxiRingBufferTb.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="1100.5,-257.77 1005.5,-257.77 1005.5,-238.77 1100.5,-238.77 1100.5,-257.77"/>
+<text text-anchor="middle" x="1053" y="-245.77" font-family="Helvetica,sans-Serif" font-size="10.00">AxiRingBufferTb</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node24 -->
+<g id="edge41_Node000001_Node000024" class="edge">
+<title>Node1&#45;&gt;Node24</title>
+<g id="a_edge41_Node000001_Node000024"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M957.06,-260.01C972.72,-258.07 989.88,-255.95 1005.26,-254.05"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="956.52,-256.55 947.03,-261.25 957.38,-263.5 956.52,-256.55"/>
 </a>
 </g>
 </g>

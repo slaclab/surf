@@ -1,13 +1,15 @@
 <map id="AxiStreamPrbsFlowCtrl" name="AxiStreamPrbsFlowCtrl">
-<area shape="rect" id="Node000001" title=" " alt="" coords="69,152,241,177"/>
-<area shape="rect" id="Node000005" href="$classEthMacPauseTb.html" title=" " alt="" coords="31,225,155,251"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,189,105,227,101,223,134,186"/>
-<area shape="rect" id="Node000006" href="$classSsiFifoTb.html" title=" " alt="" coords="179,225,260,251"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="177,186,211,223,207,227,173,189"/>
-<area shape="rect" id="Node000002" href="$classDspComparator.html" title=" " alt="" coords="15,79,139,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,111,144,150,141,154,98,115"/>
-<area shape="rect" id="Node000003" href="$classFifoOutputPipeline.html" title=" " alt="" coords="5,5,148,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,44,79,79,74,79,74,44"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamPipeline.html" title=" " alt="" coords="163,79,305,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="213,115,170,154,166,150,209,111"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="253,152,425,177"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamPrbsFlowCtrlIpIntegrator.html" title=" " alt="" coords="5,225,253,251"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="293,184,164,228,162,223,291,179"/>
+<area shape="rect" id="Node000006" href="$classEthMacPauseTb.html" title=" " alt="" coords="277,225,401,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="341,191,341,225,336,225,336,191"/>
+<area shape="rect" id="Node000007" href="$classSsiFifoTb.html" title=" " alt="" coords="425,225,506,251"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="372,182,446,223,443,227,370,186"/>
+<area shape="rect" id="Node000002" href="$classDspComparator.html" title=" " alt="" coords="198,79,322,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,111,328,150,324,154,281,115"/>
+<area shape="rect" id="Node000003" href="$classFifoOutputPipeline.html" title=" " alt="" coords="189,5,331,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="263,44,263,79,257,79,257,44"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamPipeline.html" title=" " alt="" coords="346,79,489,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="396,115,353,154,350,150,393,111"/>
 </map>

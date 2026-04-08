@@ -36,12 +36,13 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"classAxiStreamFifoV2_1_1rtl.html",
-"classDspPreSubMult.html",
-"classHammingEccDecoder.html",
-"classPgp2fcGtp7.html",
-"classSaciSlave.html",
-"classSynchronizerOneShotCnt_1_1rtl.html"
+"classAxiStreamBatchingFifo_1_1rtl.html",
+"classCfixedAccumulator.html",
+"classFifoWrFsm_1_1rtl.html",
+"classJesdIlasGen_1_1rtl.html",
+"classPgp4FecTb.html",
+"classSlaveAxiIpIntegrator.html",
+"classUdpEngineArp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

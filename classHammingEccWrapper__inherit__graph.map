@@ -1,0 +1,7 @@
+<map id="HammingEccWrapper" name="HammingEccWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="96,79,259,104"/>
+<area shape="rect" id="Node000002" href="$classHammingEccEncoder.html" title=" " alt="" coords="5,5,165,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,37,164,76,161,81,109,41"/>
+<area shape="rect" id="Node000003" href="$classHammingEccDecoder.html" title=" " alt="" coords="189,5,352,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="247,41,194,81,191,76,243,37"/>
+</map>

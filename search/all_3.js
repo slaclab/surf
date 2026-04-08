@@ -58,8 +58,9 @@ var searchData=
   ['complexfixedpkg_55',['ComplexFixedPkg',['../classComplexFixedPkg.html',1,'']]],
   ['crc32_56',['Crc32',['../classCrc32.html',1,'']]],
   ['crc32parallel_57',['Crc32Parallel',['../classCrc32Parallel.html',1,'']]],
-  ['crc32rtl_58',['CRC32Rtl',['../classCRC32Rtl.html',1,'']]],
-  ['crc7rtl_59',['CRC7Rtl',['../classCRC7Rtl.html',1,'']]],
-  ['crcpkg_60',['CrcPkg',['../classCrcPkg.html',1,'']]],
-  ['csa3_61',['csa3',['../classcsa3.html',1,'']]]
+  ['crc32polywrapper_58',['Crc32PolyWrapper',['../classCrc32PolyWrapper.html',1,'']]],
+  ['crc32rtl_59',['CRC32Rtl',['../classCRC32Rtl.html',1,'']]],
+  ['crc7rtl_60',['CRC7Rtl',['../classCRC7Rtl.html',1,'']]],
+  ['crcpkg_61',['CrcPkg',['../classCrcPkg.html',1,'']]],
+  ['csa3_62',['csa3',['../classcsa3.html',1,'']]]
 ];

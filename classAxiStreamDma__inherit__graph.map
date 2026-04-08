@@ -1,5 +1,7 @@
 <map id="AxiStreamDma" name="AxiStreamDma">
 <area shape="rect" id="Node000001" title=" " alt="" coords="801,519,923,544"/>
+<area shape="rect" id="Node000024" href="$classAxiStreamDmaIpIntegrator.html" title=" " alt="" coords="763,592,961,617"/>
+<area shape="poly" id="edge40_Node000001_Node000024" title=" " alt="" coords="865,558,865,592,859,592,859,558"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteCrossbar.html" title=" " alt="" coords="643,445,767,471"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="744,474,837,516,835,521,741,479"/>
 <area shape="rect" id="Node000003" href="$classAxiLiteFifoPushPop.html" title=" " alt="" coords="685,372,831,397"/>
