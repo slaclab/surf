@@ -33,7 +33,8 @@ entity Pgp2fcRxCellWrapper is
       vc0RemOverflow   : out sl;
       crcRxIn          : out slv(15 downto 0);
       crcRxInit        : out sl;
-      crcRxValid       : out sl);
+      crcRxValid       : out sl;
+      crcRxOut         : in  slv(31 downto 0) := (others => '0'));
 end entity Pgp2fcRxCellWrapper;
 
 architecture rtl of Pgp2fcRxCellWrapper is
@@ -73,6 +74,6 @@ begin
          crcRxIn          => crcRxIn,
          crcRxInit        => crcRxInit,
          crcRxValid       => crcRxValid,
-         crcRxOut         => (others => '0'));
+         crcRxOut         => crcRxOut);
 
 end architecture rtl;
