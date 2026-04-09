@@ -210,6 +210,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
     # ----------------------------------------------------------------------------------------------
 
     def LoadRowValue(self, row, val, verbose=False):
+
         """Configure an entire row with provided values"""
 
         if row < 0 or row >= self.numRow:
@@ -238,7 +239,9 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             click.secho(f'[INFO]: {self.path}.LoadRowValue(): Set row {row} with {valNpArray}', fg='green')
 
     # ----------------------------------------------------------------------------------------------
+
     def LoadPixelValue(self, col, row, val, verbose=False):
+
         """Configure a single pixel at specified column and row"""
 
         # Validate column and row bounds
