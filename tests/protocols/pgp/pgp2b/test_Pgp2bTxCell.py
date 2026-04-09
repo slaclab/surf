@@ -12,7 +12,7 @@
 
 import cocotb
 
-from tests.protocols.pgp.pgp2_test_utils import K_EOC, PgpModuleTB, signal_int
+from tests.protocols.pgp.pgp2_test_utils import PgpModuleTB, signal_int
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
 
 

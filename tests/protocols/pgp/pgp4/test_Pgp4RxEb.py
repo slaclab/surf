@@ -24,7 +24,6 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import parameter_case, start_lockstep_clocks
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
-    PGP4_D_HEADER,
     PGP4_K_HEADER,
     pgp4_idle_word,
     pgp4_skip_word,
