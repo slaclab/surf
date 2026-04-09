@@ -22,59 +22,20 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import parameter_case
-from tests.protocols.pgp.pgp4.pgp4_test_utils import Pgp4FlatTB, signal_int, wait_for_signal
+from tests.protocols.pgp.pgp4.pgp4_test_utils import (
+    Pgp4FlatTB,
+    initialize_flat_tx_inputs,
+    send_single_word_frame_and_capture,
+    signal_int,
+    wait_for_signal,
+)
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
-
-
-async def send_single_word_frame(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0):
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-    await wait_for_signal(tb, "txReady", cycles=64)
-    await tb.cycle()
-    tb.dut.txValid.value = 0
-    tb.dut.txSof.value = 0
-    tb.dut.txEof.value = 0
-    tb.dut.txEofe.value = 0
-
-
-async def send_single_word_frame_and_capture(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0) -> tuple[int, int]:
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-
-    accepted = False
-    captured = None
-    for _ in range(1024):
-        await tb.cycle()
-        if signal_int(tb.dut, "rxValid") == 1:
-            captured = (signal_int(tb.dut, "rxData"), signal_int(tb.dut, "rxLast"))
-        if not accepted and signal_int(tb.dut, "txReady") == 1:
-            accepted = True
-            tb.dut.txValid.value = 0
-            tb.dut.txSof.value = 0
-            tb.dut.txEof.value = 0
-            tb.dut.txEofe.value = 0
-        if accepted and captured is not None:
-            return captured
-
-    raise AssertionError("Timed out waiting for RX frame capture")
 
 
 @cocotb.test()
 async def pgp4_rx_direct_test(dut):
     tb = Pgp4FlatTB(dut)
-    dut.txValid.setimmediatevalue(0)
-    dut.txData.setimmediatevalue(0)
-    dut.txSof.setimmediatevalue(0)
-    dut.txEof.setimmediatevalue(0)
-    dut.txEofe.setimmediatevalue(0)
-    dut.opCodeEn.setimmediatevalue(0)
-    dut.opCodeData.setimmediatevalue(0)
+    initialize_flat_tx_inputs(dut, include_opcode=True)
     await tb.reset()
 
     await wait_for_signal(tb, "linkReady", cycles=2600)
@@ -86,6 +47,8 @@ async def pgp4_rx_direct_test(dut):
     await wait_for_signal(tb, "rxOpCodeEn", cycles=512)
     assert signal_int(dut, "rxOpCodeData") == 0x0000ABCDE123
 
+    # The helper samples `rxValid` in the correct cycle so the test does not
+    # miss narrow receive pulses after the internal depacketizer fires.
     payload = 0xCAFEBABE01234567
     rx_data, rx_last = await send_single_word_frame_and_capture(tb, payload=payload)
     assert rx_data == payload

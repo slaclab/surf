@@ -16,23 +16,27 @@ from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiStreamBus, AxiStreamSink
 
 
-def scalar_tuser(value) -> int:
-    if value is None:
-        return 0
-    if isinstance(value, list):
-        return int(value[-1]) if value else 0
-    return int(value)
-
-
 def pack_bytes(data: bytes, width_bytes: int = 8) -> int:
+    """Pack a short little-endian byte string into one AXI Stream beat."""
+
     return int.from_bytes(data.ljust(width_bytes, b"\x00"), "little")
 
 
 def keep_mask(length: int) -> int:
+    """Return the byte-valid mask for a beat with `length` payload bytes."""
+
     return (1 << length) - 1
 
 
 class VcFifoTb:
+    """Async-clock AXI Stream harness used by the shared PGP VC FIFO tests.
+
+    These wrappers sit between two clock domains, so the helper owns both clock
+    generators and exposes explicit "cycle source" and "cycle sink" coroutines.
+    That makes the CDC behavior visible in the tests instead of hiding it
+    behind a single global clock.
+    """
+
     def __init__(
         self,
         dut,
@@ -55,6 +59,8 @@ class VcFifoTb:
         cocotb.start_soon(Clock(self.sink_clk, sink_period_ns, unit="ns").start())
 
     async def settle(self):
+        # SURF RTL commonly uses `TPD_G => 1 ns`, so wait a moment after each
+        # edge before sampling registered outputs.
         await Timer(1, unit="ns")
 
     async def cycle_source(self, count: int = 1):
@@ -68,6 +74,8 @@ class VcFifoTb:
             await self.settle()
 
     def drive_source_idle(self):
+        # Holding every source signal at an explicit idle value avoids
+        # accidental stale payload bits between frames.
         self.dut.S_AXIS_TVALID.value = 0
         self.dut.S_AXIS_TDATA.value = 0
         self.dut.S_AXIS_TKEEP.value = 0
@@ -77,6 +85,8 @@ class VcFifoTb:
         self.dut.S_AXIS_TUSER.value = 0
 
     async def reset(self, *, link_signals: tuple[str, ...] = ()):
+        # Reset both domains together, then also clear any wrapper-visible link
+        # status inputs so each test starts from the same known state.
         self.source_rst.setimmediatevalue(1)
         self.sink_rst.setimmediatevalue(1)
         self.drive_source_idle()
@@ -93,6 +103,8 @@ class VcFifoTb:
         await self.cycle_sink(4)
 
     def start_sink(self):
+        # The sink is created lazily so tests that only need wrapper output
+        # visibility do not pay for extra cocotbext agents they never use.
         if self.sink is None:
             self.sink = AxiStreamSink(
                 bus=AxiStreamBus.from_prefix(self.dut, "M_AXIS"),
@@ -110,6 +122,14 @@ class VcFifoTb:
         tuser_last: int = 0,
         on_handshake=None,
     ):
+        """Drive one AXI Stream frame beat-by-beat.
+
+        The helper intentionally performs the ready/valid handshake in-line.
+        That makes it easy for a test to inject side effects at the exact beat
+        where a transfer was accepted, which is useful for cases like
+        "drop link immediately after the first beat."
+        """
+
         beats = [payload[index : index + 8] for index in range(0, len(payload), 8)]
         for index, beat in enumerate(beats):
             self.dut.S_AXIS_TVALID.value = 1
@@ -132,6 +152,8 @@ class VcFifoTb:
         await self.cycle_source(1)
 
     async def expect_no_output_valid(self, *, sink_cycles: int = 32):
+        """Assert that no sink-side beat becomes visible for a short window."""
+
         for _ in range(sink_cycles):
             assert int(self.dut.M_AXIS_TVALID.value) == 0
             await self.cycle_sink()

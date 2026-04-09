@@ -23,20 +23,12 @@
 
 import cocotb
 
-from tests.protocols.pgp.pgp2_test_utils import K_FCD, PgpModuleTB, signal_int
+from tests.protocols.pgp.pgp2_test_utils import K_FCD, PgpModuleTB, signal_int, wait_for_signal
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
 
 
 def fc_start_seen(dut, fc_word: int) -> bool:
     return signal_int(dut, "phyTxData") == (((fc_word & 0x00FF) << 8) | K_FCD) and signal_int(dut, "phyTxDataK") == 0b01
-
-
-async def wait_for_signal(tb: PgpModuleTB, signal_name: str, *, value: int = 1, cycles: int = 64):
-    for _ in range(cycles):
-        if signal_int(tb.dut, signal_name) == value:
-            return
-        await tb.cycle()
-    raise AssertionError(f"Timed out waiting for {signal_name}={value}")
 
 
 async def drive_frame_word(
@@ -47,6 +39,9 @@ async def drive_frame_word(
     last: int = 0,
     eofe: int = 0,
 ):
+    # This wrapper presents a simple valid/ready source interface for VC0.
+    # The helper keeps the beat-level handshake in one place so the test body
+    # can focus on the FC timing story.
     tb.dut.vc0FrameData.value = data
     tb.dut.vc0FrameSof.value = sof
     tb.dut.vc0FrameLast.value = last
@@ -65,6 +60,9 @@ async def drive_frame_word(
 
 
 async def measure_fc_request(tb: PgpModuleTB, *, fc_word: int):
+    # Measure instead of hard-coding.  The absolute latency depends on the PHY
+    # implementation, but fixed latency means every context must match this
+    # reference for the current wrapper configuration.
     start_latency = None
     sent_latency = None
 

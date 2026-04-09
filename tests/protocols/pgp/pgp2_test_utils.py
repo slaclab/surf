@@ -31,6 +31,14 @@ PGP2FC_ID = 0x7
 
 
 class PgpModuleTB:
+    """Minimal clock/reset harness for leaf PGP2 unit tests.
+
+    Most `pgp2b` and `pgp2fc` leaf benches run directly against one wrapper
+    clock domain.  This helper keeps that setup tiny while still making the
+    test intent obvious to readers who are not already comfortable with
+    cocotb's coroutine model.
+    """
+
     def __init__(self, dut, *, clk_name: str = "clk", rst_name: str = "rst"):
         self.dut = dut
         self.clk = getattr(dut, clk_name)
@@ -38,11 +46,15 @@ class PgpModuleTB:
         cocotb.start_soon(Clock(self.clk, 5.0, unit="ns").start())
 
     async def cycle(self, count: int = 1):
+        # Sample one nanosecond after each edge so registered outputs have
+        # time to reflect the DUT's default `TPD_G`.
         for _ in range(count):
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
 
     async def reset(self, *, hold_cycles: int = 4, settle_cycles: int = 4):
+        # Using an explicit reset coroutine keeps every test's startup sequence
+        # consistent and avoids accidental time-zero races.
         self.rst.setimmediatevalue(1)
         await self.cycle(hold_cycles)
         self.rst.value = 0
@@ -85,6 +97,28 @@ async def drive_rx_word(
     await tb.cycle()
 
 
+async def wait_for_signal(
+    tb: PgpModuleTB,
+    signal_name: str,
+    *,
+    value: int = 1,
+    cycles: int = 32,
+):
+    """Poll a DUT signal for a bounded number of clock cycles.
+
+    cocotb tests should not wait forever.  A bounded helper like this gives a
+    clear failure message when a protocol event never arrives, and it also
+    keeps the actual test body focused on the protocol story instead of on loop
+    mechanics.
+    """
+
+    for _ in range(cycles):
+        if signal_int(tb.dut, signal_name) == value:
+            return
+        await tb.cycle()
+    raise AssertionError(f"Timed out waiting for {signal_name}={value}")
+
+
 async def train_p2b_rx_link(tb: PgpModuleTB, *, rem_link_ready: int = 1, rem_data: int = 0x5A, count: int = 256):
     word_a, word_b = p2b_lts_words(rem_link_ready=rem_link_ready, rem_data=rem_data)
     for _ in range(count):
@@ -101,6 +135,45 @@ async def train_p2fc_rx_link(tb: PgpModuleTB, *, rem_link_ready: int = 1, rem_da
         await drive_rx_word(tb, data=word_b, data_k=0b00)
     await drive_rx_word(tb, data=0x0000, data_k=0b00)
     await tb.cycle()
+
+
+async def collect_cell_snapshots(
+    tb: PgpModuleTB,
+    words: list[tuple[int, int]],
+    *,
+    extra_cycles: int = 4,
+):
+    """Record wrapper-visible cell markers while a short stream is driven.
+
+    Several receive-path benches need the same style of observation: drive a
+    small list of PHY words, then inspect whether `SOF`, `EOC`, payload data,
+    or `EOFE` ever became visible.  Packaging that here removes duplicated
+    nested snapshot functions from each test file.
+    """
+
+    snapshots = []
+
+    def snapshot():
+        snapshots.append(
+            {
+                "sof": signal_int(tb.dut, "cellRxSOF"),
+                "soc": signal_int(tb.dut, "cellRxSOC"),
+                "eoc": signal_int(tb.dut, "cellRxEOC"),
+                "eof": signal_int(tb.dut, "cellRxEOF"),
+                "eofe": signal_int(tb.dut, "cellRxEOFE"),
+                "data": signal_int(tb.dut, "cellRxData"),
+            }
+        )
+
+    for data, data_k in words:
+        await drive_rx_word(tb, data=data, data_k=data_k)
+        snapshot()
+
+    for _ in range(extra_cycles):
+        await tb.cycle()
+        snapshot()
+
+    return snapshots
 
 
 def crc7_step(crc: int, data_word: int) -> int:

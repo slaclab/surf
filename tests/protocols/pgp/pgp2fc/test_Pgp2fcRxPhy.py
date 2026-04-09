@@ -26,45 +26,13 @@ from tests.protocols.pgp.pgp2_test_utils import (
     K_SOF,
     PgpModuleTB,
     build_p2fc_fc_frame,
+    collect_cell_snapshots,
     drive_rx_word,
     signal_int,
     train_p2fc_rx_link,
+    wait_for_signal,
 )
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
-
-
-async def wait_for_signal(tb: PgpModuleTB, signal_name: str, *, value: int = 1, cycles: int = 32):
-    for _ in range(cycles):
-        if signal_int(tb.dut, signal_name) == value:
-            return
-        await tb.cycle()
-    raise AssertionError(f"Timed out waiting for {signal_name}={value}")
-
-
-async def collect_snapshots(tb: PgpModuleTB, words: list[tuple[int, int]], *, extra_cycles: int = 4):
-    snapshots = []
-
-    def snapshot():
-        snapshots.append(
-            {
-                "sof": signal_int(tb.dut, "cellRxSOF"),
-                "soc": signal_int(tb.dut, "cellRxSOC"),
-                "eoc": signal_int(tb.dut, "cellRxEOC"),
-                "eof": signal_int(tb.dut, "cellRxEOF"),
-                "eofe": signal_int(tb.dut, "cellRxEOFE"),
-                "data": signal_int(tb.dut, "cellRxData"),
-            }
-        )
-
-    for data, data_k in words:
-        await drive_rx_word(tb, data=data, data_k=data_k)
-        snapshot()
-
-    for _ in range(extra_cycles):
-        await tb.cycle()
-        snapshot()
-
-    return snapshots
 
 
 @cocotb.test()
@@ -105,7 +73,7 @@ async def pgp2fc_rx_phy_test(dut):
     await wait_for_signal(tb, "fcError", value=1, cycles=8)
 
     # A simple cell transfer should expose both the frame markers and payload.
-    cell_records = await collect_snapshots(
+    cell_records = await collect_cell_snapshots(
         tb,
         [
             ((0x12 << 8) | K_SOF, 0b01),

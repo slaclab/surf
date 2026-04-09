@@ -18,48 +18,24 @@
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import parameter_case
+from tests.protocols.pgp.axil_test_utils import PgpAxiLiteTb
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
-
-
-class TB:
-    def __init__(self, dut):
-        self.dut = dut
-        self.axil = None
-        cocotb.start_soon(Clock(dut.S_AXI_ACLK, 5.0, unit="ns").start())
-
-    async def cycle(self, count: int = 1):
-        for _ in range(count):
-            await RisingEdge(self.dut.S_AXI_ACLK)
-            await Timer(1, unit="ns")
-
-    async def reset(self):
-        self.dut.S_AXI_ARESETN.setimmediatevalue(0)
-        await self.cycle(4)
-        self.dut.S_AXI_ARESETN.value = 1
-        await self.cycle(8)
-
-    def start_agents(self):
-        if self.axil is None:
-            self.axil = AxiLiteMaster(
-                AxiLiteBus.from_prefix(self.dut, "S_AXI"),
-                self.dut.S_AXI_ACLK,
-                self.dut.S_AXI_ARESETN,
-                reset_active_level=False,
-            )
 
 
 @cocotb.test()
 async def pgp2b_axi_register_test(dut):
-    tb = TB(dut)
+    # `Pgp2bAxi` is a plain AXI-Lite register block.  The helper below owns the
+    # clock, reset, and cocotbext AXI-Lite master so this test can read like a
+    # short register-programming script instead of simulator setup code.
+    tb = PgpAxiLiteTb(dut)
     await tb.reset()
-    tb.start_agents()
+    tb.start_axil_master()
+    assert tb.axil is not None
 
+    # Program the writable control surface exactly the way software would.
     await axil_write_u32(tb.axil, 0x04, 0x7)
     await axil_write_u32(tb.axil, 0x0C, 0x5)
     await axil_write_u32(tb.axil, 0x10, 0x1A5)
@@ -67,12 +43,15 @@ async def pgp2b_axi_register_test(dut):
     await axil_write_u32(tb.axil, 0x1C, 0x4A3F)
     await tb.cycle(4)
 
+    # Read the same locations back first.  This proves the AXI-Lite slave
+    # itself is functioning before we inspect the wrapper-exported outputs.
     assert await axil_read_u32(tb.axil, 0x04) == 0x7
     assert await axil_read_u32(tb.axil, 0x0C) == 0x5
     assert await axil_read_u32(tb.axil, 0x10) == 0x1A5
     assert await axil_read_u32(tb.axil, 0x18) == 0x1
     assert await axil_read_u32(tb.axil, 0x1C) == 0x4A3F
 
+    # Then check the fixed status words that the wrapper ties to known inputs.
     status = await axil_read_u32(tb.axil, 0x20)
     assert (status & 0x1F) == 0x1F
     assert ((status >> 8) & 0x3) == 0b10
@@ -82,6 +61,8 @@ async def pgp2b_axi_register_test(dut):
     assert ((status >> 24) & 0xF) == 0b0101
     assert await axil_read_u32(tb.axil, 0x24) == 0xA5
 
+    # Finally, confirm that the internal register fields actually drive the
+    # wrapper outputs that a larger integration would consume.
     assert int(dut.resetRxOut.value) == 1
     assert int(dut.resetTxOut.value) == 1
     assert int(dut.resetGtOut.value) == 1

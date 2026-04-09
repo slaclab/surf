@@ -23,67 +23,29 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
-from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import parameter_case, start_lockstep_clocks
-from tests.protocols.pgp.pgp4.pgp4_test_utils import signal_int
+from tests.common.regression_utils import parameter_case
+from tests.protocols.pgp.axil_test_utils import PgpAxiLiteTb
+from tests.protocols.pgp.pgp4.pgp4_test_utils import initialize_flat_tx_inputs, send_single_word_frame, signal_int
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
 
-class TB:
+class TB(PgpAxiLiteTb):
+    """Combined flat-TX and AXI-Lite harness for the low-speed top wrapper."""
+
     def __init__(self, dut):
-        self.dut = dut
-        self.axil = None
-        start_lockstep_clocks(dut.clk, dut.S_AXI_ACLK, period_ns=5.0)
-
-    async def cycle(self, count: int = 1):
-        for _ in range(count):
-            await RisingEdge(self.dut.clk)
-            await Timer(1, unit="ns")
-
-    async def reset(self):
-        self.dut.rst.setimmediatevalue(1)
-        self.dut.S_AXI_ARESETN.setimmediatevalue(0)
-        self.dut.txValid.setimmediatevalue(0)
-        self.dut.txData.setimmediatevalue(0)
-        self.dut.txSof.setimmediatevalue(0)
-        self.dut.txEof.setimmediatevalue(0)
-        self.dut.txEofe.setimmediatevalue(0)
-        await self.cycle(4)
-        self.dut.rst.value = 0
-        self.dut.S_AXI_ARESETN.value = 1
-        await self.cycle(8)
-
-    def start_agents(self):
-        if self.axil is None:
-            self.axil = AxiLiteMaster(
-                AxiLiteBus.from_prefix(self.dut, "S_AXI"),
-                self.dut.S_AXI_ACLK,
-                self.dut.S_AXI_ARESETN,
-                reset_active_level=False,
-            )
-
-    async def send_single_word_frame(self, *, payload: int, eofe: int = 0):
-        self.dut.txValid.value = 1
-        self.dut.txData.value = payload
-        self.dut.txSof.value = 1
-        self.dut.txEof.value = 1
-        self.dut.txEofe.value = eofe
-        for _ in range(64):
-            if signal_int(self.dut, "txReady") == 1:
-                break
-            await self.cycle()
-        else:
-            raise AssertionError("Timed out waiting for txReady")
-        await self.cycle()
-        self.dut.txValid.value = 0
-        self.dut.txSof.value = 0
-        self.dut.txEof.value = 0
-        self.dut.txEofe.value = 0
+        super().__init__(
+            dut,
+            clock_names=("clk", "S_AXI_ACLK"),
+            cycle_clock_name="clk",
+            reset_signals=(("rst", 1, 0), ("S_AXI_ARESETN", 0, 1)),
+        )
+        initialize_flat_tx_inputs(dut)
 
     async def wait_for_locked_status(self, *, cycles: int = 512):
+        # The wrapper exposes lane-lock state in two places.  Poll both because
+        # either register tells us the top-level training sequence has finished.
         for _ in range(cycles):
             if (await axil_read_u32(self.axil, 0x400) & 0x1) == 1:
                 return
@@ -102,7 +64,8 @@ class TB:
 async def pgp4_lite_rx_low_speed_test(dut):
     tb = TB(dut)
     await tb.reset()
-    tb.start_agents()
+    tb.start_axil_master()
+    assert tb.axil is not None
 
     assert ((await axil_read_u32(tb.axil, 0x7FC)) >> 8) == 1
     await axil_write_u32(tb.axil, 0x800, 1)
@@ -117,8 +80,10 @@ async def pgp4_lite_rx_low_speed_test(dut):
     assert locked_count_before != 0
     await tb.assert_stable_window(cycles=16, expected_dly_cfg=0x12)
 
-    await tb.send_single_word_frame(payload=0x8877665544332211)
-    await tb.send_single_word_frame(payload=0x0123456789ABCDEF, eofe=1)
+    # Push a couple of real frames through the integrated TX helper.  The
+    # receive-side low-speed lane should stay locked while that traffic passes.
+    await send_single_word_frame(tb, payload=0x8877665544332211)
+    await send_single_word_frame(tb, payload=0x0123456789ABCDEF, eofe=1)
 
     await tb.assert_stable_window(cycles=32, expected_dly_cfg=0x12)
     assert (await axil_read_u32(tb.axil, 0x000)) >= locked_count_before

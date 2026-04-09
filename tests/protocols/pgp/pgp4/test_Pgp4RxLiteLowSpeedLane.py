@@ -25,25 +25,19 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import parameter_case
-from tests.protocols.pgp.pgp4.pgp4_test_utils import Pgp4FlatTB, signal_int, wait_for_signal
+from tests.protocols.pgp.pgp4.pgp4_test_utils import (
+    Pgp4FlatTB,
+    initialize_flat_tx_inputs,
+    send_single_word_frame,
+    signal_int,
+    wait_for_signal,
+)
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
 
-async def send_single_word_frame(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0):
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-    await wait_for_signal(tb, "txReady", cycles=64)
-    await tb.cycle()
-    tb.dut.txValid.value = 0
-    tb.dut.txSof.value = 0
-    tb.dut.txEof.value = 0
-    tb.dut.txEofe.value = 0
-
-
 async def assert_locked_window(tb: Pgp4FlatTB, *, cycles: int, expected_dly_cfg: int):
+    # Once the wrapper has trained, the delay setting should stop moving and
+    # the alignment controls should stay quiet through user traffic.
     for _ in range(cycles):
         assert signal_int(tb.dut, "locked") == 1
         assert signal_int(tb.dut, "dlyCfg") == expected_dly_cfg
@@ -55,11 +49,7 @@ async def assert_locked_window(tb: Pgp4FlatTB, *, cycles: int, expected_dly_cfg:
 @cocotb.test()
 async def pgp4_rx_lite_low_speed_lane_test(dut):
     tb = Pgp4FlatTB(dut)
-    dut.txValid.setimmediatevalue(0)
-    dut.txData.setimmediatevalue(0)
-    dut.txSof.setimmediatevalue(0)
-    dut.txEof.setimmediatevalue(0)
-    dut.txEofe.setimmediatevalue(0)
+    initialize_flat_tx_inputs(dut)
     await tb.reset()
 
     await wait_for_signal(tb, "locked", cycles=512)

@@ -29,99 +29,19 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     PGP4_SOF,
     PGP4_USER,
     Pgp4FlatTB,
-    signal_int,
+    btf,
+    initialize_flat_tx_inputs,
+    send_single_word_frame_and_collect_protocol_words,
     wait_for_signal,
+    wait_for_non_idle_protocol_word,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
-
-
-def btf(word: int) -> int:
-    return (word >> 56) & 0xFF
-
-
-async def send_single_word_frame(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0):
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-    await wait_for_signal(tb, "txReady")
-    await tb.cycle()
-    tb.dut.txValid.value = 0
-    tb.dut.txSof.value = 0
-    tb.dut.txEof.value = 0
-    tb.dut.txEofe.value = 0
-
-
-def is_non_idle(header: int, data: int) -> bool:
-    return header == PGP4_D_HEADER or btf(data) != 0x99
-
-
-async def wait_for_non_idle_protocol_word(tb: Pgp4FlatTB, *, cycles: int = 256) -> tuple[int, int]:
-    for _ in range(cycles):
-        await tb.cycle()
-        if signal_int(tb.dut, "protTxValid") != 1:
-            continue
-        header = signal_int(tb.dut, "protTxHeader")
-        data = signal_int(tb.dut, "protTxData")
-        if is_non_idle(header, data):
-            return header, data
-    raise AssertionError("Timed out waiting for non-IDLE protocol word")
-
-
-async def collect_non_idle_protocol_words(tb: Pgp4FlatTB, *, count: int, cycles: int = 32) -> list[tuple[int, int]]:
-    words = []
-    for _ in range(cycles):
-        await tb.cycle()
-        if signal_int(tb.dut, "protTxValid") != 1:
-            continue
-        header = signal_int(tb.dut, "protTxHeader")
-        data = signal_int(tb.dut, "protTxData")
-        if is_non_idle(header, data):
-            words.append((header, data))
-            if len(words) == count:
-                return words
-    raise AssertionError("Timed out collecting protocol words")
-
-
-async def send_single_word_frame_and_collect(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0) -> list[tuple[int, int]]:
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-
-    words = []
-    accepted = False
-    for _ in range(32):
-        await tb.cycle()
-        if signal_int(tb.dut, "protTxValid") == 1:
-            header = signal_int(tb.dut, "protTxHeader")
-            data = signal_int(tb.dut, "protTxData")
-            if is_non_idle(header, data):
-                words.append((header, data))
-        if not accepted and signal_int(tb.dut, "txReady") == 1:
-            accepted = True
-            tb.dut.txValid.value = 0
-            tb.dut.txSof.value = 0
-            tb.dut.txEof.value = 0
-            tb.dut.txEofe.value = 0
-        if accepted and len(words) >= 3:
-            return words[:3]
-
-    raise AssertionError("Timed out collecting frame protocol words")
 
 
 @cocotb.test()
 async def pgp4_tx_lite_protocol_test(dut):
     tb = Pgp4FlatTB(dut)
-    dut.txValid.setimmediatevalue(0)
-    dut.txData.setimmediatevalue(0)
-    dut.txSof.setimmediatevalue(0)
-    dut.txEof.setimmediatevalue(0)
-    dut.txEofe.setimmediatevalue(0)
-    dut.opCodeEn.setimmediatevalue(0)
-    dut.opCodeData.setimmediatevalue(0)
+    initialize_flat_tx_inputs(dut, include_opcode=True)
     await tb.reset()
     await wait_for_signal(tb, "linkReady")
 
@@ -136,7 +56,7 @@ async def pgp4_tx_lite_protocol_test(dut):
     assert data & ((1 << 48) - 1) == 0x00ABCDEF1234
 
     payload = 0x1122334455667788
-    words = await send_single_word_frame_and_collect(tb, payload=payload)
+    words = await send_single_word_frame_and_collect_protocol_words(tb, payload=payload)
     assert words[0][0] == PGP4_K_HEADER
     assert btf(words[0][1]) == PGP4_SOF
     assert words[1][0] == PGP4_D_HEADER
