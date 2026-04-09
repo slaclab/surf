@@ -30,7 +30,6 @@ import pytest
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
     assert_beat_list,
-    cycle,
     env_data_bytes,
     expect_no_output,
     expect_no_output_data,

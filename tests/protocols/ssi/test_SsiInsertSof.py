@@ -69,8 +69,8 @@ async def ssi_insert_sof_test(dut):
         # Run the source in the background so the test can first observe the
         # inserted header beat while the sink is still stalled.
         payload_send = cocotb.start_soon(
-                source.send(
-                    SsiBeat(data=0x2211, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
+            source.send(
+                SsiBeat(data=0x2211, keep=keep, last=1, dest=0x5, sof=0, eofe=1),
                 clk=bench.clk,
             )
         )
