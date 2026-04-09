@@ -33,6 +33,11 @@ entity Pgp2fcLaneWrapper is
       S_AXIS_TID    : in  std_logic_vector(0 downto 0)  := (others => '0');
       S_AXIS_TUSER  : in  std_logic_vector(1 downto 0)  := (others => '0');
       S_AXIS_TREADY : out std_logic;
+      TX_FC_VALID   : in  std_logic                     := '0';
+      TX_FC_WORD    : in  std_logic_vector(15 downto 0) := (others => '0');
+      TX_FC_SENT    : out std_logic;
+      RX_FC_VALID   : out std_logic;
+      RX_FC_WORD    : out std_logic_vector(15 downto 0);
       M_AXIS_TVALID : out std_logic;
       M_AXIS_TDATA  : out std_logic_vector(15 downto 0);
       M_AXIS_TKEEP  : out std_logic_vector(1 downto 0);
@@ -80,9 +85,14 @@ architecture rtl of Pgp2fcLaneWrapper is
 begin
 
    LINK_READY <= pgpRxOut.linkReady and pgpTxOut.linkReady;
+   TX_FC_SENT <= pgpTxOut.fcSent;
+   RX_FC_VALID <= pgpRxOut.fcValid;
+   RX_FC_WORD <= pgpRxOut.fcWord(15 downto 0);
 
    pgpTxMasters(0) <= pgpTxMaster;
    pgpTxSlave      <= pgpTxSlaves(0);
+   pgpTxIn.fcValid <= TX_FC_VALID;
+   pgpTxIn.fcWord(15 downto 0) <= TX_FC_WORD;
 
    phyRxLaneIn.data    <= phyTxLaneOut.data;
    phyRxLaneIn.dataK   <= phyTxLaneOut.dataK;
