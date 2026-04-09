@@ -198,6 +198,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
     # LoadRowValue() and LoadPixelValue() functions defined outside of __init__;
     # they cannot have the @self.command decorator since they have more than one arg
     # ----------------------------------------------------------------------------------------------
+
     def LoadRowValue(self, row, val, verbose=False):
         """Configure an entire row with provided values"""
 
