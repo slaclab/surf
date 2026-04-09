@@ -369,11 +369,13 @@ package body AxiStreamPkg is
    end function genTKeep;
 
    function genTKeep (bytes : slv) return slv is
-      variable retVar : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable retVar   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable bytesExt : slv(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0);
    begin
-      retVar := (others => '0');
+      retVar   := (others => '0');
+      bytesExt := resize(bytes, bytesExt'length);
       for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
-         if (bytes >= toSlv(i+1, bytes'length)) then
+         if (bytesExt >= toSlv(i+1, bytesExt'length)) then
             retVar(i) := '1';
          end if;
       end loop;
