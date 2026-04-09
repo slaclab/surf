@@ -14,6 +14,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.base.crc.crc_test_utils import crc_out_from_remainder, crc_update
+
 K_COM = 0xBC
 K_LTS = 0x3C
 K_FCD = 0xBC
@@ -197,6 +199,63 @@ def build_p2fc_fc_frame(payload_word: int, *, seed: int = 0x00) -> list[tuple[in
     return [
         ((payload_word & 0x00FF) << 8 | K_FCD, 0b01),
         (((crc & 0xFF) << 8) | ((payload_word >> 8) & 0xFF), 0b00),
+    ]
+
+
+def _pgp2_crc_bytes(word: int, *, soc_word: bool) -> list[int]:
+    """Map one 16-bit cell word into the exact byte order used by the CRC RTL.
+
+    The receive path feeds the 16-bit cell word into `CRC32Rtl` as two active
+    bytes.  For the SOC/SOF word the low byte is intentionally forced to zero
+    before the CRC engine sees it, because the transmitted control character on
+    the wire (`K_SOF`/`K_SOC`) is transport framing rather than user payload.
+    """
+
+    low_byte = 0x00 if soc_word else (word & 0xFF)
+    high_byte = (word >> 8) & 0xFF
+    return [low_byte, high_byte]
+
+
+def build_p2_single_cell_frame(
+    *,
+    serial: int,
+    payload_words: list[int],
+    vc: int = 0,
+    eoc_word: int = 0x0000,
+    payload_corruption: tuple[int, int] | None = None,
+) -> list[tuple[int, int]]:
+    """Build a single-lane PGP2 cell exactly as the RX wrapper expects to see it.
+
+    This helper models the important integrated transmit behavior in Python:
+    it creates the SOF word, appends the frame payload, computes the two CRC
+    words in the same byte order as the RTL, and finally emits the EOF/EOC
+    control word.  `payload_corruption` lets a test flip bits in one payload
+    word *after* CRC generation, which is how we model a true in-flight bit
+    error rather than a local CRC block failure.
+    """
+
+    soc_word = ((vc & 0x3) << 14) | ((serial & 0x3F) << 8)
+    protected_words = [soc_word, *payload_words]
+
+    remainder = 0xFFFFFFFF
+    for index, word in enumerate(protected_words):
+        remainder = crc_update(remainder, _pgp2_crc_bytes(word, soc_word=(index == 0)))
+
+    tx_crc_word = (~crc_out_from_remainder(remainder)) & 0xFFFFFFFF
+    crc_word_a = ((tx_crc_word >> 24) & 0xFF) | (((tx_crc_word >> 16) & 0xFF) << 8)
+    crc_word_b = ((tx_crc_word >> 8) & 0xFF) | ((tx_crc_word & 0xFF) << 8)
+
+    wire_payload_words = list(payload_words)
+    if payload_corruption is not None:
+        word_index, corruption_mask = payload_corruption
+        wire_payload_words[word_index] ^= corruption_mask
+
+    return [
+        (((soc_word & 0xFF00) | K_SOF), 0b01),
+        *[(word, 0b00) for word in wire_payload_words],
+        (crc_word_a, 0b00),
+        (crc_word_b, 0b00),
+        (((eoc_word & 0xFF00) | K_EOF), 0b01),
     ]
 
 

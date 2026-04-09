@@ -32,6 +32,9 @@ entity Pgp4RxWrapper is
       txEofe       : in  sl;
       opCodeEn     : in  sl               := '0';
       opCodeData   : in  slv(47 downto 0) := (others => '0');
+      corruptArm   : in  sl               := '0';
+      corruptMask  : in  slv(63 downto 0) := (others => '0');
+      corruptBusy  : out sl;
       linkReady    : out sl;
       frameRx      : out sl;
       frameRxErr   : out sl;
@@ -52,6 +55,8 @@ architecture rtl of Pgp4RxWrapper is
    signal phyTxValid   : sl;
    signal phyTxData    : slv(63 downto 0);
    signal phyTxHeader  : slv(1 downto 0);
+   signal loopPhyData  : slv(63 downto 0);
+   signal corruptBusyInt : sl := '0';
 
    signal pgpRxOut     : Pgp4RxOutType := PGP4_RX_OUT_INIT_C;
    signal pgpRxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -78,6 +83,7 @@ begin
    linkReady    <= pgpRxOut.linkReady;
    frameRx      <= pgpRxOut.frameRx;
    frameRxErr   <= pgpRxOut.frameRxErr;
+   corruptBusy  <= corruptBusyInt;
    rxOpCodeEn   <= pgpRxOut.opCodeEn;
    rxOpCodeData <= pgpRxOut.opCodeData;
    rxValid      <= pgpRxMaster.tValid;
@@ -85,6 +91,21 @@ begin
    rxData       <= pgpRxMaster.tData(63 downto 0);
    rxDest       <= pgpRxMaster.tDest(7 downto 0);
    rxUser       <= pgpRxMaster.tUser(15 downto 0);
+
+   loopPhyData <= phyTxData xor corruptMask when (corruptBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_D_HEADER_C) else phyTxData;
+
+   process (clk) is
+   begin
+      if rising_edge(clk) then
+         if rst = '1' then
+            corruptBusyInt <= '0';
+         elsif corruptArm = '1' then
+            corruptBusyInt <= '1';
+         elsif corruptBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_D_HEADER_C then
+            corruptBusyInt <= '0';
+         end if;
+      end if;
+   end process;
 
    U_TX : entity surf.Pgp4Tx
       generic map (
@@ -133,7 +154,7 @@ begin
          phyRxInit      => open,
          phyRxActive    => '1',
          phyRxValid     => phyTxValid,
-         phyRxData      => phyTxData,
+         phyRxData      => loopPhyData,
          phyRxHeader    => phyTxHeader,
          phyRxStartSeq  => '0',
          phyRxSlip      => open);

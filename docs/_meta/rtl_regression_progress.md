@@ -130,6 +130,7 @@
 - Decide the next non-`pgp3` `protocols/pgp` target now that the shared VC FIFOs and the remaining non-vendor `pgp4/core/rtl` leaves are covered.
 - Keep `pgp2b`, `pgp2fc`, `pgp3`, and `pgp4` organized as separate family subpackages with checked-in wrappers rather than falling back to generated shim HDL, but treat `pgp3` as deferred for now.
 - Preserve the recent `pgp4` lesson: when the simulation wrapper only exposes stable lock/config surfaces, write the bench around those explicit contracts instead of claiming recovered payload coverage.
+- Phase-2 follow-on for `protocols/pgp/pgp4`: broaden the current single payload-bitflip negative test into a small corruption-location matrix that separately covers SOF/header metadata corruption, EOF/tail corruption (including transmitted CRC-field corruption), and 66b header-side framing errors instead of treating all of those cases as equivalent to payload CRC failure.
 
 ## Next 3 Concrete Tasks
 - Decide whether the next family pass is deeper directed coverage for the existing `pgp2b`/`pgp2fc` RX and alignment benches or a move into another non-deferred protocol area.

@@ -61,6 +61,14 @@ async def collect_packet_words(tb: Pgp4FlatTB, *, count: int, cycles: int = 128)
     raise AssertionError("Timed out waiting for packetized RX words")
 
 
+async def train_link(tb: Pgp4FlatTB):
+    train_word = pgp4_idle_word(rem_link_ready=1)
+    for _ in range(1002):
+        await send_protocol_word(tb, header=PGP4_K_HEADER, data=train_word)
+    tb.dut.protRxValid.value = 0
+    await wait_for_signal(tb, "linkReady", cycles=8)
+
+
 @cocotb.test()
 async def pgp4_rx_protocol_test(dut):
     tb = Pgp4FlatTB(dut)
@@ -73,11 +81,7 @@ async def pgp4_rx_protocol_test(dut):
     dut.pktReady.setimmediatevalue(1)
     await tb.reset()
 
-    train_word = pgp4_idle_word(rem_link_ready=1)
-    for _ in range(1002):
-        await send_protocol_word(tb, header=PGP4_K_HEADER, data=train_word)
-    dut.protRxValid.value = 0
-    await wait_for_signal(tb, "linkReady", cycles=8)
+    await train_link(tb)
 
     meta_word = pgp4_idle_word(rem_link_ready=1, pause_mask=0x1, overflow_mask=0x1)
     await send_protocol_word(tb, header=PGP4_K_HEADER, data=meta_word)
@@ -102,7 +106,6 @@ async def pgp4_rx_protocol_test(dut):
     assert words[0][0] != 0
     assert words[1][0] == 0x0123456789ABCDEF
     assert words[2][1] == 1
-
 
 PARAMETER_SWEEP = [parameter_case("single_vc_raw_protocol_wrapper")]
 
