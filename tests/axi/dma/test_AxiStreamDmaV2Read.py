@@ -31,8 +31,8 @@ from cocotbext.axi import AxiRamRead, AxiReadBus, AxiStreamBus, AxiStreamSink
 from tests.common.regression_utils import (
     COMMON_VHDL_COMPILE_ARGS,
     TESTS_ROOT,
-    _build_vhdl_sources,
-    _merge_vhdl_sources,
+    build_vhdl_sources,
+    merge_vhdl_sources,
     cocotb_module_name_from_test_file,
 )
 
@@ -158,8 +158,8 @@ def test_AxiStreamDmaV2Read(case_env, request):
         module=cocotb_module_name_from_test_file(test_file),
         toplevel="surf.axistreamdmav2readipintegrator",
         toplevel_lang="vhdl",
-        vhdl_sources=_merge_vhdl_sources(
-            _build_vhdl_sources(),
+        vhdl_sources=merge_vhdl_sources(
+            build_vhdl_sources(),
             {
                 "surf": [
                     "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
