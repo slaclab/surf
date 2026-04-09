@@ -204,11 +204,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
                 click.secho(f' Read: {self._PixData[i].get()}')
 
 
-
-    # ----------------------------------------------------------------------------------------------
-    # LoadRowValue() and LoadPixelValue() functions defined outside of __init__;
-    # they cannot have the @self.command decorator since they have more than one arg
-    # ----------------------------------------------------------------------------------------------
     def LoadRowValue(self, row, val, verbose=False):
 
         """Configure an entire row with provided values"""
@@ -237,8 +232,6 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
 
         if verbose:
             click.secho(f'[INFO]: {self.path}.LoadRowValue(): Set row {row} with {valNpArray}', fg='green')
-
-    # ----------------------------------------------------------------------------------------------
 
     def LoadPixelValue(self, col, row, val, verbose=False):
 
