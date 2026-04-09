@@ -28,6 +28,10 @@
   "deferred_paths": [],
   "deferred_path_substrings": [
     {
+      "pattern": "protocols/pgp/pgp3/",
+      "reason": "PGP3 is intentionally deferred for now so current protocol work stays on pgp2b/pgp2fc/pgp4 and shared PGP blocks."
+    },
+    {
       "pattern": "axi/simlink/",
       "reason": "Simulation support models are not part of the synthesizable phase-1 queue."
     },
