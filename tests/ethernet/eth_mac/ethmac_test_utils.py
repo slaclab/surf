@@ -222,6 +222,13 @@ def mac_to_bytes(mac: int) -> bytes:
     return mac.to_bytes(6, byteorder="big")
 
 
+def mac_config_word_from_wire(mac: int) -> int:
+    # EthMac config registers store MAC bytes in the same least-significant-
+    # lane-first order used by the flattened EMAC datapath, so reverse the
+    # normal wire-order MAC before driving config ports such as `localMac`.
+    return int.from_bytes(mac_to_bytes(mac)[::-1], byteorder="big")
+
+
 def ipv4_to_bytes(address: str) -> bytes:
     return ipaddress.IPv4Address(address).packed
 
@@ -398,6 +405,24 @@ async def send_contiguous_frame(endpoint: FlatEmacEndpoint, beats: list[EmacBeat
         endpoint.drive(beat)
         await endpoint.wait_ready(clk=clk)
     endpoint.set_idle()
+
+
+async def send_frame_burst(
+    endpoint: FlatEmacEndpoint,
+    frames: list[list[EmacBeat]],
+    *,
+    clk,
+    inter_frame_gap_cycles: int = 0,
+) -> None:
+    # Burst-style top-level tests need consecutive frames without rebuilding a
+    # new source coroutine for each packet. This helper keeps frame boundaries
+    # explicit while allowing zero-gap or small-gap sequencing.
+    for index, frame in enumerate(frames):
+        await send_contiguous_frame(endpoint, frame, clk=clk)
+        if index != len(frames) - 1:
+            for _ in range(inter_frame_gap_cycles):
+                await RisingEdge(clk)
+                await Timer(1, unit="ns")
 
 
 async def recv_frame(endpoint: FlatEmacEndpoint, *, clk, ready_signal=None, timeout_cycles: int = 64) -> list[EmacBeat]:
