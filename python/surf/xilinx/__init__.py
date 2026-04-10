@@ -15,6 +15,7 @@ from surf.xilinx._GtRxAlignCheck      import *
 from surf.xilinx._Gtye4Channel        import *
 from surf.xilinx._Gtye4Common         import *
 from surf.xilinx._Gthe3Channel        import *
+from surf.xilinx._Gthe3Common         import *
 from surf.xilinx._Gtxe2Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
 from surf.xilinx._Gtpe2Common         import *
