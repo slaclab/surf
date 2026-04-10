@@ -19,16 +19,16 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
 
 entity AxiStreamDmaV2WriteMux is
    generic (
-      TPD_G          : time    := 1 ns;
-      AXI_CONFIG_G   : AxiConfigType;
-      AXI_READY_EN_G : boolean := false);
+      TPD_G             : time    := 1 ns;
+      AXI_CONFIG_G      : AxiConfigType;
+      AXI_READY_EN_G    : boolean := false;
+      ACK_WAIT_BVALID_G : boolean := false);
    port (
       -- Clock and reset
       axiClk          : in  sl;
@@ -51,7 +51,9 @@ architecture rtl of AxiStreamDmaV2WriteMux is
    type StateType is (
       ADDR_S,
       DATA_S,
-      DESC_S);
+      DESC_S,
+      RESP_DATA_S,
+      RESP_DESC_S);
 
    type RegType is record
       pause      : sl;
@@ -87,9 +89,15 @@ begin
       -- Valid/Ready Handshaking
       v.descSlave.awready := '0';
       v.descSlave.wready  := '0';
+      if (descWriteMaster.bready = '1') or (ACK_WAIT_BVALID_G = false) then
+         v.descSlave.bvalid := '0';
+      end if;
 
       v.dataSlave.awready := '0';
       v.dataSlave.wready  := '0';
+      if (dataWriteMaster.bready = '1') or (ACK_WAIT_BVALID_G = false) then
+         v.dataSlave.bvalid := '0';
+      end if;
 
       if (mAxiWriteSlave.awready = '1') or (AXI_READY_EN_G = false) then
          v.master.awvalid := '0';
@@ -97,6 +105,12 @@ begin
 
       if (mAxiWriteSlave.wready = '1') or (AXI_READY_EN_G = false) then
          v.master.wvalid := '0';
+      end if;
+
+      if ACK_WAIT_BVALID_G then
+         v.master.bready := '0';
+      else
+         v.master.bready := '1';
       end if;
 
       -- Check descriptor channel
@@ -152,8 +166,18 @@ begin
                      v.pause         := '1';
                      -- Next state
                      v.state         := DESC_S;
+                  else
+                     -- Check if using READY flow control
+                     if ACK_WAIT_BVALID_G then
+                        -- Next state
+                        v.state := RESP_DESC_S;
+                     else
+                        -- Set bus response
+                        v.descSlave.bvalid := '1';
+                        v.descSlave.bresp  := (others => '0');
+                        v.descSlave.bid    := v.master.wid;
+                     end if;
                   end if;
-
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -170,8 +194,18 @@ begin
                v.master.wstrb     := dataWriteMaster.wstrb;
                -- Check for last transfer
                if (v.master.wlast = '1') then
-                  -- Next state
-                  v.state := ADDR_S;
+                  -- Check if using READY flow control
+                  if ACK_WAIT_BVALID_G then
+                     -- Next state
+                     v.state := RESP_DATA_S;
+                  else
+                     -- Set bus response
+                     v.dataSlave.bvalid := '1';
+                     v.dataSlave.bresp  := (others => '0');
+                     v.dataSlave.bid    := v.master.wid;
+                     -- Next state
+                     v.state            := ADDR_S;
+                  end if;
                end if;
             end if;
          ----------------------------------------------------------------------
@@ -182,8 +216,44 @@ begin
                v.master.wvalid             := '1';
                v.master.wlast              := '1';
                v.master.wdata(63 downto 0) := r.master.wdata(127 downto 64);
+               -- Check if using READY flow control
+               if ACK_WAIT_BVALID_G then
+                  -- Next state
+                  v.state := RESP_DESC_S;
+               else
+                  -- Set bus response
+                  v.descSlave.bvalid := '1';
+                  v.descSlave.bresp  := (others => '0');
+                  v.descSlave.bid    := v.master.wid;
+                  -- Next state
+                  v.state            := ADDR_S;
+               end if;
+            end if;
+         ----------------------------------------------------------------------
+         when RESP_DATA_S =>
+            -- Wait for response
+            if (v.dataSlave.bvalid = '0') and (mAxiWriteSlave.bvalid = '1')then
+               -- ACK the response
+               v.master.bready    := '1';
+               -- Map the bus response
+               v.dataSlave.bvalid := '1';
+               v.dataSlave.bresp  := mAxiWriteSlave.bresp;
+               v.dataSlave.bid    := mAxiWriteSlave.bid;
                -- Next state
-               v.state                     := ADDR_S;
+               v.state            := ADDR_S;
+            end if;
+         ----------------------------------------------------------------------
+         when RESP_DESC_S =>
+            -- Wait for response
+            if (v.descSlave.bvalid = '0') and (mAxiWriteSlave.bvalid = '1')then
+               -- ACK the response
+               v.master.bready    := '1';
+               -- Map the bus response
+               v.descSlave.bvalid := '1';
+               v.descSlave.bresp  := mAxiWriteSlave.bresp;
+               v.descSlave.bid    := mAxiWriteSlave.bid;
+               -- Next state
+               v.state            := ADDR_S;
             end if;
       ----------------------------------------------------------------------
       end case;
@@ -201,8 +271,12 @@ begin
       dataWriteCtrl.pause    <= mAxiWriteCtrl.pause or v.pause;
 
       -- MUX Outputs
-      mAxiWriteMaster        <= r.master;
-      mAxiWriteMaster.bready <= '1';
+      mAxiWriteMaster <= r.master;
+      if ACK_WAIT_BVALID_G then
+         mAxiWriteMaster.bready <= v.master.bready;
+      else
+         mAxiWriteMaster.bready <= '1';
+      end if;
 
       -- Reset
       if (axiRst = '1') then
