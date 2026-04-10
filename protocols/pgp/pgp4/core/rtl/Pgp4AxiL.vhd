@@ -199,10 +199,10 @@ begin
    -- AXI-Lite Registers
    ---------------------
    comb : process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
-            locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
-            remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
-            rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
-            txErrorCnt, txOpCodeData, txStatusCnt) is
+                   locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
+                   remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
+                   rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
+                   txErrorCnt, txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
