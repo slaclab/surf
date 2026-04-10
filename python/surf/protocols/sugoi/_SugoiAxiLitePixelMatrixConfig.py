@@ -202,3 +202,58 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             for i in range (self.numRow):
                 click.secho(f' Row: {i}')
                 click.secho(f' Read: {self._PixData[i].get()}')
+
+
+    def LoadRowValue(self, row, val, verbose=False):
+
+        """Configure an entire row with provided values"""
+
+        if row < 0 or row >= self.numRow:
+            click.secho(f'[ERROR]: {self.path}.LoadRowValue(): Row {row} out of range [0, {self.numRow-1}]', fg='red')
+            return
+
+        if not self.enable.get():
+            click.secho("[WARNING]: ASIC enable is set to False!", fg='yellow')
+            return
+
+        try:
+            valNpArray = np.array(val, np.uint32)
+        except (TypeError, ValueError):
+            click.secho(f'[ERROR]: {self.path}.LoadRowValue(): Value must be a list/array', fg='red')
+            return
+
+        # Check if val is a list/array of correct length
+        if len(valNpArray) != self.numCol:
+            click.secho(f'[ERROR]: {self.path}.LoadRowValue(): Value array length {len(valNpArray)} does not match number of columns ({self.numCol})', fg='red')
+            return
+
+        # val should be an array of length numCol
+        self._PixData[row].set(valNpArray)
+
+        if verbose:
+            click.secho(f'[INFO]: {self.path}.LoadRowValue(): Set row {row} with {valNpArray}', fg='green')
+
+    def LoadPixelValue(self, col, row, val, verbose=False):
+
+        """Configure a single pixel at specified column and row"""
+
+        # Validate column and row bounds
+        if col < 0 or col >= self.numCol:
+            click.secho(f'[ERROR]: {self.path}.LoadPixelValue(): Column {col} out of range [0, {self.numCol-1}]', fg='red')
+            return
+
+        if row < 0 or row >= self.numRow:
+            click.secho(f'[ERROR]: {self.path}.LoadPixelValue(): Row {row} out of range [0, {self.numRow-1}]', fg='red')
+            return
+
+        if not self.enable.get():
+            click.secho("[WARNING]: ASIC enable is set to False!", fg='yellow')
+            return
+
+        # Read current row data, modify the specific column, write back
+        current_row = self._PixData[row].get()
+        current_row[col] = np.uint32(val)
+        self._PixData[row].set(current_row)
+
+        if verbose:
+            click.secho(f'[INFO]: {self.path}.LoadPixelValue(): Set pixel ({col},{row}) with {val}', fg='green')
