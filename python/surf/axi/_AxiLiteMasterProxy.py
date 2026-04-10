@@ -25,34 +25,38 @@ class _Regs(pr.Device):
         self._pollThread.start()
 
         self.add(pr.RemoteVariable(
-            name      = 'Rnw',
-            offset    = 0x00,
-            bitOffset = 0,
-            bitSize   = 1,
-            groups    = ['NoStream','NoState','NoConfig'],
-            enum      = {
+            name        = 'Rnw',
+            description = 'Sets the read/write direction for the proxy AXI-Lite transaction',
+            offset      = 0x00,
+            bitOffset   = 0,
+            bitSize     = 1,
+            groups      = ['NoStream','NoState','NoConfig'],
+            enum        = {
                 0: "Write",
                 1: "Read",
             },
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'Done',
-            mode      = 'RO',
-            offset    = 0x04,
-            bitOffset = 0,
-            bitSize   = 1,
-            base      = pr.Bool,
-            groups    = ['NoStream','NoState','NoConfig'],
+            name        = 'Done',
+            description = 'Indicates the proxy AXI-Lite transaction has completed',
+            mode        = 'RO',
+            offset      = 0x04,
+            bitOffset   = 0,
+            bitSize     = 1,
+            base        = pr.Bool,
+            groups      = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'Resp',
-            offset    = 0x04,
-            bitOffset = 1,
-            bitSize   = 2,
-            groups    = ['NoStream','NoState','NoConfig'],
-            enum      = {
+            name        = 'Resp',
+            description = 'AXI-Lite response code from the completed proxy transaction',
+            mode        = 'RO',
+            offset      = 0x04,
+            bitOffset   = 1,
+            bitSize     = 2,
+            groups      = ['NoStream','NoState','NoConfig'],
+            enum        = {
                 0 : 'OK',
                 1 : 'EXOK',
                 2 : 'SLVERR',
@@ -61,19 +65,21 @@ class _Regs(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'Addr',
-            offset    = 0x08,
-            bitOffset = 0,
-            bitSize   = 32,
-            groups    = ['NoStream','NoState','NoConfig'],
+            name        = 'Addr',
+            description = 'Target AXI-Lite address for the proxy transaction',
+            offset      = 0x08,
+            bitOffset   = 0,
+            bitSize     = 32,
+            groups      = ['NoStream','NoState','NoConfig'],
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'Data',
-            offset    = 0x0C,
-            bitOffset = 0,
-            bitSize   = 32,
-            groups    = ['NoStream','NoState','NoConfig'],
+            name        = 'Data',
+            description = 'Write data or read-back data for the proxy transaction',
+            offset      = 0x0C,
+            bitOffset   = 0,
+            bitSize     = 32,
+            groups      = ['NoStream','NoState','NoConfig'],
         ))
 
     def proxyTransaction(self, transaction):
