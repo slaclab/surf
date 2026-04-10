@@ -9,15 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Use one pause-enabled instance with a short pause quanta setting so
-#   the bench focuses on the visible transmit behavior instead of long waits.
-# - Stimulus: Pulse `clientPause` while the link is ready, then send one normal
-#   frame after the generated pause frame has completed.
-# - Checks: The emitted pause frame bytes must match the documented Ethernet
-#   MAC-control format, `pauseTx` must pulse once, and ordinary client traffic
-#   must still pass through unchanged when no pause frame is being emitted.
-# - Timing: The sink uses explicit `TREADY` handshakes so the four-beat pause
-#   frame and the later pass-through frame are both consumed deliberately.
+# - Sweep: Use one pause-enabled instance with a short pause quanta so the test
+#   can cover local pause generation, remote-pause gating, and runtime pause
+#   disable behavior in a single run.
+# - Stimulus: Trigger a local pause-frame transmission, send a normal payload,
+#   inject a received pause request before another payload, and finally pulse
+#   `clientPause` again after disabling pause generation.
+# - Checks: Local pause generation must emit the standards-compliant pause
+#   frame, received pause must delay client traffic before it is forwarded, and
+#   `pauseEnable=0` must suppress pause generation even when `clientPause` is
+#   asserted.
+# - Timing: The sink uses explicit `TREADY` handshakes so pause frames, gated
+#   payload frames, and pass-through traffic are all observed deliberately.
 
 import cocotb
 import pytest
@@ -28,6 +31,7 @@ from tests.ethernet.eth_mac.ethmac_test_utils import (
     build_ethernet_frame,
     build_pause_frame,
     cycle,
+    expect_no_output,
     frame_beats_from_bytes,
     payload_from_beats,
     recv_frame,
@@ -86,6 +90,43 @@ async def eth_mac_tx_pause_test(dut):
     observed_frame = await recv_frame(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
     await payload_send
     assert payload_from_beats(observed_frame) == payload_frame
+
+    # A received pause request should gate the next payload frame for a short
+    # interval before normal forwarding resumes.
+    dut.rxPauseValue.value = 2
+    dut.rxPauseReq.value = 1
+    await cycle(bench.clk, 1)
+    dut.rxPauseReq.value = 0
+
+    gated_frame = build_ethernet_frame(
+        dst_mac=0x111213141516,
+        src_mac=0x1718191A1B1C,
+        eth_type=0x88B5,
+        payload=bytes(range(46)),
+    )
+    gated_send = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(gated_frame), clk=bench.clk)
+    )
+    await expect_no_output(sink, clk=bench.clk, cycles=4)
+    gated_observed = await recv_frame(
+        sink,
+        clk=bench.clk,
+        ready_signal=dut.mAxisTReady,
+        timeout_cycles=128,
+    )
+    await gated_send
+    assert payload_from_beats(gated_observed) == gated_frame
+
+    # Disabling pause generation at runtime should suppress the pause frame
+    # even if software still asserts the local pause request input.
+    dut.pauseEnable.value = 0
+    dut.clientPause.value = 1
+    await cycle(bench.clk, 1)
+    dut.clientPause.value = 0
+    for _ in range(8):
+        await cycle(bench.clk, 1)
+        assert int(dut.pauseTx.value) == 0
+        assert int(dut.mAxisTValid.value) == 0
 
 
 PARAMETER_SWEEP = [

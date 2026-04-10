@@ -9,14 +9,14 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one pause-enabled configuration and cover the three observable
-#   behaviors of the block: normal pass-through, valid pause detection, and
-#   EOFE-terminated pause rejection.
-# - Stimulus: Send one ordinary Ethernet frame, one standards-compliant pause
-#   frame, and one identical pause frame marked bad with `EOFE`.
-# - Checks: Ordinary traffic must pass unchanged, valid pause traffic must be
-#   dropped while pulsing the pause request/value outputs, and bad pause
-#   traffic must be dropped without raising a pause request.
+# - Sweep: Keep one pause-enabled configuration and cover normal pass-through,
+#   multiple valid pause requests, and EOFE-terminated pause rejection.
+# - Stimulus: Send one ordinary Ethernet frame, then two valid pause frames
+#   with different quanta, and finally one invalid pause frame marked with
+#   `EOFE`.
+# - Checks: Ordinary traffic must pass unchanged, each valid pause frame must
+#   be consumed internally while updating the pause value output, and the bad
+#   pause frame must not reassert the pause request.
 # - Timing: The output path has no backpressure, so the test launches each
 #   frame continuously and watches the visible output beats directly.
 
@@ -77,8 +77,21 @@ async def eth_mac_rx_pause_test(dut):
     assert int(dut.rxPauseValue.value) == pause_value
     await expect_no_output(sink, clk=bench.clk, cycles=8)
 
+    # A later valid pause frame should refresh the reported pause quanta rather
+    # than latching the first value permanently.
+    pause_value_2 = 0x0055
+    pause_frame_2 = build_pause_frame(pause_value_2)
+    pause_send_2 = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(pause_frame_2), clk=bench.clk)
+    )
+    await wait_signal_pulse(dut.rxPauseReq, clk=bench.clk)
+    await pause_send_2
+    assert int(dut.rxPauseValue.value) == pause_value_2
+    await expect_no_output(sink, clk=bench.clk, cycles=8)
+
     # Mark the final beat bad so the pause decoder sees the same header but
-    # must suppress the resulting pause request.
+    # must suppress the resulting pause request even though the decoded value
+    # register may still reflect the bad frame contents.
     bad_pause_beats = frame_beats_from_bytes(build_pause_frame(0xBEEF), eofe=1)
     bad_pause_send = cocotb.start_soon(send_contiguous_frame(source, bad_pause_beats, clk=bench.clk))
     for _ in range(16):

@@ -9,15 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one IPv4/UDP checksum-enabled loopback case where the TX repair
-#   block feeds the RX checker wrapper directly.
-# - Stimulus: Send one IPv4/UDP packet with the IP and UDP checksum fields
-#   cleared to zero.
-# - Checks: The emitted packet bytes must match the software-computed checksum-
-#   inserted frame, and the RX checker must report no terminal checksum errors.
-# - Timing: The wrapper's internal RX checker absorbs the post-TX packet, so
-#   the bench waits for the visible checked output frame rather than assuming a
-#   fixed internal pipeline depth.
+# - Sweep: Keep one TxCsum loopback instance but vary the runtime enable matrix
+#   to cover full repair, already-valid no-op behavior, and IP-only repair with
+#   UDP repair disabled.
+# - Stimulus: Send one UDP frame with both checksums cleared, one already-valid
+#   UDP frame, and then one more zeroed-checksum frame after disabling UDP
+#   checksum insertion.
+# - Checks: Full repair must insert both checksums, a valid packet must remain
+#   unchanged, and when UDP insertion is disabled the block must only repair
+#   the IPv4 header checksum while preserving the zero UDP checksum field.
+# - Timing: The wrapper's internal RX checker consumes the repaired stream, so
+#   the bench waits on the post-checker frame rather than assuming a fixed
+#   internal pipeline delay.
 
 import cocotb
 import pytest
@@ -87,6 +90,62 @@ async def eth_mac_tx_csum_test(dut):
     assert observed_beats[-1].tcperr == 0
     assert observed_beats[-1].udperr == 0
     assert observed_beats[-1].eofe == 0
+
+    # A packet that already carries correct checksums should emerge unchanged,
+    # which proves the repair path does not rewrite valid traffic unnecessarily.
+    valid_frame = build_ipv4_udp_frame(
+        dst_mac=0x010203040506,
+        src_mac=0x112233445566,
+        src_ip="10.1.0.1",
+        dst_ip="10.1.0.2",
+        src_port=0x1111,
+        dst_port=0x2222,
+        payload=b"already-valid-packet",
+    )
+    valid_send = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(valid_frame), clk=bench.clk)
+    )
+    valid_observed = await recv_frame(sink, clk=bench.clk)
+    await valid_send
+    assert payload_from_beats(valid_observed) == valid_frame
+    assert valid_observed[-1].iperr == 0
+    assert valid_observed[-1].udperr == 0
+    assert valid_observed[-1].eofe == 0
+
+    # Disable UDP insertion at runtime to prove the block can selectively
+    # repair only the IPv4 checksum while leaving the UDP checksum field alone.
+    dut.udpCsumEn.value = 0
+    ip_only_repaired_frame = build_ipv4_udp_frame(
+        dst_mac=0x102030405060,
+        src_mac=0xA1A2A3A4A5A6,
+        src_ip="10.2.0.1",
+        dst_ip="10.2.0.2",
+        src_port=0x3003,
+        dst_port=0x4004,
+        payload=b"ip-only-repair-mode",
+        udp_checksum_override=0x0000,
+    )
+    ip_only_input_frame = build_ipv4_udp_frame(
+        dst_mac=0x102030405060,
+        src_mac=0xA1A2A3A4A5A6,
+        src_ip="10.2.0.1",
+        dst_ip="10.2.0.2",
+        src_port=0x3003,
+        dst_port=0x4004,
+        payload=b"ip-only-repair-mode",
+        ip_checksum_override=0x0000,
+        udp_checksum_override=0x0000,
+    )
+    ip_only_send = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(ip_only_input_frame), clk=bench.clk)
+    )
+    ip_only_observed = await recv_frame(sink, clk=bench.clk)
+    await ip_only_send
+
+    assert payload_from_beats(ip_only_observed) == ip_only_repaired_frame
+    assert ip_only_observed[-1].iperr == 0
+    assert ip_only_observed[-1].udperr == 0
+    assert ip_only_observed[-1].eofe == 0
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="ipv4_udp_checksum_insert")])

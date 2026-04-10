@@ -251,6 +251,12 @@ def build_ethernet_frame(*, dst_mac: int, src_mac: int, eth_type: int, payload: 
     return mac_to_bytes(dst_mac) + mac_to_bytes(src_mac) + eth_type.to_bytes(2, byteorder="big") + payload
 
 
+def pad_ethernet_frame_to_min_size(frame: bytes) -> bytes:
+    # Ethernet transmits at least 60 bytes before FCS, so short frames that
+    # traverse the TX path emerge padded with zeros on the wire.
+    return frame if len(frame) >= 60 else frame + bytes(60 - len(frame))
+
+
 def build_ipv4_header(
     *,
     src_ip: str,

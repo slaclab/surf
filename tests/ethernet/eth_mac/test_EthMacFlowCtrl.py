@@ -11,11 +11,12 @@
 # Test methodology:
 # - Sweep: Cover the default primary-only path and the bypass-enabled merge
 #   path, since those are the only externally visible modes of this block.
-# - Stimulus: Drive primary pause/overflow requests first, then drive bypass
-#   requests, and finally combine primary and bypass causes in one cycle.
-# - Checks: Primary requests must always register through, bypass requests must
-#   only contribute when `BYP_EN_G=true`, and the merged output must behave as
-#   a logical OR of the enabled request sources.
+# - Stimulus: Drive primary-only causes, bypass-only causes, sustained mixed
+#   requests, and then clear all request sources back to zero.
+# - Checks: Primary requests must always pass, bypass requests must only
+#   contribute when `BYP_EN_G=true`, mixed requests must behave as a registered
+#   OR of the active sources, and the output must return to zero once all
+#   causes are removed.
 # - Timing: The DUT is fully registered, so checks sample one clock after each
 #   control update instead of relying on combinational observation.
 
@@ -85,6 +86,24 @@ async def eth_mac_flow_ctrl_test(dut):
     await cycle(dut.ethClk, 2)
     assert int(dut.flowPause.value) == 1
     assert int(dut.flowOverflow.value) == (1 if byp_en else 0)
+
+    # Hold multiple request causes high together for a few cycles so the test
+    # proves the merged output remains stable rather than only pulsing once.
+    dut.primOverflow.value = 1
+    dut.bypPause.value = 1
+    await cycle(dut.ethClk, 3)
+    assert int(dut.flowPause.value) == 1
+    assert int(dut.flowOverflow.value) == 1
+
+    # Once every contributing request is removed, the registered flow-control
+    # outputs must return cleanly to zero.
+    dut.primPause.value = 0
+    dut.primOverflow.value = 0
+    dut.bypPause.value = 0
+    dut.bypOverflow.value = 0
+    await cycle(dut.ethClk, 2)
+    assert int(dut.flowPause.value) == 0
+    assert int(dut.flowOverflow.value) == 0
 
 
 PARAMETER_SWEEP = [

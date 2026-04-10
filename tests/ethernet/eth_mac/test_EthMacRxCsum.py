@@ -9,15 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one IPv4/UDP checksum-enabled configuration and exercise both a
-#   valid packet and an invalid-UDP-checksum packet.
-# - Stimulus: Send one correctly checksummed IPv4/UDP Ethernet frame and then
-#   send the same packet shape with a deliberately wrong UDP checksum.
-# - Checks: The valid packet must pass without error bits, while the bad packet
-#   must still pass through but mark the terminal beat with `UDPERR` and
-#   `EOFE`, matching the public RX checksum contract.
-# - Timing: The RX checksum block has an internal pipeline, so the test waits
-#   for the visible output frame rather than assuming a fixed beat delay.
+# - Sweep: Keep one checksum-enabled instance but cover valid UDP traffic, bad
+#   UDP checksum, bad IPv4 header checksum, and a non-UDP IPv4 packet.
+# - Stimulus: Send one good IPv4/UDP frame, one with a deliberately wrong UDP
+#   checksum, one with a deliberately wrong IPv4 checksum, and one ICMP-style
+#   IPv4 packet that should bypass transport checksum handling.
+# - Checks: Good traffic must pass cleanly, bad UDP must assert `UDPERR` and
+#   `EOFE`, bad IP must assert `IPERR`, and non-UDP traffic must not spuriously
+#   set UDP/TCP error flags.
+# - Timing: The RX checksum block has an internal pipeline, so every case waits
+#   on the visible output frame instead of assuming a fixed internal latency.
 
 import cocotb
 import pytest
@@ -25,6 +26,8 @@ import pytest
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.eth_mac.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
+    build_ethernet_frame,
+    build_ipv4_header,
     build_ipv4_udp_frame,
     frame_beats_from_bytes,
     payload_from_beats,
@@ -95,6 +98,52 @@ async def eth_mac_rx_csum_test(dut):
     assert bad_observed[-1].iperr == 0
     assert bad_observed[-1].udperr == 1
     assert bad_observed[-1].eofe == 1
+
+    bad_ip_frame = build_ipv4_udp_frame(
+        dst_mac=0x020304050607,
+        src_mac=0x0A0B0C0D0E0F,
+        src_ip="192.168.1.10",
+        dst_ip="192.168.1.20",
+        src_port=0x1234,
+        dst_port=0x5678,
+        payload=payload,
+        ip_checksum_override=0x0001,
+    )
+    bad_ip_send = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(bad_ip_frame), clk=bench.clk)
+    )
+    bad_ip_observed = await recv_frame(sink, clk=bench.clk)
+    await bad_ip_send
+
+    assert payload_from_beats(bad_ip_observed) == bad_ip_frame
+    assert bad_ip_observed[-1].iperr == 1
+    assert bad_ip_observed[-1].tcperr == 0
+    assert bad_ip_observed[-1].udperr == 0
+
+    icmp_payload = b"icmp-is-not-udp"
+    icmp_frame = build_ethernet_frame(
+        dst_mac=0x020304050607,
+        src_mac=0x0A0B0C0D0E0F,
+        eth_type=0x0800,
+        payload=build_ipv4_header(
+            src_ip="192.168.1.10",
+            dst_ip="192.168.1.20",
+            protocol=0x01,
+            payload_length=len(icmp_payload),
+        )
+        + icmp_payload,
+    )
+    icmp_send = cocotb.start_soon(
+        send_contiguous_frame(source, frame_beats_from_bytes(icmp_frame), clk=bench.clk)
+    )
+    icmp_observed = await recv_frame(sink, clk=bench.clk)
+    await icmp_send
+
+    assert payload_from_beats(icmp_observed) == icmp_frame
+    assert icmp_observed[-1].iperr == 0
+    assert icmp_observed[-1].tcperr == 0
+    assert icmp_observed[-1].udperr == 0
+    assert icmp_observed[-1].eofe == 0
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="ipv4_udp_checksum_check")])
