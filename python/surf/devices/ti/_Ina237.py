@@ -229,7 +229,7 @@ class Ina237(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name         = "DieTempature",
+            name         = "DieTemperature",
             mode         = 'RO',
             linkedGet    = lambda read: self.DIETEMP.get(read=read)*0.125, # Conversion factor: 0.125 degC/LSB
             typeStr      = "Float32",
