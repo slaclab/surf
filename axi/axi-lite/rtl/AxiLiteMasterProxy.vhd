@@ -47,7 +47,7 @@ entity AxiLiteMasterProxy is
       mAxiWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiLiteMasterProxy;
 
-architecture mapping of AxiLiteMasterProxy is
+architecture rtl of AxiLiteMasterProxy is
 
    type StateType is (READY_S, ACK_S);
 
@@ -175,4 +175,4 @@ begin
          axilReadMaster  => mAxiReadMaster,
          axilReadSlave   => mAxiReadSlave);
 
-end mapping;
+end rtl;

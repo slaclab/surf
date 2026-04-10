@@ -76,7 +76,7 @@ entity Pgp4AxiL is
       axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp4AxiL;
 
-architecture mapping of Pgp4AxiL is
+architecture rtl of Pgp4AxiL is
 
    constant TIMEOUT_1HZ_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0) - 1;
 
@@ -733,4 +733,4 @@ begin
          rdClk        => axilClk,
          rdRst        => axilRst);
 
-end mapping;
+end rtl;
