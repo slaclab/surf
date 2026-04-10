@@ -198,7 +198,7 @@ begin
    ---------------------
    -- AXI-Lite Registers
    ---------------------
-   process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
             locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
             remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
             rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,

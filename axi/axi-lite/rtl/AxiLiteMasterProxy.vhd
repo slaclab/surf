@@ -104,7 +104,7 @@ begin
       axiWrDetect (axilEp, X"00", newCmd);
 
       -- Close out the transaction
-      axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
+      axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_DECERR_C);
 
       -- State Machine
       case r.state is
