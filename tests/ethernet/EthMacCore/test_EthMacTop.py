@@ -27,7 +27,7 @@ import pytest
 from pathlib import Path
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import (
+from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     build_ethernet_frame,
     build_ipv4_udp_frame,

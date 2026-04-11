@@ -32,7 +32,7 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.base.crc.crc_test_utils import crc_out_from_remainder, crc_update, pack_active_bytes
 from tests.common.regression_utils import hdl_parameters_from, parameter_case, run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import ETHMAC_RTL_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 
 
 async def cycle(clk, count: int = 1) -> None:
@@ -114,5 +114,5 @@ def test_EthCrc32Parallel(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES},
-        sim_build_key="tests/sim_build/ethernet/eth_mac/test_EthCrc32Parallel.shared",
+        sim_build_key="tests/sim_build/ethernet/EthMacCore/test_EthCrc32Parallel.shared",
     )

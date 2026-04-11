@@ -26,7 +26,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import ETHMAC_RTL_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacFlowCtrlWrapper.vhd"

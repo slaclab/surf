@@ -9,22 +9,22 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover both the enabled TX-shift datapath and the disabled bypass
+# - Sweep: Cover both the enabled RX-shift datapath and the disabled bypass
 #   path, then vary the runtime shift count inside each run.
 # - Stimulus: Exercise a zero-shift control-bit case, a one-beat non-zero
-#   shift, and a near-lane-width multi-beat shift (`txShift=15`).
-# - Checks: The enabled mode must remove the requested leading bytes from the
-#   payload, the disabled mode must leave payloads untouched, and the visible
-#   boundary bits (`SOF`, `EOFE`, and `last`) must match the current shift
-#   contract on both short and multi-beat packets.
-# - Timing: The TX shift stage participates in the AXI handshake, so the sink
-#   explicitly raises `TREADY` while consuming the output frame.
+#   shift, and a near-lane-width multi-beat shift (`rxShift=14`).
+# - Checks: The enabled mode must prepend zero bytes to the payload, the
+#   disabled mode must leave payloads untouched, and the visible boundary bits
+#   (`SOF`, `EOFE`, and `last`) must match the current shift contract on both
+#   short and multi-beat packets.
+# - Timing: The RX shift block has no sink-side backpressure, so the frame is
+#   launched continuously and the test samples the visible output beats.
 
 import cocotb
 import pytest
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import (
+from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     cycle,
     frame_beats_from_bytes,
@@ -35,20 +35,17 @@ from tests.ethernet.eth_mac.ethmac_test_utils import (
 )
 
 
-WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacTxShiftWrapper.vhd"
+WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacRxShiftWrapper.vhd"
 
 
 @cocotb.test()
-async def eth_mac_tx_shift_test(dut):
+async def eth_mac_rx_shift_test(dut):
     shift_enabled = env_flag("SHIFT_EN_G", default=True)
     bench = await setup_flat_emac_testbench(
         dut,
         source_prefix="sAxis",
         sink_prefix="mAxis",
-        initial_values={
-            "txShift": 0,
-            "mAxisTReady": 0,
-        },
+        initial_values={"rxShift": 0},
     )
     source = bench.source
     sink = bench.sink
@@ -59,32 +56,33 @@ async def eth_mac_tx_shift_test(dut):
         {
             "name": "zero_shift_control_bits",
             "shift": 0,
-            "payload": b"\xAA\xBB\x10\x11\x12\x13",
+            "payload": b"\x10\x11\x12\x13\x14",
             "eofe": 1,
         },
         {
             "name": "one_beat_shift1",
             "shift": 1,
-            "payload": b"\x31\x32\x33\x34\x35\x36",
+            "payload": b"\x20\x21\x22\x23\x24",
             "eofe": 0,
         },
         {
-            "name": "multi_beat_shift15",
-            "shift": 15,
-            "payload": bytes(range(32)),
+            "name": "multi_beat_shift14",
+            "shift": 14,
+            "payload": bytes(range(17)),
             "eofe": 1,
         },
     ]
 
     for index, case in enumerate(test_cases):
         if index != 0:
-            # Mirror the RX bench spacing so each runtime shift update is
-            # sampled from a clean IDLE state.
+            # `AxiStreamShift` returns to IDLE one cycle after the previous
+            # frame drains, so leave a small gap before changing the runtime
+            # shift count for the next packet.
             await cycle(bench.clk, 2)
 
-        # The TX shift block latches the runtime shift while idle, so update it
-        # before launching each frame.
-        dut.txShift.value = case["shift"]
+        # `AxiStreamShift` samples the shift count while it is idle, so set the
+        # runtime port before driving the next packet.
+        dut.rxShift.value = case["shift"]
         await cycle(bench.clk, 1)
 
         send_task = cocotb.start_soon(
@@ -94,15 +92,18 @@ async def eth_mac_tx_shift_test(dut):
                 clk=bench.clk,
             )
         )
-        observed_beats = await recv_frame(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
+        # The RX shift path can take noticeably longer to flush a packet than
+        # the simple leaf blocks because the left-shift engine inserts bytes and
+        # drains its delayed word state before asserting `tLast`.
+        observed_beats = await recv_frame(sink, clk=bench.clk, timeout_cycles=256)
         await send_task
 
-        expected_bytes = case["payload"] if not shift_enabled else case["payload"][case["shift"] :]
+        expected_bytes = case["payload"] if not shift_enabled else (bytes(case["shift"]) + case["payload"])
         assert payload_from_beats(observed_beats) == expected_bytes, case["name"]
 
-        # As with RX shift, the wrapper only exposes the lane-0 SOF bit. It
-        # stays visible on pass-through or zero-shift transfers and drops once
-        # a non-zero right shift removes the original lane-0 byte.
+        # The wrapper exposes the lane-0 SOF bit. That remains visible on
+        # pass-through or zero-shift transfers, but a non-zero shift moves the
+        # first payload byte away from lane 0 and the visible SOF bit drops.
         expected_sof = 1 if (not shift_enabled or case["shift"] == 0) else 0
         assert observed_beats[0].sof == expected_sof, case["name"]
         assert observed_beats[-1].last == 1, case["name"]
@@ -116,10 +117,10 @@ PARAMETER_SWEEP = [
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
-def test_EthMacTxShift(parameters):
+def test_EthMacRxShift(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.ethmactxshiftwrapper",
+        toplevel="surf.ethmacrxshiftwrapper",
         parameters=parameters,
         extra_env=parameters,
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER_PATH]},

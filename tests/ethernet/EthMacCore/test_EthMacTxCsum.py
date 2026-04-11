@@ -26,7 +26,7 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import (
+from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     build_ipv4_udp_frame,
     frame_beats_from_bytes,

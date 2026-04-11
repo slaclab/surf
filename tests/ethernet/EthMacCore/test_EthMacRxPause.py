@@ -25,7 +25,7 @@ import pytest
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.eth_mac.ethmac_test_utils import (
+from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     build_ethernet_frame,
     build_pause_frame,
