@@ -9,12 +9,14 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover the enabled byte-remove path and the disabled pass-through
-#   path because those are the only externally visible TX modes.
-# - Stimulus: Send one short single-beat frame with `txShift=2`.
-# - Checks: The enabled mode must remove the first two bytes of the packet
-#   while preserving the frame boundary bits, and the disabled mode must leave
-#   the packet untouched.
+# - Sweep: Cover both the enabled TX-shift datapath and the disabled bypass
+#   path, then vary the runtime shift count inside each run.
+# - Stimulus: Exercise a zero-shift control-bit case, a one-beat non-zero
+#   shift, and a near-lane-width multi-beat shift (`txShift=15`).
+# - Checks: The enabled mode must remove the requested leading bytes from the
+#   payload, the disabled mode must leave payloads untouched, and the visible
+#   boundary bits (`SOF`, `EOFE`, and `last`) must match the current shift
+#   contract on both short and multi-beat packets.
 # - Timing: The TX shift stage participates in the AXI handshake, so the sink
 #   explicitly raises `TREADY` while consuming the output frame.
 
@@ -24,6 +26,7 @@ import pytest
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
 from tests.ethernet.eth_mac.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
+    cycle,
     frame_beats_from_bytes,
     payload_from_beats,
     recv_frame,
@@ -43,7 +46,7 @@ async def eth_mac_tx_shift_test(dut):
         source_prefix="sAxis",
         sink_prefix="mAxis",
         initial_values={
-            "txShift": 2,
+            "txShift": 0,
             "mAxisTReady": 0,
         },
     )
@@ -52,16 +55,58 @@ async def eth_mac_tx_shift_test(dut):
     assert source is not None
     assert sink is not None
 
-    input_bytes = b"\xAA\xBB\x10\x11\x12\x13"
-    send_task = cocotb.start_soon(
-        send_contiguous_frame(source, frame_beats_from_bytes(input_bytes), clk=bench.clk)
-    )
-    observed_beats = await recv_frame(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
-    await send_task
+    test_cases = [
+        {
+            "name": "zero_shift_control_bits",
+            "shift": 0,
+            "payload": b"\xAA\xBB\x10\x11\x12\x13",
+            "eofe": 1,
+        },
+        {
+            "name": "one_beat_shift1",
+            "shift": 1,
+            "payload": b"\x31\x32\x33\x34\x35\x36",
+            "eofe": 0,
+        },
+        {
+            "name": "multi_beat_shift15",
+            "shift": 15,
+            "payload": bytes(range(32)),
+            "eofe": 1,
+        },
+    ]
 
-    expected_bytes = input_bytes[2:] if shift_enabled else input_bytes
-    assert payload_from_beats(observed_beats) == expected_bytes
-    assert observed_beats[-1].last == 1
+    for index, case in enumerate(test_cases):
+        if index != 0:
+            # Mirror the RX bench spacing so each runtime shift update is
+            # sampled from a clean IDLE state.
+            await cycle(bench.clk, 2)
+
+        # The TX shift block latches the runtime shift while idle, so update it
+        # before launching each frame.
+        dut.txShift.value = case["shift"]
+        await cycle(bench.clk, 1)
+
+        send_task = cocotb.start_soon(
+            send_contiguous_frame(
+                source,
+                frame_beats_from_bytes(case["payload"], eofe=case["eofe"]),
+                clk=bench.clk,
+            )
+        )
+        observed_beats = await recv_frame(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
+        await send_task
+
+        expected_bytes = case["payload"] if not shift_enabled else case["payload"][case["shift"] :]
+        assert payload_from_beats(observed_beats) == expected_bytes, case["name"]
+
+        # As with RX shift, the wrapper only exposes the lane-0 SOF bit. It
+        # stays visible on pass-through or zero-shift transfers and drops once
+        # a non-zero right shift removes the original lane-0 byte.
+        expected_sof = 1 if (not shift_enabled or case["shift"] == 0) else 0
+        assert observed_beats[0].sof == expected_sof, case["name"]
+        assert observed_beats[-1].last == 1, case["name"]
+        assert observed_beats[-1].eofe == case["eofe"], case["name"]
 
 
 PARAMETER_SWEEP = [

@@ -9,13 +9,14 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover a smaller and larger byte-lane configuration so the Ethernet-
-#   specific CRC wrapper logic proves both narrow and full-width paths.
-# - Stimulus: Present deterministic byte groups, leave the block idle for one
-#   cycle to prove hold behavior, and then assert the CRC reset input.
-# - Checks: Each emitted CRC must match the software Ethernet CRC fold over the
-#   same byte sequence, the CRC must hold during idle cycles, and reset must
-#   restore the all-ones seed presentation.
+# - Sweep: Cover every supported byte width from 1 through 16 with the logic
+#   implementation.
+# - Stimulus: Present a short transaction, a small partial-width transaction,
+#   and two chained wider transactions before checking idle hold and reset.
+# - Checks: Every emitted CRC must match the software Ethernet CRC fold over
+#   the same byte stream, chained transactions must continue the prior
+#   remainder, the CRC must hold during idle cycles, and reset must restore the
+#   all-ones seed presentation.
 # - Timing: `EthCrc32Parallel` consumes the presented word on one clock and
 #   updates the internal remainder on the next, so each transaction waits for
 #   that two-cycle cadence explicitly.
@@ -77,8 +78,9 @@ async def eth_crc32_parallel_test(dut):
 
     payloads = [
         [0x12],
-        [0x34, 0x56, 0x78][: min(byte_width, 3)],
-        list(range(0x90, 0x90 + min(byte_width, 6))),
+        list(range(0x30, 0x30 + min(byte_width, 2))),
+        list(range(0x50, 0x50 + byte_width)),
+        list(range(0x90, 0x90 + byte_width)),
     ]
 
     for payload in payloads:
@@ -100,8 +102,7 @@ async def eth_crc32_parallel_test(dut):
 
 
 PARAMETER_SWEEP = [
-    parameter_case("byte4", BYTE_WIDTH_G="4", USE_DSP_G="false"),
-    parameter_case("byte16", BYTE_WIDTH_G="16", USE_DSP_G="false"),
+    *[parameter_case(f"byte{byte_width}", BYTE_WIDTH_G=str(byte_width), USE_DSP_G="false") for byte_width in range(1, 17)],
 ]
 
 
@@ -113,4 +114,5 @@ def test_EthCrc32Parallel(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES},
+        sim_build_key="tests/sim_build/ethernet/eth_mac/test_EthCrc32Parallel.shared",
     )

@@ -18,7 +18,7 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules, and `dsp/` is now included in the generated phase-1 queue so DSP rollout can proceed on the normal tracked path. `ethernet` and `protocols` are still temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, but DSP work no longer depends on unwinding those deferrals first.
+- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules, `dsp/` is now included in the generated phase-1 queue, and a manual first-wave `ethernet/EthMacCore` slice is now also validated under `tests/ethernet/eth_mac/`. `ethernet` and `protocols` still remain temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, so the generated queue is intentionally behind the manually advanced Ethernet work.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
   - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue regeneration is the next step.
@@ -26,6 +26,7 @@
   - Keep `dsp/` in the generated queue scope. Do not track DSP rollout in a separate hand-maintained list.
   - The planned `dsp/generic/fixed` leaf set is now validated: `FirFilterTap`, `DspAddSub`, `DspComparator`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`.
   - The later cross-subsystem cleanup still includes removing the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` and regenerating `docs/_meta/rtl_phase1_queue.{md,json}` when that broader transition is actually taken.
+  - Until that happens, do not treat the generated queue artifacts as evidence that `ethernet` is untouched; the manually selected `EthMacCore` slice is already implemented and passing even though the queue inputs still defer the subsystem.
   - Do not hand-maintain queue order in the plan or handoff docs.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
@@ -33,6 +34,7 @@
   - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
   - Prefer explicit short sim-build keys for generated-wrapper benches when case metadata would otherwise create fragile build paths.
   - When a wrapper is checked in, write it like the surrounding repo HDL: include the SLAC/SURF banner and enough section comments that a new session can identify the shim, DUT, and flattening regions quickly.
+  - For `ethernet/EthMacCore`, the checked-in wrappers under `ethernet/EthMacCore/wrappers/` are now the expected cocotb surface. Keep using those flat EMAC beat wrappers rather than rebuilding record-packing logic in Python.
 - Current cocotb-file discipline:
   - New test files should start with the standard SURF/SLAC header block.
   - The `Test methodology` block belongs directly under that header.
@@ -52,9 +54,14 @@
 - For first-pass wrapper benches, prove the externally visible stable path first and defer shakier simulator-sensitive branches explicitly in the docs instead of stretching one bench to cover everything.
 - `AxiStreamDmaV2Read` needed a real RTL/runtime fix rather than a bench workaround: keep the bounded byte-count conversion fix in `axi/axi4/rtl/AxiPkg.vhd` and the direct terminal-mask generation in `axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd`. The current wrapper only exposes an 8-bit `TUSER`, so the observable contract in the checked-in bench is first-user propagation plus payload/keep/id/dest and descriptor return fields.
 - `tests/dsp/generic/dsp_test_utils.py` is now the shared home for DSP-specific signed helpers, rolling reference models, cocotb clock-settle timing, and generated FIR wrappers. Reuse it instead of cloning DSP arithmetic or wrapper boilerplate.
+- `tests/ethernet/eth_mac/ethmac_test_utils.py` is now the shared home for the current Ethernet MAC slice: flat EMAC beat helpers, Ethernet/IPv4/UDP packet builders, checksum reference code, MAC-config byte-order helpers, and minimum-frame padding helpers. Reuse it instead of cloning packet or sideband plumbing across `EthMacCore` benches.
+- The current `EthMacCore` slice is intentionally a checked-in-wrapper-first rollout, not a cocotb-generated-wrapper experiment. Keep new Ethernet work on that same pattern unless the simulator forces a very local generic adapter.
+- The XGMII import/export loopback behavior differs from the GMII path when `phyReady` drops mid-traffic: the blocked frame is retained and drains after link recovery, padded to Ethernet's minimum frame size if it was short. The GMII path drops that blocked frame. Future import/export coverage should preserve that distinction instead of forcing one common expectation.
+- `EthMacRxCsum` reliably raises `IPERR` on a bad IPv4 header checksum, but the checked-in wrapper contract does not currently require `EOFE` for that case. Keep the negative test aligned to the real observable contract rather than to a stronger assumption.
+- The RX/TX shift benches need a small idle-plus-settle gap before changing runtime shift controls because the underlying `AxiStreamShift` samples those controls while idle. Preserve that guardrail if those benches are refactored or expanded.
 
 ## Current Status
-Planning is complete enough to start implementation. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
+Planning is complete and implementation is well underway. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
 
 The repo now has the initial handoff artifacts, a checked-in inventory scaffold at `docs/_meta/rtl_regression_inventory.yaml`, and local bootstrap helpers in `scripts/setup_regression_env.sh` plus `.vscode/tasks.json`. The first pilot modules were `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`, and the work has since moved into a graph-guided bottom-up rollout across `base/`.
 
@@ -77,6 +84,8 @@ The remaining practical non-vendor, non-dummy `base/` modules are now also imple
 The project now also has a shared helper path in `tests/common/regression_utils.py` for test scaffolding, but the wrapper policy is to keep durable cocotb-facing HDL shims checked in under subsystem-local `wrappers/` or `ip_integrator/` folders. `Heartbeat` and `Debouncer` remain useful examples of very small wrappers, but new permanent generic-adapter shims should follow the checked-in subsystem-local pattern.
 
 `tests/common/regression_utils.py` now also includes `start_lockstep_clocks()` for DUTs whose generics assume truly common clocks in both ports. Use that helper instead of launching two same-period clocks independently when the RTL assumes shared edge identity.
+
+The first manual `ethernet/EthMacCore` wave is now also in place. The checked-in Ethernet MAC benches under `tests/ethernet/eth_mac/` cover `EthCrc32Parallel`, `EthMacFlowCtrl`, `EthMacRxPause`, `EthMacTxPause`, `EthMacRxFilter`, `EthMacRxShift`, `EthMacTxShift`, `EthMacRxImport`, `EthMacTxExport`, `EthMacRxCsum`, `EthMacTxCsum`, and `EthMacTop`, and the current directory-level regression passes locally with `32 passed`. The current Ethernet wrappers live under `ethernet/EthMacCore/wrappers/` and should be treated as the stable cocotb-facing surfaces for deeper `EthMacCore` work.
 
 The wrapper coverage policy is now more explicit in practice: test the wrapper-specific behavior, not the full leaf matrix again. `Fifo` validated both inferred sync/async selection branches, `FifoCascade` validated public stage-vector mapping plus a curated output smoke, and `FifoMux` is currently validated only on the stable split-to-narrow path. The pack-to-wide `FifoMux` path should be treated as still open rather than silently assumed covered.
 
@@ -133,7 +142,7 @@ One small RTL fix landed during that validation pass because the new `AxiStreamD
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Choose the next broader phase-1 target from the generated queue now that the planned `dsp/generic/fixed` leaf batch is complete. Keep using the old VHDL benches under `dsp/generic/tb/` only as behavioral reference material if another DSP-adjacent wrapper or integration target is taken later.
+Choose whether the next manual branch step stays in `ethernet/EthMacCore` or returns to another non-deferred subsystem. If staying in Ethernet, the most natural follow-on is the MAC assembly layer (`EthMacRx`, `EthMacTx`, `EthMacRxFifo`, `EthMacTxFifo`) or a move into the IPv4 / Raw Ethernet stack using the now-established `ethmac_test_utils.py` helper and checked-in wrapper pattern. If switching back to queue-driven work, remove the temporary subsystem deferrals and regenerate `docs/_meta/rtl_phase1_queue.{md,json}` first so the queue is authoritative again.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
