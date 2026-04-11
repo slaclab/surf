@@ -82,7 +82,7 @@ begin
 
    comb : process (masterBitOrder, masterReady, r, rst, slaveBitOrder,
                    slaveData, slaveValid, slip, startOfSeq) is
-      variable v      : RegType;
+      variable v : RegType;
       -- Helper variables used to write the incoming word into shiftReg at a
       -- variable base index with a constant width (see the write below for
       -- the full rationale — this shape is load-bearing for both Vivado
