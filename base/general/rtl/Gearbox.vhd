@@ -82,13 +82,8 @@ begin
 
    comb : process (masterBitOrder, masterReady, r, rst, slaveBitOrder,
                    slaveData, slaveValid, slip, startOfSeq) is
-      variable v : RegType;
-      -- Helper variables used to write the incoming word into shiftReg at a
-      -- variable base index with a constant width (see the write below for
-      -- the full rationale — this shape is load-bearing for both Vivado
-      -- synthesis and GHDL --synth).
+      variable v      : RegType;
       variable lo     : natural range 0 to SHIFT_WIDTH_C-1;
-      variable hi     : natural range 0 to SHIFT_WIDTH_C-1;
       variable dataIn : slv(SLAVE_WIDTH_G-1 downto 0);
    begin
       v := r;
@@ -141,29 +136,18 @@ begin
          v.slaveReady := '1';
 
          -- Assign incoming data at proper location in shift reg.
-         --
-         -- Writing SLAVE_WIDTH_G bits into shiftReg at a runtime-varying
-         -- base has to be shaped carefully:
-         --   (a) inline slice `v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1
-         --       downto v.writeIndex) := slaveData;` -- synthesizes in
-         --       Vivado but GHDL --synth rejects with "cannot extract same
-         --       variable part for dynamic slice".
-         --   (b) per-bit for loop -- GHDL accepts it but Vivado treats each
-         --       iteration as an independent dynamic-index bit write,
-         --       hanging synthesis on wide instances (e.g.
-         --       Ssr12ToSsr16Gearbox, NUM_CH_G=4).
-         -- Pre-computing `lo`/`hi` as `hi := lo + const` satisfies GHDL's
-         -- same-variable-part check while still giving Vivado the variable-
-         -- base / constant-width slice it recognizes. bitReverse() is
-         -- hoisted into `dataIn` for the same reason.
+         -- Copying v.writeIndex into lo (a plain variable, not a record
+         -- field) lets GHDL --synth see "lo + const downto lo" as the same
+         -- variable part. The inline constant-offset form also gives Vivado
+         -- the variable-base / constant-width slice it needs for correct
+         -- synthesis (two separate hi/lo variables lose that relationship).
          if (slaveBitOrder = '1') then
             dataIn := bitReverse(slaveData);
          else
             dataIn := slaveData;
          end if;
-         lo                       := v.writeIndex;
-         hi                       := lo + SLAVE_WIDTH_G - 1;
-         v.shiftReg(hi downto lo) := dataIn;
+         lo := v.writeIndex;
+         v.shiftReg(lo+SLAVE_WIDTH_G-1 downto lo) := dataIn;
 
          -- Increment writeIndex
          v.writeIndex := v.writeIndex + SLAVE_WIDTH_G;
