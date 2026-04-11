@@ -57,7 +57,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
         ))
 
         self.add(pr.LinkVariable(
-            name         = "DieTempature",
+            name         = "DieTemperature",
             mode         = 'RO',
             linkedGet    = lambda read: self.READ_TEMPERATURE_1.get(read=read)*1.0, # Conversion factor: 1 degC/Bit
             typeStr      = "Float32",
