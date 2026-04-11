@@ -146,7 +146,7 @@ begin
          else
             dataIn := slaveData;
          end if;
-         lo := v.writeIndex;
+         lo                                       := v.writeIndex;
          v.shiftReg(lo+SLAVE_WIDTH_G-1 downto lo) := dataIn;
 
          -- Increment writeIndex
