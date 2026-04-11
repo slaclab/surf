@@ -82,7 +82,9 @@ begin
 
    comb : process (masterBitOrder, masterReady, r, rst, slaveBitOrder,
                    slaveData, slaveValid, slip, startOfSeq) is
-      variable v : RegType;
+      variable v      : RegType;
+      variable lo     : natural range 0 to SHIFT_WIDTH_C-1;
+      variable dataIn : slv(SLAVE_WIDTH_G-1 downto 0);
    begin
       v := r;
 
@@ -133,18 +135,19 @@ begin
          -- Accept the input word
          v.slaveReady := '1';
 
-         -- Assign incoming data at proper location in shift reg
+         -- Assign incoming data at proper location in shift reg.
+         -- Copying v.writeIndex into lo (a plain variable, not a record
+         -- field) lets GHDL --synth see "lo + const downto lo" as the same
+         -- variable part. The inline constant-offset form also gives Vivado
+         -- the variable-base / constant-width slice it needs for correct
+         -- synthesis (two separate hi/lo variables lose that relationship).
          if (slaveBitOrder = '1') then
---            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := bitReverse(slaveData);
-            for i in 0 to SLAVE_WIDTH_G-1 loop
-               v.shiftReg(v.writeIndex + i) := bitReverse(slaveData)(i);
-            end loop;
+            dataIn := bitReverse(slaveData);
          else
---            v.shiftReg(v.writeIndex+SLAVE_WIDTH_G-1 downto v.writeIndex) := slaveData;
-            for i in 0 to SLAVE_WIDTH_G-1 loop
-               v.shiftReg(v.writeIndex + i) := slaveData(i);
-            end loop;
+            dataIn := slaveData;
          end if;
+         lo                                       := v.writeIndex;
+         v.shiftReg(lo+SLAVE_WIDTH_G-1 downto lo) := dataIn;
 
          -- Increment writeIndex
          v.writeIndex := v.writeIndex + SLAVE_WIDTH_G;
