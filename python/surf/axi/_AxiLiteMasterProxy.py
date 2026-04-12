@@ -27,6 +27,7 @@ class _Regs(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'Rnw',
             description = 'Sets the read/write direction for the proxy AXI-Lite transaction',
+            mode        = 'RW',
             offset      = 0x00,
             bitOffset   = 0,
             bitSize     = 1,
@@ -67,6 +68,7 @@ class _Regs(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'Addr',
             description = 'Target AXI-Lite address for the proxy transaction',
+            mode        = 'RW',
             offset      = 0x08,
             bitOffset   = 0,
             bitSize     = 32,
@@ -76,6 +78,7 @@ class _Regs(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'Data',
             description = 'Write data or read-back data for the proxy transaction',
+            mode        = 'RW',
             offset      = 0x0C,
             bitOffset   = 0,
             bitSize     = 32,
