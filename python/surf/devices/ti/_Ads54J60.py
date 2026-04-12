@@ -71,7 +71,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_ADC_CHA_0",
-            description  = "",
+            description  = "Power-down control for ADC channel A core 0",
             offset       = (masterPage + (4*0x20)),
             bitSize      = 4,
             bitOffset    = 4,
@@ -81,7 +81,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_ADC_CHB_0",
-            description  = "",
+            description  = "Power-down control for ADC channel B core 0",
             offset       = (masterPage + (4*0x20)),
             bitSize      = 4,
             bitOffset    = 0,
@@ -91,7 +91,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHB_0",
-            description  = "",
+            description  = "Power-down control for input buffer channel B core 0",
             offset       = (masterPage + (4*0x21)),
             bitSize      = 2,
             bitOffset    = 6,
@@ -101,7 +101,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHA_0",
-            description  = "",
+            description  = "Power-down control for input buffer channel A core 0",
             offset       = (masterPage + (4*0x21)),
             bitSize      = 2,
             bitOffset    = 4,
@@ -111,7 +111,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_ADC_CHA_1",
-            description  = "",
+            description  = "Power-down control for ADC channel A core 1",
             offset       = (masterPage + (4*0x23)),
             bitSize      = 4,
             bitOffset    = 4,
@@ -121,7 +121,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_ADC_CHB_1",
-            description  = "",
+            description  = "Power-down control for ADC channel B core 1",
             offset       = (masterPage + (4*0x23)),
             bitSize      = 4,
             bitOffset    = 0,
@@ -131,7 +131,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHB_1",
-            description  = "",
+            description  = "Power-down control for input buffer channel B core 1",
             offset       = (masterPage + (4*0x24)),
             bitSize      = 2,
             bitOffset    = 6,
@@ -141,7 +141,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_BUFFER_CHA_1",
-            description  = "",
+            description  = "Power-down control for input buffer channel A core 1",
             offset       = (masterPage + (4*0x24)),
             bitSize      = 2,
             bitOffset    = 4,
@@ -151,7 +151,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "GLOBAL_PDN",
-            description  = "",
+            description  = "Global power-down for entire device",
             offset       = (masterPage + (4*0x26)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -161,7 +161,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "OVERRIDE_PDN_PIN",
-            description  = "",
+            description  = "Override hardware PDN pin with register control",
             offset       = (masterPage + (4*0x26)),
             bitSize      = 1,
             bitOffset    = 6,
@@ -171,7 +171,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_MASK_SEL",
-            description  = "",
+            description  = "Power-down mask source selection",
             offset       = (masterPage + (4*0x26)),
             bitSize      = 1,
             bitOffset    = 5,
@@ -181,7 +181,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "EN_INPUT_DC_COUPLING",
-            description  = "",
+            description  = "Enable DC coupling for analog input",
             offset       = (masterPage + (4*0x4F)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -191,7 +191,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "MASK_SYSREF",
-            description  = "",
+            description  = "Mask the SYSREF input to prevent unintended resyncs",
             offset       = (masterPage + (4*0x53)),
             bitSize      = 1,
             bitOffset    = 6,
@@ -201,7 +201,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "EN_SYSREF_DC_COUPLING",
-            description  = "",
+            description  = "Enable DC coupling for the SYSREF input",
             offset       = (masterPage + (4*0x53)),
             bitSize      = 1,
             bitOffset    = 1,
@@ -211,7 +211,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SET_SYSREF",
-            description  = "",
+            description  = "Manually assert SYSREF via register",
             offset       = (masterPage + (4*0x53)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -221,7 +221,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "ENABLE_MANUAL_SYSREF",
-            description  = "",
+            description  = "Enable manual SYSREF generation via SET_SYSREF register",
             offset       = (masterPage + (4*0x54)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -231,7 +231,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PDN_MASK",
-            description  = "",
+            description  = "Power-down mask bit to block PDN assertion",
             offset       = (masterPage + (4*0x55)),
             bitSize      = 1,
             bitOffset    = 4,
@@ -241,7 +241,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FOVR_CHB",
-            description  = "",
+            description  = "Fast overrange detection for channel B",
             offset       = (masterPage + (4*0x59)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -269,7 +269,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FOVR_THRESHOLD_PROG",
-            description  = "",
+            description  = "Fast overrange detection threshold programming value",
             offset       = (analogPage + (4*0x5F)),
             bitSize      = 8,
             bitOffset    = 0,
@@ -283,7 +283,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DigitalResetChA",
-            description  = "",
+            description  = "Digital reset register for channel A (hidden, used by DigRst command)",
             offset       = mainDigital + chA + (4*0x000),
             bitSize      = 32,
             bitOffset    = 0,
@@ -297,7 +297,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DigitalResetChB",
-            description  = "",
+            description  = "Digital reset register for channel B (hidden, used by DigRst command)",
             offset       = mainDigital + chB + (4*0x000),
             bitSize      = 32,
             bitOffset    = 0,
@@ -311,7 +311,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PllResetChA",
-            description  = "",
+            description  = "PLL reset register for channel A (hidden, used by PllRst command)",
             offset       = mainDigital + chA + (4*0x017),
             bitSize      = 32,
             bitOffset    = 0,
@@ -325,7 +325,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PllResetChB",
-            description  = "",
+            description  = "PLL reset register for channel B (hidden, used by PllRst command)",
             offset       = mainDigital + chB + (4*0x017),
             bitSize      = 32,
             bitOffset    = 0,
@@ -339,7 +339,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DigResetAllChA",
-            description  = "",
+            description  = "Reset all JESD digital pages for channel A (hidden, used by Init command)",
             offset       = mainDigital + chA + (4*0x0F7),
             bitSize      = 32,
             bitOffset    = 0,
@@ -353,7 +353,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DigResetAllChB",
-            description  = "",
+            description  = "Reset all JESD digital pages for channel B (hidden, used by Init command)",
             offset       = mainDigital + chB + (4*0x0F7),
             bitSize      = 32,
             bitOffset    = 0,
@@ -371,7 +371,7 @@ class Ads54J60(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "UnusedPages",
-            description  = "",
+            description  = "Unused JESD bank pages cleared during initialization",
             offset       = unusedPages,
             bitSize      = 32,
             bitOffset    = 0,
