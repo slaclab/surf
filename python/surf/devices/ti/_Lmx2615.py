@@ -21,7 +21,7 @@ class Lmx2615(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DataBlock",
-            description  = "",
+            description  = "Raw register data block for bulk configuration loading",
             offset       = 0,
             bitSize      = 32 * 1024,
             bitOffset    = 0,
