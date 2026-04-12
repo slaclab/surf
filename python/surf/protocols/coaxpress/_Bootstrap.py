@@ -35,6 +35,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'DeviceRevisionUsed',
+            description  = 'CoaXPress standard revision implemented by this device (formatted string)',
             linkedGet    = lambda: f'v{(self.Revision.value()>>16)&0xFFFF}.{self.Revision.value()&0xFFFF}',
             dependencies = [self.Revision],
         ))
@@ -93,6 +94,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'XMLVersion',
+            description  = 'XML file version for the selected manifest (formatted string)',
             linkedGet    = lambda: f'v{self.XMLMajorVersion.value()}.{self.XMLMinorVersion.value()}.{self.XMLSubMinorVersion.value()}',
             dependencies = [self.XMLMajorVersion,self.XMLMinorVersion,self.XMLSubMinorVersion],
         ))
@@ -135,6 +137,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'SchemaVersion',
+            description  = 'XML schema version for the selected manifest (formatted string)',
             linkedGet    = lambda: f'v{self.SchemaMajorVersion.value()}.{self.SchemaMinorVersion.value()}.{self.SchemaSubMinorVersion.value()}',
             dependencies = [self.SchemaMajorVersion,self.SchemaMinorVersion,self.SchemaSubMinorVersion],
         ))
@@ -625,6 +628,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'VersionUsed',
+            description  = 'CoaXPress standard version negotiated during discovery (formatted string)',
             linkedGet    = lambda: f'v{self.MajorVersionUsed.value()}.{self.MinorVersionUsed.value()}',
             dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
         ))
