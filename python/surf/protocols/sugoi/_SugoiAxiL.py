@@ -18,6 +18,7 @@ class SugoiAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DisableClk',
+            description  = 'Disable the Sugoi serial clock output',
             offset       = 0x00,
             bitSize      = 1,
             mode         = 'RW',
@@ -25,6 +26,7 @@ class SugoiAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DisableTx',
+            description  = 'Disable the Sugoi serial transmitter',
             offset       = 0x04,
             bitSize      = 1,
             mode         = 'RW',
@@ -32,6 +34,7 @@ class SugoiAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxPolarity',
+            description  = 'Transmit polarity invert (set to 1 to invert serial output)',
             offset       = 0x08,
             bitSize      = 1,
             mode         = 'RW',
@@ -39,6 +42,7 @@ class SugoiAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxPolarity',
+            description  = 'Receive polarity invert (set to 1 to invert serial input)',
             offset       = 0x0C,
             bitSize      = 1,
             mode         = 'RW',
@@ -62,6 +66,7 @@ class SugoiAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'UsrDlyCfg',
+            description  = 'User-configured IDELAY tap value (used when EnUsrDlyCfg=1)',
             offset       = 0x18,
             bitSize      = 9,
             mode         = 'RW',

@@ -28,106 +28,118 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
         self.numPixMax = (2**colWidth)*(2**rowWidth)
 
         self.add(pr.RemoteVariable(
-            name      = 'Version',
-            offset    = 0x0,
-            bitSize   = 4,
-            bitOffset = 0,
-            mode      = 'RO',
+            name        = 'Version',
+            description = 'Firmware version of the pixel matrix configuration interface',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 0,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'COL_GRAY_CODE_G',
-            offset    = 0x0,
-            bitSize   = 1,
-            bitOffset = 4,
-            mode      = 'RO',
-            base      = pr.Bool,
+            name        = 'COL_GRAY_CODE_G',
+            description = 'Generic: column address uses Gray code encoding when True',
+            offset      = 0x0,
+            bitSize     = 1,
+            bitOffset   = 4,
+            mode        = 'RO',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'ROW_GRAY_CODE_G',
-            offset    = 0x0,
-            bitSize   = 1,
-            bitOffset = 5,
-            mode      = 'RO',
-            base      = pr.Bool,
+            name        = 'ROW_GRAY_CODE_G',
+            description = 'Generic: row address uses Gray code encoding when True',
+            offset      = 0x0,
+            bitSize     = 1,
+            bitOffset   = 5,
+            mode        = 'RO',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'COL_WIDTH_G',
-            offset    = 0x0,
-            bitSize   = 4,
-            bitOffset = 8,
-            mode      = 'RO',
-            disp      = '{:d}',
+            name        = 'COL_WIDTH_G',
+            description = 'Generic: bit width of the column address bus',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 8,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'ROW_WIDTH_G',
-            offset    = 0x0,
-            bitSize   = 4,
-            bitOffset = 12,
-            mode      = 'RO',
-            disp      = '{:d}',
+            name        = 'ROW_WIDTH_G',
+            description = 'Generic: bit width of the row address bus',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 12,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'DATA_WIDTH_G',
-            offset    = 0x0,
-            bitSize   = 4,
-            bitOffset = 16,
-            mode      = 'RO',
-            disp      = '{:d}',
+            name        = 'DATA_WIDTH_G',
+            description = 'Generic: bit width of each pixel data word',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 16,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'TIMER_WIDTH_G',
-            offset    = 0x0,
-            bitSize   = 8,
-            bitOffset = 24,
-            mode      = 'RO',
-            disp      = '{:d}',
+            name        = 'TIMER_WIDTH_G',
+            description = 'Generic: bit width of the inter-pixel timer counter',
+            offset      = 0x0,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'TimerSize',
-            offset    = 0xC,
-            bitSize   = timerWidth,
-            bitOffset = 0,
-            mode      = 'RW',
-            disp      = '{:d}',
+            name        = 'TimerSize',
+            description = 'Inter-pixel programming timer period (in clock cycles)',
+            offset      = 0xC,
+            bitSize     = timerWidth,
+            bitOffset   = 0,
+            mode        = 'RW',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'AllCol',
-            offset    = 0xC,
-            bitSize   = 1,
-            bitOffset = 16,
-            mode      = 'RW',
-            base      = pr.Bool,
+            name        = 'AllCol',
+            description = 'Enable broadcast write to all columns simultaneously',
+            offset      = 0xC,
+            bitSize     = 1,
+            bitOffset   = 16,
+            mode        = 'RW',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'AllRow',
-            offset    = 0xC,
-            bitSize   = 1,
-            bitOffset = 17,
-            mode      = 'RW',
-            base      = pr.Bool,
+            name        = 'AllRow',
+            description = 'Enable broadcast write to all rows simultaneously',
+            offset      = 0xC,
+            bitSize     = 1,
+            bitOffset   = 17,
+            mode        = 'RW',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'GlobalRstL',
-            offset    = 0xC,
-            bitSize   = 1,
-            bitOffset = 18,
-            mode      = 'RW',
-            base      = pr.Bool,
+            name        = 'GlobalRstL',
+            description = 'Global reset for the pixel matrix (active LOW)',
+            offset      = 0xC,
+            bitSize     = 1,
+            bitOffset   = 18,
+            mode        = 'RW',
+            base        = pr.Bool,
         ))
 
         for i in range(self.numRow):
             self.add(pr.RemoteVariable(
                 name         = f'_PixData[{i}]',
+                description  = f'Raw pixel data array for row {i} (one 32-bit word per column)',
                 offset       = (self.numPixMax<<2) +(i*(2**colWidth)<<2),
                 bitSize      = 32 * self.numCol,
                 bitOffset    = 0,
@@ -145,12 +157,13 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             ))
 
         self.add(pr.RemoteVariable(
-            name      = 'AllMatrixValue',
-            offset    = (self.numPixMax<<2) + ((self.numPixMax-1)<<2) ,
-            bitSize   = 32,
-            bitOffset = 0,
-            hidden    = True,
-            mode      = 'WO',
+            name        = 'AllMatrixValue',
+            description = 'Write this value to all pixels when AllCol and AllRow are set',
+            offset      = (self.numPixMax<<2) + ((self.numPixMax-1)<<2) ,
+            bitSize     = 32,
+            bitOffset   = 0,
+            hidden      = True,
+            mode        = 'WO',
         ))
 
         @self.command(value='',description="Programming bits for each pixel of the matrix",)
