@@ -176,7 +176,7 @@ class Ltc2270(pr.Device):
                 self.add(pr.RemoteVariable(
                     name        = f'delayData[{i:01}][{j:01}]',
                     offset      = ((0x80 + (8*i)+j)*4),
-                    description = f'IDELAYE2 tap delay value for ADC {i}, lane {j}',
+                    description = f'IDELAY tap delay value for ADC {i}, lane {j}',
                     bitSize     = 5,
                     bitOffset   = 0,
                     base        = pr.UInt,

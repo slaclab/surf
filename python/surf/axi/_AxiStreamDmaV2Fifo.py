@@ -74,7 +74,7 @@ class AxiStreamDmaV2Fifo(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        ='AXI_DATA_BYTES_C',
-            description = 'Number of AXI data bytes per beat in firmware build',
+            description = 'Width of the AXI4 memory interface in units of bytes',
             offset      = 0x10,
             bitSize     = 8,
             bitOffset   = 16,

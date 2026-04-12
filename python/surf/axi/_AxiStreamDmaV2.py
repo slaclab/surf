@@ -43,7 +43,7 @@ class AxiStreamDmaV2Desc(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ContEn',
-            description = 'Continuous mode enable: automatically re-arm descriptors after completion',
+            description = 'Continuous mode enable: allow frames larger than one buffer to span multiple descriptors',
             mode        = 'RO',
             offset      = 0x8,
             bitOffset   = 0,
@@ -52,7 +52,7 @@ class AxiStreamDmaV2Desc(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DropEn',
-            description = 'Drop incoming frames when descriptor ring is full',
+            description = 'Drop enable: discard incoming frame data without writing to memory',
             mode        = 'RO',
             offset      = 0xC,
             bitOffset   = 0,
