@@ -150,7 +150,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "CntRst",
-            description  = "",
+            description  = "Reset all event counters",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 0,
@@ -159,7 +159,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "TimerRst",
-            description  = "",
+            description  = "Reset the timeout timer",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 1,
@@ -168,7 +168,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "HardRst",
-            description  = "",
+            description  = "Hard reset of the event builder (clears all state)",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 2,
@@ -177,7 +177,7 @@ class AxiStreamBatcherEventBuilder(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "SoftRst",
-            description  = "",
+            description  = "Soft reset of the event builder (resets FSM)",
             offset       = 0xFFC,
             bitSize      = 1,
             bitOffset    = 3,

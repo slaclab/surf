@@ -20,7 +20,7 @@ class Si5345PageBase(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DataBlock",
-            description  = "",
+            description  = "Raw register block containing all Si5345 configuration registers for this page",
             offset       = 0,
             bitSize      = 32 * 0x100,
             bitOffset    = 0,

@@ -133,7 +133,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PacketLength",
-            description  = "",
+            description  = "Length of last received PRBS packet in words",
             offset       =  0x74,
             bitSize      =  32,
             mode         = "RO",
@@ -150,7 +150,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PacketRateRaw",
-            description  = "",
+            description  = "Raw packet interval counter value used to calculate received packet rate",
             offset       =  0x78,
             bitSize      =  32,
             mode         = "RO",
@@ -183,7 +183,7 @@ class SsiPrbsRx(pr.Device):
 
         # self.add(pr.RemoteVariable(
             # name         = "BitErrCnt",
-            # description  = "",
+            # description  = "Number of bit errors in received PRBS data",
             # offset       =  0x1CC,
             # bitSize      =  32,
             # mode         = "RO",
@@ -192,7 +192,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "WordErrCnt",
-            description  = "",
+            description  = "Number of PRBS word errors detected",
             offset       =  0x80,
             bitSize      =  32,
             mode         = "RO",
@@ -201,7 +201,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameCnt",
-            description  = "",
+            description  = "Cumulative count of PRBS packets received",
             offset       =  0x84,
             bitSize      =  32,
             mode         = "RO",
@@ -210,7 +210,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RolloverEnable",
-            description  = "",
+            description  = "Bitmask enabling rollover for each status counter",
             offset       =  0xF0,
             bitSize      =  32,
             mode         = "RW",

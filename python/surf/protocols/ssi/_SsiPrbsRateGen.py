@@ -49,7 +49,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "StatReset",
-            description  = "",
+            description  = "Reset all statistics counters",
             offset       = 0x00,
             bitSize      = 1,
             bitOffset    = 0,
@@ -60,7 +60,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PacketLength",
-            description  = "",
+            description  = "Number of PRBS data words per generated packet",
             offset       = 0x04,
             bitSize      = 32,
             bitOffset    = 0,
@@ -70,7 +70,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RawPeriod",
-            description  = "",
+            description  = "Raw packet generation period in clock cycles",
             offset       = 0x08,
             bitSize      = 32,
             bitOffset    = 0,
@@ -103,7 +103,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxEn",
-            description  = "",
+            description  = "Enable continuous rate-limited PRBS packet generation",
             offset       = 0x0C,
             bitSize      = 1,
             bitOffset    = 0,
@@ -113,7 +113,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "OneShot",
-            description  = "",
+            description  = "Send a single rate-limited PRBS packet",
             offset       = 0x0C,
             bitSize      = 1,
             bitOffset    = 1,
@@ -124,7 +124,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "Missed",
-            description  = "",
+            description  = "Count of missed packet generation events (rate too high)",
             offset       = 0x10,
             bitSize      = 32,
             bitOffset    = 0,
@@ -136,7 +136,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameRate",
-            description  = "",
+            description  = "Current measured packet generation rate",
             offset       = 0x14,
             bitSize      = 32,
             bitOffset    = 0,
@@ -149,7 +149,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameRateMax",
-            description  = "",
+            description  = "Maximum measured packet generation rate",
             offset       = 0x18,
             bitSize      = 32,
             bitOffset    = 0,
@@ -162,7 +162,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameRateMin",
-            description  = "",
+            description  = "Minimum measured packet generation rate",
             offset       = 0x1C,
             bitSize      = 32,
             bitOffset    = 0,
@@ -208,7 +208,7 @@ class SsiPrbsRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameCount",
-            description  = "",
+            description  = "Cumulative count of PRBS packets generated",
             offset       = 0x40,
             bitSize      = 64,
             bitOffset    = 0,

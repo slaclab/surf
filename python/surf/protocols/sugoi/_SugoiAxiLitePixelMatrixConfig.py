@@ -210,7 +210,7 @@ class SugoiAxiLitePixelMatrixConfig(pr.Device):
             else:
                 click.secho( "Warning: ASIC enable is set to False!")
 
-        @self.command(value='',description="",)
+        @self.command(value='',description="Read all pixel matrix rows and print values",)
         def ReadAllMatrix(arg):
             for i in range (self.numRow):
                 click.secho(f' Row: {i}')

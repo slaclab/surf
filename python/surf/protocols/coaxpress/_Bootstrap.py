@@ -256,7 +256,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'WidthAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap image width address register',
             offset       = 0x00003000,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -264,7 +264,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'HeightAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap image height address register',
             offset       = 0x00003004,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -272,7 +272,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquisitionModeAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition mode address register',
             offset       = 0x00003008,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -280,7 +280,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquistionStartAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition start address register',
             offset       = 0x0000300C,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -288,7 +288,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquistionStopAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition stop address register',
             offset       = 0x00003010,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -296,7 +296,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PixelFormatAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap pixel format address register',
             offset       = 0x00003014,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -304,7 +304,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceTapGeometryAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap device tap geometry address register',
             offset       = 0x00003018,
             base         = pr.UIntBE,
             mode         = 'RO',
