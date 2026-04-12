@@ -839,6 +839,7 @@ class _UpperPageProxy(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UpperPage',
+            description = 'Upper page memory buffer for paged register access (128 x 8-bit registers)',
             offset      = (128 << 2),
             mode        = 'RW',
             numValues   = 128, # Upper Page has 128 register offset
