@@ -98,11 +98,12 @@ class SsiPrbsTx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name   = 'WordSize',
-            offset = 0x20,
-            mode   = 'RO',
-            disp   = '{:d}',
-            hidden = False))
+            name        = 'WordSize',
+            description = 'PRBS data word size in bits',
+            offset      = 0x20,
+            mode        = 'RO',
+            disp        = '{:d}',
+            hidden      = False))
 
 
         self.add(pr.RemoteVariable(
@@ -170,6 +171,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TrigDly",
+            description  = "Trigger delay period in clock cycles",
             offset       =  0x1C,
             bitSize      =  32,
             mode         = "RW",
@@ -205,11 +207,12 @@ class SsiPrbsTx(pr.Device):
                 self.TrigDly.set(v, write=write)
 
         self.add(pr.LinkVariable(
-            name = 'TrigRate',
+            name         = 'TrigRate',
+            description  = 'Trigger rate derived from TrigDly register',
             dependencies = [self.TrigDly],
-            mode = 'RW',
-            linkedGet = get_conv,
-            linkedSet = set_conv))
+            mode         = 'RW',
+            linkedGet    = get_conv,
+            linkedSet    = set_conv))
 
     def countReset(self):
         self.CountReset()

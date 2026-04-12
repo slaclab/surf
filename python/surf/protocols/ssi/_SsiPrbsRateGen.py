@@ -35,6 +35,7 @@ class SsiPrbsRateGen(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -90,12 +91,13 @@ class SsiPrbsRateGen(pr.Device):
                 self.RawPeriod.set(v, write=write)
 
         self.add(pr.LinkVariable(
-            name = 'TxRate',
+            name         = 'TxRate',
+            description  = 'Packet transmission rate derived from RawPeriod register',
             dependencies = [self.RawPeriod],
-            units = 'Hz',
-            disp = '{:0.3f}',
-            linkedGet = get_conv,
-            linkedSet = set_conv))
+            units        = 'Hz',
+            disp         = '{:0.3f}',
+            linkedGet    = get_conv,
+            linkedSet    = set_conv))
 
 
 
