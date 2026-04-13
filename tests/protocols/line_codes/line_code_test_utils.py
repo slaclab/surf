@@ -215,11 +215,31 @@ async def run_integration_round_trip_test(
         assert_integration_round_trip(dut, data_in=data_in, data_k_in=data_k_in)
 
 
-async def package_encode(dut, *, disp_in: int, data_in: int, data_k_in: int) -> tuple[int, int, int]:
+async def _drive_package_encode(dut, *, disp_in: int, data_in: int, data_k_in: int) -> None:
     dut.encDispIn.value = disp_in
     dut.encDataIn.value = data_in
     dut.encDataKIn.value = data_k_in
     await settle_combinational_line_code_wrapper()
+
+
+async def package_encode(dut, *, disp_in: int, data_in: int, data_k_in: int) -> tuple[int, int]:
+    await _drive_package_encode(dut, disp_in=disp_in, data_in=data_in, data_k_in=data_k_in)
+    return (
+        int(dut.encDataOut.value),
+        int(dut.encDispOut.value),
+    )
+
+
+async def package_encode_with_invalid_k(
+    dut,
+    *,
+    disp_in: int,
+    data_in: int,
+    data_k_in: int,
+) -> tuple[int, int, int]:
+    await _drive_package_encode(dut, disp_in=disp_in, data_in=data_in, data_k_in=data_k_in)
+    if not hasattr(dut, "invalidK"):
+        raise AttributeError("Package wrapper does not expose invalidK")
     return (
         int(dut.encDataOut.value),
         int(dut.encDispOut.value),
