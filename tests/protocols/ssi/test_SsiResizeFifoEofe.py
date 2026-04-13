@@ -124,12 +124,16 @@ async def ssi_resize_fifo_eofe_test(dut):
     await tb.reset()
     await tb.send_eofe_frame()
 
-    # Wait until the wrapper presents the outgoing terminal beat. The timeout
-    # keeps the test from hanging indefinitely if the frame is lost.
-    while True:
-        await with_timeout(RisingEdge(dut.AXIS_ACLK), 1, "ms")
-        if int(dut.M_AXIS_TVALID.value) == 1 and int(dut.M_AXIS_TLAST.value) == 1:
-            break
+    async def wait_for_output_terminal_beat():
+        while True:
+            await RisingEdge(dut.AXIS_ACLK)
+            if int(dut.M_AXIS_TVALID.value) == 1 and int(dut.M_AXIS_TLAST.value) == 1:
+                return
+
+    # Wait until the wrapper presents the outgoing terminal beat. Apply the
+    # timeout to the full condition wait so the test cannot hang indefinitely
+    # if the frame is lost.
+    await with_timeout(wait_for_output_terminal_beat(), 1, "ms")
 
     # EOFE is observable only when both ends preserve user metadata.
     expected_eofe = 1 if slave_user_mode != TUSER_MODES["none"] and master_user_mode != TUSER_MODES["none"] else 0

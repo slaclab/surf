@@ -81,12 +81,13 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
-        # A source keeps its beat stable until the sink raises `TREADY`.
-        while True:
-            await RisingEdge(clk)
+        # A source must keep its beat stable until the sink is ready ahead of
+        # the next sampling edge and that edge has passed.
+        while int(self._sig("TReady").value) != 1:
+            await FallingEdge(clk)
             await Timer(1, unit="ns")
-            if int(self._sig("TReady").value) == 1:
-                return
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
 
     async def send(self, beat: SsiBeat, *, clk):
         # `send()` is the simplest source-side helper: drive one beat, wait for
@@ -207,7 +208,8 @@ async def send_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat], *, clk) ->
 
 async def send_contiguous_frame(endpoint: FlatSsiEndpoint, beats: list[SsiBeat], *, clk) -> None:
     # Some SSI modules care about uninterrupted frames, so this helper keeps
-    # `TVALID` asserted across the whole packet until each beat is accepted.
+    # `TVALID` asserted across the whole packet until each beat is accepted on
+    # a sampling clock edge.
     for beat in beats:
         endpoint.drive(beat)
         await endpoint.wait_ready(clk=clk)
@@ -263,13 +265,18 @@ async def recv_frame(
     timeout_cycles: int = 128,
 ) -> list[SsiBeat]:
     if ready_signal is None:
-        beats = []
-        for _ in range(timeout_cycles):
-            beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
-            beats.append(beat)
-            if beat.last == 1:
-                return beats
-        raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
+        ready_signal = endpoint._sig("TReady")
+        ready_signal.value = 1
+        try:
+            beats = []
+            for _ in range(timeout_cycles):
+                beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
+                beats.append(beat)
+                if beat.last == 1:
+                    return beats
+            raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
+        finally:
+            ready_signal.value = 0
 
     ready_signal.value = 1
     beats = []
@@ -298,16 +305,21 @@ async def recv_n_beats(
     timeout_cycles: int = 128,
 ) -> list[SsiBeat]:
     if ready_signal is None:
-        beats = []
-        for _ in range(count):
-            beats.append(
-                await endpoint.recv(
-                    clk=clk,
-                    ready_signal=ready_signal,
-                    keep_ready=True,
+        ready_signal = endpoint._sig("TReady")
+        ready_signal.value = 1
+        try:
+            beats = []
+            for _ in range(count):
+                beats.append(
+                    await endpoint.recv(
+                        clk=clk,
+                        ready_signal=ready_signal,
+                        keep_ready=True,
+                    )
                 )
-            )
-        return beats
+            return beats
+        finally:
+            ready_signal.value = 0
 
     ready_signal.value = 1
     beats = []
