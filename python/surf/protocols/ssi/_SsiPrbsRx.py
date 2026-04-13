@@ -133,7 +133,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PacketLength",
-            description  = "",
+            description  = "Length of last received PRBS packet in words",
             offset       =  0x74,
             bitSize      =  32,
             mode         = "RO",
@@ -141,15 +141,16 @@ class SsiPrbsRx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'WordSize',
-            offset = 0xF8,
-            mode = 'RO',
-            disp = '{:d}',
-            hidden = False))
+            name        = 'WordSize',
+            description = 'PRBS data word size in bits',
+            offset      = 0xF8,
+            mode        = 'RO',
+            disp        = '{:d}',
+            hidden      = False))
 
         self.add(pr.RemoteVariable(
             name         = "PacketRateRaw",
-            description  = "",
+            description  = "Raw packet interval counter value used to calculate received packet rate",
             offset       =  0x78,
             bitSize      =  32,
             mode         = "RO",
@@ -157,29 +158,32 @@ class SsiPrbsRx(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name = 'PacketRate',
+            name         = 'PacketRate',
+            description  = 'Received packet rate derived from PacketRateRaw',
             dependencies = [self.PacketRateRaw],
-            units = 'Frames/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: 1.0/((self.PacketRateRaw.get(read=read)+1) * rxClkPeriod)))
+            units        = 'Frames/sec',
+            disp         = '{:0.1f}',
+            linkedGet    = lambda read: 1.0/((self.PacketRateRaw.get(read=read)+1) * rxClkPeriod)))
 
         self.add(pr.LinkVariable(
-            name = 'WordRate',
+            name         = 'WordRate',
+            description  = 'Received word rate derived from PacketRate and PacketLength',
             dependencies = [self.PacketRate, self.PacketLength],
-            units = 'Words/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
+            units        = 'Words/sec',
+            disp         = '{:0.1f}',
+            linkedGet    = lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
 
         self.add(pr.LinkVariable(
-            name = 'BitRate',
+            name         = 'BitRate',
+            description  = 'Received bit rate derived from WordRate and WordSize',
             dependencies = [self.WordRate, self.WordSize],
-            units = 'MBits/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: self.WordRate.get(read=read) * self.WordSize.get(read=read) * 1e-6))
+            units        = 'MBits/sec',
+            disp         = '{:0.1f}',
+            linkedGet    = lambda read: self.WordRate.get(read=read) * self.WordSize.get(read=read) * 1e-6))
 
         # self.add(pr.RemoteVariable(
             # name         = "BitErrCnt",
-            # description  = "",
+            # description  = "Number of bit errors in received PRBS data",
             # offset       =  0x1CC,
             # bitSize      =  32,
             # mode         = "RO",
@@ -188,7 +192,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "WordErrCnt",
-            description  = "",
+            description  = "Number of PRBS word errors detected",
             offset       =  0x80,
             bitSize      =  32,
             mode         = "RO",
@@ -197,7 +201,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameCnt",
-            description  = "",
+            description  = "Cumulative count of PRBS packets received",
             offset       =  0x84,
             bitSize      =  32,
             mode         = "RO",
@@ -206,7 +210,7 @@ class SsiPrbsRx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RolloverEnable",
-            description  = "",
+            description  = "Bitmask enabling rollover for each status counter",
             offset       =  0xF0,
             bitSize      =  32,
             mode         = "RW",

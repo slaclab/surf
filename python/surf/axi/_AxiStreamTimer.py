@@ -10,6 +10,7 @@ class AxiStreamTimerChannel(pr.Device):
         for ev in range(self.NEvents):
             self.add(pr.RemoteVariable(
                     name         = f'SOF[{ev}]',
+                    description  = 'Start-of-frame timestamp counter',
                     offset       = (8*self.NStreams*ev),
                     bitSize      = 32,
                     mode         = 'RO',
@@ -19,6 +20,7 @@ class AxiStreamTimerChannel(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         = f'EOF[{ev}]',
+                description  = 'End-of-frame timestamp counter',
                 offset       = 4+(8*self.NStreams*ev),
                 bitSize      = 32,
                 mode         = 'RO',
@@ -37,6 +39,7 @@ class AxiStreamTimer(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'MeasureTime',
+            description  = 'Enable timing measurement',
             offset       = 0x000,
             bitSize      = 1,
             base         = pr.Bool,
@@ -45,6 +48,7 @@ class AxiStreamTimer(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NumStreamsG',
+            description  = 'Number of streams generic value',
             offset       = 0x004,
             bitSize      = 32,
             mode         = 'RO',
@@ -53,6 +57,7 @@ class AxiStreamTimer(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NumEventG',
+            description  = 'Number of events generic value',
             offset       = 0x008,
             bitSize      = 32,
             mode         = 'RO',

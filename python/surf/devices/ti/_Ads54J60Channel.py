@@ -30,7 +30,7 @@ class Ads54J60Channel(pr.Device):
 
         # self.add(pr.RemoteVariable(
             # name         = "PULSE_RESET",
-            # description  = "",
+            # description  = "Pulse reset for main digital page",
             # offset       = (mainDigital + (4*0x000)),
             # bitSize      = 1,
             # bitOffset    = 0,
@@ -40,7 +40,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DECFIL_MODE3",
-            description  = "",
+            description  = "Decimation filter mode bit 3 extension",
             offset       = (mainDigital + (4*0x041)),
             bitSize      = 1,
             bitOffset    = 5,
@@ -50,7 +50,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DECFIL_EN",
-            description  = "",
+            description  = "Decimation filter enable",
             offset       = (mainDigital + (4*0x041)),
             bitSize      = 1,
             bitOffset    = 4,
@@ -60,7 +60,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DECFIL_MODE_2_0",
-            description  = "",
+            description  = "Decimation filter mode bits [2:0]",
             offset       = (mainDigital + (4*0x041)),
             bitSize      = 3,
             bitOffset    = 0,
@@ -70,7 +70,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "NYQUIST_ZONE",
-            description  = "",
+            description  = "Nyquist zone selection for DDC frequency planning",
             offset       = (mainDigital + (4*0x042)),
             bitSize      = 3,
             bitOffset    = 0,
@@ -80,7 +80,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FORMAT_SEL",
-            description  = "",
+            description  = "Output data format selection (twos complement or offset binary)",
             offset       = (mainDigital + (4*0x043)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -90,7 +90,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DIGITAL_GAIN",
-            description  = "",
+            description  = "Digital gain value applied to ADC output data",
             offset       = (mainDigital + (4*0x044)),
             bitSize      = 7,
             bitOffset    = 0,
@@ -100,7 +100,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FORMAT_EN",
-            description  = "",
+            description  = "Enable output data format conversion",
             offset       = (mainDigital + (4*0x04B)),
             bitSize      = 1,
             bitOffset    = 5,
@@ -110,7 +110,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DEC_MOD_EN",
-            description  = "",
+            description  = "Decimation modulator enable",
             offset       = (mainDigital + (4*0x04D)),
             bitSize      = 1,
             bitOffset    = 3,
@@ -120,7 +120,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "CTRL_NYQUIST",
-            description  = "",
+            description  = "Control Nyquist zone imaging correction",
             offset       = (mainDigital + (4*0x04E)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -130,7 +130,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "BUS_REORDER_EN1",
-            description  = "",
+            description  = "Bus reorder enable for JESD lane 1",
             offset       = (mainDigital + (4*0x052)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -140,7 +140,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DIG_GAIN_EN",
-            description  = "",
+            description  = "Digital gain enable",
             offset       = (mainDigital + (4*0x052)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -150,7 +150,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "BUS_REORDER_EN2",
-            description  = "",
+            description  = "Bus reorder enable for JESD lane 2",
             offset       = (mainDigital + (4*0x072)),
             bitSize      = 1,
             bitOffset    = 3,
@@ -160,7 +160,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LSB_SEL_EN",
-            description  = "",
+            description  = "LSB selection enable for output data alignment",
             offset       = (mainDigital + (4*0x0AB)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -170,7 +170,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LSB_SELECT",
-            description  = "",
+            description  = "LSB position selection for output data width",
             offset       = (mainDigital + (4*0x0AD)),
             bitSize      = 2,
             bitOffset    = 0,
@@ -180,7 +180,7 @@ class Ads54J60Channel(pr.Device):
 
         # self.add(pr.RemoteVariable(
             # name         = "DIG_RESET",
-            # description  = "",
+            # description  = "Digital reset for main digital page registers",
             # offset       = (mainDigital + (4*0x0F7)),
             # bitSize      = 1,
             # bitOffset    = 0,
@@ -194,7 +194,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "CTRL_K",
-            description  = "",
+            description  = "JESD K parameter (frames per multiframe) control",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -204,7 +204,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TESTMODE_EN",
-            description  = "",
+            description  = "JESD test mode enable",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 4,
@@ -214,7 +214,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FLIP_ADC_DATA",
-            description  = "",
+            description  = "Invert ADC output data polarity",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 3,
@@ -224,7 +224,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LANE_ALIGN",
-            description  = "",
+            description  = "JESD lane alignment enable",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 2,
@@ -234,7 +234,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FRAME_ALIGN",
-            description  = "",
+            description  = "JESD frame alignment enable",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 1,
@@ -244,7 +244,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TX_LINK_DIS",
-            description  = "",
+            description  = "Disable JESD TX link",
             offset       = (jesdDigital + (4*0x000)),
             bitSize      = 1,
             bitOffset    = 0,
@@ -254,7 +254,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SYNC_REG",
-            description  = "",
+            description  = "JESD SYNC~ signal register value",
             offset       = (jesdDigital + (4*0x001)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -264,7 +264,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SYNC_REG_EN",
-            description  = "",
+            description  = "Enable register-based SYNC~ control",
             offset       = (jesdDigital + (4*0x001)),
             bitSize      = 1,
             bitOffset    = 6,
@@ -274,7 +274,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "JESD_FILTER",
-            description  = "",
+            description  = "JESD output digital filter mode selection",
             offset       = (jesdDigital + (4*0x001)),
             bitSize      = 3,
             bitOffset    = 3,
@@ -284,7 +284,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "JESD_MODE",
-            description  = "",
+            description  = "JESD204B operating mode selection",
             offset       = (jesdDigital + (4*0x001)),
             bitSize      = 3,
             bitOffset    = 0,
@@ -294,7 +294,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LINK_LAYER_TESTMODE",
-            description  = "",
+            description  = "JESD link layer test pattern mode",
             offset       = (jesdDigital + (4*0x002)),
             bitSize      = 3,
             bitOffset    = 5,
@@ -304,7 +304,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LINK_LAYER_RPAT",
-            description  = "",
+            description  = "JESD link layer repeated pattern test enable",
             offset       = (jesdDigital + (4*0x002)),
             bitSize      = 1,
             bitOffset    = 4,
@@ -314,7 +314,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LMFC_MASK_RESET",
-            description  = "",
+            description  = "Reset LMFC mask counter",
             offset       = (jesdDigital + (4*0x002)),
             bitSize      = 1,
             bitOffset    = 3,
@@ -324,7 +324,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FORCE_LMFC_COUNT",
-            description  = "",
+            description  = "Force LMFC count to LMFC_COUNT_INIT value",
             offset       = (jesdDigital + (4*0x003)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -334,7 +334,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LMFC_COUNT_INIT",
-            description  = "",
+            description  = "Initial LMFC counter value when forced",
             offset       = (jesdDigital + (4*0x003)),
             bitSize      = 5,
             bitOffset    = 2,
@@ -344,7 +344,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RELEASE_ILANE_SEQ",
-            description  = "",
+            description  = "Release ILA sequence for JESD lane initialization",
             offset       = (jesdDigital + (4*0x003)),
             bitSize      = 2,
             bitOffset    = 0,
@@ -354,7 +354,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SCRAMBLE_EN",
-            description  = "",
+            description  = "JESD data scrambling enable",
             offset       = (jesdDigital + (4*0x005)),
             bitSize      = 1,
             bitOffset    = 7,
@@ -364,7 +364,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FRAMES_PER_MULTI_FRAME",
-            description  = "",
+            description  = "Number of frames per JESD multiframe (K parameter)",
             offset       = (jesdDigital + (4*0x006)),
             bitSize      = 5,
             bitOffset    = 0,
@@ -374,7 +374,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SUBCLASS",
-            description  = "",
+            description  = "JESD204B subclass selection (0=subclass 0, 1=subclass 1)",
             offset       = (jesdDigital + (4*0x007)),
             bitSize      = 1,
             bitOffset    = 3,
@@ -397,7 +397,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "LANE_SHARE",
-            description  = "",
+            description  = "Enable lane sharing between channels",
             offset       = (jesdDigital + (4*0x016)),
             bitSize      = 1,
             bitOffset    = 4,
@@ -407,7 +407,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DA_BUS_REORDER",
-            description  = "",
+            description  = "Digital bus reorder mapping for data path A",
             offset       = (jesdDigital + (4*0x031)),
             bitSize      = 8,
             bitOffset    = 0,
@@ -417,7 +417,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DB_BUS_REORDER",
-            description  = "",
+            description  = "Digital bus reorder mapping for data path B",
             offset       = (jesdDigital + (4*0x032)),
             bitSize      = 8,
             bitOffset    = 0,
@@ -431,7 +431,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SE_EMP_LANE_1",
-            description  = "",
+            description  = "Serializer output emphasis level for JESD lane 1",
             offset       = (jesdAnalog + (4*0x012)),
             bitSize      = 6,
             bitOffset    = 2,
@@ -454,7 +454,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SE_EMP_LANE_0",
-            description  = "",
+            description  = "Serializer output emphasis level for JESD lane 0",
             offset       = (jesdAnalog + (4*0x013)),
             bitSize      = 6,
             bitOffset    = 2,
@@ -464,7 +464,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SE_EMP_LANE_2",
-            description  = "",
+            description  = "Serializer output emphasis level for JESD lane 2",
             offset       = (jesdAnalog + (4*0x014)),
             bitSize      = 6,
             bitOffset    = 2,
@@ -474,7 +474,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "SE_EMP_LANE_3",
-            description  = "",
+            description  = "Serializer output emphasis level for JESD lane 3",
             offset       = (jesdAnalog + (4*0x015)),
             bitSize      = 6,
             bitOffset    = 2,
@@ -484,7 +484,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "JESD_PLL_MODE",
-            description  = "",
+            description  = "JESD serializer PLL mode selection",
             offset       = (jesdAnalog + (4*0x016)),
             bitSize      = 2,
             bitOffset    = 0,
@@ -494,7 +494,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PLL_RESET",
-            description  = "",
+            description  = "JESD serializer PLL reset",
             offset       = (jesdAnalog + (4*0x017)),
             bitSize      = 1,
             bitOffset    = 6,
@@ -504,7 +504,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FOVR_CHA",
-            description  = "",
+            description  = "Fast overrange detection for channel A",
             offset       = (jesdAnalog + (4*0x01A)),
             bitSize      = 1,
             bitOffset    = 1,
@@ -514,7 +514,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "JESD_SWING",
-            description  = "",
+            description  = "JESD output swing amplitude level",
             offset       = (jesdAnalog + (4*0x01B)),
             bitSize      = 3,
             bitOffset    = 5,
@@ -524,7 +524,7 @@ class Ads54J60Channel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FOVR_CHA_EN",
-            description  = "",
+            description  = "Fast overrange detection enable for channel A",
             offset       = (jesdAnalog + (4*0x01B)),
             bitSize      = 1,
             bitOffset    = 3,

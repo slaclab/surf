@@ -64,6 +64,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxClkFreqRaw",
+            description  = "Raw TX clock frequency counter value",
             offset       = 0x108,
             bitSize      = 32,
             bitOffset    = 0,
@@ -74,6 +75,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "TxClkFreq",
+            description  = "TX clock frequency in MHz",
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.TxClkFreqRaw],
@@ -83,6 +85,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw",
+            description  = "Raw RX clock frequency counter value",
             offset       = 0x10C,
             bitSize      = 32,
             bitOffset    = 0,
@@ -93,6 +96,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RxClkFreq",
+            description  = "RX clock frequency in MHz",
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.RxClkFreqRaw],
@@ -141,6 +145,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RefClkFreqRaw",
+            description  = "Raw reference clock frequency counter value",
             offset       = 0x120,
             bitSize      = 32,
             bitOffset    = 0,
@@ -151,6 +156,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RefClkFreq",
+            description  = "Reference clock frequency in MHz",
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.RefClkFreqRaw],
@@ -172,6 +178,7 @@ class GtRxAlignCheck(pr.Device):
         for i in range(40):
             self.add(pr.LinkVariable(
                 name = f'PhaseHist[{i}]',
+                description = f'Timing frame phase histogram bin {i}',
                 guiGroup='Hist',
                 disp = '{:d}',
                 mode = 'RO',

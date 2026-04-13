@@ -21,6 +21,7 @@ class Ads54J54(pr.Device):
         rogue.Version.minVersion('6.6.0')
         self.add(pr.RemoteVariable(
             name        = 'Reg',
+            description = 'Array of all device registers for bulk initialization via YAML',
             offset      = 0x00,
             mode        = 'RW',
             numValues   = 0x6D,

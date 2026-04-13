@@ -33,6 +33,7 @@ class AxiStreamMonChannel(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -173,6 +174,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TDATA_BYTES_C',
+            description  = 'AXI stream TDATA width in bytes (from generic AXIS_CONFIG_G)',
             offset       = 0x0,
             bitSize      = 8,
             bitOffset    = 24,
@@ -184,6 +186,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TDEST_BITS_C',
+            description  = 'Number of TDEST bits in the AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 4,
             bitOffset    = 20,
@@ -195,6 +198,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TUSER_BITS_C',
+            description  = 'Number of TUSER bits in the AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 4,
             bitOffset    = 16,
@@ -206,6 +210,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TID_BITS_C',
+            description  = 'Number of TID bits in the AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 4,
             bitOffset    = 12,
@@ -216,6 +221,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TKEEP_MODE_C',
+            description  = 'TKEEP mode encoding from AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 4,
             bitOffset    = 8,
@@ -233,6 +239,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TUSER_MODE_C',
+            description  = 'TUSER mode encoding from AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 4,
             bitOffset    = 4,
@@ -250,6 +257,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CONFIG_G_TSTRB_EN_C',
+            description  = 'Indicates whether TSTRB is enabled in the AXI stream configuration generic',
             offset       = 0x0,
             bitSize      = 1,
             bitOffset    = 1,
@@ -261,6 +269,7 @@ class AxiStreamMonAxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'COMMON_CLK_G',
+            description  = 'Indicates whether the monitor uses a common clock (from COMMON_CLK_G generic)',
             offset       = 0x0,
             bitSize      = 1,
             bitOffset    = 0,

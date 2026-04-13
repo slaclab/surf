@@ -35,6 +35,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'DeviceRevisionUsed',
+            description  = 'CoaXPress standard revision implemented by this device (formatted string)',
             linkedGet    = lambda: f'v{(self.Revision.value()>>16)&0xFFFF}.{self.Revision.value()&0xFFFF}',
             dependencies = [self.Revision],
         ))
@@ -93,6 +94,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'XMLVersion',
+            description  = 'XML file version for the selected manifest (formatted string)',
             linkedGet    = lambda: f'v{self.XMLMajorVersion.value()}.{self.XMLMinorVersion.value()}.{self.XMLSubMinorVersion.value()}',
             dependencies = [self.XMLMajorVersion,self.XMLMinorVersion,self.XMLSubMinorVersion],
         ))
@@ -135,6 +137,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'SchemaVersion',
+            description  = 'XML schema version for the selected manifest (formatted string)',
             linkedGet    = lambda: f'v{self.SchemaMajorVersion.value()}.{self.SchemaMinorVersion.value()}.{self.SchemaSubMinorVersion.value()}',
             dependencies = [self.SchemaMajorVersion,self.SchemaMinorVersion,self.SchemaSubMinorVersion],
         ))
@@ -253,7 +256,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'WidthAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap image width address register',
             offset       = 0x00003000,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -261,7 +264,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'HeightAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap image height address register',
             offset       = 0x00003004,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -269,7 +272,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquisitionModeAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition mode address register',
             offset       = 0x00003008,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -277,7 +280,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquistionStartAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition start address register',
             offset       = 0x0000300C,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -285,7 +288,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AcquistionStopAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap acquisition stop address register',
             offset       = 0x00003010,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -293,7 +296,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PixelFormatAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap pixel format address register',
             offset       = 0x00003014,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -301,7 +304,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DeviceTapGeometryAddress',
-            description  = '',
+            description  = 'CoaXPress bootstrap device tap geometry address register',
             offset       = 0x00003018,
             base         = pr.UIntBE,
             mode         = 'RO',
@@ -625,6 +628,7 @@ class Bootstrap(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'VersionUsed',
+            description  = 'CoaXPress standard version negotiated during discovery (formatted string)',
             linkedGet    = lambda: f'v{self.MajorVersionUsed.value()}.{self.MinorVersionUsed.value()}',
             dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
         ))

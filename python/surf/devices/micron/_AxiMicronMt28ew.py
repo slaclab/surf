@@ -41,6 +41,7 @@ class AxiMicronMt28ew(pr.Device):
         ##############################
         self.add(pr.RemoteVariable(
             name         = 'DataWrBus',
+            description  = 'Flash write data bus',
             offset       = 0x0,
             base         = pr.UInt,
             bitSize      = 32,
@@ -54,6 +55,7 @@ class AxiMicronMt28ew(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AddrBus',
+            description  = 'Flash address bus for read/write operations',
             offset       = 0x4,
             base         = pr.UInt,
             bitSize      = 32,
@@ -67,6 +69,7 @@ class AxiMicronMt28ew(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DataRdBus',
+            description  = 'Flash read data bus output',
             offset       = 0x8,
             base         = pr.UInt,
             bitSize      = 32,
@@ -80,6 +83,7 @@ class AxiMicronMt28ew(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TranSize',
+            description  = 'Number of words per burst transaction',
             offset       = 0x80,
             base         = pr.UInt,
             bitSize      = 32,
@@ -93,6 +97,7 @@ class AxiMicronMt28ew(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'BurstTran',
+            description  = 'Burst transaction start address and trigger',
             offset       = 0x84,
             base         = pr.UInt,
             bitSize      = 32,
@@ -106,6 +111,7 @@ class AxiMicronMt28ew(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'BurstData',
+            description  = 'Burst data buffer (256 x 32-bit words) for block flash transfers',
             offset       = 0x400,
             base         = pr.UInt,
             bitSize      = 32*256,

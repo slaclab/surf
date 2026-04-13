@@ -46,6 +46,7 @@ class Si570(pr.Device):
 
         self.add(pr.LinkVariable(
             name = 'N1_RAW',
+            description = 'Raw N1 divider register value before decoding',
             dependencies = [self.Config[7], self.Config[8]],
             hidden = True,
             linkedGet = n1_raw_get,
