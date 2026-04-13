@@ -37,6 +37,7 @@ class AxiSysMonUltraScale(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -452,6 +453,7 @@ class AxiSysMonUltraScale(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "OTUpperThreshold",
+            description  = "Over-temperature upper threshold in degrees C",
             mode         = 'RW',
             units        = 'degC',
             linkedGet    = self.convTemp,
@@ -472,6 +474,7 @@ class AxiSysMonUltraScale(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "OTLowerThreshold",
+            description  = "Over-temperature lower threshold in degrees C",
             mode         = 'RW',
             units        = 'degC',
             linkedGet    = self.convTemp,

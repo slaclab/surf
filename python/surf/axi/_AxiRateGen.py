@@ -16,6 +16,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'WriteEnable',
+            description  = 'Enable AXI write transactions',
             offset       = 0x00,
             bitSize      = 1,
             base         = pr.Bool,
@@ -24,6 +25,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'ReadEnable',
+            description  = 'Enable AXI read transactions',
             offset       = 0x04,
             bitSize      = 1,
             base         = pr.Bool,
@@ -72,6 +74,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'awburst',
+            description  = 'AXI write burst type',
             offset       = 0x30,
             bitSize      = 2,
             mode         = 'RW',
@@ -85,6 +88,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'arburst',
+            description  = 'AXI read burst type',
             offset       = 0x34,
             bitSize      = 2,
             mode         = 'RW',
@@ -98,6 +102,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'awcache',
+            description  = 'AXI write cache attribute',
             offset       = 0x40,
             bitSize      = 4,
             mode         = 'RW',
@@ -117,6 +122,7 @@ class AxiRateGen(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'arcache',
+            description  = 'AXI read cache attribute',
             offset       = 0x44,
             bitSize      = 4,
             mode         = 'RW',
