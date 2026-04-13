@@ -88,7 +88,7 @@ async def code_12b14b_package_test(dut):
             )
 
         for data_in, data_k_in in MALFORMED_SMOKE_SYMBOLS:
-            encoded_data, _, _ = await package_encode(
+            encoded_data, _ = await package_encode(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,

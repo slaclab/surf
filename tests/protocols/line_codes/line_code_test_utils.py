@@ -26,6 +26,7 @@ from tests.common.regression_utils import (
 
 
 CLOCK_PERIOD_NS = 5.0
+INTEGRATION_VALID_OUT_TIMEOUT_CYCLES = 64
 
 K_SYMBOLS_8B10B = [
     0x1C, 0x3C, 0x5C, 0x7C, 0x9C, 0xBC, 0xDC, 0xFC, 0xF7, 0xFB, 0xFD, 0xFE,
@@ -190,9 +191,15 @@ async def drive_integration_symbol(dut, *, data_in: int, data_k_in: int) -> None
     await RisingEdge(dut.clk)
     dut.validIn.value = 0
 
-    while int(dut.validOut.value) != 1:
+    for _ in range(INTEGRATION_VALID_OUT_TIMEOUT_CYCLES):
+        if int(dut.validOut.value) == 1:
+            return
         await RisingEdge(dut.clk)
         await Timer(1, unit="ns")
+
+    raise AssertionError(
+        f"Timed out waiting for validOut after {INTEGRATION_VALID_OUT_TIMEOUT_CYCLES} cycles"
+    )
 
 
 def assert_integration_round_trip(dut, *, data_in: int, data_k_in: int) -> None:
