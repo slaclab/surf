@@ -144,7 +144,7 @@ def hdl_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
     }
 
 
-def _build_vhdl_sources() -> dict[str, list[str]]:
+def build_vhdl_sources() -> dict[str, list[str]]:
     surf_dir = BUILD_SRC_ROOT / "surf"
     ruckus_dir = BUILD_SRC_ROOT / "ruckus"
 
@@ -159,7 +159,7 @@ def _build_vhdl_sources() -> dict[str, list[str]]:
     }
 
 
-def _merge_vhdl_sources(
+def merge_vhdl_sources(
     base_sources: dict[str, list[str]],
     extra_sources: dict[str, list[str]] | None,
 ) -> dict[str, list[str]]:
@@ -282,7 +282,7 @@ def run_surf_vhdl_test(
         toplevel=toplevel,
         module=_module_name_from_test_file(test_file),
         toplevel_lang="vhdl",
-        vhdl_sources=_merge_vhdl_sources(_build_vhdl_sources(), extra_vhdl_sources),
+        vhdl_sources=merge_vhdl_sources(build_vhdl_sources(), extra_vhdl_sources),
         parameters=parameters,
         sim_build=sim_build_key if sim_build_key is not None else _sim_build_path(test_file, sim_build_parameters),
         extra_env=simulator_env,

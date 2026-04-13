@@ -38,6 +38,7 @@ class Adc32Rf45Channel(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'OffsetCorrector_index_0x{index:03X}',
+                description  = "Offset corrector page initialization register",
                 offset       = (offsetCorrector + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",
@@ -171,6 +172,7 @@ class Adc32Rf45Channel(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'MainDigital_index_0x{index:03X}',
+                description  = "Main digital page initialization register",
                 offset       = (mainDigital + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",
@@ -213,6 +215,7 @@ class Adc32Rf45Channel(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'JesdDigital_index_0x{index:03X}',
+                description  = "JESD digital page initialization register",
                 offset       = (jesdDigital + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",

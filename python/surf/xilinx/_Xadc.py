@@ -47,6 +47,7 @@ class Xadc(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -319,17 +320,12 @@ class Xadc(pr.Device):
                 bitOffset    =  4,
                 base         = pr.UInt,
                 mode         = "RO",
-                description = """
-                The results of the conversions on auxiliary analog input
-                channels are stored in this register. The data is MSB
-                justified in the 16-bit register (Read Only). The 12 MSBs correspond to
-                the transfer function shown in Figure 2-1, page 24 or
-                Figure 2-2, page 25 of UG480 (v1.2) depending on analog input mode
-                settings.""",
+                description  = f'Raw ADC result for auxiliary analog input channel {ch}',
             ))
 
             self.add(pr.LinkVariable(
                 name=f'Aux[{ch}]',
+                description=f'Auxiliary analog input channel {ch} voltage in volts',
                 units='V',
                 disp='{:1.3f}',
                 mode='RO',
@@ -493,9 +489,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             base        = pr.UInt,
             mode        = 'RO',
-            description = """
-                The calibration coefficient for the supply sensor offset
-                using ADC A is stored at this location (Read Only).""",
+            description = 'Calibration coefficient for supply sensor offset using ADC A',
         ))
 
         self.add(pr.RemoteVariable(
@@ -505,9 +499,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             base        = pr.UInt,
             mode        = 'RO',
-            description = """
-                The calibration coefficient for the ADC A offset is stored at
-                this location (Read Only).""",
+            description = 'Calibration coefficient for ADC A offset error',
         ))
 
         self.add(pr.RemoteVariable(
@@ -517,9 +509,7 @@ class Xadc(pr.Device):
             bitOffset   = 4,
             base        = pr.UInt,
             mode        = 'RO',
-            description = """
-                The calibration coefficient for the ADC A gain error is
-                stored at this location (Read Only).""",
+            description = 'Calibration coefficient for ADC A gain error',
         ))
 
         self.add(pr.RemoteVariable(
@@ -529,9 +519,7 @@ class Xadc(pr.Device):
             bitOffset   = 11,
             base        = pr.Bool,
             mode        = 'RO',
-            description = """
-                A logic 1 indicates that the JTAG_AxiXadc BitGen option has
-                been used to disable all JTAG access. See DRP JTAG Interface for more information.""",
+            description = 'JTAG disabled flag: 1 indicates JTAG access has been disabled by BitGen option',
         ))
 
         self.add(pr.RemoteVariable(
@@ -541,10 +529,7 @@ class Xadc(pr.Device):
             bitOffset   = 10,
             base        = pr.Bool,
             mode        = 'RO',
-            description = """
-                A logic 1 indicates that the JTAG_AxiXadc BitGen option has
-                been used to disable all JTAG access. See DRP JTAG Interface
-                for more information.""",
+            description = 'JTAG read-only flag: 1 indicates JTAG read-only access via BitGen option',
         ))
 
         self.add(pr.RemoteVariable(
@@ -554,16 +539,13 @@ class Xadc(pr.Device):
             bitOffset   = 9,
             base        = pr.UInt,
             mode        = 'RO',
-            description = """
-                When this bit is a logic 1, the ADC is using the internal
-                voltage reference. When this bit is a logic 0, the external
-                reference is being used.""",
+            description = 'Voltage reference select: 1=internal reference, 0=external reference',
         ))
 
 
         addPair(
             name         = 'OT_Limit',
-            description  = '',
+            description  = 'Over-temperature alarm threshold setting in degrees C',
             offset       = 0x34c,
             bitSize      = 12,
             bitOffset    = 4,

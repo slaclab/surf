@@ -180,7 +180,7 @@ class Pgp2fcAxi(pr.Device):
             bitOffset   = 0,
             mode        = "RO",
             base        = pr.UInt,
-            description = "",
+            description = "Sideband data received from remote link",
         ))
 
         countVars = [
@@ -204,6 +204,7 @@ class Pgp2fcAxi(pr.Device):
         for offset, idx in enumerate(countVars):
             self.add(pr.RemoteVariable(
                 name        = idx[0],
+                description = f"PGP link status/error counter: {idx[0]}",
                 offset      = ((offset*4)+0x28),
                 disp        = '{:d}',
                 bitSize     = idx[1],
@@ -215,6 +216,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "TxFcSentCount",
+            description = "Count of flow control words transmitted",
             offset      = 0x70,
             disp        = '{:d}',
             bitSize     = errorCountBits,
@@ -226,6 +228,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "RxFcRecvCount",
+            description = "Count of flow control words received",
             offset      = 0x74,
             disp        = '{:d}',
             bitSize     = errorCountBits,
@@ -237,6 +240,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "RxFcErrCount",
+            description = "Count of flow control receive errors",
             offset      = 0x78,
             disp        = '{:d}',
             bitSize     = errorCountBits,
@@ -248,6 +252,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "RxRemLinkReadyCount",
+            description = "Count of remote link ready transitions",
             offset      = 0x7C,
             disp        = '{:d}',
             bitSize     = errorCountBits,
@@ -259,6 +264,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "ProtocolErrorCount",
+#             description = "Count of protocol errors detected",
 #             offset      = 0xB0,
 #             disp        = '{:d}',
 #             bitSize     = errorCountBits,
@@ -270,6 +276,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteCommand(
 #             name        = 'AlignReset',
+#             description = "Reset the alignment logic",
 #             offset      = 0xA0,
 #             bitSize     = 1,
 #             bitOffset   = 0,
@@ -278,6 +285,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "AlignOverride",
+#             description = "Override the automatic alignment",
 #             offset      = 0xA0,
 #             bitSize     = 1,
 #             bitOffset   = 1,
@@ -287,6 +295,7 @@ class Pgp2fcAxi(pr.Device):
 
         # self.add(pr.RemoteVariable(
         #     name        = "AlignSlide",
+        #     description = "Trigger a single alignment slide",
         #     offset      = 0xA4,
         #     bitSize     = 1,
         #     bitOffset   = 0,
@@ -296,6 +305,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteCommand(
 #             name        = 'AlignSlide',
+#             description = "Trigger a single alignment slide",
 #             offset      = 0xA4,
 #             bitSize     = 1,
 #             bitOffset   = 0,
@@ -304,6 +314,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "Aligned",
+#             description = "Alignment achieved status",
 #             offset      = 0xA8,
 #             bitSize     = 1,
 #             bitOffset   = 0,
@@ -313,6 +324,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "AlignSlideDone",
+#             description = "Alignment slide operation complete",
 #             offset      = 0xA8,
 #             bitSize     = 1,
 #             bitOffset   = 1,
@@ -322,6 +334,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "AlignPhase",
+#             description = "Current alignment phase",
 #             offset      = 0xA8,
 #             bitSize     = 1,
 #             bitOffset   = 2,
@@ -331,6 +344,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteVariable(
 #             name        = "AlignPhaseDone",
+#             description = "Alignment phase operation complete",
 #             offset      = 0xA8,
 #             bitSize     = 1,
 #             bitOffset   = 3,
@@ -340,6 +354,7 @@ class Pgp2fcAxi(pr.Device):
 
         # self.add(pr.RemoteVariable(
         #     name        = "AlignPhaseReq",
+        #     description = "Request an alignment phase",
         #     offset      = 0xAC,
         #     bitSize     = 1,
         #     bitOffset   = 0,
@@ -349,6 +364,7 @@ class Pgp2fcAxi(pr.Device):
 
 #         self.add(pr.RemoteCommand(
 #             name        = 'AlignPhaseReq',
+#             description = "Request an alignment phase",
 #             offset      = 0xAC,
 #             bitSize     = 1,
 #             bitOffset   = 0,
@@ -357,6 +373,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = 'CountReset',
+            description = "Reset all status and error counters",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 0,
@@ -365,6 +382,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = "ResetRx",
+            description = "Reset the PGP RX path",
             offset      = 0x04,
             bitSize     = 1,
             bitOffset   = 0,
@@ -373,6 +391,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = 'ResetTx',
+            description = "Reset the PGP TX path",
             offset      = 0x04,
             bitSize     = 1,
             bitOffset   = 1,
@@ -380,16 +399,18 @@ class Pgp2fcAxi(pr.Device):
         ))
 
         self.add(pr.RemoteCommand(
-            name = 'ResetGt',
-            offset = 0x04,
-            bitSize = 1,
-            bitOffset =2,
-            function = pr.BaseCommand.toggle,
+            name        = 'ResetGt',
+            description = "Reset the GT transceiver",
+            offset      = 0x04,
+            bitSize     = 1,
+            bitOffset   = 2,
+            function    = pr.BaseCommand.toggle,
         ))
 
         if writeEn:
             self.add(pr.RemoteCommand(
                 name        = "Flush",
+                description = "Flush the PGP TX buffer",
                 offset      = 0x08,
                 bitSize     = 1,
                 bitOffset   = 0,
@@ -399,6 +420,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw",
+            description  = "Raw RX clock frequency in Hz",
             offset       = 0x64,
             bitSize      = 32,
             mode         = "RO",
@@ -409,6 +431,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxClkFreqRaw",
+            description  = "Raw TX clock frequency in Hz",
             offset       = 0x68,
             bitSize      = 32,
             mode         = "RO",
@@ -422,6 +445,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RxClkFreq",
+            description  = "RX clock frequency in MHz",
             mode         = "RO",
             units        = "MHz",
             disp         = '{:0.6f}',
@@ -431,6 +455,7 @@ class Pgp2fcAxi(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "TxClkFreq",
+            description  = "TX clock frequency in MHz",
             mode         = "RO",
             units        = "MHz",
             disp         = '{:0.6f}',

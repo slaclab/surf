@@ -177,7 +177,16 @@ begin
                      v.rdHold.rresp := ibRdM.rresp;
                      v.rdHold.rlast := ibRdM.rlast;
                      v.rdHold.rvalid := '1';
-                     v.rdCount       := (others => '0');
+
+                     -- Queue slice 0 immediately while retaining the full
+                     -- beat so the remaining narrow slices can drain from
+                     -- rdHold without an extra bubble.
+                     v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := ibRdM.rdata((SLV_BYTES_C*8)-1 downto 0);
+                     v.rdSlave.rid    := ibRdM.rid;
+                     v.rdSlave.rresp  := ibRdM.rresp;
+                     v.rdSlave.rvalid := '1';
+                     v.rdSlave.rlast  := '0';
+                     v.rdCount        := toSlv(1, v.rdCount'length);
                   end if;
                else
                   v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := r.rdHold.rdata((SLV_BYTES_C*8*rdIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdIdx));

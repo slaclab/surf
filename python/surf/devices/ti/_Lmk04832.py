@@ -97,7 +97,7 @@ class Lmk04832(ti.Lmk048Base):
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x016D',
-            description  = '',
+            description  = 'LMK04832 register at address 0x016D',
             offset       = (0x016D << 2),
             bitSize      = 8,
             mode         = 'RW',

@@ -23,29 +23,34 @@ class Gtye4Common(pr.Device):
             offset=0x0008 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG0'))
+            name='QPLL0_CFG0',
+            description='QPLL0 configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0009 << 2,
             bitSize=16,
             mode='RW',
-            name='COMMON_CFG0'))
+            name='COMMON_CFG0',
+            description='Common block configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x000B << 2,
             bitSize=16,
             mode='RW',
-            name='RSVD_ATTR0'))
+            name='RSVD_ATTR0',
+            description='Reserved attribute register 0'))
 
         self.add(pr.RemoteVariable(
             offset = 0x000D << 2,
             bitSize=16,
-            name='PPF0_CFG'))
+            name='PPF0_CFG',
+            description='QPLL0 post-PLL filter configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x000E << 2,
             bitSize=1,
             name='QPLL0CLKOUT_RATE',
+            description='QPLL0 clock output rate selection (HALF or FULL)',
             enum={
                 0: 'HALF',
                 1: 'FULL'}))
@@ -54,51 +59,59 @@ class Gtye4Common(pr.Device):
             offset=0x0010 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG1'))
+            name='QPLL0_CFG1',
+            description='QPLL0 configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0011 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG2'))
+            name='QPLL0_CFG2',
+            description='QPLL0 configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0012 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_LOCK_CFG'))
+            name='QPLL0_LOCK_CFG',
+            description='QPLL0 lock detector configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x0013 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_INIT_CFG0'))
+            name='QPLL0_INIT_CFG0',
+            description='QPLL0 initialization configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0014 << 2,
             bitSize=8,
             bitOffset=8,
             mode='RW',
-            name='QPLL0_INIT_CFG1'))
+            name='QPLL0_INIT_CFG1',
+            description='QPLL0 initialization configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0014 << 2,
             bitSize=8,
             enum = __FBDIV_ENUM,
             mode='RW',
-            name='QPLL0_FBDIV'))
+            name='QPLL0_FBDIV',
+            description='QPLL0 feedback divider value'))
 
         self.add(pr.RemoteVariable(
             offset=0x0015 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG3'))
+            name='QPLL0_CFG3',
+            description='QPLL0 configuration register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x0016 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL0_CP'))
+            name='QPLL0_CP',
+            description='QPLL0 charge pump current control'))
 
         self.add(pr.RemoteVariable(
             offset=0x0018 << 2,
@@ -106,55 +119,64 @@ class Gtye4Common(pr.Device):
             bitOffset=7,
             enum = __REFCLK_DIV_ENUM,
             mode='RW',
-            name='QPLL0_REFCLK_DIV'))
+            name='QPLL0_REFCLK_DIV',
+            description='QPLL0 reference clock input divider'))
 
         self.add(pr.RemoteVariable(
             offset = 0x0018 << 2,
             bitSize=2,
             bitOffset=3,
-            name='QPLL0_IPS_REFCLK_SEL'))
+            name='QPLL0_IPS_REFCLK_SEL',
+            description='QPLL0 in-phase separator reference clock selection'))
 
         self.add(pr.RemoteVariable(
             offset = 0x0018 << 2,
             bitSize=1,
             bitOffset=0,
-            name='QPLL0_IPS_EN'))
+            name='QPLL0_IPS_EN',
+            description='QPLL0 in-phase separator enable'))
 
         self.add(pr.RemoteVariable(
             offset=0x0019 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL0_LPF'))
+            name='QPLL0_LPF',
+            description='QPLL0 loop filter configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x001A << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG1_G3'))
+            name='QPLL0_CFG1_G3',
+            description='QPLL0 configuration register 1 for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x001B << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG2_G3'))
+            name='QPLL0_CFG2_G3',
+            description='QPLL0 configuration register 2 for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x001C << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL0_LPF_G3'))
+            name='QPLL0_LPF_G3',
+            description='QPLL0 loop filter configuration for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x001D << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_LOCK_CFG_G3'))
+            name='QPLL0_LOCK_CFG_G3',
+            description='QPLL0 lock detector configuration for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x001E << 2,
             bitSize=16,
             mode='RW',
-            name='RSVD_ATTR0'))
+            name='RSVD_ATTR0',
+            description='Reserved attribute register (offset 0x001E)'))
 
         self.add(pr.RemoteVariable(
             offset=0x001F << 2,
@@ -162,174 +184,203 @@ class Gtye4Common(pr.Device):
             bitOffset=8,
             enum = __FBDIV_ENUM,
             mode='RW',
-            name='QPLL0_FBDIV_G3'))
+            name='QPLL0_FBDIV_G3',
+            description='QPLL0 feedback divider value for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x001F << 2,
             bitSize=1,
             bitOffset=3,
-            name='QPLL0_RATE_SW_USE_DRP'))
+            name='QPLL0_RATE_SW_USE_DRP',
+            description='QPLL0 rate switching via DRP enable'))
 
         self.add(pr.RemoteVariable(
             offset=0x001F <<2,
             bitSize=1,
             bitOffset=2,
-            name='QPLL0_PCIE_EN'))
+            name='QPLL0_PCIE_EN',
+            description='QPLL0 PCIe mode enable'))
 
         self.add(pr.RemoteVariable(
             offset=0x001F << 2,
             bitSize=2,
             bitOffset=0,
             mode='RW',
-            name='RXRECCLKOUT0_SEL'))
+            name='RXRECCLKOUT0_SEL',
+            description='QPLL0 recovered clock output selection'))
 
         self.add(pr.RemoteVariable(
             offset=0x0020 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_SDM_CFG0'))
+            name='QPLL0_SDM_CFG0',
+            description='QPLL0 sigma-delta modulator configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0021 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_SDM_CFG1'))
+            name='QPLL0_SDM_CFG1',
+            description='QPLL0 sigma-delta modulator configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0022 << 2,
             bitSize=16,
             mode='RW',
-            name='SDM0INITSEED0_0'))
+            name='SDM0INITSEED0_0',
+            description='SDM0 initial seed value bits [15:0]'))
 
         self.add(pr.RemoteVariable(
             offset=0x0023 << 2,
             bitSize=8,
             mode='RW',
-            name='SDM0INITSEED0_1'))
+            name='SDM0INITSEED0_1',
+            description='SDM0 initial seed value bits [23:16]'))
 
         self.add(pr.RemoteVariable(
             offset=0x0024 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_SDM_CFG2'))
+            name='QPLL0_SDM_CFG2',
+            description='QPLL0 sigma-delta modulator configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0025 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL0_CP_G3'))
+            name='QPLL0_CP_G3',
+            description='QPLL0 charge pump current control for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x002D << 2,
             bitSize=16,
-            name='RSVD_ATTR1'))
+            name='RSVD_ATTR1',
+            description='Reserved attribute register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0030 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL0_CFG4'))
+            name='QPLL0_CFG4',
+            description='QPLL0 configuration register 4'))
 
         self.add(pr.RemoteVariable(
             offset=0x0048 << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG0'))
+            name='UB_CFG0',
+            description='Microblaze configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x004C << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG1'))
+            name='UB_CFG1',
+            description='Microblaze configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0050 << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG2'))
+            name='UB_CFG2',
+            description='Microblaze configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0054 << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG3'))
+            name='UB_CFG3',
+            description='Microblaze configuration register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x0058 << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG4'))
+            name='UB_CFG4',
+            description='Microblaze configuration register 4'))
 
         self.add(pr.RemoteVariable(
             offset=0x005C << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG5'))
+            name='UB_CFG5',
+            description='Microblaze configuration register 5'))
 
         self.add(pr.RemoteVariable(
             offset=0x005F << 2,
             bitSize = 16,
             mode = 'RW',
-            name='UB_CFG6'))
+            name='UB_CFG6',
+            description='Microblaze configuration register 6'))
 
         self.add(pr.RemoteVariable(
             offset=0x0081 << 2,
             bitSize=16,
             mode='RW',
-            name='BIAS_CFG0'))
+            name='BIAS_CFG0',
+            description='Common block bias configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0082 << 2,
             bitSize=16,
             mode='RW',
-            name='BIAS_CFG1'))
+            name='BIAS_CFG1',
+            description='Common block bias configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0083 << 2,
             bitSize=16,
             mode='RW',
-            name='BIAS_CFG2'))
+            name='BIAS_CFG2',
+            description='Common block bias configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0084 << 2,
             bitSize=16,
             mode='RW',
-            name='BIAS_CFG3'))
+            name='BIAS_CFG3',
+            description='Common block bias configuration register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x0086 << 2,
             bitSize=16,
             mode='RW',
-            name='BIAS_CFG4'))
+            name='BIAS_CFG4',
+            description='Common block bias configuration register 4'))
 
         self.add(pr.RemoteVariable(
             offset=0x0088 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG0'))
+            name='QPLL1_CFG0',
+            description='QPLL1 configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0089 << 2,
             bitSize=16,
             mode='RW',
-            name='COMMON_CFG1'))
+            name='COMMON_CFG1',
+            description='Common block configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x008B << 2,
             bitSize=16,
             mode='RW',
-            name='POR_CFG'))
+            name='POR_CFG',
+            description='Power-on reset configuration'))
 
         self.add(pr.RemoteVariable(
             offset = 0x008D << 2,
             bitSize=16,
-            name = 'PPF1_CFG'))
+            name = 'PPF1_CFG',
+            description='QPLL1 post-PLL filter configuration'))
 
         self.add(pr.RemoteVariable(
             offset = 0x008E << 2,
             bitSize=1,
             bitOffset=0,
             name='QPLL1CLKOUT_RATE',
+            description='QPLL1 clock output rate selection (HALF or FULL)',
             enum = {
                 0: 'HALF',
                 1: 'FULL'}))
@@ -337,57 +388,66 @@ class Gtye4Common(pr.Device):
         self.add(pr.RemoteVariable(
             offset = 0x008F << 2,
             bitSize = 16,
-            name='BIAS_CFG_RSVD'))
+            name='BIAS_CFG_RSVD',
+            description='Common block bias reserved configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x0090 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG1'))
+            name='QPLL1_CFG1',
+            description='QPLL1 configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0091 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG2'))
+            name='QPLL1_CFG2',
+            description='QPLL1 configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0092 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_LOCK_CFG'))
+            name='QPLL1_LOCK_CFG',
+            description='QPLL1 lock detector configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x0093 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_INIT_CFG0'))
+            name='QPLL1_INIT_CFG0',
+            description='QPLL1 initialization configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x0094 << 2,
             bitSize=8,
             bitOffset=8,
             mode='RW',
-            name='QPLL1_INIT_CFG1'))
+            name='QPLL1_INIT_CFG1',
+            description='QPLL1 initialization configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0094 << 2,
             bitSize=8,
             enum = __FBDIV_ENUM,
             mode='RW',
-            name='QPLL1_FBDIV_G'))
+            name='QPLL1_FBDIV_G',
+            description='QPLL1 feedback divider value'))
 
         self.add(pr.RemoteVariable(
             offset=0x0095 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG3'))
+            name='QPLL1_CFG3',
+            description='QPLL1 configuration register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x0096 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL1_CP'))
+            name='QPLL1_CP',
+            description='QPLL1 charge pump current control'))
 
         self.add(pr.RemoteVariable(
             offset=0x0098 << 2,
@@ -395,69 +455,80 @@ class Gtye4Common(pr.Device):
             bitOffset=7,
             enum = __REFCLK_DIV_ENUM,
             mode='RW',
-            name='QPLL1_REFCLK_DIV'))
+            name='QPLL1_REFCLK_DIV',
+            description='QPLL1 reference clock input divider'))
 
         self.add(pr.RemoteVariable(
             offset = 0x0098 << 2,
             bitSize = 3,
             bitOffset = 3,
-            name = 'QPLL1_IPS_REFCLK_SEL'))
+            name = 'QPLL1_IPS_REFCLK_SEL',
+            description='QPLL1 in-phase separator reference clock selection'))
 
         self.add(pr.RemoteVariable(
             offset=0x0098 << 2,
             bitSize=1,
             bitOffset=12,
             mode='RW',
-            name='SARC_EN'))
+            name='SARC_EN',
+            description='Spread-spectrum aware reference clock enable'))
 
         self.add(pr.RemoteVariable(
             offset = 0x0098 << 2,
             bitSize = 1,
             bitOffset = 6,
-            name = 'QPLL1_IPS_EN'))
+            name = 'QPLL1_IPS_EN',
+            description='QPLL1 in-phase separator enable'))
 
         self.add(pr.RemoteVariable(
             offset=0x0098 << 2,
             bitSize=1,
             bitOffset=13,
             mode='RW',
-            name='SARC_SEL'))
+            name='SARC_SEL',
+            description='Spread-spectrum aware reference clock selection'))
 
         self.add(pr.RemoteVariable(
             offset=0x0099 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL1_LPF'))
+            name='QPLL1_LPF',
+            description='QPLL1 loop filter configuration'))
 
         self.add(pr.RemoteVariable(
             offset=0x009A << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG1_G3'))
+            name='QPLL1_CFG1_G3',
+            description='QPLL1 configuration register 1 for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x009B << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG2_G3'))
+            name='QPLL1_CFG2_G3',
+            description='QPLL1 configuration register 2 for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x009C << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL1_LPF_G3'))
+            name='QPLL1_LPF_G3',
+            description='QPLL1 loop filter configuration for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x009D << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_LOCK_CFG_G3'))
+            name='QPLL1_LOCK_CFG_G3',
+            description='QPLL1 lock detector configuration for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x009E << 2,
             bitSize=16,
             mode='RW',
-            name='RSVD_ATTR2'))
+            name='RSVD_ATTR2',
+            description='Reserved attribute register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
@@ -465,73 +536,85 @@ class Gtye4Common(pr.Device):
             bitOffset=8,
             mode='RW',
             name='QPLL1_FBDIV_G3',
-            enum = __FBDIV_ENUM))
+            enum = __FBDIV_ENUM,
+            description='QPLL1 feedback divider value for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset = 0x009F << 2,
             bitSize = 1,
             bitOffset = 3,
-            name='QPLL1_RATE_SW_USE_DRP'))
+            name='QPLL1_RATE_SW_USE_DRP',
+            description='QPLL1 rate switching via DRP enable'))
 
         self.add(pr.RemoteVariable(
             offset = 0x009F << 2,
             bitSize = 1,
             bitOffset = 2,
-            name='QPLL1_PCI_EN'))
+            name='QPLL1_PCI_EN',
+            description='QPLL1 PCIe mode enable'))
 
         self.add(pr.RemoteVariable(
             offset=0x009F << 2,
             bitSize=2,
             mode='RW',
-            name='RXRECCLKOUT1_SEL'))
+            name='RXRECCLKOUT1_SEL',
+            description='QPLL1 recovered clock output selection'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A0 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_SDM_CFG0'))
+            name='QPLL1_SDM_CFG0',
+            description='QPLL1 sigma-delta modulator configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A1 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_SDM_CFG1'))
+            name='QPLL1_SDM_CFG1',
+            description='QPLL1 sigma-delta modulator configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A2 << 2,
             bitSize=16,
             mode='RW',
-            name='SDM1INITSEED0_0'))
+            name='SDM1INITSEED0_0',
+            description='SDM1 initial seed value bits [15:0]'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A3 << 2,
             bitSize=9,
             mode='RW',
-            name='SDM1INITSEED0_1'))
+            name='SDM1INITSEED0_1',
+            description='SDM1 initial seed value bits [23:16]'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A4 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_SDM_CFG2'))
+            name='QPLL1_SDM_CFG2',
+            description='QPLL1 sigma-delta modulator configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x00A5 << 2,
             bitSize=10,
             mode='RW',
-            name='QPLL1_CP_G3'))
+            name='QPLL1_CP_G3',
+            description='QPLL1 charge pump current control for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
             offset=0x00AD << 2,
             bitSize=16,
             mode='RW',
-            name='RSVD_ATTR3'))
+            name='RSVD_ATTR3',
+            description='Reserved attribute register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x00B0 << 2,
             bitSize=16,
             mode='RW',
-            name='QPLL1_CFG4'))
+            name='QPLL1_CFG4',
+            description='QPLL1 configuration register 4'))
 
 __REFCLK_DIV_ENUM = {
     0 : '2',

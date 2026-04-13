@@ -118,7 +118,7 @@ class AxiVersion(pr.Device):
             base         = pr.UInt,
             mode         = 'RW',
             hidden       = True,
-            groups       = 'NoConfig',
+            groups       = ['NoConfig'],
         ))
 
         @self.command(hidden=True)
@@ -191,6 +191,7 @@ class AxiVersion(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'GitHashShort',
+            description  = 'Short (7-character) GIT SHA-1 hash',
             mode         = 'RO',
             dependencies = [self.GitHash],
             linkedGet    = lambda read: f'{(self.GitHash.value() >> 132):07x}' if self.GitHash.get(read=read) != 0 else 'dirty (uncommitted code)',
@@ -235,34 +236,39 @@ class AxiVersion(pr.Device):
                     return p[var.name]
 
         self.add(pr.LinkVariable(
-            name = 'ImageName',
-            mode = 'RO',
-            linkedGet = parseBuildStamp,
-            variable = self.BuildStamp))
+            name        = 'ImageName',
+            description = 'Firmware image name parsed from build stamp',
+            mode        = 'RO',
+            linkedGet   = parseBuildStamp,
+            variable    = self.BuildStamp))
 
         self.add(pr.LinkVariable(
-            name = 'BuildEnv',
-            mode = 'RO',
-            linkedGet = parseBuildStamp,
-            variable = self.BuildStamp))
+            name        = 'BuildEnv',
+            description = 'Build environment parsed from build stamp',
+            mode        = 'RO',
+            linkedGet   = parseBuildStamp,
+            variable    = self.BuildStamp))
 
         self.add(pr.LinkVariable(
-            name = 'BuildServer',
-            mode = 'RO',
-            linkedGet = parseBuildStamp,
-            variable = self.BuildStamp))
+            name        = 'BuildServer',
+            description = 'Build server hostname parsed from build stamp',
+            mode        = 'RO',
+            linkedGet   = parseBuildStamp,
+            variable    = self.BuildStamp))
 
         self.add(pr.LinkVariable(
-            name = 'BuildDate',
-            mode = 'RO',
-            linkedGet = parseBuildStamp,
-            variable = self.BuildStamp))
+            name        = 'BuildDate',
+            description = 'Firmware build date parsed from build stamp',
+            mode        = 'RO',
+            linkedGet   = parseBuildStamp,
+            variable    = self.BuildStamp))
 
         self.add(pr.LinkVariable(
-            name = 'Builder',
-            mode = 'RO',
-            linkedGet = parseBuildStamp,
-            variable = self.BuildStamp))
+            name        = 'Builder',
+            description = 'Builder username parsed from build stamp',
+            mode        = 'RO',
+            linkedGet   = parseBuildStamp,
+            variable    = self.BuildStamp))
 
         self.add(pr.LocalCommand(
             name     = 'PrintStatus',
