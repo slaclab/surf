@@ -21,6 +21,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VIN',
+            description  = 'Input voltage measurement',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -30,6 +31,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VOUT',
+            description  = 'Output voltage measurement',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -40,6 +42,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IOUT',
+            description  = 'Output current measurement',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -49,6 +52,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'TEMPERATURE[1]',
+            description  = 'Internal temperature sensor 1 measurement',
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
@@ -58,6 +62,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'TEMPERATURE[2]',
+            description  = 'Internal temperature sensor 2 measurement',
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
@@ -67,6 +72,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'DUTY_CYCLE',
+            description  = 'PWM duty cycle measurement',
             mode         = 'RO',
             units        = '%',
             disp         = '{:1.3f}',
@@ -76,6 +82,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'FREQUENCY',
+            description  = 'Switching frequency measurement',
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
@@ -85,6 +92,7 @@ class EM22xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'POUT',
+            description  = 'Output power measurement',
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',

@@ -27,6 +27,7 @@ class Ad9681Config(pr.Device):
         # AD9249 bank configuration registers
         self.add(pr.RemoteVariable(
             name        = 'ChipId',
+            description = 'ADC chip identification register',
             offset      = 0x04,
             bitSize     = 8,
             bitOffset   = 0,
@@ -35,6 +36,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChipGrade',
+            description = 'ADC speed grade identification',
             offset      = 0x08,
             bitSize     = 3,
             bitOffset   = 4,
@@ -43,6 +45,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ExternalPdwnMode',
+            description = 'Selects behavior of PDWN pin (full power down or standby)',
             offset      = 0x20,
             bitSize     = 1,
             bitOffset   = 5,
@@ -54,6 +57,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'InternalPdwnMode',
+            description = 'Sets internal power-down mode via SPI register',
             offset      = 0x20,
             bitSize     = 2,
             bitOffset   = 0,
@@ -67,6 +71,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DutyCycleStabilizer',
+            description = 'Enables the clock duty cycle stabilizer',
             offset      = 0x24,
             bitSize     = 1,
             bitOffset   = 0,
@@ -78,6 +83,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ClockDivide',
+            description = 'Input clock divide ratio selection',
             offset      = (0xb*4),
             bitSize     = 3,
             bitOffset   = 0,
@@ -86,6 +92,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChopMode',
+            description = 'Enables chop mode for offset cancellation',
             offset      = (0x0c*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -97,6 +104,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DataCh',
+            description = 'Device index mask for data channels',
             offset      = 0x05 *4,
             bitSize     = 4,
             bitOffset   = 0,
@@ -107,6 +115,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_FCO',
+            description = 'Device index mask for the frame clock output (FCO)',
             offset      = 0x05 *4,
             bitSize     = 1,
             bitOffset   = 4,
@@ -116,6 +125,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DCO',
+            description = 'Device index mask for the data clock output (DCO)',
             offset      = 0x05 * 4,
             bitSize     = 1,
             bitOffset   = 5,
@@ -125,6 +135,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserTestModeCfg',
+            description = 'Configures user-defined test pattern cycling mode',
             offset      = (0x0D*4),
             bitSize     = 2,
             bitOffset   = 6,
@@ -138,6 +149,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputTestMode',
+            description = 'Selects ADC output test pattern mode',
             offset      = (0x0D*4),
             bitSize     = 4,
             bitOffset   = 0,
@@ -161,6 +173,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OffsetAdjust',
+            description = 'Output offset adjustment in LSB steps',
             offset      = (0x10*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -168,6 +181,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputInvert',
+            description = 'Inverts the ADC output data polarity',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -176,6 +190,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputFormat',
+            description = 'Selects output data format (twos complement or offset binary)',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 0,
@@ -187,6 +202,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputDriveTerm',
+            description = 'LVDS output termination resistor selection',
             offset      = (0x15*4),
             bitSize     = 2,
             bitOffset   = 4,
@@ -200,6 +216,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DcoFcoDrive',
+            description = 'DCO/FCO output drive strength selection',
             offset      = (0x15*4),
             bitSize     = 1,
             bitOffset   = 0,
@@ -211,6 +228,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'InputClkPhaseAdj',
+            description = 'Input clock phase adjustment in clock delay steps',
             offset      = (0x16*4),
             bitSize     = 3,
             bitOffset   = 4,
@@ -219,6 +237,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputClkPhaseAdj',
+            description = 'Output clock (DCO) phase adjustment in delay steps',
             offset      = (0x16*4),
             bitSize     = 4,
             bitOffset   = 0,
@@ -227,6 +246,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DigitalFsRangeAdj',
+            description = 'Digital full-scale range adjustment for the ADC input',
             offset      = (0x18*4),
             bitSize     = 3,
             bitOffset   = 0,
@@ -243,6 +263,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Lsb',
+            description = 'User-defined test pattern 1 LSB byte',
             offset      = (0x19*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -250,6 +271,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Msb',
+            description = 'User-defined test pattern 1 MSB byte',
             offset      = (0x1A*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -257,6 +279,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Lsb',
+            description = 'User-defined test pattern 2 LSB byte',
             offset      = (0x1B*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -264,6 +287,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Msb',
+            description = 'User-defined test pattern 2 MSB byte',
             offset      = (0x1C*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -271,6 +295,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'LvdsLsbFirst',
+            description = 'Sets LVDS output bit order (LSB first when enabled)',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 7,
@@ -279,6 +304,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputMode',
+            description = 'Selects LVDS serial output mode (SDR/DDR, lane count, bit order)',
             offset      = (0x21*4),
             bitSize     = 3,
             bitOffset   = 4,
@@ -293,6 +319,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'PllLowEncodeRateMode',
+            description = 'Enables PLL low encode rate mode for slow clock operation',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 3,
@@ -301,6 +328,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'Select2xFrame',
+            description = 'Selects 2x frame rate mode for output serialization',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -309,6 +337,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputNumBits',
+            description = 'Selects ADC output word width (12 or 16 bits)',
             offset      = (0x21*4),
             bitSize     = 2,
             bitOffset   = 0,
@@ -320,6 +349,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
+            description='Transfers SPI register values to internal device shadow registers',
             offset=0x3FC,
             function=pr.BaseCommand.touchZero,
         ))
@@ -456,6 +486,7 @@ class Ad9681ReadoutManual(pr.Device):
         for i in range(channels):
             self.add(pr.LinkVariable(
                 name = f'AdcVoltage[{i}]',
+                description = f'Converted voltage for ADC channel {i}',
                 mode = 'RO',
                 disp = '{:1.9f}',
                 variable = self.AdcChannel[i],
@@ -483,6 +514,7 @@ class Ad9681ReadoutManual(pr.Device):
 
         self.add(pr.RemoteCommand(
             name='Relock',
+            description='Triggers ADC readout relock sequence',
             hidden=False,
             offset=0x70,
             bitSize=2,
@@ -639,6 +671,7 @@ class Ad9681Readout(pr.Device):
         for i in range(channels):
             self.add(pr.LinkVariable(
                 name = f'AdcVoltage[{i}]',
+                description = f'Converted voltage for ADC channel {i}',
                 mode = 'RO',
                 disp = '{:1.9f}',
                 variable = self.AdcChannel[i],
@@ -666,6 +699,7 @@ class Ad9681Readout(pr.Device):
 
         self.add(pr.RemoteCommand(
             name='Relock',
+            description='Triggers ADC readout relock sequence',
             hidden=False,
             offset=0x70,
             bitSize=2,

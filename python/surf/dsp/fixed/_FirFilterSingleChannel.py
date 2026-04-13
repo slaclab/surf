@@ -19,6 +19,7 @@ class FirFilterSingleChannel(pr.Device):
 
         self.add(pr.RemoteVariable(
             name = 'Taps',
+            description = 'FIR filter tap coefficients array (fixed-point)',
             offset = 0,
             disp = '{:0.04f}',
             bitSize = 32*numberTaps,

@@ -31,39 +31,43 @@ class HtspAxiLCtrl(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'WRITE_EN_G',
-            offset    = 0x004,
-            bitOffset = 0,
-            bitSize   = 1,
-            base      = pr.Bool,
-            mode      = 'RO',
+            name        = 'WRITE_EN_G',
+            description = 'Generic: write-enable configuration of this HTSP AXI-Lite core',
+            offset      = 0x004,
+            bitOffset   = 0,
+            bitSize     = 1,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'NUM_VC_G',
-            offset    = 0x004,
-            bitOffset = 8,
-            bitSize   = 8,
-            disp      = '{:d}',
-            mode      = 'RO',
+            name        = 'NUM_VC_G',
+            description = 'Generic: number of virtual channels configured for this HTSP link',
+            offset      = 0x004,
+            bitOffset   = 8,
+            bitSize     = 8,
+            disp        = '{:d}',
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'STATUS_CNT_WIDTH_G',
-            offset    = 0x004,
-            bitOffset = 16,
-            bitSize   = 8,
-            disp      = '{:d}',
-            mode      = 'RO',
+            name        = 'STATUS_CNT_WIDTH_G',
+            description = 'Generic: bit width of status counters in this HTSP core',
+            offset      = 0x004,
+            bitOffset   = 16,
+            bitSize     = 8,
+            disp        = '{:d}',
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name      = 'ERROR_CNT_WIDTH_G',
-            offset    = 0x004,
-            bitOffset = 24,
-            bitSize   = 8,
-            disp      = '{:d}',
-            mode      = 'RO',
+            name        = 'ERROR_CNT_WIDTH_G',
+            description = 'Generic: bit width of error counters in this HTSP core',
+            offset      = 0x004,
+            bitOffset   = 24,
+            bitSize     = 8,
+            disp        = '{:d}',
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
@@ -98,6 +102,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'HtspClkFreq',
+            description  = 'Measured HTSP clock frequency',
             mode         = 'RO',
             offset       = 0x010,
             bitSize      = 32,
@@ -108,6 +113,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'Loopback',
+            description  = 'GTX/GTH loopback mode select',
             mode         = mode,
             offset       = 0x030,
             bitSize      = 3,
@@ -116,6 +122,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxDisable',
+            description  = 'Disable the HTSP transmitter',
             mode         = mode,
             offset       = 0x030,
             bitSize      = 1,
@@ -124,6 +131,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxFlowCntlDis',
+            description  = 'Disable transmit flow control (pause frame generation)',
             mode         = mode,
             offset       = 0x030,
             bitSize      = 1,
@@ -132,6 +140,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxReset',
+            description  = 'Assert to reset the HTSP receiver',
             mode         = mode,
             offset       = 0x030,
             bitSize      = 1,
@@ -140,6 +149,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxPolarity',
+            description  = 'Receive lane polarity invert mask (one bit per lane)',
             mode         = mode,
             offset       = 0x038,
             bitSize      = 4,
@@ -148,6 +158,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxPolarity',
+            description  = 'Transmit lane polarity invert mask (one bit per lane)',
             mode         = mode,
             offset       = 0x038,
             bitSize      = 4,
@@ -156,6 +167,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxNullInterval',
+            description  = 'Number of clock cycles between transmitted null SOF words',
             mode         = mode,
             offset       = 0x03C,
             bitSize      = 32,
@@ -165,6 +177,7 @@ class HtspAxiLCtrl(pr.Device):
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name         = f'TxDiffCtrl[{i}]',
+                description  = 'Transmit differential swing control for lane {i}',
                 mode         = mode,
                 offset       = 64 + (4*i),
                 bitSize      = 5,
@@ -174,6 +187,7 @@ class HtspAxiLCtrl(pr.Device):
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name         = f'TxPreCursor[{i}]',
+                description  = 'Transmit pre-cursor emphasis control for lane {i}',
                 mode         = mode,
                 offset       = 64 + (4*i),
                 bitSize      = 5,
@@ -183,6 +197,7 @@ class HtspAxiLCtrl(pr.Device):
         for i in range(4):
             self.add(pr.RemoteVariable(
                 name         = f'TxPostCursor[{i}]',
+                description  = 'Transmit post-cursor emphasis control for lane {i}',
                 mode         = mode,
                 offset       = 64 + (4*i),
                 bitSize      = 5,
@@ -245,6 +260,7 @@ class HtspAxiLCtrl(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EtherType',
+            description  = 'Ethernet EtherType field used to identify HTSP frames',
             mode         = mode,
             offset       = 0x0D8,
             bitSize      = 16,
@@ -269,6 +285,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
+                description  = 'Status count',
                 bitSize      = statusCountBits,
                 mode         = 'RO',
                 disp         = '{:d}',
@@ -277,6 +294,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
+                description  = 'Error count',
                 bitSize      = errorCountBits,
                 mode         = 'RO',
                 disp         = '{:d}',
@@ -285,18 +303,21 @@ class HtspAxiLRxStatus(pr.Device):
 
         for i in range(numVc):
             addStatusCountVar(
-                name   = f'RemPauseCnt[{i}]',
-                offset = (0x400+(4*i)-devOffset),
+                name        = f'RemPauseCnt[{i}]',
+                description = f'Receive pause count for virtual channel {i}',
+                offset      = (0x400+(4*i)-devOffset),
             )
 
         addStatusCountVar(
-            name   = 'FrameCnt',
-            offset = (0x500-devOffset),
+            name        = 'FrameCnt',
+            description = 'Number of received HTSP frames',
+            offset      = (0x500-devOffset),
         )
 
         addStatusCountVar(
-            name   = 'OpCodeEnCnt',
-            offset = (0x504-devOffset),
+            name        = 'OpCodeEnCnt',
+            description = 'Number of received op-code enable events',
+            offset      = (0x504-devOffset),
         )
 
         statusList = [
@@ -307,14 +328,24 @@ class HtspAxiLRxStatus(pr.Device):
             ['LinkDown',False],
         ]
 
+        statusDescList = [
+            'PHY receive active event count',
+            'Link ready transition event count',
+            'Remote receive link ready event count',
+            'Receive frame error event count',
+            'Link down event count',
+        ]
+
         for i in range(len(statusList)):
             addErrorCountVar(
-                name   = (statusList[i][0]+'Cnt'),
-                offset = (0x600+(4*i)-devOffset),
+                name        = (statusList[i][0]+'Cnt'),
+                description = statusDescList[i],
+                offset      = (0x600+(4*i)-devOffset),
             )
 
         self.add(pr.RemoteVariable(
             name         = 'FecCorrectedCodeWordCnt',
+            description  = 'Number of FEC corrected code words received',
             offset       = (0x614-devOffset),
             bitSize      = 32,
             mode         = 'RO',
@@ -323,6 +354,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'FecUncorrectedCodeWordCnt',
+            description  = 'Number of FEC uncorrected code words received',
             offset       = (0x618-devOffset),
             bitSize      = 32,
             mode         = 'RO',
@@ -363,10 +395,17 @@ class HtspAxiLRxStatus(pr.Device):
             linkedGet    = getBitErrorRate,
         ))
 
+        statusBoolDescList = [
+            'PHY receive active status',
+            'HTSP link ready status',
+            'Remote receive link ready status',
+        ]
+
         for i in range(len(statusList)):
             if statusList[i][1]:
                 self.add(pr.RemoteVariable(
                     name         = statusList[i][0],
+                    description  = statusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
                     offset       = (0x710-devOffset),
                     bitOffset    = i,
                     bitSize      = 1,
@@ -377,6 +416,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RemLinkData',
+            description  = 'Remote sideband link data word',
             offset       = (0x720-devOffset),
             bitSize      = 128,
             mode         = 'RO',
@@ -385,6 +425,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RemOpCodeData',
+            description  = 'Remote op-code data word received from link partner',
             offset       = (0x730-devOffset),
             bitSize      = 128,
             mode         = 'RO',
@@ -393,6 +434,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RemRxPause',
+            description  = 'Remote receive pause status bits (one per virtual channel)',
             offset       = (0x740-devOffset),
             bitSize      = numVc,
             mode         = 'RO',
@@ -401,6 +443,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxMinPayloadSize',
+            description  = 'Minimum received payload size observed',
             mode         = 'RO',
             offset       = 0x750,
             bitSize      = 16,
@@ -412,6 +455,7 @@ class HtspAxiLRxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxMaxPayloadSize',
+            description  = 'Maximum received payload size observed',
             mode         = 'RO',
             offset       = 0x750,
             bitSize      = 16,
@@ -433,6 +477,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
+                description  = 'Status count',
                 bitSize      = statusCountBits,
                 mode         = 'RO',
                 disp         = '{:d}',
@@ -441,6 +486,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
+                description  = 'Error count',
                 bitSize      = errorCountBits,
                 mode         = 'RO',
                 disp         = '{:d}',
@@ -449,24 +495,28 @@ class HtspAxiLTxStatus(pr.Device):
 
         for i in range(numVc):
             addStatusCountVar(
-                name   = f'LocPauseCnt[{i}]',
-                offset = (0x800+(4*i)-devOffset),
+                name        = f'LocPauseCnt[{i}]',
+                description = f'Local transmit pause count for virtual channel {i}',
+                offset      = (0x800+(4*i)-devOffset),
             )
 
         for i in range(numVc):
             addErrorCountVar(
-                name   = f'LocOverflowCnt[{i}]',
-                offset = (0x840+(4*i)-devOffset),
+                name        = f'LocOverflowCnt[{i}]',
+                description = f'Local transmit overflow error count for virtual channel {i}',
+                offset      = (0x840+(4*i)-devOffset),
             )
 
         addStatusCountVar(
-            name   = 'FrameCnt',
-            offset = (0x900-devOffset),
+            name        = 'FrameCnt',
+            description = 'Number of transmitted HTSP frames',
+            offset      = (0x900-devOffset),
         )
 
         addStatusCountVar(
-            name   = 'OpCodeEnCnt',
-            offset = (0x904-devOffset),
+            name        = 'OpCodeEnCnt',
+            description = 'Number of transmitted op-code enable events',
+            offset      = (0x904-devOffset),
         )
 
         statusList = [
@@ -475,16 +525,29 @@ class HtspAxiLTxStatus(pr.Device):
             ['FrameError',False],
         ]
 
+        txStatusDescList = [
+            'PHY transmit active event count',
+            'Transmit link ready transition event count',
+            'Transmit frame error event count',
+        ]
+
         for i in range(len(statusList)):
             addErrorCountVar(
-                name   = (statusList[i][0]+'Cnt'),
-                offset = (0xA00+(4*i)-devOffset),
+                name        = (statusList[i][0]+'Cnt'),
+                description = txStatusDescList[i],
+                offset      = (0xA00+(4*i)-devOffset),
             )
+
+        txStatusBoolDescList = [
+            'PHY transmit active status',
+            'HTSP transmit link ready status',
+        ]
 
         for i in range(len(statusList)):
             if statusList[i][1]:
                 self.add(pr.RemoteVariable(
                     name         = statusList[i][0],
+                    description  = txStatusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
                     offset       = (0xB10-devOffset),
                     bitOffset    = i,
                     bitSize      = 1,
@@ -495,6 +558,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LocLinkData',
+            description  = 'Local sideband link data word transmitted to link partner',
             offset       = (0xB20-devOffset),
             bitSize      = 128,
             mode         = 'RO',
@@ -503,6 +567,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LocOpCodeData',
+            description  = 'Local op-code data word transmitted to link partner',
             offset       = (0xB30-devOffset),
             bitSize      = 128,
             mode         = 'RO',
@@ -511,6 +576,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LocTxPause',
+            description  = 'Local transmit pause status bits (one per virtual channel)',
             offset       = (0xB40-devOffset),
             bitSize      = numVc,
             mode         = 'RO',
@@ -519,6 +585,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxMinPayloadSize',
+            description  = 'Minimum transmitted payload size observed',
             mode         = 'RO',
             offset       = 0xB50,
             bitSize      = 16,
@@ -530,6 +597,7 @@ class HtspAxiLTxStatus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxMaxPayloadSize',
+            description  = 'Maximum transmitted payload size observed',
             mode         = 'RO',
             offset       = 0xB50,
             bitSize      = 16,

@@ -23,7 +23,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "AxiEn",
-            description  = "",
+            description  = "Enable AXI-Lite control of PRBS transmitter",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x00,
@@ -33,7 +33,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TrigSrc",
-            description  = "",
+            description  = "Trigger source selection (AXI or external)",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x06,
@@ -47,7 +47,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxEn",
-            description  = "",
+            description  = "Enable continuous PRBS packet transmission",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x01,
@@ -57,7 +57,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "Busy",
-            description  = "",
+            description  = "Transmitter busy flag (packet transmission in progress)",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x02,
@@ -68,7 +68,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "Overflow",
-            description  = "",
+            description  = "TX FIFO overflow error flag",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x03,
@@ -79,7 +79,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FwCnt",
-            description  = "",
+            description  = "Enable firmware frame counter insertion into PRBS stream",
             offset       =  0x00,
             bitSize      =  1,
             bitOffset    =  0x05,
@@ -89,7 +89,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "PacketLength",
-            description  = "",
+            description  = "Number of PRBS data words per transmitted packet",
             offset       =  0x04,
             bitSize      =  32,
             bitOffset    =  0x00,
@@ -98,16 +98,17 @@ class SsiPrbsTx(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name   = 'WordSize',
-            offset = 0x20,
-            mode   = 'RO',
-            disp   = '{:d}',
-            hidden = False))
+            name        = 'WordSize',
+            description = 'PRBS data word size in bits',
+            offset      = 0x20,
+            mode        = 'RO',
+            disp        = '{:d}',
+            hidden      = False))
 
 
         self.add(pr.RemoteVariable(
             name         = "tDest",
-            description  = "",
+            description  = "AXI-Stream tDest routing field for transmitted packets",
             offset       =  0x08,
             bitSize      =  8,
             bitOffset    =  0x00,
@@ -117,7 +118,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "tId",
-            description  = "",
+            description  = "AXI-Stream tId field for transmitted packets",
             offset       =  0x08,
             bitSize      =  8,
             bitOffset    =  8,
@@ -127,7 +128,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DataCount",
-            description  = "",
+            description  = "Cumulative count of PRBS data words transmitted",
             offset       =  0x0C,
             bitSize      =  32,
             bitOffset    =  0x00,
@@ -138,7 +139,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "EventCount",
-            description  = "",
+            description  = "Cumulative count of trigger events processed",
             offset       =  0x10,
             bitSize      =  32,
             bitOffset    =  0x00,
@@ -149,7 +150,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RandomData",
-            description  = "",
+            description  = "Current PRBS random data word value",
             offset       =  0x14,
             bitSize      =  32,
             bitOffset    =  0x00,
@@ -160,7 +161,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "OneShot",
-            description  = "",
+            description  = "Send a single PRBS packet",
             offset       =  0x18,
             bitSize      =  1,
             bitOffset    =  0,
@@ -170,6 +171,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TrigDly",
+            description  = "Trigger delay period in clock cycles",
             offset       =  0x1C,
             bitSize      =  32,
             mode         = "RW",
@@ -177,7 +179,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "FrameCnt",
-            description  = "",
+            description  = "Cumulative count of PRBS packets transmitted",
             offset       =  0x24,
             bitSize      =  32,
             mode         = "RO",
@@ -205,11 +207,12 @@ class SsiPrbsTx(pr.Device):
                 self.TrigDly.set(v, write=write)
 
         self.add(pr.LinkVariable(
-            name = 'TrigRate',
+            name         = 'TrigRate',
+            description  = 'Trigger rate derived from TrigDly register',
             dependencies = [self.TrigDly],
-            mode = 'RW',
-            linkedGet = get_conv,
-            linkedSet = set_conv))
+            mode         = 'RW',
+            linkedGet    = get_conv,
+            linkedSet    = set_conv))
 
     def countReset(self):
         self.CountReset()

@@ -85,6 +85,7 @@ class Adc32Rf45(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'GeneralAddr_index_0x{index:03X}',
+                description  = "General address page initialization register",
                 offset       = (generalAddr + (4*0x0000) + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",
@@ -129,6 +130,7 @@ class Adc32Rf45(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'RawInterface0_index_0x{index:03X}',
+                description  = "Raw interface page 0 initialization register",
                 offset       = (rawInterface + (4*0x0000) + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",
@@ -147,6 +149,7 @@ class Adc32Rf45(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'RawInterface4_index_0x{index:03X}',
+                description  = "Raw interface page 4 initialization register",
                 offset       = (rawInterface + (4*0x4000) + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",
@@ -265,6 +268,7 @@ class Adc32Rf45(pr.Device):
         for index in indexList:
             self.add(pr.RemoteVariable(
                 name         = f'RawInterface6_index_0x{index:03X}',
+                description  = "Raw interface page 6 initialization register",
                 offset       = (rawInterface + (4*0x6000) + (4*index)),
                 bitSize      = 32,
                 mode         = "WO",

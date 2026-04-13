@@ -10,7 +10,7 @@
 
 import pyrogue as pr
 
-class TmrInject(pr.Device):
+class TmrSem(pr.Device):
     def __init__(
             self,
             description = 'Xilinx TMR Soft Error Mitigation (SEM) registers (refer to PG268 v1.0, page 52 - 55)',
