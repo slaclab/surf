@@ -53,7 +53,7 @@ class Ina237(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'ADCRANGE',
-            description  = 'Reset Bit. Setting this bit to 1 generates a system reset that is the same as power-on reset.',
+            description  = 'ADC input range setting: 0 = +/-163.84mV, 1 = +/-40.96mV',
             offset       = (0x0 << 2),
             bitSize      = 1,
             bitOffset    = 4,
@@ -229,7 +229,8 @@ class Ina237(pr.Device):
         ))
 
         self.add(pr.LinkVariable(
-            name         = "DieTempature",
+            name         = "DieTemperature",
+            description  = "Internal die temperature in degrees Celsius",
             mode         = 'RO',
             linkedGet    = lambda read: self.DIETEMP.get(read=read)*0.125, # Conversion factor: 0.125 degC/LSB
             typeStr      = "Float32",

@@ -55,7 +55,7 @@ entity SspLowSpeedDecoderReg is
       axilWriteSlave  : out AxiLiteWriteSlaveType);
 end SspLowSpeedDecoderReg;
 
-architecture mapping of SspLowSpeedDecoderReg is
+architecture rtl of SspLowSpeedDecoderReg is
 
    constant STATUS_SIZE_C  : positive := 3*NUM_LANE_G;
    constant STATUS_WIDTH_C : positive := 16;
@@ -236,4 +236,4 @@ begin
    statusIn((1*NUM_LANE_G)+NUM_LANE_G-1 downto 1*NUM_LANE_G) <= bitSlip;
    statusIn((0*NUM_LANE_G)+NUM_LANE_G-1 downto 0*NUM_LANE_G) <= locked;
 
-end mapping;
+end rtl;
