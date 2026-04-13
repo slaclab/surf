@@ -51,13 +51,12 @@ MALFORMED_SMOKE_SYMBOLS = [
 async def code_10b12b_package_test(dut):
     for disp_in in DISPARITY_SEEDS_1BIT:
         for data_in in range(2**10):
-            encoded_data, encoded_disp, invalid_k = await package_encode(
+            encoded_data, encoded_disp = await package_encode(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,
                 data_k_in=0,
             )
-            assert invalid_k == 0
             await package_decode(dut, disp_in=disp_in, encoded_data=encoded_data)
             assert_package_decode_matches(
                 dut,
@@ -67,13 +66,12 @@ async def code_10b12b_package_test(dut):
             )
 
         for data_in in K_SYMBOLS_10B12B:
-            encoded_data, encoded_disp, invalid_k = await package_encode(
+            encoded_data, encoded_disp = await package_encode(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,
                 data_k_in=1,
             )
-            assert invalid_k == 0
             await package_decode(dut, disp_in=disp_in, encoded_data=encoded_data)
             assert_package_decode_matches(
                 dut,
@@ -83,7 +81,7 @@ async def code_10b12b_package_test(dut):
             )
 
         for data_in, data_k_in in MALFORMED_SMOKE_SYMBOLS:
-            encoded_data, _, _ = await package_encode(
+            encoded_data, _ = await package_encode(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,
