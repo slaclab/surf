@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: Cover a small two-case wrapper matrix across 16-bit and 32-bit SSI
-#   lanes with frame limits of two and three beats.
+#   lanes with a two-beat frame limit.
 # - Stimulus: Send a valid short frame, an over-limit frame, a repeated-SOF
 #   malformed frame, a missing-SOF frame, and one stalled frame that relies on
 #   the wrapper's enabled timeout path.
@@ -80,8 +80,6 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     # Build a frame that is one beat too long. The limiter should forward data
     # until the limit and then terminate the frame with `EOFE`.
     over_limit_payload = [0x1101 + index for index in range(frame_limit + 1)]
-    # A repeated `SOF` is another framing violation, so the limiter should mark
-    # the violating beat as the terminal `EOFE` beat.
     await send_contiguous_frame(
         source,
         [
@@ -110,7 +108,8 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, cycles=8)
     await expect_no_output(sink, clk=bench.clk)
 
-    # Frames that never begin with `SOF` should be dropped completely.
+    # A repeated `SOF` is a framing violation, so the limiter should terminate
+    # the frame on the violating beat with `EOFE`.
     await send_contiguous_frame(
         source,
         [
@@ -134,6 +133,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
     await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady, cycles=8)
     await expect_no_output(sink, clk=bench.clk)
 
+    # Frames that never begin with `SOF` should be dropped completely.
     await send_contiguous_frame(
         source,
         [

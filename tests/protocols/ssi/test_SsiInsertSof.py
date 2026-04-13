@@ -10,16 +10,16 @@
 
 # Test methodology:
 # - Sweep: Cover a curated three-case wrapper matrix across true same-clock
-#   bypass, explicit user-header insertion, and a direct-path user-mask case
-#   that clears inbound `EOFE`.
+#   bypass, explicit user-header insertion, and a wider direct-path bypass
+#   configuration.
 # - Stimulus: Drive short AXI-stream payloads beat by beat, stall the sink on
-#   the first visible beat, and vary `mUserHdr` plus the user mask so the
-#   checks stay on the wrapper-facing contract instead of re-proving FIFO
-#   internals.
+#   the first visible beat, and vary `mUserHdr` plus the wrapper width/FIFO
+#   mode so the checks stay on the wrapper-facing contract instead of
+#   re-proving FIFO internals.
 # - Checks: The first emitted beat must always assert `SOF`, later payload
 #   beats must clear `SOF`, optional header insertion must prepend exactly one
-#   header beat, and the mask case must clear inbound `EOFE` while leaving the
-#   inserted `SOF` semantics intact.
+#   header beat, and the direct-path cases must preserve the inbound `EOFE`
+#   markers while leaving the inserted `SOF` semantics intact.
 # - Timing: The bench samples the first visible beat while stalled and then
 #   consumes accepted transfers one beat at a time so output stability under
 #   backpressure is part of the regression contract.

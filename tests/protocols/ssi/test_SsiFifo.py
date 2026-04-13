@@ -15,13 +15,13 @@
 # - Stimulus: Drive good single-beat and multi-beat frames, a missing-SOF
 #   frame, repeated-`SOF` malformed frames in each buffered mode, and
 #   threshold/overflow-specific buffered traffic while varying sink readiness
-#   and pause threshold settings.
+#   and the runtime pause threshold exposed by the wrapper.
 # - Checks: Good frames must emerge intact, missing-SOF traffic must be
 #   dropped, repeated-`SOF` must terminate on the violating beat with `EOFE`,
 #   and the threshold/overflow paths must expose wrapper-visible occupancy,
-#   pause, and terminal-frame behavior without lockup resets. The default,
-#   frame-ready, and thresholded paths all prove contiguous 3-beat frame
-#   preservation through the wrapper, and the overflow path proves longer
+#   dynamic pause, and terminal-frame behavior without lockup resets. The
+#   default, frame-ready, and thresholded paths all prove contiguous 3-beat
+#   frame preservation through the wrapper, and the overflow path proves longer
 #   trailing blowoff traffic does not leak.
 # - Timing: The bench uses handshake-based frame receive helpers for contiguous
 #   traffic and waits on explicit counter or drop-flag transitions so the
@@ -308,9 +308,10 @@ async def ssi_fifo_test(dut):
         await malformed_send
         await expect_no_output(sink, clk=bench.clk)
     elif valid_thold == 2:
-        # In threshold mode the FIFO should not release data until the visible
-        # occupancy crosses the programmed pause threshold.
-        dut.fifoPauseThresh.value = 1
+        # In threshold mode the FIFO should withhold output until enough beats
+        # are buffered, while the wrapper-visible pause signal tracks the
+        # runtime-configured pause threshold independently.
+        dut.fifoPauseThresh.value = 4
         threshold_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -324,7 +325,11 @@ async def ssi_fifo_test(dut):
         )
         await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
         assert int(dut.mAxisTValid.value) == 0
-        dut.fifoPauseThresh.value = 3
+        assert int(dut.sAxisPause.value) == 0
+        dut.fifoPauseThresh.value = 1
+        await wait_signal_level(dut.sAxisPause, clk=bench.clk, expected=1, cycles=32)
+        dut.fifoPauseThresh.value = 4
+        await wait_signal_level(dut.sAxisPause, clk=bench.clk, expected=0, cycles=32)
         await threshold_send
         frame = await recv_frame(
             sink,
@@ -344,7 +349,7 @@ async def ssi_fifo_test(dut):
 
         # The same thresholded release should preserve early-truncation policy
         # on a repeated-`SOF` malformed frame.
-        dut.fifoPauseThresh.value = 1
+        dut.fifoPauseThresh.value = 4
         malformed_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -356,9 +361,6 @@ async def ssi_fifo_test(dut):
                 clk=bench.clk,
             )
         )
-        await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
-        assert int(dut.mAxisTValid.value) == 0
-        dut.fifoPauseThresh.value = 3
         await malformed_send
         frame = await recv_frame(
             sink,
@@ -378,7 +380,7 @@ async def ssi_fifo_test(dut):
 
         # Finally combine threshold release with sink backpressure and confirm
         # the accepted beat sequence still matches the original five-beat frame.
-        dut.fifoPauseThresh.value = 1
+        dut.fifoPauseThresh.value = 4
         stalled_threshold_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
@@ -392,9 +394,6 @@ async def ssi_fifo_test(dut):
                 clk=bench.clk,
             )
         )
-        await wait_signal_level(dut.fifoWrCnt, clk=bench.clk, expected=1, cycles=32)
-        assert int(dut.mAxisTValid.value) == 0
-        dut.fifoPauseThresh.value = 3
         await sink.wait_valid(clk=bench.clk)
         capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=32))
         ready_task = cocotb.start_soon(
