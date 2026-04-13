@@ -27,7 +27,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "StartAddr",
-            description  = "",
+            description  = "Ring buffer start address",
             offset       =  0x00,
             bitSize      =  64,
             bitOffset    =  0x00,
@@ -39,7 +39,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "EndAddr",
-            description  = "",
+            description  = "Ring buffer end address",
             offset       =  0x200,
             bitSize      =  64,
             bitOffset    =  0x00,
@@ -51,7 +51,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "WrAddr",
-            description  = "",
+            description  = "Current DMA write pointer address",
             offset       =  0x400,
             bitSize      =  64,
             bitOffset    =  0x00,
@@ -63,7 +63,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "TriggerAddr",
-            description  = "",
+            description  = "Address at which trigger event was captured",
             offset       =  0x600,
             bitSize      =  64,
             bitOffset    =  0x00,
@@ -75,7 +75,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Enabled",
-            description  = "",
+            description  = "Enable DMA ring buffer capture",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x00,
@@ -87,7 +87,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Mode",
-            description  = "",
+            description  = "Ring buffer wrap mode (wrap around or stop when full)",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x01,
@@ -102,7 +102,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Init",
-            description  = "",
+            description  = "Initialize buffer: reset write pointer to StartAddr and clear Done",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x02,
@@ -114,7 +114,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "SoftTrigger",
-            description  = "",
+            description  = "Software trigger to stop ring buffer capture",
             offset       =  0x800,
             bitSize      =  1,
             bitOffset    =  0x03,
@@ -126,7 +126,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "MsgDest",
-            description  = "",
+            description  = "Destination for done notification (software or auto-readout)",
             offset       =  0x800,
             bitSize      =  4,
             bitOffset    =  0x04,
@@ -141,7 +141,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "FramesAfterTrigger",
-            description  = "",
+            description  = "Number of frames to capture after trigger event",
             offset       =  0x800,
             bitSize      =  16,
             bitOffset    =  16,
@@ -166,7 +166,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Empty",
-            description  = "",
+            description  = "Ring buffer is empty (no data written since last init)",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x00,
@@ -179,7 +179,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Full",
-            description  = "",
+            description  = "Ring buffer has wrapped around or filled completely",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x01,
@@ -192,7 +192,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Done",
-            description  = "",
+            description  = "DMA ring buffer capture complete",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x02,
@@ -205,7 +205,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Triggered",
-            description  = "",
+            description  = "Trigger event has been received for this buffer",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x03,
@@ -218,7 +218,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "Error",
-            description  = "",
+            description  = "DMA transfer error flag",
             offset       =  0xA00,
             bitSize      =  1,
             bitOffset    =  0x04,
@@ -231,7 +231,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "BurstSize",
-            description  = "",
+            description  = "AXI burst size used for DMA ring buffer transfers",
             offset       =  0xA00,
             bitSize      =  4,
             bitOffset    =  8,
@@ -242,7 +242,7 @@ class AxiStreamDmaRingWrite(pr.Device):
 
         self.addRemoteVariables(
             name         = "FramesSinceTrigger",
-            description  = "",
+            description  = "Number of frames captured since the last trigger event",
             offset       =  0xA00,
             bitSize      =  16,
             bitOffset    =  16,

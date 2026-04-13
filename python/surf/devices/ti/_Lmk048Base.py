@@ -23,6 +23,7 @@ class Lmk048Base(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0000',
+            description  = 'Reset register: SPI_RESET bit initiates device software reset',
             offset       = (0x0000 << 2),
             bitSize      = 8,
             mode         = 'WO',
@@ -31,6 +32,7 @@ class Lmk048Base(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'LmkReg_0x0002',
+            description  = 'Power configuration: RESET_MCS_DIGITAL, SPI_3WIRE_DIS enable bits',
             offset       = (0x0002 << 2),
             bitSize      = 1,
             mode         = 'RW',
@@ -867,21 +869,23 @@ class Lmk048Base(pr.Device):
         ))
 
         self.add(pr.RemoteCommand(
-            name      = 'CLR_PLL1_LD_LOST',
-            offset    = (0x0182 << 2),
-            bitSize   = 1,
-            bitOffset = 1,
-            overlapEn = True,
-            function  = pr.RemoteCommand.toggle
+            name        = 'CLR_PLL1_LD_LOST',
+            description = 'Clear PLL1 lock detect lost sticky bit',
+            offset      = (0x0182 << 2),
+            bitSize     = 1,
+            bitOffset   = 1,
+            overlapEn   = True,
+            function    = pr.RemoteCommand.toggle
         ))
 
         self.add(pr.RemoteCommand(
-            name      = 'CLR_PLL2_LD_LOST',
-            offset    = (0x0182 << 2),
-            bitSize   = 1,
-            bitOffset = 0,
-            overlapEn = True,
-            function  = pr.RemoteCommand.toggle
+            name        = 'CLR_PLL2_LD_LOST',
+            description = 'Clear PLL2 lock detect lost sticky bit',
+            offset      = (0x0182 << 2),
+            bitSize     = 1,
+            bitOffset   = 0,
+            overlapEn   = True,
+            function    = pr.RemoteCommand.toggle
         ))
 
         self.add(pr.RemoteVariable(

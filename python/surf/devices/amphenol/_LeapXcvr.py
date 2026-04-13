@@ -27,6 +27,7 @@ class LeapXcvr(pr.Device):
             offset      = 0x000,
             bitSize     = 1,
             mode        = 'RW',
+            description = 'Hardware reset control: writing 1 initiates a full module reset',
         ))
 
         self.add(amphenol.LeapXcvrLowerPage(

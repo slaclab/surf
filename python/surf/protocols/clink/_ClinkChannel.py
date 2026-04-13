@@ -105,7 +105,7 @@ class ClinkChannel(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "CntRst",
-            description  = "",
+            description  = "Reset all channel counters",
             offset       = 0x10,
             bitSize      = 1,
             bitOffset    = 2,

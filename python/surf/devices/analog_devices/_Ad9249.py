@@ -27,6 +27,7 @@ class Ad9249ConfigGroup(pr.Device):
         # AD9249 bank configuration registers
         self.add(pr.RemoteVariable(
             name        = 'ChipId',
+            description = 'ADC chip identification register',
             offset      = 0x04,
             bitSize     = 8,
             bitOffset   = 0,
@@ -35,6 +36,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChipGrade',
+            description = 'ADC speed grade identification',
             offset      = 0x08,
             bitSize     = 3,
             bitOffset   = 4,
@@ -43,6 +45,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ExternalPdwnMode',
+            description = 'Selects behavior of PDWN pin (full power down or standby)',
             offset      = 0x20,
             bitSize     = 1,
             bitOffset   = 5,
@@ -54,6 +57,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'InternalPdwnMode',
+            description = 'Sets internal power-down mode via SPI register',
             offset      = 0x20,
             bitSize     = 2,
             bitOffset   = 0,
@@ -67,6 +71,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DutyCycleStabilizer',
+            description = 'Enables the clock duty cycle stabilizer',
             offset      = 0x24,
             bitSize     = 1,
             bitOffset   = 0,
@@ -78,6 +83,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ClockDivide',
+            description = 'Input clock divide ratio selection',
             offset      = (0xb*4),
             bitSize     = 3,
             bitOffset   = 0,
@@ -86,6 +92,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChopMode',
+            description = 'Enables chop mode for offset cancellation',
             offset      = (0x0c*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -97,6 +104,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DataCh[0]',
+            description = 'Device index mask for data channel bank 0',
             offset      = 0x10,
             bitSize     = 4,
             bitOffset   = 0,
@@ -106,6 +114,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DataCh[1]',
+            description = 'Device index mask for data channel bank 1',
             offset      = 0x14,
             bitSize     = 4,
             bitOffset   = 0,
@@ -115,6 +124,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_FCO',
+            description = 'Device index mask for the frame clock output (FCO)',
             offset      = 0x14,
             bitSize     = 1,
             bitOffset   = 4,
@@ -124,6 +134,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DCO',
+            description = 'Device index mask for the data clock output (DCO)',
             offset      = 0x14,
             bitSize     = 1,
             bitOffset   = 5,
@@ -133,6 +144,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserTestModeCfg',
+            description = 'Configures user-defined test pattern cycling mode',
             offset      = (0x0D*4),
             bitSize     = 2,
             bitOffset   = 6,
@@ -146,6 +158,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputTestMode',
+            description = 'Selects ADC output test pattern mode',
             offset      = (0x0D*4),
             bitSize     = 4,
             bitOffset   = 0,
@@ -169,6 +182,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OffsetAdjust',
+            description = 'Output offset adjustment in LSB steps',
             offset      = (0x10*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -176,6 +190,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputInvert',
+            description = 'Inverts the ADC output data polarity',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -184,6 +199,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputFormat',
+            description = 'Selects output data format (twos complement or offset binary)',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 0,
@@ -195,6 +211,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Lsb',
+            description = 'User-defined test pattern 1 LSB byte',
             offset      = (0x19*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -202,6 +219,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Msb',
+            description = 'User-defined test pattern 1 MSB byte',
             offset      = (0x1A*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -209,6 +227,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Lsb',
+            description = 'User-defined test pattern 2 LSB byte',
             offset      = (0x1B*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -216,6 +235,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Msb',
+            description = 'User-defined test pattern 2 MSB byte',
             offset      = (0x1C*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -223,6 +243,7 @@ class Ad9249ConfigGroup(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'LvdsLsbFirst',
+            description = 'Sets LVDS output bit order (LSB first when enabled)',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 7,
@@ -455,6 +476,7 @@ class Ad9249ReadoutGroup2(pr.Device):
 
         self.add(pr.RemoteCommand(
             name='Relock',
+            description='Triggers ADC readout relock sequence',
             hidden=False,
             offset=0x20,
             bitSize=1,
@@ -527,6 +549,7 @@ class Ad9249ReadoutGroup2(pr.Device):
         for i in range(channels):
             self.add(pr.LinkVariable(
                 name = f'AdcVoltage[{i}]',
+                description = f'Converted voltage for ADC channel {i}',
                 mode = 'RO',
                 disp = '{:1.9f}',
                 variable = self.AdcChannel[i],

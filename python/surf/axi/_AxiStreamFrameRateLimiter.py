@@ -16,6 +16,7 @@ class AxiStreamFrameRateLimiter(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'AXIS_CLK_FREQ_G',
+            description  = 'AXI stream clock frequency generic value',
             offset       = 0x000,
             bitSize      = 32,
             mode         = 'RO',
@@ -25,6 +26,7 @@ class AxiStreamFrameRateLimiter(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'REFRESH_RATE_G',
+            description  = 'Rate limiter refresh rate generic value',
             offset       = 0x004,
             bitSize      = 32,
             mode         = 'RO',
@@ -34,6 +36,7 @@ class AxiStreamFrameRateLimiter(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'DEFAULT_MAX_RATE_G',
+            description  = 'Default maximum frame rate generic value',
             offset       = 0x008,
             bitSize      = 32,
             mode         = 'RO',

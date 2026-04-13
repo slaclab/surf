@@ -18,6 +18,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Vin',
+            description  = 'Converted input voltage reading (4mV/bit)',
             mode         = 'RO',
             units        = 'V',
             typeStr      = "Float32",
@@ -28,6 +29,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Iin',
+            description  = 'Converted input current reading (10mA/bit)',
             mode         = 'RO',
             units        = 'A',
             typeStr      = "Float32",
@@ -38,6 +40,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Vout',
+            description  = 'Converted output voltage reading (0.5mV/bit)',
             mode         = 'RO',
             units        = 'V',
             typeStr      = "Float32",
@@ -48,6 +51,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Iout',
+            description  = 'Converted output current reading (10mA/bit)',
             mode         = 'RO',
             units        = 'A',
             typeStr      = "Float32",
@@ -58,6 +62,7 @@ class Ltc3815(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = "DieTemperature",
+            description  = 'Converted die temperature reading (1 degC/bit)',
             mode         = 'RO',
             linkedGet    = lambda read: self.READ_TEMPERATURE_1.get(read=read)*1.0, # Conversion factor: 1 degC/Bit
             typeStr      = "Float32",
