@@ -18,15 +18,18 @@ class PMBus(pr.Device):
 
         def addPMBusVariable(**kwargs):
             if kwargs['name'] not in self.notImplemented:
-                self.add(pr.RemoteVariable(hidden=simpleDisplay, **kwargs))
+                desc = kwargs.pop('description', f"PMBus {kwargs['name']} register")
+                self.add(pr.RemoteVariable(hidden=simpleDisplay, description=desc, **kwargs))
 
         def addPMBusCommand(**kwargs):
             if kwargs['name'] not in self.notImplemented:
-                self.add(pr.RemoteVariable(hidden=simpleDisplay, **kwargs))
+                desc = kwargs.pop('description', f"PMBus {kwargs['name']} command")
+                self.add(pr.RemoteVariable(hidden=simpleDisplay, description=desc, **kwargs))
 
 
         self.add(pr.RemoteVariable(
             name         = 'i2cAddr',
+            description  = 'I2C device address',
             offset       =  0x400,
             bitSize      =  10,
             bitOffset    =  0,
@@ -36,6 +39,7 @@ class PMBus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'tenbit',
+            description  = 'I2C 10-bit addressing enable',
             offset       =  0x400,
             bitSize      =  1,
             bitOffset    =  10,
@@ -45,6 +49,7 @@ class PMBus(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'ignoreResp',
+            description  = 'Ignore I2C response (no ACK check)',
             offset       =  0x400,
             bitSize      =  1,
             bitOffset    =  11,

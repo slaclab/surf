@@ -47,7 +47,7 @@ entity AxiLiteMasterProxy is
       mAxiWriteSlave  : in  AxiLiteWriteSlaveType);
 end AxiLiteMasterProxy;
 
-architecture mapping of AxiLiteMasterProxy is
+architecture rtl of AxiLiteMasterProxy is
 
    type StateType is (READY_S, ACK_S);
 
@@ -104,7 +104,7 @@ begin
       axiWrDetect (axilEp, X"00", newCmd);
 
       -- Close out the transaction
-      axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_OK_C);
+      axiSlaveDefault(axilEp, v.sAxiWriteSlave, v.sAxiReadSlave, AXI_RESP_DECERR_C);
 
       -- State Machine
       case r.state is
@@ -175,4 +175,4 @@ begin
          axilReadMaster  => mAxiReadMaster,
          axilReadSlave   => mAxiReadSlave);
 
-end mapping;
+end rtl;

@@ -42,7 +42,7 @@ entity Crc32PolyWrapper is
       crcPwrOnRst  : in  sl);
 end entity Crc32PolyWrapper;
 
-architecture rtl of Crc32PolyWrapper is
+architecture mapping of Crc32PolyWrapper is
 
    constant CRC_POLY_C : slv(31 downto 0) := toSlv(CRC_POLY_INT_G, 32);
 
@@ -68,4 +68,4 @@ begin
          crcRem       => crcRem,
          crcPwrOnRst  => crcPwrOnRst);
 
-end architecture rtl;
+end architecture mapping;

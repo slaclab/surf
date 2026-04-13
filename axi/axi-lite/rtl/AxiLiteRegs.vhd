@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
 -- Description:
 -- Generic register slave endpoint on AXI-Lite bus
 -- Supports a configurable number of write and read vectors.

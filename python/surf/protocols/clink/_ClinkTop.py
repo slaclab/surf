@@ -63,7 +63,7 @@ class ClinkTop(pr.Device):
 
         self.add(pr.RemoteCommand(
             name         = "CntRst",
-            description  = "",
+            description  = "Reset all Camera Link counters",
             offset       = 0x04,
             bitSize      = 1,
             bitOffset    = 2,

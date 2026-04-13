@@ -244,7 +244,7 @@ class PhantomS991(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'FeaturesReg',
-            description  = '',
+            description  = 'PhantomS991 vendor-specific features register',
             offset       = 0x80EC,
             base         = pr.UIntBE,
             mode         = 'RO',
