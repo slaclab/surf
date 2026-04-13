@@ -25,7 +25,7 @@ from pathlib import Path
 
 import cocotb
 
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test, start_lockstep_clocks
 from tests.dsp.generic.dsp_test_utils import fir_direct_outputs, tick, to_signed_int, to_unsigned
 
 LOWPASS_101_COEFFS = [
@@ -42,12 +42,13 @@ class TB:
         self.dut = dut
         self.data_width = int(os.environ["DATA_WIDTH_G"])
         self.coeff_width = int(os.environ["COEFF_WIDTH_G"])
-        self.filter_delay = int(os.environ["FILTER_DELAY_G"])
+        self.filter_delay = int(os.environ["FILTER_DELAY"])
 
         start_lockstep_clocks(dut.clk, period_ns=10.0)
         dut.rst.setimmediatevalue(1)
         dut.ibValid.setimmediatevalue(0)
         dut.din.setimmediatevalue(0)
+        dut.sbIn.setimmediatevalue(0)
         dut.obReady.setimmediatevalue(1)
 
     async def cycle(self, count=1):
@@ -144,28 +145,32 @@ async def low_pass_waveform_test(dut):
 
 
 def test_FirFilterSingleChannelLowPass():
+    parameters = {
+        "NUM_TAPS_G": "101",
+        "SIDEBAND_WIDTH_G": "1",
+        "DATA_WIDTH_G": "12",
+        "COEFF_WIDTH_G": "12",
+        "COEFFICIENTS_G": "(" + ", ".join(f"{index} => {value}" for index, value in enumerate(LOWPASS_101_COEFFS)) + ")",
+        "FILTER_DELAY": "50",
+    }
     sim_build_key = str(
         Path(__file__).resolve().parents[2]
         / "sim_build"
         / "dsp"
         / "generic"
-        / "test_FirFilterSingleChannelLowPass.FirFilterSingleChannelLowPass101TapWrapper"
+        / "test_FirFilterSingleChannelLowPass.FirFilterSingleChannelWrapper"
     )
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.firfiltersinglechannellowpass101tapwrapper",
-        parameters=None,
+        toplevel="surf.firfiltersinglechannelwrapper",
+        parameters=hdl_parameters_from(parameters),
         sim_build_key=sim_build_key,
-        extra_env={
-            "DATA_WIDTH_G": "12",
-            "COEFF_WIDTH_G": "12",
-            "FILTER_DELAY_G": "50",
-        },
+        extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
                 "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/fixed/FirFilterSingleChannel.vhd",
-                "dsp/generic/wrappers/FirFilterSingleChannelLowPass101TapWrapper.vhd",
+                "dsp/generic/wrappers/FirFilterSingleChannelWrapper.vhd",
             ]
         },
     )

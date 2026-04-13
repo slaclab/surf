@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Cocotb-facing wrapper for the fixed single-channel FIR
---              regression configuration.
+-- Description: Generic cocotb-facing wrapper for single-channel FIR
+--              configurations that need external AXI-Lite access.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -21,20 +21,27 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity FirFilterSingleChannelTestWrapper is
+   generic (
+      NUM_TAPS_G       : positive            := 3;
+      SIDEBAND_WIDTH_G : positive            := 2;
+      DATA_WIDTH_G     : positive            := 8;
+      COEFF_WIDTH_G    : positive range 1 to 32 := 4;
+      COEFFICIENTS_G   : IntegerArray        := (0 => 0);
+      AXIL_ADDR_WIDTH_G : positive           := 4);
    port (
       clk           : in  sl;
       rst           : in  sl;
       ibValid       : in  sl;
       ibReady       : out sl;
-      din           : in  slv(7 downto 0);
-      sbIn          : in  slv(1 downto 0);
+      din           : in  slv(DATA_WIDTH_G-1 downto 0);
+      sbIn          : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
       obValid       : out sl;
       obReady       : in  sl;
-      dout          : out slv(7 downto 0);
-      sbOut         : out slv(1 downto 0);
+      dout          : out slv(DATA_WIDTH_G-1 downto 0);
+      sbOut         : out slv(SIDEBAND_WIDTH_G-1 downto 0);
       S_AXI_ACLK    : in  std_logic;
       S_AXI_ARESETN : in  std_logic;
-      S_AXI_AWADDR  : in  std_logic_vector(3 downto 0);
+      S_AXI_AWADDR  : in  std_logic_vector(AXIL_ADDR_WIDTH_G-1 downto 0);
       S_AXI_AWPROT  : in  std_logic_vector(2 downto 0);
       S_AXI_AWVALID : in  std_logic;
       S_AXI_AWREADY : out std_logic;
@@ -45,7 +52,7 @@ entity FirFilterSingleChannelTestWrapper is
       S_AXI_BRESP   : out std_logic_vector(1 downto 0);
       S_AXI_BVALID  : out std_logic;
       S_AXI_BREADY  : in  std_logic;
-      S_AXI_ARADDR  : in  std_logic_vector(3 downto 0);
+      S_AXI_ARADDR  : in  std_logic_vector(AXIL_ADDR_WIDTH_G-1 downto 0);
       S_AXI_ARPROT  : in  std_logic_vector(2 downto 0);
       S_AXI_ARVALID : in  std_logic;
       S_AXI_ARREADY : out std_logic;
@@ -68,7 +75,7 @@ begin
 
    U_AXIL : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
-         ADDR_WIDTH => 4,
+         ADDR_WIDTH => AXIL_ADDR_WIDTH_G,
          HAS_PROT   => 1,
          HAS_WSTRB  => 1)
       port map (
@@ -103,12 +110,12 @@ begin
    U_DUT : entity surf.FirFilterSingleChannel
       generic map (
          COMMON_CLK_G      => true,
-         NUM_TAPS_G        => 3,
-         SIDEBAND_WIDTH_G  => 2,
+         NUM_TAPS_G        => NUM_TAPS_G,
+         SIDEBAND_WIDTH_G  => SIDEBAND_WIDTH_G,
          IBREADY_DEFAULT_G => '1',
-         DATA_WIDTH_G      => 8,
-         COEFF_WIDTH_G     => 4,
-         COEFFICIENTS_G    => (0 => 7, 1 => 0, 2 => 0))
+         DATA_WIDTH_G      => DATA_WIDTH_G,
+         COEFF_WIDTH_G     => COEFF_WIDTH_G,
+         COEFFICIENTS_G    => COEFFICIENTS_G)
       port map (
          clk             => clk,
          rst             => rst,

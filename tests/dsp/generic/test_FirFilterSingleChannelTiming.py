@@ -27,7 +27,7 @@ import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test, start_lockstep_clocks
 from tests.dsp.generic.dsp_test_utils import (
     fir_direct_outputs,
     tick,
@@ -41,10 +41,10 @@ class TB:
         self.dut = dut
         self.data_width = int(os.environ["DATA_WIDTH_G"])
         self.sideband_width = int(os.environ["SIDEBAND_WIDTH_G"])
-        self.filter_delay = int(os.environ["FILTER_DELAY_G"])
+        self.filter_delay = int(os.environ["FILTER_DELAY"])
         self.num_taps = int(os.environ["NUM_TAPS_G"])
         self.coeff_width = int(os.environ["COEFF_WIDTH_G"])
-        self.center_coeff = int(os.environ["CENTER_COEFF_G"])
+        self.center_coeff = int(os.environ["CENTER_COEFF"])
 
         start_lockstep_clocks(dut.clk, period_ns=5.0)
         dut.rst.setimmediatevalue(1)
@@ -187,27 +187,27 @@ async def output_hold_test(dut):
 PARAMETER_SWEEP = [
     pytest.param(
         {
-            "WRAPPER_NAME": "FirFilterSingleChannelTiming5TapWrapper",
-            "WRAPPER_PATH": "dsp/generic/wrappers/FirFilterSingleChannelTiming5TapWrapper.vhd",
-            "FILTER_DELAY_G": "2",
+            "CASE_ID": "five_tap_center_delay",
             "NUM_TAPS_G": "5",
             "DATA_WIDTH_G": "8",
             "COEFF_WIDTH_G": "5",
             "SIDEBAND_WIDTH_G": "4",
-            "CENTER_COEFF_G": "8",
+            "COEFFICIENTS_G": "(0 => 0, 1 => 0, 2 => 8, 3 => 0, 4 => 0)",
+            "FILTER_DELAY": "2",
+            "CENTER_COEFF": "8",
         },
         id="five_tap_center_delay",
     ),
     pytest.param(
         {
-            "WRAPPER_NAME": "FirFilterSingleChannelTiming31TapWrapper",
-            "WRAPPER_PATH": "dsp/generic/wrappers/FirFilterSingleChannelTiming31TapWrapper.vhd",
-            "FILTER_DELAY_G": "15",
+            "CASE_ID": "thirty_one_tap_center_delay",
             "NUM_TAPS_G": "31",
             "DATA_WIDTH_G": "8",
             "COEFF_WIDTH_G": "5",
             "SIDEBAND_WIDTH_G": "6",
-            "CENTER_COEFF_G": "8",
+            "COEFFICIENTS_G": "(0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0, 8 => 0, 9 => 0, 10 => 0, 11 => 0, 12 => 0, 13 => 0, 14 => 0, 15 => 8, 16 => 0, 17 => 0, 18 => 0, 19 => 0, 20 => 0, 21 => 0, 22 => 0, 23 => 0, 24 => 0, 25 => 0, 26 => 0, 27 => 0, 28 => 0, 29 => 0, 30 => 0)",
+            "FILTER_DELAY": "15",
+            "CENTER_COEFF": "8",
         },
         id="thirty_one_tap_center_delay",
     ),
@@ -216,25 +216,24 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_FirFilterSingleChannelTiming(parameters):
-    wrapper_name = str(parameters["WRAPPER_NAME"])
     sim_build_key = str(
         Path(__file__).resolve().parents[2]
         / "sim_build"
         / "dsp"
         / "generic"
-        / f"test_FirFilterSingleChannelTiming.{wrapper_name}"
+        / f"test_FirFilterSingleChannelTiming.{parameters['CASE_ID']}"
     )
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel=f"surf.{wrapper_name.lower()}",
-        parameters=None,
+        toplevel="surf.firfiltersinglechannelwrapper",
+        parameters=hdl_parameters_from(parameters),
         sim_build_key=sim_build_key,
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
                 "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/fixed/FirFilterSingleChannel.vhd",
-                str(parameters["WRAPPER_PATH"]),
+                "dsp/generic/wrappers/FirFilterSingleChannelWrapper.vhd",
             ]
         },
     )

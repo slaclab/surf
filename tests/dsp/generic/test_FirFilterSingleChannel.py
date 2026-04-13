@@ -32,7 +32,7 @@ from cocotb.triggers import Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test, start_lockstep_clocks
 from tests.dsp.generic.dsp_test_utils import (
     fir_direct_outputs,
     tick,
@@ -159,15 +159,12 @@ async def fir_data_and_axil_test(dut):
     [
         pytest.param(
             {
-                "WRAPPER_NAME": "FirFilterSingleChannelTestWrapper",
-                "WRAPPER_PATH": "dsp/generic/wrappers/FirFilterSingleChannelTestWrapper.vhd",
-                "COMMON_CLK_G": True,
                 "NUM_TAPS_G": 3,
                 "SIDEBAND_WIDTH_G": 2,
-                "IBREADY_DEFAULT_G": "'1'",
                 "DATA_WIDTH_G": 8,
                 "COEFF_WIDTH_G": 4,
                 "COEFFICIENTS_G": "(0 => 7, 1 => 0, 2 => 0)",
+                "AXIL_ADDR_WIDTH_G": 4,
                 "COEFF_UPDATE_ADDR": 1,
                 "COEFF_UPDATE_VALUE": 7,
                 "SAMPLE_SEQUENCE": "3,-2,5,1",
@@ -181,18 +178,17 @@ async def fir_data_and_axil_test(dut):
     ],
 )
 def test_FirFilterSingleChannel(parameters):
-    wrapper_name = str(parameters["WRAPPER_NAME"])
     sim_build_key = str(
         Path(__file__).resolve().parents[2]
         / "sim_build"
         / "dsp"
         / "generic"
-        / f"test_FirFilterSingleChannel.{wrapper_name}"
+        / "test_FirFilterSingleChannel.FirFilterSingleChannelTestWrapper"
     )
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel=f"surf.{wrapper_name.lower()}",
-        parameters=None,
+        toplevel="surf.firfiltersinglechanneltestwrapper",
+        parameters=hdl_parameters_from(parameters),
         sim_build_key=sim_build_key,
         extra_env=parameters,
         extra_vhdl_sources={
@@ -200,7 +196,7 @@ def test_FirFilterSingleChannel(parameters):
                 "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/fixed/FirFilterSingleChannel.vhd",
-                str(parameters["WRAPPER_PATH"]),
+                "dsp/generic/wrappers/FirFilterSingleChannelTestWrapper.vhd",
             ]
         },
     )
