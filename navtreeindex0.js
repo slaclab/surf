@@ -123,7 +123,7 @@ var NAVTREEINDEX0 =
 "classAxiLiteMasterProxy.html":[0,0,63],
 "classAxiLiteMasterProxyIpIntegrator.html":[0,0,64],
 "classAxiLiteMasterProxyIpIntegrator_1_1rtl.html":[0,0,64,0],
-"classAxiLiteMasterProxy_1_1mapping.html":[0,0,63,0],
+"classAxiLiteMasterProxy_1_1rtl.html":[0,0,63,0],
 "classAxiLiteMaster_1_1rtl.html":[0,0,61,0],
 "classAxiLitePMbusMaster.html":[0,0,65],
 "classAxiLitePMbusMasterCore.html":[0,0,66],

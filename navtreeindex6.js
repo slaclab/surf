@@ -122,7 +122,7 @@ var NAVTREEINDEX6 =
 "classSspLowSpeedDecoderLane.html":[0,0,821],
 "classSspLowSpeedDecoderLane_1_1mapping.html":[0,0,821,0],
 "classSspLowSpeedDecoderReg.html":[0,0,822],
-"classSspLowSpeedDecoderReg_1_1mapping.html":[0,0,822,0],
+"classSspLowSpeedDecoderReg_1_1rtl.html":[0,0,822,0],
 "classStreamPatternTester.html":[0,0,823],
 "classStreamPatternTester_1_1rtl.html":[0,0,823,0],
 "classSugoiAxiLitePixelMatrixConfig.html":[0,0,824],

@@ -237,7 +237,7 @@ var NAVTREEINDEX4 =
 "classPgp3TxProtocol_1_1rtl.html":[0,0,625,0],
 "classPgp3Tx_1_1rtl.html":[0,0,624,0],
 "classPgp4AxiL.html":[0,0,626],
-"classPgp4AxiL_1_1mapping.html":[0,0,626,0],
+"classPgp4AxiL_1_1rtl.html":[0,0,626,0],
 "classPgp4Core.html":[0,0,627],
 "classPgp4CoreLite.html":[0,0,628],
 "classPgp4CoreLiteTb.html":[0,0,629],

@@ -96,7 +96,7 @@ var NAVTREEINDEX2 =
 "classCrc32Parallel.html":[0,0,299],
 "classCrc32Parallel_1_1rtl.html":[0,0,299,0],
 "classCrc32PolyWrapper.html":[0,0,300],
-"classCrc32PolyWrapper_1_1rtl.html":[0,0,300,0],
+"classCrc32PolyWrapper_1_1mapping.html":[0,0,300,0],
 "classCrc32_1_1rtl.html":[0,0,298,0],
 "classDS2411Core.html":[0,0,317],
 "classDS2411Core_1_1mapping.html":[0,0,317,0],

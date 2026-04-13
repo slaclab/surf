@@ -1,4 +1,4 @@
 var classCrc32PolyWrapper =
 [
-    [ "Crc32PolyWrapper.rtl", "classCrc32PolyWrapper_1_1rtl.html", null ]
+    [ "Crc32PolyWrapper.mapping", "classCrc32PolyWrapper_1_1mapping.html", null ]
 ];
