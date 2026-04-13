@@ -94,6 +94,14 @@ async def simultaneous_coeff_load_applies_next_cycle_test(dut):
     tb = TB(dut)
     await tb.cycle(1)
 
+    # This primitive has no reset, and cocotb runs the tap tests in one
+    # simulator process. Preload a known old coefficient first so this test
+    # does not depend on whatever the previous test left in the tap register.
+    dut.coeffin.value = to_unsigned(2, tb.coeff_width)
+    dut.coeffce.value = 1
+    dut.en.value = 0
+    await tb.cycle(1)
+
     # The tap registers the new coefficient through `coeffce`, but the enabled
     # multiply-accumulate for that cycle still uses the previously registered
     # coefficient. The new coefficient applies on the next enabled sample.
