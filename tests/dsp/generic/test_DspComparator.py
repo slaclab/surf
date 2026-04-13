@@ -199,6 +199,14 @@ async def reset_behavior_test(dut):
 
 PARAMETER_SWEEP = [
     parameter_case(
+        "minimum_width",
+        RST_POLARITY_G="'1'",
+        RST_ASYNC_G="false",
+        PIPE_STAGES_G="0",
+        WIDTH_G="2",
+        CLK_PERIOD_NS="4",
+    ),
+    parameter_case(
         "baseline",
         RST_POLARITY_G="'1'",
         RST_ASYNC_G="false",

@@ -50,7 +50,7 @@ architecture rtl of FirFilterTap is
    end record RegType;
    constant REG_INIT_C : RegType := (
       accum => (others => '0'),
-      coeff => (others => '0'));
+      coeff => signed(COEFF_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -80,7 +80,7 @@ begin
          product := din * r.coeff;
 
          -- Accumulator
-         v.accum := resize(product, PROD_WIDTH_C) + cascade;
+         v.accum := resize(product, CASC_WIDTH_G) + cascade;
 
       end if;
 
