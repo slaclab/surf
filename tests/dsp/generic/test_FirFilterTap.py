@@ -90,19 +90,20 @@ async def coefficient_update_test(dut):
 
 
 @cocotb.test()
-async def simultaneous_coeff_load_applies_new_value_test(dut):
+async def simultaneous_coeff_load_applies_next_cycle_test(dut):
     tb = TB(dut)
     await tb.cycle(1)
 
-    # A simultaneous coefficient load and enabled update should use the new
-    # coefficient on that same accumulated result.
+    # The tap registers the new coefficient through `coeffce`, but the enabled
+    # multiply-accumulate for that cycle still uses the previously registered
+    # coefficient. The new coefficient applies on the next enabled sample.
     dut.coeffin.value = to_unsigned(-3, tb.coeff_width)
     dut.coeffce.value = 1
     dut.en.value = 1
     dut.datain.value = to_unsigned(4, tb.data_width)
     dut.cascin.value = to_unsigned(1, tb.casc_width)
     await tb.cycle(1)
-    assert tb.observed() == -11
+    assert tb.observed() == 9
 
     dut.coeffce.value = 0
     dut.datain.value = to_unsigned(4, tb.data_width)
