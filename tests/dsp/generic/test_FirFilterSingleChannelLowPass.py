@@ -24,8 +24,10 @@ import os
 from pathlib import Path
 
 import cocotb
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test, start_lockstep_clocks
+from tests.axi.utils import axil_write_u32
+from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 from tests.dsp.generic.dsp_test_utils import fir_direct_outputs, tick, to_signed_int, to_unsigned
 
 LOWPASS_101_COEFFS = [
@@ -43,9 +45,11 @@ class TB:
         self.data_width = int(os.environ["DATA_WIDTH_G"])
         self.coeff_width = int(os.environ["COEFF_WIDTH_G"])
         self.filter_delay = int(os.environ["FILTER_DELAY"])
+        self.axil = None
 
-        start_lockstep_clocks(dut.clk, period_ns=10.0)
+        start_lockstep_clocks(dut.clk, dut.S_AXI_ACLK, period_ns=10.0)
         dut.rst.setimmediatevalue(1)
+        dut.S_AXI_ARESETN.setimmediatevalue(0)
         dut.ibValid.setimmediatevalue(0)
         dut.din.setimmediatevalue(0)
         dut.sbIn.setimmediatevalue(0)
@@ -56,12 +60,24 @@ class TB:
 
     async def reset(self):
         self.dut.rst.value = 1
+        self.dut.S_AXI_ARESETN.value = 0
         await self.cycle(4)
         self.dut.rst.value = 0
+        self.dut.S_AXI_ARESETN.value = 1
         await self.cycle(4)
+
+    def start_axil(self):
+        if self.axil is None:
+            self.axil = AxiLiteMaster(
+                AxiLiteBus.from_prefix(self.dut, "S_AXI"),
+                self.dut.S_AXI_ACLK,
+                self.dut.S_AXI_ARESETN,
+                reset_active_level=False,
+            )
 
     async def send_sample(self, sample: int):
         self.dut.din.value = to_unsigned(sample, self.data_width)
+        self.dut.sbIn.value = 0
         self.dut.ibValid.value = 1
         while int(self.dut.ibReady.value) == 0:
             await self.cycle(1)
@@ -89,10 +105,17 @@ def _rms(values: list[float]) -> float:
     return math.sqrt(sum(value * value for value in values) / len(values))
 
 
+async def _program_coeffs(tb: TB) -> None:
+    tb.start_axil()
+    for index, coeff in enumerate(LOWPASS_101_COEFFS):
+        await axil_write_u32(tb.axil, 4 * index, to_unsigned(coeff, tb.coeff_width))
+
+
 @cocotb.test()
 async def low_pass_waveform_test(dut):
     tb = TB(dut)
     await tb.reset()
+    await _program_coeffs(tb)
 
     sample_count = 192
     samples, low_only_samples = _wave_samples(sample_count)
@@ -146,11 +169,10 @@ async def low_pass_waveform_test(dut):
 
 def test_FirFilterSingleChannelLowPass():
     parameters = {
-        "NUM_TAPS_G": "101",
-        "SIDEBAND_WIDTH_G": "1",
         "DATA_WIDTH_G": "12",
         "COEFF_WIDTH_G": "12",
-        "COEFFICIENTS_G": "(" + ", ".join(f"{index} => {value}" for index, value in enumerate(LOWPASS_101_COEFFS)) + ")",
+        "NUM_TAPS_G": "101",
+        "SIDEBAND_WIDTH_G": "1",
         "FILTER_DELAY": "50",
     }
     sim_build_key = str(
@@ -158,16 +180,22 @@ def test_FirFilterSingleChannelLowPass():
         / "sim_build"
         / "dsp"
         / "generic"
-        / "test_FirFilterSingleChannelLowPass.FirFilterSingleChannelWrapper"
+        / "test_FirFilterSingleChannelLowPass.NUM_TAPS_G=101,SIDEBAND_WIDTH_G=1,DATA_WIDTH_G=12,COEFF_WIDTH_G=12"
     )
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.firfiltersinglechannelwrapper",
-        parameters=hdl_parameters_from(parameters),
+        parameters={
+            "NUM_TAPS_G": parameters["NUM_TAPS_G"],
+            "SIDEBAND_WIDTH_G": parameters["SIDEBAND_WIDTH_G"],
+            "DATA_WIDTH_G": parameters["DATA_WIDTH_G"],
+            "COEFF_WIDTH_G": parameters["COEFF_WIDTH_G"],
+        },
         sim_build_key=sim_build_key,
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
+                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/fixed/FirFilterSingleChannel.vhd",
                 "dsp/generic/wrappers/FirFilterSingleChannelWrapper.vhd",

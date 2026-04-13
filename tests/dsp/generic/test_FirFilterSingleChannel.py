@@ -32,7 +32,7 @@ from cocotb.triggers import Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 from tests.dsp.generic.dsp_test_utils import (
     fir_direct_outputs,
     tick,
@@ -159,12 +159,11 @@ async def fir_data_and_axil_test(dut):
     [
         pytest.param(
             {
+                "COEFFICIENTS_G": "(0 => 7, 1 => 0, 2 => 0)",
                 "NUM_TAPS_G": 3,
                 "SIDEBAND_WIDTH_G": 2,
                 "DATA_WIDTH_G": 8,
                 "COEFF_WIDTH_G": 4,
-                "COEFFICIENTS_G": "(0 => 7, 1 => 0, 2 => 0)",
-                "AXIL_ADDR_WIDTH_G": 4,
                 "COEFF_UPDATE_ADDR": 1,
                 "COEFF_UPDATE_VALUE": 7,
                 "SAMPLE_SEQUENCE": "3,-2,5,1",
@@ -188,7 +187,7 @@ def test_FirFilterSingleChannel(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.firfiltersinglechanneltestwrapper",
-        parameters=hdl_parameters_from(parameters),
+        parameters=None,
         sim_build_key=sim_build_key,
         extra_env=parameters,
         extra_vhdl_sources={
