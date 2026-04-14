@@ -47,30 +47,30 @@ class ClockManager(pr.Device):
 
             if (type != 'PLLE3') and (type != 'PLLE4'):
                 self.add(pr.RemoteVariable(
-                    name         = f'PHASE_MUX[{i}]',
+                    name        = f'PHASE_MUX[{i}]',
                     description = "Chooses an initial phase offset for the clock output, the resolution is equal to 1/8 VCO period. Not available in UltraScale PLLE3 and UltraScale+ PLLE4.",
-                    offset       =  (ClkReg1[i] << 2),
-                    bitSize      =  3,
-                    bitOffset    =  13,
-                    mode         = "RW",
+                    offset      =  (ClkReg1[i] << 2),
+                    bitSize     =  3,
+                    bitOffset   =  13,
+                    mode        = "RW",
                 ))
 
             self.add(pr.RemoteVariable(
-                name         = f'HIGH_TIME[{i}]',
+                name        = f'HIGH_TIME[{i}]',
                 description = "Sets the amount of time in VCO cycles that the clock output remains High.",
-                offset       =  (ClkReg1[i] << 2),
-                bitSize      =  6,
-                bitOffset    =  6,
-                mode         = "RW",
+                offset      =  (ClkReg1[i] << 2),
+                bitSize     =  6,
+                bitOffset   =  6,
+                mode        = "RW",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'LOW_TIME[{i}]',
+                name        = f'LOW_TIME[{i}]',
                 description = "Sets the amount of time in VCO cycles that the clock output remains Low.",
-                offset       =  (ClkReg1[i] << 2),
-                bitSize      =  6,
-                bitOffset    =  0,
-                mode         = "RW",
+                offset      =  (ClkReg1[i] << 2),
+                bitSize     =  6,
+                bitOffset   =  0,
+                mode        = "RW",
             ))
 
         ##############################################################################
@@ -79,30 +79,30 @@ class ClockManager(pr.Device):
 
         if (type != 'PLLE3') and (type != 'PLLE4'):
             self.add(pr.RemoteVariable(
-                name         = 'PHASE_MUX_FB',
+                name        = 'PHASE_MUX_FB',
                 description = "Chooses an initial phase offset for the clock output, the resolution is equal to 1/8 VCO period. Not available in UltraScale PLLE3 and UltraScale+ PLLE4.",
-                offset       =  (0x14 << 2),
-                bitSize      =  3,
-                bitOffset    =  13,
-                mode         = "RW",
+                offset      =  (0x14 << 2),
+                bitSize     =  3,
+                bitOffset   =  13,
+                mode        = "RW",
             ))
 
         self.add(pr.RemoteVariable(
-            name         = 'HIGH_TIME_FB',
+            name        = 'HIGH_TIME_FB',
             description = "Sets the amount of time in VCO cycles that the clock output remains High.",
-            offset       =  (0x14 << 2),
-            bitSize      =  6,
-            bitOffset    =  6,
-            mode         = "RW",
+            offset      =  (0x14 << 2),
+            bitSize     =  6,
+            bitOffset   =  6,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LOW_TIME_FB',
+            name        = 'LOW_TIME_FB',
             description = "Sets the amount of time in VCO cycles that the clock output remains Low.",
-            offset       =  (0x14 << 2),
-            bitSize      =  6,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x14 << 2),
+            bitSize     =  6,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         ##############################################################################
@@ -127,30 +127,30 @@ class ClockManager(pr.Device):
                 if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
 
                     self.add(pr.RemoteVariable(
-                        name         = 'FRAC[0]',
+                        name        = 'FRAC[0]',
                         description = "Fractional divide counter setting for CLKOUT0. Equivalent to additional divide of 1/8.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  3,
-                        bitOffset    =  12,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  3,
+                        bitOffset   =  12,
+                        mode        = "RW",
                     ))
 
                     self.add(pr.RemoteVariable(
-                        name         = 'FRAC_EN[0]',
+                        name        = 'FRAC_EN[0]',
                         description = "Enable fractional divider circuitry for CLKOUT0.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  1,
-                        bitOffset    =  11,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  1,
+                        bitOffset   =  11,
+                        mode        = "RW",
                     ))
 
                     self.add(pr.RemoteVariable(
-                        name         = 'FRAC_WF_R[0]',
+                        name        = 'FRAC_WF_R[0]',
                         description = "Adjusts CLKOUT0 rising edge for improved duty cycle accuracy when using fractional counter.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  1,
-                        bitOffset    =  10,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  1,
+                        bitOffset   =  10,
+                        mode        = "RW",
                     ))
 
 
@@ -160,12 +160,12 @@ class ClockManager(pr.Device):
             if (i==1):
                 if (type == 'PLLE3') or (type == 'PLLE4'):
                     self.add(pr.RemoteVariable(
-                        name         = f'CLKOUTPHY_MODE[{i}]',
+                        name        = f'CLKOUTPHY_MODE[{i}]',
                         description = "For the PLLE3 and PLLE4, determines CLKPHYOUT frequency based on the VCO frequency.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  2,
-                        bitOffset    =  13,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  2,
+                        bitOffset   =  13,
+                        mode        = "RW",
                     ))
 
             ##############################################
@@ -174,21 +174,21 @@ class ClockManager(pr.Device):
             if (i==5):
                 if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
                     self.add(pr.RemoteVariable(
-                        name         = 'PHASE_MUX_F_CLKOUT[0]',
+                        name        = 'PHASE_MUX_F_CLKOUT[0]',
                         description = "CLKOUT0 data required when using fractional counter. Chooses an initial phase offset for the falling edge of the clock output. The resolution is equal to 1/8 VCO period. Not available in UltraScale PLLE3 and UltraScale+ PLLE4.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  3,
-                        bitOffset    =  13 if UltraScale else 11,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  3,
+                        bitOffset   =  13 if UltraScale else 11,
+                        mode        = "RW",
                     ))
 
                     self.add(pr.RemoteVariable(
-                        name         = 'FRAC_WF_F_CLKOUT[0]',
+                        name        = 'FRAC_WF_F_CLKOUT[0]',
                         description = "Adjusts CLKOUT0 falling edge for improved duty cycle accuracy when using fractional counter.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  1,
-                        bitOffset    =  12 if UltraScale else 10,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  1,
+                        bitOffset   =  12 if UltraScale else 10,
+                        mode        = "RW",
                     ))
 
             ###############################################
@@ -197,59 +197,59 @@ class ClockManager(pr.Device):
             if (i==6):
                 if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
                     self.add(pr.RemoteVariable(
-                        name         = 'PHASE_MUX_F_CLKOUT_FB',
+                        name        = 'PHASE_MUX_F_CLKOUT_FB',
                         description = "CLKFBOUT data required when using fractional counter. Chooses an initial phase offset for the falling edge of the clock output. The resolution is equal to 1/8 VCO period. Not available in UltraScale PLLE3 and UltraScale+ PLLE4.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  3,
-                        bitOffset    =  13 if UltraScale else 11,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  3,
+                        bitOffset   =  13 if UltraScale else 11,
+                        mode        = "RW",
                     ))
 
                     self.add(pr.RemoteVariable(
-                        name         = 'FRAC_WF_F_CLKOUT_FB',
+                        name        = 'FRAC_WF_F_CLKOUT_FB',
                         description = "Adjusts CLKFBOUT falling edge for improved duty cycle accuracy when using fractional counter.",
-                        offset       =  (ClkReg2[i] << 2),
-                        bitSize      =  1,
-                        bitOffset    =  12 if UltraScale else 10,
-                        mode         = "RW",
+                        offset      =  (ClkReg2[i] << 2),
+                        bitSize     =  1,
+                        bitOffset   =  12 if UltraScale else 10,
+                        mode        = "RW",
                     ))
 
             ##############################################################################
 
             self.add(pr.RemoteVariable(
-                name         = f'MX[{i}]',
+                name        = f'MX[{i}]',
                 description = "Must be set to 2'b00.",
-                offset       =  (ClkReg2[i] << 2),
-                bitSize      =  2,
-                bitOffset    =  8,
-                mode         = "WO",
+                offset      =  (ClkReg2[i] << 2),
+                bitSize     =  2,
+                bitOffset   =  8,
+                mode        = "WO",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'EDGE[{i}]',
+                name        = f'EDGE[{i}]',
                 description = "Chooses the edge that the High Time counter transitions on.",
-                offset       =  (ClkReg2[i] << 2),
-                bitSize      =  1,
-                bitOffset    =  7,
-                mode         = "RW",
+                offset      =  (ClkReg2[i] << 2),
+                bitSize     =  1,
+                bitOffset   =  7,
+                mode        = "RW",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'NO_COUNT[{i}]',
+                name        = f'NO_COUNT[{i}]',
                 description = "Bypasses the High and Low Time counters.",
-                offset       =  (ClkReg2[i] << 2),
-                bitSize      =  1,
-                bitOffset    =  6,
-                mode         = "RW",
+                offset      =  (ClkReg2[i] << 2),
+                bitSize     =  1,
+                bitOffset   =  6,
+                mode        = "RW",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'DELAY_TIME[{i}]',
+                name        = f'DELAY_TIME[{i}]',
                 description = "Phase offset with a resolution equal to the VCO period.",
-                offset       =  (ClkReg2[i] << 2),
-                bitSize      =  6,
-                bitOffset    =  0,
-                mode         = "RW",
+                offset      =  (ClkReg2[i] << 2),
+                bitSize     =  6,
+                bitOffset   =  0,
+                mode        = "RW",
             ))
 
         ##############################################################################
@@ -257,30 +257,30 @@ class ClockManager(pr.Device):
         if (type == 'MMCME2') or (type == 'MMCME3') or (type == 'MMCME4'):
 
             self.add(pr.RemoteVariable(
-                name         = 'FRAC_FB',
+                name        = 'FRAC_FB',
                 description = "Fractional divide counter setting for CLKFBOUT. Equivalent to additional divide of 1/8.",
-                offset       =  (0x15 << 2),
-                bitSize      =  3,
-                bitOffset    =  12,
-                mode         = "RW",
+                offset      =  (0x15 << 2),
+                bitSize     =  3,
+                bitOffset   =  12,
+                mode        = "RW",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'FRAC_EN_FB',
+                name        = 'FRAC_EN_FB',
                 description = "Enable fractional divider circuitry for CLKFBOUT.",
-                offset       =  (0x15 << 2),
-                bitSize      =  1,
-                bitOffset    =  11,
-                mode         = "RW",
+                offset      =  (0x15 << 2),
+                bitSize     =  1,
+                bitOffset   =  11,
+                mode        = "RW",
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'FRAC_WF_R_FB',
+                name        = 'FRAC_WF_R_FB',
                 description = "Adjusts CLKFBOUT rising edge for improved duty cycle accuracy when using fractional counter.",
-                offset       =  (0x15 << 2),
-                bitSize      =  1,
-                bitOffset    =  10,
-                mode         = "RW",
+                offset      =  (0x15 << 2),
+                bitSize     =  1,
+                bitOffset   =  10,
+                mode        = "RW",
             ))
 
         ##############################################################################
@@ -288,39 +288,39 @@ class ClockManager(pr.Device):
         ##############################################################################
 
         self.add(pr.RemoteVariable(
-            name         = 'MX_FB',
+            name        = 'MX_FB',
             description = "Must be set to 2'b00.",
-            offset       =  (0x15 << 2),
-            bitSize      =  2,
-            bitOffset    =  8,
-            mode         = "WO",
+            offset      =  (0x15 << 2),
+            bitSize     =  2,
+            bitOffset   =  8,
+            mode        = "WO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'EDGE_FB',
+            name        = 'EDGE_FB',
             description = "Chooses the edge that the High Time counter transitions on.",
-            offset       =  (0x15 << 2),
-            bitSize      =  1,
-            bitOffset    =  7,
-            mode         = "RW",
+            offset      =  (0x15 << 2),
+            bitSize     =  1,
+            bitOffset   =  7,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'NO_COUNT_FB',
+            name        = 'NO_COUNT_FB',
             description = "Bypasses the High and Low Time counters.",
-            offset       =  (0x15 << 2),
-            bitSize      =  1,
-            bitOffset    =  6,
-            mode         = "RW",
+            offset      =  (0x15 << 2),
+            bitSize     =  1,
+            bitOffset   =  6,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DELAY_TIME_FB',
+            name        = 'DELAY_TIME_FB',
             description = "Phase offset with a resolution equal to the VCO period.",
-            offset       =  (0x15 << 2),
-            bitSize      =  6,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x15 << 2),
+            bitSize     =  6,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         ##############################################################################
@@ -329,39 +329,39 @@ class ClockManager(pr.Device):
         # DIVCLK Register (Address=0x16)
 
         self.add(pr.RemoteVariable(
-            name         = 'EDGE_DIV',
+            name        = 'EDGE_DIV',
             description = "Chooses the edge that the High Time counter transitions on.",
-            offset       =  (0x16 << 2),
-            bitSize      =  1,
-            bitOffset    =  13,
-            mode         = "RW",
+            offset      =  (0x16 << 2),
+            bitSize     =  1,
+            bitOffset   =  13,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'NO_COUNT_DIV',
+            name        = 'NO_COUNT_DIV',
             description = "Bypasses the High and Low Time counters.",
-            offset       =  (0x16 << 2),
-            bitSize      =  1,
-            bitOffset    =  12,
-            mode         = "RW",
+            offset      =  (0x16 << 2),
+            bitSize     =  1,
+            bitOffset   =  12,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'HIGH_TIME_DIV',
+            name        = 'HIGH_TIME_DIV',
             description = "Sets the amount of time in VCO cycles that the clock output remains High.",
-            offset       =  (0x16 << 2),
-            bitSize      =  6,
-            bitOffset    =  6,
-            mode         = "RW",
+            offset      =  (0x16 << 2),
+            bitSize     =  6,
+            bitOffset   =  6,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LOW_TIME_DIV',
+            name        = 'LOW_TIME_DIV',
             description = "Sets the amount of time in VCO cycles that the clock output remains Low.",
-            offset       =  (0x16 << 2),
-            bitSize      =  6,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x16 << 2),
+            bitSize     =  6,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         ##############################################################################
@@ -372,30 +372,30 @@ class ClockManager(pr.Device):
         # Lock Register 3 (Address=0x1A)
 
         self.add(pr.RemoteVariable(
-            name         = 'LockReg[0]',
+            name        = 'LockReg[0]',
             description = "Three additional LOCK configuration registers must also be updated based on how the MMCM is programmed. These values are automatically setup by the reference design.",
-            offset       =  (0x18 << 2),
-            bitSize      =  16,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x18 << 2),
+            bitSize     =  16,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LockReg[1]',
+            name        = 'LockReg[1]',
             description = "Three additional LOCK configuration registers must also be updated based on how the MMCM is programmed. These values are automatically setup by the reference design.",
-            offset       =  (0x19 << 2),
-            bitSize      =  16,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x19 << 2),
+            bitSize     =  16,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LockReg[2]',
+            name        = 'LockReg[2]',
             description = "Three additional LOCK configuration registers must also be updated based on how the MMCM is programmed. These values are automatically setup by the reference design.",
-            offset       =  (0x1A << 2),
-            bitSize      =  16,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x1A << 2),
+            bitSize     =  16,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         ##############################################################################
@@ -404,21 +404,21 @@ class ClockManager(pr.Device):
         # Filter Register 1 (Address=0x4E)
         # Filter Register 2 (Address=0x4F)
         self.add(pr.RemoteVariable(
-            name         = 'FiltReg[0]',
+            name        = 'FiltReg[0]',
             description = "This bit is pulled from the lookup table provided in the reference design.",
-            offset       =  (0x4E << 2),
-            bitSize      =  16,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x4E << 2),
+            bitSize     =  16,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FiltReg[1]',
+            name        = 'FiltReg[1]',
             description = "This bit is pulled from the lookup table provided in the reference design.",
-            offset       =  (0x4F << 2),
-            bitSize      =  16,
-            bitOffset    =  0,
-            mode         = "RW",
+            offset      =  (0x4F << 2),
+            bitSize     =  16,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         ##############################################################################
@@ -428,11 +428,11 @@ class ClockManager(pr.Device):
         # Power Register (Address=0x28): 7 series
 
         self.add(pr.RemoteVariable(
-            name         = 'POWER',
+            name        = 'POWER',
             description = "These bits must all be set High when performing DRP.",
-            offset       = (0x27 << 2) if (UltraScale) else (0x28 << 2),
-            bitSize      = 16,
-            bitOffset    = 0,
-            mode         = "WO",
-            value        = 0xFFFF
+            offset      = (0x27 << 2) if (UltraScale) else (0x28 << 2),
+            bitSize     = 16,
+            bitOffset   = 0,
+            mode        = "WO",
+            value       = 0xFFFF
         ))
