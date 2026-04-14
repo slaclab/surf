@@ -314,13 +314,13 @@ class Xadc(pr.Device):
 
         for ch in auxChannels:
             self.add(pr.RemoteVariable(
-                name         = f'AuxRaw[{ch}]',
-                offset       =  0x240 + ch*4,
-                bitSize      =  12,
-                bitOffset    =  4,
-                base         = pr.UInt,
-                mode         = "RO",
-                description  = f'Raw ADC result for auxiliary analog input channel {ch}',
+                name        = f'AuxRaw[{ch}]',
+                offset      =  0x240 + ch*4,
+                bitSize     =  12,
+                bitOffset   =  4,
+                base        = pr.UInt,
+                mode        = "RO",
+                description = f'Raw ADC result for auxiliary analog input channel {ch}',
             ))
 
             self.add(pr.LinkVariable(
