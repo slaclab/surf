@@ -42,24 +42,24 @@ class Tmp461(pr.Device):
 
         def addBoolPair(name,description,rdOffset,wrOffset,bitOffset):
             self.add(pr.RemoteVariable(
-                name         = (name+"Read"),
-                description  = description,
-                offset       = rdOffset,
-                bitSize      = 1,
-                bitOffset    = bitOffset,
-                base         = pr.Bool,
-                mode         = 'RO',
-                hidden       = True,
+                name        = (name+"Read"),
+                description = description,
+                offset      = rdOffset,
+                bitSize     = 1,
+                bitOffset   = bitOffset,
+                base        = pr.Bool,
+                mode        = 'RO',
+                hidden      = True,
             ))
             self.add(pr.RemoteVariable(
-                name         = (name+"Write"),
-                description  = description,
-                offset       = wrOffset,
-                bitSize      = 1,
-                bitOffset    = bitOffset,
-                base         = pr.Bool,
-                mode         = 'WO',
-                hidden       = True,
+                name        = (name+"Write"),
+                description = description,
+                offset      = wrOffset,
+                bitSize     = 1,
+                bitOffset   = bitOffset,
+                base        = pr.Bool,
+                mode        = 'WO',
+                hidden      = True,
             ))
 
             rdVar = self.variables[name+"Read"]
@@ -72,7 +72,7 @@ class Tmp461(pr.Device):
                 linkedGet    = lambda read: rdVar.get(read=read),
                 linkedSet    = lambda value, write: wrVar.set(value, write=write),
                 dependencies = [rdVar],
-                enum        = {
+                enum         = {
                     False: 'False',
                     True:  'True',
                 },
@@ -82,15 +82,15 @@ class Tmp461(pr.Device):
         ############################################################################
 
         self.add(pr.RemoteVariable(
-            name        = 'LocalTemperatureHighByte',
-            description = 'Local temperature high byte (LTHB)',
-            offset      = (0x00 << 2),
-            bitSize     = 8,
-            bitOffset   = 0,
-            base        = pr.UInt,
-            mode        = 'RO',
-            pollInterval= pollInterval,
-            hidden      = True,
+            name         = 'LocalTemperatureHighByte',
+            description  = 'Local temperature high byte (LTHB)',
+            offset       = (0x00 << 2),
+            bitSize      = 8,
+            bitOffset    = 0,
+            base         = pr.UInt,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -106,15 +106,15 @@ class Tmp461(pr.Device):
         ############################################################################
 
         self.add(pr.RemoteVariable(
-            name        = 'RemoteTemperatureHighByte',
-            description = 'Remote temperature high byte (RTHB)',
-            offset      = (0x01 << 2),
-            bitSize     = 8,
-            bitOffset   = 0,
-            base        = pr.UInt,
-            mode        = 'RO',
-            pollInterval= pollInterval,
-            hidden      = True,
+            name         = 'RemoteTemperatureHighByte',
+            description  = 'Remote temperature high byte (RTHB)',
+            offset       = (0x01 << 2),
+            bitSize      = 8,
+            bitOffset    = 0,
+            base         = pr.UInt,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+            hidden       = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -130,92 +130,92 @@ class Tmp461(pr.Device):
         ############################################################################
 
         self.add(pr.RemoteVariable(
-            name        = 'Busy',
-            description = 'When logic 1, A/D is busy converting. POR state = n/a.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 7,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
-            hidden      = True,
+            name         = 'Busy',
+            description  = 'When logic 1, A/D is busy converting. POR state = n/a.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 7,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
+            hidden       = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Lhigh',
-            description = 'When logic 1, indicates local HIGH temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 6,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Lhigh',
+            description  = 'When logic 1, indicates local HIGH temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 6,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Llow',
-            description = 'When logic 1, indicates a local LOW temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 5,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Llow',
+            description  = 'When logic 1, indicates a local LOW temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 5,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Rhigh',
-            description = 'When logic 1, indicates a remote diode HIGH temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 4,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Rhigh',
+            description  = 'When logic 1, indicates a remote diode HIGH temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 4,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Rlow',
-            description = 'When logic 1, indicates a remote diode LOW temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 3,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Rlow',
+            description  = 'When logic 1, indicates a remote diode LOW temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 3,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Open',
-            description = 'When logic 1, indicates a remote diode disconnect. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 2,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Open',
+            description  = 'When logic 1, indicates a remote diode disconnect. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 2,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Rcrit',
-            description = 'When logic 1, indicates a remote diode critical temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 1,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Rcrit',
+            description  = 'When logic 1, indicates a remote diode critical temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 1,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Lcrit',
-            description = 'When logic 1, indicates a local critical temperature alarm. POR state = 0.',
-            offset      = (0x02 << 2),
-            bitSize     = 1,
-            bitOffset   = 0,
-            base        = pr.Bool,
-            mode        = 'RO',
-            pollInterval= pollInterval,
+            name         = 'Lcrit',
+            description  = 'When logic 1, indicates a local critical temperature alarm. POR state = 0.',
+            offset       = (0x02 << 2),
+            bitSize      = 1,
+            bitOffset    = 0,
+            base         = pr.Bool,
+            mode         = 'RO',
+            pollInterval = pollInterval,
         ))
 
         ############################################################################
@@ -254,7 +254,7 @@ class Tmp461(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RO',
-            hidden       = True,
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -265,7 +265,7 @@ class Tmp461(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'WO',
-            hidden       = True,
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -275,8 +275,8 @@ class Tmp461(pr.Device):
             linkedGet    = lambda read: self.ConvertRateRead.get(read=read),
             linkedSet    = lambda value, write: self.ConvertRateWrite.set(value, write=write),
             dependencies = [self.ConvertRateRead],
-            units       = 'Hz',
-            enum        = {
+            units        = 'Hz',
+            enum         = {
                 0x00: '0.0625',
                 0x01: '0.125',
                 0x02: '0.25',
@@ -321,7 +321,7 @@ class Tmp461(pr.Device):
             linkedGet    = getTempReg,
             linkedSet    = setTempReg([self.LocalHighSetpointWrite]),
             dependencies = [self.LocalHighSetpointRead],
-            units       = 'degC',
+            units        = 'degC',
         ))
 
         ############################################################################
@@ -355,7 +355,7 @@ class Tmp461(pr.Device):
             linkedGet    = getTempReg,
             linkedSet    = setTempReg([self.LocalLowSetpointWrite]),
             dependencies = [self.LocalLowSetpointRead],
-            units       = 'degC',
+            units        = 'degC',
         ))
 
         ############################################################################
@@ -379,7 +379,7 @@ class Tmp461(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'WO',
-            hidden       = True,
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -389,7 +389,7 @@ class Tmp461(pr.Device):
             linkedGet    = getTempReg,
             linkedSet    = setTempReg([self.RemoteHighSetpointHighByteWrite]),
             dependencies = [self.RemoteHighSetpointHighByteRead],
-            units       = 'degC',
+            units        = 'degC',
         ))
 
         ############################################################################
@@ -413,7 +413,7 @@ class Tmp461(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'WO',
-            hidden       = True,
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -423,7 +423,7 @@ class Tmp461(pr.Device):
             linkedGet    = getTempReg,
             linkedSet    = setTempReg([self.RemoteLowSetpointHighByteWrite]),
             dependencies = [self.RemoteLowSetpointHighByteRead],
-            units       = 'degC',
+            units        = 'degC',
         ))
 
     ############################################################################
@@ -470,11 +470,11 @@ class Tmp461(pr.Device):
             name        = 'OneShot',
             description = 'writing register initiates a one-shot conversion (One Shot)',
             offset      = (0x0F << 2),
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.set(1),
-            hidden       = False,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            function    = lambda cmd: cmd.set(1),
+            hidden      = False,
         ))
 
         self.add(pr.RemoteVariable(
