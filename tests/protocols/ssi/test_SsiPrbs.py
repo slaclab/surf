@@ -158,7 +158,17 @@ async def ssi_prbs_directed_loopback_test(dut):
     }
 
 
-PARAMETER_SWEEP = [pytest.param({}, id="directed_loopback")]
+PARAMETER_SWEEP = [
+    pytest.param({}, id="directed_loopback"),
+    pytest.param(
+        {"PRBS_SEED_SIZE_G": "512", "DATA_BYTES_G": "64"},
+        id="seed_eq_bus_width",
+    ),
+    pytest.param(
+        {"PRBS_SEED_SIZE_G": "256", "DATA_BYTES_G": "64"},
+        id="seed_lt_bus_width",
+    ),
+]
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)

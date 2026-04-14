@@ -11,7 +11,7 @@
 # Test methodology:
 # - Sweep: Cover a curated three-case wrapper matrix across true same-clock
 #   bypass, explicit user-header insertion, and a wider direct-path bypass
-#   configuration.
+#   configuration.  All cases use TUSER_MASK_G=0 (no masking).
 # - Stimulus: Drive short AXI-stream payloads beat by beat, stall the sink on
 #   the first visible beat, and vary `mUserHdr` plus the wrapper width/FIFO
 #   mode so the checks stay on the wrapper-facing contract instead of

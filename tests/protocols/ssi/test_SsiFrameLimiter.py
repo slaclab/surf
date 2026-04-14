@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: Cover a small two-case wrapper matrix across 16-bit and 32-bit SSI
-#   lanes with a two-beat frame limit.
+#   lanes with a two-beat frame limit each.
 # - Stimulus: Send a valid short frame, an over-limit frame, a repeated-SOF
 #   malformed frame, a missing-SOF frame, and one stalled frame that relies on
 #   the wrapper's enabled timeout path.
