@@ -27,12 +27,12 @@ class UdpEngine(pr.Device):
         for i in range(numClt):
 
             self.add(pr.RemoteVariable(
-                name         = f'ClientRemotePortRaw[{i}]',
-                description  = 'ClientRemotePort (big-Endian configuration)',
-                offset       = (0x000+8*i),
-                bitSize      = 16,
-                mode         = 'RW',
-                hidden       = True,
+                name        = f'ClientRemotePortRaw[{i}]',
+                description = 'ClientRemotePort (big-Endian configuration)',
+                offset      = (0x000+8*i),
+                bitSize     = 16,
+                mode        = 'RW',
+                hidden      = True,
             ))
 
             self.add(pr.LinkVariable(
@@ -45,12 +45,12 @@ class UdpEngine(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'ClientRemoteIpRaw[{i}]',
-                description  = 'ClientRemoteIp (big-Endian configuration)',
-                offset       = (0x004+8*i),
-                bitSize      = 32,
-                mode         = 'RW',
-                hidden       = True,
+                name        = f'ClientRemoteIpRaw[{i}]',
+                description = 'ClientRemoteIp (big-Endian configuration)',
+                offset      = (0x004+8*i),
+                bitSize     = 32,
+                mode        = 'RW',
+                hidden      = True,
             ))
 
             self.add(pr.LinkVariable(
@@ -69,12 +69,12 @@ class UdpEngine(pr.Device):
         for i in range(numSrv):
 
             self.add(pr.RemoteVariable(
-                name         = f'ServerRemotePortRaw[{i}]',
-                description  = 'ServerRemotePort (big-Endian configuration)',
-                offset       = (0x800+8*i),
-                bitSize      = 16,
-                mode         = 'RO',
-                hidden       = True,
+                name        = f'ServerRemotePortRaw[{i}]',
+                description = 'ServerRemotePort (big-Endian configuration)',
+                offset      = (0x800+8*i),
+                bitSize     = 16,
+                mode        = 'RO',
+                hidden      = True,
             ))
 
             self.add(pr.LinkVariable(
@@ -86,12 +86,12 @@ class UdpEngine(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name         = f'ServerRemoteIpRaw[{i}]',
-                description  = 'ServerRemoteIp (big-Endian configuration)',
-                offset       = (0x804+8*i),
-                bitSize      = 32,
-                mode         = 'RO',
-                hidden       = True,
+                name        = f'ServerRemoteIpRaw[{i}]',
+                description = 'ServerRemoteIp (big-Endian configuration)',
+                offset      = (0x804+8*i),
+                bitSize     = 32,
+                mode        = 'RO',
+                hidden      = True,
             ))
 
             self.add(pr.LinkVariable(
@@ -109,12 +109,12 @@ class UdpEngine(pr.Device):
         for i in range(numIgmp):
 
             self.add(pr.RemoteVariable(
-                name         = f'IgmpIpRaw[{i}]',
-                description  = 'IgmpIp (big-Endian configuration)',
-                offset       = (0xFD0+4*i),
-                bitSize      = 32,
-                mode         = 'RW',
-                hidden       = True,
+                name        = f'IgmpIpRaw[{i}]',
+                description = 'IgmpIp (big-Endian configuration)',
+                offset      = (0xFD0+4*i),
+                bitSize     = 32,
+                mode        = 'RW',
+                hidden      = True,
             ))
 
             self.add(pr.LinkVariable(
@@ -131,12 +131,12 @@ class UdpEngine(pr.Device):
         ##############
 
         self.add(pr.RemoteVariable(
-            name         = 'SoftIpRaw',
-            description  = 'software configurable IP used when softIp connected to localIp in firmware (big-Endian configuration)',
-            offset       = 0xFE4,
-            bitSize      = 32,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'SoftIpRaw',
+            description = 'software configurable IP used when softIp connected to localIp in firmware (big-Endian configuration)',
+            offset      = 0xFE4,
+            bitSize     = 32,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -149,12 +149,12 @@ class UdpEngine(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'SoftMacRaw',
-            description  = 'software configurable MAC used when softMac connected to localMac in firmware (big-Endian configuration)',
-            offset       = 0xFE8,
-            bitSize      = 48,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'SoftMacRaw',
+            description = 'software configurable MAC used when softMac connected to localMac in firmware (big-Endian configuration)',
+            offset      = 0xFE8,
+            bitSize     = 48,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -167,12 +167,12 @@ class UdpEngine(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BroadcastIpRaw',
-            description  = 'BroadcastIp (big-Endian configuration)',
-            offset       = 0xFF0,
-            bitSize      = 32,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'BroadcastIpRaw',
+            description = 'BroadcastIp (big-Endian configuration)',
+            offset      = 0xFF0,
+            bitSize     = 32,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -185,12 +185,12 @@ class UdpEngine(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocalIpRaw',
-            description  = 'LocalIp (big-Endian configuration)',
-            offset       = 0xFF4,
-            bitSize      = 32,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'LocalIpRaw',
+            description = 'LocalIp (big-Endian configuration)',
+            offset      = 0xFF4,
+            bitSize     = 32,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -202,12 +202,12 @@ class UdpEngine(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocalMacRaw',
-            description  = 'MacAddress (big-Endian configuration)',
-            offset       = 0xFF8,
-            bitSize      = 48,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'LocalMacRaw',
+            description = 'MacAddress (big-Endian configuration)',
+            offset      = 0xFF8,
+            bitSize     = 48,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
