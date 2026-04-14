@@ -417,7 +417,7 @@ class Lmk61e2(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'NVMLCRC',
-            description  = '',
+            description  = 'NVM CRC status readback register',
             offset       = (50 << 2),
             bitSize      = 8,
             bitOffset    = 0,

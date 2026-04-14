@@ -76,7 +76,7 @@ entity Pgp4AxiL is
       axilWriteSlave   : out AxiLiteWriteSlaveType);
 end Pgp4AxiL;
 
-architecture mapping of Pgp4AxiL is
+architecture rtl of Pgp4AxiL is
 
    constant TIMEOUT_1HZ_C : natural := getTimeRatio(AXIL_CLK_FREQ_G, 1.0) - 1;
 
@@ -198,11 +198,11 @@ begin
    ---------------------
    -- AXI-Lite Registers
    ---------------------
-   process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
-            locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
-            remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
-            rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
-            txErrorCnt, txOpCodeData, txStatusCnt) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
+                   locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
+                   remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
+                   rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
+                   txErrorCnt, txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -733,4 +733,4 @@ begin
          rdClk        => axilClk,
          rdRst        => axilRst);
 
-end mapping;
+end rtl;

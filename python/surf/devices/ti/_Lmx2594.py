@@ -18,7 +18,7 @@ class Lmx2594(pr.Device):
         numRegs = 113
         self.add(pr.RemoteVariable(
             name         = "DataBlock",
-            description  = "",
+            description  = "Raw register block containing all LMX2594 PLL configuration registers",
             offset       = 0,
             bitSize      = 32 * numRegs,
             bitOffset    = 0,

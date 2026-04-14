@@ -75,6 +75,7 @@ class Pgp2bAxi(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        = "TxDiffCtrl",
+                description = "GT TX differential swing control",
                 offset      = 0x1C,
                 bitSize     = 5,
                 bitOffset   = 0,
@@ -83,6 +84,7 @@ class Pgp2bAxi(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        = "TxPreCursor",
+                description = "GT TX pre-cursor emphasis control",
                 offset      = 0x1C,
                 bitSize     = 5,
                 bitOffset   = 5,
@@ -91,6 +93,7 @@ class Pgp2bAxi(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        = "TxPostCursor",
+                description = "GT TX post-cursor emphasis control",
                 offset      = 0x1C,
                 bitSize     = 5,
                 bitOffset   = 10,
@@ -215,7 +218,7 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0,
             mode        = "RO",
             base        = pr.UInt,
-            description = "",
+            description = "Sideband data received from remote link",
             pollInterval = 1,
         ))
 
@@ -240,6 +243,7 @@ class Pgp2bAxi(pr.Device):
         for offset, idx in enumerate(countVars):
             self.add(pr.RemoteVariable(
                 name        = idx[0],
+                description = f"PGP link status/error counter: {idx[0]}",
                 offset      = ((offset*4)+0x28),
                 disp        = '{:d}',
                 bitSize     = idx[1],
@@ -251,6 +255,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "RxRemLinkReadyCount",
+            description = "Count of remote link ready transitions",
             offset      = 0x80,
             disp        = '{:d}',
             bitSize     = errorCountBits,
@@ -267,7 +272,7 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0,
             mode        = "RO",
             base        = pr.UInt,
-            description = "",
+            description = "Last transmitted op-code value",
             pollInterval = 1,
         ))
 
@@ -278,7 +283,7 @@ class Pgp2bAxi(pr.Device):
             bitOffset   = 0,
             mode        = "RO",
             base        = pr.UInt,
-            description = "",
+            description = "Last received op-code value",
             pollInterval = 1,
         ))
 
@@ -290,7 +295,7 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO",
             base        = pr.UInt,
             disp        = "{:d}",
-            description = "",
+            description = "Count of transmitted op-codes",
             pollInterval = 1,
         ))
 
@@ -302,12 +307,13 @@ class Pgp2bAxi(pr.Device):
             mode        = "RO",
             base        = pr.UInt,
             disp        = "{:d}",
-            description = "",
+            description = "Count of received op-codes",
             pollInterval = 1,
         ))
 
         self.add(pr.RemoteCommand(
             name        = 'CountReset',
+            description = "Reset all status and error counters",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 0,
@@ -316,6 +322,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = "ResetRx",
+            description = "Reset the PGP RX path",
             offset      = 0x04,
             bitSize     = 1,
             bitOffset   = 0,
@@ -324,6 +331,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = 'ResetTx',
+            description = "Reset the PGP TX path",
             offset      = 0x04,
             bitSize     = 1,
             bitOffset   = 1,
@@ -331,11 +339,12 @@ class Pgp2bAxi(pr.Device):
         ))
 
         self.add(pr.RemoteCommand(
-            name = 'ResetGt',
-            offset = 0x04,
-            bitSize = 1,
-            bitOffset =2,
-            function = pr.BaseCommand.toggle,
+            name        = 'ResetGt',
+            description = "Reset the GT transceiver",
+            offset      = 0x04,
+            bitSize     = 1,
+            bitOffset   = 2,
+            function    = pr.BaseCommand.toggle,
         ))
 
 #         @self.command()
@@ -352,6 +361,7 @@ class Pgp2bAxi(pr.Device):
         if writeEn:
             self.add(pr.RemoteCommand(
                 name        = "Flush",
+                description = "Flush the PGP TX buffer",
                 offset      = 0x08,
                 bitSize     = 1,
                 bitOffset   = 0,
@@ -361,6 +371,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxClkFreqRaw",
+            description  = "Raw RX clock frequency in Hz",
             offset       = 0x64,
             bitSize      = 32,
             mode         = "RO",
@@ -371,6 +382,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxClkFreqRaw",
+            description  = "Raw TX clock frequency in Hz",
             offset       = 0x68,
             bitSize      = 32,
             mode         = "RO",
@@ -384,6 +396,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RxClkFreq",
+            description  = "RX clock frequency in MHz",
             mode         = "RO",
             units        = "MHz",
             disp         = '{:0.2f}',
@@ -393,6 +406,7 @@ class Pgp2bAxi(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "TxClkFreq",
+            description  = "TX clock frequency in MHz",
             mode         = "RO",
             units        = "MHz",
             disp         = '{:0.2f}',

@@ -1,0 +1,303 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+# Test methodology:
+# - Sweep: Sweep `read-first`, `write-first`, and `no-change` modes, add a
+#   byte-write plus `DOB`-registered case, and include an asynchronous
+#   active-low reset case.
+# - Stimulus: Alternate reads and writes on both ports, create same-address
+#   interactions to expose mode semantics, apply partial byte writes, and then
+#   reset after a registered capture.
+# - Checks: The bench verifies cross-port visibility, mode-specific
+#   read-during-write results, byte-lane masking, registered-output hold
+#   behavior, and reset recovery.
+# - Timing: Because both ports are active, the bench checks results relative to
+#   the specific `clka` or `clkb` edge that triggered the interaction and
+#   expects registered outputs to lag by one extra cycle.
+
+import os
+
+import cocotb
+import pytest
+from cocotb.triggers import FallingEdge, RisingEdge, Timer
+
+from tests.base.ram.ram_test_utils import DualClockRamTB
+from tests.common.regression_utils import (
+    env_flag,
+    hdl_parameters_from,
+    parameter_case,
+    run_surf_vhdl_test,
+)
+
+
+class TB(DualClockRamTB):
+    def __init__(self, dut):
+        super().__init__(dut)
+        self.mode = os.environ["MODE_G"]
+        self.doa_reg_enabled = env_flag("DOA_REG_G", default=False)
+        self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
+        self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
+
+        # Put every input into a defined idle state before the simulator starts.
+        dut.ena.value = 1
+        dut.wea.value = 0
+        dut.weaByte.value = 0
+        dut.rsta.value = self.reset_inactive_value()
+        dut.addra.value = 0
+        dut.dina.value = 0
+        dut.regcea.value = 1
+
+        dut.enb.value = 1
+        dut.web.value = 0
+        dut.webByte.value = 0
+        dut.rstb.value = self.reset_inactive_value()
+        dut.addrb.value = 0
+        dut.dinb.value = 0
+        dut.regceb.value = 1
+
+    async def write_a(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
+        self.dut.addra.value = addr
+        self.dut.dina.value = value
+        self.dut.wea.value = 1
+        self.dut.weaByte.value = self.full_byte_mask("weaByte") if byte_mask is None else byte_mask
+        await RisingEdge(self.dut.clka)
+        await self.settle()
+        self.dut.wea.value = 0
+        self.dut.weaByte.value = 0
+
+    async def write_b(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
+        self.dut.addrb.value = addr
+        self.dut.dinb.value = value
+        self.dut.web.value = 1
+        self.dut.webByte.value = self.full_byte_mask("webByte") if byte_mask is None else byte_mask
+        await RisingEdge(self.dut.clkb)
+        await self.settle()
+        self.dut.web.value = 0
+        self.dut.webByte.value = 0
+
+    async def read_a(self, addr: int, *, regce: int = 1) -> int:
+        self.dut.addra.value = addr
+        self.dut.wea.value = 0
+        self.dut.regcea.value = regce
+        # Waiting two destination clocks gives one helper that works for both
+        # direct and registered outputs without having to branch on mode.
+        await RisingEdge(self.dut.clka)
+        await self.settle()
+        await RisingEdge(self.dut.clka)
+        await self.settle()
+        return int(self.dut.douta.value)
+
+    async def read_b(self, addr: int, *, regce: int = 1) -> int:
+        self.dut.addrb.value = addr
+        self.dut.web.value = 0
+        self.dut.regceb.value = regce
+        await RisingEdge(self.dut.clkb)
+        await self.settle()
+        await RisingEdge(self.dut.clkb)
+        await self.settle()
+        return int(self.dut.doutb.value)
+
+
+@cocotb.test()
+async def cross_port_read_write_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+
+    # Exercise both ports as independent read/write clients. This still proves
+    # that each side can store and later retrieve data, while avoiding a
+    # fragile assumption about exactly when the opposite port's read path will
+    # observe a just-written value under mixed clock periods.
+    await tb.write_a(1, 0x1234)
+    await tb.cycle_a(1)
+    assert await tb.read_a(1) == 0x1234
+
+    await tb.write_b(2, 0x5678)
+    await tb.cycle_b(1)
+    assert await tb.read_b(2) == 0x5678
+
+
+@cocotb.test()
+async def mode_semantics_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    if tb.doa_reg_enabled:
+        return
+
+    # Seed two locations and intentionally leave `douta` showing the value from
+    # address 1 before writing address 0. That setup makes the three RAM modes
+    # produce visibly different output behavior on the write cycle.
+    await tb.write_a(0, 0x1111)
+    await tb.write_a(1, 0xAAAA)
+    assert await tb.read_a(1) == 0xAAAA
+
+    tb.dut.addra.value = 0
+    tb.dut.dina.value = 0x2222
+    tb.dut.wea.value = 1
+    tb.dut.weaByte.value = tb.full_byte_mask("weaByte")
+    await RisingEdge(dut.clka)
+    await tb.settle()
+    tb.dut.wea.value = 0
+    tb.dut.weaByte.value = 0
+
+    if tb.mode == "write-first":
+        assert int(dut.douta.value) == 0x2222
+    elif tb.mode == "read-first":
+        assert int(dut.douta.value) == 0x1111
+    else:
+        assert int(dut.douta.value) == 0xAAAA
+
+    # Regardless of the read-during-write mode, the stored memory contents
+    # should now hold the new word.
+    assert await tb.read_b(0) == 0x2222
+
+
+@cocotb.test()
+async def byte_write_enable_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    if not tb.byte_write_enabled:
+        return
+
+    await tb.write_a(3, 0xABCD)
+    await tb.write_b(3, 0x00EF, byte_mask=0b01)
+    assert await tb.read_a(3) == 0xABEF
+
+    await tb.write_b(3, 0x1200, byte_mask=0b10)
+    assert await tb.read_a(3) == 0x12EF
+
+
+@cocotb.test()
+async def registered_output_hold_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    if not tb.dob_reg_enabled:
+        return
+
+    await tb.write_a(0, 0x1111)
+    await tb.write_a(1, 0x2222)
+    assert await tb.read_b(0) == 0x1111
+
+    # With `regceb=0`, the registered output should keep the previously
+    # captured word even though the address and internal RAM output are moving.
+    tb.dut.addrb.value = 1
+    tb.dut.regceb.value = 0
+    await tb.cycle_b(2)
+    assert int(dut.doutb.value) == 0x1111
+
+    tb.dut.regceb.value = 1
+    await tb.cycle_b(1)
+    assert int(dut.doutb.value) == 0x2222
+
+
+@cocotb.test()
+async def reset_behavior_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    await tb.write_a(4, 0xCAFE)
+    assert await tb.read_b(4) == 0xCAFE
+
+    await FallingEdge(dut.clkb)
+    await Timer(1, unit="ns")
+    dut.rstb.value = tb.reset_active_value()
+    await tb.settle()
+
+    if tb.async_reset:
+        assert int(dut.doutb.value) == 0
+    else:
+        assert int(dut.doutb.value) == 0xCAFE
+        await tb.cycle_b(1)
+        assert int(dut.doutb.value) == 0
+
+    dut.rstb.value = tb.reset_inactive_value()
+    assert await tb.read_b(4) == 0xCAFE
+
+
+PARAMETER_SWEEP = [
+    parameter_case(
+        "read_first_baseline",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="7",
+    ),
+    parameter_case(
+        "write_first_baseline",
+        MODE_G="write-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "no_change_baseline",
+        MODE_G="no-change",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "byte_write_and_dob_reg",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="true",
+        BYTE_WR_EN_G="true",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "async_active_low_reset",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="true",
+        RST_POLARITY_G="'0'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="7",
+    ),
+]
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+def test_TrueDualPortRam(parameters):
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.truedualportram",
+        parameters=hdl_parameters_from(parameters),
+        extra_env=parameters,
+    )

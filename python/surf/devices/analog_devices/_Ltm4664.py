@@ -119,6 +119,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # # NOTE: Block command not working
         # self.add(pr.RemoteVariable(
         #     name         = 'PAGE_PLUS_WRITE',
+        #     description  = 'Writes data to page register and selected PMBus page simultaneously',
         #     offset       = (4*0x05),
         #     bitSize      = 8,
         #     mode         = 'WO',
@@ -127,6 +128,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # # NOTE: Block command not working
         # self.add(pr.RemoteVariable(
         #     name         = 'PAGE_PLUS_READ',
+        #     description  = 'Reads data from selected PMBus page with simultaneous page selection',
         #     offset       = (4*0x06),
         #     bitSize      = 8,
         #     mode         = 'RW',
@@ -135,6 +137,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # # NOTE: Block command not working
         # self.add(pr.RemoteVariable(
         #     name         = 'SMBALERT_MASK',
+        #     description  = 'Configures which status bits assert the SMBALERT signal',
         #     offset       = (4*0x1B),
         #     bitSize      = 8,
         #     mode         = 'RW',
@@ -142,6 +145,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_VOUT_MAX',
+            description  = 'Maximum allowable output voltage (manufacturer programmed)',
             offset       = (4*0xA5),
             bitSize      = 16,
             mode         = 'RO',
@@ -149,6 +153,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_PIN_ACCURACY',
+            description  = 'Input power measurement accuracy specification in 0.1% steps',
             offset       = (4*0xAC),
             bitSize      = 8,
             mode         = 'RO',
@@ -156,6 +161,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'USER_DATA_00',
+            description  = 'User-defined data register 0 (read-only storage)',
             offset       = (4*0xB0),
             bitSize      = 16,
             mode         = 'RO',
@@ -163,6 +169,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'USER_DATA_01',
+            description  = 'User-defined data register 1 (read-only storage)',
             offset       = (4*0xB1),
             bitSize      = 16,
             mode         = 'RO',
@@ -170,6 +177,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'USER_DATA_02',
+            description  = 'User-defined data register 2 (read-only storage)',
             offset       = (4*0xB2),
             bitSize      = 16,
             mode         = 'RO',
@@ -177,6 +185,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'USER_DATA_03',
+            description  = 'User-defined data register 3 (read-write storage)',
             offset       = (4*0xB3),
             bitSize      = 16,
             mode         = 'RW',
@@ -184,6 +193,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'USER_DATA_04',
+            description  = 'User-defined data register 4 (read-write storage)',
             offset       = (4*0xB4),
             bitSize      = 16,
             mode         = 'RW',
@@ -191,6 +201,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_CHAN_CONFIG',
+            description  = 'Per-channel configuration register for output enable and sequencing',
             offset       = (4*0xD0),
             bitSize      = 8,
             mode         = 'RW',
@@ -198,6 +209,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_CONFIG_ALL',
+            description  = 'Global device configuration register',
             offset       = (4*0xD1),
             bitSize      = 8,
             mode         = 'RW',
@@ -205,6 +217,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_FAULT_PROPAGATE',
+            description  = 'Configures which faults propagate to the FAULT pin',
             offset       = (4*0xD2),
             bitSize      = 16,
             mode         = 'RW',
@@ -212,6 +225,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_PWM_COMP',
+            description  = 'PWM comparator configuration register',
             offset       = (4*0xD3),
             bitSize      = 8,
             mode         = 'RW',
@@ -219,6 +233,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_PWM_MODE',
+            description  = 'PWM operating mode selection (e.g., forced continuous, discontinuous)',
             offset       = (4*0xD4),
             bitSize      = 8,
             mode         = 'RW',
@@ -226,6 +241,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_FAULT_RESPONSE',
+            description  = 'Configures device response to fault conditions',
             offset       = (4*0xD5),
             bitSize      = 8,
             mode         = 'RW',
@@ -233,6 +249,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_OT_FAULT_RESPONSE',
+            description  = 'Over-temperature fault response configuration',
             offset       = (4*0xD6),
             bitSize      = 8,
             mode         = 'RO',
@@ -240,6 +257,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_IOUT_PEAK',
+            description  = 'Peak output current reading since last cleared',
             offset       = (4*0xD7),
             bitSize      = 16,
             mode         = 'RO',
@@ -247,6 +265,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_ADC_CONTROL',
+            description  = 'Internal ADC control and averaging configuration',
             offset       = (4*0xD8),
             bitSize      = 8,
             mode         = 'RW',
@@ -254,6 +273,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_IOUT_CAL_GAIN',
+            description  = 'Output current calibration gain (DCR sense resistance)',
             offset       = (4*0xDA),
             bitSize      = 16,
             mode         = 'RO',
@@ -261,6 +281,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_RETRY_DELAY',
+            description  = 'Delay before retrying after a fault shutdown',
             offset       = (4*0xDB),
             bitSize      = 16,
             mode         = 'RW',
@@ -268,6 +289,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_RESTART_DELAY',
+            description  = 'Delay before output restart after a commanded off state',
             offset       = (4*0xDC),
             bitSize      = 16,
             mode         = 'RW',
@@ -275,6 +297,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_VOUT_PEAK',
+            description  = 'Peak output voltage reading since last cleared',
             offset       = (4*0xDD),
             bitSize      = 16,
             mode         = 'RO',
@@ -282,6 +305,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_VIN_PEAK',
+            description  = 'Peak input voltage reading since last cleared',
             offset       = (4*0xDE),
             bitSize      = 16,
             mode         = 'RO',
@@ -289,6 +313,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_TEMPERATURE_1_PEAK',
+            description  = 'Peak external temperature 1 reading since last cleared',
             offset       = (4*0xDF),
             bitSize      = 16,
             mode         = 'RO',
@@ -296,6 +321,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_READ_IIN_PEAK',
+            description  = 'Peak input current reading since last cleared',
             offset       = (4*0xE1),
             bitSize      = 16,
             mode         = 'RO',
@@ -303,6 +329,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteCommand(
             name         = 'MFR_CLEAR_PEAKS',
+            description  = 'Clears all stored peak measurement registers',
             offset       = (4*0xE3),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
@@ -310,6 +337,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_READ_ICHIP',
+            description  = 'Internal chip current consumption reading',
             offset       = (4*0xE4),
             bitSize      = 16,
             mode         = 'RO',
@@ -317,6 +345,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_PADS',
+            description  = 'Manufacturer pad configuration and status register',
             offset       = (4*0xE5),
             bitSize      = 16,
             mode         = 'RO',
@@ -324,6 +353,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_ADDRESS',
+            description  = 'PMBus device address configuration register',
             offset       = (4*0xE6),
             bitSize      = 8,
             mode         = 'RW',
@@ -331,6 +361,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_SPECIAL_ID',
+            description  = 'Manufacturer special device identification code',
             offset       = (4*0xE7),
             bitSize      = 16,
             mode         = 'RO',
@@ -338,6 +369,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_IIN_CAL_GAIN',
+            description  = 'Input current calibration gain (sense resistance)',
             offset       = (4*0xE8),
             bitSize      = 16,
             mode         = 'RW',
@@ -345,6 +377,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteCommand(
             name         = 'MFR_FAULT_LOG_STORE',
+            description  = 'Stores the current fault log to non-volatile memory',
             offset       = (4*0xEA),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
@@ -352,6 +385,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteCommand(
             name         = 'MFR_FAULT_LOG_CLEAR',
+            description  = 'Clears the fault log stored in non-volatile memory',
             offset       = (4*0xEC),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
@@ -360,6 +394,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # # NOTE: Block command not working
         # self.add(pr.RemoteVariable(
         #     name         = 'MFR_FAULT_LOG',
+        #     description  = 'Fault log data read from non-volatile memory',
         #     offset       = (4*0xEE),
         #     bitSize      = 32,
         #     mode         = 'RO',
@@ -367,6 +402,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_COMMON',
+            description  = 'Common manufacturer status and configuration bits',
             offset       = (4*0xEF),
             bitSize      = 8,
             mode         = 'RO',
@@ -374,6 +410,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteCommand(
             name         = 'MFR_COMPARE_USER_ALL',
+            description  = 'Compares all user configuration registers to NVM defaults',
             offset       = (4*0xF0),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
@@ -381,6 +418,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_TEMPERATURE_2_PEAK',
+            description  = 'Peak external temperature 2 reading since last cleared',
             offset       = (4*0xF4),
             bitSize      = 16,
             mode         = 'RO',
@@ -388,6 +426,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_PWM_CONFIG',
+            description  = 'PWM switching configuration (frequency, phase, etc.)',
             offset       = (4*0xF5),
             bitSize      = 8,
             mode         = 'RW',
@@ -395,6 +434,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_IOUT_CAL_GAIN_TC',
+            description  = 'Temperature coefficient for output current calibration gain',
             offset       = (4*0xF6),
             bitSize      = 16,
             mode         = 'RW',
@@ -402,6 +442,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_RVIN',
+            description  = 'Input voltage divider resistance configuration',
             offset       = (4*0xF7),
             bitSize      = 16,
             mode         = 'RW',
@@ -409,6 +450,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_TEMP_1_GAIN',
+            description  = 'Temperature sensor 1 gain calibration factor',
             offset       = (4*0xF8),
             bitSize      = 16,
             mode         = 'RW',
@@ -416,6 +458,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_TEMP_1_OFFSET',
+            description  = 'Temperature sensor 1 offset calibration adjustment',
             offset       = (4*0xF9),
             bitSize      = 16,
             mode         = 'RW',
@@ -423,6 +466,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteVariable(
             name         = 'MFR_RAIL_ADDRESS',
+            description  = 'PMBus rail address for multi-rail addressing',
             offset       = (4*0xFA),
             bitSize      = 8,
             mode         = 'RW',
@@ -431,6 +475,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # # NOTE: Block command not working
         # self.add(pr.RemoteVariable(
         #     name         = 'MFR_REAL_TIME',
+        #     description  = 'Real-time clock value from device internal counter',
         #     offset       = (4*0xFB),
         #     bitSize      = 32,
         #     mode         = 'RO',
@@ -438,6 +483,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.RemoteCommand(
             name         = 'MFR_RESET',
+            description  = 'Issues a full device reset',
             offset       = (4*0xFD),
             bitSize      = 1,
             function     = lambda cmd: cmd.post(1),
@@ -448,6 +494,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         # ---------------------------
         self.add(pr.LinkVariable(
             name         = 'Vin',
+            description  = 'Converted input voltage reading',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -458,6 +505,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VinPeak',
+            description  = 'Peak input voltage reading since last cleared',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -468,6 +516,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Iin',
+            description  = 'Converted input current reading',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -477,6 +526,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         ))
         self.add(pr.LinkVariable(
             name         = 'IinPeak',
+            description  = 'Peak input current reading since last cleared',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -486,6 +536,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Pin',
+            description  = 'Converted input power reading',
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
@@ -496,6 +547,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Vout',
+            description  = 'Converted output voltage reading',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -507,6 +559,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VoutPeak',
+            description  = 'Peak output voltage reading since last cleared',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -517,6 +570,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VoutMax',
+            description  = 'Maximum output voltage (manufacturer limit) converted value',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -527,6 +581,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Iout',
+            description  = 'Converted output current reading',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -537,6 +592,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IoutPeak',
+            description  = 'Peak output current reading since last cleared',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -547,6 +603,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Pout',
+            description  = 'Converted output power reading',
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
@@ -557,6 +614,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Ichip',
+            description  = 'Converted internal chip current consumption',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -566,6 +624,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Temperature1',
+            description  = 'Converted external temperature sensor 1 reading',
             mode         = 'RO',
             units        = '°C',
             disp         = '{:1.3f}',
@@ -576,6 +635,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Temperature1Peak',
+            description  = 'Peak external temperature 1 reading since last cleared',
             mode         = 'RO',
             units        = '°C',
             disp         = '{:1.3f}',
@@ -586,6 +646,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Temperature2',
+            description  = 'Converted external temperature sensor 2 reading',
             mode         = 'RO',
             units        = '°C',
             disp         = '{:1.3f}',
@@ -596,6 +657,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Temperature2Peak',
+            description  = 'Peak external temperature 2 reading since last cleared',
             mode         = 'RO',
             units        = '°C',
             disp         = '{:1.3f}',
@@ -606,6 +668,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'Frequency',
+            description  = 'Converted switching frequency reading',
             mode         = 'RO',
             units        = 'kHz',
             disp         = '{:1.3f}',
@@ -616,6 +679,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IoutCalGainConverted',
+            description  = 'Output current calibration gain converted to milliohms',
             mode         = 'RO',
             units        = 'mΩ',
             disp         = '{:1.3f}',
@@ -625,6 +689,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IinCalGainConverted',
+            description  = 'Input current calibration gain converted to milliohms',
             mode         = 'RO',
             units        = 'mΩ',
             disp         = '{:1.3f}',
@@ -634,6 +699,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'PinAccuracy',
+            description  = 'Input power measurement accuracy in percent',
             mode         = 'RO',
             units        = '%',
             disp         = '{:1.3f}',
@@ -645,6 +711,7 @@ class Ltm4664(surf.protocols.i2c.PMBus):
         def addStatusBit(registerVar, name, bitOffset):
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = f'Status bit: {name} from {registerVar.name}',
                 linkedGet    = lambda read: bool((registerVar.get(read=read) >> bitOffset) & 0x1),
                 dependencies = [registerVar],
                 pollInterval = 1,

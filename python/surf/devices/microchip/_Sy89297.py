@@ -34,6 +34,7 @@ class Sy89297(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'SckHalfPeriod',
+            description  = 'SPI clock half-period setting for serial interface timing',
             offset       = 0xC,
             bitSize      = 8,
             mode         = 'RW',
