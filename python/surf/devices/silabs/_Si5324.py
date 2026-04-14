@@ -36,10 +36,10 @@ class Si5324(pr.Device):
         ))
 
         self.add(pr.LocalVariable(
-            name         = "TxtFilePath",
-            description  = "Used if command's argument is empty",
-            mode         = "RW",
-            value        = "",
+            name        = "TxtFilePath",
+            description = "Used if command's argument is empty",
+            mode        = "RW",
+            value       = "",
         ))
 
         ##############################
