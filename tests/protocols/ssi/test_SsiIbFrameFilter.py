@@ -36,10 +36,11 @@ from tests.protocols.ssi.ssi_test_utils import (
     keep_mask,
     recv_expected_beat,
     recv_frame_by_data,
-    recv_visible_beat,
+    recv_n_beats,
     send_contiguous_frame,
     setup_flat_ssi_testbench,
     SsiBeat,
+    wait_output_clear,
     wait_signal_pulse,
 )
 
@@ -118,6 +119,7 @@ async def ssi_ib_frame_filter_test(dut):
             [beat],
             [SsiBeat(data=0x1111, keep=keep, last=1, dest=0x4, sof=1, eofe=0)],
         )
+        await wait_output_clear(sink, clk=bench.clk, ready_signal=dut.mAxisTReady)
     dut.mAxisTReady.value = 0
 
     # A frame with no opening `SOF` should be discarded entirely.
@@ -210,15 +212,10 @@ async def ssi_ib_frame_filter_test(dut):
         assert first.data == 0x9991
         await wait_signal_pulse(dut.sAxisDropWord, clk=bench.clk)
         await wait_signal_pulse(dut.sAxisDropFrame, clk=bench.clk)
-        first = await recv_expected_beat(
+        first, terminal = await recv_n_beats(
             sink,
             clk=bench.clk,
-            ready_signal=dut.mAxisTReady,
-            expected_data=0x9991,
-        )
-        terminal = await recv_visible_beat(
-            sink,
-            clk=bench.clk,
+            count=2,
             ready_signal=dut.mAxisTReady,
         )
         await overflow_send

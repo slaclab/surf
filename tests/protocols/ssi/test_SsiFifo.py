@@ -42,7 +42,6 @@ from tests.protocols.ssi.ssi_test_utils import (
     expect_no_output,
     expect_no_output_data,
     keep_mask,
-    recv_expected_beat,
     recv_frame,
     recv_frame_by_data,
     recv_visible_beat,
@@ -51,6 +50,7 @@ from tests.protocols.ssi.ssi_test_utils import (
     SsiBeat,
     wait_output_clear,
     wait_signal_level,
+    wait_signal_pulse,
 )
 
 
@@ -394,13 +394,17 @@ async def ssi_fifo_test(dut):
                 clk=bench.clk,
             )
         )
-        await sink.wait_valid(clk=bench.clk)
+        first = await recv_visible_beat(
+            sink,
+            clk=bench.clk,
+            ready_signal=dut.mAxisTReady,
+        )
         capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=32))
         ready_task = cocotb.start_soon(
             drive_ready_pattern(dut.mAxisTReady, clk=bench.clk, pattern=[1, 0], cycles=24)
         )
         await stalled_threshold_send
-        beats = await capture_task
+        beats = [first] + await capture_task
         await ready_task
         assert_beat_views(
             beats,
@@ -416,37 +420,40 @@ async def ssi_fifo_test(dut):
         await expect_no_output(sink, clk=bench.clk)
     elif not slave_ready_en:
         # In the no-ready mode the source keeps sending even when the sink is
-        # stalled, so overflow should end the visible frame with a terminal
-        # beat and suppress later payload data.
+        # stalled. Drive a frame deeper than the FIFO can absorb so overflow
+        # truncates the visible output and drops the trailing payload.
+        overflow_beats = [
+            SsiBeat(
+                data=0xB000 + beat_index,
+                keep=keep,
+                last=1 if beat_index == 40 else 0,
+                dest=0x7,
+                sof=1 if beat_index == 1 else 0,
+            )
+            for beat_index in range(1, 41)
+        ]
         overflow_send = cocotb.start_soon(
             send_contiguous_frame(
                 source,
-                [
-                    SsiBeat(data=0xB001, keep=keep, last=0, dest=0x7, sof=1),
-                    SsiBeat(data=0xB002, keep=keep, last=0, dest=0x7),
-                    SsiBeat(data=0xB003, keep=keep, last=1, dest=0x7),
-                ],
+                overflow_beats,
                 clk=bench.clk,
             )
         )
-        first = await recv_expected_beat(
-            sink,
-            clk=bench.clk,
-            ready_signal=dut.mAxisTReady,
-            expected_data=0xB001,
-        )
-        terminal = await recv_visible_beat(
-            sink,
-            clk=bench.clk,
-            ready_signal=dut.mAxisTReady,
-        )
+        await wait_signal_pulse(dut.sAxisDropWord, clk=bench.clk, cycles=256)
+        await wait_signal_pulse(dut.sAxisDropFrame, clk=bench.clk, cycles=256)
+        capture_task = cocotb.start_soon(capture_accepted_beats(sink, clk=bench.clk, cycles=160))
+        dut.mAxisTReady.value = 1
         await overflow_send
-        assert first.last == 0
-        assert first.sof == 1
-        assert first.eofe == 0
-        assert terminal.last == 1
-        assert terminal.sof == 0
-        await expect_no_output_data(sink, clk=bench.clk, forbidden_data=0xB003)
+        beats = await capture_task
+        dut.mAxisTReady.value = 0
+        assert beats[0] == SsiBeat(data=0xB001, keep=keep, last=0, dest=0x7, sof=1, eofe=0)
+        assert len(beats) < len(overflow_beats)
+        assert any(beat.last == 1 for beat in beats)
+        assert all(beat.last == 0 for beat in beats[:-1])
+        assert beats[-1].last == 1
+        assert beats[-1].sof == 0
+        assert all(beat.data != overflow_beats[-1].data for beat in beats)
+        await expect_no_output(sink, clk=bench.clk)
 
     # None of the exercised paths should need the FIFO lockup recovery logic.
     assert int(dut.lockupRstEvent.value) == 0

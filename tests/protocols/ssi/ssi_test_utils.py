@@ -81,13 +81,17 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
-        # A source must keep its beat stable until the sink is ready ahead of
-        # the next sampling edge and that edge has passed.
-        while int(self._sig("TReady").value) != 1:
+        # A source must keep its beat stable until a real handshake is pending
+        # for the next sampling edge. Requiring both `TVALID` and `TREADY`
+        # here avoids advancing when `TREADY` rises late in the cycle and the
+        # transfer has not happened yet.
+        while True:
             await FallingEdge(clk)
             await Timer(1, unit="ns")
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+            if int(self._sig("TValid").value) == 1 and int(self._sig("TReady").value) == 1:
+                await RisingEdge(clk)
+                await Timer(1, unit="ns")
+                return
 
     async def send(self, beat: SsiBeat, *, clk):
         # `send()` is the simplest source-side helper: drive one beat, wait for
@@ -110,11 +114,18 @@ class FlatSsiEndpoint:
     async def wait_valid(self, *, clk, timeout_cycles: int = 64) -> SsiBeat:
         # A sink-side test often wants to notice that a beat is visible before
         # it decides whether to accept that beat.
+        await Timer(1, unit="ns")
+        if int(self._sig("TValid").value) == 1:
+            return self.snapshot()
         for _ in range(timeout_cycles):
+            await FallingEdge(clk)
             await Timer(1, unit="ns")
             if int(self._sig("TValid").value) == 1:
                 return self.snapshot()
             await RisingEdge(clk)
+            await Timer(1, unit="ns")
+            if int(self._sig("TValid").value) == 1:
+                return self.snapshot()
         raise AssertionError(f"Timed out waiting for {self.prefix} valid")
 
     async def recv(self, *, clk, ready_signal=None, keep_ready: bool = False) -> SsiBeat:
@@ -281,16 +292,11 @@ async def recv_frame(
     ready_signal.value = 1
     beats = []
     for _ in range(timeout_cycles):
-        # Capture only accepted handshakes. This avoids missing middle beats
-        # when the DUT keeps `TVALID` high across back-to-back transfers.
-        await FallingEdge(clk)
-        await Timer(1, unit="ns")
-        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
-            beat = endpoint.snapshot()
-            beats.append(beat)
-            if beat.last == 1:
-                ready_signal.value = 0
-                return beats
+        beat = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
+        beats.append(beat)
+        if beat.last == 1:
+            ready_signal.value = 0
+            return beats
 
     ready_signal.value = 0
     raise AssertionError(f"Timed out waiting for {endpoint.prefix} frame end")
@@ -324,13 +330,10 @@ async def recv_n_beats(
     ready_signal.value = 1
     beats = []
     for _ in range(timeout_cycles):
-        await FallingEdge(clk)
-        await Timer(1, unit="ns")
-        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
-            beats.append(endpoint.snapshot())
-            if len(beats) == count:
-                ready_signal.value = 0
-                return beats
+        beats.append(await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True))
+        if len(beats) == count:
+            ready_signal.value = 0
+            return beats
 
     ready_signal.value = 0
     raise AssertionError(f"Timed out waiting for {count} {endpoint.prefix} beats")
@@ -382,16 +385,11 @@ async def recv_expected_beat(
     ready_signal.value = 1
     last_seen = None
     for _ in range(timeout_cycles):
-        await Timer(1, unit="ns")
-        if int(endpoint._sig("TValid").value) == 1:
-            candidate = endpoint.snapshot()
-            last_seen = candidate
-            if candidate.data == expected_data:
-                await RisingEdge(clk)
-                await Timer(1, unit="ns")
-                ready_signal.value = 0
-                return candidate
-        await RisingEdge(clk)
+        candidate = await endpoint.recv(clk=clk, ready_signal=ready_signal, keep_ready=True)
+        last_seen = candidate
+        if candidate.data == expected_data:
+            ready_signal.value = 0
+            return candidate
     ready_signal.value = 0
     raise AssertionError(
         f"Timed out waiting for {endpoint.prefix} data 0x{expected_data:04x}, last_seen={last_seen}"
