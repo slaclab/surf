@@ -81,16 +81,11 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
-        # A source must keep its beat stable until a real handshake is pending
-        # for the next sampling edge. Requiring both `TVALID` and `TREADY`
-        # here avoids advancing when `TREADY` rises late in the cycle and the
-        # transfer has not happened yet.
+        # A source keeps its beat stable until the sink raises `TREADY`.
         while True:
-            await FallingEdge(clk)
+            await RisingEdge(clk)
             await Timer(1, unit="ns")
-            if int(self._sig("TValid").value) == 1 and int(self._sig("TReady").value) == 1:
-                await RisingEdge(clk)
-                await Timer(1, unit="ns")
+            if int(self._sig("TReady").value) == 1:
                 return
 
     async def send(self, beat: SsiBeat, *, clk):
