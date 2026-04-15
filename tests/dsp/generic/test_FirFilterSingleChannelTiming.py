@@ -26,8 +26,13 @@ from pathlib import Path
 import cocotb
 import pytest
 from cocotb.triggers import Timer
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import (
+    run_surf_vhdl_test,
+    start_lockstep_clocks,
+)
+from tests.axi.utils import axil_write_u32
 from tests.dsp.generic.dsp_test_utils import (
     fir_direct_outputs,
     tick,
@@ -41,13 +46,14 @@ class TB:
         self.dut = dut
         self.data_width = int(os.environ["DATA_WIDTH_G"])
         self.sideband_width = int(os.environ["SIDEBAND_WIDTH_G"])
-        self.filter_delay = int(os.environ["FILTER_DELAY_G"])
+        self.filter_delay = int(os.environ["FILTER_DELAY"])
         self.num_taps = int(os.environ["NUM_TAPS_G"])
         self.coeff_width = int(os.environ["COEFF_WIDTH_G"])
-        self.center_coeff = int(os.environ["CENTER_COEFF_G"])
+        self.axil = None
 
-        start_lockstep_clocks(dut.clk, period_ns=5.0)
+        start_lockstep_clocks(dut.clk, dut.S_AXI_ACLK, period_ns=5.0)
         dut.rst.setimmediatevalue(1)
+        dut.S_AXI_ARESETN.setimmediatevalue(0)
         dut.ibValid.setimmediatevalue(0)
         dut.din.setimmediatevalue(0)
         dut.sbIn.setimmediatevalue(0)
@@ -58,9 +64,20 @@ class TB:
 
     async def reset(self):
         self.dut.rst.value = 1
+        self.dut.S_AXI_ARESETN.value = 0
         await self.cycle(4)
         self.dut.rst.value = 0
+        self.dut.S_AXI_ARESETN.value = 1
         await self.cycle(4)
+
+    def start_axil(self):
+        if self.axil is None:
+            self.axil = AxiLiteMaster(
+                AxiLiteBus.from_prefix(self.dut, "S_AXI"),
+                self.dut.S_AXI_ACLK,
+                self.dut.S_AXI_ARESETN,
+                reset_active_level=False,
+            )
 
     async def send_sample(self, sample: int, sideband: int):
         self.dut.din.value = to_unsigned(sample, self.data_width)
@@ -95,22 +112,32 @@ def _sidebands_for_count(count: int) -> list[int]:
     return list(range(1, count + 1))
 
 
-def _coeffs(tb: TB) -> list[int]:
-    coeffs = [0] * tb.num_taps
-    coeffs[tb.filter_delay] = tb.center_coeff
-    return coeffs
+def _parse_coeffs(raw: str) -> list[int]:
+    values: list[int] = []
+    for entry in raw.strip().strip("()").split(","):
+        _, value = entry.split("=>")
+        values.append(int(value.strip()))
+    return values
+
+
+async def _program_coeffs(tb: TB, coeffs: list[int]) -> None:
+    tb.start_axil()
+    for index, coeff in enumerate(coeffs):
+        await axil_write_u32(tb.axil, 4 * index, to_unsigned(coeff, tb.coeff_width))
 
 
 @cocotb.test()
 async def visible_delay_and_alignment_test(dut):
     tb = TB(dut)
     await tb.reset()
+    coeffs = _parse_coeffs(os.environ["COEFFICIENTS_G"])
+    await _program_coeffs(tb, coeffs)
 
     samples = _samples_for_delay(tb.filter_delay)
     sidebands = _sidebands_for_count(len(samples))
     expected_words = fir_direct_outputs(
         samples,
-        _coeffs(tb),
+        coeffs,
         data_width=tb.data_width,
         coeff_width=tb.coeff_width,
     )
@@ -141,12 +168,14 @@ async def visible_delay_and_alignment_test(dut):
 async def output_hold_test(dut):
     tb = TB(dut)
     await tb.reset()
+    coeffs = _parse_coeffs(os.environ["COEFFICIENTS_G"])
+    await _program_coeffs(tb, coeffs)
 
     samples = _samples_for_delay(tb.filter_delay)
     sidebands = _sidebands_for_count(len(samples))
     expected_words = fir_direct_outputs(
         samples,
-        _coeffs(tb),
+        coeffs,
         data_width=tb.data_width,
         coeff_width=tb.coeff_width,
     )
@@ -187,27 +216,23 @@ async def output_hold_test(dut):
 PARAMETER_SWEEP = [
     pytest.param(
         {
-            "WRAPPER_NAME": "FirFilterSingleChannelTiming5TapWrapper",
-            "WRAPPER_PATH": "dsp/generic/wrappers/FirFilterSingleChannelTiming5TapWrapper.vhd",
-            "FILTER_DELAY_G": "2",
             "NUM_TAPS_G": "5",
             "DATA_WIDTH_G": "8",
             "COEFF_WIDTH_G": "5",
             "SIDEBAND_WIDTH_G": "4",
-            "CENTER_COEFF_G": "8",
+            "COEFFICIENTS_G": "(0 => 0, 1 => 0, 2 => 8, 3 => 0, 4 => 0)",
+            "FILTER_DELAY": "2",
         },
         id="five_tap_center_delay",
     ),
     pytest.param(
         {
-            "WRAPPER_NAME": "FirFilterSingleChannelTiming31TapWrapper",
-            "WRAPPER_PATH": "dsp/generic/wrappers/FirFilterSingleChannelTiming31TapWrapper.vhd",
-            "FILTER_DELAY_G": "15",
             "NUM_TAPS_G": "31",
             "DATA_WIDTH_G": "8",
             "COEFF_WIDTH_G": "5",
             "SIDEBAND_WIDTH_G": "6",
-            "CENTER_COEFF_G": "8",
+            "COEFFICIENTS_G": "(0 => 0, 1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0, 8 => 0, 9 => 0, 10 => 0, 11 => 0, 12 => 0, 13 => 0, 14 => 0, 15 => 8, 16 => 0, 17 => 0, 18 => 0, 19 => 0, 20 => 0, 21 => 0, 22 => 0, 23 => 0, 24 => 0, 25 => 0, 26 => 0, 27 => 0, 28 => 0, 29 => 0, 30 => 0)",
+            "FILTER_DELAY": "15",
         },
         id="thirty_one_tap_center_delay",
     ),
@@ -216,25 +241,30 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_FirFilterSingleChannelTiming(parameters):
-    wrapper_name = str(parameters["WRAPPER_NAME"])
     sim_build_key = str(
         Path(__file__).resolve().parents[2]
         / "sim_build"
         / "dsp"
         / "generic"
-        / f"test_FirFilterSingleChannelTiming.{wrapper_name}"
+        / f"test_FirFilterSingleChannelTiming.NUM_TAPS_G={parameters['NUM_TAPS_G']},SIDEBAND_WIDTH_G={parameters['SIDEBAND_WIDTH_G']},DATA_WIDTH_G={parameters['DATA_WIDTH_G']},COEFF_WIDTH_G={parameters['COEFF_WIDTH_G']}"
     )
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel=f"surf.{wrapper_name.lower()}",
-        parameters=None,
+        toplevel="surf.firfiltersinglechannelwrapper",
+        parameters={
+            "NUM_TAPS_G": parameters["NUM_TAPS_G"],
+            "SIDEBAND_WIDTH_G": parameters["SIDEBAND_WIDTH_G"],
+            "DATA_WIDTH_G": parameters["DATA_WIDTH_G"],
+            "COEFF_WIDTH_G": parameters["COEFF_WIDTH_G"],
+        },
         sim_build_key=sim_build_key,
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
+                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/fixed/FirFilterSingleChannel.vhd",
-                str(parameters["WRAPPER_PATH"]),
+                "dsp/generic/wrappers/FirFilterSingleChannelWrapper.vhd",
             ]
         },
     )

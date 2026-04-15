@@ -453,6 +453,8 @@ package body Code12b14bPkg is
       variable compliment : sl;
    begin
 
+      invalidK := '0';
+
       -- First, split in input word in two
       dataIn5 := dataIn(11 downto 7);
       dataIn7 := dataIn(6 downto 0);

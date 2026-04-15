@@ -31,7 +31,6 @@ entity Code10b12bPkgWrapper is
       decDataOut  : out slv(9 downto 0);
       decDataKOut : out sl;
       decDispOut  : out sl;
-      invalidK    : out sl;
       codeError   : out sl;
       dispError   : out sl);
 end entity Code10b12bPkgWrapper;
@@ -77,7 +76,6 @@ begin
       decDataOut  <= decodedDataVar;
       decDataKOut <= decodedKVar;
       decDispOut  <= decodedDispVar;
-      invalidK    <= '0';
       codeError   <= codeErrorVar;
       dispError   <= dispErrorVar;
    end process comb;

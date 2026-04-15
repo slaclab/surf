@@ -35,6 +35,7 @@ from tests.protocols.line_codes.line_code_test_utils import (
     error_detected,
     package_decode,
     package_encode,
+    package_encode_with_invalid_k,
     run_line_code_package_test,
 )
 
@@ -51,7 +52,7 @@ MALFORMED_SMOKE_SYMBOLS = [
 
 
 async def assert_legal_round_trip(dut, *, disp_in: int, data_in: int, data_k_in: int) -> int:
-    encoded_data, encoded_disp, invalid_k = await package_encode(
+    encoded_data, encoded_disp, invalid_k = await package_encode_with_invalid_k(
         dut,
         disp_in=disp_in,
         data_in=data_in,
@@ -87,7 +88,7 @@ async def code_12b14b_package_test(dut):
             )
 
         for data_in, data_k_in in MALFORMED_SMOKE_SYMBOLS:
-            encoded_data, _, _ = await package_encode(
+            encoded_data, _ = await package_encode(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,
@@ -115,7 +116,7 @@ async def code_12b14b_package_test(dut):
 
     for disp_in in DISPARITY_SEEDS_12B14B.values():
         for data_in in ILLEGAL_K_SYMBOLS:
-            _, _, invalid_k = await package_encode(
+            _, _, invalid_k = await package_encode_with_invalid_k(
                 dut,
                 disp_in=disp_in,
                 data_in=data_in,
