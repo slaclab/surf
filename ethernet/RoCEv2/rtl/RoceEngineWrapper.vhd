@@ -42,10 +42,10 @@ entity RoceEngineWrapper is
       ibUdpMaster         : out AxiStreamMasterType;
       ibUdpSlave          : in  AxiStreamSlaveType;
       -- MetaData Config Bus
-      sAxisMetaDataMaster : in  AxiStreamMasterType;
+      sAxisMetaDataMaster : in  AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
       sAxisMetaDataSlave  : out AxiStreamSlaveType;
       mAxisMetaDataMaster : out AxiStreamMasterType;
-      mAxisMetaDataSlave  : in  AxiStreamSlaveType;
+      mAxisMetaDataSlave  : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
       -- AXI-Lite Interface
       axilReadMaster      : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave       : out AxiLiteReadSlaveType;
