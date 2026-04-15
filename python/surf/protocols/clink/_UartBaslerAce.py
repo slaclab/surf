@@ -100,19 +100,19 @@ class UartBaslerAce(pr.Device):
         # 4.2 Transport Layer Registers
         ###############################
         self.add(pr.LocalVariable(
-            name         = 'TapGeometry',
-            description  = 'The CL Tap Geometry value sets the tap geometry that will be used when image data is read out of the camera’s image buffer and transmitted via the Camera Link interface.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x0724)
+            name        = 'TapGeometry',
+            description = 'The CL Tap Geometry value sets the tap geometry that will be used when image data is read out of the camera’s image buffer and transmitted via the Camera Link interface.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x0724)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'PixelClock',
-            description  = 'The CL Pixel Clock value sets the pixel clock speed that will be used by the Camera Link interface.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x0744)
+            name        = 'PixelClock',
+            description = 'The CL Pixel Clock value sets the pixel clock speed that will be used by the Camera Link interface.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x0744)
         ))
 
         ############################
@@ -120,68 +120,68 @@ class UartBaslerAce(pr.Device):
         ############################
 
         self.add(pr.LocalVariable(
-            name         = 'DigitizationTaps',
-            description  = 'The Sensor Digitization Taps value sets the number of taps on the camera\'s imaging sensor that will be used to read pixel values out of the sensor.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00030004)
+            name        = 'DigitizationTaps',
+            description = 'The Sensor Digitization Taps value sets the number of taps on the camera\'s imaging sensor that will be used to read pixel values out of the sensor.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00030004)
         ))
 
 
         self.add(pr.LocalVariable(
-            name         = 'BitDepth',
-            description  = 'The Sensor Bit Depth value sets the bit depth of the pixel data produced by the camera’s imaging sensor.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00030504)
+            name        = 'BitDepth',
+            description = 'The Sensor Bit Depth value sets the bit depth of the pixel data produced by the camera’s imaging sensor.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00030504)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'PixelFormat',
-            description  = 'The Pixel Format value sets the pixel format to use during image acquisition.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00030024)
+            name        = 'PixelFormat',
+            description = 'The Pixel Format value sets the pixel format to use during image acquisition.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00030024)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'BinningHorizontal',
-            description  = 'The horizontal binning feature allows to horizontally combine pixel values from adjacent columns into one pixel.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00030324)
+            name        = 'BinningHorizontal',
+            description = 'The horizontal binning feature allows to horizontally combine pixel values from adjacent columns into one pixel.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00030324)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'BinningVertical',
-            description  = 'The vertical binning feature allows to vertically combine pixel values from adjacent lines into one pixel.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00030344)
+            name        = 'BinningVertical',
+            description = 'The vertical binning feature allows to vertically combine pixel values from adjacent lines into one pixel.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00030344)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'StackedZoneImagingEnable',
-            description  = 'The Stacked Zone Imaging Enable value is used to enable the camera’s stacked zone imaging feature.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x0003E004)
+            name        = 'StackedZoneImagingEnable',
+            description = 'The Stacked Zone Imaging Enable value is used to enable the camera’s stacked zone imaging feature.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x0003E004)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'DecimationHorizontal',
-            description  = 'The Decimation Horizontal value specifies the extent of horizontal subsampling of the acquired frame.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x000303A4)
+            name        = 'DecimationHorizontal',
+            description = 'The Decimation Horizontal value specifies the extent of horizontal subsampling of the acquired frame.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x000303A4)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'DecimationVertical',
-            description  = 'The Decimation Vertical value specifies the extent of vertical subsampling of the acquired frame.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x000303C4)
+            name        = 'DecimationVertical',
+            description = 'The Decimation Vertical value specifies the extent of vertical subsampling of the acquired frame.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x000303C4)
         ))
 
 
@@ -189,86 +189,86 @@ class UartBaslerAce(pr.Device):
         # 4.5 Acquisition Control Registers
         ###################################
         self.add(pr.LocalVariable(
-            name         = 'TrigModeAcqStart',
-            description  = 'The Trigger Mode Acquisition Start value sets the mode for the acquisition start trigger.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040104)
+            name        = 'TrigModeAcqStart',
+            description = 'The Trigger Mode Acquisition Start value sets the mode for the acquisition start trigger.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040104)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'AcqFrameCnt',
-            description  = 'When the Trigger Mode parameter for the acquisition start trigger is set to on, you must set the value of the camera’s Acquisition Frame Count parameter. The value of the Acquisition Frame Count can range from 1 to 255.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x000400A4)
+            name        = 'AcqFrameCnt',
+            description = 'When the Trigger Mode parameter for the acquisition start trigger is set to on, you must set the value of the camera’s Acquisition Frame Count parameter. The value of the Acquisition Frame Count can range from 1 to 255.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x000400A4)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigSrcAcqStart',
-            description  = 'Set the value of the Trigger Source Acquisition Start register to Software, Line 1, CC1, CC2, or CC3.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040144)
+            name        = 'TrigSrcAcqStart',
+            description = 'Set the value of the Trigger Source Acquisition Start register to Software, Line 1, CC1, CC2, or CC3.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040144)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigActAcqStart',
-            description  = 'The Trigger Activation Acquisition Start value determines when the acquisition start trigger signal will be considered as valid.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040164)
+            name        = 'TrigActAcqStart',
+            description = 'The Trigger Activation Acquisition Start value determines when the acquisition start trigger signal will be considered as valid.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040164)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigModeFrameStart',
-            description  = 'The Trigger Mode Frame Start value sets the mode for the frame start trigger.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040204)
+            name        = 'TrigModeFrameStart',
+            description = 'The Trigger Mode Frame Start value sets the mode for the frame start trigger.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040204)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigSrcFrameStart',
-            description  = 'If the Trigger Source Frame Start value is set to On, the Trigger Source Frame Start value sets the source signal that will be used for the frame start trigger.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040244)
+            name        = 'TrigSrcFrameStart',
+            description = 'If the Trigger Source Frame Start value is set to On, the Trigger Source Frame Start value sets the source signal that will be used for the frame start trigger.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040244)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigActFrameStart',
-            description  = 'The Trigger Activation Frame Start value determines when the frame start trigger signal will be considered as valid.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040264)
+            name        = 'TrigActFrameStart',
+            description = 'The Trigger Activation Frame Start value determines when the frame start trigger signal will be considered as valid.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040264)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigSrcLineStart',
-            description  = 'If the Trigger Source Line Start value is set to On, the Trigger Source Line Start value sets the source signal that will be used for the line start trigger.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040344)
+            name        = 'TrigSrcLineStart',
+            description = 'If the Trigger Source Line Start value is set to On, the Trigger Source Line Start value sets the source signal that will be used for the line start trigger.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040344)
         ))
 
         self.add(pr.LocalVariable(
-            name         = 'TrigActLineStart',
-            description  = 'The Trigger Activation Line Start value determines when the line start trigger signal will be considered as valid.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040364)
+            name        = 'TrigActLineStart',
+            description = 'The Trigger Activation Line Start value determines when the line start trigger signal will be considered as valid.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040364)
         ))
 
         ################################
         # 4.6 Exposure Control Registers
         ################################
         self.add(pr.LocalVariable(
-            name         = 'ExposureMode',
-            description  = 'The Exposure mode parameter sets the camera\'s exposure mode.',
-            mode         = 'RW',
-            value        = '',
-            localSet     = createCmd(addr=0x00040404)
+            name        = 'ExposureMode',
+            description = 'The Exposure mode parameter sets the camera\'s exposure mode.',
+            mode        = 'RW',
+            value       = '',
+            localSet    = createCmd(addr=0x00040404)
         ))
 
     def _rootAttached(self,parent,root):

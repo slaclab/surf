@@ -28,46 +28,46 @@ class AxiLiteRingBuffer(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = 'BufferLength',
-            description  = 'Length of ring buffer',
-            offset       = 0x00,
-            bitSize      = 20,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO'
+            name        = 'BufferLength',
+            description = 'Length of ring buffer',
+            offset      = 0x00,
+            bitSize     = 20,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO'
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'ClearBuffer',
-            description  = 'Clear buffer',
-            offset       = 0x00,
-            bitSize      = 1,
-            bitOffset    = 30,
-            function = pr.Command.toggle
+            name        = 'ClearBuffer',
+            description = 'Clear buffer',
+            offset      = 0x00,
+            bitSize     = 1,
+            bitOffset   = 30,
+            function    = pr.Command.toggle
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BufEn',
-            description  = 'Enable buffer',
-            offset       = 0x00,
-            bitSize      = 1,
-            bitOffset    = 31,
-            base         = pr.Bool,
-            mode         = 'RW',
+            name        = 'BufEn',
+            description = 'Enable buffer',
+            offset      = 0x00,
+            bitSize     = 1,
+            bitOffset   = 31,
+            base        = pr.Bool,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'data',
-            description  = 'Buffer values',
-            offset       = 0x4,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            valueBits    = 32,
-            valueStride  = 32,
-            base         = pr.UInt,
-            mode         = 'RO',
-            numValues    = 0x3ff,
-            hidden       = True,
+            name        = 'data',
+            description = 'Buffer values',
+            offset      = 0x4,
+            bitSize     = 32,
+            bitOffset   = 0x00,
+            valueBits   = 32,
+            valueStride = 32,
+            base        = pr.UInt,
+            mode        = 'RO',
+            numValues   = 0x3ff,
+            hidden      = True,
         ))
 
         @self.command()
