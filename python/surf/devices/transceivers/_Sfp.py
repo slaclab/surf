@@ -31,12 +31,12 @@ class Sfp(pr.Device):
         ################
 
         self.add(pr.RemoteVariable(
-            name         = 'Identifier',
-            description  = 'Type of serial transceiver',
-            offset       = (0 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            enum         = transceivers.IdentifierDict,
+            name        = 'Identifier',
+            description = 'Type of serial transceiver',
+            offset      = (0 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            enum        = transceivers.IdentifierDict,
         ))
 
         self.add(pr.RemoteVariable(
@@ -49,15 +49,15 @@ class Sfp(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'VendorNameRaw',
-            description  = 'SFP vendor name (ASCII)',
-            offset       = (20 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16,
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorNameRaw',
+            description = 'SFP vendor name (ASCII)',
+            offset      = (20 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16,
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -69,15 +69,15 @@ class Sfp(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'VendorPnRaw',
-            description  = 'Part number provided by SFP vendor (ASCII)',
-            offset       = (40 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16,
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorPnRaw',
+            description = 'Part number provided by SFP vendor (ASCII)',
+            offset      = (40 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16,
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -89,15 +89,15 @@ class Sfp(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'VendorRevRaw',
-            description  = 'Revision level for part number provided by vendor (ASCII)',
-            offset       = (56 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 4,
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorRevRaw',
+            description = 'Revision level for part number provided by vendor (ASCII)',
+            offset      = (56 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 4,
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -113,15 +113,15 @@ class Sfp(pr.Device):
         ####################
 
         self.addRemoteVariables(
-            name         = 'VendorSnRaw',
-            description  = 'Serial number provided by vendor (ASCII)',
-            offset       = (68 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16,
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorSnRaw',
+            description = 'Serial number provided by vendor (ASCII)',
+            offset      = (68 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16,
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -133,14 +133,14 @@ class Sfp(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'DateCode',
-            description  = 'Vendor\'s manufacturing date code (ASCII)',
-            offset       = (84 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            number       = 6,
-            stride       = 4,
-            base         = pr.String,
+            name        = 'DateCode',
+            description = 'Vendor\'s manufacturing date code (ASCII)',
+            offset      = (84 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            number      = 6,
+            stride      = 4,
+            base        = pr.String,
             hidden      = True,
         )
 
@@ -161,14 +161,14 @@ class Sfp(pr.Device):
         ######################################
 
         self.addRemoteVariables(
-            name         = 'Diagnostics',
-            description  = 'Diagnostic Monitor Data (internal or external)',
-            offset       = ((256+96) << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            number       = 14,
-            stride       = 4,
-            hidden       = True,
+            name        = 'Diagnostics',
+            description = 'Diagnostic Monitor Data (internal or external)',
+            offset      = ((256+96) << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            number      = 14,
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(

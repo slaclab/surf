@@ -232,7 +232,7 @@ class Ad9681Config(pr.Device):
             offset      = (0x16*4),
             bitSize     = 3,
             bitOffset   = 4,
-            disp = '{:d}',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -241,7 +241,7 @@ class Ad9681Config(pr.Device):
             offset      = (0x16*4),
             bitSize     = 4,
             bitOffset   = 0,
-            disp = '{:d}',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -250,7 +250,7 @@ class Ad9681Config(pr.Device):
             offset      = (0x18*4),
             bitSize     = 3,
             bitOffset   = 0,
-            enum = {
+            enum        = {
                 0b000: '1.0 V',
                 0b001: '1.14 V',
                 0b010: '1.33 V',
@@ -308,7 +308,7 @@ class Ad9681Config(pr.Device):
             offset      = (0x21*4),
             bitSize     = 3,
             bitOffset   = 4,
-            enum = {
+            enum        = {
                 0b000: 'SDR two-lane, bitwise',
                 0b001: 'SDR two-lane, bytewise',
                 0b010: 'DDR two-lane, bitwise',
@@ -341,7 +341,7 @@ class Ad9681Config(pr.Device):
             offset      = (0x21*4),
             bitSize     = 2,
             bitOffset   = 0,
-            enum = {
+            enum        = {
                 0b00: '16 bits',
                 0b10: '12 bits',
             },
@@ -383,14 +383,14 @@ class Ad9681ReadoutManual(pr.Device):
         for ch in range(channels):
             for i in range(2):
                 self.add(pr.RemoteVariable(
-                    name         = f'ChannelDelay[{ch}][{i}]',
-                    description  = f'IDELAY value for serial channel {ch}_{i}',
-                    offset       = ch*8 + i*4,
-                    bitSize      = delayBits,
-                    bitOffset    = 0,
-                    base         = pr.UInt,
-                    mode         = 'RW',
-                    verify       = False,
+                    name        = f'ChannelDelay[{ch}][{i}]',
+                    description = f'IDELAY value for serial channel {ch}_{i}',
+                    offset      = ch*8 + i*4,
+                    bitSize     = delayBits,
+                    bitOffset   = 0,
+                    base        = pr.UInt,
+                    mode        = 'RW',
+                    verify      = False,
                 ))
 
         for i in range(2):
@@ -402,7 +402,7 @@ class Ad9681ReadoutManual(pr.Device):
                 bitOffset   = 0,
                 base        = pr.UInt,
                 mode        = 'RW',
-                verify       = False,
+                verify      = False,
             ))
 
         @self.command()
@@ -485,13 +485,13 @@ class Ad9681ReadoutManual(pr.Device):
 
         for i in range(channels):
             self.add(pr.LinkVariable(
-                name = f'AdcVoltage[{i}]',
+                name        = f'AdcVoltage[{i}]',
                 description = f'Converted voltage for ADC channel {i}',
-                mode = 'RO',
-                disp = '{:1.9f}',
-                variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
-                units = 'V'))
+                mode        = 'RO',
+                disp        = '{:1.9f}',
+                variable    = self.AdcChannel[i],
+                linkedGet   = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                units       = 'V'))
 
         self.add(pr.RemoteCommand(
             name        = 'LostLockCountReset',
@@ -567,26 +567,26 @@ class Ad9681Readout(pr.Device):
             delayBits = 6
 
         self.add(pr.RemoteVariable(
-            name         = 'EnUsrDelay',
-            description  = 'Enable manual delay value',
-            offset       = 0x20,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.Bool,
-            mode         = 'RW',
-            verify       = True,
+            name        = 'EnUsrDelay',
+            description = 'Enable manual delay value',
+            offset      = 0x20,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RW',
+            verify      = True,
         ))
 
         for i in range(2):
             self.add(pr.RemoteVariable(
-                name         = f'Delay[{i}]',
-                description  = f'IDELAY value for serial channel {i}',
-                offset       = i*4,
-                bitSize      = delayBits,
-                bitOffset    = 0,
-                base         = pr.UInt,
-                mode         = 'RW',
-                verify       = False,
+                name        = f'Delay[{i}]',
+                description = f'IDELAY value for serial channel {i}',
+                offset      = i*4,
+                bitSize     = delayBits,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RW',
+                verify      = False,
             ))
 
         for i in range(2):
@@ -594,7 +594,7 @@ class Ad9681Readout(pr.Device):
                 name        = f'ErrorDetCount[{i}]',
                 description = 'Number of times that frame lock has been lost since reset',
                 offset      = 0x30+ 4*i,
-                disp = '{:d}',
+                disp        = '{:d}',
                 bitSize     = 16,
                 bitOffset   = 0,
                 base        = pr.UInt,
@@ -670,13 +670,13 @@ class Ad9681Readout(pr.Device):
 
         for i in range(channels):
             self.add(pr.LinkVariable(
-                name = f'AdcVoltage[{i}]',
+                name        = f'AdcVoltage[{i}]',
                 description = f'Converted voltage for ADC channel {i}',
-                mode = 'RO',
-                disp = '{:1.9f}',
-                variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
-                units = 'V'))
+                mode        = 'RO',
+                disp        = '{:1.9f}',
+                variable    = self.AdcChannel[i],
+                linkedGet   = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                units       = 'V'))
 
         self.add(pr.RemoteCommand(
             name        = 'LostLockCountReset',

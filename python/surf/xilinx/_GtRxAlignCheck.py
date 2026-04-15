@@ -27,39 +27,39 @@ class GtRxAlignCheck(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "PhaseTarget",
-            description  = "Timing frame phase lock target",
-            offset       =  0x100,
-            bitSize      =  7,
-            bitOffset    =  0,
-            mode         = "RW",
+            name        = "PhaseTarget",
+            description = "Timing frame phase lock target",
+            offset      =  0x100,
+            bitSize     =  7,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Mask",
-            description  = "Register Mask Value",
-            offset       =  0x100,
-            bitSize      =  7,
-            bitOffset    =  8,
-            mode         = "RW",
+            name        = "Mask",
+            description = "Register Mask Value",
+            offset      =  0x100,
+            bitSize     =  7,
+            bitOffset   =  8,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ResetLen",
-            description  = "Reset length",
-            offset       =  0x100,
-            bitSize      =  4,
-            bitOffset    =  16,
-            mode         = "RW",
+            name        = "ResetLen",
+            description = "Reset length",
+            offset      =  0x100,
+            bitSize     =  4,
+            bitOffset   =  16,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "LastPhase",
-            description  = "Last timing frame phase seen",
-            offset       =  0x104,
-            bitSize      =  7,
-            bitOffset    =  0,
-            mode         = "RO",
+            name        = "LastPhase",
+            description = "Last timing frame phase seen",
+            offset      =  0x104,
+            bitSize     =  7,
+            bitOffset   =  0,
+            mode        = "RO",
         ))
 
         self.add(pr.RemoteVariable(
@@ -105,42 +105,42 @@ class GtRxAlignCheck(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Locked",
-            description  = 'If True, align checker successfully aligned the transceiver',
-            offset       = 0x110,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RO',
-            base         = pr.Bool,
+            name        = "Locked",
+            description = 'If True, align checker successfully aligned the transceiver',
+            offset      = 0x110,
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RO',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Override",
-            description  = 'If set to True, the Align Checker will stop resetting the transceiver, regardless of the phase read-out from the DRP interface',
-            offset       = 0x114,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RW',
-            base         = pr.Bool,
+            name        = "Override",
+            description = 'If set to True, the Align Checker will stop resetting the transceiver, regardless of the phase read-out from the DRP interface',
+            offset      = 0x114,
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RW',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "RstRetryCnt",
-            description  = 'Reset the Retry Counter back to zero',
-            offset       = 0x118,
-            bitSize      = 1,
-            bitOffset    = 0,
-            function     = pr.RemoteCommand.touchOne
+            name        = "RstRetryCnt",
+            description = 'Reset the Retry Counter back to zero',
+            offset      = 0x118,
+            bitSize     = 1,
+            bitOffset   = 0,
+            function    = pr.RemoteCommand.touchOne
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RetryCnt",
-            description  = 'How many retries it took to align. Does not roll-over',
-            offset       = 0x11C,
-            bitSize      = 16,
-            bitOffset    = 0,
-            mode         = 'RO',
-            base         = pr.UInt,
+            name        = "RetryCnt",
+            description = 'How many retries it took to align. Does not roll-over',
+            offset      = 0x11C,
+            bitSize     = 16,
+            bitOffset   = 0,
+            mode        = 'RO',
+            base        = pr.UInt,
         ))
 
         self.add(pr.RemoteVariable(
@@ -165,22 +165,22 @@ class GtRxAlignCheck(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PhaseHistRaw",
-            description  = "Timing frame phase",
-            offset       =  0x00,
-            valueBits    = 8,
-            valueStride  = 8,
-            numValues    = 40,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "PhaseHistRaw",
+            description = "Timing frame phase",
+            offset      =  0x00,
+            valueBits   = 8,
+            valueStride = 8,
+            numValues   = 40,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
         for i in range(40):
             self.add(pr.LinkVariable(
-                name = f'PhaseHist[{i}]',
-                description = f'Timing frame phase histogram bin {i}',
+                name         = f'PhaseHist[{i}]',
+                description  = f'Timing frame phase histogram bin {i}',
                 guiGroup='Hist',
-                disp = '{:d}',
-                mode = 'RO',
+                disp         = '{:d}',
+                mode         = 'RO',
                 dependencies = [self.PhaseHistRaw],
-                linkedGet = lambda read, x=i: self.PhaseHistRaw.value(index=x)))
+                linkedGet    = lambda read, x=i: self.PhaseHistRaw.value(index=x)))
