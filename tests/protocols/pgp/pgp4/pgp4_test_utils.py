@@ -13,7 +13,6 @@ from __future__ import annotations
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
-
 PGP4_VERSION = 0x04
 
 PGP4_IDLE = 0x99
@@ -59,6 +58,19 @@ def signal_int(dut, name: str) -> int:
     return int(getattr(dut, name).value)
 
 
+def initialize_signals(dut, **values):
+    """Drive a set of DUT inputs to known startup values immediately.
+
+    Cocotb beginners often repeat small blocks of `setimmediatevalue()` calls
+    at the top of every test.  Centralizing that pattern keeps the individual
+    benches focused on behavior and makes it obvious which ports are part of
+    the wrapper's external contract.
+    """
+
+    for name, value in values.items():
+        getattr(dut, name).setimmediatevalue(value)
+
+
 async def wait_for_signal(tb: Pgp4FlatTB, name: str, value: int = 1, cycles: int = 256):
     for _ in range(cycles):
         if signal_int(tb.dut, name) == value:
@@ -70,14 +82,76 @@ async def wait_for_signal(tb: Pgp4FlatTB, name: str, value: int = 1, cycles: int
 def initialize_flat_tx_inputs(dut, *, include_opcode: bool = False):
     """Drive the common flat PGP4 transmit inputs to a known idle state."""
 
-    dut.txValid.setimmediatevalue(0)
-    dut.txData.setimmediatevalue(0)
-    dut.txSof.setimmediatevalue(0)
-    dut.txEof.setimmediatevalue(0)
-    dut.txEofe.setimmediatevalue(0)
+    initialize_signals(
+        dut,
+        txValid=0,
+        txData=0,
+        txSof=0,
+        txEof=0,
+        txEofe=0,
+    )
     if include_opcode:
-        dut.opCodeEn.setimmediatevalue(0)
-        dut.opCodeData.setimmediatevalue(0)
+        initialize_signals(dut, opCodeEn=0, opCodeData=0)
+
+
+async def send_opcode(tb: Pgp4FlatTB, opcode: int):
+    """Pulse one opcode request through the flat PGP4 wrapper interface."""
+
+    tb.dut.opCodeData.value = opcode
+    tb.dut.opCodeEn.value = 1
+    await tb.cycle()
+    tb.dut.opCodeEn.value = 0
+
+
+async def collect_valid_beats(
+    tb,
+    *,
+    valid_name: str,
+    field_names: tuple[str, ...],
+    count: int,
+    cycles: int = 256,
+    predicate=None,
+) -> list[tuple[int, ...]]:
+    """Collect a bounded number of visible valid beats from a flat wrapper.
+
+    Many PGP4 wrappers expose pulse-style outputs rather than queue-like
+    interfaces.  This helper samples those outputs once per local clock and
+    returns the named fields for each cycle where `valid_name` was asserted.
+    An optional `predicate` can filter out background IDLE traffic.
+    """
+
+    beats = []
+    for _ in range(cycles):
+        await tb.cycle()
+        if signal_int(tb.dut, valid_name) != 1:
+            continue
+        beat = tuple(signal_int(tb.dut, name) for name in field_names)
+        if predicate is not None and not predicate(*beat):
+            continue
+        beats.append(beat)
+        if len(beats) >= count:
+            return beats[:count]
+    raise AssertionError(f"Timed out collecting {count} beats from {valid_name}")
+
+
+async def wait_for_nonzero_output(
+    tb,
+    *,
+    valid_name: str,
+    data_name: str,
+    cycles: int = 256,
+) -> int:
+    """Wait for the first valid beat whose payload is non-zero."""
+
+    beats = await collect_valid_beats(
+        tb,
+        valid_name=valid_name,
+        field_names=(data_name,),
+        count=1,
+        cycles=cycles,
+        predicate=lambda data: data != 0,
+    )
+    return beats[0][0]
 
 
 async def send_single_word_frame(tb, *, payload: int, eofe: int = 0, ready_name: str = "txReady", cycles: int = 64):
@@ -101,52 +175,6 @@ async def send_single_word_frame(tb, *, payload: int, eofe: int = 0, ready_name:
     tb.dut.txEofe.value = 0
 
 
-async def send_single_word_frame_and_capture(
-    tb,
-    *,
-    payload: int,
-    eofe: int = 0,
-    rx_valid_name: str = "rxValid",
-    rx_data_name: str = "rxData",
-    rx_last_name: str = "rxLast",
-    ready_name: str = "txReady",
-    cycles: int = 1024,
-) -> tuple[int, int]:
-    """Send one beat and capture the first returned flat RX beat.
-
-    The receive pulse can be much narrower than the user's mental model of a
-    "frame completed" event.  Sampling during the handshake window avoids the
-    common beginner mistake of checking the receive side too late and missing a
-    valid one-cycle indication.
-    """
-
-    tb.dut.txValid.value = 1
-    tb.dut.txData.value = payload
-    tb.dut.txSof.value = 1
-    tb.dut.txEof.value = 1
-    tb.dut.txEofe.value = eofe
-
-    accepted = False
-    captured = None
-    for _ in range(cycles):
-        await tb.cycle()
-        if signal_int(tb.dut, rx_valid_name) == 1:
-            captured = (
-                signal_int(tb.dut, rx_data_name),
-                signal_int(tb.dut, rx_last_name),
-            )
-        if not accepted and signal_int(tb.dut, ready_name) == 1:
-            accepted = True
-            tb.dut.txValid.value = 0
-            tb.dut.txSof.value = 0
-            tb.dut.txEof.value = 0
-            tb.dut.txEofe.value = 0
-        if accepted and captured is not None:
-            return captured
-
-    raise AssertionError("Timed out waiting for RX frame capture")
-
-
 def btf(word: int) -> int:
     return (word >> 56) & 0xFF
 
@@ -163,15 +191,15 @@ def is_non_idle_protocol_word(header: int, data: int) -> bool:
 
 
 async def wait_for_non_idle_protocol_word(tb, *, cycles: int = 256) -> tuple[int, int]:
-    for _ in range(cycles):
-        await tb.cycle()
-        if signal_int(tb.dut, "protTxValid") != 1:
-            continue
-        header = signal_int(tb.dut, "protTxHeader")
-        data = signal_int(tb.dut, "protTxData")
-        if is_non_idle_protocol_word(header, data):
-            return header, data
-    raise AssertionError("Timed out waiting for non-IDLE protocol word")
+    words = await collect_valid_beats(
+        tb,
+        valid_name="protTxValid",
+        field_names=("protTxHeader", "protTxData"),
+        count=1,
+        cycles=cycles,
+        predicate=is_non_idle_protocol_word,
+    )
+    return words[0]
 
 
 async def send_single_word_frame_and_collect_protocol_words(

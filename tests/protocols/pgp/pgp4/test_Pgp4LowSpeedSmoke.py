@@ -20,27 +20,17 @@
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
 
+from tests.protocols.pgp.pgp4.pgp4_test_utils import Pgp4FlatTB, initialize_signals
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
 
 @cocotb.test()
 async def low_speed_smoke_test(dut):
-    cocotb.start_soon(Clock(dut.clk, 5.0, unit="ns").start())
-    dut.rst.setimmediatevalue(1)
-    dut.deserData.setimmediatevalue(0xBC)
-
-    for _ in range(4):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
-
-    dut.rst.value = 0
-
-    for _ in range(16):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+    tb = Pgp4FlatTB(dut)
+    initialize_signals(dut, deserData=0xBC)
+    await tb.reset()
+    await tb.cycle(16)
 
 
 PARAMETER_SWEEP = [

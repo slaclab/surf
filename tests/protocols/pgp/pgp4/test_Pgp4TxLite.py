@@ -26,6 +26,7 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     Pgp4FlatTB,
     initialize_flat_tx_inputs,
     send_single_word_frame,
+    wait_for_nonzero_output,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
@@ -38,14 +39,7 @@ async def pgp4_tx_lite_direct_wrapper_test(dut):
     await tb.reset()
     await send_single_word_frame(tb, payload=0x1122334455667788)
 
-    seen_valid = False
-    for _ in range(32):
-        await tb.cycle(1)
-        if int(dut.phyTxValid.value) == 1:
-            seen_valid = True
-            assert int(dut.phyTxData.value) != 0
-            break
-    assert seen_valid
+    await wait_for_nonzero_output(tb, valid_name="phyTxValid", data_name="phyTxData", cycles=32)
 
 
 PARAMETER_SWEEP = [parameter_case("direct_wrapper_default")]

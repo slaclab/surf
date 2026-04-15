@@ -31,6 +31,7 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     Pgp4FlatTB,
     btf,
     initialize_flat_tx_inputs,
+    send_opcode,
     send_single_word_frame_and_collect_protocol_words,
     signal_int,
     wait_for_non_idle_protocol_word,
@@ -46,11 +47,7 @@ async def pgp4_tx_protocol_test(dut):
     await tb.reset()
     await wait_for_signal(tb, "linkReady")
 
-    dut.opCodeData.value = 0x001122334455
-    dut.opCodeEn.value = 1
-    await tb.cycle()
-    dut.opCodeEn.value = 0
-
+    await send_opcode(tb, 0x001122334455)
     header, data = await wait_for_non_idle_protocol_word(tb)
     assert header == PGP4_K_HEADER
     assert btf(data) == PGP4_USER
