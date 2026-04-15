@@ -22,11 +22,11 @@ use surf.SsiPkg.all;
 
 entity SsiFifoWrapper is
    generic (
-      DATA_BYTES_G      : positive range 1 to 8 := 2;
+      DATA_BYTES_G      : positive range 1 to 8  := 2;
       FIFO_ADDR_WIDTH_G : positive range 1 to 16 := 4;
-      VALID_THOLD_G     : natural               := 1;
-      GEN_SYNC_FIFO_G   : boolean               := false;
-      SLAVE_READY_EN_G  : boolean               := true);
+      VALID_THOLD_G     : natural                := 1;
+      GEN_SYNC_FIFO_G   : boolean                := false;
+      SLAVE_READY_EN_G  : boolean                := true);
    port (
       axisClk         : in  sl;
       axisRst         : in  sl;
