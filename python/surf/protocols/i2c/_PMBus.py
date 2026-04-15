@@ -28,33 +28,33 @@ class PMBus(pr.Device):
 
 
         self.add(pr.RemoteVariable(
-            name         = 'i2cAddr',
-            description  = 'I2C device address',
-            offset       =  0x400,
-            bitSize      =  10,
-            bitOffset    =  0,
-            mode         = 'RW' if dynamicAddr else 'RO',
-            hidden       = simpleDisplay,
+            name        =  'i2cAddr',
+            description =  'I2C device address',
+            offset      =   0x400,
+            bitSize     =   10,
+            bitOffset   =   0,
+            mode        =  'RW' if dynamicAddr else 'RO',
+            hidden      =  simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'tenbit',
-            description  = 'I2C 10-bit addressing enable',
-            offset       =  0x400,
-            bitSize      =  1,
-            bitOffset    =  10,
-            mode         = 'RW' if dynamicAddr else 'RO',
-            hidden       = simpleDisplay,
+            name        =  'tenbit',
+            description =  'I2C 10-bit addressing enable',
+            offset      =   0x400,
+            bitSize     =   1,
+            bitOffset   =   10,
+            mode        =  'RW' if dynamicAddr else 'RO',
+            hidden      =  simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ignoreResp',
-            description  = 'Ignore I2C response (no ACK check)',
-            offset       =  0x400,
-            bitSize      =  1,
-            bitOffset    =  11,
-            mode         = 'RW',
-            hidden       = simpleDisplay,
+            name        =  'ignoreResp',
+            description =  'Ignore I2C response (no ACK check)',
+            offset      =   0x400,
+            bitSize     =   1,
+            bitOffset   =   11,
+            mode        =  'RW',
+            hidden      =  simpleDisplay,
         ))
 
         addPMBusVariable(

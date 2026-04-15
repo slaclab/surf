@@ -20,12 +20,12 @@ class UdpEngineClient(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "ClientRemotePortRaw",
-            description  = "ClientRemotePort (big-Endian configuration)",
-            offset       =  0x00,
-            bitSize      =  16,
-            mode         = "RW",
-            hidden       = True,
+            name        = "ClientRemotePortRaw",
+            description = "ClientRemotePort (big-Endian configuration)",
+            offset      =  0x00,
+            bitSize     =  16,
+            mode        = "RW",
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -38,12 +38,12 @@ class UdpEngineClient(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ClientRemoteIpRaw",
-            description  = "ClientRemoteIp (big-Endian configuration)",
-            offset       =  0x04,
-            bitSize      =  32,
-            mode         = "RW",
-            hidden       = True,
+            name        = "ClientRemoteIpRaw",
+            description = "ClientRemoteIp (big-Endian configuration)",
+            offset      =  0x04,
+            bitSize     =  32,
+            mode        = "RW",
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(

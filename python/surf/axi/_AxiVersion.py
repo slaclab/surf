@@ -33,25 +33,25 @@ class AxiVersion(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = 'FpgaVersion',
-            description  = 'FPGA Firmware Version Number',
-            offset       = 0x00,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-            disp         = '{:#08x}',
+            name        = 'FpgaVersion',
+            description = 'FPGA Firmware Version Number',
+            offset      = 0x00,
+            bitSize     = 32,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO',
+            disp        = '{:#08x}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ScratchPad',
-            description  = 'Register to test reads and writes',
-            offset       = 0x04,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
-            disp         = '{:#08x}',
+            name        = 'ScratchPad',
+            description = 'Register to test reads and writes',
+            offset      = 0x04,
+            bitSize     = 32,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RW',
+            disp        = '{:#08x}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -77,48 +77,48 @@ class AxiVersion(pr.Device):
                 return str(datetime.timedelta(seconds=seconds))
 
         self.add(pr.LinkVariable(
-            name         = 'UpTime',
-            description  = 'Time since power up or last firmware reload',
-            mode         = 'RO',
-            disp         = '{}',
-            variable     = self.UpTimeCnt,
-            linkedGet    = parseUpTime,
-            units        = 'HH:MM:SS',
+            name        = 'UpTime',
+            description = 'Time since power up or last firmware reload',
+            mode        = 'RO',
+            disp        = '{}',
+            variable    = self.UpTimeCnt,
+            linkedGet   = parseUpTime,
+            units       = 'HH:MM:SS',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FpgaReloadHalt',
-            description  = 'Used to halt automatic reloads via AxiVersion',
-            groups       = ['NoConfig'],
-            offset       = 0x100,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'FpgaReloadHalt',
+            description = 'Used to halt automatic reloads via AxiVersion',
+            groups      = ['NoConfig'],
+            offset      = 0x100,
+            bitSize     = 1,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'FpgaReload',
-            description  = 'Optional Reload the FPGA from the attached PROM',
-            offset       = 0x104,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = True,
+            name        = 'FpgaReload',
+            description = 'Optional Reload the FPGA from the attached PROM',
+            offset      = 0x104,
+            bitSize     = 1,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            function    = lambda cmd: cmd.post(1),
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FpgaReloadAddress',
-            description  = 'Reload start address',
-            offset       = 0x108,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
-            hidden       = True,
-            groups       = ['NoConfig'],
+            name        = 'FpgaReloadAddress',
+            description = 'Reload start address',
+            offset      = 0x108,
+            bitSize     = 32,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RW',
+            hidden      = True,
+            groups      = ['NoConfig'],
         ))
 
         @self.command(hidden=True)
@@ -127,15 +127,15 @@ class AxiVersion(pr.Device):
             self.FpgaReload()
 
         self.add(pr.RemoteVariable(
-            name         = 'UserReset',
-            description  = 'Optional User Reset',
-            groups       = ['NoConfig'],
-            hidden       = True,
-            offset       = 0x10C,
-            bitSize      = 1,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RW',
+            name        = 'UserReset',
+            description = 'Optional User Reset',
+            groups      = ['NoConfig'],
+            hidden      = True,
+            offset      = 0x10C,
+            bitSize     = 1,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         @self.command(description  = 'Toggle UserReset')
@@ -144,14 +144,14 @@ class AxiVersion(pr.Device):
             self.UserReset.set(0)
 
         self.add(pr.RemoteVariable(
-            name         = 'FdSerial',
-            description  = 'Board ID value read from DS2411 chip',
-            offset       = 0x300,
-            bitSize      = 64,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'FdSerial',
+            description = 'Board ID value read from DS2411 chip',
+            offset      = 0x300,
+            bitSize     = 64,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.addRemoteVariables(
@@ -169,24 +169,24 @@ class AxiVersion(pr.Device):
 
 
         self.add(pr.RemoteVariable(
-            name         = 'DeviceId',
-            description  = 'Device Identification  (configued by generic)',
-            offset       = 0x500,
-            bitSize      = 32,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
+            name        = 'DeviceId',
+            description = 'Device Identification  (configued by generic)',
+            offset      = 0x500,
+            bitSize     = 32,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'GitHash',
-            description  = 'GIT SHA-1 Hash',
-            offset       = 0x600,
-            bitSize      = 160,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'GitHash',
+            description = 'GIT SHA-1 Hash',
+            offset      = 0x600,
+            bitSize     = 160,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -198,24 +198,24 @@ class AxiVersion(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DeviceDna',
-            description  = 'Xilinx Device DNA value burned into FPGA',
-            offset       = 0x700,
-            bitSize      = 128,
-            bitOffset    = 0x00,
-            base         = pr.UInt,
-            mode         = 'RO',
+            name        = 'DeviceDna',
+            description = 'Xilinx Device DNA value burned into FPGA',
+            offset      = 0x700,
+            bitSize     = 128,
+            bitOffset   = 0x00,
+            base        = pr.UInt,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BuildStamp',
-            description  = 'Firmware Build String',
-            offset       = 0x800,
-            bitSize      = 8*256,
-            bitOffset    = 0x00,
-            base         = pr.String,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'BuildStamp',
+            description = 'Firmware Build String',
+            offset      = 0x800,
+            bitSize     = 8*256,
+            bitOffset   = 0x00,
+            base        = pr.String,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         def parseBuildStamp(var,read):

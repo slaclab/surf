@@ -384,13 +384,13 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = "TxPhyActive",
-            offset      = 0x84,
-            bitSize     = 1,
-            bitOffset   = 1,
-            mode        = 'RO',
-            base        = pr.Bool,
-            description = "TX Phy is Ready",
+            name         = "TxPhyActive",
+            offset       = 0x84,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
+            base         = pr.Bool,
+            description  = "TX Phy is Ready",
             pollInterval = 1,
         ))
 
@@ -502,30 +502,30 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxDiffCtrl',
-            description  = "GT TX differential swing control",
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 0,
-            bitSize      = 5,
+            name        = 'TxDiffCtrl',
+            description = "GT TX differential swing control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 0,
+            bitSize     = 5,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxPreCursor',
-            description  = "GT TX pre-cursor emphasis control",
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 8,
-            bitSize      = 5,
+            name        = 'TxPreCursor',
+            description = "GT TX pre-cursor emphasis control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 8,
+            bitSize     = 5,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxPostCursor',
-            description  = "GT TX post-cursor emphasis control",
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 16,
-            bitSize      = 5,
+            name        = 'TxPostCursor',
+            description = "GT TX post-cursor emphasis control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 16,
+            bitSize     = 5,
         ))
 
         self.add(pr.LinkVariable(

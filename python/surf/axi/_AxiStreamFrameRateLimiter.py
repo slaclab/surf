@@ -15,47 +15,47 @@ class AxiStreamFrameRateLimiter(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CLK_FREQ_G',
-            description  = 'AXI stream clock frequency generic value',
-            offset       = 0x000,
-            bitSize      = 32,
-            mode         = 'RO',
-            disp         = '{:d}',
-            units        = 'Hz',
+            name        = 'AXIS_CLK_FREQ_G',
+            description = 'AXI stream clock frequency generic value',
+            offset      = 0x000,
+            bitSize     = 32,
+            mode        = 'RO',
+            disp        = '{:d}',
+            units       = 'Hz',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'REFRESH_RATE_G',
-            description  = 'Rate limiter refresh rate generic value',
-            offset       = 0x004,
-            bitSize      = 32,
-            mode         = 'RO',
-            disp         = '{:d}',
-            units        = 'Hz',
+            name        = 'REFRESH_RATE_G',
+            description = 'Rate limiter refresh rate generic value',
+            offset      = 0x004,
+            bitSize     = 32,
+            mode        = 'RO',
+            disp        = '{:d}',
+            units       = 'Hz',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DEFAULT_MAX_RATE_G',
-            description  = 'Default maximum frame rate generic value',
-            offset       = 0x008,
-            bitSize      = 32,
-            mode         = 'RO',
-            disp         = '{:d}',
-            units        = 'REFRESH_RATE_G',
+            name        = 'DEFAULT_MAX_RATE_G',
+            description = 'Default maximum frame rate generic value',
+            offset      = 0x008,
+            bitSize     = 32,
+            mode        = 'RO',
+            disp        = '{:d}',
+            units       = 'REFRESH_RATE_G',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MaxFrameRate',
-            description  = 'Sets the Frame Rate limit (in units of Units of \'REFRESH_RATE_G\').  Zero value means no limit',
-            offset       =  0x100,
-            bitSize      =  32,
-            mode         = 'RW',
+            name        = 'MaxFrameRate',
+            description = 'Sets the Frame Rate limit (in units of Units of \'REFRESH_RATE_G\').  Zero value means no limit',
+            offset      =  0x100,
+            bitSize     =  32,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BackpressureMode',
-            description  = '1: Assert back pressure when rate throttling, 0: Drop frames when rate throttling',
-            offset       =  0x104,
-            bitSize      =  1,
-            mode         = 'RW',
+            name        = 'BackpressureMode',
+            description = '1: Assert back pressure when rate throttling, 0: Drop frames when rate throttling',
+            offset      =  0x104,
+            bitSize     =  1,
+            mode        = 'RW',
         ))

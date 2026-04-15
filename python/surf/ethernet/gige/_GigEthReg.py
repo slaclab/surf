@@ -157,12 +157,12 @@ class GigEthReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MacAddress',
-            description  = 'MacAddress (big-Endian configuration)',
-            offset       = 0x200,
-            bitSize      = 48,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'MacAddress',
+            description = 'MacAddress (big-Endian configuration)',
+            offset      = 0x200,
+            bitSize     = 48,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -174,73 +174,73 @@ class GigEthReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PauseTime",
-            description  = "Pause frame quanta value",
-            offset       =  0x21C,
-            bitSize      =  16,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RO",
+            name        = "PauseTime",
+            description = "Pause frame quanta value",
+            offset      =  0x21C,
+            bitSize     =  16,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            mode        = "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FilterEnable",
-            description  = "Enable MAC address filtering",
-            offset       =  0x228,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RO",
+            name        = "FilterEnable",
+            description = "Enable MAC address filtering",
+            offset      =  0x228,
+            bitSize     =  1,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            mode        = "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PauseEnable",
-            description  = "Enable flow control pause frames",
-            offset       =  0x22C,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RO",
+            name        = "PauseEnable",
+            description = "Enable flow control pause frames",
+            offset      =  0x22C,
+            bitSize     =  1,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            mode        = "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RollOverEn",
-            description  = "Enable counter rollover instead of saturation",
-            offset       =  0xF00,
-            bitSize      =  9,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            mode         = "RW",
+            name        = "RollOverEn",
+            description = "Enable counter rollover instead of saturation",
+            offset      =  0xF00,
+            bitSize     =  9,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "CounterReset",
-            description  = "Reset all status counters",
-            offset       =  0xFF4,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            function     = pr.RemoteCommand.touchOne
+            name        = "CounterReset",
+            description = "Reset all status counters",
+            offset      =  0xFF4,
+            bitSize     =  1,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            function    = pr.RemoteCommand.touchOne
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "SoftReset",
-            description  = "Issue a soft reset to the Ethernet MAC",
-            offset       =  0xFF8,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            function     = pr.RemoteCommand.touchOne
+            name        = "SoftReset",
+            description = "Issue a soft reset to the Ethernet MAC",
+            offset      =  0xFF8,
+            bitSize     =  1,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            function    = pr.RemoteCommand.touchOne
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "HardReset",
-            description  = "Issue a hard reset to the Ethernet MAC",
-            offset       =  0xFFC,
-            bitSize      =  1,
-            bitOffset    =  0x00,
-            base         = pr.UInt,
-            function     = pr.RemoteCommand.touchOne
+            name        = "HardReset",
+            description = "Issue a hard reset to the Ethernet MAC",
+            offset      =  0xFFC,
+            bitSize     =  1,
+            bitOffset   =  0x00,
+            base        = pr.UInt,
+            function    = pr.RemoteCommand.touchOne
         ))
 
     def countReset(self):
