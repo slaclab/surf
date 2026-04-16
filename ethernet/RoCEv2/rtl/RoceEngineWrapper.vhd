@@ -26,6 +26,7 @@ entity RoceEngineWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      DCQCN_EN_G        : boolean          := true;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := x"00000000";
       EXT_ROCE_CONFIG_G : boolean          := false);
    port (
@@ -208,22 +209,29 @@ begin
    -----------------------------------------------------------------------------
    -- DCQCN Congestion Control
    -----------------------------------------------------------------------------
-   Dcqcn_1 : entity surf.Dcqcn
-      generic map (
-         TPD_G         => TPD_G,
-         AXIS_CONFIG_G => SURF_DATA_STREAM_CONFIG_C)
-      port map (
-         axisClk         => clk,
-         axisRst         => rst,
-         cnp             => s_cnp_received,
-         axilReadMaster  => axilReadMastersX(XBAR_DCQCN_CONFIG_C),
-         axilReadSlave   => axilReadSlavesX(XBAR_DCQCN_CONFIG_C),
-         axilWriteMaster => axilWriteMastersX(XBAR_DCQCN_CONFIG_C),
-         axilWriteSlave  => axilWriteSlavesX(XBAR_DCQCN_CONFIG_C),
-         sAxisMaster     => ibUdpMasterDcqcn,
-         sAxisSlave      => ibUdpSlaveDcqcn,
-         mAxisMaster     => ibUdpMaster,
-         mAxisSlave      => ibUdpSlave);
+   GEN_DCQCN : if DCQCN_EN_G generate
+      Dcqcn_1 : entity surf.Dcqcn
+         generic map (
+            TPD_G         => TPD_G,
+            AXIS_CONFIG_G => SURF_DATA_STREAM_CONFIG_C)
+         port map (
+            axisClk         => clk,
+            axisRst         => rst,
+            cnp             => s_cnp_received,
+            axilReadMaster  => axilReadMastersX(XBAR_DCQCN_CONFIG_C),
+            axilReadSlave   => axilReadSlavesX(XBAR_DCQCN_CONFIG_C),
+            axilWriteMaster => axilWriteMastersX(XBAR_DCQCN_CONFIG_C),
+            axilWriteSlave  => axilWriteSlavesX(XBAR_DCQCN_CONFIG_C),
+            sAxisMaster     => ibUdpMasterDcqcn,
+            sAxisSlave      => ibUdpSlaveDcqcn,
+            mAxisMaster     => ibUdpMaster,
+            mAxisSlave      => ibUdpSlave);
+   end generate GEN_DCQCN;
+
+   BYPASS_DCQCN : if not DCQCN_EN_G generate
+      ibUdpMaster     <= ibUdpMasterDcqcn;
+      ibUdpSlaveDcqcn <= ibUdpSlave;
+   end generate BYPASS_DCQCN;
 
    -----------------------------------------------------------------------------
    -- Adjust Roce/SURF interface

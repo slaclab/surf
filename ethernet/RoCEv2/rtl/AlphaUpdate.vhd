@@ -21,128 +21,128 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity AlphaUpdate is
-  generic (
-    TPD_G          : time    := 1 ns;
-    RST_ASYNC_G    : boolean := false;
-    RST_POLARITY_G : sl      := '1'
-    );
-  port (
-    clk              : in  sl;
-    rst              : in  sl;
-    -- Flags
-    start            : in  sl;
-    -- Regs
-    curAlpha         : in  slv(9 downto 0);
-    alphaG           : in  slv(9 downto 0);
-    cnpDetected      : in  sl;
-    alphaUpdInterval : in  slv(15 downto 0);
-    -- Outputs
-    newAlpha         : out slv(9 downto 0);
-    valid            : out sl
-    );
+   generic (
+      TPD_G          : time    := 1 ns;
+      RST_ASYNC_G    : boolean := false;
+      RST_POLARITY_G : sl      := '1'
+      );
+   port (
+      clk              : in  sl;
+      rst              : in  sl;
+      -- Flags
+      start            : in  sl;
+      -- Regs
+      curAlpha         : in  slv(9 downto 0);
+      alphaG           : in  slv(9 downto 0);
+      cnpDetected      : in  sl;
+      alphaUpdInterval : in  slv(15 downto 0);
+      -- Outputs
+      newAlpha         : out slv(9 downto 0);
+      valid            : out sl
+      );
 end entity AlphaUpdate;
 
 architecture rtl of AlphaUpdate is
 
-  type StateType is (
-    IDLE_S,
-    COUNTING_S,
-    UPDATE_S);
+   type StateType is (
+      IDLE_S,
+      COUNTING_S,
+      UPDATE_S);
 
-  type RegType is record
-    timer    : slv(15 downto 0);
-    newAlpha : slv(9 downto 0);
-    valid    : sl;
-    state    : StateType;
-  end record RegType;
+   type RegType is record
+      timer    : slv(15 downto 0);
+      newAlpha : slv(9 downto 0);
+      valid    : sl;
+      state    : StateType;
+   end record RegType;
 
-  constant ONE_FP_C : std_logic_vector(10 downto 0) := "10000000000";  -- 1024
+   constant ONE_FP_C : std_logic_vector(10 downto 0) := "10000000000";  -- 1024
 
-  constant REG_INIT_C : RegType := (
-    timer    => (others => '0'),
-    newAlpha => (others => '0'),
-    valid    => '0',
-    state    => IDLE_S);
+   constant REG_INIT_C : RegType := (
+      timer    => (others => '0'),
+      newAlpha => (others => '0'),
+      valid    => '0',
+      state    => IDLE_S);
 
-  signal r   : RegType := REG_INIT_C;
-  signal rin : RegType;
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin  -- architecture rtl
 
 
-  comb : process (AlphaG, alphaUpdInterval, cnpDetected, curAlpha, r, rst,
-                  start) is
-    variable v          : RegType;
-    variable mult       : slv(19 downto 0);
-    variable mult_s     : slv(19 downto 0);
-    variable mult_round : slv(19 downto 0);
-    variable term2      : slv(10 downto 0);
-  begin  -- process comb
-    -- Latch the current value
-    v       := r;
-    -- Reset flags
-    v.valid := '0';
-    -- FSM
-    case r.state is
-      -------------------------------------------------------------------------
-      when IDLE_S =>
-        v.timer := (others => '0');
-        if start = '1' then
-          v.state := COUNTING_S;
-        end if;
+   comb : process (AlphaG, alphaUpdInterval, cnpDetected, curAlpha, r, rst,
+                   start) is
+      variable v          : RegType;
+      variable mult       : slv(19 downto 0);
+      variable mult_s     : slv(19 downto 0);
+      variable mult_round : slv(19 downto 0);
+      variable term2      : slv(10 downto 0);
+   begin  -- process comb
+      -- Latch the current value
+      v       := r;
+      -- Reset flags
+      v.valid := '0';
+      -- FSM
+      case r.state is
+         -------------------------------------------------------------------------
+         when IDLE_S =>
+            v.timer := (others => '0');
+            if start = '1' then
+               v.state := COUNTING_S;
+            end if;
+         -----------------------------------------------------------------------
+         when COUNTING_S =>
+            v.timer := r.timer + 1;
+            if r.timer >= alphaUpdInterval then
+               v.state := UPDATE_S;
+            end if;
+         -----------------------------------------------------------------------
+         when UPDATE_S =>
+            if cnpDetected = '1' then
+               mult               := curAlpha * AlphaG;
+               -- mult_s     := mult srl 10;
+               -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
+               mult_round         := mult + 512;
+               mult_s             := (others => '0');
+               mult_s(9 downto 0) := mult_round(19 downto 10);
+               term2              := ONE_FP_C - AlphaG;
+               v.newAlpha         := mult_s(9 downto 0) + term2(9 downto 0);
+            else
+               mult               := curAlpha * AlphaG;
+               -- mult_s     := mult srl 10;
+               -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
+               mult_round         := mult + 512;
+               mult_s             := (others => '0');
+               mult_s(9 downto 0) := mult_round(19 downto 10);
+               v.newAlpha         := mult_s(9 downto 0);
+            end if;
+            v.valid := '1';
+            v.timer := (others => '0');
+            v.state := COUNTING_S;
       -----------------------------------------------------------------------
-      when COUNTING_S =>
-        v.timer := r.timer + 1;
-        if r.timer >= alphaUpdInterval then
-          v.state := UPDATE_S;
-        end if;
-      -----------------------------------------------------------------------
-      when UPDATE_S =>
-        if cnpDetected = '1' then
-          mult               := curAlpha * AlphaG;
-          -- mult_s     := mult srl 10;
-          -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
-          mult_round         := mult + 512;
-          mult_s             := (others => '0');
-          mult_s(9 downto 0) := mult_round(19 downto 10);
-          term2              := ONE_FP_C - AlphaG;
-          v.newAlpha         := mult_s(9 downto 0) + term2(9 downto 0);
-        else
-          mult               := curAlpha * AlphaG;
-          -- mult_s     := mult srl 10;
-          -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
-          mult_round         := mult + 512;
-          mult_s             := (others => '0');
-          mult_s(9 downto 0) := mult_round(19 downto 10);
-          v.newAlpha         := mult_s(9 downto 0);
-        end if;
-        v.valid := '1';
-        v.timer := (others => '0');
-        v.state := COUNTING_S;
-    -----------------------------------------------------------------------
-    end case;
+      end case;
 
-    -- Outputs
-    newAlpha <= r.newAlpha;
-    valid    <= r.valid;
+      -- Outputs
+      newAlpha <= r.newAlpha;
+      valid    <= r.valid;
 
-    -- Reset
-    if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-      v := REG_INIT_C;
-    end if;
+      -- Reset
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
 
-    -- Register update
-    rin <= v;
+      -- Register update
+      rin <= v;
 
-  end process comb;
+   end process comb;
 
-  seq : process (clk, rst) is
-  begin
-    if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-      r <= REG_INIT_C after TPD_G;
-    elsif rising_edge(clk) then
-      r <= rin after TPD_G;
-    end if;
-  end process seq;
+   seq : process (clk, rst) is
+   begin
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
 end architecture rtl;

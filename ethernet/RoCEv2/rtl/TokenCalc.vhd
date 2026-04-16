@@ -27,43 +27,43 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity tokenCalc is
-  generic (
-    TPD_G       : time                  := 1 ns;
-    CLK_FREQ_G  : real                  := 156.25e+6;
-    FRAC_BITS_G : natural               := 16
-    );
-  port (
-    clk          : in  sl;
-    rst          : in  sl;
-    Rc           : in  slv(31 downto 0);
-    byte_per_clk : out slv(15 + FRAC_BITS_G downto 0)
-    );
+   generic (
+      TPD_G       : time    := 1 ns;
+      CLK_FREQ_G  : real    := 156.25e+6;
+      FRAC_BITS_G : natural := 16
+      );
+   port (
+      clk          : in  sl;
+      rst          : in  sl;
+      Rc           : in  slv(31 downto 0);
+      byte_per_clk : out slv(15 + FRAC_BITS_G downto 0)
+      );
 end entity tokenCalc;
 
 architecture rtl of tokenCalc is
 
-  function calc_k(n_bits : positive; f_hz : natural; frac_bits : natural) return slv is
-    variable k_int : integer;
-  begin
-    k_int := integer(exp(real(n_bits + frac_bits) * log(2.0)) / real(f_hz));
-    return conv_std_logic_vector(k_int, 32);
-  end function;
+   function calc_k(n_bits : positive; f_hz : natural; frac_bits : natural) return slv is
+      variable k_int : integer;
+   begin
+      k_int := integer(exp(real(n_bits + frac_bits) * log(2.0)) / real(f_hz));
+      return conv_std_logic_vector(k_int, 32);
+   end function;
 
-  constant N_C                : natural          := 48 - FRAC_BITS_G;
-  constant CLK_PERIOD_C       : real             := 1.0/CLK_FREQ_G;  -- seconds
-  constant CLK_FREQ_INTEGER_C : natural          := getTimeRatio(1.0, CLK_PERIOD_C);
-  constant K_C                : slv(31 downto 0) := calc_k(N_C, CLK_FREQ_INTEGER_C, FRAC_BITS_G);
+   constant N_C                : natural          := 48 - FRAC_BITS_G;
+   constant CLK_PERIOD_C       : real             := 1.0/CLK_FREQ_G;  -- seconds
+   constant CLK_FREQ_INTEGER_C : natural          := getTimeRatio(1.0, CLK_PERIOD_C);
+   constant K_C                : slv(31 downto 0) := calc_k(N_C, CLK_FREQ_INTEGER_C, FRAC_BITS_G);
 
-  signal prob : slv(63 downto 0);
+   signal prob : slv(63 downto 0);
 
 begin  -- architecture rtl
 
-  seq : process (clk) is
-  begin  -- process seq
-    if rising_edge(clk) then            -- rising clock edge
-      prob         <= Rc * K_C;
-      byte_per_clk <= prob(63 downto N_C);
-    end if;
-  end process seq;
+   seq : process (clk) is
+   begin  -- process seq
+      if rising_edge(clk) then          -- rising clock edge
+         prob         <= Rc * K_C;
+         byte_per_clk <= prob(63 downto N_C);
+      end if;
+   end process seq;
 
 end architecture rtl;
