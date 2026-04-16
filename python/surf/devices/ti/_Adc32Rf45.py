@@ -84,38 +84,39 @@ class Adc32Rf45(pr.Device):
         ]
         for index in indexList:
             self.add(pr.RemoteVariable(
-                name         = f'GeneralAddr_index_0x{index:03X}',
-                offset       = (generalAddr + (4*0x0000) + (4*index)),
-                bitSize      = 32,
-                mode         = "WO",
-                hidden       = True,
-                verify       = False,
-                overlapEn    = True,
+                name        = f'GeneralAddr_index_0x{index:03X}',
+                description = "General address page initialization register",
+                offset      = (generalAddr + (4*0x0000) + (4*index)),
+                bitSize     = 32,
+                mode        = "WO",
+                hidden      = True,
+                verify      = False,
+                overlapEn   = True,
             ))
 
         self.add(pr.RemoteCommand(
-            name         = "RESET",
-            description  = "Send 0x81 value to reset the device",
-            offset       =  (generalAddr + (4*0x000)),  # 0x00000000
-            bitSize      =  8,
-            bitOffset    =  0,
-            base         = pr.UInt,
+            name        = "RESET",
+            description = "Send 0x81 value to reset the device",
+            offset      =  (generalAddr + (4*0x000)),  # 0x00000000
+            bitSize     =  8,
+            bitOffset   =  0,
+            base        = pr.UInt,
             # mode         = "WO",
-            hidden       =  True,
-            function     = pr.BaseCommand.createTouch(0x81),
-            overlapEn    =  True,
+            hidden      =  True,
+            function    = pr.BaseCommand.createTouch(0x81),
+            overlapEn   =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "HW_RST",
-            description  = "Hardware Reset",
-            offset       =  (0xF << 14),  # 0x0003C000
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
-            hidden       =  True,
-            overlapEn    =  True,
+            name        = "HW_RST",
+            description = "Hardware Reset",
+            offset      =  (0xF << 14),  # 0x0003C000
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        = pr.UInt,
+            mode        = "RW",
+            hidden      =  True,
+            overlapEn   =  True,
         ))
 
         ##################
@@ -128,13 +129,14 @@ class Adc32Rf45(pr.Device):
         ]
         for index in indexList:
             self.add(pr.RemoteVariable(
-                name         = f'RawInterface0_index_0x{index:03X}',
-                offset       = (rawInterface + (4*0x0000) + (4*index)),
-                bitSize      = 32,
-                mode         = "WO",
-                hidden       = True,
-                verify       = False,
-                overlapEn    = True,
+                name        = f'RawInterface0_index_0x{index:03X}',
+                description = "Raw interface page 0 initialization register",
+                offset      = (rawInterface + (4*0x0000) + (4*index)),
+                bitSize     = 32,
+                mode        = "WO",
+                hidden      = True,
+                verify      = False,
+                overlapEn   = True,
             ))
 
 
@@ -146,13 +148,14 @@ class Adc32Rf45(pr.Device):
         ]
         for index in indexList:
             self.add(pr.RemoteVariable(
-                name         = f'RawInterface4_index_0x{index:03X}',
-                offset       = (rawInterface + (4*0x4000) + (4*index)),
-                bitSize      = 32,
-                mode         = "WO",
-                hidden       = True,
-                verify       = False,
-                overlapEn    = True,
+                name        = f'RawInterface4_index_0x{index:03X}',
+                description = "Raw interface page 4 initialization register",
+                offset      = (rawInterface + (4*0x4000) + (4*index)),
+                bitSize     = 32,
+                mode        = "WO",
+                hidden      = True,
+                verify      = False,
+                overlapEn   = True,
             ))
 
         indexList = [
@@ -264,210 +267,211 @@ class Adc32Rf45(pr.Device):
         ]
         for index in indexList:
             self.add(pr.RemoteVariable(
-                name         = f'RawInterface6_index_0x{index:03X}',
-                offset       = (rawInterface + (4*0x6000) + (4*index)),
-                bitSize      = 32,
-                mode         = "WO",
-                hidden       = True,
-                verify       = False,
-                overlapEn    = True,
+                name        = f'RawInterface6_index_0x{index:03X}',
+                description = "Raw interface page 6 initialization register",
+                offset      = (rawInterface + (4*0x6000) + (4*index)),
+                bitSize     = 32,
+                mode        = "WO",
+                hidden      = True,
+                verify      = False,
+                overlapEn   = True,
             ))
 
         #############
         # Master Page
         #############
         self.add(pr.RemoteVariable(
-            name         = "PDN_SYSREF",
-            description  = "0 = Normal operation, 1 = SYSREF input capture buffer is powered down and further SYSREF input pulses are ignored",
-            offset       =  (masterPage + (4*0x020)),
-            bitSize      =  1,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "PDN_SYSREF",
+            description = "0 = Normal operation, 1 = SYSREF input capture buffer is powered down and further SYSREF input pulses are ignored",
+            offset      =  (masterPage + (4*0x020)),
+            bitSize     =  1,
+            bitOffset   =  4,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PDN_CHB",
-            description  = "0 = Normal operation, 1 = Channel B is powered down",
-            offset       =  (masterPage + (4*0x020)),
-            bitSize      =  1,
-            bitOffset    =  1,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "PDN_CHB",
+            description = "0 = Normal operation, 1 = Channel B is powered down",
+            offset      =  (masterPage + (4*0x020)),
+            bitSize     =  1,
+            bitOffset   =  1,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "GLOBAL_PDN",
-            description  = "0 = Normal operation, 1 = Global power-down enabled",
-            offset       =  (masterPage + (4*0x020)),
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "GLOBAL_PDN",
+            description = "0 = Normal operation, 1 = Global power-down enabled",
+            offset      =  (masterPage + (4*0x020)),
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "INCR_CM_IMPEDANCE",
-            description  = "0 = VCM buffer directly drives the common point of biasing resistors, 1 = VCM buffer drives the common point of biasing resistors with > 5 kOhm",
-            offset       =  (masterPage + (4*0x032)),
-            bitSize      =  1,
-            bitOffset    =  5,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "INCR_CM_IMPEDANCE",
+            description = "0 = VCM buffer directly drives the common point of biasing resistors, 1 = VCM buffer drives the common point of biasing resistors with > 5 kOhm",
+            offset      =  (masterPage + (4*0x032)),
+            bitSize     =  1,
+            bitOffset   =  5,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "AlwaysWrite0x1_A",
-            description  = "Always set this bit to 1",
-            offset       =  (masterPage + (4*0x039)),
-            bitSize      =  1,
-            bitOffset    =  6,
-            base         = pr.UInt,
-            mode         = "WO",
-            value        = 0x1,
-            hidden       = True,
-            verify       = False,
+            name        = "AlwaysWrite0x1_A",
+            description = "Always set this bit to 1",
+            offset      =  (masterPage + (4*0x039)),
+            bitSize     =  1,
+            bitOffset   =  6,
+            base        = pr.UInt,
+            mode        = "WO",
+            value       = 0x1,
+            hidden      = True,
+            verify      = False,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "AlwaysWrite0x1_B",
-            description  = "Always set this bit to 1",
-            offset       =  (masterPage + (4*0x039)),
-            bitSize      =  1,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "WO",
-            value        = 0x1,
-            hidden       = True,
-            verify       = False,
+            name        = "AlwaysWrite0x1_B",
+            description = "Always set this bit to 1",
+            offset      =  (masterPage + (4*0x039)),
+            bitSize     =  1,
+            bitOffset   =  4,
+            base        = pr.UInt,
+            mode        = "WO",
+            value       = 0x1,
+            hidden      = True,
+            verify      = False,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PDN_CHB_EN",
-            description  = "This bit enables the power-down control of channel B through the SPI in register 20h: 0 = PDN control disabled, 1 = PDN control enabled",
-            offset       =  (masterPage + (4*0x039)),
-            bitSize      =  1,
-            bitOffset    =  1,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "PDN_CHB_EN",
+            description = "This bit enables the power-down control of channel B through the SPI in register 20h: 0 = PDN control disabled, 1 = PDN control enabled",
+            offset      =  (masterPage + (4*0x039)),
+            bitSize     =  1,
+            bitOffset   =  1,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYNC_TERM_DIS",
-            description  = "0 = On-chip, 100-Ohm termination enabled, 1 = On-chip, 100-Ohm termination disabled",
-            offset       =  (masterPage + (4*0x039)),
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SYNC_TERM_DIS",
+            description = "0 = On-chip, 100-Ohm termination enabled, 1 = On-chip, 100-Ohm termination disabled",
+            offset      =  (masterPage + (4*0x039)),
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYSREF_DEL_EN",
-            description  = "0 = SYSREF delay disabled, 1 = SYSREF delay enabled through register settings [3Ch (bits 1-0), 5Ah (bits 7-5)]",
-            offset       =  (masterPage + (4*0x03C)),
-            bitSize      =  1,
-            bitOffset    =  6,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SYSREF_DEL_EN",
+            description = "0 = SYSREF delay disabled, 1 = SYSREF delay enabled through register settings [3Ch (bits 1-0), 5Ah (bits 7-5)]",
+            offset      =  (masterPage + (4*0x03C)),
+            bitSize     =  1,
+            bitOffset   =  6,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYSREF_DEL_HI",
-            description  = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
-            offset       =  (masterPage + (4*0x03C)),
-            bitSize      =  2,
-            bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SYSREF_DEL_HI",
+            description = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
+            offset      =  (masterPage + (4*0x03C)),
+            bitSize     =  2,
+            bitOffset   =  0,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "JESD_OUTPUT_SWING",
-            description  = "These bits select the output amplitude (VOD) of the JESD transmitter for all lanes.",
-            offset       =  (masterPage + (4*0x3D)),
-            bitSize      =  3,
-            bitOffset    =  0,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "JESD_OUTPUT_SWING",
+            description = "These bits select the output amplitude (VOD) of the JESD transmitter for all lanes.",
+            offset      =  (masterPage + (4*0x3D)),
+            bitSize     =  3,
+            bitOffset   =  0,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYSREF_DEL_LO",
-            description  = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
-            offset       =  (masterPage + (4*0x05A)),
-            bitSize      =  3,
-            bitOffset    =  5,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SYSREF_DEL_LO",
+            description = "When the SYSREF delay feature is enabled (3Ch, bit 6) the delay can be adjusted in 25-ps steps; the first step is 175 ps. The PVT variation of each 25-ps step is +/-10 ps. The 175-ps step is +/-50 ps",
+            offset      =  (masterPage + (4*0x05A)),
+            bitSize     =  3,
+            bitOffset   =  5,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SEL_SYSREF_REG",
-            description  = "0 = SYSREF is logic low, 1 = SYSREF is logic high",
-            offset       =  (masterPage + (4*0x057)),
-            bitSize      =  1,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SEL_SYSREF_REG",
+            description = "0 = SYSREF is logic low, 1 = SYSREF is logic high",
+            offset      =  (masterPage + (4*0x057)),
+            bitSize     =  1,
+            bitOffset   =  4,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ASSERT_SYSREF_REG",
-            description  = "0 = SYSREF is asserted by device pins, 1 = SYSREF can be asserted by the ASSERT SYSREF REG register bit",
-            offset       =  (masterPage + (4*0x057)),
-            bitSize      =  1,
-            bitOffset    =  3,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "ASSERT_SYSREF_REG",
+            description = "0 = SYSREF is asserted by device pins, 1 = SYSREF can be asserted by the ASSERT SYSREF REG register bit",
+            offset      =  (masterPage + (4*0x057)),
+            bitSize     =  1,
+            bitOffset   =  3,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYNCB_POL",
-            description  = "0 = Polarity is not inverted, 1 = Polarity is inverted",
-            offset       =  (masterPage + (4*0x058)),
-            bitSize      =  1,
-            bitOffset    =  5,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SYNCB_POL",
+            description = "0 = Polarity is not inverted, 1 = Polarity is inverted",
+            offset      =  (masterPage + (4*0x058)),
+            bitSize     =  1,
+            bitOffset   =  5,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         # ##########
         # # ADC PAGE
         # ##########
         self.add(pr.RemoteVariable(
-            name         = "SLOW_SP_EN1",
-            description  = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
-            offset       =  (analogPage + (4*0x03F)),
-            bitSize      =  1,
-            bitOffset    =  2,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SLOW_SP_EN1",
+            description = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
+            offset      =  (analogPage + (4*0x03F)),
+            bitSize     =  1,
+            bitOffset   =  2,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SLOW_SP_EN2",
-            description  = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
-            offset       =  (analogPage + (4*0x042)),
-            bitSize      =  1,
-            bitOffset    =  4,
-            base         = pr.UInt,
-            mode         = "RW",
-            verify       = verify,
+            name        = "SLOW_SP_EN2",
+            description = "0 = ADC sampling rates are faster than 2.5 GSPS, 1 = ADC sampling rates are slower than 2.5 GSPS",
+            offset      =  (analogPage + (4*0x042)),
+            bitSize     =  1,
+            bitOffset   =  4,
+            base        = pr.UInt,
+            mode        = "RW",
+            verify      = verify,
         ))
 
 

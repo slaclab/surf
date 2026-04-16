@@ -31,12 +31,12 @@ class ClinkChannel(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "LinkMode",
-            offset       =  0x00,
-            bitSize      =  3,
-            bitOffset    =  0,
-            mode         = "RW",
-            enum         = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
+            name        = "LinkMode",
+            offset      =  0x00,
+            bitSize     =  3,
+            bitOffset   =  0,
+            mode        = "RW",
+            enum        = { 0 : 'Disable' , 1 : 'Base', 2 : 'Medium', 3 : 'Full', 4 : 'Deca'},
             description = """
                 Link mode control for camera link lanes:
                 Disable: Nothing connected
@@ -48,23 +48,23 @@ class ClinkChannel(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "DataMode",
-            description  = "Data mode",
-            offset       =  0x04,
-            bitSize      =  4,
-            bitOffset    =  0,
-            mode         = "RW",
-            enum         = { 0 : 'None',  1 : '8Bit',  2 : '10Bit', 3 : '12Bit', 4 : '14Bit',
-                             5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
+            name        = "DataMode",
+            description = "Data mode",
+            offset      =  0x04,
+            bitSize     =  4,
+            bitOffset   =  0,
+            mode        = "RW",
+            enum        = { 0 : 'None',  1 : '8Bit',  2 : '10Bit', 3 : '12Bit', 4 : '14Bit',
+                           5 : '16Bit', 6 : '24Bit', 7 : '30Bit', 8 : '36Bit'},
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FrameMode",
-            offset       =  0x08,
-            bitSize      =  2,
-            bitOffset    =  0,
-            mode         = "RW",
-            enum         = { 0 : 'None', 1 : 'Line', 2 : 'Frame'},
+            name        = "FrameMode",
+            offset      =  0x08,
+            bitSize     =  2,
+            bitOffset   =  0,
+            mode        = "RW",
+            enum        = { 0 : 'None', 1 : 'Line', 2 : 'Frame'},
             description = """
                 None: Disables output
                 Line: 1D camera
@@ -73,84 +73,84 @@ class ClinkChannel(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "TapCount",
-            description  = "# of video output taps on the Camera Link Interface (# of individual data value channels)",
-            offset       =  0x0C,
-            bitSize      =  4,
-            bitOffset    =  0,
-            minimum      = 0,
-            maximum      = 10,
-            mode         = "RW",
+            name        = "TapCount",
+            description = "# of video output taps on the Camera Link Interface (# of individual data value channels)",
+            offset      =  0x0C,
+            bitSize     =  4,
+            bitOffset   =  0,
+            minimum     = 0,
+            maximum     = 10,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "DataEn",
-            description  = "Data enable.  When 0x0 causes reset on ClinkData\'s FSM module",
-            offset       =  0x10,
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.Bool,
-            mode         = "RW",
+            name        = "DataEn",
+            description = "Data enable.  When 0x0 causes reset on ClinkData\'s FSM module",
+            offset      =  0x10,
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        = pr.Bool,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Blowoff",
-            description  = "Blows off the outbound AXIS stream (for debugging)",
-            offset       =  0x10,
-            bitSize      =  1,
-            bitOffset    =  1,
-            base         = pr.Bool,
-            mode         = "RW",
+            name        = "Blowoff",
+            description = "Blows off the outbound AXIS stream (for debugging)",
+            offset      =  0x10,
+            bitSize     =  1,
+            bitOffset   =  1,
+            base        = pr.Bool,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "CntRst",
-            description  = "",
-            offset       = 0x10,
-            bitSize      = 1,
-            bitOffset    = 2,
-            function     = pr.BaseCommand.toggle,
+            name        = "CntRst",
+            description = "Reset all channel counters",
+            offset      = 0x10,
+            bitSize     = 1,
+            bitOffset   = 2,
+            function    = pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SerThrottle",
-            description  = "Throttles the UART Serial TX byte rate. Used when the camera cannot accept new bytes until the previous command processed",
-            offset       =  0x10,
-            bitSize      =  16,
-            bitOffset    =  16,
-            disp         = '{}',
-            mode         = "RW",
-            units        = "microsec",
+            name        = "SerThrottle",
+            description = "Throttles the UART Serial TX byte rate. Used when the camera cannot accept new bytes until the previous command processed",
+            offset      =  0x10,
+            bitSize     =  16,
+            bitOffset   =  16,
+            disp        = '{}',
+            mode        = "RW",
+            units       = "microsec",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "BaudRate",
-            description  = "Baud rate",
-            offset       =  0x14,
-            bitSize      =  24,
-            bitOffset    =  0,
-            disp         = '{}',
-            mode         = "RW",
-            units        = "bps",
-            value        = 9600,
+            name        = "BaudRate",
+            description = "Baud rate",
+            offset      =  0x14,
+            bitSize     =  24,
+            bitOffset   =  0,
+            disp        = '{}',
+            mode        = "RW",
+            units       = "bps",
+            value       = 9600,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SwControlValue",
-            description  = "Software camera control bit values",
-            offset       =  0x18,
-            bitSize      =  4,
-            bitOffset    =  0,
-            mode         = "RW",
+            name        = "SwControlValue",
+            description = "Software camera control bit values",
+            offset      =  0x18,
+            bitSize     =  4,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SwControlEn",
-            description  = "Software camera control bit enable mask for lane A",
-            offset       =  0x1C,
-            bitSize      =  4,
-            bitOffset    =  0,
-            mode         = "RW",
+            name        = "SwControlEn",
+            description = "Software camera control bit enable mask for lane A",
+            offset      =  0x1C,
+            bitSize     =  4,
+            bitOffset   =  0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
@@ -199,35 +199,35 @@ class ClinkChannel(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "HSkip",
-            description  = "# of cycle to skip from the start of CLINK LineValid (LV)",
-            offset       =  0x30,
-            bitSize      =  16,
-            mode         = "RW",
+            name        = "HSkip",
+            description = "# of cycle to skip from the start of CLINK LineValid (LV)",
+            offset      =  0x30,
+            bitSize     =  16,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "HActive",
-            description  = "# of active cycle after HSkip while CLINK LineValid (LV) is active",
-            offset       =  0x34,
-            bitSize      =  16,
-            mode         = "RW",
+            name        = "HActive",
+            description = "# of active cycle after HSkip while CLINK LineValid (LV) is active",
+            offset      =  0x34,
+            bitSize     =  16,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "VSkip",
-            description  = "# of lines to skip from the start of CLINK FrameValid (FV)",
-            offset       =  0x38,
-            bitSize      =  16,
-            mode         = "RW",
+            name        = "VSkip",
+            description = "# of lines to skip from the start of CLINK FrameValid (FV)",
+            offset      =  0x38,
+            bitSize     =  16,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "VActive",
-            description  = "# of active lines after VSkip while CLINK FrameValid (FV) is active",
-            offset       =  0x3C,
-            bitSize      =  16,
-            mode         = "RW",
+            name        = "VActive",
+            description = "# of active lines after VSkip while CLINK FrameValid (FV) is active",
+            offset      =  0x3C,
+            bitSize     =  16,
+            mode        = "RW",
         ))
 
         ##############################################################################

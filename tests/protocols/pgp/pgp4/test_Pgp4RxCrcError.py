@@ -22,7 +22,13 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import parameter_case
-from tests.protocols.pgp.pgp4.pgp4_test_utils import Pgp4FlatTB, initialize_flat_tx_inputs, send_single_word_frame, wait_for_signal
+from tests.protocols.pgp.pgp4.pgp4_test_utils import (
+    Pgp4FlatTB,
+    initialize_flat_tx_inputs,
+    initialize_signals,
+    send_single_word_frame,
+    wait_for_signal,
+)
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
 
@@ -30,8 +36,7 @@ from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 async def pgp4_rx_crc_error_test(dut):
     tb = Pgp4FlatTB(dut)
     initialize_flat_tx_inputs(dut, include_opcode=True)
-    dut.corruptArm.setimmediatevalue(0)
-    dut.corruptMask.setimmediatevalue(0)
+    initialize_signals(dut, corruptArm=0, corruptMask=0)
     await tb.reset()
     await wait_for_signal(tb, "linkReady", cycles=2600)
 

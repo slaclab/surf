@@ -15,9 +15,10 @@ class AxiStreamBatchingFifo(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'BatchSize',
-            offset       = 0x000,
-            bitSize      = 32,
-            mode         = 'RW',
-            disp         = '{:d}',
+            name        = 'BatchSize',
+            description = 'Number of frames to batch together before forwarding',
+            offset      = 0x000,
+            bitSize     = 32,
+            mode        = 'RW',
+            disp        = '{:d}',
         ))

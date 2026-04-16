@@ -29,111 +29,111 @@ class EventFrameSequencerDemux(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = 'SeqCnt',
-            description  = 'Increments every time there is a frame sent',
-            offset       = 0xFBC,
-            bitSize      = 8,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'SeqCnt',
+            description  =  'Increments every time there is a frame sent',
+            offset       =  0xFBC,
+            bitSize      =  8,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DropCnt',
-            description  = 'Increments every time a frame is dropped',
-            offset       = 0xFC0,
-            bitSize      = 32,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'DropCnt',
+            description  =  'Increments every time a frame is dropped',
+            offset       =  0xFC0,
+            bitSize      =  32,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'NUM_MASTERS_G',
-            description  = 'NUM_MASTERS_G generic value',
-            offset       = 0xFF4,
-            bitSize      = 8,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        =  'NUM_MASTERS_G',
+            description =  'NUM_MASTERS_G generic value',
+            offset      =  0xFF4,
+            bitSize     =  8,
+            mode        =  'RO',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "State",
-            description  = "current state of FSM (for debugging)",
-            offset       =  0xFF4,
-            bitSize      =  1,
-            bitOffset    =  8,
-            mode         = "RO",
-            pollInterval = 1,
-            enum         = {
+            name         =  "State",
+            description  =  "current state of FSM (for debugging)",
+            offset       =   0xFF4,
+            bitSize      =   1,
+            bitOffset    =   8,
+            mode         =  "RO",
+            pollInterval =  1,
+            enum         =  {
                 0x0: 'IDLE_S',
                 0x1: 'MOVE_S',
             },
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "BlowoffExt",
-            description  = "Status of external blowoff input",
-            offset       =  0xFF4,
-            bitSize      =  1,
-            bitOffset    =  16,
-            base         = pr.Bool,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "BlowoffExt",
+            description  =  "Status of external blowoff input",
+            offset       =   0xFF4,
+            bitSize      =   1,
+            bitOffset    =   16,
+            base         =  pr.Bool,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "HdrError",
-            description  = "Header error code when last frame dropped",
-            offset       =  0xFF4,
-            bitSize      =  8,
-            bitOffset    =  24,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "HdrError",
+            description  =  "Header error code when last frame dropped",
+            offset       =   0xFF4,
+            bitSize      =   8,
+            bitOffset    =   24,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Blowoff",
-            description  = "Blows off the inbound AXIS stream (for debugging)",
-            offset       =  0xFF8,
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.Bool,
-            mode         = "RW",
+            name        =  "Blowoff",
+            description =  "Blows off the inbound AXIS stream (for debugging)",
+            offset      =   0xFF8,
+            bitSize     =   1,
+            bitOffset   =   0,
+            base        =  pr.Bool,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "CntRst",
-            description  = "",
-            offset       = 0xFFC,
-            bitSize      = 1,
-            bitOffset    = 0,
-            function     = pr.BaseCommand.toggle,
+            name        =  "CntRst",
+            description =  "Reset all frame counters",
+            offset      =  0xFFC,
+            bitSize     =  1,
+            bitOffset   =  0,
+            function    =  pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "TimerRst",
-            description  = "",
-            offset       = 0xFFC,
-            bitSize      = 1,
-            bitOffset    = 1,
-            function     = pr.BaseCommand.toggle,
+            name        =  "TimerRst",
+            description =  "Reset the timeout timer",
+            offset      =  0xFFC,
+            bitSize     =  1,
+            bitOffset   =  1,
+            function    =  pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "HardRst",
-            description  = "",
-            offset       = 0xFFC,
-            bitSize      = 1,
-            bitOffset    = 2,
-            function     = pr.BaseCommand.toggle,
+            name        =  "HardRst",
+            description =  "Hard reset of the demultiplexer (clears all state)",
+            offset      =  0xFFC,
+            bitSize     =  1,
+            bitOffset   =  2,
+            function    =  pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "SoftRst",
-            description  = "",
-            offset       = 0xFFC,
-            bitSize      = 1,
-            bitOffset    = 3,
-            function     = pr.BaseCommand.toggle,
+            name        =  "SoftRst",
+            description =  "Soft reset of the demultiplexer (resets FSM)",
+            offset      =  0xFFC,
+            bitSize     =  1,
+            bitOffset   =  3,
+            function    =  pr.BaseCommand.toggle,
         ))
 
     def hardReset(self):

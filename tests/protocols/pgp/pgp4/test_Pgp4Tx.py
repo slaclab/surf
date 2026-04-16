@@ -26,6 +26,7 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     Pgp4FlatTB,
     initialize_flat_tx_inputs,
     send_single_word_frame,
+    wait_for_nonzero_output,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
@@ -41,14 +42,7 @@ async def pgp4_tx_direct_wrapper_test(dut):
     # This direct wrapper exposes the encoded 66-bit output.  The first useful
     # sanity check is that a real, non-zero transmit word appears after the
     # frame handshake has completed.
-    seen_valid = False
-    for _ in range(1400):
-        await tb.cycle(1)
-        if int(dut.phyTxValid.value) == 1:
-            seen_valid = True
-            assert int(dut.phyTxData.value) != 0
-            break
-    assert seen_valid
+    await wait_for_nonzero_output(tb, valid_name="phyTxValid", data_name="phyTxData", cycles=1400)
 
 
 PARAMETER_SWEEP = [parameter_case("single_vc_direct_tx")]

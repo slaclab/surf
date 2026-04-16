@@ -26,44 +26,42 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     PGP4_D_HEADER,
     PGP4_K_HEADER,
     Pgp4FlatTB,
+    collect_valid_beats,
     pgp4_eof_word,
     pgp4_idle_word,
     pgp4_sof_word,
     pgp4_user_word,
+    initialize_signals,
     signal_int,
     wait_for_signal,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
 
+async def collect_packet_words(tb: Pgp4FlatTB, *, count: int, cycles: int = 128) -> list[tuple[int, int, int]]:
+    return await collect_valid_beats(
+        tb,
+        valid_name="pktValid",
+        field_names=("pktData", "pktLast", "pktUser"),
+        count=count,
+        cycles=cycles,
+    )
+
+
 async def send_protocol_word(tb: Pgp4FlatTB, *, header: int, data: int):
+    """Drive one raw protocol word into the direct `Pgp4RxProtocol` wrapper."""
+
     tb.dut.protRxHeader.value = header
     tb.dut.protRxData.value = data
     tb.dut.protRxValid.value = 1
     await tb.cycle()
 
 
-async def collect_packet_words(tb: Pgp4FlatTB, *, count: int, cycles: int = 128) -> list[tuple[int, int, int]]:
-    words = []
-    for _ in range(cycles):
-        await tb.cycle()
-        if signal_int(tb.dut, "pktValid") != 1:
-            continue
-        words.append(
-            (
-                signal_int(tb.dut, "pktData"),
-                signal_int(tb.dut, "pktLast"),
-                signal_int(tb.dut, "pktUser"),
-            )
-        )
-        if len(words) == count:
-            return words
-    raise AssertionError("Timed out waiting for packetized RX words")
+async def train_rx_protocol_link(tb: Pgp4FlatTB, *, cycles: int = 1002):
+    """Drive enough good IDLE words for the wrapper to declare link-up."""
 
-
-async def train_link(tb: Pgp4FlatTB):
     train_word = pgp4_idle_word(rem_link_ready=1)
-    for _ in range(1002):
+    for _ in range(cycles):
         await send_protocol_word(tb, header=PGP4_K_HEADER, data=train_word)
     tb.dut.protRxValid.value = 0
     await wait_for_signal(tb, "linkReady", cycles=8)
@@ -72,16 +70,19 @@ async def train_link(tb: Pgp4FlatTB):
 @cocotb.test()
 async def pgp4_rx_protocol_test(dut):
     tb = Pgp4FlatTB(dut)
-    dut.protRxValid.setimmediatevalue(0)
-    dut.protRxHeader.setimmediatevalue(0)
-    dut.protRxData.setimmediatevalue(0)
-    dut.phyRxActive.setimmediatevalue(1)
-    dut.linkErrorIn.setimmediatevalue(0)
-    dut.resetRx.setimmediatevalue(0)
-    dut.pktReady.setimmediatevalue(1)
+    initialize_signals(
+        dut,
+        protRxValid=0,
+        protRxHeader=0,
+        protRxData=0,
+        phyRxActive=1,
+        linkErrorIn=0,
+        resetRx=0,
+        pktReady=1,
+    )
     await tb.reset()
 
-    await train_link(tb)
+    await train_rx_protocol_link(tb)
 
     meta_word = pgp4_idle_word(rem_link_ready=1, pause_mask=0x1, overflow_mask=0x1)
     await send_protocol_word(tb, header=PGP4_K_HEADER, data=meta_word)

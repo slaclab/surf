@@ -25,10 +25,10 @@ class Si5394Lite(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name         = "CsvFilePath",
-            description  = "Used if command's argument is empty",
-            mode         = "RW",
-            value        = "",
+            name        = "CsvFilePath",
+            description = "Used if command's argument is empty",
+            mode        = "RW",
+            value       = "",
         ))
 
         ##############################

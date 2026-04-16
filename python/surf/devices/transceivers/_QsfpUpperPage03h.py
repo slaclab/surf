@@ -28,41 +28,41 @@ class QsfpUpperPage03h(pr.Device):
         ###############################################################
 
         self.add(pr.RemoteVariable(
-            name         = 'MaxTxInputEqualization',
-            description  = 'Max Tx input equalization supported (controls are in bytes 234-235 and codes are in Table 6-32)',
-            offset       = (224 << 2),
-            bitSize      = 4,
-            bitOffset    = 4,
-            mode         = 'RO',
+            name        = 'MaxTxInputEqualization',
+            description = 'Max Tx input equalization supported (controls are in bytes 234-235 and codes are in Table 6-32)',
+            offset      = (224 << 2),
+            bitSize     = 4,
+            bitOffset   = 4,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MaxRxOutputEmphasis',
-            description  = 'Max Rx output emphasis supported (controls are in bytes 236-237 and codes are in Table 6-33)',
-            offset       = (224 << 2),
-            bitSize      = 4,
-            bitOffset    = 0,
-            mode         = 'RO',
+            name        = 'MaxRxOutputEmphasis',
+            description = 'Max Rx output emphasis supported (controls are in bytes 236-237 and codes are in Table 6-33)',
+            offset      = (224 << 2),
+            bitSize     = 4,
+            bitOffset   = 0,
+            mode        = 'RO',
         ))
 
         # 225 7-6 Reserved
 
         self.add(pr.RemoteVariable(
-            name         = 'RxOutputEmphasisType',
-            description  = 'Codes are in Table 6-29',
-            offset       = (225 << 2),
-            bitSize      = 2,
-            bitOffset    = 4,
-            mode         = 'RO',
+            name        = 'RxOutputEmphasisType',
+            description = 'Codes are in Table 6-29',
+            offset      = (225 << 2),
+            bitSize     = 2,
+            bitOffset   = 4,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxOutputAmplitudeSupport',
-            description  = 'Codes are in Table 6-29',
-            offset       = (225 << 2),
-            bitSize      = 4,
-            bitOffset    = 0,
-            mode         = 'RO',
+            name        = 'RxOutputAmplitudeSupport',
+            description = 'Codes are in Table 6-29',
+            offset      = (225 << 2),
+            bitSize     = 4,
+            bitOffset   = 0,
+            mode        = 'RO',
         ))
 
         # 226 All Reserved

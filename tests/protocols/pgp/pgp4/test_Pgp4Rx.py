@@ -25,11 +25,47 @@ from tests.common.regression_utils import parameter_case
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     Pgp4FlatTB,
     initialize_flat_tx_inputs,
-    send_single_word_frame_and_capture,
+    send_opcode,
     signal_int,
     wait_for_signal,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
+
+
+async def send_single_word_frame_and_capture(tb: Pgp4FlatTB, *, payload: int, eofe: int = 0) -> tuple[int, int]:
+    """Send one beat and capture the first returned RX beat.
+
+    This helper is local because it is tailored to the integrated `Pgp4Rx`
+    wrapper's receive-side contract.  The test needs to watch `rxValid` while
+    the transmit handshake is still in flight so it does not miss a narrow
+    one-cycle output pulse.
+    """
+
+    tb.dut.txValid.value = 1
+    tb.dut.txData.value = payload
+    tb.dut.txSof.value = 1
+    tb.dut.txEof.value = 1
+    tb.dut.txEofe.value = eofe
+
+    accepted = False
+    captured = None
+    for _ in range(1024):
+        await tb.cycle()
+        if signal_int(tb.dut, "rxValid") == 1:
+            captured = (
+                signal_int(tb.dut, "rxData"),
+                signal_int(tb.dut, "rxLast"),
+            )
+        if not accepted and signal_int(tb.dut, "txReady") == 1:
+            accepted = True
+            tb.dut.txValid.value = 0
+            tb.dut.txSof.value = 0
+            tb.dut.txEof.value = 0
+            tb.dut.txEofe.value = 0
+        if accepted and captured is not None:
+            return captured
+
+    raise AssertionError("Timed out waiting for RX frame capture")
 
 
 @cocotb.test()
@@ -40,10 +76,7 @@ async def pgp4_rx_direct_test(dut):
 
     await wait_for_signal(tb, "linkReady", cycles=2600)
 
-    dut.opCodeData.value = 0x0000ABCDE123
-    dut.opCodeEn.value = 1
-    await tb.cycle()
-    dut.opCodeEn.value = 0
+    await send_opcode(tb, 0x0000ABCDE123)
     await wait_for_signal(tb, "rxOpCodeEn", cycles=512)
     assert signal_int(dut, "rxOpCodeData") == 0x0000ABCDE123
 

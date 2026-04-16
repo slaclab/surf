@@ -16,31 +16,35 @@ class RoceEngine(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name = 'SendMetaData',
-            offset = 0xF00,
-            bitSize = 1,
-            mode = 'RW',
+            name        = 'SendMetaData',
+            description = 'Trigger sending RoCE metadata to the remote peer',
+            offset      = 0xF00,
+            bitSize     = 1,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'MetaDataTx',
-            offset = 0xF04,
-            bitSize = 303,
-            mode = 'RW',
+            name        = 'MetaDataTx',
+            description = 'RoCE transmit metadata payload for queue pair setup',
+            offset      = 0xF04,
+            bitSize     = 303,
+            mode        = 'RW',
         ))
 
 
         self.add(pr.RemoteVariable(
-            name = 'RecvMetaData',
-            offset = 0xF00,
-            bitSize = 1,
-            bitOffset = 1,
-            mode = 'RO',
+            name        = 'RecvMetaData',
+            description = 'Indicates received RoCE metadata is available',
+            offset      = 0xF00,
+            bitSize     = 1,
+            bitOffset   = 1,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'MetaDataRx',
-            offset = 0xF2C,
-            bitSize = 276,
-            mode = 'RO',
+            name        = 'MetaDataRx',
+            description = 'RoCE received metadata payload from remote peer',
+            offset      = 0xF2C,
+            bitSize     = 276,
+            mode        = 'RO',
         ))

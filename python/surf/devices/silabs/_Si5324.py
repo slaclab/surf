@@ -18,7 +18,7 @@ class Si5324(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DataBlock",
-            description  = "",
+            description  = "Raw register data block for bulk configuration loading",
             offset       = 0,
             bitSize      = 32 * 0x100,
             bitOffset    = 0,
@@ -36,10 +36,10 @@ class Si5324(pr.Device):
         ))
 
         self.add(pr.LocalVariable(
-            name         = "TxtFilePath",
-            description  = "Used if command's argument is empty",
-            mode         = "RW",
-            value        = "",
+            name        = "TxtFilePath",
+            description = "Used if command's argument is empty",
+            mode        = "RW",
+            value       = "",
         ))
 
         ##############################
@@ -258,6 +258,7 @@ class Si5324(pr.Device):
         ###########################
         self.add(pr.RemoteVariable(
             name        = 'HLOG_2',
+            description = 'History multiplier for CLKIN2 digital hold memory depth',
             offset      = (8 << 2),
             bitSize     = 2,
             bitOffset   = 6,
@@ -267,6 +268,7 @@ class Si5324(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'HLOG_1',
+            description = 'History multiplier for CLKIN1 digital hold memory depth',
             offset      = (8 << 2),
             bitSize     = 2,
             bitOffset   = 4,
@@ -424,6 +426,7 @@ class Si5324(pr.Device):
         ###########################
         self.add(pr.RemoteVariable(
             name        = 'CK1_ACTV_PIN',
+            description = 'Selects which clock input is indicated as active on the CK_ACTV pin',
             offset      = (21 << 2),
             bitSize     = 1,
             bitOffset   = 1,
@@ -433,6 +436,7 @@ class Si5324(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'CKSEL_PIN',
+            description = 'Enables hardware clock input selection via the CSEL pin',
             offset      = (21 << 2),
             bitSize     = 1,
             bitOffset   = 0,

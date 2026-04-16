@@ -22,11 +22,11 @@ use surf.SsiPkg.all;
 
 entity SsiFifoWrapper is
    generic (
-      DATA_BYTES_G      : positive range 1 to 8 := 2;
-      FIFO_ADDR_WIDTH_G : positive              := 4;
-      VALID_THOLD_G     : natural               := 1;
-      GEN_SYNC_FIFO_G   : boolean               := false;
-      SLAVE_READY_EN_G  : boolean               := true);
+      DATA_BYTES_G      : positive range 1 to 8  := 2;
+      FIFO_ADDR_WIDTH_G : positive range 1 to 16 := 4;
+      VALID_THOLD_G     : natural                := 1;
+      GEN_SYNC_FIFO_G   : boolean                := false;
+      SLAVE_READY_EN_G  : boolean                := true);
    port (
       axisClk         : in  sl;
       axisRst         : in  sl;
@@ -38,6 +38,7 @@ entity SsiFifoWrapper is
       sAxisSof        : in  sl;
       sAxisEofe       : in  sl;
       sAxisTReady     : out sl;
+      sAxisPause      : out sl;
       fifoPauseThresh : in  slv(15 downto 0);
       fifoWrCnt       : out slv(15 downto 0);
       sAxisDropWord   : out sl;
@@ -90,6 +91,7 @@ begin
    end process sAxisComb;
 
    sAxisTReady <= sAxisSlaveInt.tReady;
+   sAxisPause <= sAxisCtrlInt.pause;
    pauseThreshInt <= fifoPauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
    fifoWrCnt <= resize(fifoWrCntInt, fifoWrCnt'length);
    mAxisSlaveInt.tReady <= mAxisTReady;
@@ -122,7 +124,7 @@ begin
          VALID_THOLD_G       => VALID_THOLD_G,
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
-         FIFO_FIXED_THRESH_G => true,
+         FIFO_FIXED_THRESH_G => false,
          FIFO_PAUSE_THRESH_G => 1,
          MEMORY_TYPE_G       => "distributed",
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,

@@ -30,13 +30,13 @@ class AxiStreamRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RAM_ADDR_WIDTH_G',
-            description  = 'Ring Buffer RAM Width configuration',
-            offset       = 0x0,
-            bitSize      = 8,
-            bitOffset    = 20,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        = 'RAM_ADDR_WIDTH_G',
+            description = 'Ring Buffer RAM Width configuration',
+            offset      = 0x0,
+            bitSize     = 8,
+            bitOffset   = 20,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
@@ -82,19 +82,19 @@ class AxiStreamRingBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TrigBurst',
-            description  = 'Used to burst N number of trigger frames from local triggering',
-            offset       = 0x8,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'WO',
+            name        = 'TrigBurst',
+            description = 'Used to burst N number of trigger frames from local triggering',
+            offset      = 0x8,
+            bitSize     = 32,
+            bitOffset   = 0,
+            mode        = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ContinuousMode',
-            description  = 'Sets local triggering into continuous trigger mode',
-            offset       = 0xC,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RW',
+            name        = 'ContinuousMode',
+            description = 'Sets local triggering into continuous trigger mode',
+            offset      = 0xC,
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RW',
         ))
