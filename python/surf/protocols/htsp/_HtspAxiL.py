@@ -22,64 +22,64 @@ class HtspAxiLCtrl(pr.Device):
         mode = 'RW' if writeEn else 'RO'
 
         self.add(pr.RemoteCommand(
-            name        = 'CountReset',
-            description = "Status Counter Reset Command",
-            offset      = 0x000,
-            bitOffset   = 0,
-            bitSize     = 1,
-            function    = pr.BaseCommand.toggle,
+            name        =  'CountReset',
+            description =  "Status Counter Reset Command",
+            offset      =  0x000,
+            bitOffset   =  0,
+            bitSize     =  1,
+            function    =  pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'WRITE_EN_G',
-            description = 'Generic: write-enable configuration of this HTSP AXI-Lite core',
-            offset      = 0x004,
-            bitOffset   = 0,
-            bitSize     = 1,
-            base        = pr.Bool,
-            mode        = 'RO',
+            name        =  'WRITE_EN_G',
+            description =  'Generic: write-enable configuration of this HTSP AXI-Lite core',
+            offset      =  0x004,
+            bitOffset   =  0,
+            bitSize     =  1,
+            base        =  pr.Bool,
+            mode        =  'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'NUM_VC_G',
-            description = 'Generic: number of virtual channels configured for this HTSP link',
-            offset      = 0x004,
-            bitOffset   = 8,
-            bitSize     = 8,
-            disp        = '{:d}',
-            mode        = 'RO',
+            name        =  'NUM_VC_G',
+            description =  'Generic: number of virtual channels configured for this HTSP link',
+            offset      =  0x004,
+            bitOffset   =  8,
+            bitSize     =  8,
+            disp        =  '{:d}',
+            mode        =  'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'STATUS_CNT_WIDTH_G',
-            description = 'Generic: bit width of status counters in this HTSP core',
-            offset      = 0x004,
-            bitOffset   = 16,
-            bitSize     = 8,
-            disp        = '{:d}',
-            mode        = 'RO',
+            name        =  'STATUS_CNT_WIDTH_G',
+            description =  'Generic: bit width of status counters in this HTSP core',
+            offset      =  0x004,
+            bitOffset   =  16,
+            bitSize     =  8,
+            disp        =  '{:d}',
+            mode        =  'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'ERROR_CNT_WIDTH_G',
-            description = 'Generic: bit width of error counters in this HTSP core',
-            offset      = 0x004,
-            bitOffset   = 24,
-            bitSize     = 8,
-            disp        = '{:d}',
-            mode        = 'RO',
+            name        =  'ERROR_CNT_WIDTH_G',
+            description =  'Generic: bit width of error counters in this HTSP core',
+            offset      =  0x004,
+            bitOffset   =  24,
+            bitSize     =  8,
+            disp        =  '{:d}',
+            mode        =  'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'UpTimeCnt',
-            description  = 'Number of seconds since last reset',
-            hidden       = True,
-            offset       = 0x00C,
-            bitSize      = 32,
-            mode         = 'RO',
-            disp         = '{:d}',
-            units        = 'seconds',
-            pollInterval = 1,
+            name         =  'UpTimeCnt',
+            description  =  'Number of seconds since last reset',
+            hidden       =  True,
+            offset       =  0x00C,
+            bitSize      =  32,
+            mode         =  'RO',
+            disp         =  '{:d}',
+            units        =  'seconds',
+            pollInterval =  1,
         ))
 
         def parseUpTime(var,read):
@@ -91,179 +91,179 @@ class HtspAxiLCtrl(pr.Device):
                 return str(datetime.timedelta(seconds=seconds))
 
         self.add(pr.LinkVariable(
-            name         = 'UpTime',
-            description  = 'Time since power up or last CountReset event',
-            mode         = 'RO',
-            disp         = '{}',
-            variable     = self.UpTimeCnt,
-            linkedGet    = parseUpTime,
-            units        = 'HH:MM:SS',
+            name        =  'UpTime',
+            description =  'Time since power up or last CountReset event',
+            mode        =  'RO',
+            disp        =  '{}',
+            variable    =  self.UpTimeCnt,
+            linkedGet   =  parseUpTime,
+            units       =  'HH:MM:SS',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'HtspClkFreq',
-            description  = 'Measured HTSP clock frequency',
-            mode         = 'RO',
-            offset       = 0x010,
-            bitSize      = 32,
-            disp         = '{:d}',
-            units        = 'Hz',
-            pollInterval = 1,
+            name         =  'HtspClkFreq',
+            description  =  'Measured HTSP clock frequency',
+            mode         =  'RO',
+            offset       =  0x010,
+            bitSize      =  32,
+            disp         =  '{:d}',
+            units        =  'Hz',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Loopback',
-            description  = 'GTX/GTH loopback mode select',
-            mode         = mode,
-            offset       = 0x030,
-            bitSize      = 3,
-            bitOffset    = 0,
+            name        =  'Loopback',
+            description =  'GTX/GTH loopback mode select',
+            mode        =  mode,
+            offset      =  0x030,
+            bitSize     =  3,
+            bitOffset   =  0,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxDisable',
-            description  = 'Disable the HTSP transmitter',
-            mode         = mode,
-            offset       = 0x030,
-            bitSize      = 1,
-            bitOffset    = 8,
+            name        =  'TxDisable',
+            description =  'Disable the HTSP transmitter',
+            mode        =  mode,
+            offset      =  0x030,
+            bitSize     =  1,
+            bitOffset   =  8,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxFlowCntlDis',
-            description  = 'Disable transmit flow control (pause frame generation)',
-            mode         = mode,
-            offset       = 0x030,
-            bitSize      = 1,
-            bitOffset    = 9,
+            name        =  'TxFlowCntlDis',
+            description =  'Disable transmit flow control (pause frame generation)',
+            mode        =  mode,
+            offset      =  0x030,
+            bitSize     =  1,
+            bitOffset   =  9,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxReset',
-            description  = 'Assert to reset the HTSP receiver',
-            mode         = mode,
-            offset       = 0x030,
-            bitSize      = 1,
-            bitOffset    = 10,
+            name        =  'RxReset',
+            description =  'Assert to reset the HTSP receiver',
+            mode        =  mode,
+            offset      =  0x030,
+            bitSize     =  1,
+            bitOffset   =  10,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxPolarity',
-            description  = 'Receive lane polarity invert mask (one bit per lane)',
-            mode         = mode,
-            offset       = 0x038,
-            bitSize      = 4,
-            bitOffset    = 0,
+            name        =  'RxPolarity',
+            description =  'Receive lane polarity invert mask (one bit per lane)',
+            mode        =  mode,
+            offset      =  0x038,
+            bitSize     =  4,
+            bitOffset   =  0,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxPolarity',
-            description  = 'Transmit lane polarity invert mask (one bit per lane)',
-            mode         = mode,
-            offset       = 0x038,
-            bitSize      = 4,
-            bitOffset    = 16,
+            name        =  'TxPolarity',
+            description =  'Transmit lane polarity invert mask (one bit per lane)',
+            mode        =  mode,
+            offset      =  0x038,
+            bitSize     =  4,
+            bitOffset   =  16,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxNullInterval',
-            description  = 'Number of clock cycles between transmitted null SOF words',
-            mode         = mode,
-            offset       = 0x03C,
-            bitSize      = 32,
-            disp         = '{:d}',
+            name        =  'TxNullInterval',
+            description =  'Number of clock cycles between transmitted null SOF words',
+            mode        =  mode,
+            offset      =  0x03C,
+            bitSize     =  32,
+            disp        =  '{:d}',
         ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name         = f'TxDiffCtrl[{i}]',
-                description  = 'Transmit differential swing control for lane {i}',
-                mode         = mode,
-                offset       = 64 + (4*i),
-                bitSize      = 5,
-                bitOffset    = 0,
+                name        =  f'TxDiffCtrl[{i}]',
+                description =  'Transmit differential swing control for lane {i}',
+                mode        =  mode,
+                offset      =  64 + (4*i),
+                bitSize     =  5,
+                bitOffset   =  0,
             ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name         = f'TxPreCursor[{i}]',
-                description  = 'Transmit pre-cursor emphasis control for lane {i}',
-                mode         = mode,
-                offset       = 64 + (4*i),
-                bitSize      = 5,
-                bitOffset    = 8,
+                name        =  f'TxPreCursor[{i}]',
+                description =  'Transmit pre-cursor emphasis control for lane {i}',
+                mode        =  mode,
+                offset      =  64 + (4*i),
+                bitSize     =  5,
+                bitOffset   =  8,
             ))
 
         for i in range(4):
             self.add(pr.RemoteVariable(
-                name         = f'TxPostCursor[{i}]',
-                description  = 'Transmit post-cursor emphasis control for lane {i}',
-                mode         = mode,
-                offset       = 64 + (4*i),
-                bitSize      = 5,
-                bitOffset    = 16,
+                name        =  f'TxPostCursor[{i}]',
+                description =  'Transmit post-cursor emphasis control for lane {i}',
+                mode        =  mode,
+                offset      =  64 + (4*i),
+                bitSize     =  5,
+                bitOffset   =  16,
             ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocalMacRaw',
-            description  = 'Local MAC Address (big-Endian configuration)',
-            mode         = mode,
-            offset       = 0x0C0,
-            bitSize      = 48,
-            hidden       = True,
+            name        =  'LocalMacRaw',
+            description =  'Local MAC Address (big-Endian configuration)',
+            mode        =  mode,
+            offset      =  0x0C0,
+            bitSize     =  48,
+            hidden      =  True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = "LocalMac",
-            description  = "Local MAC Address (human readable)",
-            mode         = mode,
-            linkedGet    = udp.getMacValue,
-            linkedSet    = udp.setMacValue,
-            dependencies = [self.variables["LocalMacRaw"]],
+            name         =  "LocalMac",
+            description  =  "Local MAC Address (human readable)",
+            mode         =  mode,
+            linkedGet    =  udp.getMacValue,
+            linkedSet    =  udp.setMacValue,
+            dependencies =  [self.variables["LocalMacRaw"]],
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RemoteMacRaw',
-            description  = 'Remote MAC Address (big-Endian configuration)',
-            mode         = 'RO',
-            offset       = 0x0C8,
-            bitSize      = 48,
-            pollInterval = 1,
-            hidden       = True,
+            name         =  'RemoteMacRaw',
+            description  =  'Remote MAC Address (big-Endian configuration)',
+            mode         =  'RO',
+            offset       =  0x0C8,
+            bitSize      =  48,
+            pollInterval =  1,
+            hidden       =  True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = "RemoteMac",
-            description  = "Remote MAC Address (human readable)",
-            mode         = 'RO',
-            linkedGet    = udp.getMacValue,
-            dependencies = [self.variables["RemoteMacRaw"]],
+            name         =  "RemoteMac",
+            description  =  "Remote MAC Address (human readable)",
+            mode         =  'RO',
+            linkedGet    =  udp.getMacValue,
+            dependencies =  [self.variables["RemoteMacRaw"]],
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BroadcastMacRaw',
-            description  = 'Broadcast MAC Address (big-Endian configuration)',
-            mode         = mode,
-            offset       = 0x0D0,
-            bitSize      = 48,
-            hidden       = True,
+            name        =  'BroadcastMacRaw',
+            description =  'Broadcast MAC Address (big-Endian configuration)',
+            mode        =  mode,
+            offset      =  0x0D0,
+            bitSize     =  48,
+            hidden      =  True,
         ))
 
         self.add(pr.LinkVariable(
-            name         = "BroadcastMac",
-            description  = "Broadcast MAC Address (human readable)",
-            mode         = mode,
-            linkedGet    = udp.getMacValue,
-            linkedSet    = udp.setMacValue,
-            dependencies = [self.variables["BroadcastMacRaw"]],
+            name         =  "BroadcastMac",
+            description  =  "Broadcast MAC Address (human readable)",
+            mode         =  mode,
+            linkedGet    =  udp.getMacValue,
+            linkedSet    =  udp.setMacValue,
+            dependencies =  [self.variables["BroadcastMacRaw"]],
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'EtherType',
-            description  = 'Ethernet EtherType field used to identify HTSP frames',
-            mode         = mode,
-            offset       = 0x0D8,
-            bitSize      = 16,
+            name        =  'EtherType',
+            description =  'Ethernet EtherType field used to identify HTSP frames',
+            mode        =  mode,
+            offset      =  0x0D8,
+            bitSize     =  16,
         ))
 
     def countReset(self):
@@ -285,20 +285,20 @@ class HtspAxiLRxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  = 'Status count',
-                bitSize      = statusCountBits,
-                mode         = 'RO',
-                disp         = '{:d}',
-                pollInterval = 1,
+                description  =  'Status count',
+                bitSize      =  statusCountBits,
+                mode         =  'RO',
+                disp         =  '{:d}',
+                pollInterval =  1,
                 **ecvkwargs))
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  = 'Error count',
-                bitSize      = errorCountBits,
-                mode         = 'RO',
-                disp         = '{:d}',
-                pollInterval = 1,
+                description  =  'Error count',
+                bitSize      =  errorCountBits,
+                mode         =  'RO',
+                disp         =  '{:d}',
+                pollInterval =  1,
                 **ecvkwargs))
 
         for i in range(numVc):
@@ -344,21 +344,21 @@ class HtspAxiLRxStatus(pr.Device):
             )
 
         self.add(pr.RemoteVariable(
-            name         = 'FecCorrectedCodeWordCnt',
-            description  = 'Number of FEC corrected code words received',
-            offset       = (0x614-devOffset),
-            bitSize      = 32,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'FecCorrectedCodeWordCnt',
+            description  =  'Number of FEC corrected code words received',
+            offset       =  (0x614-devOffset),
+            bitSize      =  32,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FecUncorrectedCodeWordCnt',
-            description  = 'Number of FEC uncorrected code words received',
-            offset       = (0x618-devOffset),
-            bitSize      = 32,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'FecUncorrectedCodeWordCnt',
+            description  =  'Number of FEC uncorrected code words received',
+            offset       =  (0x618-devOffset),
+            bitSize      =  32,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         def getBitErrorRate(var,read):
@@ -387,12 +387,12 @@ class HtspAxiLRxStatus(pr.Device):
             return (numErrBits/totalBits)
 
         self.add(pr.LinkVariable(
-            name         = 'BitErrorRate',
-            description  = 'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 70 bits)',
-            mode         = 'RO',
-            disp         = '{:.3e}', # scientific notation with three decimal places
-            dependencies = [self.UpTimeCnt, self.FecCorrectedCodeWordCnt],
-            linkedGet    = getBitErrorRate,
+            name         =  'BitErrorRate',
+            description  =  'Assumes that incrementing FecCorrectedCodeWordCnt = 1 bit error event (which is not always the case because FEC will correct for up to 70 bits)',
+            mode         =  'RO',
+            disp         =  '{:.3e}', # scientific notation with three decimal places
+            dependencies =  [self.UpTimeCnt, self.FecCorrectedCodeWordCnt],
+            linkedGet    =  getBitErrorRate,
         ))
 
         statusBoolDescList = [
@@ -404,65 +404,65 @@ class HtspAxiLRxStatus(pr.Device):
         for i in range(len(statusList)):
             if statusList[i][1]:
                 self.add(pr.RemoteVariable(
-                    name         = statusList[i][0],
-                    description  = statusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
-                    offset       = (0x710-devOffset),
-                    bitOffset    = i,
-                    bitSize      = 1,
-                    base         = pr.Bool,
-                    mode         = 'RO',
-                    pollInterval = 1,
+                    name         =  statusList[i][0],
+                    description  =  statusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
+                    offset       =  (0x710-devOffset),
+                    bitOffset    =  i,
+                    bitSize      =  1,
+                    base         =  pr.Bool,
+                    mode         =  'RO',
+                    pollInterval =  1,
                 ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RemLinkData',
-            description  = 'Remote sideband link data word',
-            offset       = (0x720-devOffset),
-            bitSize      = 128,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'RemLinkData',
+            description  =  'Remote sideband link data word',
+            offset       =  (0x720-devOffset),
+            bitSize      =  128,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RemOpCodeData',
-            description  = 'Remote op-code data word received from link partner',
-            offset       = (0x730-devOffset),
-            bitSize      = 128,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'RemOpCodeData',
+            description  =  'Remote op-code data word received from link partner',
+            offset       =  (0x730-devOffset),
+            bitSize      =  128,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RemRxPause',
-            description  = 'Remote receive pause status bits (one per virtual channel)',
-            offset       = (0x740-devOffset),
-            bitSize      = numVc,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'RemRxPause',
+            description  =  'Remote receive pause status bits (one per virtual channel)',
+            offset       =  (0x740-devOffset),
+            bitSize      =  numVc,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxMinPayloadSize',
-            description  = 'Minimum received payload size observed',
-            mode         = 'RO',
-            offset       = 0x750,
-            bitSize      = 16,
-            bitOffset    = 0,
-            disp         = '{:d}',
-            units        = 'Bytes',
-            pollInterval = 1,
+            name         =  'RxMinPayloadSize',
+            description  =  'Minimum received payload size observed',
+            mode         =  'RO',
+            offset       =  0x750,
+            bitSize      =  16,
+            bitOffset    =  0,
+            disp         =  '{:d}',
+            units        =  'Bytes',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxMaxPayloadSize',
-            description  = 'Maximum received payload size observed',
-            mode         = 'RO',
-            offset       = 0x750,
-            bitSize      = 16,
-            bitOffset    = 16,
-            disp         = '{:d}',
-            units        = 'Bytes',
-            pollInterval = 1,
+            name         =  'RxMaxPayloadSize',
+            description  =  'Maximum received payload size observed',
+            mode         =  'RO',
+            offset       =  0x750,
+            bitSize      =  16,
+            bitOffset    =  16,
+            disp         =  '{:d}',
+            units        =  'Bytes',
+            pollInterval =  1,
         ))
 
 class HtspAxiLTxStatus(pr.Device):
@@ -477,20 +477,20 @@ class HtspAxiLTxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  = 'Status count',
-                bitSize      = statusCountBits,
-                mode         = 'RO',
-                disp         = '{:d}',
-                pollInterval = 1,
+                description  =  'Status count',
+                bitSize      =  statusCountBits,
+                mode         =  'RO',
+                disp         =  '{:d}',
+                pollInterval =  1,
                 **ecvkwargs))
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  = 'Error count',
-                bitSize      = errorCountBits,
-                mode         = 'RO',
-                disp         = '{:d}',
-                pollInterval = 1,
+                description  =  'Error count',
+                bitSize      =  errorCountBits,
+                mode         =  'RO',
+                disp         =  '{:d}',
+                pollInterval =  1,
                 **ecvkwargs))
 
         for i in range(numVc):
@@ -546,65 +546,65 @@ class HtspAxiLTxStatus(pr.Device):
         for i in range(len(statusList)):
             if statusList[i][1]:
                 self.add(pr.RemoteVariable(
-                    name         = statusList[i][0],
-                    description  = txStatusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
-                    offset       = (0xB10-devOffset),
-                    bitOffset    = i,
-                    bitSize      = 1,
-                    base         = pr.Bool,
-                    mode         = 'RO',
-                    pollInterval = 1,
+                    name         =  statusList[i][0],
+                    description  =  txStatusBoolDescList[sum(1 for j in range(i) if statusList[j][1])],
+                    offset       =  (0xB10-devOffset),
+                    bitOffset    =  i,
+                    bitSize      =  1,
+                    base         =  pr.Bool,
+                    mode         =  'RO',
+                    pollInterval =  1,
                 ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocLinkData',
-            description  = 'Local sideband link data word transmitted to link partner',
-            offset       = (0xB20-devOffset),
-            bitSize      = 128,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'LocLinkData',
+            description  =  'Local sideband link data word transmitted to link partner',
+            offset       =  (0xB20-devOffset),
+            bitSize      =  128,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocOpCodeData',
-            description  = 'Local op-code data word transmitted to link partner',
-            offset       = (0xB30-devOffset),
-            bitSize      = 128,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'LocOpCodeData',
+            description  =  'Local op-code data word transmitted to link partner',
+            offset       =  (0xB30-devOffset),
+            bitSize      =  128,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LocTxPause',
-            description  = 'Local transmit pause status bits (one per virtual channel)',
-            offset       = (0xB40-devOffset),
-            bitSize      = numVc,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'LocTxPause',
+            description  =  'Local transmit pause status bits (one per virtual channel)',
+            offset       =  (0xB40-devOffset),
+            bitSize      =  numVc,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxMinPayloadSize',
-            description  = 'Minimum transmitted payload size observed',
-            mode         = 'RO',
-            offset       = 0xB50,
-            bitSize      = 16,
-            bitOffset    = 0,
-            disp         = '{:d}',
-            units        = 'Bytes',
-            pollInterval = 1,
+            name         =  'TxMinPayloadSize',
+            description  =  'Minimum transmitted payload size observed',
+            mode         =  'RO',
+            offset       =  0xB50,
+            bitSize      =  16,
+            bitOffset    =  0,
+            disp         =  '{:d}',
+            units        =  'Bytes',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxMaxPayloadSize',
-            description  = 'Maximum transmitted payload size observed',
-            mode         = 'RO',
-            offset       = 0xB50,
-            bitSize      = 16,
-            bitOffset    = 16,
-            disp         = '{:d}',
-            units        = 'Bytes',
-            pollInterval = 1,
+            name         =  'TxMaxPayloadSize',
+            description  =  'Maximum transmitted payload size observed',
+            mode         =  'RO',
+            offset       =  0xB50,
+            bitSize      =  16,
+            bitOffset    =  16,
+            disp         =  '{:d}',
+            units        =  'Bytes',
+            pollInterval =  1,
         ))
 
 class HtspAxiL(pr.Device):

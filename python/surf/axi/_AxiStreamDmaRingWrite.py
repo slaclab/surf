@@ -230,14 +230,14 @@ class AxiStreamDmaRingWrite(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = "BurstSize",
-            description  = "AXI burst size used for DMA ring buffer transfers",
-            offset       =  0xA00,
-            bitSize      =  4,
-            bitOffset    =  8,
-            base         = pr.UInt,
-            mode         = "RO",
-            overlapEn    = True,
+            name        = "BurstSize",
+            description = "AXI burst size used for DMA ring buffer transfers",
+            offset      =  0xA00,
+            bitSize     =  4,
+            bitOffset   =  8,
+            base        = pr.UInt,
+            mode        = "RO",
+            overlapEn   = True,
         ))
 
         self.addRemoteVariables(

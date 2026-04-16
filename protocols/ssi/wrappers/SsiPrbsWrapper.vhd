@@ -22,17 +22,25 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity SsiPrbsWrapper is
+   generic (
+      PRBS_SEED_SIZE_G : positive := 32;
+      DATA_BYTES_G     : positive := 16);
    port (
       fastClk         : in  sl;
       fastRst         : in  sl;
       slowClk         : in  sl;
       slowRst         : in  sl;
+      trig            : in  sl;
+      packetLength    : in  slv(31 downto 0);
+      forceEofe       : in  sl;
       updated         : out sl;
+      txBusy          : out sl;
       errMissedPacket : out sl;
       errLength       : out sl;
       errDataBus      : out sl;
       errEofe         : out sl;
-      errWordCnt      : out slv(31 downto 0));
+      errWordCnt      : out slv(31 downto 0);
+      rxPacketLength  : out slv(31 downto 0));
 end entity SsiPrbsWrapper;
 
 architecture rtl of SsiPrbsWrapper is
@@ -61,10 +69,10 @@ architecture rtl of SsiPrbsWrapper is
    constant CASCADE_SIZE_C      : natural := 1;
    constant FIFO_ADDR_WIDTH_C   : natural := 9;
    constant FIFO_PAUSE_THRESH_C : natural := 2**8;
-   constant PRBS_SEED_SIZE_C : natural      := 32;
+   constant PRBS_SEED_SIZE_C : natural      := PRBS_SEED_SIZE_G;
    constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
    constant FORCE_EOFE_C     : sl           := '0';
-   constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := PrbsAxiStreamConfig(16, TKEEP_COMP_C);
+   constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := PrbsAxiStreamConfig(DATA_BYTES_G, TKEEP_COMP_C);
    constant AXI_PIPE_STAGES_C   : natural             := 1;
 
    signal axisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -92,10 +100,10 @@ begin
          mAxisSlave   => axisSlave,
          locClk       => fastClk,
          locRst       => fastRst,
-         trig         => '1',
-         packetLength => TX_PACKET_LENGTH_C,
-         forceEofe    => FORCE_EOFE_C,
-         busy         => open,
+         trig         => trig,
+         packetLength => packetLength,
+         forceEofe    => forceEofe,
+         busy         => txBusy,
          tDest        => (others => '0'),
          tId          => (others => '0'));
 
@@ -129,6 +137,7 @@ begin
          errLength       => errLength,
          errDataBus      => errDataBus,
          errEofe         => errEofe,
-         errWordCnt      => errWordCnt);
+         errWordCnt      => errWordCnt,
+         packetLength    => rxPacketLength);
 
 end architecture rtl;

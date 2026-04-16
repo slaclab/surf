@@ -53,7 +53,7 @@ ARCH_BODY_SKIP_TOKENS = {
     "while",
 }
 
-DEFAULT_SCAN_DIRS = ("base", "axi", "protocols", "ethernet", "devices", "xilinx")
+DEFAULT_SCAN_DIRS = ("base", "axi", "dsp", "protocols", "ethernet", "devices", "xilinx")
 EXCLUDED_PARTS = {"tb", "build", ".venv", "__pycache__"}
 PHASE1_QUEUE_OVERRIDES_FILENAME = "rtl_phase1_queue_overrides.json"
 

@@ -19,12 +19,12 @@ class UdpEngineServer(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "ServerRemotePort",
-            description  = "ServerRemotePort (big-Endian configuration)",
-            offset       =  0x00,
-            bitSize      =  16,
-            mode         = "RO",
-            hidden       = True,
+            name        = "ServerRemotePort",
+            description = "ServerRemotePort (big-Endian configuration)",
+            offset      =  0x00,
+            bitSize     =  16,
+            mode        = "RO",
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -36,12 +36,12 @@ class UdpEngineServer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "ServerRemoteIp",
-            description  = "ServerRemoteIp (big-Endian configuration)",
-            offset       =  0x04,
-            bitSize      =  32,
-            mode         = "RO",
-            hidden       = True,
+            name        = "ServerRemoteIp",
+            description = "ServerRemoteIp (big-Endian configuration)",
+            offset      =  0x04,
+            bitSize     =  32,
+            mode        = "RO",
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(

@@ -31,38 +31,38 @@ class Ina237(pr.Device):
         ##############
 
         self.add(pr.RemoteCommand(
-            name         = 'RST',
-            description  = 'Reset Bit. Setting this bit to 1 generates a system reset that is the same as power-on reset.',
-            offset       = (0x0 << 2),
-            bitSize      = 1,
-            bitOffset    = 15,
-            function     = lambda cmd: (cmd.post(1), self.readBlocks(checkEach=True))[0],
-            hidden       = hideConfig,
+            name        = 'RST',
+            description = 'Reset Bit. Setting this bit to 1 generates a system reset that is the same as power-on reset.',
+            offset      = (0x0 << 2),
+            bitSize     = 1,
+            bitOffset   = 15,
+            function    = lambda cmd: (cmd.post(1), self.readBlocks(checkEach=True))[0],
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'CONVDLY',
-            description  = 'Sets the Delay for initial ADC conversion in steps of 2 ms.',
-            offset       = (0x0 << 2),
-            bitSize      = 8,
-            bitOffset    = 6,
-            mode         = 'RW',
-            units        = '2ms',
-            hidden       = hideConfig,
+            name        = 'CONVDLY',
+            description = 'Sets the Delay for initial ADC conversion in steps of 2 ms.',
+            offset      = (0x0 << 2),
+            bitSize     = 8,
+            bitOffset   = 6,
+            mode        = 'RW',
+            units       = '2ms',
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ADCRANGE',
-            description  = 'ADC input range setting: 0 = +/-163.84mV, 1 = +/-40.96mV',
-            offset       = (0x0 << 2),
-            bitSize      = 1,
-            bitOffset    = 4,
-            mode         = 'RW',
-            enum      = {
+            name        = 'ADCRANGE',
+            description = 'ADC input range setting: 0 = +/-163.84mV, 1 = +/-40.96mV',
+            offset      = (0x0 << 2),
+            bitSize     = 1,
+            bitOffset   = 4,
+            mode        = 'RW',
+            enum        = {
                 0 : '+/-163.84mV',
                 1 : '+/-40.96mV',
             },
-            hidden       = hideConfig,
+            hidden      = hideConfig,
         ))
 
         ##############
@@ -70,53 +70,53 @@ class Ina237(pr.Device):
         ##############
 
         self.add(pr.RemoteVariable(
-            name         = 'MODE',
-            description  = 'The user can set the MODE bits for continuous or triggered mode on bus voltage, shunt voltage or temperature measurement.',
-            offset       = (0x1 << 2),
-            bitSize      = 4,
-            bitOffset    = 12,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'MODE',
+            description = 'The user can set the MODE bits for continuous or triggered mode on bus voltage, shunt voltage or temperature measurement.',
+            offset      = (0x1 << 2),
+            bitSize     = 4,
+            bitOffset   = 12,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'VBUSCT',
-            description  = 'Sets the conversion time of the bus voltage measurement',
-            offset       = (0x1 << 2),
-            bitSize      = 3,
-            bitOffset    = 9,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'VBUSCT',
+            description = 'Sets the conversion time of the bus voltage measurement',
+            offset      = (0x1 << 2),
+            bitSize     = 3,
+            bitOffset   = 9,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'VSHCT',
-            description  = 'Sets the conversion time of the shunt voltage measurement',
-            offset       = (0x1 << 2),
-            bitSize      = 3,
-            bitOffset    = 6,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'VSHCT',
+            description = 'Sets the conversion time of the shunt voltage measurement',
+            offset      = (0x1 << 2),
+            bitSize     = 3,
+            bitOffset   = 6,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'VTCT',
-            description  = 'Sets the conversion time of the temperature measurement',
-            offset       = (0x1 << 2),
-            bitSize      = 3,
-            bitOffset    = 3,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'VTCT',
+            description = 'Sets the conversion time of the temperature measurement',
+            offset      = (0x1 << 2),
+            bitSize     = 3,
+            bitOffset   = 3,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AVG',
-            description  = 'Selects ADC sample averaging count. The averaging setting applies to all active inputs',
-            offset       = (0x1 << 2),
-            bitSize      = 3,
-            bitOffset    = 0,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'AVG',
+            description = 'Selects ADC sample averaging count. The averaging setting applies to all active inputs',
+            offset      = (0x1 << 2),
+            bitSize     = 3,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
         ##############
@@ -124,13 +124,13 @@ class Ina237(pr.Device):
         ##############
 
         self.add(pr.RemoteVariable(
-            name         = 'SHUNT_CAL',
-            description  = 'The register provides the device with a conversion constant value that represents shunt resistance used to calculate current value in Amperes',
-            offset       = (0x2 << 2),
-            bitSize      = 15,
-            bitOffset    = 0,
-            mode         = 'RW',
-            hidden       = hideConfig,
+            name        = 'SHUNT_CAL',
+            description = 'The register provides the device with a conversion constant value that represents shunt resistance used to calculate current value in Amperes',
+            offset      = (0x2 << 2),
+            bitSize     = 15,
+            bitOffset   = 0,
+            mode        = 'RW',
+            hidden      = hideConfig,
         ))
 
 
@@ -185,12 +185,12 @@ class Ina237(pr.Device):
         ###############################################################################
 
         self.add(pr.RemoteVariable(
-            name         = 'MANFID',
-            description  = 'Reads back TI in ASCII (should be 0x5449)',
-            offset       = (0x3E << 2),
-            bitSize      = 16,
-            bitOffset    = 0,
-            mode         = 'RO',
+            name        = 'MANFID',
+            description = 'Reads back TI in ASCII (should be 0x5449)',
+            offset      = (0x3E << 2),
+            bitSize     = 16,
+            bitOffset   = 0,
+            mode        = 'RO',
         ))
 
         ###############################################################################
