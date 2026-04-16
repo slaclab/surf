@@ -131,6 +131,15 @@ def env_hex(name: str, *, default: int) -> int:
     return int(normalized, 16)
 
 
+def env_float(name: str, *, default: float) -> float:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+
+    normalized = raw.strip().strip("'").strip('"')
+    return float(normalized)
+
+
 def parameter_case(case_id: str, **parameters: str):
     return pytest.param(parameters, id=case_id)
 
