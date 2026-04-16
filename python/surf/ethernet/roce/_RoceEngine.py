@@ -12,6 +12,7 @@ import pyrogue as pr
 
 class RoceEngine(pr.Device):
     def __init__( self,
+                  dcqcn = True,
                   **kwargs):
         super().__init__(**kwargs)
 
@@ -49,11 +50,12 @@ class RoceEngine(pr.Device):
             mode = 'RO',
         ))
 
-        self.add(Dcqcn(
-            name   = "Dcqcn",
-            offset = 0x1000,
-            expand = False,
-        ))
+        if dcqcn:
+            self.add(Dcqcn(
+                name   = "Dcqcn",
+                offset = 0x1000,
+                expand = False,
+            ))
 
 # DCQCN parameters
 class Dcqcn(pr.Device):
