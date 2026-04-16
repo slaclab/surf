@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Cover both meaningful TX routes in one build: remote wire output
+#   and localhost short-circuit output.
 # - Stimulus: Feed the TX engine with curated pseudo-header traffic for one
 #   remote UDP packet and one localhost-routed UDP packet.
 # - Checks: The remote packet must emerge as a fully framed Ethernet/IPv4
@@ -16,6 +18,8 @@
 #   localhost output instead of the wire output.
 # - Timing: The test drives one packet at a time and waits on the selected
 #   output stream so route-selection bugs are obvious in waveforms.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

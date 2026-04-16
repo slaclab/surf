@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Drive the de-mux through ARP forwarding, IPv4 forwarding, accepted
+#   broadcast handling, and two drop paths for foreign and malformed traffic.
 # - Stimulus: Feed the de-mux with full Ethernet frames that exercise the ARP,
 #   IPv4, broadcast, foreign-destination, and bad-version cases.
 # - Checks: ARP and IPv4 frames for the local or broadcast MAC must be
@@ -16,6 +18,8 @@
 #   headers must be dropped silently.
 # - Timing: The test waits on visible AXIS transfers instead of fixed cycle
 #   counts because the wrapper exposes real ready/valid behavior.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

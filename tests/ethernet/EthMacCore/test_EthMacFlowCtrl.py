@@ -20,6 +20,8 @@
 # - Timing: The DUT is fully registered, so checks sample one clock after each
 #   control update instead of relying on combinational observation.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 from cocotb.clock import Clock

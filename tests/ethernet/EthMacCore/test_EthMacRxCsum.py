@@ -20,6 +20,8 @@
 # - Timing: The RX checksum block has an internal pipeline, so every case waits
 #   on the visible output frame instead of assuming a fixed internal latency.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

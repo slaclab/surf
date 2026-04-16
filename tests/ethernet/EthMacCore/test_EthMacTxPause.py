@@ -22,6 +22,8 @@
 # - Timing: The sink uses explicit `TREADY` handshakes so pause frames, gated
 #   payload frames, and pass-through traffic are all observed deliberately.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

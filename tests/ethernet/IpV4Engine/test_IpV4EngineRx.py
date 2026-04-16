@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Cover one UDP protocol route, one ICMP protocol route, and one
+#   unsupported-protocol drop through the receive engine.
 # - Stimulus: Drive complete Ethernet/IPv4 frames into IpV4EngineRx for one
 #   UDP packet, one ICMP packet, and one unsupported protocol packet.
 # - Checks: The UDP and ICMP cases must emerge as the expected pseudo-header
@@ -16,6 +18,8 @@
 #   must be dropped.
 # - Timing: The bench waits on the protocol output streams rather than fixed
 #   latency assumptions because the receive engine has multiple header states.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

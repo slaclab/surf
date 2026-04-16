@@ -20,6 +20,8 @@
 # - Timing: The two clocks intentionally run at different periods, so the test
 #   waits on visible handshakes instead of assuming synchronous phasing.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

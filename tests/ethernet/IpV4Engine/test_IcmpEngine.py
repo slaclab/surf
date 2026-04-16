@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Cover the ICMP reply block with one valid local echo request plus
+#   two representative reject cases: wrong destination IP and non-echo type.
 # - Stimulus: Present ICMP pseudo-header traffic exactly as IpV4EngineRx would
 #   emit it, including a valid echo request, a non-local request, and a
 #   non-echo ICMP packet.
@@ -17,6 +19,8 @@
 #   reply pseudo-frame.
 # - Timing: The bench waits on AXIS visibility so the assertions remain stable
 #   across internal pipeline depth changes.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

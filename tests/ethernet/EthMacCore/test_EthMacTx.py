@@ -24,14 +24,16 @@
 #   cycle delays because the TX path includes arbitration, checksum, pause, and
 #   export staging.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
-from pathlib import Path
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     FlatEmacEndpoint,
+    ROCE_ANALYSIS_SOURCES,
     build_ethernet_frame,
     build_ipv4_udp_frame,
     build_pause_frame,
@@ -49,15 +51,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacTxLoopbackWrapper.vhd"
-ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
-ROCE_ANALYSIS_SOURCES = [
-    str(ROCE_RTL_ROOT / "RocePkg.vhd"),
-    *(
-        str(path)
-        for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RocePkg.vhd"
-    ),
-]
 LOCAL_MAC_CFG = mac_config_word_from_wire(0x001122334455)
 
 

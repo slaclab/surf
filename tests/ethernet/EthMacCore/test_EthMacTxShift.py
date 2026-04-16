@@ -20,6 +20,8 @@
 # - Timing: The TX shift stage participates in the AXI handshake, so the sink
 #   explicitly raises `TREADY` while consuming the output frame.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

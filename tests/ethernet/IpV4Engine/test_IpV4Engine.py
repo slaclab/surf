@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Exercise the IPv4 top across one UDP receive path, one ICMP
+#   echo-response path, and one ARP client lookup round-trip.
 # - Stimulus: Exercise the full IPv4 top with three focused scenarios:
 #   inbound UDP routing, inbound ICMP echo handling, and ARP client lookup.
 # - Checks: UDP traffic must emerge on the protocol output slot as the expected
@@ -16,6 +18,8 @@
 #   and ARP requests must round-trip through the top-level ARP client ports.
 # - Timing: Each scenario uses handshaked sources and sinks so the top-level
 #   assembly is verified through its real interfaces instead of local shortcuts.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

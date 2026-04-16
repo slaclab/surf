@@ -20,6 +20,8 @@
 # - Timing: The RX shift block has no sink-side backpressure, so the frame is
 #   launched continuously and the test samples the visible output beats.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

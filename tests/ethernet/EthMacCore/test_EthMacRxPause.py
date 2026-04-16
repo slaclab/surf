@@ -20,6 +20,8 @@
 # - Timing: The output path has no backpressure, so the test launches each
 #   frame continuously and watches the visible output beats directly.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer

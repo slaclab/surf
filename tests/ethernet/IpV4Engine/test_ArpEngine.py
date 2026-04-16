@@ -9,6 +9,8 @@
 ##############################################################################
 
 # Test methodology:
+# - Sweep: Exercise the ARP engine across localhost resolution, remote lookup
+#   plus reply handling, and inbound request-to-reply generation.
 # - Stimulus: Exercise the ARP engine with a localhost lookup, a remote lookup
 #   that requires an outbound request and inbound reply, and an inbound ARP
 #   request addressed to the local host.
@@ -17,6 +19,8 @@
 #   MAC address, and an inbound request must generate a valid reply frame.
 # - Timing: The test uses real ready/valid handshakes for both client and MAC
 #   sides so request/ack routing remains visible.
+
+from __future__ import annotations
 
 import cocotb
 import pytest

@@ -22,6 +22,8 @@
 #   the bench waits on the post-checker frame rather than assuming a fixed
 #   internal pipeline delay.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

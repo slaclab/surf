@@ -22,13 +22,15 @@
 #   fixed internal pipeline depth, because the top-level MAC includes FIFO,
 #   pause, and import/export staging.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
-from pathlib import Path
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
+    ROCE_ANALYSIS_SOURCES,
     build_ethernet_frame,
     build_ipv4_udp_frame,
     build_pause_frame,
@@ -46,15 +48,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacTopLoopbackWrapper.vhd"
-ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
-ROCE_ANALYSIS_SOURCES = [
-    str(ROCE_RTL_ROOT / "RocePkg.vhd"),
-    *(
-        str(path)
-        for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RocePkg.vhd"
-    ),
-]
 
 LOCAL_MAC_WIRE = 0x001122334455
 LOCAL_MAC_CFG = mac_config_word_from_wire(LOCAL_MAC_WIRE)

@@ -23,6 +23,8 @@
 # - Timing: The receive timeout is scaled to the chosen PHY because the GMII
 #   path serializes one byte per clock while XGMII transmits eight.
 
+from __future__ import annotations
+
 import cocotb
 import os
 import pytest

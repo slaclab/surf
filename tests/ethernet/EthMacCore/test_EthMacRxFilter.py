@@ -21,6 +21,8 @@
 # - Timing: The block has no output backpressure, so each frame is launched
 #   continuously and the sink watches for visible output rather than handshakes.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

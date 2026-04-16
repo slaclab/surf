@@ -20,6 +20,8 @@
 # - Timing: The test uses distinct source and sink clocks, and waits on the
 #   visible FIFO controls instead of assuming a fixed occupancy latency.
 
+from __future__ import annotations
+
 import cocotb
 import pytest
 

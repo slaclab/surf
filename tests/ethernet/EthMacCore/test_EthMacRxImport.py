@@ -23,6 +23,8 @@
 # - Timing: GMII takes many more cycles than XGMII to serialize a frame, so the
 #   bench scales its receive timeout to the selected PHY mode.
 
+from __future__ import annotations
+
 import cocotb
 import os
 import pytest

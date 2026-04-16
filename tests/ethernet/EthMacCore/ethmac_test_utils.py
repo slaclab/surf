@@ -26,6 +26,16 @@ ETHMAC_RTL_SOURCES = [
 ]
 ETHMAC_RTL_SOURCES.append(str(Path(__file__).resolve().parents[3] / "dsp" / "xilinx" / "logic" / "DspXor.vhd"))
 
+ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
+ROCE_ANALYSIS_SOURCES = [
+    str(ROCE_RTL_ROOT / "RocePkg.vhd"),
+    *(
+        str(path)
+        for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
+        if path.name != "RocePkg.vhd"
+    ),
+]
+
 
 @dataclass
 class EmacBeat:
