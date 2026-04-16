@@ -1,5 +1,7 @@
 <map id="SsiAxiLiteMaster" name="SsiAxiLiteMaster">
 <area shape="rect" id="Node000001" title=" " alt="" coords="216,445,347,471"/>
+<area shape="rect" id="Node000019" href="$classSsiAxiLiteMasterWrapper.html" title=" " alt="" coords="188,519,375,544"/>
+<area shape="poly" id="edge30_Node000001_Node000019" title=" " alt="" coords="284,484,284,519,279,519,279,484"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="216,372,347,397"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,411,284,445,279,445,279,411"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="47,299,193,324"/>

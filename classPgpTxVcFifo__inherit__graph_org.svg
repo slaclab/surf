@@ -20,9 +20,9 @@
 <!-- Node21 -->
 <g id="Node000021" class="node">
 <title>Node21</title>
-<g id="a_Node000021"><a xlink:href="classPgpXvcWrapper.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="768,-19 674,-19 674,0 768,0 768,-19"/>
-<text text-anchor="middle" x="721" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PgpXvcWrapper</text>
+<g id="a_Node000021"><a xlink:href="classPgpTxVcFifoWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="718,-19 600,-19 600,0 718,0 718,-19"/>
+<text text-anchor="middle" x="659" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PgpTxVcFifoWrapper</text>
 </a>
 </g>
 </g>
@@ -30,8 +30,26 @@
 <g id="edge34_Node000001_Node000021" class="edge">
 <title>Node1&#45;&gt;Node21</title>
 <g id="a_edge34_Node000001_Node000021"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M721,-44.66C721,-35.93 721,-25.99 721,-19.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="717.5,-44.75 721,-54.75 724.5,-44.75 717.5,-44.75"/>
+<path fill="none" stroke="#63b8ff" d="M703.25,-48.32C692.19,-38.87 678.37,-27.06 669.14,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="701.16,-51.15 711.04,-54.98 705.71,-45.83 701.16,-51.15"/>
+</a>
+</g>
+</g>
+<!-- Node22 -->
+<g id="Node000022" class="node">
+<title>Node22</title>
+<g id="a_Node000022"><a xlink:href="classPgpXvcWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="830,-19 736,-19 736,0 830,0 830,-19"/>
+<text text-anchor="middle" x="783" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">PgpXvcWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node22 -->
+<g id="edge35_Node000001_Node000022" class="edge">
+<title>Node1&#45;&gt;Node22</title>
+<g id="a_edge35_Node000001_Node000022"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M738.75,-48.32C749.81,-38.87 763.63,-27.06 772.86,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="736.29,-45.83 730.96,-54.98 740.84,-51.15 736.29,-45.83"/>
 </a>
 </g>
 </g>

@@ -1,5 +1,7 @@
 <map id="Pgp2fcAxi" name="Pgp2fcAxi">
 <area shape="rect" id="Node000001" title=" " alt="" coords="1389,179,1476,204"/>
+<area shape="rect" id="Node000017" href="$classPgp2fcAxiWrapper.html" title=" " alt="" coords="1524,179,1667,204"/>
+<area shape="poly" id="edge23_Node000001_Node000017" title=" " alt="" coords="1490,189,1524,189,1524,194,1490,194"/>
 <area shape="rect" id="Node000002" href="$classSynchronizerFifo.html" title=" " alt="" coords="510,168,641,193"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="655,179,1389,188,1389,193,655,184"/>
 <area shape="rect" id="Node000015" href="$classSynchronizerOneShotCnt.html" title=" " alt="" coords="704,229,887,255"/>

@@ -1,24 +1,36 @@
 <map id="CRC7Rtl" name="CRC7Rtl">
-<area shape="rect" id="Node000001" title=" " alt="" coords="237,5,312,31"/>
-<area shape="rect" id="Node000002" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="156,79,263,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="257,43,222,80,218,77,253,39"/>
-<area shape="rect" id="Node000010" href="$classPgp2fcTxPhy.html" title=" " alt="" coords="287,79,393,104"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="297,39,331,77,327,80,293,43"/>
-<area shape="rect" id="Node000003" href="$classPgp2fcRx.html" title=" " alt="" coords="180,152,263,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="216,117,222,151,217,152,211,118"/>
-<area shape="rect" id="Node000004" href="$classPgp2fcLane.html" title=" " alt="" coords="226,225,323,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="240,187,268,224,264,227,236,190"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="492,5,567,31"/>
+<area shape="rect" id="Node000002" href="$classPgp2fcRxPhy.html" title=" " alt="" coords="329,79,436,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="495,39,408,81,406,76,493,34"/>
+<area shape="rect" id="Node000013" href="$classPgp2fcTxPhy.html" title=" " alt="" coords="476,79,583,104"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="532,44,532,79,527,79,527,44"/>
+<area shape="rect" id="Node000017" href="$classCRC7RtlWrapper.html" title=" " alt="" coords="607,79,737,104"/>
+<area shape="poly" id="edge17_Node000001_Node000017" title=" " alt="" coords="566,34,650,76,647,81,563,39"/>
+<area shape="rect" id="Node000003" href="$classPgp2fcRx.html" title=" " alt="" coords="195,152,277,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="348,112,261,154,259,149,346,107"/>
+<area shape="rect" id="Node000012" href="$classPgp2fcRxPhyWrapper.html" title=" " alt="" coords="301,152,464,177"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="385,118,385,152,380,152,380,118"/>
+<area shape="rect" id="Node000004" href="$classPgp2fcLane.html" title=" " alt="" coords="335,225,433,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="273,181,361,223,359,228,271,186"/>
+<area shape="rect" id="Node000011" href="$classPgp2fcRxWrapper.html" title=" " alt="" coords="167,225,305,251"/>
+<area shape="poly" id="edge10_Node000003_Node000011" title=" " alt="" coords="239,191,239,225,233,225,233,191"/>
 <area shape="rect" id="Node000005" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="5,299,123,324"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="229,257,99,301,97,296,227,252"/>
-<area shape="rect" id="Node000006" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="147,299,269,324"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="256,263,221,300,217,297,252,259"/>
-<area shape="rect" id="Node000007" href="$classPgp2fcGtp7.html" title=" " alt="" coords="293,299,390,324"/>
-<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="297,259,332,297,329,300,293,263"/>
-<area shape="rect" id="Node000009" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="414,299,535,324"/>
-<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="321,253,443,296,441,301,319,258"/>
-<area shape="rect" id="Node000008" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="265,372,417,397"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="344,338,344,372,339,372,339,338"/>
-<area shape="rect" id="Node000011" href="$classPgp2fcTx.html" title=" " alt="" coords="292,152,375,177"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="340,118,337,152,332,152,335,118"/>
-<area shape="poly" id="edge11_Node000011_Node000004" title=" " alt="" coords="317,190,286,227,282,224,313,186"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="323,256,116,301,115,296,321,250"/>
+<area shape="rect" id="Node000006" href="$classPgp2fcLaneWrapper.html" title=" " alt="" coords="147,299,299,324"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="347,259,250,301,248,296,345,254"/>
+<area shape="rect" id="Node000007" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="323,299,445,324"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="387,264,387,299,381,299,381,264"/>
+<area shape="rect" id="Node000008" href="$classPgp2fcGtp7.html" title=" " alt="" coords="469,299,566,324"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="419,255,497,296,494,301,416,259"/>
+<area shape="rect" id="Node000010" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="590,299,711,324"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="441,252,608,296,607,301,440,257"/>
+<area shape="rect" id="Node000009" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="441,372,593,397"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="520,338,520,372,515,372,515,338"/>
+<area shape="rect" id="Node000014" href="$classPgp2fcTx.html" title=" " alt="" coords="488,152,571,177"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="532,118,532,152,527,152,527,118"/>
+<area shape="rect" id="Node000016" href="$classPgp2fcTxPhyWrapper.html" title=" " alt="" coords="595,152,757,177"/>
+<area shape="poly" id="edge16_Node000013_Node000016" title=" " alt="" coords="566,107,653,149,651,154,564,112"/>
+<area shape="poly" id="edge14_Node000014_Node000004" title=" " alt="" coords="495,186,409,228,407,223,493,181"/>
+<area shape="rect" id="Node000015" href="$classPgp2fcTxWrapper.html" title=" " alt="" coords="461,225,598,251"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="532,191,532,225,527,225,527,191"/>
 </map>

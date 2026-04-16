@@ -1,7 +1,9 @@
 <map id="PgpTxVcFifo" name="PgpTxVcFifo">
 <area shape="rect" id="Node000001" title=" " alt="" coords="915,445,1018,471"/>
-<area shape="rect" id="Node000021" href="$classPgpXvcWrapper.html" title=" " alt="" coords="904,519,1029,544"/>
-<area shape="poly" id="edge34_Node000001_Node000021" title=" " alt="" coords="969,484,969,519,964,519,964,484"/>
+<area shape="rect" id="Node000021" href="$classPgpTxVcFifoWrapper.html" title=" " alt="" coords="805,519,963,544"/>
+<area shape="poly" id="edge34_Node000001_Node000021" title=" " alt="" coords="945,482,899,520,896,516,941,478"/>
+<area shape="rect" id="Node000022" href="$classPgpXvcWrapper.html" title=" " alt="" coords="987,519,1112,544"/>
+<area shape="poly" id="edge35_Node000001_Node000022" title=" " alt="" coords="992,478,1038,516,1034,520,989,482"/>
 <area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="741,5,848,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="844,33,885,53,925,81,943,98,957,118,966,139,969,163,969,313,969,445,964,445,964,313,964,164,961,141,952,120,939,102,922,85,882,58,841,38"/>
 <area shape="rect" id="Node000006" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="503,372,633,397"/>

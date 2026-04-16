@@ -1,7 +1,11 @@
 <map id="FirFilterSingleChannel" name="FirFilterSingleChannel">
 <area shape="rect" id="Node000001" title=" " alt="" coords="649,113,813,139"/>
-<area shape="rect" id="Node000012" href="$classFirFilterSingleChannelTb.html" title=" " alt="" coords="861,113,1041,139"/>
-<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="827,123,861,123,861,129,827,129"/>
+<area shape="rect" id="Node000012" href="$classFirFilterSingleChannelTb.html" title=" " alt="" coords="881,56,1061,81"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="796,107,861,91,914,79,915,84,862,97,797,113"/>
+<area shape="rect" id="Node000013" href="$classFirFilterSingleChannelTestWrapper.html" title=" " alt="" coords="875,106,1066,146"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="827,123,875,123,875,129,827,129"/>
+<area shape="rect" id="Node000014" href="$classFirFilterSingleChannelWrapper.html" title=" " alt="" coords="861,171,1080,196"/>
+<area shape="poly" id="edge15_Node000001_Node000014" title=" " alt="" coords="797,139,862,155,915,168,914,173,861,161,796,145"/>
 <area shape="rect" id="Node000002" href="$classAxiLiteAsync.html" title=" " alt="" coords="495,88,601,113"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="615,107,650,112,649,117,615,112"/>
 <area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="199,5,274,31"/>

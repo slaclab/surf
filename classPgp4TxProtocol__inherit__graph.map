@@ -1,9 +1,15 @@
 <map id="Pgp4TxProtocol" name="Pgp4TxProtocol">
-<area shape="rect" id="Node000001" title=" " alt="" coords="431,5,554,31"/>
-<area shape="rect" id="Node000002" href="$classPgp4Tx.html" title=" " alt="" coords="457,79,528,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="495,44,495,79,490,79,490,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="635,5,758,31"/>
+<area shape="rect" id="Node000002" href="$classPgp4Tx.html" title=" " alt="" coords="587,79,657,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="677,42,636,80,632,77,673,38"/>
+<area shape="rect" id="Node000018" href="$classPgp4TxProtocolWrapper.html" title=" " alt="" coords="682,79,861,104"/>
+<area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="720,38,761,77,757,80,717,42"/>
 <area shape="rect" id="Node000003" href="$classPgp4Core.html" title=" " alt="" coords="451,152,535,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="495,118,495,152,490,152,490,118"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="590,113,515,154,513,149,588,108"/>
+<area shape="rect" id="Node000016" href="$classPgp4RxWrapper.html" title=" " alt="" coords="559,152,685,177"/>
+<area shape="poly" id="edge15_Node000002_Node000016" title=" " alt="" coords="625,118,625,152,619,152,619,118"/>
+<area shape="rect" id="Node000017" href="$classPgp4TxDirectWrapper.html" title=" " alt="" coords="709,152,873,177"/>
+<area shape="poly" id="edge16_Node000002_Node000017" title=" " alt="" coords="663,107,765,149,763,154,661,112"/>
 <area shape="rect" id="Node000004" href="$classPgp4CoreTb.html" title=" " alt="" coords="5,225,105,251"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="437,177,117,228,106,230,105,225,116,223,436,172"/>
 <area shape="rect" id="Node000005" href="$classPgp4Tb.html" title=" " alt="" coords="129,225,200,251"/>
@@ -19,7 +25,7 @@
 <area shape="rect" id="Node000013" href="$classPgp4GtyUs.html" title=" " alt="" coords="727,225,821,251"/>
 <area shape="poly" id="edge12_Node000003_Node000013" title=" " alt="" coords="549,177,729,223,728,228,547,182"/>
 <area shape="rect" id="Node000015" href="$classPgp4FecTb.html" title=" " alt="" coords="845,225,937,251"/>
-<area shape="poly" id="edge14_Node000003_Node000015" title=" " alt="" coords="548,173,834,223,846,225,845,230,834,228,548,178"/>
+<area shape="poly" id="edge14_Node000003_Node000015" title=" " alt="" coords="549,175,834,223,846,225,845,230,834,228,548,180"/>
 <area shape="rect" id="Node000008" href="$classPgp4GthUsWrapper.html" title=" " alt="" coords="278,299,427,324"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="413,262,368,300,364,296,410,258"/>
 <area shape="rect" id="Node000010" href="$classPgp4Gtp7Wrapper.html" title=" " alt="" coords="452,299,592,324"/>

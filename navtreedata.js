@@ -37,12 +37,12 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "classAxiStreamBatchingFifo_1_1rtl.html",
-"classCfixedAccumulator.html",
-"classFifoWrFsm_1_1rtl.html",
-"classJesdIlasGen_1_1rtl.html",
-"classPgp4FecTb.html",
-"classSlaveAxiIpIntegrator.html",
-"classUdpEngineArp.html"
+"classCaui4GtyIpWrapper.html",
+"classFifoOutputPipeline_1_1rtl.html",
+"classJesd16bTo32b_1_1rtl.html",
+"classPgp3Gtp7Qpll_1_1mapping.html",
+"classSaciSlaveWrapper_1_1rtl.html",
+"classSyncClockFreqWrapper.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

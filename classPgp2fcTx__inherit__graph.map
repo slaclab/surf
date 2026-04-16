@@ -1,7 +1,9 @@
 <map id="Pgp2fcTx" name="Pgp2fcTx">
 <area shape="rect" id="Node000001" title=" " alt="" coords="323,153,405,179"/>
-<area shape="rect" id="Node000010" href="$classPgp2fcLane.html" title=" " alt="" coords="453,153,551,179"/>
-<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="419,163,453,163,453,169,419,169"/>
+<area shape="rect" id="Node000010" href="$classPgp2fcLane.html" title=" " alt="" coords="473,128,571,153"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="419,155,473,146,473,151,419,160"/>
+<area shape="rect" id="Node000017" href="$classPgp2fcTxWrapper.html" title=" " alt="" coords="453,177,591,203"/>
+<area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="419,172,453,177,453,182,418,177"/>
 <area shape="rect" id="Node000002" href="$classSynchronizerVector.html" title=" " alt="" coords="128,5,275,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,35,276,40,305,67,329,98,359,152,355,154,325,101,301,70,273,44,265,39"/>
 <area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="148,55,255,80"/>
@@ -18,14 +20,16 @@
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="261,245,273,238,316,207,349,177,353,181,320,212,276,243,263,249"/>
 <area shape="rect" id="Node000009" href="$classCRC32Rtl.html" title=" " alt="" coords="160,301,243,327"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="255,298,273,288,301,262,325,231,355,178,359,180,329,234,305,265,276,292,257,303"/>
-<area shape="rect" id="Node000011" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="601,79,718,104"/>
-<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="537,144,598,113,623,102,626,107,600,118,539,149"/>
-<area shape="rect" id="Node000012" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="599,128,720,153"/>
-<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="564,153,598,148,599,153,565,159"/>
-<area shape="rect" id="Node000013" href="$classPgp2fcGtp7.html" title=" " alt="" coords="611,177,708,203"/>
-<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="565,173,611,180,610,185,564,178"/>
-<area shape="rect" id="Node000015" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="599,227,720,252"/>
-<area shape="poly" id="edge14_Node000010_Node000015" title=" " alt="" coords="540,183,600,213,626,224,623,229,598,218,537,188"/>
-<area shape="rect" id="Node000014" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="768,177,920,203"/>
-<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="722,187,768,187,768,193,722,193"/>
+<area shape="rect" id="Node000011" href="$classPgp2fcLane__tb.html" title=" " alt="" coords="656,29,773,55"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="549,118,590,90,638,64,666,52,668,57,640,68,593,95,552,122"/>
+<area shape="rect" id="Node000012" href="$classPgp2fcLaneWrapper.html" title=" " alt="" coords="639,79,791,104"/>
+<area shape="poly" id="edge11_Node000010_Node000012" title=" " alt="" coords="583,122,664,101,665,107,585,128"/>
+<area shape="rect" id="Node000013" href="$classPgp2fcGthUltra.html" title=" " alt="" coords="654,128,775,153"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="584,138,654,138,654,143,584,143"/>
+<area shape="rect" id="Node000014" href="$classPgp2fcGtp7.html" title=" " alt="" coords="666,177,763,203"/>
+<area shape="poly" id="edge13_Node000010_Node000014" title=" " alt="" coords="584,154,666,175,665,180,583,159"/>
+<area shape="rect" id="Node000016" href="$classPgp2fcGtyUltra.html" title=" " alt="" coords="654,227,775,252"/>
+<area shape="poly" id="edge15_Node000010_Node000016" title=" " alt="" coords="579,157,592,164,607,177,617,189,626,201,640,213,663,224,661,229,637,218,622,205,612,193,603,180,589,168,577,161"/>
+<area shape="rect" id="Node000015" href="$classPgp2fcGtp7Wrapper.html" title=" " alt="" coords="839,177,991,203"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="777,187,838,187,838,193,777,193"/>
 </map>

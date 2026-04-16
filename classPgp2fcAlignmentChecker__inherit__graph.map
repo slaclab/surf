@@ -1,7 +1,9 @@
 <map id="Pgp2fcAlignmentChecker" name="Pgp2fcAlignmentChecker">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,191,177"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="61,79,135,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,118,101,152,95,152,95,118"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="45,5,151,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,44,101,79,95,79,95,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,152,218,177"/>
+<area shape="rect" id="Node000004" href="$classPgp2fcAlignmentCheckerWrapper.html" title=" " alt="" coords="5,225,245,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="128,191,128,225,123,225,123,191"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="88,79,163,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,118,128,152,123,152,123,118"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="72,5,179,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="128,44,128,79,123,79,123,44"/>
 </map>
