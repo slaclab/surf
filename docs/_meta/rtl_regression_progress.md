@@ -2,18 +2,18 @@
 
 ## Summary
 - Current phase: Phase-1 implementation active
-- Current subsystem: `ethernet/EthMacCore`
-- Current focus module: the first manual `ethernet/EthMacCore` wave is now in place under `tests/ethernet/EthMacCore/`, covering `EthCrc32Parallel`, `EthMacFlowCtrl`, `EthMacRxPause`, `EthMacTxPause`, `EthMacRxFilter`, `EthMacRxShift`, `EthMacTxShift`, `EthMacRxImport`, `EthMacTxExport`, `EthMacRxCsum`, `EthMacTxCsum`, and `EthMacTop`, with the main follow-on choices now being deeper `EthMacRx` / `EthMacTx` / FIFO assembly work or a move into the IPv4 / Raw Ethernet stack.
-- Last updated: 2026-04-10
+- Current subsystem: cross-subsystem planning refresh after the merged `protocols/ssi`, `protocols/pgp`, and `ethernet/EthMacCore` waves
+- Current focus module: refresh the stale phase-1 queue inputs and handoff summary so the next resume point reflects the current merged branch rather than the earlier temporary `axi/`-first deferrals.
+- Last updated: 2026-04-16
 
 ## Current Frontier Snapshot
-- Next queue target: broader phase-1 queue refresh needed after the completed `dsp/generic/fixed` leaf batch
+- Next queue target: remove the stale temporary `ethernet` and `protocols` subsystem deferrals, regenerate `docs/_meta/rtl_phase1_queue.{md,json}`, then take the next real non-deferred frontier from the refreshed queue.
 - Queue note:
   - The axi-first pass is now complete through the previously remaining final 11 `axi/` modules.
-  - The queue snapshot in earlier notes that still pointed at `AxiReadEmulate` / `AxiResize` is now stale and should not be reused.
-  - `dsp/` had been missing from the generated queue scope. The queue generator now includes it so DSP rollout can stay on the normal bottom-up path instead of living as an ad hoc side list.
-  - The broader post-axi transition should still make the queue authoritative again by removing the temporary subsystem deferrals and regenerating it before taking the next non-deferred cross-subsystem module.
-  - While `ethernet` remains deferred in the generated queue inputs, the manually selected `EthMacCore` slice is no longer unstarted on this branch; do not reuse the older docs wording that treated the whole subsystem as untouched.
+  - The current `verification-2` branch already includes the merged `pre-release` state through PR #1392, so the validated `protocols/ssi`, `protocols/pgp`, and manual `ethernet/EthMacCore` waves are all part of the present branch snapshot.
+  - The queue snapshot in `docs/_meta/rtl_phase1_queue.{md,json}` is therefore intentionally behind the actual branch contents because `rtl_phase1_queue_overrides.json` still defers `ethernet` and `protocols` from the earlier `axi/`-first phase.
+  - `dsp/` is now included in the generated queue scope, so DSP rollout no longer needs to live on a hand-maintained side list.
+  - Do not use the currently checked-in queue files as the next-module source of truth until those stale subsystem deferrals have been removed and the queue has been regenerated.
   - `protocols/pgp/pgp3/` is now an explicit local defer in `rtl_phase1_queue_overrides.json`; do not treat it as the default next family breadth target on this branch.
 - Known expected-open tests on this branch:
   - None currently recorded. `AxiResize` and `AxiStreamDmaV2Read` both pass on this merged branch.
@@ -49,10 +49,12 @@
 - Keep wrappers only when they make Python interaction cleaner.
 - Run the `vsg` linter with CI's `vsg-linter.yml` settings on any created or edited VHDL files, and use autofix before doing manual cleanup when possible.
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper.
+- Treat the checked-in queue and override artifacts as living planning inputs that must be refreshed when a previously deferred subsystem wave is merged.
 
 ## Completed Work Items
 - Surveyed repo structure and existing verification flow.
 - Reviewed existing Python regressions and representative VHDL testbenches.
+- Merged the current `pre-release` branch into `verification-2`, bringing the already-landed `protocols/ssi` and `protocols/pgp` regression waves into the same branch line as the earlier `ethernet/EthMacCore` slice.
 - Re-added `dsp/` to the generated phase-1 queue scope so DSP work is tracked by the same bottom-up planner as the other simulator-friendly subsystems.
 - Implemented `tests/dsp/generic/test_DspAddSub.py`.
 - Validated `tests/dsp/generic/test_DspAddSub.py` locally with `./.venv/bin/python -m pytest -n 0 -q tests/dsp/generic/test_DspAddSub.py`.
@@ -248,6 +250,8 @@
 - 2026-04-07: Expanded `tests/protocols/ssi/test_SsiFifo.py` beyond the earlier single-beat subset. The checked-in FIFO bench now proves contiguous 3-beat frame preservation on the default, `VALID_THOLD_G=0`, and `VALID_THOLD_G=2` wrapper paths; exercises repeated-`SOF` malformed-frame handling across the buffered modes; and keeps the existing missing-`SOF` drop plus `SLAVE_READY_EN_G=false` overflow checks. The buffered malformed-frame result is mode-specific at the wrapper boundary: `VALID_THOLD_G=0` drops the malformed repeated-`SOF` frame outright, while `VALID_THOLD_G=2` emits the expected two-beat terminated `EOFE` frame. A follow-up backpressure pass also added explicit drain-side ready toggling on a good 5-beat frame, malformed termination under toggled ready, and thresholded release under intermittent drain stalls so SSI frame policy is now checked under nontrivial sink backpressure without duplicating the full `AxiStreamFifoV2` transport matrix. Revalidated the full touched SSI slice locally with `19 passed`.
 - 2026-04-10: Landed the first manual `ethernet/EthMacCore` bench wave under `tests/ethernet/EthMacCore/`, added the required checked-in wrappers under `ethernet/EthMacCore/wrappers/`, and validated the baseline 12-module slice covering `EthCrc32Parallel`, `EthMacFlowCtrl`, `EthMacRxPause`, `EthMacTxPause`, `EthMacRxFilter`, `EthMacRxShift`, `EthMacTxShift`, `EthMacRxImport`, `EthMacTxExport`, `EthMacRxCsum`, `EthMacTxCsum`, and `EthMacTop`.
 - 2026-04-10: Expanded that same `EthMacCore` slice beyond the initial happy paths. The checked-in Ethernet MAC suite now covers `EthMacTop` filter/backpressure/checksum/pause interactions, GMII and XGMII import/export plus link-not-ready recovery behavior, checksum negative cases, filter multicast/broadcast/filter-disable/multi-beat-drop behavior, shift runtime-control and control-bit propagation edges, and full byte-width `1..16` logic-path coverage for `EthCrc32Parallel`. The full `tests/ethernet/EthMacCore` directory currently passes locally with `32 passed`.
+- 2026-04-16: Merged the current `pre-release` branch into `verification-2`, so this branch line now contains the already-landed SSI and PGP waves from PR #1391 and PR #1392 in addition to the manual Ethernet slice.
+- 2026-04-16: Refreshed the planning docs to move the active frontier from “continue Ethernet next” to “refresh the stale queue/override inputs, then resume from the real merged-branch frontier.”
 - 2026-03-20: Added an explicit project rule to comment new Python regression code where intent or runner behavior is not self-evident.
 - 2026-03-20: Expanded `FifoAsync` to a validated 12-case parameter matrix and enabled default pytest xdist parallelization with `pytest.ini`.
 - 2026-03-20: Added package-coverage policy: packages are covered transitively unless a behavioral helper warrants a dedicated wrapper test.

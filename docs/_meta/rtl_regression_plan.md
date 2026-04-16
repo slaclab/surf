@@ -95,7 +95,7 @@
 - Keep the graph artifacts for provenance, but use the generated path-qualified phase-1 queue in `docs/_meta/rtl_phase1_queue.{md,json}` as the day-to-day source of truth.
 - Record manual phase-1 deferrals and manual order exceptions only in `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit queue order in this plan.
 - Do not re-analyze `rtl_instantiation_graph.json` before every module. Regenerate the queue when needed and take the next non-deferred item from `rtl_phase1_queue.md` unless a concrete blocker forces a documented override.
-- The current manual rollout preference is to finish `axi/` first. That preference is encoded as temporary subsystem deferrals in `docs/_meta/rtl_phase1_queue_overrides.json`, not as a hand-maintained side list in this plan.
+- The earlier temporary `axi/`-first rollout preference has already been completed on the current branch line. The next planning step is to remove stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate the queue, and then resume from the next real non-deferred frontier.
 
 ## Flat Build Order
 The phase-1 simulator-friendly queue is now generated from the checked-in graph as a path-qualified bottom-up order rather than maintained inline in this plan.
@@ -131,11 +131,11 @@ Workflow:
 - The repo has a checked-in inventory and handoff system.
 - New windows can recover project state by reading the handoff artifacts only.
 - The Python-only regression direction is documented and stable.
-- The first pilot modules are selected and ready for implementation.
+- The queue artifacts and their override inputs stay aligned with the actual validated branch frontier instead of lagging behind completed subsystem waves.
 - The smoke/functional tier split is established in the plan and progress tracking.
 
 ## Open Questions And Deferred Decisions
 - Whether PR-vs-nightly split is needed immediately or only after runtime data.
 - Exact criteria for moving a vendor-heavy module out of `deferred_vendor_heavy`.
-- Which subsystem should be the first large-scale migration after the pilot modules.
+- Whether the next broad post-refresh wave should follow the regenerated queue directly or continue manually in `ethernet/EthMacCore`.
 - Whether a separate tracked list of high-risk behavioral package helpers is needed once the module inventory stabilizes.

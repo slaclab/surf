@@ -18,15 +18,16 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete through the previously remaining final 11 `axi/` modules, `dsp/` is now included in the generated phase-1 queue, and a manual first-wave `ethernet/EthMacCore` slice is now also validated under `tests/ethernet/EthMacCore/`. `ethernet` and `protocols` still remain temporarily deferred in `docs/_meta/rtl_phase1_queue_overrides.json`, so the generated queue is intentionally behind the manually advanced Ethernet work.
+- Current frontier: the axi-first pass is complete, the merged branch line now includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the earlier manual `ethernet/EthMacCore` slice is still in place. The immediate planning gap is that `docs/_meta/rtl_phase1_queue_overrides.json` still carries the old temporary `ethernet` / `protocols` deferrals, so the checked-in queue artifacts are now behind the real branch frontier.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
-  - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue regeneration is the next step.
+  - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue/override refresh is the next step.
 - Current queue discipline:
   - Keep `dsp/` in the generated queue scope. Do not track DSP rollout in a separate hand-maintained list.
   - The planned `dsp/generic/fixed` leaf set is now validated: `FirFilterTap`, `DspAddSub`, `DspComparator`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`.
-  - The later cross-subsystem cleanup still includes removing the temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` and regenerating `docs/_meta/rtl_phase1_queue.{md,json}` when that broader transition is actually taken.
-  - Until that happens, do not treat the generated queue artifacts as evidence that `ethernet` is untouched; the manually selected `EthMacCore` slice is already implemented and passing even though the queue inputs still defer the subsystem.
+  - The next cross-subsystem cleanup is no longer hypothetical: remove the stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` before using the queue as the next-module source of truth again.
+  - Until that happens, do not treat the generated queue artifacts as evidence that `ethernet` or `protocols` are untouched; this branch already contains the Ethernet slice plus the merged SSI and PGP waves even though the current queue inputs still defer those subsystems.
+  - Keep the local `protocols/pgp/pgp3/` defer unless there is a deliberate decision to broaden the PGP family rollout.
   - Do not hand-maintain queue order in the plan or handoff docs.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
@@ -142,7 +143,7 @@ One small RTL fix landed during that validation pass because the new `AxiStreamD
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
 
 ## Immediate Next Task
-Choose whether the next manual branch step stays in `ethernet/EthMacCore` or returns to another non-deferred subsystem. If staying in Ethernet, the most natural follow-on is the MAC assembly layer (`EthMacRx`, `EthMacTx`, `EthMacRxFifo`, `EthMacTxFifo`) or a move into the IPv4 / Raw Ethernet stack using the now-established `tests/ethernet/EthMacCore/ethmac_test_utils.py` helper and checked-in wrapper pattern. If switching back to queue-driven work, remove the temporary subsystem deferrals and regenerate `docs/_meta/rtl_phase1_queue.{md,json}` first so the queue is authoritative again.
+Refresh the phase-1 planning inputs before taking the next module. Remove the stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate `docs/_meta/rtl_instantiation_graph.{md,json}` plus `docs/_meta/rtl_phase1_queue.{md,json}`, and then choose the next non-deferred frontier from that refreshed queue. If the follow-on still stays manual instead of queue-driven, the leading candidates remain the deeper `ethernet/EthMacCore` assembly layer (`EthMacRx`, `EthMacTx`, `EthMacRxFifo`, `EthMacTxFifo`) or the next wider non-`pgp3` protocol slice.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
