@@ -9,13 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise the wrapper-specific AXI-Lite register bank alongside one
-#   inbound server-routing path through the integrated MAC/IPv4/UDP stack.
+# - Sweep: Exercise the wrapper-specific AXI-Lite register bank plus inbound
+#   server and client routing through the integrated MAC/IPv4/UDP stack.
 # - Stimulus: Program the client configuration and soft-IP registers through
-#   AXI-Lite, then inject a UDP/IP/Ethernet frame addressed to the local host.
+#   AXI-Lite, then inject one server-targeted and one client-targeted
+#   UDP/IP/Ethernet frame addressed to the local host.
 # - Checks: AXI-Lite writes and reads must reflect the programmed values, the
-#   wrapper must route the UDP payload to the server output, and the server
-#   debug readbacks must report the remote endpoint that sent the packet.
+#   wrapper must route server and client traffic to the matching outputs, and
+#   the server debug readbacks must report the remote endpoint that sent the
+#   server packet.
 # - Timing: The test uses the wrapper's real AXI-Lite and AXIS interfaces so
 #   register-bank behavior is verified in the same integration topology as RTL.
 
@@ -87,6 +89,27 @@ async def udp_engine_wrapper_axil_and_server_path_test(dut):
     assert payload_from_beats(server_observed) == b"udp-wrapper-server-path"
     assert await axil_read_u32(bench.axil, 0x800) == port_config_word(0x4567)
     assert await axil_read_u32(bench.axil, 0x804) == ipv4_config_word(LEGACY_IPS[1])
+
+    client_inbound = build_ipv4_udp_frame(
+        dst_mac=LEGACY_MAC_WIRES[0],
+        src_mac=LEGACY_MAC_WIRES[1],
+        src_ip=LEGACY_IPS[1],
+        dst_ip=LEGACY_IPS[0],
+        src_port=0x6789,
+        dst_port=8193,
+        payload=b"udp-wrapper-client-rx",
+    )
+    client_inbound_send = cocotb.start_soon(
+        send_contiguous_frame(bench.mac_source, frame_beats_from_bytes(client_inbound), clk=bench.clk)
+    )
+    client_observed = await recv_frame(
+        bench.client_sink,
+        clk=bench.clk,
+        ready_signal=dut.mClientTReady,
+        timeout_cycles=128,
+    )
+    await client_inbound_send
+    assert payload_from_beats(client_observed) == b"udp-wrapper-client-rx"
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="udp_engine_wrapper_flat_wrapper")])

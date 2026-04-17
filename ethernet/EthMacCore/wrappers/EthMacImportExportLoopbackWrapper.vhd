@@ -60,6 +60,8 @@ architecture rtl of EthMacImportExportLoopbackWrapper is
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
+   signal xlgmiiTxd : slv(127 downto 0) := (others => '0');
+   signal xlgmiiTxc : slv(15 downto 0)  := (others => '0');
    signal xgmiiTxd : slv(63 downto 0) := (others => '0');
    signal xgmiiTxc : slv(7 downto 0)  := (others => '0');
    signal gmiiTxEn : sl               := '0';
@@ -110,8 +112,8 @@ begin
          ethRst         => ethRst,
          macObMaster    => sAxisMaster,
          macObSlave     => sAxisSlave,
-         xlgmiiTxd      => open,
-         xlgmiiTxc      => open,
+         xlgmiiTxd      => xlgmiiTxd,
+         xlgmiiTxc      => xlgmiiTxc,
          xgmiiTxd       => xgmiiTxd,
          xgmiiTxc       => xgmiiTxc,
          gmiiTxEn       => gmiiTxEn,
@@ -134,8 +136,8 @@ begin
          ethClk      => ethClk,
          ethRst      => ethRst,
          macIbMaster => mAxisMaster,
-         xlgmiiRxd   => (others => '0'),
-         xlgmiiRxc   => (others => '1'),
+         xlgmiiRxd   => xlgmiiTxd,
+         xlgmiiRxc   => xlgmiiTxc,
          xgmiiRxd    => xgmiiTxd,
          xgmiiRxc    => xgmiiTxc,
          gmiiRxDv    => gmiiTxEn,

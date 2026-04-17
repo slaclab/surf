@@ -9,17 +9,20 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover both supported functional PHY mappings, `GMII` and `XGMII`,
-#   and explicitly exercise the exporter with `phyReady` both high and low.
+# - Sweep: Cover the functional `GMII`/`XGMII` paths plus the current
+#   placeholder `XLGMII` path, and explicitly exercise the exporter with
+#   `phyReady` both high and low where the path is implemented.
 # - Stimulus: Send one minimum-size frame, one longer multi-beat frame, one
 #   frame while the link is marked not ready, and then one recovery frame after
 #   the link returns.
-# - Checks: Successful transmissions must pulse `txCountEn`, the blocked frame
-#   must raise `txLinkNotReady` without producing output data while the link is
-#   down, and normal export behavior must recover cleanly after the ready
-#   signal is restored. The recovery expectation is PHY-specific because the
-#   current XGMII path drains the blocked frame after the link returns, while
-#   the GMII path drops it.
+# - Checks: Successful `GMII`/`XGMII` transmissions must pulse `txCountEn`, the
+#   blocked frame must raise `txLinkNotReady` without producing output data
+#   while the link is down, and normal export behavior must recover cleanly
+#   after the ready signal is restored. The recovery expectation is PHY-
+#   specific because the current XGMII path drains the blocked frame after the
+#   link returns, while the GMII path drops it. `XLGMII` is still a placeholder
+#   leaf, so the bench checks that it remains inert instead of asserting a
+#   nonexistent data path.
 # - Timing: The receive timeout is scaled to the chosen PHY because the GMII
 #   path serializes one byte per clock while XGMII transmits eight.
 
@@ -66,6 +69,20 @@ async def eth_mac_tx_export_test(dut):
     sink = bench.sink
     assert source is not None
     assert sink is not None
+
+    if phy_type == "XLGMII":
+        placeholder_frame = build_ethernet_frame(
+            dst_mac=0x0C0D0E0F1011,
+            src_mac=0x121314151617,
+            eth_type=0x9000,
+            payload=bytes(range(46)),
+        )
+        await send_contiguous_frame(source, frame_beats_from_bytes(placeholder_frame), clk=bench.clk)
+        await expect_no_output(sink, clk=bench.clk, cycles=24)
+        assert int(dut.txCountEn.value) == 0
+        assert int(dut.txUnderRun.value) == 0
+        assert int(dut.txLinkNotReady.value) == 0
+        return
 
     min_frame = build_ethernet_frame(
         dst_mac=0x0C0D0E0F1011,
@@ -138,9 +155,9 @@ async def eth_mac_tx_export_test(dut):
     await recovery_pulse
 
     if phy_type == "XGMII":
-        # In the XGMII path the held-off frame drains first once the link
-        # returns, so the recovery frame arrives second. The stalled frame is
-        # padded by the TX path up to Ethernet's minimum non-FCS size.
+        # In the XGMII export/import path the held-off frame drains first once
+        # the link returns, so the recovery frame arrives second. The stalled
+        # frame is padded by the TX path up to Ethernet's minimum non-FCS size.
         assert payload_from_beats(recovery_observed) == pad_ethernet_frame_to_min_size(blocked_frame)
         drained_observed = await recv_frame(sink, clk=bench.clk, timeout_cycles=timeout_cycles)
         assert payload_from_beats(drained_observed) == recovery_frame
@@ -153,6 +170,7 @@ async def eth_mac_tx_export_test(dut):
 
 
 PARAMETER_SWEEP = [
+    parameter_case("xlgmii_loopback", PHY_TYPE_G="XLGMII"),
     parameter_case("xgmii_loopback", PHY_TYPE_G="XGMII"),
     parameter_case("gmii_loopback", PHY_TYPE_G="GMII"),
 ]

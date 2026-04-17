@@ -9,13 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise the IPv4 top across one UDP receive path, one ICMP
-#   echo-response path, and one ARP client lookup round-trip.
-# - Stimulus: Exercise the full IPv4 top with three focused scenarios:
-#   inbound UDP routing, inbound ICMP echo handling, and ARP client lookup.
+# - Sweep: Exercise the IPv4 top across one UDP receive path, one protocol TX
+#   path, one ICMP echo-response path, and one ARP client lookup round-trip.
+# - Stimulus: Exercise the full IPv4 top with four focused scenarios:
+#   inbound UDP routing, outbound protocol transmission, inbound ICMP echo
+#   handling, and ARP client lookup.
 # - Checks: UDP traffic must emerge on the protocol output slot as the expected
-#   pseudo-header frame, ICMP echo requests must produce outbound reply frames,
-#   and ARP requests must round-trip through the top-level ARP client ports.
+#   pseudo-header frame, outbound protocol traffic must emerge as a wire-format
+#   IPv4 frame on the MAC output, ICMP echo requests must produce outbound
+#   reply frames, and ARP requests must round-trip through the top-level ARP
+#   client ports.
 # - Timing: Each scenario uses handshaked sources and sinks so the top-level
 #   assembly is verified through its real interfaces instead of local shortcuts.
 
@@ -41,6 +44,7 @@ from tests.ethernet.IpV4Engine.ipv4_test_utils import (
     build_icmp_echo_frame,
     build_icmp_echo_reply_packet,
     build_ipv4_rx_pseudo_frame,
+    build_ipv4_tx_pseudo_frame,
     build_ipv4_tx_wire_frame,
     build_ipv4_udp_payload,
     build_ipv4_frame,
@@ -122,6 +126,46 @@ async def ipv4_top_udp_routing_test(dut):
     )
     await udp_send
     assert payload_from_beats(udp_observed) == udp_expected
+
+
+@cocotb.test()
+async def ipv4_top_protocol_tx_path_test(dut):
+    bench, mac_sink, _, prot_source, _, _ = await setup_top_bench(dut)
+
+    udp_payload = build_ipv4_udp_payload(
+        src_port=0x2468,
+        dst_port=0x1357,
+        payload=b"top-level-protocol-tx",
+        src_ip=LOCAL_IP,
+        dst_ip=REMOTE_IP,
+    )
+    tx_request = build_ipv4_tx_pseudo_frame(
+        dst_mac=REMOTE_MAC_WIRE,
+        src_ip=LOCAL_IP,
+        dst_ip=REMOTE_IP,
+        protocol=0x11,
+        payload=udp_payload,
+    )
+    tx_expected = build_ipv4_tx_wire_frame(
+        dst_mac=REMOTE_MAC_WIRE,
+        src_mac=LOCAL_MAC_WIRE,
+        src_ip=LOCAL_IP,
+        dst_ip=REMOTE_IP,
+        protocol=0x11,
+        payload=udp_payload,
+    )
+
+    tx_send = cocotb.start_soon(
+        send_contiguous_frame(prot_source, frame_beats_from_bytes(tx_request), clk=bench.clk)
+    )
+    tx_observed = await recv_frame(
+        mac_sink,
+        clk=bench.clk,
+        ready_signal=dut.mMacTReady,
+        timeout_cycles=256,
+    )
+    await tx_send
+    assert payload_from_beats(tx_observed) == tx_expected
 
 
 @cocotb.test()

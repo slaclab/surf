@@ -9,17 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover both supported functional PHY mappings in this wrapper,
-#   `GMII` and `XGMII`, and include a link-not-ready interval in each run.
+# - Sweep: Cover the functional `GMII`/`XGMII` paths plus the current
+#   placeholder `XLGMII` path.
 # - Stimulus: Send one minimum-size frame, one longer multi-beat frame, one
 #   frame while `phyReady=0`, and then one recovery frame after re-enabling the
 #   link.
-# - Checks: Ready PHY modes must recover the original AXIS bytes and pulse
+# - Checks: `GMII` and `XGMII` must recover the original AXIS bytes and pulse
 #   `rxCountEn`, the blocked frame must not appear while the link is down, and
 #   the receiver must return to normal operation after `phyReady` is restored.
 #   The recovery expectation is PHY-specific: GMII drops traffic presented
 #   while the link is down, while the current XGMII loopback path presents that
-#   queued frame once `phyReady` returns.
+#   queued frame once `phyReady` returns. `XLGMII` is still a placeholder leaf,
+#   so the bench checks that it remains inert instead of over-claiming support.
 # - Timing: GMII takes many more cycles than XGMII to serialize a frame, so the
 #   bench scales its receive timeout to the selected PHY mode.
 
@@ -67,6 +68,19 @@ async def eth_mac_rx_import_test(dut):
     assert source is not None
     assert sink is not None
 
+    if phy_type == "XLGMII":
+        placeholder_frame = build_ethernet_frame(
+            dst_mac=0x020304050607,
+            src_mac=0x0A0B0C0D0E0F,
+            eth_type=0x88B5,
+            payload=bytes(range(46)),
+        )
+        await send_contiguous_frame(source, frame_beats_from_bytes(placeholder_frame), clk=bench.clk)
+        await expect_no_output(sink, clk=bench.clk, cycles=24)
+        assert int(dut.rxCountEn.value) == 0
+        assert int(dut.rxCrcError.value) == 0
+        return
+
     min_frame = build_ethernet_frame(
         dst_mac=0x020304050607,
         src_mac=0x0A0B0C0D0E0F,
@@ -103,8 +117,8 @@ async def eth_mac_rx_import_test(dut):
 
     # A deasserted PHY-ready input resets the import logic, so traffic that
     # arrives in that interval must not leak partial output while the link is
-    # down. The current XGMII path replays the blocked frame after recovery,
-    # whereas the GMII path discards it.
+    # down. The current XGMII/XLGMII paths replay the blocked frame after
+    # recovery, whereas the GMII path discards it.
     dut.phyReady.value = 0
     blocked_frame = build_ethernet_frame(
         dst_mac=0x313233343536,
@@ -136,7 +150,7 @@ async def eth_mac_rx_import_test(dut):
     await recovery_pulse
 
     if phy_type == "XGMII":
-        # The XGMII export/import loopback retains the blocked frame across the
+        # The XGMII import/export loopback retains the blocked frame across the
         # ready transition, so the first recovered packet is the stalled one.
         # Because that packet traverses the TX path, it comes back padded to
         # Ethernet's minimum 60-byte frame size.
@@ -152,6 +166,7 @@ async def eth_mac_rx_import_test(dut):
 
 
 PARAMETER_SWEEP = [
+    parameter_case("xlgmii_loopback", PHY_TYPE_G="XLGMII"),
     parameter_case("xgmii_loopback", PHY_TYPE_G="XGMII"),
     parameter_case("gmii_loopback", PHY_TYPE_G="GMII"),
 ]

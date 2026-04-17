@@ -9,14 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover the ICMP reply block with one valid local echo request plus
-#   two representative reject cases: wrong destination IP and non-echo type.
+# - Sweep: Cover the ICMP reply block with valid multi-beat local echo
+#   requests, a truncated single-beat reject case, and representative protocol
+#   rejects.
 # - Stimulus: Present ICMP pseudo-header traffic exactly as IpV4EngineRx would
-#   emit it, including a valid echo request, a non-local request, and a
-#   non-echo ICMP packet.
+#   emit it, including valid echo requests, a truncated single-beat request, a
+#   non-local request, and a non-echo ICMP packet.
 # - Checks: Only an echo request addressed to the configured local IP may
-#   produce a response, and that response must be a correctly swapped echo
-#   reply pseudo-frame.
+#   produce a response, that response must be a correctly swapped echo reply
+#   pseudo-frame, the terminal EOFE bit must be preserved, and the block must
+#   recover cleanly after rejected traffic.
 # - Timing: The bench waits on AXIS visibility so the assertions remain stable
 #   across internal pipeline depth changes.
 
@@ -27,9 +29,9 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
+    assert_beat_list,
     expect_no_output,
     frame_beats_from_bytes,
-    payload_from_beats,
     recv_frame,
     send_contiguous_frame,
     setup_flat_emac_testbench,
@@ -70,33 +72,37 @@ async def icmp_engine_reply_filtering_test(dut):
     assert source is not None
     assert sink is not None
 
-    echo_payload = b"icmp-echo-request-payload"
-    echo_request = build_ipv4_rx_pseudo_frame(
-        src_mac=REMOTE_MAC,
-        src_ip=REMOTE_IP,
-        dst_ip=LOCAL_IP,
-        protocol=0x01,
-        payload=build_icmp_echo_packet(
-            payload=echo_payload,
-            identifier=0x3344,
-            sequence=0x0102,
+    echo_payload = b"icmp-echo-request-payload-with-extra-bytes"
+    echo_request = frame_beats_from_bytes(
+        build_ipv4_rx_pseudo_frame(
+            src_mac=REMOTE_MAC,
+            src_ip=REMOTE_IP,
+            dst_ip=LOCAL_IP,
+            protocol=0x01,
+            payload=build_icmp_echo_packet(
+                payload=echo_payload,
+                identifier=0x3344,
+                sequence=0x0102,
+            ),
         ),
+        eofe=1,
     )
-    expected_reply = build_ipv4_tx_pseudo_frame(
-        dst_mac=REMOTE_MAC,
-        src_ip=LOCAL_IP,
-        dst_ip=REMOTE_IP,
-        protocol=0x01,
-        payload=build_icmp_echo_reply_packet(
-            payload=echo_payload,
-            identifier=0x3344,
-            sequence=0x0102,
+    expected_reply = frame_beats_from_bytes(
+        build_ipv4_tx_pseudo_frame(
+            dst_mac=REMOTE_MAC,
+            src_ip=LOCAL_IP,
+            dst_ip=REMOTE_IP,
+            protocol=0x01,
+            payload=build_icmp_echo_reply_packet(
+                payload=echo_payload,
+                identifier=0x3344,
+                sequence=0x0102,
+            ),
         ),
+        eofe=1,
     )
 
-    reply_send = cocotb.start_soon(
-        send_contiguous_frame(source, frame_beats_from_bytes(echo_request), clk=bench.clk)
-    )
+    reply_send = cocotb.start_soon(send_contiguous_frame(source, echo_request, clk=bench.clk))
     reply_observed = await recv_frame(
         sink,
         clk=bench.clk,
@@ -104,7 +110,25 @@ async def icmp_engine_reply_filtering_test(dut):
         timeout_cycles=128,
     )
     await reply_send
-    assert payload_from_beats(reply_observed) == expected_reply
+    assert_beat_list(reply_observed, expected_reply)
+
+    truncated_request = frame_beats_from_bytes(
+        build_ipv4_rx_pseudo_frame(
+            src_mac=REMOTE_MAC,
+            src_ip=REMOTE_IP,
+            dst_ip=LOCAL_IP,
+            protocol=0x01,
+            payload=build_icmp_echo_packet(
+                payload=b"",
+                identifier=0x0101,
+                sequence=0x0202,
+            ),
+        )
+    )
+    truncated_request[0].last = 1
+    truncated_request[0].keep = 0xFFFF
+    await send_contiguous_frame(source, truncated_request[:1], clk=bench.clk)
+    await expect_no_output(sink, clk=bench.clk, cycles=12)
 
     non_local_request = build_ipv4_rx_pseudo_frame(
         src_mac=REMOTE_MAC,
@@ -129,6 +153,43 @@ async def icmp_engine_reply_filtering_test(dut):
     )
     await send_contiguous_frame(source, frame_beats_from_bytes(non_echo_message), clk=bench.clk)
     await expect_no_output(sink, clk=bench.clk, cycles=12)
+
+    second_payload = b"icmp-second-valid-request"
+    second_request = frame_beats_from_bytes(
+        build_ipv4_rx_pseudo_frame(
+            src_mac=REMOTE_MAC,
+            src_ip=REMOTE_IP,
+            dst_ip=LOCAL_IP,
+            protocol=0x01,
+            payload=build_icmp_echo_packet(
+                payload=second_payload,
+                identifier=0x5566,
+                sequence=0x0708,
+            ),
+        )
+    )
+    second_expected = frame_beats_from_bytes(
+        build_ipv4_tx_pseudo_frame(
+            dst_mac=REMOTE_MAC,
+            src_ip=LOCAL_IP,
+            dst_ip=REMOTE_IP,
+            protocol=0x01,
+            payload=build_icmp_echo_reply_packet(
+                payload=second_payload,
+                identifier=0x5566,
+                sequence=0x0708,
+            ),
+        )
+    )
+    second_send = cocotb.start_soon(send_contiguous_frame(source, second_request, clk=bench.clk))
+    second_observed = await recv_frame(
+        sink,
+        clk=bench.clk,
+        ready_signal=dut.mAxisTReady,
+        timeout_cycles=128,
+    )
+    await second_send
+    assert_beat_list(second_observed, second_expected)
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="icmp_engine_wrapper")])
