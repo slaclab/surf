@@ -34,6 +34,7 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import env_flag, env_float, parameter_case
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
+    PGP4_D_HEADER,
     PGP4_K_HEADER,
     initialize_signals,
     pgp4_idle_word,

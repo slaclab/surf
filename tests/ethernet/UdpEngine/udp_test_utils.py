@@ -23,7 +23,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     cycle,
     frame_beats_from_bytes,
     mac_config_word_from_wire,
-    payload_from_beats,
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import ipv4_config_word
