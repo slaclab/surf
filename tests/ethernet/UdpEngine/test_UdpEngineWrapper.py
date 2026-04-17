@@ -51,6 +51,8 @@ WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineWrapperFlatWrapper.vhd"
 async def udp_engine_wrapper_axil_and_server_path_test(dut):
     bench = await setup_udp_wrapper_bench(dut)
 
+    # Start with the wrapper-local AXI-Lite register bank, since that behavior
+    # is unique to `UdpEngineWrapper` rather than the underlying UDP core.
     await axil_write_u32(bench.axil, 0x000, 0x0020)
     await axil_write_u32(bench.axil, 0x004, ipv4_config_word(LEGACY_IPS[1]))
     await axil_write_u32(bench.axil, 0xFE4, ipv4_config_word("192.168.2.99"))
@@ -60,6 +62,8 @@ async def udp_engine_wrapper_axil_and_server_path_test(dut):
     assert await axil_read_u32(bench.axil, 0xFE4) == ipv4_config_word("192.168.2.99")
     assert int(dut.softIp.value) == ipv4_config_word("192.168.2.99")
 
+    # Then prove one real inbound server-routing path through the integrated
+    # MAC/IPv4/UDP stack and check the exported debug readbacks.
     inbound_frame = build_ipv4_udp_frame(
         dst_mac=LEGACY_MAC_WIRES[0],
         src_mac=LEGACY_MAC_WIRES[1],

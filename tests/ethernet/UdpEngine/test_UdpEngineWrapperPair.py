@@ -37,23 +37,24 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     cycle,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import IPV4_RTL_SOURCES
-from tests.ethernet.UdpEngine.udp_test_utils import LEGACY_IP_CFGS, UDP_RTL_SOURCES, setup_udp_wrapper_pair_bench
+from tests.ethernet.UdpEngine.udp_test_utils import (
+    LEGACY_IP_CFGS,
+    UDP_RTL_SOURCES,
+    setup_udp_wrapper_pair_bench,
+    wait_for_pair_arp_resolution,
+)
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineWrapperPairFlatWrapper.vhd"
-
-
-async def wait_for_pair_arp_resolution(dut, *, clk, cycles: int = 256) -> None:
-    # The client wrapper needs time to emit an ARP request, receive the server
-    # response through the selected link, and update its internal ARP table.
-    await cycle(clk, cycles)
 
 
 @cocotb.test()
 async def udp_engine_wrapper_pair_matches_legacy_route_switching_test(dut):
     bench = await setup_udp_wrapper_pair_bench(dut)
 
-    await wait_for_pair_arp_resolution(dut, clk=bench.clk)
+    # The legacy bench learns server 0 first, so leave time for the client
+    # wrapper to emit and resolve its initial ARP transaction.
+    await wait_for_pair_arp_resolution(clk=bench.clk)
     payload0 = b"legacy-path-server0"
     send0 = cocotb.start_soon(
         send_contiguous_frame(bench.client_source, frame_beats_from_bytes(payload0), clk=bench.clk)
@@ -71,9 +72,11 @@ async def udp_engine_wrapper_pair_matches_legacy_route_switching_test(dut):
     await with_timeout(send0, 10, "us")
     assert payload_from_beats(observed0) == payload0
 
+    # Now retarget the remote IP and the selected physical link so the second
+    # transfer follows server 1, matching the route switch in `UdpEngineTb`.
     dut.clientRemoteIp.value = LEGACY_IP_CFGS[2]
     dut.selectedServer.value = 2
-    await wait_for_pair_arp_resolution(dut, clk=bench.clk)
+    await wait_for_pair_arp_resolution(clk=bench.clk)
     payload1 = b"legacy-path-server1"
     send1 = cocotb.start_soon(
         send_contiguous_frame(bench.client_source, frame_beats_from_bytes(payload1), clk=bench.clk)
@@ -91,6 +94,8 @@ async def udp_engine_wrapper_pair_matches_legacy_route_switching_test(dut):
     await with_timeout(send1, 10, "us")
     assert payload_from_beats(observed1) == payload1
 
+    # Finally switch only the physical link back to server 0 and use `tDest=1`
+    # so the client reuses its cached indexed ARP entry from the first route.
     dut.selectedServer.value = 1
     await cycle(bench.clk, 8)
     payload2 = b"legacy-indexed-server0"

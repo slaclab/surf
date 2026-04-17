@@ -25,7 +25,6 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
-    cycle,
     frame_beats_from_bytes,
     payload_from_beats,
     recv_frame,
@@ -52,6 +51,8 @@ WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineRxFlatWrapper.vhd"
 async def udp_engine_rx_routes_server_payload_and_debug_test(dut):
     bench = await setup_udp_rx_bench(dut)
 
+    # Drive one server-destined pseudo-UDP frame into the RX path so the DUT
+    # has to strip the header and capture the sender debug metadata.
     server_payload = b"udp-rx-server-path"
     server_frame = build_udp_rx_pseudo_frame(
         remote_mac=LEGACY_MAC_WIRES[1],
@@ -83,6 +84,8 @@ async def udp_engine_rx_routes_server_payload_and_debug_test(dut):
 async def udp_engine_rx_routes_client_payload_and_detection_test(dut):
     bench = await setup_udp_rx_bench(dut)
 
+    # The client route uses the same on-wire format but a different local port,
+    # so this packet should emerge on the client-side output instead.
     client_payload = b"udp-rx-client-path"
     client_frame = build_udp_rx_pseudo_frame(
         remote_mac=LEGACY_MAC_WIRES[1],
@@ -111,6 +114,8 @@ async def udp_engine_rx_routes_client_payload_and_detection_test(dut):
 async def udp_engine_rx_routes_dhcp_socket_test(dut):
     bench = await setup_udp_rx_bench(dut)
 
+    # DHCP is recognized by its dedicated socket tuple even though it rides
+    # through the shared UDP RX datapath.
     dhcp_payload = b"udp-rx-dhcp-path"
     dhcp_frame = build_udp_rx_pseudo_frame(
         remote_mac=LEGACY_MAC_WIRES[1],

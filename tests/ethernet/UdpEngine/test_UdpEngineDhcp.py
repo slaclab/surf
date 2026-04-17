@@ -25,17 +25,14 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
-    FlatEmacEndpoint,
     cycle,
     frame_beats_from_bytes,
     payload_from_beats,
     recv_frame,
     send_contiguous_frame,
-    setup_flat_emac_testbench,
 )
 from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_IPS,
-    LEGACY_MAC_CFGS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
     build_dhcp_reply_payload,
@@ -44,34 +41,21 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     extract_dhcp_server_identifier,
     extract_dhcp_xid,
     ipv4_config_word,
+    setup_udp_dhcp_bench,
 )
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineDhcpFlatWrapper.vhd"
 
 
-async def setup_udp_dhcp_bench(dut):
-    bench = await setup_flat_emac_testbench(
-        dut,
-        clk_name="clk",
-        rst_name="rst",
-        source_prefix="sDhcp",
-        initial_values={
-            "localMac": LEGACY_MAC_CFGS[0],
-            "localIp": 0,
-            "mDhcpTReady": 0,
-        },
-    )
-    assert bench.source is not None
-    return bench, bench.source, FlatEmacEndpoint(dut, prefix="mDhcp")
-
-
 @cocotb.test()
 async def udp_engine_dhcp_offer_ack_sequence_test(dut):
-    bench, dhcp_source, dhcp_sink = await setup_udp_dhcp_bench(dut)
+    bench = await setup_udp_dhcp_bench(dut)
 
+    # Let the engine boot through its shortened timeout logic and emit the
+    # first discover message on the dedicated DHCP stream.
     discover_observed = await recv_frame(
-        dhcp_sink,
+        bench.sink,
         clk=bench.clk,
         ready_signal=dut.mDhcpTReady,
         timeout_cycles=256,
@@ -80,6 +64,8 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     discover_xid = extract_dhcp_xid(discover_payload)
     assert extract_dhcp_message_type(discover_payload) == 1
 
+    # A matching offer should move the state machine into the request phase
+    # while preserving the same DHCP transaction identifier.
     offer_payload = build_dhcp_reply_payload(
         message_type=2,
         xid=discover_xid,
@@ -88,10 +74,10 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
         siaddr=LEGACY_IPS[1],
     )
     offer_send = cocotb.start_soon(
-        send_contiguous_frame(dhcp_source, frame_beats_from_bytes(offer_payload), clk=bench.clk)
+        send_contiguous_frame(bench.source, frame_beats_from_bytes(offer_payload), clk=bench.clk)
     )
     request_observed = await recv_frame(
-        dhcp_sink,
+        bench.sink,
         clk=bench.clk,
         ready_signal=dut.mDhcpTReady,
         timeout_cycles=256,
@@ -103,6 +89,8 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     assert extract_dhcp_requested_ip(request_payload) == "192.168.2.44"
     assert extract_dhcp_server_identifier(request_payload) == LEGACY_IPS[1]
 
+    # The ack is the step that should finally publish the leased IP address on
+    # the wrapper-visible `dhcpIp` output.
     ack_payload = build_dhcp_reply_payload(
         message_type=5,
         xid=request_xid,
@@ -111,7 +99,7 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
         siaddr=LEGACY_IPS[1],
     )
     ack_send = cocotb.start_soon(
-        send_contiguous_frame(dhcp_source, frame_beats_from_bytes(ack_payload), clk=bench.clk)
+        send_contiguous_frame(bench.source, frame_beats_from_bytes(ack_payload), clk=bench.clk)
     )
     await ack_send
     for _ in range(128):

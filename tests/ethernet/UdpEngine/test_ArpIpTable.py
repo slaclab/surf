@@ -25,46 +25,29 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.EthMacCore.ethmac_test_utils import cycle, setup_flat_emac_testbench
-from tests.ethernet.UdpEngine.udp_test_utils import LEGACY_IP_CFGS, LEGACY_MAC_CFGS, UDP_RTL_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import cycle
+from tests.ethernet.UdpEngine.udp_test_utils import (
+    LEGACY_IP_CFGS,
+    LEGACY_MAC_CFGS,
+    UDP_RTL_SOURCES,
+    pulse_signal,
+    setup_arp_ip_table_bench,
+)
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/ArpIpTableFlatWrapper.vhd"
-
-
-async def setup_arp_ip_table_bench(dut):
-    return await setup_flat_emac_testbench(
-        dut,
-        clk_name="clk",
-        rst_name="rst",
-        initial_values={
-            "ipAddrIn": 0,
-            "pos": 0,
-            "clientRemoteDetIp": 0,
-            "clientRemoteDetValid": 0,
-            "ipWrEn": 0,
-            "ipWrAddr": 0,
-            "macWrEn": 0,
-            "macWrAddr": 0,
-        },
-    )
-
-
-async def pulse(signal, *, clk) -> None:
-    signal.value = 1
-    await cycle(clk, 1)
-    signal.value = 0
-    await cycle(clk, 1)
 
 
 @cocotb.test()
 async def arp_ip_table_lookup_by_ip_and_position_test(dut):
     bench = await setup_arp_ip_table_bench(dut)
 
+    # Seed the table exactly the way the integrated UDP stack does: one write
+    # pulse for the IP half and one for the MAC half of the same entry.
     dut.ipWrAddr.value = LEGACY_IP_CFGS[1]
-    await pulse(dut.ipWrEn, clk=bench.clk)
+    await pulse_signal(dut.ipWrEn, clk=bench.clk)
     dut.macWrAddr.value = LEGACY_MAC_CFGS[1]
-    await pulse(dut.macWrEn, clk=bench.clk)
+    await pulse_signal(dut.macWrEn, clk=bench.clk)
 
     # `pos=0` uses IP-match lookup while `pos=1` directly addresses entry 0.
     dut.ipAddrIn.value = LEGACY_IP_CFGS[1]
@@ -84,10 +67,12 @@ async def arp_ip_table_lookup_by_ip_and_position_test(dut):
 async def arp_ip_table_expiration_reclaims_entry_test(dut):
     bench = await setup_arp_ip_table_bench(dut)
 
+    # Start with one live entry so the wrapper's shortened timeout logic has
+    # something concrete to age out.
     dut.ipWrAddr.value = LEGACY_IP_CFGS[1]
-    await pulse(dut.ipWrEn, clk=bench.clk)
+    await pulse_signal(dut.ipWrEn, clk=bench.clk)
     dut.macWrAddr.value = LEGACY_MAC_CFGS[1]
-    await pulse(dut.macWrEn, clk=bench.clk)
+    await pulse_signal(dut.macWrEn, clk=bench.clk)
 
     # With the wrapper's tiny timing generics the entry should expire after a
     # handful of clock cycles if no inbound traffic refreshes the timer.
@@ -100,10 +85,10 @@ async def arp_ip_table_expiration_reclaims_entry_test(dut):
     # Reuse the reclaimed slot with a new mapping and confirm the old one no
     # longer answers while the new one does.
     dut.ipWrAddr.value = LEGACY_IP_CFGS[2]
-    await pulse(dut.ipWrEn, clk=bench.clk)
+    await pulse_signal(dut.ipWrEn, clk=bench.clk)
     await cycle(bench.clk, 2)
     dut.macWrAddr.value = LEGACY_MAC_CFGS[2]
-    await pulse(dut.macWrEn, clk=bench.clk)
+    await pulse_signal(dut.macWrEn, clk=bench.clk)
 
     dut.ipAddrIn.value = LEGACY_IP_CFGS[1]
     dut.pos.value = 0

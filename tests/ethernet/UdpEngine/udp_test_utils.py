@@ -104,6 +104,25 @@ class UdpWrapperPairBench:
     server_sinks: list[FlatEmacEndpoint]
 
 
+@dataclass
+class UdpArpBench:
+    clk: object
+    arp_req_sink: FlatEmacEndpoint
+    arp_ack_source: FlatEmacEndpoint
+
+
+@dataclass
+class UdpDhcpBench:
+    clk: object
+    source: FlatEmacEndpoint
+    sink: FlatEmacEndpoint
+
+
+@dataclass
+class ArpIpTableBench:
+    clk: object
+
+
 def ipv4_to_bytes(address: str) -> bytes:
     return ipaddress.IPv4Address(address).packed
 
@@ -272,12 +291,99 @@ async def axil_write_u48(master, address: int, value: int) -> None:
 
 
 async def wait_for_link_up(signal, *, clk, timeout_cycles: int = 64) -> None:
+    # The TX wrapper only becomes usable once the remote endpoint information
+    # has propagated through the DUT and `linkUp` rises.
     for _ in range(timeout_cycles):
         await Timer(1, unit="ns")
         if int(signal.value) != 0:
             return
         await cycle(clk, 1)
     raise AssertionError("Timed out waiting for link-up")
+
+
+async def pulse_signal(signal, *, clk, idle_cycles: int = 1) -> None:
+    # Several UdpEngine leaves use one-cycle write enables or acknowledge
+    # strobes. Model those as clean pulses instead of open-coded toggles.
+    signal.value = 1
+    await cycle(clk, 1)
+    signal.value = 0
+    await cycle(clk, idle_cycles)
+
+
+async def wait_for_pair_arp_resolution(*, clk, cycles: int = 256) -> None:
+    # The legacy wrapper-pair bench relies on genuine ARP learning through the
+    # integrated client/server stack, so leave time for request/response
+    # traffic to settle before launching the next client payload.
+    await cycle(clk, cycles)
+
+
+async def setup_arp_ip_table_bench(dut) -> ArpIpTableBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        initial_values={
+            "ipAddrIn": 0,
+            "pos": 0,
+            "clientRemoteDetIp": 0,
+            "clientRemoteDetValid": 0,
+            "ipWrEn": 0,
+            "ipWrAddr": 0,
+            "macWrEn": 0,
+            "macWrAddr": 0,
+        },
+    )
+    return ArpIpTableBench(clk=bench.clk)
+
+
+async def setup_udp_arp_bench(dut) -> UdpArpBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        initial_values={
+            "localIp": LEGACY_IP_CFGS[0],
+            "arpTabFound": 0,
+            "arpTabMacAddr": 0,
+            "clientRemoteDetValid": 0,
+            "clientRemoteDetIp": 0,
+            "clientRemoteIp": 0,
+            "arpReqTReady": 0,
+            "arpAckTValid": 0,
+            "arpAckTData": 0,
+            "arpAckTKeep": 0,
+            "arpAckTLast": 0,
+            "arpAckSof": 0,
+            "arpAckEofe": 0,
+        },
+    )
+    arp_ack_source = FlatEmacEndpoint(dut, prefix="arpAck")
+    arp_ack_source.set_idle()
+    return UdpArpBench(
+        clk=bench.clk,
+        arp_req_sink=FlatEmacEndpoint(dut, prefix="arpReq"),
+        arp_ack_source=arp_ack_source,
+    )
+
+
+async def setup_udp_dhcp_bench(dut) -> UdpDhcpBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        source_prefix="sDhcp",
+        initial_values={
+            "localMac": LEGACY_MAC_CFGS[0],
+            "localIp": 0,
+            "mDhcpTReady": 0,
+        },
+    )
+    assert bench.source is not None
+    return UdpDhcpBench(
+        clk=bench.clk,
+        source=bench.source,
+        sink=FlatEmacEndpoint(dut, prefix="mDhcp"),
+    )
 
 
 async def setup_udp_rx_bench(dut) -> UdpRxBench:

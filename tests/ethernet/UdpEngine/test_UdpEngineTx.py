@@ -49,12 +49,16 @@ WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineTxFlatWrapper.vhd"
 async def udp_engine_tx_server_payload_header_test(dut):
     bench = await setup_udp_tx_bench(dut)
 
+    # Wait for the wrapper-visible `linkUp` output before sending traffic so
+    # the test matches the contract exposed to the integrated top-level logic.
     await wait_for_link_up(dut.linkUp, clk=bench.clk)
 
     payload = b"udp-tx-server-payload"
     send_task = cocotb.start_soon(
         send_contiguous_frame(bench.source, frame_beats_from_bytes(payload), clk=bench.clk)
     )
+    # The sink observes the internal pseudo-header stream, so compare against a
+    # pseudo-header builder rather than a full Ethernet wire image.
     observed = await recv_frame(
         bench.sink,
         clk=bench.clk,
@@ -77,6 +81,8 @@ async def udp_engine_tx_server_payload_header_test(dut):
 async def udp_engine_tx_dhcp_passthrough_test(dut):
     bench = await setup_udp_tx_bench(dut)
 
+    # DHCP bypasses the normal remote-endpoint registers and always targets
+    # the broadcast client/server socket pair.
     dhcp_payload = b"dhcp-client-discover"
     dhcp_send = cocotb.start_soon(
         send_contiguous_frame(bench.dhcp_source, frame_beats_from_bytes(dhcp_payload), clk=bench.clk)

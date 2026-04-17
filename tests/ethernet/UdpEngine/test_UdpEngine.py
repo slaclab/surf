@@ -36,7 +36,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 )
 from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_IPS,
-    LEGACY_MAC_CFGS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
     build_udp_rx_pseudo_frame,
@@ -53,17 +52,22 @@ WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineTopFlatWrapper.vhd"
 async def udp_engine_client_arp_then_transmit_test(dut):
     bench = await setup_udp_top_bench(dut)
 
+    # The integrated top first needs an ARP resolution for the configured
+    # client remote IP before any outbound client payload can be emitted.
     arp_request = await bench.arp_req_sink.recv(
         clk=bench.clk,
         ready_signal=dut.arpReqTReady,
     )
     assert payload_from_beat(arp_request)[:4] == ipv4_to_bytes(LEGACY_IPS[1])
 
+    # Feed back the learned MAC so the client-side transmit path can continue.
     arp_ack = frame_beats_from_bytes(LEGACY_MAC_WIRES[1].to_bytes(6, byteorder="big"))
     ack_send = cocotb.start_soon(send_contiguous_frame(bench.arp_ack_source, arp_ack, clk=bench.clk))
     await cycle(bench.clk, 6)
     await ack_send
 
+    # Once ARP is resolved, the outbound client payload should emerge on the
+    # shared UDP transmit stream with the expected pseudo-header fields.
     client_payload = b"udp-top-client-path"
     client_send = cocotb.start_soon(
         send_contiguous_frame(bench.client_source, frame_beats_from_bytes(client_payload), clk=bench.clk)
@@ -90,6 +94,8 @@ async def udp_engine_client_arp_then_transmit_test(dut):
 async def udp_engine_server_rx_path_test(dut):
     bench = await setup_udp_top_bench(dut)
 
+    # The same top-level wrapper also exposes the inbound server-routing path,
+    # so inject one server-targeted frame and confirm the UDP header is gone.
     server_payload = b"udp-top-server-path"
     server_frame = build_udp_rx_pseudo_frame(
         remote_mac=LEGACY_MAC_WIRES[1],

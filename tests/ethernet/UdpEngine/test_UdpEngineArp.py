@@ -26,12 +26,9 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
-    FlatEmacEndpoint,
     frame_beats_from_bytes,
     payload_from_beat,
-    recv_frame,
     send_contiguous_frame,
-    setup_flat_emac_testbench,
     cycle,
 )
 from tests.ethernet.UdpEngine.udp_test_utils import (
@@ -41,43 +38,19 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
     ipv4_to_bytes,
+    setup_udp_arp_bench,
 )
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineArpFlatWrapper.vhd"
 
 
-async def setup_udp_arp_bench(dut):
-    bench = await setup_flat_emac_testbench(
-        dut,
-        clk_name="clk",
-        rst_name="rst",
-        initial_values={
-            "localIp": LEGACY_IP_CFGS[0],
-            "arpTabFound": 0,
-            "arpTabMacAddr": 0,
-            "clientRemoteDetValid": 0,
-            "clientRemoteDetIp": 0,
-            "clientRemoteIp": 0,
-            "arpReqTReady": 0,
-            "arpAckTValid": 0,
-            "arpAckTData": 0,
-            "arpAckTKeep": 0,
-            "arpAckTLast": 0,
-            "arpAckSof": 0,
-            "arpAckEofe": 0,
-        },
-    )
-    arp_req_sink = FlatEmacEndpoint(dut, prefix="arpReq")
-    arp_ack_source = FlatEmacEndpoint(dut, prefix="arpAck")
-    arp_ack_source.set_idle()
-    return bench, arp_req_sink, arp_ack_source
-
-
 @cocotb.test()
 async def udp_engine_arp_uses_cached_mac_without_request_test(dut):
-    bench, _, _ = await setup_udp_arp_bench(dut)
+    bench = await setup_udp_arp_bench(dut)
 
+    # Present a pre-populated lookup result so the helper can publish the
+    # cached MAC immediately without entering its request state.
     dut.clientRemoteIp.value = LEGACY_IP_CFGS[1]
     dut.arpTabFound.value = 1
     dut.arpTabMacAddr.value = LEGACY_MAC_CFGS[1]
@@ -90,21 +63,25 @@ async def udp_engine_arp_uses_cached_mac_without_request_test(dut):
 
 @cocotb.test()
 async def udp_engine_arp_request_ack_round_trip_test(dut):
-    bench, arp_req_sink, arp_ack_source = await setup_udp_arp_bench(dut)
+    bench = await setup_udp_arp_bench(dut)
 
+    # Leave the table empty so the helper must emit a request for the remote
+    # IP instead of short-circuiting to a cached result.
     dut.clientRemoteIp.value = LEGACY_IP_CFGS[1]
     await cycle(bench.clk, 6)
 
     # A miss should emit an outbound ARP request carrying the configured
     # remote IP in the low 32 bits.
-    request_observed = await arp_req_sink.recv(
+    request_observed = await bench.arp_req_sink.recv(
         clk=bench.clk,
         ready_signal=dut.arpReqTReady,
     )
     assert payload_from_beat(request_observed)[:4] == ipv4_to_bytes(LEGACY_IPS[1])
 
+    # Return the learned MAC on the acknowledgement port and let the helper
+    # update both its output MAC and its table-writeback sideband.
     arp_ack = frame_beats_from_bytes(LEGACY_MAC_WIRES[1].to_bytes(6, byteorder="big"))
-    ack_send = cocotb.start_soon(send_contiguous_frame(arp_ack_source, arp_ack, clk=bench.clk))
+    ack_send = cocotb.start_soon(send_contiguous_frame(bench.arp_ack_source, arp_ack, clk=bench.clk))
     await cycle(bench.clk, 4)
     await ack_send
 
