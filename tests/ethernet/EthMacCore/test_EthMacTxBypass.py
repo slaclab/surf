@@ -41,6 +41,11 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacTxBypassWrapper.vhd"
+BYPASS_ETH_TYPE = 0x9000
+PRIMARY_DEST_TAG_IDLE = 0x31
+BYPASS_DEST_TAG_IDLE = 0x72
+PRIMARY_DEST_TAG_BUSY = 0x44
+BYPASS_DEST_TAG_BUSY = 0x55
 
 
 @cocotb.test()
@@ -68,11 +73,14 @@ async def eth_mac_tx_bypass_arbitration_test(dut):
     bypass_frame = build_ethernet_frame(
         dst_mac=0x212223242526,
         src_mac=0x313233343536,
-        eth_type=0x9000,
+        # `0x9000` is the wrapper's configured bypass EtherType on the wire.
+        eth_type=BYPASS_ETH_TYPE,
         payload=b"tx-bypass-wins-idle" + bytes(range(29)),
     )
-    primary_expected = frame_beats_from_bytes(primary_frame, dest=0x31)
-    bypass_expected = frame_beats_from_bytes(bypass_frame, dest=0x72, eofe=1)
+    # The wrapper exports distinct destination tags for the primary and bypass
+    # ingress ports so arbitration decisions are visible in the captured beats.
+    primary_expected = frame_beats_from_bytes(primary_frame, dest=PRIMARY_DEST_TAG_IDLE)
+    bypass_expected = frame_beats_from_bytes(bypass_frame, dest=BYPASS_DEST_TAG_IDLE, eofe=1)
 
     primary_send = cocotb.start_soon(send_contiguous_frame(prim_source, primary_expected, clk=bench.clk))
     bypass_send = cocotb.start_soon(send_contiguous_frame(byp_source, bypass_expected, clk=bench.clk))
@@ -98,11 +106,11 @@ async def eth_mac_tx_bypass_arbitration_test(dut):
     late_bypass = build_ethernet_frame(
         dst_mac=0x616263646566,
         src_mac=0x717273747576,
-        eth_type=0x9000,
+        eth_type=BYPASS_ETH_TYPE,
         payload=b"late-bypass-frame" + bytes(range(24)),
     )
-    long_primary_expected = frame_beats_from_bytes(long_primary, dest=0x44)
-    late_bypass_expected = frame_beats_from_bytes(late_bypass, dest=0x55)
+    long_primary_expected = frame_beats_from_bytes(long_primary, dest=PRIMARY_DEST_TAG_BUSY)
+    late_bypass_expected = frame_beats_from_bytes(late_bypass, dest=BYPASS_DEST_TAG_BUSY)
 
     long_primary_send = cocotb.start_soon(send_contiguous_frame(prim_source, long_primary_expected, clk=bench.clk))
     await cycle(bench.clk, 2)

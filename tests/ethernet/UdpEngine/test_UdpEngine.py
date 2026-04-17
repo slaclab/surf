@@ -40,6 +40,8 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_IPS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
+    UDP_CLIENT_PORT,
+    UDP_SERVER_PORT,
     build_udp_rx_pseudo_frame,
     build_udp_tx_pseudo_frame,
     ipv4_to_bytes,
@@ -48,6 +50,7 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineTopFlatWrapper.vhd"
+ARP_RESOLUTION_LATENCY_CYCLES = 6
 
 
 @cocotb.test()
@@ -65,7 +68,9 @@ async def udp_engine_client_arp_then_transmit_test(dut):
     # Feed back the learned MAC so the client-side transmit path can continue.
     arp_ack = frame_beats_from_bytes(LEGACY_MAC_WIRES[1].to_bytes(6, byteorder="big"))
     ack_send = cocotb.start_soon(send_contiguous_frame(bench.arp_ack_source, arp_ack, clk=bench.clk))
-    await cycle(bench.clk, 6)
+    # The integrated top samples the ARP-ack stream a few cycles after the
+    # request appears, so hold the reply stable across that short window.
+    await cycle(bench.clk, ARP_RESOLUTION_LATENCY_CYCLES)
     await ack_send
 
     # Once ARP is resolved, the outbound client payload should emerge on the
@@ -86,8 +91,8 @@ async def udp_engine_client_arp_then_transmit_test(dut):
         dst_mac=LEGACY_MAC_WIRES[1],
         src_ip=LEGACY_IPS[0],
         dst_ip=LEGACY_IPS[1],
-        src_port=8193,
-        dst_port=8192,
+        src_port=UDP_CLIENT_PORT,
+        dst_port=UDP_SERVER_PORT,
         payload=client_payload,
     )
 
@@ -104,7 +109,7 @@ async def udp_engine_server_rx_path_test(dut):
         remote_ip=LEGACY_IPS[1],
         local_ip=LEGACY_IPS[0],
         remote_port=0x4567,
-        local_port=8192,
+        local_port=UDP_SERVER_PORT,
         payload=server_payload,
     )
     server_send = cocotb.start_soon(
@@ -131,7 +136,7 @@ async def udp_engine_client_rx_path_test(dut):
         remote_ip=LEGACY_IPS[1],
         local_ip=LEGACY_IPS[0],
         remote_port=0x6789,
-        local_port=8193,
+        local_port=UDP_CLIENT_PORT,
         payload=client_payload,
     )
     client_send = cocotb.start_soon(
@@ -158,7 +163,7 @@ async def udp_engine_server_tx_path_test(dut):
         remote_ip=LEGACY_IPS[1],
         local_ip=LEGACY_IPS[0],
         remote_port=0x4567,
-        local_port=8192,
+        local_port=UDP_SERVER_PORT,
         payload=inbound_payload,
     )
     inbound_send = cocotb.start_soon(
@@ -189,7 +194,9 @@ async def udp_engine_server_tx_path_test(dut):
         dst_mac=LEGACY_MAC_WIRES[1],
         src_ip=LEGACY_IPS[0],
         dst_ip=LEGACY_IPS[1],
-        src_port=8192,
+        # The server reply reuses the socket learned from the inbound server
+        # packet, so the local source port stays on the fixed server socket.
+        src_port=UDP_SERVER_PORT,
         dst_port=0x4567,
         payload=outbound_payload,
     )

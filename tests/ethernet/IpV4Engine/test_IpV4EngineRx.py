@@ -35,6 +35,8 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    IP_PROTOCOL_ICMP,
+    IP_PROTOCOL_UDP,
     IPV4_RTL_SOURCES,
     build_icmp_echo_packet,
     build_ipv4_frame,
@@ -44,6 +46,9 @@ from tests.ethernet.IpV4Engine.ipv4_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/IpV4Engine/wrappers/IpV4EngineRxWrapper.vhd"
+UNSUPPORTED_PROTOCOL = 0x99
+UDP_REMOTE_PORT = 0x1234
+UDP_LOCAL_PORT = 0x5678
 
 LOCAL_MAC = 0x001122334455
 REMOTE_MAC = 0x665544332211
@@ -70,8 +75,8 @@ async def ipv4_rx_routes_protocol_slots_test(dut):
     icmp_sink = FlatEmacEndpoint(dut, prefix="mIcmp")
 
     udp_payload = build_ipv4_udp_payload(
-        src_port=0x1234,
-        dst_port=0x5678,
+        src_port=UDP_REMOTE_PORT,
+        dst_port=UDP_LOCAL_PORT,
         payload=b"udp-payload-through-rx",
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
@@ -81,14 +86,14 @@ async def ipv4_rx_routes_protocol_slots_test(dut):
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
     udp_expected = build_ipv4_rx_pseudo_frame(
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
 
@@ -115,14 +120,14 @@ async def ipv4_rx_routes_protocol_slots_test(dut):
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=icmp_payload,
     )
     icmp_expected = build_ipv4_rx_pseudo_frame(
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=icmp_payload,
     )
 
@@ -144,7 +149,9 @@ async def ipv4_rx_routes_protocol_slots_test(dut):
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x99,
+        # `0x99` is just an arbitrary unsupported protocol ID so the drop path
+        # is clearly distinct from UDP (`0x11`) and ICMP (`0x01`).
+        protocol=UNSUPPORTED_PROTOCOL,
         payload=b"unsupported-protocol-drop",
     )
     await send_contiguous_frame(source, frame_beats_from_bytes(unsupported_frame), clk=bench.clk)

@@ -36,6 +36,9 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    ARP_BROADCAST_MAC,
+    IP_PROTOCOL_UDP,
+    IPV4_VERSION_IHL,
     IPV4_RTL_SOURCES,
     build_arp_frame,
     build_ipv4_frame,
@@ -72,7 +75,7 @@ async def ipv4_demux_routes_and_drops_test(dut):
         opcode=1,
         sender_mac=REMOTE_MAC_WIRE,
         sender_ip="192.168.10.10",
-        target_mac=0xFFFFFFFFFFFF,
+        target_mac=ARP_BROADCAST_MAC,
         target_ip="192.168.10.20",
     )
     arp_send = cocotb.start_soon(
@@ -89,11 +92,11 @@ async def ipv4_demux_routes_and_drops_test(dut):
     await expect_no_output(ipv4_sink, clk=bench.clk, cycles=8)
 
     broadcast_ipv4 = build_ipv4_frame(
-        dst_mac=0xFFFFFFFFFFFF,
+        dst_mac=ARP_BROADCAST_MAC,
         src_mac=REMOTE_MAC_WIRE,
         src_ip="192.168.10.10",
         dst_ip="192.168.10.20",
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=b"demux-broadcast-ipv4-payload",
     )
     ipv4_send = cocotb.start_soon(
@@ -114,7 +117,7 @@ async def ipv4_demux_routes_and_drops_test(dut):
         src_mac=REMOTE_MAC_WIRE,
         src_ip="192.168.10.10",
         dst_ip="192.168.10.20",
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=b"foreign-destination-drop",
     )
     await send_contiguous_frame(source, frame_beats_from_bytes(foreign_ipv4), clk=bench.clk)
@@ -127,12 +130,12 @@ async def ipv4_demux_routes_and_drops_test(dut):
             src_mac=REMOTE_MAC_WIRE,
             src_ip="192.168.10.10",
             dst_ip="192.168.10.20",
-            protocol=0x11,
+            protocol=IP_PROTOCOL_UDP,
             payload=b"bad-version-drop",
         )
     )
     # The de-mux only accepts IPv4 version/header-length byte 0x45.
-    bad_version_ipv4[14] = 0x46
+    bad_version_ipv4[14] = IPV4_VERSION_IHL + 1
     await send_contiguous_frame(source, frame_beats_from_bytes(bytes(bad_version_ipv4)), clk=bench.clk)
     await expect_no_output(arp_sink, clk=bench.clk, cycles=12)
     await expect_no_output(ipv4_sink, clk=bench.clk, cycles=12)

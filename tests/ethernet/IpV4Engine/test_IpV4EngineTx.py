@@ -36,6 +36,7 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    IP_PROTOCOL_UDP,
     IPV4_RTL_SOURCES,
     build_ipv4_tx_pseudo_frame,
     build_ipv4_tx_wire_frame,
@@ -44,6 +45,8 @@ from tests.ethernet.IpV4Engine.ipv4_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/IpV4Engine/wrappers/IpV4EngineTxWrapper.vhd"
+REMOTE_TIMEOUT_CYCLES = 128
+LOCALHOST_IDENTIFICATION = 0x0001
 
 LOCAL_MAC_WIRE = 0x001122334455
 LOCAL_MAC_CFG = mac_config_word_from_wire(LOCAL_MAC_WIRE)
@@ -82,7 +85,7 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         dst_mac=REMOTE_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip=REMOTE_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
     remote_expected = build_ipv4_tx_wire_frame(
@@ -90,7 +93,7 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         src_mac=LOCAL_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip=REMOTE_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
 
@@ -101,7 +104,7 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         wire_sink,
         clk=bench.clk,
         ready_signal=dut.mIpv4TReady,
-        timeout_cycles=128,
+        timeout_cycles=REMOTE_TIMEOUT_CYCLES,
     )
     await remote_send
     assert payload_from_beats(remote_observed) == remote_expected
@@ -118,7 +121,7 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         dst_mac=LOCAL_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip="192.168.40.99",
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=localhost_payload,
     )
     localhost_expected = build_ipv4_tx_wire_frame(
@@ -126,9 +129,11 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         src_mac=LOCAL_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip="192.168.40.99",
-        protocol=0x11,
+        # The localhost-shortcut path still emits the IPv4/UDP frame shape, but
+        # it increments the internal IPv4 identification counter to `0x0001`.
+        protocol=IP_PROTOCOL_UDP,
         payload=localhost_payload,
-        identification=0x0001,
+        identification=LOCALHOST_IDENTIFICATION,
     )
 
     local_send = cocotb.start_soon(
@@ -138,7 +143,7 @@ async def ipv4_tx_generates_wire_and_localhost_paths_test(dut):
         local_sink,
         clk=bench.clk,
         ready_signal=dut.mLocalTReady,
-        timeout_cycles=128,
+        timeout_cycles=REMOTE_TIMEOUT_CYCLES,
     )
     await local_send
     assert payload_from_beats(local_observed) == localhost_expected

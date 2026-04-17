@@ -40,6 +40,9 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacRxBypassWrapper.vhd"
+BYPASS_ETH_TYPE = 0x9000
+BYPASS_DEST_TAG = 0x23
+PRIMARY_DEST_TAG = 0x5A
 
 
 @cocotb.test()
@@ -58,10 +61,13 @@ async def eth_mac_rx_bypass_routing_test(dut):
     bypass_frame = build_ethernet_frame(
         dst_mac=0x101112131415,
         src_mac=0x202122232425,
-        eth_type=0x9000,
+        # The wrapper programs `0x9000` as the bypass EtherType on the wire.
+        eth_type=BYPASS_ETH_TYPE,
         payload=bytes(range(48)),
     )
-    bypass_expected = frame_beats_from_bytes(bypass_frame, dest=0x23, eofe=1)
+    # The wrapper stamps bypass traffic with `dest=0x23` and sets `EOFE` so
+    # downstream logic can identify that alternate route.
+    bypass_expected = frame_beats_from_bytes(bypass_frame, dest=BYPASS_DEST_TAG, eofe=1)
     bypass_send = cocotb.start_soon(send_contiguous_frame(source, bypass_expected, clk=bench.clk))
 
     if bypass_enabled:
@@ -81,7 +87,8 @@ async def eth_mac_rx_bypass_routing_test(dut):
         eth_type=0x88B5,
         payload=b"ethmac-rx-bypass-primary-path" + bytes(range(17)),
     )
-    primary_expected = frame_beats_from_bytes(primary_frame, dest=0x5A)
+    # Non-bypass traffic keeps the normal primary-output destination tag.
+    primary_expected = frame_beats_from_bytes(primary_frame, dest=PRIMARY_DEST_TAG)
     primary_send = cocotb.start_soon(send_contiguous_frame(source, primary_expected, clk=bench.clk))
     primary_observed = await recv_frame(prim_sink, clk=bench.clk, timeout_cycles=64)
     await primary_send

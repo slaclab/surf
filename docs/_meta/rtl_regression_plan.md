@@ -73,6 +73,9 @@
 - Separate `smoke` and `functional` regression tiers.
 - Shard by subsystem only if runtime requires it.
 - Keep room for PR-vs-nightly expansion later if runtime and coverage needs justify it.
+- Treat simulator process cleanup as part of every verification step, not as optional housekeeping.
+- After any command that launches `pytest`, cocotb, GHDL, or another simulation runner, check for stale child processes and kill any leftovers before moving on to the next step.
+- When cleanup is needed, prefer an explicit process sweep first (for example with `ps -Ao pid,ppid,stat,time,command`) so only the stale run trees are terminated.
 
 ## Reuse Policy
 - Legacy VHDL testbenches are reference material only.

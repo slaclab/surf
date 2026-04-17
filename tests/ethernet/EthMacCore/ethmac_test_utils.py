@@ -19,6 +19,8 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 
+# Shared EMAC helpers centralize the flattened lane ordering and the common
+# packet builders used throughout `tests/ethernet/`.
 ETHMAC_RTL_SOURCES = [
     str(path)
     for path in sorted((Path(__file__).resolve().parents[3] / "ethernet" / "EthMacCore" / "rtl").glob("*.vhd"))
@@ -35,6 +37,13 @@ ROCE_ANALYSIS_SOURCES = [
         if path.name != "RocePkg.vhd"
     ),
 ]
+
+ETH_TYPE_IPV4 = 0x0800
+IPV4_VERSION_IHL = 0x45
+IP_PROTOCOL_UDP = 0x11
+MAC_CONTROL_ETHERTYPE = 0x8808
+MAC_CONTROL_PAUSE_OPCODE = b"\x00\x01"
+MAC_CONTROL_PAUSE_DST = 0x0180C2000001
 
 
 @dataclass
@@ -168,6 +177,7 @@ class FlatEmacBench:
 
 
 def keep_mask(data_bytes: int) -> int:
+    # AXI `TKEEP` uses one asserted bit per valid byte lane.
     return (1 << data_bytes) - 1
 
 
@@ -203,6 +213,7 @@ def frame_beats_from_bytes(
     eofe: int = 0,
     frag: int = 0,
 ) -> list[EmacBeat]:
+    # The first beat carries `SOF`; only the final beat may carry `EOFE`.
     beats = []
     offset = 0
     while offset < len(data):
@@ -277,8 +288,11 @@ def build_ipv4_header(
     ttl: int = 64,
     checksum_override: int | None = None,
 ) -> bytes:
+    # Emit the minimal IPv4 header shape used throughout these benches:
+    # version/IHL `0x45`, zero DSCP/ECN, zero fragment offset, then TTL and
+    # protocol before the checksum and address fields.
     total_length = 20 + payload_length
-    header_wo_checksum = bytes([0x45, 0x00]) + total_length.to_bytes(2, byteorder="big")
+    header_wo_checksum = bytes([IPV4_VERSION_IHL, 0x00]) + total_length.to_bytes(2, byteorder="big")
     header_wo_checksum += identification.to_bytes(2, byteorder="big")
     header_wo_checksum += b"\x00\x00"
     header_wo_checksum += bytes([ttl, protocol])
@@ -309,7 +323,7 @@ def build_udp_header(
     pseudo_header = (
         ipv4_to_bytes(src_ip)
         + ipv4_to_bytes(dst_ip)
-        + bytes([0x00, 0x11])
+        + bytes([0x00, IP_PROTOCOL_UDP])
         + udp_length.to_bytes(2, byteorder="big")
     )
     checksum = internet_checksum(pseudo_header + header_wo_checksum + payload) if checksum_override is None else checksum_override
@@ -339,14 +353,14 @@ def build_ipv4_udp_frame(
     ipv4_header = build_ipv4_header(
         src_ip=src_ip,
         dst_ip=dst_ip,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload_length=len(udp_header) + len(payload),
         checksum_override=ip_checksum_override,
     )
     return build_ethernet_frame(
         dst_mac=dst_mac,
         src_mac=src_mac,
-        eth_type=0x0800,
+        eth_type=ETH_TYPE_IPV4,
         payload=ipv4_header + udp_header + payload,
     )
 
@@ -354,11 +368,11 @@ def build_ipv4_udp_frame(
 def build_pause_frame(pause_value: int) -> bytes:
     # The pause opcode and pause quanta are part of the MAC control payload,
     # which the TxPause block pads to Ethernet's 46-byte minimum payload.
-    payload = b"\x00\x01" + pause_value.to_bytes(2, byteorder="big") + bytes(42)
+    payload = MAC_CONTROL_PAUSE_OPCODE + pause_value.to_bytes(2, byteorder="big") + bytes(42)
     return build_ethernet_frame(
-        dst_mac=0x0180C2000001,
+        dst_mac=MAC_CONTROL_PAUSE_DST,
         src_mac=0x000000000000,
-        eth_type=0x8808,
+        eth_type=MAC_CONTROL_ETHERTYPE,
         payload=payload,
     )
 
@@ -442,6 +456,8 @@ async def send_frame_burst(
 
 
 async def recv_frame(endpoint: FlatEmacEndpoint, *, clk, ready_signal=None, timeout_cycles: int = 64) -> list[EmacBeat]:
+    # Collect a whole frame so tests can reason about packet-level behavior
+    # instead of stitching together beat-level observations themselves.
     beats = []
     if ready_signal is not None:
         ready_signal.value = 1

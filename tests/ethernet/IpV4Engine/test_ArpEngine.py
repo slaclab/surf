@@ -37,6 +37,7 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    ARP_BROADCAST_MAC,
     IPV4_RTL_SOURCES,
     build_arp_frame,
     ipv4_config_word,
@@ -111,7 +112,7 @@ async def arp_engine_remote_lookup_ack_test(dut):
         opcode=1,
         sender_mac=LOCAL_MAC_WIRE,
         sender_ip=LOCAL_IP,
-        target_mac=0xFFFFFFFFFFFF,
+        target_mac=ARP_BROADCAST_MAC,
         target_ip=REMOTE_IP,
     )
     assert payload_from_beats(request_observed) == request_expected
@@ -145,7 +146,7 @@ async def arp_engine_inbound_request_reply_test(dut):
         opcode=1,
         sender_mac=REMOTE_MAC_WIRE,
         sender_ip=REMOTE_IP,
-        target_mac=0xFFFFFFFFFFFF,
+        target_mac=ARP_BROADCAST_MAC,
         target_ip=LOCAL_IP,
     )
     request_send = cocotb.start_soon(

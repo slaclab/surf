@@ -37,6 +37,8 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_MAC_CFGS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
+    UDP_CLIENT_PORT,
+    UDP_SERVER_PORT,
     build_udp_rx_pseudo_frame,
     port_config_word,
     setup_udp_rx_bench,
@@ -45,6 +47,8 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineRxFlatWrapper.vhd"
+SERVER_REMOTE_PORT = 0x1234
+CLIENT_REMOTE_PORT = 0x5678
 
 
 @cocotb.test()
@@ -58,8 +62,9 @@ async def udp_engine_rx_routes_server_payload_and_debug_test(dut):
         remote_mac=LEGACY_MAC_WIRES[1],
         remote_ip=LEGACY_IPS[1],
         local_ip=LEGACY_IPS[0],
-        remote_port=0x1234,
-        local_port=8192,
+        # Port 8192 is the wrapper's fixed server socket.
+        remote_port=SERVER_REMOTE_PORT,
+        local_port=UDP_SERVER_PORT,
         payload=server_payload,
     )
 
@@ -75,7 +80,9 @@ async def udp_engine_rx_routes_server_payload_and_debug_test(dut):
     await server_send
 
     assert payload_from_beats(server_observed) == server_payload
-    assert int(dut.serverRemotePort.value) == port_config_word(0x1234)
+    # The debug outputs expose the learned sender tuple in lane-first config
+    # order, so compare against the helper that mirrors that byte order.
+    assert int(dut.serverRemotePort.value) == port_config_word(SERVER_REMOTE_PORT)
     assert int(dut.serverRemoteIp.value) == ipv4_config_word(LEGACY_IPS[1])
     assert int(dut.serverRemoteMac.value) == LEGACY_MAC_CFGS[1]
 
@@ -91,8 +98,8 @@ async def udp_engine_rx_routes_client_payload_and_detection_test(dut):
         remote_mac=LEGACY_MAC_WIRES[1],
         remote_ip=LEGACY_IPS[1],
         local_ip=LEGACY_IPS[0],
-        remote_port=0x5678,
-        local_port=8193,
+        remote_port=CLIENT_REMOTE_PORT,
+        local_port=UDP_CLIENT_PORT,
         payload=client_payload,
     )
 

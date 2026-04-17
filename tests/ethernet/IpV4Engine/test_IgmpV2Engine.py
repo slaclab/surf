@@ -39,6 +39,7 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    IP_PROTOCOL_IGMP,
     IPV4_RTL_SOURCES,
     build_igmp_membership_query_packet,
     build_igmp_membership_report_packet,
@@ -111,7 +112,7 @@ def general_query_frame(*, checksum_override: int | None = None) -> bytes:
         src_mac=ROUTER_MAC,
         src_ip=ROUTER_IP,
         dst_ip="224.0.0.1",
-        protocol=0x02,
+        protocol=IP_PROTOCOL_IGMP,
         payload=build_igmp_membership_query_packet(
             max_resp_time=0x02,
             group_ip="0.0.0.0",
@@ -125,7 +126,7 @@ def inbound_membership_report_frame(*, group_ip: str) -> bytes:
         src_mac=OTHER_HOST_MAC,
         src_ip=OTHER_HOST_IP,
         dst_ip=group_ip,
-        protocol=0x02,
+        protocol=IP_PROTOCOL_IGMP,
         payload=build_igmp_membership_report_packet(group_ip=group_ip),
     )
 

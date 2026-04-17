@@ -37,6 +37,8 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    ICMP_ECHO_REQUEST,
+    IP_PROTOCOL_ICMP,
     IPV4_RTL_SOURCES,
     build_icmp_echo_packet,
     build_icmp_echo_reply_packet,
@@ -78,7 +80,7 @@ async def icmp_engine_reply_filtering_test(dut):
             src_mac=REMOTE_MAC,
             src_ip=REMOTE_IP,
             dst_ip=LOCAL_IP,
-            protocol=0x01,
+            protocol=IP_PROTOCOL_ICMP,
             payload=build_icmp_echo_packet(
                 payload=echo_payload,
                 identifier=0x3344,
@@ -92,7 +94,7 @@ async def icmp_engine_reply_filtering_test(dut):
             dst_mac=REMOTE_MAC,
             src_ip=LOCAL_IP,
             dst_ip=REMOTE_IP,
-            protocol=0x01,
+            protocol=IP_PROTOCOL_ICMP,
             payload=build_icmp_echo_reply_packet(
                 payload=echo_payload,
                 identifier=0x3344,
@@ -117,7 +119,7 @@ async def icmp_engine_reply_filtering_test(dut):
             src_mac=REMOTE_MAC,
             src_ip=REMOTE_IP,
             dst_ip=LOCAL_IP,
-            protocol=0x01,
+            protocol=IP_PROTOCOL_ICMP,
             payload=build_icmp_echo_packet(
                 payload=b"",
                 identifier=0x0101,
@@ -134,7 +136,7 @@ async def icmp_engine_reply_filtering_test(dut):
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip="192.168.20.99",
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=build_icmp_echo_packet(payload=b"non-local"),
     )
     await send_contiguous_frame(source, frame_beats_from_bytes(non_local_request), clk=bench.clk)
@@ -144,7 +146,7 @@ async def icmp_engine_reply_filtering_test(dut):
         src_mac=REMOTE_MAC,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=build_icmp_echo_packet(
             payload=b"not-an-echo-request",
             icmp_type=0x03,
@@ -160,7 +162,7 @@ async def icmp_engine_reply_filtering_test(dut):
             src_mac=REMOTE_MAC,
             src_ip=REMOTE_IP,
             dst_ip=LOCAL_IP,
-            protocol=0x01,
+            protocol=IP_PROTOCOL_ICMP,
             payload=build_icmp_echo_packet(
                 payload=second_payload,
                 identifier=0x5566,
@@ -173,7 +175,7 @@ async def icmp_engine_reply_filtering_test(dut):
             dst_mac=REMOTE_MAC,
             src_ip=LOCAL_IP,
             dst_ip=REMOTE_IP,
-            protocol=0x01,
+            protocol=IP_PROTOCOL_ICMP,
             payload=build_icmp_echo_reply_packet(
                 payload=second_payload,
                 identifier=0x5566,

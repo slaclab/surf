@@ -27,6 +27,8 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 
+# These helpers model the RawEthFramer private application stream, including
+# the two-byte header the DUT inserts between EtherType and payload.
 RAWETH_RTL_SOURCES = [
     str(path)
     for path in sorted((Path(__file__).resolve().parents[3] / "ethernet" / "RawEthFramer" / "rtl").glob("*.vhd"))
@@ -39,7 +41,10 @@ REMOTE_MAC_WIRE = 0x0A0B0C0D0E0F
 REMOTE_MAC_CFG = mac_config_word_from_wire(REMOTE_MAC_WIRE)
 ALT_REMOTE_MAC_WIRE = 0x102132435465
 ALT_REMOTE_MAC_CFG = mac_config_word_from_wire(ALT_REMOTE_MAC_WIRE)
+# RawEthFramer stores EtherType lane-first at the config boundary, so the wire
+# value `0x1000` appears here as `0x0010`.
 ETH_TYPE_CFG = 0x0010
+# The flattened raw-app wrappers are 64 bits wide.
 RAWETH_BEAT_BYTES = 8
 
 
@@ -178,6 +183,9 @@ def pad_to_raw_eth_lane_width(payload: bytes, *, lane_bytes: int = RAWETH_BEAT_B
 
 
 def raweth_header_bytes(*, dest: int, bcf: int, min_byte_count: int) -> bytes:
+    # Header byte 0 packs the broadcast-copy flag in bit 7 and the low 7 bits
+    # of the minimum-byte-count field in bits [6:0]. Byte 1 is the lookup
+    # destination index.
     return bytes([((bcf & 0x1) << 7) | (min_byte_count & 0x7F), dest & 0xFF])
 
 
@@ -201,6 +209,8 @@ def build_raw_eth_wire_frame(
 
 
 def remote_mac_axil_addr(dest: int, *, high: bool = False) -> int:
+    # Each destination slot consumes 8 bytes in AXI-Lite space: low word at
+    # `dest << 3`, high word four bytes later.
     return (dest << 3) | (4 if high else 0)
 
 

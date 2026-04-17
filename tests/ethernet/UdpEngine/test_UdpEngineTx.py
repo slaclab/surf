@@ -36,6 +36,7 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_IPS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
+    UDP_SERVER_PORT,
     build_udp_tx_pseudo_frame,
     setup_udp_tx_bench,
     wait_for_link_up,
@@ -71,8 +72,10 @@ async def udp_engine_tx_server_payload_header_test(dut):
         dst_mac=LEGACY_MAC_WIRES[1],
         src_ip=LEGACY_IPS[0],
         dst_ip=LEGACY_IPS[1],
-        src_port=8192,
-        dst_port=8192,
+        # The standalone TX wrapper seeds both local and remote server ports to
+        # 8192 so the pseudo-header reflects that symmetric default socket.
+        src_port=UDP_SERVER_PORT,
+        dst_port=UDP_SERVER_PORT,
         payload=payload,
     )
 
@@ -96,6 +99,7 @@ async def udp_engine_tx_dhcp_passthrough_test(dut):
     await dhcp_send
 
     assert payload_from_beats(observed) == build_udp_tx_pseudo_frame(
+        # DHCP always broadcasts from client port 68 to server port 67.
         dst_mac=0xFFFFFFFFFFFF,
         src_ip="0.0.0.0",
         dst_ip="255.255.255.255",

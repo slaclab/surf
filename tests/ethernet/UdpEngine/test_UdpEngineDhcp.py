@@ -32,6 +32,10 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     send_contiguous_frame,
 )
 from tests.ethernet.UdpEngine.udp_test_utils import (
+    DHCP_ACK,
+    DHCP_DISCOVER,
+    DHCP_OFFER,
+    DHCP_REQUEST,
     LEGACY_IPS,
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
@@ -46,6 +50,7 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/UdpEngineDhcpFlatWrapper.vhd"
+DHCP_ACK_PUBLISH_TIMEOUT_CYCLES = 128
 
 
 @cocotb.test()
@@ -62,12 +67,12 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     )
     discover_payload = payload_from_beats(discover_observed)
     discover_xid = extract_dhcp_xid(discover_payload)
-    assert extract_dhcp_message_type(discover_payload) == 1
+    assert extract_dhcp_message_type(discover_payload) == DHCP_DISCOVER
 
     # A matching offer should move the state machine into the request phase
     # while preserving the same DHCP transaction identifier.
     offer_payload = build_dhcp_reply_payload(
-        message_type=2,
+        message_type=DHCP_OFFER,
         xid=discover_xid,
         client_mac=LEGACY_MAC_WIRES[0],
         yiaddr="192.168.2.44",
@@ -85,14 +90,14 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     await offer_send
     request_payload = payload_from_beats(request_observed)
     request_xid = extract_dhcp_xid(request_payload)
-    assert extract_dhcp_message_type(request_payload) == 3
+    assert extract_dhcp_message_type(request_payload) == DHCP_REQUEST
     assert extract_dhcp_requested_ip(request_payload) == "192.168.2.44"
     assert extract_dhcp_server_identifier(request_payload) == LEGACY_IPS[1]
 
     # The ack is the step that should finally publish the leased IP address on
     # the wrapper-visible `dhcpIp` output.
     ack_payload = build_dhcp_reply_payload(
-        message_type=5,
+        message_type=DHCP_ACK,
         xid=request_xid,
         client_mac=LEGACY_MAC_WIRES[0],
         yiaddr="192.168.2.44",
@@ -102,7 +107,9 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
         send_contiguous_frame(bench.source, frame_beats_from_bytes(ack_payload), clk=bench.clk)
     )
     await ack_send
-    for _ in range(128):
+    # The wrapper uses shortened DHCP timers, but the published lease still
+    # appears asynchronously a few cycles after the ACK frame is accepted.
+    for _ in range(DHCP_ACK_PUBLISH_TIMEOUT_CYCLES):
         await cycle(bench.clk, 1)
         if int(dut.dhcpIp.value) == ipv4_config_word("192.168.2.44"):
             break

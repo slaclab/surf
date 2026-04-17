@@ -29,12 +29,16 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 from tests.ethernet.IpV4Engine.ipv4_test_utils import ipv4_config_word
 
 
+# Shared UDP-engine helpers centralize the wrapper-specific pseudo-header
+# layout and the legacy demo configuration still used by the checked-in RTL.
 UDP_RTL_SOURCES = [
     str(path)
     for path in sorted((Path(__file__).resolve().parents[3] / "ethernet" / "UdpEngine" / "rtl").glob("*.vhd"))
 ]
 
 
+# The wrappers power up with the original SURF example endpoint table, so the
+# benches keep using those MAC/IP tuples instead of inventing a second config.
 LEGACY_MAC_WIRES = (
     0x004456000301,
     0x004456000302,
@@ -51,8 +55,24 @@ LEGACY_IPS = (
 LEGACY_IP_CFGS = tuple(ipv4_config_word(value) for value in LEGACY_IPS)
 
 UDP_PROTOCOL = 0x11
+UDP_SERVER_PORT = 8192
+UDP_CLIENT_PORT = 8193
 DHCP_CLIENT_PORT = 68
 DHCP_SERVER_PORT = 67
+DHCP_DISCOVER = 1
+DHCP_OFFER = 2
+DHCP_REQUEST = 3
+DHCP_ACK = 5
+DHCP_BOOT_REPLY_OP = 0x02
+DHCP_HTYPE_ETHERNET = 0x01
+DHCP_HLEN_ETHERNET = 0x06
+DHCP_FIXED_HEADER_BYTES = 240
+DHCP_MAGIC_COOKIE = bytes.fromhex("63825363")
+DHCP_OPT_MESSAGE_TYPE = 53
+DHCP_OPT_REQUESTED_IP = 50
+DHCP_OPT_LEASE_TIME = 51
+DHCP_OPT_SERVER_IDENTIFIER = 54
+DHCP_OPT_END = 255
 
 
 @dataclass
@@ -121,6 +141,8 @@ def ipv4_to_bytes(address: str) -> bytes:
 
 
 def port_config_word(port: int) -> int:
+    # The flattened wrappers expose 16-bit ports lane-first, so reverse the
+    # normal big-endian wire view before comparing against DUT config words.
     return int.from_bytes(port.to_bytes(2, byteorder="big")[::-1], byteorder="big")
 
 
@@ -140,6 +162,8 @@ def build_udp_rx_pseudo_frame(
     extra_trailer: bytes = b"",
 ) -> bytes:
     udp_length = 8 + len(payload) + len(extra_trailer)
+    # The RX pseudo-header is remote MAC, two pad bytes, remote/local IP, then
+    # zero/protocol/UDP metadata before the payload bytes.
     header0 = remote_mac.to_bytes(6, byteorder="big") + b"\x00\x00" + ipv4_to_bytes(remote_ip) + ipv4_to_bytes(local_ip)
     header1 = (
         bytes([0x00, UDP_PROTOCOL])
@@ -162,6 +186,8 @@ def build_udp_tx_pseudo_frame(
     dst_port: int,
     payload: bytes,
 ) -> bytes:
+    # The TX pseudo-header keeps the same private layout but uses the outgoing
+    # destination MAC and source/destination IP tuple.
     header0 = dst_mac.to_bytes(6, byteorder="big") + b"\x00\x00" + ipv4_to_bytes(src_ip) + ipv4_to_bytes(dst_ip)
     header1 = (
         bytes([0x00, UDP_PROTOCOL])
@@ -184,29 +210,30 @@ def build_dhcp_reply_payload(
     siaddr: str,
     lease_time: int = 120,
 ) -> bytes:
-    payload = bytearray(240)
-    payload[0] = 0x02
-    payload[1] = 0x01
-    payload[2] = 0x06
+    # DHCP options start after the 240-byte BOOTP fixed header.
+    payload = bytearray(DHCP_FIXED_HEADER_BYTES)
+    payload[0] = DHCP_BOOT_REPLY_OP
+    payload[1] = DHCP_HTYPE_ETHERNET
+    payload[2] = DHCP_HLEN_ETHERNET
     payload[3] = 0x00
     payload[4:8] = xid.to_bytes(4, byteorder="big")
     payload[16:20] = ipv4_to_bytes(yiaddr)
     payload[20:24] = ipv4_to_bytes(siaddr)
     payload[28:34] = client_mac.to_bytes(6, byteorder="big")
-    payload[236:240] = bytes.fromhex("63825363")
+    payload[236:240] = DHCP_MAGIC_COOKIE
     payload.extend(
         bytes(
             [
-                53,
+                DHCP_OPT_MESSAGE_TYPE,
                 1,
                 message_type & 0xFF,
-                51,
+                DHCP_OPT_LEASE_TIME,
                 4,
             ]
         )
     )
     payload.extend(lease_time.to_bytes(4, byteorder="big"))
-    payload.extend(bytes([255]))
+    payload.extend(bytes([DHCP_OPT_END]))
     return bytes(payload)
 
 
@@ -215,13 +242,13 @@ def extract_dhcp_xid(payload: bytes) -> int:
 
 
 def extract_dhcp_message_type(payload: bytes) -> int | None:
-    index = 240
+    index = DHCP_FIXED_HEADER_BYTES
     while index < len(payload):
         code = payload[index]
         if code == 0:
             index += 1
             continue
-        if code == 255:
+        if code == DHCP_OPT_END:
             return None
         if index + 1 >= len(payload):
             return None
@@ -230,43 +257,43 @@ def extract_dhcp_message_type(payload: bytes) -> int | None:
         data_stop = data_start + length
         if data_stop > len(payload):
             return None
-        if code == 53 and length == 1:
+        if code == DHCP_OPT_MESSAGE_TYPE and length == 1:
             return payload[data_start]
         index = data_stop
     return None
 
 
 def extract_dhcp_requested_ip(payload: bytes) -> str | None:
-    index = 240
+    index = DHCP_FIXED_HEADER_BYTES
     while index < len(payload):
         code = payload[index]
         if code == 0:
             index += 1
             continue
-        if code == 255:
+        if code == DHCP_OPT_END:
             return None
         length = payload[index + 1]
         data_start = index + 2
         data_stop = data_start + length
-        if code == 50 and length == 4:
+        if code == DHCP_OPT_REQUESTED_IP and length == 4:
             return str(ipaddress.IPv4Address(payload[data_start:data_stop]))
         index = data_stop
     return None
 
 
 def extract_dhcp_server_identifier(payload: bytes) -> str | None:
-    index = 240
+    index = DHCP_FIXED_HEADER_BYTES
     while index < len(payload):
         code = payload[index]
         if code == 0:
             index += 1
             continue
-        if code == 255:
+        if code == DHCP_OPT_END:
             return None
         length = payload[index + 1]
         data_start = index + 2
         data_stop = data_start + length
-        if code == 54 and length == 4:
+        if code == DHCP_OPT_SERVER_IDENTIFIER and length == 4:
             return str(ipaddress.IPv4Address(payload[data_start:data_stop]))
         index = data_stop
     return None
@@ -513,4 +540,3 @@ async def setup_udp_wrapper_bench(dut) -> UdpWrapperBench:
         client_source=client_source,
         client_sink=FlatEmacEndpoint(dut, prefix="mClient"),
     )
-

@@ -23,10 +23,30 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 )
 
 
+# Centralize recurring IPv4/ARP/ICMP/IGMP protocol constants here so the tests
+# can describe behavior without repeating low-level packet-literal trivia.
 IPV4_RTL_SOURCES = [
     str(path)
     for path in sorted((Path(__file__).resolve().parents[3] / "ethernet" / "IpV4Engine" / "rtl").glob("*.vhd"))
 ]
+
+ETH_TYPE_IPV4 = 0x0800
+ETH_TYPE_ARP = 0x0806
+IPV4_VERSION_IHL = 0x45
+IPV4_DEFAULT_TTL = 0x20
+IPV4_DF_FLAGS = b"\x40\x00"
+IP_PROTOCOL_ICMP = 0x01
+IP_PROTOCOL_IGMP = 0x02
+IP_PROTOCOL_UDP = 0x11
+ARP_HTYPE_ETHERNET = 0x0001
+ARP_PTYPE_IPV4 = 0x0800
+ARP_HLEN_ETHERNET = 0x06
+ARP_PLEN_IPV4 = 0x04
+ARP_BROADCAST_MAC = 0xFFFFFFFFFFFF
+ICMP_ECHO_REPLY = 0x00
+ICMP_ECHO_REQUEST = 0x08
+IGMP_MEMBERSHIP_QUERY = 0x11
+IGMP_V2_MEMBERSHIP_REPORT = 0x16
 
 
 def ipv4_config_word(address: str) -> int:
@@ -45,7 +65,7 @@ def build_ipv4_frame(
     protocol: int,
     payload: bytes,
     identification: int = 0x1234,
-    ttl: int = 0x20,
+    ttl: int = IPV4_DEFAULT_TTL,
     checksum_override: int | None = None,
 ) -> bytes:
     ipv4_header = build_ipv4_header(
@@ -60,7 +80,7 @@ def build_ipv4_frame(
     return build_ethernet_frame(
         dst_mac=dst_mac,
         src_mac=src_mac,
-        eth_type=0x0800,
+        eth_type=ETH_TYPE_IPV4,
         payload=ipv4_header + payload,
     )
 
@@ -133,22 +153,23 @@ def build_ipv4_tx_wire_frame(
     protocol: int,
     payload: bytes,
     identification: int = 0x0000,
-    ttl: int = 0x20,
+    ttl: int = IPV4_DEFAULT_TTL,
 ) -> bytes:
     # IpV4EngineTx leaves the IPv4 total length and checksum fields clear for
     # downstream MAC checksum/length logic to repair.
     ipv4_header = (
-        bytes([0x45, 0x00])
+        bytes([IPV4_VERSION_IHL, 0x00])
         + b"\x00\x00"
         + identification.to_bytes(2, byteorder="big")
-        + bytes([0x40, 0x00, ttl, protocol, 0x00, 0x00])
+        + IPV4_DF_FLAGS
+        + bytes([ttl, protocol, 0x00, 0x00])
         + ipv4_to_bytes(src_ip)
         + ipv4_to_bytes(dst_ip)
     )
     return build_ethernet_frame(
         dst_mac=dst_mac,
         src_mac=src_mac,
-        eth_type=0x0800,
+        eth_type=ETH_TYPE_IPV4,
         payload=ipv4_header + payload,
     )
 
@@ -164,14 +185,14 @@ def build_arp_frame(
     src_mac: int | None = None,
 ) -> bytes:
     if dst_mac is None:
-        dst_mac = 0xFFFFFFFFFFFF if opcode == 1 else target_mac
+        dst_mac = ARP_BROADCAST_MAC if opcode == 1 else target_mac
     if src_mac is None:
         src_mac = sender_mac
 
     payload = (
-        (0x0001).to_bytes(2, byteorder="big")
-        + (0x0800).to_bytes(2, byteorder="big")
-        + bytes([0x06, 0x04])
+        ARP_HTYPE_ETHERNET.to_bytes(2, byteorder="big")
+        + ARP_PTYPE_IPV4.to_bytes(2, byteorder="big")
+        + bytes([ARP_HLEN_ETHERNET, ARP_PLEN_IPV4])
         + opcode.to_bytes(2, byteorder="big")
         + mac_to_bytes(sender_mac)
         + ipv4_to_bytes(sender_ip)
@@ -181,7 +202,7 @@ def build_arp_frame(
     return build_ethernet_frame(
         dst_mac=dst_mac,
         src_mac=src_mac,
-        eth_type=0x0806,
+        eth_type=ETH_TYPE_ARP,
         payload=payload,
     )
 
@@ -191,7 +212,7 @@ def build_icmp_echo_packet(
     payload: bytes,
     identifier: int = 0x1234,
     sequence: int = 0x0001,
-    icmp_type: int = 0x08,
+    icmp_type: int = ICMP_ECHO_REQUEST,
     code: int = 0x00,
 ) -> bytes:
     header_wo_checksum = bytes([icmp_type, code]) + b"\x00\x00"
@@ -217,7 +238,7 @@ def build_icmp_echo_reply_packet(
         payload=payload,
         identifier=identifier,
         sequence=sequence,
-        icmp_type=0x00,
+        icmp_type=ICMP_ECHO_REPLY,
         code=0x00,
     )
 
@@ -236,7 +257,7 @@ def build_icmp_echo_frame(
         payload=payload,
         identifier=identifier,
         sequence=sequence,
-        icmp_type=0x08,
+        icmp_type=ICMP_ECHO_REQUEST,
         code=0x00,
     )
     return build_ipv4_frame(
@@ -244,7 +265,7 @@ def build_icmp_echo_frame(
         src_mac=src_mac,
         src_ip=src_ip,
         dst_ip=dst_ip,
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=icmp_payload,
     )
 
@@ -257,6 +278,8 @@ def build_igmp_packet(
     checksum_override: int | None = None,
 ) -> bytes:
     group_ip_bytes = ipv4_to_bytes(group_ip)
+    # IGMPv2 packets are always a fixed 8 bytes: type, max-response-time,
+    # checksum, and group address.
     header_wo_checksum = bytes([igmp_type & 0xFF, max_resp_time & 0xFF]) + b"\x00\x00" + group_ip_bytes
     checksum = internet_checksum(header_wo_checksum) if checksum_override is None else checksum_override
     return bytes([igmp_type & 0xFF, max_resp_time & 0xFF]) + checksum.to_bytes(2, byteorder="big") + group_ip_bytes
@@ -269,7 +292,7 @@ def build_igmp_membership_query_packet(
     checksum_override: int | None = None,
 ) -> bytes:
     return build_igmp_packet(
-        igmp_type=0x11,
+        igmp_type=IGMP_MEMBERSHIP_QUERY,
         max_resp_time=max_resp_time,
         group_ip=group_ip,
         checksum_override=checksum_override,
@@ -282,7 +305,7 @@ def build_igmp_membership_report_packet(
     checksum_override: int | None = None,
 ) -> bytes:
     return build_igmp_packet(
-        igmp_type=0x16,
+        igmp_type=IGMP_V2_MEMBERSHIP_REPORT,
         max_resp_time=0x00,
         group_ip=group_ip,
         checksum_override=checksum_override,
@@ -290,6 +313,8 @@ def build_igmp_membership_report_packet(
 
 
 def igmp_group_mac(group_ip: str) -> int:
+    # IPv4 multicast maps onto the Ethernet 01:00:5E prefix with the top bit
+    # of the group address dropped.
     group_ip_bytes = ipv4_to_bytes(group_ip)
     return int.from_bytes(b"\x01\x00\x5E" + group_ip_bytes[1:], byteorder="big")
 

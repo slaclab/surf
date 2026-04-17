@@ -39,6 +39,9 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
+    ARP_BROADCAST_MAC,
+    IP_PROTOCOL_ICMP,
+    IP_PROTOCOL_UDP,
     IPV4_RTL_SOURCES,
     build_arp_frame,
     build_icmp_echo_frame,
@@ -104,14 +107,14 @@ async def ipv4_top_udp_routing_test(dut):
         src_mac=REMOTE_MAC_WIRE,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
     udp_expected = build_ipv4_rx_pseudo_frame(
         src_mac=REMOTE_MAC_WIRE,
         src_ip=REMOTE_IP,
         dst_ip=LOCAL_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
 
@@ -143,7 +146,7 @@ async def ipv4_top_protocol_tx_path_test(dut):
         dst_mac=REMOTE_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip=REMOTE_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
     tx_expected = build_ipv4_tx_wire_frame(
@@ -151,7 +154,7 @@ async def ipv4_top_protocol_tx_path_test(dut):
         src_mac=LOCAL_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip=REMOTE_IP,
-        protocol=0x11,
+        protocol=IP_PROTOCOL_UDP,
         payload=udp_payload,
     )
 
@@ -186,7 +189,7 @@ async def ipv4_top_icmp_echo_reply_test(dut):
         src_mac=LOCAL_MAC_WIRE,
         src_ip=LOCAL_IP,
         dst_ip=REMOTE_IP,
-        protocol=0x01,
+        protocol=IP_PROTOCOL_ICMP,
         payload=build_icmp_echo_reply_packet(
             payload=b"top-level-icmp",
             identifier=0x7788,
@@ -225,7 +228,7 @@ async def ipv4_top_arp_client_round_trip_test(dut):
         opcode=1,
         sender_mac=LOCAL_MAC_WIRE,
         sender_ip=LOCAL_IP,
-        target_mac=0xFFFFFFFFFFFF,
+        target_mac=ARP_BROADCAST_MAC,
         target_ip=REMOTE_IP,
     )
     assert payload_from_beats(arp_request_observed) == arp_request_expected

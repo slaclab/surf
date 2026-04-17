@@ -36,6 +36,9 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/UdpEngine/wrappers/ArpIpTableFlatWrapper.vhd"
+POS_IP_MATCH_LOOKUP = 0
+POS_TABLE_ENTRY0 = 1
+EXPIRATION_WAIT_CYCLES = 24
 
 
 @cocotb.test()
@@ -49,14 +52,15 @@ async def arp_ip_table_lookup_by_ip_and_position_test(dut):
     dut.macWrAddr.value = LEGACY_MAC_CFGS[1]
     await pulse_signal(dut.macWrEn, clk=bench.clk)
 
-    # `pos=0` uses IP-match lookup while `pos=1` directly addresses entry 0.
+    # `pos=0` uses IP-match lookup while `pos=1` directly addresses entry 0 in
+    # the small wrapper-configured table.
     dut.ipAddrIn.value = LEGACY_IP_CFGS[1]
-    dut.pos.value = 0
+    dut.pos.value = POS_IP_MATCH_LOOKUP
     await cycle(bench.clk, 1)
     assert int(dut.found.value) == 1
     assert int(dut.macAddr.value) == LEGACY_MAC_CFGS[1]
 
-    dut.pos.value = 1
+    dut.pos.value = POS_TABLE_ENTRY0
     await cycle(bench.clk, 1)
     assert int(dut.found.value) == 1
     assert int(dut.macAddr.value) == LEGACY_MAC_CFGS[1]
@@ -76,9 +80,9 @@ async def arp_ip_table_expiration_reclaims_entry_test(dut):
 
     # With the wrapper's tiny timing generics the entry should expire after a
     # handful of clock cycles if no inbound traffic refreshes the timer.
-    await cycle(bench.clk, 24)
+    await cycle(bench.clk, EXPIRATION_WAIT_CYCLES)
     dut.ipAddrIn.value = LEGACY_IP_CFGS[1]
-    dut.pos.value = 0
+    dut.pos.value = POS_IP_MATCH_LOOKUP
     await cycle(bench.clk, 2)
     assert int(dut.found.value) == 0
 
@@ -91,7 +95,7 @@ async def arp_ip_table_expiration_reclaims_entry_test(dut):
     await pulse_signal(dut.macWrEn, clk=bench.clk)
 
     dut.ipAddrIn.value = LEGACY_IP_CFGS[1]
-    dut.pos.value = 0
+    dut.pos.value = POS_IP_MATCH_LOOKUP
     await cycle(bench.clk, 2)
     assert int(dut.found.value) == 0
 

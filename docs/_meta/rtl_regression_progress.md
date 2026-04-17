@@ -13,6 +13,7 @@
   - The current `verification-2` branch already includes the merged `pre-release` state through PR #1392, so the validated `protocols/ssi`, `protocols/pgp`, and current Ethernet waves (`EthMacCore`, `RawEthFramer`, `UdpEngine`, and `IpV4Engine`) are all part of the present branch snapshot.
   - The checked-in queue and override artifacts are now retained only as historical provenance and optional graph output; they are no longer the source of truth for choosing the next area.
   - Keep the done/open frontier in this progress file and in `docs/_meta/rtl_regression_handoff.md` aligned to the actual tree even if the queue artifacts are stale.
+  - Treat stale simulator cleanup as mandatory after every launched verification command: after any `pytest`, cocotb, GHDL, or similar simulation step, sweep for leftover child processes and kill them before starting the next task.
 - Known expected-open tests on this branch:
   - No simulator-friendly expected-open leaf tests remain in the currently covered `ethernet/IpV4Engine` slice, and the recent `EthMacCore` / `UdpEngine` thin-area follow-up is also checked in on this branch.
   - The current `EthMac*Xlgmii` import/export leaves are still placeholder no-op RTL, so the checked-in benches document that inert contract rather than claiming functional XLGMII datapath coverage.
@@ -220,6 +221,7 @@
 - The `axi/dma/rtl/v2/` benches are now intentionally split by behavior instead of repeatedly re-proving the same path through the top-level DMA stack: `AxiStreamDmaV2` and `AxiStreamDmaV2Desc` stay focused on descriptor-manager register/control surfaces, `AxiStreamDmaV2Read` owns aligned and short terminal-beat readout, `AxiStreamDmaV2Write` owns descriptor-return integrity plus burst splitting, `AxiStreamDmaV2WriteMux` owns arbitration ordering, and `AxiStreamDmaV2Fifo` owns the integrated FIFO register/count/pause-threshold surface.
 - For checked-in VHDL changes, use the repo virtualenv's `vsg` with `vsg-linter.yml` so local lint matches CI, and prefer `--fix` before manual spacing/alignment cleanup.
 - The current `EthMacCore` wave has a few wrapper-visible behavior details worth preserving in the docs instead of rediscovering later: the XGMII import/export loopback retains a frame presented during `phyReady=0` and drains it after link recovery with Ethernet minimum-size padding applied, while the GMII path drops it; `EthMacRxCsum` reliably asserts `IPERR` on a bad IPv4 header checksum but the checked-in wrapper contract does not require `EOFE` on that case; and the RX/TX shift benches need a small idle-plus-settle gap before changing runtime shift controls because the underlying `AxiStreamShift` samples those controls from its IDLE state.
+- Verification hygiene now includes process cleanup: if a `pytest`/cocotb/GHDL step leaves stale run trees behind, kill those leftovers immediately before starting another compile or simulation command.
 
 ## Log
 - 2026-03-20: Agreed on Python-only executable regression logic and wrapper-only VHDL retention.

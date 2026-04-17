@@ -16,6 +16,7 @@
 - Give each checked-in cocotb-facing `*IpIntegrator.vhd` wrapper the normal SURF file banner plus section comments for shim setup, DUT instantiation, and any flattening/status wiring
 - For any VHDL file created or edited during this work, run `./.venv/bin/vsg` with `vsg-linter.yml`, the same config CI uses, and use `--fix`/autofix on fixable issues before moving on
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
+- Treat stale simulator cleanup as part of task completion: after any `pytest`, cocotb, GHDL, or similar launched verification step, sweep for leftover child processes and kill them before moving on
 
 ## Quick Resume Snapshot
 - Current frontier: the axi-first pass is complete, the merged branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the current Ethernet coverage now spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, and `IpV4Engine`, including the recent thin-area cleanup across direct bypass leaves, broader top-level UDP/IPv4 paths, and deeper ICMP negatives. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
@@ -63,6 +64,7 @@
 - `EthMacRxCsum` reliably raises `IPERR` on a bad IPv4 header checksum, but the checked-in wrapper contract does not currently require `EOFE` for that case. Keep the negative test aligned to the real observable contract rather than to a stronger assumption.
 - The RX/TX shift benches need a small idle-plus-settle gap before changing runtime shift controls because the underlying `AxiStreamShift` samples those controls while idle. Preserve that guardrail if those benches are refactored or expanded.
 - `EthMacRxBypass` compares the EtherType field in the flattened EMAC byte-lane order, not normal wire-order host integer order. In practice that means a wire EtherType like `0x9000` must be compared as `x"0090"` at the wrapper/DUT generic boundary, just as `0x88B5` appears as `x"B588"` in the existing wrappers.
+- Do not leave stale simulation trees behind between tasks. If a verification command launched `pytest`, cocotb, GHDL, or wrapper executables, treat post-run process cleanup as mandatory before the next edit or test cycle.
 
 ## Current Status
 Planning is complete and implementation is well underway. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
@@ -167,6 +169,7 @@ Before writing code in a fresh session:
 2. If adding a permanent `*IpIntegrator.vhd`, include the standard SURF banner and section comments in the first edit, not as an afterthought.
 3. If adding a Python regression, include the standard SURF/SLAC header, the `Test methodology` header block, and in-body tutorial comments in the first draft.
 4. If creating or editing any VHDL file, run `./.venv/bin/vsg -c vsg-linter.yml ...` on that file set, use `--fix` when possible, and rerun the same lint command until it is clean.
+5. After any step that launches `pytest`, cocotb, GHDL, or another simulator process, sweep for stale child processes and kill any leftovers before starting the next step.
 
 ## Important Repo Facts
 - New Python regressions should be organized under subsystem packages in `tests/`
@@ -190,6 +193,7 @@ Before writing code in a fresh session:
 - Use `./.venv/bin/python ...` for repo-local Python commands unless the virtualenv has already been activated in the current shell; do not assume a `python` shim exists on `PATH`
 - If GHDL rejects a direct command-line override for a non-scalar or real generic, prefer a generated thin test-only wrapper over simulator-specific literal workarounds or another checked-in one-off HDL shim
 - If a wrapper branch is unstable under the current open-source flow, keep the validated subset narrow and record the omitted branch explicitly in the docs instead of over-claiming wrapper coverage
+- Use `ps -Ao pid,ppid,stat,time,command` when needed to find stale simulation children, then terminate only the leftover run trees instead of broad process classes
 - `LutFixedDelay` remains intentionally deferred because it depends on `SinglePortRamPrimitive`; do not accidentally treat the now-small remaining `base/` set as phase-1 work that still needs to be forced through
 - Regenerate the graph and the phase-1 queue with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when historical analysis is useful or the user explicitly asks for it
 - Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
