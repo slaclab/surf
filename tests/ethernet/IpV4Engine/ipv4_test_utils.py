@@ -249,6 +249,51 @@ def build_icmp_echo_frame(
     )
 
 
+def build_igmp_packet(
+    *,
+    igmp_type: int,
+    max_resp_time: int = 0x00,
+    group_ip: str = "0.0.0.0",
+    checksum_override: int | None = None,
+) -> bytes:
+    group_ip_bytes = ipv4_to_bytes(group_ip)
+    header_wo_checksum = bytes([igmp_type & 0xFF, max_resp_time & 0xFF]) + b"\x00\x00" + group_ip_bytes
+    checksum = internet_checksum(header_wo_checksum) if checksum_override is None else checksum_override
+    return bytes([igmp_type & 0xFF, max_resp_time & 0xFF]) + checksum.to_bytes(2, byteorder="big") + group_ip_bytes
+
+
+def build_igmp_membership_query_packet(
+    *,
+    max_resp_time: int,
+    group_ip: str = "0.0.0.0",
+    checksum_override: int | None = None,
+) -> bytes:
+    return build_igmp_packet(
+        igmp_type=0x11,
+        max_resp_time=max_resp_time,
+        group_ip=group_ip,
+        checksum_override=checksum_override,
+    )
+
+
+def build_igmp_membership_report_packet(
+    *,
+    group_ip: str,
+    checksum_override: int | None = None,
+) -> bytes:
+    return build_igmp_packet(
+        igmp_type=0x16,
+        max_resp_time=0x00,
+        group_ip=group_ip,
+        checksum_override=checksum_override,
+    )
+
+
+def igmp_group_mac(group_ip: str) -> int:
+    group_ip_bytes = ipv4_to_bytes(group_ip)
+    return int.from_bytes(b"\x01\x00\x5E" + group_ip_bytes[1:], byteorder="big")
+
+
 def build_ipv4_udp_payload(
     *,
     src_port: int,
