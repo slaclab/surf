@@ -18,24 +18,23 @@
 - Treat VHDL packages as transitively covered unless a behavioral function/procedure needs a dedicated wrapper
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete, the merged branch line now includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the manual Ethernet slice now spans `EthMacCore`, `RawEthFramer`, and `UdpEngine`. The immediate planning gap is still that `docs/_meta/rtl_phase1_queue_overrides.json` carries the old temporary `ethernet` / `protocols` deferrals, so the checked-in queue artifacts remain behind the real branch frontier.
+- Current frontier: the axi-first pass is complete, the merged branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the current Ethernet coverage now spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, and `IpV4Engine`. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
-  - None currently recorded on this merged branch. `AxiResize` and `AxiStreamDmaV2Read` are both fixed here; queue/override refresh is the next step.
-- Current queue discipline:
-  - Keep `dsp/` in the generated queue scope. Do not track DSP rollout in a separate hand-maintained list.
-  - The planned `dsp/generic/fixed` leaf set is now validated: `FirFilterTap`, `DspAddSub`, `DspComparator`, `DspPreSubMult`, `DspSquareDiffMult`, `BoxcarIntegrator`, `BoxcarFilter`, `FirFilterSingleChannel`, and `FirFilterMultiChannel`.
-  - The next cross-subsystem cleanup is no longer hypothetical: remove the stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json` before using the queue as the next-module source of truth again.
-  - Until that happens, do not treat the generated queue artifacts as evidence that `ethernet` or `protocols` are untouched; this branch already contains the Ethernet slice plus the merged SSI and PGP waves even though the current queue inputs still defer those subsystems.
-  - Keep the local `protocols/pgp/pgp3/` defer unless there is a deliberate decision to broaden the PGP family rollout.
-  - Do not hand-maintain queue order in the plan or handoff docs.
+  - `RawEthFramerTx` still has an intentionally narrow first-pass contract. Do not claim broader multi-beat unicast completion coverage yet.
+  - `IgmpV2Engine` still has no checked-in cocotb coverage.
+  - The larger Ethernet families `GigEthCore`, `TenGigEthCore`, `XauiCore`, `XlauiCore`, `Caui4Core`, and `RoCEv2` remain untouched in phase 1.
+- Current planning discipline:
+  - Use manual user-directed area selection as the active source of truth for what to work on next.
+  - Keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with the actual validated branch frontier.
+  - Keep the graph and queue artifacts only as historical provenance or optional analysis context; do not use them as the next-module selector unless the user explicitly opts back into queue-driven planning.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
   - Keep first-pass wrapper benches intentionally narrow and document any omitted branches explicitly.
   - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
   - Prefer explicit short sim-build keys for generated-wrapper benches when case metadata would otherwise create fragile build paths.
   - When a wrapper is checked in, write it like the surrounding repo HDL: include the SLAC/SURF banner and enough section comments that a new session can identify the shim, DUT, and flattening regions quickly.
-  - For the current Ethernet slice, the checked-in wrappers under `ethernet/EthMacCore/wrappers/`, `ethernet/RawEthFramer/wrappers/`, and `ethernet/UdpEngine/wrappers/` are now the expected cocotb surfaces. Keep using those subsystem-local wrappers rather than rebuilding record-packing logic in Python.
+  - For the current Ethernet slice, the checked-in wrappers under `ethernet/EthMacCore/wrappers/`, `ethernet/RawEthFramer/wrappers/`, `ethernet/UdpEngine/wrappers/`, and `ethernet/IpV4Engine/wrappers/` are the expected cocotb surfaces. Keep using those subsystem-local wrappers rather than rebuilding record-packing logic in Python.
 - Current cocotb-file discipline:
   - New test files should start with the standard SURF/SLAC header block.
   - The `Test methodology` block belongs directly under that header.
@@ -58,6 +57,7 @@
 - `tests/ethernet/EthMacCore/ethmac_test_utils.py` is now the shared home for the current Ethernet MAC slice: flat EMAC beat helpers, Ethernet/IPv4/UDP packet builders, checksum reference code, MAC-config byte-order helpers, and minimum-frame padding helpers. Reuse it instead of cloning packet or sideband plumbing across `EthMacCore` benches.
 - `tests/ethernet/RawEthFramer/raw_eth_test_utils.py` now holds the shared raw-Ethernet helper pieces: flat app-side beat helpers, raw-Ethernet header/frame builders, and lookup-handshake utilities reused by the `RawEthFramer`, `RawEthFramerRx`, and `RawEthFramerTx` benches.
 - `tests/ethernet/UdpEngine/udp_test_utils.py` is now the shared home for the UDP slice: legacy-address constants, pseudo-frame builders, DHCP option helpers, and the common cocotb bench setup for the `ArpIpTable`, `UdpEngine*`, and `UdpEngineWrapper*` wrappers. Reuse it instead of rebuilding IPv4/UDP helper glue in each test module.
+- `tests/ethernet/IpV4Engine/ipv4_test_utils.py` is now the shared home for the IPv4 slice: packet/header builders and common cocotb bench setup for the `ArpEngine`, `IcmpEngine`, and `IpV4Engine*` wrappers. Reuse it instead of cloning IPv4 framing helpers across that directory.
 - The current `EthMacCore` slice is intentionally a checked-in-wrapper-first rollout, not a cocotb-generated-wrapper experiment. Keep new Ethernet work on that same pattern unless the simulator forces a very local generic adapter.
 - The XGMII import/export loopback behavior differs from the GMII path when `phyReady` drops mid-traffic: the blocked frame is retained and drains after link recovery, padded to Ethernet's minimum frame size if it was short. The GMII path drops that blocked frame. Future import/export coverage should preserve that distinction instead of forcing one common expectation.
 - `EthMacRxCsum` reliably raises `IPERR` on a bad IPv4 header checksum, but the checked-in wrapper contract does not currently require `EOFE` for that case. Keep the negative test aligned to the real observable contract rather than to a stronger assumption.
@@ -88,11 +88,13 @@ The project now also has a shared helper path in `tests/common/regression_utils.
 
 `tests/common/regression_utils.py` now also includes `start_lockstep_clocks()` for DUTs whose generics assume truly common clocks in both ports. Use that helper instead of launching two same-period clocks independently when the RTL assumes shared edge identity.
 
-The first manual `ethernet/EthMacCore` wave is now also in place. The checked-in Ethernet MAC benches under `tests/ethernet/EthMacCore/` cover `EthCrc32Parallel`, `EthMacFlowCtrl`, `EthMacRxPause`, `EthMacTxPause`, `EthMacRxFilter`, `EthMacRxShift`, `EthMacTxShift`, `EthMacRxImport`, `EthMacTxExport`, `EthMacRxCsum`, `EthMacTxCsum`, and `EthMacTop`, and the current directory-level regression passes locally with `32 passed`. The current Ethernet wrappers live under `ethernet/EthMacCore/wrappers/` and should be treated as the stable cocotb-facing surfaces for deeper `EthMacCore` work.
+`ethernet/EthMacCore/` now has checked-in regression coverage under `tests/ethernet/EthMacCore/` for both the original leaf slice and the deeper assembly layer. The current benches cover `EthCrc32Parallel`, `EthMacFlowCtrl`, `EthMacRxPause`, `EthMacTxPause`, `EthMacRxFilter`, `EthMacRxShift`, `EthMacTxShift`, `EthMacRxImport`, `EthMacTxExport`, `EthMacRxCsum`, `EthMacTxCsum`, `EthMacTop`, `EthMacRx`, `EthMacTx`, `EthMacRxFifo`, and `EthMacTxFifo`. The current Ethernet wrappers live under `ethernet/EthMacCore/wrappers/` and should be treated as the stable cocotb-facing surfaces for further `EthMacCore` work.
 
 `ethernet/RawEthFramer/` now also has checked-in regression coverage under `tests/ethernet/RawEthFramer/`. The earlier top-level `RawEthFramer` wrapper bench is joined by direct leaf benches for `RawEthFramerRx` and `RawEthFramerTx`, plus a `RawEthFramerPair` integration bench whose wrapper cross-connects two `RawEthFramer` instances to mirror the legacy `ethernet/RawEthFramer/tb/RawEthFramerTb.vhd` topology. The validated RX leaf bench covers lookup-gated unicast decode, short-frame trim behavior, broadcast bypass, and representative reject cases. The validated TX leaf bench currently keeps a narrower first-pass subset: lookup-request exposure before forwarding, broadcast bypass with the observed padded wire image, and zero-MAC lookup-miss drop. Do not over-claim the broader multi-beat unicast completion path for `RawEthFramerTx`; that branch still needs follow-up before it should be considered a passing leaf-level contract.
 
 `ethernet/UdpEngine/` now has checked-in regression coverage under `tests/ethernet/UdpEngine/` as well. The current validated set covers `ArpIpTable`, `UdpEngineArp`, `UdpEngineDhcp`, `UdpEngineRx`, `UdpEngineTx`, `UdpEngine`, and `UdpEngineWrapper`, all backed by checked-in wrappers under `ethernet/UdpEngine/wrappers/` and the shared helper layer in `tests/ethernet/UdpEngine/udp_test_utils.py`.
+
+`ethernet/IpV4Engine/` now also has checked-in regression coverage under `tests/ethernet/IpV4Engine/`. The current validated set covers `ArpEngine`, `IcmpEngine`, `IpV4Engine`, `IpV4EngineDeMux`, `IpV4EngineRx`, and `IpV4EngineTx`, all backed by checked-in wrappers under `ethernet/IpV4Engine/wrappers/` and the shared helper layer in `tests/ethernet/IpV4Engine/ipv4_test_utils.py`. `IgmpV2Engine` remains the obvious uncovered gap in that slice.
 
 The wrapper coverage policy is now more explicit in practice: test the wrapper-specific behavior, not the full leaf matrix again. `Fifo` validated both inferred sync/async selection branches, `FifoCascade` validated public stage-vector mapping plus a curated output smoke, and `FifoMux` is currently validated only on the stable split-to-narrow path. The pack-to-wide `FifoMux` path should be treated as still open rather than silently assumed covered.
 
@@ -146,16 +148,16 @@ The combined validation command for that batch is `./.venv/bin/python -m pytest 
 
 One small RTL fix landed during that validation pass because the new `AxiStreamDmaRingWrite` test exposed a real simulation-width hazard: `axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd` now slices `dmaAck.size` back to `RAM_DATA_WIDTH_C` before incrementing `nextAddr`. Keep that change; it is what allows the checked-in narrow wrapper to simulate cleanly under GHDL.
 
-A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph for provenance, but treat the generated queue as the default source of truth for what to implement next. Manual phase-1 deferrals and order exceptions belong in `docs/_meta/rtl_phase1_queue_overrides.json`, not as hand-edited ordering in the plan doc.
+A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph and queue for provenance, but treat them as historical context rather than as the default source of truth for what to implement next.
 
 ## Immediate Next Task
-Refresh the phase-1 planning inputs before taking the next module. Remove the stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate `docs/_meta/rtl_instantiation_graph.{md,json}` plus `docs/_meta/rtl_phase1_queue.{md,json}`, and then choose the next non-deferred frontier from that refreshed queue. If the follow-on still stays manual instead of queue-driven, the leading candidates remain the deeper `ethernet/EthMacCore` assembly layer (`EthMacRx`, `EthMacTx`, `EthMacRxFifo`, `EthMacTxFifo`) or the next wider non-`pgp3` protocol slice.
+Wait for the next user-directed area selection, then keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with whatever lands in the tree. The immediate documentation priority is accuracy of the real done/open frontier, not regeneration of the historical queue artifacts.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
 2. `docs/_meta/rtl_regression_progress.md`
 3. `docs/_meta/rtl_regression_plan.md`
-4. `docs/_meta/rtl_phase1_queue.md`
+4. `docs/_meta/rtl_phase1_queue.md` only if historical graph output is useful for context; it is no longer the active planning driver.
 
 Before writing code in a fresh session:
 1. Re-read the Python comment rules and the checked-in wrapper comment/header rules above.
@@ -180,13 +182,13 @@ Before writing code in a fresh session:
 - Many VHDL wrappers live under `*/tb/`
 - The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
 - The RTL instantiation graph lives in `docs/_meta/rtl_instantiation_graph.{md,json}`
-- The generated path-qualified phase-1 module queue lives in `docs/_meta/rtl_phase1_queue.{md,json}`; use that queue plus the progress doc as the next-module source of truth instead of re-analyzing the graph JSON every time
-- Manual phase-1 queue deferrals and order overrides live in `docs/_meta/rtl_phase1_queue_overrides.json`
+- The generated path-qualified phase-1 queue lives in `docs/_meta/rtl_phase1_queue.{md,json}`, but it is now historical context only rather than the next-module source of truth
+- Manual phase-1 queue deferrals and order overrides still live in `docs/_meta/rtl_phase1_queue_overrides.json`, but that file is not the active task-selection mechanism anymore
 - Use `./.venv/bin/python ...` for repo-local Python commands unless the virtualenv has already been activated in the current shell; do not assume a `python` shim exists on `PATH`
 - If GHDL rejects a direct command-line override for a non-scalar or real generic, prefer a generated thin test-only wrapper over simulator-specific literal workarounds or another checked-in one-off HDL shim
 - If a wrapper branch is unstable under the current open-source flow, keep the validated subset narrow and record the omitted branch explicitly in the docs instead of over-claiming wrapper coverage
 - `LutFixedDelay` remains intentionally deferred because it depends on `SinglePortRamPrimitive`; do not accidentally treat the now-small remaining `base/` set as phase-1 work that still needs to be forced through
-- Regenerate the graph and the phase-1 queue with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`
+- Regenerate the graph and the phase-1 queue with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when historical analysis is useful or the user explicitly asks for it
 - Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
 - Local `ruckus` is linked from `~/ruckus`
 

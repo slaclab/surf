@@ -92,24 +92,22 @@
 - Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.
 - Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them.
 - Use the graph to reduce repeated behavioral testing across adjacent hierarchy levels, not as a substitute for engineering judgment about externally visible behavior.
-- Keep the graph artifacts for provenance, but use the generated path-qualified phase-1 queue in `docs/_meta/rtl_phase1_queue.{md,json}` as the day-to-day source of truth.
-- Record manual phase-1 deferrals and manual order exceptions only in `docs/_meta/rtl_phase1_queue_overrides.json`; do not hand-edit queue order in this plan.
-- Do not re-analyze `rtl_instantiation_graph.json` before every module. Regenerate the queue when needed and take the next non-deferred item from `rtl_phase1_queue.md` unless a concrete blocker forces a documented override.
-- The earlier temporary `axi/`-first rollout preference has already been completed on the current branch line. The next planning step is to remove stale temporary `ethernet` and `protocols` subsystem deferrals from `docs/_meta/rtl_phase1_queue_overrides.json`, regenerate the queue, and then resume from the next real non-deferred frontier.
+- Keep the graph and queue artifacts for provenance and optional analysis, but do not use them as the active day-to-day source of truth for task selection.
+- The active planning driver is now manual user-directed area selection, with `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md` tracking what is done, what is intentionally narrow, and what remains open.
+- Do not hand-maintain queue order in this plan. If the graph or queue is regenerated for analysis, treat it as secondary context unless the user explicitly switches back to queue-driven planning.
 
-## Flat Build Order
-The phase-1 simulator-friendly queue is now generated from the checked-in graph as a path-qualified bottom-up order rather than maintained inline in this plan.
+## Historical Queue Artifacts
+The phase-1 simulator-friendly queue remains available as a generated bottom-up artifact, but it is now historical context rather than the active workflow.
 
-Operational artifacts:
+Retained artifacts:
 - `docs/_meta/rtl_phase1_queue.md`
 - `docs/_meta/rtl_phase1_queue.json`
 - `docs/_meta/rtl_phase1_queue_overrides.json`
 
-Workflow:
-1. Regenerate the graph and queue with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`.
-2. Use `docs/_meta/rtl_regression_progress.md` plus the inventory to identify the current completion frontier.
-3. Take the next unfinished, non-deferred entry from `docs/_meta/rtl_phase1_queue.md`.
-4. If a concrete blocker forces a defer or reorder, record that exception in `docs/_meta/rtl_phase1_queue_overrides.json` instead of hand-editing this plan.
+If they are regenerated:
+1. Use `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`.
+2. Treat the resulting graph and queue as reference material only.
+3. Keep the real done/open frontier in `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md`.
 
 ## Phase Breakdown
 ### Phase 1
@@ -131,11 +129,11 @@ Workflow:
 - The repo has a checked-in inventory and handoff system.
 - New windows can recover project state by reading the handoff artifacts only.
 - The Python-only regression direction is documented and stable.
-- The queue artifacts and their override inputs stay aligned with the actual validated branch frontier instead of lagging behind completed subsystem waves.
+- The progress and handoff artifacts stay aligned with the actual validated branch frontier instead of lagging behind completed subsystem waves.
 - The smoke/functional tier split is established in the plan and progress tracking.
 
 ## Open Questions And Deferred Decisions
 - Whether PR-vs-nightly split is needed immediately or only after runtime data.
 - Exact criteria for moving a vendor-heavy module out of `deferred_vendor_heavy`.
-- Whether the next broad post-refresh wave should follow the regenerated queue directly or continue manually in `ethernet/EthMacCore`.
+- Which user-directed subsystem slice should be taken next after the current documented frontier.
 - Whether a separate tracked list of high-risk behavioral package helpers is needed once the module inventory stabilizes.
