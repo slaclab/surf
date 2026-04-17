@@ -98,13 +98,6 @@ class UdpWrapperBench:
 
 
 @dataclass
-class UdpWrapperPairBench:
-    clk: object
-    client_source: FlatEmacEndpoint
-    server_sinks: list[FlatEmacEndpoint]
-
-
-@dataclass
 class UdpArpBench:
     clk: object
     arp_req_sink: FlatEmacEndpoint
@@ -308,13 +301,6 @@ async def pulse_signal(signal, *, clk, idle_cycles: int = 1) -> None:
     await cycle(clk, 1)
     signal.value = 0
     await cycle(clk, idle_cycles)
-
-
-async def wait_for_pair_arp_resolution(*, clk, cycles: int = 256) -> None:
-    # The legacy wrapper-pair bench relies on genuine ARP learning through the
-    # integrated client/server stack, so leave time for request/response
-    # traffic to settle before launching the next client payload.
-    await cycle(clk, cycles)
 
 
 async def setup_arp_ip_table_bench(dut) -> ArpIpTableBench:
@@ -528,24 +514,3 @@ async def setup_udp_wrapper_bench(dut) -> UdpWrapperBench:
         client_sink=FlatEmacEndpoint(dut, prefix="mClient"),
     )
 
-
-async def setup_udp_wrapper_pair_bench(dut) -> UdpWrapperPairBench:
-    bench = await setup_flat_emac_testbench(
-        dut,
-        clk_name="clk",
-        rst_name="rst",
-        initial_values={
-            "clientLocalMac": LEGACY_MAC_CFGS[0],
-            "clientLocalIp": LEGACY_IP_CFGS[0],
-            "clientRemotePort": 0x0020,
-            "clientRemoteIp": LEGACY_IP_CFGS[1],
-            "selectedServer": 1,
-            "mServer0TReady": 0,
-            "mServer1TReady": 0,
-            "mServer2TReady": 0,
-        },
-    )
-    client_source = FlatEmacEndpoint(dut, prefix="sClient")
-    client_source.set_idle()
-    server_sinks = [FlatEmacEndpoint(dut, prefix=f"mServer{index}") for index in range(3)]
-    return UdpWrapperPairBench(clk=bench.clk, client_source=client_source, server_sinks=server_sinks)
