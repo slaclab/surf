@@ -1,0 +1,445 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+import ipaddress
+from pathlib import Path
+
+from cocotb.triggers import Timer
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
+
+from tests.axi.utils import axil_read_u32, axil_write_u32
+from tests.ethernet.EthMacCore.ethmac_test_utils import (
+    FlatEmacEndpoint,
+    cycle,
+    frame_beats_from_bytes,
+    mac_config_word_from_wire,
+    payload_from_beats,
+    setup_flat_emac_testbench,
+)
+from tests.ethernet.IpV4Engine.ipv4_test_utils import ipv4_config_word
+
+
+UDP_RTL_SOURCES = [
+    str(path)
+    for path in sorted((Path(__file__).resolve().parents[3] / "ethernet" / "UdpEngine" / "rtl").glob("*.vhd"))
+]
+
+
+LEGACY_MAC_WIRES = (
+    0x004456000301,
+    0x004456000302,
+    0x004456000303,
+    0x004456000304,
+)
+LEGACY_MAC_CFGS = tuple(mac_config_word_from_wire(value) for value in LEGACY_MAC_WIRES)
+LEGACY_IPS = (
+    "192.168.2.10",
+    "192.168.2.11",
+    "192.168.2.12",
+    "192.168.2.13",
+)
+LEGACY_IP_CFGS = tuple(ipv4_config_word(value) for value in LEGACY_IPS)
+
+UDP_PROTOCOL = 0x11
+DHCP_CLIENT_PORT = 68
+DHCP_SERVER_PORT = 67
+
+
+@dataclass
+class UdpRxBench:
+    clk: object
+    source: FlatEmacEndpoint
+    server_sink: FlatEmacEndpoint
+    client_sink: FlatEmacEndpoint
+    dhcp_sink: FlatEmacEndpoint
+
+
+@dataclass
+class UdpTxBench:
+    clk: object
+    source: FlatEmacEndpoint
+    sink: FlatEmacEndpoint
+    dhcp_source: FlatEmacEndpoint
+
+
+@dataclass
+class UdpTopBench:
+    clk: object
+    udp_source: FlatEmacEndpoint
+    udp_sink: FlatEmacEndpoint
+    server_source: FlatEmacEndpoint
+    server_sink: FlatEmacEndpoint
+    client_source: FlatEmacEndpoint
+    client_sink: FlatEmacEndpoint
+    arp_req_sink: FlatEmacEndpoint
+    arp_ack_source: FlatEmacEndpoint
+
+
+@dataclass
+class UdpWrapperBench:
+    clk: object
+    axil: AxiLiteMaster
+    mac_source: FlatEmacEndpoint
+    mac_sink: FlatEmacEndpoint
+    server_source: FlatEmacEndpoint
+    server_sink: FlatEmacEndpoint
+    client_source: FlatEmacEndpoint
+    client_sink: FlatEmacEndpoint
+
+
+@dataclass
+class UdpWrapperPairBench:
+    clk: object
+    client_source: FlatEmacEndpoint
+    server_sinks: list[FlatEmacEndpoint]
+
+
+def ipv4_to_bytes(address: str) -> bytes:
+    return ipaddress.IPv4Address(address).packed
+
+
+def port_config_word(port: int) -> int:
+    return int.from_bytes(port.to_bytes(2, byteorder="big")[::-1], byteorder="big")
+
+
+def pack_udp_app_payload(payload: bytes) -> list:
+    return frame_beats_from_bytes(payload)
+
+
+def build_udp_rx_pseudo_frame(
+    *,
+    remote_mac: int,
+    remote_ip: str,
+    local_ip: str,
+    remote_port: int,
+    local_port: int,
+    payload: bytes,
+    udp_checksum: int = 0,
+    extra_trailer: bytes = b"",
+) -> bytes:
+    udp_length = 8 + len(payload) + len(extra_trailer)
+    header0 = remote_mac.to_bytes(6, byteorder="big") + b"\x00\x00" + ipv4_to_bytes(remote_ip) + ipv4_to_bytes(local_ip)
+    header1 = (
+        bytes([0x00, UDP_PROTOCOL])
+        + b"\x00\x00"
+        + remote_port.to_bytes(2, byteorder="big")
+        + local_port.to_bytes(2, byteorder="big")
+        + udp_length.to_bytes(2, byteorder="big")
+        + udp_checksum.to_bytes(2, byteorder="big")
+        + payload[:4].ljust(4, b"\x00")
+    )
+    return header0 + header1 + payload[4:] + extra_trailer
+
+
+def build_udp_tx_pseudo_frame(
+    *,
+    dst_mac: int,
+    src_ip: str,
+    dst_ip: str,
+    src_port: int,
+    dst_port: int,
+    payload: bytes,
+) -> bytes:
+    header0 = dst_mac.to_bytes(6, byteorder="big") + b"\x00\x00" + ipv4_to_bytes(src_ip) + ipv4_to_bytes(dst_ip)
+    header1 = (
+        bytes([0x00, UDP_PROTOCOL])
+        + b"\x00\x00"
+        + src_port.to_bytes(2, byteorder="big")
+        + dst_port.to_bytes(2, byteorder="big")
+        + b"\x00\x00"
+        + b"\x00\x00"
+        + payload[:4].ljust(4, b"\x00")
+    )
+    return header0 + header1 + payload[4:]
+
+
+def build_dhcp_reply_payload(
+    *,
+    message_type: int,
+    xid: int,
+    client_mac: int,
+    yiaddr: str,
+    siaddr: str,
+    lease_time: int = 120,
+) -> bytes:
+    payload = bytearray(240)
+    payload[0] = 0x02
+    payload[1] = 0x01
+    payload[2] = 0x06
+    payload[3] = 0x00
+    payload[4:8] = xid.to_bytes(4, byteorder="big")
+    payload[16:20] = ipv4_to_bytes(yiaddr)
+    payload[20:24] = ipv4_to_bytes(siaddr)
+    payload[28:34] = client_mac.to_bytes(6, byteorder="big")
+    payload[236:240] = bytes.fromhex("63825363")
+    payload.extend(
+        bytes(
+            [
+                53,
+                1,
+                message_type & 0xFF,
+                51,
+                4,
+            ]
+        )
+    )
+    payload.extend(lease_time.to_bytes(4, byteorder="big"))
+    payload.extend(bytes([255]))
+    return bytes(payload)
+
+
+def extract_dhcp_xid(payload: bytes) -> int:
+    return int.from_bytes(payload[4:8], byteorder="big")
+
+
+def extract_dhcp_message_type(payload: bytes) -> int | None:
+    index = 240
+    while index < len(payload):
+        code = payload[index]
+        if code == 0:
+            index += 1
+            continue
+        if code == 255:
+            return None
+        if index + 1 >= len(payload):
+            return None
+        length = payload[index + 1]
+        data_start = index + 2
+        data_stop = data_start + length
+        if data_stop > len(payload):
+            return None
+        if code == 53 and length == 1:
+            return payload[data_start]
+        index = data_stop
+    return None
+
+
+def extract_dhcp_requested_ip(payload: bytes) -> str | None:
+    index = 240
+    while index < len(payload):
+        code = payload[index]
+        if code == 0:
+            index += 1
+            continue
+        if code == 255:
+            return None
+        length = payload[index + 1]
+        data_start = index + 2
+        data_stop = data_start + length
+        if code == 50 and length == 4:
+            return str(ipaddress.IPv4Address(payload[data_start:data_stop]))
+        index = data_stop
+    return None
+
+
+def extract_dhcp_server_identifier(payload: bytes) -> str | None:
+    index = 240
+    while index < len(payload):
+        code = payload[index]
+        if code == 0:
+            index += 1
+            continue
+        if code == 255:
+            return None
+        length = payload[index + 1]
+        data_start = index + 2
+        data_stop = data_start + length
+        if code == 54 and length == 4:
+            return str(ipaddress.IPv4Address(payload[data_start:data_stop]))
+        index = data_stop
+    return None
+
+
+async def axil_read_u48(master, address: int) -> int:
+    low = await axil_read_u32(master, address)
+    high = await axil_read_u32(master, address + 4)
+    return low | ((high & 0xFFFF) << 32)
+
+
+async def axil_write_u48(master, address: int, value: int) -> None:
+    await axil_write_u32(master, address, value & 0xFFFF_FFFF)
+    await axil_write_u32(master, address + 4, (value >> 32) & 0xFFFF)
+
+
+async def wait_for_link_up(signal, *, clk, timeout_cycles: int = 64) -> None:
+    for _ in range(timeout_cycles):
+        await Timer(1, unit="ns")
+        if int(signal.value) != 0:
+            return
+        await cycle(clk, 1)
+    raise AssertionError("Timed out waiting for link-up")
+
+
+async def setup_udp_rx_bench(dut) -> UdpRxBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        source_prefix="sUdp",
+        initial_values={
+            "localIp": LEGACY_IP_CFGS[0],
+            "broadcastIp": ipv4_config_word("255.255.255.255"),
+            "igmpIp": 0,
+            "mServerTReady": 0,
+            "mClientTReady": 0,
+            "mDhcpTReady": 0,
+        },
+    )
+    assert bench.source is not None
+    return UdpRxBench(
+        clk=bench.clk,
+        source=bench.source,
+        server_sink=FlatEmacEndpoint(dut, prefix="mServer"),
+        client_sink=FlatEmacEndpoint(dut, prefix="mClient"),
+        dhcp_sink=FlatEmacEndpoint(dut, prefix="mDhcp"),
+    )
+
+
+async def setup_udp_tx_bench(dut) -> UdpTxBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        initial_values={
+            "localMac": LEGACY_MAC_CFGS[0],
+            "localIp": LEGACY_IP_CFGS[0],
+            "remotePort": 0x0020,
+            "remoteIp": LEGACY_IP_CFGS[1],
+            "remoteMac": LEGACY_MAC_CFGS[1],
+            "arpTabFound": 0,
+            "arpTabIpAddr": 0,
+            "arpTabMacAddr": 0,
+            "mUdpTReady": 0,
+            "sDhcpTValid": 0,
+            "sDhcpTData": 0,
+            "sDhcpTKeep": 0,
+            "sDhcpTLast": 0,
+            "sDhcpSof": 0,
+            "sDhcpEofe": 0,
+        },
+    )
+    source = FlatEmacEndpoint(dut, prefix="sApp")
+    dhcp_source = FlatEmacEndpoint(dut, prefix="sDhcp")
+    sink = FlatEmacEndpoint(dut, prefix="mUdp")
+    source.set_idle()
+    dhcp_source.set_idle()
+    return UdpTxBench(clk=bench.clk, source=source, sink=sink, dhcp_source=dhcp_source)
+
+
+async def setup_udp_top_bench(dut) -> UdpTopBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        source_prefix="sUdp",
+        initial_values={
+            "localMac": LEGACY_MAC_CFGS[0],
+            "localIp": LEGACY_IP_CFGS[0],
+            "broadcastIp": ipv4_config_word("255.255.255.255"),
+            "clientRemotePort": 0x0020,
+            "clientRemoteIp": LEGACY_IP_CFGS[1],
+            "mUdpTReady": 0,
+            "mServerTReady": 0,
+            "mClientTReady": 0,
+            "arpReqTReady": 0,
+        },
+    )
+    assert bench.source is not None
+    server_source = FlatEmacEndpoint(dut, prefix="sServer")
+    client_source = FlatEmacEndpoint(dut, prefix="sClient")
+    arp_ack_source = FlatEmacEndpoint(dut, prefix="arpAck")
+    server_source.set_idle()
+    client_source.set_idle()
+    arp_ack_source.set_idle()
+    return UdpTopBench(
+        clk=bench.clk,
+        udp_source=bench.source,
+        udp_sink=FlatEmacEndpoint(dut, prefix="mUdp"),
+        server_source=server_source,
+        server_sink=FlatEmacEndpoint(dut, prefix="mServer"),
+        client_source=client_source,
+        client_sink=FlatEmacEndpoint(dut, prefix="mClient"),
+        arp_req_sink=FlatEmacEndpoint(dut, prefix="arpReq"),
+        arp_ack_source=arp_ack_source,
+    )
+
+
+async def setup_udp_wrapper_bench(dut) -> UdpWrapperBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        source_prefix="sMac",
+        initial_values={
+            "localMac": LEGACY_MAC_CFGS[0],
+            "localIp": LEGACY_IP_CFGS[0],
+            "mMacTReady": 0,
+            "mServerTReady": 0,
+            "mClientTReady": 0,
+            "S_AXI_AWADDR": 0,
+            "S_AXI_AWPROT": 0,
+            "S_AXI_AWVALID": 0,
+            "S_AXI_WDATA": 0,
+            "S_AXI_WSTRB": 0,
+            "S_AXI_WVALID": 0,
+            "S_AXI_BREADY": 0,
+            "S_AXI_ARADDR": 0,
+            "S_AXI_ARPROT": 0,
+            "S_AXI_ARVALID": 0,
+            "S_AXI_RREADY": 0,
+        },
+    )
+    assert bench.source is not None
+    server_source = FlatEmacEndpoint(dut, prefix="sServer")
+    client_source = FlatEmacEndpoint(dut, prefix="sClient")
+    server_source.set_idle()
+    client_source.set_idle()
+    axil = AxiLiteMaster(
+        AxiLiteBus.from_prefix(dut, "S_AXI"),
+        dut.clk,
+        dut.rst,
+        reset_active_level=True,
+    )
+    await cycle(bench.clk, 2)
+    return UdpWrapperBench(
+        clk=bench.clk,
+        axil=axil,
+        mac_source=bench.source,
+        mac_sink=FlatEmacEndpoint(dut, prefix="mMac"),
+        server_source=server_source,
+        server_sink=FlatEmacEndpoint(dut, prefix="mServer"),
+        client_source=client_source,
+        client_sink=FlatEmacEndpoint(dut, prefix="mClient"),
+    )
+
+
+async def setup_udp_wrapper_pair_bench(dut) -> UdpWrapperPairBench:
+    bench = await setup_flat_emac_testbench(
+        dut,
+        clk_name="clk",
+        rst_name="rst",
+        initial_values={
+            "clientLocalMac": LEGACY_MAC_CFGS[0],
+            "clientLocalIp": LEGACY_IP_CFGS[0],
+            "clientRemotePort": 0x0020,
+            "clientRemoteIp": LEGACY_IP_CFGS[1],
+            "selectedServer": 1,
+            "mServer0TReady": 0,
+            "mServer1TReady": 0,
+            "mServer2TReady": 0,
+        },
+    )
+    client_source = FlatEmacEndpoint(dut, prefix="sClient")
+    client_source.set_idle()
+    server_sinks = [FlatEmacEndpoint(dut, prefix=f"mServer{index}") for index in range(3)]
+    return UdpWrapperPairBench(clk=bench.clk, client_source=client_source, server_sinks=server_sinks)
