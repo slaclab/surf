@@ -11,9 +11,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Sequence, TypeVar
 
 import cocotb
 from cocotb.clock import Clock
+from cocotb.handle import Immediate
 from cocotb.triggers import RisingEdge, Timer
 
 
@@ -74,6 +76,10 @@ def pack_bytes(payload: bytes, *, width_bytes: int) -> int:
     return int.from_bytes(payload.ljust(width_bytes, b"\x00"), "little")
 
 
+def pack_u32_words_le(words: list[int]) -> bytes:
+    return b"".join((word & 0xFFFFFFFF).to_bytes(4, "little") for word in words)
+
+
 def unpack_kept_bytes(data: int, keep: int, *, width_bytes: int) -> bytes:
     lanes = word_to_bytes(data, byte_count=width_bytes)
     return bytes(byte for index, byte in enumerate(lanes) if (keep >> index) & 0x1)
@@ -106,26 +112,47 @@ def start_clock(signal, *, period_ns: float = 5.0) -> None:
     cocotb.start_soon(Clock(signal, period_ns, unit="ns").start())
 
 
+def set_initial_values(dut, values: dict[str, int]) -> None:
+    for signal_name, value in values.items():
+        getattr(dut, signal_name).value = Immediate(value)
+
+
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
         await RisingEdge(clk)
         await Timer(1, unit="ns")
 
 
-async def reset_dut(dut, *, clk_name: str = "rxClk", reset_names: tuple[str, ...] = ("rxRst",)) -> None:
-    clk = getattr(dut, clk_name)
+async def reset_signals(dut, *, clk, reset_names: tuple[str, ...], assert_cycles: int = 4, release_cycles: int = 2) -> None:
     for reset_name in reset_names:
-        getattr(dut, reset_name).setimmediatevalue(1)
-    await cycle(clk, 4)
+        getattr(dut, reset_name).value = Immediate(1)
+    await cycle(clk, assert_cycles)
     for reset_name in reset_names:
         getattr(dut, reset_name).value = 0
-    await cycle(clk, 2)
+    await cycle(clk, release_cycles)
+
+
+async def reset_dut(dut, *, clk_name: str = "rxClk", reset_names: tuple[str, ...] = ("rxRst",)) -> None:
+    clk = getattr(dut, clk_name)
+    await reset_signals(dut, clk=clk, reset_names=reset_names)
 
 
 def pulse_snapshot(dut, *, valid_name: str, field_names: tuple[str, ...]) -> dict[str, int] | None:
     if int(getattr(dut, valid_name).value) == 0:
         return None
     return {field_name: int(getattr(dut, field_name).value) for field_name in field_names}
+
+
+def append_snapshot_if_valid(
+    target: list[dict[str, int]],
+    dut,
+    *,
+    valid_name: str,
+    field_names: tuple[str, ...],
+) -> None:
+    snapshot = pulse_snapshot(dut, valid_name=valid_name, field_names=field_names)
+    if snapshot is not None:
+        target.append(snapshot)
 
 
 async def send_rx_word(
@@ -148,6 +175,65 @@ async def send_rx_word(
         snapshot = pulse_snapshot(dut, valid_name=valid_name, field_names=field_names)
         if snapshot is not None:
             capture.append(snapshot)
+
+
+async def send_axis_payload(
+    dut,
+    *,
+    clk,
+    prefix: str,
+    payload: bytes,
+    width_bytes: int,
+    tuser: int = 0,
+) -> None:
+    getattr(dut, f"{prefix}_TVALID").value = 1
+    getattr(dut, f"{prefix}_TDATA").value = pack_bytes(payload, width_bytes=width_bytes)
+    getattr(dut, f"{prefix}_TKEEP").value = (1 << len(payload)) - 1
+    getattr(dut, f"{prefix}_TLAST").value = 1
+    getattr(dut, f"{prefix}_TUSER").value = tuser
+    while True:
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(getattr(dut, f"{prefix}_TREADY").value) == 1:
+            break
+    getattr(dut, f"{prefix}_TVALID").value = 0
+    getattr(dut, f"{prefix}_TDATA").value = 0
+    getattr(dut, f"{prefix}_TKEEP").value = 0
+    getattr(dut, f"{prefix}_TLAST").value = 0
+    getattr(dut, f"{prefix}_TUSER").value = 0
+
+
+async def collect_stream_bytes(
+    dut,
+    *,
+    clk,
+    valid_name: str,
+    data_name: str,
+    count: int,
+    timeout_cycles: int,
+    ready_name: str | None = None,
+) -> bytes:
+    payload = bytearray()
+    if ready_name is not None:
+        getattr(dut, ready_name).value = 1
+    for _ in range(timeout_cycles):
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(getattr(dut, valid_name).value) == 1:
+            payload.append(int(getattr(dut, data_name).value))
+            if len(payload) >= count:
+                return bytes(payload)
+    raise AssertionError(f"Timed out waiting for {count} bytes on {data_name}")
+
+
+_T = TypeVar("_T")
+
+
+def find_subsequence(sequence: Sequence[_T], expected: Sequence[_T]) -> int | None:
+    for start in range(len(sequence) - len(expected) + 1):
+        if list(sequence[start : start + len(expected)]) == list(expected):
+            return start
+    return None
 
 
 async def send_axis_beats_no_ready(

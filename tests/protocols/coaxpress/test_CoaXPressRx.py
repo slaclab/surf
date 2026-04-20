@@ -22,7 +22,6 @@
 #   the real FIFO/FSM sequencing without introducing unrelated clock skew.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -33,8 +32,11 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
-    cycle,
+    append_snapshot_if_valid,
+    reset_signals,
     repeat_byte,
+    send_rx_word,
+    set_initial_values,
 )
 
 
@@ -74,28 +76,6 @@ EXPECTED_HDR_WORDS = [
     0x00200010,
 ]
 
-
-async def _reset_all(dut) -> None:
-    dut.dataRst.value = 1
-    dut.cfgRst.value = 1
-    dut.txRst.value = 1
-    dut.rxRst.value = 1
-    await cycle(dut.rxClk, 4)
-    dut.dataRst.value = 0
-    dut.cfgRst.value = 0
-    dut.txRst.value = 0
-    dut.rxRst.value = 0
-    await cycle(dut.rxClk, 4)
-
-
-async def _drive_rx_word(dut, *, data: int, data_k: int, link_up: int = 1) -> None:
-    dut.rxData.value = data
-    dut.rxDataK.value = data_k
-    dut.rxLinkUp.value = link_up
-    await RisingEdge(dut.rxClk)
-    await Timer(1, unit="ns")
-
-
 def _capture_outputs(
     dut,
     *,
@@ -106,26 +86,29 @@ def _capture_outputs(
     trig_ack_cycles: list[int],
     cycle_index: int,
 ) -> None:
-    if int(dut.cfgTValid.value) == 1:
-        cfg_beats.append((int(dut.cfgTData.value), int(dut.cfgTKeep.value), int(dut.cfgTLast.value)))
-    if int(dut.dataTValid.value) == 1:
-        data_beats.append(
-            (
-                int(dut.dataTData.value),
-                int(dut.dataTKeep.value),
-                int(dut.dataTLast.value),
-                int(dut.dataTUser.value),
-            )
-        )
-    if int(dut.hdrTValid.value) == 1:
-        hdr_beats.append(
-            (
-                int(dut.hdrTData.value),
-                int(dut.hdrTKeep.value),
-                int(dut.hdrTLast.value),
-                int(dut.hdrTUser.value),
-            )
-        )
+    cfg_samples: list[dict[str, int]] = []
+    data_samples: list[dict[str, int]] = []
+    hdr_samples: list[dict[str, int]] = []
+    append_snapshot_if_valid(cfg_samples, dut, valid_name="cfgTValid", field_names=("cfgTData", "cfgTKeep", "cfgTLast"))
+    append_snapshot_if_valid(
+        data_samples,
+        dut,
+        valid_name="dataTValid",
+        field_names=("dataTData", "dataTKeep", "dataTLast", "dataTUser"),
+    )
+    append_snapshot_if_valid(
+        hdr_samples,
+        dut,
+        valid_name="hdrTValid",
+        field_names=("hdrTData", "hdrTKeep", "hdrTLast", "hdrTUser"),
+    )
+    cfg_beats.extend((sample["cfgTData"], sample["cfgTKeep"], sample["cfgTLast"]) for sample in cfg_samples)
+    data_beats.extend(
+        (sample["dataTData"], sample["dataTKeep"], sample["dataTLast"], sample["dataTUser"]) for sample in data_samples
+    )
+    hdr_beats.extend(
+        (sample["hdrTData"], sample["hdrTKeep"], sample["hdrTLast"], sample["hdrTUser"]) for sample in hdr_samples
+    )
     if int(dut.eventAck.value) == 1:
         event_tags.append(int(dut.eventTag.value))
     if int(dut.trigAck.value) == 1:
@@ -135,14 +118,25 @@ def _capture_outputs(
 @cocotb.test()
 async def coaxpress_rx_one_lane_integration_test(dut):
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
-    dut.rxData.setimmediatevalue(0)
-    dut.rxDataK.setimmediatevalue(0)
-    dut.rxLinkUp.setimmediatevalue(1)
-    dut.rxFsmRst.setimmediatevalue(0)
-    dut.rxNumberOfLane.setimmediatevalue(0)
-    dut.dataTReady.setimmediatevalue(1)
-    dut.hdrTReady.setimmediatevalue(1)
-    await _reset_all(dut)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 1,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 0,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
 
     cfg_beats: list[tuple[int, int, int]] = []
     data_beats: list[tuple[int, int, int, int]] = []
@@ -188,7 +182,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     ]
 
     for cycle_index, (data, data_k) in enumerate(sequence):
-        await _drive_rx_word(dut, data=data, data_k=data_k)
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
         _capture_outputs(
             dut,
             cfg_beats=cfg_beats,
@@ -200,7 +194,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         )
 
     for cycle_index in range(40):
-        await _drive_rx_word(dut, data=0xB53C3CBC, data_k=0x7)
+        await send_rx_word(dut, data=0xB53C3CBC, data_k=0x7, clk=dut.rxClk)
         _capture_outputs(
             dut,
             cfg_beats=cfg_beats,

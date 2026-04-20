@@ -24,7 +24,6 @@
 #   trigger windows rather than assuming zero-latency handoff across modules.
 
 import cocotb
-from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -38,6 +37,9 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_SOP,
     cycle,
+    find_subsequence,
+    set_initial_values,
+    start_clock,
     word_to_bytes,
 )
 
@@ -110,33 +112,29 @@ async def _collect_tx_bytes(dut, *, count: int, timeout_cycles: int) -> tuple[li
                 return observed, tx_trig_drop_seen
     raise AssertionError(f"Timed out waiting for {count} CoaXPress TX bytes, saw {len(observed)}")
 
-
-def _find_subsequence(observed: list[tuple[int, int, int]], expected: list[tuple[int, int]]) -> int | None:
-    payload = [(data, is_k) for _, data, is_k in observed]
-    for start in range(len(payload) - len(expected) + 1):
-        if payload[start : start + len(expected)] == expected:
-            return start
-    return None
-
-
 @cocotb.test()
 async def coaxpress_tx_config_and_event_ack_test(dut):
     # Hold the assembly in reset long enough for both domains to settle, then
     # prove that a config packet already in flight is preserved ahead of a
     # later event-ack packet through the mux and CDC FIFO.
-    cocotb.start_soon(Clock(dut.cfgClk, 6, unit="ns").start())
-    cocotb.start_soon(Clock(dut.txClk, 4, unit="ns").start())
-    dut.cfgTValid.setimmediatevalue(0)
-    dut.cfgTData.setimmediatevalue(0)
-    dut.cfgTUser.setimmediatevalue(0)
-    dut.cfgTLast.setimmediatevalue(0)
-    dut.eventAck.setimmediatevalue(0)
-    dut.eventTag.setimmediatevalue(0)
-    dut.txLsRate.setimmediatevalue(1)
-    dut.txTrigInv.setimmediatevalue(0)
-    dut.txPulseWidth.setimmediatevalue(500)
-    dut.swTrig.setimmediatevalue(0)
-    dut.txTrig.setimmediatevalue(0)
+    start_clock(dut.cfgClk, period_ns=6.0)
+    start_clock(dut.txClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "cfgTValid": 0,
+            "cfgTData": 0,
+            "cfgTUser": 0,
+            "cfgTLast": 0,
+            "eventAck": 0,
+            "eventTag": 0,
+            "txLsRate": 1,
+            "txTrigInv": 0,
+            "txPulseWidth": 500,
+            "swTrig": 0,
+            "txTrig": 0,
+        },
+    )
     await _reset_domains(dut)
 
     cfg_bytes = [(0x12, 0), (0x9C, 1), (0x55, 0)]
@@ -151,7 +149,7 @@ async def coaxpress_tx_config_and_event_ack_test(dut):
 
     assert not tx_trig_drop_seen
 
-    cfg_start = _find_subsequence(observed, cfg_bytes)
+    cfg_start = find_subsequence([(data, is_k) for _, data, is_k in observed], cfg_bytes)
     assert cfg_start is not None, f"config bytes not found in observed stream: {observed}"
 
     event_ack_bytes = [
@@ -160,9 +158,12 @@ async def coaxpress_tx_config_and_event_ack_test(dut):
         *[(event_tag, 0)] * 4,
         *[(byte, 1) for byte in word_to_bytes(CXP_EOP)],
     ]
-    event_start = _find_subsequence(observed, event_ack_bytes)
+    event_start = find_subsequence([(data, is_k) for _, data, is_k in observed], event_ack_bytes)
     assert event_start is not None, f"event-ack packet not found in observed stream: {observed}"
-    idle_after_event = _find_subsequence(observed[event_start + len(event_ack_bytes) :], IDLE_SEQUENCE)
+    idle_after_event = find_subsequence(
+        [(data, is_k) for _, data, is_k in observed[event_start + len(event_ack_bytes) :]],
+        IDLE_SEQUENCE,
+    )
     assert cfg_start < event_start, f"unexpected config/event ordering in observed stream: {observed}"
     assert idle_after_event is not None, f"idle word not restored after event-ack packet: {observed}"
 
@@ -171,19 +172,24 @@ async def coaxpress_tx_config_and_event_ack_test(dut):
 async def coaxpress_tx_software_trigger_path_test(dut):
     # Keep the hardware trigger low and use only `swTrig` so the bench proves
     # the assembly's OR-combined software trigger path end-to-end.
-    cocotb.start_soon(Clock(dut.cfgClk, 6, unit="ns").start())
-    cocotb.start_soon(Clock(dut.txClk, 4, unit="ns").start())
-    dut.cfgTValid.setimmediatevalue(0)
-    dut.cfgTData.setimmediatevalue(0)
-    dut.cfgTUser.setimmediatevalue(0)
-    dut.cfgTLast.setimmediatevalue(0)
-    dut.eventAck.setimmediatevalue(0)
-    dut.eventTag.setimmediatevalue(0)
-    dut.txLsRate.setimmediatevalue(1)
-    dut.txTrigInv.setimmediatevalue(1)
-    dut.txPulseWidth.setimmediatevalue(500)
-    dut.swTrig.setimmediatevalue(0)
-    dut.txTrig.setimmediatevalue(0)
+    start_clock(dut.cfgClk, period_ns=6.0)
+    start_clock(dut.txClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "cfgTValid": 0,
+            "cfgTData": 0,
+            "cfgTUser": 0,
+            "cfgTLast": 0,
+            "eventAck": 0,
+            "eventTag": 0,
+            "txLsRate": 1,
+            "txTrigInv": 1,
+            "txPulseWidth": 500,
+            "swTrig": 0,
+            "txTrig": 0,
+        },
+    )
     await _reset_domains(dut)
 
     await _pulse_sw_trigger(dut)

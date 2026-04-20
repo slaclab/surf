@@ -24,7 +24,6 @@
 #   checks robust to gearbox latency while still validating real output order.
 
 import cocotb
-from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -38,7 +37,11 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXPOF_START,
     CXPOF_TERM,
     cycle,
+    find_subsequence,
+    reset_signals,
     repeat_byte,
+    set_initial_values,
+    start_clock,
 )
 
 
@@ -49,42 +52,30 @@ def _tx_start_word(rate: int, update: int) -> int:
 def _rx_start_word(packet_byte: int) -> int:
     return CXPOF_START | (0x80 << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
 
-
-def _find_subsequence(observed: list[tuple[int, int]], expected: list[tuple[int, int]]) -> int | None:
-    for start in range(len(observed) - len(expected) + 1):
-        if observed[start : start + len(expected)] == expected:
-            return start
-    return None
-
-
-async def _reset_domains(dut) -> None:
-    dut.txRst312.value = 1
-    dut.rxRst312.value = 1
-    await Timer(40, unit="ns")
-    dut.txRst312.value = 0
-    dut.rxRst312.value = 0
-    await Timer(20, unit="ns")
-
-
 @cocotb.test()
 async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
     # Run the 312 MHz and 156 MHz domains at a 2:1 ratio so the async gearboxes
     # see the intended width-conversion cadence while still operating on
     # independent clocks.
-    cocotb.start_soon(Clock(dut.txClk312, 4, unit="ns").start())
-    cocotb.start_soon(Clock(dut.txClk156, 8, unit="ns").start())
-    cocotb.start_soon(Clock(dut.rxClk312, 4, unit="ns").start())
-    cocotb.start_soon(Clock(dut.rxClk156, 8, unit="ns").start())
+    start_clock(dut.txClk312, period_ns=4.0)
+    start_clock(dut.txClk156, period_ns=8.0)
+    start_clock(dut.rxClk312, period_ns=4.0)
+    start_clock(dut.rxClk156, period_ns=8.0)
 
     idle64 = int.from_bytes(bytes([CXPOF_IDLE] * 8), "little")
-    dut.txLsValid.setimmediatevalue(0)
-    dut.txLsData.setimmediatevalue(0)
-    dut.txLsDataK.setimmediatevalue(0)
-    dut.txLsLaneEn.setimmediatevalue(0xF)
-    dut.txLsRate.setimmediatevalue(1)
-    dut.xgmiiRxd.setimmediatevalue(idle64)
-    dut.xgmiiRxc.setimmediatevalue(0xFF)
-    await _reset_domains(dut)
+    set_initial_values(
+        dut,
+        {
+            "txLsValid": 0,
+            "txLsData": 0,
+            "txLsDataK": 0,
+            "txLsLaneEn": 0xF,
+            "txLsRate": 1,
+            "xgmiiRxd": idle64,
+            "xgmiiRxc": 0xFF,
+        },
+    )
+    await reset_signals(dut, clk=dut.txClk312, reset_names=("txRst312", "rxRst312"), assert_cycles=10, release_cycles=5)
     await cycle(dut.txClk312, 6)
     await cycle(dut.rxClk156, 2)
 
@@ -143,8 +134,8 @@ async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
         (CXP_EOP, 0xF),
     ]
 
-    assert _find_subsequence(tx_observed, tx_expected) is not None, f"missing TX gearbox sequence in observed stream: {tx_observed}"
-    assert _find_subsequence(rx_observed, rx_expected) is not None, f"missing RX gearbox sequence in observed stream: {rx_observed}"
+    assert find_subsequence(tx_observed, tx_expected) is not None, f"missing TX gearbox sequence in observed stream: {tx_observed}"
+    assert find_subsequence(rx_observed, rx_expected) is not None, f"missing RX gearbox sequence in observed stream: {rx_observed}"
 
 
 def test_CoaXPressOverFiberBridge():

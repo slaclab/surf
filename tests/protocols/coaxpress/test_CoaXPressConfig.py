@@ -28,8 +28,13 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_SOP,
+    collect_stream_bytes,
     endian_swap32,
-    pack_bytes,
+    pack_u32_words_le,
+    reset_signals,
+    send_axis_payload,
+    set_initial_values,
+    start_clock,
     word_to_bytes,
 )
 
@@ -52,52 +57,6 @@ def _srp_request_words(*, opcode: int, tid: int, addr: int, req_size: int, write
     return words
 
 
-def _words_to_payload(words: list[int]) -> bytes:
-    return b"".join((word & 0xFFFFFFFF).to_bytes(4, "little") for word in words)
-
-
-def _payload_to_words(payload: bytes) -> list[int]:
-    return [int.from_bytes(payload[index : index + 4], "little") for index in range(0, len(payload), 4)]
-
-
-async def _reset_cfg_domain(dut) -> None:
-    dut.cfgRst.value = 1
-    await Timer(40, unit="ns")
-    dut.cfgRst.value = 0
-    await Timer(20, unit="ns")
-
-
-async def _send_cfg_ib_frame(dut, payload: bytes, *, tuser: int = 0x2) -> None:
-    dut.S_CFG_IB_TVALID.value = 1
-    dut.S_CFG_IB_TDATA.value = pack_bytes(payload, width_bytes=32)
-    dut.S_CFG_IB_TKEEP.value = (1 << len(payload)) - 1
-    dut.S_CFG_IB_TLAST.value = 1
-    dut.S_CFG_IB_TUSER.value = tuser
-    while True:
-        await RisingEdge(dut.cfgClk)
-        await Timer(1, unit="ns")
-        if int(dut.S_CFG_IB_TREADY.value) == 1:
-            break
-    dut.S_CFG_IB_TVALID.value = 0
-    dut.S_CFG_IB_TDATA.value = 0
-    dut.S_CFG_IB_TKEEP.value = 0
-    dut.S_CFG_IB_TLAST.value = 0
-    dut.S_CFG_IB_TUSER.value = 0
-
-
-async def _collect_tx_bytes(dut, *, count: int, timeout_cycles: int = 8000) -> bytes:
-    payload = bytearray()
-    dut.M_CFG_TX_TREADY.value = 1
-    for _ in range(timeout_cycles):
-        await RisingEdge(dut.cfgClk)
-        await Timer(1, unit="ns")
-        if int(dut.M_CFG_TX_TVALID.value) == 1:
-            payload.append(int(dut.M_CFG_TX_TDATA.value))
-            if len(payload) >= count:
-                return bytes(payload)
-    raise AssertionError(f"Timed out waiting for {count} CoaXPress config TX bytes")
-
-
 async def _drive_cfg_rx_completion(dut, value: int, *, hold_cycles: int = 8) -> None:
     dut.cfgRxTData.value = value
     dut.cfgRxTValid.value = 1
@@ -110,28 +69,45 @@ async def _drive_cfg_rx_completion(dut, value: int, *, hold_cycles: int = 8) -> 
 
 @cocotb.test()
 async def coaxpress_config_untagged_read_request_test(dut):
-    cocotb.start_soon(cocotb.clock.Clock(dut.cfgClk, 4, unit="ns").start())
-    dut.S_CFG_IB_TVALID.setimmediatevalue(0)
-    dut.S_CFG_IB_TDATA.setimmediatevalue(0)
-    dut.S_CFG_IB_TKEEP.setimmediatevalue(0)
-    dut.S_CFG_IB_TLAST.setimmediatevalue(0)
-    dut.S_CFG_IB_TUSER.setimmediatevalue(0)
-    dut.M_CFG_OB_TREADY.setimmediatevalue(1)
-    dut.M_CFG_TX_TREADY.setimmediatevalue(0)
-    dut.cfgRxTValid.setimmediatevalue(0)
-    dut.cfgRxTData.setimmediatevalue(0)
-    dut.configTimerSize.setimmediatevalue(4096)
-    dut.configErrResp.setimmediatevalue(1)
-    dut.configPktTag.setimmediatevalue(0)
-    await _reset_cfg_domain(dut)
+    start_clock(dut.cfgClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "S_CFG_IB_TVALID": 0,
+            "S_CFG_IB_TDATA": 0,
+            "S_CFG_IB_TKEEP": 0,
+            "S_CFG_IB_TLAST": 0,
+            "S_CFG_IB_TUSER": 0,
+            "M_CFG_OB_TREADY": 1,
+            "M_CFG_TX_TREADY": 0,
+            "cfgRxTValid": 0,
+            "cfgRxTData": 0,
+            "configTimerSize": 4096,
+            "configErrResp": 1,
+            "configPktTag": 0,
+        },
+    )
+    await reset_signals(dut, clk=dut.cfgClk, reset_names=("cfgRst",), assert_cycles=10, release_cycles=5)
 
     tid = 0x12345678
     addr = 0x00000040
     read_data = 0xDDAA5501
-    request_payload = _words_to_payload(_srp_request_words(opcode=READ_OPCODE, tid=tid, addr=addr, req_size=0x00000003))
+    request_payload = pack_u32_words_le(
+        _srp_request_words(opcode=READ_OPCODE, tid=tid, addr=addr, req_size=0x00000003)
+    )
 
-    tx_task = cocotb.start_soon(_collect_tx_bytes(dut, count=24))
-    await _send_cfg_ib_frame(dut, request_payload)
+    tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.cfgClk,
+            valid_name="M_CFG_TX_TVALID",
+            data_name="M_CFG_TX_TDATA",
+            ready_name="M_CFG_TX_TREADY",
+            count=24,
+            timeout_cycles=8000,
+        )
+    )
+    await send_axis_payload(dut, clk=dut.cfgClk, prefix="S_CFG_IB", payload=request_payload, width_bytes=32, tuser=0x2)
 
     tx_bytes = await with_timeout(tx_task, 20, "us")
 
@@ -149,20 +125,25 @@ async def coaxpress_config_untagged_read_request_test(dut):
 
 @cocotb.test()
 async def coaxpress_config_tagged_write_tag_increment_test(dut):
-    cocotb.start_soon(cocotb.clock.Clock(dut.cfgClk, 4, unit="ns").start())
-    dut.S_CFG_IB_TVALID.setimmediatevalue(0)
-    dut.S_CFG_IB_TDATA.setimmediatevalue(0)
-    dut.S_CFG_IB_TKEEP.setimmediatevalue(0)
-    dut.S_CFG_IB_TLAST.setimmediatevalue(0)
-    dut.S_CFG_IB_TUSER.setimmediatevalue(0)
-    dut.M_CFG_OB_TREADY.setimmediatevalue(1)
-    dut.M_CFG_TX_TREADY.setimmediatevalue(0)
-    dut.cfgRxTValid.setimmediatevalue(0)
-    dut.cfgRxTData.setimmediatevalue(0)
-    dut.configTimerSize.setimmediatevalue(4096)
-    dut.configErrResp.setimmediatevalue(1)
-    dut.configPktTag.setimmediatevalue(1)
-    await _reset_cfg_domain(dut)
+    start_clock(dut.cfgClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "S_CFG_IB_TVALID": 0,
+            "S_CFG_IB_TDATA": 0,
+            "S_CFG_IB_TKEEP": 0,
+            "S_CFG_IB_TLAST": 0,
+            "S_CFG_IB_TUSER": 0,
+            "M_CFG_OB_TREADY": 1,
+            "M_CFG_TX_TREADY": 0,
+            "cfgRxTValid": 0,
+            "cfgRxTData": 0,
+            "configTimerSize": 4096,
+            "configErrResp": 1,
+            "configPktTag": 1,
+        },
+    )
+    await reset_signals(dut, clk=dut.cfgClk, reset_names=("cfgRst",), assert_cycles=10, release_cycles=5)
 
     requests = [
         (0x0BADB002, 0x00000020, 0x11223344, 0x00),
@@ -170,12 +151,22 @@ async def coaxpress_config_tagged_write_tag_increment_test(dut):
     ]
 
     for tid, addr, write_data, expected_tag in requests:
-        request_payload = _words_to_payload(
+        request_payload = pack_u32_words_le(
             _srp_request_words(opcode=WRITE_OPCODE, tid=tid, addr=addr, req_size=0x00000003, write_data=write_data)
         )
 
-        tx_task = cocotb.start_soon(_collect_tx_bytes(dut, count=32))
-        await _send_cfg_ib_frame(dut, request_payload)
+        tx_task = cocotb.start_soon(
+            collect_stream_bytes(
+                dut,
+                clk=dut.cfgClk,
+                valid_name="M_CFG_TX_TVALID",
+                data_name="M_CFG_TX_TDATA",
+                ready_name="M_CFG_TX_TREADY",
+                count=32,
+                timeout_cycles=8000,
+            )
+        )
+        await send_axis_payload(dut, clk=dut.cfgClk, prefix="S_CFG_IB", payload=request_payload, width_bytes=32, tuser=0x2)
 
         tx_bytes = await with_timeout(tx_task, 20, "us")
         assert tx_bytes[:4] == bytes(word_to_bytes(CXP_SOP))

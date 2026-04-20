@@ -23,88 +23,53 @@
 #   `CoaXPressAxiL`, `CoaXPressConfig`, and `CoaXPressTx`.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
-from tests.protocols.coaxpress.coaxpress_test_utils import CXP_SOP, endian_swap32, pack_bytes, word_to_bytes
-
-
-def _words_to_payload(words: list[int]) -> bytes:
-    return b"".join((word & 0xFFFFFFFF).to_bytes(4, "little") for word in words)
-
-
-async def _reset_all(dut) -> None:
-    dut.dataRst.value = 1
-    dut.cfgRst.value = 1
-    dut.txRst.value = 1
-    dut.rxRst.value = 1
-    dut.axilRst.value = 1
-    await Timer(40, unit="ns")
-    dut.dataRst.value = 0
-    dut.cfgRst.value = 0
-    dut.txRst.value = 0
-    dut.rxRst.value = 0
-    dut.axilRst.value = 0
-    await Timer(20, unit="ns")
-
-
-async def _send_cfg_ib_frame(dut, payload: bytes) -> None:
-    dut.S_CFG_IB_TVALID.value = 1
-    dut.S_CFG_IB_TDATA.value = pack_bytes(payload, width_bytes=32)
-    dut.S_CFG_IB_TKEEP.value = (1 << len(payload)) - 1
-    dut.S_CFG_IB_TLAST.value = 1
-    dut.S_CFG_IB_TUSER.value = 0x2
-    while True:
-        await RisingEdge(dut.cfgClk)
-        await Timer(1, unit="ns")
-        if int(dut.S_CFG_IB_TREADY.value) == 1:
-            break
-    dut.S_CFG_IB_TVALID.value = 0
-    dut.S_CFG_IB_TDATA.value = 0
-    dut.S_CFG_IB_TKEEP.value = 0
-    dut.S_CFG_IB_TLAST.value = 0
-    dut.S_CFG_IB_TUSER.value = 0
-
-
-async def _collect_tx_bytes(dut, *, count: int, timeout_cycles: int = 12000) -> list[tuple[int, int]]:
-    observed: list[tuple[int, int]] = []
-    for _ in range(timeout_cycles):
-        await RisingEdge(dut.txClk)
-        await Timer(1, unit="ns")
-        if int(dut.txLsValid.value) == 1:
-            observed.append((int(dut.txLsData.value), int(dut.txLsDataK.value)))
-            if len(observed) >= count:
-                return observed
-    raise AssertionError("Timed out waiting for CoaXPressCore TX bytes")
-
-
-def _find_subsequence(payload: bytes, expected: bytes) -> int | None:
-    for start in range(len(payload) - len(expected) + 1):
-        if payload[start : start + len(expected)] == expected:
-            return start
-    return None
+from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_SOP,
+    collect_stream_bytes,
+    endian_swap32,
+    find_subsequence,
+    pack_u32_words_le,
+    reset_signals,
+    send_axis_payload,
+    set_initial_values,
+    word_to_bytes,
+)
 
 
 @cocotb.test()
 async def coaxpress_core_tagged_config_tx_path_test(dut):
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, dut.axilClk, period_ns=4.0)
-    dut.txTrig.setimmediatevalue(0)
-    dut.txLinkUp.setimmediatevalue(1)
-    dut.rxData.setimmediatevalue(0xB53C3CBC)
-    dut.rxDataK.setimmediatevalue(0x7)
-    dut.rxDispErr.setimmediatevalue(0)
-    dut.rxDecErr.setimmediatevalue(0)
-    dut.rxLinkUp.setimmediatevalue(1)
-    dut.S_CFG_IB_TVALID.setimmediatevalue(0)
-    dut.S_CFG_IB_TDATA.setimmediatevalue(0)
-    dut.S_CFG_IB_TKEEP.setimmediatevalue(0)
-    dut.S_CFG_IB_TLAST.setimmediatevalue(0)
-    dut.S_CFG_IB_TUSER.setimmediatevalue(0)
-    dut.M_CFG_OB_TREADY.setimmediatevalue(0)
-    dut.M_DATA_TREADY.setimmediatevalue(1)
-    dut.M_HDR_TREADY.setimmediatevalue(1)
-    await _reset_all(dut)
+    set_initial_values(
+        dut,
+        {
+            "txTrig": 0,
+            "txLinkUp": 1,
+            "rxData": 0xB53C3CBC,
+            "rxDataK": 0x7,
+            "rxDispErr": 0,
+            "rxDecErr": 0,
+            "rxLinkUp": 1,
+            "S_CFG_IB_TVALID": 0,
+            "S_CFG_IB_TDATA": 0,
+            "S_CFG_IB_TKEEP": 0,
+            "S_CFG_IB_TLAST": 0,
+            "S_CFG_IB_TUSER": 0,
+            "M_CFG_OB_TREADY": 0,
+            "M_DATA_TREADY": 1,
+            "M_HDR_TREADY": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst", "axilRst"),
+        assert_cycles=10,
+        release_cycles=5,
+    )
 
     axil = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.axilClk, dut.axilRst)
 
@@ -116,13 +81,21 @@ async def coaxpress_core_tagged_config_tx_path_test(dut):
 
     tid = 0x13579BDF
     addr = 0x00000040
-    request_payload = _words_to_payload([0x00000003, tid, addr, 0x00000000, 0x00000003])
+    request_payload = pack_u32_words_le([0x00000003, tid, addr, 0x00000000, 0x00000003])
 
-    tx_task = cocotb.start_soon(_collect_tx_bytes(dut, count=32))
-    await _send_cfg_ib_frame(dut, request_payload)
+    tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.txClk,
+            valid_name="txLsValid",
+            data_name="txLsData",
+            count=32,
+            timeout_cycles=12000,
+        )
+    )
+    await send_axis_payload(dut, clk=dut.cfgClk, prefix="S_CFG_IB", payload=request_payload, width_bytes=32, tuser=0x2)
 
     tx_bytes = await with_timeout(tx_task, 20, "us")
-    tx_payload = bytes(data for data, _ in tx_bytes)
     expected_request = (
         bytes(word_to_bytes(CXP_SOP))
         + bytes([0x05] * 4)
@@ -130,8 +103,8 @@ async def coaxpress_core_tagged_config_tx_path_test(dut):
         + bytes(word_to_bytes(0x04000000))
         + bytes(word_to_bytes(endian_swap32(addr)))
     )
-    request_start = _find_subsequence(tx_payload, expected_request)
-    assert request_start is not None, tx_payload
+    request_start = find_subsequence(tx_bytes, expected_request)
+    assert request_start is not None, tx_bytes
 
 
 def test_CoaXPressCore():
