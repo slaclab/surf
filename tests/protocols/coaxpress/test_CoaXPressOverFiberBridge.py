@@ -31,7 +31,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_IDLE,
     CXP_IDLE_K,
-    CXP_PKT_EVENT_ACK_MSG,
+    CXP_PKT_EVENT_ACK,
     CXP_SOP,
     CXPOF_IDLE,
     CXPOF_START,
@@ -109,7 +109,7 @@ async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
     dut.txLsValid.value = 0
 
     await cycle(dut.rxClk156, 3)
-    dut.xgmiiRxd.value = (_rx_start_word(CXP_PKT_EVENT_ACK_MSG) | (0x11223344 << 32))
+    dut.xgmiiRxd.value = (_rx_start_word(CXP_PKT_EVENT_ACK) | (0x11223344 << 32))
     dut.xgmiiRxc.value = 0x01
     await RisingEdge(dut.rxClk156)
     await Timer(1, unit="ns")
@@ -129,7 +129,7 @@ async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
     ]
     rx_expected = [
         (CXP_SOP, 0xF),
-        (repeat_byte(CXP_PKT_EVENT_ACK_MSG), 0x0),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x11223344, 0x0),
         (CXP_EOP, 0xF),
     ]

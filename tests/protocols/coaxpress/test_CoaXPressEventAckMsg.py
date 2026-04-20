@@ -9,12 +9,12 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise the event-ack serializer directly with two event tags so
+# - Sweep: Exercise the event-acknowledgment serializer directly with two event tags so
 #   the bench checks both the initial transfer and a second post-idle retry.
 # - Stimulus: Pulse `eventAck`, hold `TREADY` low across the first serialized
 #   byte to create backpressure, then release the sink and repeat with a second
 #   tag while the sink stays ready.
-# - Checks: The DUT must serialize the CoaXPress event-ack message as
+# - Checks: The DUT must serialize the CoaXPress event-acknowledgment message as
 #   `SOP`, type `0x08`, repeated event tag, and `EOP`, preserve the K/data
 #   classification on each byte, assert `TLAST` only on the final byte, and
 #   hold the stalled first byte stable under backpressure.
@@ -27,7 +27,7 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
-    CXP_PKT_EVENT_ACK_MSG,
+    CXP_PKT_EVENT_ACK,
     CXP_SOP,
     cycle,
     repeat_byte,
@@ -41,7 +41,7 @@ def _expected_event_ack_bytes(tag: int) -> list[tuple[int, int, int]]:
     expected: list[tuple[int, int, int]] = []
     for word, is_k in (
         (CXP_SOP, 1),
-        (repeat_byte(CXP_PKT_EVENT_ACK_MSG), 0),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0),
         (repeat_byte(tag), 0),
         (CXP_EOP, 1),
     ):
@@ -87,7 +87,7 @@ async def coaxpress_event_ack_msg_serialize_and_backpressure_test(dut):
     dut.eventAckTReady.setimmediatevalue(0)
     await reset_dut(dut, clk_name="clk", reset_names=("rst",))
 
-    # Create one event-ack request while the sink is stalled so the first byte
+    # Create one event-acknowledgment request while the sink is stalled so the first byte
     # must remain stable until `TREADY` is released.
     await _pulse_event_ack(dut, 0x5A)
 

@@ -30,7 +30,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_IO_ACK,
-    CXP_PKT_EVENT_ACK_MSG,
+    CXP_PKT_EVENT_ACK,
     CXP_SOP,
     CXPOF_START,
     cycle,
@@ -64,9 +64,9 @@ async def coaxpress_over_fiber_bridge_rx_decode_test(dut):
         if sample != (CXP_IDLE, CXP_IDLE_K):
             observed.append(sample)
 
-    # Low-speed packet carrying a CoaXPress event-ack message byte followed by
+    # Low-speed packet carrying a CoaXPress event-acknowledgment byte followed by
     # one 32-bit payload word and an EOP terminator.
-    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK_MSG), 0x1)
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
     await drive(0x11223344, 0x0)
     await drive(0x07FD00FD, 0xC)
     await drive(0x07070707, 0xF)
@@ -85,7 +85,7 @@ async def coaxpress_over_fiber_bridge_rx_decode_test(dut):
 
     assert observed == [
         (CXP_SOP, 0xF),
-        (repeat_byte(CXP_PKT_EVENT_ACK_MSG), 0x0),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x11223344, 0x0),
         (CXP_EOP, 0xF),
         (CXP_IO_ACK, 0xF),

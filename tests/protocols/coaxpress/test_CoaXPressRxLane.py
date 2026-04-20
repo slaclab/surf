@@ -12,7 +12,7 @@
 # - Sweep: Exercise the receive-lane decoder directly without a generic sweep
 #   because the bug-prone surface is its packet-state logic rather than a set
 #   of static parameters.
-# - Stimulus: Drive raw CoaXPress words for stream, control-ack, event-ack,
+# - Stimulus: Drive raw CoaXPress words for stream, control-ack, event,
 #   heartbeat, malformed-field, and link-drop sequences, including an `IO_ACK`
 #   interruption in the middle of a stream packet.
 # - Checks: The lane must emit the right config/data/heartbeat payloads, pulse
@@ -32,7 +32,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IO_ACK,
     CXP_PKT_CTRL_ACK_NO_TAG,
     CXP_PKT_CTRL_ACK_WITH_TAG,
-    CXP_PKT_EVENT_ACK,
+    CXP_PKT_EVENT,
     CXP_PKT_HEARTBEAT,
     CXP_PKT_STREAM_DATA,
     CXP_SOP,
@@ -140,9 +140,9 @@ async def coaxpress_rx_lane_control_event_and_heartbeat_test(dut):
     await drive(0xFEEDBEEF, 0x0)
     await drive(0x89ABCDEF, 0x0)
 
-    # Event ACK fires on the fifth payload word and exports the low byte.
+    # Event packet handling fires on the fifth payload word and exports the tag.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(CXP_PKT_EVENT_ACK), 0x0)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
     for word in (0x10, 0x11, 0x12, 0x13):
         await drive(repeat_byte(word), 0x0)
     await drive(repeat_byte(0x5A), 0x0)

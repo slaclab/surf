@@ -10,13 +10,13 @@
 
 # Test methodology:
 # - Sweep: Exercise the first full CoaXPress transmit assembly in two modes:
-#   config/event-ack arbitration across the cfg-to-tx clock crossing and the
+#   config/event-acknowledgment arbitration across the cfg-to-tx clock crossing and the
 #   software-trigger path into the low-speed transmit FSM.
 # - Stimulus: Queue one multi-byte config packet, pulse `eventAck` while that
 #   packet is active, and separately pulse only `swTrig` with `txTrig` held
 #   low so the OR-combined trigger path is the only source of trigger traffic.
 # - Checks: The transmitted low-speed stream must preserve the config bytes,
-#   serialize the spec-defined event-ack packet without corruption, and emit
+#   serialize the spec-defined event-acknowledgment packet without corruption, and emit
 #   both trigger message polarities from a software trigger without asserting
 #   `txTrigDrop`.
 # - Timing: The bench records each transmitted byte at the real `txClk`
@@ -33,7 +33,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_K28_2,
     CXP_K28_4,
     CXP_K28_5,
-    CXP_PKT_EVENT_ACK_MSG,
+    CXP_PKT_EVENT_ACK,
     CXP_EOP,
     CXP_SOP,
     cycle,
@@ -116,7 +116,7 @@ async def _collect_tx_bytes(dut, *, count: int, timeout_cycles: int) -> tuple[li
 async def coaxpress_tx_config_and_event_ack_test(dut):
     # Hold the assembly in reset long enough for both domains to settle, then
     # prove that a config packet already in flight is preserved ahead of a
-    # later event-ack packet through the mux and CDC FIFO.
+    # later event-acknowledgment packet through the mux and CDC FIFO.
     start_clock(dut.cfgClk, period_ns=6.0)
     start_clock(dut.txClk, period_ns=4.0)
     set_initial_values(
@@ -154,18 +154,18 @@ async def coaxpress_tx_config_and_event_ack_test(dut):
 
     event_ack_bytes = [
         *[(byte, 1) for byte in word_to_bytes(CXP_SOP)],
-        *[(CXP_PKT_EVENT_ACK_MSG, 0)] * 4,
+        *[(CXP_PKT_EVENT_ACK, 0)] * 4,
         *[(event_tag, 0)] * 4,
         *[(byte, 1) for byte in word_to_bytes(CXP_EOP)],
     ]
     event_start = find_subsequence([(data, is_k) for _, data, is_k in observed], event_ack_bytes)
-    assert event_start is not None, f"event-ack packet not found in observed stream: {observed}"
+    assert event_start is not None, f"event-acknowledgment packet not found in observed stream: {observed}"
     idle_after_event = find_subsequence(
         [(data, is_k) for _, data, is_k in observed[event_start + len(event_ack_bytes) :]],
         IDLE_SEQUENCE,
     )
     assert cfg_start < event_start, f"unexpected config/event ordering in observed stream: {observed}"
-    assert idle_after_event is not None, f"idle word not restored after event-ack packet: {observed}"
+    assert idle_after_event is not None, f"idle word not restored after event-acknowledgment packet: {observed}"
 
 
 @cocotb.test()

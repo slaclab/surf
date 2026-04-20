@@ -12,7 +12,7 @@
 # - Sweep: Keep the first `CoaXPressRx` assembly pass on the stable one-lane
 #   path while still exercising all three externally visible outputs: config,
 #   image header/data, and the synchronized ACK/event sidebands.
-# - Stimulus: Drive one control-ack packet, one event-ack packet, one `IO_ACK`,
+# - Stimulus: Drive one control-ack packet, one event packet, one `IO_ACK`,
 #   and one rectangular image transaction directly into the raw receive lane.
 # - Checks: The assembled RX path must forward the config completion word,
 #   export the event tag, pulse `trigAck`, emit the seven 32-bit image-header
@@ -28,7 +28,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IO_ACK,
     CXP_MARKER,
     CXP_PKT_CTRL_ACK_NO_TAG,
-    CXP_PKT_EVENT_ACK,
+    CXP_PKT_EVENT,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
@@ -151,7 +151,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (0xCAFEBABE, 0x0),
         (0x01234567, 0x0),
         (CXP_SOP, 0xF),
-        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (repeat_byte(CXP_PKT_EVENT), 0x0),
         (repeat_byte(0x10), 0x0),
         (repeat_byte(0x11), 0x0),
         (repeat_byte(0x12), 0x0),
