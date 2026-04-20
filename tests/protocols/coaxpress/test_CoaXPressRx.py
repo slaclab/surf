@@ -13,7 +13,9 @@
 #   path while still exercising all three externally visible outputs: config,
 #   image header/data, and the synchronized ACK/event sidebands.
 # - Stimulus: Drive one control-ack packet, one event packet, one `IO_ACK`,
-#   and one rectangular image transaction directly into the raw receive lane.
+#   and one rectangular image transaction directly into the raw receive lane,
+#   keeping the receive-side packets spec-shaped where the current RTL can
+#   consume that framing.
 # - Checks: The assembled RX path must forward the config completion word,
 #   export the event tag, pulse `trigAck`, emit the seven 32-bit image-header
 #   words in order, and forward the programmed line payload with `SOF`/`TLAST`
@@ -25,6 +27,7 @@ import cocotb
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_EOP,
     CXP_IO_ACK,
     CXP_MARKER,
     CXP_PKT_CTRL_ACK_NO_TAG,
@@ -148,8 +151,10 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0),
         (repeat_byte(0x00), 0x0),
-        (0xCAFEBABE, 0x0),
+        (0x04000000, 0x0),
         (0x01234567, 0x0),
+        (0xCAFEBABE, 0x0),
+        (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT), 0x0),
         (repeat_byte(0x10), 0x0),
@@ -157,6 +162,11 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (repeat_byte(0x12), 0x0),
         (repeat_byte(0x13), 0x0),
         (repeat_byte(0x5A), 0x0),
+        (0x00010000, 0x0),
+        (repeat_byte(0x00), 0x0),
+        (0x11223344, 0x0),
+        (0xA5A5A5A5, 0x0),
+        (CXP_EOP, 0xF),
         (CXP_IO_ACK, 0xF),
         (repeat_byte(0x01), 0x0),
         (CXP_SOP, 0xF),
@@ -179,6 +189,8 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (0x11111111, 0x0),
         (0x22222222, 0x0),
         (0x33333333, 0x0),
+        (0xBEEFBEEF, 0x0),
+        (CXP_EOP, 0xF),
     ]
 
     for cycle_index, (data, data_k) in enumerate(sequence):
