@@ -1,0 +1,136 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: Cocotb-facing wrapper for CoaXPressRx
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+entity CoaXPressRxWrapper is
+   port (
+      dataClk        : in  sl;
+      dataRst        : in  sl;
+      cfgClk         : in  sl;
+      cfgRst         : in  sl;
+      txClk          : in  sl;
+      txRst          : in  sl;
+      rxClk          : in  sl;
+      rxRst          : in  sl;
+      rxData         : in  slv(31 downto 0);
+      rxDataK        : in  slv(3 downto 0);
+      rxLinkUp       : in  sl;
+      rxFsmRst       : in  sl;
+      rxNumberOfLane : in  slv(2 downto 0);
+      dataTValid     : out sl;
+      dataTData      : out slv(31 downto 0);
+      dataTKeep      : out slv(3 downto 0);
+      dataTLast      : out sl;
+      dataTUser      : out slv(0 downto 0);
+      dataTReady     : in  sl;
+      hdrTValid      : out sl;
+      hdrTData       : out slv(31 downto 0);
+      hdrTKeep       : out slv(3 downto 0);
+      hdrTLast       : out sl;
+      hdrTUser       : out slv(0 downto 0);
+      hdrTReady      : in  sl;
+      cfgTValid      : out sl;
+      cfgTData       : out slv(63 downto 0);
+      cfgTKeep       : out slv(7 downto 0);
+      cfgTLast       : out sl;
+      eventAck       : out sl;
+      eventTag       : out slv(7 downto 0);
+      trigAck        : out sl;
+      rxOverflow     : out sl;
+      rxFsmError     : out sl);
+end entity CoaXPressRxWrapper;
+
+architecture rtl of CoaXPressRxWrapper is
+
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 4);
+
+   signal dataMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal dataSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal imageHdrMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal imageHdrSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal cfgRxMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+
+   signal rxClkVec    : slv(0 downto 0);
+   signal rxRstVec    : slv(0 downto 0);
+   signal rxDataVec   : slv32Array(0 downto 0);
+   signal rxDataKVec  : Slv4Array(0 downto 0);
+   signal rxLinkUpVec : slv(0 downto 0);
+
+begin
+
+   rxClkVec(0)    <= rxClk;
+   rxRstVec(0)    <= rxRst;
+   rxDataVec(0)   <= rxData;
+   rxDataKVec(0)  <= rxDataK;
+   rxLinkUpVec(0) <= rxLinkUp;
+
+   dataSlave.tReady     <= dataTReady;
+   imageHdrSlave.tReady <= hdrTReady;
+
+   dataTValid <= dataMaster.tValid;
+   dataTData  <= dataMaster.tData(31 downto 0);
+   dataTKeep  <= dataMaster.tKeep(3 downto 0);
+   dataTLast  <= dataMaster.tLast;
+   dataTUser  <= dataMaster.tUser(0 downto 0);
+
+   hdrTValid <= imageHdrMaster.tValid;
+   hdrTData  <= imageHdrMaster.tData(31 downto 0);
+   hdrTKeep  <= imageHdrMaster.tKeep(3 downto 0);
+   hdrTLast  <= imageHdrMaster.tLast;
+   hdrTUser  <= imageHdrMaster.tUser(0 downto 0);
+
+   cfgTValid <= cfgRxMaster.tValid;
+   cfgTData  <= cfgRxMaster.tData(63 downto 0);
+   cfgTKeep  <= cfgRxMaster.tKeep(7 downto 0);
+   cfgTLast  <= cfgRxMaster.tLast;
+
+   U_DUT : entity surf.CoaXPressRx
+      generic map (
+         TPD_G              => 1 ns,
+         NUM_LANES_G        => 1,
+         RX_FSM_CNT_WIDTH_G => 8,
+         AXIS_CONFIG_G      => AXIS_CONFIG_C)
+      port map (
+         dataClk        => dataClk,
+         dataRst        => dataRst,
+         dataMaster     => dataMaster,
+         dataSlave      => dataSlave,
+         imageHdrMaster => imageHdrMaster,
+         imageHdrSlave  => imageHdrSlave,
+         cfgClk         => cfgClk,
+         cfgRst         => cfgRst,
+         cfgRxMaster    => cfgRxMaster,
+         eventAck       => eventAck,
+         eventTag       => eventTag,
+         txClk          => txClk,
+         txRst          => txRst,
+         trigAck        => trigAck,
+         rxClk          => rxClkVec,
+         rxRst          => rxRstVec,
+         rxData         => rxDataVec,
+         rxDataK        => rxDataKVec,
+         rxLinkUp       => rxLinkUpVec,
+         rxOverflow     => rxOverflow,
+         rxFsmError     => rxFsmError,
+         rxFsmRst       => rxFsmRst,
+         rxNumberOfLane => rxNumberOfLane);
+
+end architecture rtl;

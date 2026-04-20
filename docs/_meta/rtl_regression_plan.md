@@ -111,6 +111,7 @@
 - For CoaXPress image/header benches, keep the repeated-byte field encoding, header field order, endianness conversion, line-size semantics, and end-of-frame rules explicitly tied to the spec-defined rectangular image packet layout.
 - For CoaXPress-over-Fiber benches, keep `/I/`, `/Q/`, `/S/`, `/T/`, and `/E/` handling, lane-0-only start/sequence semantics, and payload-vs-housekeeping start words aligned to `CXPR-008-2021`.
 - If a checked-in bench intentionally validates only the current RTL contract instead of the full normative spec behavior, document that narrowed scope explicitly in the progress and handoff docs rather than implying full spec coverage.
+- If a CoaXPress top-level bench has to be checked in as skipped because it exposes a likely RTL defect, keep the spec-shaped stimulus and the skip reason in-tree, and record the blocking symptom explicitly in the progress and handoff docs so the next pass resumes from the defect rather than from scratch.
 
 ## Historical Queue Artifacts
 The phase-1 simulator-friendly queue remains available as a generated bottom-up artifact, but it is now historical context rather than the active workflow.

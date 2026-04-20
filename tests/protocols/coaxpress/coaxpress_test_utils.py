@@ -70,6 +70,19 @@ def word_to_bytes(word: int, *, byte_count: int = 4) -> list[int]:
     return [(word >> (8 * index)) & 0xFF for index in range(byte_count)]
 
 
+def pack_bytes(payload: bytes, *, width_bytes: int) -> int:
+    return int.from_bytes(payload.ljust(width_bytes, b"\x00"), "little")
+
+
+def unpack_kept_bytes(data: int, keep: int, *, width_bytes: int) -> bytes:
+    lanes = word_to_bytes(data, byte_count=width_bytes)
+    return bytes(byte for index, byte in enumerate(lanes) if (keep >> index) & 0x1)
+
+
+def endian_swap32(word: int) -> int:
+    return int.from_bytes((word & 0xFFFFFFFF).to_bytes(4, "little"), "big")
+
+
 def pack_words(words: list[int], *, word_bits: int = 32) -> int:
     mask = (1 << word_bits) - 1
     value = 0
