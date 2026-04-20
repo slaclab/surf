@@ -25,6 +25,7 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_K28_1,
     CXPOF_IDLE,
     CXPOF_START,
     CXPOF_TERM,
@@ -107,6 +108,53 @@ async def coaxpress_over_fiber_bridge_tx_packet_format_test(dut):
 
     # The bridge should fall back to all-idle words once packet emission ends.
     assert any(word == (int.from_bytes(bytes([CXPOF_IDLE] * 4), "little"), 0xF) for word in observed[-3:])
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_tx_partial_lane_enable_test(dut):
+    # Enable only lanes 0 and 2 so the unused slots are filled with CoaXPress
+    # idle characters instead of extra payload copies.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.txLsValid.setimmediatevalue(0)
+    dut.txLsData.setimmediatevalue(0)
+    dut.txLsDataK.setimmediatevalue(0)
+    dut.txLsRate.setimmediatevalue(1)
+    dut.txLsLaneEn.setimmediatevalue(0x5)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def capture_words(count: int) -> None:
+        while len(observed) < count:
+            await RisingEdge(dut.clk)
+            await Timer(1, unit="ns")
+            observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
+
+    capture = cocotb.start_soon(capture_words(8))
+
+    dut.txLsData.value = CXP_K28_1
+    dut.txLsDataK.value = 1
+    dut.txLsValid.value = 1
+    await RisingEdge(dut.clk)
+    await Timer(1, unit="ns")
+    dut.txLsValid.value = 0
+
+    await capture
+
+    partial_packet = None
+    for start in range(len(observed) - 3):
+        words = observed[start : start + 4]
+        if words[0] == (_start_word(rate=1, update=1), 0x1):
+            partial_packet = words
+            break
+
+    assert partial_packet is not None
+    assert partial_packet[1:] == [
+        (0xBC023C02, 0x0),
+        (0xBC023C02, 0x0),
+        ((CXPOF_IDLE << 24) | (CXPOF_TERM << 16), 0xC),
+    ]
 
 
 def test_CoaXPressOverFiberBridgeTx():

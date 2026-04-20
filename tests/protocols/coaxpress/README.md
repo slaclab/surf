@@ -51,9 +51,9 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat prefix handling, stream header fields | Partial protocol |
-| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3` | Near-normative subset |
-| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane receive assembly of config completion, event tag export, `IO_ACK`, and rectangular image traffic | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat prefix handling, truncated-event guardrails, stream header fields | Partial protocol |
+| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case | Near-normative subset |
+| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
@@ -94,8 +94,11 @@ The low-speed trigger and `IO_ACK` behavior is covered in pieces:
 - `test_CoaXPressTx.py`
   - checks that the software-trigger path reaches the low-speed trigger FSM
 
-This is not yet full trigger coverage. Extra low-speed trigger modes from Table
-16 and broader high-speed trigger coverage from Table 17 are still open.
+This is not yet full trigger coverage. The current RTL-facing benches now cover
+both low-speed rates plus the implemented default/inverted trigger byte
+patterns, but Extra-LS modes from Table 16 and the broader high-speed trigger
+matrix from Table 17 are still open because that wider trigger surface is not
+exposed by the current checked-in RTL.
 
 ### Control command and acknowledgment traffic
 
@@ -144,7 +147,8 @@ The image-path benches are the strongest spec-aligned receive tests today:
   - validates rectangular image header and line marker handling against section
     `10.4.6.2` and `10.4.6.3`
 - `test_CoaXPressRx.py`
-  - validates the one-lane top-level receive assembly around that same traffic
+  - validates both the original one-lane top-level receive assembly and a
+    dual-lane lane-rotation path around the same traffic
 
 `test_CoaXPressRxLane.py` also exercises stream packet handling using
 spec-shaped stream headers, but the emphasis there is on receive-lane state
@@ -166,19 +170,22 @@ Current checked-in coverage:
 - `test_CoaXPressOverFiberBridgeTx.py`
   - start-word control bits
   - low-speed rate/update handling
+  - partial-lane low-speed payload fill with CoaXPress idle insertion
   - payload packing
   - `/T/` plus `/I/` termination
 - `test_CoaXPressOverFiberBridgeRx.py`
   - RX start-word decode for normal packets and `IO_ACK`
+  - HKP forwarding
+  - negative lane-placement checks for `/S/` and `/Q/`
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
 
 Still open on the bridge side:
 
-- explicit `/Q/` sequence handling
+- normative `/Q/` sequence handling beyond the current negative guardrails
 - explicit `/E/` error handling
-- broader HKP coverage
-- more negative tests around lane-0-only `/S/` and `/Q/` rules
+- deeper HKP/data-mix coverage
+- broader lane-0-only control-character sweeps
 
 ## Known Limitations
 
@@ -188,12 +195,11 @@ compliance coverage.
 The most important open limits are:
 
 - `CoaXPressConfig` is still skipped
-- multi-lane receive stepping and alignment behavior is still open
 - receive-side event handling still proves only the current RTL prefix contract
-- trigger coverage does not yet include the broader low-speed extra modes or
+- trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix
-- CXPoF bridge coverage does not yet exhaustively cover `/Q/`, `/E/`, and the
-  full housekeeping/data mix
+- CXPoF bridge coverage still does not exhaustively cover normative `/Q/`,
+  `/E/`, and the full housekeeping/data mix
 
 ## Running The Slice
 

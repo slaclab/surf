@@ -157,6 +157,37 @@ async def coaxpress_tx_ls_fsm_trigger_width_and_drop_test(dut):
     assert second_trigger is not None
 
 
+@cocotb.test()
+async def coaxpress_tx_ls_fsm_rate0_inverted_trigger_test(dut):
+    # Exercise the slower heartbeat cadence plus the inverted trigger mapping
+    # the current RTL implements on the rising edge.
+    start_clock(dut.txClk)
+    dut.txRst.setimmediatevalue(1)
+    dut.cfgTValid.setimmediatevalue(0)
+    dut.cfgTData.setimmediatevalue(0)
+    dut.cfgTUser.setimmediatevalue(0)
+    dut.txTrig.setimmediatevalue(0)
+    dut.txTrigInv.setimmediatevalue(1)
+    dut.txPulseWidth.setimmediatevalue(120)
+    dut.txRate.setimmediatevalue(0)
+    await reset_dut(dut, clk_name="txClk", reset_names=("txRst",))
+
+    await _pulse_trigger(dut)
+    strobes = await _collect_strobes(dut, count=24, timeout_cycles=5200)
+
+    assert [strobes[index + 1][0] - strobes[index][0] for index in range(23)] == [150] * 23
+    assert [(data, is_k) for _, data, is_k in strobes[:6]] == [
+        (CXP_K28_4, 1),
+        (CXP_K28_2, 1),
+        (CXP_K28_2, 1),
+        (0x03, 0),
+        (0x03, 0),
+        (0x03, 0),
+    ]
+
+    assert any((data, is_k) == IDLE_SEQUENCE[0] for _, data, is_k in strobes[6:])
+
+
 def test_CoaXPressTxLsFsm():
     run_surf_vhdl_test(
         test_file=__file__,

@@ -24,10 +24,13 @@
 #   the real FIFO/FSM sequencing without introducing unrelated clock skew.
 
 import cocotb
+import pytest
 
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test, start_lockstep_clocks
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
+    CXP_IDLE,
+    CXP_IDLE_K,
     CXP_IO_ACK,
     CXP_MARKER,
     CXP_PKT_CTRL_ACK_NO_TAG,
@@ -36,6 +39,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
     append_snapshot_if_valid,
+    pack_words,
     reset_signals,
     repeat_byte,
     send_rx_word,
@@ -79,6 +83,13 @@ EXPECTED_HDR_WORDS = [
     0x00200010,
 ]
 
+
+def _pack_lane_nibbles(values: list[int]) -> int:
+    packed = 0
+    for index, value in enumerate(values):
+        packed |= (value & 0xF) << (4 * index)
+    return packed
+
 def _capture_outputs(
     dut,
     *,
@@ -118,8 +129,21 @@ def _capture_outputs(
         trig_ack_cycles.append(cycle_index)
 
 
+async def _send_multi_lane_word(dut, *, lane_words: list[int], lane_ks: list[int], link_up: int) -> None:
+    num_lanes = env_int("NUM_LANES_G", default=1)
+    await send_rx_word(
+        dut,
+        data=pack_words(lane_words + [CXP_IDLE] * (num_lanes - len(lane_words))),
+        data_k=_pack_lane_nibbles(lane_ks + [CXP_IDLE_K] * (num_lanes - len(lane_ks))),
+        clk=dut.rxClk,
+        link_up=link_up,
+    )
+
+
 @cocotb.test()
 async def coaxpress_rx_one_lane_integration_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -229,10 +253,134 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     ]
 
 
-def test_CoaXPressRx():
+@cocotb.test()
+async def coaxpress_rx_two_lane_mux_rotation_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 2:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0x3,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 1,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+
+    async def capture(cycle_index: int) -> None:
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
+
+    lane0_sequence = [
+        ([CXP_SOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
+        ([repeat_byte(0x01), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x22), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x33), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x00), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(25), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([CXP_MARKER, CXP_IDLE], [0xF, CXP_IDLE_K]),
+        ([repeat_byte(CXP_PKT_IMAGE_HEADER), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        *[([word, CXP_IDLE], [0xF, CXP_IDLE_K]) for word in HEADER_WORDS],
+        ([CXP_SOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
+        ([repeat_byte(0x01), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x44), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x55), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(0x00), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([repeat_byte(5), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([CXP_MARKER, CXP_IDLE], [0xF, CXP_IDLE_K]),
+        ([repeat_byte(CXP_PKT_IMAGE_LINE), CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([0x11111111, CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([0x22222222, CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([0x33333333, CXP_IDLE], [0x0, CXP_IDLE_K]),
+        ([CXP_EOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
+    ]
+    lane1_sequence = [
+        ([CXP_IDLE, CXP_SOP], [CXP_IDLE_K, 0xF]),
+        ([CXP_IDLE, repeat_byte(0x01)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x22)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x33)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x00)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(25)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, CXP_MARKER], [CXP_IDLE_K, 0xF]),
+        ([CXP_IDLE, repeat_byte(CXP_PKT_IMAGE_HEADER)], [CXP_IDLE_K, 0x0]),
+        *[([CXP_IDLE, word], [CXP_IDLE_K, 0xF]) for word in HEADER_WORDS],
+        ([CXP_IDLE, CXP_SOP], [CXP_IDLE_K, 0xF]),
+        ([CXP_IDLE, repeat_byte(0x01)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x44)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x55)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(0x00)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, repeat_byte(5)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, CXP_MARKER], [CXP_IDLE_K, 0xF]),
+        ([CXP_IDLE, repeat_byte(CXP_PKT_IMAGE_LINE)], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, 0x44444444], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, 0x55555555], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, 0x66666666], [CXP_IDLE_K, 0x0]),
+        ([CXP_IDLE, CXP_EOP], [CXP_IDLE_K, 0xF]),
+    ]
+
+    cycle_index = 0
+    for lane_words, lane_ks in lane0_sequence:
+        await _send_multi_lane_word(dut, lane_words=lane_words, lane_ks=lane_ks, link_up=0x3)
+        await capture(cycle_index)
+        cycle_index += 1
+
+    for _ in range(12):
+        await _send_multi_lane_word(dut, lane_words=[CXP_IDLE, CXP_IDLE], lane_ks=[CXP_IDLE_K, CXP_IDLE_K], link_up=0x3)
+        await capture(cycle_index)
+        cycle_index += 1
+
+    for lane_words, lane_ks in lane1_sequence:
+        await _send_multi_lane_word(dut, lane_words=lane_words, lane_ks=lane_ks, link_up=0x3)
+        await capture(cycle_index)
+        cycle_index += 1
+
+    for _ in range(80):
+        await _send_multi_lane_word(dut, lane_words=[CXP_IDLE, CXP_IDLE], lane_ks=[CXP_IDLE_K, CXP_IDLE_K], link_up=0x3)
+        await capture(cycle_index)
+        cycle_index += 1
+
+    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 2
+    assert [beat[0] for beat in data_beats[:3]] == [0x11111111, 0x22222222, 0x33333333]
+    assert 0x44444444 in [beat[0] for beat in data_beats]
+    assert 0x55555555 in [beat[0] for beat in data_beats]
+    assert any(beat[2] == 1 for beat in data_beats)
+
+
+PARAMETER_SWEEP = [
+    parameter_case("single_lane", NUM_LANES_G="1", RX_FSM_CNT_WIDTH_G="8"),
+    parameter_case("dual_lane", NUM_LANES_G="2", RX_FSM_CNT_WIDTH_G="8"),
+]
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+def test_CoaXPressRx(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.coaxpressrxwrapper",
+        parameters=parameters,
+        extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
                 "protocols/coaxpress/core/rtl/CoaXPressPkg.vhd",

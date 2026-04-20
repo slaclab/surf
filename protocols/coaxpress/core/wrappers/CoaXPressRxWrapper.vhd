@@ -21,6 +21,9 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity CoaXPressRxWrapper is
+   generic (
+      NUM_LANES_G        : positive range 1 to 8  := 1;
+      RX_FSM_CNT_WIDTH_G : positive range 1 to 24 := 8);
    port (
       dataClk        : in  sl;
       dataRst        : in  sl;
@@ -30,9 +33,9 @@ entity CoaXPressRxWrapper is
       txRst          : in  sl;
       rxClk          : in  sl;
       rxRst          : in  sl;
-      rxData         : in  slv(31 downto 0);
-      rxDataK        : in  slv(3 downto 0);
-      rxLinkUp       : in  sl;
+      rxData         : in  slv(32*NUM_LANES_G-1 downto 0);
+      rxDataK        : in  slv(4*NUM_LANES_G-1 downto 0);
+      rxLinkUp       : in  slv(NUM_LANES_G-1 downto 0);
       rxFsmRst       : in  sl;
       rxNumberOfLane : in  slv(2 downto 0);
       dataTValid     : out sl;
@@ -68,19 +71,22 @@ architecture rtl of CoaXPressRxWrapper is
    signal imageHdrSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
    signal cfgRxMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
-   signal rxClkVec    : slv(0 downto 0);
-   signal rxRstVec    : slv(0 downto 0);
-   signal rxDataVec   : slv32Array(0 downto 0);
-   signal rxDataKVec  : Slv4Array(0 downto 0);
-   signal rxLinkUpVec : slv(0 downto 0);
+   signal rxClkVec    : slv(NUM_LANES_G-1 downto 0);
+   signal rxRstVec    : slv(NUM_LANES_G-1 downto 0);
+   signal rxDataVec   : slv32Array(NUM_LANES_G-1 downto 0);
+   signal rxDataKVec  : Slv4Array(NUM_LANES_G-1 downto 0);
+   signal rxLinkUpVec : slv(NUM_LANES_G-1 downto 0);
 
 begin
 
-   rxClkVec(0)    <= rxClk;
-   rxRstVec(0)    <= rxRst;
-   rxDataVec(0)   <= rxData;
-   rxDataKVec(0)  <= rxDataK;
-   rxLinkUpVec(0) <= rxLinkUp;
+   GEN_LANE : for i in 0 to NUM_LANES_G-1 generate
+   begin
+      rxClkVec(i)    <= rxClk;
+      rxRstVec(i)    <= rxRst;
+      rxDataVec(i)   <= rxData(32*i+31 downto 32*i);
+      rxDataKVec(i)  <= rxDataK(4*i+3 downto 4*i);
+      rxLinkUpVec(i) <= rxLinkUp(i);
+   end generate GEN_LANE;
 
    dataSlave.tReady     <= dataTReady;
    imageHdrSlave.tReady <= hdrTReady;
@@ -105,8 +111,8 @@ begin
    U_DUT : entity surf.CoaXPressRx
       generic map (
          TPD_G              => 1 ns,
-         NUM_LANES_G        => 1,
-         RX_FSM_CNT_WIDTH_G => 8,
+         NUM_LANES_G        => NUM_LANES_G,
+         RX_FSM_CNT_WIDTH_G => RX_FSM_CNT_WIDTH_G,
          AXIS_CONFIG_G      => AXIS_CONFIG_C)
       port map (
          dataClk        => dataClk,

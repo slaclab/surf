@@ -25,12 +25,14 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
+from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_MARKER,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
     cycle,
+    keep_for_words,
+    lane_keep_mask,
     pack_words,
     repeat_byte,
     reset_dut,
@@ -71,6 +73,10 @@ async def _send_handshaked_beat(dut, *, data: int, keep: int, last: int = 0) -> 
     dut.sAxisTData.value = 0
     dut.sAxisTKeep.value = 0
     dut.sAxisTLast.value = 0
+
+
+def _beat_data(words: list[int], *, num_lanes: int) -> int:
+    return pack_words(words + [0] * (num_lanes - len(words)))
 
 
 def _header_words() -> list[int]:
@@ -117,6 +123,8 @@ def _expected_header_data() -> int:
 
 @cocotb.test()
 async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -167,6 +175,8 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
 
 @cocotb.test()
 async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -231,7 +241,122 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     ]
 
 
-PARAMETER_SWEEP = [parameter_case("single_lane", NUM_LANES_G="1", RX_FSM_CNT_WIDTH_G="8")]
+@cocotb.test()
+async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 2:
+        return
+
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxFsmRst.setimmediatevalue(0)
+    dut.sAxisTValid.setimmediatevalue(0)
+    dut.sAxisTData.setimmediatevalue(0)
+    dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTLast.setimmediatevalue(0)
+    await reset_dut(dut, reset_names=("rxRst",))
+
+    header_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    header_words = [
+        repeat_byte(0xA1),
+        repeat_byte(0x12),
+        repeat_byte(0x34),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x03),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x01),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x03),
+        repeat_byte(0x00),
+        repeat_byte(0x02),
+        repeat_byte(0x00),
+        repeat_byte(0x04),
+        repeat_byte(0x5E),
+    ]
+
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([CXP_MARKER, repeat_byte(CXP_PKT_IMAGE_HEADER)], num_lanes=2),
+        keep=lane_keep_mask([0, 1]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    for index in range(0, len(header_words), 2):
+        words = header_words[index : index + 2]
+        await _send_handshaked_beat(
+            dut,
+            data=_beat_data(words, num_lanes=2),
+            keep=lane_keep_mask(list(range(len(words)))),
+        )
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([CXP_MARKER], num_lanes=2),
+        keep=lane_keep_mask([0]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([repeat_byte(CXP_PKT_IMAGE_LINE), 0x11111111], num_lanes=2),
+        keep=lane_keep_mask([0, 1]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([0x22222222, 0x33333333], num_lanes=2),
+        keep=lane_keep_mask([0, 1]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    for _ in range(8):
+        await RisingEdge(dut.rxClk)
+        await Timer(1, unit="ns")
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    assert header_beats == [
+        {
+            "hdrTData": pack_words(
+                [
+                    0x12345EA1,
+                    0x00000003,
+                    0x00000000,
+                    0x00000001,
+                    0x00000000,
+                    0x00000003,
+                    0x00040002,
+                ]
+            ),
+            "hdrTLast": 1,
+            "hdrTSof": 1,
+        }
+    ]
+    assert data_beats == [
+        {
+            "dataTData": pack_words([0x11111111, 0x22222222]),
+            "dataTKeep": keep_for_words(2),
+            "dataTLast": 0,
+        },
+        {
+            "dataTData": 0x33333333,
+            "dataTKeep": keep_for_words(2),
+            "dataTLast": 1,
+        },
+    ]
+
+
+PARAMETER_SWEEP = [
+    parameter_case("single_lane", NUM_LANES_G="1", RX_FSM_CNT_WIDTH_G="8"),
+    parameter_case("dual_lane", NUM_LANES_G="2", RX_FSM_CNT_WIDTH_G="8"),
+]
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)

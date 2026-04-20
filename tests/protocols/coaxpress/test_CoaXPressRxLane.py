@@ -138,6 +138,16 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     await drive(0xCAFEBABE, 0x0)
     await drive(CXP_EOP, 0xF)
 
+    # Drive one alternate-success acknowledgment code. The current RTL maps
+    # 0x04 to the same zero-success status word as 0x01.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(repeat_byte(0x04), 0x0)
+    await drive(0x04000000, 0x0)
+    await drive(0x76543210, 0x0)
+    await drive(0x0BADCAFE, 0x0)
+    await drive(CXP_EOP, 0xF)
+
     # Drive one spec-shaped tagged read acknowledgment. The current RTL skips
     # the tag word, then forwards the first reply-data word with a zeroed
     # success status in the low 32 bits.
@@ -148,6 +158,14 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     await drive(0x04000000, 0x0)
     await drive(0x89ABCDEF, 0x0)
     await drive(0xFEEDBEEF, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # Heartbeat first keeps the on-wire ordering consistent before the event.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_HEARTBEAT), 0x0)
+    for word in range(0x20, 0x2C):
+        await drive(repeat_byte(word), 0x0)
+    await drive(0xB6B6B6B6, 0x0)
     await drive(CXP_EOP, 0xF)
 
     # Drive a fuller event packet shape. The current RTL only consumes the
@@ -165,18 +183,17 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     await drive(0xA5A5A5A5, 0x0)
     await drive(CXP_EOP, 0xF)
 
-    # Heartbeat still exercises the current 12-byte payload collector, followed
-    # by a nominal packet trailer.
+    # A truncated event prefix must not raise a second event pulse.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(CXP_PKT_HEARTBEAT), 0x0)
-    for word in range(0x20, 0x2C):
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for word in (0xAA, 0xBB, 0xCC, 0xDD):
         await drive(repeat_byte(word), 0x0)
-    await drive(0xB6B6B6B6, 0x0)
     await drive(CXP_EOP, 0xF)
     await drive(CXP_IDLE, CXP_IDLE_K)
 
     assert cfg_beats == [
         {"cfgTData": (0x01234567 << 32)},
+        {"cfgTData": (0x76543210 << 32)},
         {"cfgTData": (0x89ABCDEF << 32)},
     ]
     assert event_pulses == [(1, 0x5A)]

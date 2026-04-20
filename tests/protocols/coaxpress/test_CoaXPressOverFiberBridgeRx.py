@@ -92,6 +92,53 @@ async def coaxpress_over_fiber_bridge_rx_decode_test(dut):
     ]
 
 
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
+    # Keep the bridge idle through malformed lane placement for /S/ and /Q/,
+    # then verify the HKP path emits raw K-coded words and recovers to normal
+    # packet decode afterward.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    await drive(0x0707FB07, 0x2)
+    await drive(0x07079C07, 0x2)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(0x5C5C5C5C, 0xF)
+    await drive(CXP_EOP, 0xF)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x55667788, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (0x5C5C5C5C, 0xF),
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x55667788, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
 def test_CoaXPressOverFiberBridgeRx():
     run_surf_vhdl_test(
         test_file=__file__,
