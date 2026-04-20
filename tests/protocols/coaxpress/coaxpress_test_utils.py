@@ -35,7 +35,15 @@ CXP_ACK_SUCCESS = 0x01
 CXP_ACK_SUCCESS_ALT = 0x04
 CXP_PKT_CTRL_ACK_WITH_TAG = 0x06
 CXP_PKT_EVENT_ACK = 0x07
+CXP_PKT_EVENT_ACK_MSG = 0x08
 CXP_PKT_HEARTBEAT = 0x09
+
+# Low-speed symbol bytes used directly by the TX-side CoaXPress logic.
+CXP_K28_1 = 0x3C
+CXP_K28_2 = 0x5C
+CXP_K28_4 = 0x9C
+CXP_K28_5 = 0xBC
+CXP_D21_5 = 0xB5
 
 # CoaXPress-over-Fiber bridge control bytes.
 CXPOF_IDLE = 0x07
@@ -56,6 +64,10 @@ class AxisBeat:
 def repeat_byte(value: int) -> int:
     byte = value & 0xFF
     return byte | (byte << 8) | (byte << 16) | (byte << 24)
+
+
+def word_to_bytes(word: int, *, byte_count: int = 4) -> list[int]:
+    return [(word >> (8 * index)) & 0xFF for index in range(byte_count)]
 
 
 def pack_words(words: list[int], *, word_bits: int = 32) -> int:
