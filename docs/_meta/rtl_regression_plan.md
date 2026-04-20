@@ -82,6 +82,11 @@
 - Rewrite executable test logic in Python when migrating a module into the new regression system.
 - Keep VHDL wrappers only when they make Python stimulus materially cleaner.
 - Do not preserve old benches purely for historical reasons.
+- Before writing new cocotb transaction code, search the nearest subsystem `tests/` package for an existing `*_test_utils.py` or equivalent shared helper module and reuse it when possible.
+- Prefer extending an existing helper with one more narrowly useful utility over cloning handshake loops, packet builders, frame receivers, or register-access boilerplate into each new test file.
+- For AXI-Lite work, look for existing read/write helpers, setup helpers, and protocol-master wrappers first; do not hand-code repeated register transactions if the subsystem already has a stable helper path.
+- For AXI Stream work, look for existing frame/beat helpers, contiguous-send helpers, receive helpers, keep-mask helpers, and handshake monitors before writing custom ready/valid loops.
+- For SSI work, prefer the existing SSI helper layer for flat endpoint setup, beat modeling, frame send/receive, no-output checks, and `EOFE`/`SOF`-aware assertions instead of rebuilding SSI transaction plumbing in each bench.
 - When a wrapper is needed only to adapt simulator-hostile generics, check it into the nearest subsystem-local `wrappers/` or `ip_integrator/` folder instead of hiding it under `tests/` or a generic `hdl/` bucket.
 - For SURF AXI/AxiLite record ports, prefer the existing IP-integrator shim layers (`SlaveAxiStreamIpIntegrator`, `MasterAxiStreamIpIntegrator`, `SlaveAxiLiteIpIntegrator`, `MasterAxiLiteIpIntegrator`) instead of hand-writing record-to-flat unpacking in each test wrapper.
 - If a DUT has extra nonstandard side signals, compose those on top of the standard AXI shim pair rather than replacing the standard flattening pattern.

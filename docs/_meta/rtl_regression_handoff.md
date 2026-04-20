@@ -19,10 +19,10 @@
 - Treat stale simulator cleanup as part of task completion: after any `pytest`, cocotb, GHDL, or similar launched verification step, sweep for leftover child processes and kill them before moving on
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete, the merged branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the current Ethernet coverage now spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, and `IpV4Engine`, including the recent thin-area cleanup across direct bypass leaves, broader top-level UDP/IPv4 paths, and deeper ICMP negatives. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
+- Current frontier: the axi-first pass is complete, the merged branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, and the current Ethernet coverage now spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, `IpV4Engine`, and the first `RoCEv2` VHDL-only helper pair, including the recent thin-area cleanup across direct bypass leaves, broader top-level UDP/IPv4 paths, and deeper ICMP negatives. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
-  - The larger Ethernet families `GigEthCore`, `TenGigEthCore`, `XauiCore`, `XlauiCore`, `Caui4Core`, and `RoCEv2` remain untouched in phase 1.
+  - The larger Ethernet families `GigEthCore`, `TenGigEthCore`, `XauiCore`, `XlauiCore`, and `Caui4Core` remain untouched in phase 1, while `RoCEv2` is only partially covered through the VHDL-only `EthMacPrepareForICrc` and `EthMacRxCheckICrc` leaves.
   - `EthMacRxImportXlgmii` and `EthMacTxExportXlgmii` are still placeholder no-op RTL; the checked-in tests now lock down that inert contract instead of claiming functional XLGMII support.
 - Current planning discipline:
   - Use manual user-directed area selection as the active source of truth for what to work on next.
@@ -34,7 +34,7 @@
   - Use `start_lockstep_clocks()` when a DUT depends on truly shared clock edges.
   - Prefer explicit short sim-build keys for generated-wrapper benches when case metadata would otherwise create fragile build paths.
   - When a wrapper is checked in, write it like the surrounding repo HDL: include the SLAC/SURF banner and enough section comments that a new session can identify the shim, DUT, and flattening regions quickly.
-  - For the current Ethernet slice, the checked-in wrappers under `ethernet/EthMacCore/wrappers/`, `ethernet/RawEthFramer/wrappers/`, `ethernet/UdpEngine/wrappers/`, and `ethernet/IpV4Engine/wrappers/` are the expected cocotb surfaces. Keep using those subsystem-local wrappers rather than rebuilding record-packing logic in Python.
+  - For the current Ethernet slice, the checked-in wrappers under `ethernet/EthMacCore/wrappers/`, `ethernet/RawEthFramer/wrappers/`, `ethernet/UdpEngine/wrappers/`, `ethernet/IpV4Engine/wrappers/`, and the new `ethernet/RoCEv2/wrappers/` leaf adapters are the expected cocotb surfaces. Keep using those subsystem-local wrappers rather than rebuilding record-packing logic in Python.
 - Current cocotb-file discipline:
   - New test files should start with the standard SURF/SLAC header block.
   - The `Test methodology` block belongs directly under that header.
@@ -54,10 +54,14 @@
 - For first-pass wrapper benches, prove the externally visible stable path first and defer shakier simulator-sensitive branches explicitly in the docs instead of stretching one bench to cover everything.
 - `AxiStreamDmaV2Read` needed a real RTL/runtime fix rather than a bench workaround: keep the bounded byte-count conversion fix in `axi/axi4/rtl/AxiPkg.vhd` and the direct terminal-mask generation in `axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd`. The current wrapper only exposes an 8-bit `TUSER`, so the observable contract in the checked-in bench is first-user propagation plus payload/keep/id/dest and descriptor return fields.
 - `tests/dsp/generic/dsp_test_utils.py` is now the shared home for DSP-specific signed helpers, rolling reference models, cocotb clock-settle timing, and generated FIR wrappers. Reuse it instead of cloning DSP arithmetic or wrapper boilerplate.
+- Before writing new AXI-Lite, AXI Stream, SSI, or ethernet transaction code, search the nearest subsystem `tests/` package for an existing helper module first. Future sessions should assume that a reusable helper probably already exists and should only write new transaction plumbing after confirming the local helper layer is insufficient.
 - `tests/ethernet/EthMacCore/ethmac_test_utils.py` is now the shared home for the current Ethernet MAC slice: flat EMAC beat helpers, Ethernet/IPv4/UDP packet builders, checksum reference code, MAC-config byte-order helpers, and minimum-frame padding helpers. Reuse it instead of cloning packet or sideband plumbing across `EthMacCore` benches.
+- `ethernet/RoCEv2/rtl/EthMacTxRoCEv2.vhd` and `EthMacRxRoCEv2.vhd` are not the practical first phase-1 targets under the current GHDL flow because they pull in the Bluespec-generated CRC/RDMA Verilog path. Start the RoCEv2 slice from the stable VHDL-only helper leaves (`EthMacPrepareForICrc` and `EthMacRxCheckICrc`) and treat the mixed-language wrappers as an explicit follow-on.
 - `tests/ethernet/RawEthFramer/raw_eth_test_utils.py` now holds the shared raw-Ethernet helper pieces: flat app-side beat helpers, raw-Ethernet header/frame builders, and lookup-handshake utilities reused by the `RawEthFramer`, `RawEthFramerRx`, and `RawEthFramerTx` benches.
 - `tests/ethernet/UdpEngine/udp_test_utils.py` is now the shared home for the UDP slice: legacy-address constants, pseudo-frame builders, DHCP option helpers, and the common cocotb bench setup for the `ArpIpTable`, `UdpEngine*`, and `UdpEngineWrapper*` wrappers. Reuse it instead of rebuilding IPv4/UDP helper glue in each test module.
 - `tests/ethernet/IpV4Engine/ipv4_test_utils.py` is now the shared home for the IPv4 slice: packet/header builders and common cocotb bench setup for the `ArpEngine`, `IcmpEngine`, `IgmpV2Engine`, and `IpV4Engine*` wrappers. Reuse it instead of cloning IPv4 framing helpers across that directory.
+- `tests/protocols/ssi/ssi_test_utils.py` is the shared home for SSI transaction work: flat SSI endpoints, beat/frame helpers, contiguous-frame send, receive/no-output utilities, and `SOF`/`EOFE`-aware assertions. Use it instead of open-coding SSI handshake loops or terminal-flag checks.
+- Across the AXI slices, prefer the subsystem helper paths that already exist for register transactions, frame movement, and setup. In practice that means reusing helpers such as `tests/common/regression_utils.py`, the AXI/ethernet subsystem utility modules, and any nearby module-family helpers before inventing a one-off local transaction wrapper.
 - The current `EthMacCore` slice is intentionally a checked-in-wrapper-first rollout, not a cocotb-generated-wrapper experiment. Keep new Ethernet work on that same pattern unless the simulator forces a very local generic adapter.
 - The XGMII import/export loopback behavior differs from the GMII path when `phyReady` drops mid-traffic: the blocked frame is retained and drains after link recovery, padded to Ethernet's minimum frame size if it was short. The GMII path drops that blocked frame. Future import/export coverage should preserve that distinction instead of forcing one common expectation.
 - The current `EthMacRxImportXlgmii.vhd` and `EthMacTxExportXlgmii.vhd` leaves are placeholders: they drive no data-path activity and never pulse the count/status outputs. Future work should treat functional XLGMII support as an RTL gap, not as a missing bench.
@@ -156,7 +160,7 @@ One small RTL fix landed during that validation pass because the new `AxiStreamD
 A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph and queue for provenance, but treat them as historical context rather than as the default source of truth for what to implement next.
 
 ## Immediate Next Task
-Wait for the next user-directed area selection, then keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with whatever lands in the tree. The immediate documentation priority is accuracy of the real done/open frontier, not regeneration of the historical queue artifacts.
+If the user keeps the focus on `ethernet/RoCEv2`, decide whether to stay in the current phase-1 lane and add more VHDL-only helper coverage or to invest in mixed-language support for the top-level TX/RX wrappers and `RoceEngineWrapper`. In either case, keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with the real validated subset instead of over-claiming full-family RoCEv2 coverage.
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
@@ -176,6 +180,10 @@ Before writing code in a fresh session:
 - Shared Python regression helper lives in `tests/common/regression_utils.py`
 - `tests/common/regression_utils.py` now supports both test-local extra VHDL source lists and generated test-local wrapper emission for wrapper-based cases
 - `tests/common/regression_utils.py` also now provides `start_lockstep_clocks()` for `COMMON_CLK_G` style benches that require truly shared edges
+- When starting a new test, check for nearby shared helper modules before writing any new transaction boilerplate. The expected search order is: `tests/common/`, then the current subsystem package, then closely related subsystem packages that already cover the same protocol family.
+- For AXI-Lite benches, prefer existing helpers for repeated register reads/writes, environment decoding, and common bench setup rather than spelling out raw transactions in every file.
+- For AXI Stream benches, prefer existing helpers for beat/frame packing, contiguous-frame driving, whole-frame receive, no-output checks, and handshake observation rather than writing custom ready/valid loops unless the DUT exposes a genuinely new contract.
+- For SSI benches, prefer `tests/protocols/ssi/ssi_test_utils.py` for beat models, frame helpers, `EOFE`/`SOF` handling, and sink/source setup instead of duplicating SSI transaction utilities in a local test file.
 - Default comment style for new cocotb tests has two parts: a wrapped four-bullet `Test methodology` header (`Sweep`, `Stimulus`, `Checks`, `Timing`) plus tutorial-style in-body comments that explain what each coroutine step is doing and why
 - New cocotb tests should also use the standard SURF/SLAC file header, not a shortened local variant
 - The methodology header should be module-specific and describe the real curated sweep, driven sequence, expected outputs/state changes, and timing checks; avoid generic boilerplate
