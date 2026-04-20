@@ -37,7 +37,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     setup_flat_emac_testbench,
 )
 from tests.ethernet.IpV4Engine.ipv4_test_utils import (
-    ICMP_ECHO_REQUEST,
     IP_PROTOCOL_ICMP,
     IPV4_RTL_SOURCES,
     build_icmp_echo_packet,

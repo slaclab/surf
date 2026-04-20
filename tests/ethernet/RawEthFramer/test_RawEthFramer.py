@@ -38,7 +38,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 )
 from tests.ethernet.RawEthFramer.raw_eth_test_utils import (
     ALT_REMOTE_MAC_WIRE,
-    ETH_TYPE_CFG,
     LOCAL_MAC_WIRE,
     RAWETH_BEAT_BYTES,
     RAWETH_RTL_SOURCES,
