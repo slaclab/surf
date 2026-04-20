@@ -104,6 +104,14 @@
 - The active planning driver is now manual user-directed area selection, with `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md` tracking what is done, what is intentionally narrow, and what remains open.
 - Do not hand-maintain queue order in this plan. If the graph or queue is regenerated for analysis, treat it as secondary context unless the user explicitly switches back to queue-driven planning.
 
+## CoaXPress Spec Discipline
+- Treat the published CoaXPress specifications as normative for future `protocols/coaxpress/` work, especially for top-level receive/transmit and over-fiber bridge benches.
+- The two governing references are the CoaXPress protocol spec (`CXP-001-2021`) and the CoaXPress-over-Fiber bridge spec (`CXPR-008-2021`), matching the links already called out in `protocols/coaxpress/core/rtl/CoaXPressPkg.vhd`.
+- When a CoaXPress bench encodes packet classes, control symbols, or bridge control characters, derive those values from the spec-defined names first and mirror them through shared helpers such as `tests/protocols/coaxpress/coaxpress_test_utils.py` instead of scattering raw literals.
+- For CoaXPress image/header benches, keep the repeated-byte field encoding, header field order, endianness conversion, line-size semantics, and end-of-frame rules explicitly tied to the spec-defined rectangular image packet layout.
+- For CoaXPress-over-Fiber benches, keep `/I/`, `/Q/`, `/S/`, `/T/`, and `/E/` handling, lane-0-only start/sequence semantics, and payload-vs-housekeeping start words aligned to `CXPR-008-2021`.
+- If a checked-in bench intentionally validates only the current RTL contract instead of the full normative spec behavior, document that narrowed scope explicitly in the progress and handoff docs rather than implying full spec coverage.
+
 ## Historical Queue Artifacts
 The phase-1 simulator-friendly queue remains available as a generated bottom-up artifact, but it is now historical context rather than the active workflow.
 

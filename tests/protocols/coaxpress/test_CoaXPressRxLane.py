@@ -26,9 +26,15 @@ import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_ACK_SUCCESS,
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_IO_ACK,
+    CXP_PKT_CTRL_ACK_NO_TAG,
+    CXP_PKT_CTRL_ACK_WITH_TAG,
+    CXP_PKT_EVENT_ACK,
+    CXP_PKT_HEARTBEAT,
+    CXP_PKT_STREAM_DATA,
     CXP_SOP,
     cycle,
     repeat_byte,
@@ -66,7 +72,7 @@ async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
     # Build one three-word stream packet and interrupt it with an I/O ACK
     # sequence before the payload starts to prove the saved-state path.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(0x01), 0x0)
+    await drive(repeat_byte(CXP_PKT_STREAM_DATA), 0x0)
     await drive(repeat_byte(0x22), 0x0)
     await drive(repeat_byte(0x33), 0x0)
     await drive(repeat_byte(0x00), 0x0)
@@ -121,14 +127,14 @@ async def coaxpress_rx_lane_control_event_and_heartbeat_test(dut):
 
     # Successful ACK without tag should zero the status field but forward data.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(0x03), 0x0)
-    await drive(repeat_byte(0x01), 0x0)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(repeat_byte(CXP_ACK_SUCCESS), 0x0)
     await drive(0xCAFEBABE, 0x0)
     await drive(0x01234567, 0x0)
 
     # Tagged ACK should skip the tag word and preserve the non-success status.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(0x06), 0x0)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_WITH_TAG), 0x0)
     await drive(repeat_byte(0x55), 0x0)
     await drive(repeat_byte(0x02), 0x0)
     await drive(0xFEEDBEEF, 0x0)
@@ -136,14 +142,14 @@ async def coaxpress_rx_lane_control_event_and_heartbeat_test(dut):
 
     # Event ACK fires on the fifth payload word and exports the low byte.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(0x07), 0x0)
+    await drive(repeat_byte(CXP_PKT_EVENT_ACK), 0x0)
     for word in (0x10, 0x11, 0x12, 0x13):
         await drive(repeat_byte(word), 0x0)
     await drive(repeat_byte(0x5A), 0x0)
 
     # Heartbeat collects 12 bytes into one terminal beat.
     await drive(CXP_SOP, 0xF)
-    await drive(repeat_byte(0x09), 0x0)
+    await drive(repeat_byte(CXP_PKT_HEARTBEAT), 0x0)
     for word in range(0x20, 0x2C):
         await drive(repeat_byte(word), 0x0)
     await drive(CXP_IDLE, CXP_IDLE_K)
@@ -173,8 +179,8 @@ async def coaxpress_rx_lane_error_recovery_test(dut):
     # Corrupt the packet-tag repetition field, then drop link mid-packet and
     # confirm the next clean packet is the only one that produces payload.
     await send_rx_word(dut, data=CXP_SOP, data_k=0xF, clk=dut.rxClk)
-    await send_rx_word(dut, data=repeat_byte(0x01), data_k=0x0, clk=dut.rxClk)
-    await send_rx_word(dut, data=repeat_byte(0x01), data_k=0x0, clk=dut.rxClk)
+    await send_rx_word(dut, data=repeat_byte(CXP_PKT_STREAM_DATA), data_k=0x0, clk=dut.rxClk)
+    await send_rx_word(dut, data=repeat_byte(CXP_PKT_STREAM_DATA), data_k=0x0, clk=dut.rxClk)
     await send_rx_word(dut, data=0x01020304, data_k=0x0, clk=dut.rxClk)
     await send_rx_word(dut, data=CXP_SOP, data_k=0xF, clk=dut.rxClk)
     await send_rx_word(dut, data=repeat_byte(0x01), data_k=0x0, clk=dut.rxClk)
@@ -186,7 +192,7 @@ async def coaxpress_rx_lane_error_recovery_test(dut):
     observed: list[dict[str, int]] = []
     for data, data_k in (
         (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
+        (repeat_byte(CXP_PKT_STREAM_DATA), 0x0),
         (repeat_byte(0xAA), 0x0),
         (repeat_byte(0xBB), 0x0),
         (repeat_byte(0x00), 0x0),

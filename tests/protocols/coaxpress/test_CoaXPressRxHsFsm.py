@@ -14,9 +14,10 @@
 #   multi-lane timing branches are added.
 # - Stimulus: Drive a complete rectangular-image transaction with two lines,
 #   then a malformed header followed by a clean retry.
-# - Checks: The FSM must emit the byte-swapped packed header, forward the exact
-#   programmed number of data words, assert frame `TLAST` only on the final
-#   line, and recover cleanly after a malformed repeated-byte header word.
+# - Checks: The FSM must emit the packed rectangular-image header in the same
+#   field order the RTL exports from the spec-defined repeated-byte header,
+#   forward the exact programmed number of data words, assert frame `TLAST`
+#   only on the final line, and recover cleanly after a malformed header word.
 # - Timing: The source holds each beat until `sAxisTReady` rises so the checks
 #   reflect the FSM's actual per-beat acceptance rather than idealized traffic.
 
@@ -27,6 +28,8 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_MARKER,
+    CXP_PKT_IMAGE_HEADER,
+    CXP_PKT_IMAGE_LINE,
     cycle,
     pack_words,
     repeat_byte,
@@ -128,7 +131,7 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
     # Send one header packet that declares two lines of three 32-bit words.
     await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
-    await _send_handshaked_beat(dut, data=repeat_byte(0x01), keep=0xF)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
     for word in _header_words():
         await _send_handshaked_beat(dut, data=word, keep=0xF)
@@ -138,7 +141,7 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
     for line_words in ([0x11111111, 0x22222222, 0x33333333], [0x44444444, 0x55555555, 0x66666666]):
         await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
-        await _send_handshaked_beat(dut, data=repeat_byte(0x02), keep=0xF)
+        await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_LINE), keep=0xF)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
         for word in line_words:
             await _send_handshaked_beat(dut, data=word, keep=0xF)
@@ -180,7 +183,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     # actually emits the header/data outputs.
     await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
     error_seen |= int(dut.rxFsmError.value) == 1
-    await _send_handshaked_beat(dut, data=repeat_byte(0x01), keep=0xF)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
     error_seen |= int(dut.rxFsmError.value) == 1
     for index, word in enumerate(_header_words()):
         await _send_handshaked_beat(
@@ -197,14 +200,14 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
 
     await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
-    await _send_handshaked_beat(dut, data=repeat_byte(0x01), keep=0xF)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
     for word in _header_words():
         await _send_handshaked_beat(dut, data=word, keep=0xF)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
     await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
-    await _send_handshaked_beat(dut, data=repeat_byte(0x02), keep=0xF)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_LINE), keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
     await _send_handshaked_beat(dut, data=0xABCDEF00, keep=0xF)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)

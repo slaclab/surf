@@ -20,8 +20,29 @@ from cocotb.triggers import RisingEdge, Timer
 CXP_IDLE = 0xB53C3CBC
 CXP_IDLE_K = 0x7
 CXP_SOP = 0xFBFBFBFB
+CXP_EOP = 0xFDFDFDFD
+CXP_TRIG = 0x5C5C5C5C
 CXP_MARKER = 0x7C7C7C7C
 CXP_IO_ACK = 0xDCDCDCDC
+
+# Spec-defined CoaXPress packet-class bytes. Keep benches on these names so
+# future top-level coverage stays tied to the published packet classes.
+CXP_PKT_STREAM_DATA = 0x01
+CXP_PKT_IMAGE_HEADER = 0x01
+CXP_PKT_IMAGE_LINE = 0x02
+CXP_PKT_CTRL_ACK_NO_TAG = 0x03
+CXP_ACK_SUCCESS = 0x01
+CXP_ACK_SUCCESS_ALT = 0x04
+CXP_PKT_CTRL_ACK_WITH_TAG = 0x06
+CXP_PKT_EVENT_ACK = 0x07
+CXP_PKT_HEARTBEAT = 0x09
+
+# CoaXPress-over-Fiber bridge control bytes.
+CXPOF_IDLE = 0x07
+CXPOF_SEQ = 0x9C
+CXPOF_START = 0xFB
+CXPOF_TERM = 0xFD
+CXPOF_ERROR = 0xFE
 
 
 @dataclass
