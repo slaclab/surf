@@ -58,7 +58,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
 | `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting and tag handling, section `9.6.1.2` / `9.6.2` | Checked in but skipped |
-| `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation into the top-level TX path | RTL-contract with spec request prefix |
+| `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
 | `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words | Partial protocol |
 | `test_CoaXPressOverFiberBridge.py` | `CoaXPressOverFiberBridge` | Top-level 32b/64b gearbox integration around the bridge leaf mapping | RTL-contract with spec framing |
@@ -154,6 +154,32 @@ The image-path benches are the strongest spec-aligned receive tests today:
 spec-shaped stream headers, but the emphasis there is on receive-lane state
 behavior rather than on a full normative stream CRC checker.
 
+### Software-visible overflow and FSM-error status
+
+`test_CoaXPressCore.py` now covers the two receive-status counters exposed to
+software through `CoaXPressAxiL`:
+
+- `RxOverflowCnt`
+  - holds the image-header output path stalled until the top-level receive
+    assembly overflows, then checks that the AXI-Lite counter increments and
+    the path drains once backpressure is released
+- `RxFsmErrorCnt`
+  - injects a full image-header packet with one corrupted repeated-byte field,
+    checks that the top-level counter increments, then verifies the count
+    stays stable during idle cycles and that a later clean image transaction is
+    still accepted
+- `coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issue_test`
+  - checked in as an opt-in skipped investigation bench
+  - drives sustained receive-data backpressure with repeated one-line image
+    frames and encodes the expected software-facing behavior: overflow should
+    count first, `RxFsmErrorCnt` should stay at zero, idle should not create an
+    error storm, and a later clean frame should still pass
+  - enable locally with `RUN_KNOWN_ISSUE_TESTS=1` and optionally narrow the
+    stress volume with `CXP_RX_OVERFLOW_STORM_FRAME_COUNT`
+
+This is intentionally a top-level software-facing check, not a replacement for
+the lower-level malformed-header coverage in `test_CoaXPressRxHsFsm.py`.
+
 ### CoaXPress over Fiber bridge
 
 The bridge benches map to `CXPR-008-2021`, especially:
@@ -195,6 +221,9 @@ compliance coverage.
 The most important open limits are:
 
 - `CoaXPressConfig` is still skipped
+- the checked-in known-issue core bench for overflow-vs-FSM-error behavior is
+  skipped by default until the receive-side backpressure interaction is
+  understood and fixed
 - receive-side event handling still proves only the current RTL prefix contract
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix

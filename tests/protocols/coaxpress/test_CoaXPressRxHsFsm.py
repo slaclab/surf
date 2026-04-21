@@ -21,6 +21,8 @@
 # - Timing: The source holds each beat until `sAxisTReady` rises so the checks
 #   reflect the FSM's actual per-beat acceptance rather than idealized traffic.
 
+import os
+
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
@@ -119,6 +121,34 @@ def _expected_header_data() -> int:
             0x00200010,
         ]
     )
+
+
+def _single_line_header_words() -> list[int]:
+    return [
+        repeat_byte(0x12),
+        repeat_byte(0x34),
+        repeat_byte(0x56),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x01),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x01),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x00),
+        repeat_byte(0x01),
+        repeat_byte(0x00),
+        repeat_byte(0x10),
+        repeat_byte(0x00),
+        repeat_byte(0x20),
+        repeat_byte(0xAA),
+    ]
 
 
 @cocotb.test()
@@ -351,6 +381,43 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
             "dataTLast": 1,
         },
     ]
+
+
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_hs_fsm_repeated_single_line_frame_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxFsmRst.setimmediatevalue(0)
+    dut.sAxisTValid.setimmediatevalue(0)
+    dut.sAxisTData.setimmediatevalue(0)
+    dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTLast.setimmediatevalue(0)
+    await reset_dut(dut, reset_names=("rxRst",))
+
+    frame_count = env_int("CXP_RX_HSFSM_FRAME_COUNT", default=72)
+    error_pulses = 0
+
+    for index in range(frame_count):
+        await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+        error_pulses += int(dut.rxFsmError.value)
+        await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
+        error_pulses += int(dut.rxFsmError.value)
+        for word in _single_line_header_words():
+            await _send_handshaked_beat(dut, data=word, keep=0xF)
+            error_pulses += int(dut.rxFsmError.value)
+        await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+        error_pulses += int(dut.rxFsmError.value)
+        await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_LINE), keep=0xF)
+        error_pulses += int(dut.rxFsmError.value)
+        await _send_handshaked_beat(dut, data=0xA0000000 + index, keep=0xF)
+        error_pulses += int(dut.rxFsmError.value)
+
+    await cycle(dut.rxClk, 8)
+    error_pulses += sum(int(dut.rxFsmError.value) for _ in range(1))
+    assert error_pulses == 0
 
 
 PARAMETER_SWEEP = [

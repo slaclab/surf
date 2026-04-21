@@ -23,10 +23,13 @@
 # - Timing: All DUT-visible domains are driven in lockstep so the bench checks
 #   the real FIFO/FSM sequencing without introducing unrelated clock skew.
 
+import os
+
 import cocotb
+from cocotb.triggers import Event, RisingEdge, Timer
 import pytest
 
-from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import env_flag, env_int, parameter_case, run_surf_vhdl_test, start_lockstep_clocks
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_IDLE,
@@ -39,6 +42,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
     append_snapshot_if_valid,
+    find_subsequence,
     pack_words,
     reset_signals,
     repeat_byte,
@@ -73,6 +77,32 @@ HEADER_WORDS = [
     repeat_byte(0xAA),
 ]
 
+SINGLE_LINE_HEADER_WORDS = [
+    repeat_byte(0x12),
+    repeat_byte(0x34),
+    repeat_byte(0x56),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x01),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x01),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x00),
+    repeat_byte(0x01),
+    repeat_byte(0x00),
+    repeat_byte(0x10),
+    repeat_byte(0x00),
+    repeat_byte(0x20),
+    repeat_byte(0xAA),
+]
+
 EXPECTED_HDR_WORDS = [
     0x3456AA12,
     0x00000003,
@@ -89,6 +119,43 @@ def _pack_lane_nibbles(values: list[int]) -> int:
     for index, value in enumerate(values):
         packed |= (value & 0xF) << (4 * index)
     return packed
+
+
+def _image_header_words(
+    *,
+    stream_id: int = 0x12,
+    source_tag: int = 0x3456,
+    x_size: int = 3,
+    x_offs: int = 4,
+    y_size: int = 1,
+    y_offs: int = 5,
+    dsize_l: int = 3,
+    pixel_f: int = 0x0010,
+    tap_g: int = 0x0020,
+    flags: int = 0xAA,
+) -> list[int]:
+    def rep24(value: int) -> list[int]:
+        return [
+            repeat_byte((value >> 16) & 0xFF),
+            repeat_byte((value >> 8) & 0xFF),
+            repeat_byte(value & 0xFF),
+        ]
+
+    return [
+        repeat_byte(stream_id),
+        repeat_byte((source_tag >> 8) & 0xFF),
+        repeat_byte(source_tag & 0xFF),
+        *rep24(x_size),
+        *rep24(x_offs),
+        *rep24(y_size),
+        *rep24(y_offs),
+        *rep24(dsize_l),
+        repeat_byte((pixel_f >> 8) & 0xFF),
+        repeat_byte(pixel_f & 0xFF),
+        repeat_byte((tap_g >> 8) & 0xFF),
+        repeat_byte(tap_g & 0xFF),
+        repeat_byte(flags),
+    ]
 
 def _capture_outputs(
     dut,
@@ -138,6 +205,192 @@ async def _send_multi_lane_word(dut, *, lane_words: list[int], lane_ks: list[int
         clk=dut.rxClk,
         link_up=link_up,
     )
+
+
+def _active_link_mask() -> int:
+    return (1 << env_int("NUM_LANES_G", default=1)) - 1
+
+
+async def _send_isolated_lane_word(
+    dut,
+    *,
+    lane: int,
+    data: int,
+    data_k: int,
+    link_up: int | None = None,
+) -> None:
+    num_lanes = env_int("NUM_LANES_G", default=1)
+    lane_words = [CXP_IDLE] * num_lanes
+    lane_ks = [CXP_IDLE_K] * num_lanes
+    lane_words[lane] = data
+    lane_ks[lane] = data_k
+    await _send_multi_lane_word(dut, lane_words=lane_words, lane_ks=lane_ks, link_up=_active_link_mask() if link_up is None else link_up)
+
+
+def _isolated_lane_frame_sequence(
+    *,
+    line_words: list[int],
+    header_words: list[int] | None = None,
+    stream_id: int = 0x22,
+    packet_tag: int = 0x33,
+    corrupt_header_index: int | None = None,
+    corrupt_header_word: int = 0x01020304,
+) -> list[tuple[int, int]]:
+    header_payload_words = list(header_words if header_words is not None else HEADER_WORDS)
+    if corrupt_header_index is not None:
+        header_payload_words[corrupt_header_index] = corrupt_header_word
+
+    return [
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte(stream_id), 0x0),
+        (repeat_byte(packet_tag), 0x0),
+        (repeat_byte((len(header_payload_words) + 2) >> 8), 0x0),
+        (repeat_byte((len(header_payload_words) + 2) & 0xFF), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+        *[(word, 0xF) for word in header_payload_words],
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte((stream_id + 1) & 0xFF), 0x0),
+        (repeat_byte((packet_tag + 1) & 0xFF), 0x0),
+        (repeat_byte((len(line_words) + 2) >> 8), 0x0),
+        (repeat_byte((len(line_words) + 2) & 0xFF), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+        *[(word, 0x0) for word in line_words],
+    ]
+
+
+async def _send_isolated_lane_frame(
+    dut,
+    *,
+    lane: int,
+    line_words: list[int],
+    header_words: list[int] | None = None,
+    stream_id: int = 0x22,
+    packet_tag: int = 0x33,
+    corrupt_header_index: int | None = None,
+    corrupt_header_word: int = 0x01020304,
+) -> None:
+    sequence = _isolated_lane_frame_sequence(
+        line_words=line_words,
+        header_words=header_words,
+        stream_id=stream_id,
+        packet_tag=packet_tag,
+        corrupt_header_index=corrupt_header_index,
+        corrupt_header_word=corrupt_header_word,
+    )
+    for data, data_k in sequence:
+        await _send_isolated_lane_word(dut, lane=lane, data=data, data_k=data_k)
+
+
+async def _send_isolated_lane_frame_and_capture(
+    dut,
+    *,
+    lane: int,
+    line_words: list[int],
+    data_beats: list[tuple[int, int, int, int]],
+    hdr_beats: list[tuple[int, int, int, int]],
+    header_words: list[int] | None = None,
+    stream_id: int = 0x22,
+    packet_tag: int = 0x33,
+    corrupt_header_index: int | None = None,
+    corrupt_header_word: int = 0x01020304,
+    start_cycle_index: int = 0,
+) -> int:
+    sequence = _isolated_lane_frame_sequence(
+        line_words=line_words,
+        header_words=header_words,
+        stream_id=stream_id,
+        packet_tag=packet_tag,
+        corrupt_header_index=corrupt_header_index,
+        corrupt_header_word=corrupt_header_word,
+    )
+    cycle_index = start_cycle_index
+    for data, data_k in sequence:
+        await _send_isolated_lane_word(dut, lane=lane, data=data, data_k=data_k)
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
+        cycle_index += 1
+
+    return cycle_index
+
+
+async def _send_one_lane_frame(
+    dut,
+    *,
+    line_word: int,
+    header_stream_id: int = 0x22,
+    header_packet_tag: int = 0x33,
+    line_stream_id: int = 0x44,
+    line_packet_tag: int = 0x55,
+) -> None:
+    sequence = [
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte(header_stream_id), 0x0),
+        (repeat_byte(header_packet_tag), 0x0),
+        (repeat_byte(0x00), 0x0),
+        (repeat_byte(25), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+        *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte(line_stream_id), 0x0),
+        (repeat_byte(line_packet_tag), 0x0),
+        (repeat_byte(0x00), 0x0),
+        (repeat_byte(3), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+        (line_word, 0x0),
+    ]
+    for data, data_k in sequence:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+
+
+async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
+    while True:
+        await RisingEdge(clk)
+        await Timer(2, unit="ns")
+        if stop_event.is_set():
+            return
+        counts[key] += int(signal.value)
+
+
+async def _drive_idle_and_capture(
+    dut,
+    *,
+    cycles: int,
+    data_beats: list[tuple[int, int, int, int]],
+    hdr_beats: list[tuple[int, int, int, int]],
+    start_cycle_index: int = 0,
+) -> None:
+    num_lanes = env_int("NUM_LANES_G", default=1)
+    for cycle_index in range(start_cycle_index, start_cycle_index + cycles):
+        await _send_multi_lane_word(
+            dut,
+            lane_words=[CXP_IDLE] * num_lanes,
+            lane_ks=[CXP_IDLE_K] * num_lanes,
+            link_up=_active_link_mask(),
+        )
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
 
 
 @cocotb.test()
@@ -368,17 +621,260 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
     assert any(beat[2] == 1 for beat in data_beats)
 
 
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0xF,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 3,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    signal_counts = {"error_pulses": 0}
+    stop_event = Event()
+    monitor_task = cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses"))
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+    malformed_header = _image_header_words(dsize_l=3)
+    cycle_index = await _send_isolated_lane_frame_and_capture(
+        dut,
+        lane=0,
+        line_words=[0x0BAD0000, 0x0BAD0001, 0x0BAD0002],
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+        header_words=malformed_header,
+        stream_id=0x40,
+        packet_tag=0x50,
+        corrupt_header_index=5,
+        start_cycle_index=cycle_index,
+    )
+
+    recovery_lane_order = [1, 2, 3, 0]
+    expected_recovery_words: list[int] = []
+    for lane in recovery_lane_order:
+        recovery_words = [
+            0xD1000000 | (lane << 8) | word_index
+            for word_index in range(3)
+        ]
+        expected_recovery_words.extend(recovery_words)
+        cycle_index = await _send_isolated_lane_frame_and_capture(
+            dut,
+            lane=lane,
+            line_words=recovery_words,
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            stream_id=0x60 + lane,
+            packet_tag=0x70 + lane,
+            start_cycle_index=cycle_index,
+        )
+
+    await _drive_idle_and_capture(dut, cycles=256, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
+
+    stop_event.set()
+    await monitor_task
+
+    observed_data_words = [beat[0] for beat in data_beats]
+    observed_header_words = [beat[0] for beat in hdr_beats]
+    assert signal_counts["error_pulses"] > 0
+    assert find_subsequence(observed_header_words, EXPECTED_HDR_WORDS) is not None, observed_header_words
+    subseq_start = find_subsequence(observed_data_words, expected_recovery_words)
+    # Known issue under investigation:
+    # a malformed 4-lane header does raise rxFsmError, but the current RTL does
+    # not fully recover the expected post-error lane rotation and line payloads.
+    assert subseq_start is not None, data_beats
+    observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
+    assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
+
+
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0xF,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 3,
+            "dataTReady": 0,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    signal_counts = {"error_pulses": 0, "overflow_pulses": 0}
+    stop_event = Event()
+    monitor_tasks = [
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses")),
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxOverflow, dut.rxClk, stop_event, signal_counts, "overflow_pulses")),
+    ]
+
+    stress_line_words = [0xA0000000 + word_index for word_index in range(80)]
+    stress_header_words = _image_header_words(dsize_l=len(stress_line_words))
+    stress_frame_count = env_int("CXP_RX_FOUR_LANE_OVERFLOW_FRAME_COUNT", default=32)
+    idle_cycles = env_int("CXP_RX_FOUR_LANE_OVERFLOW_IDLE_CYCLES", default=3200)
+    cycle_index = 0
+    for index in range(stress_frame_count):
+        lane = index % 4
+        await _send_isolated_lane_frame(
+            dut,
+            lane=lane,
+            line_words=stress_line_words,
+            header_words=stress_header_words,
+            stream_id=0x20 + lane,
+            packet_tag=0x30 + lane,
+        )
+        cycle_index += len(_isolated_lane_frame_sequence(line_words=stress_line_words, header_words=stress_header_words, stream_id=0x20 + lane, packet_tag=0x30 + lane))
+
+    dut.dataTReady.value = 1
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    recovery_line_words_by_lane = {
+        lane: [0xE1000000 | (lane << 8) | word_index for word_index in range(3)]
+        for lane in range(4)
+    }
+    expected_recovery_words = [word for lane in range(4) for word in recovery_line_words_by_lane[lane]]
+    for lane in range(4):
+        cycle_index = await _send_isolated_lane_frame_and_capture(
+            dut,
+            lane=lane,
+            line_words=recovery_line_words_by_lane[lane],
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            stream_id=0x80 + lane,
+            packet_tag=0x90 + lane,
+            start_cycle_index=cycle_index,
+        )
+
+    await _drive_idle_and_capture(
+        dut,
+        cycles=idle_cycles,
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+        start_cycle_index=cycle_index,
+    )
+
+    stop_event.set()
+    for task in monitor_tasks:
+        await task
+
+    observed_data_words = [beat[0] for beat in data_beats]
+    # Known issue under investigation:
+    # with 4 bonded lanes, sustained sink backpressure can emit rxFsmError
+    # pulses before or alongside the expected overflow indication. The desired
+    # behavior is overflow-only, followed by clean post-stall recovery data.
+    assert signal_counts["error_pulses"] == 0, signal_counts
+    assert signal_counts["overflow_pulses"] > 0, signal_counts
+    assert find_subsequence(observed_data_words, expected_recovery_words) is not None, observed_data_words[-64:]
+    subseq_start = find_subsequence(observed_data_words, expected_recovery_words)
+    assert subseq_start is not None
+    observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
+    assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
+
+
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_repeated_single_line_frame_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 1,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 0,
+            "dataTReady": env_int("CXP_RX_KNOWN_ISSUE_DATA_READY", default=0),
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    frame_count = env_int("CXP_RX_REPEATED_FRAME_COUNT", default=72)
+    vary_packet_fields = env_flag("CXP_RX_KNOWN_ISSUE_VARY_PACKET_FIELDS", default=False)
+    signal_counts = {"error_pulses": 0, "overflow_pulses": 0}
+    stop_event = Event()
+    monitor_tasks = [
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses")),
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxOverflow, dut.rxClk, stop_event, signal_counts, "overflow_pulses")),
+    ]
+    for index in range(frame_count):
+        header_stream_id = (0x50 + (2 * index)) & 0xFF if vary_packet_fields else 0x22
+        header_packet_tag = (0x70 + (2 * index)) & 0xFF if vary_packet_fields else 0x33
+        await _send_one_lane_frame(
+            dut,
+            line_word=0xA0000000 + index,
+            header_stream_id=header_stream_id,
+            header_packet_tag=header_packet_tag,
+            line_stream_id=(header_stream_id + 1) & 0xFF if vary_packet_fields else 0x44,
+            line_packet_tag=(header_packet_tag + 1) & 0xFF if vary_packet_fields else 0x55,
+        )
+
+    for _ in range(32):
+        await send_rx_word(dut, data=CXP_IDLE, data_k=CXP_IDLE_K, clk=dut.rxClk)
+    stop_event.set()
+    for task in monitor_tasks:
+        await task
+
+    assert signal_counts["overflow_pulses"] > 0, (
+        f"overflow_pulses={signal_counts['overflow_pulses']} error_pulses={signal_counts['error_pulses']}"
+    )
+    assert signal_counts["error_pulses"] == 0, (
+        f"overflow_pulses={signal_counts['overflow_pulses']} error_pulses={signal_counts['error_pulses']}"
+    )
+
+
 PARAMETER_SWEEP = [
     parameter_case("single_lane", NUM_LANES_G="1", RX_FSM_CNT_WIDTH_G="8"),
     parameter_case("dual_lane", NUM_LANES_G="2", RX_FSM_CNT_WIDTH_G="8"),
+    parameter_case("quad_lane", NUM_LANES_G="4", RX_FSM_CNT_WIDTH_G="8"),
 ]
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_CoaXPressRx(parameters):
+    use_core_path_wrapper = os.getenv("CXP_RX_CORE_PATH_WRAPPER") == "1"
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.coaxpressrxwrapper",
+        toplevel="surf.coaxpressrxcorepathwrapper" if use_core_path_wrapper else "surf.coaxpressrxwrapper",
         parameters=parameters,
         extra_env=parameters,
         extra_vhdl_sources={
@@ -389,7 +885,7 @@ def test_CoaXPressRx(parameters):
                 "protocols/coaxpress/core/rtl/CoaXPressRxLane.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRxHsFsm.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRx.vhd",
-                "protocols/coaxpress/core/wrappers/CoaXPressRxWrapper.vhd",
+                "protocols/coaxpress/core/wrappers/CoaXPressRxCorePathWrapper.vhd" if use_core_path_wrapper else "protocols/coaxpress/core/wrappers/CoaXPressRxWrapper.vhd",
             ]
         },
     )
