@@ -272,6 +272,86 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxFsmRst.setimmediatevalue(0)
+    dut.sAxisTValid.setimmediatevalue(0)
+    dut.sAxisTData.setimmediatevalue(0)
+    dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTLast.setimmediatevalue(0)
+    await reset_dut(dut, reset_names=("rxRst",))
+
+    header_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    error_seen = False
+
+    await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    for index, word in enumerate(_header_words()):
+        await _send_handshaked_beat(
+            dut,
+            data=0x01020304 if index == 5 else word,
+            keep=0xF,
+        )
+        error_seen |= int(dut.rxFsmError.value) == 1
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    # A line packet arriving after a malformed header must be discarded until a
+    # clean header has been accepted.
+    await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_LINE), keep=0xF)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    for word in (0x0BAD0000, 0x0BAD0001, 0x0BAD0002):
+        await _send_handshaked_beat(dut, data=word, keep=0xF)
+        error_seen |= int(dut.rxFsmError.value) == 1
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    await cycle(dut.rxClk, 2)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    assert error_seen
+    assert not header_beats
+    assert not data_beats
+
+    await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_HEADER), keep=0xF)
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    for word in _header_words():
+        await _send_handshaked_beat(dut, data=word, keep=0xF)
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(dut, data=CXP_MARKER, keep=0xF)
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(dut, data=repeat_byte(CXP_PKT_IMAGE_LINE), keep=0xF)
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    for word in (0xABCDEF00, 0xABCDEF01, 0xABCDEF02):
+        await _send_handshaked_beat(dut, data=word, keep=0xF)
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    for _ in range(6):
+        await RisingEdge(dut.rxClk)
+        await Timer(1, unit="ns")
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
+        [] if not header_beats else [hex(header_beats[0]["hdrTData"])]
+    )
+    assert data_beats == [
+        {"dataTData": 0xABCDEF00, "dataTKeep": 0xF, "dataTLast": 0},
+        {"dataTData": 0xABCDEF01, "dataTKeep": 0xF, "dataTLast": 0},
+        {"dataTData": 0xABCDEF02, "dataTKeep": 0xF, "dataTLast": 0},
+    ]
+
+
+@cocotb.test()
 async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     if env_int("NUM_LANES_G", default=1) != 2:
         return

@@ -93,6 +93,7 @@ architecture rtl of CoaXPressRxHsFsm is
 
    type RegType is record
       endOfLine   : sl;
+      hdrValid    : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       hdrCnt      : natural range 0 to 25;
@@ -106,6 +107,7 @@ architecture rtl of CoaXPressRxHsFsm is
    end record RegType;
    constant REG_INIT_C : RegType := (
       endOfLine   => '0',
+      hdrValid    => '0',
       yCnt        => (others => '0'),
       dCnt        => (others => '0'),
       hdrCnt      => 0,
@@ -191,10 +193,12 @@ begin
                   v.hdrCnt := 3;
 
                   -- Reset counters
-                  v.yCnt := (others => '0');
+                  v.endOfLine := '0';
+                  v.hdrValid  := '0';
+                  v.yCnt      := (others => '0');
 
                   -- Check for out of sync header
-                  if (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+                  if (r.hdrValid = '1') and (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
                      -- Set the flag
                      v.dbg.errDet := '1';
                   end if;
@@ -204,8 +208,16 @@ begin
 
                -- Check for "Rectangular line marker"
                elsif (tData = x"02_02_02_02") then
-                  -- Next State
-                  v.state := LINE_S;
+                  if (r.hdrValid = '1') then
+                     -- Next State
+                     v.state := LINE_S;
+                  else
+                     -- Set the flag
+                     v.dbg.errDet := '1';
+
+                     -- Next State
+                     v.state := IDLE_S;
+                  end if;
 
                else
                   -- Set the flag
@@ -221,7 +233,9 @@ begin
                   or (tData(7 downto 0) /= tData(31 downto 24)) then
 
                   -- Reset counter
-                  v.hdrCnt := 0;
+                  v.endOfLine := '0';
+                  v.hdrCnt    := 0;
+                  v.hdrValid  := '0';
 
                   -- Set the flag
                   v.dbg.errDet := '1';
@@ -233,7 +247,8 @@ begin
                elsif (r.hdrCnt = 25) then
 
                   -- Reset counter
-                  v.hdrCnt := 0;
+                  v.hdrCnt   := 0;
+                  v.hdrValid := '1';
 
                   -- Forward the image header
                   v.hdrMaster.tValid := '1';
