@@ -230,7 +230,7 @@ begin
          rxFsmError      => rxFsmError,
          -- Config Interface (cfgClk domain)
          cfgClk          => cfgClk,
-         cfgRst          => cfgClk,
+         cfgRst          => cfgRst,
          configTimerSize => configTimerSize,
          configErrResp   => configErrResp,
          configPktTag    => configPktTag,
