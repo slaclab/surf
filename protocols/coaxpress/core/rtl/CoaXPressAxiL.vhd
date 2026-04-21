@@ -500,6 +500,7 @@ begin
          WIDTH_G => 32)
       port map (
          clk     => cfgClk,
+         rst     => cfgRst,
          dataIn  => r.configTimerSize,
          dataOut => configTimerSize);
 
@@ -508,6 +509,7 @@ begin
          TPD_G => TPD_G)
       port map (
          clk     => cfgClk,
+         rst     => cfgRst,
          dataIn  => r.configErrResp,
          dataOut => configErrResp);
 
@@ -516,6 +518,7 @@ begin
          TPD_G => TPD_G)
       port map (
          clk     => cfgClk,
+         rst     => cfgRst,
          dataIn  => r.configPktTag,
          dataOut => configPktTag);
 
