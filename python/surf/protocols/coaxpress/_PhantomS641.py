@@ -170,15 +170,16 @@ class PhantomS641(pr.Device):
             maximum     = 2560,
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'OffsetYReg',
-            description = 'This feature represents the OffsetY',
-            offset      = 0x807C,
-            base        = pr.UIntBE,
-            mode        = 'RW',
-            minimum     = 0,
-            maximum     = 1600,
-        ))
+        if not isPhantomS711:
+            self.add(pr.RemoteVariable(
+                name        = 'OffsetYReg',
+                description = 'This feature represents the OffsetY',
+                offset      = 0x807C,
+                base        = pr.UIntBE,
+                mode        = 'RW',
+                minimum     = 0,
+                maximum     = 1600,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'ActiveWidthReg',
