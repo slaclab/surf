@@ -119,13 +119,16 @@ architecture rtl of CoaXPressRxHsFsm is
       dataMasters => (others => AXI_STREAM_MASTER_INIT_C),
       state       => IDLE_S);
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r       : RegType := REG_INIT_C;
+   signal rin     : RegType;
+   signal packRst : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
 begin
+
+   packRst <= rxRst or rxFsmRst;
 
    comb : process (r, rxFsmRst, rxMaster, rxRst) is
       variable v     : RegType;
@@ -295,6 +298,7 @@ begin
 
                         -- Next State
                         v.state := IDLE_S;
+                        v.wrd   := 0;
 
                      end if;
 
@@ -484,7 +488,7 @@ begin
          NUM_LANES_G => NUM_LANES_G)
       port map (
          rxClk       => rxClk,
-         rxRst       => rxFsmRst,
+         rxRst       => packRst,
          sAxisMaster => r.dataMasters(1),
          mAxisMaster => dataMaster);
 

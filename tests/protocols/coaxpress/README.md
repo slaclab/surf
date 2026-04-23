@@ -149,6 +149,9 @@ The image-path benches are the strongest spec-aligned receive tests today:
 - `test_CoaXPressRx.py`
   - validates both the original one-lane top-level receive assembly and a
     dual-lane lane-rotation path around the same traffic
+  - also carries opt-in four-lane investigation benches behind
+    `RUN_KNOWN_ISSUE_TESTS=1`; those are intentionally not part of the
+    merge-ready passing slice yet
 
 `test_CoaXPressRxLane.py` also exercises stream packet handling using
 spec-shaped stream headers, but the emphasis there is on receive-lane state
@@ -221,6 +224,12 @@ compliance coverage.
 The most important open limits are:
 
 - `CoaXPressConfig` is still skipped
+- `CoaXPressRxHsFsm` still has an open bonded-receive issue on back-to-back
+  short four-lane image frames: later one-word tails can miss `TLAST`, which
+  merges or truncates adjacent frames
+- the gated four-lane `CoaXPressRx` investigation benches are therefore still
+  opt-in only; they exist to track clean-rotation, malformed-header recovery,
+  and backpressure/overflow recovery once the short-tail boundary bug is fixed
 - the checked-in known-issue core bench for overflow-vs-FSM-error behavior is
   skipped by default until the receive-side backpressure interaction is
   understood and fixed

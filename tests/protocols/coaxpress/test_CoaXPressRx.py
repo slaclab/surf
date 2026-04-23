@@ -157,6 +157,11 @@ def _image_header_words(
         repeat_byte(flags),
     ]
 
+
+def _logic_value_to_int(value, *, default: int = 0) -> int:
+    return int(value) if value.is_resolvable else default
+
+
 def _capture_outputs(
     dut,
     *,
@@ -393,6 +398,31 @@ async def _drive_idle_and_capture(
         )
 
 
+async def _drive_idle_rx(dut, *, cycles: int) -> None:
+    num_lanes = env_int("NUM_LANES_G", default=1)
+    for _ in range(cycles):
+        await _send_multi_lane_word(
+            dut,
+            lane_words=[CXP_IDLE] * num_lanes,
+            lane_ks=[CXP_IDLE_K] * num_lanes,
+            link_up=_active_link_mask(),
+        )
+
+
+async def _drive_idle_until_signal_high(dut, *, signal, max_cycles: int) -> bool:
+    for _ in range(max_cycles):
+        await _drive_idle_rx(dut, cycles=1)
+        if _logic_value_to_int(signal.value) == 1:
+            return True
+    return False
+
+
+async def _pulse_rx_fsm_reset(dut, *, cycles: int = 4) -> None:
+    dut.rxFsmRst.value = 1
+    await _drive_idle_rx(dut, cycles=cycles)
+    dut.rxFsmRst.value = 0
+
+
 @cocotb.test()
 async def coaxpress_rx_one_lane_integration_test(dut):
     if env_int("NUM_LANES_G", default=1) != 1:
@@ -621,6 +651,138 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
     assert any(beat[2] == 1 for beat in data_beats)
 
 
+#
+# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until
+# the remaining 4-lane short-frame boundary issue in CoaXPressRxHsFsm is fixed.
+#
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0xF,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 3,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    await _send_isolated_lane_frame(
+        dut,
+        lane=0,
+        line_words=[0x0BAD0000, 0x0BAD0001, 0x0BAD0002],
+        header_words=_image_header_words(dsize_l=3),
+        stream_id=0x40,
+        packet_tag=0x50,
+        corrupt_header_index=5,
+    )
+    assert await _drive_idle_until_signal_high(
+        dut,
+        signal=dut.rxFsmError,
+        max_cycles=env_int("CXP_RX_FOUR_LANE_ERROR_WAIT_CYCLES", default=64),
+    )
+    await _pulse_rx_fsm_reset(dut)
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+    expected_recovery_words: list[int] = []
+    for lane in range(4):
+        recovery_words = [0xD1000000 | (lane << 8) | word_index for word_index in range(3)]
+        expected_recovery_words.extend(recovery_words)
+        cycle_index = await _send_isolated_lane_frame_and_capture(
+            dut,
+            lane=lane,
+            line_words=recovery_words,
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            stream_id=0x60 + lane,
+            packet_tag=0x70 + lane,
+            start_cycle_index=cycle_index,
+        )
+
+    await _drive_idle_and_capture(dut, cycles=256, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
+
+    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 4, hdr_beats
+    observed_data_words = [beat[0] for beat in data_beats]
+    subseq_start = find_subsequence(observed_data_words, expected_recovery_words)
+    assert subseq_start is not None, data_beats
+    observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
+    assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
+
+
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_four_lane_clean_rotation_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0xF,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 3,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+    expected_data_words: list[int] = []
+    for lane in range(4):
+        line_words = [0xC1000000 | (lane << 8) | word_index for word_index in range(3)]
+        expected_data_words.extend(line_words)
+        cycle_index = await _send_isolated_lane_frame_and_capture(
+            dut,
+            lane=lane,
+            line_words=line_words,
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            stream_id=0x30 + lane,
+            packet_tag=0x40 + lane,
+            start_cycle_index=cycle_index,
+        )
+
+    await _drive_idle_and_capture(
+        dut,
+        cycles=256,
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+        start_cycle_index=cycle_index,
+    )
+
+    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 4, hdr_beats
+    observed_data_words = [beat[0] for beat in data_beats]
+    assert observed_data_words == expected_data_words, observed_data_words
+    assert [beat[2] for beat in data_beats] == [0, 0, 1] * 4, data_beats
+
+
 @cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
 async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
@@ -687,7 +849,13 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
             start_cycle_index=cycle_index,
         )
 
-    await _drive_idle_and_capture(dut, cycles=256, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
+    await _drive_idle_and_capture(
+        dut,
+        cycles=256,
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+        start_cycle_index=cycle_index,
+    )
 
     stop_event.set()
     await monitor_task
@@ -703,6 +871,101 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
     assert subseq_start is not None, data_beats
     observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
+
+
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_four_lane_overflow_reset_recovery_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 0xF,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 3,
+            "dataTReady": 0,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    signal_counts = {"error_pulses": 0, "overflow_pulses": 0}
+    stop_event = Event()
+    monitor_tasks = [
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses")),
+        cocotb.start_soon(_count_signal_high_cycles(dut.rxOverflow, dut.rxClk, stop_event, signal_counts, "overflow_pulses")),
+    ]
+
+    stress_line_words = [0xA0000000 + word_index for word_index in range(80)]
+    stress_header_words = _image_header_words(dsize_l=len(stress_line_words))
+    stress_frame_count = env_int("CXP_RX_FOUR_LANE_OVERFLOW_FRAME_COUNT", default=32)
+    for index in range(stress_frame_count):
+        lane = index % 4
+        await _send_isolated_lane_frame(
+            dut,
+            lane=lane,
+            line_words=stress_line_words,
+            header_words=stress_header_words,
+            stream_id=0x20 + lane,
+            packet_tag=0x30 + lane,
+        )
+
+    overflow_seen = await _drive_idle_until_signal_high(
+        dut,
+        signal=dut.rxOverflow,
+        max_cycles=env_int("CXP_RX_FOUR_LANE_OVERFLOW_WAIT_CYCLES", default=4096),
+    )
+    dut.dataTReady.value = 1
+    await _drive_idle_rx(dut, cycles=env_int("CXP_RX_FOUR_LANE_DRAIN_IDLE_CYCLES", default=512))
+    await _pulse_rx_fsm_reset(dut)
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+    expected_recovery_words: list[int] = []
+    for lane in range(4):
+        recovery_words = [0xE1000000 | (lane << 8) | word_index for word_index in range(3)]
+        expected_recovery_words.extend(recovery_words)
+        cycle_index = await _send_isolated_lane_frame_and_capture(
+            dut,
+            lane=lane,
+            line_words=recovery_words,
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            stream_id=0x80 + lane,
+            packet_tag=0x90 + lane,
+            start_cycle_index=cycle_index,
+        )
+
+    await _drive_idle_and_capture(
+        dut,
+        cycles=env_int("CXP_RX_FOUR_LANE_RECOVERY_IDLE_CYCLES", default=512),
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+        start_cycle_index=cycle_index,
+    )
+
+    stop_event.set()
+    for task in monitor_tasks:
+        await task
+
+    assert overflow_seen or signal_counts["overflow_pulses"] > 0, signal_counts
+    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 4, hdr_beats
+    observed_data_words = [beat[0] for beat in data_beats]
+    subseq_start = find_subsequence(observed_data_words, expected_recovery_words)
+    assert subseq_start is not None, (signal_counts, observed_data_words[-64:])
+    observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
+    assert observed_recovery_last == [0, 0, 1] * 4, (signal_counts, observed_recovery_last)
 
 
 @cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
@@ -872,9 +1135,15 @@ PARAMETER_SWEEP = [
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_CoaXPressRx(parameters):
     use_core_path_wrapper = os.getenv("CXP_RX_CORE_PATH_WRAPPER") == "1"
+    if use_core_path_wrapper:
+        toplevel = "surf.coaxpressrxcorepathwrapper"
+        wrapper = "protocols/coaxpress/core/wrappers/CoaXPressRxCorePathWrapper.vhd"
+    else:
+        toplevel = "surf.coaxpressrxwrapper"
+        wrapper = "protocols/coaxpress/core/wrappers/CoaXPressRxWrapper.vhd"
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.coaxpressrxcorepathwrapper" if use_core_path_wrapper else "surf.coaxpressrxwrapper",
+        toplevel=toplevel,
         parameters=parameters,
         extra_env=parameters,
         extra_vhdl_sources={
@@ -885,7 +1154,7 @@ def test_CoaXPressRx(parameters):
                 "protocols/coaxpress/core/rtl/CoaXPressRxLane.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRxHsFsm.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRx.vhd",
-                "protocols/coaxpress/core/wrappers/CoaXPressRxCorePathWrapper.vhd" if use_core_path_wrapper else "protocols/coaxpress/core/wrappers/CoaXPressRxWrapper.vhd",
+                wrapper,
             ]
         },
     )

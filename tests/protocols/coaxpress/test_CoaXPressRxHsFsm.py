@@ -457,7 +457,7 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
         },
         {
             "dataTData": 0x33333333,
-            "dataTKeep": keep_for_words(2),
+            "dataTKeep": keep_for_words(1),
             "dataTLast": 1,
         },
     ]
@@ -503,6 +503,7 @@ async def coaxpress_rx_hs_fsm_repeated_single_line_frame_known_issue_test(dut):
 PARAMETER_SWEEP = [
     parameter_case("single_lane", NUM_LANES_G="1", RX_FSM_CNT_WIDTH_G="8"),
     parameter_case("dual_lane", NUM_LANES_G="2", RX_FSM_CNT_WIDTH_G="8"),
+    parameter_case("quad_lane", NUM_LANES_G="4", RX_FSM_CNT_WIDTH_G="8"),
 ]
 
 
