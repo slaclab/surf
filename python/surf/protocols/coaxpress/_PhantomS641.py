@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 class PhantomS641(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, isPhantomS711=False, **kwargs):
         super().__init__(**kwargs)
         #############################################################
         # Start of manufacturer-specific register space at 0x00006000
@@ -170,15 +170,16 @@ class PhantomS641(pr.Device):
             maximum     = 2560,
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'OffsetYReg',
-            description = 'This feature represents the OffsetY',
-            offset      = 0x807C,
-            base        = pr.UIntBE,
-            mode        = 'RW',
-            minimum     = 0,
-            maximum     = 1600,
-        ))
+        if not isPhantomS711:
+            self.add(pr.RemoteVariable(
+                name        = 'OffsetYReg',
+                description = 'This feature represents the OffsetY',
+                offset      = 0x807C,
+                base        = pr.UIntBE,
+                mode        = 'RW',
+                minimum     = 0,
+                maximum     = 1600,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'ActiveWidthReg',
@@ -274,7 +275,7 @@ class PhantomS641(pr.Device):
             offset      = 0x80C0,
             base        = pr.UIntBE,
             mode        = 'RW',
-            minimum     = 24,
+            minimum     = 24 ,
             units       = 'Hz',
             disp        = '{:d}',
             # pollInterval = 1,
@@ -295,21 +296,21 @@ class PhantomS641(pr.Device):
             name        = 'ExposureTimeReg',
             description = 'Sets the Exposure time (in microseconds). This controls the duration where the photosensitive cells are exposed to light.',
             offset      = 0x80C8,
-            base        = pr.UIntBE,
+            base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RW',
             minimum     = 1,
             units       = '\u03BCs',
-            disp        = '{:d}',
+            disp        = '{:d}' if not isPhantomS711 else '',
         ))
 
         self.add(pr.RemoteVariable(
             name        = 'pExposureTimeRegMax',
             description = 'Maximum value for ExposureTimeReg',
             offset      = 0x80CC,
-            base        = pr.UIntBE,
+            base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RO',
             units       = '\u03BCs',
-            disp        = '{:d}',
+            disp        = '{:d}' if not isPhantomS711 else '',
         ))
 
         self.add(pr.RemoteVariable(
@@ -320,7 +321,7 @@ class PhantomS641(pr.Device):
             mode        = 'RW',
             minimum     = 0,
             units       = '\u03BCs',
-            disp        = '{:d}',
+            disp        = '{:d}' if not isPhantomS711 else '',
         ))
 
         self.add(pr.RemoteVariable(
@@ -551,7 +552,7 @@ class PhantomS641(pr.Device):
             name        = 'GainReg',
             description = 'Controls the selected gain as an absolute physical value. This is an amplification factor applied to the video signal.',
             offset      = 0x80E8,
-            base        = pr.UIntBE,
+            base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RW',
         ))
 
@@ -573,7 +574,7 @@ class PhantomS641(pr.Device):
             name        = 'BlackLevelReg',
             description = 'Controls the analog black level as an absolute physical value. This represents a DC offset applied to the video signal.',
             offset      = 0x80FC,
-            base        = pr.UIntBE,
+            base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RW',
         ))
 
