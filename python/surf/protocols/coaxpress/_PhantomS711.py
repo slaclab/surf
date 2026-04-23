@@ -8,7 +8,6 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
-import pyrogue as pr
 from surf.protocols.coaxpress._PhantomS641 import PhantomS641
 
 class PhantomS711(PhantomS641):
