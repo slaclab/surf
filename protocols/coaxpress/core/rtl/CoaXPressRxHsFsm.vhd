@@ -133,6 +133,8 @@ begin
    comb : process (r, rxFsmRst, rxMaster, rxRst) is
       variable v     : RegType;
       variable tData : slv(31 downto 0);
+      variable more  : sl;
+      variable idx   : natural range 0 to NUM_LANES_G-1;
    begin
       -- Latch the current value
       v := r;
@@ -275,14 +277,11 @@ begin
                -- Write the data
                v.dataMasters(0).tValid := '1';
 
-               -- Accept the data
-               -- Don't send TREADY if we have the marker in the
-               -- current transaction
-               if (v.dCnt+NUM_LANES_G > r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
-                  v.rxSlave.tReady := '0';
-               else
-                  v.rxSlave.tReady := '1';
-               end if;
+               -- Accept the data unless a later valid word in this same beat
+               -- must be reparsed as the next marker/type sequence.
+               v.rxSlave.tReady := '1';
+               more             := '0';
+               idx              := 0;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
@@ -302,13 +301,22 @@ begin
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
 
+                        -- Hold the current beat only when additional valid
+                        -- words remain after the line tail.
+                        for j in i+1 to NUM_LANES_G-1 loop
+                           if (rxMaster.tKeep(4*j) = '1') and (more = '0') then
+                              more := '1';
+                              idx  := j;
+                           end if;
+                        end loop;
+
                         -- Next State
                         v.state := IDLE_S;
-                        v.wrd   := 0;
-
-                        -- Starting point for next cycle IDLE state
-                        if (i /= NUM_LANES_G-1) then
-                           v.wrd            := i+1;
+                        if (more = '1') then
+                           v.rxSlave.tReady := '0';
+                           v.wrd            := idx;
+                        else
+                           v.wrd := 0;
                         end if;
 
                      end if;

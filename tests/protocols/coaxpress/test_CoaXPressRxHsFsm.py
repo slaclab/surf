@@ -151,6 +151,72 @@ def _single_line_header_words() -> list[int]:
     ]
 
 
+def _image_header_words_from_fields(
+    *,
+    stream_id: int,
+    source_tag: int,
+    x_size: int,
+    x_offs: int,
+    y_size: int,
+    y_offs: int,
+    dsize_l: int,
+    pixel_f: int,
+    tap_g: int,
+    flags: int,
+) -> list[int]:
+    def rep24(value: int) -> list[int]:
+        return [
+            repeat_byte((value >> 16) & 0xFF),
+            repeat_byte((value >> 8) & 0xFF),
+            repeat_byte(value & 0xFF),
+        ]
+
+    return [
+        repeat_byte(stream_id),
+        repeat_byte((source_tag >> 8) & 0xFF),
+        repeat_byte(source_tag & 0xFF),
+        *rep24(x_size),
+        *rep24(x_offs),
+        *rep24(y_size),
+        *rep24(y_offs),
+        *rep24(dsize_l),
+        repeat_byte((pixel_f >> 8) & 0xFF),
+        repeat_byte(pixel_f & 0xFF),
+        repeat_byte((tap_g >> 8) & 0xFF),
+        repeat_byte(tap_g & 0xFF),
+        repeat_byte(flags),
+    ]
+
+
+def _expected_header_data_from_fields(
+    *,
+    stream_id: int,
+    source_tag: int,
+    x_size: int,
+    x_offs: int,
+    y_size: int,
+    y_offs: int,
+    dsize_l: int,
+    pixel_f: int,
+    tap_g: int,
+    flags: int,
+) -> int:
+    return pack_words(
+        [
+            (((source_tag >> 8) & 0xFF) << 24)
+            | ((source_tag & 0xFF) << 16)
+            | ((flags & 0xFF) << 8)
+            | (stream_id & 0xFF),
+            x_size & 0x00FF_FFFF,
+            x_offs & 0x00FF_FFFF,
+            y_size & 0x00FF_FFFF,
+            y_offs & 0x00FF_FFFF,
+            dsize_l & 0x00FF_FFFF,
+            ((tap_g & 0xFFFF) << 16) | (pixel_f & 0xFFFF),
+        ]
+    )
+
+
 @cocotb.test()
 async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
     if env_int("NUM_LANES_G", default=1) != 1:
@@ -461,6 +527,150 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
             "dataTLast": 1,
         },
     ]
+
+
+@cocotb.test()
+async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 4:
+        return
+
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxFsmRst.setimmediatevalue(0)
+    dut.sAxisTValid.setimmediatevalue(0)
+    dut.sAxisTData.setimmediatevalue(0)
+    dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTLast.setimmediatevalue(0)
+    await reset_dut(dut, reset_names=("rxRst",))
+
+    stream_id = 0xB2
+    source_tag = 0x3456
+    x_size = 2
+    x_offs = 0
+    y_size = 2
+    y_offs = 0
+    dsize_l = 2
+    pixel_f = 0x0010
+    tap_g = 0x0020
+    flags = 0x5E
+
+    header_words = _image_header_words_from_fields(
+        stream_id=stream_id,
+        source_tag=source_tag,
+        x_size=x_size,
+        x_offs=x_offs,
+        y_size=y_size,
+        y_offs=y_offs,
+        dsize_l=dsize_l,
+        pixel_f=pixel_f,
+        tap_g=tap_g,
+        flags=flags,
+    )
+    expected_header = _expected_header_data_from_fields(
+        stream_id=stream_id,
+        source_tag=source_tag,
+        x_size=x_size,
+        x_offs=x_offs,
+        y_size=y_size,
+        y_offs=y_offs,
+        dsize_l=dsize_l,
+        pixel_f=pixel_f,
+        tap_g=tap_g,
+        flags=flags,
+    )
+
+    header_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    error_seen = False
+    trace: list[str] = []
+
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([CXP_MARKER], num_lanes=4),
+        keep=lane_keep_mask([0]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([repeat_byte(CXP_PKT_IMAGE_HEADER)], num_lanes=4),
+        keep=lane_keep_mask([0]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    for word in header_words:
+        await _send_handshaked_beat(
+            dut,
+            data=_beat_data([word], num_lanes=4),
+            keep=lane_keep_mask([0]),
+        )
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([CXP_MARKER], num_lanes=4),
+        keep=lane_keep_mask([0]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([repeat_byte(CXP_PKT_IMAGE_LINE)], num_lanes=4),
+        keep=lane_keep_mask([0]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    # Cover the merged corner case: the first line ends while the remaining
+    # words in the same 4-lane beat already contain the next line marker/type.
+    dut.sAxisTValid.value = 1
+    dut.sAxisTData.value = _beat_data(
+        [0x11111111, 0x22222222, CXP_MARKER, repeat_byte(CXP_PKT_IMAGE_LINE)],
+        num_lanes=4,
+    )
+    dut.sAxisTKeep.value = lane_keep_mask([0, 1, 2, 3])
+    dut.sAxisTLast.value = 0
+    shared_beat_cycles = 0
+    while True:
+        await RisingEdge(dut.rxClk)
+        await Timer(1, unit="ns")
+        shared_beat_cycles += 1
+        error_seen |= int(dut.rxFsmError.value) == 1
+        trace.append(
+            f"shared[{shared_beat_cycles}] ready={int(dut.sAxisTReady.value)} "
+            f"err={int(dut.rxFsmError.value)} data={len(data_beats)} hdr={len(header_beats)}"
+        )
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+        if int(dut.sAxisTReady.value) == 1:
+            break
+    dut.sAxisTValid.value = 0
+    dut.sAxisTData.value = 0
+    dut.sAxisTKeep.value = 0
+    dut.sAxisTLast.value = 0
+
+    await _send_handshaked_beat(
+        dut,
+        data=_beat_data([0x33333333, 0x44444444], num_lanes=4),
+        keep=lane_keep_mask([0, 1]),
+    )
+    _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    for _ in range(8):
+        await RisingEdge(dut.rxClk)
+        await Timer(1, unit="ns")
+        error_seen |= int(dut.rxFsmError.value) == 1
+        trace.append(
+            f"idle ready={int(dut.sAxisTReady.value)} err={int(dut.rxFsmError.value)} "
+            f"data={len(data_beats)} hdr={len(header_beats)}"
+        )
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    assert shared_beat_cycles > 1, trace
+    assert not error_seen, f"{trace}\nheaders={header_beats}\ndata={data_beats}"
+    assert header_beats == [{"hdrTData": expected_header, "hdrTLast": 1, "hdrTSof": 1}], trace
+    assert data_beats == [
+        {
+            "dataTData": pack_words([0x11111111, 0x22222222, 0x33333333, 0x44444444]),
+            "dataTKeep": keep_for_words(4),
+            "dataTLast": 1,
+        }
+    ], trace
 
 
 @cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
