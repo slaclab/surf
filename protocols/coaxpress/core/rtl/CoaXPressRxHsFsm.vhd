@@ -93,6 +93,7 @@ architecture rtl of CoaXPressRxHsFsm is
 
    type RegType is record
       endOfLine   : sl;
+      hdrValid    : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       hdrCnt      : natural range 0 to 25;
@@ -106,6 +107,7 @@ architecture rtl of CoaXPressRxHsFsm is
    end record RegType;
    constant REG_INIT_C : RegType := (
       endOfLine   => '0',
+      hdrValid    => '0',
       yCnt        => (others => '0'),
       dCnt        => (others => '0'),
       hdrCnt      => 0,
@@ -117,17 +119,22 @@ architecture rtl of CoaXPressRxHsFsm is
       dataMasters => (others => AXI_STREAM_MASTER_INIT_C),
       state       => IDLE_S);
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r       : RegType := REG_INIT_C;
+   signal rin     : RegType;
+   signal packRst : sl;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
+   packRst <= rxRst or rxFsmRst;
+
    comb : process (r, rxFsmRst, rxMaster, rxRst) is
       variable v     : RegType;
       variable tData : slv(31 downto 0);
+      variable more  : sl;
+      variable idx   : natural range 0 to NUM_LANES_G-1;
    begin
       -- Latch the current value
       v := r;
@@ -191,10 +198,12 @@ begin
                   v.hdrCnt := 3;
 
                   -- Reset counters
-                  v.yCnt := (others => '0');
+                  v.endOfLine := '0';
+                  v.hdrValid  := '0';
+                  v.yCnt      := (others => '0');
 
                   -- Check for out of sync header
-                  if (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+                  if (r.hdrValid = '1') and (r.yCnt /= r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
                      -- Set the flag
                      v.dbg.errDet := '1';
                   end if;
@@ -204,8 +213,16 @@ begin
 
                -- Check for "Rectangular line marker"
                elsif (tData = x"02_02_02_02") then
-                  -- Next State
-                  v.state := LINE_S;
+                  if (r.hdrValid = '1') then
+                     -- Next State
+                     v.state := LINE_S;
+                  else
+                     -- Set the flag
+                     v.dbg.errDet := '1';
+
+                     -- Next State
+                     v.state := IDLE_S;
+                  end if;
 
                else
                   -- Set the flag
@@ -221,7 +238,9 @@ begin
                   or (tData(7 downto 0) /= tData(31 downto 24)) then
 
                   -- Reset counter
-                  v.hdrCnt := 0;
+                  v.endOfLine := '0';
+                  v.hdrCnt    := 0;
+                  v.hdrValid  := '0';
 
                   -- Set the flag
                   v.dbg.errDet := '1';
@@ -233,7 +252,8 @@ begin
                elsif (r.hdrCnt = 25) then
 
                   -- Reset counter
-                  v.hdrCnt := 0;
+                  v.hdrCnt   := 0;
+                  v.hdrValid := '1';
 
                   -- Forward the image header
                   v.hdrMaster.tValid := '1';
@@ -257,14 +277,11 @@ begin
                -- Write the data
                v.dataMasters(0).tValid := '1';
 
-               -- Accept the data
-               -- Don't send TREADY if we have the marker in the
-               -- current transaction
-               if (v.dCnt+NUM_LANES_G > r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
-                  v.rxSlave.tReady := '0';
-               else
-                  v.rxSlave.tReady := '1';
-               end if;
+               -- Accept the data unless a later valid word in this same beat
+               -- must be reparsed as the next marker/type sequence.
+               v.rxSlave.tReady := '1';
+               more             := '0';
+               idx              := 0;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
@@ -284,12 +301,22 @@ begin
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
 
+                        -- Hold the current beat only when additional valid
+                        -- words remain after the line tail.
+                        for j in i+1 to NUM_LANES_G-1 loop
+                           if (rxMaster.tKeep(4*j) = '1') and (more = '0') then
+                              more := '1';
+                              idx  := j;
+                           end if;
+                        end loop;
+
                         -- Next State
                         v.state := IDLE_S;
-
-                        -- Starting point for next cycle IDLE state
-                        if (i /= NUM_LANES_G-1) then
-                           v.wrd            := i+1;
+                        if (more = '1') then
+                           v.rxSlave.tReady := '0';
+                           v.wrd            := idx;
+                        else
+                           v.wrd := 0;
                         end if;
 
                      end if;
@@ -480,7 +507,7 @@ begin
          NUM_LANES_G => NUM_LANES_G)
       port map (
          rxClk       => rxClk,
-         rxRst       => rxFsmRst,
+         rxRst       => packRst,
          sAxisMaster => r.dataMasters(1),
          mAxisMaster => dataMaster);
 
