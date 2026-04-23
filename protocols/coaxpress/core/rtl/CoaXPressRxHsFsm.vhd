@@ -254,11 +254,17 @@ begin
                v.dCnt := r.dCnt + 1;
             ----------------------------------------------------------------------
             when LINE_S =>
-               -- Accept the data
-               v.rxSlave.tReady := '1';
-
                -- Write the data
                v.dataMasters(0).tValid := '1';
+
+               -- Accept the data
+               -- Don't send TREADY if we have the marker in the
+               -- current transaction
+               if (v.dCnt+NUM_LANES_G > r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+                  v.rxSlave.tReady := '0';
+               else
+                  v.rxSlave.tReady := '1';
+               end if;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
@@ -280,6 +286,11 @@ begin
 
                         -- Next State
                         v.state := IDLE_S;
+
+                        -- Starting point for next cycle IDLE state
+                        if (i /= NUM_LANES_G-1) then
+                           v.wrd            := i+1;
+                        end if;
 
                      end if;
 
