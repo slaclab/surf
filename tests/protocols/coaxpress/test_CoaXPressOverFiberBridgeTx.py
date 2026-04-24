@@ -25,7 +25,9 @@ from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_D21_5,
     CXP_K28_1,
+    CXP_K28_5,
     CXPOF_IDLE,
     CXPOF_START,
     CXPOF_TERM,
@@ -38,6 +40,24 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
 def _start_word(rate: int, update: int) -> int:
     sop_ctrl = (update << 3) | (rate << 1)
     return CXPOF_START | (sop_ctrl << 8)
+
+
+IDLE_BYTES = [CXP_K28_5, CXP_K28_1, CXP_K28_1, CXP_D21_5]
+IDLE_IS_K = [1, 1, 1, 0]
+
+
+def _ls_slot(byte: int, is_k: int) -> int:
+    return (byte << 8) | (0x02 if is_k else 0x01)
+
+
+def _bridge_payload_words(byte: int, is_k: int, lane_enable: int, idle_index: int) -> list[int]:
+    slots: list[int] = []
+    for lane in range(4):
+        if (lane_enable >> lane) & 0x1:
+            slots.append(_ls_slot(byte, is_k))
+        else:
+            slots.append(_ls_slot(IDLE_BYTES[idle_index], IDLE_IS_K[idle_index]))
+    return [slots[0] | (slots[1] << 16), slots[2] | (slots[3] << 16)]
 
 
 @cocotb.test()
@@ -155,6 +175,66 @@ async def coaxpress_over_fiber_bridge_tx_partial_lane_enable_test(dut):
         (0xBC023C02, 0x0),
         ((CXPOF_IDLE << 24) | (CXPOF_TERM << 16), 0xC),
     ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_tx_lane_enable_idle_rotation_test(dut):
+    # Sweep each single active low-speed lane over consecutive packets. Disabled
+    # lanes should be filled with the rotating CoaXPress idle sequence, and the
+    # update bit should only be set on the first same-rate packet after reset.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.txLsValid.setimmediatevalue(0)
+    dut.txLsData.setimmediatevalue(0)
+    dut.txLsDataK.setimmediatevalue(0)
+    dut.txLsRate.setimmediatevalue(1)
+    dut.txLsLaneEn.setimmediatevalue(0x1)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def capture_words(count: int) -> None:
+        while len(observed) < count:
+            await RisingEdge(dut.clk)
+            await Timer(1, unit="ns")
+            observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
+
+    async def send_byte(byte: int, lane_enable: int) -> None:
+        dut.txLsLaneEn.value = lane_enable
+        dut.txLsData.value = byte
+        dut.txLsDataK.value = 0
+        dut.txLsValid.value = 1
+        await RisingEdge(dut.clk)
+        await Timer(1, unit="ns")
+        dut.txLsValid.value = 0
+        await cycle(dut.clk, 4)
+
+    capture = cocotb.start_soon(capture_words(32))
+    for index, lane_enable in enumerate((0x1, 0x2, 0x4, 0x8)):
+        await send_byte(0xA0 + index, lane_enable)
+    await capture
+
+    starts: list[tuple[int, list[tuple[int, int]]]] = []
+    for index in range(len(observed) - 3):
+        word, control = observed[index]
+        if control == 0x1 and (word & 0xFF) == CXPOF_START:
+            starts.append((word, observed[index : index + 4]))
+
+    assert len(starts) >= 4, observed
+    for packet_index, (start_word, packet) in enumerate(starts[:4]):
+        expected_update = 1 if packet_index == 0 else 0
+        expected_payload = _bridge_payload_words(
+            0xA0 + packet_index,
+            0,
+            1 << packet_index,
+            packet_index,
+        )
+        assert start_word == _start_word(rate=1, update=expected_update)
+        assert packet[1:] == [
+            (expected_payload[0], 0x0),
+            (expected_payload[1], 0x0),
+            ((CXPOF_IDLE << 24) | (CXPOF_TERM << 16), 0xC),
+        ]
 
 
 def test_CoaXPressOverFiberBridgeTx():

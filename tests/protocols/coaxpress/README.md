@@ -132,6 +132,9 @@ Heartbeat and event handling is only partially covered today:
   - drive a fuller event packet shape, but the current receive RTL only
     consumes the event prefix through the `Packet Tag` field before returning to
     `IDLE`
+  - `test_CoaXPressRxLane.py` also keeps payload, CRC, and `EOP` words in the
+    stimulus after the tag and checks that they do not leak into config, data,
+    heartbeat, or extra event outputs before a later clean event is accepted
 
 That means these benches do not yet prove full compliance with:
 
@@ -200,20 +203,23 @@ Current checked-in coverage:
   - start-word control bits
   - low-speed rate/update handling
   - partial-lane low-speed payload fill with CoaXPress idle insertion
+  - single-lane-enable sweeps with rotating idle fill in the disabled slots
   - payload packing
   - `/T/` plus `/I/` termination
 - `test_CoaXPressOverFiberBridgeRx.py`
   - RX start-word decode for normal packets and `IO_ACK`
   - HKP forwarding
   - negative lane-placement checks for `/S/` and `/Q/`
+  - lane-0 `/Q/` no-output guardrail, `/E/` packet abort behavior, and recovery
+    to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
 
 Still open on the bridge side:
 
 - normative `/Q/` sequence handling beyond the current negative guardrails
-- explicit `/E/` error handling
-- deeper HKP/data-mix coverage
+- fuller `/E/` error semantics beyond the current abort-and-recover guardrail
+- deeper HKP/data-mix coverage beyond the current HKP forwarding path
 - broader lane-0-only control-character sweeps
 
 ## Known Limitations
@@ -235,7 +241,8 @@ The most important open limits are:
   understood and fixed
 - receive-side event handling still proves only the current RTL prefix contract
 - trigger coverage still does not include the broader low-speed extra modes or
-  the full high-speed trigger matrix
+  the full high-speed trigger matrix, though the low-speed FSM now covers
+  active-pulse shortening through a runtime `txPulseWidth` update
 - CXPoF bridge coverage still does not exhaustively cover normative `/Q/`,
   `/E/`, and the full housekeeping/data mix
 

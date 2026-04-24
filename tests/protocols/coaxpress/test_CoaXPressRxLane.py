@@ -206,6 +206,71 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxLinkUp.setimmediatevalue(1)
+    dut.rxData.setimmediatevalue(CXP_IDLE)
+    dut.rxDataK.setimmediatevalue(CXP_IDLE_K)
+    await reset_dut(dut)
+
+    cfg_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    heartbeat_beats: list[dict[str, int]] = []
+    event_tags: list[int] = []
+
+    async def drive(data: int, data_k: int) -> None:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+        if int(dut.cfgTValid.value) == 1:
+            cfg_beats.append({"cfgTData": int(dut.cfgTData.value)})
+        if int(dut.dataTValid.value) == 1:
+            data_beats.append(
+                {
+                    "dataTData": int(dut.dataTData.value),
+                    "dataTUser": int(dut.dataTUser.value),
+                    "dataTLast": int(dut.dataTLast.value),
+                }
+            )
+        if int(dut.heartbeatTValid.value) == 1:
+            heartbeat_beats.append({"heartbeatTData": int(dut.heartbeatTData.value)})
+        if int(dut.eventAck.value) == 1:
+            event_tags.append(int(dut.eventTag.value))
+
+    # The current receive-lane RTL recognizes an event once it reaches the Packet
+    # Tag byte, then returns to IDLE. Keep the rest of this packet spec-shaped so
+    # payload, CRC, and EOP words are proven not to leak into any other output.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for byte in (0xA0, 0xA1, 0xA2, 0xA3):
+        await drive(repeat_byte(byte), 0x0)
+    await drive(repeat_byte(0x6D), 0x0)
+    await drive(repeat_byte(0x00), 0x0)
+    await drive(repeat_byte(0x08), 0x0)
+    await drive(0x11223344, 0x0)
+    await drive(0x55667788, 0x0)
+    await drive(0xDEADBEEF, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # A later clean event must still be accepted, proving the ignored payload and
+    # CRC/trailer words did not leave stale parser state behind.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for byte in (0xB0, 0xB1, 0xB2, 0xB3):
+        await drive(repeat_byte(byte), 0x0)
+    await drive(repeat_byte(0x7E), 0x0)
+    await drive(repeat_byte(0x00), 0x0)
+    await drive(repeat_byte(0x00), 0x0)
+    await drive(0xA5A5A5A5, 0x0)
+    await drive(CXP_EOP, 0xF)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
+    assert event_tags == [0x6D, 0x7E]
+    assert cfg_beats == []
+    assert data_beats == []
+    assert heartbeat_beats == []
+
+
+@cocotb.test()
 async def coaxpress_rx_lane_error_recovery_test(dut):
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
