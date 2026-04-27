@@ -31,7 +31,9 @@
 - SRP RTL target matrix:
   - Covered now under the current GHDL-only flow: `SrpV3Axi` through the checked-in `protocols/srp/wrappers/SrpV3AxiWrapper.vhd` wrapper and `tests/protocols/srp/test_SrpV3Axi.py`.
   - The current SRPv3 AXI bench now validates non-posted write echo/readback, posted-write no-response behavior followed by readback, NULL header/footer behavior, response backpressure hold, TDEST propagation, full-word `TKEEP`, and footer bits for version mismatch, malformed write framing, invalid alignment, invalid request size, and downstream address error.
-  - Still open in `protocols/srp`: dedicated cocotb coverage for `SrpV3AxiLite`, `SrpV3AxiLiteFull`, and the older SRPv0 bridges. `SrpV3Core` is covered transitively through `SrpV3Axi`, but a direct core wrapper could still be useful later for ack/read-data timing fault injection that is hard to force through the AXI DMA wrapper.
+  - `SrpV3Core` now has a direct checked-in wrapper and reset/idle smoke test, while functional decode/data/ack behavior remains covered through the stronger `SrpV3Axi` matrix. A later direct-core fault-injection bench can revisit ack/read-data timing if needed.
+  - `AxiLiteSrpV0` and `SrpV0AxiLite` are now covered together by `protocols/srp/wrappers/SrpV0LoopbackWrapper.vhd` and `tests/protocols/srp/test_SrpV0Loopback.py`, which uses cocotb AXI-Lite master helpers to write/read through the old SRPv0 stream loopback and attached RAM.
+  - SRPv3 AXI-Lite status: `tests/protocols/srp/test_SrpV3AxiLite.py` now has active reset/idle coverage for the direct, full, and legacy-wide wrappers, plus an active directed regression for `SrpV3AxiLite` using the same 256-bit single-beat framing as the legacy VHDL testbench. The 32-bit multi-beat direct request path remains expected-open: malformed one-beat frames return, valid read frames are fully accepted, and simulation time advances to the bench timeout, but no `M_AXIL_ARVALID` or response frame appears. `SrpV3AxiLiteFull` remains expected-open for the current narrow probes and returns a different malformed-frame header. Enable skipped probes with `RUN_KNOWN_ISSUE_TESTS=1` only while debugging.
 - Most recent reusable bench pattern:
   - Prefer the existing subsystem shims, cocotb protocol masters/RAM models, and explicit handshake monitoring when the behavior under test includes timing-visible protocol details.
   - For `protocols/pgp`, keep the first pass family-oriented: shared Python helper coverage in `tests/protocols/pgp/pgp_test_utils.py`, family subpackages under `tests/protocols/pgp/pgp2b/`, `tests/protocols/pgp/pgp2fc/`, `tests/protocols/pgp/pgp3/`, and `tests/protocols/pgp/pgp4/`, thin wrapper-level loopback benches for the core lane/core surfaces, direct register benches for the AXI management blocks, and checked-in low-speed wrappers whose benches assert wrapper-visible lock/config behavior unless the serialized payload-recovery path is explicitly proven. `pgp3` stays documented and organized, but it is intentionally out of the near-term rollout plan on this branch. The reusable helper now also tolerates the trailing zero padding that appears on short odd-byte frames when the older 16-bit SSI/PGP2 wrappers return compressed-keep traffic through `cocotbext.axi`.
@@ -152,15 +154,14 @@
 - The new package-surface coverage exposed a real `Code12b14bPkg` invalid-K disparity bug; `protocols/line-codes/rtl/Code12b14bPkg.vhd` now leaves `dispOut` unchanged on illegal K requests instead of tripping a GHDL bound-check failure.
 
 ## Current In-Progress Item
-- Decide the next non-`pgp3` `protocols/pgp` target now that the shared VC FIFOs and the remaining non-vendor `pgp4/core/rtl` leaves are covered.
-- Keep `pgp2b`, `pgp2fc`, `pgp3`, and `pgp4` organized as separate family subpackages with checked-in wrappers rather than falling back to generated shim HDL, but treat `pgp3` as deferred for now.
-- Preserve the recent `pgp4` lesson: when the simulation wrapper only exposes stable lock/config surfaces, write the bench around those explicit contracts instead of claiming recovered payload coverage.
-- Phase-2 follow-on for `protocols/pgp/pgp4`: broaden the current single payload-bitflip negative test into a small corruption-location matrix that separately covers SOF/header metadata corruption, EOF/tail corruption (including transmitted CRC-field corruption), and 66b header-side framing errors instead of treating all of those cases as equivalent to payload CRC failure.
+- User-directed SRP regression work is active. The current passing SRP package covers `SrpV3Axi`, `SrpV3Core` reset/idle, SRPv0 AXI-Lite loopback, and `SrpV3AxiLite` through the legacy 256-bit single-beat framing.
+- The main unresolved SRP debug item is the 32-bit multi-beat `SrpV3AxiLite` ingress path: the request is accepted, but no AXI-Lite AR or response appears before timeout.
+- Keep the skipped `SrpV3AxiLiteFull` probes as expected-open until the direct 32-bit multi-beat path is understood, then revisit whether the full bridge has a separate protocol expectation or shares the same root cause.
 
 ## Next 3 Concrete Tasks
-- Decide whether the next family pass is deeper directed coverage for the existing `pgp2b`/`pgp2fc` RX and alignment benches or a move into another non-deferred protocol area.
-- Keep the `protocols/pgp/pgp4` low-speed leaves on their dedicated lock/config guardrail benches unless a later wrapper explicitly proves the serialized payload path end to end.
-- Reuse the new `tests/protocols/pgp/shared/` helper and wrappers if later shared PGP utilities need direct cocotb coverage.
+- Instrument or wrap the `SrpV3AxiLite` RX limiter/FIFO boundary to compare the passing 256-bit single-beat request against the failing 32-bit multi-beat request.
+- Once the 32-bit direct path is understood, re-run and either re-enable or tighten the skipped `single_read` and directed probes for the narrow direct wrapper.
+- Revisit `SrpV3AxiLiteFull` after the direct-path result, because its malformed-frame response header already differs from the direct implementation under the current narrow probe.
 
 ## Blockers And Risks
 - Runtime may grow quickly once configuration-heavy modules are added without careful tiering.
