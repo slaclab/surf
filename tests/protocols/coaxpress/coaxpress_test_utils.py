@@ -54,6 +54,8 @@ CXPOF_START = 0xFB
 CXPOF_TERM = 0xFD
 CXPOF_ERROR = 0xFE
 
+CXP_CRC32_POLY = 0x04C11DB7
+
 
 @dataclass
 class AxisBeat:
@@ -87,6 +89,41 @@ def unpack_kept_bytes(data: int, keep: int, *, width_bytes: int) -> bytes:
 
 def endian_swap32(word: int) -> int:
     return int.from_bytes((word & 0xFFFFFFFF).to_bytes(4, "little"), "big")
+
+
+def reverse_bits(value: int, width: int) -> int:
+    result = 0
+    for bit in range(width):
+        if value & (1 << bit):
+            result |= 1 << (width - 1 - bit)
+    return result
+
+
+def _crc_byte_lookup(byte_value: int, *, poly: int = CXP_CRC32_POLY) -> int:
+    crc = (byte_value & 0xFF) << 24
+    for _ in range(8):
+        if crc & 0x80000000:
+            crc = ((crc << 1) & 0xFFFFFFFF) ^ poly
+        else:
+            crc = (crc << 1) & 0xFFFFFFFF
+    return crc
+
+
+def cxp_crc_word(words: Sequence[int]) -> int:
+    # Mirrors the CoaXPressConfig/CoaXPressRxLane CRC convention: initialize the
+    # CRC to all ones, bit-reverse each byte before lookup, bit-reverse each final
+    # CRC byte, then endian-swap the driven 32-bit word.
+    crc = 0xFFFFFFFF
+    for word in words:
+        for byte_index in range(4):
+            byte_value = (word >> (8 * byte_index)) & 0xFF
+            byte_xor = ((crc >> 24) & 0xFF) ^ reverse_bits(byte_value, 8)
+            crc = ((crc << 8) & 0xFFFFFFFF) ^ _crc_byte_lookup(byte_xor)
+
+    ret = 0
+    for byte_index in range(4):
+        ret |= reverse_bits((crc >> (8 * byte_index)) & 0xFF, 8) << (8 * byte_index)
+    return endian_swap32(ret)
 
 
 def pack_words(words: list[int], *, word_bits: int = 32) -> int:

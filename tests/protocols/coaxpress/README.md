@@ -122,25 +122,29 @@ Important limitation:
 
 ### Heartbeat and event traffic
 
-Heartbeat and event handling is only partially covered today:
+Heartbeat and event handling is still intentionally narrow, but the receive
+event parser now checks complete packet framing before acknowledging:
 
 - `test_CoaXPressRxLane.py`
   - checks the current 12-byte heartbeat payload collector
 - `test_CoaXPressEventAckMsg.py`
   - covers event acknowledgment generation on the transmit side
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
-  - drive a fuller event packet shape, but the current receive RTL only
-    consumes the event prefix through the `Packet Tag` field before returning to
-    `IDLE`
-  - `test_CoaXPressRxLane.py` also keeps payload, CRC, and `EOP` words in the
-    stimulus after the tag and checks that they do not leak into config, data,
-    heartbeat, or extra event outputs before a later clean event is accepted
+  - drive full event packet framing through event ID, Packet Tag, payload size,
+    payload words, CRC, and `EOP`
+  - `CoaXPressRxLane` now acknowledges an event only after the CRC and `EOP`
+    pass, suppresses bad-CRC events, and recovers for a later clean event
+  - event payload is validated for framing/CRC but is not exported through a
+    receive-side payload interface
 
-That means these benches do not yet prove full compliance with:
+That means these benches now cover the parser/acknowledgment subset of:
 
 - section `9.8.1` event ordering rules
 - section `9.8.2` event payload parsing
-- full event-payload CRC/trailer handling
+- event-payload CRC/trailer handling
+
+They still do not prove an application-facing event-payload delivery contract,
+because the current RTL exposes only `eventAck` and `eventTag`.
 
 ### Stream data and rectangular image traffic
 
@@ -239,7 +243,8 @@ The most important open limits are:
 - the checked-in known-issue core bench for overflow-vs-FSM-error behavior is
   skipped by default until the receive-side backpressure interaction is
   understood and fixed
-- receive-side event handling still proves only the current RTL prefix contract
+- receive-side event payload is validated for framing/CRC before ACK, but is not
+  exposed through an application-facing payload interface
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update
