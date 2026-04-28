@@ -21,6 +21,34 @@ management lane in the base protocol. The receiver recovers frame boundaries,
 virtual channels, link health, and flow-control state from the same word stream
 that carries user payload.
 
+PGP4 was created for systems where a raw serial lane is too little structure,
+but a general-purpose network stack is more structure than the hardware path
+needs. Detector readout, data acquisition, timing, and control links often need
+to move framed traffic with predictable latency, carry several logical streams
+over one physical link, and expose receiver backpressure without adding a
+second control interface. PGP4 puts those functions directly into the serial
+word stream. It provides frame boundaries, virtual-channel tags, receiver
+readiness, pause state, overflow indication, sideband opcodes, and payload
+integrity while leaving addressing, routing, retry policy, and application
+semantics to the system built around the link.
+
+The protocol is also a continuation of the earlier PGP family. PGP2 used
+8b/10b coding and served many FPGA-to-FPGA data-acquisition links, but modern
+experiments pushed toward 10 Gbit/s and higher serial rates where the coding
+overhead and rate limits of that generation became restrictive. PGP4 moves the
+link layer to a 64b/66b-style word stream so the same basic point-to-point
+model can scale to faster transceivers with lower line-coding overhead. The
+intent is a free, portable protocol that can be implemented across FPGA
+families without depending on a vendor-owned link layer.
+
+The protocol also keeps the fast path simple enough for FPGA implementation.
+The receiver can classify each word from its 66-bit header, check control-word
+metadata independently from payload CRCs, and rebuild frame streams with small
+state machines. The full profile adds cell interleaving so one large frame does
+not monopolize a link shared by multiple VCs. The Lite profile, described after
+the full protocol, keeps the same word format for endpoints that only need
+single-cell frame transport.
+
 PGP4 is normally operated as a full-duplex link. Each endpoint has an
 independent transmitter and receiver, and each direction carries its own
 ordered stream of 66-bit words. The two directions do not need to run at the
@@ -128,6 +156,15 @@ the endpoints and the physical medium reliably carry the scrambled 66-bit word
 stream. The rate is per direction. No PGP4 control field encodes the line rate
 of the opposite direction, and the cell, CRC, `LINKINFO`, and sequence rules do
 not assume equal transmit and receive rates.
+
+The 64b/66b word format keeps the physical coding overhead small: each 64-bit
+payload or control word occupies 66 serialized bits before any transceiver
+wrapper or FEC layer is added. The protocol overhead above that depends on the
+traffic pattern. In the common full-profile case of a 128-word cell, two
+control words bracket up to 128 data words, so a completely filled cell carries
+about 98.5 percent data words before 64b/66b coding. Smaller frames, idle time,
+skip insertion, opcodes, and backpressure reduce effective payload efficiency,
+but they do not change the fixed 66-bit word structure.
 
 ## 5. Control Words
 
@@ -249,6 +286,15 @@ start, continue, or terminate a cell.
 or debug information. It is not a reliable payload channel and is not used to
 advance frame state.
 
+Skip insertion exists to tolerate small frequency differences between the
+transmit clock recovered from the serial lane and the local clock that consumes
+received PGP4 words. In the repository implementation, the default transmit
+input initialization record inserts a `SKP` opportunity every 5000 words when
+skip support is enabled. The receiver elastic buffer consumes accepted `SKP`
+words instead of forwarding them into the protocol state machine, which gives
+the buffer a controlled way to absorb clock drift without presenting a false
+frame delimiter to the cell parser.
+
 ### 5.7 USER
 
 `USER` carries a 48-bit application-defined opcode outside the frame payload
@@ -275,6 +321,16 @@ state and uses it when choosing which VC to send next.
 Every `IDLE`, `SOF`, and `SOC` word carries `LINKINFO`. A receiver updates the
 remote pause bits and remote link-ready state from those words. A receiver
 updates remote overflow state from `IDLE.Overflow`.
+
+Bounded cell size is part of the flow-control design. Because `LINKINFO` is
+sent in every `IDLE`, `SOF`, and `SOC`, a transmitter that is continuously
+sending a long frame still reaches another feedback opportunity when the
+current cell ends and the next cell begins. With the repository default
+128-word cell bound, a change in local receive-buffer state is not forced to
+wait behind an arbitrarily long frame before it can be advertised upstream.
+Systems commonly assert pause before a receive buffer has less than one full
+cell of free space, so the far transmitter can stop selecting new cells for
+that VC while already-launched traffic drains through the link.
 
 In full-duplex operation, both endpoints can continuously refresh this metadata
 even when only one endpoint has user frames to send. In a one-way or
@@ -651,6 +707,14 @@ interfaces with a 4-bit VC value and endpoint-defined terminal user bits. That
 binding is a local implementation interface, not a requirement on other PGP4
 implementations.
 
+The 4-bit VC field provides room for 16 virtual channels on one physical link.
+Repository wrappers commonly expose those channels as separate local
+AXI-Stream interfaces, then multiplex them into the protocol transmit path and
+demultiplex them again on receive. Full-profile wrappers with `TKEEP` support
+translate the final-beat byte mask into `EOF.BytesLast`, allowing frames that
+are not an integer number of 64-bit words. Lite transmit paths in this
+repository accept only whole 64-bit final beats.
+
 In the full profile, the local transmit path packetizes stream frames into
 cells, derives `SOF`/`SOC` and `EOF`/`EOC`, computes the last-byte count, and
 generates the cell CRC and sequence field. The receive path performs the
@@ -720,6 +784,7 @@ above to the repository:
 | Control header | `PGP4_K_HEADER_C = "10"` |
 | Scrambler taps | `PGP4_SCRAMBLER_TAPS_C = (39, 58)` |
 | Data CRC polynomial | `PGP4_CRC_POLY_C = 0x04C11DB7` |
+| Default skip interval | `PGP4_TX_IN_INIT_C.skpInterval = 5000` words |
 | Full-profile startup hold | `STARTUP_HOLD_G = 1000` by default |
 | Lite-profile startup hold | `STARTUP_HOLD_G = 0` by default |
 | RX elastic-buffer storage | 512 66-bit words in the repository full-profile path |
@@ -748,6 +813,15 @@ without changing the PGP4 word format.
 Confluence material at the SLAC PGP4 page was used as reference during
 specification authoring. When this document differs from that page, this
 repository specification follows implementation-backed repository behavior.
+
+Earlier published PGP4 proceedings material was used as historical and design
+motivation for this document. In particular, the introduction reflects the
+10 Gbit/s-and-above FPGA link target, the experience from PGP2, the desire for
+low protocol overhead and small FPGA resource use, and the intent to provide a
+portable open alternative to vendor-specific serial-link protocols. Exact field
+layouts, constants, and state-machine behavior in the main specification follow
+the current repository implementation where it has evolved from that earlier
+description.
 
 The control-word values, `LINKINFO` structure, startup narrative, and the
 general distinction between Full PGP4 and Pgp4Lite are materially consistent
