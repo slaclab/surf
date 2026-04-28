@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="330" viewBox="0 0 1220 330">
+<svg xmlns="http://www.w3.org/2000/svg" width="1220" height="230" viewBox="0 0 1220 230">
   <style>
     .title { font: 700 22px Arial, sans-serif; fill: #0b2545; }
     .label { font: 600 15px Arial, sans-serif; fill: #0b2545; }
@@ -6,9 +6,9 @@
     .box { stroke: #16324f; stroke-width: 2; rx: 8; ry: 8; }
   </style>
 
-  <text x="32" y="34" class="title">PGP4 Frame-to-Cell Sequencing</text>
+  <text x="32" y="34" class="title">Full PGP4 Frame-to-Cell Sequencing</text>
 
-  <text x="32" y="84" class="label">Full PGP4 multi-cell frame</text>
+  <text x="32" y="84" class="label">One full-protocol frame split into cells</text>
   <rect x="32" y="102" width="112" height="56" class="box" fill="#fff2c8"/>
   <text x="88" y="136" text-anchor="middle" class="label">SOF</text>
   <rect x="144" y="102" width="216" height="56" class="box" fill="#d9f0ff"/>
@@ -22,20 +22,8 @@
   <rect x="840" y="102" width="112" height="56" class="box" fill="#fde2d5"/>
   <text x="896" y="136" text-anchor="middle" class="label">EOF</text>
 
-  <text x="32" y="218" class="label">Pgp4Lite single-cell frame</text>
-  <rect x="32" y="236" width="112" height="56" class="box" fill="#fff2c8"/>
-  <text x="88" y="270" text-anchor="middle" class="label">SOF</text>
-  <rect x="144" y="236" width="696" height="56" class="box" fill="#d9f0ff"/>
-  <text x="492" y="270" text-anchor="middle" class="label">data words</text>
-  <rect x="840" y="236" width="112" height="56" class="box" fill="#fde2d5"/>
-  <text x="896" y="270" text-anchor="middle" class="label">EOF</text>
-
-  <rect x="990" y="96" width="190" height="72" class="box" fill="#f5f8fb"/>
-  <text x="1085" y="122" text-anchor="middle" class="text">SOF and SOC carry</text>
-  <text x="1085" y="142" text-anchor="middle" class="text">VC and sequence</text>
-  <text x="1085" y="162" text-anchor="middle" class="text">metadata</text>
-
-  <rect x="990" y="230" width="190" height="72" class="box" fill="#f5f8fb"/>
-  <text x="1085" y="256" text-anchor="middle" class="text">Lite TX omits</text>
-  <text x="1085" y="276" text-anchor="middle" class="text">SOC and EOC</text>
+  <rect x="990" y="88" width="190" height="88" class="box" fill="#f5f8fb"/>
+  <text x="1085" y="116" text-anchor="middle" class="text">SOF and SOC carry</text>
+  <text x="1085" y="136" text-anchor="middle" class="text">VC, sequence, and</text>
+  <text x="1085" y="156" text-anchor="middle" class="text">LINKINFO metadata</text>
 </svg>

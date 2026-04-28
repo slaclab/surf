@@ -9,123 +9,116 @@ Status: Repository-canonical specification for PGP4 protocol behavior.
 ## 1. Introduction
 
 PGP Version 4 (PGP4) is a lightweight, full-duplex serial link protocol for
-transporting frame-oriented traffic between two endpoints. A PGP4 link carries
-user frames, virtual-channel identity, receiver backpressure, receiver overflow
-events, link readiness, low-rate sideband link data, and 48-bit user opcodes in
-one ordered 64b/66b word stream per direction.
+moving framed traffic between two endpoints. Each direction of the link is an
+ordered stream of 66-bit words. Data words carry frame payload. Control words
+carry frame boundaries, virtual-channel identity, receiver backpressure,
+receiver overflow events, link readiness, low-rate sideband link data, and
+48-bit user opcodes.
 
-The protocol is designed for hardware endpoints that need deterministic framing
-with a small amount of in-band link management. Data words carry frame payload.
-Control words carry the symbols that start and end cells, publish link state,
-insert clock-compensation or sideband data, and deliver user opcodes. Because
-all of these functions share the same word stream, receivers can recover the
-frame boundary, virtual channel, and link metadata without a separate management
-lane.
+The protocol is intended for hardware endpoints that need deterministic frame
+transport with a small amount of in-band link management. There is no separate
+management lane in the base protocol. The receiver recovers frame boundaries,
+virtual channels, link health, and flow-control state from the same word stream
+that carries user payload.
 
-PGP4 is symmetric. Each endpoint is simultaneously a transmitter and a receiver.
-The receive side of an endpoint advertises its readiness and per-virtual-channel
-pause state to the remote transmitter by placing that information in outgoing
-control words. The remote transmitter then uses the received metadata to decide
-when it may select new traffic for each virtual channel.
+PGP4 is symmetric. Each endpoint is both a transmitter and a receiver. The
+receive side of an endpoint advertises its own readiness and per-VC pause state
+in the control words sent by that endpoint's transmitter. The far endpoint
+interprets that metadata as remote receive state and uses it when scheduling
+traffic.
 
-This document specifies the wire-visible behavior needed for interoperable
-PGP4 endpoints:
+This document covers the wire-visible protocol behavior:
 
-- 66-bit word headers and the meaning of data and control words
-- control-word encodings and control-word checksums
+- 66-bit word headers and data/control word classification
+- control-word encodings and checksums
 - `LINKINFO`, pause, overflow, opcode, and sideband-data semantics
-- cell and frame sequencing rules
-- CRC behavior for frame payload protection
-- link bring-up, link maintenance, and link-loss behavior
-- the Full PGP4, Pgp4Lite, and FEC-enabled profile distinctions
+- full PGP4 cell and frame sequencing
+- payload CRC behavior
+- receive alignment, link acquisition, link maintenance, and link loss
+- subset profiles and the optional FEC profile boundary
 
-This document intentionally does not specify:
+This document does not define transceiver wrapper internals, vendor IP
+internals, register maps, AXI-Stream or AXI-Lite local binding details,
+resource-use guidance, or future optimization plans. Repository-specific RTL,
+test, and software mappings are collected in the appendices.
 
-- transceiver-family wrapper internals
-- vendor IP internals
-- register-map implementation details
-- AXI-Stream, AXI-Lite, or other local bus binding details
-- resource-usage guidance
-- future optimization or refactor plans
+## 2. Reading This Specification
 
-Non-normative appendices describe local RTL, test, and software mappings used
-by this repository.
+The protocol requirements in this document are written in direct prose rather
+than RFC keyword style. Phrases such as "uses", "expects", "treats as an
+error", "requires", and "does not accept" describe the behavior of a conforming
+PGP4 endpoint.
 
-## 2. Conformance Language
-
-The key words `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, and `MAY` in this
-document are to be interpreted as normative requirements.
-
-Unless explicitly marked otherwise, figures are explanatory and tables define
-the exact field allocations and values. Appendices are non-normative.
+Tables define exact bit positions and encoded values. Figures are explanatory
+views of the same behavior and are not a substitute for the tables.
 
 ## 3. Protocol Model
 
-A PGP4 direction is an ordered sequence of 66-bit words. Each word consists of
-a 64-bit payload and a 2-bit header. The header identifies whether the payload
-is frame data or a PGP4 control word. The protocol does not define a separate
-out-of-band control channel; every link-management event that is visible to the
-remote endpoint is represented as a control word in this same ordered stream.
+A PGP4 direction is a sequence of 66-bit words. Each word has a 64-bit payload
+and a 2-bit header. The header says whether the payload is a user data word or
+a PGP4 control word. A receiver first establishes word alignment and then
+interprets the ordered stream according to the header and, for control words,
+the block type field.
 
-PGP4 transports frames. A frame belongs to one virtual channel (VC), begins
-with a start control word, contains zero or more 64-bit data words, and ends
-with an end control word. Full PGP4 may divide a long frame into multiple
-cells. The first cell starts with `SOF`, continuation cells start with `SOC`,
-non-final cells end with `EOC`, and the final cell ends with `EOF`. Pgp4Lite
-uses a constrained single-cell form that emits `SOF`, data words, and `EOF`
-only.
+PGP4 transports frames on virtual channels. A frame belongs to one VC. In the
+full protocol, a frame is divided into one or more cells. Each cell starts with
+`SOF` or `SOC`, contains zero or more data words, and ends with `EOF` or `EOC`.
+The first cell of a frame starts with `SOF`. Continuation cells start with
+`SOC`. A non-final cell ends with `EOC`; the final cell ends with `EOF`.
 
-Cells are the unit that carries sequence and CRC metadata. The sequence field
-is present in `SOF` and `SOC`. The CRC and last-byte count are present in
-`EOF` and `EOC`. A receiver reconstructs frame data by interpreting these
-control words and passing intervening data words to the VC identified by the
-most recent `SOF` or `SOC`.
+Cells are the scheduling unit. They let the transmitter interleave traffic from
+multiple VCs without losing per-VC frame order. A large frame on one VC can be
+split into cells, leaving opportunities for cells from other VCs to use the
+link between those pieces.
 
-Control words that are not cell delimiters may appear between frames and, in
-specified cases, between cells or data words. `IDLE` words fill otherwise empty
-link time and publish receiver state. `SKP` words provide clock-compensation
-or low-rate sideband link data. `USER` words carry a 48-bit application-defined
-opcode. These control words do not themselves start or end a frame.
+Cells also carry the frame metadata needed by the receiver. `SOF` and `SOC`
+identify the VC and carry a cell sequence field. `EOF` and `EOC` carry the
+data CRC, final-byte count, and terminal user bits for the cell. The receiver
+reconstructs frame payload by applying those control words to the data words
+between them.
 
-![Non-normative: protocol layering and interface model.](assets/pgp4-stack.svg)
+Control words that are not cell delimiters share the same stream. `IDLE` fills
+otherwise unused link time and refreshes receive-side metadata. `SKP` supports
+skip insertion and carries advisory low-rate sideband link data. `USER` carries
+a 48-bit application opcode outside the frame payload stream.
+
+![Protocol layering and interface model.](assets/pgp4-stack.svg)
 
 ## 4. Word Format
 
-### 4.1 66-bit headers
+### 4.1 Headers
 
-Every PGP4 word uses one of the following header values.
+Every PGP4 word uses one of the following 2-bit headers.
 
 | Header bits | Meaning |
 | --- | --- |
 | `01` | Data word |
 | `10` | Control word |
-| `00` | Reserved / invalid for PGP4 |
-| `11` | Reserved / invalid for PGP4 |
+| `00` | Invalid for PGP4 |
+| `11` | Invalid for PGP4 |
 
-A transmitter `MUST` use header `01` for frame payload data words and header
-`10` for PGP4 control words. A receiver `MUST` treat header values `00` and
-`11` as invalid for PGP4.
+Transmitters use header `01` for frame payload data words and header `10` for
+PGP4 control words. Receivers treat `00` and `11` as invalid PGP4 headers.
 
-Data-word payload bits are frame payload bits. PGP4 does not reinterpret those
-64 bits while they are in a data word. Any byte-lane meaning, user metadata, or
-local stream convention is part of the endpoint binding, not the data-word
-encoding itself.
+The 64 payload bits of a data word are frame payload bits. PGP4 does not assign
+additional meaning to those bits while they are in a data word. Byte-lane
+meaning, terminal user metadata, and stream-side conventions belong to the
+local endpoint binding.
 
-### 4.2 64b/66b scrambling
+### 4.2 Scrambling
 
 PGP4 words are transported through a 64b/66b scrambler and descrambler pair.
-Compatible endpoints `MUST` use the PGP4 scrambler configuration with taps 39
-and 58. The scrambler protects transition density and avoids long runs on the
-physical serial stream; it does not change the logical control-word or data-word
-formats described in this document.
+Compatible endpoints use the PGP4 scrambler configuration with taps 39 and 58.
+Scrambling improves serial-link transition behavior; it does not change the
+logical data-word or control-word formats described here.
 
-The protocol does not mandate a particular serial line rate. Any line rate
-`MAY` be used provided both endpoints and the transport medium can reliably
-transport the scrambled 66-bit word stream.
+The protocol does not prescribe one serial line rate. Any rate can be used when
+both endpoints and the physical medium reliably carry the scrambled 66-bit word
+stream.
 
 ## 5. Control Words
 
-### 5.1 Common control-word layout
+### 5.1 Common layout
 
 Every control word uses the following 64-bit payload layout.
 
@@ -135,11 +128,11 @@ Every control word uses the following 64-bit payload layout.
 | `55:48` | `CSC` | 8-bit checksum over `BTF` and payload bits `47:0` |
 | `47:0` | Payload | Control-word-specific payload |
 
-A transmitter `MUST` set `CSC` to the checksum defined in Section 8.1. A
-receiver `MUST` reject a control word whose `CSC` does not match its `BTF` and
-payload.
+The transmitter computes `CSC` from the control-word checksum algorithm in
+Section 8.1. The receiver checks `CSC` before accepting the control word. A
+control word with a bad checksum is a malformed protocol word.
 
-Compatible receivers `MUST` interpret `BTF` values as listed below.
+The `BTF` field uses these values.
 
 | Name | BTF value | Meaning |
 | --- | --- | --- |
@@ -151,13 +144,13 @@ Compatible receivers `MUST` interpret `BTF` values as listed below.
 | `SKP` | `0x66` | Skip / clock-compensation character with sideband link data |
 | `USER` | `0x78` | Sideband 48-bit user opcode |
 
-A receiver `MUST` treat any other `BTF` value as an invalid PGP4 control word.
+Any other `BTF` value is an invalid PGP4 control word.
 
 ### 5.2 LINKINFO
 
 `LINKINFO` is a 32-bit receiver-state field inserted into `IDLE`, `SOF`, and
-`SOC` control words. It is the normal path by which an endpoint tells the
-remote transmitter whether its receive side is usable and which VCs are paused.
+`SOC` control words. It is the normal path by which an endpoint tells the far
+transmitter whether its receive side is usable and which VCs are paused.
 
 | Bit range | Field | Meaning |
 | --- | --- | --- |
@@ -166,20 +159,19 @@ remote transmitter whether its receive side is usable and which VCs are paused.
 | `15:9` | Reserved | Transmitted as zero; ignored on receive |
 | `31:16` | `Pause[15:0]` | Per-VC pause state |
 
-A transmitter `MUST` set `Version` to `0x04`. A receiver `MUST` treat a
-received `LINKINFO.Version` value other than `0x04` as a protocol version
-error. A transmitter `MUST` set pause bits for implemented VCs according to
-the local receive-buffer state and `MUST` transmit pause bits for unimplemented
-VCs as zero. A receiver `MUST` ignore pause bits for VCs it does not implement.
+Transmitters set `Version` to `0x04`. Receivers treat any other version in
+`LINKINFO` as a protocol version error. Pause bits are meaningful for VCs
+implemented by the endpoint that sent the word. Unimplemented VC bits are
+transmitted as zero and ignored by the receiver.
 
-`RXREADY` describes the readiness of the endpoint that transmitted the
-`LINKINFO`; it is not an acknowledgement of the word that carried it.
+`RXREADY` describes the receiver state of the endpoint that transmitted the
+`LINKINFO`. It is not an acknowledgement of the word carrying it.
 
 ### 5.3 IDLE
 
 `IDLE` is the default fill word when no higher-priority protocol word is sent.
 It keeps the receiver supplied with valid control words and refreshes link
-metadata even when no user frame is in progress.
+metadata while no user frame is active.
 
 | Bit range | Field | Meaning |
 | --- | --- | --- |
@@ -188,16 +180,14 @@ metadata even when no user frame is in progress.
 | `47:32` | `Overflow[15:0]` | Per-VC overflow event flags |
 | `31:0` | `LINKINFO` | Version, `RXREADY`, and pause bits |
 
-Overflow event bits `MUST` be carried in `IDLE` words. A transmitter `MUST`
-set overflow bits for unimplemented VCs to zero. A receiver `MUST` update
-remote overflow status from received `IDLE` words.
+Overflow event bits are carried in `IDLE` words. Bits for unimplemented VCs are
+zero. A receiver updates remote overflow status from received `IDLE` words.
 
 ### 5.4 SOF and SOC
 
 `SOF` starts the first cell of a frame. `SOC` starts a continuation cell of a
 frame that has already begun. Both words identify the VC and carry `LINKINFO`
-so that receiver-state metadata continues to advance when frame traffic is
-active.
+so receiver-state metadata continues to advance during frame traffic.
 
 | Bit range | Field | Meaning |
 | --- | --- | --- |
@@ -207,14 +197,15 @@ active.
 | `35:32` | `VC` | 4-bit virtual-channel index |
 | `31:0` | `LINKINFO` | Version, `RXREADY`, and pause bits |
 
-A transmitter `MUST` place the selected VC in `VC`. A receiver `MUST` use that
-VC value for the data words and terminating control word of the cell that
-follows. `SEQ` is interpreted by the cell sequencing rules in Section 7.
+The `VC` field identifies the virtual channel for the cell that follows. The
+receiver applies that VC value to the data words and terminating control word
+of the cell. The `SEQ` field supports cell ordering checks, described in
+Section 7.2.
 
 ### 5.5 EOF and EOC
 
 `EOF` terminates the final cell of a frame. `EOC` terminates a non-final cell,
-allowing another VC to use the link before the original frame continues with a
+which lets another VC use the link before the original frame resumes with a
 later `SOC`.
 
 | Bit range | Field | Meaning |
@@ -227,13 +218,13 @@ later `SOC`.
 | `7:0` | `TUSER_LAST` | Endpoint-defined terminal user bits |
 
 `BytesLast` is the count of valid bytes in the last data word of the cell. A
-value of `8` indicates that all eight bytes are valid. Endpoint bindings that
-do not support partial final words `MUST` transmit `BytesLast = 8`.
+value of `8` means all eight bytes are valid. Endpoint bindings that only emit
+whole 64-bit payload words transmit `BytesLast = 8`.
 
 ### 5.6 SKP
 
-`SKP` is a control word used for skip insertion and low-rate sideband link
-data. It does not start, continue, or terminate a cell.
+`SKP` is used for skip insertion and low-rate sideband link data. It does not
+start, continue, or terminate a cell.
 
 | Bit range | Field | Meaning |
 | --- | --- | --- |
@@ -241,9 +232,9 @@ data. It does not start, continue, or terminate a cell.
 | `55:48` | `CSC` | Control-word checksum |
 | `47:0` | `RemoteLinkData` | Low-rate sideband link data |
 
-The `RemoteLinkData` field is advisory. A sender `SHOULD NOT` use it for
-time-critical control, and a receiver `MUST NOT` infer frame progress from
-`SKP` words.
+`RemoteLinkData` is advisory. It is useful for slowly changing link-side status
+or debug information. It is not a reliable payload channel and is not used to
+advance frame state.
 
 ### 5.7 USER
 
@@ -256,97 +247,84 @@ stream. It does not start, continue, or terminate a cell.
 | `55:48` | `CSC` | Control-word checksum |
 | `47:0` | `Opcode` | User-defined 48-bit opcode payload |
 
-A receiver that accepts a valid `USER` word `MUST` present the 48-bit opcode
-as a sideband event. The opcode is ordered with respect to the PGP4 word stream,
-but it is not part of any frame payload.
+A receiver presents an accepted `USER` word as a sideband opcode event. The
+event is ordered with respect to the PGP4 word stream, but it is not part of
+any frame payload.
 
-## 6. Flow Control and Sideband Metadata
+## 6. Full PGP4 Flow Control and Sideband Metadata
 
 PGP4 flow control is receiver-driven. Each endpoint publishes its own receive
-state in the control words it transmits. The far endpoint consumes that state
-as remote receive state and uses it to decide whether it may start or continue
-traffic for a VC.
+state in `LINKINFO`. The far endpoint consumes that state as remote receive
+state and uses it when choosing which VC to send next.
 
-![Non-normative: flow-control and sideband exchange.](assets/pgp4-flow-control.svg)
+![Flow-control and sideband exchange.](assets/pgp4-flow-control.svg)
 
-A transmitter `MUST` include `LINKINFO` in every `IDLE`, `SOF`, and `SOC`
-word. A receiver `MUST` update remote pause and remote link-ready state from
-the `LINKINFO` carried by those words. A receiver `MUST` update remote overflow
-state from `IDLE.Overflow`.
+Every `IDLE`, `SOF`, and `SOC` word carries `LINKINFO`. A receiver updates the
+remote pause bits and remote link-ready state from those words. A receiver
+updates remote overflow state from `IDLE.Overflow`.
 
-When flow control is enabled, a transmitter `MUST NOT` select new traffic for
-a VC whose synchronized remote pause bit is asserted. An endpoint `MAY` provide
-a local configuration mode that disables this flow-control gating; when that
-mode is used, interoperability depends on the receiver being able to absorb or
-discard the resulting traffic.
+When flow control is enabled, the transmitter does not select new traffic for
+a VC whose synchronized remote pause bit is asserted. Some endpoint bindings
+provide a local mode that disables this gating. In that mode, interoperability
+depends on the receiver being able to absorb or discard the resulting traffic.
 
-Pause and overflow bits are state advertisements, not frame delimiters. They
-do not change the interpretation of a data word already accepted into the word
-stream. A pause bit affects future VC selection; it does not retroactively
-invalidate a cell already in flight.
+Pause and overflow bits are state advertisements, not frame delimiters. A pause
+bit affects future VC selection. It does not retroactively invalidate a cell
+already in the word stream.
 
-`USER` opcodes and `SKP.RemoteLinkData` are sideband mechanisms. They share
-the link with frame traffic but do not consume a VC and do not alter frame
-payload bytes. An endpoint that requires reliable delivery of control
-information should carry that information in a framed VC payload rather than
-in `SKP.RemoteLinkData`.
+`USER` opcodes and `SKP.RemoteLinkData` share the link with frame traffic but
+do not consume a VC and do not alter payload bytes. Control information that
+needs reliable delivery belongs in a framed VC payload rather than in
+`SKP.RemoteLinkData`.
 
-## 7. Cells, Frames, and Virtual Channels
+## 7. Full PGP4 Cells, Frames, and Virtual Channels
 
-Full PGP4 uses cells to prevent one long frame from permanently occupying the
-link. A long frame can be split into a first cell, zero or more continuation
-cells, and a final cell. Other VCs may be scheduled between cells. The wire
-therefore carries an interleaving of cells, while each VC still observes its
-own ordered sequence of frame payloads.
+Full PGP4 uses cells to prevent one large frame from monopolizing the link. A
+large frame can be split into a first cell, zero or more continuation cells,
+and a final cell. Cells from other VCs can be scheduled between those pieces.
+The wire therefore carries an interleaving of cells, while each VC still
+observes its own ordered sequence of frame payloads.
 
-![Non-normative: frame-to-cell sequencing view.](assets/pgp4-cell-sequence.svg)
+![Frame-to-cell sequencing view.](assets/pgp4-cell-sequence.svg)
 
-### 7.1 Full PGP4 cell rules
+The first cell of a frame starts with `SOF`. A continuation cell of the same
+frame starts with `SOC`. A non-final cell ends with `EOC`, and the final cell
+ends with `EOF`. The `VC` field in `SOF` or `SOC` identifies the virtual
+channel for that cell. The data words following that start word are payload for
+the selected VC until the terminating `EOC` or `EOF` arrives.
 
-For Full PGP4:
+Each data payload word uses header `01`. Each cell delimiter uses header `10`
+and the control-word layout from Section 5. `EOF` and `EOC` carry the CRC for
+the data words in the cell they terminate.
 
-- Each transmitted payload word `MUST` use data header `01`.
-- The first cell of a frame `MUST` start with `SOF`.
-- A continuation cell of the same frame `MUST` start with `SOC`.
-- A non-final cell `MUST` end with `EOC`.
-- The final cell of a frame `MUST` end with `EOF`.
-- The `VC` field in `SOF` and `SOC` `MUST` identify the virtual channel for
-  that cell.
-- The `SEQ` field in `SOF` and `SOC` `MUST` carry the cell sequence value for
-  the frame on that VC.
-- `EOF` and `EOC` `MUST` carry the CRC for the data words in the cell that
-  they terminate.
+The first data word of a cell, if present, is normally the word immediately
+after `SOF` or `SOC`. The transmitter can insert permitted non-data control
+words, such as metadata `IDLE` words or sideband words, as long as the emitted
+stream remains structurally valid and the receiver never interprets those
+control words as payload.
 
-The first data word of a cell, if present, is the word immediately after `SOF`
-or `SOC` unless another permitted non-data control word is inserted by the
-transmitter. The cell terminates at the matching `EOF` or `EOC`. A receiver
-`MUST` preserve the order of data words within a VC.
+### 7.1 Cell sequence field
 
-### 7.2 Sequence behavior
+`SEQ` provides receiver-visible cell ordering information. It is scoped to
+cell sequencing; it is not a global word count, not a byte count, and not a
+replacement for the payload CRC.
 
-`SEQ` provides receiver-visible cell ordering information. A transmitter
-`MUST` advance the sequence for successive cells of a frame according to the
-profile's packetization rules. A receiver `MUST` report a sequence error when
-the sequence behavior for a frame on a VC is inconsistent with those rules.
+The transmitter advances `SEQ` for successive cells of a frame according to the
+packetization policy for that VC. The receiver reports a sequence error when a
+continuation cell does not follow the expected sequence behavior. Single-cell
+frames still carry a sequence value in `SOF`, but no continuation check is
+needed after their `EOF`.
 
-The sequence field is scoped to cell sequencing. It is not a global word count,
-not a byte count, and not a substitute for the payload CRC.
+### 7.2 VC scheduling
 
-### 7.3 Pgp4Lite cell rules
+Full PGP4 permits cell-level interleaving across VCs. Once a cell has ended
+with `EOC`, the transmitter can choose another VC before returning to the
+original frame with `SOC`. Once a frame has ended with `EOF`, the transmitter
+is free to begin any eligible VC with `SOF`.
 
-Pgp4Lite uses the same word headers, control-word checksum, `LINKINFO`, `USER`,
-`SKP`, and CRC concepts as Full PGP4, but constrains frame emission:
-
-- Lite transmitters `MUST` emit `SOF` and `EOF` only for frame boundaries.
-- Lite transmitters `MUST NOT` emit `SOC` or `EOC`.
-- Lite transmitters `MUST` set the `SEQ` field in `SOF` to zero.
-- Lite transmitters that do not support partial final words `MUST` set
-  `EOF.BytesLast` to `8`.
-- Lite receivers `MUST` still accept the standard PGP4 receive word format.
-
-Pgp4Lite is therefore wire-compatible with the common PGP4 control-word
-encoding, but it is not equivalent to the Full PGP4 multi-cell scheduling
-model.
+The protocol preserves order within each VC. Interleaving changes how cells
+from different VCs share the link; it does not reorder payload words within a
+cell or cells within one VC's frame sequence.
 
 ## 8. Integrity Mechanisms
 
@@ -359,100 +337,166 @@ the receiver can detect payload corruption within each cell.
 | Control-word checksum (`CSC`) | 8 bits | Control-word `BTF` plus payload bits `47:0` |
 | Data CRC | 32 bits | Cell data payload |
 
-### 8.1 Control-word checksum
-
-For every control word, the `CSC` field is computed over the concatenation of:
-
-- payload bits `47:0`
-- `BTF` bits `63:56`
-
-The `CSC` field itself is excluded from the calculation. The checksum uses CRC
+For every control word, `CSC` is computed over payload bits `47:0` followed by
+`BTF` bits `63:56`. The `CSC` field itself is excluded. The checksum uses CRC
 polynomial `0x07`, initial value `0xFF`, reflected input ordering as defined by
 the PGP4 algorithm, and a final bit-reversal plus inversion.
 
-### 8.2 Data CRC
-
 The data CRC polynomial is `0x04C11DB7`, matching the Ethernet CRC-32
-polynomial. The CRC covers the data payload words in the cell and is carried
-in `EOF.CRC32` or `EOC.CRC32`.
-
-A transmitter `MUST` compute the CRC over the cell payload and place the result
-in the terminating `EOF` or `EOC`. A receiver `MUST` check that CRC before
-accepting the cell as error-free. A receiver that detects a data CRC mismatch
-`MUST` report a frame or cell error for the affected payload.
+polynomial. The CRC covers the data payload words in one cell and is carried in
+`EOF.CRC32` or `EOC.CRC32`. A receiver checks that CRC before accepting the
+cell as error-free. A data CRC mismatch is reported as a frame or cell error
+for the affected payload.
 
 A data CRC failure does not by itself require the PGP4 link to drop. Link loss
-is governed by the link-state rules in Section 9 and by the endpoint's error
-policy.
+is governed by receive alignment, link-state maintenance, and the endpoint's
+error policy.
 
-## 9. Link Bring-Up and Operational Behavior
+## 9. Receive Alignment and Link State
 
-A PGP4 receiver must distinguish an inactive or misaligned physical stream from
-a valid PGP4 word stream. Link bring-up therefore relies on repeated valid
-control words before the receiver declares the protocol link ready. Once ready,
-the receiver continues to require periodic valid link-management control words
-to keep the link in the operational state.
+PGP4 receive readiness is built in layers. The receiver first aligns to valid
+66-bit word headers. After alignment, it descrambles the stream, removes skip
+words when an elastic buffer is present, checks control-word checksums, and
+then runs the protocol link-state machine. This behavior is part of the
+receiver contract because it determines which words can be accepted before the
+link is declared ready and which errors force reacquisition.
 
-![Non-normative: link bring-up and operational state flow.](assets/pgp4-link-state.svg)
+![Link bring-up and operational state flow.](assets/pgp4-link-state.svg)
 
-### 9.1 Transmit startup
+### 9.1 Gearbox alignment
 
-After reset or transmitter disable, a transmitter `MUST` begin by emitting
-valid control words rather than user payload. During startup hold, the
-transmitter `MAY` emit `IDLE` and `SKP`; it `MUST NOT` emit frame data. After
-startup completes and the local transmit side is ready, the transmitter may
-start normal arbitration subject to remote receive readiness and flow-control
-state.
+The gearbox aligner watches the 2-bit word header before the descrambler. In
+the unlocked state, `01` and `10` are treated as valid PGP4 header candidates.
+`00` and `11` are invalid. A run of valid headers locks the gearbox alignment.
+An invalid header while unlocked causes a bit slip, followed by a slip-wait
+period before header checking resumes.
 
-When flow control is enabled, a transmitter `MUST NOT` send user frame traffic
-until the remote endpoint has advertised receiver readiness through
-`LINKINFO.RXREADY`.
+Once locked, the aligner continues monitoring header quality in fixed windows.
+Occasional invalid headers are tolerated within a window, but too many invalid
+headers in the window drops lock and returns the receiver to the unlocked
+search state. In the repository implementation, the window is 128 valid header
+positions and the lock-break threshold is 16 invalid headers in that window.
 
-### 9.2 Receive acquisition
+The descrambler only accepts input while the gearbox aligner is locked and the
+physical receive path marks the word valid. This prevents the protocol layer
+from treating unaligned serial bits as PGP4 words.
 
-While unlinked, a receiver `MUST` count repeated valid PGP4 control words.
-Data words do not establish link readiness while the receiver is unlinked.
-When the receiver observes the required run of valid control words, it asserts
-local link readiness and begins interpreting data and control words as the
-active protocol stream.
+### 9.2 Receive elastic buffer
 
-The required run length is profile-defined.
+When skip insertion is enabled, the receive elastic buffer sits between the
+descrambler and the protocol state machine. Its first job is clock tolerance.
+The write side is driven by the recovered receive clock, while the read side is
+driven by the local PGP receive clock. Ordinary data words and ordinary control
+words cross that boundary in order, so the protocol state machine sees the same
+relative ordering that arrived from the physical link.
 
-### 9.3 Link maintenance and loss
+The elastic buffer is also the point where `SKP` leaves the main PGP4 word
+stream. A valid `SKP` word is consumed by the buffer and is not forwarded as a
+protocol word. Its `RemoteLinkData` payload is exported on a separate sideband
+path instead. This keeps skip insertion from looking like a frame delimiter or
+payload word to the protocol state machine while still preserving the low-rate
+link-data function of the `SKP` encoding.
 
-While linked, a receiver `MUST` refresh its link-maintenance watchdog when it
-receives a valid `IDLE`, `SOF`, or `SOC` with the expected protocol version.
-If too many words arrive without such a refresh, the receiver `MUST` leave the
-link-ready state.
+Control-word checksum screening happens before a control word is admitted to
+the buffer. A control word with a bad `CSC` is dropped and reported as a link
+error in the local receive clock domain. Surrounding valid words remain ordered
+with respect to each other; the malformed K-code does not poison the FIFO and
+does not reach the protocol state machine as a possible delimiter, `LINKINFO`,
+opcode, or skip word.
 
-A receiver `MUST` leave link-ready state when the physical receive path becomes
-inactive, when reset is asserted, or when a malformed protocol condition
-requires reinitialization. A receiver `SHOULD` report a link-down event when it
-transitions from ready to not ready after previously being ready.
+The buffer reports overflow when the recovered-clock write side outruns the
+local-clock read side long enough to exhaust its storage. Overflow is a local
+receive-path error. It is separate from the remote `IDLE.Overflow` bits, which
+advertise far-end VC overflow events through the PGP4 protocol.
 
-### 9.4 Transmit word priority
+Reset flushes the buffered word stream. After reset, stale data that entered
+before the reset is not delivered to the protocol state machine.
 
-When several word types are eligible in the same transmit opportunity, a
-transmitter needs a deterministic selection policy. The policy `MUST` preserve
-valid cell structure and `MUST` prevent metadata words from being interpreted
-as frame data. A compliant policy may insert `IDLE`, `SKP`, or `USER` words
-between frame cells, and may insert `IDLE` words to publish urgent pause or
-overflow metadata.
+When skip insertion is disabled, the descrambled stream feeds the protocol
+state machine directly. In that mode there is no elastic-buffer SKP removal
+path, no elastic-buffer remote-link-data extraction, and no elastic-buffer
+clock-tolerance FIFO in the receive word path.
 
-A transmitter `MUST NOT` acknowledge local acceptance of a payload word if a
-higher-priority control word is emitted instead. This rule prevents a local
-frame source from believing payload entered the PGP4 stream when the link
-actually carried an opcode, skip, or metadata update.
+### 9.3 Protocol link acquisition
 
-## 10. Profiles and Optional FEC
+The protocol state machine starts unlinked. While unlinked, it counts valid
+PGP4 control words. Data words do not advance acquisition. After the required
+run of valid control words, the receiver asserts local link readiness and
+begins interpreting the stream as active protocol traffic. The repository full
+profile uses a threshold of 1000 valid control words for this transition.
 
-This specification covers the following PGP4 profiles.
+The transmitter side performs its own startup hold after reset or disable. It
+emits control words rather than user payload during that interval. After
+startup completes, frame traffic is still gated by remote receive readiness
+when flow control is enabled; the far endpoint needs to advertise
+`LINKINFO.RXREADY` before user frame traffic is selected.
 
-| Profile | Purpose | Key protocol behavior |
-| --- | --- | --- |
-| Full PGP4 | General-purpose multi-VC transport | Supports SOF/SOC and EOF/EOC, VC interleaving between cells, CRC-protected cells, and optional SKP insertion. |
-| Pgp4Lite | Reduced-complexity profile | Uses the same control-word format but emits only SOF/EOF frame boundaries and whole-word transmit payloads. |
-| FEC-enabled PGP4 | Full PGP4 with an external FEC profile | Preserves the same logical PGP4 word stream at the protocol boundary while adding profile-specific FEC below or around that stream. |
+### 9.4 Link maintenance and loss
+
+While linked, the receiver expects regular `IDLE`, `SOF`, or `SOC` words with
+the expected protocol version. Those words refresh the link-maintenance
+watchdog because they prove that the stream is still carrying valid PGP4
+control metadata. Other words do not refresh that watchdog.
+
+If the watchdog expires, the receiver leaves link-ready state. The receiver
+also leaves link-ready state when the physical receive path becomes inactive,
+when reset is asserted, when the elastic-buffer path reports a malformed
+control word, or when the receiver sees no valid protocol data for the
+configured no-valid-data interval while the physical receive path remains
+active. The repository implementation requests PHY reinitialization on these
+receiver-side loss events.
+
+When `linkReady` falls after previously being high, the receiver reports a
+link-down event. Remote link-ready state is cleared while the local receiver is
+not linked, so stale `RXREADY` information does not survive reacquisition.
+
+### 9.5 Transmit word priority
+
+When several word types are eligible in the same transmit opportunity, the
+transmitter follows a deterministic selection policy. The emitted stream
+remains structurally valid, and local payload acceptance is only acknowledged
+when the payload word actually enters the PGP4 stream.
+
+The repository full-profile transmitter starts from `IDLE`, replaces it with
+accepted frame-derived traffic when data is eligible, lets `USER` override data
+when an opcode is accepted, lets `SKP` override data when skip insertion fires,
+inserts optional `IDLE` spacing for receive CRC pipeline timing, and inserts
+urgent `IDLE` words to publish pause or overflow events quickly. This is a
+scheduling policy; the protocol-level requirement is that frame structure,
+metadata meaning, and local acceptance semantics remain consistent.
+
+## 10. Pgp4Lite Subset
+
+Pgp4Lite is a subset of the full protocol. It uses the same 66-bit headers, the
+same control-word layout, the same `LINKINFO` structure, the same control-word
+checksum, the same `USER` and `SKP` encodings, and the same data CRC
+polynomial. The difference is in how much of the full cell model the
+transmitter uses.
+
+Lite transmitters emit only `SOF`, data words, and `EOF` for frame boundaries.
+They do not emit `SOC` or `EOC`, so they do not split a frame into multiple
+continuation cells. The `SEQ` field in `SOF` is zero. Lite transmit paths that
+only support whole 64-bit payload words emit `EOF.BytesLast = 8`.
+
+The receive side still consumes the standard PGP4 word format. In the
+repository implementation, the receive depacketizer is configured without
+sequence tracking RAM for Lite operation because Lite transmit does not create
+continuation cells that need sequence checking.
+
+Low-speed Pgp4Lite receive lanes use their own SelectIO alignment wrapper
+before the PGP4 core. That wrapper performs header-based locking, masks receive
+valid until the lane is locked, and then feeds the common PGP4 receive path.
+The lane-lock controls and delay settings are local interface details, but the
+observable protocol rule is the same: unaligned words are not admitted to the
+PGP4 receive state machine.
+
+## 11. Optional FEC Profile
+
+The FEC-enabled profile keeps the same logical PGP4 word stream at the
+protocol boundary. It does not redefine control words, frame boundaries,
+`LINKINFO`, opcodes, or CRC fields. A FEC wrapper can add correction behavior
+below or around the PGP4 word stream, but wrapper-specific lanes, counters,
+bypass controls, and vendor IP details are outside this protocol definition.
 
 | Feature | Full PGP4 | Pgp4Lite | FEC-enabled PGP4 |
 | --- | --- | --- | --- |
@@ -464,13 +508,7 @@ This specification covers the following PGP4 profiles.
 | SKP support | Optional | Optional | Optional |
 | External FEC wrapper | Optional | Not part of the Lite profile definition | Yes |
 
-The FEC-enabled profile does not redefine PGP4 control words, frame boundaries,
-or `LINKINFO` semantics. A FEC wrapper may add error-correction behavior at a
-lower layer, but the logical PGP4 stream presented to the protocol encoder and
-decoder remains the stream specified above. Wrapper-specific lanes, vendor IP,
-error counters, and bypass controls are outside the normative protocol body.
-
-## Appendix A. Local Stream Mapping (Non-Normative)
+## Appendix A. Local Stream Mapping
 
 The repository implementation maps PGP4 frame traffic onto 8-byte AXI-Stream
 interfaces with a 4-bit VC value and endpoint-defined terminal user bits. That
@@ -487,9 +525,9 @@ words, CRC, and `EOF` directly from a flat frame stream. Because Lite TX does
 not emit continuation cells, it sets the sequence field to zero and emits a
 whole-word final-byte count.
 
-![Non-normative: full-profile TX/RX data path.](assets/pgp4-txrx-path.svg)
+![Full-profile TX/RX data path.](assets/pgp4-txrx-path.svg)
 
-## Appendix B. Monitor and Control Surface (Non-Normative)
+## Appendix B. Monitor and Control Surface
 
 The repository AXI-Lite monitor/control surface is organized into three
 address windows.
@@ -513,7 +551,7 @@ Key control and capability fields include:
 The Python model in `python/surf/protocols/pgp/_Pgp4AxiL.py` is the
 repository-backed source for field naming and monitor grouping.
 
-## Appendix C. Repository Implementation Notes (Non-Normative)
+## Appendix C. Repository Implementation Notes
 
 This specification was derived from the repository implementation and
 regressions. The protocol body avoids depending on local module names, but the
@@ -526,13 +564,17 @@ following files are the primary implementation sources:
 - `protocols/pgp/pgp4/core/rtl/Pgp4TxProtocol.vhd`
 - `protocols/pgp/pgp4/core/rtl/Pgp4TxLiteProtocol.vhd`
 - `protocols/pgp/pgp4/core/rtl/Pgp4Rx.vhd`
+- `protocols/pgp/pgp4/core/rtl/Pgp4RxEb.vhd`
 - `protocols/pgp/pgp4/core/rtl/Pgp4RxProtocol.vhd`
+- `protocols/pgp/pgp4/core/rtl/Pgp4RxLiteLowSpeedLane.vhd`
 - `protocols/pgp/pgp4/core/rtl/Pgp4AxiL.vhd`
+- `protocols/pgp/pgp3/core/rtl/Pgp3RxGearboxAligner.vhd`
+- `xilinx/general/rtl/SelectIoRxGearboxAligner.vhd`
 - `python/surf/protocols/pgp/_Pgp4AxiL.py`
 - `tests/protocols/pgp/pgp4/*`
 
-Implementation-specific constants and behaviors that inform, but do not by
-themselves broaden, the normative protocol are:
+Implementation constants and behaviors that are useful when comparing the text
+above to the repository:
 
 | Item | Repository value or behavior |
 | --- | --- |
@@ -544,6 +586,8 @@ themselves broaden, the normative protocol are:
 | Data CRC polynomial | `PGP4_CRC_POLY_C = 0x04C11DB7` |
 | Full-profile startup hold | `STARTUP_HOLD_G = 1000` by default |
 | Lite-profile startup hold | `STARTUP_HOLD_G = 0` by default |
+| Gearbox alignment lock threshold | 128 consecutive valid header positions |
+| Gearbox alignment loss threshold | 16 invalid headers in a 128-header window |
 | Receive link acquisition threshold | 1000 valid control words |
 | Receive no-valid-data reinit threshold | 10000 receive-side cycles while PHY is active |
 | Full-profile VC arbitration | Round-robin arbitration with cell-level interleaving |
@@ -552,29 +596,23 @@ themselves broaden, the normative protocol are:
 The repository control-word checksum routine is named `pgp4KCodeCrc()`. It
 computes an 8-bit CRC over payload bits `47:0` followed by `BTF`, using
 polynomial `0x07`, initial value `0xFF`, and the bit ordering described in
-Section 8.1.
+Section 8.
 
-The full-profile transmitter chooses among eligible words using an override
-chain: `IDLE` fill, accepted frame-derived traffic, `USER` opcode, `SKP`,
-optional CRC-pipeline spacing `IDLE`, and urgent pause/overflow publication
-`IDLE`. This is an implementation scheduling policy; the protocol requirement
-is that the emitted stream remain structurally valid and preserve the semantics
-specified in Sections 5 through 9.
+## Appendix D. Reference Comparison Notes
 
-## Appendix D. Confluence Comparison Notes (Non-Normative)
-
-Confluence material at the SLAC PGP4 page was used only as reference during
+Confluence material at the SLAC PGP4 page was used as reference during
 specification authoring. When this document differs from that page, this
 repository specification follows implementation-backed repository behavior.
 
 The control-word values, `LINKINFO` structure, startup narrative, and the
 general distinction between Full PGP4 and Pgp4Lite are materially consistent
 with the repository implementation. This specification keeps FEC at the profile
-level and does not embed wrapper-specific vendor IP details into the normative
-body. It also does not adopt Confluence resource commentary, implementation
-discussion, or future-looking optimization notes as normative text.
+level and does not embed wrapper-specific vendor IP details into the main
+protocol description. It also does not adopt Confluence resource commentary,
+implementation discussion, or future-looking optimization notes as protocol
+requirements.
 
-## Appendix E. Verification Notes (Non-Normative)
+## Appendix E. Verification Notes
 
 The specification content was cross-checked against repository regressions
 covering the following behaviors:

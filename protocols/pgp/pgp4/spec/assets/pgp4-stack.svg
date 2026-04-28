@@ -28,8 +28,8 @@
   <text x="530" y="128" text-anchor="middle" class="text">VC selection and cell framing</text>
   <text x="530" y="152" text-anchor="middle" class="text">control words and LINKINFO</text>
   <text x="530" y="176" text-anchor="middle" class="text">CRC, opcodes, and SKP words</text>
-  <text x="530" y="218" text-anchor="middle" class="small">Full profile: SOF/SOC and EOF/EOC</text>
-  <text x="530" y="240" text-anchor="middle" class="small">Lite profile: SOF/EOF only on TX</text>
+  <text x="530" y="218" text-anchor="middle" class="small">full profile supports cell interleaving</text>
+  <text x="530" y="240" text-anchor="middle" class="small">receive side tracks alignment and link state</text>
 
   <rect x="740" y="76" width="240" height="82" class="box" fill="#fde2d5"/>
   <text x="860" y="108" text-anchor="middle" class="label">66-bit Word Stream</text>
