@@ -16,14 +16,16 @@
     </style>
   </defs>
 
-  <rect x="30" y="48" width="210" height="128" class="box"/>
-  <text x="135" y="82" text-anchor="middle" class="label">Protocol Word</text>
-  <rect x="55" y="106" width="70" height="42" class="header"/>
-  <text x="90" y="132" text-anchor="middle" class="text">2-bit Header</text>
-  <rect x="135" y="106" width="80" height="42" class="payload"/>
-  <text x="175" y="132" text-anchor="middle" class="text">64-bit Payload</text>
+  <rect x="30" y="48" width="240" height="128" class="box"/>
+  <text x="150" y="82" text-anchor="middle" class="label">Protocol Word</text>
+  <rect x="55" y="106" width="82" height="46" class="header"/>
+  <text x="96" y="126" text-anchor="middle" class="small">2-bit</text>
+  <text x="96" y="140" text-anchor="middle" class="small">Header</text>
+  <rect x="152" y="106" width="92" height="46" class="payload"/>
+  <text x="198" y="126" text-anchor="middle" class="small">64-bit</text>
+  <text x="198" y="140" text-anchor="middle" class="small">Payload</text>
 
-  <path d="M245 112 H330" class="arrow"/>
+  <path d="M275 112 H330" class="arrow"/>
 
   <rect x="340" y="42" width="270" height="140" class="box"/>
   <text x="475" y="76" text-anchor="middle" class="label">Scrambler</text>
@@ -31,17 +33,19 @@
   <text x="475" y="132" text-anchor="middle" class="small">G(x) = x^58 + x^39 + 1</text>
   <text x="475" y="154" text-anchor="middle" class="small">Process bits 0 through 63</text>
 
-  <path d="M615 112 H700" class="arrow"/>
+  <path d="M615 112 H690" class="arrow"/>
 
-  <rect x="710" y="48" width="250" height="128" class="box"/>
-  <text x="835" y="82" text-anchor="middle" class="label">66-bit Word</text>
-  <rect x="735" y="106" width="82" height="42" class="header"/>
-  <text x="776" y="132" text-anchor="middle" class="text">Clear header</text>
-  <rect x="830" y="106" width="105" height="42" class="payload"/>
-  <text x="882" y="132" text-anchor="middle" class="text">Scrambled payload</text>
+  <rect x="700" y="48" width="280" height="128" class="box"/>
+  <text x="840" y="82" text-anchor="middle" class="label">66-bit Word</text>
+  <rect x="725" y="106" width="86" height="46" class="header"/>
+  <text x="768" y="126" text-anchor="middle" class="small">Clear</text>
+  <text x="768" y="140" text-anchor="middle" class="small">Header</text>
+  <rect x="826" y="106" width="128" height="46" class="payload"/>
+  <text x="890" y="126" text-anchor="middle" class="small">Scrambled</text>
+  <text x="890" y="140" text-anchor="middle" class="small">Payload</text>
 
-  <path d="M965 112 H1060" class="arrow"/>
-  <text x="1014" y="92" text-anchor="middle" class="small">To PHY</text>
+  <path d="M985 112 H1060" class="arrow"/>
+  <text x="1024" y="92" text-anchor="middle" class="small">To PHY</text>
 
   <path d="M777 180 V214 H90 V180" class="arrow"/>
   <text x="430" y="234" text-anchor="middle" class="small">Receiver aligns on clear headers, then descrambles payload bits</text>

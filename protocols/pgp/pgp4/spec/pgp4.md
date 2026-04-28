@@ -1082,6 +1082,28 @@ bypass controls, and vendor IP details are outside this protocol definition.
 | SKP support | Optional | Optional | Optional |
 | External FEC wrapper | Optional | Not part of the Lite profile definition | Yes |
 
+## 13. Glossary
+
+| Term | Meaning in this document |
+| --- | --- |
+| Endpoint | One side of a PGP4 link, including one transmitter and one receiver when the link is full-duplex |
+| Direction | One ordered PGP4 word stream from a transmitter to a receiver |
+| Line rate | The serialized bit rate on one physical direction of the link, before 64b/66b overhead is removed |
+| PGP4 word | One 66-bit transfer unit: a 2-bit header plus a 64-bit payload field |
+| 66-bit word clock | The clock or recovered clock rate at which complete PGP4 words are produced or consumed by the protocol layer |
+| 64-bit application word clock | The local user-side payload beat rate when the application presents or accepts one 64-bit payload word per protocol word opportunity |
+| Payload word | The 64-bit payload field of a PGP4 data word |
+| Control word | A PGP4 word with the control header and a block type field such as `IDLE`, `SOF`, `SOC`, `EOF`, `EOC`, `SKP`, or `USER` |
+| Cell | A scheduled piece of a frame, beginning with `SOF` or `SOC`, followed by data words, and ending with `EOF` or `EOC` |
+| Frame | The user-visible packet delivered on one VC; in full PGP4 it can span multiple cells |
+| Virtual Channel (VC) | One logical frame stream multiplexed over the same physical PGP4 direction |
+| `LINKINFO` | The receive-state metadata carried in selected control words, including pause, overflow, `RXREADY`, and sideband data |
+| `RXREADY` | The advertised indication that the local receiver has acquired the incoming stream and can accept protocol traffic |
+| Elastic buffer | Receive-side storage that absorbs clock-frequency differences between the incoming recovered word stream and the local consume clock |
+| `SKP` | A removable control word inserted periodically so the receive elastic buffer can compensate for clock drift |
+| BTF | The control-word block type field in payload bits `63:56` |
+| CSC | The 8-bit control-word checksum in payload bits `55:48` |
+
 ## Appendix A. Local Stream Mapping
 
 The repository implementation maps PGP4 frame traffic onto 8-byte AXI-Stream
@@ -1235,6 +1257,12 @@ direction. With 66 serialized bits per PGP4 word, the PGP4 word rate is:
 ```text
 10.3125e9 / 66 = 156.25e6 words/s
 ```
+
+An implementation may expose different internal PHY clocks, such as a
+transceiver reference clock or a gearbox clock. Those are wrapper details. The
+protocol calculations here use the serialized line rate, the 66-bit PGP4 word
+rate, and the local rate at which 64-bit payload beats are accepted or
+delivered.
 
 Assume independent reference clocks with +/-100 ppm tolerance at each end. The
 worst case for receive elastic-buffer fill is the far transmitter fast by
