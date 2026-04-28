@@ -123,6 +123,9 @@ architecture rtl of CoaXPressRxHsFsm is
    signal rin     : RegType;
    signal packRst : sl;
 
+   signal pipeMaster : AxiStreamMasterType;
+   signal pipeSlave  : AxiStreamSlaveType;
+
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
@@ -130,17 +133,18 @@ begin
 
    packRst <= rxRst or rxFsmRst;
 
-   comb : process (r, rxFsmRst, rxMaster, rxRst) is
-      variable v     : RegType;
-      variable tData : slv(31 downto 0);
-      variable more  : sl;
-      variable idx   : natural range 0 to NUM_LANES_G-1;
+   comb : process (pipeMaster, r, rxFsmRst, rxRst) is
+      variable v       : RegType;
+      variable tData   : slv(31 downto 0);
+      variable eolBeat : sl;
+      variable eolCnt  : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+      variable eolWrd  : natural range 0 to NUM_LANES_G-1;
    begin
       -- Latch the current value
       v := r;
 
       -- Init Variable
-      tData := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      tData := pipeMaster.tData(32*r.wrd+31 downto 32*r.wrd);
 
       -- Reset strobes
       v.dbg.errDet := '0';
@@ -149,7 +153,7 @@ begin
       -- Loop the number of 32-bit words
       for i in 0 to NUM_LANES_G-1 loop
          -- Check for maker pattern
-         if (rxMaster.tData(32*i+31 downto 32*i) = CXP_MARKER_C) then
+         if (pipeMaster.tData(32*i+31 downto 32*i) = CXP_MARKER_C) then
             v.dbg.maker(i) := '1';
          end if;
       end loop;
@@ -161,7 +165,7 @@ begin
 
       -- Init data stream
       v.dataMasters(0).tValid := '0';                -- Reset strobe
-      v.dataMasters(0).tData  := rxMaster.tData;
+      v.dataMasters(0).tData  := pipeMaster.tData;
       -- Check if state is not STEP_S
       if (r.state /= STEP_S) then
          v.dataMasters(0).tKeep := (others => '0');  -- Reset bus
@@ -171,7 +175,7 @@ begin
       v.rxSlave.tReady := '0';
 
       -- Check for valid data
-      if (rxMaster.tValid = '1') then
+      if (pipeMaster.tValid = '1') then
 
          -- State Machine
          case r.state is
@@ -277,17 +281,38 @@ begin
                -- Write the data
                v.dataMasters(0).tValid := '1';
 
-               -- Accept the data unless a later valid word in this same beat
-               -- must be reparsed as the next marker/type sequence.
+               -- Accept the data unless the next word in this same beat must be
+               -- reparsed as the next marker/type sequence.
                v.rxSlave.tReady := '1';
-               more             := '0';
-               idx              := 0;
+               eolBeat          := '0';
+               eolCnt           := r.dCnt;
+               eolWrd           := 0;
+
+               -- Infer the line-ending word from the registered count.  Keeping
+               -- this independent of the TKEEP-building loop avoids placing the
+               -- post-increment data count in the TREADY path.
+               for i in 0 to NUM_LANES_G-1 loop
+                  if (pipeMaster.tKeep(4*i) = '1') and (eolBeat = '0') then
+                     eolCnt := eolCnt + 1;
+                     if (eolCnt = r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+                        eolBeat := '1';
+                        eolWrd  := i;
+                     end if;
+                  end if;
+               end loop;
+
+               if (eolBeat = '1') and (eolWrd /= NUM_LANES_G-1) then
+                  if (pipeMaster.tKeep(4*(eolWrd+1)) = '1') then
+                     v.rxSlave.tReady := '0';
+                     v.wrd            := eolWrd+1;
+                  end if;
+               end if;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
 
                   -- Check for not "end of line" and valid data
-                  if (v.endOfLine = '0') and (rxMaster.tKeep(4*i) = '1') then
+                  if (v.endOfLine = '0') and (pipeMaster.tKeep(4*i) = '1') then
 
                      -- Update the TKEEP mask
                      v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"F";
@@ -301,21 +326,9 @@ begin
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
 
-                        -- Hold the current beat only when additional valid
-                        -- words remain after the line tail.
-                        for j in i+1 to NUM_LANES_G-1 loop
-                           if (rxMaster.tKeep(4*j) = '1') and (more = '0') then
-                              more := '1';
-                              idx  := j;
-                           end if;
-                        end loop;
-
                         -- Next State
                         v.state := IDLE_S;
-                        if (more = '1') then
-                           v.rxSlave.tReady := '0';
-                           v.wrd            := idx;
-                        else
+                        if (v.rxSlave.tReady = '1') then
                            v.wrd := 0;
                         end if;
 
@@ -343,7 +356,7 @@ begin
                v.wrd := r.wrd + 1;
 
                -- Check if no more data available
-               if (rxMaster.tKeep(4*v.wrd) = '0') then
+               if (pipeMaster.tKeep(4*v.wrd) = '0') then
                   -- Reset the counter
                   v.wrd := 0;
 
@@ -480,7 +493,7 @@ begin
       v.hdrMaster.tData(223 downto 208) := r.hdr.tapG(15 downto 0);
 
       -- Outputs
-      rxSlave    <= v.rxSlave;
+      pipeSlave  <= v.rxSlave;
       hdrMaster  <= r.hdrMaster;
       rxFsmError <= r.dbg.errDet;
 
@@ -500,6 +513,18 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_RxPipe : entity surf.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => 1)
+      port map (
+         axisClk     => rxClk,
+         axisRst     => packRst,
+         sAxisMaster => rxMaster,
+         sAxisSlave  => rxSlave,
+         mAxisMaster => pipeMaster,
+         mAxisSlave  => pipeSlave);
 
    U_Pack : entity surf.CoaXPressRxWordPacker
       generic map (
