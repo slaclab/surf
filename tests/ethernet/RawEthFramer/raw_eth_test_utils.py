@@ -16,7 +16,7 @@ from pathlib import Path
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.axi.utils import axil_read_u32, axil_write_u32
+from tests.axi.utils import axil_read_u32, axil_write_u32, wait_sampled_ready
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     FlatEmacEndpoint,
     cycle,
@@ -91,11 +91,10 @@ class FlatRawAppEndpoint:
         self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk) -> None:
-        while True:
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
-            if int(self._sig("TReady").value) == 1:
-                return
+        await wait_sampled_ready(
+            self._sig("TReady"),
+            clk=clk,
+        )
 
     def snapshot(self) -> RawAppBeat:
         return RawAppBeat(

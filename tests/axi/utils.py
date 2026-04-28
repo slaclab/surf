@@ -8,6 +8,8 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+from cocotb.triggers import RisingEdge, Timer
+
 
 def ring_buffer_axil_addr(bus_index: int, buf: int = 0, high: int = 0) -> int:
     # The ring-buffer register maps pack MODE/STATUS more tightly than the
@@ -31,3 +33,25 @@ async def axil_write_u32(master, address: int, value: int) -> None:
 
     txn = await master.write(address, value.to_bytes(4, "little"))
     assert txn.resp == AxiResp.OKAY
+
+
+async def wait_sampled_ready(
+    ready_signal,
+    *,
+    clk,
+    timeout_cycles: int = 1024,
+    settle_time_ns: float = 1.0,
+) -> None:
+    # AXI-style ready/valid transfers complete on a sampling clock edge, so a
+    # source must hold its current beat stable until a clock edge confirms that
+    # the sink presented `TREADY`.
+    for _ in range(timeout_cycles):
+        await RisingEdge(clk)
+        await Timer(settle_time_ns, unit="ns")
+        if int(ready_signal.value) == 1:
+            return
+
+    label = getattr(ready_signal, "_name", None)
+    if label is None:
+        label = str(ready_signal)
+    raise AssertionError(f"Timed out waiting for sampled handshake on {label}")
