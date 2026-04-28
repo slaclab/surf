@@ -81,6 +81,13 @@ internals, register maps, AXI-Stream or AXI-Lite local binding details,
 resource-use guidance, or future optimization plans. Repository-specific RTL,
 test, and software mappings are collected in the appendices.
 
+PGP4 links do not negotiate their profile on the wire. Endpoints are configured
+out of band for the same profile choices: full PGP4 or Pgp4Lite transmit
+behavior, FEC wrapper use, skip insertion, VC count, flow-control policy, and
+physical line configuration. A receiver can detect many incompatible choices as
+bad headers, bad control words, protocol version errors, sequence errors, or
+CRC errors, but the base protocol does not include an auto-negotiation phase.
+
 ## 2. Reading This Specification
 
 The protocol requirements in this document are written in direct prose rather
@@ -101,7 +108,7 @@ the block type field.
 
 PGP4 transports frames on virtual channels. A frame belongs to one VC. In the
 full protocol, a frame is divided into one or more cells. Each cell starts with
-`SOF` or `SOC`, contains zero or more data words, and ends with `EOF` or `EOC`.
+`SOF` or `SOC`, contains one or more data words, and ends with `EOF` or `EOC`.
 The first cell of a frame starts with `SOF`. Continuation cells start with
 `SOC`. A non-final cell ends with `EOC`; the final cell ends with `EOF`.
 
@@ -250,7 +257,7 @@ so receiver-state metadata continues to advance during frame traffic.
 The `VC` field identifies the virtual channel for the cell that follows. The
 receiver applies that VC value to the data words and terminating control word
 of the cell. The `SEQ` field supports cell ordering checks, described in
-Section 7.2.
+Section 7.1.
 
 ### 5.5 EOF and EOC
 
@@ -262,7 +269,7 @@ later `SOC`.
 | --- | --- | --- |
 | `63:56` | `BTF` | `0x55` for `EOF`, `0x33` for `EOC` |
 | `55:48` | `CSC` | Control-word checksum |
-| `47:16` | `CRC32` | 32-bit data CRC for the cell payload |
+| `47:16` | `CRC32` | Running 32-bit frame data CRC at this cell boundary |
 | `15:12` | `BytesLast` | Number of valid bytes in the final data word |
 | `11:8` | Reserved | Transmitted as zero; ignored on receive |
 | `7:0` | `TUSER_LAST` | Endpoint-defined terminal user bits |
@@ -270,6 +277,11 @@ later `SOC`.
 `BytesLast` is the count of valid bytes in the last data word of the cell. A
 value of `8` means all eight bytes are valid. Endpoint bindings that only emit
 whole 64-bit payload words transmit `BytesLast = 8`.
+
+Legal `BytesLast` values are `1` through `8` on `EOF`. Values `0` and `9`
+through `15` are invalid. An `EOC` ends a non-final cell on a full 64-bit
+payload word, so `EOC.BytesLast` is transmitted as `8` and receivers treat any
+other value on `EOC` as a structural cell error.
 
 ### 5.6 SKP
 
@@ -294,6 +306,73 @@ skip support is enabled. The receiver elastic buffer consumes accepted `SKP`
 words instead of forwarding them into the protocol state machine, which gives
 the buffer a controlled way to absorb clock drift without presenting a false
 frame delimiter to the cell parser.
+
+The skip interval is chosen from the worst-case frequency difference between
+the write side and read side of the receive elastic buffer. A `SKP` word gives
+the receiver one word time that can be removed from the stream, so an interval
+of `N` words can compensate for roughly one word of positive frequency drift
+per `N` transmitted words. A practical interval leaves margin for oscillator
+tolerance, spread-spectrum modulation if used, packet scheduling jitter, reset
+transients, and the elastic-buffer depth. Shorter intervals increase clock
+tolerance at the cost of more overhead. Longer intervals improve efficiency but
+require tighter clocks or a deeper elastic buffer. The repository default of
+5000 words corresponds to one removable word per 5000 transmitted words,
+about 200 ppm of compensation before implementation margin is considered.
+
+One way to size the interval is to model the elastic buffer in word units. Let
+`fw` be the incoming recovered word rate, including `SKP` opportunities, and
+let `fr` be the local word consumption rate. If a transmitter sends one `SKP`
+every `S` transmitted word opportunities, the average accepted write rate is
+approximately `fw * (1 - 1/S)`. Long-term overflow is avoided when:
+
+```text
+fw * (1 - 1/S) <= fr
+```
+
+Equivalently, if the maximum positive frequency error is expressed as
+`delta = (fw - fr) / fw`, then the skip fraction needs to be at least `delta`:
+
+```text
+1/S >= delta
+S <= 1/delta
+```
+
+For clocks specified in parts per million around the same nominal word rate,
+the worst positive error is approximately the sum of the remote transmitter
+fast tolerance and the local receiver slow tolerance:
+
+```text
+delta_ppm ~= tx_fast_ppm + rx_slow_ppm
+S <= 1_000_000 / delta_ppm
+```
+
+The elastic-buffer depth covers the finite-time error that remains around this
+average calculation. A useful way to reason about the required depth is the
+peak-to-peak cumulative phase error after removed `SKP` words:
+
+```text
+phase_error(t) = integral_0..t (fw(t) - fr(t)) dt - removed_skp_words(t)
+required_depth >= peak_to_peak(phase_error) + implementation_margin
+```
+
+With constant clocks and evenly spaced `SKP` words, the phase-error ripple is
+small when `S` is comfortably below `1/delta`. With spread-spectrum clocks,
+bursty reset behavior, long intervals, or shallow storage, the peak-to-peak
+term can dominate. This is the tradeoff: an implementation can reduce elastic
+buffer depth by inserting `SKP` more often, or reduce SKP overhead by providing
+more elastic storage and tighter clocks. `SKP` only compensates the case where
+the incoming recovered stream would otherwise fill the buffer faster than the
+local side drains it; if the local side is faster on average, the buffer may
+occasionally empty and the protocol state machine simply sees gaps in
+`protRxValid`.
+
+When skip support is enabled for a link, a transmitter can insert `SKP` between
+any two PGP4 words, including between a cell start word and its terminating
+word. A receiver that supports skip insertion accepts `SKP`, exports or records
+its `RemoteLinkData`, and removes it before cell parsing. If skip support is
+disabled for an integration, both endpoints are configured that way; otherwise
+the receiver can interpret an unexpected `SKP` as an invalid control word for
+that profile.
 
 ### 5.7 USER
 
@@ -331,6 +410,15 @@ wait behind an arbitrarily long frame before it can be advertised upstream.
 Systems commonly assert pause before a receive buffer has less than one full
 cell of free space, so the far transmitter can stop selecting new cells for
 that VC while already-launched traffic drains through the link.
+
+Flow control is therefore cell-granular, not word-granular. A pause bit can
+prevent future cells from being selected for a VC, but it does not stop a cell
+that is already in flight. A receiver that relies on PGP4 pause for lossless
+operation needs enough buffer reserve to absorb the largest configured cell,
+the control words around that cell, and the round-trip time for the updated
+pause advertisement to reach and affect the far transmitter. PGP4 carries the
+pause state; the exact FIFO threshold and reserve budget are system integration
+choices.
 
 In full-duplex operation, both endpoints can continuously refresh this metadata
 even when only one endpoint has user frames to send. In a one-way or
@@ -372,14 +460,14 @@ the virtual channel for that cell. The data words following that start word are
 payload for the selected VC until the terminating `EOC` or `EOF` arrives.
 
 Each data payload word uses header `01`. Each cell delimiter uses header `10`
-and the control-word layout from Section 5. `EOF` and `EOC` carry the CRC for
-the data words in the cell they terminate.
+and the control-word layout from Section 5. `EOF` and `EOC` carry the running
+frame CRC value at the boundary they terminate.
 
-The first data word of a cell, if present, is normally the word immediately
-after `SOF` or `SOC`. The transmitter can insert permitted non-data control
-words, such as metadata `IDLE` words or sideband words, as long as the emitted
-stream remains structurally valid and the receiver never interprets those
-control words as payload.
+The first payload data word of a cell is normally the word immediately after
+`SOF` or `SOC`. The transmitter can insert permitted non-data control words,
+such as metadata `IDLE` words or sideband words, as long as the emitted stream
+remains structurally valid and the receiver never interprets those control
+words as payload.
 
 ### 7.1 Cell sequence field
 
@@ -387,19 +475,44 @@ control words as payload.
 frame on a VC; it is not a global word count, not a byte count, and not a
 replacement for the payload CRC.
 
-For a new frame, the first `SOF` carries the current sequence value for that
-VC. Each following cell for the same frame carries the next sequence value in
-its `SOC`. When the frame ends with `EOF`, the transmitter clears the active
-frame state for that VC so the next frame begins a new sequence. In the
-repository packetizer, this sequence state is tracked per destination VC, which
-lets different VCs interleave without sharing one global sequence counter.
+For a new frame, `SOF.SEQ` is zero. Each following cell for the same frame
+carries the next sequence value in its `SOC`, incrementing modulo 4096. When a
+frame ends with `EOF`, the transmitter clears the active sequence state for
+that VC so the next frame again begins with `SOF.SEQ = 0`. Sequence state is
+per VC, which lets different VCs interleave without sharing one global
+sequence counter.
 
-The receiver uses `SOF` and `SOC` to rebuild the same per-VC cell sequence. It
-reports a sequence error when a continuation cell does not follow the expected
-sequence behavior. Single-cell frames still carry a sequence value in `SOF`,
-but no continuation check is needed after their `EOF`.
+The receiver maintains the same per-VC sequence state. `SOF` is accepted as
+the first cell of a new frame when no frame is already active for that VC and
+`SOF.SEQ = 0`. `SOC` is accepted only as the next cell of an active frame for
+that VC, and its sequence value is checked against the expected modulo-4096
+value. Single-cell frames still carry `SOF.SEQ = 0`, but no continuation check
+is needed after their `EOF`.
 
-### 7.2 VC scheduling
+### 7.2 Cell structure and errors
+
+A receiver tracks one open cell at a time in the incoming word stream and an
+active-frame state per VC. A data word is payload only while a cell is open.
+`IDLE`, `USER`, and accepted `SKP` words can appear between a cell start and
+its terminator; they do not add payload bytes, close the cell, or change the
+cell's VC.
+
+`SOF` opens a first cell for its VC. `SOC` opens a continuation cell for its
+VC. `EOF` closes the current cell and the active frame for that cell's VC.
+`EOC` closes the current cell but leaves the frame active, so a later `SOC` on
+the same VC can continue it. The terminating `EOF` or `EOC` belongs to the
+most recent accepted `SOF` or `SOC`; it does not carry its own VC field.
+
+Structural errors include a data word with no open cell, `EOF` or `EOC` with
+no open cell, `SOF` for a VC that already has an active frame, `SOC` for a VC
+with no active frame, a continuation sequence mismatch, an unimplemented VC,
+or an invalid `BytesLast` value. A receiver reports the affected frame or cell
+as errored and clears enough per-VC state to avoid appending later payload to a
+corrupt frame. These errors do not by themselves require the physical link to
+drop; link loss is governed by alignment, valid control metadata, version
+checking, malformed control-word handling, and the link-maintenance watchdog.
+
+### 7.3 VC scheduling
 
 Full PGP4 permits cell-level interleaving across VCs. Once a cell has ended
 with `EOC`, the transmitter can choose another VC before returning to the
@@ -420,30 +533,61 @@ boundaries, per-VC cell order, and the pause behavior advertised through
 ## 8. Integrity Mechanisms
 
 PGP4 uses two integrity mechanisms. Control words use an 8-bit checksum so the
-receiver can reject malformed K-code metadata. Frame data uses a 32-bit CRC so
-the receiver can detect payload corruption within each cell.
+receiver can reject malformed K-code metadata. Frame data uses a running
+32-bit CRC so the receiver can detect payload corruption at each cell boundary.
 
 | Mechanism | Width | Coverage |
 | --- | --- | --- |
 | Control-word checksum (`CSC`) | 8 bits | Control-word `BTF` plus payload bits `47:0` |
-| Data CRC | 32 bits | Cell data payload |
+| Data CRC | 32 bits | Running frame data checkpoint at each cell boundary |
 
 For every control word, `CSC` is computed over payload bits `47:0` followed by
 `BTF` bits `63:56`. The `CSC` field itself is excluded. The checksum uses CRC
-polynomial `0x07`, initial value `0xFF`, reflected input ordering as defined by
-the PGP4 algorithm, and a final bit-reversal plus inversion.
+polynomial `0x07`, initial value `0xFF`, reflected input ordering, and a final
+bit-reversal plus inversion.
+
+The following pseudocode defines the control-word checksum. Bit ranges use the
+same numbering as the control-word tables.
+
+```text
+data[47:0]  = control_payload[47:0]
+data[55:48] = control_payload[63:56]
+data        = bit_reverse_56(data)
+crc         = 0xff
+
+for i in 0..55:
+    feedback = crc[7] xor data[i]
+    crc      = (((crc & 0x7f) << 1) | feedback)
+    if feedback == 1:
+        crc = crc xor 0x07
+
+CSC = bit_reverse_8(crc) xor 0xff
+```
 
 The data CRC polynomial is `0x04C11DB7`, matching the Ethernet CRC-32
-polynomial. The CRC covers the data payload words in one cell and is carried in
-`EOF.CRC32` or `EOC.CRC32`. Full PGP4 uses data-only CRC mode: the packetizer
-does not include the packetizer header or tail metadata in the data CRC.
+polynomial. Full PGP4 uses data-only CRC mode: the packetizer does not include
+the `SOF`/`SOC` start word or the `EOF`/`EOC` tail word in the data CRC. The
+CRC covers the 64-bit data words carried on the wire. If `EOF.BytesLast` is
+less than `8`, the trailing byte lanes of the final 64-bit data word are still
+transmitted and still included in the CRC; `BytesLast` only controls how many
+of those bytes are delivered to the local frame interface.
+
+The data CRC starts with remainder `0xFFFFFFFF` at `SOF`. Within each data
+word, bytes are processed in ascending byte-lane order: bits `7:0`, then
+`15:8`, continuing through bits `63:56`. Within each byte, bits are processed
+least-significant bit first. The transmitted `CRC32` field is the standard
+finalized CRC value after inversion and bit reflection of the running
+remainder. A receiver computes the same running CRC over the received data
+words and compares the finalized value at `EOF` or `EOC`.
 
 The CRC state is preserved per active VC frame. When a frame is split at an
 `EOC`, the transmitter stores the interim CRC remainder and the active sequence
 state for that VC. When the frame resumes with `SOC`, CRC calculation resumes
 from that stored remainder. This means each cell carries the CRC value for the
-payload progression up to that cell boundary, and the receiver checks the same
-progression while depacketizing the frame.
+frame payload progression up to that cell boundary, and the receiver checks
+the same progression while depacketizing the frame. The final `EOF.CRC32` is
+therefore the CRC for the complete frame, while each `EOC.CRC32` is a
+checkpoint for the same running frame CRC at an interleaving boundary.
 
 `BytesLast` is derived from the final valid byte count for the cell. For a
 non-final `EOC`, the cell ends on a full 64-bit payload word in the full
@@ -578,11 +722,14 @@ that has advertised backpressure. When local configuration disables flow
 control, VC selection ignores the remote pause bits and relies on the receiver
 or surrounding system to tolerate the traffic.
 
-Remote `RXREADY` gates frame transmission after startup. The transmitter can
-be locally ready and still refrain from selecting user frame traffic until the
-far endpoint has advertised receive readiness. This is why both directions of a
-PGP4 link exchange `LINKINFO` even when only one direction has user payload to
-send.
+Remote `RXREADY` gates frame transmission after startup when flow control is
+enabled. The transmitter can be locally ready and still refrain from selecting
+user frame traffic until the far endpoint has advertised receive readiness. If
+local configuration disables flow control for a one-way or system-managed
+deployment, the transmitter no longer relies on remote `RXREADY` and the
+surrounding system takes responsibility for receiver readiness. This is why
+normal full-duplex PGP4 links exchange `LINKINFO` even when only one direction
+has user payload to send.
 
 ### 10.2 Startup and idle generation
 
