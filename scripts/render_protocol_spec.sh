@@ -38,7 +38,6 @@ if [ -n "$CSS_FILE" ]; then
     --to html5 \
     --standalone \
     --embed-resources \
-    --number-sections \
     --toc \
     --resource-path="$RESOURCE_PATH" \
     --include-in-header="$HEADER_FILE" \
@@ -50,7 +49,6 @@ else
     --to html5 \
     --standalone \
     --embed-resources \
-    --number-sections \
     --toc \
     --resource-path="$RESOURCE_PATH" \
     --output "$OUTPUT_HTML" \

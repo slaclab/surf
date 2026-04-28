@@ -66,3 +66,108 @@ img, svg {
 figure {
   margin: 1.5rem 0;
 }
+
+@media print {
+  @page {
+    size: letter;
+    margin: 0.65in 0.7in;
+  }
+
+  body {
+    margin: 0;
+    max-width: none;
+    padding: 0;
+    color: #111827;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.42;
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: 22pt;
+  }
+
+  h2 {
+    margin-top: 1.2rem;
+    padding-top: 0.2rem;
+    border-top: 1px solid #d8dee6;
+    font-size: 15pt;
+  }
+
+  h3 {
+    font-size: 12pt;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  h1 + *, h2 + *, h3 + *, h4 + *, h5 + *, h6 + * {
+    break-before: avoid-page;
+    page-break-before: avoid;
+  }
+
+  #TOC {
+    font-size: 8.5pt;
+    line-height: 1.18;
+    break-after: page;
+  }
+
+  #TOC ul {
+    margin-top: 0.1rem;
+    margin-bottom: 0.1rem;
+  }
+
+  #TOC li {
+    margin: 0;
+  }
+
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  li {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table {
+    font-size: 8.5pt;
+    background: #ffffff;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  th, td {
+    padding: 0.28rem 0.36rem;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  pre, blockquote, figure, .figure, img, svg {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  img, svg {
+    max-height: 7in;
+    margin: 0.75rem auto 1rem;
+  }
+}

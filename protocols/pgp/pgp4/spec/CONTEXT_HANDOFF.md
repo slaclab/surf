@@ -9,6 +9,8 @@ work on the PGP4 specification effort.
   `protocols/pgp/pgp4/spec/pgp4.md`.
 - The rendered HTML target is
   `build/specs/protocols/pgp/pgp4/pgp4.html`.
+- The rendered PDF target is
+  `build/specs/protocols/pgp/pgp4/pgp4.pdf`.
 - The protocol-local figure assets are under
   `protocols/pgp/pgp4/spec/assets/`.
 - The reusable repository-wide spec framework is under
@@ -21,17 +23,22 @@ work on the PGP4 specification effort.
 - Canonical authoring format is Markdown.
 - Initial renderer is Pandoc.
 - The spec is implementation-first, using RTL and tests as the authority.
-- Confluence is reference-only and is not the seed or normative source.
+- Confluence and earlier proceedings material are reference-only; exact
+  protocol behavior follows the repository implementation where the sources
+  disagree.
+- The main body uses narrative prose rather than RFC keyword style.
+- Existing implementation details are concentrated in appendices unless a
+  repository default is also useful as a protocol profile default.
 - Exact bit and field structures are primarily represented as tables.
 - Diagrams are used where flow, layering, or block interaction is clearer than
   a table.
 - Figure assets are checked-in SVG files.
 - The first document scope includes:
-  - full PGP4
+  - Full PGP4
   - Pgp4Lite
   - FEC-enabled profile behavior at the protocol/profile level
 - Vendor/transceiver wrapper internals are intentionally excluded from the
-  normative body except where they affect wire-visible behavior.
+  main body except where they affect wire-visible behavior.
 
 ## Files That Matter Most
 
@@ -43,6 +50,7 @@ work on the PGP4 specification effort.
 - `docs/protocol-specs/TEMPLATE.md`
 - `docs/protocol-specs/protocol-spec.css`
 - `scripts/render_protocol_spec.sh`
+- `scripts/render_protocol_pdf.sh`
 
 ### Primary implementation sources
 
@@ -76,24 +84,39 @@ work on the PGP4 specification effort.
   - section template
   - shared CSS
   - shared Pandoc renderer
-- Added the first PGP4 specification draft with:
-  - normative protocol sections
-  - table-driven field definitions
-  - profile comparison matrix
-  - AXI-Lite monitor summary
-  - non-normative Confluence comparison notes
-  - non-normative implementation-backed verification notes
-- Added five SVG diagrams:
+- Added and revised the first PGP4 specification draft with:
+  - Motivation and scope discussion
+  - Link direction and half-duplex/unidirectional discussion
+  - Table-driven field definitions
+  - Full PGP4 control-word, flow-control, cell, frame, CRC, and transmit
+    behavior
+  - Receive alignment, gearbox-style acquisition, link maintenance, and link
+    loss behavior
+  - Pgp4Lite subset narrative and compatibility notes
+  - Optional FEC profile boundary
+  - Glossary
+  - Local stream mapping, monitor/control, repository implementation notes, and
+    a 10.3125 Gb/s design example appendix
+- Added seven SVG diagrams:
   - `pgp4-stack.svg`
   - `pgp4-txrx-path.svg`
   - `pgp4-link-state.svg`
   - `pgp4-flow-control.svg`
   - `pgp4-cell-sequence.svg`
+  - `pgp4-rx-pipeline.svg`
+  - `pgp4-word-processing.svg`
 - Added a protocol-local `Makefile` render target.
 - Updated the render script to:
   - accept YAML metadata
   - inline CSS in the output head
   - produce a portable standalone HTML artifact
+- Added `scripts/render_protocol_pdf.sh` and `make pdf`; the PDF path uses
+  Pandoc to generate standalone HTML, then prefers Chrome/Chromium headless for
+  PDF output so browser SVG rendering matches the HTML view. WeasyPrint,
+  wkhtmltopdf, and pagedjs-cli remain fallback engines.
+- Updated style guidance to capitalize bullet items and visible diagram text.
+- Removed Pandoc automatic section numbering from generated HTML/PDF because
+  the Markdown headings are already explicitly numbered.
 
 ## Verification Performed
 
@@ -103,29 +126,40 @@ work on the PGP4 specification effort.
   - `build/specs/protocols/pgp/pgp4/pgp4.html`
 - Verified the HTML title is populated from Markdown metadata.
 - Verified the output inlines CSS instead of linking to an absolute local path.
+- Verified SVG syntax with:
+  - `xmllint --noout protocols/pgp/pgp4/spec/assets/*.svg`
+- Verified capitalization scans for bullet items and SVG text.
+- Verified whitespace with:
+  - `git diff --check`
+- Installed WeasyPrint 68.1 with Homebrew and verified PDF rendering with:
+  - `make -C protocols/pgp/pgp4/spec pdf`
+- Switched PDF rendering to Chrome headless after WeasyPrint rendered SVG
+  markers incorrectly in the generated PDF.
+- Verified the PDF artifact exists:
+  - `build/specs/protocols/pgp/pgp4/pgp4.pdf`
 
 ## Known Limitations
 
 - The full PGP4 RTL/cocotb regression suite was not re-run after the spec work,
   because this task only added documentation assets and render tooling.
-- `git status` hit an unrelated Git LFS clean-filter failure in this workspace:
-  - `ethernet/Caui4Core/gtyUltraScale+/ip/Caui4GtyIpCore156MHz.dcp`
-  This is unrelated to the spec files but may interfere with some Git commands.
 - The current diagrams are static SVG assets, not generated from a source DSL.
-- The HTML render path is established; PDF output has not been added.
+- PDF rendering prefers Google Chrome, Chromium, or Microsoft Edge. If no
+  browser is available, the script falls back to `weasyprint`, `wkhtmltopdf`,
+  or `pagedjs-cli`. Set `PDF_ENGINE` or `CHROME_BIN` to override detection.
+- WeasyPrint emits harmless warnings for a few screen-oriented CSS properties
+  such as horizontal overflow and narrow-screen media rules while producing
+  paged PDF output. More importantly, WeasyPrint currently renders some SVG
+  markers incorrectly, so Chrome is the preferred engine.
 
 ## Recommended Next Steps
 
-1. Do a technical review pass on `pgp4.md` with a maintainer who knows the
-   original protocol intent.
-2. Tighten any wording where the current draft still mixes “implementation
-   behavior” and “protocol requirement” more than desired.
-3. Decide whether the FEC section should stay profile-level only or gain a
-   separate non-normative appendix describing the wrapper boundary in more
-   detail.
-4. Decide whether low-speed receive behavior should get one additional diagram
-   or appendix section.
-5. If this workflow is accepted, apply the same structure to the next protocol
+1. Do a visual review of `build/specs/protocols/pgp/pgp4/pgp4.pdf`, especially
+   diagrams and wide tables.
+2. Do a final technical review pass on `pgp4.md` with a maintainer who knows
+   the original protocol intent.
+3. Check whether any remaining repository-default values should move between
+   the main protocol profile discussion and Appendix C.
+4. If this workflow is accepted, apply the same structure to the next protocol
    spec under `protocols/.../spec/`.
 
 ## Editing Guidance for the Next Person
@@ -133,12 +167,12 @@ work on the PGP4 specification effort.
 - Keep `pgp4.md` authoritative over any generated HTML.
 - Prefer changing the Markdown or SVG sources rather than editing rendered
   output.
-- When changing normative text, cross-check against both RTL and the targeted
-  regression that exercises that behavior.
+- When changing protocol behavior text, cross-check against both RTL and the
+  targeted regression that exercises that behavior.
 - Use tables for bit layouts unless a flow diagram communicates something that
   the table cannot.
-- Do not pull Confluence text in verbatim as normative content unless it is
-  confirmed by code/tests.
+- Do not pull Confluence or proceedings text in verbatim as protocol content
+  unless it is confirmed by code/tests.
 
 ## Useful Commands
 
@@ -146,6 +180,18 @@ Render the spec:
 
 ```sh
 make -C protocols/pgp/pgp4/spec html
+```
+
+Render the PDF:
+
+```sh
+make -C protocols/pgp/pgp4/spec pdf
+```
+
+Use a specific supported PDF engine:
+
+```sh
+PDF_ENGINE=weasyprint make -C protocols/pgp/pgp4/spec pdf
 ```
 
 Inspect the spec files:
