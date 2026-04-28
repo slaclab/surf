@@ -1,0 +1,68 @@
+body {
+  margin: 2rem auto;
+  max-width: 70rem;
+  padding: 0 1.5rem 4rem;
+  color: #14213d;
+  background: #f7f7f2;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  color: #0b2545;
+  line-height: 1.25;
+}
+
+h1 {
+  border-bottom: 3px solid #c7d3dd;
+  padding-bottom: 0.4rem;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: #eef2f5;
+  padding: 0.05rem 0.25rem;
+  border-radius: 0.2rem;
+}
+
+pre code {
+  padding: 0;
+  background: transparent;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.95rem;
+  background: #ffffff;
+}
+
+th, td {
+  border: 1px solid #c7d3dd;
+  padding: 0.45rem 0.6rem;
+  vertical-align: top;
+}
+
+th {
+  background: #e7edf2;
+}
+
+blockquote {
+  border-left: 4px solid #98a8b8;
+  margin-left: 0;
+  padding-left: 1rem;
+  color: #31465f;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+  margin: 1rem auto 1.5rem;
+  background: #ffffff;
+}
+
+.figure,
+figure {
+  margin: 1.5rem 0;
+}

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="380" viewBox="0 0 1040 380">
+  <style>
+    .title { font: 700 22px Arial, sans-serif; fill: #0b2545; }
+    .label { font: 600 15px Arial, sans-serif; fill: #0b2545; }
+    .text { font: 13px Arial, sans-serif; fill: #18324a; }
+    .small { font: 12px Arial, sans-serif; fill: #35516d; }
+    .box { stroke: #16324f; stroke-width: 2; rx: 8; ry: 8; }
+    .arrow { stroke: #16324f; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#16324f"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="36" class="title">PGP4 Protocol Layering</text>
+
+  <rect x="60" y="76" width="260" height="82" class="box" fill="#d9f0ff"/>
+  <text x="190" y="108" text-anchor="middle" class="label">User Frame Logic</text>
+  <text x="190" y="132" text-anchor="middle" class="text">frame sources and sinks</text>
+
+  <rect x="60" y="194" width="260" height="82" class="box" fill="#e8f6df"/>
+  <text x="190" y="226" text-anchor="middle" class="label">Receive Buffers</text>
+  <text x="190" y="250" text-anchor="middle" class="text">pause and overflow per VC</text>
+
+  <rect x="390" y="64" width="280" height="226" class="box" fill="#fff2c8"/>
+  <text x="530" y="98" text-anchor="middle" class="label">PGP4 Protocol Core</text>
+  <text x="530" y="128" text-anchor="middle" class="text">VC selection and cell framing</text>
+  <text x="530" y="152" text-anchor="middle" class="text">control words and LINKINFO</text>
+  <text x="530" y="176" text-anchor="middle" class="text">CRC, opcodes, and SKP words</text>
+  <text x="530" y="218" text-anchor="middle" class="small">Full profile: SOF/SOC and EOF/EOC</text>
+  <text x="530" y="240" text-anchor="middle" class="small">Lite profile: SOF/EOF only on TX</text>
+
+  <rect x="740" y="76" width="240" height="82" class="box" fill="#fde2d5"/>
+  <text x="860" y="108" text-anchor="middle" class="label">66-bit Word Stream</text>
+  <text x="860" y="132" text-anchor="middle" class="text">64-bit payload plus header</text>
+
+  <rect x="740" y="194" width="240" height="82" class="box" fill="#f8dff0"/>
+  <text x="860" y="226" text-anchor="middle" class="label">Optional FEC Layer</text>
+  <text x="860" y="250" text-anchor="middle" class="text">outside the protocol words</text>
+
+  <rect x="390" y="318" width="280" height="42" class="box" fill="#e9e3ff"/>
+  <text x="530" y="344" text-anchor="middle" class="label">Local Monitor and Control</text>
+
+  <path d="M320 117 L380 117" class="arrow"/>
+  <path d="M320 235 L380 235" class="arrow"/>
+  <path d="M670 117 L730 117" class="arrow"/>
+  <path d="M670 235 L730 235" class="arrow"/>
+  <path d="M530 290 L530 312" class="arrow"/>
+
+  <text x="350" y="106" text-anchor="middle" class="small">frames</text>
+  <text x="350" y="224" text-anchor="middle" class="small">flow state</text>
+  <text x="700" y="106" text-anchor="middle" class="small">64b/66b</text>
+  <text x="700" y="224" text-anchor="middle" class="small">wrap</text>
+</svg>

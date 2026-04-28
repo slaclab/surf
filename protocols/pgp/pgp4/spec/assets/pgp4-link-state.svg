@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="430" viewBox="0 0 1040 430">
+  <style>
+    .title { font: 700 22px Arial, sans-serif; fill: #0b2545; }
+    .label { font: 600 15px Arial, sans-serif; fill: #0b2545; }
+    .text { font: 13px Arial, sans-serif; fill: #18324a; }
+    .note { font: 12px Arial, sans-serif; fill: #35516d; }
+    .box { stroke: #16324f; stroke-width: 2; rx: 8; ry: 8; }
+    .arrow { stroke: #16324f; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#16324f"/>
+    </marker>
+  </defs>
+
+  <text x="32" y="34" class="title">PGP4 Link Bring-Up and Maintenance</text>
+
+  <rect x="60" y="88" width="240" height="98" class="box" fill="#d9f0ff"/>
+  <text x="180" y="122" text-anchor="middle" class="label">Reset or Disabled</text>
+  <text x="180" y="148" text-anchor="middle" class="text">TX is not ready</text>
+  <text x="180" y="170" text-anchor="middle" class="text">RX link state is clear</text>
+
+  <rect x="400" y="88" width="250" height="98" class="box" fill="#fff2c8"/>
+  <text x="525" y="122" text-anchor="middle" class="label">Startup Control Fill</text>
+  <text x="525" y="148" text-anchor="middle" class="text">valid IDLE and SKP words</text>
+  <text x="525" y="170" text-anchor="middle" class="text">no frame payload yet</text>
+
+  <rect x="750" y="88" width="240" height="98" class="box" fill="#e8f6df"/>
+  <text x="870" y="122" text-anchor="middle" class="label">Link-Up Search</text>
+  <text x="870" y="148" text-anchor="middle" class="text">RX counts valid</text>
+  <text x="870" y="170" text-anchor="middle" class="text">control words</text>
+
+  <rect x="400" y="260" width="250" height="106" class="box" fill="#fde2d5"/>
+  <text x="525" y="294" text-anchor="middle" class="label">Linked Operation</text>
+  <text x="525" y="320" text-anchor="middle" class="text">frames and sideband words</text>
+  <text x="525" y="342" text-anchor="middle" class="text">with periodic LINKINFO</text>
+
+  <rect x="750" y="260" width="240" height="106" class="box" fill="#f8dff0"/>
+  <text x="870" y="294" text-anchor="middle" class="label">Recovery</text>
+  <text x="870" y="320" text-anchor="middle" class="text">timeout, reset, or</text>
+  <text x="870" y="342" text-anchor="middle" class="text">protocol error</text>
+
+  <path d="M300 137 L390 137" class="arrow"/>
+  <path d="M650 137 L740 137" class="arrow"/>
+  <path d="M870 186 L870 250" class="arrow"/>
+  <path d="M750 313 L660 313" class="arrow"/>
+  <path d="M400 313 L180 313 L180 196" class="arrow"/>
+  <path d="M525 186 L525 250" class="arrow"/>
+
+  <text x="346" y="122" text-anchor="middle" class="note">reset released</text>
+  <text x="696" y="122" text-anchor="middle" class="note">startup done</text>
+  <text x="552" y="226" text-anchor="middle" class="note">linkReady</text>
+  <text x="902" y="226" text-anchor="middle" class="note">valid run found</text>
+  <text x="706" y="298" text-anchor="middle" class="note">restart</text>
+  <text x="244" y="296" text-anchor="middle" class="note">disable or inactive PHY</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="430" viewBox="0 0 1120 430">
+  <style>
+    .title { font: 700 22px Arial, sans-serif; fill: #0b2545; }
+    .label { font: 600 15px Arial, sans-serif; fill: #0b2545; }
+    .text { font: 13px Arial, sans-serif; fill: #18324a; }
+    .box { stroke: #16324f; stroke-width: 2; rx: 8; ry: 8; }
+    .arrowA { stroke: #0f5c78; stroke-width: 3; fill: none; marker-end: url(#arrowA); }
+    .arrowB { stroke: #8a3a1d; stroke-width: 3; fill: none; marker-end: url(#arrowB); }
+  </style>
+  <defs>
+    <marker id="arrowA" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#0f5c78"/>
+    </marker>
+    <marker id="arrowB" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8a3a1d"/>
+    </marker>
+  </defs>
+
+  <text x="32" y="34" class="title">PGP4 Flow Control and Sideband Exchange</text>
+
+  <rect x="70" y="88" width="300" height="116" class="box" fill="#d9f0ff"/>
+  <text x="220" y="122" text-anchor="middle" class="label">Endpoint A Receiver</text>
+  <text x="220" y="148" text-anchor="middle" class="text">tracks pause per VC</text>
+  <text x="220" y="170" text-anchor="middle" class="text">tracks overflow events</text>
+  <text x="220" y="192" text-anchor="middle" class="text">publishes RXREADY</text>
+
+  <rect x="750" y="88" width="300" height="116" class="box" fill="#d9f0ff"/>
+  <text x="900" y="122" text-anchor="middle" class="label">Endpoint B Receiver</text>
+  <text x="900" y="148" text-anchor="middle" class="text">tracks the same state</text>
+  <text x="900" y="170" text-anchor="middle" class="text">publishes it to A</text>
+  <text x="900" y="192" text-anchor="middle" class="text">through control words</text>
+
+  <rect x="70" y="262" width="300" height="96" class="box" fill="#fff2c8"/>
+  <text x="220" y="296" text-anchor="middle" class="label">Endpoint A Transmitter</text>
+  <text x="220" y="322" text-anchor="middle" class="text">uses B pause state</text>
+  <text x="220" y="344" text-anchor="middle" class="text">when selecting VCs</text>
+
+  <rect x="750" y="262" width="300" height="96" class="box" fill="#fff2c8"/>
+  <text x="900" y="296" text-anchor="middle" class="label">Endpoint B Transmitter</text>
+  <text x="900" y="322" text-anchor="middle" class="text">uses A pause state</text>
+  <text x="900" y="344" text-anchor="middle" class="text">when selecting VCs</text>
+
+  <path d="M370 146 L740 146" class="arrowA"/>
+  <path d="M750 310 L380 310" class="arrowB"/>
+
+  <text x="560" y="126" text-anchor="middle" class="label" fill="#0f5c78">A to B metadata</text>
+  <text x="560" y="166" text-anchor="middle" class="text">IDLE, SOF, and SOC carry LINKINFO</text>
+  <text x="560" y="188" text-anchor="middle" class="text">IDLE also carries overflow bits</text>
+
+  <text x="560" y="282" text-anchor="middle" class="label" fill="#8a3a1d">B to A scheduling effect</text>
+  <text x="560" y="326" text-anchor="middle" class="text">remote pause blocks new VC selection</text>
+</svg>
