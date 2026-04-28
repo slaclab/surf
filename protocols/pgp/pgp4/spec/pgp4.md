@@ -98,6 +98,11 @@ PGP4 endpoint.
 Tables define exact bit positions and encoded values. Figures are explanatory
 views of the same behavior and are not a substitute for the tables.
 
+The main body describes the protocol and its default profile values without
+depending on a particular codebase. Appendix C maps those protocol choices to
+the SURF VHDL implementation, including top-level generics, register-facing
+controls, and implemented defaults.
+
 ## 3. Protocol Model
 
 A PGP4 direction is a sequence of 66-bit words. Each word has a 64-bit payload
@@ -137,23 +142,23 @@ elastic storage the receiver needs. A clean implementation can expose these as
 generic parameters, software configuration, board straps, or fixed build-time
 choices, but both ends of a link need compatible values.
 
-| Profile choice | Why it matters |
-| --- | --- |
-| Full PGP4 or Pgp4Lite transmit behavior | Determines whether `SOC`/`EOC` continuation cells can be emitted |
-| Number of implemented VCs | Defines which `VC` values are accepted and which pause bits are meaningful |
-| Maximum cell payload words | Bounds flow-control latency, VC interleaving latency, and watchdog sizing |
-| Skip insertion support and interval | Determines whether `SKP` can appear in the stream and how much clock drift can be absorbed |
-| Flow-control policy | Determines whether remote `RXREADY` and pause bits gate frame transmission |
-| FEC wrapper profile | Determines whether an outer correction layer surrounds the PGP4 word stream |
-| Physical line rate and PHY wrapper | Determines serial timing, reset behavior, and the alignment wrapper below PGP4 |
-| Opcode and sideband use | Determines how endpoint-specific control information is interpreted |
+| Profile choice | Default full-profile value | Why it matters |
+| --- | --- | --- |
+| Full PGP4 or Pgp4Lite transmit behavior | Full PGP4 | Determines whether `SOC`/`EOC` continuation cells can be emitted |
+| Number of implemented VCs | 4 common, 1 to 16 allowed | Defines which `VC` values are accepted and which pause bits are meaningful |
+| Maximum cell payload words | 128 | Bounds flow-control latency, VC interleaving latency, and watchdog sizing |
+| Skip insertion support and interval | Enabled, 5000-word interval | Determines whether `SKP` can appear in the stream and how much clock drift can be absorbed |
+| Flow-control policy | Enabled | Determines whether remote `RXREADY` and pause bits gate frame transmission |
+| FEC wrapper profile | Disabled unless configured | Determines whether an outer correction layer surrounds the PGP4 word stream |
+| Physical line rate and PHY wrapper | Integration-specific | Determines serial timing, reset behavior, and the alignment wrapper below PGP4 |
+| Opcode and sideband use | Integration-specific | Determines how endpoint-specific control information is interpreted |
 
 The maximum cell payload size is part of the link profile, not merely a local
 resource preference. A transmitter closes a non-final cell at or before that
 bound with `EOC`; the next piece of the same frame later starts with `SOC`.
 A receiver can treat a cell that exceeds the configured bound as a structural
-cell error. The repository full profile defaults to 128 payload words per
-cell, but a different bound can be used when both endpoints and the surrounding
+cell error. The default full profile uses 128 payload words per cell, but a
+different bound can be used when both endpoints and the surrounding
 flow-control budget are designed for it.
 
 ![Protocol layering and interface model.](assets/pgp4-stack.svg)
@@ -367,12 +372,11 @@ advance frame state.
 
 Skip insertion exists to tolerate small frequency differences between the
 transmit clock recovered from the serial lane and the local clock that consumes
-received PGP4 words. In the repository implementation, the default transmit
-input initialization record inserts a `SKP` opportunity every 5000 words when
-skip support is enabled. The receiver elastic buffer consumes accepted `SKP`
-words instead of forwarding them into the protocol state machine, which gives
-the buffer a controlled way to absorb clock drift without presenting a false
-frame delimiter to the cell parser.
+received PGP4 words. In the default full profile, the transmitter inserts a
+`SKP` opportunity every 5000 words when skip support is enabled. The receiver
+elastic buffer consumes accepted `SKP` words instead of forwarding them into
+the protocol state machine, which gives the buffer a controlled way to absorb
+clock drift without presenting a false frame delimiter to the cell parser.
 
 The skip interval is chosen from the worst-case frequency difference between
 the write side and read side of the receive elastic buffer. A `SKP` word gives
@@ -382,9 +386,9 @@ per `N` transmitted words. A practical interval leaves margin for oscillator
 tolerance, spread-spectrum modulation if used, packet scheduling jitter, reset
 transients, and the elastic-buffer depth. Shorter intervals increase clock
 tolerance at the cost of more overhead. Longer intervals improve efficiency but
-require tighter clocks or a deeper elastic buffer. The repository default of
-5000 words corresponds to one removable word per 5000 transmitted words,
-about 200 ppm of compensation before implementation margin is considered.
+require tighter clocks or a deeper elastic buffer. The default 5000-word
+interval corresponds to one removable word per 5000 transmitted words, about
+200 ppm of compensation before implementation margin is considered.
 
 One way to size the interval is to model the elastic buffer in word units. Let
 `fw` be the incoming recovered word rate, including `SKP` opportunities, and
@@ -474,9 +478,9 @@ sending a long frame still reaches another feedback opportunity when the
 current cell ends and the next cell begins. The configured maximum cell size
 therefore bounds how long a change in local receive-buffer state can wait
 behind already-selected frame traffic before it can be advertised upstream.
-With the repository default 128-word cell bound, the worst continuous payload
-run inside one cell is 128 data words, aside from permitted in-cell metadata
-words such as `SKP`, `USER`, or urgent `IDLE`.
+With the default 128-word cell bound, the worst continuous payload run inside
+one cell is 128 data words, aside from permitted in-cell metadata words such as
+`SKP`, `USER`, or urgent `IDLE`.
 
 | Cell bound effect | Consequence |
 | --- | --- |
@@ -588,21 +592,22 @@ an invalid `BytesLast` value, or a cell that exceeds the configured maximum
 payload-word count.
 
 The receiver treats these as frame-level errors on the affected VC, not as an
-automatic physical-link failure. The repository receive path translates the
-PGP4 stream into packetizer metadata and lets the depacketizer enforce the
-per-VC active-frame, sequence, CRC-mode, and CRC checks. When that logic sees a
-bad `SOF`/`SOC` relationship, a sequence mismatch, a CRC mismatch, or a
-malformed tail, it emits or records an errored end-of-frame for the affected
-frame, clears that VC's active-frame and expected-sequence state, resets that
-VC's running CRC state to the initial value, and resumes looking for the next
-valid `SOF` for that VC. Other VCs keep their own active-frame and CRC state.
+automatic physical-link failure. When receive logic sees a bad `SOF`/`SOC`
+relationship, a sequence mismatch, a CRC mismatch, or a malformed tail, it
+emits or records an errored end-of-frame for the affected frame, clears that
+VC's active-frame and expected-sequence state, resets that VC's running CRC
+state to the initial value, and resumes looking for the next valid `SOF` for
+that VC. Any later `SOC` cells that belonged to the old frame sequence for
+that VC are no longer accepted as continuations; they are discarded or reported
+as sequence/frame errors until a fresh `SOF` starts a new frame. Other VCs keep
+their own active-frame and CRC state.
 
 | Error class | Receiver recovery |
 | --- | --- |
 | Data or tail with no open cell | Drop the orphan word or tail, report a cell error, and wait for a valid `SOF` |
 | `SOF` while the VC already has an active frame | Mark the previous frame on that VC errored, clear that VC state, and evaluate later starts from a clean state |
-| `SOC` while the VC has no active frame | Report a sequence/frame error and wait for a valid `SOF` on that VC |
-| `SOC.SEQ` mismatch | Mark the affected frame errored, clear that VC state, and wait for a valid `SOF` on that VC |
+| `SOC` while the VC has no active frame | Discard the continuation cell, report a sequence/frame error, and wait for a valid `SOF` on that VC |
+| `SOC.SEQ` mismatch | Mark the affected frame errored, clear that VC state, discard later continuations from that frame, and wait for a valid `SOF` on that VC |
 | CRC mismatch at `EOC` or `EOF` | Mark the affected frame or cell errored and reset the stored CRC state for that VC |
 | Invalid `BytesLast` or oversized cell | Mark the affected frame or cell errored and discard the malformed cell boundary |
 
@@ -753,23 +758,67 @@ then runs the protocol link-state machine. This behavior is part of the
 receiver contract because it determines which words can be accepted before the
 link is declared ready and which errors force reacquisition.
 
+The alignment layer is part of the protocol at the boundary where serial bits
+become PGP4 words. PGP4 does not require every implementation to use the same
+counter widths, bit-slip pulse timing, or transceiver control signals, but it
+does rely on the same observable behavior: the receiver finds the 66-bit word
+phase from the clear 2-bit headers, withholds unaligned words from the
+descrambler and protocol parser, and drops receive readiness when header
+quality no longer supports the current word phase. Without that behavior, a
+receiver could feed arbitrary bit phases into the scrambler, CRC checker, and
+cell parser, creating false protocol words rather than a clean link-loss event.
+
+The receive path can therefore be viewed as two coupled state machines. The
+gearbox alignment state machine operates on the physical word headers and
+answers the question "is this a believable 66-bit word phase?" The protocol
+link state machine operates after alignment and answers the question "is this
+aligned word stream carrying valid PGP4 control metadata often enough to accept
+frames?" Both are needed before a receiver advertises `LINKINFO.RXREADY`.
+
 ![Receive pipeline.](assets/pgp4-rx-pipeline.svg)
 
 ![Link bring-up and operational state flow.](assets/pgp4-link-state.svg)
 
 ### 9.1 Gearbox alignment
 
-The gearbox aligner watches the 2-bit word header before the descrambler. In
-the unlocked state, `01` and `10` are treated as valid PGP4 header candidates.
-`00` and `11` are invalid. A run of valid headers locks the gearbox alignment.
-An invalid header while unlocked causes a bit slip, followed by a slip-wait
-period before header checking resumes.
+The gearbox aligner watches the 2-bit word header before the descrambler. The
+header is intentionally not scrambled, so it is the only PGP4 field that is
+usable before the payload descrambler is correctly phased. In the unlocked
+state, `01` and `10` are treated as valid PGP4 header candidates. `00` and
+`11` are invalid. A receiver searches candidate bit phases until it finds a
+run of valid headers long enough to lock gearbox alignment.
 
-Once locked, the aligner continues monitoring header quality in fixed windows.
-Occasional invalid headers are tolerated within a window, but too many invalid
-headers in the window drops lock and returns the receiver to the unlocked
-search state. In the repository implementation, the window is 128 valid header
-positions and the lock-break threshold is 16 invalid headers in that window.
+When an invalid header is observed while unlocked, the receiver advances the
+candidate word phase. In a transceiver-based implementation this is usually a
+bit-slip request to the deserializer or gearbox. After requesting the slip, the
+receiver waits for the physical path to settle before evaluating headers at
+the new phase. The exact slip pulse shape and wait time are PHY details, but
+the visible effect is that untrusted candidate phases do not produce PGP4
+words.
+
+Once locked, the aligner still monitors header quality. Header errors can
+occur from noise, loss of CDR lock, incorrect polarity or phase, or an
+incompatible stream. A single bad header does not necessarily mean the gearbox
+phase is wrong, so a receiver can tolerate occasional invalid headers. A
+cluster of bad headers within a monitoring window indicates that the current
+word phase is no longer reliable; the receiver drops alignment lock, stops
+feeding words to the descrambler, and returns to the unlocked search state.
+
+The default alignment policy is summarized below. These thresholds are part of
+the default profile rather than new wire fields; implementations can choose
+different thresholds when both the PHY behavior and link-loss expectations are
+understood.
+
+| Alignment state | Header observation | Default threshold | Receiver behavior |
+| --- | --- | --- | --- |
+| Unlocked | `01` or `10` | Count toward 128 consecutive valid candidate headers | Keep testing the same candidate word phase |
+| Unlocked | `00` or `11` | Immediate action | Clear the valid-header count, request one bit slip, and wait 32 receive-clock cycles before checking again |
+| Unlocked | Long run of valid candidate headers | 128 consecutive valid candidate headers | Declare gearbox alignment locked |
+| Locked | `00` or `11` | Fewer than 16 invalid headers in the current 128-header window | Count the invalid header but remain locked |
+| Locked | Too many invalid headers in the monitoring window | 16 invalid headers in one 128-header window | Drop lock and return to the unlocked search state |
+
+For the default profile, the lock run and monitoring window are both 128 valid
+header positions. The default slip-wait interval is 32 receive-clock cycles.
 
 The descrambler only accepts input while the gearbox aligner is locked and the
 physical receive path marks the word valid. This prevents the protocol layer
@@ -816,7 +865,7 @@ clock-tolerance FIFO in the receive word path.
 The protocol state machine starts unlinked. While unlinked, it counts valid
 PGP4 control words. Data words do not advance acquisition. After the required
 run of valid control words, the receiver asserts local link readiness and
-begins interpreting the stream as active protocol traffic. The repository full
+begins interpreting the stream as active protocol traffic. The default full
 profile uses a threshold of 1000 valid control words for this transition.
 
 The transmitter side performs its own startup hold after reset or disable. It
@@ -847,8 +896,8 @@ also leaves link-ready state when the physical receive path becomes inactive,
 when reset is asserted, when the elastic-buffer path reports a malformed
 control word, or when the receiver sees no valid protocol data for the
 configured no-valid-data interval while the physical receive path remains
-active. The repository implementation requests PHY reinitialization on these
-receiver-side loss events.
+active. A receiver can request PHY reinitialization on these receiver-side
+loss events.
 
 When `linkReady` falls after previously being high, the receiver reports a
 link-down event. Remote link-ready state is cleared while the local receiver is
@@ -885,11 +934,10 @@ has user payload to send.
 ### 10.2 Startup and idle generation
 
 After reset, disable, or inactive PHY, the transmitter returns to a startup
-state. During startup it emits control words rather than frame payload. In the
-repository full-profile transmitter, the startup hold is 1000 transmit-clock
-opportunities by default. Once that hold completes and the PHY is active, the
-transmitter asserts its local transmit-ready state and begins normal word
-selection.
+state. During startup it emits control words rather than frame payload. The
+default full-profile startup hold is 1000 transmit-clock opportunities. Once
+that hold completes and the PHY is active, the transmitter asserts its local
+transmit-ready state and begins normal word selection.
 
 `IDLE` is the default word whenever no higher-priority word is selected. Every
 generated `IDLE` carries current `LINKINFO`. It also carries local receiver
@@ -926,11 +974,11 @@ that local payload acceptance only happens when the payload word actually enters
 the PGP4 stream. If an opcode, skip, or metadata update takes the word
 opportunity, the local frame source is not advanced for that word.
 
-The repository full-profile scheduler starts from `IDLE`, replaces it with
-accepted frame-derived traffic when data is eligible, lets `USER` override data
-when an opcode is accepted, lets `SKP` override data when skip insertion fires,
-inserts optional `IDLE` spacing for receive CRC pipeline timing, and inserts
-urgent `IDLE` words to publish pause or overflow events quickly.
+A typical full-profile scheduler starts from `IDLE`, replaces it with accepted
+frame-derived traffic when data is eligible, lets `USER` override data when an
+opcode is accepted, lets `SKP` override data when skip insertion fires, inserts
+optional `IDLE` spacing for receive CRC pipeline timing, and inserts urgent
+`IDLE` words to publish pause or overflow events quickly.
 
 `USER` has priority over frame data in the full-profile scheduler. If an opcode
 request is accepted, the emitted word is `USER`, the opcode-ready handshake is
@@ -964,12 +1012,26 @@ Pgp4Lite is a subset of the full protocol. It uses the same 66-bit headers, the
 same control-word layout, the same `LINKINFO` structure, the same control-word
 checksum, the same `USER` and `SKP` encodings, and the same data CRC
 polynomial. The difference is in how much of the full cell model the
-transmitter uses.
+transmitter uses. Lite exists for endpoints, especially ASIC transmitters,
+where logic area is more constrained than in a typical FPGA and the design
+does not need cell-level interleaving.
 
 Lite transmitters emit only `SOF`, data words, and `EOF` for frame boundaries.
 They do not emit `SOC` or `EOC`, so they do not split a frame into multiple
 continuation cells. The `SEQ` field in `SOF` is zero. Lite transmit paths that
 only support whole 64-bit payload words emit `EOF.BytesLast = 8`.
+
+This "whole frames only" behavior removes the transmit-side machinery needed
+to split a long frame into cells, store per-VC continuation state, checkpoint a
+running CRC at `EOC`, resume that CRC at `SOC`, and arbitrate among VCs at cell
+boundaries inside a frame. A Lite transmitter can still select among VCs at
+frame boundaries and can still send `IDLE`, `USER`, and optionally `SKP`, but
+once it starts a frame it carries that frame through to `EOF`.
+
+The tradeoff is fairness and latency. A long Lite frame occupies the payload
+stream until its `EOF`; other VCs do not get the cell-by-cell sharing that full
+PGP4 provides. Lite is therefore best for simple, lower-fan-in, or
+resource-constrained transmit paths where that behavior is acceptable.
 
 The receive side still consumes the standard PGP4 word format, but a Lite
 profile endpoint is only expected to receive the subset that Lite transmitters
@@ -980,18 +1042,17 @@ that reuses the full PGP4 receive path can accept full-profile cell
 continuations, but then that receive direction is no longer only the Lite
 subset.
 
-In the repository implementation, the receive depacketizer is configured
-without sequence tracking RAM for Lite operation because Lite transmit does
-not create continuation cells that need sequence checking. This is an
-implementation choice for the Lite subset, not a different wire encoding for
-the words Lite does transmit.
+A full PGP4 receiver can receive from a Lite transmitter when the configured
+VC count, skip policy, flow-control policy, and physical link profile are
+compatible. A Lite frame is simply a valid single-cell full PGP4 frame:
+`SOF.SEQ = 0`, one or more data words, and `EOF`. The reverse direction does
+not have to use the same transmit profile; one endpoint can use a Lite
+transmitter while the other endpoint uses a full receiver.
 
-Low-speed Pgp4Lite receive lanes use their own SelectIO alignment wrapper
-before the PGP4 core. That wrapper performs header-based locking, masks receive
-valid until the lane is locked, and then feeds the common PGP4 receive path.
-The lane-lock controls and delay settings are local interface details, but the
-observable protocol rule is the same: unaligned words are not admitted to the
-PGP4 receive state machine.
+Low-speed Pgp4Lite integrations can use a different PHY or alignment wrapper
+than high-speed serial-transceiver links. Those wrapper choices are local
+interface details, but the observable protocol rule is the same: unaligned
+words are not admitted to the PGP4 receive state machine.
 
 ## 12. Optional FEC Profile
 
@@ -1119,7 +1180,91 @@ pause bits mask VCs before arbitration unless `flowCntlDis` is set. Integrators
 can assign non-equal `PRIORITY_G` values or replace the scheduling policy
 without changing the PGP4 word format.
 
-## Appendix D. Reference Comparison Notes
+### C.1 Top-Level Generic Mapping
+
+The top-level SURF generics map to the configured link profile described in
+Section 3.1 as follows.
+
+| Protocol profile choice | Full core generic or control | Lite core generic or control | Notes |
+| --- | --- | --- | --- |
+| Number of implemented VCs | `NUM_VC_G` | `NUM_VC_G` | Valid `VC` values are `0` through `NUM_VC_G-1` |
+| Full vs Lite TX behavior | `Pgp4Core` uses `Pgp4Tx` | `Pgp4CoreLite` uses `Pgp4TxLite` | Lite TX emits only `SOF`/data/`EOF` frame boundaries |
+| Maximum cell payload words | `TX_CELL_WORDS_MAX_G` | Not used by Lite TX | Full-core default is `PGP4_DEFAULT_TX_CELL_WORDS_MAX_C = 128` |
+| Skip insertion support | `SKIP_EN_G` | `SKIP_EN_G` | Full-core default is enabled; Lite-core default is disabled |
+| Skip interval | `pgpTxIn.skpInterval` or AXI-Lite `SkipInterval` | `pgpTxIn.skpInterval` or AXI-Lite `SkipInterval` | Default transmit input value is 5000 |
+| Flow-control gating | `pgpTxIn.flowCntlDis` | `FLOW_CTRL_EN_G` and `pgpTxIn.flowCntlDis` | Lite can synthesize without flow-control synchronization logic |
+| Common-clock optimization | `PGP_COMMON_CLK_G` | `PGP_COMMON_CLK_G` | Bypasses selected synchronizers when clocking permits |
+| Receive sequence tracking | `LITE_EN_G=false` inside `Pgp4Rx` | `LITE_EN_G=true` inside `Pgp4Rx` | Full RX tracks 12-bit cell sequence; Lite RX removes that RAM |
+| Receive alignment slip wait | `RX_ALIGN_SLIP_WAIT_G` | `RX_ALIGN_SLIP_WAIT_G` | Passed into the gearbox/alignment wrapper |
+| RX CRC pipeline timing | `RX_CRC_PIPELINE_G` | Not exposed at `Pgp4CoreLite` top level | Full core can add receive CRC timing pipeline support |
+| FEC wrapper use | `PGP_FEC_ENABLE_G` | Not part of `Pgp4CoreLite` | Controls monitor/bypass wiring around an external FEC wrapper |
+| TX mux routing and interleaving | `TX_MUX_*` generics | Lite uses non-interleaving mux behavior | Full core can route or index VCs and interleave at cell boundaries |
+| Monitor/control surface | `EN_PGP_MON_G`, `WRITE_EN_G` | `EN_PGP_MON_G`, `WRITE_EN_G` | Determines whether AXI-Lite control/status is included |
+
+The compatibility point between Lite TX and full RX follows directly from this
+mapping. `Pgp4TxLite` emits standard PGP4 `SOF`, data, and `EOF` words with
+`SOF.SEQ = 0`. `Pgp4Core` instantiates `Pgp4Rx` with `LITE_EN_G=false`, which
+accepts a single-cell frame with `SOF.SEQ = 0` and no continuation cells. A
+full SURF receive path can therefore receive a Lite transmit stream when the
+other profile choices match.
+
+`Pgp4CoreLite` configures `Pgp4Rx` with `LITE_EN_G=true`, which removes receive
+sequence tracking RAM because Lite traffic does not contain `SOC`/`EOC`
+continuations. That is a resource-saving implementation choice for a Lite
+receive path, not a different wire encoding for `SOF`, data, or `EOF`.
+
+## Appendix D. Design Example: 10.3125 Gb/s Full PGP4 Link
+
+This example shows how an implementer might choose concrete profile values for
+a practical link. The numbers are illustrative, but the method is the same for
+other line rates.
+
+Assume a point-to-point full-duplex FPGA link at 10.3125 Gb/s in each
+direction. With 66 serialized bits per PGP4 word, the PGP4 word rate is:
+
+```text
+10.3125e9 / 66 = 156.25e6 words/s
+```
+
+Assume independent reference clocks with +/-100 ppm tolerance at each end. The
+worst case for receive elastic-buffer fill is the far transmitter fast by
+100 ppm while the local receive-side consumption clock is slow by 100 ppm:
+
+```text
+delta_ppm ~= 100 + 100 = 200 ppm
+S <= 1_000_000 / 200 = 5000 words
+```
+
+The default 5000-word skip interval is therefore the largest interval that
+matches this simple worst-case ppm budget before extra margin. If the design
+uses spread-spectrum clocking, unusually shallow elastic storage, or wants more
+margin, a smaller interval such as 4096 words is a conservative choice. The
+overhead difference is small: one removed word every 5000 words is 0.0200
+percent; one every 4096 words is about 0.0244 percent.
+
+For this link, a reasonable full-profile configuration is:
+
+| Parameter | Example choice | Reason |
+| --- | --- | --- |
+| Transmit profile | Full PGP4 | Allows long frames on one VC to be split so other VCs can make progress |
+| `NUM_VC_G` | 4 | Common split for data, control, timing/status, and debug streams |
+| `TX_CELL_WORDS_MAX_G` | 128 | Default bound; one maximum-size payload run is about `128 / 156.25e6 = 819 ns` |
+| `SKIP_EN_G` | `true` | Independent recovered and local clocks need clock-tolerance compensation |
+| `pgpTxIn.skpInterval` | 5000, or 4096 with extra margin | 5000 covers +/-100 ppm versus +/-100 ppm by the formula above |
+| RX elastic buffer | 512 66-bit words in SURF | Far larger than the steady-state SKP ripple; also covers reset and scheduling transients |
+| `RX_CRC_PIPELINE_G` | `0` initially | 156.25 MHz is usually modest for the CRC path; set to `1` if timing requires it |
+| Flow control | Enabled | Lets downstream per-VC buffers advertise pause through `LINKINFO` |
+| Pause threshold | At least one maximum cell plus round-trip/scheduler margin | Prevents a newly paused VC from overflowing while in-flight traffic arrives |
+| FEC | Disabled unless the physical channel needs it | Base PGP4 CRC detects corruption; FEC is a separate profile decision |
+
+The same calculation at a higher line rate changes the word period but not the
+ppm-derived skip fraction. For example, at 15 Gb/s the word rate is about
+227.27 MHz, so a 128-word cell takes about 563 ns instead of 819 ns. The
+`S <= 1_000_000 / delta_ppm` skip-interval bound remains 5000 for the same
+clock tolerances, while timing closure may push the implementation toward
+`RX_CRC_PIPELINE_G = 1` or a family-specific PHY wrapper.
+
+## Appendix E. Reference Comparison Notes
 
 Confluence material at the SLAC PGP4 page was used as reference during
 specification authoring. When this document differs from that page, this
@@ -1142,7 +1287,7 @@ protocol description. It also does not adopt Confluence resource commentary,
 implementation discussion, or future-looking optimization notes as protocol
 requirements.
 
-## Appendix E. Verification Notes
+## Appendix F. Verification Notes
 
 The specification content was cross-checked against repository regressions
 covering the following behaviors:
