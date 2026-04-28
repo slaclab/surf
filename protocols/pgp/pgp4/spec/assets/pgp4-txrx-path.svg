@@ -17,15 +17,15 @@
   <text x="160" y="78" text-anchor="middle" class="label">Transmit Direction</text>
   <rect x="30" y="100" width="180" height="66" class="box" fill="#d9f0ff"/>
   <text x="120" y="126" text-anchor="middle" class="label">VC Frame Inputs</text>
-  <text x="120" y="148" text-anchor="middle" class="text">up to 16 VCs</text>
+  <text x="120" y="148" text-anchor="middle" class="text">Up to 16 VCs</text>
 
   <rect x="250" y="100" width="160" height="66" class="box" fill="#e8f6df"/>
   <text x="330" y="126" text-anchor="middle" class="label">VC Selection</text>
-  <text x="330" y="148" text-anchor="middle" class="text">cell interleaving</text>
+  <text x="330" y="148" text-anchor="middle" class="text">Cell interleaving</text>
 
   <rect x="450" y="100" width="180" height="66" class="box" fill="#fff2c8"/>
   <text x="540" y="126" text-anchor="middle" class="label">Packetizer</text>
-  <text x="540" y="148" text-anchor="middle" class="text">cell headers and CRC</text>
+  <text x="540" y="148" text-anchor="middle" class="text">Cell headers and CRC</text>
 
   <rect x="670" y="100" width="190" height="66" class="box" fill="#fde2d5"/>
   <text x="765" y="126" text-anchor="middle" class="label">TX Protocol</text>
@@ -33,20 +33,20 @@
 
   <rect x="900" y="100" width="160" height="66" class="box" fill="#f8dff0"/>
   <text x="980" y="126" text-anchor="middle" class="label">Scrambler</text>
-  <text x="980" y="148" text-anchor="middle" class="text">64b/66b output</text>
+  <text x="980" y="148" text-anchor="middle" class="text">64b/66b Output</text>
 
   <rect x="1100" y="100" width="110" height="66" class="box" fill="#efe9ff"/>
   <text x="1155" y="126" text-anchor="middle" class="label">PHY</text>
-  <text x="1155" y="148" text-anchor="middle" class="text">serial link</text>
+  <text x="1155" y="148" text-anchor="middle" class="text">Serial link</text>
 
   <text x="160" y="260" text-anchor="middle" class="label">Receive Direction</text>
   <rect x="1100" y="286" width="110" height="66" class="box" fill="#efe9ff"/>
   <text x="1155" y="312" text-anchor="middle" class="label">PHY</text>
-  <text x="1155" y="334" text-anchor="middle" class="text">66-bit words</text>
+  <text x="1155" y="334" text-anchor="middle" class="text">66-bit Words</text>
 
   <rect x="900" y="286" width="160" height="66" class="box" fill="#f8dff0"/>
   <text x="980" y="312" text-anchor="middle" class="label">Descrambler</text>
-  <text x="980" y="334" text-anchor="middle" class="text">aligned words</text>
+  <text x="980" y="334" text-anchor="middle" class="text">Aligned words</text>
 
   <rect x="670" y="286" width="190" height="66" class="box" fill="#fde2d5"/>
   <text x="765" y="312" text-anchor="middle" class="label">Elastic Buffer</text>
@@ -62,7 +62,7 @@
 
   <rect x="30" y="286" width="180" height="66" class="box" fill="#d9f0ff"/>
   <text x="120" y="312" text-anchor="middle" class="label">VC Frame Outputs</text>
-  <text x="120" y="334" text-anchor="middle" class="text">demux by VC</text>
+  <text x="120" y="334" text-anchor="middle" class="text">Demux by VC</text>
 
   <path d="M210 133 L240 133" class="arrow"/>
   <path d="M410 133 L440 133" class="arrow"/>
@@ -77,6 +77,6 @@
   <path d="M248 319 L218 319" class="arrow"/>
 
   <path d="M540 176 L540 250" class="arrow"/>
-  <text x="572" y="216" class="text">metadata feedback</text>
-  <text x="572" y="236" class="text">pause, overflow, opcodes</text>
+  <text x="572" y="216" class="text">Metadata feedback</text>
+  <text x="572" y="236" class="text">Pause, overflow, opcodes</text>
 </svg>

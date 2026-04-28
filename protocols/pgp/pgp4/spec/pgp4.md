@@ -8,6 +8,8 @@ Status: Repository-canonical specification for PGP4 protocol behavior.
 
 ## 1. Introduction
 
+### 1.1 Overview
+
 PGP Version 4 (PGP4) is a lightweight serial link protocol, normally used
 full-duplex, for moving framed traffic between two endpoints. Each direction of
 the link is an ordered stream of 66-bit words. Data words carry frame payload.
@@ -20,6 +22,8 @@ transport with a small amount of in-band link management. There is no separate
 management lane in the base protocol. The receiver recovers frame boundaries,
 virtual channels, link health, and flow-control state from the same word stream
 that carries user payload.
+
+### 1.2 Motivation
 
 PGP4 was created for systems where a raw serial lane is too little structure,
 but a general-purpose network stack is more structure than the hardware path
@@ -41,6 +45,8 @@ model can scale to faster transceivers with lower line-coding overhead. The
 intent is a free, portable protocol that can be implemented across FPGA
 families without depending on a vendor-owned link layer.
 
+### 1.3 Implementation Model
+
 The protocol also keeps the fast path simple enough for FPGA implementation.
 The receiver can classify each word from its 66-bit header, check control-word
 metadata independently from payload CRCs, and rebuild frame streams with small
@@ -48,6 +54,8 @@ state machines. The full profile adds cell interleaving so one large frame does
 not monopolize a link shared by multiple VCs. The Lite profile, described after
 the full protocol, keeps the same word format for endpoints that only need
 single-cell frame transport.
+
+### 1.4 Link Direction
 
 PGP4 is normally operated as a full-duplex link. Each endpoint has an
 independent transmitter and receiver, and each direction carries its own
@@ -66,15 +74,17 @@ during intervals where the reverse protocol stream is not active. Such designs
 either disable PGP4 flow-control gating or provide equivalent buffering,
 backpressure, or loss policy outside the protocol.
 
+### 1.5 Scope and Configuration
+
 This document covers the wire-visible protocol behavior:
 
 - 66-bit word headers and data/control word classification
-- control-word encodings and checksums
+- Control-word encodings and checksums
 - `LINKINFO`, pause, overflow, opcode, and sideband-data semantics
-- full PGP4 cell and frame sequencing
-- payload CRC behavior
-- receive alignment, link acquisition, link maintenance, and link loss
-- subset profiles and the optional FEC profile boundary
+- Full PGP4 cell and frame sequencing
+- Payload CRC behavior
+- Receive alignment, link acquisition, link maintenance, and link loss
+- Subset profiles and the optional FEC profile boundary
 
 This document does not define transceiver wrapper internals, vendor IP
 internals, register maps, AXI-Stream or AXI-Lite local binding details,
@@ -1263,44 +1273,3 @@ ppm-derived skip fraction. For example, at 15 Gb/s the word rate is about
 `S <= 1_000_000 / delta_ppm` skip-interval bound remains 5000 for the same
 clock tolerances, while timing closure may push the implementation toward
 `RX_CRC_PIPELINE_G = 1` or a family-specific PHY wrapper.
-
-## Appendix E. Reference Comparison Notes
-
-Confluence material at the SLAC PGP4 page was used as reference during
-specification authoring. When this document differs from that page, this
-repository specification follows implementation-backed repository behavior.
-
-Earlier published PGP4 proceedings material was used as historical and design
-motivation for this document. In particular, the introduction reflects the
-10 Gbit/s-and-above FPGA link target, the experience from PGP2, the desire for
-low protocol overhead and small FPGA resource use, and the intent to provide a
-portable open alternative to vendor-specific serial-link protocols. Exact field
-layouts, constants, and state-machine behavior in the main specification follow
-the current repository implementation where it has evolved from that earlier
-description.
-
-The control-word values, `LINKINFO` structure, startup narrative, and the
-general distinction between Full PGP4 and Pgp4Lite are materially consistent
-with the repository implementation. This specification keeps FEC at the profile
-level and does not embed wrapper-specific vendor IP details into the main
-protocol description. It also does not adopt Confluence resource commentary,
-implementation discussion, or future-looking optimization notes as protocol
-requirements.
-
-## Appendix F. Verification Notes
-
-The specification content was cross-checked against repository regressions
-covering the following behaviors:
-
-- full-core and Lite-core loopback with optional pause and backpressure
-- raw protocol TX sequences for `USER`, `SOF`, data, and `EOF`
-- raw protocol RX interpretation of `IDLE`, `LINKINFO`, `USER`, and packet
-  sequences
-- rejection of malformed K-code checksum words
-- CRC-detected receive corruption without forced link drop
-- low-speed Lite receive-lane lock and stability behavior
-- AXI-Lite monitor/control readback and field wiring
-
-The full PGP4 RTL/cocotb regression suite was not re-run as part of this
-documentation-only revision unless stated in the change log or review notes
-for the commit that updates this file.

@@ -34,6 +34,9 @@ Each protocol spec should include:
   between blocks.
 - Do not present the same semantics twice unless one form is explicitly
   explanatory and the other is normative.
+- Capitalize the first word of every bullet item.
+- Capitalize the first word of visible diagram text, including SVG labels,
+  captions, and short annotations.
 
 ## Assets
 

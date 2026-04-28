@@ -8,17 +8,17 @@
 
   <text x="32" y="34" class="title">Full PGP4 Frame-to-Cell Sequencing</text>
 
-  <text x="32" y="84" class="label">One full-protocol frame split into cells</text>
+  <text x="32" y="84" class="label">One Full-Protocol Frame Split Into Cells</text>
   <rect x="32" y="102" width="112" height="56" class="box" fill="#fff2c8"/>
   <text x="88" y="136" text-anchor="middle" class="label">SOF</text>
   <rect x="144" y="102" width="216" height="56" class="box" fill="#d9f0ff"/>
-  <text x="252" y="136" text-anchor="middle" class="label">data words</text>
+  <text x="252" y="136" text-anchor="middle" class="label">Data Words</text>
   <rect x="360" y="102" width="112" height="56" class="box" fill="#fde2d5"/>
   <text x="416" y="136" text-anchor="middle" class="label">EOC</text>
   <rect x="512" y="102" width="112" height="56" class="box" fill="#fff2c8"/>
   <text x="568" y="136" text-anchor="middle" class="label">SOC</text>
   <rect x="624" y="102" width="216" height="56" class="box" fill="#d9f0ff"/>
-  <text x="732" y="136" text-anchor="middle" class="label">data words</text>
+  <text x="732" y="136" text-anchor="middle" class="label">Data Words</text>
   <rect x="840" y="102" width="112" height="56" class="box" fill="#fde2d5"/>
   <text x="896" y="136" text-anchor="middle" class="label">EOF</text>
 

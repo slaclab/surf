@@ -22,23 +22,23 @@
 
   <rect x="400" y="88" width="250" height="98" class="box" fill="#fff2c8"/>
   <text x="525" y="122" text-anchor="middle" class="label">Startup Control Fill</text>
-  <text x="525" y="148" text-anchor="middle" class="text">valid IDLE and SKP words</text>
-  <text x="525" y="170" text-anchor="middle" class="text">no frame payload yet</text>
+  <text x="525" y="148" text-anchor="middle" class="text">Valid IDLE and SKP words</text>
+  <text x="525" y="170" text-anchor="middle" class="text">No frame payload yet</text>
 
   <rect x="750" y="88" width="240" height="98" class="box" fill="#e8f6df"/>
   <text x="870" y="122" text-anchor="middle" class="label">Link-Up Search</text>
   <text x="870" y="148" text-anchor="middle" class="text">RX counts valid</text>
-  <text x="870" y="170" text-anchor="middle" class="text">control words</text>
+  <text x="870" y="170" text-anchor="middle" class="text">Control words</text>
 
   <rect x="400" y="260" width="250" height="106" class="box" fill="#fde2d5"/>
   <text x="525" y="294" text-anchor="middle" class="label">Linked Operation</text>
-  <text x="525" y="320" text-anchor="middle" class="text">frames and sideband words</text>
-  <text x="525" y="342" text-anchor="middle" class="text">with periodic LINKINFO</text>
+  <text x="525" y="320" text-anchor="middle" class="text">Frames and sideband words</text>
+  <text x="525" y="342" text-anchor="middle" class="text">With periodic LINKINFO</text>
 
   <rect x="750" y="260" width="240" height="106" class="box" fill="#f8dff0"/>
   <text x="870" y="294" text-anchor="middle" class="label">Recovery</text>
-  <text x="870" y="320" text-anchor="middle" class="text">timeout, reset, or</text>
-  <text x="870" y="342" text-anchor="middle" class="text">protocol error</text>
+  <text x="870" y="320" text-anchor="middle" class="text">Timeout, reset, or</text>
+  <text x="870" y="342" text-anchor="middle" class="text">Protocol error</text>
 
   <path d="M300 137 L390 137" class="arrow"/>
   <path d="M650 137 L740 137" class="arrow"/>
@@ -47,10 +47,10 @@
   <path d="M400 313 L180 313 L180 196" class="arrow"/>
   <path d="M525 186 L525 250" class="arrow"/>
 
-  <text x="346" y="122" text-anchor="middle" class="note">reset released</text>
-  <text x="696" y="122" text-anchor="middle" class="note">startup done</text>
-  <text x="552" y="226" text-anchor="middle" class="note">linkReady</text>
-  <text x="902" y="226" text-anchor="middle" class="note">valid run found</text>
-  <text x="706" y="298" text-anchor="middle" class="note">restart</text>
-  <text x="244" y="296" text-anchor="middle" class="note">disable or inactive PHY</text>
+  <text x="346" y="122" text-anchor="middle" class="note">Reset released</text>
+  <text x="696" y="122" text-anchor="middle" class="note">Startup done</text>
+  <text x="552" y="226" text-anchor="middle" class="note">LinkReady</text>
+  <text x="902" y="226" text-anchor="middle" class="note">Valid run found</text>
+  <text x="706" y="298" text-anchor="middle" class="note">Restart</text>
+  <text x="244" y="296" text-anchor="middle" class="note">Disable or inactive PHY</text>
 </svg>
