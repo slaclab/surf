@@ -150,14 +150,11 @@ work on the PGP4 specification effort.
   traffic, but the current full transmit RTL appears to hold `protTxValid` low
   until `STARTUP_HOLD_G` completes. Revisit whether the spec should require
   valid `IDLE`/`SKP` during startup hold or document the current RTL behavior.
-- Low-speed wrapper bit order needs review against the Xilinx GT wire order.
-  The GTY/GTH path drives Xilinx `TXHEADER[1:0]` and `TXDATA[63:0]` directly,
-  matching the documented Xilinx 64b/66b gearbox interface. The low-speed
-  receive wrapper packs header as `word[65:64]`, payload as `word[63:0]`, and
-  its default gearbox settings assemble/output low bits first. That appears to
-  describe a payload-first/header-last byte stream unless `bitOrder` or the
-  external serializer compensates. Confirm this before claiming low-speed
-  serial compatibility with the GT wrappers.
+- Low-speed wrapper bit order is configurable. `Pgp4RxLiteLowSpeedReg` exposes
+  a 2-bit `bitOrder` register at AXI-Lite offset `0x818`, and
+  `Pgp4RxLiteLowSpeedLane` applies it to the 8:66 receive gearbox input and
+  output ordering. This appears intended as a compatibility aid for serializers
+  with non-standard bit ordering; it does not change the protocol wire order.
 - The full PGP4 RTL/cocotb regression suite was not re-run after the spec work,
   because this task only added documentation assets and render tooling.
 - The current diagrams are static SVG assets, not generated from a source DSL.

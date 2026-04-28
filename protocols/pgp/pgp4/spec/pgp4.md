@@ -1240,6 +1240,15 @@ as an explicit protocol-layer reject at the control-word decoder. A clean-room
 implementation should still apply the structural checks described in the main
 protocol text.
 
+The repository low-speed Lite receive wrapper includes configurable receive bit
+ordering. `Pgp4RxLiteLowSpeedReg` exposes a 2-bit `bitOrder` register at
+AXI-Lite offset `0x818`; `Pgp4LiteRxLowSpeed` passes that value to each
+`Pgp4RxLiteLowSpeedLane`; and the lane applies `bitOrder(0)` to the incoming
+8-bit gearbox words and `bitOrder(1)` to the resulting 66-bit word. This
+configuration is an implementation compatibility aid for serializers that
+present bits in a different order than the PGP4 wire order. It does not change
+the protocol bit order defined in Section 4.1.
+
 The default full-profile transmit mux leaves `AxiStreamMux.PRIORITY_G` at equal
 priority. The shared arbiter then starts each new selection after the previously
 selected VC, producing rotating service among active and unpaused VCs. Remote
