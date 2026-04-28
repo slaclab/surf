@@ -189,6 +189,20 @@ Every PGP4 word uses one of the following 2-bit headers.
 Transmitters use header `01` for frame payload data words and header `10` for
 PGP4 control words. Receivers treat `00` and `11` as invalid PGP4 headers.
 
+As a bit field, a data header has `Header[1] = 0` and `Header[0] = 1`; a
+control header has `Header[1] = 1` and `Header[0] = 0`.
+
+When a PGP4 word is represented as a single 66-bit vector, bits `65:64` are
+the 2-bit header and bits `63:0` are the 64-bit payload field. Payload bit `0`
+is the least significant payload bit and payload bit `63` is the most
+significant payload bit. The repository low-speed wrappers use this packing
+directly. Vendor transceiver wrappers often carry the 2-bit header and 64-bit
+payload on separate 64b/66b interface ports.
+
+PGP4 serializes the 66-bit word most-significant bit first. The wire order is
+word bit `65`, then bit `64`, then payload bits `63` down through `0`.
+Serializers need to produce that wire order for bit-level interoperability.
+
 The 64 payload bits of a data word are frame payload bits. PGP4 does not assign
 additional meaning to those bits while they are in a data word. Byte-lane
 meaning, terminal user metadata, and stream-side conventions belong to the
@@ -873,10 +887,14 @@ clock-tolerance FIFO in the receive word path.
 ### 9.3 Protocol link acquisition
 
 The protocol state machine starts unlinked. While unlinked, it counts valid
-PGP4 control words. Data words do not advance acquisition. After the required
-run of valid control words, the receiver asserts local link readiness and
-begins interpreting the stream as active protocol traffic. The default full
-profile uses a threshold of 1000 valid control words for this transition.
+PGP4 control words by their block type field. A word with the control header
+and a recognized `BTF` increments the acquisition count. A data word does not
+increment the count, but in the repository receive state machine it also does
+not clear a count that is already in progress. An invalid header or an
+unrecognized control block type clears the count. The repository receive state
+machine does not use `LINKINFO.Version` while building this initial acquisition
+count; version checking starts once the receiver is linked. The default full
+profile uses a threshold of 1000 counted control words for this transition.
 
 The transmitter side performs its own startup hold after reset or disable. It
 emits control words rather than user payload during that interval. After
@@ -900,6 +918,12 @@ appear before the next `SOF` or `SOC`. A receiver that configures a larger
 maximum cell size needs a correspondingly larger watchdog interval. A receiver
 that wants a faster link-loss indication needs a smaller cell bound, a policy
 that inserts refreshing control words more often, or both.
+
+The repository receive state machine uses a default link-maintenance watchdog
+threshold of 1000 accepted word opportunities. The watchdog count is cleared by
+`IDLE`, `SOF`, or `SOC` only when the carried version field matches the
+expected PGP4 version. `EOF`, `EOC`, `USER`, `SKP`, and data words do not
+refresh this watchdog in that implementation.
 
 If the watchdog expires, the receiver leaves link-ready state. The receiver
 also leaves link-ready state when the physical receive path becomes inactive,
@@ -1097,7 +1121,7 @@ bypass controls, and vendor IP details are outside this protocol definition.
 | Cell | A scheduled piece of a frame, beginning with `SOF` or `SOC`, followed by data words, and ending with `EOF` or `EOC` |
 | Frame | The user-visible packet delivered on one VC; in full PGP4 it can span multiple cells |
 | Virtual Channel (VC) | One logical frame stream multiplexed over the same physical PGP4 direction |
-| `LINKINFO` | The receive-state metadata carried in selected control words, including pause, overflow, `RXREADY`, and sideband data |
+| `LINKINFO` | The receive-state metadata carried in selected control words, including protocol version, `RXREADY`, reserved bits, and per-VC pause bits |
 | `RXREADY` | The advertised indication that the local receiver has acquired the incoming stream and can accept protocol traffic |
 | Elastic buffer | Receive-side storage that absorbs clock-frequency differences between the incoming recovered word stream and the local consume clock |
 | `SKP` | A removable control word inserted periodically so the receive elastic buffer can compensate for clock drift |
@@ -1195,6 +1219,7 @@ above to the repository:
 | Gearbox alignment lock threshold | 128 consecutive valid header positions |
 | Gearbox alignment loss threshold | 16 invalid headers in a 128-header window |
 | Receive link acquisition threshold | 1000 valid control words |
+| Receive link-maintenance watchdog | 1000 accepted word opportunities without a valid-version `IDLE`, `SOF`, or `SOC` |
 | Receive no-valid-data reinit threshold | 10000 receive-side cycles while PHY is active |
 | Full-profile VC arbitration | Equal-priority rotating arbitration by default |
 | Full-profile VC interleaving | Enabled when `NUM_VC_G > 1`; re-arbitrates on selected-stream gaps and at the configured cell-word bound |
@@ -1204,6 +1229,16 @@ The repository control-word checksum routine is named `pgp4KCodeCrc()`. It
 computes an 8-bit CRC over payload bits `47:0` followed by `BTF`, using
 polynomial `0x07`, initial value `0xFF`, and the bit ordering described in
 Section 8.
+
+The protocol body treats invalid `BytesLast` values and unimplemented VC
+values as structural receive errors. In the current repository receive path,
+`EOF` and `EOC` tail fields are forwarded into the packetizer/depacketizer
+path, and there is not a separate `Pgp4RxProtocol` range check for
+`EOF.BytesLast`. Handling of VC values outside the synthesized stream set is
+also delegated to the stream-demultiplexing configuration rather than enforced
+as an explicit protocol-layer reject at the control-word decoder. A clean-room
+implementation should still apply the structural checks described in the main
+protocol text.
 
 The default full-profile transmit mux leaves `AxiStreamMux.PRIORITY_G` at equal
 priority. The shared arbiter then starts each new selection after the previously

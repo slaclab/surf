@@ -140,6 +140,24 @@ work on the PGP4 specification effort.
 
 ## Known Limitations
 
+- Open RTL issue: the no-elastic-buffer receive path used when `SKIP_EN_G` is
+  false bypasses the `Pgp4RxEb` control-word checksum check. That means
+  no-skip or Lite-style configurations may accept malformed control words that
+  the full elastic-buffer path would reject. This should be investigated in RTL
+  and tests rather than treated as protocol behavior.
+- Startup semantics need a later maintainer decision. The protocol prose
+  describes startup as a period of control-word transmission before user frame
+  traffic, but the current full transmit RTL appears to hold `protTxValid` low
+  until `STARTUP_HOLD_G` completes. Revisit whether the spec should require
+  valid `IDLE`/`SKP` during startup hold or document the current RTL behavior.
+- Low-speed wrapper bit order needs review against the Xilinx GT wire order.
+  The GTY/GTH path drives Xilinx `TXHEADER[1:0]` and `TXDATA[63:0]` directly,
+  matching the documented Xilinx 64b/66b gearbox interface. The low-speed
+  receive wrapper packs header as `word[65:64]`, payload as `word[63:0]`, and
+  its default gearbox settings assemble/output low bits first. That appears to
+  describe a payload-first/header-last byte stream unless `bitOrder` or the
+  external serializer compensates. Confirm this before claiming low-speed
+  serial compatibility with the GT wrappers.
 - The full PGP4 RTL/cocotb regression suite was not re-run after the spec work,
   because this task only added documentation assets and render tooling.
 - The current diagrams are static SVG assets, not generated from a source DSL.
