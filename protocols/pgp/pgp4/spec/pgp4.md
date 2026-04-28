@@ -128,6 +128,34 @@ otherwise unused link time and refreshes receive-side metadata. `SKP` supports
 skip insertion and carries advisory low-rate sideband link data. `USER` carries
 a 48-bit application opcode outside the frame payload stream.
 
+### 3.1 Configured Link Profile
+
+Because there is no on-wire negotiation, an interoperating pair is built around
+one configured profile. Some choices are visible directly in the word stream;
+others shape how aggressively the transmitter schedules traffic or how much
+elastic storage the receiver needs. A clean implementation can expose these as
+generic parameters, software configuration, board straps, or fixed build-time
+choices, but both ends of a link need compatible values.
+
+| Profile choice | Why it matters |
+| --- | --- |
+| Full PGP4 or Pgp4Lite transmit behavior | Determines whether `SOC`/`EOC` continuation cells can be emitted |
+| Number of implemented VCs | Defines which `VC` values are accepted and which pause bits are meaningful |
+| Maximum cell payload words | Bounds flow-control latency, VC interleaving latency, and watchdog sizing |
+| Skip insertion support and interval | Determines whether `SKP` can appear in the stream and how much clock drift can be absorbed |
+| Flow-control policy | Determines whether remote `RXREADY` and pause bits gate frame transmission |
+| FEC wrapper profile | Determines whether an outer correction layer surrounds the PGP4 word stream |
+| Physical line rate and PHY wrapper | Determines serial timing, reset behavior, and the alignment wrapper below PGP4 |
+| Opcode and sideband use | Determines how endpoint-specific control information is interpreted |
+
+The maximum cell payload size is part of the link profile, not merely a local
+resource preference. A transmitter closes a non-final cell at or before that
+bound with `EOC`; the next piece of the same frame later starts with `SOC`.
+A receiver can treat a cell that exceeds the configured bound as a structural
+cell error. The repository full profile defaults to 128 payload words per
+cell, but a different bound can be used when both endpoints and the surrounding
+flow-control budget are designed for it.
+
 ![Protocol layering and interface model.](assets/pgp4-stack.svg)
 
 ## 4. Word Format
@@ -154,9 +182,48 @@ local endpoint binding.
 ### 4.2 Scrambling
 
 PGP4 words are transported through a 64b/66b scrambler and descrambler pair.
-Compatible endpoints use the PGP4 scrambler configuration with taps 39 and 58.
 Scrambling improves serial-link transition behavior; it does not change the
-logical data-word or control-word formats described here.
+logical data-word or control-word formats described here. The 2-bit PGP4 word
+header remains outside the scrambler so the receiver can use it for gearbox
+alignment. Only the 64-bit word payload is scrambled.
+
+![Word processing from protocol word to serial word.](assets/pgp4-word-processing.svg)
+
+PGP4 uses a source-synchronous multiplicative scrambler with polynomial:
+
+```text
+G(x) = x^58 + x^39 + 1
+```
+
+The scrambler state is 58 bits wide and is cleared to zero when the transmit
+PHY path is inactive or reset. The receiver descrambler uses the same tap
+positions and is cleared when receive alignment is reset. Bits are processed in
+ascending payload-bit order, from payload bit `0` through payload bit `63`.
+
+For each payload bit position `i`, define:
+
+```text
+tap = state[57] xor state[38]
+scrambled_bit[i] = input_bit[i] xor tap
+state = state[56:0] || scrambled_bit[i]
+```
+
+The descrambler applies the inverse update with the received scrambled bit:
+
+```text
+tap = state[57] xor state[38]
+output_bit[i] = scrambled_bit[i] xor tap
+state = state[56:0] || scrambled_bit[i]
+```
+
+The following table summarizes the word fields around the scrambler.
+
+| Field | Scrambled | Ordering role |
+| --- | --- | --- |
+| Header bit `0` | No | Part of the 2-bit word header used for alignment |
+| Header bit `1` | No | Part of the 2-bit word header used for alignment |
+| Payload bits `63:0` | Yes | Data word payload or control-word payload |
+| Sideband indicators below PGP4 | No PGP4 meaning | Local PHY wrapper detail |
 
 The protocol does not prescribe one serial line rate. Any rate can be used when
 the endpoints and the physical medium reliably carry the scrambled 66-bit word
@@ -404,9 +471,20 @@ updates remote overflow state from `IDLE.Overflow`.
 Bounded cell size is part of the flow-control design. Because `LINKINFO` is
 sent in every `IDLE`, `SOF`, and `SOC`, a transmitter that is continuously
 sending a long frame still reaches another feedback opportunity when the
-current cell ends and the next cell begins. With the repository default
-128-word cell bound, a change in local receive-buffer state is not forced to
-wait behind an arbitrarily long frame before it can be advertised upstream.
+current cell ends and the next cell begins. The configured maximum cell size
+therefore bounds how long a change in local receive-buffer state can wait
+behind already-selected frame traffic before it can be advertised upstream.
+With the repository default 128-word cell bound, the worst continuous payload
+run inside one cell is 128 data words, aside from permitted in-cell metadata
+words such as `SKP`, `USER`, or urgent `IDLE`.
+
+| Cell bound effect | Consequence |
+| --- | --- |
+| Smaller maximum cell | Faster VC interleaving and faster feedback opportunities, with more control-word overhead |
+| Larger maximum cell | Better efficiency for long frames, with longer pause-response and scheduling latency |
+| Receiver pause threshold | Needs enough reserve for the largest launched cell plus feedback and implementation latency |
+| Watchdog timeout | Needs to tolerate the longest valid run between watchdog-refreshing control words |
+
 Systems commonly assert pause before a receive buffer has less than one full
 cell of free space, so the far transmitter can stop selecting new cells for
 that VC while already-launched traffic drains through the link.
@@ -506,11 +584,31 @@ most recent accepted `SOF` or `SOC`; it does not carry its own VC field.
 Structural errors include a data word with no open cell, `EOF` or `EOC` with
 no open cell, `SOF` for a VC that already has an active frame, `SOC` for a VC
 with no active frame, a continuation sequence mismatch, an unimplemented VC,
-or an invalid `BytesLast` value. A receiver reports the affected frame or cell
-as errored and clears enough per-VC state to avoid appending later payload to a
-corrupt frame. These errors do not by themselves require the physical link to
-drop; link loss is governed by alignment, valid control metadata, version
-checking, malformed control-word handling, and the link-maintenance watchdog.
+an invalid `BytesLast` value, or a cell that exceeds the configured maximum
+payload-word count.
+
+The receiver treats these as frame-level errors on the affected VC, not as an
+automatic physical-link failure. The repository receive path translates the
+PGP4 stream into packetizer metadata and lets the depacketizer enforce the
+per-VC active-frame, sequence, CRC-mode, and CRC checks. When that logic sees a
+bad `SOF`/`SOC` relationship, a sequence mismatch, a CRC mismatch, or a
+malformed tail, it emits or records an errored end-of-frame for the affected
+frame, clears that VC's active-frame and expected-sequence state, resets that
+VC's running CRC state to the initial value, and resumes looking for the next
+valid `SOF` for that VC. Other VCs keep their own active-frame and CRC state.
+
+| Error class | Receiver recovery |
+| --- | --- |
+| Data or tail with no open cell | Drop the orphan word or tail, report a cell error, and wait for a valid `SOF` |
+| `SOF` while the VC already has an active frame | Mark the previous frame on that VC errored, clear that VC state, and evaluate later starts from a clean state |
+| `SOC` while the VC has no active frame | Report a sequence/frame error and wait for a valid `SOF` on that VC |
+| `SOC.SEQ` mismatch | Mark the affected frame errored, clear that VC state, and wait for a valid `SOF` on that VC |
+| CRC mismatch at `EOC` or `EOF` | Mark the affected frame or cell errored and reset the stored CRC state for that VC |
+| Invalid `BytesLast` or oversized cell | Mark the affected frame or cell errored and discard the malformed cell boundary |
+
+These errors do not by themselves require the physical link to drop. Link loss
+is governed by alignment, valid control metadata, version checking, malformed
+control-word handling, and the link-maintenance watchdog.
 
 ### 7.3 VC scheduling
 
@@ -580,6 +678,32 @@ finalized CRC value after inversion and bit reflection of the running
 remainder. A receiver computes the same running CRC over the received data
 words and compares the finalized value at `EOF` or `EOC`.
 
+The following pseudocode defines the byte and bit ordering using the usual
+one-bit MSB-first update for polynomial `0x04C11DB7`.
+
+```text
+remainder = 0xffffffff
+
+for each data word in the frame progression:
+    for byte_lane in 0..7:
+        byte = data_word[(8*byte_lane)+7 : 8*byte_lane]
+        for bit_index in 0..7:
+            data_bit = byte[bit_index]
+            feedback = remainder[31] xor data_bit
+            remainder = (remainder << 1) & 0xffffffff
+            if feedback == 1:
+                remainder = remainder xor 0x04c11db7
+
+for output_byte in 0..3:
+    for bit_index in 0..7:
+        CRC32[(8*output_byte)+bit_index] =
+            not remainder[(8*output_byte)+7-bit_index]
+```
+
+Equivalently, the transmitter inverts the final remainder and reverses the bit
+order within each byte of the 32-bit CRC field. The byte lanes of the CRC field
+are not swapped.
+
 The CRC state is preserved per active VC frame. When a frame is split at an
 `EOC`, the transmitter stores the interim CRC remainder and the active sequence
 state for that VC. When the frame resumes with `SOC`, CRC calculation resumes
@@ -602,6 +726,23 @@ CRC mismatch is reported as a frame or cell error for the affected payload.
 A data CRC failure does not by itself require the PGP4 link to drop. Link loss
 is governed by receive alignment, link-state maintenance, and the endpoint's
 error policy.
+
+### 8.1 Complete Single-Cell Example
+
+The following example shows one complete un-scrambled PGP4 frame on VC 2. The
+local receiver is ready, no pause bits are set, the frame contains one 64-bit
+data word, and all eight bytes of the final word are valid. Control-word
+values include the computed `CSC` byte.
+
+| Word | Header | 64-bit payload | Notes |
+| --- | --- | --- | --- |
+| `SOF` | `10` | `0xAAAC000200000104` | `BTF=0xAA`, `CSC=0xAC`, `SEQ=0`, `VC=2`, `LINKINFO=0x00000104` |
+| Data | `01` | `0x0706050403020100` | Byte lanes processed by CRC as `00 01 02 03 04 05 06 07` |
+| `EOF` | `10` | `0x55C89F68AA888000` | `BTF=0x55`, `CSC=0xC8`, `CRC32=0x9F68AA88`, `BytesLast=8`, `TUSER_LAST=0` |
+
+For the data word in this example, the running internal CRC remainder after
+the eight data bytes is `0x06E9AAEE`. After final inversion and bit reversal
+within each byte, the transmitted `EOF.CRC32` field is `0x9F68AA88`.
 
 ## 9. Receive Alignment and Link State
 
@@ -691,6 +832,16 @@ the expected protocol version. Those words refresh the link-maintenance
 watchdog because they prove that the stream is still carrying valid PGP4
 control metadata. Other words do not refresh that watchdog.
 
+The watchdog interval is a receiver configuration choice, but it is constrained
+by the configured link profile. It needs to be longer than the longest valid
+run between watchdog-refreshing words. In a full-profile link, that run is
+driven primarily by the maximum cell payload size, plus any permitted in-cell
+`SKP`, `USER`, urgent `IDLE`, or implementation pipeline spacing that can
+appear before the next `SOF` or `SOC`. A receiver that configures a larger
+maximum cell size needs a correspondingly larger watchdog interval. A receiver
+that wants a faster link-loss indication needs a smaller cell bound, a policy
+that inserts refreshing control words more often, or both.
+
 If the watchdog expires, the receiver leaves link-ready state. The receiver
 also leaves link-ready state when the physical receive path becomes inactive,
 when reset is asserted, when the elastic-buffer path reports a malformed
@@ -763,6 +914,9 @@ Payload words pass through as data words with header `01`. When the cell ends,
 the packetizer emits metadata that becomes `EOF` or `EOC`. End of frame
 produces `EOF`. A cell boundary reached before end of frame produces `EOC` and
 stores the active frame's CRC and sequence state so the frame can resume later.
+The transmitter closes a non-final cell no later than the configured maximum
+cell payload size, which keeps the receiver's flow-control and watchdog
+assumptions valid.
 
 ### 10.4 Opcode, skip, and metadata priority
 
@@ -817,10 +971,20 @@ They do not emit `SOC` or `EOC`, so they do not split a frame into multiple
 continuation cells. The `SEQ` field in `SOF` is zero. Lite transmit paths that
 only support whole 64-bit payload words emit `EOF.BytesLast = 8`.
 
-The receive side still consumes the standard PGP4 word format. In the
-repository implementation, the receive depacketizer is configured without
-sequence tracking RAM for Lite operation because Lite transmit does not create
-continuation cells that need sequence checking.
+The receive side still consumes the standard PGP4 word format, but a Lite
+profile endpoint is only expected to receive the subset that Lite transmitters
+emit: `SOF`, one or more data words, and `EOF`. `SOC` and `EOC` are full PGP4
+continuation-cell delimiters. A receiver that implements only Lite behavior
+can treat received `SOC` or `EOC` as outside its configured profile. A receiver
+that reuses the full PGP4 receive path can accept full-profile cell
+continuations, but then that receive direction is no longer only the Lite
+subset.
+
+In the repository implementation, the receive depacketizer is configured
+without sequence tracking RAM for Lite operation because Lite transmit does
+not create continuation cells that need sequence checking. This is an
+implementation choice for the Lite subset, not a different wire encoding for
+the words Lite does transmit.
 
 Low-speed Pgp4Lite receive lanes use their own SelectIO alignment wrapper
 before the PGP4 core. That wrapper performs header-based locking, masks receive

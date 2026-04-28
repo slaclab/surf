@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="250" viewBox="0 0 1120 250" role="img" aria-labelledby="title desc">
+  <title id="title">PGP4 word processing</title>
+  <desc id="desc">The 64-bit payload is scrambled while the two-bit header remains clear for alignment.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34495e"/>
+    </marker>
+    <style>
+      .box { fill: #f8fbfd; stroke: #34495e; stroke-width: 2; rx: 6; }
+      .payload { fill: #e7f4ec; stroke: #2f7d4f; stroke-width: 2; rx: 6; }
+      .header { fill: #fff3d8; stroke: #aa7a00; stroke-width: 2; rx: 6; }
+      .label { font: 700 18px sans-serif; fill: #1f2d3a; }
+      .text { font: 14px sans-serif; fill: #34495e; }
+      .small { font: 12px sans-serif; fill: #52616d; }
+      .arrow { stroke: #34495e; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect x="30" y="48" width="210" height="128" class="box"/>
+  <text x="135" y="82" text-anchor="middle" class="label">Protocol Word</text>
+  <rect x="55" y="106" width="70" height="42" class="header"/>
+  <text x="90" y="132" text-anchor="middle" class="text">2-bit header</text>
+  <rect x="135" y="106" width="80" height="42" class="payload"/>
+  <text x="175" y="132" text-anchor="middle" class="text">64-bit payload</text>
+
+  <path d="M245 112 H330" class="arrow"/>
+
+  <rect x="340" y="42" width="270" height="140" class="box"/>
+  <text x="475" y="76" text-anchor="middle" class="label">Scrambler</text>
+  <text x="475" y="108" text-anchor="middle" class="text">payload bits only</text>
+  <text x="475" y="132" text-anchor="middle" class="small">G(x) = x^58 + x^39 + 1</text>
+  <text x="475" y="154" text-anchor="middle" class="small">process bits 0 through 63</text>
+
+  <path d="M615 112 H700" class="arrow"/>
+
+  <rect x="710" y="48" width="250" height="128" class="box"/>
+  <text x="835" y="82" text-anchor="middle" class="label">66-bit Word</text>
+  <rect x="735" y="106" width="82" height="42" class="header"/>
+  <text x="776" y="132" text-anchor="middle" class="text">clear header</text>
+  <rect x="830" y="106" width="105" height="42" class="payload"/>
+  <text x="882" y="132" text-anchor="middle" class="text">scrambled payload</text>
+
+  <path d="M965 112 H1060" class="arrow"/>
+  <text x="1014" y="92" text-anchor="middle" class="small">to PHY</text>
+
+  <path d="M777 180 V214 H90 V180" class="arrow"/>
+  <text x="430" y="234" text-anchor="middle" class="small">receiver aligns on clear headers, then descrambles payload bits</text>
+</svg>
