@@ -335,6 +335,14 @@ async def srpv3_axi_directed_protocol_matrix_test(dut):
         expected_footer_bits=FOOTER_ADDRESS_ERROR,
     )
 
+    out_of_range_read_req = SrpRequest(SRP_READ, 0x4000_0006, 0x1_0000_0000, 4)
+    await issue_and_check_error(
+        tb,
+        out_of_range_read_req,
+        [],
+        expected_footer_bits=FOOTER_ADDRESS_ERROR,
+    )
+
 
 PARAMETER_SWEEP = [pytest.param({}, id="default_protocol_matrix")]
 

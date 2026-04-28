@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from cocotb.triggers import RisingEdge, with_timeout
+from cocotb.triggers import RisingEdge, Timer, with_timeout
 
 
 SRP_VERSION = 0x03
@@ -134,13 +134,18 @@ class FlatSrpAxis:
                 self._sig(prefix, "TID").value = 0
             self._sig(prefix, "TUSER").value = 0x2 if index == 0 else 0x0
 
+            # Hold each beat until a sampled clock edge confirms that the DUT
+            # raised TREADY. The direct SRPv3 AXI-Lite wrappers expose a more
+            # combinational ingress path than the SSI helper benches, and
+            # consuming "instantaneous" ready before a clock edge can make the
+            # source outrun what the DUT actually sampled.
             for _ in range(1024):
+                await RisingEdge(self.clk)
+                await Timer(1, unit="ns")
                 if int(self._sig(prefix, "TREADY").value) == 1:
                     break
-                await RisingEdge(self.clk)
             else:
                 raise AssertionError(f"Timed out waiting for {prefix}_TREADY")
-            await RisingEdge(self.clk)
 
         self._sig(prefix, "TVALID").value = 0
         self._sig(prefix, "TLAST").value = 0

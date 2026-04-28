@@ -25,7 +25,7 @@ import cocotb
 import os
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge
 from cocotbext.axi import AxiLiteBus, AxiLiteRam
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -78,23 +78,6 @@ def _selected_cocotb_test(name: str) -> bool:
     return os.environ.get("SRP_AXI_LITE_COCOTB_TEST", "directed") == name
 
 
-async def log_single_read_pins(dut, *, cycles: int = 32):
-    for index in range(cycles):
-        await RisingEdge(dut.AXIS_ACLK)
-        await Timer(1, unit="ns")
-        dut._log.info(
-            "single read monitor[%02d] tvalid=%s tlast=%s tdata=%s arvalid=%s arready=%s rvalid=%s rready=%s",
-            index,
-            dut.M_AXIS_TVALID.value,
-            dut.M_AXIS_TLAST.value,
-            dut.M_AXIS_TDATA.value,
-            dut.M_AXIL_ARVALID.value,
-            dut.M_AXIL_ARREADY.value,
-            dut.M_AXIL_RVALID.value,
-            dut.M_AXIL_RREADY.value,
-        )
-
-
 async def issue_and_check_error(tb: TB, request: SrpV3Request, *, expected_footer_bits: int):
     await tb.axis.send_words(srpv3_frame(request))
     response = await tb.axis.recv_response()
@@ -135,6 +118,32 @@ async def srpv3_axilite_short_frame_probe_test(dut):
     )
 
 
+@cocotb.test(skip=not _selected_cocotb_test("four_beat_header"))
+async def srpv3_axilite_four_beat_header_probe_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # A four-beat frame proves the first packed 16-byte block is parsed and
+    # that the DUT can return a framing error before the final reqSize word.
+    await tb.axis.send_words(
+        [
+            0x0000_0003,
+            0x5100_0200,
+            0x0000_0020,
+            0x0000_0000,
+        ],
+        tdest=0x3,
+    )
+    assert_srpv3_response(
+        await tb.axis.recv_response(),
+        SrpV3Request(SRP_READ, 0x5100_0200, 0x20, 1),
+        [],
+        footer_mask=FOOTER_FRAME_ERROR,
+        footer_value=FOOTER_FRAME_ERROR,
+        expected_tdest=0x3,
+    )
+
+
 @cocotb.test(skip=not _selected_cocotb_test("single_read"))
 async def srpv3_axilite_single_read_probe_test(dut):
     tb = TB(dut)
@@ -143,7 +152,6 @@ async def srpv3_axilite_single_read_probe_test(dut):
     # First valid AXI-Lite-backed read. If this stalls, the failure is after
     # header parsing and in the AXI-Lite transaction or response path.
     read_req = SrpV3Request(SRP_READ, 0x5100_0100, 0x20, 4)
-    cocotb.start_soon(log_single_read_pins(dut))
     dut._log.info("single read probe: sending request")
     await tb.axis.send_words(srpv3_frame(read_req), tdest=0x1)
     dut._log.info("single read probe: request accepted")
@@ -265,39 +273,48 @@ def _run_srpv3_axilite_case(parameters, cocotb_test: str, build_label: str):
     )
 
 
+def _known_issue_opt_in_enabled() -> bool:
+    return os.environ.get("RUN_KNOWN_ISSUE_TESTS", "0") == "1"
+
+
+def _skip_opt_in_probe(parameters):
+    if parameters["TOPLEVEL"] == "surf.srpv3axilitewidewrapper" and not _known_issue_opt_in_enabled():
+        pytest.skip("Direct and Full SRPv3AxiLite probes are active; duplicate wide-wrapper probes stay opt-in.")
+
+
+def _skip_opt_in_directed(parameters):
+    if parameters["TOPLEVEL"] == "surf.srpv3axilitewidewrapper" and not _known_issue_opt_in_enabled():
+        pytest.skip(
+            "Direct and Full SRPv3AxiLite directed coverage are active; duplicate wide-wrapper cases stay opt-in."
+        )
+
+
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SrpV3AxiLite_reset_idle(parameters):
     _run_srpv3_axilite_case(parameters, "reset_idle", "reset_idle")
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
-@pytest.mark.skipif(
-    os.environ.get("RUN_KNOWN_ISSUE_TESTS", "0") != "1",
-    reason="Expected-open SRPv3 AXI-Lite request-path probe.",
-)
 def test_SrpV3AxiLite_short_frame_probe(parameters):
+    _skip_opt_in_probe(parameters)
     _run_srpv3_axilite_case(parameters, "short_frame", "short_frame")
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
-@pytest.mark.skipif(
-    os.environ.get("RUN_KNOWN_ISSUE_TESTS", "0") != "1",
-    reason="Expected-open SRPv3 AXI-Lite request-path probe.",
-)
+def test_SrpV3AxiLite_four_beat_header_probe(parameters):
+    _skip_opt_in_probe(parameters)
+    _run_srpv3_axilite_case(parameters, "four_beat_header", "four_beat_header")
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_SrpV3AxiLite_single_read_probe(parameters):
+    _skip_opt_in_probe(parameters)
     _run_srpv3_axilite_case(parameters, "single_read", "single_read")
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
-@pytest.mark.skipif(
-    os.environ.get("RUN_KNOWN_ISSUE_TESTS", "0") != "1",
-    reason=(
-        "Expected-open SRPv3 AXI-Lite investigation: the 32-bit multi-beat "
-        "SrpV3AxiLite request path and SrpV3AxiLiteFull probes are still under "
-        "debug. Set RUN_KNOWN_ISSUE_TESTS=1 to reproduce while debugging."
-    ),
-)
 def test_SrpV3AxiLite(parameters):
+    _skip_opt_in_directed(parameters)
     _run_srpv3_axilite_case(parameters, "directed", "directed")
 
 
