@@ -27,6 +27,7 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_MARKER,
@@ -66,11 +67,7 @@ async def _send_handshaked_beat(dut, *, data: int, keep: int, last: int = 0) -> 
     dut.sAxisTData.value = data
     dut.sAxisTKeep.value = keep
     dut.sAxisTLast.value = last
-    while True:
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
-        if int(dut.sAxisTReady.value) == 1:
-            break
+    await wait_sampled_ready(dut.sAxisTReady, clk=dut.rxClk)
     dut.sAxisTValid.value = 0
     dut.sAxisTData.value = 0
     dut.sAxisTKeep.value = 0
