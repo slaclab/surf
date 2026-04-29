@@ -144,8 +144,9 @@ work on the PGP4 specification effort.
   placed between the descrambler and either the elastic buffer or no-EB bypass.
   `Pgp4RxEb` now only handles SKP filtering, remote LINKINFO extraction, clock
   crossing, and overflow. There is a direct `Pgp4RxKCodeChecker` regression for
-  pass/drop/reset behavior, and the integrated no-EB RX wrapper test corrupts
-  one control word and checks for `linkError`.
+  pass/drop/reset behavior. The frame CRC error regression now drives raw
+  protocol words into a protocol/depacketizer wrapper instead of adding
+  test-only corruption ports to the integrated RX loopback wrapper.
 - Startup semantics need a later maintainer decision. The protocol prose
   describes startup as a period of control-word transmission before user frame
   traffic, but the current full transmit RTL appears to hold `protTxValid` low
