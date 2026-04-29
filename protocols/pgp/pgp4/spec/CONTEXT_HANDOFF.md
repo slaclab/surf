@@ -143,8 +143,9 @@ work on the PGP4 specification effort.
 - Control-word CSC checking has been split out into `Pgp4RxKCodeChecker`,
   placed between the descrambler and either the elastic buffer or no-EB bypass.
   `Pgp4RxEb` now only handles SKP filtering, remote LINKINFO extraction, clock
-  crossing, and overflow. The integrated no-EB RX wrapper test corrupts one
-  control word and checks for `linkError`.
+  crossing, and overflow. There is a direct `Pgp4RxKCodeChecker` regression for
+  pass/drop/reset behavior, and the integrated no-EB RX wrapper test corrupts
+  one control word and checks for `linkError`.
 - Startup semantics need a later maintainer decision. The protocol prose
   describes startup as a period of control-word transmission before user frame
   traffic, but the current full transmit RTL appears to hold `protTxValid` low
