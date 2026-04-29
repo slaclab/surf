@@ -31,7 +31,7 @@ import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, env_float, parameter_case
+from tests.common.regression_utils import env_flag, env_float, parameter_case, start_lockstep_clocks
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     PGP4_D_HEADER,
     PGP4_K_HEADER,
@@ -54,8 +54,11 @@ class Pgp4RxEbTB:
         self.dut = dut
         self.phy_period_ns = env_float("PHY_CLK_PERIOD_NS", default=4.0)
         self.pgp_period_ns = env_float("PGP_CLK_PERIOD_NS", default=4.125)
-        cocotb.start_soon(Clock(dut.phyClk, self.phy_period_ns, unit="ns").start())
-        cocotb.start_soon(Clock(dut.pgpClk, self.pgp_period_ns, unit="ns").start())
+        if env_flag("COMMON_CLK", default=False):
+            start_lockstep_clocks(dut.phyClk, dut.pgpClk, period_ns=self.phy_period_ns)
+        else:
+            cocotb.start_soon(Clock(dut.phyClk, self.phy_period_ns, unit="ns").start())
+            cocotb.start_soon(Clock(dut.pgpClk, self.pgp_period_ns, unit="ns").start())
 
     async def cycle_phy(self, count: int = 1):
         for _ in range(count):
@@ -140,7 +143,7 @@ async def wait_for_collected_beats(collector: ValidBeatCollector, *, count: int,
 def initialize_phy_inputs(dut):
     """Drive the direct PHY-side wrapper inputs to a known idle state."""
 
-    initialize_signals(dut, phyRxValid=0, phyRxData=0, phyRxHeader=0)
+    initialize_signals(dut, phyRxValid=0, phyRxData=0, phyRxHeader=0, phyRxLinkError=0)
 
 
 async def send_phy_word(tb: Pgp4RxEbTB, *, header: int, data: int):
@@ -156,6 +159,15 @@ async def send_phy_word(tb: Pgp4RxEbTB, *, header: int, data: int):
 async def send_phy_words(tb: Pgp4RxEbTB, words: list[tuple[int, int]]):
     for header, data in words:
         await send_phy_word(tb, header=header, data=data)
+
+
+async def send_phy_link_error(tb: Pgp4RxEbTB):
+    """Pulse the checker-to-EB link error without presenting a valid word."""
+
+    tb.dut.phyRxValid.value = 0
+    tb.dut.phyRxLinkError.value = 1
+    await tb.cycle_phy()
+    tb.dut.phyRxLinkError.value = 0
 
 
 async def collect_output_words(tb: Pgp4RxEbTB, *, count: int, cycles: int = 256) -> list[tuple[int, int]]:
@@ -190,7 +202,7 @@ async def assert_no_output_words(tb: Pgp4RxEbTB, *, cycles: int):
 @cocotb.test()
 async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_OVERFLOW", default=False):
+    if env_flag("EXPECT_BYPASS", default=False) or env_flag("EXPECT_OVERFLOW", default=False):
         return
 
     initialize_phy_inputs(dut)
@@ -233,6 +245,9 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
 @cocotb.test()
 async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     tb = Pgp4RxEbTB(dut)
+    if env_flag("EXPECT_BYPASS", default=False):
+        return
+
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -255,6 +270,9 @@ async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
 @cocotb.test()
 async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     tb = Pgp4RxEbTB(dut)
+    if env_flag("EXPECT_BYPASS", default=False):
+        return
+
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -275,6 +293,42 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
 
     await tb.cycle_pgp(64)
     assert overflow_monitor.seen
+
+
+@cocotb.test()
+async def pgp4_rx_eb_bypass_bubbles_after_link_error(dut):
+    tb = Pgp4RxEbTB(dut)
+    if not env_flag("EXPECT_BYPASS", default=False):
+        return
+
+    initialize_phy_inputs(dut)
+    await tb.reset()
+
+    collector = ValidBeatCollector(
+        dut,
+        step=tb.sample_pgp_cycle,
+        valid_name="pgpRxValid",
+        field_names=("pgpRxHeader", "pgpRxData"),
+    )
+    link_error_monitor = PulseMonitor(dut, "linkError", step=tb.sample_pgp_cycle)
+    cocotb.start_soon(collector.run())
+    cocotb.start_soon(link_error_monitor.run())
+
+    data_word_a = 0x1111222233334444
+    suppressed_word = 0x5555666677778888
+    data_word_b = 0x9999AAAABBBBCCCC
+
+    await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_a)
+    await send_phy_link_error(tb)
+    await send_phy_word(tb, header=PGP4_D_HEADER, data=suppressed_word)
+    await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_b)
+
+    words = await wait_for_collected_beats(collector, count=2, step=tb.cycle_pgp, cycles=64)
+    assert words == [
+        (PGP4_D_HEADER, data_word_a),
+        (PGP4_D_HEADER, data_word_b),
+    ]
+    assert link_error_monitor.seen
 
 
 PARAMETER_SWEEP = [
@@ -306,4 +360,30 @@ def test_Pgp4RxEb(parameters):
         toplevel="surf.pgp4rxebwrapper",
         wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxEbWrapper.vhd",
         extra_env=parameters,
+    )
+
+
+BYPASS_PARAMETER_SWEEP = [
+    pytest.param(
+        {"BYPASS_G": True},
+        {
+            "PHY_CLK_PERIOD_NS": "4.000",
+            "PGP_CLK_PERIOD_NS": "4.000",
+            "COMMON_CLK": "1",
+            "EXPECT_BYPASS": "1",
+            "EXPECT_OVERFLOW": "0",
+        },
+        id="same_clock_bypass",
+    ),
+]
+
+
+@pytest.mark.parametrize("parameters, extra_env", BYPASS_PARAMETER_SWEEP)
+def test_Pgp4RxEbBypass(parameters, extra_env):
+    run_pgp_wrapper_test(
+        test_file=__file__,
+        toplevel="surf.pgp4rxebwrapper",
+        wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxEbWrapper.vhd",
+        parameters=parameters,
+        extra_env=extra_env,
     )

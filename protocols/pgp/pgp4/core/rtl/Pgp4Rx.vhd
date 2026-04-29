@@ -155,45 +155,29 @@ begin
          checkedHeader => checkedHeader,      -- [out]
          linkError     => kCodeLinkError);    -- [out]
 
-   U_linkError : entity surf.SynchronizerOneShot
+   -- Elastic Buffer or same-clock bypass path
+   U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         BYPASS_G       => not SKIP_EN_G)
       port map (
-         clk     => pgpRxClk,
-         dataIn  => kCodeLinkError,
-         dataOut => linkError);
-
-   GEN_EB : if (SKIP_EN_G = true) generate
-      -- Elastic Buffer
-      U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G)
-         port map (
-            phyRxClk    => phyRxClk,           -- [in]
-            phyRxRst    => phyRxRst,           -- [in]
-            phyRxValid  => checkedValid,       -- [in]
-            phyRxData   => checkedData,        -- [in]
-            phyRxHeader => checkedHeader,      -- [in]
-            pgpRxClk    => pgpRxClk,           -- [in]
-            pgpRxRst    => pgpRxRst,           -- [in]
-            pgpRxValid  => ebValid,            -- [out]
-            pgpRxData   => ebData,             -- [out]
-            pgpRxHeader => ebHeader,           -- [out]
-            remLinkData => remLinkData,        -- [out]
-            overflow    => ebOverflow,         -- [out]
-            status      => ebStatus);          -- [out]
-   end generate GEN_EB;
-   NO_EB : if (SKIP_EN_G = false) generate
-      ebValid     <= checkedValid;
-      ebData      <= checkedData;
-      ebHeader    <= checkedHeader;
-      remLinkData <= (others => '0');
-      ebOverflow  <= '0';
-      ebStatus    <= (others => '0');
-   end generate NO_EB;
+         phyRxClk       => phyRxClk,           -- [in]
+         phyRxRst       => phyRxRst,           -- [in]
+         phyRxValid     => checkedValid,       -- [in]
+         phyRxData      => checkedData,        -- [in]
+         phyRxHeader    => checkedHeader,      -- [in]
+         phyRxLinkError => kCodeLinkError,     -- [in]
+         pgpRxClk       => pgpRxClk,           -- [in]
+         pgpRxRst       => pgpRxRst,           -- [in]
+         pgpRxValid     => ebValid,            -- [out]
+         pgpRxData      => ebData,             -- [out]
+         pgpRxHeader    => ebHeader,           -- [out]
+         remLinkData    => remLinkData,        -- [out]
+         overflow       => ebOverflow,         -- [out]
+         linkError      => linkError,          -- [out]
+         status         => ebStatus);          -- [out]
 
    -- Main RX protocol logic
    U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol
