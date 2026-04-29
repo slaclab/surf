@@ -55,21 +55,13 @@ architecture rtl of Pgp4RxEb is
       remLinkData : slv(47 downto 0);
       fifoIn      : slv(65 downto 0);
       fifoWrEn    : sl;
-      pgpRxValid  : sl;
-      pgpRxData   : slv(63 downto 0);
-      pgpRxHeader : slv(1 downto 0);
-      linkError   : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       dataValid   => '0',
       remLinkData => (others => '0'),
       fifoIn      => (others => '0'),
-      fifoWrEn    => '0',
-      pgpRxValid  => '0',
-      pgpRxData   => (others => '0'),
-      pgpRxHeader => (others => '0'),
-      linkError   => '0');
+      fifoWrEn    => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -80,7 +72,7 @@ architecture rtl of Pgp4RxEb is
 
 begin
 
-   comb : process (phyRxData, phyRxHeader, phyRxLinkError, phyRxRst, phyRxValid, r) is
+   comb : process (phyRxData, phyRxHeader, phyRxRst, phyRxValid, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -89,29 +81,27 @@ begin
       -- Reset strobes
       v.dataValid := '0';
 
-      -- Map to FIFO write
-      v.fifoIn(63 downto 0)  := phyRxData;
-      v.fifoIn(65 downto 64) := phyRxHeader;
-      v.fifoWrEn             := phyRxValid;
+      if (SKIP_EN_G = true) then
 
-      -- Map to same-clock bypass output
-      v.pgpRxValid  := phyRxValid;
-      v.pgpRxData   := phyRxData;
-      v.pgpRxHeader := phyRxHeader;
-      v.linkError   := phyRxLinkError;
+         -- Map to FIFO write
+         v.fifoIn(63 downto 0)  := phyRxData;
+         v.fifoIn(65 downto 64) := phyRxHeader;
+         v.fifoWrEn             := phyRxValid;
 
-      -- Check for valid k-code
-      if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) then
+         -- Check for valid k-code
+         if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) then
 
-         -- Check for SKP words
-         if (phyRxData(PGP4_BTF_FIELD_C) = PGP4_SKP_C) then
+            -- Check for SKP words
+            if (phyRxData(PGP4_BTF_FIELD_C) = PGP4_SKP_C) then
 
-            -- Don't write SKP words into the FIFO
-            v.fifoWrEn := '0';
+               -- Don't write SKP words into the FIFO
+               v.fifoWrEn := '0';
 
-            -- Save the remote data bus
-            v.dataValid   := '1';
-            v.remLinkData := phyRxData(PGP4_SKIP_DATA_FIELD_C);
+               -- Save the remote data bus
+               v.dataValid   := '1';
+               v.remLinkData := phyRxData(PGP4_SKIP_DATA_FIELD_C);
+
+            end if;
 
          end if;
 
@@ -121,10 +111,6 @@ begin
       if (RST_ASYNC_G = false and phyRxRst = RST_POLARITY_G) then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
-         v.pgpRxValid  := '0';
-         v.pgpRxData   := (others => '0');
-         v.pgpRxHeader := (others => '0');
-         v.linkError   := '0';
       end if;
 
       -- Register the variable for next clock cycle
@@ -206,12 +192,12 @@ begin
 
    GEN_BYPASS : if (SKIP_EN_G = false) generate
 
-      pgpRxValid  <= r.pgpRxValid;
-      pgpRxData   <= r.pgpRxData;
-      pgpRxHeader <= r.pgpRxHeader;
+      pgpRxValid  <= phyRxValid;
+      pgpRxData   <= phyRxData;
+      pgpRxHeader <= phyRxHeader;
       remLinkData <= (others => '0');
       overflow    <= '0';
-      linkError   <= r.linkError;
+      linkError   <= phyRxLinkError;
       status      <= (others => '0');
 
    end generate GEN_BYPASS;
