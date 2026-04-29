@@ -22,41 +22,46 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxWrapper is
    port (
-      clk          : in  sl;
-      rst          : in  sl;
-      txValid      : in  sl;
-      txReady      : out sl;
-      txData       : in  slv(63 downto 0);
-      txSof        : in  sl;
-      txEof        : in  sl;
-      txEofe       : in  sl;
-      opCodeEn     : in  sl               := '0';
-      opCodeData   : in  slv(47 downto 0) := (others => '0');
-      corruptArm   : in  sl               := '0';
-      corruptMask  : in  slv(63 downto 0) := (others => '0');
-      corruptBusy  : out sl;
-      linkReady    : out sl;
-      frameRx      : out sl;
-      frameRxErr   : out sl;
-      rxOpCodeEn   : out sl;
-      rxOpCodeData : out slv(47 downto 0);
-      rxValid      : out sl;
-      rxLast       : out sl;
-      rxData       : out slv(63 downto 0);
-      rxDest       : out slv(7 downto 0);
-      rxUser       : out slv(15 downto 0));
+      clk              : in  sl;
+      rst              : in  sl;
+      txValid          : in  sl;
+      txReady          : out sl;
+      txData           : in  slv(63 downto 0);
+      txSof            : in  sl;
+      txEof            : in  sl;
+      txEofe           : in  sl;
+      opCodeEn         : in  sl               := '0';
+      opCodeData       : in  slv(47 downto 0) := (others => '0');
+      corruptArm       : in  sl               := '0';
+      corruptMask      : in  slv(63 downto 0) := (others => '0');
+      corruptBusy      : out sl;
+      corruptKCodeArm  : in  sl               := '0';
+      corruptKCodeMask : in  slv(63 downto 0) := (others => '0');
+      corruptKCodeBusy : out sl;
+      linkReady        : out sl;
+      linkError        : out sl;
+      frameRx          : out sl;
+      frameRxErr       : out sl;
+      rxOpCodeEn       : out sl;
+      rxOpCodeData     : out slv(47 downto 0);
+      rxValid          : out sl;
+      rxLast           : out sl;
+      rxData           : out slv(63 downto 0);
+      rxDest           : out slv(7 downto 0);
+      rxUser           : out slv(15 downto 0));
 end entity Pgp4RxWrapper;
 
 architecture rtl of Pgp4RxWrapper is
 
-   signal pgpTxIn      : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal phyTxValid   : sl;
-   signal phyTxData    : slv(63 downto 0);
-   signal phyTxHeader  : slv(1 downto 0);
-   signal loopPhyData  : slv(63 downto 0);
-   signal corruptBusyInt : sl := '0';
+   signal pgpTxIn             : Pgp4TxInType       := PGP4_TX_IN_INIT_C;
+   signal pgpTxMaster         : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave          : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal phyTxValid          : sl;
+   signal phyTxData           : slv(63 downto 0);
+   signal phyTxHeader         : slv(1 downto 0);
+   signal loopPhyData         : slv(63 downto 0);
+   signal corruptBusyInt      : sl := '0';
+   signal corruptKCodeBusyInt : sl := '0';
 
    signal pgpRxOut     : Pgp4RxOutType := PGP4_RX_OUT_INIT_C;
    signal pgpRxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -81,9 +86,11 @@ begin
    pgpTxMaster.tLast              <= txEof;
 
    linkReady    <= pgpRxOut.linkReady;
+   linkError    <= pgpRxOut.linkError;
    frameRx      <= pgpRxOut.frameRx;
    frameRxErr   <= pgpRxOut.frameRxErr;
    corruptBusy  <= corruptBusyInt;
+   corruptKCodeBusy <= corruptKCodeBusyInt;
    rxOpCodeEn   <= pgpRxOut.opCodeEn;
    rxOpCodeData <= pgpRxOut.opCodeData;
    rxValid      <= pgpRxMaster.tValid;
@@ -92,17 +99,24 @@ begin
    rxDest       <= pgpRxMaster.tDest(7 downto 0);
    rxUser       <= pgpRxMaster.tUser(15 downto 0);
 
-   loopPhyData <= phyTxData xor corruptMask when (corruptBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_D_HEADER_C) else phyTxData;
+   loopPhyData <= phyTxData xor corruptMask when (corruptBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_D_HEADER_C) else
+                  phyTxData xor corruptKCodeMask when (corruptKCodeBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_K_HEADER_C) else
+                  phyTxData;
 
    process (clk) is
    begin
       if rising_edge(clk) then
          if rst = '1' then
-            corruptBusyInt <= '0';
+            corruptBusyInt      <= '0';
+            corruptKCodeBusyInt <= '0';
          elsif corruptArm = '1' then
             corruptBusyInt <= '1';
+         elsif corruptKCodeArm = '1' then
+            corruptKCodeBusyInt <= '1';
          elsif corruptBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_D_HEADER_C then
             corruptBusyInt <= '0';
+         elsif corruptKCodeBusyInt = '1' and phyTxValid = '1' and phyTxHeader = PGP4_K_HEADER_C then
+            corruptKCodeBusyInt <= '0';
          end if;
       end if;
    end process;

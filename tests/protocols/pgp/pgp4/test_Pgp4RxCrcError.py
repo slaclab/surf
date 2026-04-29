@@ -15,6 +15,9 @@
 #   one 64-bit data beat is flipped after TX formatting but before RX checking.
 # - Checks: The integrated receive path must flag `frameRxErr` while staying
 #   link-up, which proves CRC-style rejection beyond the standalone CRC blocks.
+#   A separate test flips one control word after TX formatting and checks that
+#   the no-elastic-buffer RX path reports a link error instead of accepting the
+#   bad K-code.
 # - Timing: The corruption hook only touches the first transmitted data word of
 #   the next frame, so the injected error is deterministic.
 
@@ -27,6 +30,7 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     initialize_flat_tx_inputs,
     initialize_signals,
     send_single_word_frame,
+    signal_int,
     wait_for_signal,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
@@ -49,6 +53,35 @@ async def pgp4_rx_crc_error_test(dut):
     await wait_for_signal(tb, "corruptBusy", value=0, cycles=64)
     await wait_for_signal(tb, "frameRxErr", cycles=512)
     assert int(dut.linkReady.value) == 1
+
+
+@cocotb.test()
+async def pgp4_rx_bad_kcode_csc_error_test(dut):
+    tb = Pgp4FlatTB(dut)
+    initialize_flat_tx_inputs(dut, include_opcode=True)
+    initialize_signals(
+        dut,
+        corruptArm=0,
+        corruptMask=0,
+        corruptKCodeArm=0,
+        corruptKCodeMask=0,
+    )
+    await tb.reset()
+    await wait_for_signal(tb, "linkReady", cycles=2600)
+
+    dut.corruptKCodeMask.value = 0x1
+    dut.corruptKCodeArm.value = 1
+    await tb.cycle()
+    dut.corruptKCodeArm.value = 0
+
+    saw_error = False
+    for _ in range(512):
+        await tb.cycle()
+        if signal_int(dut, "linkError") == 1:
+            saw_error = True
+            break
+
+    assert saw_error, "RX did not report linkError after bad K-code CSC"
 
 
 PARAMETER_SWEEP = [parameter_case("integrated_scrambled_rx_wrapper_crc_error")]

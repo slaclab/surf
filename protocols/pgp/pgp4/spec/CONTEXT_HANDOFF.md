@@ -140,11 +140,11 @@ work on the PGP4 specification effort.
 
 ## Known Limitations
 
-- Open RTL issue: the no-elastic-buffer receive path used when `SKIP_EN_G` is
-  false bypasses the `Pgp4RxEb` control-word checksum check. That means
-  no-skip or Lite-style configurations may accept malformed control words that
-  the full elastic-buffer path would reject. This should be investigated in RTL
-  and tests rather than treated as protocol behavior.
+- Control-word CSC checking has been split out into `Pgp4RxKCodeChecker`,
+  placed between the descrambler and either the elastic buffer or no-EB bypass.
+  `Pgp4RxEb` now only handles SKP filtering, remote LINKINFO extraction, clock
+  crossing, and overflow. The integrated no-EB RX wrapper test corrupts one
+  control word and checks for `linkError`.
 - Startup semantics need a later maintainer decision. The protocol prose
   describes startup as a period of control-word transmission before user frame
   traffic, but the current full transmit RTL appears to hold `protTxValid` low
