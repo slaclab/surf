@@ -29,11 +29,11 @@ entity Pgp4RxKCodeChecker is
       RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false);
    port (
-      phyRxClk     : in  sl;
-      phyRxRst     : in  sl;
-      phyRxValid   : in  sl;
-      phyRxData    : in  slv(63 downto 0);
-      phyRxHeader  : in  slv(1 downto 0);
+      phyRxClk      : in  sl;
+      phyRxRst      : in  sl;
+      phyRxValid    : in  sl;
+      phyRxData     : in  slv(63 downto 0);
+      phyRxHeader   : in  slv(1 downto 0);
       checkedValid  : out sl;
       checkedData   : out slv(63 downto 0);
       checkedHeader : out slv(1 downto 0);
@@ -43,6 +43,7 @@ end entity Pgp4RxKCodeChecker;
 architecture rtl of Pgp4RxKCodeChecker is
 
    type RegType is record
+      holdoff       : sl;
       checkedValid  : sl;
       checkedData   : slv(63 downto 0);
       checkedHeader : slv(1 downto 0);
@@ -50,6 +51,7 @@ architecture rtl of Pgp4RxKCodeChecker is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      holdoff       => '0',
       checkedValid  => '0',
       checkedData   => (others => '0'),
       checkedHeader => (others => '0'),
@@ -61,22 +63,30 @@ architecture rtl of Pgp4RxKCodeChecker is
 begin
 
    comb : process (phyRxData, phyRxHeader, phyRxRst, phyRxValid, r) is
-      variable v : RegType;
+      variable v        : RegType;
+      variable badKCode : sl;
    begin
       -- Latch the current value
       v := r;
 
+      badKCode := '0';
+      if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) and
+         (phyRxData(PGP4_K_CODE_CRC_FIELD_C) /= pgp4KCodeCrc(phyRxData)) then
+         badKCode := '1';
+      end if;
+
       -- Map to output register
-      v.checkedValid  := phyRxValid;
+      v.checkedValid  := phyRxValid and not r.holdoff;
       v.checkedData   := phyRxData;
       v.checkedHeader := phyRxHeader;
       v.linkError     := '0';
+      v.holdoff       := '0';
 
       -- Drop K-codes with invalid checksum
-      if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) and
-         (phyRxData(PGP4_K_CODE_CRC_FIELD_C) /= pgp4KCodeCrc(phyRxData)) then
+      if (badKCode = '1') then
          v.checkedValid := '0';
          v.linkError    := '1';
+         v.holdoff      := '1';
       end if;
 
       -- Reset
@@ -86,6 +96,12 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
+
+      -- Drive outputs
+      checkedValid  <= r.checkedValid;
+      checkedData   <= r.checkedData;
+      checkedHeader <= r.checkedHeader;
+      linkError     <= r.linkError;
 
    end process comb;
 
@@ -97,10 +113,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   checkedValid  <= r.checkedValid;
-   checkedData   <= r.checkedData;
-   checkedHeader <= r.checkedHeader;
-   linkError     <= r.linkError;
 
 end architecture rtl;

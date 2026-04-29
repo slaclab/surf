@@ -14,7 +14,8 @@
 #   cycles, and reset directly into the checker input.
 # - Checks: Data words pass regardless of K-code checksum contents, valid
 #   K-words pass unchanged, invalid K-words are suppressed with a one-cycle
-#   `linkError`, and reset clears the registered outputs.
+#   `linkError`, the word immediately following an invalid K-word is also
+#   suppressed, and reset clears the registered outputs.
 # - Timing: The checker is registered, so each input word is sampled one clock
 #   cycle after it is driven.
 
@@ -38,6 +39,8 @@ from tests.protocols.pgp.pgp4.pgp4_test_utils import (
 
 K_CODE_CSC_LSB = 48
 DATA_PASS_THROUGH_WORD = 0x0123456789ABCDEF
+DATA_AFTER_ERROR_WORD = 0xFEDCBA9876543210
+DATA_RECOVERY_WORD = 0x55AA55AA55AA55AA
 IDLE_PAUSE_MASK = 0x1234
 IDLE_OVERFLOW_MASK = 0x00A5
 USER_OPCODE_PAYLOAD = 0x0000CAFEBABE
@@ -129,8 +132,21 @@ async def pgp4_rx_kcode_checker_test(dut):
         1,
     )
 
-    await drive_checker_word(tb, header=PGP4_K_HEADER, data=bad_user_word, valid=0)
-    assert checker_outputs(dut) == (0, PGP4_K_HEADER, bad_user_word, 0)
+    # The checker also suppresses the immediately following word so downstream
+    # link-error state can take effect before any more protocol words arrive.
+    assert await drive_checker_word(tb, header=PGP4_D_HEADER, data=DATA_AFTER_ERROR_WORD) == (
+        0,
+        PGP4_D_HEADER,
+        DATA_AFTER_ERROR_WORD,
+        0,
+    )
+
+    assert await drive_checker_word(tb, header=PGP4_D_HEADER, data=DATA_RECOVERY_WORD) == (
+        1,
+        PGP4_D_HEADER,
+        DATA_RECOVERY_WORD,
+        0,
+    )
 
     tb.dut.phyRxValid.value = 1
     tb.dut.phyRxHeader.value = PGP4_D_HEADER

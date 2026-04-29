@@ -27,22 +27,25 @@ entity Pgp4RxEb is
    generic (
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean := false);
+      RST_ASYNC_G    : boolean := false;
+      SKIP_EN_G      : boolean := true);
    port (
-      phyRxClk    : in  sl;
-      phyRxRst    : in  sl;
-      phyRxValid  : in  sl;
-      phyRxData   : in  slv(63 downto 0);  -- Unscrambled data from the PHY
-      phyRxHeader : in  slv(1 downto 0);
+      phyRxClk       : in  sl;
+      phyRxRst       : in  sl;
+      phyRxValid     : in  sl;
+      phyRxData      : in  slv(63 downto 0);  -- Unscrambled data from the PHY
+      phyRxHeader    : in  slv(1 downto 0);
+      phyRxLinkError : in  sl := '0';
       -- User Transmit interface
-      pgpRxClk    : in  sl;
-      pgpRxRst    : in  sl;
-      pgpRxValid  : out sl;
-      pgpRxData   : out slv(63 downto 0);
-      pgpRxHeader : out slv(1 downto 0);
-      remLinkData : out slv(47 downto 0);
-      overflow    : out sl;
-      status      : out slv(8 downto 0));
+      pgpRxClk       : in  sl;
+      pgpRxRst       : in  sl;
+      pgpRxValid     : out sl;
+      pgpRxData      : out slv(63 downto 0);
+      pgpRxHeader    : out slv(1 downto 0);
+      remLinkData    : out slv(47 downto 0);
+      overflow       : out sl;
+      linkError      : out sl;
+      status         : out slv(8 downto 0));
 end entity Pgp4RxEb;
 
 architecture rtl of Pgp4RxEb is
@@ -52,13 +55,21 @@ architecture rtl of Pgp4RxEb is
       remLinkData : slv(47 downto 0);
       fifoIn      : slv(65 downto 0);
       fifoWrEn    : sl;
+      pgpRxValid  : sl;
+      pgpRxData   : slv(63 downto 0);
+      pgpRxHeader : slv(1 downto 0);
+      linkError   : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       dataValid   => '0',
       remLinkData => (others => '0'),
       fifoIn      => (others => '0'),
-      fifoWrEn    => '0');
+      fifoWrEn    => '0',
+      pgpRxValid  => '0',
+      pgpRxData   => (others => '0'),
+      pgpRxHeader => (others => '0'),
+      linkError   => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -69,7 +80,7 @@ architecture rtl of Pgp4RxEb is
 
 begin
 
-   comb : process (phyRxData, phyRxHeader, phyRxRst, phyRxValid, r) is
+   comb : process (phyRxData, phyRxHeader, phyRxLinkError, phyRxRst, phyRxValid, r) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -82,6 +93,12 @@ begin
       v.fifoIn(63 downto 0)  := phyRxData;
       v.fifoIn(65 downto 64) := phyRxHeader;
       v.fifoWrEn             := phyRxValid;
+
+      -- Map to same-clock bypass output
+      v.pgpRxValid  := phyRxValid;
+      v.pgpRxData   := phyRxData;
+      v.pgpRxHeader := phyRxHeader;
+      v.linkError   := phyRxLinkError;
 
       -- Check for valid k-code
       if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) then
@@ -104,6 +121,10 @@ begin
       if (RST_ASYNC_G = false and phyRxRst = RST_POLARITY_G) then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
+         v.pgpRxValid  := '0';
+         v.pgpRxData   := (others => '0');
+         v.pgpRxHeader := (others => '0');
+         v.linkError   := '0';
       end if;
 
       -- Register the variable for next clock cycle
@@ -120,54 +141,79 @@ begin
       end if;
    end process seq;
 
-   U_remLinkData : entity surf.SynchronizerFifo
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         DATA_WIDTH_G   => 48)
-      port map (
-         rst    => phyRxRst,
-         wr_clk => phyRxClk,
-         wr_en  => r.dataValid,
-         din    => r.remLinkData,
-         rd_clk => pgpRxClk,
-         dout   => remLinkData);
+   GEN_EB : if (SKIP_EN_G = true) generate
 
-   U_FifoAsync_1 : entity surf.FifoAsync
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         MEMORY_TYPE_G  => "block",
-         FWFT_EN_G      => true,
-         PIPE_STAGES_G  => 0,
-         DATA_WIDTH_G   => 66,
-         ADDR_WIDTH_G   => 9)
-      port map (
-         rst                => phyRxRst,
-         -- Write Interface
-         wr_clk             => phyRxClk,
-         wr_en              => r.fifoWrEn,
-         din                => r.fifoIn,
-         overflow           => overflowInt,
-         -- Read Interface
-         rd_clk             => pgpRxClk,
-         rd_en              => valid,
-         dout(63 downto 0)  => pgpRxData,
-         dout(65 downto 64) => pgpRxHeader,
-         rd_data_count      => status,
-         valid              => valid);
+      U_remLinkData : entity surf.SynchronizerFifo
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => 48)
+         port map (
+            rst    => phyRxRst,
+            wr_clk => phyRxClk,
+            wr_en  => r.dataValid,
+            din    => r.remLinkData,
+            rd_clk => pgpRxClk,
+            dout   => remLinkData);
 
-   pgpRxValid <= valid;
+      U_FifoAsync_1 : entity surf.FifoAsync
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            MEMORY_TYPE_G  => "block",
+            FWFT_EN_G      => true,
+            PIPE_STAGES_G  => 0,
+            DATA_WIDTH_G   => 66,
+            ADDR_WIDTH_G   => 9)
+         port map (
+            rst                => phyRxRst,
+            -- Write Interface
+            wr_clk             => phyRxClk,
+            wr_en              => r.fifoWrEn,
+            din                => r.fifoIn,
+            overflow           => overflowInt,
+            -- Read Interface
+            rd_clk             => pgpRxClk,
+            rd_en              => valid,
+            dout(63 downto 0)  => pgpRxData,
+            dout(65 downto 64) => pgpRxHeader,
+            rd_data_count      => status,
+            valid              => valid);
 
-   U_overflow : entity surf.SynchronizerOneShot
-      generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
-      port map (
-         clk     => pgpRxClk,
-         dataIn  => overflowInt,
-         dataOut => overflow);
+      pgpRxValid <= valid;
+
+      U_overflow : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
+         port map (
+            clk     => pgpRxClk,
+            dataIn  => overflowInt,
+            dataOut => overflow);
+
+      U_linkError : entity surf.SynchronizerOneShot
+         generic map (
+            TPD_G       => TPD_G,
+            RST_ASYNC_G => RST_ASYNC_G)
+         port map (
+            clk     => pgpRxClk,
+            dataIn  => phyRxLinkError,
+            dataOut => linkError);
+
+   end generate GEN_EB;
+
+   GEN_BYPASS : if (SKIP_EN_G = false) generate
+
+      pgpRxValid  <= r.pgpRxValid;
+      pgpRxData   <= r.pgpRxData;
+      pgpRxHeader <= r.pgpRxHeader;
+      remLinkData <= (others => '0');
+      overflow    <= '0';
+      linkError   <= r.linkError;
+      status      <= (others => '0');
+
+   end generate GEN_BYPASS;
 
 end architecture rtl;
