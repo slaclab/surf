@@ -20,7 +20,8 @@ use surf.StdRtlPkg.all;
 
 entity Pgp4RxEbWrapper is
    generic (
-      SKIP_EN_G : boolean := true);
+      SKIP_EN_G       : boolean := true;
+      CHECK_K_CODE_G  : boolean := false);
    port (
       phyClk         : in  sl;
       pgpClk         : in  sl;
@@ -40,7 +41,33 @@ end entity Pgp4RxEbWrapper;
 
 architecture rtl of Pgp4RxEbWrapper is
 
+   signal checkedValid  : sl;
+   signal checkedData   : slv(63 downto 0);
+   signal checkedHeader : slv(1 downto 0);
+   signal checkedError  : sl;
+
 begin
+
+   GEN_CHECK_K_CODE : if (CHECK_K_CODE_G = true) generate
+      U_Checker : entity surf.Pgp4RxKCodeChecker
+         port map (
+            phyRxClk      => phyClk,
+            phyRxRst      => rst,
+            phyRxValid    => phyRxValid,
+            phyRxData     => phyRxData,
+            phyRxHeader   => phyRxHeader,
+            checkedValid  => checkedValid,
+            checkedData   => checkedData,
+            checkedHeader => checkedHeader,
+            linkError     => checkedError);
+   end generate GEN_CHECK_K_CODE;
+
+   GEN_NO_CHECK_K_CODE : if (CHECK_K_CODE_G = false) generate
+      checkedValid  <= phyRxValid;
+      checkedData   <= phyRxData;
+      checkedHeader <= phyRxHeader;
+      checkedError  <= phyRxLinkError;
+   end generate GEN_NO_CHECK_K_CODE;
 
    U_DUT : entity surf.Pgp4RxEb
       generic map (
@@ -48,10 +75,10 @@ begin
       port map (
          phyRxClk       => phyClk,
          phyRxRst       => rst,
-         phyRxValid     => phyRxValid,
-         phyRxData      => phyRxData,
-         phyRxHeader    => phyRxHeader,
-         phyRxLinkError => phyRxLinkError,
+         phyRxValid     => checkedValid,
+         phyRxData      => checkedData,
+         phyRxHeader    => checkedHeader,
+         phyRxLinkError => checkedError,
          pgpRxClk       => pgpClk,
          pgpRxRst       => rst,
          pgpRxValid     => pgpRxValid,

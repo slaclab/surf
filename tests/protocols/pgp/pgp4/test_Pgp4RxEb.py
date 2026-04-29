@@ -9,14 +9,12 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run the direct `Pgp4RxEb` wrapper in three asynchronous clock modes:
-#   a realistic slight-drift case where `phyRxClk` and `pgpRxClk` are close but
-#   not equal, a near-empty case where the local read clock is faster than the
-#   recovered write clock, and a deliberate overflow-stress case where the
-#   write side is much faster than the read side.
+# - Sweep: Run the direct `Pgp4RxEb` wrapper in three asynchronous clock modes
+#   plus one same-clock, skip-disabled mode with the K-code checker enabled.
 # - Stimulus: Drive ordered mixes of data words, valid K-words, SKP words, and
 #   reset/overflow stress bursts directly into the PHY side of the elastic
-#   buffer.
+#   buffer.  The skip-disabled mode drives a malformed K-word followed
+#   immediately by data to cover the no-elastic-buffer link-error corner case.
 # - Checks: The DUT must forward non-SKP traffic in order, suppress SKP while
 #   still updating `remLinkData`, flush buffered data on reset, and pulse
 #   `overflow` when sustained write pressure outruns the read domain.
@@ -31,16 +29,28 @@ import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, env_float, parameter_case, start_lockstep_clocks
+from tests.common.regression_utils import (
+    env_flag,
+    env_float,
+    hdl_parameters_from,
+    parameter_case,
+    start_lockstep_clocks,
+)
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     PGP4_D_HEADER,
     PGP4_K_HEADER,
+    PGP4_USER,
     initialize_signals,
     pgp4_idle_word,
+    pgp4_kword,
     pgp4_skip_word,
+    pgp4_user_word,
     signal_int,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
+
+K_CODE_CSC_LSB = 48
+USER_OPCODE_PAYLOAD = 0x0000CAFEBABE
 
 
 class Pgp4RxEbTB:
@@ -161,13 +171,20 @@ async def send_phy_words(tb: Pgp4RxEbTB, words: list[tuple[int, int]]):
         await send_phy_word(tb, header=header, data=data)
 
 
-async def send_phy_link_error(tb: Pgp4RxEbTB):
-    """Pulse the checker-to-EB link error without presenting a valid word."""
+def bad_kcode_checksum_word() -> int:
+    """Build a real USER K-word and corrupt only its checksum field."""
 
-    tb.dut.phyRxValid.value = 0
-    tb.dut.phyRxLinkError.value = 1
-    await tb.cycle_phy()
-    tb.dut.phyRxLinkError.value = 0
+    good_user_word = pgp4_user_word(USER_OPCODE_PAYLOAD)
+    assert good_user_word == pgp4_kword(PGP4_USER, USER_OPCODE_PAYLOAD)
+    return good_user_word ^ (1 << K_CODE_CSC_LSB)
+
+
+def env_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in parameters.items()
+        if not key.endswith("_G")
+    }
 
 
 async def collect_output_words(tb: Pgp4RxEbTB, *, count: int, cycles: int = 256) -> list[tuple[int, int]]:
@@ -315,11 +332,12 @@ async def pgp4_rx_eb_skip_disabled_bubbles_after_link_error(dut):
     cocotb.start_soon(link_error_monitor.run())
 
     data_word_a = 0x1111222233334444
+    bad_user_word = bad_kcode_checksum_word()
     suppressed_word = 0x5555666677778888
     data_word_b = 0x9999AAAABBBBCCCC
 
     await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_a)
-    await send_phy_link_error(tb)
+    await send_phy_word(tb, header=PGP4_K_HEADER, data=bad_user_word)
     await send_phy_word(tb, header=PGP4_D_HEADER, data=suppressed_word)
     await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_b)
 
@@ -350,6 +368,16 @@ PARAMETER_SWEEP = [
         PGP_CLK_PERIOD_NS="12.000",
         EXPECT_OVERFLOW="1",
     ),
+    parameter_case(
+        "same_clock_skip_disabled",
+        SKIP_EN_G=False,
+        CHECK_K_CODE_G=True,
+        PHY_CLK_PERIOD_NS="4.000",
+        PGP_CLK_PERIOD_NS="4.000",
+        COMMON_CLK="1",
+        EXPECT_SKIP_DISABLED="1",
+        EXPECT_OVERFLOW="0",
+    ),
 ]
 
 
@@ -359,31 +387,6 @@ def test_Pgp4RxEb(parameters):
         test_file=__file__,
         toplevel="surf.pgp4rxebwrapper",
         wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxEbWrapper.vhd",
-        extra_env=parameters,
-    )
-
-
-SKIP_DISABLED_PARAMETER_SWEEP = [
-    pytest.param(
-        {"SKIP_EN_G": False},
-        {
-            "PHY_CLK_PERIOD_NS": "4.000",
-            "PGP_CLK_PERIOD_NS": "4.000",
-            "COMMON_CLK": "1",
-            "EXPECT_SKIP_DISABLED": "1",
-            "EXPECT_OVERFLOW": "0",
-        },
-        id="same_clock_skip_disabled",
-    ),
-]
-
-
-@pytest.mark.parametrize("parameters, extra_env", SKIP_DISABLED_PARAMETER_SWEEP)
-def test_Pgp4RxEbSkipDisabled(parameters, extra_env):
-    run_pgp_wrapper_test(
-        test_file=__file__,
-        toplevel="surf.pgp4rxebwrapper",
-        wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxEbWrapper.vhd",
-        parameters=parameters,
-        extra_env=extra_env,
+        parameters=hdl_parameters_from(parameters),
+        extra_env=env_parameters_from(parameters),
     )

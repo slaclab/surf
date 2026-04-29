@@ -51,7 +51,6 @@ end entity Pgp4RxEb;
 architecture rtl of Pgp4RxEb is
 
    type RegType is record
-      holdoff     : sl;
       dataValid   : sl;
       remLinkData : slv(47 downto 0);
       fifoIn      : slv(65 downto 0);
@@ -63,7 +62,6 @@ architecture rtl of Pgp4RxEb is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      holdoff     => '0',
       dataValid   => '0',
       remLinkData => (others => '0'),
       fifoIn      => (others => '0'),
@@ -97,11 +95,10 @@ begin
       v.fifoWrEn             := phyRxValid;
 
       -- Map to same-clock bypass output
-      v.pgpRxValid  := phyRxValid and not r.holdoff and not phyRxLinkError;
+      v.pgpRxValid  := phyRxValid;
       v.pgpRxData   := phyRxData;
       v.pgpRxHeader := phyRxHeader;
       v.linkError   := phyRxLinkError;
-      v.holdoff     := phyRxLinkError;
 
       -- Check for valid k-code
       if (phyRxValid = '1') and (phyRxHeader = PGP4_K_HEADER_C) then
@@ -124,7 +121,6 @@ begin
       if (RST_ASYNC_G = false and phyRxRst = RST_POLARITY_G) then
          -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
-         v.holdoff     := '0';
          v.pgpRxValid  := '0';
          v.pgpRxData   := (others => '0');
          v.pgpRxHeader := (others => '0');
