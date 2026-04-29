@@ -9,89 +9,83 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one checked-in `Pgp4Rx` wrapper with the integrated `Pgp4Tx`
-#   traffic source and the new one-shot corruption hook disabled by default.
-# - Stimulus: Arm the corruption hook, then send one valid single-word frame so
-#   one 64-bit data beat is flipped after TX formatting but before RX checking.
-# - Checks: The integrated receive path must flag `frameRxErr` while staying
-#   link-up, which proves CRC-style rejection beyond the standalone CRC blocks.
-#   A separate test flips one control word after TX formatting and checks that
-#   the no-elastic-buffer RX path reports a link error instead of accepting the
-#   bad K-code.
-# - Timing: The corruption hook only touches the first transmitted data word of
-#   the next frame, so the injected error is deterministic.
+# - Sweep: Run a raw `Pgp4RxProtocol` plus `AxiStreamDepacketizer2` wrapper.
+# - Stimulus: Train the protocol link with valid IDLE words, then send one
+#   SOF/data/EOF cell whose EOF carries an intentionally wrong frame CRC.
+# - Checks: The depacketizer must report an errored frame end while the PGP4
+#   link itself remains up, proving that payload CRC errors are handled at the
+#   frame/cell layer instead of as link alignment errors.
+# - Timing: The bench drives complete 64-bit protocol words directly, so no
+#   test-only corruption ports are needed on the integrated RX loopback wrapper.
 
 import cocotb
 import pytest
 
 from tests.common.regression_utils import parameter_case
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
+    PGP4_D_HEADER,
+    PGP4_K_HEADER,
     Pgp4FlatTB,
-    initialize_flat_tx_inputs,
     initialize_signals,
-    send_single_word_frame,
+    pgp4_eof_word,
+    pgp4_idle_word,
+    pgp4_sof_word,
     signal_int,
     wait_for_signal,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
 
+PAYLOAD_WORD = 0x0123456789ABCDEF
+BAD_CELL_CRC = 0x11223344
+
+
+async def send_protocol_word(tb: Pgp4FlatTB, *, header: int, data: int):
+    tb.dut.protRxHeader.value = header
+    tb.dut.protRxData.value = data
+    tb.dut.protRxValid.value = 1
+    await tb.cycle()
+
+
+async def train_rx_protocol_link(tb: Pgp4FlatTB, *, cycles: int = 1002):
+    idle_word = pgp4_idle_word(rem_link_ready=1)
+    for _ in range(cycles):
+        await send_protocol_word(tb, header=PGP4_K_HEADER, data=idle_word)
+    tb.dut.protRxValid.value = 0
+    await wait_for_signal(tb, "linkReady", cycles=8)
+
 
 @cocotb.test()
 async def pgp4_rx_crc_error_test(dut):
     tb = Pgp4FlatTB(dut)
-    initialize_flat_tx_inputs(dut, include_opcode=True)
-    initialize_signals(dut, corruptArm=0, corruptMask=0)
-    await tb.reset()
-    await wait_for_signal(tb, "linkReady", cycles=2600)
-
-    dut.corruptMask.value = 0x1
-    dut.corruptArm.value = 1
-    await tb.cycle()
-    dut.corruptArm.value = 0
-
-    await send_single_word_frame(tb, payload=0x0123456789ABCDEF)
-    await wait_for_signal(tb, "corruptBusy", value=0, cycles=64)
-    await wait_for_signal(tb, "frameRxErr", cycles=512)
-    assert int(dut.linkReady.value) == 1
-
-
-@cocotb.test()
-async def pgp4_rx_bad_kcode_csc_error_test(dut):
-    tb = Pgp4FlatTB(dut)
-    initialize_flat_tx_inputs(dut, include_opcode=True)
     initialize_signals(
         dut,
-        corruptArm=0,
-        corruptMask=0,
-        corruptKCodeArm=0,
-        corruptKCodeMask=0,
+        phyRxActive=1,
+        protRxValid=0,
+        protRxHeader=0,
+        protRxData=0,
+        rxReady=1,
     )
     await tb.reset()
-    await wait_for_signal(tb, "linkReady", cycles=2600)
+    await train_rx_protocol_link(tb)
 
-    dut.corruptKCodeMask.value = 0x1
-    dut.corruptKCodeArm.value = 1
-    await tb.cycle()
-    dut.corruptKCodeArm.value = 0
+    await send_protocol_word(tb, header=PGP4_K_HEADER, data=pgp4_sof_word(vc=0, seq=0))
+    await send_protocol_word(tb, header=PGP4_D_HEADER, data=PAYLOAD_WORD)
+    await send_protocol_word(tb, header=PGP4_K_HEADER, data=pgp4_eof_word(bytes_last=8, crc=BAD_CELL_CRC))
+    dut.protRxValid.value = 0
 
-    saw_error = False
-    for _ in range(512):
-        await tb.cycle()
-        if signal_int(dut, "linkError") == 1:
-            saw_error = True
-            break
-
-    assert saw_error, "RX did not report linkError after bad K-code CSC"
+    await wait_for_signal(tb, "frameRxErr", cycles=512)
+    assert signal_int(dut, "linkReady") == 1
+    assert signal_int(dut, "linkError") == 0
 
 
-PARAMETER_SWEEP = [parameter_case("integrated_scrambled_rx_wrapper_crc_error")]
+PARAMETER_SWEEP = [parameter_case("raw_protocol_depacketizer_crc_error")]
 
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Pgp4RxCrcError(parameters):
     run_pgp_wrapper_test(
         test_file=__file__,
-        toplevel="surf.pgp4rxwrapper",
-        wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxWrapper.vhd",
+        toplevel="surf.pgp4rxprotocoldepacketizerwrapper",
+        wrapper_source="protocols/pgp/pgp4/core/wrappers/Pgp4RxProtocolDepacketizerWrapper.vhd",
         extra_env=parameters,
     )
