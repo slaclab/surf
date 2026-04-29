@@ -161,7 +161,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         BYPASS_G       => not SKIP_EN_G)
+         SKIP_EN_G      => SKIP_EN_G)
       port map (
          phyRxClk       => phyRxClk,           -- [in]
          phyRxRst       => phyRxRst,           -- [in]

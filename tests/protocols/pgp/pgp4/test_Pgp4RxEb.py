@@ -202,7 +202,7 @@ async def assert_no_output_words(tb: Pgp4RxEbTB, *, cycles: int):
 @cocotb.test()
 async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_BYPASS", default=False) or env_flag("EXPECT_OVERFLOW", default=False):
+    if env_flag("EXPECT_SKIP_DISABLED", default=False) or env_flag("EXPECT_OVERFLOW", default=False):
         return
 
     initialize_phy_inputs(dut)
@@ -245,7 +245,7 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
 @cocotb.test()
 async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_BYPASS", default=False):
+    if env_flag("EXPECT_SKIP_DISABLED", default=False):
         return
 
     initialize_phy_inputs(dut)
@@ -270,7 +270,7 @@ async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
 @cocotb.test()
 async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_BYPASS", default=False):
+    if env_flag("EXPECT_SKIP_DISABLED", default=False):
         return
 
     initialize_phy_inputs(dut)
@@ -296,9 +296,9 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
 
 
 @cocotb.test()
-async def pgp4_rx_eb_bypass_bubbles_after_link_error(dut):
+async def pgp4_rx_eb_skip_disabled_bubbles_after_link_error(dut):
     tb = Pgp4RxEbTB(dut)
-    if not env_flag("EXPECT_BYPASS", default=False):
+    if not env_flag("EXPECT_SKIP_DISABLED", default=False):
         return
 
     initialize_phy_inputs(dut)
@@ -363,23 +363,23 @@ def test_Pgp4RxEb(parameters):
     )
 
 
-BYPASS_PARAMETER_SWEEP = [
+SKIP_DISABLED_PARAMETER_SWEEP = [
     pytest.param(
-        {"BYPASS_G": True},
+        {"SKIP_EN_G": False},
         {
             "PHY_CLK_PERIOD_NS": "4.000",
             "PGP_CLK_PERIOD_NS": "4.000",
             "COMMON_CLK": "1",
-            "EXPECT_BYPASS": "1",
+            "EXPECT_SKIP_DISABLED": "1",
             "EXPECT_OVERFLOW": "0",
         },
-        id="same_clock_bypass",
+        id="same_clock_skip_disabled",
     ),
 ]
 
 
-@pytest.mark.parametrize("parameters, extra_env", BYPASS_PARAMETER_SWEEP)
-def test_Pgp4RxEbBypass(parameters, extra_env):
+@pytest.mark.parametrize("parameters, extra_env", SKIP_DISABLED_PARAMETER_SWEEP)
+def test_Pgp4RxEbSkipDisabled(parameters, extra_env):
     run_pgp_wrapper_test(
         test_file=__file__,
         toplevel="surf.pgp4rxebwrapper",

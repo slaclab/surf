@@ -28,7 +28,7 @@ entity Pgp4RxEb is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false;
-      BYPASS_G       : boolean := false);
+      SKIP_EN_G      : boolean := true);
    port (
       phyRxClk       : in  sl;
       phyRxRst       : in  sl;
@@ -145,7 +145,7 @@ begin
       end if;
    end process seq;
 
-   GEN_EB : if (BYPASS_G = false) generate
+   GEN_EB : if (SKIP_EN_G = true) generate
 
       U_remLinkData : entity surf.SynchronizerFifo
          generic map (
@@ -208,7 +208,7 @@ begin
 
    end generate GEN_EB;
 
-   GEN_BYPASS : if (BYPASS_G = true) generate
+   GEN_BYPASS : if (SKIP_EN_G = false) generate
 
       pgpRxValid  <= r.pgpRxValid;
       pgpRxData   <= r.pgpRxData;

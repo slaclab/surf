@@ -20,7 +20,7 @@ use surf.StdRtlPkg.all;
 
 entity Pgp4RxEbWrapper is
    generic (
-      BYPASS_G : boolean := false);
+      SKIP_EN_G : boolean := true);
    port (
       phyClk         : in  sl;
       pgpClk         : in  sl;
@@ -44,7 +44,7 @@ begin
 
    U_DUT : entity surf.Pgp4RxEb
       generic map (
-         BYPASS_G => BYPASS_G)
+         SKIP_EN_G => SKIP_EN_G)
       port map (
          phyRxClk       => phyClk,
          phyRxRst       => rst,
