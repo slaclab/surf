@@ -97,6 +97,12 @@ begin
       -- Register the variable for next clock cycle
       rin <= v;
 
+      -- Drive outputs
+      checkedValid  <= r.checkedValid;
+      checkedData   <= r.checkedData;
+      checkedHeader <= r.checkedHeader;
+      linkError     <= r.linkError;
+
    end process comb;
 
    seq : process (phyRxClk, phyRxRst) is
@@ -107,10 +113,5 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
-
-   checkedValid  <= r.checkedValid;
-   checkedData   <= r.checkedData;
-   checkedHeader <= r.checkedHeader;
-   linkError     <= r.linkError;
 
 end architecture rtl;
