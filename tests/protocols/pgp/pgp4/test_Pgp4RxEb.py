@@ -14,12 +14,11 @@
 #   not equal, a near-empty case where the local read clock is faster than the
 #   recovered write clock, and a deliberate overflow-stress case where the
 #   write side is much faster than the read side.
-# - Stimulus: Drive ordered mixes of data words, valid K-words, SKP words, bad
-#   K-word CRC cases, and reset/overflow stress bursts directly into the PHY
-#   side of the elastic buffer.
+# - Stimulus: Drive ordered mixes of data words, valid K-words, SKP words, and
+#   reset/overflow stress bursts directly into the PHY side of the elastic
+#   buffer.
 # - Checks: The DUT must forward non-SKP traffic in order, suppress SKP while
-#   still updating `remLinkData`, reject bad K-word CRC traffic with a
-#   synchronized `linkError` pulse, flush buffered data on reset, and pulse
+#   still updating `remLinkData`, flush buffered data on reset, and pulse
 #   `overflow` when sustained write pressure outruns the read domain.
 # - Timing: All output checks are sampled on `pgpRxClk`, while input traffic is
 #   launched on `phyRxClk`, so the bench reflects the intended recovered-clock
@@ -230,52 +229,6 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
         (PGP4_D_HEADER, data_word_b),
     ]
     await wait_for_signal_in_domain(tb, "remLinkData", value=skip_data, cycles=64)
-    assert signal_int(tb.dut, "linkError") == 0
-
-
-@cocotb.test()
-async def pgp4_rx_eb_rejects_bad_kcode_crc_without_poisoning_fifo(dut):
-    tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_OVERFLOW", default=False):
-        return
-
-    initialize_phy_inputs(dut)
-    await tb.reset()
-
-    # A bad K-code CRC should be dropped before the FIFO write side and should
-    # produce a synchronized `linkError` pulse in the read domain.  Surrounding
-    # traffic should still be delivered in order.
-    collector = ValidBeatCollector(
-        dut,
-        step=tb.sample_pgp_cycle,
-        valid_name="pgpRxValid",
-        field_names=("pgpRxHeader", "pgpRxData"),
-    )
-    cocotb.start_soon(collector.run())
-    link_error_monitor = PulseMonitor(dut, "linkError", step=tb.cycle_pgp)
-    cocotb.start_soon(link_error_monitor.run())
-
-    data_word_a = 0x0011223344556677
-    data_word_b = 0x8899AABBCCDDEEFF
-    bad_idle = pgp4_idle_word(rem_link_ready=1) ^ (1 << 48)
-
-    await send_phy_words(
-        tb,
-        [
-            (PGP4_D_HEADER, data_word_a),
-            (PGP4_K_HEADER, bad_idle),
-            (PGP4_D_HEADER, data_word_b),
-        ],
-    )
-
-    words = await wait_for_collected_beats(collector, count=2, step=tb.cycle_pgp, cycles=256)
-    assert words == [
-        (PGP4_D_HEADER, data_word_a),
-        (PGP4_D_HEADER, data_word_b),
-    ]
-    await tb.cycle_pgp(32)
-    assert link_error_monitor.seen
-
 
 @cocotb.test()
 async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
@@ -322,7 +275,6 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
 
     await tb.cycle_pgp(64)
     assert overflow_monitor.seen
-    assert signal_int(tb.dut, "linkError") == 0
 
 
 PARAMETER_SWEEP = [

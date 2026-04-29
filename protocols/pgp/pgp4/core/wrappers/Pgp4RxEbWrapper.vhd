@@ -31,7 +31,6 @@ entity Pgp4RxEbWrapper is
       pgpRxHeader : out slv(1 downto 0);
       remLinkData : out slv(47 downto 0);
       overflow    : out sl;
-      linkError   : out sl;
       status      : out slv(8 downto 0));
 end entity Pgp4RxEbWrapper;
 
@@ -53,7 +52,6 @@ begin
          pgpRxHeader => pgpRxHeader,
          remLinkData => remLinkData,
          overflow    => overflow,
-         linkError   => linkError,
          status      => status);
 
 end architecture rtl;
