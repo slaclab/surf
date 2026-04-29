@@ -29,11 +29,11 @@ entity Pgp4RxKCodeChecker is
       RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G    : boolean := false);
    port (
-      phyRxClk     : in  sl;
-      phyRxRst     : in  sl;
-      phyRxValid   : in  sl;
-      phyRxData    : in  slv(63 downto 0);
-      phyRxHeader  : in  slv(1 downto 0);
+      phyRxClk      : in  sl;
+      phyRxRst      : in  sl;
+      phyRxValid    : in  sl;
+      phyRxData     : in  slv(63 downto 0);
+      phyRxHeader   : in  slv(1 downto 0);
       checkedValid  : out sl;
       checkedData   : out slv(63 downto 0);
       checkedHeader : out slv(1 downto 0);
