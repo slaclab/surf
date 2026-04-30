@@ -20,8 +20,8 @@ use surf.StdRtlPkg.all;
 
 entity Pgp4RxEbWrapper is
    generic (
-      SKIP_EN_G       : boolean := true;
-      CHECK_K_CODE_G  : boolean := false);
+      SKIP_EN_G      : boolean := true;
+      CHECK_K_CODE_G : boolean := false);
    port (
       phyClk         : in  sl;
       pgpClk         : in  sl;
