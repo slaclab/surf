@@ -56,8 +56,8 @@ end entity Pgp4RxLiteLowSpeedRegWrapper;
 
 architecture rtl of Pgp4RxLiteLowSpeedRegWrapper is
 
-   signal eyeWidth        : Slv9Array(1 downto 0) := (others => (others => '0'));
-   signal dlyConfig       : Slv9Array(1 downto 0) := (others => (others => '0'));
+   signal eyeWidth        : Slv9Array(1 downto 0)  := (others => (others => '0'));
+   signal dlyConfig       : Slv9Array(1 downto 0)  := (others => (others => '0'));
    signal usrDlyCfg       : Slv9Array(1 downto 0);
    signal axilClk         : sl;
    signal axilRst         : sl;
