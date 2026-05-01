@@ -212,8 +212,8 @@ Current checked-in coverage:
   - `/T/` plus `/I/` termination
 - `test_CoaXPressOverFiberBridgeRx.py`
   - RX start-word decode for normal packets and `IO_ACK`
-  - HKP forwarding
-  - negative lane-placement checks for `/S/` and `/Q/`
+  - HKP forwarding, including a housekeeping-to-payload transition
+  - negative lane-placement checks for `/S/`, `/Q/`, `/T/`, and `/E/`
   - lane-0 `/Q/` no-output guardrail, `/E/` packet abort behavior, and recovery
     to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
@@ -221,10 +221,10 @@ Current checked-in coverage:
 
 Still open on the bridge side:
 
-- normative `/Q/` sequence handling beyond the current negative guardrails
-- fuller `/E/` error semantics beyond the current abort-and-recover guardrail
-- deeper HKP/data-mix coverage beyond the current HKP forwarding path
-- broader lane-0-only control-character sweeps
+- normative `/Q/` sequence handling beyond the current no-output/recovery guardrails
+- fuller `/E/` error semantics beyond malformed-placement and abort-and-recover guardrails
+- full housekeeping protocol semantics beyond raw HKP forwarding and the current
+  HKP-to-payload transition check
 
 ## Known Limitations
 
@@ -249,20 +249,23 @@ The most important open limits are:
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update
 - CXPoF bridge coverage still does not exhaustively cover normative `/Q/`,
-  `/E/`, and the full housekeeping/data mix
+  `/E/`, and full housekeeping protocol semantics
 
 ## Running The Slice
 
 Typical local commands:
 
 ```bash
-./.venv/bin/python -m pytest -n 0 -q tests/protocols/coaxpress
+./.venv/bin/python -m pytest -n auto --dist=worksteal -q tests/protocols/coaxpress
 ```
 
 Focused receive-path rerun:
 
 ```bash
-./.venv/bin/python -m pytest -n 0 -q \
+./.venv/bin/python -m pytest -n auto --dist=worksteal -q \
   tests/protocols/coaxpress/test_CoaXPressRxLane.py \
   tests/protocols/coaxpress/test_CoaXPressRx.py
 ```
+
+Use `-n 0` only when debugging a single cocotb simulation or preserving serial
+log ordering is more important than runtime.

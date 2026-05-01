@@ -9,16 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise the bridge RX on the two CoaXPress receive-side cases the
-#   current RTL decodes explicitly from the start word: normal low-speed
-#   packets and `IO_ACK`.
-# - Stimulus: Drive one CXPoF start/payload/terminate sequence that encodes a
-#   serialized CoaXPress packet, then drive a separate start/terminate sequence
-#   that encodes an `IO_ACK`.
-# - Checks: The bridge must reconstruct the repeated-byte `SOP`, packet-type,
-#   payload, and `EOP` words for the first packet, emit the standalone
-#   `IO_ACK` word for the second packet, and otherwise remain in the CoaXPress
-#   idle state.
+# - Sweep: Exercise bridge RX low-speed packet decode, `IO_ACK`, HKP forwarding,
+#   HKP-to-payload transition, misplaced control-character guardrails, `/Q/`
+#   no-output behavior, `/E/` abort behavior, and recovery to a later packet.
+# - Stimulus: Drive CXPoF start/payload/terminate sequences, housekeeping start
+#   words, lane-misplaced `/S/`, `/Q/`, `/T/`, and `/E/` controls, lane-0 `/Q/`,
+#   and an explicit `/E/` during an active low-speed packet.
+# - Checks: The bridge must reconstruct repeated-byte `SOP`, packet-type,
+#   payload, and `EOP` words for valid packets, emit standalone `IO_ACK`, forward
+#   raw HKP words, suppress malformed control traffic, and recover cleanly.
 # - Timing: The bench samples the reconstructed CXP word stream every cycle so
 #   it checks the bridge's real shift-register latency and output ordering.
 
@@ -36,6 +35,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXPOF_IDLE,
     CXPOF_SEQ,
     CXPOF_START,
+    CXPOF_TERM,
     cycle,
     repeat_byte,
     reset_dut,
@@ -187,6 +187,89 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x55667788, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
+    # A housekeeping start word may be followed by one raw K-coded HKP word and
+    # then normal data/EOP handling. This locks down the current RTL contract for
+    # the HKP-to-payload transition without claiming full housekeeping semantics.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    hkp_word = 0x9C5C3CBC
+    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(hkp_word, 0xF)
+    await drive(0x10203040, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (hkp_word, 0xF),
+        (0x10203040, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_control_lane_guardrail_sweep_test(dut):
+    # `/S/`, `/Q/`, `/T/`, and `/E/` are lane-sensitive XGMII control bytes.
+    # Misplaced control bytes should not leak any CoaXPress words, and a later
+    # valid low-speed packet must still decode.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    for control_byte in (CXPOF_START, CXPOF_SEQ, CXPOF_ERROR):
+        for lane in (1, 2, 3):
+            await drive(0x07070707 | (control_byte << (8 * lane)), 1 << lane)
+            await drive(0x07070707, 0xF)
+
+    # `/T/` outside an active packet is also malformed for this bridge input. It
+    # is swept separately because lane 2 is valid only as part of a terminate
+    # word once a payload is already active.
+    for lane in (0, 1, 2, 3):
+        await drive(0x07070707 | (CXPOF_TERM << (8 * lane)), 1 << lane)
+        await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0xA1B2C3D4, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0xA1B2C3D4, 0x0),
         (CXP_EOP, 0xF),
     ]
 
