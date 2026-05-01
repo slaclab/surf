@@ -19,41 +19,48 @@ library surf;
 use surf.StdRtlPkg.all;
 
 entity Pgp4RxEbWrapper is
+   generic (
+      SKIP_EN_G : boolean := true);
    port (
-      phyClk      : in  sl;
-      pgpClk      : in  sl;
-      rst         : in  sl;
-      phyRxValid  : in  sl;
-      phyRxData   : in  slv(63 downto 0);
-      phyRxHeader : in  slv(1 downto 0);
-      pgpRxValid  : out sl;
-      pgpRxData   : out slv(63 downto 0);
-      pgpRxHeader : out slv(1 downto 0);
-      remLinkData : out slv(47 downto 0);
-      overflow    : out sl;
-      linkError   : out sl;
-      status      : out slv(8 downto 0));
+      phyClk         : in  sl;
+      pgpClk         : in  sl;
+      rst            : in  sl;
+      phyRxValid     : in  sl;
+      phyRxData      : in  slv(63 downto 0);
+      phyRxHeader    : in  slv(1 downto 0);
+      phyRxLinkError : in  sl := '0';
+      pgpRxValid     : out sl;
+      pgpRxData      : out slv(63 downto 0);
+      pgpRxHeader    : out slv(1 downto 0);
+      remLinkData    : out slv(47 downto 0);
+      overflow       : out sl;
+      linkError      : out sl;
+      status         : out slv(8 downto 0));
 end entity Pgp4RxEbWrapper;
 
 architecture rtl of Pgp4RxEbWrapper is
 
 begin
 
+   -- DUT instantiation
    U_DUT : entity surf.Pgp4RxEb
+      generic map (
+         SKIP_EN_G => SKIP_EN_G)
       port map (
-         phyRxClk    => phyClk,
-         phyRxRst    => rst,
-         phyRxValid  => phyRxValid,
-         phyRxData   => phyRxData,
-         phyRxHeader => phyRxHeader,
-         pgpRxClk    => pgpClk,
-         pgpRxRst    => rst,
-         pgpRxValid  => pgpRxValid,
-         pgpRxData   => pgpRxData,
-         pgpRxHeader => pgpRxHeader,
-         remLinkData => remLinkData,
-         overflow    => overflow,
-         linkError   => linkError,
-         status      => status);
+         phyRxClk       => phyClk,
+         phyRxRst       => rst,
+         phyRxValid     => phyRxValid,
+         phyRxData      => phyRxData,
+         phyRxHeader    => phyRxHeader,
+         phyRxLinkError => phyRxLinkError,
+         pgpRxClk       => pgpClk,
+         pgpRxRst       => rst,
+         pgpRxValid     => pgpRxValid,
+         pgpRxData      => pgpRxData,
+         pgpRxHeader    => pgpRxHeader,
+         remLinkData    => remLinkData,
+         overflow       => overflow,
+         linkError      => linkError,
+         status         => status);
 
 end architecture rtl;
