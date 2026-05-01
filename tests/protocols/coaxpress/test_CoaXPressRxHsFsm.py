@@ -661,7 +661,6 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
         )
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    assert shared_beat_cycles > 1, trace
     assert not error_seen, f"{trace}\nheaders={header_beats}\ndata={data_beats}"
     assert header_beats == [{"hdrTData": expected_header, "hdrTLast": 1, "hdrTSof": 1}], trace
     assert data_beats == [

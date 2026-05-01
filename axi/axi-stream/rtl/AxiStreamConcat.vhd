@@ -125,6 +125,12 @@ architecture rtl of AxiStreamConcat is
 
 begin
 
+   -- AxiStreamConcat only supports TKEEP_FIXED_C (see header note).
+   -- Use AxiStreamBatcher for TKEEP_NORMAL_C, TKEEP_COMP_C, or TKEEP_COUNT_C.
+   assert (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C)
+      report "AxiStreamConcat: AXIS_CONFIG_G.TKEEP_MODE_C must be TKEEP_FIXED_C. Use AxiStreamBatcher for other TKEEP modes."
+      severity failure;
+
    -----------------
    -- Input pipeline
    -----------------

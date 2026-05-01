@@ -91,11 +91,14 @@ architecture rtl of CoaXPressRxHsFsm is
       wrd    => 0,
       cnt    => (others => '0'));
 
+   subtype LineRemType is natural range 0 to NUM_LANES_G+1;
+
    type RegType is record
       endOfLine   : sl;
       hdrValid    : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+      lineRem     : LineRemType;
       hdrCnt      : natural range 0 to 25;
       hdr         : ImageHdrType;
       dbg         : DebugType;
@@ -110,6 +113,7 @@ architecture rtl of CoaXPressRxHsFsm is
       hdrValid    => '0',
       yCnt        => (others => '0'),
       dCnt        => (others => '0'),
+      lineRem     => 0,
       hdrCnt      => 0,
       hdr         => IMAGE_HDR_INIT_C,
       dbg         => DEBUG_INIT_C,
@@ -123,6 +127,9 @@ architecture rtl of CoaXPressRxHsFsm is
    signal rin     : RegType;
    signal packRst : sl;
 
+   signal pipeMaster : AxiStreamMasterType;
+   signal pipeSlave  : AxiStreamSlaveType;
+
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
@@ -130,17 +137,19 @@ begin
 
    packRst <= rxRst or rxFsmRst;
 
-   comb : process (r, rxFsmRst, rxMaster, rxRst) is
-      variable v     : RegType;
-      variable tData : slv(31 downto 0);
-      variable more  : sl;
-      variable idx   : natural range 0 to NUM_LANES_G-1;
+   comb : process (pipeMaster, r, rxFsmRst, rxRst) is
+      variable v       : RegType;
+      variable tData   : slv(31 downto 0);
+      variable eolBeat : sl;
+      variable eolWrd  : natural range 0 to NUM_LANES_G-1;
+      variable wordCnt : natural range 0 to NUM_LANES_G;
+      variable remCnt  : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Init Variable
-      tData := rxMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      tData := pipeMaster.tData(32*r.wrd+31 downto 32*r.wrd);
 
       -- Reset strobes
       v.dbg.errDet := '0';
@@ -149,7 +158,7 @@ begin
       -- Loop the number of 32-bit words
       for i in 0 to NUM_LANES_G-1 loop
          -- Check for maker pattern
-         if (rxMaster.tData(32*i+31 downto 32*i) = CXP_MARKER_C) then
+         if (pipeMaster.tData(32*i+31 downto 32*i) = CXP_MARKER_C) then
             v.dbg.maker(i) := '1';
          end if;
       end loop;
@@ -161,7 +170,7 @@ begin
 
       -- Init data stream
       v.dataMasters(0).tValid := '0';                -- Reset strobe
-      v.dataMasters(0).tData  := rxMaster.tData;
+      v.dataMasters(0).tData  := pipeMaster.tData;
       -- Check if state is not STEP_S
       if (r.state /= STEP_S) then
          v.dataMasters(0).tKeep := (others => '0');  -- Reset bus
@@ -171,7 +180,7 @@ begin
       v.rxSlave.tReady := '0';
 
       -- Check for valid data
-      if (rxMaster.tValid = '1') then
+      if (pipeMaster.tValid = '1') then
 
          -- State Machine
          case r.state is
@@ -272,58 +281,79 @@ begin
 
                -- Increment the counter
                v.dCnt := r.dCnt + 1;
+
+               -- Check for max count
+               if (r.lineRem = 1) then
+
+                  -- Move the data
+                  v.dataMasters(0).tValid := '1';
+
+                  -- Set the "end of line" flag
+                  v.endOfLine := '1';
+
+                  -- Next State
+                  v.state := IDLE_S;
+
+               end if;
             ----------------------------------------------------------------------
             when LINE_S =>
                -- Write the data
                v.dataMasters(0).tValid := '1';
 
-               -- Accept the data unless a later valid word in this same beat
-               -- must be reparsed as the next marker/type sequence.
+               -- Accept the data unless the next word in this same beat must be
+               -- reparsed as the next marker/type sequence.
                v.rxSlave.tReady := '1';
-               more             := '0';
-               idx              := 0;
+               eolBeat          := '0';
+               eolWrd           := 0;
+               wordCnt          := 0;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
 
-                  -- Check for not "end of line" and valid data
-                  if (v.endOfLine = '0') and (rxMaster.tKeep(4*i) = '1') then
+                  -- Check for valid data
+                  if (pipeMaster.tKeep(4*i) = '1') then
+                     wordCnt := wordCnt + 1;
 
-                     -- Update the TKEEP mask
-                     v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"F";
+                     -- Check for not "end of line"
+                     if (wordCnt <= r.lineRem) then
 
-                     -- Increment the counter
-                     v.dCnt := v.dCnt + 1;
+                        -- Update the TKEEP mask
+                        v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"F";
+
+                        -- Increment the counter
+                        v.dCnt := v.dCnt + 1;
+
+                     end if;
 
                      -- Check for max count
-                     if (v.dCnt = r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+                     if (wordCnt = r.lineRem) then
+
+                        -- Flag the end of line word in this beat
+                        eolBeat := '1';
+                        eolWrd  := i;
 
                         -- Set the "end of line" flag
                         v.endOfLine := '1';
 
-                        -- Hold the current beat only when additional valid
-                        -- words remain after the line tail.
-                        for j in i+1 to NUM_LANES_G-1 loop
-                           if (rxMaster.tKeep(4*j) = '1') and (more = '0') then
-                              more := '1';
-                              idx  := j;
-                           end if;
-                        end loop;
-
                         -- Next State
                         v.state := IDLE_S;
-                        if (more = '1') then
-                           v.rxSlave.tReady := '0';
-                           v.wrd            := idx;
-                        else
-                           v.wrd := 0;
-                        end if;
 
                      end if;
 
                   end if;
 
                end loop;
+
+               if (eolBeat = '1') and (eolWrd /= NUM_LANES_G-1) then
+                  if (pipeMaster.tKeep(4*(eolWrd+1)) = '1') then
+                     v.rxSlave.tReady := '0';
+                     v.wrd            := eolWrd+1;
+                  else
+                     v.wrd := 0;
+                  end if;
+               elsif (eolBeat = '1') then
+                  v.wrd := 0;
+               end if;
          ----------------------------------------------------------------------
          end case;
 
@@ -343,7 +373,7 @@ begin
                v.wrd := r.wrd + 1;
 
                -- Check if no more data available
-               if (rxMaster.tKeep(4*v.wrd) = '0') then
+               if (pipeMaster.tKeep(4*v.wrd) = '0') then
                   -- Reset the counter
                   v.wrd := 0;
 
@@ -362,7 +392,7 @@ begin
             end if;
 
             -- Check for STEP_S state
-            if (r.state = STEP_S) and (v.rxSlave.tReady = '1') then
+            if (r.state = STEP_S) and (v.state = STEP_S) and (v.rxSlave.tReady = '1') then
                -- Move the data
                v.dataMasters(0).tValid := '1';
 
@@ -450,6 +480,20 @@ begin
             null;
       end case;
 
+      -- Register a small saturated remaining-word count.  This breaks the wide
+      -- dCnt-to-wrd path when a line ends mid-beat and the next marker is held
+      -- in the current input word.
+      if (v.dCnt >= v.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
+         v.lineRem := 0;
+      else
+         remCnt := v.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0) - v.dCnt;
+         if (conv_integer(remCnt) > NUM_LANES_G) then
+            v.lineRem := NUM_LANES_G+1;
+         else
+            v.lineRem := conv_integer(remCnt);
+         end if;
+      end if;
+
       -----------------------------------------------------------------------------
       -- Perform an endianness swap in header message and remove redundant bytes --
       -----------------------------------------------------------------------------
@@ -480,7 +524,7 @@ begin
       v.hdrMaster.tData(223 downto 208) := r.hdr.tapG(15 downto 0);
 
       -- Outputs
-      rxSlave    <= v.rxSlave;
+      pipeSlave  <= v.rxSlave;
       hdrMaster  <= r.hdrMaster;
       rxFsmError <= r.dbg.errDet;
 
@@ -500,6 +544,18 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_RxPipe : entity surf.AxiStreamPipeline
+      generic map (
+         TPD_G         => TPD_G,
+         PIPE_STAGES_G => 1)
+      port map (
+         axisClk     => rxClk,
+         axisRst     => packRst,
+         sAxisMaster => rxMaster,
+         sAxisSlave  => rxSlave,
+         mAxisMaster => pipeMaster,
+         mAxisSlave  => pipeSlave);
 
    U_Pack : entity surf.CoaXPressRxWordPacker
       generic map (

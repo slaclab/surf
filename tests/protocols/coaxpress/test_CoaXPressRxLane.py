@@ -22,7 +22,6 @@
 #   exposes only master-side pulse semantics with no backpressure input.
 
 import cocotb
-import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (

@@ -23,36 +23,36 @@ use surf.Pgp4Pkg.all;
 
 entity Pgp4RxLiteLowSpeedLaneWrapper is
    port (
-      clk       : in  sl;
-      rst       : in  sl;
-      txValid   : in  sl;
-      txReady   : out sl;
-      txData    : in  slv(63 downto 0);
-      txSof     : in  sl;
-      txEof     : in  sl;
-      txEofe    : in  sl;
-      locked    : out sl;
-      bitSlip   : out sl;
-      dlyLoad   : out sl;
-      dlyCfg    : out slv(8 downto 0);
-      rxValid   : out sl;
-      rxLast    : out sl;
-      rxData    : out slv(63 downto 0);
-      rxDest    : out slv(7 downto 0);
-      rxUser    : out slv(15 downto 0));
+      clk     : in  sl;
+      rst     : in  sl;
+      txValid : in  sl;
+      txReady : out sl;
+      txData  : in  slv(63 downto 0);
+      txSof   : in  sl;
+      txEof   : in  sl;
+      txEofe  : in  sl;
+      locked  : out sl;
+      bitSlip : out sl;
+      dlyLoad : out sl;
+      dlyCfg  : out slv(8 downto 0);
+      rxValid : out sl;
+      rxLast  : out sl;
+      rxData  : out slv(63 downto 0);
+      rxDest  : out slv(7 downto 0);
+      rxUser  : out slv(15 downto 0));
 end entity Pgp4RxLiteLowSpeedLaneWrapper;
 
 architecture rtl of Pgp4RxLiteLowSpeedLaneWrapper is
 
-   signal pgpTxIn      : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal phyTxValid   : sl;
-   signal phyTxData    : slv(63 downto 0);
-   signal phyTxHeader  : slv(1 downto 0);
-   signal serWord      : slv(65 downto 0);
-   signal deserData    : slv(7 downto 0);
-   signal rxMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxIn     : Pgp4TxInType        := PGP4_TX_IN_INIT_C;
+   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal phyTxValid  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
+   signal serWord     : slv(65 downto 0);
+   signal deserData   : slv(7 downto 0);
+   signal rxMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
 begin
 
