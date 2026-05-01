@@ -30,7 +30,7 @@ entity AxiStreamTimer is
       TPD_G         : time                  := 1 ns;
       NUM_STREAMS_G : integer range 1 to 8  := 1;
       NUM_EVENT_G   : integer range 1 to 16 := 1
-      );
+   );
    port (
       -- AXI-Stream interfaces
       axisClk       : in sl;
