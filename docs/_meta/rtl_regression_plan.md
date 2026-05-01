@@ -72,6 +72,9 @@
 - Tier-first split.
 - Separate `smoke` and `functional` regression tiers.
 - Shard by subsystem only if runtime requires it.
+- Prefer parallel pytest for normal local validation and subsystem slices, using
+  `-n auto --dist=worksteal` unless a single cocotb simulation needs serial log
+  ordering or interactive debugging.
 - Keep room for PR-vs-nightly expansion later if runtime and coverage needs justify it.
 - Treat simulator process cleanup as part of every verification step, not as optional housekeeping.
 - After any command that launches `pytest`, cocotb, GHDL, or another simulation runner, check for stale child processes and kill any leftovers before moving on to the next step.
