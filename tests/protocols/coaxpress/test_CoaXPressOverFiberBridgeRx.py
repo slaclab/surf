@@ -47,6 +47,11 @@ def _cxp_start_word(packet_byte: int) -> int:
     return CXPOF_START | (0x80 << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
 
 
+def _control_in_lane(control_byte: int, lane: int) -> int:
+    shift = 8 * lane
+    return (0x07070707 & ~(0xFF << shift)) | ((control_byte & 0xFF) << shift)
+
+
 @cocotb.test()
 async def coaxpress_over_fiber_bridge_rx_decode_test(dut):
     # Hold the bridge in its XGMII idle state until reset completes, then feed
@@ -250,14 +255,14 @@ async def coaxpress_over_fiber_bridge_rx_control_lane_guardrail_sweep_test(dut):
 
     for control_byte in (CXPOF_START, CXPOF_SEQ, CXPOF_ERROR):
         for lane in (1, 2, 3):
-            await drive(0x07070707 | (control_byte << (8 * lane)), 1 << lane)
+            await drive(_control_in_lane(control_byte, lane), 1 << lane)
             await drive(0x07070707, 0xF)
 
     # `/T/` outside an active packet is also malformed for this bridge input. It
     # is swept separately because lane 2 is valid only as part of a terminate
     # word once a payload is already active.
     for lane in (0, 1, 2, 3):
-        await drive(0x07070707 | (CXPOF_TERM << (8 * lane)), 1 << lane)
+        await drive(_control_in_lane(CXPOF_TERM, lane), 1 << lane)
         await drive(0x07070707, 0xF)
 
     await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
