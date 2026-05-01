@@ -25,6 +25,7 @@
 import cocotb
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_D21_5,
@@ -54,11 +55,7 @@ async def _drive_cfg_bytes(dut, beats: list[tuple[int, int]]) -> None:
         dut.cfgTValid.value = 1
         dut.cfgTData.value = data
         dut.cfgTUser.value = is_k
-        while True:
-            await RisingEdge(dut.txClk)
-            await Timer(1, unit="ns")
-            if int(dut.cfgTReady.value) == 1:
-                break
+        await wait_sampled_ready(dut.cfgTReady, clk=dut.txClk)
     dut.cfgTValid.value = 0
     dut.cfgTData.value = 0
     dut.cfgTUser.value = 0

@@ -18,6 +18,8 @@ from cocotb.clock import Clock
 from cocotb.handle import Immediate
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
+
 
 CXP_IDLE = 0xB53C3CBC
 CXP_IDLE_K = 0x7
@@ -228,11 +230,10 @@ async def send_axis_payload(
     getattr(dut, f"{prefix}_TKEEP").value = (1 << len(payload)) - 1
     getattr(dut, f"{prefix}_TLAST").value = 1
     getattr(dut, f"{prefix}_TUSER").value = tuser
-    while True:
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-        if int(getattr(dut, f"{prefix}_TREADY").value) == 1:
-            break
+    await wait_sampled_ready(
+        getattr(dut, f"{prefix}_TREADY"),
+        clk=clk,
+    )
     getattr(dut, f"{prefix}_TVALID").value = 0
     getattr(dut, f"{prefix}_TDATA").value = 0
     getattr(dut, f"{prefix}_TKEEP").value = 0
