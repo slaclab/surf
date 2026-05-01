@@ -26,7 +26,7 @@ import pytest
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
-from tests.protocols.coaxpress.coaxpress_test_utils import cycle, pack_words, reset_dut, start_clock
+from tests.protocols.coaxpress.coaxpress_test_utils import pack_words, reset_dut, start_clock
 
 
 def _set_lane_inputs(dut, lane_beats, *, num_lanes: int) -> None:

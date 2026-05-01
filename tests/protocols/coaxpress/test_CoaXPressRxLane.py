@@ -22,7 +22,6 @@
 #   exposes only master-side pulse semantics with no backpressure input.
 
 import cocotb
-import pytest
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -37,11 +36,26 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_STREAM_DATA,
     CXP_SOP,
     cycle,
+    cxp_crc_word,
     repeat_byte,
     reset_dut,
     send_rx_word,
     start_clock,
 )
+
+
+def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int, payload_words: list[int]) -> list[int]:
+    crc_inputs = [
+        *[repeat_byte(byte) for byte in event_bytes],
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+    ]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
 
 
 @cocotb.test()
@@ -169,18 +183,12 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     await drive(CXP_EOP, 0xF)
 
     # Drive a fuller event packet shape. The current RTL only consumes the
-    # prefix through the Packet Tag field, where it exports the tag and returns
-    # to IDLE; later size/data/trailer words are present to keep the on-wire
-    # stimulus aligned to the spec framing.
+    # prefix and payload internally, then exports the tag only after the CRC and
+    # EOP trailer have been validated.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
-    for word in (0x10, 0x11, 0x12, 0x13):
-        await drive(repeat_byte(word), 0x0)
-    await drive(repeat_byte(0x5A), 0x0)
-    await drive(0x00010000, 0x0)
-    await drive(repeat_byte(0x00), 0x0)
-    await drive(0x11223344, 0x0)
-    await drive(0xA5A5A5A5, 0x0)
+    for word in _event_crc_words(event_bytes=(0x10, 0x11, 0x12, 0x13), packet_tag=0x5A, payload_words=[0x11223344]):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
     # A truncated event prefix must not raise a second event pulse.
@@ -203,6 +211,73 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
             "heartbeatTLast": 1,
         }
     ]
+
+
+@cocotb.test()
+async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxLinkUp.setimmediatevalue(1)
+    dut.rxData.setimmediatevalue(CXP_IDLE)
+    dut.rxDataK.setimmediatevalue(CXP_IDLE_K)
+    await reset_dut(dut)
+
+    cfg_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    heartbeat_beats: list[dict[str, int]] = []
+    event_tags: list[int] = []
+
+    async def drive(data: int, data_k: int) -> None:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+        if int(dut.cfgTValid.value) == 1:
+            cfg_beats.append({"cfgTData": int(dut.cfgTData.value)})
+        if int(dut.dataTValid.value) == 1:
+            data_beats.append(
+                {
+                    "dataTData": int(dut.dataTData.value),
+                    "dataTUser": int(dut.dataTUser.value),
+                    "dataTLast": int(dut.dataTLast.value),
+                }
+            )
+        if int(dut.heartbeatTValid.value) == 1:
+            heartbeat_beats.append({"heartbeatTData": int(dut.heartbeatTData.value)})
+        if int(dut.eventAck.value) == 1:
+            event_tags.append(int(dut.eventTag.value))
+
+    # The receive-lane RTL validates the event payload count, CRC, and EOP before
+    # acknowledging the tag. The payload is intentionally not forwarded anywhere.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for word in _event_crc_words(
+        event_bytes=(0xA0, 0xA1, 0xA2, 0xA3),
+        packet_tag=0x6D,
+        payload_words=[0x11223344, 0x55667788],
+    ):
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # A bad CRC must suppress the acknowledgment and still leave the parser ready
+    # for a later clean event.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    bad_crc_words = _event_crc_words(event_bytes=(0x90, 0x91, 0x92, 0x93), packet_tag=0x55, payload_words=[0x0BADCAFE])
+    for word in [*bad_crc_words[:-1], bad_crc_words[-1] ^ 0x00000001]:
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # A later zero-payload event must still be accepted, proving the ignored
+    # bad-CRC packet did not leave stale parser state behind.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for word in _event_crc_words(event_bytes=(0xB0, 0xB1, 0xB2, 0xB3), packet_tag=0x7E, payload_words=[]):
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
+    assert event_tags == [0x6D, 0x7E]
+    assert cfg_beats == []
+    assert data_beats == []
+    assert heartbeat_beats == []
 
 
 @cocotb.test()

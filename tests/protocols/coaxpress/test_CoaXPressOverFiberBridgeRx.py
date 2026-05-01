@@ -32,6 +32,9 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IO_ACK,
     CXP_PKT_EVENT_ACK,
     CXP_SOP,
+    CXPOF_ERROR,
+    CXPOF_IDLE,
+    CXPOF_SEQ,
     CXPOF_START,
     cycle,
     repeat_byte,
@@ -132,6 +135,55 @@ async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
 
     assert observed == [
         (0x5C5C5C5C, 0xF),
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x55667788, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
+    # The current bridge RX does not implement a normative /Q/ ordered-set path;
+    # lock it down as a no-output guardrail, then prove an explicit /E/ in a
+    # payload aborts the packet without emitting a synthetic CXP EOP and the next
+    # packet still decodes cleanly.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    await drive(CXPOF_SEQ | (0x00 << 8) | (0x12 << 16) | (0x34 << 24), 0x1)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x11223344, 0x0)
+    await drive(CXPOF_ERROR | (CXPOF_IDLE << 8) | (CXPOF_IDLE << 16) | (CXPOF_IDLE << 24), 0x1)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x55667788, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x11223344, 0x0),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x55667788, 0x0),

@@ -42,6 +42,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
     append_snapshot_if_valid,
+    cxp_crc_word,
     find_subsequence,
     pack_words,
     reset_signals,
@@ -112,6 +113,20 @@ EXPECTED_HDR_WORDS = [
     0x00000003,
     0x00200010,
 ]
+
+
+def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int, payload_words: list[int]) -> list[int]:
+    crc_inputs = [
+        *[repeat_byte(byte) for byte in event_bytes],
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+    ]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
 
 
 def _pack_lane_nibbles(values: list[int]) -> int:
@@ -464,15 +479,14 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT), 0x0),
-        (repeat_byte(0x10), 0x0),
-        (repeat_byte(0x11), 0x0),
-        (repeat_byte(0x12), 0x0),
-        (repeat_byte(0x13), 0x0),
-        (repeat_byte(0x5A), 0x0),
-        (0x00010000, 0x0),
-        (repeat_byte(0x00), 0x0),
-        (0x11223344, 0x0),
-        (0xA5A5A5A5, 0x0),
+        *[
+            (word, 0x0)
+            for word in _event_crc_words(
+                event_bytes=(0x10, 0x11, 0x12, 0x13),
+                packet_tag=0x5A,
+                payload_words=[0x11223344],
+            )
+        ],
         (CXP_EOP, 0xF),
         (CXP_IO_ACK, 0xF),
         (repeat_byte(0x01), 0x0),

@@ -25,6 +25,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.CoaXPressPkg.all;
 use surf.Code8b10bPkg.all;
+use surf.CrcPkg.all;
 
 entity CoaXPressRxLane is
    generic (
@@ -61,6 +62,11 @@ architecture rtl of CoaXPressRxLane is
       CTRL_ACK_S,
       HEARTBEAT_S,
       EVENT_ACK_S,
+      EVENT_DSIZE_UPPER_S,
+      EVENT_DSIZE_LOWER_S,
+      EVENT_PAYLOAD_S,
+      EVENT_CRC_S,
+      EVENT_EOP_S,
       STREAM_ID_S,
       PACKET_TAG_S,
       DSIZE_UPPER_S,
@@ -80,6 +86,7 @@ architecture rtl of CoaXPressRxLane is
       dsize          : slv(15 downto 0);
       dcnt           : slv(15 downto 0);
       dbgCnt         : slv(31 downto 0);
+      crc            : slv(31 downto 0);
       -- AXIS Interfaces
       cfgMaster      : AxiStreamMasterType;
       dataMaster     : AxiStreamMasterType;
@@ -101,6 +108,7 @@ architecture rtl of CoaXPressRxLane is
       dsize          => (others => '0'),
       dcnt           => (others => '0'),
       dbgCnt         => (others => '0'),
+      crc            => (others => '1'),
       -- AXIS Interfaces
       cfgMaster      => AXI_STREAM_MASTER_INIT_C,
       dataMaster     => AXI_STREAM_MASTER_INIT_C,
@@ -111,6 +119,34 @@ architecture rtl of CoaXPressRxLane is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   function cxpCrcUpdate (
+      crcIn : slv(31 downto 0);
+      data  : slv(31 downto 0))
+      return slv is
+      variable crc     : slv(31 downto 0);
+      variable byteXor : slv(7 downto 0);
+   begin
+      crc     := crcIn;
+      byteXor := (others => '0');
+      for i in 0 to 3 loop
+         byteXor := crc(31 downto 24) xor bitReverse(data(8*i+7 downto 8*i));
+         crc     := (crc(23 downto 0) & x"00") xor crcByteLookup(byteXor, CXP_CRC_POLY_C);
+      end loop;
+      return crc;
+   end function cxpCrcUpdate;
+
+   function cxpCrcFinal (
+      crcIn : slv(31 downto 0))
+      return slv is
+      variable retVar : slv(31 downto 0);
+   begin
+      retVar := (others => '0');
+      for i in 0 to 3 loop
+         retVar(8*i+7 downto 8*i) := bitReverse(crcIn(8*i+7 downto 8*i));
+      end loop;
+      return endianSwap(retVar);
+   end function cxpCrcFinal;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
@@ -189,6 +225,11 @@ begin
 
                   -- Check for "control acknowledge with tag"
                   elsif (rxData = x"07_07_07_07") then
+                     -- Reset event parser counters
+                     v.ackCnt := 0;
+                     v.dcnt   := (others => '0');
+                     v.dsize  := (others => '0');
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := EVENT_ACK_S;
 
@@ -265,23 +306,115 @@ begin
             ----------------------------------------------------------------------
             when EVENT_ACK_S =>
                -- Check for non-k word
-               if (rxDataK = x"0") then
+               if (rxDataK = x"0")
+                  and ((r.ackCnt < 4)
+                       or ((rxData(7 downto 0) = rxData(15 downto 8))
+                           and (rxData(7 downto 0) = rxData(23 downto 16))
+                           and (rxData(7 downto 0) = rxData(31 downto 24)))) then
+
+                  -- Include event ID and packet tag words in the CRC.
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
 
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
 
-                  -- "Acknowledgment code" index
+                  -- Packet Tag index
                   if (r.ackCnt = 4) then
 
-                     -- Generate the ACK message w/ package tag
-                     v.eventAck := '1';
+                     -- Save the packet tag
                      v.eventTag := rxData(7 downto 0);
 
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state := EVENT_DSIZE_UPPER_S;
 
                   end if;
 
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when EVENT_DSIZE_UPPER_S =>
+               -- Check for repeated-byte size upper word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+                  -- Save the upper byte of the event payload word count
+                  v.dsize(15 downto 8) := rxData(7 downto 0);
+                  v.crc                := cxpCrcUpdate(r.crc, rxData);
+                  -- Next State
+                  v.state              := EVENT_DSIZE_LOWER_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when EVENT_DSIZE_LOWER_S =>
+               -- Check for repeated-byte size lower word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+                  -- Save the lower byte of the event payload word count
+                  v.dsize(7 downto 0) := rxData(7 downto 0);
+                  v.dcnt              := (others => '0');
+                  v.crc               := cxpCrcUpdate(r.crc, rxData);
+                  -- Next State
+                  if (r.dsize(15 downto 8) = 0) and (rxData(7 downto 0) = 0) then
+                     v.state := EVENT_CRC_S;
+                  else
+                     v.state := EVENT_PAYLOAD_S;
+                  end if;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when EVENT_PAYLOAD_S =>
+               -- Check for event payload word
+               if (rxDataK = x"0") then
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
+                  -- Check the counter
+                  if (r.dcnt = (r.dsize-1)) then
+                     -- Next State
+                     v.state := EVENT_CRC_S;
+                  else
+                     -- Increment counter
+                     v.dcnt := r.dcnt + 1;
+                  end if;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when EVENT_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := EVENT_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when EVENT_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Generate the ACK message w/ packet tag
+                  v.eventAck := '1';
+                  -- Next State
+                  v.state    := IDLE_S;
                else
                   -- Set the flag
                   v.errDet := '1';

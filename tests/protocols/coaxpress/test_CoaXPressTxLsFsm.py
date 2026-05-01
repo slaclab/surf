@@ -83,6 +83,19 @@ async def _pulse_trigger(dut) -> None:
     dut.txTrig.value = 0
 
 
+def _trigger_window(payload: list[tuple[int, int]], *, asserted: bool, inverted: bool) -> bool:
+    if len(payload) != 6:
+        return False
+    link_trigger0 = [(CXP_K28_2, 1), (CXP_K28_4, 1), (CXP_K28_4, 1)]
+    link_trigger1 = [(CXP_K28_4, 1), (CXP_K28_2, 1), (CXP_K28_2, 1)]
+    expected_prefix = link_trigger1 if asserted == inverted else link_trigger0
+    return (
+        payload[:3] == expected_prefix
+        and payload[3][1] == payload[4][1] == payload[5][1] == 0
+        and payload[3][0] == payload[4][0] == payload[5][0]
+    )
+
+
 @cocotb.test()
 async def coaxpress_tx_ls_fsm_idle_and_config_cadence_test(dut):
     # Start from reset with config bytes already queued so the FSM proves it
@@ -186,6 +199,60 @@ async def coaxpress_tx_ls_fsm_rate0_inverted_trigger_test(dut):
     ]
 
     assert any((data, is_k) == IDLE_SEQUENCE[0] for _, data, is_k in strobes[6:])
+
+
+@cocotb.test()
+async def coaxpress_tx_ls_fsm_pulse_width_update_terminates_active_trigger_test(dut):
+    # Start with a long trigger pulse, then shorten txPulseWidth after the assert
+    # message has completed. The RTL should force the active pulse to terminate
+    # quickly instead of waiting for the original long timeout.
+    start_clock(dut.txClk)
+    dut.txRst.setimmediatevalue(1)
+    dut.cfgTValid.setimmediatevalue(0)
+    dut.cfgTData.setimmediatevalue(0)
+    dut.cfgTUser.setimmediatevalue(0)
+    dut.txTrig.setimmediatevalue(0)
+    dut.txTrigInv.setimmediatevalue(0)
+    dut.txPulseWidth.setimmediatevalue(1000)
+    dut.txRate.setimmediatevalue(1)
+    await reset_dut(dut, clk_name="txClk", reset_names=("txRst",))
+
+    await _pulse_trigger(dut)
+
+    strobes: list[tuple[int, int, int]] = []
+    pulse_width_update_cycle = None
+    asserted_start = None
+    deasserted_start = None
+    tx_trig_drop_seen = False
+
+    for cycle_index in range(1800):
+        await RisingEdge(dut.txClk)
+        await Timer(1, unit="ns")
+        if int(dut.txTrigDrop.value) == 1:
+            tx_trig_drop_seen = True
+        if int(dut.txStrobe.value) == 1:
+            strobes.append((cycle_index, int(dut.txData.value), int(dut.txDataK.value)))
+
+            for start in range(max(0, len(strobes) - 6), len(strobes) - 5):
+                payload = [(data, is_k) for _, data, is_k in strobes[start : start + 6]]
+                if asserted_start is None and _trigger_window(payload, asserted=True, inverted=False):
+                    asserted_start = strobes[start][0]
+                elif pulse_width_update_cycle is not None and _trigger_window(payload, asserted=False, inverted=False):
+                    deasserted_start = strobes[start][0]
+                    break
+
+            if asserted_start is not None and pulse_width_update_cycle is None and len(strobes) >= 6:
+                dut.txPulseWidth.value = 20
+                pulse_width_update_cycle = cycle_index
+
+            if deasserted_start is not None:
+                break
+
+    assert asserted_start is not None, strobes
+    assert pulse_width_update_cycle is not None
+    assert deasserted_start is not None, strobes
+    assert deasserted_start - pulse_width_update_cycle < 200
+    assert not tx_trig_drop_seen
 
 
 def test_CoaXPressTxLsFsm():
