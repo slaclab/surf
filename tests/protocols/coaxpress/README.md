@@ -218,6 +218,8 @@ Current checked-in coverage:
     to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
+  - RX-side 64b gearbox coverage for `/E/` abort/recovery, HKP-to-payload
+    transition, and lane-0 `/Q/` no-output/recovery guardrails
 
 Still open on the bridge side:
 
