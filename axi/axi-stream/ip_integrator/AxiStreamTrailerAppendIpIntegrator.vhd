@@ -77,7 +77,7 @@ architecture rtl of AxiStreamTrailerAppendIpIntegrator is
       TUSER_BITS_C  => TUSER_WIDTH_G,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisAResetN        : sl := '1';
+   signal axisAResetN        : sl                  := '1';
    signal sAxisMaster        : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave         : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal sAxisTrailerMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;

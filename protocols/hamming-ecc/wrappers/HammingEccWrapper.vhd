@@ -39,7 +39,7 @@ architecture rtl of HammingEccWrapper is
 
    constant ENC_WIDTH_C : positive := hammingEccDataWidth(DATA_WIDTH_G);
 
-   signal encValid    : sl                         := '0';
+   signal encValid    : sl                        := '0';
    signal encData     : slv(ENC_WIDTH_C downto 0) := (others => '0');
    signal encDataMask : slv(ENC_WIDTH_C downto 0) := (others => '0');
 

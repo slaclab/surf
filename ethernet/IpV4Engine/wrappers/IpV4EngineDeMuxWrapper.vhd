@@ -64,43 +64,44 @@ architecture rtl of IpV4EngineDeMuxWrapper is
 begin
 
    -- Flatten the inbound MAC frame source for direct cocotb stimulus.
-   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast, sMacTValid) is
+   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast,
+                       sMacTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sMacTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sMacTValid;
       v.tData(127 downto 0) := sMacTData;
-      v.tKeep(15 downto 0) := sMacTKeep;
-      v.tLast := sMacTLast;
+      v.tKeep(15 downto 0)  := sMacTKeep;
+      v.tLast               := sMacTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sMacSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sMacEofe);
-      sMacMaster <= v;
+      sMacMaster            <= v;
    end process sMacComb;
 
-   sMacTReady <= sMacSlave.tReady;
-   mArpSlave.tReady <= mArpTReady;
+   sMacTReady        <= sMacSlave.tReady;
+   mArpSlave.tReady  <= mArpTReady;
    mIpv4Slave.tReady <= mIpv4TReady;
 
    -- Present the selected ARP output stream as a flat cocotb-facing bus.
    mArpView : process (mArpMaster) is
    begin
       mArpTValid <= mArpMaster.tValid;
-      mArpTData <= mArpMaster.tData(127 downto 0);
-      mArpTKeep <= mArpMaster.tKeep(15 downto 0);
-      mArpTLast <= mArpMaster.tLast;
-      mArpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mArpMaster, EMAC_SOF_BIT_C, 0);
-      mArpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mArpMaster, EMAC_EOFE_BIT_C);
+      mArpTData  <= mArpMaster.tData(127 downto 0);
+      mArpTKeep  <= mArpMaster.tKeep(15 downto 0);
+      mArpTLast  <= mArpMaster.tLast;
+      mArpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mArpMaster, EMAC_SOF_BIT_C, 0);
+      mArpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mArpMaster, EMAC_EOFE_BIT_C);
    end process mArpView;
 
    -- Present the selected IPv4 output stream as a second flat bus.
    mIpv4View : process (mIpv4Master) is
    begin
       mIpv4TValid <= mIpv4Master.tValid;
-      mIpv4TData <= mIpv4Master.tData(127 downto 0);
-      mIpv4TKeep <= mIpv4Master.tKeep(15 downto 0);
-      mIpv4TLast <= mIpv4Master.tLast;
-      mIpv4Sof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_SOF_BIT_C, 0);
-      mIpv4Eofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_EOFE_BIT_C);
+      mIpv4TData  <= mIpv4Master.tData(127 downto 0);
+      mIpv4TKeep  <= mIpv4Master.tKeep(15 downto 0);
+      mIpv4TLast  <= mIpv4Master.tLast;
+      mIpv4Sof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_SOF_BIT_C, 0);
+      mIpv4Eofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_EOFE_BIT_C);
    end process mIpv4View;
 
    U_DUT : entity surf.IpV4EngineDeMux

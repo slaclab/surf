@@ -289,7 +289,7 @@ begin
 
                         -- Starting point for next cycle IDLE state
                         if (i /= NUM_LANES_G-1) then
-                           v.wrd            := i+1;
+                           v.wrd := i+1;
                         end if;
 
                      end if;

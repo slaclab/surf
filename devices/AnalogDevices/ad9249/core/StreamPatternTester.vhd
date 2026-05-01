@@ -86,7 +86,7 @@ begin
    -------------------------------------------------------------------------------------------------
    -- AXIL Interface
    -------------------------------------------------------------------------------------------------
-   comb : process (r, axilReadMaster, axilWriteMaster, rst, testFailed,
+   comb : process (axilReadMaster, axilWriteMaster, r, rst, testFailed,
                    testPassed) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
@@ -168,7 +168,7 @@ begin
    end process;
 
    testDone   <= '1' when (testCnt >= unsigned(r.testSamples) or timeoutCnt = 0) and r.testRequest = '0' else '0';
-   testPassed <= '1' when testDone = '1' and passCnt = unsigned(r.testSamples)                               else '0';
-   testFailed <= '1' when testDone = '1' and passCnt < unsigned(r.testSamples)                               else '0';
+   testPassed <= '1' when testDone = '1' and passCnt = unsigned(r.testSamples)                           else '0';
+   testFailed <= '1' when testDone = '1' and passCnt < unsigned(r.testSamples)                           else '0';
 
 end rtl;

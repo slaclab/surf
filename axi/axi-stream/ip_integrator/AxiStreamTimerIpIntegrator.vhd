@@ -64,29 +64,29 @@ end entity AxiStreamTimerIpIntegrator;
 
 architecture rtl of AxiStreamTimerIpIntegrator is
 
-   signal axilResetN       : sl := '1';
-   signal streamMasters    : AxiStreamMasterArray(NUM_STREAMS_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal streamSlaves     : AxiStreamSlaveArray(NUM_STREAMS_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave    : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal axilWriteMaster  : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave   : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axilResetN      : sl                                             := '1';
+   signal streamMasters   : AxiStreamMasterArray(NUM_STREAMS_G-1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal streamSlaves    : AxiStreamSlaveArray(NUM_STREAMS_G-1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal axilReadMaster  : AxiLiteReadMasterType                          := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType                           := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilWriteMaster : AxiLiteWriteMasterType                         := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType                          := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 
    axilResetN <= not axilRst;
 
-   streamMasters(0).tValid <= S0_AXIS_TVALID;
+   streamMasters(0).tValid                           <= S0_AXIS_TVALID;
    streamMasters(0).tData(DATA_BYTES_G*8-1 downto 0) <= S0_AXIS_TDATA;
-   streamMasters(0).tKeep(DATA_BYTES_G-1 downto 0) <= S0_AXIS_TKEEP;
-   streamMasters(0).tLast <= S0_AXIS_TLAST;
-   streamSlaves(0).tReady <= S0_AXIS_TREADY;
+   streamMasters(0).tKeep(DATA_BYTES_G-1 downto 0)   <= S0_AXIS_TKEEP;
+   streamMasters(0).tLast                            <= S0_AXIS_TLAST;
+   streamSlaves(0).tReady                            <= S0_AXIS_TREADY;
 
-   streamMasters(1).tValid <= S1_AXIS_TVALID;
+   streamMasters(1).tValid                           <= S1_AXIS_TVALID;
    streamMasters(1).tData(DATA_BYTES_G*8-1 downto 0) <= S1_AXIS_TDATA;
-   streamMasters(1).tKeep(DATA_BYTES_G-1 downto 0) <= S1_AXIS_TKEEP;
-   streamMasters(1).tLast <= S1_AXIS_TLAST;
-   streamSlaves(1).tReady <= S1_AXIS_TREADY;
+   streamMasters(1).tKeep(DATA_BYTES_G-1 downto 0)   <= S1_AXIS_TKEEP;
+   streamMasters(1).tLast                            <= S1_AXIS_TLAST;
+   streamSlaves(1).tReady                            <= S1_AXIS_TREADY;
 
    U_ShimLayerSlave : entity surf.SlaveAxiLiteIpIntegrator
       generic map (

@@ -22,15 +22,15 @@ use surf.StdRtlPkg.all;
 
 entity SyncClockFreqWrapper is
    generic (
-      TPD_G               : time     := 1 ns;
-      RST_ASYNC_G         : boolean  := false;
-      USE_DSP_G           : string   := "no";
-      REF_CLK_FREQ_INT_G  : positive := 8;
-      REFRESH_RATE_INT_G  : positive := 1;
-      CLK_LOWER_LIMIT_G   : natural  := 0;
-      CLK_UPPER_LIMIT_G   : natural  := 16;
-      COMMON_CLK_G        : boolean  := false;
-      CNT_WIDTH_G         : positive := 32);
+      TPD_G              : time     := 1 ns;
+      RST_ASYNC_G        : boolean  := false;
+      USE_DSP_G          : string   := "no";
+      REF_CLK_FREQ_INT_G : positive := 8;
+      REFRESH_RATE_INT_G : positive := 1;
+      CLK_LOWER_LIMIT_G  : natural  := 0;
+      CLK_UPPER_LIMIT_G  : natural  := 16;
+      COMMON_CLK_G       : boolean  := false;
+      CNT_WIDTH_G        : positive := 32);
    port (
       freqOut     : out slv(CNT_WIDTH_G-1 downto 0);
       freqUpdated : out sl;

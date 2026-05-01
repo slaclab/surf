@@ -22,37 +22,37 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamMonAxiLIpIntegrator is
    port (
-      axisClk        : in  sl;
-      axisRst        : in  sl;
-      S_AXIS_TVALID  : in  sl;
-      S_AXIS_TDATA   : in  slv(31 downto 0);
-      S_AXIS_TKEEP   : in  slv(3 downto 0);
-      S_AXIS_TLAST   : in  sl;
-      S_AXIS_TDEST   : in  slv(0 downto 0);
-      S_AXIS_TID     : in  slv(0 downto 0);
-      S_AXIS_TUSER   : in  slv(0 downto 0);
-      S_AXIS_TREADY  : out sl;
-      axilClk        : in  sl;
-      axilRst        : in  sl;
-      S_AXI_AWADDR   : in  slv(5 downto 0);
-      S_AXI_AWPROT   : in  slv(2 downto 0);
-      S_AXI_AWVALID  : in  sl;
-      S_AXI_AWREADY  : out sl;
-      S_AXI_WDATA    : in  slv(31 downto 0);
-      S_AXI_WSTRB    : in  slv(3 downto 0);
-      S_AXI_WVALID   : in  sl;
-      S_AXI_WREADY   : out sl;
-      S_AXI_BRESP    : out slv(1 downto 0);
-      S_AXI_BVALID   : out sl;
-      S_AXI_BREADY   : in  sl;
-      S_AXI_ARADDR   : in  slv(5 downto 0);
-      S_AXI_ARPROT   : in  slv(2 downto 0);
-      S_AXI_ARVALID  : in  sl;
-      S_AXI_ARREADY  : out sl;
-      S_AXI_RDATA    : out slv(31 downto 0);
-      S_AXI_RRESP    : out slv(1 downto 0);
-      S_AXI_RVALID   : out sl;
-      S_AXI_RREADY   : in  sl);
+      axisClk       : in  sl;
+      axisRst       : in  sl;
+      S_AXIS_TVALID : in  sl;
+      S_AXIS_TDATA  : in  slv(31 downto 0);
+      S_AXIS_TKEEP  : in  slv(3 downto 0);
+      S_AXIS_TLAST  : in  sl;
+      S_AXIS_TDEST  : in  slv(0 downto 0);
+      S_AXIS_TID    : in  slv(0 downto 0);
+      S_AXIS_TUSER  : in  slv(0 downto 0);
+      S_AXIS_TREADY : out sl;
+      axilClk       : in  sl;
+      axilRst       : in  sl;
+      S_AXI_AWADDR  : in  slv(5 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
+      S_AXI_AWVALID : in  sl;
+      S_AXI_AWREADY : out sl;
+      S_AXI_WDATA   : in  slv(31 downto 0);
+      S_AXI_WSTRB   : in  slv(3 downto 0);
+      S_AXI_WVALID  : in  sl;
+      S_AXI_WREADY  : out sl;
+      S_AXI_BRESP   : out slv(1 downto 0);
+      S_AXI_BVALID  : out sl;
+      S_AXI_BREADY  : in  sl;
+      S_AXI_ARADDR  : in  slv(5 downto 0);
+      S_AXI_ARPROT  : in  slv(2 downto 0);
+      S_AXI_ARVALID : in  sl;
+      S_AXI_ARREADY : out sl;
+      S_AXI_RDATA   : out slv(31 downto 0);
+      S_AXI_RRESP   : out slv(1 downto 0);
+      S_AXI_RVALID  : out sl;
+      S_AXI_RREADY  : in  sl);
 end entity AxiStreamMonAxiLIpIntegrator;
 
 architecture rtl of AxiStreamMonAxiLIpIntegrator is
@@ -66,14 +66,14 @@ architecture rtl of AxiStreamMonAxiLIpIntegrator is
       TUSER_BITS_C  => 1,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisResetN      : sl := '1';
-   signal axilResetN      : sl := '1';
+   signal axisResetN      : sl                               := '1';
+   signal axilResetN      : sl                               := '1';
    signal axisMasters     : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal axisSlaves      : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axilReadMaster  : AxiLiteReadMasterType            := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType             := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilWriteMaster : AxiLiteWriteMasterType           := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType            := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 

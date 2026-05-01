@@ -59,7 +59,7 @@ end entity AxiLiteFifoPushPopIpIntegrator;
 
 architecture rtl of AxiLiteFifoPushPopIpIntegrator is
 
-   signal axilResetN        : sl := '1';
+   signal axilResetN        : sl                     := '1';
    signal axilReadMaster    : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave     : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster   : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -159,11 +159,11 @@ begin
    ---------------------------------------------------------------------------
    -- Flatten the single exposed FIFO lanes
    ---------------------------------------------------------------------------
-   popFifoValid  <= popFifoValidVec(0);
-   loopFifoValid <= loopFifoValidVec(0);
+   popFifoValid   <= popFifoValidVec(0);
+   loopFifoValid  <= loopFifoValidVec(0);
    loopFifoAEmpty <= loopFifoAEmptyVec(0);
-   loopFifoAFull <= loopFifoAFullVec(0);
-   pushFifoValid <= pushFifoValidVec(0);
-   pushFifoDout  <= pushFifoDoutVec(0);
+   loopFifoAFull  <= loopFifoAFullVec(0);
+   pushFifoValid  <= pushFifoValidVec(0);
+   pushFifoDout   <= pushFifoDoutVec(0);
 
 end architecture rtl;

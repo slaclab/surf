@@ -187,14 +187,14 @@ begin
    U_Rx : entity surf.SsiPrbsRx
       generic map (
          -- General Configurations
-         TPD_G                      => TPD_C,
+         TPD_G                     => TPD_C,
          -- FIFO Configurations
-         GEN_SYNC_FIFO_G            => true,
+         GEN_SYNC_FIFO_G           => true,
          -- PRBS Configurations
-         PRBS_SEED_SIZE_G           => PRBS_SEED_SIZE_C,
-         PRBS_TAPS_G                => PRBS_TAPS_C,
+         PRBS_SEED_SIZE_G          => PRBS_SEED_SIZE_C,
+         PRBS_TAPS_G               => PRBS_TAPS_C,
          -- AXI Stream Configurations
-         SLAVE_AXI_STREAM_CONFIG_G  => AXI_STREAM_CONFIG_C)
+         SLAVE_AXI_STREAM_CONFIG_G => AXI_STREAM_CONFIG_C)
       port map (
          -- Streaming RX Data Interface (sAxisClk domain)
          sAxisClk       => rxClk,
