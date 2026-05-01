@@ -223,7 +223,7 @@ begin
                      -- Next State
                      v.state := CTRL_ACK_TAG_S;
 
-                  -- Check for "control acknowledge with tag"
+                  -- Check for "Event packet"
                   elsif (rxData = x"07_07_07_07") then
                      -- Reset event parser counters
                      v.ackCnt := 0;
