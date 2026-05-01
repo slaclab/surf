@@ -163,21 +163,21 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          SKIP_EN_G      => SKIP_EN_G)
       port map (
-         phyRxClk       => phyRxClk,           -- [in]
-         phyRxRst       => phyRxRst,           -- [in]
-         phyRxValid     => checkedValid,       -- [in]
-         phyRxData      => checkedData,        -- [in]
-         phyRxHeader    => checkedHeader,      -- [in]
-         phyRxLinkError => kCodeLinkError,     -- [in]
-         pgpRxClk       => pgpRxClk,           -- [in]
-         pgpRxRst       => pgpRxRst,           -- [in]
-         pgpRxValid     => ebValid,            -- [out]
-         pgpRxData      => ebData,             -- [out]
-         pgpRxHeader    => ebHeader,           -- [out]
-         remLinkData    => remLinkData,        -- [out]
-         overflow       => ebOverflow,         -- [out]
-         linkError      => linkError,          -- [out]
-         status         => ebStatus);          -- [out]
+         phyRxClk       => phyRxClk,        -- [in]
+         phyRxRst       => phyRxRst,        -- [in]
+         phyRxValid     => checkedValid,    -- [in]
+         phyRxData      => checkedData,     -- [in]
+         phyRxHeader    => checkedHeader,   -- [in]
+         phyRxLinkError => kCodeLinkError,  -- [in]
+         pgpRxClk       => pgpRxClk,        -- [in]
+         pgpRxRst       => pgpRxRst,        -- [in]
+         pgpRxValid     => ebValid,         -- [out]
+         pgpRxData      => ebData,          -- [out]
+         pgpRxHeader    => ebHeader,        -- [out]
+         remLinkData    => remLinkData,     -- [out]
+         overflow       => ebOverflow,      -- [out]
+         linkError      => linkError,       -- [out]
+         status         => ebStatus);       -- [out]
 
    -- Main RX protocol logic
    U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol

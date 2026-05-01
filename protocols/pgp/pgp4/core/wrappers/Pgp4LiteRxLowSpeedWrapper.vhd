@@ -70,17 +70,17 @@ architecture rtl of Pgp4LiteRxLowSpeedWrapper is
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
-   signal pgpTxIn      : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal phyTxValid   : sl;
-   signal phyTxData    : slv(63 downto 0);
-   signal phyTxHeader  : slv(1 downto 0);
-   signal serWord      : slv(65 downto 0);
-   signal deserData    : Slv8Array(0 downto 0);
-   signal dlyLoads     : slv(0 downto 0);
-   signal dlyCfgs      : Slv9Array(0 downto 0);
-   signal rxMasters    : AxiStreamMasterArray(0 downto 0);
+   signal pgpTxIn     : Pgp4TxInType        := PGP4_TX_IN_INIT_C;
+   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal phyTxValid  : sl;
+   signal phyTxData   : slv(63 downto 0);
+   signal phyTxHeader : slv(1 downto 0);
+   signal serWord     : slv(65 downto 0);
+   signal deserData   : Slv8Array(0 downto 0);
+   signal dlyLoads    : slv(0 downto 0);
+   signal dlyCfgs     : Slv9Array(0 downto 0);
+   signal rxMasters   : AxiStreamMasterArray(0 downto 0);
 
 begin
 

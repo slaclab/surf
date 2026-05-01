@@ -43,15 +43,15 @@ end entity Pgp4RxProtocolDepacketizerWrapper;
 
 architecture rtl of Pgp4RxProtocolDepacketizerWrapper is
 
-   signal pgpRxOut              : Pgp4RxOutType       := PGP4_RX_OUT_INIT_C;
-   signal pgpRawRxMaster        : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpRawRxSlave         : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal depacketizedRxMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal depacketizedRxSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal depacketizerDebug     : Packetizer2DebugType;
-   signal remRxFifoCtrl         : AxiStreamCtrlArray(0 downto 0);
-   signal remRxLinkReady        : sl;
-   signal locRxLinkReady        : sl;
+   signal pgpRxOut             : Pgp4RxOutType       := PGP4_RX_OUT_INIT_C;
+   signal pgpRawRxMaster       : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpRawRxSlave        : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal depacketizedRxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal depacketizedRxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal depacketizerDebug    : Packetizer2DebugType;
+   signal remRxFifoCtrl        : AxiStreamCtrlArray(0 downto 0);
+   signal remRxLinkReady       : sl;
+   signal locRxLinkReady       : sl;
 
 begin
 

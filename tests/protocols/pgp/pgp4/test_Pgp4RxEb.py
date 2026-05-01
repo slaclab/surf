@@ -10,11 +10,11 @@
 
 # Test methodology:
 # - Sweep: Run the direct `Pgp4RxEb` wrapper in three asynchronous clock modes
-#   plus one same-clock, skip-disabled mode with the K-code checker enabled.
+#   plus one same-clock, skip-disabled passthrough mode.
 # - Stimulus: Drive ordered mixes of data words, valid K-words, SKP words, and
 #   reset/overflow stress bursts directly into the PHY side of the elastic
-#   buffer.  The skip-disabled mode drives a malformed K-word followed
-#   immediately by data to cover the no-elastic-buffer link-error corner case.
+#   buffer.  The skip-disabled mode drives a data word with an external link
+#   error pulse to cover the no-elastic-buffer passthrough contract.
 # - Checks: The DUT must forward non-SKP traffic in order, suppress SKP while
 #   still updating `remLinkData`, flush buffered data on reset, and pulse
 #   `overflow` when sustained write pressure outruns the read domain.
@@ -39,18 +39,12 @@ from tests.common.regression_utils import (
 from tests.protocols.pgp.pgp4.pgp4_test_utils import (
     PGP4_D_HEADER,
     PGP4_K_HEADER,
-    PGP4_USER,
     initialize_signals,
     pgp4_idle_word,
-    pgp4_kword,
     pgp4_skip_word,
-    pgp4_user_word,
     signal_int,
 )
 from tests.protocols.pgp.pgp_test_utils import run_pgp_wrapper_test
-
-K_CODE_CSC_LSB = 48
-USER_OPCODE_PAYLOAD = 0x0000CAFEBABE
 
 
 class Pgp4RxEbTB:
@@ -156,27 +150,21 @@ def initialize_phy_inputs(dut):
     initialize_signals(dut, phyRxValid=0, phyRxData=0, phyRxHeader=0, phyRxLinkError=0)
 
 
-async def send_phy_word(tb: Pgp4RxEbTB, *, header: int, data: int):
+async def send_phy_word(tb: Pgp4RxEbTB, *, header: int, data: int, link_error: int = 0):
     """Launch one PHY-side word for exactly one recovered-clock cycle."""
 
     tb.dut.phyRxHeader.value = header
     tb.dut.phyRxData.value = data
+    tb.dut.phyRxLinkError.value = link_error
     tb.dut.phyRxValid.value = 1
     await tb.cycle_phy()
     tb.dut.phyRxValid.value = 0
+    tb.dut.phyRxLinkError.value = 0
 
 
 async def send_phy_words(tb: Pgp4RxEbTB, words: list[tuple[int, int]]):
     for header, data in words:
         await send_phy_word(tb, header=header, data=data)
-
-
-def bad_kcode_checksum_word() -> int:
-    """Build a real USER K-word and corrupt only its checksum field."""
-
-    good_user_word = pgp4_user_word(USER_OPCODE_PAYLOAD)
-    assert good_user_word == pgp4_kword(PGP4_USER, USER_OPCODE_PAYLOAD)
-    return good_user_word ^ (1 << K_CODE_CSC_LSB)
 
 
 def env_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
@@ -313,7 +301,7 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
 
 
 @cocotb.test()
-async def pgp4_rx_eb_skip_disabled_bubbles_after_link_error(dut):
+async def pgp4_rx_eb_skip_disabled_passes_stream_and_link_error(dut):
     tb = Pgp4RxEbTB(dut)
     if not env_flag("EXPECT_SKIP_DISABLED", default=False):
         return
@@ -331,21 +319,11 @@ async def pgp4_rx_eb_skip_disabled_bubbles_after_link_error(dut):
     cocotb.start_soon(collector.run())
     cocotb.start_soon(link_error_monitor.run())
 
-    data_word_a = 0x1111222233334444
-    bad_user_word = bad_kcode_checksum_word()
-    suppressed_word = 0x5555666677778888
-    data_word_b = 0x9999AAAABBBBCCCC
+    data_word = 0x123456789ABCDEF0
+    await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word, link_error=1)
 
-    await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_a)
-    await send_phy_word(tb, header=PGP4_K_HEADER, data=bad_user_word)
-    await send_phy_word(tb, header=PGP4_D_HEADER, data=suppressed_word)
-    await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word_b)
-
-    words = await wait_for_collected_beats(collector, count=2, step=tb.cycle_pgp, cycles=64)
-    assert words == [
-        (PGP4_D_HEADER, data_word_a),
-        (PGP4_D_HEADER, data_word_b),
-    ]
+    words = await wait_for_collected_beats(collector, count=1, step=tb.cycle_pgp, cycles=64)
+    assert words == [(PGP4_D_HEADER, data_word)]
     assert link_error_monitor.seen
 
 
@@ -371,7 +349,6 @@ PARAMETER_SWEEP = [
     parameter_case(
         "same_clock_skip_disabled",
         SKIP_EN_G=False,
-        CHECK_K_CODE_G=True,
         PHY_CLK_PERIOD_NS="4.000",
         PGP_CLK_PERIOD_NS="4.000",
         COMMON_CLK="1",
