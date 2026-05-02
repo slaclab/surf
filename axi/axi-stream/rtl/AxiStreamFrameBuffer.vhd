@@ -200,6 +200,7 @@ begin
    ----------------------
    -- Instantiate the RAM
    ----------------------
+
    GEN_RAM : for i in N_BUFFS_C - 1 downto 0 generate
       GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
          U_Ram : entity surf.SimpleDualPortRamXpm
@@ -295,6 +296,7 @@ begin
    -----------------------------
    -- Data process (data inputs)
    -----------------------------
+
    dataComb : process (dataR, dataRst, axilRstSync, dataValid, dataValue, dataFrameTxLast,
                        rdReqSync) is
       variable v : DataRegType;
@@ -386,6 +388,15 @@ begin
 
    end process;
 
+   dataSeq : process (dataClk, dataRst) is
+   begin
+      if (RST_ASYNC_G) and (dataRst = RST_POLARITY_G) then
+         dataR <= DATA_REG_INIT_C after TPD_G;
+      elsif rising_edge(dataClk) then
+         dataR <= dataRin after TPD_G;
+      end if;
+   end process;
+
    -- Multiplexing the read lines is only required when using multiple buffers.
    GEN_RAM_RD_DATA_MUX : if SAFE_BUFFS_G generate
       -- Assign active ram output lines array (hot-one mask to integer)
@@ -396,14 +407,9 @@ begin
       ramRdData <= ramRdDataArr(0);
    end generate GEN_RAM_RD_DATA_MUX;
 
-   dataSeq : process (dataClk, dataRst) is
-   begin
-      if (RST_ASYNC_G) and (dataRst = RST_POLARITY_G) then
-         dataR <= DATA_REG_INIT_C after TPD_G;
-      elsif rising_edge(dataClk) then
-         dataR <= dataRin after TPD_G;
-      end if;
-   end process;
+   -------------------------------------------------------------
+   -- Synchronization of signals between data/AXI-lite processes
+   -------------------------------------------------------------
 
    -- Synchronize final read address
    U_SyncVec_axilClk_rdFinalAddr : entity surf.SynchronizerVector
@@ -455,7 +461,6 @@ begin
    -------------------------------
    -- Main AXI-Lite/Stream process
    -------------------------------
-   -- Select correct ram output data lines according to
 
    axiComb : process (axilR, axilReadMaster, axilRst, dataRstSync, axilWriteMaster,
                       getFrameTrigSync, ramRdData, rdFinalAddrSync, rdSetupDoneSync, txSlave) is
