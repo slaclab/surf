@@ -50,8 +50,10 @@ architecture testbed of AxiStreamFrameBufferTb is
     signal r   : RegType := REG_INIT_C;
     signal rin : RegType;
 
-    signal clk : sl := '0';
-    signal rst : sl := '1';
+    signal dataClk : sl := '0';
+    signal dataRst : sl := '1';
+    signal axiClk  : sl := '0';
+    signal axiRst  : sl := '1';
 
     signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
     signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
@@ -66,15 +68,26 @@ begin
     ---------------------------
     -- Generate clock and reset
     ---------------------------
-    U_ClkRst : entity surf.ClkRst
+    U_DataClkRst : entity surf.ClkRst
         generic map (
             CLK_PERIOD_G      => CLK_PERIOD_C,
             RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
-            RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long)
+            RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long
         port map (
-            clkP => clk,
+            clkP => dataClk,
             clkN => open,
-            rst  => rst,
+            rst  => dataRst,
+            rstL => open);
+
+    U_AxiClkRst : entity surf.ClkRst
+        generic map (
+            CLK_PERIOD_G      => CLK_PERIOD_C/3.1415, -- Make clocks more or less async
+            RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
+            RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long
+        port map (
+            clkP => axiClk,
+            clkN => open,
+            rst  => axiRst,
             rstL => open);
 
     --------------------------
@@ -92,26 +105,26 @@ begin
             AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
         port map (
             -- Data to store in frame buffer (dataClk domain)
-            dataClk         => clk,
-            dataRst         => rst,
+            dataClk         => dataClk,
+            dataRst         => dataRst,
             dataValue       => r.data,
             dataValid       => r.dataValid,
             frameDone       => r.frameDone,
             -- AXI-Lite interface (axilClk domain)
-            axilClk         => clk,
-            axilRst         => rst,
+            axilClk         => axiClk,
+            axilRst         => dataRst,
             axilReadMaster  => axilReadMaster,
             axilReadSlave   => axilReadSlave,
             axilWriteMaster => axilWriteMaster,
             axilWriteSlave  => axilWriteSlave,
             -- AXI-Stream Interface (axilClk domain)
             getFrameTrig    => r.getFrameTrig,
-            axisClk         => clk,
-            axisRst         => rst,
+            axisClk         => axiClk,
+            axisRst         => dataRst,
             axisMaster      => axisMaster,
             axisSlave       => axisSlave);
 
-    comb : process (r, rst) is
+    comb : process (r, dataRst) is
         variable v : RegType;
     begin
         -- Latch the current value
@@ -129,10 +142,10 @@ begin
 
             -- Generate data
             if r.cnt < 2048 then
-                v.data := r.data + 1;
+                v.data      := r.data + 1;
                 v.dataValid := '1';
             else
-                v.data := (others => '0');
+                v.data      := (others => '0');
                 v.dataValid := '0';
             end if;
 
@@ -162,7 +175,7 @@ begin
         end if;
 
         -- Synchronous Reset
-        if (rst = '1') then
+        if (dataRst = '1') then
             v := REG_INIT_C;
         end if;
 
@@ -171,9 +184,9 @@ begin
 
     end process comb;
 
-    seq : process (clk) is
+    seq : process (dataClk) is
     begin
-        if (rising_edge(clk)) then
+        if (rising_edge(dataClk)) then
             r <= rin after TPD_C;
         end if;
     end process seq;
