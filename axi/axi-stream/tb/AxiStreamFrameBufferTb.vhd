@@ -34,6 +34,7 @@ architecture testbed of AxiStreamFrameBufferTb is
 
     type RegType is record
         data         : slv(15 downto 0);
+        dataValid    : sl;
         frameDone    : sl;
         cnt          : slv(11 downto 0);
         getFrameTrig : sl;
@@ -41,6 +42,7 @@ architecture testbed of AxiStreamFrameBufferTb is
 
     constant REG_INIT_C : RegType := (
         data         => (others => '0'),
+        dataValid    => '0',
         frameDone    => '0',
         cnt          => (others => '0'),
         getFrameTrig => '0');
@@ -91,7 +93,9 @@ begin
         port map (
             -- Data to store in frame buffer (dataClk domain)
             dataClk         => clk,
+            dataRst         => rst,
             dataValue       => r.data,
+            dataValid       => r.dataValid,
             frameDone       => r.frameDone,
             -- AXI-Lite interface (axilClk domain)
             axilClk         => clk,
@@ -123,14 +127,19 @@ begin
             -- Increment the counter
             v.cnt := r.cnt + 1;
 
-            -- Check if making data pattern
-            if r.cnt < 1024 then
+            -- Generate data
+            if r.cnt < 2048 then
                 v.data := r.data + 1;
+                v.dataValid := '1';
             else
                 v.data := (others => '0');
+                v.dataValid := '0';
             end if;
 
-            -- Check for the frame done (last transmission) event
+            -- Frame done issued half way through, to check continous frame
+            -- recording and done flag functionality. Data will go on for
+            -- another buffer length to allow for check of the buffer full
+            -- frame end condition.
             if (r.cnt = 1023) then
                 -- Set the flag
                 v.frameDone := '1';
@@ -142,6 +151,14 @@ begin
                 v.getFrameTrig := '1';
             end if;
 
+        end if;
+
+        -- Start hammering the trigger line to see if the module reacts
+        -- correctly and starts next readout immediately after last one
+        -- completed.
+        if (r.cnt > 1024 + 512) then
+            -- Set the flag
+            v.getFrameTrig := '1';
         end if;
 
         -- Synchronous Reset

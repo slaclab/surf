@@ -99,11 +99,12 @@ architecture rtl of AxiStreamFrameBuffer is
       ramRdEnMask     : slv(2 downto 0);
       ramRdEnMaskNext : slv(2 downto 0);
       rdSetupDone     : sl;
-      wrWordCnt       : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      rdWordCnt       : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-      rdWordCntNext   : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       ramWrAddr       : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      ramWrAddrNext   : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      rdFinalAddr     : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      rdFinalAddrNext : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       ramWrData       : slv(8*DATA_BYTES_G-1 downto 0);
+      frameDone       : sl;
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
@@ -112,11 +113,12 @@ architecture rtl of AxiStreamFrameBuffer is
       ramRdEnMask     => "001",
       ramRdEnMaskNext => "001",
       rdSetupDone     => '0',
-      wrWordCnt       => (others => '0'),
-      rdWordCnt       => (others => '0'),
-      rdWordCntNext   => (others => '0'),
       ramWrAddr       => (others => '0'),
-      ramWrData       => (others => '0'));
+      ramWrAddrNext   => (others => '0'),
+      rdFinalAddr     => (others => '0'),
+      rdFinalAddrNext => (others => '0'),
+      ramWrData       => (others => '0'),
+      frameDone       => '0');
 
    signal dataR   : DataRegType := DATA_REG_INIT_C;
    signal dataRin : DataRegType;
@@ -132,9 +134,7 @@ architecture rtl of AxiStreamFrameBuffer is
    type AxilRegType is record
       softTrig       : sl;
       rdReq          : sl;
-      rdWordCnt      : slv(RAM_ADDR_WIDTH_G-1 downto 0);  -- How many words to transmit
-      txWordCnt      : slv(RAM_ADDR_WIDTH_G-1 downto 0);  -- Counts transmitted words
-      ramRdUpper     : sl;
+      rdFinalAddr    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       ramRdAddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       rdEn           : slv(2 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -147,9 +147,7 @@ architecture rtl of AxiStreamFrameBuffer is
    constant AXIL_REG_INIT_C : AxilRegType := (
       softTrig       => '0',
       rdReq          => '0',
-      rdWordCnt      => (others => '0'),
-      txWordCnt      => (others => '0'),
-      ramRdUpper     => '0',
+      rdFinalAddr    => (others => '0'),
       ramRdAddr      => (others => '0'),
       rdEn           => "000",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
@@ -164,7 +162,7 @@ architecture rtl of AxiStreamFrameBuffer is
    signal axilRstSync : sl;
    signal dataRstSync : sl;
 
-   signal rdWordCntSync   : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+   signal rdFinalAddrSync : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    signal rdSetupDoneSync : sl;
 
    signal getFrameTrigSync : sl;
@@ -286,9 +284,11 @@ begin
 
       -- Register data value to help with making timing
       v.ramWrData := dataValue;
+      v.frameDone := frameDone;
 
-      -- Check end of frame condition (buffer full or frameDone)
-      if (frameDone = '1') or (dataR.wrWordCnt = 2**RAM_ADDR_WIDTH_G - 1) then
+
+      -- Check if last frame was the final frame or if the buffer is full.
+      if (dataR.frameDone = '1') or (dataR.ramWrAddr = 2**RAM_ADDR_WIDTH_G - 1) then
 
          -- Set next buffer for writing to the buffer that is not currently set
          -- for neither read nor write.
@@ -296,33 +296,36 @@ begin
          -- The next buffer for reading is the last buffer written to so
          -- always the newest frame can be obtained.
          v.ramRdEnMaskNext := dataR.ramWrEnMask;
-         -- Keep track of number of words written during last write so the
+         -- Keep track of last address written to during last write so the
          -- correct numbers of words can be read on the next read.
-         v.rdWordCntNext   := dataR.wrWordCnt;
+         v.rdFinalAddrNext := dataR.ramWrAddr;
 
-         -- Reset word count
-         v.wrWordCnt := (others => '0');
+         -- Reset value for address is all ones so that in first write cycle after
+         -- reset which happens before the frame end condition is satisfied at least
+         -- once we wrap around after incrementing and land on address 0.
+         v.ramWrAddr     := (others => '0');
+         v.ramWrAddrNext := (others => '0');
 
          -- TODO: Optionally send read request trigger on frame complete.
          -- The most flexible option might be to output this signal
          -- and let the user decide if it should be looped back into
          -- getFrameTrig or not.
 
-      else
+      end if;
 
-         -- Only write if data valid
-         if (dataValid = '1') then
+      -- Only write if data valid. There may be still data received for the
+      -- clock cycle where frameDone = '1' and it is possible to receive the
+      -- start with the next frame immediately in the frame where write masks
+      -- are updated.
+      if (dataValid = '1') then
 
-            -- Strobe write enable
-            v.ramWrEn := '1';
+         -- Strobe write enable
+         v.ramWrEn := '1';
 
-            -- Write address is simply the word count
-            v.ramWrAddr := dataR.wrWordCnt;
-
-            -- Increment write word count
-            v.wrWordCnt := dataR.wrWordCnt + 1;
-
-         end if;
+         -- Increment write address. Reference v, not r as this might have
+         -- been reset by the frame end condition above.
+         v.ramWrAddr     := v.ramWrAddrNext;  -- Mini-pipeline
+         v.ramWrAddrNext := v.ramWrAddrNext + 1;
 
       end if;
 
@@ -332,8 +335,8 @@ begin
          -- as read can start as early as the next next cycle where
          -- a different write mask may be used.
          v.ramRdEnMask := v.ramRdEnMaskNext;
-         -- Drive the read word count signal
-         v.rdWordCnt   := dataR.rdWordCntNext;
+         -- Drive the read final address signal
+         v.rdFinalAddr := dataR.rdFinalAddrNext;
          -- Signal to the axi-stream process that it can start reading by
          -- strobing rdSetupDone (must be synchronized to other clock domain).
          v.rdSetupDone := '1';
@@ -350,7 +353,7 @@ begin
    end process;
 
    -- Assign active ram output lines array (hot-one mask to integer)
-   ramRdData <= ramRdDataArr(0) when dataR.ramRdEnMask = "100" else
+   ramRdData <= ramRdDataArr(0) when dataR.ramRdEnMask = "001" else
                 ramRdDataArr(1) when dataR.ramRdEnMask = "010" else
                 ramRdDataArr(2);
 
@@ -364,8 +367,8 @@ begin
    end process;
 
    -- TODO: I hope the oneshot and vector synchronizer work in sync?
-   -- Synchronize word count for readout
-   U_SyncVec_axilClk_rdWordCnt : entity surf.SynchronizerVector
+   -- Synchronize final read address
+   U_SyncVec_axilClk_rdFinalAddr : entity surf.SynchronizerVector
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -373,8 +376,8 @@ begin
          WIDTH_G        => RAM_ADDR_WIDTH_G)
       port map (
          clk     => axilClk,
-         dataIn  => dataR.rdWordCnt,
-         dataOut => rdWordCntSync);
+         dataIn  => dataR.rdFinalAddr,
+         dataOut => rdFinalAddrSync);
 
    -- Synchronize read setup done strobe
    U_Sync_axilClk_rdSetupDone : entity work.SynchronizerOneShot
@@ -400,7 +403,7 @@ begin
          dataIn  => axilR.rdReq,
          dataOut => rdReqSync);
 
-   U_Sync_axilClk_getFrameTrig : entity work.SynchronizerOneShot
+   U_Sync_axilClk_getFrameTrig : entity work.Synchronizer
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -417,7 +420,7 @@ begin
    -- Select correct ram output data lines according to
 
    axiComb : process (axilR, axilReadMaster, axilRst, dataRstSync, axilWriteMaster,
-                      getFrameTrigSync, ramRdData, rdWordCntSync, rdSetupDoneSync, txSlave) is
+                      getFrameTrigSync, ramRdData, rdFinalAddrSync, rdSetupDoneSync, txSlave) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -438,7 +441,7 @@ begin
       -- to be for the ring buffer??? Maybe this is a relict from an older version
       -- where the soft trigger could only do one at a time and now one can request
       -- a burst of n triggers?
-      axiSlaveRegisterR(axilEp, x"0", 0, axilR.rdWordCnt);
+      axiSlaveRegisterR(axilEp, x"0", 0, axilR.rdFinalAddr);
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"0", 30, axilR.dataStateIdx);
       axiSlaveRegister(axilEp, x"4", 0, v.softTrig);
@@ -477,12 +480,14 @@ begin
          when WAIT_RD_SETUP_S =>
             v.dataStateIdx := "01";
             if (rdSetupDoneSync = '1') then
-               -- Latch word count
-               v.rdWordCnt := rdWordCntSync;
-               -- Reset transmitted words counter
-               v.txWordCnt := (others => '0');
+               -- Latch read final address
+               v.rdFinalAddr := rdFinalAddrSync;
+               -- Reset read address
+               v.ramRdAddr   := (others => '0');
+               -- Queue up the first read by writing to shift register
+               v.rdEn(0)     := '1';
                -- Start moving data
-               v.axisState := MOVE_S;
+               v.axisState   := MOVE_S;
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
@@ -499,18 +504,15 @@ begin
                v.txMaster.tData(8*DATA_BYTES_G-1 downto 0) := ramRdData;
 
                -- Check for Start Of Frame (SOF)
-               if (axilR.txWordCnt = 0) then
+               if (axilR.ramRdAddr = 0) then
 
                   -- Set the SOF bit
                   ssiSetUserSof(AXIS_CONFIG_C, v.txMaster, '1');
 
                end if;
 
-               -- Check for End of Frame (EOF), i.e. the last word.
-               -- The word count is actually the # of received words - 1 as if it
-               -- was the number of received words for rdWordCnt = buffer size the
-               -- slv would overflow.
-               if (axilR.txWordCnt = axilR.rdWordCnt) then
+               -- Check for End of Frame (EOF), i.e. the last address.
+               if (axilR.ramRdAddr = axilR.rdFinalAddr) then
 
                   -- Set the EOF bit
                   v.txMaster.tLast := '1';
@@ -523,8 +525,8 @@ begin
                   v.axisState := IDLE_S;
 
                else
-                  -- Increment the received words counter
-                  v.txWordCnt := axilR.txWordCnt + 1;
+                  -- Increment the read address
+                  v.ramRdAddr := axilR.ramRdAddr + 1;
                end if;
 
             end if;
@@ -539,12 +541,9 @@ begin
          v.axisState := IDLE_S;
       end if;
 
-      -- Update RAM read address (it's just the word count)
-      v.ramRdAddr := v.txWordCnt;
-
       -- Check for change in address
       if (axilR.ramRdAddr /= v.ramRdAddr) then
-         -- Actual read enable will happen when the bit exits the shift register.
+         -- Queue up the next read by writing to shift register
          v.rdEn(0) := '1';
       end if;
 
