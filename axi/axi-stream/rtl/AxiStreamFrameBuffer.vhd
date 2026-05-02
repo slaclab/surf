@@ -398,15 +398,13 @@ begin
       end if;
    end process;
 
-   -- Multiplexing the read lines is only required when using multiple buffers.
-   GEN_RAM_RD_DATA_MUX : if SAFE_BUFFS_G generate
-      -- Assign active ram output lines array (hot-one mask to integer)
-      ramRdData <= ramRdDataArr(0) when dataR.ramRdEnMask = "001" else
-                   ramRdDataArr(1) when dataR.ramRdEnMask = "010" else
-                   ramRdDataArr(2);
-   else generate
-      ramRdData <= ramRdDataArr(0);
-   end generate GEN_RAM_RD_DATA_MUX;
+   -- Assign active ram output lines array (hot-one mask to integer)
+   -- Multiplexing the read lines is only required when using multiple
+   -- buffers (safe buffers true).
+   ramRdData <= ramRdDataArr(0) when not SAFE_BUFFS_G else
+                ramRdDataArr(0) when dataR.ramRdEnMask = "001" else
+                ramRdDataArr(1) when dataR.ramRdEnMask = "010" else
+                ramRdDataArr(2);
 
    -------------------------------------------------------------
    -- Synchronization of signals between data/AXI-lite processes
