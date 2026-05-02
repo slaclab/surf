@@ -305,8 +305,9 @@ begin
       v := dataR;
 
       -- Reset strobes
-      v.ramWrEn     := '0';
-      v.rdSetupDone := '0';
+      v.ramWrEn         := '0';
+      v.rdSetupDone     := '0';
+      v.dataFrameRxDone := '0';
 
       -- Register data value to help with making timing
       v.ramWrData       := dataValue;
