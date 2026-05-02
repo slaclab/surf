@@ -14,15 +14,29 @@
 
 -- Notes ----------------------------------------------------------------------
 -- Some TODOs remain and are indicated by comments in the code.
+--
+-- -- Safe buffering --
 -- Asynchronous write/read with only two buffers and without the ability to
 -- backpressure the input data interface did not appear to be possible (in some
 -- edge cases, something has to block somewhere). Such issues should be avoided
 -- by the use of three buffers (not sure if this can be called ping-pong
 -- buffering anymore).
 -- A further mode where read/write goes to the same buffer is available.
--- Such a mode will use only a third of the memory resources but requires the
+-- This mode will use only a third of the memory resources but requires the
 -- user to ensure that timing of reads/writes does not overlap (or perhaps in
 -- some cases one does not care).
+-- Toggle between the two using the SAFE_BUFFS_G generic.
+--
+-- -- Frame end conditions and signaling --
+-- A frame ends when dataFrameTxLast is asserted (last transmission of the
+-- frame) or the buffer is full. One cycle after this happens the
+-- dataFrameRxDone signal is asserted, signaling that a new frame has been
+-- received and is ready for readout. A readout request (getFrameTrig)
+-- to read out this frame over AXI-Stream can be issued during this cycle
+-- or later to get the latest frame. In the safe buffer mode, the always the
+-- latest completely received frame is provided.
+-- The user may exteranlly connect dataFrameRxDone (out) to getFrameTrig (in)
+-- to trigger a frame dump over AXI-Stream as soon as a new frame is available.
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -61,7 +75,8 @@ entity AxiStreamFrameBuffer is
       dataRst         : in  sl := '0';
       dataValid       : in  sl := '1';
       dataValue       : in  slv(8*DATA_BYTES_G-1 downto 0);
-      frameDone       : in  sl := '0';
+      dataFrameTxLast : in  sl := '0';  -- Signal end of frame
+      dataFrameRxDone : out sl := '0';  -- Asserted on end of frame (due to dataFrameTxLast or buffer full)
       -- AXI-Lite interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -112,7 +127,8 @@ architecture rtl of AxiStreamFrameBuffer is
       rdFinalAddr     : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       rdFinalAddrNext : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       ramWrData       : slv(8*DATA_BYTES_G-1 downto 0);
-      frameDone       : sl;
+      dataFrameTxLast : sl;
+      dataFrameRxDone : sl;
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
@@ -126,7 +142,8 @@ architecture rtl of AxiStreamFrameBuffer is
       rdFinalAddr     => (others => '0'),
       rdFinalAddrNext => (others => '0'),
       ramWrData       => (others => '0'),
-      frameDone       => '0');
+      dataFrameTxLast => '0',
+      dataFrameRxDone => '0');
 
    signal dataR   : DataRegType := DATA_REG_INIT_C;
    signal dataRin : DataRegType;
@@ -176,7 +193,6 @@ architecture rtl of AxiStreamFrameBuffer is
    signal getFrameTrigSync : sl;
    signal rdReqSync        : sl;
 
-   -- TODO: Put the TX fifo and connect out lines
    signal txSlave : AxiStreamSlaveType;
 
 begin
@@ -279,7 +295,7 @@ begin
    -----------------------------
    -- Data process (data inputs)
    -----------------------------
-   dataComb : process (dataR, dataRst, axilRstSync, dataValid, dataValue, frameDone,
+   dataComb : process (dataR, dataRst, axilRstSync, dataValid, dataValue, dataFrameTxLast,
                        rdReqSync) is
       variable v : DataRegType;
    begin
@@ -291,12 +307,12 @@ begin
       v.rdSetupDone := '0';
 
       -- Register data value to help with making timing
-      v.ramWrData := dataValue;
-      v.frameDone := frameDone;
+      v.ramWrData       := dataValue;
+      v.dataFrameTxLast := dataFrameTxLast;
 
 
       -- Check if last frame was the final frame or if the buffer is full.
-      if (dataR.frameDone = '1') or (dataR.ramWrAddr = 2**RAM_ADDR_WIDTH_G - 1) then
+      if (dataR.dataFrameTxLast = '1') or (dataR.ramWrAddr = 2**RAM_ADDR_WIDTH_G - 1) then
 
          -- Masks only used/updated in safe buffers mode
          if SAFE_BUFFS_G then
@@ -318,15 +334,15 @@ begin
          v.ramWrAddr     := (others => '0');
          v.ramWrAddrNext := (others => '0');
 
-         -- TODO: Optionally send read request trigger on frame complete.
-         -- The most flexible option might be to output this signal
-         -- and let the user decide if it should be looped back into
-         -- getFrameTrig or not.
+         -- Signal frame receive done and new frame available for readout.
+         -- The next write can actually proceed in the same cycle as this signal
+         -- is asserted in.
+         v.dataFrameRxDone := '1';
 
       end if;
 
       -- Only write if data valid. There may be still data received for the
-      -- clock cycle where frameDone = '1' and it is possible to receive the
+      -- clock cycle where dataFramTxLast = '1' and it is possible to receive the
       -- start with the next frame immediately in the frame where write masks
       -- are updated.
       if (dataValid = '1') then
@@ -357,6 +373,9 @@ begin
          v.rdSetupDone := '1';
       end if;
 
+      -- Outputs
+      dataFrameRxDone <= dataR.dataFrameRxDone;
+
       -- Synchronous Reset
       if (RST_ASYNC_G = false and dataRst = RST_POLARITY_G) or (axilRstSync = '1') then
          v := DATA_REG_INIT_C;
@@ -386,7 +405,6 @@ begin
       end if;
    end process;
 
-   -- TODO: I hope the oneshot and vector synchronizer work in sync?
    -- Synchronize final read address
    U_SyncVec_axilClk_rdFinalAddr : entity surf.SynchronizerVector
       generic map (
@@ -536,10 +554,6 @@ begin
 
                   -- Set the EOF bit
                   v.txMaster.tLast := '1';
-
-                  -- TODO: Could move to further (post transmit) state here but
-                  -- I don't think we'll need it...
-                  -- v.axisState := XXX_S;
 
                   -- Transmission completed, move back to idle
                   v.axisState := IDLE_S;

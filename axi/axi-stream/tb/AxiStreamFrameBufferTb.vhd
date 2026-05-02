@@ -100,6 +100,7 @@ begin
             DATA_BYTES_G        => 2,     -- 16-bit data
             -- RAM_ADDR_WIDTH_G    => 11,    -- 2048 samples deep
             RAM_ADDR_WIDTH_G    => 10,    -- 1024 samples deep
+            SAFE_BUFFS_G        => true,
             -- AXI Stream Configurations
             GEN_SYNC_FIFO_G     => true,  -- true if axisClk=axilClk
             AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
@@ -109,7 +110,7 @@ begin
             dataRst         => dataRst,
             dataValue       => r.data,
             dataValid       => r.dataValid,
-            frameDone       => r.frameDone,
+            dataFrameTxLast => r.frameDone,
             -- AXI-Lite interface (axilClk domain)
             axilClk         => axiClk,
             axilRst         => dataRst,
@@ -159,7 +160,7 @@ begin
             end if;
 
             -- Check for the readout trigger event
-            if (r.cnt = 1111) then
+            if (r.cnt = 1023) then
                 -- Set the flag
                 v.getFrameTrig := '1';
             end if;
