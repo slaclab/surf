@@ -19,10 +19,10 @@
 -- edge cases, something has to block somewhere). Such issues should be avoided
 -- by the use of three buffers (not sure if this can be called ping-pong
 -- buffering anymore).
--- A further mode where read/write goes to the same buffer still has to be
--- implemented. Such a mode will use only a third of the memory resources but
--- requires the user to ensure that timing of reads/writes does not overlap (or
--- perhaps in some cases one does not care).
+-- A further mode where read/write goes to the same buffer is available.
+-- Such a mode will use only a third of the memory resources but requires the
+-- user to ensure that timing of reads/writes does not overlap (or perhaps in
+-- some cases one does not care).
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -43,7 +43,8 @@ entity AxiStreamFrameBuffer is
       RST_ASYNC_G         : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";
-      -- TODO: BUFFER_MODE_G       : string   := "pingpong";  -- 'blocking', 'pingpong' or 'async'
+      -- TODO: Better name for that?
+      SAFE_BUFFS_G        : boolean  := true;  -- If 'false' write/read target the same buffer
       COMMON_CLK_G        : boolean  := false;  -- true if dataClk=axilClk
       DATA_BYTES_G        : positive := 16;
       RAM_ADDR_WIDTH_G    : positive := 9;
@@ -86,6 +87,13 @@ architecture rtl of AxiStreamFrameBuffer is
       tUserBits => 2,
       tIdBits   => 0);
 
+   function get_n_buffs return integer is
+   begin
+      if SAFE_BUFFS_G then return 3; else return 1; end if;
+   end function;
+
+   constant N_BUFFS_C : integer := get_n_buffs;
+
    ------------------------------
    -- Stream clock domain signals
    ------------------------------
@@ -109,9 +117,9 @@ architecture rtl of AxiStreamFrameBuffer is
 
    constant DATA_REG_INIT_C : DataRegType := (
       ramWrEn         => '0',
-      ramWrEnMask     => "100",
-      ramRdEnMask     => "001",
-      ramRdEnMaskNext => "001",
+      ramWrEnMask     => "001",
+      ramRdEnMask     => "100",
+      ramRdEnMaskNext => "100",
       rdSetupDone     => '0',
       ramWrAddr       => (others => '0'),
       ramWrAddrNext   => (others => '0'),
@@ -176,7 +184,7 @@ begin
    ----------------------
    -- Instantiate the RAM
    ----------------------
-   GEN_RAM : for i in 2 downto 0 generate
+   GEN_RAM : for i in N_BUFFS_C - 1 downto 0 generate
       GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
          U_Ram : entity surf.SimpleDualPortRamXpm
             generic map (
@@ -290,12 +298,16 @@ begin
       -- Check if last frame was the final frame or if the buffer is full.
       if (dataR.frameDone = '1') or (dataR.ramWrAddr = 2**RAM_ADDR_WIDTH_G - 1) then
 
-         -- Set next buffer for writing to the buffer that is not currently set
-         -- for neither read nor write.
-         v.ramWrEnMask     := not (dataR.ramWrEnMask or dataR.ramRdEnMask);
-         -- The next buffer for reading is the last buffer written to so
-         -- always the newest frame can be obtained.
-         v.ramRdEnMaskNext := dataR.ramWrEnMask;
+         -- Masks only used/updated in safe buffers mode
+         if SAFE_BUFFS_G then
+            -- Set next buffer for writing to the buffer that is not currently set
+            -- for neither read nor write.
+            v.ramWrEnMask     := not (dataR.ramWrEnMask or dataR.ramRdEnMask);
+            -- The next buffer for reading is the last buffer written to so
+            -- always the newest frame can be obtained.
+            v.ramRdEnMaskNext := dataR.ramWrEnMask;
+         end if;
+
          -- Keep track of last address written to during last write so the
          -- correct numbers of words can be read on the next read.
          v.rdFinalAddrNext := dataR.ramWrAddr;
@@ -331,10 +343,13 @@ begin
 
       -- If readout requested, set read mask to the next read mask
       if (rdReqSync = '1') then
-         -- Actually apply the next read mask. Do this from v, not r,
-         -- as read can start as early as the next next cycle where
-         -- a different write mask may be used.
-         v.ramRdEnMask := v.ramRdEnMaskNext;
+         -- Masks only used/updated in safe buffers mode
+         if SAFE_BUFFS_G then
+            -- Actually apply the next read mask. Do this from v, not r,
+            -- as read can start as early as the next next cycle where
+            -- a different write mask may be used.
+            v.ramRdEnMask := v.ramRdEnMaskNext;
+         end if;
          -- Drive the read final address signal
          v.rdFinalAddr := dataR.rdFinalAddrNext;
          -- Signal to the axi-stream process that it can start reading by
@@ -352,10 +367,15 @@ begin
 
    end process;
 
-   -- Assign active ram output lines array (hot-one mask to integer)
-   ramRdData <= ramRdDataArr(0) when dataR.ramRdEnMask = "001" else
-                ramRdDataArr(1) when dataR.ramRdEnMask = "010" else
-                ramRdDataArr(2);
+   -- Multiplexing the read lines is only required when using multiple buffers.
+   GEN_RAM_RD_DATA_MUX : if SAFE_BUFFS_G generate
+      -- Assign active ram output lines array (hot-one mask to integer)
+      ramRdData <= ramRdDataArr(0) when dataR.ramRdEnMask = "001" else
+                   ramRdDataArr(1) when dataR.ramRdEnMask = "010" else
+                   ramRdDataArr(2);
+   else generate
+      ramRdData <= ramRdDataArr(0);
+   end generate GEN_RAM_RD_DATA_MUX;
 
    dataSeq : process (dataClk, dataRst) is
    begin
