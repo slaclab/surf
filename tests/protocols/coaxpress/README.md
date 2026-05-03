@@ -57,7 +57,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
-| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting and tag handling, section `9.6.1.2` / `9.6.2` | Checked in but skipped |
+| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
 | `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
 | `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words | Partial protocol |
@@ -105,10 +105,11 @@ exposed by the current checked-in RTL.
 The current checked-in coverage is split:
 
 - `test_CoaXPressConfig.py`
-  - intended normative request-format coverage for section `9.6.1.2` and
-    `9.6.2`
-  - currently skipped because the real `CoaXPressConfig` / `SrpV3AxiLite`
-    ingress path does not complete in the bench
+  - checks untagged read and tagged write control-command formatting for
+    section `9.6.1.2` and `9.6.2`
+  - drives requests through the real `CoaXPressConfig` / `SrpV3AxiLite`
+    ingress path and validates both the serialized config packet and the
+    completed SRPv3 response
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
   - now drive fuller control-ack shapes on the wire: code, size, reply data,
     CRC placeholder, and `EOP`
@@ -235,7 +236,6 @@ compliance coverage.
 
 The most important open limits are:
 
-- `CoaXPressConfig` is still skipped
 - `CoaXPressRxHsFsm` still has an open bonded-receive issue on back-to-back
   short four-lane image frames: later one-word tails can miss `TLAST`, which
   merges or truncates adjacent frames
