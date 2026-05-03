@@ -22,20 +22,22 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity SrpV3AxiLiteWrapper is
+   generic (
+      DATA_BYTES_G : positive range 4 to 64 := 4);
    port (
       AXIS_ACLK      : in  std_logic;
       AXIS_ARESETN   : in  std_logic;
       S_AXIS_TVALID  : in  std_logic;
-      S_AXIS_TDATA   : in  std_logic_vector(31 downto 0);
-      S_AXIS_TKEEP   : in  std_logic_vector(3 downto 0);
+      S_AXIS_TDATA   : in  std_logic_vector((8 * DATA_BYTES_G) - 1 downto 0);
+      S_AXIS_TKEEP   : in  std_logic_vector(DATA_BYTES_G - 1 downto 0);
       S_AXIS_TLAST   : in  std_logic;
       S_AXIS_TDEST   : in  std_logic_vector(3 downto 0);
       S_AXIS_TID     : in  std_logic_vector(0 downto 0);
       S_AXIS_TUSER   : in  std_logic_vector(1 downto 0);
       S_AXIS_TREADY  : out std_logic;
       M_AXIS_TVALID  : out std_logic;
-      M_AXIS_TDATA   : out std_logic_vector(31 downto 0);
-      M_AXIS_TKEEP   : out std_logic_vector(3 downto 0);
+      M_AXIS_TDATA   : out std_logic_vector((8 * DATA_BYTES_G) - 1 downto 0);
+      M_AXIS_TKEEP   : out std_logic_vector(DATA_BYTES_G - 1 downto 0);
       M_AXIS_TLAST   : out std_logic;
       M_AXIS_TDEST   : out std_logic_vector(3 downto 0);
       M_AXIS_TID     : out std_logic_vector(0 downto 0);
@@ -65,7 +67,8 @@ end entity SrpV3AxiLiteWrapper;
 architecture rtl of SrpV3AxiLiteWrapper is
 
    constant TPD_C         : time                := 10 ns / 4;
-   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
+   constant DATA_BITS_C   : positive            := 8 * DATA_BYTES_G;
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(DATA_BYTES_G);
 
    signal axisRst : sl := '0';
 
@@ -86,15 +89,15 @@ begin
    sAxisComb : process (S_AXIS_TDATA, S_AXIS_TDEST, S_AXIS_TKEEP, S_AXIS_TLAST, S_AXIS_TUSER, S_AXIS_TVALID) is
       variable v : AxiStreamMasterType;
    begin
-      v                                    := AXI_STREAM_MASTER_INIT_C;
-      v.tValid                            := S_AXIS_TVALID;
-      v.tData(31 downto 0)                := S_AXIS_TDATA;
-      v.tKeep(3 downto 0)                 := S_AXIS_TKEEP;
-      v.tLast                             := S_AXIS_TLAST;
-      v.tDest(3 downto 0)                 := S_AXIS_TDEST;
+      v                                             := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                                     := S_AXIS_TVALID;
+      v.tData(DATA_BITS_C - 1 downto 0)            := S_AXIS_TDATA;
+      v.tKeep(DATA_BYTES_G - 1 downto 0)           := S_AXIS_TKEEP;
+      v.tLast                                      := S_AXIS_TLAST;
+      v.tDest(3 downto 0)                          := S_AXIS_TDEST;
       ssiSetUserEofe(AXIS_CONFIG_C, v, S_AXIS_TUSER(SSI_EOFE_C));
       ssiSetUserSof(AXIS_CONFIG_C, v, S_AXIS_TUSER(SSI_SOF_C));
-      sAxisMaster                         <= v;
+      sAxisMaster                                  <= v;
    end process sAxisComb;
 
    S_AXIS_TREADY <= sAxisSlave.tReady;
@@ -102,8 +105,8 @@ begin
    mAxisSlave.tReady <= M_AXIS_TREADY;
 
    M_AXIS_TVALID <= mAxisMaster.tValid;
-   M_AXIS_TDATA  <= mAxisMaster.tData(31 downto 0);
-   M_AXIS_TKEEP  <= mAxisMaster.tKeep(3 downto 0);
+   M_AXIS_TDATA  <= mAxisMaster.tData(DATA_BITS_C - 1 downto 0);
+   M_AXIS_TKEEP  <= mAxisMaster.tKeep(DATA_BYTES_G - 1 downto 0);
    M_AXIS_TLAST  <= mAxisMaster.tLast;
    M_AXIS_TDEST  <= mAxisMaster.tDest(3 downto 0);
    M_AXIS_TID    <= (others => '0');

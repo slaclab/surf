@@ -9,15 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep reset coverage on the direct, full, and legacy-wide wrappers,
-#   and run active transactions through the direct 256-bit legacy framing that
-#   matches the existing VHDL testbench.
+# - Sweep: Keep reset coverage on the direct, full, and legacy-wide modes,
+#   run probes and directed checks through the direct/full wrappers, and keep
+#   one 256-bit legacy-wide directed case matching the existing VHDL testbench.
 # - Stimulus: Drive SRPv3 write, read, posted-write, and malformed request
 #   frames into each wrapper's SSI-side AXI Stream port.
 # - Checks: Non-posted writes echo data and update the RAM, posted writes remain
 #   silent but are readable later, invalid requests set the expected footer bits
-#   without returning payload data, and known-issue probes preserve the narrowed
-#   32-bit multi-beat failure mode.
+#   without returning payload data, and the legacy-wide case keeps the 256-bit
+#   wrapper framing path covered without duplicating every narrow probe.
 # - Timing: The bench uses ready/valid handshakes on every AXI Stream beat and
 #   bounded response waits so a stalled SRP request fails deterministically.
 
@@ -228,7 +228,7 @@ async def srpv3_axilite_read_write_and_error_paths_test(dut):
     )
 
 
-PARAMETER_SWEEP = [
+ACTIVE_PARAMETER_SWEEP = [
     pytest.param(
         {
             "TOPLEVEL": "surf.srpv3axilitewrapper",
@@ -243,78 +243,70 @@ PARAMETER_SWEEP = [
         },
         id="srpv3_axilite_full",
     ),
+]
+
+RESET_PARAMETER_SWEEP = [
+    *ACTIVE_PARAMETER_SWEEP,
     pytest.param(
         {
-            "TOPLEVEL": "surf.srpv3axilitewidewrapper",
-            "WRAPPER_SOURCE": "protocols/srp/wrappers/SrpV3AxiLiteWideWrapper.vhd",
-            "SRP_AXIS_BYTES": 32,
+            "TOPLEVEL": "surf.srpv3axilitewrapper",
+            "WRAPPER_SOURCE": "protocols/srp/wrappers/SrpV3AxiLiteWrapper.vhd",
+            "HDL_PARAMETERS": {"DATA_BYTES_G": 32},
+            "EXTRA_ENV": {"SRP_AXIS_BYTES": 32},
         },
         id="srpv3_axilite_direct_wide",
     ),
 ]
 
 LEGACY_WIDE_DIRECT_PARAMETERS = {
-    "TOPLEVEL": "surf.srpv3axilitewidewrapper",
-    "WRAPPER_SOURCE": "protocols/srp/wrappers/SrpV3AxiLiteWideWrapper.vhd",
-    "SRP_AXIS_BYTES": 32,
+    "TOPLEVEL": "surf.srpv3axilitewrapper",
+    "WRAPPER_SOURCE": "protocols/srp/wrappers/SrpV3AxiLiteWrapper.vhd",
+    "HDL_PARAMETERS": {"DATA_BYTES_G": 32},
+    "EXTRA_ENV": {"SRP_AXIS_BYTES": 32},
 }
 
 
 def _run_srpv3_axilite_case(parameters, cocotb_test: str, build_label: str):
-    extra_env = dict(parameters)
+    hdl_parameters = parameters.get("HDL_PARAMETERS", {})
+    extra_env = dict(parameters.get("EXTRA_ENV", {}))
     extra_env["SRP_AXI_LITE_COCOTB_TEST"] = cocotb_test
+    build_suffix = ""
+    if hdl_parameters:
+        build_suffix = "." + ".".join(
+            f"{key}_{value}" for key, value in hdl_parameters.items()
+        )
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel=parameters["TOPLEVEL"],
-        parameters={},
+        parameters=hdl_parameters,
         extra_env=extra_env,
         extra_vhdl_sources={"surf": [parameters["WRAPPER_SOURCE"]]},
-        sim_build_key=f"tests/sim_build/protocols/srp/test_SrpV3AxiLite.{build_label}.{parameters['TOPLEVEL'].split('.')[-1]}",
+        sim_build_key=f"tests/sim_build/protocols/srp/test_SrpV3AxiLite.{build_label}.{parameters['TOPLEVEL'].split('.')[-1]}{build_suffix}",
     )
 
 
-def _known_issue_opt_in_enabled() -> bool:
-    return os.environ.get("RUN_KNOWN_ISSUE_TESTS", "0") == "1"
-
-
-def _skip_opt_in_probe(parameters):
-    if parameters["TOPLEVEL"] == "surf.srpv3axilitewidewrapper" and not _known_issue_opt_in_enabled():
-        pytest.skip("Direct and Full SRPv3AxiLite probes are active; duplicate wide-wrapper probes stay opt-in.")
-
-
-def _skip_opt_in_directed(parameters):
-    if parameters["TOPLEVEL"] == "surf.srpv3axilitewidewrapper" and not _known_issue_opt_in_enabled():
-        pytest.skip(
-            "Direct and Full SRPv3AxiLite directed coverage are active; duplicate wide-wrapper cases stay opt-in."
-        )
-
-
-@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+@pytest.mark.parametrize("parameters", RESET_PARAMETER_SWEEP)
 def test_SrpV3AxiLite_reset_idle(parameters):
     _run_srpv3_axilite_case(parameters, "reset_idle", "reset_idle")
 
 
-@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+@pytest.mark.parametrize("parameters", ACTIVE_PARAMETER_SWEEP)
 def test_SrpV3AxiLite_short_frame_probe(parameters):
-    _skip_opt_in_probe(parameters)
     _run_srpv3_axilite_case(parameters, "short_frame", "short_frame")
 
 
-@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+@pytest.mark.parametrize("parameters", ACTIVE_PARAMETER_SWEEP)
 def test_SrpV3AxiLite_four_beat_header_probe(parameters):
-    _skip_opt_in_probe(parameters)
     _run_srpv3_axilite_case(parameters, "four_beat_header", "four_beat_header")
 
 
-@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+@pytest.mark.parametrize("parameters", ACTIVE_PARAMETER_SWEEP)
 def test_SrpV3AxiLite_single_read_probe(parameters):
-    _skip_opt_in_probe(parameters)
     _run_srpv3_axilite_case(parameters, "single_read", "single_read")
 
 
-@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+@pytest.mark.parametrize("parameters", ACTIVE_PARAMETER_SWEEP)
 def test_SrpV3AxiLite(parameters):
-    _skip_opt_in_directed(parameters)
     _run_srpv3_axilite_case(parameters, "directed", "directed")
 
 

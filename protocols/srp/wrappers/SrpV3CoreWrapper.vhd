@@ -22,6 +22,8 @@ use surf.SsiPkg.all;
 use surf.SrpV3Pkg.all;
 
 entity SrpV3CoreWrapper is
+   generic (
+      CORE_DATA_BYTES_G : positive range 4 to 64 := 8);
    port (
       AXIS_ACLK        : in  std_logic;
       AXIS_ARESETN     : in  std_logic;
@@ -68,7 +70,7 @@ architecture rtl of SrpV3CoreWrapper is
 
    constant TPD_C         : time                := 10 ns / 4;
    constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(4);
-   constant CORE_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(8);
+   constant CORE_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(CORE_DATA_BYTES_G);
 
    signal axisRst : sl := '0';
 
@@ -216,58 +218,73 @@ begin
          axisMaster     => wrAxisMaster,
          axisSlave      => wrAxisSlave);
 
-   -- Width adapters around the 64-bit SRPv3 core-facing stream configuration.
-   U_InputResize : entity surf.AxiStreamResize
-      generic map (
-         TPD_G               => TPD_C,
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => CORE_CONFIG_C)
-      port map (
-         axisClk     => AXIS_ACLK,
-         axisRst     => axisRst,
-         sAxisMaster => sAxisMaster,
-         sAxisSlave  => sAxisSlave,
-         mAxisMaster => coreIbMaster,
-         mAxisSlave  => coreIbSlave);
+   -- Optional width adapters around the SRPv3 core-facing stream
+   -- configuration. 32-bit direct-core fault injection bypasses these
+   -- adapters, while the default 64-bit path preserves the original wrapper.
+   GEN_DIRECT_CORE : if CORE_DATA_BYTES_G = 4 generate
+      coreIbMaster <= sAxisMaster;
+      sAxisSlave   <= coreIbSlave;
+      mAxisMaster  <= coreObMaster;
+      coreObSlave  <= mAxisSlave;
+      coreRdMaster <= rdAxisMaster;
+      rdAxisSlave  <= coreRdSlave;
+      wrAxisMaster <= coreWrMaster;
+      coreWrSlave  <= wrAxisSlave;
+   end generate GEN_DIRECT_CORE;
 
-   U_OutputResize : entity surf.AxiStreamResize
-      generic map (
-         TPD_G               => TPD_C,
-         SLAVE_AXI_CONFIG_G  => CORE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
-      port map (
-         axisClk     => AXIS_ACLK,
-         axisRst     => axisRst,
-         sAxisMaster => coreObMaster,
-         sAxisSlave  => coreObSlave,
-         mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);
+   GEN_RESIZE_CORE : if CORE_DATA_BYTES_G /= 4 generate
+      U_InputResize : entity surf.AxiStreamResize
+         generic map (
+            TPD_G               => TPD_C,
+            SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => CORE_CONFIG_C)
+         port map (
+            axisClk     => AXIS_ACLK,
+            axisRst     => axisRst,
+            sAxisMaster => sAxisMaster,
+            sAxisSlave  => sAxisSlave,
+            mAxisMaster => coreIbMaster,
+            mAxisSlave  => coreIbSlave);
 
-   U_ReadResize : entity surf.AxiStreamResize
-      generic map (
-         TPD_G               => TPD_C,
-         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => CORE_CONFIG_C)
-      port map (
-         axisClk     => AXIS_ACLK,
-         axisRst     => axisRst,
-         sAxisMaster => rdAxisMaster,
-         sAxisSlave  => rdAxisSlave,
-         mAxisMaster => coreRdMaster,
-         mAxisSlave  => coreRdSlave);
+      U_OutputResize : entity surf.AxiStreamResize
+         generic map (
+            TPD_G               => TPD_C,
+            SLAVE_AXI_CONFIG_G  => CORE_CONFIG_C,
+            MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+         port map (
+            axisClk     => AXIS_ACLK,
+            axisRst     => axisRst,
+            sAxisMaster => coreObMaster,
+            sAxisSlave  => coreObSlave,
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);
 
-   U_WriteResize : entity surf.AxiStreamResize
-      generic map (
-         TPD_G               => TPD_C,
-         SLAVE_AXI_CONFIG_G  => CORE_CONFIG_C,
-         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
-      port map (
-         axisClk     => AXIS_ACLK,
-         axisRst     => axisRst,
-         sAxisMaster => coreWrMaster,
-         sAxisSlave  => coreWrSlave,
-         mAxisMaster => wrAxisMaster,
-         mAxisSlave  => wrAxisSlave);
+      U_ReadResize : entity surf.AxiStreamResize
+         generic map (
+            TPD_G               => TPD_C,
+            SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => CORE_CONFIG_C)
+         port map (
+            axisClk     => AXIS_ACLK,
+            axisRst     => axisRst,
+            sAxisMaster => rdAxisMaster,
+            sAxisSlave  => rdAxisSlave,
+            mAxisMaster => coreRdMaster,
+            mAxisSlave  => coreRdSlave);
+
+      U_WriteResize : entity surf.AxiStreamResize
+         generic map (
+            TPD_G               => TPD_C,
+            SLAVE_AXI_CONFIG_G  => CORE_CONFIG_C,
+            MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+         port map (
+            axisClk     => AXIS_ACLK,
+            axisRst     => axisRst,
+            sAxisMaster => coreWrMaster,
+            sAxisSlave  => coreWrSlave,
+            mAxisMaster => wrAxisMaster,
+            mAxisSlave  => wrAxisSlave);
+   end generate GEN_RESIZE_CORE;
 
    -- DUT.
    U_DUT : entity surf.SrpV3Core
