@@ -23,7 +23,9 @@ use surf.SrpV3Pkg.all;
 
 entity SrpV3CoreWrapper is
    generic (
-      CORE_DATA_BYTES_G : positive range 4 to 64 := 8);
+      CORE_DATA_BYTES_G : positive range 4 to 64 := 8;
+      WRITE_EN_G        : boolean                := true;
+      READ_EN_G         : boolean                := true);
    port (
       AXIS_ACLK        : in  std_logic;
       AXIS_ARESETN     : in  std_logic;
@@ -292,7 +294,9 @@ begin
          TPD_G               => TPD_C,
          SLAVE_READY_EN_G    => true,
          GEN_SYNC_FIFO_G     => true,
-         AXI_STREAM_CONFIG_G => CORE_CONFIG_C)
+         AXI_STREAM_CONFIG_G => CORE_CONFIG_C,
+         WRITE_EN_G          => WRITE_EN_G,
+         READ_EN_G           => READ_EN_G)
       port map (
          sAxisClk    => AXIS_ACLK,
          sAxisRst    => axisRst,

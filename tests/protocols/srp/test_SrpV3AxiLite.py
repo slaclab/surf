@@ -26,7 +26,7 @@ import os
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
-from cocotbext.axi import AxiLiteBus, AxiLiteRam
+from cocotbext.axi import AxiLiteBus, AxiLiteRam, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.srp.srp_test_utils import (
@@ -45,7 +45,7 @@ from tests.protocols.srp.srp_test_utils import (
 
 
 class TB:
-    def __init__(self, dut):
+    def __init__(self, dut, *, use_ram: bool = True):
         self.dut = dut
         cocotb.start_soon(Clock(dut.AXIS_ACLK, 10.0, unit="ns").start())
         self.axis = FlatSrpAxis(
@@ -53,13 +53,15 @@ class TB:
             clk=dut.AXIS_ACLK,
             data_bytes=int(os.environ.get("SRP_AXIS_BYTES", "4")),
         )
-        self.axil_ram = AxiLiteRam(
-            AxiLiteBus.from_prefix(dut, "M_AXIL"),
-            dut.AXIS_ACLK,
-            dut.AXIS_ARESETN,
-            reset_active_level=False,
-            size=2**12,
-        )
+        self.axil_ram = None
+        if use_ram:
+            self.axil_ram = AxiLiteRam(
+                AxiLiteBus.from_prefix(dut, "M_AXIL"),
+                dut.AXIS_ACLK,
+                dut.AXIS_ARESETN,
+                reset_active_level=False,
+                size=2**12,
+            )
 
     async def reset(self):
         # Reset the wrapper and initialize both stream directions before any
@@ -67,11 +69,37 @@ class TB:
         self.dut.AXIS_ARESETN.setimmediatevalue(0)
         self.axis.init_source()
         self.axis.init_sink()
+        if self.axil_ram is None:
+            self.dut.M_AXIL_AWREADY.setimmediatevalue(0)
+            self.dut.M_AXIL_WREADY.setimmediatevalue(0)
+            self.dut.M_AXIL_BRESP.setimmediatevalue(0)
+            self.dut.M_AXIL_BVALID.setimmediatevalue(0)
+            self.dut.M_AXIL_ARREADY.setimmediatevalue(0)
+            self.dut.M_AXIL_RDATA.setimmediatevalue(0)
+            self.dut.M_AXIL_RRESP.setimmediatevalue(0)
+            self.dut.M_AXIL_RVALID.setimmediatevalue(0)
         for _ in range(80):
             await RisingEdge(self.dut.AXIS_ACLK)
         self.dut.AXIS_ARESETN.value = 1
         for _ in range(8):
             await RisingEdge(self.dut.AXIS_ACLK)
+
+    async def respond_one_read(self, *, data: int, resp: AxiResp = AxiResp.OKAY):
+        self.dut.M_AXIL_ARREADY.value = 1
+        while True:
+            await RisingEdge(self.dut.AXIS_ACLK)
+            if int(self.dut.M_AXIL_ARVALID.value) and int(self.dut.M_AXIL_ARREADY.value):
+                break
+        self.dut.M_AXIL_ARREADY.value = 0
+        self.dut.M_AXIL_RDATA.value = data
+        self.dut.M_AXIL_RRESP.value = int(resp)
+        self.dut.M_AXIL_RVALID.value = 1
+        while True:
+            await RisingEdge(self.dut.AXIS_ACLK)
+            if int(self.dut.M_AXIL_RREADY.value):
+                break
+        self.dut.M_AXIL_RVALID.value = 0
+        self.dut.M_AXIL_RRESP.value = 0
 
 
 def _selected_cocotb_test(name: str) -> bool:
@@ -152,18 +180,7 @@ async def srpv3_axilite_single_read_probe_test(dut):
     # First valid AXI-Lite-backed read. If this stalls, the failure is after
     # header parsing and in the AXI-Lite transaction or response path.
     read_req = SrpV3Request(SRP_READ, 0x5100_0100, 0x20, 4)
-    dut._log.info("single read probe: sending request")
     await tb.axis.send_words(srpv3_frame(read_req), tdest=0x1)
-    dut._log.info("single read probe: request accepted")
-    dut._log.info(
-        "single read probe: post-request pins "
-        "M_AXIS_TVALID=%s M_AXIS_TREADY=%s M_AXIL_ARVALID=%s M_AXIL_ARREADY=%s M_AXIL_RREADY=%s",
-        dut.M_AXIS_TVALID.value,
-        dut.M_AXIS_TREADY.value,
-        dut.M_AXIL_ARVALID.value,
-        dut.M_AXIL_ARREADY.value,
-        dut.M_AXIL_RREADY.value,
-    )
     assert_srpv3_response(
         await tb.axis.recv_response(),
         read_req,
@@ -226,6 +243,36 @@ async def srpv3_axilite_read_write_and_error_paths_test(dut):
         SrpV3Request(SRP_READ, 0x5100_0006, 0x1_0000_0000, 4),
         expected_footer_bits=FOOTER_ADDRESS_ERROR,
     )
+
+
+@cocotb.test(skip=not _selected_cocotb_test("ignore_mem_resp"))
+async def srpv3_axilite_ignore_memory_response_test(dut):
+    tb = TB(dut, use_ram=False)
+    await tb.reset()
+
+    # The direct SRPv3 AXI-Lite bridge supports the legacy ignoreMemResp bit.
+    # A failing AXI-Lite read should still return payload and a clean footer
+    # when that bit is set.
+    read_req = SrpV3Request(
+        SRP_READ,
+        0x5100_0007,
+        0x40,
+        4,
+        ignore_mem_resp=1,
+    )
+    read_task = cocotb.start_soon(
+        tb.respond_one_read(data=0x1234_5678, resp=AxiResp.SLVERR),
+    )
+    await tb.axis.send_words(srpv3_frame(read_req), tdest=0x1)
+    response = await tb.axis.recv_response()
+    await read_task
+    assert_srpv3_response(
+        response,
+        read_req,
+        [0xFFFF_FFFF],
+        expected_tdest=0x1,
+    )
+    assert response.footer == 0
 
 
 ACTIVE_PARAMETER_SWEEP = [
@@ -308,6 +355,17 @@ def test_SrpV3AxiLite_single_read_probe(parameters):
 @pytest.mark.parametrize("parameters", ACTIVE_PARAMETER_SWEEP)
 def test_SrpV3AxiLite(parameters):
     _run_srpv3_axilite_case(parameters, "directed", "directed")
+
+
+def test_SrpV3AxiLite_ignore_mem_resp():
+    _run_srpv3_axilite_case(
+        {
+            "TOPLEVEL": "surf.srpv3axilitewrapper",
+            "WRAPPER_SOURCE": "protocols/srp/wrappers/SrpV3AxiLiteWrapper.vhd",
+        },
+        "ignore_mem_resp",
+        "ignore_mem_resp",
+    )
 
 
 def test_SrpV3AxiLite_legacy_wide_directed():

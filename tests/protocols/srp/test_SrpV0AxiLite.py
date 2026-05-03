@@ -26,7 +26,7 @@ import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
-from cocotbext.axi import AxiLiteBus, AxiLiteRam
+from cocotbext.axi import AxiLiteBus, AxiLiteRam, AxiResp
 
 from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test
 from tests.protocols.srp.srp_test_utils import FlatSrpAxis
@@ -80,7 +80,7 @@ class TB:
         for _ in range(12):
             await RisingEdge(self.dut.AXIS_ACLK)
 
-    async def accept_one_write(self) -> dict[str, int]:
+    async def accept_one_write(self, *, resp: AxiResp = AxiResp.OKAY) -> dict[str, int]:
         # This minimal responder is used only for the high-address decode case,
         # where a dense cocotb RAM would waste memory just to cover one address.
         record = {}
@@ -97,13 +97,34 @@ class TB:
 
         self.dut.M_AXIL_AWREADY.value = 0
         self.dut.M_AXIL_WREADY.value = 0
-        self.dut.M_AXIL_BRESP.value = 0
+        self.dut.M_AXIL_BRESP.value = int(resp)
         self.dut.M_AXIL_BVALID.value = 1
         while True:
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_BREADY.value):
                 break
         self.dut.M_AXIL_BVALID.value = 0
+        self.dut.M_AXIL_BRESP.value = 0
+        return record
+
+    async def accept_one_read(self, *, data: int, resp: AxiResp = AxiResp.OKAY) -> dict[str, int]:
+        record = {}
+        self.dut.M_AXIL_ARREADY.value = 1
+        while "address" not in record:
+            await RisingEdge(self.dut.AXIS_ACLK)
+            if int(self.dut.M_AXIL_ARVALID.value) and int(self.dut.M_AXIL_ARREADY.value):
+                record["address"] = int(self.dut.M_AXIL_ARADDR.value)
+
+        self.dut.M_AXIL_ARREADY.value = 0
+        self.dut.M_AXIL_RDATA.value = data
+        self.dut.M_AXIL_RRESP.value = int(resp)
+        self.dut.M_AXIL_RVALID.value = 1
+        while True:
+            await RisingEdge(self.dut.AXIS_ACLK)
+            if int(self.dut.M_AXIL_RREADY.value):
+                break
+        self.dut.M_AXIL_RVALID.value = 0
+        self.dut.M_AXIL_RRESP.value = 0
         return record
 
 
@@ -172,6 +193,51 @@ async def srpv0_axilite_error_frames_test(dut):
         unsupported_frame[1],
         SRPV0_STATUS_FAIL,
     ]
+
+
+@cocotb.test()
+async def srpv0_axilite_downstream_error_status_test(dut):
+    tb = TB(dut, use_ram=False)
+    await tb.reset()
+
+    # Downstream AXI-Lite write errors must preserve the echoed write payload
+    # and set the legacy fail bit in the final status word.
+    write_address = 0x180
+    write_payload = 0x0BAD_F00D
+    write_frame = [
+        0x1111_AAAA,
+        srpv0_addr_word(SRPV0_WRITE, write_address),
+        write_payload,
+        0,
+    ]
+    write_task = cocotb.start_soon(tb.accept_one_write(resp=AxiResp.SLVERR))
+    assert await send_request(tb, write_frame) == [
+        write_frame[0],
+        write_frame[1],
+        write_payload,
+        SRPV0_STATUS_FAIL,
+    ]
+    assert await write_task == {
+        "address": write_address,
+        "data": write_payload,
+        "strobe": 0xF,
+    }
+
+    # Read errors still return the sampled read-data word followed by the fail
+    # status so software can distinguish bus failure from an absent response.
+    read_address = 0x184
+    read_data = 0xFFFF_0001
+    read_frame = [0x2222_BBBB, srpv0_addr_word(SRPV0_READ, read_address), 0, 0]
+    read_task = cocotb.start_soon(
+        tb.accept_one_read(data=read_data, resp=AxiResp.SLVERR),
+    )
+    assert await send_request(tb, read_frame) == [
+        read_frame[0],
+        read_frame[1],
+        read_data,
+        SRPV0_STATUS_FAIL,
+    ]
+    assert await read_task == {"address": read_address}
 
 
 @cocotb.test()
