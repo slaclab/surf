@@ -25,6 +25,8 @@ import cocotb
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
+    CXP_ACK_SUCCESS,
+    CXP_ACK_SUCCESS_ALT,
     CXP_EOP,
     CXP_IDLE,
     CXP_IDLE_K,
@@ -278,6 +280,57 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
     assert cfg_beats == []
     assert data_beats == []
     assert heartbeat_beats == []
+
+
+@cocotb.test()
+async def coaxpress_rx_lane_control_ack_trailer_not_validated_contract_test(dut):
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxLinkUp.setimmediatevalue(1)
+    dut.rxData.setimmediatevalue(CXP_IDLE)
+    dut.rxDataK.setimmediatevalue(CXP_IDLE_K)
+    await reset_dut(dut)
+
+    cfg_beats: list[dict[str, int]] = []
+
+    async def drive(data: int, data_k: int) -> None:
+        await send_rx_word(
+            dut,
+            data=data,
+            data_k=data_k,
+            clk=dut.rxClk,
+            capture=cfg_beats,
+            valid_name="cfgTValid",
+            field_names=("cfgTData",),
+        )
+
+    # Current RTL contract: control acknowledgments are forwarded after code,
+    # size, and reply-data words. The following CRC/EOP trailer is not checked
+    # before `cfgMaster` is pulsed, so this intentionally documents a partial
+    # protocol surface rather than full normative ACK validation.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(repeat_byte(CXP_ACK_SUCCESS), 0x0)
+    await drive(0x04000000, 0x0)
+    await drive(0x12345678, 0x0)
+    await drive(0x0BADCAFE, 0x0)
+    await drive(0x01020304, 0x0)
+
+    # A later clean acknowledgment must still be decoded after the ignored
+    # malformed trailer words.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(repeat_byte(CXP_ACK_SUCCESS_ALT), 0x0)
+    await drive(0x04000000, 0x0)
+    await drive(0x87654321, 0x0)
+    await drive(0xCAFEBABE, 0x0)
+    await drive(CXP_EOP, 0xF)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
+    assert cfg_beats == [
+        {"cfgTData": (0x12345678 << 32)},
+        {"cfgTData": (0x87654321 << 32)},
+    ]
 
 
 @cocotb.test()

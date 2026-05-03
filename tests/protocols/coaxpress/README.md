@@ -51,13 +51,13 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat prefix handling, truncated-event guardrails, stream header fields | Partial protocol |
-| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case | Near-normative subset |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat prefix handling, truncated-event guardrails, stream header fields, and the current malformed-control-ack trailer limitation | Partial protocol |
+| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
 | `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
-| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
+| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, timeout/status-error responses, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
 | `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
 | `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words | Partial protocol |
@@ -105,11 +105,13 @@ exposed by the current checked-in RTL.
 The current checked-in coverage is split:
 
 - `test_CoaXPressConfig.py`
-  - checks untagged read and tagged write control-command formatting for
-    section `9.6.1.2` and `9.6.2`
+  - checks all four tagged/untagged read/write control-command formatting
+    quadrants for section `9.6.1.2` and `9.6.2`
   - drives requests through the real `CoaXPressConfig` / `SrpV3AxiLite`
     ingress path and validates both the serialized config packet and the
     completed SRPv3 response
+  - covers config-response timeout and nonzero control-ack status mapping into
+    the local SRPv3 AXI-Lite error footer
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
   - now drive fuller control-ack shapes on the wire: code, size, reply data,
     CRC placeholder, and `EOP`
@@ -119,6 +121,8 @@ Important limitation:
 
 - `CoaXPressRxLane` does not currently validate full normative acknowledgment
   semantics end to end
+- it forwards the current control acknowledgment after the code, size, and
+  reply-data words, before checking the following CRC/EOP trailer
 - it consumes only the reduced subset needed by the present receive assembly
 
 ### Heartbeat and event traffic
@@ -154,6 +158,8 @@ The image-path benches are the strongest spec-aligned receive tests today:
 - `test_CoaXPressRxHsFsm.py`
   - validates rectangular image header and line marker handling against section
     `10.4.6.2` and `10.4.6.3`
+  - detects a new image header arriving before the previously declared frame's
+    line count has completed
 - `test_CoaXPressRx.py`
   - validates both the original one-lane top-level receive assembly and a
     dual-lane lane-rotation path around the same traffic

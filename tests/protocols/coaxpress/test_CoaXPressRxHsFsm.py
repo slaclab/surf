@@ -415,6 +415,113 @@ async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_hs_fsm_new_header_before_frame_complete_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxFsmRst.setimmediatevalue(0)
+    dut.sAxisTValid.setimmediatevalue(0)
+    dut.sAxisTData.setimmediatevalue(0)
+    dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTLast.setimmediatevalue(0)
+    await reset_dut(dut, reset_names=("rxRst",))
+
+    first_header = _image_header_words_from_fields(
+        stream_id=0x31,
+        source_tag=0x1020,
+        x_size=1,
+        x_offs=0,
+        y_size=2,
+        y_offs=0,
+        dsize_l=1,
+        pixel_f=0x0010,
+        tap_g=0x0020,
+        flags=0x01,
+    )
+    second_header = _image_header_words_from_fields(
+        stream_id=0x32,
+        source_tag=0x3040,
+        x_size=1,
+        x_offs=0,
+        y_size=1,
+        y_offs=0,
+        dsize_l=1,
+        pixel_f=0x0011,
+        tap_g=0x0021,
+        flags=0x02,
+    )
+    expected_first_header = _expected_header_data_from_fields(
+        stream_id=0x31,
+        source_tag=0x1020,
+        x_size=1,
+        x_offs=0,
+        y_size=2,
+        y_offs=0,
+        dsize_l=1,
+        pixel_f=0x0010,
+        tap_g=0x0020,
+        flags=0x01,
+    )
+    expected_second_header = _expected_header_data_from_fields(
+        stream_id=0x32,
+        source_tag=0x3040,
+        x_size=1,
+        x_offs=0,
+        y_size=1,
+        y_offs=0,
+        dsize_l=1,
+        pixel_f=0x0011,
+        tap_g=0x0021,
+        flags=0x02,
+    )
+
+    header_beats: list[dict[str, int]] = []
+    data_beats: list[dict[str, int]] = []
+    error_seen = False
+
+    async def send_and_capture(data: int) -> None:
+        nonlocal error_seen
+        await _send_handshaked_beat(dut, data=data, keep=0xF)
+        error_seen |= int(dut.rxFsmError.value) == 1
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    await send_and_capture(CXP_MARKER)
+    await send_and_capture(repeat_byte(CXP_PKT_IMAGE_HEADER))
+    for word in first_header:
+        await send_and_capture(word)
+
+    await send_and_capture(CXP_MARKER)
+    await send_and_capture(repeat_byte(CXP_PKT_IMAGE_LINE))
+    await send_and_capture(0x11111111)
+
+    # Starting a new rectangular image header before the declared two-line frame
+    # has completed is explicitly detected by the current RTL.
+    await send_and_capture(CXP_MARKER)
+    await send_and_capture(repeat_byte(CXP_PKT_IMAGE_HEADER))
+    await cycle(dut.rxClk, 1)
+    error_seen |= int(dut.rxFsmError.value) == 1
+    for word in second_header:
+        await send_and_capture(word)
+
+    for _ in range(6):
+        await RisingEdge(dut.rxClk)
+        await Timer(1, unit="ns")
+        error_seen |= int(dut.rxFsmError.value) == 1
+        _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
+
+    assert error_seen
+    assert header_beats == [
+        {"hdrTData": expected_first_header, "hdrTLast": 1, "hdrTSof": 1},
+        {"hdrTData": expected_second_header, "hdrTLast": 1, "hdrTSof": 1},
+    ]
+    assert data_beats == [
+        {"dataTData": 0x11111111, "dataTKeep": 0xF, "dataTLast": 0},
+    ]
+
+
+@cocotb.test()
 async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     if env_int("NUM_LANES_G", default=1) != 2:
         return
