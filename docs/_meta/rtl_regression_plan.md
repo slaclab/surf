@@ -100,12 +100,10 @@
 - Treat checked-in Python cocotb tests the same way: use the normal repo header/comment style in the first draft instead of leaving cleanup for later.
 
 ## Rollout Planning Policy
-- Use a checked-in RTL instantiation graph to guide bottom-up rollout decisions.
-- Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them.
-- Use the graph to reduce repeated behavioral testing across adjacent hierarchy levels, not as a substitute for engineering judgment about externally visible behavior.
-- Keep the graph and queue artifacts for provenance and optional analysis, but do not use them as the active day-to-day source of truth for task selection.
 - The active planning driver is now manual user-directed area selection, with `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md` tracking what is done, what is intentionally narrow, and what remains open.
-- Do not hand-maintain queue order in this plan. If the graph or queue is regenerated for analysis, treat it as secondary context unless the user explicitly switches back to queue-driven planning.
+- Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them, but choose targets from the user's current direction and the documented open frontier.
+- Use any regenerated instantiation graph or queue only as temporary analysis output; do not check it into `docs/_meta/` or read it by default in fresh context windows.
+- Keep this plan policy-oriented. Day-to-day target selection, validation status, and known gaps belong in the progress and handoff docs.
 
 ## CoaXPress Spec Discipline
 - Treat the published CoaXPress specifications as normative for future `protocols/coaxpress/` work, especially for top-level receive/transmit and over-fiber bridge benches.
@@ -117,23 +115,18 @@
 - If a checked-in bench intentionally validates only the current RTL contract instead of the full normative spec behavior, document that narrowed scope explicitly in the progress and handoff docs rather than implying full spec coverage.
 - If a CoaXPress top-level bench has to be checked in as skipped because it exposes a likely RTL defect, keep the spec-shaped stimulus and the skip reason in-tree, and record the blocking symptom explicitly in the progress and handoff docs so the next pass resumes from the defect rather than from scratch.
 
-## Historical Queue Artifacts
-The phase-1 simulator-friendly queue remains available as a generated bottom-up artifact, but it is now historical context rather than the active workflow.
+## Optional Graph Analysis
+The old checked-in graph and queue artifacts have been retired from `docs/_meta/` to keep fresh context small and avoid stale task selection.
 
-Retained artifacts:
-- `docs/_meta/rtl_phase1_queue.md`
-- `docs/_meta/rtl_phase1_queue.json`
-- `docs/_meta/rtl_phase1_queue_overrides.json`
-
-If they are regenerated:
+If hierarchy analysis is useful:
 1. Use `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`.
-2. Treat the resulting graph and queue as reference material only.
-3. Keep the real done/open frontier in `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md`.
+2. Read the generated output from the script's temporary output directory, or pass an explicit non-`docs/_meta` `--output-dir`.
+3. Treat the graph and queue as disposable reference material only.
+4. Keep the real done/open frontier in `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md`.
 
 ## Phase Breakdown
 ### Phase 1
 - Create the regression inventory and artifact scaffolding.
-- Generate and maintain a repo-wide RTL instantiation graph to guide bottom-up prioritization.
 - Establish shared Python regression helpers.
 - Add smoke coverage for simulator-friendly modules.
 - Add functional Python tests for the highest-value pilot modules and reusable blocks.

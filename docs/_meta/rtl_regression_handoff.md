@@ -37,7 +37,7 @@
 - Current planning discipline:
   - Use manual user-directed area selection as the active source of truth for what to work on next.
   - Keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with the actual validated branch frontier.
-  - Keep the graph and queue artifacts only as historical provenance or optional analysis context; do not use them as the next-module selector unless the user explicitly opts back into queue-driven planning.
+  - Do not use generated graph or queue artifacts as the next-module selector. If hierarchy analysis is useful, regenerate it temporarily with `scripts/build_rtl_instantiation_graph.py` and treat the output as disposable reference material.
   - Prefer parallel pytest for routine local validation, especially cocotb subsystem slices: `-n auto --dist=worksteal` is the default shape unless a single simulation needs serial logs or interactive debugging.
 - Current wrapper discipline:
   - Prefer the existing subsystem `ip_integrator/` shim layers over bespoke record flattening.
@@ -173,7 +173,7 @@ The combined validation command for that batch is `./.venv/bin/python -m pytest 
 
 One small RTL fix landed during that validation pass because the new `AxiStreamDmaRingWrite` test exposed a real simulation-width hazard: `axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd` now slices `dmaAck.size` back to `RAM_DATA_WIDTH_C` before incrementing `nextAddr`. Keep that change; it is what allows the checked-in narrow wrapper to simulate cleanly under GHDL.
 
-A first-pass RTL instantiation graph is now checked in at `docs/_meta/rtl_instantiation_graph.md` and `docs/_meta/rtl_instantiation_graph.json`, and the same generator now also emits a path-qualified bottom-up phase-1 queue at `docs/_meta/rtl_phase1_queue.md` and `docs/_meta/rtl_phase1_queue.json`. Keep the graph and queue for provenance, but treat them as historical context rather than as the default source of truth for what to implement next.
+The earlier checked-in RTL instantiation graph and phase-1 queue artifacts have been retired from `docs/_meta/` because task selection is now user-directed. The generator remains available for explicit one-off hierarchy analysis, but generated output should stay temporary unless the user asks for a specific artifact.
 
 ## Immediate Next Task
 If the user keeps the focus on stream-helper cleanup rather than resuming a new subsystem, the next practical step is the remaining PGP interleaved source/capture helpers: decide whether `tests/protocols/pgp/pgp4/test_Pgp4Rx.py` and the protocol-word collector in `tests/protocols/pgp/pgp4/pgp4_test_utils.py` should stay intentionally manual or be folded into a richer shared helper that can hold a source beat through acceptance while concurrently capturing narrow output pulses.
@@ -188,9 +188,8 @@ If the user switches back to `ethernet/RoCEv2`, the next real step is still enab
 
 ## Read Order
 1. `docs/_meta/rtl_regression_handoff.md`
-2. `docs/_meta/rtl_regression_progress.md`
-3. `docs/_meta/rtl_regression_plan.md`
-4. `docs/_meta/rtl_phase1_queue.md` only if historical graph output is useful for context; it is no longer the active planning driver.
+2. `docs/_meta/rtl_regression_progress.md` only when deeper status detail is needed.
+3. `docs/_meta/rtl_regression_plan.md` only when policy details need to be checked.
 
 Before writing code in a fresh session:
 1. Re-read the Python comment rules and the checked-in wrapper comment/header rules above.
@@ -219,15 +218,12 @@ Before writing code in a fresh session:
 - Do not use generic `hdl/` buckets for cocotb-facing adapter layers; reserve those locations for genuinely different kinds of HDL support
 - Many VHDL wrappers live under `*/tb/`
 - The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
-- The RTL instantiation graph lives in `docs/_meta/rtl_instantiation_graph.{md,json}`
-- The generated path-qualified phase-1 queue lives in `docs/_meta/rtl_phase1_queue.{md,json}`, but it is now historical context only rather than the next-module source of truth
-- Manual phase-1 queue deferrals and order overrides still live in `docs/_meta/rtl_phase1_queue_overrides.json`, but that file is not the active task-selection mechanism anymore
 - Use `./.venv/bin/python ...` for repo-local Python commands unless the virtualenv has already been activated in the current shell; do not assume a `python` shim exists on `PATH`
 - If GHDL rejects a direct command-line override for a non-scalar or real generic, prefer a generated thin test-only wrapper over simulator-specific literal workarounds or another checked-in one-off HDL shim
 - If a wrapper branch is unstable under the current open-source flow, keep the validated subset narrow and record the omitted branch explicitly in the docs instead of over-claiming wrapper coverage
 - Use `ps -Ao pid,ppid,stat,time,command` when needed to find stale simulation children, then terminate only the leftover run trees instead of broad process classes
 - `LutFixedDelay` remains intentionally deferred because it depends on `SinglePortRamPrimitive`; do not accidentally treat the now-small remaining `base/` set as phase-1 work that still needs to be forced through
-- Regenerate the graph and the phase-1 queue with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when historical analysis is useful or the user explicitly asks for it
+- Regenerate graph and queue analysis with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when hierarchy analysis is useful or the user explicitly asks for it; by default the script writes to a temporary output directory, not `docs/_meta/`
 - Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
 - Local `ruckus` is linked from `~/ruckus`
 
