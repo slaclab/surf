@@ -9,15 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise bridge RX low-speed packet decode, `IO_ACK`, HKP forwarding,
-#   HKP-to-payload transition, misplaced control-character guardrails, `/Q/`
-#   no-output behavior, `/E/` abort behavior, and recovery to a later packet.
+# - Sweep: Exercise bridge RX low-speed packet decode, `IO_ACK`, embedded EOP
+#   K-code reconstruction, HKP forwarding, HKP-to-payload transition, misplaced
+#   control-character guardrails, `/Q/` no-output behavior, `/E/` abort behavior,
+#   and recovery to a later packet.
 # - Stimulus: Drive CXPoF start/payload/terminate sequences, housekeeping start
-#   words, lane-misplaced `/S/`, `/Q/`, `/T/`, and `/E/` controls, lane-0 `/Q/`,
-#   and an explicit `/E/` during an active low-speed packet.
+#   words, embedded marker/EOP K-codes, lane-misplaced `/S/`, `/Q/`, `/T/`, and
+#   `/E/` controls, lane-0 `/Q/`, and explicit `/E/` aborts during active
+#   low-speed packets.
 # - Checks: The bridge must reconstruct repeated-byte `SOP`, packet-type,
-#   payload, and `EOP` words for valid packets, emit standalone `IO_ACK`, forward
-#   raw HKP words, suppress malformed control traffic, and recover cleanly.
+#   payload, marker, and `EOP` words for valid packets, emit standalone `IO_ACK`,
+#   forward raw HKP words, suppress malformed control traffic, and recover
+#   cleanly.
 # - Timing: The bench samples the reconstructed CXP word stream every cycle so
 #   it checks the bridge's real shift-register latency and output ordering.
 
@@ -29,6 +32,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_IO_ACK,
+    CXP_MARKER,
     CXP_PKT_EVENT_ACK,
     CXP_SOP,
     CXPOF_ERROR,
@@ -192,6 +196,140 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x55667788, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_embedded_eop_kcode_test(dut):
+    # A high-speed CXP-PHY EOP can carry an embedded CoaXPress K-code in
+    # EopData0. Cover the marker and packet-end cases explicitly so this bridge
+    # is not only checked against the common K29.7 packet-end path.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    # First packet ends with embedded K28.3, which should reconstruct a CXP
+    # stream-marker word rather than a packet-end word.
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x11223344, 0x0)
+    await drive(0x07FD007C, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    # A later packet using embedded K29.7 should still reconstruct the normal
+    # CXP EOP word and prove the marker split did not corrupt state.
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x55667788, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x11223344, 0x0),
+        (CXP_MARKER, 0xF),
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x55667788, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
+    # A high-speed HKP packet can carry a CoaXPress K-code word that is not
+    # represented with XGMII control bits. The current bridge forwards that HKP
+    # word on the CXP side with all K bits asserted and terminates cleanly when
+    # the HKP word itself is the CXP EOP code.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(CXP_EOP, 0x0)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x99AABBCC, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (CXP_EOP, 0xF),
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x99AABBCC, 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
+    # `/E/` immediately after the SOP/type phase is another abort placement that
+    # matters for recovery. The bridge may already have emitted the CXP SOP and
+    # type words queued by the start word, but it must not invent an EOP for the
+    # aborted packet and must accept the next clean packet.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    observed: list[tuple[int, int]] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        sample = (int(dut.rxData.value), int(dut.rxDataK.value))
+        if sample != (CXP_IDLE, CXP_IDLE_K):
+            observed.append(sample)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(CXPOF_ERROR | (CXPOF_IDLE << 8) | (CXPOF_IDLE << 16) | (CXPOF_IDLE << 24), 0x1)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
+    await drive(0x12345678, 0x0)
+    await drive(0x07FD00FD, 0xC)
+    await drive(0x07070707, 0xF)
+    await drive(0x07070707, 0xF)
+
+    assert observed == [
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
+        (0x12345678, 0x0),
         (CXP_EOP, 0xF),
     ]
 
