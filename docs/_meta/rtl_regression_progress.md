@@ -3,8 +3,8 @@
 ## Summary
 - Current phase: Phase-1 implementation active
 - Current subsystem: manual user-directed rollout tracking
-- Current focus module: user-directed `protocols/srp` regression cleanup after merging the SRP branch onto the current `verification-2` frontier, while preserving the recently validated CoaXPress pure-VHDL rollout under `protocols/coaxpress/core/rtl`.
-- Last updated: 2026-05-01
+- Current focus module: user-directed `protocols/srp` regression cleanup after merging the SRP branch onto the current `verification-2` frontier, now including direct SRPv0 bridge-half coverage plus the existing loopback check.
+- Last updated: 2026-05-03
 
 ## Current Frontier Snapshot
 - Active planning rule: take the next work item from the user's manual direction, not from `docs/_meta/rtl_phase1_queue.{md,json}`.
@@ -34,7 +34,7 @@
   - Covered now under the current GHDL-only flow: `SrpV3Axi` through the checked-in `protocols/srp/wrappers/SrpV3AxiWrapper.vhd` wrapper and `tests/protocols/srp/test_SrpV3Axi.py`.
   - The current SRPv3 AXI bench now validates non-posted write echo/readback, posted-write no-response behavior followed by readback, NULL header/footer behavior, response backpressure hold, TDEST propagation, full-word `TKEEP`, and footer bits for version mismatch, malformed write framing, invalid alignment, invalid request size, and downstream address error.
   - `SrpV3Core` now has a direct checked-in wrapper with reset/idle smoke coverage plus a narrow 32-bit fault-injection mode for malformed-header and immediate-read-error behavior. `tests/protocols/srp/test_SrpV3Core.py` now uses `SrpV3CoreWrapper` in both default mode and `CORE_DATA_BYTES_G => 4` mode instead of carrying a separate narrow test file. The narrow mode exposed and now covers two core-side bugs: the response-header counter was not reset when emitting an error response from a truncated request header, and `READ_S` could miss an immediate downstream read error before any payload beat arrived.
-  - `AxiLiteSrpV0` and `SrpV0AxiLite` are now covered together by `protocols/srp/wrappers/SrpV0LoopbackWrapper.vhd` and `tests/protocols/srp/test_SrpV0Loopback.py`, which uses cocotb AXI-Lite master helpers to write/read through the old SRPv0 stream loopback and attached RAM.
+  - `AxiLiteSrpV0` and `SrpV0AxiLite` are now covered directly and together. `tests/protocols/srp/test_AxiLiteSrpV0.py` uses `protocols/srp/wrappers/AxiLiteSrpV0Wrapper.vhd` to validate AXI-Lite-to-SRPv0 request field packing, read data return, bad-response `SLVERR`, and bleed/recovery behavior. `tests/protocols/srp/test_SrpV0AxiLite.py` uses `protocols/srp/wrappers/SrpV0AxiLiteWrapper.vhd` to validate multi-word write/read frames, malformed/unsupported request status failures, and `EN_32BIT_ADDR_G` address expansion. `tests/protocols/srp/test_SrpV0Loopback.py` still covers both bridge halves together through the checked-in stream loopback wrapper and attached RAM.
   - SRPv3 AXI-Lite status: `tests/protocols/srp/test_SrpV3AxiLite.py` now has active reset/idle coverage for the direct, full, and legacy-wide `DATA_BYTES_G => 32` modes, active narrow probes (`short_frame`, `four_beat_header`, and `single_read`) for both the direct and full wrappers, active directed regressions for the direct and full wrappers, and one active legacy-wide directed regression. The earlier direct-wrapper failure was not an `SrpV3AxiLite` ingress RTL defect after all: the real issue was in `tests/protocols/srp/srp_test_utils.py`, where `FlatSrpAxis.send_packed_words()` treated combinational `TREADY` as immediate acceptance instead of holding each beat until a sampled clock edge confirmed the handshake. With that helper fixed and the two `SrpV3Core` fixes in place, the direct and full `SrpV3AxiLite` paths now pass on the original `SsiFrameLimiter` bypass configuration (`SLAVE_FIFO_G => false`), and the focused standalone `tests/protocols/ssi/test_SsiFrameLimiter.py` regressions remain green in both limiter modes. The duplicate wide-wrapper probe/direct cases were removed rather than kept as skipped opt-in coverage, and the old wide/narrow-only SRP wrapper files were folded into generics, so the default `tests/protocols/srp` run is now skip-free.
 - Flat AXI/SSI helper cleanup status:
   - `tests/axi/utils.py` now owns the shared `wait_sampled_ready()` primitive for flattened ready/valid sources that cannot use `cocotbext.axi.AxiStreamSource` directly.
@@ -162,13 +162,14 @@
 - The new package-surface coverage exposed a real `Code12b14bPkg` invalid-K disparity bug; `protocols/line-codes/rtl/Code12b14bPkg.vhd` now leaves `dispOut` unchanged on illegal K requests instead of tripping a GHDL bound-check failure.
 
 ## Current In-Progress Item
-- Finish reviewing the `srp-tests` to `verification-2` merge after removing the duplicate SRPv3 AXI-Lite wide-wrapper skip cases. The docs keep the newer CoaXPress frontier from `verification-2` while adding the SRP regression matrix, `SrpV3Core` RTL fixes, SRPv0 loopback coverage, and shared sampled-ready helper cleanup from `srp-tests`.
+- Finish reviewing the `protocols/srp` work after adding the direct SRPv0 bridge-half coverage. The docs keep the newer CoaXPress frontier from `verification-2` while adding the SRP regression matrix, `SrpV3Core` RTL fixes, SRPv0 direct/loopback coverage, and shared sampled-ready helper cleanup from `srp-tests`.
 - Keep the CoaXPress suite as an already validated current branch slice. The focused CoaXPress validation command is `./.venv/bin/python -m pytest -n auto --dist=worksteal -q tests/protocols/coaxpress`, and the latest pre-merge run passed with `17 passed, 1 skipped`.
 - Treat the skipped `CoaXPressConfig` bench and the opt-in `CoaXPressCore` overflow/FSM-error known-issue bench as the main open protocol cleanup items after the SRP duplicate wide-wrapper skips were removed.
 - Preserve the recent `pgp4` lesson for later PGP work: when the simulation wrapper only exposes stable lock/config surfaces, write the bench around those explicit contracts instead of claiming recovered payload coverage.
+- Latest focused SRP validation: `./.venv/bin/python -m pytest -n 0 -q tests/protocols/srp` passed locally with `19 passed`.
 
 ## Next 3 Concrete Tasks
-- Review and commit the staged `srp-tests` merge once local validation and code review are satisfactory.
+- Finish the user-requested review of the uncommitted `protocols/srp` work; staging and committing remain user-controlled.
 - Consider whether `tests/protocols/srp/test_SrpV3Core.py` should absorb more of the protocol-error matrix that is currently only covered transitively through `SrpV3Axi` and `SrpV3AxiLite`.
 - If staying on CoaXPress immediately after the merge, debug the skipped `CoaXPressConfig` / `SrpV3AxiLite` request path before adding broader optional coverage.
 
