@@ -38,11 +38,13 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_MARKER,
+    CXP_EOP,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
     CXP_SOP,
     cycle,
     collect_stream_bytes,
+    cxp_crc_word,
     endian_swap32,
     find_subsequence,
     pack_u32_words_le,
@@ -242,14 +244,16 @@ async def coaxpress_core_tagged_config_tx_path_test(dut):
     await send_axis_payload(dut, clk=dut.cfgClk, prefix="S_CFG_IB", payload=request_payload, width_bytes=32, tuser=0x2)
 
     tx_bytes = await with_timeout(tx_task, 20, "us")
-    expected_request = (
+    expected_packet = (
         bytes(word_to_bytes(CXP_SOP))
         + bytes([0x05] * 4)
         + b"\x00\x00\x00\x00"
         + bytes(word_to_bytes(0x04000000))
         + bytes(word_to_bytes(endian_swap32(addr)))
+        + bytes(word_to_bytes(cxp_crc_word([0x00000000, 0x04000000, endian_swap32(addr)])))
+        + bytes(word_to_bytes(CXP_EOP))
     )
-    request_start = find_subsequence(tx_bytes, expected_request)
+    request_start = find_subsequence(tx_bytes, expected_packet)
     assert request_start is not None, tx_bytes
 
 

@@ -9,8 +9,8 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover the two request-serialization branches that are unique to
-#   `CoaXPressConfig`: untagged reads and tagged writes.
+# - Sweep: Cover all four config request-format quadrants plus local timeout
+#   and nonzero control-ack response error handling.
 # - Stimulus: Drive wide SRPv3 request frames into `cfgIb`, capture the emitted
 #   CoaXPress low-speed byte stream on `cfgTx`, and feed the completion side
 #   with one config receive acknowledgment.
@@ -23,7 +23,6 @@
 #   rather than assuming an ideal one-cycle transfer through the assembly.
 
 import cocotb
-import pytest
 from cocotb.triggers import RisingEdge, Timer, with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test

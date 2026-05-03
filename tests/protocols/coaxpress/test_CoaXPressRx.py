@@ -550,11 +550,9 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     ]
 
 
-@cocotb.test()
-async def coaxpress_rx_two_lane_mux_rotation_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 2:
-        return
-
+async def _drive_two_lane_mux_rotation(
+    dut,
+) -> tuple[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]]:
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -658,17 +656,50 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
         await capture(cycle_index)
         cycle_index += 1
 
+    return hdr_beats, data_beats
+
+
+@cocotb.test()
+async def coaxpress_rx_two_lane_mux_rotation_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 2:
+        return
+
+    hdr_beats, data_beats = await _drive_two_lane_mux_rotation(dut)
+
     assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 2
-    assert [beat[0] for beat in data_beats[:3]] == [0x11111111, 0x22222222, 0x33333333]
-    assert 0x44444444 in [beat[0] for beat in data_beats]
-    assert 0x55555555 in [beat[0] for beat in data_beats]
-    assert any(beat[2] == 1 for beat in data_beats)
+    assert [beat[0] for beat in data_beats[:5]] == [
+        0x11111111,
+        0x22222222,
+        0x33333333,
+        0x44444444,
+        0x55555555,
+    ]
+    assert [beat[2] for beat in data_beats[:3]] == [0, 0, 1]
 
 
 #
-# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until
-# the remaining 4-lane short-frame boundary issue in CoaXPressRxHsFsm is fixed.
+# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until the
+# remaining multi-lane receive boundary issues are fixed.
 #
+@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+async def coaxpress_rx_two_lane_mux_rotation_tail_known_issue_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 2:
+        return
+
+    hdr_beats, data_beats = await _drive_two_lane_mux_rotation(dut)
+
+    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 2
+    assert [beat[0] for beat in data_beats] == [
+        0x11111111,
+        0x22222222,
+        0x33333333,
+        0x44444444,
+        0x55555555,
+        0x66666666,
+    ]
+    assert [beat[2] for beat in data_beats] == [0, 0, 1, 0, 0, 1]
+
+
 @cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
 async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
