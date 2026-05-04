@@ -41,6 +41,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
+    CXP_PKT_STREAM_DATA,
     CXP_SOP,
     cycle,
     collect_stream_bytes,
@@ -135,17 +136,26 @@ async def _read_counter(axil: AxiLiteMaster, dut, offset: int) -> int:
 
 
 async def _send_stream_packet_words(dut, payload_words: list[int], *, stream_id: int = 0x22, packet_tag: int = 0x33) -> None:
-    words = [
-        CXP_SOP,
-        repeat_byte(0x01),
+    crc_inputs = [
         repeat_byte(stream_id),
         repeat_byte(packet_tag),
         repeat_byte((len(payload_words) >> 8) & 0xFF),
         repeat_byte(len(payload_words) & 0xFF),
         *payload_words,
     ]
+    words = [
+        CXP_SOP,
+        repeat_byte(CXP_PKT_STREAM_DATA),
+        repeat_byte(stream_id),
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+        cxp_crc_word(crc_inputs),
+        CXP_EOP,
+    ]
     for word in words:
-        await send_rx_word(dut, data=word, data_k=0xF if word == CXP_SOP else 0x0, clk=dut.rxClk)
+        await send_rx_word(dut, data=word, data_k=0xF if word in (CXP_SOP, CXP_EOP) else 0x0, clk=dut.rxClk)
 
 
 async def _collect_core_outputs(dut, *, cycles: int) -> tuple[list[int], list[int]]:

@@ -51,7 +51,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, and stream header fields | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, and stream header/trailer framing | Partial protocol |
 | `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
 | `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
@@ -173,8 +173,10 @@ The image-path benches are the strongest spec-aligned receive tests today:
     the normal regression slice
 
 `test_CoaXPressRxLane.py` also exercises stream packet handling using
-spec-shaped stream headers, but the emphasis there is on receive-lane state
-behavior rather than on a full normative stream CRC checker.
+spec-shaped stream headers and CRC/`EOP` trailers. The RTL forwards payload as
+it arrives, so the trailer check proves that the lane parser does not accept a
+new packet until the declared stream packet has completed; it is not a buffered
+bad-payload drop contract.
 
 ### Software-visible overflow and FSM-error status
 
@@ -268,8 +270,9 @@ The most important open limits are:
   `RUN_STRESS_TESTS=1`
 - receive-side event payload is validated for framing/CRC before ACK, but is not
   exposed through an application-facing payload interface
-- the receive stream-data path is still covered as header/image assembly
-  behavior; it is not a full per-packet stream-data CRC/`EOP` checker
+- the receive stream-data path now validates CRC/`EOP` trailer framing before
+  accepting the next packet, but payload still streams before the trailer result
+  is known
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update

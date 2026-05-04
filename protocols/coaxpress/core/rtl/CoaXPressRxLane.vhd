@@ -75,7 +75,9 @@ architecture rtl of CoaXPressRxLane is
       PACKET_TAG_S,
       DSIZE_UPPER_S,
       DSIZE_LOWER_S,
-      STREAM_DATA_S);
+      STREAM_DATA_S,
+      STREAM_CRC_S,
+      STREAM_EOP_S);
 
    type RegType is record
       errDet         : sl;
@@ -214,6 +216,10 @@ begin
 
                   -- Check for "Stream data packet"
                   if (rxData = x"01_01_01_01") then
+                     -- Reset stream packet parser
+                     v.dcnt  := (others => '0');
+                     v.dsize := (others => '0');
+                     v.crc   := x"FFFFFFFF";
                      -- Next State
                      v.state := STREAM_ID_S;
 
@@ -531,6 +537,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.streamID := rxData(7 downto 0);
+                  v.crc      := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state    := PACKET_TAG_S;
                else
@@ -548,6 +555,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.packetTag := rxData(7 downto 0);
+                  v.crc       := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state     := DSIZE_UPPER_S;
                else
@@ -565,6 +573,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(15 downto 8) := rxData(7 downto 0);
+                  v.crc                := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state              := DSIZE_LOWER_S;
                else
@@ -582,8 +591,14 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(7 downto 0) := rxData(7 downto 0);
+                  v.dcnt              := (others => '0');
+                  v.crc               := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
-                  v.state             := STREAM_DATA_S;
+                  if (r.dsize(15 downto 8) = 0) and (rxData(7 downto 0) = 0) then
+                     v.state := STREAM_CRC_S;
+                  else
+                     v.state := STREAM_DATA_S;
+                  end if;
                else
                   -- Set the flag
                   v.errDet := '1';
@@ -596,6 +611,7 @@ begin
                v.dataMaster.tValid             := '1';
                v.dataMaster.tData(31 downto 0) := rxData;
                v.dataMaster.tUser(3 downto 0)  := rxDataK;
+               v.crc                            := cxpCrcUpdate(r.crc, rxData);
 
                -- Increment counter
                v.dbgCnt := r.dbgCnt + 1;
@@ -606,11 +622,35 @@ begin
                   v.dataMaster.tLast := '1';
 
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state := STREAM_CRC_S;
 
                else
                   -- Increment counter
                   v.dcnt := r.dcnt + 1;
+               end if;
+            ----------------------------------------------------------------------
+            when STREAM_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := STREAM_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when STREAM_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Next State
+                  v.state := IDLE_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
                end if;
          ----------------------------------------------------------------------
          end case;

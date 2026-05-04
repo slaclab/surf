@@ -85,6 +85,20 @@ def _heartbeat_crc_words(payload_bytes: range) -> list[int]:
     ]
 
 
+def _stream_crc_words(*, stream_id: int, packet_tag: int, payload_words: list[int]) -> list[int]:
+    crc_inputs = [
+        repeat_byte(stream_id),
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+    ]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
+
+
 @cocotb.test()
 async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
     start_clock(dut.rxClk)
@@ -121,10 +135,14 @@ async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
     await drive(repeat_byte(0x03), 0x0)
     await drive(CXP_IO_ACK, 0xF)
     await drive(repeat_byte(0x01), 0x0)
-    await drive(0x11223344, 0x0)
-    await drive(0x55667788, 0x5)
-    await drive(0x99AABBCC, 0x0)
-    await drive(0xDEADBEEF, 0x0)
+    stream_payload = [0x11223344, 0x55667788, 0x99AABBCC]
+    await drive(stream_payload[0], 0x0)
+    await drive(stream_payload[1], 0x5)
+    await drive(stream_payload[2], 0x0)
+    await drive(
+        cxp_crc_word([repeat_byte(0x22), repeat_byte(0x33), repeat_byte(0x00), repeat_byte(0x03), *stream_payload]),
+        0x0,
+    )
     await drive(CXP_EOP, 0xF)
     await drive(CXP_IDLE, CXP_IDLE_K)
 
@@ -360,6 +378,64 @@ async def coaxpress_rx_lane_control_ack_crc_eop_guardrail_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxLinkUp.setimmediatevalue(1)
+    dut.rxData.setimmediatevalue(CXP_IDLE)
+    dut.rxDataK.setimmediatevalue(CXP_IDLE_K)
+    await reset_dut(dut)
+
+    observed: list[dict[str, int]] = []
+
+    async def drive(data: int, data_k: int) -> None:
+        await send_rx_word(
+            dut,
+            data=data,
+            data_k=data_k,
+            clk=dut.rxClk,
+            capture=observed,
+            valid_name="dataTValid",
+            field_names=("dataTData", "dataTLast"),
+        )
+
+    # A new SOP where the stream CRC belongs must not be accepted as a fresh
+    # packet. This locks down the receive-lane fix that keeps stream packets in
+    # the trailer parser after the declared payload word count has been emitted.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_STREAM_DATA), 0x0)
+    for word in _stream_crc_words(stream_id=0x10, packet_tag=0x11, payload_words=[0x11111111])[:-1]:
+        await drive(word, 0x0)
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_STREAM_DATA), 0x0)
+    await drive(repeat_byte(0x20), 0x0)
+    await drive(repeat_byte(0x21), 0x0)
+    await drive(repeat_byte(0x00), 0x0)
+    await drive(repeat_byte(0x01), 0x0)
+    await drive(0x22222222, 0x0)
+    await drive(
+        cxp_crc_word([repeat_byte(0x20), repeat_byte(0x21), repeat_byte(0x00), repeat_byte(0x01), 0x22222222]),
+        0x0,
+    )
+    await drive(CXP_EOP, 0xF)
+
+    # A later clean stream packet must still recover after the malformed
+    # trailer path returned to IDLE.
+    clean_payload = [0x33333333]
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_STREAM_DATA), 0x0)
+    for word in _stream_crc_words(stream_id=0x30, packet_tag=0x31, payload_words=clean_payload):
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
+    assert observed == [
+        {"dataTData": 0x11111111, "dataTLast": 1},
+        {"dataTData": 0x33333333, "dataTLast": 1},
+    ]
+
+
+@cocotb.test()
 async def coaxpress_rx_lane_error_recovery_test(dut):
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
@@ -385,11 +461,8 @@ async def coaxpress_rx_lane_error_recovery_test(dut):
     for data, data_k in (
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_STREAM_DATA), 0x0),
-        (repeat_byte(0xAA), 0x0),
-        (repeat_byte(0xBB), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(0x01), 0x0),
-        (0x55667788, 0x0),
+        *[(word, 0x0) for word in _stream_crc_words(stream_id=0xAA, packet_tag=0xBB, payload_words=[0x55667788])],
+        (CXP_EOP, 0xF),
         (CXP_IDLE, CXP_IDLE_K),
     ):
         await send_rx_word(
