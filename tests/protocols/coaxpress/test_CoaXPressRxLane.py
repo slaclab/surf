@@ -60,6 +60,31 @@ def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int,
     ]
 
 
+def _control_ack_crc_words(
+    *,
+    ack_code: int,
+    size_word: int,
+    data_word: int,
+    packet_tag: int | None = None,
+) -> list[int]:
+    crc_inputs = []
+    if packet_tag is not None:
+        crc_inputs.append(repeat_byte(packet_tag))
+    crc_inputs.extend([repeat_byte(ack_code), size_word, data_word])
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
+
+
+def _heartbeat_crc_words(payload_bytes: range) -> list[int]:
+    crc_inputs = [repeat_byte(byte) for byte in payload_bytes]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
+
+
 @cocotb.test()
 async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
     start_clock(dut.rxClk)
@@ -148,40 +173,32 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     # code 0x00, size=4 bytes, one reply-data word, CRC, EOP.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
-    await drive(repeat_byte(0x00), 0x0)
-    await drive(0x04000000, 0x0)
-    await drive(0x01234567, 0x0)
-    await drive(0xCAFEBABE, 0x0)
+    for word in _control_ack_crc_words(ack_code=0x00, size_word=0x04000000, data_word=0x01234567):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
     # Drive one alternate-success acknowledgment code. The current RTL maps
     # 0x04 to the same zero-success status word as 0x01.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
-    await drive(repeat_byte(0x04), 0x0)
-    await drive(0x04000000, 0x0)
-    await drive(0x76543210, 0x0)
-    await drive(0x0BADCAFE, 0x0)
+    for word in _control_ack_crc_words(ack_code=0x04, size_word=0x04000000, data_word=0x76543210):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
-    # Drive one spec-shaped tagged read acknowledgment. The current RTL skips
-    # the tag word, then forwards the first reply-data word with a zeroed
-    # success status in the low 32 bits.
+    # Drive one spec-shaped tagged read acknowledgment. The RTL includes the tag
+    # in the CRC, then forwards the first reply-data word with a zeroed success
+    # status in the low 32 bits after the trailer passes.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_CTRL_ACK_WITH_TAG), 0x0)
-    await drive(repeat_byte(0x55), 0x0)
-    await drive(repeat_byte(0x00), 0x0)
-    await drive(0x04000000, 0x0)
-    await drive(0x89ABCDEF, 0x0)
-    await drive(0xFEEDBEEF, 0x0)
+    for word in _control_ack_crc_words(ack_code=0x00, size_word=0x04000000, data_word=0x89ABCDEF, packet_tag=0x55):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
     # Heartbeat first keeps the on-wire ordering consistent before the event.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_HEARTBEAT), 0x0)
-    for word in range(0x20, 0x2C):
-        await drive(repeat_byte(word), 0x0)
-    await drive(0xB6B6B6B6, 0x0)
+    for word in _heartbeat_crc_words(range(0x20, 0x2C)):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
     # Drive a fuller event packet shape. The current RTL only consumes the
@@ -258,6 +275,14 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
         await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
+    # A bad heartbeat CRC must also suppress the heartbeat output.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_HEARTBEAT), 0x0)
+    bad_heartbeat_words = _heartbeat_crc_words(range(0x30, 0x3C))
+    for word in [*bad_heartbeat_words[:-1], bad_heartbeat_words[-1] ^ 0x00000001]:
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
     # A bad CRC must suppress the acknowledgment and still leave the parser ready
     # for a later clean event.
     await drive(CXP_SOP, 0xF)
@@ -283,7 +308,7 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
 
 
 @cocotb.test()
-async def coaxpress_rx_lane_control_ack_trailer_not_validated_contract_test(dut):
+async def coaxpress_rx_lane_control_ack_crc_eop_guardrail_test(dut):
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxLinkUp.setimmediatevalue(1)
@@ -304,31 +329,32 @@ async def coaxpress_rx_lane_control_ack_trailer_not_validated_contract_test(dut)
             field_names=("cfgTData",),
         )
 
-    # Current RTL contract: control acknowledgments are forwarded after code,
-    # size, and reply-data words. The following CRC/EOP trailer is not checked
-    # before `cfgMaster` is pulsed, so this intentionally documents a partial
-    # protocol surface rather than full normative ACK validation.
+    # A bad CRC must suppress the acknowledgment and still leave the parser ready
+    # for a later packet.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
-    await drive(repeat_byte(CXP_ACK_SUCCESS), 0x0)
-    await drive(0x04000000, 0x0)
-    await drive(0x12345678, 0x0)
-    await drive(0x0BADCAFE, 0x0)
+    bad_crc_words = _control_ack_crc_words(ack_code=CXP_ACK_SUCCESS, size_word=0x04000000, data_word=0x12345678)
+    for word in [*bad_crc_words[:-1], bad_crc_words[-1] ^ 0x00000001]:
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # A correct CRC followed by a malformed EOP must also suppress the response.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    for word in _control_ack_crc_words(ack_code=CXP_ACK_SUCCESS_ALT, size_word=0x04000000, data_word=0xDEADBEEF):
+        await drive(word, 0x0)
     await drive(0x01020304, 0x0)
 
-    # A later clean acknowledgment must still be decoded after the ignored
-    # malformed trailer words.
+    # A later clean acknowledgment must still be decoded after the malformed
+    # trailer words.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
-    await drive(repeat_byte(CXP_ACK_SUCCESS_ALT), 0x0)
-    await drive(0x04000000, 0x0)
-    await drive(0x87654321, 0x0)
-    await drive(0xCAFEBABE, 0x0)
+    for word in _control_ack_crc_words(ack_code=CXP_ACK_SUCCESS_ALT, size_word=0x04000000, data_word=0x87654321):
+        await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
     await drive(CXP_IDLE, CXP_IDLE_K)
 
     assert cfg_beats == [
-        {"cfgTData": (0x12345678 << 32)},
         {"cfgTData": (0x87654321 << 32)},
     ]
 

@@ -51,7 +51,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat prefix handling, truncated-event guardrails, stream header fields, and the current malformed-control-ack trailer limitation | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, and stream header fields | Partial protocol |
 | `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
 | `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
@@ -114,24 +114,26 @@ The current checked-in coverage is split:
     the local SRPv3 AXI-Lite error footer
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
   - now drive fuller control-ack shapes on the wire: code, size, reply data,
-    CRC placeholder, and `EOP`
-  - these benches prove the subset the current receive RTL actually consumes
+    CRC, and `EOP`
+  - prove that receive-side control acknowledgments are forwarded only after
+    CRC and `EOP` validation pass
 
 Important limitation:
 
-- `CoaXPressRxLane` does not currently validate full normative acknowledgment
-  semantics end to end
-- it forwards the current control acknowledgment after the code, size, and
-  reply-data words, before checking the following CRC/EOP trailer
-- it consumes only the reduced subset needed by the present receive assembly
+- `CoaXPressRxLane` now validates the acknowledgment packet trailer before
+  pulsing `cfgMaster`, but it still consumes only the reduced code/size/data
+  subset needed by the present receive assembly rather than exposing a richer
+  application-facing acknowledgment parser
 
 ### Heartbeat and event traffic
 
 Heartbeat and event handling is still intentionally narrow, but the receive
-event parser now checks complete packet framing before acknowledging:
+parsers now check complete packet framing before producing output pulses:
 
 - `test_CoaXPressRxLane.py`
   - checks the current 12-byte heartbeat payload collector
+  - validates heartbeat CRC/`EOP` before forwarding the heartbeat word and
+    suppresses bad-CRC heartbeat packets
 - `test_CoaXPressEventAckMsg.py`
   - covers event acknowledgment generation on the transmit side
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
@@ -266,6 +268,8 @@ The most important open limits are:
   `RUN_STRESS_TESTS=1`
 - receive-side event payload is validated for framing/CRC before ACK, but is not
   exposed through an application-facing payload interface
+- the receive stream-data path is still covered as header/image assembly
+  behavior; it is not a full per-packet stream-data CRC/`EOP` checker
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update

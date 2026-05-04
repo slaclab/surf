@@ -128,6 +128,14 @@ def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int,
     ]
 
 
+def _control_ack_crc_words(*, ack_code: int, size_word: int, data_word: int) -> list[int]:
+    crc_inputs = [repeat_byte(ack_code), size_word, data_word]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
+
+
 def _pack_lane_nibbles(values: list[int]) -> int:
     packed = 0
     for index, value in enumerate(values):
@@ -519,10 +527,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     sequence = [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (0x04000000, 0x0),
-        (0x01234567, 0x0),
-        (0xCAFEBABE, 0x0),
+        *[(word, 0x0) for word in _control_ack_crc_words(ack_code=0x00, size_word=0x04000000, data_word=0x01234567)],
         (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT), 0x0),
