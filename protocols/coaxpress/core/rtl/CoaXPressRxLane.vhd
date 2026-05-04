@@ -60,7 +60,11 @@ architecture rtl of CoaXPressRxLane is
       TYPE_S,
       CTRL_ACK_TAG_S,
       CTRL_ACK_S,
+      CTRL_ACK_CRC_S,
+      CTRL_ACK_EOP_S,
       HEARTBEAT_S,
+      HEARTBEAT_CRC_S,
+      HEARTBEAT_EOP_S,
       EVENT_ACK_S,
       EVENT_DSIZE_UPPER_S,
       EVENT_DSIZE_LOWER_S,
@@ -215,11 +219,17 @@ begin
 
                   -- Check for "control acknowledge with no tag"
                   elsif (rxData = x"03_03_03_03") then
+                     -- Reset control acknowledgment parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := CTRL_ACK_S;
 
                   -- Check for "control acknowledge with tag"
                   elsif (rxData = x"06_06_06_06") then
+                     -- Reset control acknowledgment parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := CTRL_ACK_TAG_S;
 
@@ -235,6 +245,9 @@ begin
 
                   -- Check for "Heartbeat Payload"
                   elsif (rxData = x"09_09_09_09") then
+                     -- Reset heartbeat parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := HEARTBEAT_S;
 
@@ -253,8 +266,13 @@ begin
                end if;
             ----------------------------------------------------------------------
             when CTRL_ACK_TAG_S =>
-               -- Check for non-k word
-               if (rxDataK = x"0") then
+               -- Check for repeated-byte tag word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+                  -- Include packet tag word in the CRC
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state := CTRL_ACK_S;
                else
@@ -267,6 +285,8 @@ begin
             when CTRL_ACK_S =>
                -- Check for non-k word
                if (rxDataK = x"0") then
+                  -- Include acknowledgment words in the CRC
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
 
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
@@ -289,19 +309,42 @@ begin
                      -- Save the data field
                      v.cfgMaster.tData(63 downto 32) := rxData;
 
-                     -- Forward the response
-                     v.cfgMaster.tValid := '1';
-
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state := CTRL_ACK_CRC_S;
 
                   end if;
 
                else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when CTRL_ACK_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := CTRL_ACK_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when CTRL_ACK_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
                   -- Forward the response
                   v.cfgMaster.tValid := '1';
                   -- Next State
                   v.state            := IDLE_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when EVENT_ACK_S =>
@@ -423,8 +466,14 @@ begin
                end if;
             ----------------------------------------------------------------------
             when HEARTBEAT_S =>
-               -- Check for non-k word
-               if (rxDataK = x"0") then
+               -- Check for repeated-byte heartbeat payload word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+
+                  -- Include heartbeat payload word in the CRC
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
 
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
@@ -435,15 +484,38 @@ begin
                   -- "Acknowledgment code" index
                   if (r.ackCnt = 11) then
 
-                     -- Forward the response
-                     v.heatbeatMaster.tValid := '1';
-                     v.heatbeatMaster.tLast  := '1';
-
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state := HEARTBEAT_CRC_S;
 
                   end if;
 
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when HEARTBEAT_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := HEARTBEAT_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when HEARTBEAT_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Forward the response
+                  v.heatbeatMaster.tValid := '1';
+                  v.heatbeatMaster.tLast  := '1';
+                  -- Next State
+                  v.state                 := IDLE_S;
                else
                   -- Set the flag
                   v.errDet := '1';
