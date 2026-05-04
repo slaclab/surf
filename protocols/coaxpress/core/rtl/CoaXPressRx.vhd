@@ -85,6 +85,7 @@ architecture mapping of CoaXPressRx is
    signal ioAck       : slv(NUM_LANES_G-1 downto 0);
    signal eventAckVec : slv(NUM_LANES_G-1 downto 0);
    signal eventTagVec : Slv8Array(NUM_LANES_G-1 downto 0);
+   signal rxLaneError : slv(NUM_LANES_G-1 downto 0);
    signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
    signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
@@ -100,6 +101,7 @@ architecture mapping of CoaXPressRx is
    signal fsmMaster : AxiStreamMasterType;
    signal hdrMaster : AxiStreamMasterType;
    signal hdrCtrl   : AxiStreamCtrlType;
+   signal hsFsmError : sl;
 
    signal dataIntMaster : AxiStreamMasterType;
    signal dataIntSlave  : AxiStreamSlaveType;
@@ -113,6 +115,7 @@ architecture mapping of CoaXPressRx is
 begin
 
    rxOverflow <= uOr(overflowData) or rxCtrl.overflow or hdrCtrl.overflow;
+   rxFsmError <= hsFsmError or uOr(rxLaneError);
    rxPathRst  <= rxRst(0) or rxFsmRst;
 
    U_DataPathRst : entity surf.RstSync
@@ -150,6 +153,7 @@ begin
             ioAck      => ioAck(i),
             eventAck   => eventAckVec(i),
             eventTag   => eventTagVec(i),
+            rxError    => rxLaneError(i),
             -- RX PHY Interface
             rxData     => rxData(i),
             rxDataK    => rxDataK(i),
@@ -211,7 +215,7 @@ begin
          rxRst      => rxRst(0),
          -- Config/Status Interface
          rxFsmRst   => rxFsmRst,
-         rxFsmError => rxFsmError,
+         rxFsmError => hsFsmError,
          -- Inbound Stream Interface
          rxMaster   => rxMaster,
          rxSlave    => rxSlave,

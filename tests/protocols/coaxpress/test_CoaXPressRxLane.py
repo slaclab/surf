@@ -387,8 +387,10 @@ async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
     await reset_dut(dut)
 
     observed: list[dict[str, int]] = []
+    error_pulses = 0
 
     async def drive(data: int, data_k: int) -> None:
+        nonlocal error_pulses
         await send_rx_word(
             dut,
             data=data,
@@ -398,6 +400,7 @@ async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
             valid_name="dataTValid",
             field_names=("dataTData", "dataTLast"),
         )
+        error_pulses += int(dut.rxError.value)
 
     # A new SOP where the stream CRC belongs must not be accepted as a fresh
     # packet. This locks down the receive-lane fix that keeps stream packets in
@@ -433,6 +436,7 @@ async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
         {"dataTData": 0x11111111, "dataTLast": 1},
         {"dataTData": 0x33333333, "dataTLast": 1},
     ]
+    assert error_pulses == 1
 
 
 @cocotb.test()

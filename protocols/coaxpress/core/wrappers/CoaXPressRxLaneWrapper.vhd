@@ -37,7 +37,8 @@ entity CoaXPressRxLaneWrapper is
       heartbeatTLast  : out sl;
       ioAck           : out sl;
       eventAck        : out sl;
-      eventTag        : out slv(7 downto 0));
+      eventTag        : out slv(7 downto 0);
+      rxError         : out sl);
 end entity CoaXPressRxLaneWrapper;
 
 architecture rtl of CoaXPressRxLaneWrapper is
@@ -74,6 +75,7 @@ begin
          ioAck          => ioAck,
          eventAck       => eventAck,
          eventTag       => eventTag,
+         rxError        => rxError,
          rxData         => rxData,
          rxDataK        => rxDataK,
          rxLinkUp       => rxLinkUp);

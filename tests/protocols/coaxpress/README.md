@@ -51,7 +51,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, and stream header/trailer framing | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
 | `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
 | `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
@@ -121,9 +121,10 @@ The current checked-in coverage is split:
 Important limitation:
 
 - `CoaXPressRxLane` now validates the acknowledgment packet trailer before
-  pulsing `cfgMaster`, but it still consumes only the reduced code/size/data
-  subset needed by the present receive assembly rather than exposing a richer
-  application-facing acknowledgment parser
+  pulsing `cfgMaster`, and malformed acknowledgment trailers pulse `rxError`,
+  but it still consumes only the reduced code/size/data subset needed by the
+  present receive assembly rather than exposing a richer application-facing
+  acknowledgment parser
 
 ### Heartbeat and event traffic
 
@@ -176,7 +177,9 @@ The image-path benches are the strongest spec-aligned receive tests today:
 spec-shaped stream headers and CRC/`EOP` trailers. The RTL forwards payload as
 it arrives, so the trailer check proves that the lane parser does not accept a
 new packet until the declared stream packet has completed; it is not a buffered
-bad-payload drop contract.
+bad-payload drop contract. Bad stream trailers pulse `rxError`, which the
+receive assembly aggregates into `rxFsmError` and the core exposes through the
+existing `RxFsmErrorCnt` software counter.
 
 ### Software-visible overflow and FSM-error status
 

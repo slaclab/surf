@@ -46,6 +46,7 @@ entity CoaXPressRxLane is
       ioAck          : out sl;
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
+      rxError        : out sl;
       -- RX PHY Interface
       rxData         : in  slv(31 downto 0);
       rxDataK        : in  slv(3 downto 0);
@@ -664,6 +665,7 @@ begin
       ioAck          <= r.ioAck;
       eventAck       <= r.eventAck;
       eventTag       <= r.eventTag;
+      rxError        <= r.errDet;
 
       -- Reset
       if (rxRst = '1') or (rxLinkUp = '0') then

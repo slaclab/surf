@@ -761,6 +761,81 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 1,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 0,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    signal_counts = {"error_pulses": 0}
+    stop_event = Event()
+    monitor_task = cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses"))
+
+    bad_line_packet = _stream_packet_sequence(
+        stream_id=0x44,
+        packet_tag=0x55,
+        payload_items=[
+            (CXP_MARKER, 0xF),
+            (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+            (0x11111111, 0x0),
+        ],
+    )
+    bad_line_packet[-2] = (bad_line_packet[-2][0] ^ 0x00000001, bad_line_packet[-2][1])
+
+    for data, data_k in [
+        *_stream_packet_sequence(
+            stream_id=0x22,
+            packet_tag=0x33,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+            ],
+        ),
+        *bad_line_packet,
+    ]:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+
+    await _drive_idle_rx(dut, cycles=32)
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = await _send_one_lane_frame_and_capture(
+        dut,
+        line_word=0x22222222,
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+    )
+    await _drive_idle_and_capture(dut, cycles=64, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
+
+    stop_event.set()
+    await monitor_task
+
+    assert signal_counts["error_pulses"] == 1, signal_counts
+    assert [beat[0] for beat in data_beats] == [0x22222222], data_beats
+    assert [beat[2] for beat in data_beats] == [1], data_beats
+
+
+@cocotb.test()
 async def coaxpress_rx_four_lane_fsm_error_reset_recovery_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
