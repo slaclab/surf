@@ -248,9 +248,12 @@ Current checked-in coverage:
   - embedded EOP K-code reconstruction for stream marker and packet-end words
   - HKP forwarding, including a housekeeping-to-payload transition and an
     HKP-carried CXP EOP word
+  - HKP K-code semantics: all-data nGMII control-mask enforcement,
+    per-byte K-code validation through `hkpKCodeMask/hkpKCodeValid`, and
+    whole-word classification through `hkpType`
   - `hkpValid/hkpData/hkpEop/hkpSof/hkpWordCount` status for HKP words that are
     forwarded on the reconstructed CXP side, plus `hkpError` for malformed HKP
-    control masks
+    control masks or invalid HKP K-code bytes
   - lane-0 `/Q/` sequence tracking through `seqValid/seqData/seqExpected`, with
     `seqError/seqErrorExpected` on skipped sequence values while preserving
     no-output behavior on the CXP word stream
@@ -278,10 +281,11 @@ Current RTL support limits observed while expanding the bridge tests:
   and returns to idle; if the start word was already accepted, the CXP `SOP` and
   packet-type words may already have been emitted, but no synthetic CXP `EOP` is
   generated.
-- HKP handling is still raw forwarding on the reconstructed CXP word stream, but
-  the bridge now publishes start/EOP/word-count status and flags malformed HKP
-  control masks. It does not yet decode higher-level HKP command fields beyond
-  those structural observations.
+- HKP handling now follows the CXPoF High-Speed K-Code Payload contract: HKP is
+  received with nGMII control flags clear, reconstructed on the CXP side with
+  K-code flags asserted, validated as K-code bytes, and classified as known CXP
+  K-code words where possible. HKP does not define a separate command opcode
+  layer in this bridge contract.
 
 ## Known Limitations
 
@@ -302,8 +306,7 @@ The most important open limits are:
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update
 - CXPoF bridge coverage now includes `/Q/` sequence mismatch policy, classified
-  `/E/` causes, and structural HKP status, but still does not decode
-  higher-level HKP command semantics
+  `/E/` causes, and HKP K-code validation/classification
 
 ## Running The Slice
 

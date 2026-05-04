@@ -30,11 +30,13 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
+    CXP_ALL_CTRL_K,
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_PKT_EVENT_ACK,
     CXP_SOP,
     CXPOF_ERROR,
+    CXPOF_HKP_TYPE_K_CODE,
     CXPOF_IDLE,
     CXPOF_RX_ERR_PAYLOAD_ABORT,
     CXPOF_RX_ERR_SEQ_MISMATCH,
@@ -238,7 +240,7 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=48))
-    hkp_samples: list[tuple[int, int, int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int, int, int, int]] = []
 
     async def capture_hkp(cycles: int) -> None:
         for _ in range(cycles):
@@ -251,12 +253,15 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
                         int(dut.hkpEop.value),
                         int(dut.hkpSof.value),
                         int(dut.hkpWordCount.value),
+                        int(dut.hkpKCodeMask.value),
+                        int(dut.hkpKCodeValid.value),
+                        int(dut.hkpType.value),
                     )
                 )
     hkp_capture = cocotb.start_soon(capture_hkp(48))
 
     hkp_word = 0x9C5C3CBC
-    await _drive_rx64(dut, _rx_hkp_start_word() | (hkp_word << 32), 0xF1)
+    await _drive_rx64(dut, _rx_hkp_start_word() | (hkp_word << 32), 0x01)
     await _drive_rx64(dut, 0x10203040 | (0x07FD00FD << 32), 0xC0)
     await _drive_rx64(dut, _idle64(), 0xFF)
 
@@ -267,7 +272,7 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
         (0x10203040, 0x0),
         (CXP_EOP, 0xF),
     ]
-    assert hkp_samples == [(hkp_word, 0, 1, 1)]
+    assert hkp_samples == [(hkp_word, 0, 1, 1, CXP_ALL_CTRL_K, 1, CXPOF_HKP_TYPE_K_CODE)]
     assert find_subsequence(rx_observed, rx_expected) is not None, f"missing RX HKP/data sequence: {rx_observed}"
 
 

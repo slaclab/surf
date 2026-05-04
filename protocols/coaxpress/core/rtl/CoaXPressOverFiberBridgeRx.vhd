@@ -50,7 +50,10 @@ entity CoaXPressOverFiberBridgeRx is
       hkpEop           : out sl;
       hkpSof           : out sl;
       hkpError         : out sl;
-      hkpWordCount     : out slv(7 downto 0));
+      hkpWordCount     : out slv(7 downto 0);
+      hkpKCodeMask     : out slv(3 downto 0);
+      hkpKCodeValid    : out sl;
+      hkpType          : out slv(3 downto 0));
 end entity CoaXPressOverFiberBridgeRx;
 
 architecture rtl of CoaXPressOverFiberBridgeRx is
@@ -76,6 +79,9 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
       hkpSof  : sl;
       hkpError : sl;
       hkpWordCount : slv(7 downto 0);
+      hkpKCodeMask : slv(3 downto 0);
+      hkpKCodeValid : sl;
+      hkpType : slv(3 downto 0);
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
@@ -97,6 +103,9 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
       hkpSof  => '0',
       hkpError => '0',
       hkpWordCount => (others => '0'),
+      hkpKCodeMask => (others => '0'),
+      hkpKCodeValid => '0',
+      hkpType => CXPOF_HKP_TYPE_NONE_C,
       rxData  => (others => CXP_IDLE_C),
       rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
@@ -215,10 +224,21 @@ begin
             v.hkpData    := xgmiiRxd;
             v.hkpSof     := '1';
             v.hkpWordCount := r.hkpWordCount + 1;
-            if (xgmiiRxc /= CXPOF_XGMII_ALL_DATA_C) and (xgmiiRxc /= CXPOF_XGMII_ALL_CTRL_C) then
+            v.hkpKCodeMask := cxpKCodeMask(xgmiiRxd);
+            v.hkpType      := cxpHkpType(xgmiiRxd);
+            if (v.hkpKCodeMask = CXP_ALL_CTRL_K_C) then
+               v.hkpKCodeValid := '1';
+            else
+               v.hkpKCodeValid := '0';
+            end if;
+            if (xgmiiRxc /= CXPOF_XGMII_ALL_DATA_C) then
                v.errDet      := '1';
                v.hkpError    := '1';
                v.rxErrorCode := CXPOF_RX_ERR_HKP_MALFORMED_C;
+            elsif (v.hkpKCodeValid = '0') then
+               v.errDet      := '1';
+               v.hkpError    := '1';
+               v.rxErrorCode := CXPOF_RX_ERR_HKP_BAD_K_CODE_C;
             end if;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
@@ -292,6 +312,9 @@ begin
       hkpSof   <= r.hkpSof;
       hkpError <= r.hkpError;
       hkpWordCount <= r.hkpWordCount;
+      hkpKCodeMask <= r.hkpKCodeMask;
+      hkpKCodeValid <= r.hkpKCodeValid;
+      hkpType <= r.hkpType;
 
       -- Reset
       if (rst = '1') then

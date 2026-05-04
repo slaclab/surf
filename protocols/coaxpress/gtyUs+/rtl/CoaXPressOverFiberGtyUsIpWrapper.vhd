@@ -371,6 +371,9 @@ begin
          hkpEop     => open,
          hkpSof     => open,
          hkpError   => open,
-         hkpWordCount => open);
+         hkpWordCount => open,
+         hkpKCodeMask => open,
+         hkpKCodeValid => open,
+         hkpType    => open);
 
 end mapping;

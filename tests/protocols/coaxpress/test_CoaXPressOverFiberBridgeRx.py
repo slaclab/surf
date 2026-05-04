@@ -29,6 +29,7 @@ import cocotb
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
+    CXP_ALL_CTRL_K,
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_IO_ACK,
@@ -36,7 +37,11 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_EVENT_ACK,
     CXP_SOP,
     CXPOF_ERROR,
+    CXPOF_HKP_TYPE_EOP,
+    CXPOF_HKP_TYPE_INVALID,
+    CXPOF_HKP_TYPE_K_CODE,
     CXPOF_IDLE,
+    CXPOF_RX_ERR_HKP_BAD_K_CODE,
     CXPOF_RX_ERR_HKP_MALFORMED,
     CXPOF_RX_ERR_IDLE_ERROR,
     CXPOF_RX_ERR_PAYLOAD_ABORT,
@@ -137,8 +142,8 @@ async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
     await drive(0x07070707, 0xF)
 
     await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
-    await drive(0x5C5C5C5C, 0xF)
-    await drive(CXP_EOP, 0xF)
+    await drive(0x5C5C5C5C, 0x0)
+    await drive(0x07FD00FD, 0xC)
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
@@ -150,6 +155,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
 
     assert observed == [
         (0x5C5C5C5C, 0xF),
+        (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
         (0x55667788, 0x0),
@@ -290,7 +296,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
     await reset_dut(dut, clk_name="clk", reset_names=("rst",))
 
     observed: list[tuple[int, int]] = []
-    hkp_samples: list[tuple[int, int, int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int, int, int, int]] = []
 
     async def drive(rxd: int, rxc: int) -> None:
         dut.xgmiiRxd.value = rxd
@@ -306,6 +312,9 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
                     int(dut.hkpEop.value),
                     int(dut.hkpSof.value),
                     int(dut.hkpWordCount.value),
+                    int(dut.hkpKCodeMask.value),
+                    int(dut.hkpKCodeValid.value),
+                    int(dut.hkpType.value),
                 )
             )
 
@@ -320,7 +329,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    assert hkp_samples == [(CXP_EOP, 1, 1, 1)]
+    assert hkp_samples == [(CXP_EOP, 1, 1, 1, CXP_ALL_CTRL_K, 1, CXPOF_HKP_TYPE_EOP)]
     assert observed == [
         (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
@@ -412,9 +421,8 @@ async def coaxpress_over_fiber_bridge_rx_idle_error_code_test(dut):
 
 @cocotb.test()
 async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
-    # A housekeeping start word may be followed by one raw K-coded HKP word and
-    # then normal data/EOP handling. This locks down the current RTL contract for
-    # the HKP-to-payload transition without claiming full housekeeping semantics.
+    # A housekeeping start word may be followed by one K-code HKP word with
+    # nGMII control flags clear and then normal data/EOP handling.
     start_clock(dut.clk)
     dut.rst.setimmediatevalue(1)
     dut.xgmiiRxd.setimmediatevalue(0x07070707)
@@ -422,7 +430,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
     await reset_dut(dut, clk_name="clk", reset_names=("rst",))
 
     observed: list[tuple[int, int]] = []
-    hkp_samples: list[tuple[int, int, int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int, int, int, int]] = []
 
     async def drive(rxd: int, rxc: int) -> None:
         dut.xgmiiRxd.value = rxd
@@ -438,18 +446,21 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
                     int(dut.hkpEop.value),
                     int(dut.hkpSof.value),
                     int(dut.hkpWordCount.value),
+                    int(dut.hkpKCodeMask.value),
+                    int(dut.hkpKCodeValid.value),
+                    int(dut.hkpType.value),
                 )
             )
 
     hkp_word = 0x9C5C3CBC
     await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
-    await drive(hkp_word, 0xF)
+    await drive(hkp_word, 0x0)
     await drive(0x10203040, 0x0)
     await drive(0x07FD00FD, 0xC)
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    assert hkp_samples == [(hkp_word, 0, 1, 1)]
+    assert hkp_samples == [(hkp_word, 0, 1, 1, CXP_ALL_CTRL_K, 1, CXPOF_HKP_TYPE_K_CODE)]
     assert observed == [
         (hkp_word, 0xF),
         (0x10203040, 0x0),
@@ -459,8 +470,8 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
 
 @cocotb.test()
 async def coaxpress_over_fiber_bridge_rx_hkp_malformed_status_test(dut):
-    # HKP words are still raw-forwarded, but the bridge now classifies malformed
-    # HKP control masks instead of treating all HKP traffic as opaque good data.
+    # HKP words carry K-code byte values without nGMII control flags. A nonzero
+    # control mask is malformed even when the byte values themselves are K codes.
     start_clock(dut.clk)
     dut.rst.setimmediatevalue(1)
     dut.xgmiiRxd.setimmediatevalue(0x07070707)
@@ -485,6 +496,43 @@ async def coaxpress_over_fiber_bridge_rx_hkp_malformed_status_test(dut):
 
     assert hkp_errors == [1]
     assert error_codes == [CXPOF_RX_ERR_HKP_MALFORMED]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_hkp_bad_kcode_status_test(dut):
+    # HKP is a K-code payload, not arbitrary raw data. Non-K-code bytes are
+    # forwarded for observability but classified separately from bad control
+    # masks.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    hkp_samples: list[tuple[int, int, int]] = []
+    error_codes: list[int] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        if int(dut.hkpValid.value) == 1:
+            hkp_samples.append(
+                (
+                    int(dut.hkpKCodeMask.value),
+                    int(dut.hkpKCodeValid.value),
+                    int(dut.hkpType.value),
+                )
+            )
+        if int(dut.rxError.value) == 1:
+            error_codes.append(int(dut.rxErrorCode.value))
+
+    await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
+    await drive(0x11223344, 0x0)
+    await drive(0x07070707, 0xF)
+
+    assert hkp_samples == [(0x0, 0, CXPOF_HKP_TYPE_INVALID)]
+    assert error_codes == [CXPOF_RX_ERR_HKP_BAD_K_CODE]
 
 
 @cocotb.test()

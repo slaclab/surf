@@ -88,9 +88,63 @@ package CoaXPressPkg is
    constant CXPOF_RX_ERR_BAD_CONTROL_C   : slv(3 downto 0) := x"4";
    constant CXPOF_RX_ERR_OVERWRITE_C     : slv(3 downto 0) := x"5";
    constant CXPOF_RX_ERR_HKP_MALFORMED_C : slv(3 downto 0) := x"6";
+   constant CXPOF_RX_ERR_HKP_BAD_K_CODE_C : slv(3 downto 0) := x"7";
+
+   constant CXPOF_HKP_TYPE_NONE_C     : slv(3 downto 0) := x"0";
+   constant CXPOF_HKP_TYPE_K_CODE_C   : slv(3 downto 0) := x"1";
+   constant CXPOF_HKP_TYPE_SOP_C      : slv(3 downto 0) := x"2";
+   constant CXPOF_HKP_TYPE_EOP_C      : slv(3 downto 0) := x"3";
+   constant CXPOF_HKP_TYPE_TRIG_C     : slv(3 downto 0) := x"4";
+   constant CXPOF_HKP_TYPE_IO_ACK_C   : slv(3 downto 0) := x"5";
+   constant CXPOF_HKP_TYPE_MARKER_C   : slv(3 downto 0) := x"6";
+   constant CXPOF_HKP_TYPE_INVALID_C  : slv(3 downto 0) := x"F";
+
+   function cxpIsKCode (data : slv(7 downto 0)) return sl;
+   function cxpKCodeMask (data : slv(31 downto 0)) return slv;
+   function cxpHkpType (data : slv(31 downto 0)) return slv;
 
 end package CoaXPressPkg;
 
 package body CoaXPressPkg is
+
+   function cxpIsKCode (data : slv(7 downto 0)) return sl is
+   begin
+      case data is
+         when K_28_0_C | K_28_1_C | K_28_2_C | K_28_3_C |
+              K_28_4_C | K_28_5_C | K_28_6_C | K_28_7_C |
+              K_23_7_C | K_27_7_C | K_29_7_C | K_30_7_C =>
+            return '1';
+         when others =>
+            return '0';
+      end case;
+   end function cxpIsKCode;
+
+   function cxpKCodeMask (data : slv(31 downto 0)) return slv is
+      variable ret : slv(3 downto 0);
+   begin
+      for i in 0 to 3 loop
+         ret(i) := cxpIsKCode(data((8*i)+7 downto (8*i)));
+      end loop;
+      return ret;
+   end function cxpKCodeMask;
+
+   function cxpHkpType (data : slv(31 downto 0)) return slv is
+   begin
+      if (cxpKCodeMask(data) /= CXP_ALL_CTRL_K_C) then
+         return CXPOF_HKP_TYPE_INVALID_C;
+      elsif (data = CXP_SOP_C) then
+         return CXPOF_HKP_TYPE_SOP_C;
+      elsif (data = CXP_EOP_C) then
+         return CXPOF_HKP_TYPE_EOP_C;
+      elsif (data = CXP_TRIG_C) then
+         return CXPOF_HKP_TYPE_TRIG_C;
+      elsif (data = CXP_IO_ACK_C) then
+         return CXPOF_HKP_TYPE_IO_ACK_C;
+      elsif (data = CXP_MARKER_C) then
+         return CXPOF_HKP_TYPE_MARKER_C;
+      else
+         return CXPOF_HKP_TYPE_K_CODE_C;
+      end if;
+   end function cxpHkpType;
 
 end package body CoaXPressPkg;

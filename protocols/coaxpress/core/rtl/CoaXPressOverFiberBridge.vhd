@@ -62,7 +62,10 @@ entity CoaXPressOverFiberBridge is
       hkpEop           : out sl;
       hkpSof           : out sl;
       hkpError         : out sl;
-      hkpWordCount     : out slv(7 downto 0));
+      hkpWordCount     : out slv(7 downto 0);
+      hkpKCodeMask     : out slv(3 downto 0);
+      hkpKCodeValid    : out sl;
+      hkpType          : out slv(3 downto 0));
 end entity CoaXPressOverFiberBridge;
 
 architecture mapping of CoaXPressOverFiberBridge is
@@ -121,7 +124,10 @@ begin
          hkpEop       => hkpEop,
          hkpSof       => hkpSof,
          hkpError     => hkpError,
-         hkpWordCount => hkpWordCount);
+         hkpWordCount => hkpWordCount,
+         hkpKCodeMask => hkpKCodeMask,
+         hkpKCodeValid => hkpKCodeValid,
+         hkpType      => hkpType);
 
    GEN_TX : if (LANE0_G = true) generate
 
