@@ -142,8 +142,8 @@ parsers now check complete packet framing before producing output pulses:
     payload words, CRC, and `EOP`
   - `CoaXPressRxLane` now acknowledges an event only after the CRC and `EOP`
     pass, suppresses bad-CRC events, and recovers for a later clean event
-  - event payload is validated for framing/CRC but is not exported through a
-    receive-side payload interface
+  - event payload is exported through the receive-side event stream with the
+    packet tag and event ID preserved as stream metadata
 
 That means these benches now cover the parser/acknowledgment subset of:
 
@@ -151,8 +151,9 @@ That means these benches now cover the parser/acknowledgment subset of:
 - section `9.8.2` event payload parsing
 - event-payload CRC/trailer handling
 
-They still do not prove an application-facing event-payload delivery contract,
-because the current RTL exposes only `eventAck` and `eventTag`.
+They still do not prove a validate-before-release event-payload delivery
+contract, because payload words are forwarded as they are parsed rather than
+withheld until the trailing CRC and `EOP` pass.
 
 ### Stream data and rectangular image traffic
 
@@ -273,13 +274,14 @@ Current RTL support limits observed while expanding the bridge tests:
 - `/Q/` ordered sets are not decoded into the CXP-side word stream. The current
   contract is status-only publication of the ordered-set data plus recovery to
   later valid traffic.
-- `/E/` has no bridge-visible status output. When it appears during a packet,
-  the RX bridge aborts the active nGMII packet and returns to idle; if the start
-  word was already accepted, the CXP `SOP` and packet-type words may already
-  have been emitted, but no synthetic CXP `EOP` is generated.
-- HKP handling is raw forwarding. The RX bridge does not validate HKP content
-  semantics or expose a separate housekeeping parser; it reconstructs K-coded
-  words and then returns to normal payload/EOP handling.
+- `/E/` is published through `rxError` and `rxAbort` status. When it appears
+  during a packet, the RX bridge aborts the active nGMII packet and returns to
+  idle; if the start word was already accepted, the CXP `SOP` and packet-type
+  words may already have been emitted, but no synthetic CXP `EOP` is generated.
+- HKP handling is raw forwarding plus `hkpValid`/`hkpData`/`hkpEop` status. The
+  RX bridge does not validate HKP content semantics or expose a full
+  housekeeping parser; it reconstructs K-coded words and then returns to normal
+  payload/EOP handling.
 
 ## Known Limitations
 
