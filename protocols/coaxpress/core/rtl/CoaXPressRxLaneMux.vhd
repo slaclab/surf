@@ -59,6 +59,7 @@ architecture rtl of CoaXPressRxLaneMux is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
+   signal validVec  : slv(NUM_LANES_G-1 downto 0);
    signal pipeSlave : AxiStreamSlaveType;
 
    -- attribute dont_touch      : string;
@@ -66,7 +67,11 @@ architecture rtl of CoaXPressRxLaneMux is
 
 begin
 
-   comb : process (numOfLane, pipeSlave, r, rxFsmRst, rxMasters, rxRst) is
+   GEN_VALID : for i in NUM_LANES_G-1 downto 0 generate
+      validVec(i) <= rxMasters(i).tValid when (i <= r.numOfLane) else '0';
+   end generate GEN_VALID;
+
+   comb : process (numOfLane, pipeSlave, r, rxFsmRst, rxMasters, rxRst, validVec) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -108,6 +113,18 @@ begin
                v.lane := r.lane + 1;
             end if;
 
+         end if;
+
+      -- Check for idle lane and more than 1 lane
+      elsif (v.pipeMaster.tValid = '0') and (NUM_LANES_G > 1) and (uOr(validVec) = '1') then
+
+         -- Check for roll over
+         if (r.lane = r.numOfLane) then
+            -- Reset counter
+            v.lane := 0;
+         else
+            -- Increment counter
+            v.lane := r.lane + 1;
          end if;
 
       end if;

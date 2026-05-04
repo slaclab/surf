@@ -163,7 +163,7 @@ The image-path benches are the strongest spec-aligned receive tests today:
 - `test_CoaXPressRx.py`
   - validates both the original one-lane top-level receive assembly and a
     dual-lane lane-rotation path around the same traffic
-  - also carries opt-in dual-lane tail-word and four-lane investigation benches behind
+  - also carries opt-in four-lane investigation benches behind
     `RUN_KNOWN_ISSUE_TESTS=1`; those are intentionally not part of the
     merge-ready passing slice yet
 

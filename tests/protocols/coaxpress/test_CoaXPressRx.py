@@ -114,7 +114,6 @@ EXPECTED_HDR_WORDS = [
     0x00200010,
 ]
 
-
 def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int, payload_words: list[int]) -> list[int]:
     crc_inputs = [
         *[repeat_byte(byte) for byte in event_bytes],
@@ -552,7 +551,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
 
 async def _drive_two_lane_mux_rotation(
     dut,
-) -> tuple[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]]:
+) -> tuple[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]], list[int]]:
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -576,6 +575,7 @@ async def _drive_two_lane_mux_rotation(
 
     data_beats: list[tuple[int, int, int, int]] = []
     hdr_beats: list[tuple[int, int, int, int]] = []
+    error_cycles: list[int] = []
 
     async def capture(cycle_index: int) -> None:
         _capture_outputs(
@@ -587,6 +587,8 @@ async def _drive_two_lane_mux_rotation(
             trig_ack_cycles=[],
             cycle_index=cycle_index,
         )
+        if int(dut.rxFsmError.value) == 1:
+            error_cycles.append(cycle_index)
 
     lane0_sequence = [
         ([CXP_SOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
@@ -656,7 +658,7 @@ async def _drive_two_lane_mux_rotation(
         await capture(cycle_index)
         cycle_index += 1
 
-    return hdr_beats, data_beats
+    return hdr_beats, data_beats, error_cycles
 
 
 @cocotb.test()
@@ -664,30 +666,9 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
     if env_int("NUM_LANES_G", default=1) != 2:
         return
 
-    hdr_beats, data_beats = await _drive_two_lane_mux_rotation(dut)
+    hdr_beats, data_beats, error_cycles = await _drive_two_lane_mux_rotation(dut)
 
-    assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 2
-    assert [beat[0] for beat in data_beats[:5]] == [
-        0x11111111,
-        0x22222222,
-        0x33333333,
-        0x44444444,
-        0x55555555,
-    ]
-    assert [beat[2] for beat in data_beats[:3]] == [0, 0, 1]
-
-
-#
-# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until the
-# remaining multi-lane receive boundary issues are fixed.
-#
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_two_lane_mux_rotation_tail_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 2:
-        return
-
-    hdr_beats, data_beats = await _drive_two_lane_mux_rotation(dut)
-
+    assert not error_cycles
     assert [beat[0] for beat in hdr_beats] == EXPECTED_HDR_WORDS * 2
     assert [beat[0] for beat in data_beats] == [
         0x11111111,
@@ -698,6 +679,12 @@ async def coaxpress_rx_two_lane_mux_rotation_tail_known_issue_test(dut):
         0x66666666,
     ]
     assert [beat[2] for beat in data_beats] == [0, 0, 1, 0, 0, 1]
+
+
+#
+# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until
+# the remaining 4-lane short-frame boundary issue in CoaXPressRxHsFsm is fixed.
+#
 
 
 @cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
