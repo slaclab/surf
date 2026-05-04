@@ -360,10 +360,17 @@ begin
          rxDataK    => rxDataK,
          rxError    => open,
          rxAbort    => open,
+         rxErrorCode => open,
          seqValid   => open,
          seqData    => open,
+         seqError   => open,
+         seqExpected => open,
+         seqErrorExpected => open,
          hkpValid   => open,
          hkpData    => open,
-         hkpEop     => open);
+         hkpEop     => open,
+         hkpSof     => open,
+         hkpError   => open,
+         hkpWordCount => open);
 
 end mapping;

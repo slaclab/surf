@@ -60,7 +60,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, timeout/status-error responses, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
 | `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
-| `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words, plus `/Q/`, `/E/`, and HKP status pulses | Partial protocol |
+| `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words, `/Q/` sequence tracking, classified `/E/` abort/error status, and HKP status parsing | Partial protocol |
 | `test_CoaXPressOverFiberBridge.py` | `CoaXPressOverFiberBridge` | Top-level 32b/64b gearbox integration around the bridge leaf mapping and RX bridge status forwarding | RTL-contract with spec framing |
 
 ## Spec Section Notes
@@ -248,40 +248,40 @@ Current checked-in coverage:
   - embedded EOP K-code reconstruction for stream marker and packet-end words
   - HKP forwarding, including a housekeeping-to-payload transition and an
     HKP-carried CXP EOP word
-  - `hkpValid/hkpData/hkpEop` status for HKP words that are forwarded on the
-    reconstructed CXP side
-  - lane-0 `/Q/` sequence status through `seqValid/seqData` while preserving
+  - `hkpValid/hkpData/hkpEop/hkpSof/hkpWordCount` status for HKP words that are
+    forwarded on the reconstructed CXP side, plus `hkpError` for malformed HKP
+    control masks
+  - lane-0 `/Q/` sequence tracking through `seqValid/seqData/seqExpected`, with
+    `seqError/seqErrorExpected` on skipped sequence values while preserving
     no-output behavior on the CXP word stream
-  - `/E/` status through `rxError/rxAbort` for idle and active-packet error
-    ordered sets
+  - classified `/E/` status through `rxError/rxAbort/rxErrorCode` for idle and
+    active-packet error ordered sets
   - negative lane-placement checks for `/S/`, `/Q/`, `/T/`, and `/E/`
   - lane-0 `/Q/` no-output behavior, `/E/` packet abort behavior before and
     after payload, and recovery to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
-  - RX-side 64b gearbox coverage for `/E/` abort/recovery, HKP-to-payload
-    transition, and lane-0 `/Q/` status/no-output/recovery guardrails
-
-Still open on the bridge side:
-
-- normative `/Q/` sequence policy beyond publishing the ordered-set data
-- fuller `/E/` error classification beyond the current abort/error pulse
-- full housekeeping protocol semantics beyond HKP word/EOP classification and
-  raw forwarding
+  - RX-side 64b gearbox coverage for classified `/E/` abort/recovery,
+    HKP-to-payload status, and lane-0 `/Q/` sequence mismatch/no-output/recovery
+    guardrails
 
 Current RTL support limits observed while expanding the bridge tests:
 
 - `/Q/` ordered sets are not decoded into the CXP-side word stream. The current
-  contract is status-only publication of the ordered-set data plus recovery to
-  later valid traffic.
-- `/E/` is published through `rxError` and `rxAbort` status. When it appears
-  during a packet, the RX bridge aborts the active nGMII packet and returns to
-  idle; if the start word was already accepted, the CXP `SOP` and packet-type
-  words may already have been emitted, but no synthetic CXP `EOP` is generated.
-- HKP handling is raw forwarding plus `hkpValid`/`hkpData`/`hkpEop` status. The
-  RX bridge does not validate HKP content semantics or expose a full
-  housekeeping parser; it reconstructs K-coded words and then returns to normal
-  payload/EOP handling.
+  contract initializes on the first sequence word, expects a 24-bit increment on
+  each later `/Q/`, pulses `seqError` on mismatch, reports the expected value,
+  and resynchronizes from the received value.
+- `/E/` is published through `rxError`, `rxAbort`, and `rxErrorCode` status. Idle
+  `/E/`, active-payload `/E/`, malformed control placement, overwrite, sequence
+  mismatch, and malformed HKP conditions now have distinct cause codes. When
+  `/E/` appears during a packet, the RX bridge aborts the active nGMII packet
+  and returns to idle; if the start word was already accepted, the CXP `SOP` and
+  packet-type words may already have been emitted, but no synthetic CXP `EOP` is
+  generated.
+- HKP handling is still raw forwarding on the reconstructed CXP word stream, but
+  the bridge now publishes start/EOP/word-count status and flags malformed HKP
+  control masks. It does not yet decode higher-level HKP command fields beyond
+  those structural observations.
 
 ## Known Limitations
 
@@ -301,8 +301,9 @@ The most important open limits are:
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update
-- CXPoF bridge coverage still does not exhaustively cover normative `/Q/`,
-  `/E/`, and full housekeeping protocol semantics
+- CXPoF bridge coverage now includes `/Q/` sequence mismatch policy, classified
+  `/E/` causes, and structural HKP status, but still does not decode
+  higher-level HKP command semantics
 
 ## Running The Slice
 

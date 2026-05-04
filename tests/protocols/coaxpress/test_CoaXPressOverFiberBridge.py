@@ -47,6 +47,9 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     start_clock,
 )
 
+ERR_SEQ_MISMATCH = 0x1
+ERR_PAYLOAD_ABORT = 0x3
+
 
 def _tx_start_word(rate: int, update: int) -> int:
     return CXPOF_START | (((update << 3) | (rate << 1)) << 8)
@@ -181,14 +184,14 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=64))
-    abort_samples: list[int] = []
+    abort_samples: list[tuple[int, int]] = []
 
     async def capture_abort(cycles: int) -> None:
         for _ in range(cycles):
             await RisingEdge(dut.rxClk312)
             await Timer(1, unit="ns")
             if int(dut.rxAbort.value) == 1:
-                abort_samples.append(int(dut.rxError.value))
+                abort_samples.append((int(dut.rxError.value), int(dut.rxErrorCode.value)))
     abort_capture = cocotb.start_soon(capture_abort(64))
 
     # Start a valid low-speed packet, then inject `/E/` as the next 32-bit word.
@@ -224,7 +227,7 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     assert find_subsequence(rx_observed, rx_expected) is not None, (
         f"missing RX /E/ recovery sequence: {rx_observed}"
     )
-    assert abort_samples == [1]
+    assert abort_samples == [(1, ERR_PAYLOAD_ABORT)]
 
 
 @cocotb.test()
@@ -232,14 +235,21 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=48))
-    hkp_samples: list[tuple[int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int]] = []
 
     async def capture_hkp(cycles: int) -> None:
         for _ in range(cycles):
             await RisingEdge(dut.rxClk312)
             await Timer(1, unit="ns")
             if int(dut.hkpValid.value) == 1:
-                hkp_samples.append((int(dut.hkpData.value), int(dut.hkpEop.value)))
+                hkp_samples.append(
+                    (
+                        int(dut.hkpData.value),
+                        int(dut.hkpEop.value),
+                        int(dut.hkpSof.value),
+                        int(dut.hkpWordCount.value),
+                    )
+                )
     hkp_capture = cocotb.start_soon(capture_hkp(48))
 
     hkp_word = 0x9C5C3CBC
@@ -254,7 +264,7 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
         (0x10203040, 0x0),
         (CXP_EOP, 0xF),
     ]
-    assert hkp_samples == [(hkp_word, 0)]
+    assert hkp_samples == [(hkp_word, 0, 1, 1)]
     assert find_subsequence(rx_observed, rx_expected) is not None, f"missing RX HKP/data sequence: {rx_observed}"
 
 
@@ -264,6 +274,7 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=64))
     seq_samples: list[int] = []
+    seq_errors: list[tuple[int, int, int]] = []
 
     async def capture_seq(cycles: int) -> None:
         for _ in range(cycles):
@@ -271,6 +282,14 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
             await Timer(1, unit="ns")
             if int(dut.seqValid.value) == 1:
                 seq_samples.append(int(dut.seqData.value))
+            if int(dut.seqError.value) == 1:
+                seq_errors.append(
+                    (
+                        int(dut.seqData.value),
+                        int(dut.seqErrorExpected.value),
+                        int(dut.rxErrorCode.value),
+                    )
+                )
     seq_capture = cocotb.start_soon(capture_seq(64))
 
     # Lane-0 `/Q/` is published through the status interface, not decoded into a
@@ -279,6 +298,16 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
     await _drive_rx64(
         dut,
         (CXPOF_SEQ | (0x12 << 16) | (0x34 << 24)) | (_idle64() & 0xFFFFFFFF00000000),
+        0xF1,
+    )
+    await _drive_rx64(
+        dut,
+        (CXPOF_SEQ | (0x01 << 8) | (0x12 << 16) | (0x34 << 24)) | (_idle64() & 0xFFFFFFFF00000000),
+        0xF1,
+    )
+    await _drive_rx64(
+        dut,
+        (CXPOF_SEQ | (0x03 << 8) | (0x12 << 16) | (0x34 << 24)) | (_idle64() & 0xFFFFFFFF00000000),
         0xF1,
     )
     await _drive_rx64(dut, _idle64(), 0xFF)
@@ -295,7 +324,8 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
         (0xA1B2C3D4, 0x0),
         (CXP_EOP, 0xF),
     ]
-    assert seq_samples == [0x341200]
+    assert seq_samples == [0x341200, 0x341201, 0x341203]
+    assert seq_errors == [(0x341203, 0x341202, ERR_SEQ_MISMATCH)]
     assert rx_observed == rx_expected
 
 

@@ -46,6 +46,11 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     start_clock,
 )
 
+ERR_SEQ_MISMATCH = 0x1
+ERR_IDLE_ERROR = 0x2
+ERR_PAYLOAD_ABORT = 0x3
+ERR_HKP_MALFORMED = 0x6
+
 
 def _cxp_start_word(packet_byte: int) -> int:
     return CXPOF_START | (0x80 << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
@@ -153,10 +158,11 @@ async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
 
 @cocotb.test()
 async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
-    # `/Q/` is status-only on this bridge: it publishes the ordered-set data but
-    # does not reconstruct a CXP word. Then prove an explicit `/E/` in a payload
-    # reports an abort without emitting a synthetic CXP EOP and that the next
-    # packet still decodes cleanly.
+    # `/Q/` is tracked as a sequence counter: the first value initializes the
+    # expected sequence, a following increment is accepted, and a skipped value
+    # raises a sequence error while resynchronizing to later traffic. Then prove
+    # an explicit `/E/` in a payload reports a classified abort without emitting
+    # a synthetic CXP EOP and that the next packet still decodes cleanly.
     start_clock(dut.clk)
     dut.rst.setimmediatevalue(1)
     dut.xgmiiRxd.setimmediatevalue(0x07070707)
@@ -165,6 +171,8 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
 
     observed: list[tuple[int, int]] = []
     seq_samples: list[int] = []
+    seq_errors: list[tuple[int, int]] = []
+    error_codes: list[int] = []
     abort_pulses = 0
     error_pulses = 0
 
@@ -178,10 +186,16 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
             observed.append(sample)
         if int(dut.seqValid.value) == 1:
             seq_samples.append(int(dut.seqData.value))
+        if int(dut.seqError.value) == 1:
+            seq_errors.append((int(dut.seqData.value), int(dut.seqErrorExpected.value)))
+        if int(dut.rxError.value) == 1:
+            error_codes.append(int(dut.rxErrorCode.value))
         abort_pulses += int(dut.rxAbort.value)
         error_pulses += int(dut.rxError.value)
 
     await drive(CXPOF_SEQ | (0x00 << 8) | (0x12 << 16) | (0x34 << 24), 0x1)
+    await drive(CXPOF_SEQ | (0x01 << 8) | (0x12 << 16) | (0x34 << 24), 0x1)
+    await drive(CXPOF_SEQ | (0x03 << 8) | (0x12 << 16) | (0x34 << 24), 0x1)
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
@@ -197,9 +211,11 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    assert seq_samples == [0x341200]
+    assert seq_samples == [0x341200, 0x341201, 0x341203]
+    assert seq_errors == [(0x341203, 0x341202)]
     assert abort_pulses == 1
-    assert error_pulses == 1
+    assert error_pulses == 2
+    assert error_codes == [ERR_SEQ_MISMATCH, ERR_PAYLOAD_ABORT]
     assert observed == [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
@@ -273,7 +289,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
     await reset_dut(dut, clk_name="clk", reset_names=("rst",))
 
     observed: list[tuple[int, int]] = []
-    hkp_samples: list[tuple[int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int]] = []
 
     async def drive(rxd: int, rxc: int) -> None:
         dut.xgmiiRxd.value = rxd
@@ -283,7 +299,14 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
         if sample != (CXP_IDLE, CXP_IDLE_K):
             observed.append(sample)
         if int(dut.hkpValid.value) == 1:
-            hkp_samples.append((int(dut.hkpData.value), int(dut.hkpEop.value)))
+            hkp_samples.append(
+                (
+                    int(dut.hkpData.value),
+                    int(dut.hkpEop.value),
+                    int(dut.hkpSof.value),
+                    int(dut.hkpWordCount.value),
+                )
+            )
 
     await drive(CXPOF_START | (0x81 << 8), 0x1)
     await drive(CXP_EOP, 0x0)
@@ -296,7 +319,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    assert hkp_samples == [(CXP_EOP, 1)]
+    assert hkp_samples == [(CXP_EOP, 1, 1, 1)]
     assert observed == [
         (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
@@ -320,6 +343,7 @@ async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
 
     observed: list[tuple[int, int]] = []
     abort_pulses = 0
+    error_codes: list[int] = []
 
     async def drive(rxd: int, rxc: int) -> None:
         nonlocal abort_pulses
@@ -330,6 +354,8 @@ async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
         if sample != (CXP_IDLE, CXP_IDLE_K):
             observed.append(sample)
         abort_pulses += int(dut.rxAbort.value)
+        if int(dut.rxError.value) == 1:
+            error_codes.append(int(dut.rxErrorCode.value))
 
     await drive(_cxp_start_word(CXP_PKT_EVENT_ACK), 0x1)
     await drive(CXPOF_ERROR | (CXPOF_IDLE << 8) | (CXPOF_IDLE << 16) | (CXPOF_IDLE << 24), 0x1)
@@ -343,6 +369,7 @@ async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
     await drive(0x07070707, 0xF)
 
     assert abort_pulses == 1
+    assert error_codes == [ERR_PAYLOAD_ABORT]
     assert observed == [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
@@ -351,6 +378,35 @@ async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
         (0x12345678, 0x0),
         (CXP_EOP, 0xF),
     ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_idle_error_code_test(dut):
+    # `/E/` while idle is still an error/abort indication, but it has a distinct
+    # cause code from an active-packet abort.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    error_codes: list[int] = []
+    abort_pulses = 0
+
+    async def drive(rxd: int, rxc: int) -> None:
+        nonlocal abort_pulses
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        abort_pulses += int(dut.rxAbort.value)
+        if int(dut.rxError.value) == 1:
+            error_codes.append(int(dut.rxErrorCode.value))
+
+    await drive(CXPOF_ERROR | (CXPOF_IDLE << 8) | (CXPOF_IDLE << 16) | (CXPOF_IDLE << 24), 0x1)
+    await drive(0x07070707, 0xF)
+
+    assert abort_pulses == 1
+    assert error_codes == [ERR_IDLE_ERROR]
 
 
 @cocotb.test()
@@ -365,7 +421,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
     await reset_dut(dut, clk_name="clk", reset_names=("rst",))
 
     observed: list[tuple[int, int]] = []
-    hkp_samples: list[tuple[int, int]] = []
+    hkp_samples: list[tuple[int, int, int, int]] = []
 
     async def drive(rxd: int, rxc: int) -> None:
         dut.xgmiiRxd.value = rxd
@@ -375,7 +431,14 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
         if sample != (CXP_IDLE, CXP_IDLE_K):
             observed.append(sample)
         if int(dut.hkpValid.value) == 1:
-            hkp_samples.append((int(dut.hkpData.value), int(dut.hkpEop.value)))
+            hkp_samples.append(
+                (
+                    int(dut.hkpData.value),
+                    int(dut.hkpEop.value),
+                    int(dut.hkpSof.value),
+                    int(dut.hkpWordCount.value),
+                )
+            )
 
     hkp_word = 0x9C5C3CBC
     await drive(CXPOF_START | (0x81 << 8), 0x1)
@@ -385,12 +448,42 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    assert hkp_samples == [(hkp_word, 0)]
+    assert hkp_samples == [(hkp_word, 0, 1, 1)]
     assert observed == [
         (hkp_word, 0xF),
         (0x10203040, 0x0),
         (CXP_EOP, 0xF),
     ]
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_rx_hkp_malformed_status_test(dut):
+    # HKP words are still raw-forwarded, but the bridge now classifies malformed
+    # HKP control masks instead of treating all HKP traffic as opaque good data.
+    start_clock(dut.clk)
+    dut.rst.setimmediatevalue(1)
+    dut.xgmiiRxd.setimmediatevalue(0x07070707)
+    dut.xgmiiRxc.setimmediatevalue(0xF)
+    await reset_dut(dut, clk_name="clk", reset_names=("rst",))
+
+    hkp_errors: list[int] = []
+    error_codes: list[int] = []
+
+    async def drive(rxd: int, rxc: int) -> None:
+        dut.xgmiiRxd.value = rxd
+        dut.xgmiiRxc.value = rxc
+        await cycle(dut.clk, 1)
+        if int(dut.hkpError.value) == 1:
+            hkp_errors.append(int(dut.hkpWordCount.value))
+        if int(dut.rxError.value) == 1:
+            error_codes.append(int(dut.rxErrorCode.value))
+
+    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(0x5C5C3CBC, 0x5)
+    await drive(0x07070707, 0xF)
+
+    assert hkp_errors == [1]
+    assert error_codes == [ERR_HKP_MALFORMED]
 
 
 @cocotb.test()

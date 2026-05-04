@@ -37,16 +37,31 @@ entity CoaXPressOverFiberBridgeRx is
       rxData   : out slv(31 downto 0);
       rxDataK  : out slv(3 downto 0);
       -- Status Interface
-      rxError  : out sl;
-      rxAbort  : out sl;
-      seqValid : out sl;
-      seqData  : out slv(23 downto 0);
-      hkpValid : out sl;
-      hkpData  : out slv(31 downto 0);
-      hkpEop   : out sl);
+      rxError          : out sl;
+      rxAbort          : out sl;
+      rxErrorCode      : out slv(3 downto 0);
+      seqValid         : out sl;
+      seqData          : out slv(23 downto 0);
+      seqError         : out sl;
+      seqExpected      : out slv(23 downto 0);
+      seqErrorExpected : out slv(23 downto 0);
+      hkpValid         : out sl;
+      hkpData          : out slv(31 downto 0);
+      hkpEop           : out sl;
+      hkpSof           : out sl;
+      hkpError         : out sl;
+      hkpWordCount     : out slv(7 downto 0));
 end entity CoaXPressOverFiberBridgeRx;
 
 architecture rtl of CoaXPressOverFiberBridgeRx is
+
+   constant ERR_NONE_C           : slv(3 downto 0) := x"0";
+   constant ERR_SEQ_MISMATCH_C   : slv(3 downto 0) := x"1";
+   constant ERR_IDLE_ERROR_C     : slv(3 downto 0) := x"2";
+   constant ERR_PAYLOAD_ABORT_C  : slv(3 downto 0) := x"3";
+   constant ERR_BAD_CONTROL_C    : slv(3 downto 0) := x"4";
+   constant ERR_OVERWRITE_C      : slv(3 downto 0) := x"5";
+   constant ERR_HKP_MALFORMED_C  : slv(3 downto 0) := x"6";
 
    type StateType is (
       IDLE_S,
@@ -56,11 +71,19 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
    type RegType is record
       errDet  : sl;
       rxAbort : sl;
+      rxErrorCode : slv(3 downto 0);
       seqValid : sl;
       seqData : slv(23 downto 0);
+      seqLocked : sl;
+      seqError : sl;
+      seqExpected : slv(23 downto 0);
+      seqErrorExpected : slv(23 downto 0);
       hkpValid : sl;
       hkpData : slv(31 downto 0);
       hkpEop  : sl;
+      hkpSof  : sl;
+      hkpError : sl;
+      hkpWordCount : slv(7 downto 0);
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
@@ -69,11 +92,19 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
    constant REG_INIT_C : RegType := (
       errDet  => '0',
       rxAbort => '0',
+      rxErrorCode => ERR_NONE_C,
       seqValid => '0',
       seqData => (others => '0'),
+      seqLocked => '0',
+      seqError => '0',
+      seqExpected => (others => '0'),
+      seqErrorExpected => (others => '0'),
       hkpValid => '0',
       hkpData => (others => '0'),
       hkpEop  => '0',
+      hkpSof  => '0',
+      hkpError => '0',
+      hkpWordCount => (others => '0'),
       rxData  => (others => CXP_IDLE_C),
       rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
@@ -95,9 +126,13 @@ begin
       -- Reset strobe
       v.errDet   := '0';
       v.rxAbort  := '0';
+      v.rxErrorCode := ERR_NONE_C;
       v.seqValid := '0';
+      v.seqError := '0';
       v.hkpValid := '0';
       v.hkpEop   := '0';
+      v.hkpSof   := '0';
+      v.hkpError := '0';
 
       -- Update shift register
       v.rxDataK(1) := CXP_IDLE_K_C;
@@ -114,6 +149,7 @@ begin
 
                -- Check for HKP condition
                if (xgmiiRxd(8) = '1') then
+                  v.hkpWordCount := (others => '0');
                   -- Next State
                   v.state := HKP_S;
                else
@@ -121,7 +157,8 @@ begin
                   -- Check if data is being overwritten
                   if (v.rxDataK(0) /= CXP_IDLE_K_C) or (v.rxData(0) /= CXP_IDLE_C) then
                      -- Set the flag
-                     v.errDet := '1';
+                     v.errDet      := '1';
+                     v.rxErrorCode := ERR_OVERWRITE_C;
                   end if;
 
                   -- Check for SOP
@@ -155,17 +192,27 @@ begin
                -- Publish the sequence data without reconstructing a CXP word.
                v.seqValid := '1';
                v.seqData  := xgmiiRxd(31 downto 8);
+               if (r.seqLocked = '1') and (xgmiiRxd(31 downto 8) /= r.seqExpected) then
+                  v.errDet      := '1';
+                  v.seqError    := '1';
+                  v.seqErrorExpected := r.seqExpected;
+                  v.rxErrorCode := ERR_SEQ_MISMATCH_C;
+               end if;
+               v.seqLocked   := '1';
+               v.seqExpected := xgmiiRxd(31 downto 8) + 1;
 
             -- Check for lane-0 error ordered set while idle
             elsif (xgmiiRxc = "0001") and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
 
                -- Publish an error pulse even when no packet payload is active.
-               v.errDet  := '1';
-               v.rxAbort := '1';
+               v.errDet      := '1';
+               v.rxAbort     := '1';
+               v.rxErrorCode := ERR_IDLE_ERROR_C;
 
             elsif (xgmiiRxc /= x"F") or (xgmiiRxd /= x"07_07_07_07") then
                -- Set the flag
-               v.errDet := '1';
+               v.errDet      := '1';
+               v.rxErrorCode := ERR_BAD_CONTROL_C;
             end if;
          ----------------------------------------------------------------------
          when HKP_S =>
@@ -174,6 +221,13 @@ begin
             v.rxData(1)  := xgmiiRxd;
             v.hkpValid   := '1';
             v.hkpData    := xgmiiRxd;
+            v.hkpSof     := '1';
+            v.hkpWordCount := r.hkpWordCount + 1;
+            if (xgmiiRxc /= "0000") and (xgmiiRxc /= "1111") then
+               v.errDet      := '1';
+               v.hkpError    := '1';
+               v.rxErrorCode := ERR_HKP_MALFORMED_C;
+            end if;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
                v.hkpEop := '1';
@@ -195,9 +249,10 @@ begin
             elsif (xgmiiRxc = "0001") and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
 
                -- Abort the active packet without synthesizing a CXP EOP.
-               v.errDet  := '1';
-               v.rxAbort := '1';
-               v.state   := IDLE_S;
+               v.errDet      := '1';
+               v.rxAbort     := '1';
+               v.rxErrorCode := ERR_PAYLOAD_ABORT_C;
+               v.state       := IDLE_S;
 
             -- Check for EOP
             elsif (xgmiiRxc = "1100") and (xgmiiRxd(31 downto 8) = x"07_FD_00") then
@@ -220,7 +275,8 @@ begin
             -- Undefined state
             else
                -- Set the flag
-               v.errDet := '1';
+               v.errDet      := '1';
+               v.rxErrorCode := ERR_BAD_CONTROL_C;
                -- Next State
                v.state  := IDLE_S;
             end if;
@@ -232,11 +288,18 @@ begin
       rxData  <= r.rxData(0);
       rxError <= r.errDet;
       rxAbort <= r.rxAbort;
+      rxErrorCode <= r.rxErrorCode;
       seqValid <= r.seqValid;
       seqData  <= r.seqData;
+      seqError <= r.seqError;
+      seqExpected <= r.seqExpected;
+      seqErrorExpected <= r.seqErrorExpected;
       hkpValid <= r.hkpValid;
       hkpData  <= r.hkpData;
       hkpEop   <= r.hkpEop;
+      hkpSof   <= r.hkpSof;
+      hkpError <= r.hkpError;
+      hkpWordCount <= r.hkpWordCount;
 
       -- Reset
       if (rst = '1') then
