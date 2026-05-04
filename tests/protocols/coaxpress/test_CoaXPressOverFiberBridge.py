@@ -36,7 +36,13 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_SOP,
     CXPOF_ERROR,
     CXPOF_IDLE,
+    CXPOF_RX_ERR_PAYLOAD_ABORT,
+    CXPOF_RX_ERR_SEQ_MISMATCH,
     CXPOF_SEQ,
+    CXPOF_SOP_CTRL_HIGH_SPEED,
+    CXPOF_SOP_CTRL_HKP,
+    CXPOF_SOP_CTRL_LS_RATE_BIT,
+    CXPOF_SOP_CTRL_UPDATE_BIT,
     CXPOF_START,
     CXPOF_TERM,
     cycle,
@@ -47,20 +53,17 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     start_clock,
 )
 
-ERR_SEQ_MISMATCH = 0x1
-ERR_PAYLOAD_ABORT = 0x3
-
 
 def _tx_start_word(rate: int, update: int) -> int:
-    return CXPOF_START | (((update << 3) | (rate << 1)) << 8)
+    return CXPOF_START | (((update << CXPOF_SOP_CTRL_UPDATE_BIT) | (rate << CXPOF_SOP_CTRL_LS_RATE_BIT)) << 8)
 
 
 def _rx_start_word(packet_byte: int) -> int:
-    return CXPOF_START | (0x80 << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
+    return CXPOF_START | (CXPOF_SOP_CTRL_HIGH_SPEED << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
 
 
 def _rx_hkp_start_word() -> int:
-    return CXPOF_START | (0x81 << 8)
+    return CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8)
 
 
 def _idle64() -> int:
@@ -227,7 +230,7 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     assert find_subsequence(rx_observed, rx_expected) is not None, (
         f"missing RX /E/ recovery sequence: {rx_observed}"
     )
-    assert abort_samples == [(1, ERR_PAYLOAD_ABORT)]
+    assert abort_samples == [(1, CXPOF_RX_ERR_PAYLOAD_ABORT)]
 
 
 @cocotb.test()
@@ -325,7 +328,7 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
         (CXP_EOP, 0xF),
     ]
     assert seq_samples == [0x341200, 0x341201, 0x341203]
-    assert seq_errors == [(0x341203, 0x341202, ERR_SEQ_MISMATCH)]
+    assert seq_errors == [(0x341203, 0x341202, CXPOF_RX_ERR_SEQ_MISMATCH)]
     assert rx_observed == rx_expected
 
 

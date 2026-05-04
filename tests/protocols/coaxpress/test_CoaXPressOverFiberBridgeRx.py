@@ -37,7 +37,13 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_SOP,
     CXPOF_ERROR,
     CXPOF_IDLE,
+    CXPOF_RX_ERR_HKP_MALFORMED,
+    CXPOF_RX_ERR_IDLE_ERROR,
+    CXPOF_RX_ERR_PAYLOAD_ABORT,
+    CXPOF_RX_ERR_SEQ_MISMATCH,
     CXPOF_SEQ,
+    CXPOF_SOP_CTRL_HIGH_SPEED,
+    CXPOF_SOP_CTRL_HKP,
     CXPOF_START,
     CXPOF_TERM,
     cycle,
@@ -46,14 +52,9 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     start_clock,
 )
 
-ERR_SEQ_MISMATCH = 0x1
-ERR_IDLE_ERROR = 0x2
-ERR_PAYLOAD_ABORT = 0x3
-ERR_HKP_MALFORMED = 0x6
-
 
 def _cxp_start_word(packet_byte: int) -> int:
-    return CXPOF_START | (0x80 << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
+    return CXPOF_START | (CXPOF_SOP_CTRL_HIGH_SPEED << 8) | ((CXP_SOP & 0xFF) << 16) | (packet_byte << 24)
 
 
 def _control_in_lane(control_byte: int, lane: int) -> int:
@@ -90,7 +91,7 @@ async def coaxpress_over_fiber_bridge_rx_decode_test(dut):
     await drive(0x07070707, 0xF)
 
     # Separate IO_ACK indication with no terminal payload word emitted.
-    dut.xgmiiRxd.value = CXPOF_START | (0x80 << 8) | ((CXP_IO_ACK & 0xFF) << 16)
+    dut.xgmiiRxd.value = CXPOF_START | (CXPOF_SOP_CTRL_HIGH_SPEED << 8) | ((CXP_IO_ACK & 0xFF) << 16)
     dut.xgmiiRxc.value = 0x1
     await cycle(dut.clk, 1)
     sample = (int(dut.rxData.value), int(dut.rxDataK.value))
@@ -135,7 +136,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_and_invalid_control_test(dut):
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
 
-    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
     await drive(0x5C5C5C5C, 0xF)
     await drive(CXP_EOP, 0xF)
     await drive(0x07070707, 0xF)
@@ -215,7 +216,7 @@ async def coaxpress_over_fiber_bridge_rx_sequence_error_and_recovery_test(dut):
     assert seq_errors == [(0x341203, 0x341202)]
     assert abort_pulses == 1
     assert error_pulses == 2
-    assert error_codes == [ERR_SEQ_MISMATCH, ERR_PAYLOAD_ABORT]
+    assert error_codes == [CXPOF_RX_ERR_SEQ_MISMATCH, CXPOF_RX_ERR_PAYLOAD_ABORT]
     assert observed == [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
@@ -308,7 +309,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_eop_kcode_test(dut):
                 )
             )
 
-    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
     await drive(CXP_EOP, 0x0)
     await drive(0x07070707, 0xF)
     await drive(0x07070707, 0xF)
@@ -369,7 +370,7 @@ async def coaxpress_over_fiber_bridge_rx_error_after_sop_recovery_test(dut):
     await drive(0x07070707, 0xF)
 
     assert abort_pulses == 1
-    assert error_codes == [ERR_PAYLOAD_ABORT]
+    assert error_codes == [CXPOF_RX_ERR_PAYLOAD_ABORT]
     assert observed == [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT_ACK), 0x0),
@@ -406,7 +407,7 @@ async def coaxpress_over_fiber_bridge_rx_idle_error_code_test(dut):
     await drive(0x07070707, 0xF)
 
     assert abort_pulses == 1
-    assert error_codes == [ERR_IDLE_ERROR]
+    assert error_codes == [CXPOF_RX_ERR_IDLE_ERROR]
 
 
 @cocotb.test()
@@ -441,7 +442,7 @@ async def coaxpress_over_fiber_bridge_rx_hkp_then_payload_mix_test(dut):
             )
 
     hkp_word = 0x9C5C3CBC
-    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
     await drive(hkp_word, 0xF)
     await drive(0x10203040, 0x0)
     await drive(0x07FD00FD, 0xC)
@@ -478,12 +479,12 @@ async def coaxpress_over_fiber_bridge_rx_hkp_malformed_status_test(dut):
         if int(dut.rxError.value) == 1:
             error_codes.append(int(dut.rxErrorCode.value))
 
-    await drive(CXPOF_START | (0x81 << 8), 0x1)
+    await drive(CXPOF_START | ((CXPOF_SOP_CTRL_HIGH_SPEED | CXPOF_SOP_CTRL_HKP) << 8), 0x1)
     await drive(0x5C5C3CBC, 0x5)
     await drive(0x07070707, 0xF)
 
     assert hkp_errors == [1]
-    assert error_codes == [ERR_HKP_MALFORMED]
+    assert error_codes == [CXPOF_RX_ERR_HKP_MALFORMED]
 
 
 @cocotb.test()

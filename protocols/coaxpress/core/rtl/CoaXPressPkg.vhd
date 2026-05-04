@@ -34,6 +34,8 @@ package CoaXPressPkg is
    constant CXP_TRIG_C   : slv(31 downto 0) := K_28_2_C & K_28_2_C & K_28_2_C & K_28_2_C;  -- 0x5C5C5C5C
    constant CXP_IO_ACK_C : slv(31 downto 0) := K_28_6_C & K_28_6_C & K_28_6_C & K_28_6_C;  -- 0xDCDCDCDC
    constant CXP_MARKER_C : slv(31 downto 0) := K_28_3_C & K_28_3_C & K_28_3_C & K_28_3_C;  -- 0x7C7C7C7C
+   constant CXP_ALL_DATA_K_C : slv(3 downto 0) := x"0";
+   constant CXP_ALL_CTRL_K_C : slv(3 downto 0) := x"F";
 
    constant CXP_TX_IDLE_C : Slv8Array(3 downto 0) := (
       0 => CXP_IDLE_C(7 downto 0),
@@ -56,6 +58,36 @@ package CoaXPressPkg is
    constant CXPOF_ERROR_C : slv(7 downto 0) := x"FE";  -- /E/ = Error
 
    constant CXPOF_IDLE_WORD_C : slv(31 downto 0) := CXPOF_IDLE_C & CXPOF_IDLE_C & CXPOF_IDLE_C & CXPOF_IDLE_C;
+
+   constant CXPOF_XGMII_ALL_DATA_C     : slv(3 downto 0) := x"0";
+   constant CXPOF_XGMII_ALL_CTRL_C     : slv(3 downto 0) := x"F";
+   constant CXPOF_XGMII_LANE0_CTRL_C   : slv(3 downto 0) := "0001";
+   constant CXPOF_XGMII_LANE2_3_CTRL_C : slv(3 downto 0) := "1100";
+
+   constant CXPOF_RESERVED_BYTE_C : slv(7 downto 0) := x"00";
+
+   constant CXPOF_SOP_CTRL_PACKET_TYPE_BIT_C : natural := 7;
+   constant CXPOF_SOP_CTRL_UPDATE_BIT_C      : natural := 3;
+   constant CXPOF_SOP_CTRL_LS_RATE_BIT_C     : natural := 1;
+   constant CXPOF_SOP_CTRL_HKP_BIT_C         : natural := 0;
+
+   constant CXPOF_SOP_CTRL_LOW_SPEED_C  : sl := '0';
+   constant CXPOF_SOP_CTRL_HIGH_SPEED_C : sl := '1';
+
+   constant CXPOF_SOP_CTRL_HS_PREFIX_C : slv(6 downto 0) := CXPOF_SOP_CTRL_HIGH_SPEED_C & "000000";
+
+   constant CXPOF_LS_CTRL_DATA_C   : slv(7 downto 0) := x"01";
+   constant CXPOF_LS_CTRL_K_CODE_C : slv(7 downto 0) := x"02";
+
+   constant CXPOF_TERM_SUFFIX_C : slv(23 downto 0) := CXPOF_IDLE_C & CXPOF_TERM_C & CXPOF_RESERVED_BYTE_C;
+
+   constant CXPOF_RX_ERR_NONE_C          : slv(3 downto 0) := x"0";
+   constant CXPOF_RX_ERR_SEQ_MISMATCH_C  : slv(3 downto 0) := x"1";
+   constant CXPOF_RX_ERR_IDLE_ERROR_C    : slv(3 downto 0) := x"2";
+   constant CXPOF_RX_ERR_PAYLOAD_ABORT_C : slv(3 downto 0) := x"3";
+   constant CXPOF_RX_ERR_BAD_CONTROL_C   : slv(3 downto 0) := x"4";
+   constant CXPOF_RX_ERR_OVERWRITE_C     : slv(3 downto 0) := x"5";
+   constant CXPOF_RX_ERR_HKP_MALFORMED_C : slv(3 downto 0) := x"6";
 
 end package CoaXPressPkg;
 
