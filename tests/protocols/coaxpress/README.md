@@ -51,7 +51,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, event payload forwarding plus trailer-gated ACK, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, bounded event payload validate-before-release plus trailer-gated ACK, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
 | `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
 | `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event-payload assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
@@ -151,9 +151,10 @@ That means these benches now cover the parser/acknowledgment subset of:
 - section `9.8.2` event payload parsing
 - event-payload CRC/trailer handling
 
-They still do not prove a validate-before-release event-payload delivery
-contract, because payload words are forwarded as they are parsed rather than
-withheld until the trailing CRC and `EOP` pass.
+They now prove a bounded validate-before-release event-payload delivery contract:
+payload words are withheld until the trailing CRC and `EOP` pass, bad-CRC events
+do not leak payload words, and oversized events are rejected instead of being
+partially forwarded.
 
 ### Stream data and rectangular image traffic
 
@@ -186,16 +187,15 @@ existing `RxFsmErrorCnt` software counter.
 
 `CoaXPressRxLane` now exposes event payload words on an AXI-stream style
 `eventMaster` interface while preserving the legacy `eventAck/eventTag` trailer
-completion pulse. The event payload stream carries each 32-bit event payload
-word as it is parsed, uses `TDEST[7:0]` for the packet tag, and publishes the
-event ID bytes on `TUSER[31:0]` at the lane boundary. The `CoaXPressRx`
-assembly crosses that payload stream into the `cfgClk` domain with an
-`AxiStreamFifoV2`.
+completion pulse. The lane buffers up to 16 event payload words and releases
+them only after the event CRC and `EOP` trailer pass. The event payload stream
+uses `TDEST[7:0]` for the packet tag and publishes the event ID bytes on
+`TUSER[31:0]` at the lane boundary. The `CoaXPressRx` assembly crosses that
+payload stream into the `cfgClk` domain with an `AxiStreamFifoV2`.
 
-Like the stream-data path, this is a forwarding interface rather than a
-buffered validate-then-release interface: payload words are delivered before the
-event CRC and `EOP` trailer are known to be good, while `eventAck/eventTag` is
-still generated only after the validated trailer.
+This is a bounded receive-side payload contract, not an unbounded event
+transport. Event payloads longer than the internal store are reported as
+malformed and suppressed.
 
 ### Software-visible overflow and FSM-error status
 
@@ -293,8 +293,8 @@ The most important open limits are:
 - the four-lane overflow recovery checks are opt-in stress benches because they
   intentionally fill and drain deep receive FIFOs; enable them with
   `RUN_STRESS_TESTS=1`
-- receive-side event payload is validated for framing/CRC before ACK, but is not
-  exposed through an application-facing payload interface
+- receive-side event payload is validated for framing/CRC before ACK and
+  released through a bounded application-facing payload interface
 - the receive stream-data path now validates CRC/`EOP` trailer framing before
   accepting the next packet, but payload still streams before the trailer result
   is known

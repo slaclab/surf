@@ -280,9 +280,12 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
     cfg_beats: list[dict[str, int]] = []
     data_beats: list[dict[str, int]] = []
     heartbeat_beats: list[dict[str, int]] = []
+    event_beats: list[dict[str, int]] = []
     event_tags: list[int] = []
+    error_pulses = 0
 
     async def drive(data: int, data_k: int) -> None:
+        nonlocal error_pulses
         await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
         if int(dut.cfgTValid.value) == 1:
             cfg_beats.append({"cfgTData": int(dut.cfgTData.value)})
@@ -296,11 +299,21 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
             )
         if int(dut.heartbeatTValid.value) == 1:
             heartbeat_beats.append({"heartbeatTData": int(dut.heartbeatTData.value)})
+        if int(dut.eventTValid.value) == 1:
+            event_beats.append(
+                {
+                    "eventTData": int(dut.eventTData.value),
+                    "eventTDest": int(dut.eventTDest.value),
+                    "eventTUser": int(dut.eventTUser.value),
+                    "eventTLast": int(dut.eventTLast.value),
+                }
+            )
         if int(dut.eventAck.value) == 1:
             event_tags.append(int(dut.eventTag.value))
+        error_pulses += int(dut.rxError.value)
 
     # The receive-lane RTL validates the event payload count, CRC, and EOP before
-    # acknowledging the tag. The payload is intentionally not forwarded anywhere.
+    # acknowledging the tag and releasing the payload stream.
     await drive(CXP_SOP, 0xF)
     await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
     for word in _event_crc_words(
@@ -328,6 +341,19 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
         await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
+    # Oversized event payloads exceed the bounded receive-side store. The lane
+    # must reject them before any payload word can leak out.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_EVENT), 0x0)
+    for word in [
+        *[repeat_byte(byte) for byte in (0xC0, 0xC1, 0xC2, 0xC3)],
+        repeat_byte(0x4C),
+        repeat_byte(0x00),
+        repeat_byte(0x11),
+    ]:
+        await drive(word, 0x0)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
     # A later zero-payload event must still be accepted, proving the ignored
     # bad-CRC packet did not leave stale parser state behind.
     await drive(CXP_SOP, 0xF)
@@ -338,9 +364,24 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
     await drive(CXP_IDLE, CXP_IDLE_K)
 
     assert event_tags == [0x6D, 0x7E]
+    assert event_beats == [
+        {
+            "eventTData": 0x11223344,
+            "eventTDest": 0x6D,
+            "eventTUser": 0xA3A2A1A0,
+            "eventTLast": 0,
+        },
+        {
+            "eventTData": 0x55667788,
+            "eventTDest": 0x6D,
+            "eventTUser": 0xA3A2A1A0,
+            "eventTLast": 1,
+        },
+    ]
     assert cfg_beats == []
     assert data_beats == []
     assert heartbeat_beats == []
+    assert error_pulses >= 2
 
 
 @cocotb.test()

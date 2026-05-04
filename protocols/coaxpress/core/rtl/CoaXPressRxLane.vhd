@@ -57,6 +57,9 @@ end entity CoaXPressRxLane;
 
 architecture rtl of CoaXPressRxLane is
 
+   constant EVENT_BUFFER_DEPTH_C : positive := 16;
+   constant EVENT_BUFFER_ADDR_WIDTH_C : positive := 4;
+
    type StateType is (
       IO_ACK_S,
       IDLE_S,
@@ -90,6 +93,12 @@ architecture rtl of CoaXPressRxLane is
       eventTag       : slv(7 downto 0);
       ackCnt         : natural range 0 to 15;
       eventId        : slv(31 downto 0);
+      eventPending   : sl;
+      eventReleaseCnt : natural range 0 to EVENT_BUFFER_DEPTH_C-1;
+      eventRamWrEn   : sl;
+      eventRamWrAddr : slv(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
+      eventRamWrData : slv(31 downto 0);
+      eventReadAddr  : slv(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
       -- Stream data payload
       streamID       : slv(7 downto 0);
       packetTag      : slv(7 downto 0);
@@ -114,6 +123,12 @@ architecture rtl of CoaXPressRxLane is
       eventTag       => (others => '0'),
       ackCnt         => 0,
       eventId        => (others => '0'),
+      eventPending   => '0',
+      eventReleaseCnt => 0,
+      eventRamWrEn   => '0',
+      eventRamWrAddr => (others => '0'),
+      eventRamWrData => (others => '0'),
+      eventReadAddr  => (others => '0'),
       -- Stream data payload
       streamID       => (others => '0'),
       packetTag      => (others => '0'),
@@ -132,6 +147,8 @@ architecture rtl of CoaXPressRxLane is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal eventRamRdData : slv(31 downto 0);
 
    function cxpCrcUpdate (
       crcIn : slv(31 downto 0);
@@ -166,7 +183,7 @@ architecture rtl of CoaXPressRxLane is
 
 begin
 
-   comb : process (r, rxData, rxDataK, rxLinkUp, rxRst) is
+   comb : process (eventRamRdData, r, rxData, rxDataK, rxLinkUp, rxRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -182,6 +199,29 @@ begin
       v.heatbeatMaster.tValid := '0';
       v.eventMaster.tValid    := '0';
       v.eventMaster.tLast     := '0';
+      v.eventRamWrEn          := '0';
+
+      -- Release event payload only after the packet CRC and EOP have passed.
+      if (r.eventPending = '1') then
+         v.eventMaster.tValid             := '1';
+         v.eventMaster.tData(31 downto 0) := eventRamRdData;
+         v.eventMaster.tKeep(3 downto 0)  := x"F";
+         v.eventMaster.tDest(7 downto 0)  := r.eventTag;
+         v.eventMaster.tUser(31 downto 0) := r.eventId;
+         if (r.eventReleaseCnt = (conv_integer(r.dsize)-1)) then
+            v.eventMaster.tLast   := '1';
+            v.eventPending        := '0';
+            v.eventReleaseCnt     := 0;
+            v.eventReadAddr       := (others => '0');
+         else
+            v.eventReleaseCnt := r.eventReleaseCnt + 1;
+            if (r.eventReleaseCnt < (conv_integer(r.dsize)-2)) then
+               v.eventReadAddr := r.eventReadAddr + 1;
+            else
+               v.eventReadAddr := (others => '0');
+            end if;
+         end if;
+      end if;
 
       -- Check for I/O
       if (rxDataK = x"F") and (rxData = CXP_IO_ACK_C) then
@@ -248,15 +288,25 @@ begin
                      -- Next State
                      v.state := CTRL_ACK_TAG_S;
 
-                  -- Check for "control acknowledge with tag"
+                  -- Check for "Event packet"
                   elsif (rxData = x"07_07_07_07") then
-                     -- Reset event parser counters
-                     v.ackCnt := 0;
-                     v.dcnt   := (others => '0');
-                     v.dsize  := (others => '0');
-                     v.crc    := x"FFFFFFFF";
-                     -- Next State
-                     v.state := EVENT_ACK_S;
+                     -- Check for pending event payload release
+                     if (r.eventPending = '0') then
+                        -- Reset event parser counters
+                        v.ackCnt          := 0;
+                        v.dcnt            := (others => '0');
+                        v.dsize           := (others => '0');
+                        v.eventReleaseCnt := 0;
+                        v.eventReadAddr   := (others => '0');
+                        v.crc             := x"FFFFFFFF";
+                        -- Next State
+                        v.state           := EVENT_ACK_S;
+                     else
+                        -- Set the flag
+                        v.errDet := '1';
+                        -- Next State
+                        v.state  := IDLE_S;
+                     end if;
 
                   -- Check for "Heartbeat Payload"
                   elsif (rxData = x"09_09_09_09") then
@@ -431,8 +481,11 @@ begin
                   -- Next State
                   if (r.dsize(15 downto 8) = 0) and (rxData(7 downto 0) = 0) then
                      v.state := EVENT_CRC_S;
-                  else
+                  elsif (r.dsize(15 downto 8) = 0) and (conv_integer(rxData(7 downto 0)) <= EVENT_BUFFER_DEPTH_C) then
                      v.state := EVENT_PAYLOAD_S;
+                  else
+                     v.errDet := '1';
+                     v.state  := IDLE_S;
                   end if;
                else
                   -- Set the flag
@@ -444,16 +497,12 @@ begin
             when EVENT_PAYLOAD_S =>
                -- Check for event payload word
                if (rxDataK = x"0") then
-                  v.eventMaster.tValid             := '1';
-                  v.eventMaster.tData(31 downto 0) := rxData;
-                  v.eventMaster.tKeep(3 downto 0)  := x"F";
-                  v.eventMaster.tDest(7 downto 0)  := r.eventTag;
-                  v.eventMaster.tUser(31 downto 0) := r.eventId;
-                  v.crc                            := cxpCrcUpdate(r.crc, rxData);
+                  v.eventRamWrEn   := '1';
+                  v.eventRamWrAddr := r.dcnt(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
+                  v.eventRamWrData := rxData;
+                  v.crc            := cxpCrcUpdate(r.crc, rxData);
                   -- Check the counter
                   if (r.dcnt = (r.dsize-1)) then
-                     -- Terminate the event payload frame
-                     v.eventMaster.tLast := '1';
                      -- Next State
                      v.state := EVENT_CRC_S;
                   else
@@ -486,6 +535,15 @@ begin
                   v.eventAck := '1';
                   -- Next State
                   v.state    := IDLE_S;
+                  if (r.dsize /= 0) then
+                     v.eventPending    := '1';
+                     v.eventReleaseCnt := 0;
+                     if (r.dsize = 1) then
+                        v.eventReadAddr := (others => '0');
+                     else
+                        v.eventReadAddr := toSlv(1, EVENT_BUFFER_ADDR_WIDTH_C);
+                     end if;
+                  end if;
                else
                   -- Set the flag
                   v.errDet := '1';
@@ -705,5 +763,21 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_EventBuffer : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 32,
+         ADDR_WIDTH_G  => EVENT_BUFFER_ADDR_WIDTH_C)
+      port map (
+         clka  => rxClk,
+         wea   => r.eventRamWrEn,
+         addra => r.eventRamWrAddr,
+         dina  => r.eventRamWrData,
+         clkb  => rxClk,
+         rstb  => rxRst,
+         addrb => r.eventReadAddr,
+         doutb => eventRamRdData);
 
 end rtl;
