@@ -105,12 +105,35 @@ architecture mapping of CoaXPressRx is
    signal dataIntSlave  : AxiStreamSlaveType;
 
    signal overflowData : slv(NUM_LANES_G-1 downto 0);
+   signal rxFsmRstSync : slv(NUM_LANES_G-1 downto 0);
+   signal rxLaneRst    : slv(NUM_LANES_G-1 downto 0);
+   signal rxPathRst    : sl;
+   signal dataPathRst  : sl;
 
 begin
 
    rxOverflow <= uOr(overflowData) or rxCtrl.overflow or hdrCtrl.overflow;
+   rxPathRst  <= rxRst(0) or rxFsmRst;
+
+   U_DataPathRst : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => dataClk,
+         asyncRst => dataRst or rxFsmRst,
+         syncRst  => dataPathRst);
 
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+
+      U_RxFsmRstSync : entity surf.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => rxClk(i),
+            asyncRst => rxFsmRst,
+            syncRst  => rxFsmRstSync(i));
+
+      rxLaneRst(i) <= rxRst(i) or rxFsmRstSync(i);
 
       U_Lane : entity surf.CoaXPressRxLane
          generic map (
@@ -146,7 +169,7 @@ begin
          port map (
             -- Slave Port
             sAxisClk    => rxClk(i),
-            sAxisRst    => rxRst(i),
+            sAxisRst    => rxLaneRst(i),
             sAxisMaster => dataMasters(i),
             sAxisCtrl   => dataCtrls(i),
             -- Master Port
@@ -210,14 +233,14 @@ begin
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (224/8), tDestBits => 0),
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- Slave Port
+            -- Slave Port
          sAxisClk    => rxClk(0),
-         sAxisRst    => rxRst(0),
+         sAxisRst    => rxPathRst,
          sAxisMaster => hdrMaster,
          sAxisCtrl   => hdrCtrl,
-         -- Master Port
+            -- Master Port
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => imageHdrMaster,
          mAxisSlave  => imageHdrSlave);
 
@@ -230,14 +253,14 @@ begin
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (4*NUM_LANES_G), tDestBits => 0),
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- INbound Interface
+            -- INbound Interface
          sAxisClk    => rxClk(0),
-         sAxisRst    => rxRst(0),
+         sAxisRst    => rxPathRst,
          sAxisMaster => fsmMaster,
          sAxisCtrl   => rxCtrl,
-         -- Outbound Interface
+            -- Outbound Interface
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => dataIntMaster,
          mAxisSlave  => dataIntSlave);
 
@@ -253,14 +276,14 @@ begin
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- Slave Port
+            -- Slave Port
          sAxisClk    => dataClk,
-         sAxisRst    => dataRst,
+         sAxisRst    => dataPathRst,
          sAxisMaster => dataIntMaster,
          sAxisSlave  => dataIntSlave,
-         -- Master Port
+            -- Master Port
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => dataMaster,
          mAxisSlave  => dataSlave);
 
