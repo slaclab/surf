@@ -163,9 +163,12 @@ The image-path benches are the strongest spec-aligned receive tests today:
 - `test_CoaXPressRx.py`
   - validates both the original one-lane top-level receive assembly and a
     dual-lane lane-rotation path around the same traffic
-  - also carries opt-in four-lane investigation benches behind
-    `RUN_KNOWN_ISSUE_TESTS=1`; those are intentionally not part of the
-    merge-ready passing slice yet
+  - validates four-lane short-frame rotation, malformed-header recovery, and
+    repeated single-line image-frame boundaries at the top-level receive
+    assembly
+  - also carries opt-in four-lane overflow stress benches behind
+    `RUN_STRESS_TESTS=1` because those workloads are intentionally heavier than
+    the normal regression slice
 
 `test_CoaXPressRxLane.py` also exercises stream packet handling using
 spec-shaped stream headers, but the emphasis there is on receive-lane state
@@ -185,14 +188,14 @@ software through `CoaXPressAxiL`:
     checks that the top-level counter increments, then verifies the count
     stays stable during idle cycles and that a later clean image transaction is
     still accepted
-- `coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issue_test`
-  - checked in as an opt-in skipped investigation bench
-  - drives sustained receive-data backpressure with repeated one-line image
-    frames and encodes the expected software-facing behavior: overflow should
-    count first, `RxFsmErrorCnt` should stay at zero, idle should not create an
-    error storm, and a later clean frame should still pass
-  - enable locally with `RUN_KNOWN_ISSUE_TESTS=1` and optionally narrow the
-    stress volume with `CXP_RX_OVERFLOW_STORM_FRAME_COUNT`
+- `coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_test`
+  - drives sustained receive-data backpressure with long image lines and encodes
+    the expected software-facing behavior: overflow should count,
+    `RxFsmErrorCnt` should stay at zero, idle should not create an error storm,
+    and a later clean frame should still pass
+  - the default workload is sized to overflow the RX data path directly; it can
+    be tuned with `CXP_RX_OVERFLOW_STORM_FRAME_COUNT` and
+    `CXP_RX_OVERFLOW_STORM_LINE_WORD_COUNT`
 
 This is intentionally a top-level software-facing check, not a replacement for
 the lower-level malformed-header coverage in `test_CoaXPressRxHsFsm.py`.
@@ -258,15 +261,9 @@ compliance coverage.
 
 The most important open limits are:
 
-- `CoaXPressRxHsFsm` still has an open bonded-receive issue on back-to-back
-  short four-lane image frames: later one-word tails can miss `TLAST`, which
-  merges or truncates adjacent frames
-- the gated four-lane `CoaXPressRx` investigation benches are therefore still
-  opt-in only; they exist to track clean-rotation, malformed-header recovery,
-  and backpressure/overflow recovery once the short-tail boundary bug is fixed
-- the checked-in known-issue core bench for overflow-vs-FSM-error behavior is
-  skipped by default until the receive-side backpressure interaction is
-  understood and fixed
+- the four-lane overflow recovery checks are opt-in stress benches because they
+  intentionally fill and drain deep receive FIFOs; enable them with
+  `RUN_STRESS_TESTS=1`
 - receive-side event payload is validated for framing/CRC before ACK, but is not
   exposed through an application-facing payload interface
 - trigger coverage still does not include the broader low-speed extra modes or

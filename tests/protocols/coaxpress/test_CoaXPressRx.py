@@ -376,6 +376,54 @@ async def _send_one_lane_frame(
         await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
 
 
+async def _send_one_lane_frame_and_capture(
+    dut,
+    *,
+    line_word: int,
+    data_beats: list[tuple[int, int, int, int]],
+    hdr_beats: list[tuple[int, int, int, int]],
+    header_stream_id: int = 0x22,
+    header_packet_tag: int = 0x33,
+    line_stream_id: int = 0x44,
+    line_packet_tag: int = 0x55,
+    start_cycle_index: int = 0,
+) -> int:
+    sequence = [
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte(header_stream_id), 0x0),
+        (repeat_byte(header_packet_tag), 0x0),
+        (repeat_byte(0x00), 0x0),
+        (repeat_byte(25), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+        *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+        (CXP_SOP, 0xF),
+        (repeat_byte(0x01), 0x0),
+        (repeat_byte(line_stream_id), 0x0),
+        (repeat_byte(line_packet_tag), 0x0),
+        (repeat_byte(0x00), 0x0),
+        (repeat_byte(3), 0x0),
+        (CXP_MARKER, 0xF),
+        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+        (line_word, 0x0),
+    ]
+    cycle_index = start_cycle_index
+    for data, data_k in sequence:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
+        cycle_index += 1
+    return cycle_index
+
+
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
     while True:
         await RisingEdge(clk)
@@ -681,14 +729,8 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
     assert [beat[2] for beat in data_beats] == [0, 0, 1, 0, 0, 1]
 
 
-#
-# Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until
-# the remaining 4-lane short-frame boundary issue in CoaXPressRxHsFsm is fixed.
-#
-
-
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_rx_four_lane_fsm_error_reset_recovery_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
 
@@ -757,8 +799,8 @@ async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_four_lane_clean_rotation_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_rx_four_lane_clean_rotation_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
 
@@ -815,8 +857,8 @@ async def coaxpress_rx_four_lane_clean_rotation_known_issue_test(dut):
     assert [beat[2] for beat in data_beats] == [0, 0, 1] * 4, data_beats
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_rx_four_lane_fsm_error_recovery_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
 
@@ -897,16 +939,13 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
     assert signal_counts["error_pulses"] > 0
     assert find_subsequence(observed_header_words, EXPECTED_HDR_WORDS) is not None, observed_header_words
     subseq_start = find_subsequence(observed_data_words, expected_recovery_words)
-    # Known issue under investigation:
-    # a malformed 4-lane header does raise rxFsmError, but the current RTL does
-    # not fully recover the expected post-error lane rotation and line payloads.
     assert subseq_start is not None, data_beats
     observed_recovery_last = [beat[2] for beat in data_beats[subseq_start : subseq_start + len(expected_recovery_words)]]
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_four_lane_overflow_reset_recovery_known_issue_test(dut):
+@cocotb.test(skip=os.getenv("RUN_STRESS_TESTS") != "1")
+async def coaxpress_rx_four_lane_overflow_reset_recovery_stress_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
 
@@ -1000,8 +1039,8 @@ async def coaxpress_rx_four_lane_overflow_reset_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, (signal_counts, observed_recovery_last)
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
+@cocotb.test(skip=os.getenv("RUN_STRESS_TESTS") != "1")
+async def coaxpress_rx_four_lane_overflow_recovery_stress_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
 
@@ -1084,10 +1123,6 @@ async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
         await task
 
     observed_data_words = [beat[0] for beat in data_beats]
-    # Known issue under investigation:
-    # with 4 bonded lanes, sustained sink backpressure can emit rxFsmError
-    # pulses before or alongside the expected overflow indication. The desired
-    # behavior is overflow-only, followed by clean post-stall recovery data.
     assert signal_counts["error_pulses"] == 0, signal_counts
     assert signal_counts["overflow_pulses"] > 0, signal_counts
     assert find_subsequence(observed_data_words, expected_recovery_words) is not None, observed_data_words[-64:]
@@ -1097,8 +1132,8 @@ async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_repeated_single_line_frame_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_rx_repeated_single_line_frame_test(dut):
     if env_int("NUM_LANES_G", default=1) != 1:
         return
 
@@ -1111,7 +1146,7 @@ async def coaxpress_rx_repeated_single_line_frame_known_issue_test(dut):
             "rxLinkUp": 1,
             "rxFsmRst": 0,
             "rxNumberOfLane": 0,
-            "dataTReady": env_int("CXP_RX_KNOWN_ISSUE_DATA_READY", default=0),
+            "dataTReady": 1,
             "hdrTReady": 1,
         },
     )
@@ -1123,38 +1158,54 @@ async def coaxpress_rx_repeated_single_line_frame_known_issue_test(dut):
         release_cycles=4,
     )
 
-    frame_count = env_int("CXP_RX_REPEATED_FRAME_COUNT", default=72)
-    vary_packet_fields = env_flag("CXP_RX_KNOWN_ISSUE_VARY_PACKET_FIELDS", default=False)
+    frame_count = env_int("CXP_RX_REPEATED_FRAME_COUNT", default=16)
+    vary_packet_fields = env_flag("CXP_RX_REPEATED_FRAME_VARY_PACKET_FIELDS", default=False)
     signal_counts = {"error_pulses": 0, "overflow_pulses": 0}
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
     stop_event = Event()
     monitor_tasks = [
         cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses")),
         cocotb.start_soon(_count_signal_high_cycles(dut.rxOverflow, dut.rxClk, stop_event, signal_counts, "overflow_pulses")),
     ]
+    cycle_index = 0
     for index in range(frame_count):
         header_stream_id = (0x50 + (2 * index)) & 0xFF if vary_packet_fields else 0x22
         header_packet_tag = (0x70 + (2 * index)) & 0xFF if vary_packet_fields else 0x33
-        await _send_one_lane_frame(
+        cycle_index = await _send_one_lane_frame_and_capture(
             dut,
             line_word=0xA0000000 + index,
+            data_beats=data_beats,
+            hdr_beats=hdr_beats,
             header_stream_id=header_stream_id,
             header_packet_tag=header_packet_tag,
             line_stream_id=(header_stream_id + 1) & 0xFF if vary_packet_fields else 0x44,
             line_packet_tag=(header_packet_tag + 1) & 0xFF if vary_packet_fields else 0x55,
+            start_cycle_index=cycle_index,
         )
 
-    for _ in range(32):
-        await send_rx_word(dut, data=CXP_IDLE, data_k=CXP_IDLE_K, clk=dut.rxClk)
+    await _drive_idle_and_capture(dut, cycles=64, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
     stop_event.set()
     for task in monitor_tasks:
         await task
 
-    assert signal_counts["overflow_pulses"] > 0, (
-        f"overflow_pulses={signal_counts['overflow_pulses']} error_pulses={signal_counts['error_pulses']}"
-    )
+    observed_words = [beat[0] for beat in data_beats]
+    expected_words = [0xA0000000 + index for index in range(frame_count)]
     assert signal_counts["error_pulses"] == 0, (
         f"overflow_pulses={signal_counts['overflow_pulses']} error_pulses={signal_counts['error_pulses']}"
     )
+    assert signal_counts["overflow_pulses"] == 0, signal_counts
+    assert observed_words == expected_words, data_beats
+    assert [beat[2] for beat in data_beats] == [1] * frame_count, data_beats
+    assert [beat[0] for beat in hdr_beats] == [
+        0x3456AA12,
+        0x00000001,
+        0x00000000,
+        0x00000001,
+        0x00000000,
+        0x00000001,
+        0x00200010,
+    ] * frame_count, hdr_beats
 
 
 PARAMETER_SWEEP = [

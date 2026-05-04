@@ -21,8 +21,6 @@
 # - Timing: The source holds each beat until `sAxisTReady` rises so the checks
 #   reflect the FSM's actual per-beat acceptance rather than idealized traffic.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
@@ -776,8 +774,8 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     ], trace
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_rx_hs_fsm_repeated_single_line_frame_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_rx_hs_fsm_repeated_single_line_frame_test(dut):
     if env_int("NUM_LANES_G", default=1) != 1:
         return
 

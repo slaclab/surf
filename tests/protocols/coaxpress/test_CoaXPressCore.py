@@ -306,17 +306,16 @@ async def coaxpress_core_rx_fsm_error_counter_and_recovery_test(dut):
     assert await _read_counter(axil, dut, 0x824) == first_error_count
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_test(dut):
     axil = await _setup_core(dut, data_ready=0, hdr_ready=1)
 
     assert await _read_counter(axil, dut, 0x820) == 0
     assert await _read_counter(axil, dut, 0x824) == 0
 
-    frame_count = env_int("CXP_RX_OVERFLOW_STORM_FRAME_COUNT", default=96)
-    # Hold opaque stream metadata constant to separate a true backpressure issue
-    # from metadata-sensitive parsing behavior in the exploratory bench.
-    fixed_packet_fields = env_flag("CXP_CORE_KNOWN_ISSUE_FIXED_PACKET_FIELDS", default=False)
+    frame_count = env_int("CXP_RX_OVERFLOW_STORM_FRAME_COUNT", default=8)
+    line_word_count = env_int("CXP_RX_OVERFLOW_STORM_LINE_WORD_COUNT", default=96)
+    vary_packet_fields = env_flag("CXP_CORE_RX_OVERFLOW_VARY_PACKET_FIELDS", default=True)
     signal_counts = {
         "core_rx_fsm_error": 0,
         "core_rx_overflow": 0,
@@ -369,15 +368,15 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
 
     for index in range(frame_count):
         phase_trace["frame_index"] = index
-        stream_id = 0x50 if fixed_packet_fields else (0x50 + (2 * index)) & 0xFF
-        packet_tag = 0x70 if fixed_packet_fields else (0x70 + (2 * index)) & 0xFF
+        stream_id = (0x50 + (2 * index)) & 0xFF if vary_packet_fields else 0x50
+        packet_tag = (0x70 + (2 * index)) & 0xFF if vary_packet_fields else 0x70
         await _send_image_frame(
             dut,
             stream_id=stream_id,
             packet_tag=packet_tag,
             y_size=1,
-            dsize_l=1,
-            line_words=[0x10000000 + index],
+            dsize_l=line_word_count,
+            line_words=[0x10000000 | (index << 12) | word_index for word_index in range(line_word_count)],
         )
 
     phase_trace["label"] = "idle_quiesce"
@@ -391,10 +390,6 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
     for task in monitor_tasks:
         await task
 
-    # Known issue under investigation:
-    # with the current 72-frame workload the realistic core path still shows no
-    # RX overflow. The remaining anomaly is a late lone RxFsmError pulse that
-    # only appears when the bench sweeps packet stream/tag fields.
     assert overflow_count > 0, (
         f"overflow_count={overflow_count} first_error_count={first_error_count} "
         f"core_overflow={signal_counts['core_rx_overflow']} core_error={signal_counts['core_rx_fsm_error']} "
@@ -424,6 +419,8 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
     await _collect_core_outputs(dut, cycles=256)
     released_error_count = await _read_counter(axil, dut, 0x824)
     assert released_error_count == first_error_count
+
+    await _collect_core_outputs(dut, cycles=env_int("CXP_RX_OVERFLOW_STORM_DRAIN_CYCLES", default=1024))
 
     await _send_image_frame(
         dut,
