@@ -49,27 +49,27 @@ end entity Pgp4CoreWrapper;
 
 architecture rtl of Pgp4CoreWrapper is
 
-   constant TUSER_WIDTH_C     : positive := 1;
-   constant TID_WIDTH_C       : positive := 1;
-   constant TDEST_WIDTH_C     : positive := 1;
-   constant TDATA_NUM_BYTES_C : positive := 8;
-   signal axisClk : sl := '0';
-   signal axisRst : sl := '0';
-   signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal pgpTxIn  : Pgp4TxInType := PGP4_TX_IN_INIT_C;
-   signal pgpTxOut : Pgp4TxOutType;
-   signal phyValid  : sl               := '0';
-   signal phyData   : slv(63 downto 0) := (others => '0');
-   signal phyHeader : slv(1 downto 0)  := (others => '0');
-   signal pgpRxIn  : Pgp4RxInType := PGP4_RX_IN_INIT_C;
-   signal pgpRxOut : Pgp4RxOutType;
-   signal pgpRxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpRxCtrl   : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
-   signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   constant TUSER_WIDTH_C     : positive            := 1;
+   constant TID_WIDTH_C       : positive            := 1;
+   constant TDEST_WIDTH_C     : positive            := 1;
+   constant TDATA_NUM_BYTES_C : positive            := 8;
+   signal axisClk             : sl                  := '0';
+   signal axisRst             : sl                  := '0';
+   signal sAxisMaster         : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave          : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal pgpTxMaster         : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave          : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal pgpTxIn             : Pgp4TxInType        := PGP4_TX_IN_INIT_C;
+   signal pgpTxOut            : Pgp4TxOutType;
+   signal phyValid            : sl                  := '0';
+   signal phyData             : slv(63 downto 0)    := (others => '0');
+   signal phyHeader           : slv(1 downto 0)     := (others => '0');
+   signal pgpRxIn             : Pgp4RxInType        := PGP4_RX_IN_INIT_C;
+   signal pgpRxOut            : Pgp4RxOutType;
+   signal pgpRxMaster         : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal pgpRxCtrl           : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
+   signal mAxisMaster         : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave          : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin
 
