@@ -165,6 +165,7 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
 
     cfg_beats: list[dict[str, int]] = []
     heartbeat_beats: list[dict[str, int]] = []
+    event_beats: list[dict[str, int]] = []
     event_pulses: list[tuple[int, int]] = []
 
     async def drive(data: int, data_k: int, *, link_up: int = 1) -> None:
@@ -182,6 +183,15 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
                 {
                     "heartbeatTData": int(dut.heartbeatTData.value),
                     "heartbeatTLast": int(dut.heartbeatTLast.value),
+                }
+            )
+        if int(dut.eventTValid.value) == 1:
+            event_beats.append(
+                {
+                    "eventTData": int(dut.eventTData.value),
+                    "eventTDest": int(dut.eventTDest.value),
+                    "eventTUser": int(dut.eventTUser.value),
+                    "eventTLast": int(dut.eventTLast.value),
                 }
             )
         if int(dut.eventAck.value) == 1:
@@ -242,6 +252,14 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
         {"cfgTData": (0x89ABCDEF << 32)},
     ]
     assert event_pulses == [(1, 0x5A)]
+    assert event_beats == [
+        {
+            "eventTData": 0x11223344,
+            "eventTDest": 0x5A,
+            "eventTUser": 0x13121110,
+            "eventTLast": 1,
+        }
+    ]
     assert heartbeat_beats == [
         {
             "heartbeatTData": sum((word << (8 * (word - 0x20))) for word in range(0x20, 0x2C)),

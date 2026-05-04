@@ -35,6 +35,11 @@ entity CoaXPressRxLaneWrapper is
       heartbeatTValid : out sl;
       heartbeatTData  : out slv(95 downto 0);
       heartbeatTLast  : out sl;
+      eventTValid     : out sl;
+      eventTData      : out slv(31 downto 0);
+      eventTDest      : out slv(7 downto 0);
+      eventTUser      : out slv(31 downto 0);
+      eventTLast      : out sl;
       ioAck           : out sl;
       eventAck        : out sl;
       eventTag        : out slv(7 downto 0);
@@ -46,6 +51,7 @@ architecture rtl of CoaXPressRxLaneWrapper is
    signal cfgMaster      : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal dataMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal heartbeatMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal eventMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal imageHdrMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
 begin
@@ -60,6 +66,11 @@ begin
    heartbeatTValid <= heartbeatMaster.tValid;
    heartbeatTData  <= heartbeatMaster.tData(95 downto 0);
    heartbeatTLast  <= heartbeatMaster.tLast;
+   eventTValid     <= eventMaster.tValid;
+   eventTData      <= eventMaster.tData(31 downto 0);
+   eventTDest      <= eventMaster.tDest(7 downto 0);
+   eventTUser      <= eventMaster.tUser(31 downto 0);
+   eventTLast      <= eventMaster.tLast;
 
    -- Instantiate the real receive-lane decoder with the flattened ports.
    U_DUT : entity surf.CoaXPressRxLane
@@ -71,6 +82,7 @@ begin
          cfgMaster      => cfgMaster,
          dataMaster     => dataMaster,
          heatbeatMaster => heartbeatMaster,
+         eventMaster    => eventMaster,
          imageHdrMaster => imageHdrMaster,
          ioAck          => ioAck,
          eventAck       => eventAck,

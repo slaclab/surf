@@ -48,7 +48,14 @@ entity CoaXPressOverFiberBridge is
       rxClk312   : in  sl;
       rxRst312   : in  sl;
       rxData     : out slv(31 downto 0);
-      rxDataK    : out slv(3 downto 0));
+      rxDataK    : out slv(3 downto 0);
+      rxError    : out sl;
+      rxAbort    : out sl;
+      seqValid   : out sl;
+      seqData    : out slv(23 downto 0);
+      hkpValid   : out sl;
+      hkpData    : out slv(31 downto 0);
+      hkpEop     : out sl);
 end entity CoaXPressOverFiberBridge;
 
 architecture mapping of CoaXPressOverFiberBridge is
@@ -92,7 +99,15 @@ begin
          xgmiiRxc => rxc,
          -- CXP interface
          rxData   => rxData,
-         rxDataK  => rxDataK);
+         rxDataK  => rxDataK,
+         -- Status Interface
+         rxError  => rxError,
+         rxAbort  => rxAbort,
+         seqValid => seqValid,
+         seqData  => seqData,
+         hkpValid => hkpValid,
+         hkpData  => hkpData,
+         hkpEop   => hkpEop);
 
    GEN_TX : if (LANE0_G = true) generate
 

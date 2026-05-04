@@ -40,6 +40,8 @@ entity CoaXPressRxLane is
       dataMaster     : out AxiStreamMasterType;
       -- Heartbeat Interface
       heatbeatMaster : out AxiStreamMasterType;
+      -- Event payload Interface
+      eventMaster    : out AxiStreamMasterType;
       -- Image header Interface
       imageHdrMaster : out AxiStreamMasterType;
       -- ACK Interface
@@ -87,6 +89,7 @@ architecture rtl of CoaXPressRxLane is
       eventAck       : sl;
       eventTag       : slv(7 downto 0);
       ackCnt         : natural range 0 to 15;
+      eventId        : slv(31 downto 0);
       -- Stream data payload
       streamID       : slv(7 downto 0);
       packetTag      : slv(7 downto 0);
@@ -98,6 +101,7 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      : AxiStreamMasterType;
       dataMaster     : AxiStreamMasterType;
       heatbeatMaster : AxiStreamMasterType;
+      eventMaster    : AxiStreamMasterType;
       -- State Types
       saved          : StateType;
       state          : StateType;
@@ -109,6 +113,7 @@ architecture rtl of CoaXPressRxLane is
       eventAck       => '0',
       eventTag       => (others => '0'),
       ackCnt         => 0,
+      eventId        => (others => '0'),
       -- Stream data payload
       streamID       => (others => '0'),
       packetTag      => (others => '0'),
@@ -120,6 +125,7 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      => AXI_STREAM_MASTER_INIT_C,
       dataMaster     => AXI_STREAM_MASTER_INIT_C,
       heatbeatMaster => AXI_STREAM_MASTER_INIT_C,
+      eventMaster    => AXI_STREAM_MASTER_INIT_C,
       -- State Types
       saved          => IDLE_S,
       state          => IDLE_S);
@@ -174,6 +180,8 @@ begin
       v.dataMaster.tValid     := '0';
       v.dataMaster.tLast      := '0';
       v.heatbeatMaster.tValid := '0';
+      v.eventMaster.tValid    := '0';
+      v.eventMaster.tLast     := '0';
 
       -- Check for I/O
       if (rxDataK = x"F") and (rxData = CXP_IO_ACK_C) then
@@ -369,7 +377,13 @@ begin
                   v.ackCnt := r.ackCnt + 1;
 
                   -- Packet Tag index
-                  if (r.ackCnt = 4) then
+                  if (r.ackCnt < 4) then
+
+                     -- Save the event identifier bytes for payload sideband use.
+                     v.eventId(8*r.ackCnt+7 downto 8*r.ackCnt) := rxData(7 downto 0);
+
+                  -- Packet Tag index
+                  elsif (r.ackCnt = 4) then
 
                      -- Save the packet tag
                      v.eventTag := rxData(7 downto 0);
@@ -430,9 +444,16 @@ begin
             when EVENT_PAYLOAD_S =>
                -- Check for event payload word
                if (rxDataK = x"0") then
-                  v.crc := cxpCrcUpdate(r.crc, rxData);
+                  v.eventMaster.tValid             := '1';
+                  v.eventMaster.tData(31 downto 0) := rxData;
+                  v.eventMaster.tKeep(3 downto 0)  := x"F";
+                  v.eventMaster.tDest(7 downto 0)  := r.eventTag;
+                  v.eventMaster.tUser(31 downto 0) := r.eventId;
+                  v.crc                            := cxpCrcUpdate(r.crc, rxData);
                   -- Check the counter
                   if (r.dcnt = (r.dsize-1)) then
+                     -- Terminate the event payload frame
+                     v.eventMaster.tLast := '1';
                      -- Next State
                      v.state := EVENT_CRC_S;
                   else
@@ -662,6 +683,7 @@ begin
       cfgMaster      <= r.cfgMaster;
       dataMaster     <= r.dataMaster;
       heatbeatMaster <= r.heatbeatMaster;
+      eventMaster    <= r.eventMaster;
       ioAck          <= r.ioAck;
       eventAck       <= r.eventAck;
       eventTag       <= r.eventTag;

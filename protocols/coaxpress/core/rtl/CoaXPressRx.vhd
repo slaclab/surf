@@ -43,6 +43,8 @@ entity CoaXPressRx is
       cfgClk         : in  sl;
       cfgRst         : in  sl;
       cfgRxMaster    : out AxiStreamMasterType;
+      eventMaster    : out AxiStreamMasterType;
+      eventSlave     : in  AxiStreamSlaveType;
       -- Event ACK Interface (cfgClk domain)
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
@@ -82,9 +84,19 @@ architecture mapping of CoaXPressRx is
       TUSER_BITS_C  => NARROW_AXIS_CONFIG_C.TUSER_BITS_C,
       TUSER_MODE_C  => NARROW_AXIS_CONFIG_C.TUSER_MODE_C);
 
+   constant EVENT_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_NORMAL_C);
+
    signal ioAck       : slv(NUM_LANES_G-1 downto 0);
    signal eventAckVec : slv(NUM_LANES_G-1 downto 0);
    signal eventTagVec : Slv8Array(NUM_LANES_G-1 downto 0);
+   signal eventMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
    signal rxLaneError : slv(NUM_LANES_G-1 downto 0);
    signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
@@ -149,6 +161,8 @@ begin
             cfgMaster  => cfgMasters(i),
             -- Data Interface
             dataMaster => dataMasters(i),
+            -- Event payload Interface
+            eventMaster => eventMasters(i),
             -- ACK Interface
             ioAck      => ioAck(i),
             eventAck   => eventAckVec(i),
@@ -337,5 +351,28 @@ begin
          rd_clk => cfgClk,
          valid  => eventAck,
          dout   => eventTag);
+
+   U_EventPayload : entity surf.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         -- FIFO configurations
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => EVENT_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => EVENT_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => rxClk(0),
+         sAxisRst    => rxRst(0),
+         sAxisMaster => eventMasters(0),
+         -- Master Port
+         mAxisClk    => cfgClk,
+         mAxisRst    => cfgRst,
+         mAxisMaster => eventMaster,
+         mAxisSlave  => eventSlave);
 
 end mapping;

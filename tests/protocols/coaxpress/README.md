@@ -51,17 +51,17 @@ intentional limitation, not as silent proof of complete spec compliance.
 | --- | --- | --- | --- |
 | `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, truncated-event guardrails, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
+| `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, event payload forwarding plus trailer-gated ACK, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
 | `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
-| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
+| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event-payload assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
 | `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, timeout/status-error responses, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
 | `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
-| `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words | Partial protocol |
-| `test_CoaXPressOverFiberBridge.py` | `CoaXPressOverFiberBridge` | Top-level 32b/64b gearbox integration around the bridge leaf mapping | RTL-contract with spec framing |
+| `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words, plus `/Q/`, `/E/`, and HKP status pulses | Partial protocol |
+| `test_CoaXPressOverFiberBridge.py` | `CoaXPressOverFiberBridge` | Top-level 32b/64b gearbox integration around the bridge leaf mapping and RX bridge status forwarding | RTL-contract with spec framing |
 
 ## Spec Section Notes
 
@@ -181,6 +181,21 @@ bad-payload drop contract. Bad stream trailers pulse `rxError`, which the
 receive assembly aggregates into `rxFsmError` and the core exposes through the
 existing `RxFsmErrorCnt` software counter.
 
+### Receive event payload stream
+
+`CoaXPressRxLane` now exposes event payload words on an AXI-stream style
+`eventMaster` interface while preserving the legacy `eventAck/eventTag` trailer
+completion pulse. The event payload stream carries each 32-bit event payload
+word as it is parsed, uses `TDEST[7:0]` for the packet tag, and publishes the
+event ID bytes on `TUSER[31:0]` at the lane boundary. The `CoaXPressRx`
+assembly crosses that payload stream into the `cfgClk` domain with an
+`AxiStreamFifoV2`.
+
+Like the stream-data path, this is a forwarding interface rather than a
+buffered validate-then-release interface: payload words are delivered before the
+event CRC and `EOP` trailer are known to be good, while `eventAck/eventTag` is
+still generated only after the validated trailer.
+
 ### Software-visible overflow and FSM-error status
 
 `test_CoaXPressCore.py` now covers the two receive-status counters exposed to
@@ -232,27 +247,32 @@ Current checked-in coverage:
   - embedded EOP K-code reconstruction for stream marker and packet-end words
   - HKP forwarding, including a housekeeping-to-payload transition and an
     HKP-carried CXP EOP word
+  - `hkpValid/hkpData/hkpEop` status for HKP words that are forwarded on the
+    reconstructed CXP side
+  - lane-0 `/Q/` sequence status through `seqValid/seqData` while preserving
+    no-output behavior on the CXP word stream
+  - `/E/` status through `rxError/rxAbort` for idle and active-packet error
+    ordered sets
   - negative lane-placement checks for `/S/`, `/Q/`, `/T/`, and `/E/`
-  - lane-0 `/Q/` no-output guardrail, `/E/` packet abort behavior before and
+  - lane-0 `/Q/` no-output behavior, `/E/` packet abort behavior before and
     after payload, and recovery to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
   - RX-side 64b gearbox coverage for `/E/` abort/recovery, HKP-to-payload
-    transition, and lane-0 `/Q/` no-output/recovery guardrails
+    transition, and lane-0 `/Q/` status/no-output/recovery guardrails
 
 Still open on the bridge side:
 
-- normative `/Q/` sequence handling beyond the current no-output/recovery guardrails
-- fuller `/E/` error semantics beyond malformed-placement and abort-and-recover guardrails
-- full housekeeping protocol semantics beyond raw HKP forwarding and the current
-  HKP-to-payload transition check
+- normative `/Q/` sequence policy beyond publishing the ordered-set data
+- fuller `/E/` error classification beyond the current abort/error pulse
+- full housekeeping protocol semantics beyond HKP word/EOP classification and
+  raw forwarding
 
 Current RTL support limits observed while expanding the bridge tests:
 
-- `/Q/` ordered sets are not decoded into any bridge-visible state, sequence
-  tracker, status output, or CXP-side indication. The current contract is only
-  that `/Q/` in the interpacket gap is suppressed and later valid traffic
-  recovers.
+- `/Q/` ordered sets are not decoded into the CXP-side word stream. The current
+  contract is status-only publication of the ordered-set data plus recovery to
+  later valid traffic.
 - `/E/` has no bridge-visible status output. When it appears during a packet,
   the RX bridge aborts the active nGMII packet and returns to idle; if the start
   word was already accepted, the CXP `SOP` and packet-type words may already

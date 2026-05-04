@@ -357,6 +357,13 @@ begin
          rxClk312   => phyClk312,
          rxRst312   => phyRst312,
          rxData     => rxData,
-         rxDataK    => rxDataK);
+         rxDataK    => rxDataK,
+         rxError    => open,
+         rxAbort    => open,
+         seqValid   => open,
+         seqData    => open,
+         hkpValid   => open,
+         hkpData    => open,
+         hkpEop     => open);
 
 end mapping;

@@ -35,7 +35,15 @@ entity CoaXPressOverFiberBridgeRx is
       xgmiiRxc : in  slv(3 downto 0);
       -- Rx PHY Interface
       rxData   : out slv(31 downto 0);
-      rxDataK  : out slv(3 downto 0));
+      rxDataK  : out slv(3 downto 0);
+      -- Status Interface
+      rxError  : out sl;
+      rxAbort  : out sl;
+      seqValid : out sl;
+      seqData  : out slv(23 downto 0);
+      hkpValid : out sl;
+      hkpData  : out slv(31 downto 0);
+      hkpEop   : out sl);
 end entity CoaXPressOverFiberBridgeRx;
 
 architecture rtl of CoaXPressOverFiberBridgeRx is
@@ -47,6 +55,12 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
 
    type RegType is record
       errDet  : sl;
+      rxAbort : sl;
+      seqValid : sl;
+      seqData : slv(23 downto 0);
+      hkpValid : sl;
+      hkpData : slv(31 downto 0);
+      hkpEop  : sl;
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
@@ -54,6 +68,12 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
 
    constant REG_INIT_C : RegType := (
       errDet  => '0',
+      rxAbort => '0',
+      seqValid => '0',
+      seqData => (others => '0'),
+      hkpValid => '0',
+      hkpData => (others => '0'),
+      hkpEop  => '0',
       rxData  => (others => CXP_IDLE_C),
       rxDataK => (others => CXP_IDLE_K_C),
       state   => IDLE_S);
@@ -73,7 +93,11 @@ begin
       v := r;
 
       -- Reset strobe
-      v.errDet := '0';
+      v.errDet   := '0';
+      v.rxAbort  := '0';
+      v.seqValid := '0';
+      v.hkpValid := '0';
+      v.hkpEop   := '0';
 
       -- Update shift register
       v.rxDataK(1) := CXP_IDLE_K_C;
@@ -125,6 +149,20 @@ begin
 
                end if;
 
+            -- Check for lane-0 sequence ordered set
+            elsif (xgmiiRxc = "0001") and (xgmiiRxd(7 downto 0) = CXPOF_SEQ_C) then
+
+               -- Publish the sequence data without reconstructing a CXP word.
+               v.seqValid := '1';
+               v.seqData  := xgmiiRxd(31 downto 8);
+
+            -- Check for lane-0 error ordered set while idle
+            elsif (xgmiiRxc = "0001") and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
+
+               -- Publish an error pulse even when no packet payload is active.
+               v.errDet  := '1';
+               v.rxAbort := '1';
+
             elsif (xgmiiRxc /= x"F") or (xgmiiRxd /= x"07_07_07_07") then
                -- Set the flag
                v.errDet := '1';
@@ -134,8 +172,11 @@ begin
             -- Send HKP
             v.rxDataK(1) := x"F";
             v.rxData(1)  := xgmiiRxd;
+            v.hkpValid   := '1';
+            v.hkpData    := xgmiiRxd;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
+               v.hkpEop := '1';
                -- Next State
                v.state := IDLE_S;
             else
@@ -149,6 +190,14 @@ begin
                -- Send Type
                v.rxDataK(1) := x"0";
                v.rxData(1)  := xgmiiRxd;
+
+            -- Check for error ordered set
+            elsif (xgmiiRxc = "0001") and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
+
+               -- Abort the active packet without synthesizing a CXP EOP.
+               v.errDet  := '1';
+               v.rxAbort := '1';
+               v.state   := IDLE_S;
 
             -- Check for EOP
             elsif (xgmiiRxc = "1100") and (xgmiiRxd(31 downto 8) = x"07_FD_00") then
@@ -181,6 +230,13 @@ begin
       -- Outputs
       rxDataK <= r.rxDataK(0);
       rxData  <= r.rxData(0);
+      rxError <= r.errDet;
+      rxAbort <= r.rxAbort;
+      seqValid <= r.seqValid;
+      seqData  <= r.seqData;
+      hkpValid <= r.hkpValid;
+      hkpData  <= r.hkpData;
+      hkpEop   <= r.hkpEop;
 
       -- Reset
       if (rst = '1') then

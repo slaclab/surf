@@ -181,6 +181,15 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=64))
+    abort_samples: list[int] = []
+
+    async def capture_abort(cycles: int) -> None:
+        for _ in range(cycles):
+            await RisingEdge(dut.rxClk312)
+            await Timer(1, unit="ns")
+            if int(dut.rxAbort.value) == 1:
+                abort_samples.append(int(dut.rxError.value))
+    abort_capture = cocotb.start_soon(capture_abort(64))
 
     # Start a valid low-speed packet, then inject `/E/` as the next 32-bit word.
     # The first packet must not receive a synthetic CXP EOP.
@@ -201,6 +210,7 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     await _drive_rx64(dut, 0x07FD00FD | (repeat_byte(CXPOF_IDLE) << 32), 0xFC)
     await _drive_rx64(dut, _idle64(), 0xFF)
 
+    await abort_capture
     rx_observed = await rx_capture
     rx_expected = [
         (CXP_SOP, 0xF),
@@ -214,6 +224,7 @@ async def coaxpress_over_fiber_bridge_top_rx_error_abort_and_recovery_test(dut):
     assert find_subsequence(rx_observed, rx_expected) is not None, (
         f"missing RX /E/ recovery sequence: {rx_observed}"
     )
+    assert abort_samples == [1]
 
 
 @cocotb.test()
@@ -221,18 +232,29 @@ async def coaxpress_over_fiber_bridge_top_rx_hkp_then_payload_mix_test(dut):
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=48))
+    hkp_samples: list[tuple[int, int]] = []
+
+    async def capture_hkp(cycles: int) -> None:
+        for _ in range(cycles):
+            await RisingEdge(dut.rxClk312)
+            await Timer(1, unit="ns")
+            if int(dut.hkpValid.value) == 1:
+                hkp_samples.append((int(dut.hkpData.value), int(dut.hkpEop.value)))
+    hkp_capture = cocotb.start_soon(capture_hkp(48))
 
     hkp_word = 0x9C5C3CBC
     await _drive_rx64(dut, _rx_hkp_start_word() | (hkp_word << 32), 0xF1)
     await _drive_rx64(dut, 0x10203040 | (0x07FD00FD << 32), 0xC0)
     await _drive_rx64(dut, _idle64(), 0xFF)
 
+    await hkp_capture
     rx_observed = await rx_capture
     rx_expected = [
         (hkp_word, 0xF),
         (0x10203040, 0x0),
         (CXP_EOP, 0xF),
     ]
+    assert hkp_samples == [(hkp_word, 0)]
     assert find_subsequence(rx_observed, rx_expected) is not None, f"missing RX HKP/data sequence: {rx_observed}"
 
 
@@ -241,10 +263,19 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
     await _setup_bridge(dut)
 
     rx_capture = cocotb.start_soon(_capture_rx_words(dut, cycles=64))
+    seq_samples: list[int] = []
 
-    # Lane-0 `/Q/` is not decoded into a CXP word by the current RX bridge. The
-    # top-level gearbox should preserve that no-output guardrail and allow a
-    # later valid low-speed packet to recover.
+    async def capture_seq(cycles: int) -> None:
+        for _ in range(cycles):
+            await RisingEdge(dut.rxClk312)
+            await Timer(1, unit="ns")
+            if int(dut.seqValid.value) == 1:
+                seq_samples.append(int(dut.seqData.value))
+    seq_capture = cocotb.start_soon(capture_seq(64))
+
+    # Lane-0 `/Q/` is published through the status interface, not decoded into a
+    # CXP word. The top-level gearbox should preserve that no-output guardrail
+    # and allow a later valid low-speed packet to recover.
     await _drive_rx64(
         dut,
         (CXPOF_SEQ | (0x12 << 16) | (0x34 << 24)) | (_idle64() & 0xFFFFFFFF00000000),
@@ -256,6 +287,7 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
     await _drive_rx64(dut, 0x07FD00FD | (repeat_byte(CXPOF_IDLE) << 32), 0xFC)
     await _drive_rx64(dut, _idle64(), 0xFF)
 
+    await seq_capture
     rx_observed = await rx_capture
     rx_expected = [
         (CXP_SOP, 0xF),
@@ -263,6 +295,7 @@ async def coaxpress_over_fiber_bridge_top_rx_sequence_no_output_recovery_test(du
         (0xA1B2C3D4, 0x0),
         (CXP_EOP, 0xF),
     ]
+    assert seq_samples == [0x341200]
     assert rx_observed == rx_expected
 
 

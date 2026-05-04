@@ -221,10 +221,12 @@ def _capture_outputs(
     event_tags: list[int],
     trig_ack_cycles: list[int],
     cycle_index: int,
+    event_beats: list[tuple[int, int, int, int, int]] | None = None,
 ) -> None:
     cfg_samples: list[dict[str, int]] = []
     data_samples: list[dict[str, int]] = []
     hdr_samples: list[dict[str, int]] = []
+    event_samples: list[dict[str, int]] = []
     append_snapshot_if_valid(cfg_samples, dut, valid_name="cfgTValid", field_names=("cfgTData", "cfgTKeep", "cfgTLast"))
     append_snapshot_if_valid(
         data_samples,
@@ -238,6 +240,13 @@ def _capture_outputs(
         valid_name="hdrTValid",
         field_names=("hdrTData", "hdrTKeep", "hdrTLast", "hdrTUser"),
     )
+    if event_beats is not None:
+        append_snapshot_if_valid(
+            event_samples,
+            dut,
+            valid_name="eventTValid",
+            field_names=("eventTData", "eventTKeep", "eventTLast", "eventTDest", "eventTUser"),
+        )
     cfg_beats.extend((sample["cfgTData"], sample["cfgTKeep"], sample["cfgTLast"]) for sample in cfg_samples)
     data_beats.extend(
         (sample["dataTData"], sample["dataTKeep"], sample["dataTLast"], sample["dataTUser"]) for sample in data_samples
@@ -245,6 +254,17 @@ def _capture_outputs(
     hdr_beats.extend(
         (sample["hdrTData"], sample["hdrTKeep"], sample["hdrTLast"], sample["hdrTUser"]) for sample in hdr_samples
     )
+    if event_beats is not None:
+        event_beats.extend(
+            (
+                sample["eventTData"],
+                sample["eventTKeep"],
+                sample["eventTLast"],
+                sample["eventTDest"],
+                sample["eventTUser"],
+            )
+            for sample in event_samples
+        )
     if int(dut.eventAck.value) == 1:
         event_tags.append(int(dut.eventTag.value))
     if int(dut.trigAck.value) == 1:
@@ -536,6 +556,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             "rxNumberOfLane": 0,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -549,6 +570,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     cfg_beats: list[tuple[int, int, int]] = []
     data_beats: list[tuple[int, int, int, int]] = []
     hdr_beats: list[tuple[int, int, int, int]] = []
+    event_beats: list[tuple[int, int, int, int, int]] = []
     event_tags: list[int] = []
     trig_ack_cycles: list[int] = []
 
@@ -602,6 +624,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             event_tags=event_tags,
             trig_ack_cycles=trig_ack_cycles,
             cycle_index=cycle_index,
+            event_beats=event_beats,
         )
 
     for cycle_index in range(40):
@@ -614,9 +637,11 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             event_tags=event_tags,
             trig_ack_cycles=trig_ack_cycles,
             cycle_index=cycle_index + len(sequence),
+            event_beats=event_beats,
         )
 
     assert cfg_beats == [(0x0123456700000000, 0xFF, 0)]
+    assert event_beats == [(0x11223344, 0xF, 1, 0x5A, 0x13121110)]
     assert event_tags == [0x5A]
     assert trig_ack_cycles
     assert [beat[:3] for beat in hdr_beats] == [(word, 0xF, 1 if index == len(EXPECTED_HDR_WORDS) - 1 else 0) for index, word in enumerate(EXPECTED_HDR_WORDS)]
@@ -642,6 +667,7 @@ async def _drive_two_lane_mux_rotation(
             "rxNumberOfLane": 1,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -776,6 +802,7 @@ async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
             "rxNumberOfLane": 0,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -851,6 +878,7 @@ async def coaxpress_rx_four_lane_fsm_error_reset_recovery_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -921,6 +949,7 @@ async def coaxpress_rx_four_lane_clean_rotation_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -979,6 +1008,7 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -1066,6 +1096,7 @@ async def coaxpress_rx_four_lane_overflow_reset_recovery_stress_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 0,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -1161,6 +1192,7 @@ async def coaxpress_rx_four_lane_overflow_recovery_stress_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 0,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -1254,6 +1286,7 @@ async def coaxpress_rx_repeated_single_line_frame_test(dut):
             "rxNumberOfLane": 0,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
