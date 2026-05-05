@@ -459,6 +459,55 @@ async def coaxpress_rx_lane_control_ack_crc_eop_guardrail_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_lane_control_ack_success_compatibility_test(dut):
+    start_clock(dut.rxClk)
+    dut.rxRst.setimmediatevalue(1)
+    dut.rxLinkUp.setimmediatevalue(1)
+    dut.rxData.setimmediatevalue(CXP_IDLE)
+    dut.rxDataK.setimmediatevalue(CXP_IDLE_K)
+    await reset_dut(dut)
+
+    cfg_beats: list[dict[str, int]] = []
+
+    async def drive(data: int, data_k: int) -> None:
+        await send_rx_word(
+            dut,
+            data=data,
+            data_k=data_k,
+            clk=dut.rxClk,
+            capture=cfg_beats,
+            valid_name="cfgTValid",
+            field_names=("cfgTData",),
+        )
+
+    # Hardware seen in the lab can return the write-success code in P0 only and
+    # omit the explicit zero-size word. Keep that accepted while preserving the
+    # stricter CRC/EOP validation added for normal control acknowledgments.
+    low_byte_success = 0x00000001
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(low_byte_success, 0x0)
+    await drive(cxp_crc_word([low_byte_success]), 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # Also accept the alternate success code in P0 with an explicit zero-size
+    # write-ACK word.
+    low_byte_success_alt = 0x00000004
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    await drive(low_byte_success_alt, 0x0)
+    await drive(0x00000000, 0x0)
+    await drive(cxp_crc_word([low_byte_success_alt, 0x00000000]), 0x0)
+    await drive(CXP_EOP, 0xF)
+    await drive(CXP_IDLE, CXP_IDLE_K)
+
+    assert cfg_beats == [
+        {"cfgTData": 0xFFFFFFFF00000000},
+        {"cfgTData": 0xFFFFFFFF00000000},
+    ]
+
+
+@cocotb.test()
 async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)

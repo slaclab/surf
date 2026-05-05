@@ -184,6 +184,17 @@ architecture rtl of CoaXPressRxLane is
       return endianSwap(retVar);
    end function cxpCrcFinal;
 
+   function cxpAckIsSuccess (
+      data : slv(31 downto 0))
+      return boolean is
+   begin
+      return (
+         (data = x"01_01_01_01") or
+         (data = x"04_04_04_04") or
+         (data = x"00_00_00_01") or
+         (data = x"00_00_00_04"));
+   end function cxpAckIsSuccess;
+
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
@@ -358,20 +369,19 @@ begin
             when CTRL_ACK_S =>
                -- Check for non-k word
                if (rxDataK = x"0") then
-                  -- Include acknowledgment words in the CRC
-                  v.crc := cxpCrcUpdate(r.crc, rxData);
-
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
 
                   -- "Acknowledgment code" index
                   if (r.ackCnt = 0) then
+                     -- Include acknowledgment code in the CRC
+                     v.crc := cxpCrcUpdate(r.crc, rxData);
 
                      -- Save the response code
                      v.cfgMaster.tData(31 downto 0) := rxData;
 
                      -- Check for Success ACK
-                     if (rxData = x"01_01_01_01") or (rxData = x"04_04_04_04") then
+                     if (cxpAckIsSuccess(rxData)) then
                         -- Always send ZERO for successful ACK
                         v.cfgMaster.tData(31 downto 0) := (others => '0');
                      end if;
@@ -379,14 +389,28 @@ begin
                   -- "Size field" index: check if data follows
                   elsif (r.ackCnt = 1) then
 
+                     -- Some cameras return write ACK as code+CRC+EOP,
+                     -- without an explicit zero-size word.
+                     if (rxData = cxpCrcFinal(r.crc)) then
+                        -- Next State
+                        v.state := CTRL_ACK_EOP_S;
+
                      -- If DSize=0 (write ACK, no data word follows), skip to CRC
-                     if (rxData(31 downto 8) = 0) then
+                     elsif (rxData(31 downto 8) = 0) then
+                        -- Include size word in the CRC
+                        v.crc := cxpCrcUpdate(r.crc, rxData);
                         -- Next State
                         v.state := CTRL_ACK_CRC_S;
+
+                     else
+                        -- Include size word in the CRC
+                        v.crc := cxpCrcUpdate(r.crc, rxData);
                      end if;
 
                   -- "Data field" index
                   elsif (r.ackCnt = 2) then
+                     -- Include data word in the CRC
+                     v.crc := cxpCrcUpdate(r.crc, rxData);
 
                      -- Save the data field
                      v.cfgMaster.tData(63 downto 32) := rxData;
