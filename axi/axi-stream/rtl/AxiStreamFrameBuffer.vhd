@@ -331,9 +331,6 @@ begin
          -- correct numbers of words can be read on the next read.
          v.rdFinalAddrNext := dataR.ramWrAddr;
 
-         -- Reset value for address is all ones so that in first write cycle after
-         -- reset which happens before the frame end condition is satisfied at least
-         -- once we wrap around after incrementing and land on address 0.
          v.ramWrAddr     := (others => '0');
          v.ramWrAddrNext := (others => '0');
 
@@ -446,7 +443,7 @@ begin
          dataIn  => axilR.rdReq,
          dataOut => rdReqSync);
 
-   U_Sync_axilClk_getFrameTrig : entity work.Synchronizer
+   U_Sync_axilClk_getFrameTrig : entity work.SynchronizerOneShot
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
