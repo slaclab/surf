@@ -64,13 +64,16 @@ def _control_ack_crc_words(
     *,
     ack_code: int,
     size_word: int,
-    data_word: int,
+    data_word: int | None = None,
     packet_tag: int | None = None,
 ) -> list[int]:
     crc_inputs = []
     if packet_tag is not None:
         crc_inputs.append(repeat_byte(packet_tag))
-    crc_inputs.extend([repeat_byte(ack_code), size_word, data_word])
+    crc_inputs.append(repeat_byte(ack_code))
+    crc_inputs.append(size_word)
+    if data_word is not None:
+        crc_inputs.append(data_word)
     return [
         *crc_inputs,
         cxp_crc_word(crc_inputs),
@@ -213,6 +216,21 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
         await drive(word, 0x0)
     await drive(CXP_EOP, 0xF)
 
+    # Drive a write acknowledgment (size=0, no data word). This is the format
+    # cameras send for register writes per CXP-001-2021 Section 9.5.2.2.
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0)
+    for word in _control_ack_crc_words(ack_code=CXP_ACK_SUCCESS, size_word=0x00000000):
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
+    # Drive a tagged write acknowledgment (size=0, no data word).
+    await drive(CXP_SOP, 0xF)
+    await drive(repeat_byte(CXP_PKT_CTRL_ACK_WITH_TAG), 0x0)
+    for word in _control_ack_crc_words(ack_code=CXP_ACK_SUCCESS_ALT, size_word=0x00000000, packet_tag=0xAA):
+        await drive(word, 0x0)
+    await drive(CXP_EOP, 0xF)
+
     # Drive one spec-shaped tagged read acknowledgment. The RTL includes the tag
     # in the CRC, then forwards the first reply-data word with a zeroed success
     # status in the low 32 bits after the trailer passes.
@@ -249,6 +267,8 @@ async def coaxpress_rx_lane_spec_prefix_control_event_and_heartbeat_test(dut):
     assert cfg_beats == [
         {"cfgTData": (0x01234567 << 32)},
         {"cfgTData": (0x76543210 << 32)},
+        {"cfgTData": (0xFFFFFFFF << 32)},
+        {"cfgTData": (0xFFFFFFFF << 32)},
         {"cfgTData": (0x89ABCDEF << 32)},
     ]
     assert event_pulses == [(1, 0x5A)]
