@@ -49,23 +49,7 @@ entity CoaXPressOverFiberBridge is
       rxRst312         : in  sl;
       rxData           : out slv(31 downto 0);
       rxDataK          : out slv(3 downto 0);
-      rxError          : out sl;
-      rxAbort          : out sl;
-      rxErrorCode      : out slv(3 downto 0);
-      seqValid         : out sl;
-      seqData          : out slv(23 downto 0);
-      seqError         : out sl;
-      seqExpected      : out slv(23 downto 0);
-      seqErrorExpected : out slv(23 downto 0);
-      hkpValid         : out sl;
-      hkpData          : out slv(31 downto 0);
-      hkpEop           : out sl;
-      hkpSof           : out sl;
-      hkpError         : out sl;
-      hkpWordCount     : out slv(7 downto 0);
-      hkpKCodeMask     : out slv(3 downto 0);
-      hkpKCodeValid    : out sl;
-      hkpType          : out slv(3 downto 0));
+      rxStatus         : out CxpofRxStatusType);
 end entity CoaXPressOverFiberBridge;
 
 architecture mapping of CoaXPressOverFiberBridge is
@@ -111,23 +95,7 @@ begin
          rxData   => rxData,
          rxDataK  => rxDataK,
          -- Status Interface
-         rxError      => rxError,
-         rxAbort      => rxAbort,
-         rxErrorCode  => rxErrorCode,
-         seqValid     => seqValid,
-         seqData      => seqData,
-         seqError     => seqError,
-         seqExpected  => seqExpected,
-         seqErrorExpected => seqErrorExpected,
-         hkpValid     => hkpValid,
-         hkpData      => hkpData,
-         hkpEop       => hkpEop,
-         hkpSof       => hkpSof,
-         hkpError     => hkpError,
-         hkpWordCount => hkpWordCount,
-         hkpKCodeMask => hkpKCodeMask,
-         hkpKCodeValid => hkpKCodeValid,
-         hkpType      => hkpType);
+         rxStatus => rxStatus);
 
    GEN_TX : if (LANE0_G = true) generate
 

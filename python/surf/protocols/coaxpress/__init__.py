@@ -8,6 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.protocols.coaxpress._CoaXPressAxiL import *
+from surf.protocols.coaxpress._CoaXPressOverFiberBridgeAxiL import *
 from surf.protocols.coaxpress._Bootstrap     import *
 
 from surf.protocols.coaxpress._PhantomS991   import *

@@ -268,6 +268,29 @@ Current checked-in coverage:
     HKP-to-payload status, and lane-0 `/Q/` sequence mismatch/no-output/recovery
     guardrails
 
+The product-facing bridge status contract is the `CxpofRxStatusType` record in
+`CoaXPressPkg.vhd`. The cocotb benches use thin wrapper entities to flatten
+that record back to scalar ports only because GHDL/cocotb does not reliably
+expose top-level VHDL record fields as child handles. Those wrappers are a test
+surface, not the intended RTL integration contract.
+
+`CoaXPressOverFiberBridgeAxiL` makes the bridge RX status software-visible for
+the GT wrapper integrations. The GTH/GTY wrapper AXI-Lite port now reports
+sticky status, last observed sequence/HKP fields, and counters instead of
+returning only a default decode error. The current register map is:
+
+- `0x000`: sticky status bits for `rxError`, `rxAbort`, `seqValid`,
+  `seqError`, `hkpValid`, and `hkpError`
+- `0x004`: last `rxErrorCode`
+- `0x008`: last `seqData`
+- `0x00C`: last `seqExpected`
+- `0x010`: last `seqErrorExpected`
+- `0x014`: last `hkpData`
+- `0x018`: packed HKP status: `hkpWordCount[7:0]`, `hkpKCodeMask[11:8]`,
+  `hkpKCodeValid[12]`, and `hkpType[19:16]`
+- `0x020` to `0x034`: event counters for the six sticky status bits above
+- `0x03C`: write-one counter/sticky reset strobe
+
 Current RTL support limits observed while expanding the bridge tests:
 
 - `/Q/` ordered sets are not decoded into the CXP-side word stream. The current

@@ -585,11 +585,12 @@ async def coaxpress_over_fiber_bridge_rx_control_lane_guardrail_sweep_test(dut):
 def test_CoaXPressOverFiberBridgeRx():
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="surf.coaxpressoverfiberbridgerx",
+        toplevel="surf.coaxpressoverfiberbridgerxstatuswrapper",
         extra_vhdl_sources={
             "surf": [
                 "protocols/coaxpress/core/rtl/CoaXPressPkg.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressOverFiberBridgeRx.vhd",
+                "protocols/coaxpress/core/wrappers/CoaXPressOverFiberBridgeRxStatusWrapper.vhd",
             ]
         },
     )

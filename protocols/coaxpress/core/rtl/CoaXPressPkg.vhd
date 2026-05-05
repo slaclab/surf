@@ -99,6 +99,45 @@ package CoaXPressPkg is
    constant CXPOF_HKP_TYPE_MARKER_C   : slv(3 downto 0) := x"6";
    constant CXPOF_HKP_TYPE_INVALID_C  : slv(3 downto 0) := x"F";
 
+   type CxpofRxStatusType is record
+      rxError          : sl;
+      rxAbort          : sl;
+      rxErrorCode      : slv(3 downto 0);
+      seqValid         : sl;
+      seqData          : slv(23 downto 0);
+      seqError         : sl;
+      seqExpected      : slv(23 downto 0);
+      seqErrorExpected : slv(23 downto 0);
+      hkpValid         : sl;
+      hkpData          : slv(31 downto 0);
+      hkpEop           : sl;
+      hkpSof           : sl;
+      hkpError         : sl;
+      hkpWordCount     : slv(7 downto 0);
+      hkpKCodeMask     : slv(3 downto 0);
+      hkpKCodeValid    : sl;
+      hkpType          : slv(3 downto 0);
+   end record CxpofRxStatusType;
+
+   constant CXPOF_RX_STATUS_INIT_C : CxpofRxStatusType := (
+      rxError          => '0',
+      rxAbort          => '0',
+      rxErrorCode      => CXPOF_RX_ERR_NONE_C,
+      seqValid         => '0',
+      seqData          => (others => '0'),
+      seqError         => '0',
+      seqExpected      => (others => '0'),
+      seqErrorExpected => (others => '0'),
+      hkpValid         => '0',
+      hkpData          => (others => '0'),
+      hkpEop           => '0',
+      hkpSof           => '0',
+      hkpError         => '0',
+      hkpWordCount     => (others => '0'),
+      hkpKCodeMask     => (others => '0'),
+      hkpKCodeValid    => '0',
+      hkpType          => CXPOF_HKP_TYPE_NONE_C);
+
    function cxpIsKCode (data : slv(7 downto 0)) return sl;
    function cxpKCodeMask (data : slv(31 downto 0)) return slv;
    function cxpHkpType (data : slv(31 downto 0)) return slv;
