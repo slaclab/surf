@@ -376,6 +376,15 @@ begin
                         v.cfgMaster.tData(31 downto 0) := (others => '0');
                      end if;
 
+                  -- "Size field" index: check if data follows
+                  elsif (r.ackCnt = 1) then
+
+                     -- If DSize=0 (write ACK, no data word follows), skip to CRC
+                     if (rxData(31 downto 8) = 0) then
+                        -- Next State
+                        v.state := CTRL_ACK_CRC_S;
+                     end if;
+
                   -- "Data field" index
                   elsif (r.ackCnt = 2) then
 
