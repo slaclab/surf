@@ -72,7 +72,7 @@ architecture mapping of CoaXPressRx is
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 1,
+      TUSER_BITS_C  => CXP_RX_STREAM_TUSER_BITS_C,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
    constant WIDE_AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -268,7 +268,7 @@ begin
          SLAVE_READY_EN_G    => false,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (4*NUM_LANES_G), tDestBits => 0),
+         SLAVE_AXI_CONFIG_G  => WIDE_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
             -- INbound Interface
@@ -286,6 +286,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         TUSER_MASK_G        => (others => '0'),
          -- FIFO configurations
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,

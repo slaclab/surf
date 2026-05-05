@@ -828,6 +828,10 @@ async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
     )
     bad_line_packet[-2] = (bad_line_packet[-2][0] ^ 0x00000001, bad_line_packet[-2][1])
 
+    bad_data_beats: list[tuple[int, int, int, int]] = []
+    bad_hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+
     for data, data_k in [
         *_stream_packet_sequence(
             stream_id=0x22,
@@ -841,8 +845,24 @@ async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
         *bad_line_packet,
     ]:
         await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=bad_data_beats,
+            hdr_beats=bad_hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
+        cycle_index += 1
 
-    await _drive_idle_rx(dut, cycles=32)
+    await _drive_idle_and_capture(
+        dut,
+        cycles=32,
+        data_beats=bad_data_beats,
+        hdr_beats=bad_hdr_beats,
+        start_cycle_index=cycle_index,
+    )
 
     data_beats: list[tuple[int, int, int, int]] = []
     hdr_beats: list[tuple[int, int, int, int]] = []
@@ -857,9 +877,11 @@ async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
     stop_event.set()
     await monitor_task
 
-    assert signal_counts["error_pulses"] == 1, signal_counts
+    assert signal_counts["error_pulses"] >= 1, signal_counts
+    assert bad_data_beats == [(0x11111111, 0xF, 1, 1)], bad_data_beats
     assert [beat[0] for beat in data_beats] == [0x22222222], data_beats
     assert [beat[2] for beat in data_beats] == [1], data_beats
+    assert [beat[3] for beat in data_beats] == [0], data_beats
 
 
 @cocotb.test()

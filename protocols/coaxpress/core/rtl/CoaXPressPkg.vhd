@@ -37,6 +37,9 @@ package CoaXPressPkg is
    constant CXP_ALL_DATA_K_C : slv(3 downto 0) := x"0";
    constant CXP_ALL_CTRL_K_C : slv(3 downto 0) := x"F";
 
+   constant CXP_RX_STREAM_TUSER_BITS_C    : positive := 8;
+   constant CXP_RX_STREAM_TRAILER_TUSER_C : natural  := 4;
+
    constant CXP_TX_IDLE_C : Slv8Array(3 downto 0) := (
       0 => CXP_IDLE_C(7 downto 0),
       1 => CXP_IDLE_C(15 downto 8),

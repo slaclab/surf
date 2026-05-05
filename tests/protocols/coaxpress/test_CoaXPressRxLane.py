@@ -120,7 +120,7 @@ async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
             clk=dut.rxClk,
             capture=data_beats,
             valid_name="dataTValid",
-            field_names=("dataTData", "dataTUser", "dataTLast"),
+            field_names=("dataTData", "dataTKeep", "dataTUser", "dataTLast"),
         )
         io_ack_pulses += int(dut.ioAck.value)
 
@@ -148,9 +148,10 @@ async def coaxpress_rx_lane_stream_and_io_ack_test(dut):
 
     assert io_ack_pulses == 1
     assert data_beats == [
-        {"dataTData": 0x11223344, "dataTUser": 0x0, "dataTLast": 0},
-        {"dataTData": 0x55667788, "dataTUser": 0x5, "dataTLast": 0},
-        {"dataTData": 0x99AABBCC, "dataTUser": 0x0, "dataTLast": 1},
+        {"dataTData": 0x11223344, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 0},
+        {"dataTData": 0x55667788, "dataTKeep": 0xF, "dataTUser": 0x5, "dataTLast": 0},
+        {"dataTData": 0x99AABBCC, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
+        {"dataTData": 0x00000000, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
     ]
 
 
@@ -293,6 +294,7 @@ async def coaxpress_rx_lane_event_payload_crc_guardrail_test(dut):
             data_beats.append(
                 {
                     "dataTData": int(dut.dataTData.value),
+                    "dataTKeep": int(dut.dataTKeep.value),
                     "dataTUser": int(dut.dataTUser.value),
                     "dataTLast": int(dut.dataTLast.value),
                 }
@@ -457,7 +459,7 @@ async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
             clk=dut.rxClk,
             capture=observed,
             valid_name="dataTValid",
-            field_names=("dataTData", "dataTLast"),
+            field_names=("dataTData", "dataTKeep", "dataTUser", "dataTLast"),
         )
         error_pulses += int(dut.rxError.value)
 
@@ -492,8 +494,10 @@ async def coaxpress_rx_lane_stream_crc_eop_guardrail_test(dut):
     await drive(CXP_IDLE, CXP_IDLE_K)
 
     assert observed == [
-        {"dataTData": 0x11111111, "dataTLast": 1},
-        {"dataTData": 0x33333333, "dataTLast": 1},
+        {"dataTData": 0x11111111, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
+        {"dataTData": 0x00000000, "dataTKeep": 0xF, "dataTUser": 0x1, "dataTLast": 1},
+        {"dataTData": 0x33333333, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
+        {"dataTData": 0x00000000, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
     ]
     assert error_pulses == 1
 
@@ -535,10 +539,13 @@ async def coaxpress_rx_lane_error_recovery_test(dut):
             clk=dut.rxClk,
             capture=observed,
             valid_name="dataTValid",
-            field_names=("dataTData", "dataTLast"),
+            field_names=("dataTData", "dataTKeep", "dataTUser", "dataTLast"),
         )
 
-    assert observed == [{"dataTData": 0x55667788, "dataTLast": 1}]
+    assert observed == [
+        {"dataTData": 0x55667788, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
+        {"dataTData": 0x00000000, "dataTKeep": 0xF, "dataTUser": 0x0, "dataTLast": 1},
+    ]
 
 
 def test_CoaXPressRxLane():

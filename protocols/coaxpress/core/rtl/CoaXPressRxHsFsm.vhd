@@ -93,9 +93,24 @@ architecture rtl of CoaXPressRxHsFsm is
 
    subtype LineRemType is natural range 0 to NUM_LANES_G+1;
 
+   constant WIDE_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+      dataBytes => (4*NUM_LANES_G),
+      tKeepMode => TKEEP_NORMAL_C,
+      tUserMode => TUSER_NORMAL_C,
+      tDestBits => 0,
+      tUserBits => CXP_RX_STREAM_TUSER_BITS_C);
+
    type RegType is record
       endOfLine   : sl;
+      frameEofe   : sl;
       hdrValid    : sl;
+      pendingValid : sl;
+      parseBeat   : sl;
+      trailerMarker : sl;
+      trailerEofe : sl;
+      trailerSeen : sl;
+      waitTrailer : sl;
+      waitFrameTrailer : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       lineRem     : LineRemType;
@@ -105,12 +120,23 @@ architecture rtl of CoaXPressRxHsFsm is
       wrd         : natural range 0 to NUM_LANES_G-1;
       hdrMaster   : AxiStreamMasterType;
       rxSlave     : AxiStreamSlaveType;
+      packOut     : AxiStreamSlaveType;
       dataMasters : AxiStreamMasterArray(1 downto 0);
+      dataMaster  : AxiStreamMasterType;
+      pendingMaster : AxiStreamMasterType;
       state       : StateType;
    end record RegType;
    constant REG_INIT_C : RegType := (
       endOfLine   => '0',
+      frameEofe   => '0',
       hdrValid    => '0',
+      pendingValid => '0',
+      parseBeat   => '0',
+      trailerMarker => '0',
+      trailerEofe => '0',
+      trailerSeen => '0',
+      waitTrailer => '0',
+      waitFrameTrailer => '0',
       yCnt        => (others => '0'),
       dCnt        => (others => '0'),
       lineRem     => 0,
@@ -120,7 +146,10 @@ architecture rtl of CoaXPressRxHsFsm is
       wrd         => 0,
       hdrMaster   => AXI_STREAM_MASTER_INIT_C,
       rxSlave     => AXI_STREAM_SLAVE_FORCE_C,
+      packOut     => AXI_STREAM_SLAVE_FORCE_C,
       dataMasters => (others => AXI_STREAM_MASTER_INIT_C),
+      dataMaster  => AXI_STREAM_MASTER_INIT_C,
+      pendingMaster => AXI_STREAM_MASTER_INIT_C,
       state       => IDLE_S);
 
    signal r       : RegType := REG_INIT_C;
@@ -129,6 +158,9 @@ architecture rtl of CoaXPressRxHsFsm is
 
    signal pipeMaster : AxiStreamMasterType;
    signal pipeSlave  : AxiStreamSlaveType;
+   signal packMaster : AxiStreamMasterType;
+   signal packInSlave  : AxiStreamSlaveType;
+   signal packOutSlave : AxiStreamSlaveType;
 
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
@@ -137,19 +169,27 @@ begin
 
    packRst <= rxRst or rxFsmRst;
 
-   comb : process (pipeMaster, r, rxFsmRst, rxRst) is
-      variable v       : RegType;
-      variable tData   : slv(31 downto 0);
-      variable eolBeat : sl;
-      variable eolWrd  : natural range 0 to NUM_LANES_G-1;
-      variable wordCnt : natural range 0 to NUM_LANES_G;
-      variable remCnt  : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+   packOutSlave <= rin.packOut;
+
+   comb : process (packInSlave, packMaster, pipeMaster, r, rxFsmRst, rxRst) is
+      variable v             : RegType;
+      variable tData         : slv(31 downto 0);
+      variable eolBeat       : sl;
+      variable eolWrd        : natural range 0 to NUM_LANES_G-1;
+      variable wordCnt       : natural range 0 to NUM_LANES_G;
+      variable remCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Init Variable
-      tData := pipeMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      tData           := pipeMaster.tData(32*r.wrd+31 downto 32*r.wrd);
+      v.trailerMarker := pipeMaster.tValid and pipeMaster.tLast and (
+         pipeMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) or
+         axiStreamGetUserBit(WIDE_AXIS_CONFIG_C, pipeMaster, CXP_RX_STREAM_TRAILER_TUSER_C));
+      v.trailerEofe := ssiGetUserEofe(WIDE_AXIS_CONFIG_C, pipeMaster) or pipeMaster.tUser(SSI_EOFE_C);
+      v.waitTrailer := r.pendingValid or (r.waitFrameTrailer and not v.trailerMarker and not r.trailerSeen) or
+         (packMaster.tValid and packMaster.tLast and not v.trailerMarker and not r.trailerSeen);
 
       -- Reset strobes
       v.dbg.errDet := '0';
@@ -169,18 +209,40 @@ begin
       v.hdrMaster.tUser(SSI_SOF_C) := '1';  -- single word write
 
       -- Init data stream
-      v.dataMasters(0).tValid := '0';                -- Reset strobe
-      v.dataMasters(0).tData  := pipeMaster.tData;
-      -- Check if state is not STEP_S
-      if (r.state /= STEP_S) then
-         v.dataMasters(0).tKeep := (others => '0');  -- Reset bus
+      if (packInSlave.tReady = '1') then
+         v.dataMasters(0).tValid := '0';                -- Reset strobe
+         v.dataMasters(0).tData  := pipeMaster.tData;
+         -- Check if state is not STEP_S
+         if (r.state /= STEP_S) then
+            v.dataMasters(0).tKeep := (others => '0');  -- Reset bus
+         end if;
+      else
+         v.dataMasters(0) := r.dataMasters(0);
       end if;
 
       -- Flow Control
       v.rxSlave.tReady := '0';
+      v.packOut        := AXI_STREAM_SLAVE_FORCE_C;
+      if (v.waitTrailer = '1') then
+         v.packOut.tReady := '0';
+      end if;
+      v.parseBeat      := pipeMaster.tValid and not v.trailerMarker and not v.waitTrailer and packInSlave.tReady;
 
       -- Check for valid data
-      if (pipeMaster.tValid = '1') then
+      if (pipeMaster.tValid = '1') and (v.trailerMarker = '1') then
+         -- Consume the lane's trailer verdict beat.  Payload has
+         -- already streamed through; this only annotates the eventual SSI EOF.
+         v.rxSlave.tReady := '1';
+         if (v.trailerEofe = '1') then
+            v.frameEofe := '1';
+         end if;
+         if (r.waitFrameTrailer = '1') or (r.pendingValid = '1') or (r.endOfLine = '1') or
+            (r.dataMasters(0).tValid = '1') or (r.dataMasters(1).tValid = '1') or
+            ((packMaster.tValid = '1') and (packMaster.tLast = '1')) then
+            v.trailerSeen := '1';
+         end if;
+
+      elsif (v.parseBeat = '1') then
 
          -- State Machine
          case r.state is
@@ -200,6 +262,10 @@ begin
                end if;
             ----------------------------------------------------------------------
             when TYPE_S =>
+               if (r.waitFrameTrailer = '0') and (r.pendingValid = '0') then
+                  v.trailerSeen := '0';
+               end if;
+
                -- Check for "Rectangular image header indication"
                if (tData = x"01_01_01_01") then
 
@@ -405,11 +471,17 @@ begin
 
       end if;
 
-      -- Shift the pipeline and convert tKEEP to count (helps with making timing in byte packer)
-      v.dataMasters(1) := r.dataMasters(0);
+      -- Shift the parser output into the word packer only when the packer can
+      -- accept it.  This keeps the final packed EOF beat stable while the FSM
+      -- waits for the lane trailer verdict.
+      if (packInSlave.tReady = '1') then
+         v.dataMasters(1) := r.dataMasters(0);
+      else
+         v.dataMasters(1) := r.dataMasters(1);
+      end if;
 
       -- Check for end of line in the previous cycle
-      if (r.endOfLine = '1') then
+      if (packInSlave.tReady = '1') and (r.endOfLine = '1') then
 
          -- Reset flag
          v.endOfLine := '0';
@@ -421,6 +493,7 @@ begin
          if (v.yCnt = r.hdr.ySize(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
             -- Terminate the frame
             v.dataMasters(1).tLast := '1';
+            v.waitFrameTrailer     := '1';
          end if;
 
       end if;
@@ -441,44 +514,46 @@ begin
       end if;
 
       -- Update header based on counter
-      case r.hdrCnt is
-         ----------------------------------------------------------------
-         when 3  => v.hdr.steamId(7 downto 0)    := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 4  => v.hdr.sourceTag(15 downto 8) := tData(7 downto 0);
-         when 5  => v.hdr.sourceTag(7 downto 0)  := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 6  => v.hdr.xSize(23 downto 16)    := tData(7 downto 0);
-         when 7  => v.hdr.xSize(15 downto 8)     := tData(7 downto 0);
-         when 8  => v.hdr.xSize(7 downto 0)      := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 9  => v.hdr.xOffs(23 downto 16)    := tData(7 downto 0);
-         when 10 => v.hdr.xOffs(15 downto 8)     := tData(7 downto 0);
-         when 11 => v.hdr.xOffs(7 downto 0)      := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 12 => v.hdr.ySize(23 downto 16)    := tData(7 downto 0);
-         when 13 => v.hdr.ySize(15 downto 8)     := tData(7 downto 0);
-         when 14 => v.hdr.ySize(7 downto 0)      := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 15 => v.hdr.yOffs(23 downto 16)    := tData(7 downto 0);
-         when 16 => v.hdr.yOffs(15 downto 8)     := tData(7 downto 0);
-         when 17 => v.hdr.yOffs(7 downto 0)      := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 18 => v.hdr.dsizeL(23 downto 16)   := tData(7 downto 0);
-         when 19 => v.hdr.dsizeL(15 downto 8)    := tData(7 downto 0);
-         when 20 => v.hdr.dsizeL(7 downto 0)     := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 21 => v.hdr.pixelF(15 downto 8)    := tData(7 downto 0);
-         when 22 => v.hdr.pixelF(7 downto 0)     := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 23 => v.hdr.tapG(15 downto 8)      := tData(7 downto 0);
-         when 24 => v.hdr.tapG(7 downto 0)       := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when 25 => v.hdr.flags(7 downto 0)      := tData(7 downto 0);
-         ----------------------------------------------------------------
-         when others =>
-            null;
-      end case;
+      if (v.parseBeat = '1') then
+         case r.hdrCnt is
+            ----------------------------------------------------------------
+            when 3  => v.hdr.steamId(7 downto 0)    := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 4  => v.hdr.sourceTag(15 downto 8) := tData(7 downto 0);
+            when 5  => v.hdr.sourceTag(7 downto 0)  := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 6  => v.hdr.xSize(23 downto 16)    := tData(7 downto 0);
+            when 7  => v.hdr.xSize(15 downto 8)     := tData(7 downto 0);
+            when 8  => v.hdr.xSize(7 downto 0)      := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 9  => v.hdr.xOffs(23 downto 16)    := tData(7 downto 0);
+            when 10 => v.hdr.xOffs(15 downto 8)     := tData(7 downto 0);
+            when 11 => v.hdr.xOffs(7 downto 0)      := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 12 => v.hdr.ySize(23 downto 16)    := tData(7 downto 0);
+            when 13 => v.hdr.ySize(15 downto 8)     := tData(7 downto 0);
+            when 14 => v.hdr.ySize(7 downto 0)      := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 15 => v.hdr.yOffs(23 downto 16)    := tData(7 downto 0);
+            when 16 => v.hdr.yOffs(15 downto 8)     := tData(7 downto 0);
+            when 17 => v.hdr.yOffs(7 downto 0)      := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 18 => v.hdr.dsizeL(23 downto 16)   := tData(7 downto 0);
+            when 19 => v.hdr.dsizeL(15 downto 8)    := tData(7 downto 0);
+            when 20 => v.hdr.dsizeL(7 downto 0)     := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 21 => v.hdr.pixelF(15 downto 8)    := tData(7 downto 0);
+            when 22 => v.hdr.pixelF(7 downto 0)     := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 23 => v.hdr.tapG(15 downto 8)      := tData(7 downto 0);
+            when 24 => v.hdr.tapG(7 downto 0)       := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when 25 => v.hdr.flags(7 downto 0)      := tData(7 downto 0);
+            ----------------------------------------------------------------
+            when others =>
+               null;
+         end case;
+      end if;
 
       -- Register a small saturated remaining-word count.  This breaks the wide
       -- dCnt-to-wrd path when a line ends mid-beat and the next marker is held
@@ -523,10 +598,42 @@ begin
       v.hdrMaster.tData(207 downto 192) := r.hdr.pixelF(15 downto 0);
       v.hdrMaster.tData(223 downto 208) := r.hdr.tapG(15 downto 0);
 
+      -- Hold only the packed SSI EOF beat until the lane trailer verdict
+      -- arrives. Payload still streams as soon as it is parsed.
+      v.dataMaster.tValid := '0';
+
+      if (r.pendingValid = '1') then
+         v.packOut.tReady := '0';
+         if (v.trailerMarker = '1') or (r.trailerSeen = '1') then
+            v.dataMaster := r.pendingMaster;
+            ssiSetUserEofe(WIDE_AXIS_CONFIG_C, v.dataMaster, v.frameEofe or v.trailerEofe);
+            v.dataMaster.tUser(SSI_EOFE_C) := v.frameEofe or v.trailerEofe;
+            v.pendingMaster := AXI_STREAM_MASTER_INIT_C;
+            v.pendingValid  := '0';
+            v.frameEofe     := '0';
+            v.trailerSeen   := '0';
+            v.waitFrameTrailer := '0';
+         end if;
+      elsif (packMaster.tValid = '1') and (packMaster.tLast = '1') and
+         (v.trailerMarker = '0') and (r.trailerSeen = '0') then
+         v.pendingMaster := packMaster;
+         v.pendingValid  := '1';
+      elsif (packMaster.tValid = '1') and (packMaster.tLast = '1') then
+         v.dataMaster := packMaster;
+         ssiSetUserEofe(WIDE_AXIS_CONFIG_C, v.dataMaster, v.frameEofe or v.trailerEofe);
+         v.dataMaster.tUser(SSI_EOFE_C) := v.frameEofe or v.trailerEofe;
+         v.frameEofe   := '0';
+         v.trailerSeen := '0';
+         v.waitFrameTrailer := '0';
+      elsif (packMaster.tValid = '1') then
+         v.dataMaster := packMaster;
+      end if;
+
       -- Outputs
-      pipeSlave  <= v.rxSlave;
-      hdrMaster  <= r.hdrMaster;
-      rxFsmError <= r.dbg.errDet;
+      pipeSlave    <= v.rxSlave;
+      hdrMaster    <= r.hdrMaster;
+      dataMaster   <= r.dataMaster;
+      rxFsmError   <= r.dbg.errDet;
 
       -- Reset
       if (rxRst = '1') or (rxFsmRst = '1') then
@@ -565,6 +672,8 @@ begin
          rxClk       => rxClk,
          rxRst       => packRst,
          sAxisMaster => r.dataMasters(1),
-         mAxisMaster => dataMaster);
+         sAxisSlave  => packInSlave,
+         mAxisMaster => packMaster,
+         mAxisSlave  => packOutSlave);
 
 end rtl;

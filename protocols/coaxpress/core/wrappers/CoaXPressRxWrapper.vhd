@@ -105,7 +105,7 @@ begin
    dataTData  <= dataMaster.tData(31 downto 0);
    dataTKeep  <= dataMaster.tKeep(3 downto 0);
    dataTLast  <= dataMaster.tLast;
-   dataTUser  <= dataMaster.tUser(0 downto 0);
+   dataTUser(0) <= ssiGetUserEofe(AXIS_CONFIG_C, dataMaster);
 
    hdrTValid <= imageHdrMaster.tValid;
    hdrTData  <= imageHdrMaster.tData(31 downto 0);

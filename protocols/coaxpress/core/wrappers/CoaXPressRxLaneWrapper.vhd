@@ -30,6 +30,7 @@ entity CoaXPressRxLaneWrapper is
       cfgTData        : out slv(63 downto 0);
       dataTValid      : out sl;
       dataTData       : out slv(31 downto 0);
+      dataTKeep       : out slv(3 downto 0);
       dataTUser       : out slv(3 downto 0);
       dataTLast       : out sl;
       heartbeatTValid : out sl;
@@ -61,6 +62,7 @@ begin
    cfgTData        <= cfgMaster.tData(63 downto 0);
    dataTValid      <= dataMaster.tValid;
    dataTData       <= dataMaster.tData(31 downto 0);
+   dataTKeep       <= dataMaster.tKeep(3 downto 0);
    dataTUser       <= dataMaster.tUser(3 downto 0);
    dataTLast       <= dataMaster.tLast;
    heartbeatTValid <= heartbeatMaster.tValid;

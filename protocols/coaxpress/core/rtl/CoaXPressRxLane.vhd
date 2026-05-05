@@ -59,6 +59,12 @@ architecture rtl of CoaXPressRxLane is
 
    constant EVENT_BUFFER_DEPTH_C : positive := 16;
    constant EVENT_BUFFER_ADDR_WIDTH_C : positive := 4;
+   constant STREAM_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+      dataBytes => 4,
+      tKeepMode => TKEEP_NORMAL_C,
+      tUserMode => TUSER_NORMAL_C,
+      tDestBits => 0,
+      tUserBits => CXP_RX_STREAM_TUSER_BITS_C);
 
    type StateType is (
       IO_ACK_S,
@@ -196,6 +202,8 @@ begin
       v.cfgMaster.tValid      := '0';
       v.dataMaster.tValid     := '0';
       v.dataMaster.tLast      := '0';
+      v.dataMaster.tKeep      := (others => '0');
+      v.dataMaster.tUser      := (others => '0');
       v.heatbeatMaster.tValid := '0';
       v.eventMaster.tValid    := '0';
       v.eventMaster.tLast     := '0';
@@ -690,6 +698,7 @@ begin
                -- Move the data
                v.dataMaster.tValid             := '1';
                v.dataMaster.tData(31 downto 0) := rxData;
+               v.dataMaster.tKeep(3 downto 0)  := x"F";
                v.dataMaster.tUser(3 downto 0)  := rxDataK;
                v.crc                            := cxpCrcUpdate(r.crc, rxData);
 
@@ -715,6 +724,16 @@ begin
                   -- Next State
                   v.state := STREAM_EOP_S;
                else
+                  -- Publish an in-order SSI-style trailer verdict marker for
+                  -- the image FSM. The raw stream payload has already moved.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '1');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '1';
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
@@ -724,9 +743,27 @@ begin
             when STREAM_EOP_S =>
                -- Check for end of packet indication
                if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Publish a clean in-order trailer verdict marker.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '0');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '0';
                   -- Next State
                   v.state := IDLE_S;
                else
+                  -- Publish a bad in-order trailer verdict marker.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '1');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '1';
                   -- Set the flag
                   v.errDet := '1';
                   -- Next State
