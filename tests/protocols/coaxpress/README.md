@@ -49,11 +49,11 @@ intentional limitation, not as silent proof of complete spec compliance.
 
 | Test file | DUT surface | Main spec relation | Status |
 | --- | --- | --- | --- |
-| `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly; not a direct protocol-surface spec bench | RTL-contract |
-| `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
+| `test_CoaXPressRxWordPacker.py` | `CoaXPressRxWordPacker` | Internal packing helper for receive-path word assembly, including handshake hold behavior and SSI `EOFE` propagation; not a direct protocol-surface spec bench | RTL-contract |
+| `test_CoaXPressRxLaneMux.py` | `CoaXPressRxLaneMux` | Internal lane arbitration and trailer-marker-gated frame-boundary behavior; not a direct protocol-surface spec bench | RTL-contract |
 | `test_CoaXPressRxLane.py` | `CoaXPressRxLane` | `CXP-001-2021` packet-type decode, `IO_ACK`, control acknowledgments, heartbeat payload/trailer handling, bounded event payload validate-before-release plus trailer-gated ACK, stream header/trailer framing, and malformed-packet `rxError` pulses | Partial protocol |
-| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including a dual-lane step/alignment case and incomplete-frame new-header detection | Near-normative subset |
-| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event-payload assembly plus dual-lane receive rotation/alignment through the lane mux and HS FSM | Partial protocol |
+| `test_CoaXPressRxHsFsm.py` | `CoaXPressRxHsFsm` | Rectangular image header and line marker handling from section `10.4.6.2` / `10.4.6.3`, including dual-lane step/alignment, incomplete-frame new-header detection, and trailer-verdict-gated SSI `EOFE` on the final image beat | Near-normative subset |
+| `test_CoaXPressRx.py` | `CoaXPressRx` | One-lane control/event-payload assembly plus multi-lane receive rotation/alignment through the lane mux and HS FSM, including malformed stream-trailer `EOFE` recovery | Partial protocol |
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
@@ -177,11 +177,16 @@ The image-path benches are the strongest spec-aligned receive tests today:
 
 `test_CoaXPressRxLane.py` also exercises stream packet handling using
 spec-shaped stream headers and CRC/`EOP` trailers. The RTL forwards payload as
-it arrives, so the trailer check proves that the lane parser does not accept a
-new packet until the declared stream packet has completed; it is not a buffered
-bad-payload drop contract. Bad stream trailers pulse `rxError`, which the
-receive assembly aggregates into `rxFsmError` and the core exposes through the
-existing `RxFsmErrorCnt` software counter.
+it arrives, then publishes an in-order trailer verdict marker after the CRC and
+`EOP` check. The receive assembly holds only the final packed SSI image beat
+until that verdict arrives. If the stream trailer is malformed, the final image
+beat is released with SSI `EOFE` set in `TUSER`; if the trailer is clean, the
+final beat is released as a normal SSI EOF. This is not a buffered bad-payload
+drop contract: earlier payload words may already have been forwarded, and the
+downstream consumer is expected to reject or quarantine the frame based on the
+terminal `EOFE` bit. Bad stream trailers pulse the lane-level `rxError`, which
+the receive assembly aggregates into `rxFsmError` and the core exposes through
+the existing `RxFsmErrorCnt` software counter.
 
 ### Receive event payload stream
 
@@ -323,8 +328,9 @@ The most important open limits are:
 - receive-side event payload is validated for framing/CRC before ACK and
   released through a bounded application-facing payload interface
 - the receive stream-data path now validates CRC/`EOP` trailer framing before
-  accepting the next packet, but payload still streams before the trailer result
-  is known
+  accepting the next packet and marks malformed frames with SSI `EOFE` on the
+  final image beat, but it still streams payload before the trailer result is
+  known instead of buffering and dropping a bad frame internally
 - trigger coverage still does not include the broader low-speed extra modes or
   the full high-speed trigger matrix, though the low-speed FSM now covers
   active-pulse shortening through a runtime `txPulseWidth` update
@@ -332,6 +338,19 @@ The most important open limits are:
   `/E/` causes, and HKP K-code validation/classification
 
 ## Running The Slice
+
+Latest focused validation for the current receive-side SSI `EOFE` work:
+
+```bash
+./.venv/bin/python -m pytest -q tests/protocols/coaxpress/test_CoaXPressRx.py
+./.venv/bin/python -m pytest -q tests/protocols/coaxpress/test_CoaXPressRxHsFsm.py
+./.venv/bin/python -m pytest -q \
+  tests/protocols/coaxpress/test_CoaXPressRxLane.py \
+  tests/protocols/coaxpress/test_CoaXPressRxWordPacker.py \
+  tests/protocols/coaxpress/test_CoaXPressRxLaneMux.py
+./.venv/bin/python -m pytest -q \
+  tests/protocols/coaxpress/test_CoaXPressCore.py::test_CoaXPressCore
+```
 
 Typical local commands:
 
