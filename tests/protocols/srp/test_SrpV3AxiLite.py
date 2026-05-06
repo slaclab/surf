@@ -34,7 +34,6 @@ from tests.protocols.srp.srp_test_utils import (
     FOOTER_VERSION_MISMATCH,
     FOOTER_FRAME_ERROR,
     SRP_POSTED_WRITE,
-    SRP_NULL,
     SRP_READ,
     SRP_WRITE,
     FlatSrpAxis,
