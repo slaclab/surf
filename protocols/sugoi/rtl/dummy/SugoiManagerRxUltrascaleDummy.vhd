@@ -25,6 +25,7 @@ use surf.StdRtlPkg.all;
 entity SugoiManagerRxUltrascale is
    generic (
       TPD_G           : time    := 1 ns;
+      SIMULATION_G    : boolean := false;
       DIFF_PAIR_G     : boolean := true;
       DEVICE_FAMILY_G : string  := "ULTRASCALE";
       IODELAY_GROUP_G : string  := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode

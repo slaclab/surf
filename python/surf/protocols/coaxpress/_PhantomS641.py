@@ -300,7 +300,7 @@ class PhantomS641(pr.Device):
             mode        = 'RW',
             minimum     = 1,
             units       = '\u03BCs',
-            disp        = '{:d}' if not isPhantomS711 else '',
+            disp        = '{:d}' if not isPhantomS711 else None,
         ))
 
         self.add(pr.RemoteVariable(
@@ -310,18 +310,18 @@ class PhantomS641(pr.Device):
             base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RO',
             units       = '\u03BCs',
-            disp        = '{:d}' if not isPhantomS711 else '',
+            disp        = '{:d}' if not isPhantomS711 else None,
         ))
 
         self.add(pr.RemoteVariable(
             name        = 'EDRTimeReg',
             description = 'Sets the EDR time (in microseconds). This controls the EDR reset of the sensor',
             offset      = 0x80D0,
-            base        = pr.UIntBE,
+            base        = pr.UIntBE if not isPhantomS711 else pr.FloatBE,
             mode        = 'RW',
             minimum     = 0,
             units       = '\u03BCs',
-            disp        = '{:d}' if not isPhantomS711 else '',
+            disp        = '{:d}' if not isPhantomS711 else None,
         ))
 
         self.add(pr.RemoteVariable(

@@ -141,6 +141,7 @@ begin
    U_Rx : entity surf.SugoiManagerRx
       generic map (
          TPD_G           => TPD_G,
+         SIMULATION_G    => SIMULATION_G,
          DIFF_PAIR_G     => DIFF_PAIR_G,
          DEVICE_FAMILY_G => DEVICE_FAMILY_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
