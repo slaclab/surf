@@ -282,7 +282,10 @@ surface, not the intended RTL integration contract.
 `CoaXPressOverFiberBridgeAxiL` makes the bridge RX status software-visible for
 the GT wrapper integrations. The GTH/GTY wrapper AXI-Lite port now reports
 sticky status, last observed sequence/HKP fields, and counters instead of
-returning only a default decode error. The current register map is:
+returning only a default decode error. The current AxiL regression also sweeps
+the named HKP K-code classifications through the packed HKP readback register
+so software-visible consumers are not only checked against one EOP case. The
+current register map is:
 
 - `0x000`: sticky status bits for `rxError`, `rxAbort`, `seqValid`,
   `seqError`, `hkpValid`, and `hkpError`

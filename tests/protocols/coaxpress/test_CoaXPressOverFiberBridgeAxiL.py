@@ -12,7 +12,8 @@
 # - Sweep: Exercise the software-visible CXPoF bridge RX status register file
 #   through the AXI-Lite clock crossing.
 # - Stimulus: Pulse representative receive-domain status events for `/Q/`
-#   sequence tracking, sequence mismatch, HKP classification, and `/E/` abort.
+#   sequence tracking, sequence mismatch, named HKP K-code classifications,
+#   and `/E/` abort.
 # - Checks: AXI-Lite reads must report sticky status, last-observed status
 #   fields, event counters, and write-one counter/sticky reset behavior.
 # - Timing: AXI-Lite and RX clocks run asynchronously so the bench covers the
@@ -28,8 +29,16 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_ALL_CTRL_K,
     CXP_EOP,
+    CXP_IO_ACK,
+    CXP_MARKER,
+    CXP_SOP,
+    CXP_TRIG,
     CXPOF_HKP_TYPE_EOP,
+    CXPOF_HKP_TYPE_IO_ACK,
     CXPOF_HKP_TYPE_K_CODE,
+    CXPOF_HKP_TYPE_MARKER,
+    CXPOF_HKP_TYPE_SOP,
+    CXPOF_HKP_TYPE_TRIG,
     CXPOF_RX_ERR_PAYLOAD_ABORT,
     CXPOF_RX_ERR_SEQ_MISMATCH,
 )
@@ -96,8 +105,7 @@ async def _read_until(axil, address: int, expected: int, *, mask: int = 0xFFFFFF
     raise AssertionError(f"AXI-Lite 0x{address:03X} did not reach 0x{expected:X}")
 
 
-@cocotb.test()
-async def coaxpress_over_fiber_bridge_axil_status_registers_test(dut):
+async def _setup_status_axil(dut) -> AxiLiteMaster:
     cocotb.start_soon(Clock(dut.rxClk, 4.0, unit="ns").start())
     cocotb.start_soon(Clock(dut.S_AXI_ACLK, 7.0, unit="ns").start())
 
@@ -116,6 +124,12 @@ async def coaxpress_over_fiber_bridge_axil_status_registers_test(dut):
     dut.S_AXI_ARESETN.value = 1
     dut.rxRst.value = 0
     await _rx_cycle(dut, 8)
+    return axil
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_axil_status_registers_test(dut):
+    axil = await _setup_status_axil(dut)
 
     assert await _axil_read(axil, 0x000) == 0
     assert await _axil_read(axil, 0x020) == 0
@@ -206,6 +220,47 @@ async def coaxpress_over_fiber_bridge_axil_status_registers_test(dut):
     assert (await _read_until(axil, 0x000, expected_hkp_error, mask=0x3F)) & 0x3F == expected_hkp_error
     assert await _read_until(axil, 0x030, 1) == 1
     assert await _read_until(axil, 0x034, 1) == 1
+
+
+@cocotb.test()
+async def coaxpress_over_fiber_bridge_axil_hkp_classification_sweep_test(dut):
+    axil = await _setup_status_axil(dut)
+
+    hkp_cases = [
+        (CXP_SOP, CXPOF_HKP_TYPE_SOP),
+        (CXP_EOP, CXPOF_HKP_TYPE_EOP),
+        (CXP_TRIG, CXPOF_HKP_TYPE_TRIG),
+        (CXP_IO_ACK, CXPOF_HKP_TYPE_IO_ACK),
+        (CXP_MARKER, CXPOF_HKP_TYPE_MARKER),
+        (0x9C5C3CBC, CXPOF_HKP_TYPE_K_CODE),
+    ]
+
+    for index, (word, hkp_type) in enumerate(hkp_cases, start=1):
+        # The bridge RX leaf classifies HKP K-code payloads; this AXI-Lite block
+        # is the downstream software-visible consumer. Each pulse must replace
+        # the last-HKP registers after the async crossing without raising the
+        # HKP-error sticky bit or counter.
+        await _pulse_status(
+            dut,
+            hkpValid=1,
+            hkpData=word,
+            hkpWordCount=index,
+            hkpKCodeMask=CXP_ALL_CTRL_K,
+            hkpKCodeValid=1,
+            hkpType=hkp_type,
+        )
+
+        assert await _read_until(axil, 0x014, word) == word
+        hkp_status = await _read_until(axil, 0x018, index, mask=0xFF)
+        assert (hkp_status >> 0) & 0xFF == index
+        assert (hkp_status >> 8) & 0xF == CXP_ALL_CTRL_K
+        assert (hkp_status >> 12) & 0x1 == 1
+        assert (hkp_status >> 16) & 0xF == hkp_type
+
+        assert await _read_until(axil, 0x030, index) == index
+        assert await _read_until(axil, 0x034, 0) == 0
+
+    assert (await _read_until(axil, 0x000, STATUS_HKP_VALID, mask=0x30)) & 0x30 == STATUS_HKP_VALID
 
 
 def test_CoaXPressOverFiberBridgeAxiL():
