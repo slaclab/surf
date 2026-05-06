@@ -71,13 +71,13 @@ architecture rtl of AxiStreamDeMuxIpIntegrator is
       0 => toSlv(TDEST_ROUTE_0_G, 8),
       1 => toSlv(TDEST_ROUTE_1_G, 8));
 
-   signal axisAResetN      : sl := '1';
-   signal dynamicRouteMasks : Slv8Array(1 downto 0) := (others => (others => '0'));
-   signal dynamicRouteDests : Slv8Array(1 downto 0) := (others => (others => '0'));
-   signal sAxisMaster      : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlave       : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mAxisMasters     : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal mAxisSlaves      : AxiStreamSlaveArray(1 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal axisAResetN       : sl                               := '1';
+   signal dynamicRouteMasks : Slv8Array(1 downto 0)            := (others => (others => '0'));
+   signal dynamicRouteDests : Slv8Array(1 downto 0)            := (others => (others => '0'));
+   signal sAxisMaster       : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave        : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
+   signal mAxisMasters      : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal mAxisSlaves       : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
 begin
 

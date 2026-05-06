@@ -26,32 +26,32 @@ entity EthMacTxBypassWrapper is
       RST_POLARITY_G : sl      := '1';
       BYP_EN_G       : boolean := false);
    port (
-      ethClk        : in  sl;
-      ethRst        : in  sl;
-      sPrimTValid   : in  sl;
-      sPrimTData    : in  slv(127 downto 0);
-      sPrimTKeep    : in  slv(15 downto 0);
-      sPrimTLast    : in  sl;
-      sPrimTDest    : in  slv(7 downto 0);
-      sPrimTReady   : out sl;
-      sPrimSof      : in  sl;
-      sPrimEofe     : in  sl;
-      sBypTValid    : in  sl;
-      sBypTData     : in  slv(127 downto 0);
-      sBypTKeep     : in  slv(15 downto 0);
-      sBypTLast     : in  sl;
-      sBypTDest     : in  slv(7 downto 0);
-      sBypTReady    : out sl;
-      sBypSof       : in  sl;
-      sBypEofe      : in  sl;
-      mAxisTValid   : out sl;
-      mAxisTData    : out slv(127 downto 0);
-      mAxisTKeep    : out slv(15 downto 0);
-      mAxisTLast    : out sl;
-      mAxisTDest    : out slv(7 downto 0);
-      mAxisTReady   : in  sl := '1';
-      mAxisSof      : out sl;
-      mAxisEofe     : out sl);
+      ethClk      : in  sl;
+      ethRst      : in  sl;
+      sPrimTValid : in  sl;
+      sPrimTData  : in  slv(127 downto 0);
+      sPrimTKeep  : in  slv(15 downto 0);
+      sPrimTLast  : in  sl;
+      sPrimTDest  : in  slv(7 downto 0);
+      sPrimTReady : out sl;
+      sPrimSof    : in  sl;
+      sPrimEofe   : in  sl;
+      sBypTValid  : in  sl;
+      sBypTData   : in  slv(127 downto 0);
+      sBypTKeep   : in  slv(15 downto 0);
+      sBypTLast   : in  sl;
+      sBypTDest   : in  slv(7 downto 0);
+      sBypTReady  : out sl;
+      sBypSof     : in  sl;
+      sBypEofe    : in  sl;
+      mAxisTValid : out sl;
+      mAxisTData  : out slv(127 downto 0);
+      mAxisTKeep  : out slv(15 downto 0);
+      mAxisTLast  : out sl;
+      mAxisTDest  : out slv(7 downto 0);
+      mAxisTReady : in  sl := '1';
+      mAxisSof    : out sl;
+      mAxisEofe   : out sl);
 end entity EthMacTxBypassWrapper;
 
 architecture rtl of EthMacTxBypassWrapper is
@@ -65,48 +65,50 @@ architecture rtl of EthMacTxBypassWrapper is
 
 begin
 
-   sPrimComb : process (sPrimEofe, sPrimSof, sPrimTData, sPrimTDest, sPrimTKeep, sPrimTLast, sPrimTValid) is
+   sPrimComb : process (sPrimEofe, sPrimSof, sPrimTData, sPrimTDest,
+                        sPrimTKeep, sPrimTLast, sPrimTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sPrimTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sPrimTValid;
       v.tData(127 downto 0) := sPrimTData;
-      v.tKeep(15 downto 0) := sPrimTKeep;
-      v.tLast := sPrimTLast;
-      v.tDest(7 downto 0) := sPrimTDest;
+      v.tKeep(15 downto 0)  := sPrimTKeep;
+      v.tLast               := sPrimTLast;
+      v.tDest(7 downto 0)   := sPrimTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sPrimSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sPrimEofe);
-      sPrimMaster <= v;
+      sPrimMaster           <= v;
    end process sPrimComb;
 
-   sBypComb : process (sBypEofe, sBypSof, sBypTData, sBypTDest, sBypTKeep, sBypTLast, sBypTValid) is
+   sBypComb : process (sBypEofe, sBypSof, sBypTData, sBypTDest, sBypTKeep,
+                       sBypTLast, sBypTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sBypTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sBypTValid;
       v.tData(127 downto 0) := sBypTData;
-      v.tKeep(15 downto 0) := sBypTKeep;
-      v.tLast := sBypTLast;
-      v.tDest(7 downto 0) := sBypTDest;
+      v.tKeep(15 downto 0)  := sBypTKeep;
+      v.tLast               := sBypTLast;
+      v.tDest(7 downto 0)   := sBypTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sBypSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sBypEofe);
-      sBypMaster <= v;
+      sBypMaster            <= v;
    end process sBypComb;
 
    mAxisSlave.tReady <= mAxisTReady;
 
    sPrimTReady <= sPrimSlave.tReady;
-   sBypTReady <= sBypSlave.tReady;
+   sBypTReady  <= sBypSlave.tReady;
 
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(7 downto 0);
-      mAxisSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(7 downto 0);
+      mAxisSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
    U_DUT : entity surf.EthMacTxBypass

@@ -26,33 +26,33 @@ entity RoceConfiguratorWrapper is
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false);
    port (
-      clk                 : in  sl;
-      rst                 : in  sl;
-      M_META_REQ_TVALID   : out sl;
-      M_META_REQ_TDATA    : out slv(302 downto 0);
-      M_META_REQ_TREADY   : in  sl;
-      S_META_RESP_TVALID  : in  sl;
-      S_META_RESP_TDATA   : in  slv(275 downto 0);
-      S_META_RESP_TREADY  : out sl;
-      S_AXIL_AWADDR       : in  slv(31 downto 0);
-      S_AXIL_AWPROT       : in  slv(2 downto 0);
-      S_AXIL_AWVALID      : in  sl;
-      S_AXIL_AWREADY      : out sl;
-      S_AXIL_WDATA        : in  slv(31 downto 0);
-      S_AXIL_WSTRB        : in  slv(3 downto 0);
-      S_AXIL_WVALID       : in  sl;
-      S_AXIL_WREADY       : out sl;
-      S_AXIL_BRESP        : out slv(1 downto 0);
-      S_AXIL_BVALID       : out sl;
-      S_AXIL_BREADY       : in  sl;
-      S_AXIL_ARADDR       : in  slv(31 downto 0);
-      S_AXIL_ARPROT       : in  slv(2 downto 0);
-      S_AXIL_ARVALID      : in  sl;
-      S_AXIL_ARREADY      : out sl;
-      S_AXIL_RDATA        : out slv(31 downto 0);
-      S_AXIL_RRESP        : out slv(1 downto 0);
-      S_AXIL_RVALID       : out sl;
-      S_AXIL_RREADY       : in  sl);
+      clk                : in  sl;
+      rst                : in  sl;
+      M_META_REQ_TVALID  : out sl;
+      M_META_REQ_TDATA   : out slv(302 downto 0);
+      M_META_REQ_TREADY  : in  sl;
+      S_META_RESP_TVALID : in  sl;
+      S_META_RESP_TDATA  : in  slv(275 downto 0);
+      S_META_RESP_TREADY : out sl;
+      S_AXIL_AWADDR      : in  slv(31 downto 0);
+      S_AXIL_AWPROT      : in  slv(2 downto 0);
+      S_AXIL_AWVALID     : in  sl;
+      S_AXIL_AWREADY     : out sl;
+      S_AXIL_WDATA       : in  slv(31 downto 0);
+      S_AXIL_WSTRB       : in  slv(3 downto 0);
+      S_AXIL_WVALID      : in  sl;
+      S_AXIL_WREADY      : out sl;
+      S_AXIL_BRESP       : out slv(1 downto 0);
+      S_AXIL_BVALID      : out sl;
+      S_AXIL_BREADY      : in  sl;
+      S_AXIL_ARADDR      : in  slv(31 downto 0);
+      S_AXIL_ARPROT      : in  slv(2 downto 0);
+      S_AXIL_ARVALID     : in  sl;
+      S_AXIL_ARREADY     : out sl;
+      S_AXIL_RDATA       : out slv(31 downto 0);
+      S_AXIL_RRESP       : out slv(1 downto 0);
+      S_AXIL_RVALID      : out sl;
+      S_AXIL_RREADY      : in  sl);
 end entity RoceConfiguratorWrapper;
 
 architecture rtl of RoceConfiguratorWrapper is
@@ -121,7 +121,7 @@ begin
    sMetaRespComb : process (S_META_RESP_TDATA, S_META_RESP_TVALID) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
+      v                     := AXI_STREAM_MASTER_INIT_C;
       v.tValid              := S_META_RESP_TVALID;
       v.tData(275 downto 0) := S_META_RESP_TDATA;
       sMetaRespMaster       <= v;

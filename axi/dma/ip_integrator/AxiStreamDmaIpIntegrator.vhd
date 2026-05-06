@@ -23,30 +23,30 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamDmaIpIntegrator is
    port (
-      axiClk         : in  sl;
-      axiRst         : in  sl;
-      interrupt      : out sl;
-      online         : out sl;
-      acknowledge    : out sl;
-      S_AXI_AWADDR   : in  slv(11 downto 0);
-      S_AXI_AWPROT   : in  slv(2 downto 0);
-      S_AXI_AWVALID  : in  sl;
-      S_AXI_AWREADY  : out sl;
-      S_AXI_WDATA    : in  slv(31 downto 0);
-      S_AXI_WSTRB    : in  slv(3 downto 0);
-      S_AXI_WVALID   : in  sl;
-      S_AXI_WREADY   : out sl;
-      S_AXI_BRESP    : out slv(1 downto 0);
-      S_AXI_BVALID   : out sl;
-      S_AXI_BREADY   : in  sl;
-      S_AXI_ARADDR   : in  slv(11 downto 0);
-      S_AXI_ARPROT   : in  slv(2 downto 0);
-      S_AXI_ARVALID  : in  sl;
-      S_AXI_ARREADY  : out sl;
-      S_AXI_RDATA    : out slv(31 downto 0);
-      S_AXI_RRESP    : out slv(1 downto 0);
-      S_AXI_RVALID   : out sl;
-      S_AXI_RREADY   : in  sl);
+      axiClk        : in  sl;
+      axiRst        : in  sl;
+      interrupt     : out sl;
+      online        : out sl;
+      acknowledge   : out sl;
+      S_AXI_AWADDR  : in  slv(11 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
+      S_AXI_AWVALID : in  sl;
+      S_AXI_AWREADY : out sl;
+      S_AXI_WDATA   : in  slv(31 downto 0);
+      S_AXI_WSTRB   : in  slv(3 downto 0);
+      S_AXI_WVALID  : in  sl;
+      S_AXI_WREADY  : out sl;
+      S_AXI_BRESP   : out slv(1 downto 0);
+      S_AXI_BVALID  : out sl;
+      S_AXI_BREADY  : in  sl;
+      S_AXI_ARADDR  : in  slv(11 downto 0);
+      S_AXI_ARPROT  : in  slv(2 downto 0);
+      S_AXI_ARVALID : in  sl;
+      S_AXI_ARREADY : out sl;
+      S_AXI_RDATA   : out slv(31 downto 0);
+      S_AXI_RRESP   : out slv(1 downto 0);
+      S_AXI_RVALID  : out sl;
+      S_AXI_RREADY  : in  sl);
 end entity AxiStreamDmaIpIntegrator;
 
 architecture rtl of AxiStreamDmaIpIntegrator is
@@ -66,7 +66,7 @@ architecture rtl of AxiStreamDmaIpIntegrator is
       ID_BITS_C    => 1,
       LEN_BITS_C   => 8);
 
-   signal axilResetN       : sl := '1';
+   signal axilResetN       : sl                                  := '1';
    signal axilReadMasters  : AxiLiteReadMasterArray(0 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(0 downto 0)   := (others => AXI_LITE_READ_SLAVE_INIT_C);
    signal axilWriteMasters : AxiLiteWriteMasterArray(0 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);

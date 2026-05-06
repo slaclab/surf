@@ -62,27 +62,28 @@ architecture rtl of EthMacImportExportLoopbackWrapper is
 
    signal xlgmiiTxd : slv(127 downto 0) := (others => '0');
    signal xlgmiiTxc : slv(15 downto 0)  := (others => '0');
-   signal xgmiiTxd : slv(63 downto 0) := (others => '0');
-   signal xgmiiTxc : slv(7 downto 0)  := (others => '0');
-   signal gmiiTxEn : sl               := '0';
-   signal gmiiTxEr : sl               := '0';
-   signal gmiiTxd  : slv(7 downto 0)  := (others => '0');
+   signal xgmiiTxd  : slv(63 downto 0)  := (others => '0');
+   signal xgmiiTxc  : slv(7 downto 0)   := (others => '0');
+   signal gmiiTxEn  : sl                := '0';
+   signal gmiiTxEr  : sl                := '0';
+   signal gmiiTxd   : slv(7 downto 0)   := (others => '0');
 
 begin
 
    -- Flatten the source stream for the export-side stimulus path.
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
-      v.tKeep(15 downto 0) := sAxisTKeep;
-      v.tLast := sAxisTLast;
-      v.tDest(7 downto 0) := sAxisTDest;
+      v.tKeep(15 downto 0)  := sAxisTKeep;
+      v.tLast               := sAxisTLast;
+      v.tDest(7 downto 0)   := sAxisTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
    sAxisTReady <= sAxisSlave.tReady;
@@ -91,12 +92,12 @@ begin
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(7 downto 0);
-      mAxisSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(7 downto 0);
+      mAxisSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
    -- Generate the PHY-coded stream from a clean AXIS packet source.

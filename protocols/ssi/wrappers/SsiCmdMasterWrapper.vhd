@@ -51,23 +51,24 @@ architecture rtl of SsiCmdMasterWrapper is
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTKeep,
+                        sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sAxisTValid;
       v.tData(31 downto 0) := sAxisTData(31 downto 0);
-      v.tKeep(3 downto 0) := sAxisTKeep(3 downto 0);
-      v.tLast := sAxisTLast;
+      v.tKeep(3 downto 0)  := sAxisTKeep(3 downto 0);
+      v.tLast              := sAxisTLast;
       ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster          <= v;
    end process sAxisComb;
 
    sAxisTReady <= sAxisSlave.tReady;
-   cmdValid <= cmdMaster.valid;
-   cmdOpCode <= cmdMaster.opCode;
-   cmdCtx <= cmdMaster.ctx;
+   cmdValid    <= cmdMaster.valid;
+   cmdOpCode   <= cmdMaster.opCode;
+   cmdCtx      <= cmdMaster.ctx;
 
    U_DUT : entity surf.SsiCmdMaster
       generic map (

@@ -55,8 +55,8 @@ architecture rtl of Pgp2bLaneWrapper is
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal pgpTxMaster  : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave   : AxiStreamSlaveType               := AXI_STREAM_SLAVE_FORCE_C;
    signal pgpTxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 

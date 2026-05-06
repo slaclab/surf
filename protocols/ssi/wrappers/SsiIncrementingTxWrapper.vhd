@@ -65,16 +65,16 @@ begin
       keepV := (others => '0');
 
       dataV(31 downto 0) := mAxisMaster.tData(31 downto 0);
-      keepV(3 downto 0) := mAxisMaster.tKeep(3 downto 0);
+      keepV(3 downto 0)  := mAxisMaster.tKeep(3 downto 0);
 
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= dataV;
-      mAxisTKeep <= keepV;
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(7 downto 0);
-      mAxisTId <= mAxisMaster.tId(7 downto 0);
-      mAxisSof <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
-      mAxisEofe <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
+      mAxisTData  <= dataV;
+      mAxisTKeep  <= keepV;
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(7 downto 0);
+      mAxisTId    <= mAxisMaster.tId(7 downto 0);
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
    end process mAxisView;
 
    U_DUT : entity surf.SsiIncrementingTx
