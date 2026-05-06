@@ -61,10 +61,11 @@ begin
    ----------------------------------------------------------------------------
    -- Flat cocotb input shim
    ----------------------------------------------------------------------------
-   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
+      v                     := AXI_STREAM_MASTER_INIT_C;
       v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
       v.tKeep(15 downto 0)  := sAxisTKeep;
@@ -73,7 +74,7 @@ begin
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sAxisFrag, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
    sAxisTReady <= sAxisSlave.tReady;
@@ -81,8 +82,8 @@ begin
    mAxisReadyComb : process (mAxisTReady) is
       variable v : AxiStreamSlaveType;
    begin
-      v := AXI_STREAM_SLAVE_INIT_C;
-      v.tReady := mAxisTReady;
+      v          := AXI_STREAM_SLAVE_INIT_C;
+      v.tReady   := mAxisTReady;
       mAxisSlave <= v;
    end process mAxisReadyComb;
 

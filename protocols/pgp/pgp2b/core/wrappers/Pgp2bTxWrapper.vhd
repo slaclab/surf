@@ -13,25 +13,25 @@ use surf.AxiStreamPkg.all;
 
 entity Pgp2bTxWrapper is
    port (
-      clk            : in  sl;
-      rst            : in  sl;
-      txFlush        : in  sl              := '0';
-      txOpCodeEn     : in  sl              := '0';
-      txOpCode       : in  slv(7 downto 0) := (others => '0');
-      txLocData      : in  slv(7 downto 0) := (others => '0');
-      txFlowCntlDis  : in  sl              := '0';
-      txReset        : in  sl              := '0';
-      gtReset        : in  sl              := '0';
-      locLinkReady   : in  sl              := '1';
-      phyTxReady     : in  sl              := '1';
-      locOverflow    : out slv(3 downto 0);
-      locPause       : out slv(3 downto 0);
-      linkReady      : out sl;
-      frameTx        : out sl;
-      frameTxErr     : out sl;
-      phyTxData      : out slv(15 downto 0);
-      phyTxDataK     : out slv(1 downto 0);
-      vc0FrameReady  : out sl);
+      clk           : in  sl;
+      rst           : in  sl;
+      txFlush       : in  sl              := '0';
+      txOpCodeEn    : in  sl              := '0';
+      txOpCode      : in  slv(7 downto 0) := (others => '0');
+      txLocData     : in  slv(7 downto 0) := (others => '0');
+      txFlowCntlDis : in  sl              := '0';
+      txReset       : in  sl              := '0';
+      gtReset       : in  sl              := '0';
+      locLinkReady  : in  sl              := '1';
+      phyTxReady    : in  sl              := '1';
+      locOverflow   : out slv(3 downto 0);
+      locPause      : out slv(3 downto 0);
+      linkReady     : out sl;
+      frameTx       : out sl;
+      frameTxErr    : out sl;
+      phyTxData     : out slv(15 downto 0);
+      phyTxDataK    : out slv(1 downto 0);
+      vc0FrameReady : out sl);
 end entity Pgp2bTxWrapper;
 
 architecture rtl of Pgp2bTxWrapper is

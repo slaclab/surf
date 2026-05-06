@@ -26,29 +26,29 @@ entity RawEthFramerRxFlatWrapper is
       TPD_G      : time             := 1 ns;
       ETH_TYPE_G : slv(15 downto 0) := x"0010");
    port (
-      clk         : in  sl;
-      rst         : in  sl;
-      localMac    : in  slv(47 downto 0);
-      remoteMac   : in  slv(47 downto 0);
-      req         : out sl;
-      ack         : in  sl;
-      tDest       : out slv(7 downto 0);
-      sMacTValid  : in  sl;
-      sMacTData   : in  slv(63 downto 0);
-      sMacTKeep   : in  slv(7 downto 0);
-      sMacTLast   : in  sl;
-      sMacTReady  : out sl;
-      sMacSof     : in  sl;
-      sMacEofe    : in  sl;
-      mAppTValid  : out sl;
-      mAppTData   : out slv(63 downto 0);
-      mAppTKeep   : out slv(7 downto 0);
-      mAppTLast   : out sl;
-      mAppTReady  : in  sl := '1';
-      mAppTDest   : out slv(7 downto 0);
-      mAppSof     : out sl;
-      mAppBcf     : out sl;
-      mAppEofe    : out sl);
+      clk        : in  sl;
+      rst        : in  sl;
+      localMac   : in  slv(47 downto 0);
+      remoteMac  : in  slv(47 downto 0);
+      req        : out sl;
+      ack        : in  sl;
+      tDest      : out slv(7 downto 0);
+      sMacTValid : in  sl;
+      sMacTData  : in  slv(63 downto 0);
+      sMacTKeep  : in  slv(7 downto 0);
+      sMacTLast  : in  sl;
+      sMacTReady : out sl;
+      sMacSof    : in  sl;
+      sMacEofe   : in  sl;
+      mAppTValid : out sl;
+      mAppTData  : out slv(63 downto 0);
+      mAppTKeep  : out slv(7 downto 0);
+      mAppTLast  : out sl;
+      mAppTReady : in  sl := '1';
+      mAppTDest  : out slv(7 downto 0);
+      mAppSof    : out sl;
+      mAppBcf    : out sl;
+      mAppEofe   : out sl);
 end entity RawEthFramerRxFlatWrapper;
 
 architecture rtl of RawEthFramerRxFlatWrapper is
@@ -63,20 +63,21 @@ begin
    ---------------------------------------------------------------------------
    -- Stream flattening
    ---------------------------------------------------------------------------
-   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast, sMacTValid) is
+   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast,
+                       sMacTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sMacTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sMacTValid;
       v.tData(63 downto 0) := sMacTData;
-      v.tKeep(7 downto 0) := sMacTKeep;
-      v.tLast := sMacTLast;
+      v.tKeep(7 downto 0)  := sMacTKeep;
+      v.tLast              := sMacTLast;
       ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v, sMacSof);
       ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v, sMacEofe);
-      sMacMaster <= v;
+      sMacMaster           <= v;
    end process sMacComb;
 
-   sMacTReady <= sMacSlave.tReady;
+   sMacTReady       <= sMacSlave.tReady;
    mAppSlave.tReady <= mAppTReady;
 
    ---------------------------------------------------------------------------
@@ -85,13 +86,13 @@ begin
    mAppView : process (mAppMaster) is
    begin
       mAppTValid <= mAppMaster.tValid;
-      mAppTData <= mAppMaster.tData(63 downto 0);
-      mAppTKeep <= mAppMaster.tKeep(7 downto 0);
-      mAppTLast <= mAppMaster.tLast;
-      mAppTDest <= mAppMaster.tDest(7 downto 0);
-      mAppSof <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mAppMaster);
-      mAppBcf <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mAppMaster);
-      mAppEofe <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppTData  <= mAppMaster.tData(63 downto 0);
+      mAppTKeep  <= mAppMaster.tKeep(7 downto 0);
+      mAppTLast  <= mAppMaster.tLast;
+      mAppTDest  <= mAppMaster.tDest(7 downto 0);
+      mAppSof    <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppBcf    <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppEofe   <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mAppMaster);
    end process mAppView;
 
    ---------------------------------------------------------------------------

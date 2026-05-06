@@ -26,46 +26,46 @@ entity RawEthFramerPairFlatWrapper is
       TPD_G      : time             := 1 ns;
       ETH_TYPE_G : slv(15 downto 0) := x"0010");
    port (
-      clk               : in  sl;
-      rst               : in  sl;
-      serverLocalMac    : in  slv(47 downto 0);
-      clientLocalMac    : in  slv(47 downto 0);
-      sServerAppTValid  : in  sl;
-      sServerAppTData   : in  slv(63 downto 0);
-      sServerAppTKeep   : in  slv(7 downto 0);
-      sServerAppTLast   : in  sl;
-      sServerAppTReady  : out sl;
-      sServerAppTDest   : in  slv(7 downto 0);
-      sServerAppSof     : in  sl;
-      sServerAppBcf     : in  sl;
-      sServerAppEofe    : in  sl;
-      mServerAppTValid  : out sl;
-      mServerAppTData   : out slv(63 downto 0);
-      mServerAppTKeep   : out slv(7 downto 0);
-      mServerAppTLast   : out sl;
-      mServerAppTReady  : in  sl := '1';
-      mServerAppTDest   : out slv(7 downto 0);
-      mServerAppSof     : out sl;
-      mServerAppBcf     : out sl;
-      mServerAppEofe    : out sl;
-      sClientAppTValid  : in  sl;
-      sClientAppTData   : in  slv(63 downto 0);
-      sClientAppTKeep   : in  slv(7 downto 0);
-      sClientAppTLast   : in  sl;
-      sClientAppTReady  : out sl;
-      sClientAppTDest   : in  slv(7 downto 0);
-      sClientAppSof     : in  sl;
-      sClientAppBcf     : in  sl;
-      sClientAppEofe    : in  sl;
-      mClientAppTValid  : out sl;
-      mClientAppTData   : out slv(63 downto 0);
-      mClientAppTKeep   : out slv(7 downto 0);
-      mClientAppTLast   : out sl;
-      mClientAppTReady  : in  sl := '1';
-      mClientAppTDest   : out slv(7 downto 0);
-      mClientAppSof     : out sl;
-      mClientAppBcf     : out sl;
-      mClientAppEofe    : out sl);
+      clk              : in  sl;
+      rst              : in  sl;
+      serverLocalMac   : in  slv(47 downto 0);
+      clientLocalMac   : in  slv(47 downto 0);
+      sServerAppTValid : in  sl;
+      sServerAppTData  : in  slv(63 downto 0);
+      sServerAppTKeep  : in  slv(7 downto 0);
+      sServerAppTLast  : in  sl;
+      sServerAppTReady : out sl;
+      sServerAppTDest  : in  slv(7 downto 0);
+      sServerAppSof    : in  sl;
+      sServerAppBcf    : in  sl;
+      sServerAppEofe   : in  sl;
+      mServerAppTValid : out sl;
+      mServerAppTData  : out slv(63 downto 0);
+      mServerAppTKeep  : out slv(7 downto 0);
+      mServerAppTLast  : out sl;
+      mServerAppTReady : in  sl := '1';
+      mServerAppTDest  : out slv(7 downto 0);
+      mServerAppSof    : out sl;
+      mServerAppBcf    : out sl;
+      mServerAppEofe   : out sl;
+      sClientAppTValid : in  sl;
+      sClientAppTData  : in  slv(63 downto 0);
+      sClientAppTKeep  : in  slv(7 downto 0);
+      sClientAppTLast  : in  sl;
+      sClientAppTReady : out sl;
+      sClientAppTDest  : in  slv(7 downto 0);
+      sClientAppSof    : in  sl;
+      sClientAppBcf    : in  sl;
+      sClientAppEofe   : in  sl;
+      mClientAppTValid : out sl;
+      mClientAppTData  : out slv(63 downto 0);
+      mClientAppTKeep  : out slv(7 downto 0);
+      mClientAppTLast  : out sl;
+      mClientAppTReady : in  sl := '1';
+      mClientAppTDest  : out slv(7 downto 0);
+      mClientAppSof    : out sl;
+      mClientAppBcf    : out sl;
+      mClientAppEofe   : out sl);
 end entity RawEthFramerPairFlatWrapper;
 
 architecture rtl of RawEthFramerPairFlatWrapper is
@@ -92,38 +92,42 @@ begin
    ---------------------------------------------------------------------------
    -- Application-side stream flattening
    ---------------------------------------------------------------------------
-   sServerAppComb : process (sServerAppBcf, sServerAppEofe, sServerAppSof, sServerAppTData, sServerAppTDest, sServerAppTKeep, sServerAppTLast, sServerAppTValid) is
+   sServerAppComb : process (sServerAppBcf, sServerAppEofe, sServerAppSof,
+                             sServerAppTData, sServerAppTDest, sServerAppTKeep,
+                             sServerAppTLast, sServerAppTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sServerAppTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sServerAppTValid;
       v.tData(63 downto 0) := sServerAppTData;
-      v.tKeep(7 downto 0) := sServerAppTKeep;
-      v.tLast := sServerAppTLast;
-      v.tDest(7 downto 0) := sServerAppTDest;
+      v.tKeep(7 downto 0)  := sServerAppTKeep;
+      v.tLast              := sServerAppTLast;
+      v.tDest(7 downto 0)  := sServerAppTDest;
       ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v, sServerAppSof);
       ssiSetUserBcf(RAW_ETH_CONFIG_INIT_C, v, sServerAppBcf);
       ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v, sServerAppEofe);
-      sServerAppMaster <= v;
+      sServerAppMaster     <= v;
    end process sServerAppComb;
 
-   sClientAppComb : process (sClientAppBcf, sClientAppEofe, sClientAppSof, sClientAppTData, sClientAppTDest, sClientAppTKeep, sClientAppTLast, sClientAppTValid) is
+   sClientAppComb : process (sClientAppBcf, sClientAppEofe, sClientAppSof,
+                             sClientAppTData, sClientAppTDest, sClientAppTKeep,
+                             sClientAppTLast, sClientAppTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sClientAppTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sClientAppTValid;
       v.tData(63 downto 0) := sClientAppTData;
-      v.tKeep(7 downto 0) := sClientAppTKeep;
-      v.tLast := sClientAppTLast;
-      v.tDest(7 downto 0) := sClientAppTDest;
+      v.tKeep(7 downto 0)  := sClientAppTKeep;
+      v.tLast              := sClientAppTLast;
+      v.tDest(7 downto 0)  := sClientAppTDest;
       ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v, sClientAppSof);
       ssiSetUserBcf(RAW_ETH_CONFIG_INIT_C, v, sClientAppBcf);
       ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v, sClientAppEofe);
-      sClientAppMaster <= v;
+      sClientAppMaster     <= v;
    end process sClientAppComb;
 
-   sServerAppTReady <= sServerAppSlave.tReady;
-   sClientAppTReady <= sClientAppSlave.tReady;
+   sServerAppTReady       <= sServerAppSlave.tReady;
+   sClientAppTReady       <= sClientAppSlave.tReady;
    mServerAppSlave.tReady <= mServerAppTReady;
    mClientAppSlave.tReady <= mClientAppTReady;
 
@@ -133,34 +137,34 @@ begin
    mServerAppView : process (mServerAppMaster) is
    begin
       mServerAppTValid <= mServerAppMaster.tValid;
-      mServerAppTData <= mServerAppMaster.tData(63 downto 0);
-      mServerAppTKeep <= mServerAppMaster.tKeep(7 downto 0);
-      mServerAppTLast <= mServerAppMaster.tLast;
-      mServerAppTDest <= mServerAppMaster.tDest(7 downto 0);
-      mServerAppSof <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
-      mServerAppBcf <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
-      mServerAppEofe <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
+      mServerAppTData  <= mServerAppMaster.tData(63 downto 0);
+      mServerAppTKeep  <= mServerAppMaster.tKeep(7 downto 0);
+      mServerAppTLast  <= mServerAppMaster.tLast;
+      mServerAppTDest  <= mServerAppMaster.tDest(7 downto 0);
+      mServerAppSof    <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
+      mServerAppBcf    <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
+      mServerAppEofe   <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mServerAppMaster);
    end process mServerAppView;
 
    mClientAppView : process (mClientAppMaster) is
    begin
       mClientAppTValid <= mClientAppMaster.tValid;
-      mClientAppTData <= mClientAppMaster.tData(63 downto 0);
-      mClientAppTKeep <= mClientAppMaster.tKeep(7 downto 0);
-      mClientAppTLast <= mClientAppMaster.tLast;
-      mClientAppTDest <= mClientAppMaster.tDest(7 downto 0);
-      mClientAppSof <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
-      mClientAppBcf <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
-      mClientAppEofe <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
+      mClientAppTData  <= mClientAppMaster.tData(63 downto 0);
+      mClientAppTKeep  <= mClientAppMaster.tKeep(7 downto 0);
+      mClientAppTLast  <= mClientAppMaster.tLast;
+      mClientAppTDest  <= mClientAppMaster.tDest(7 downto 0);
+      mClientAppSof    <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
+      mClientAppBcf    <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
+      mClientAppEofe   <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mClientAppMaster);
    end process mClientAppView;
 
    ---------------------------------------------------------------------------
    -- Cross-connect the MAC-side ports as a direct link
    ---------------------------------------------------------------------------
    serverObMacMaster <= clientIbMacMaster;
-   clientIbMacSlave <= serverObMacSlave;
+   clientIbMacSlave  <= serverObMacSlave;
    clientObMacMaster <= serverIbMacMaster;
-   serverIbMacSlave <= clientObMacSlave;
+   serverIbMacSlave  <= clientObMacSlave;
 
    ---------------------------------------------------------------------------
    -- DUT instantiation
