@@ -62,6 +62,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
 | `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words, `/Q/` sequence tracking, classified `/E/` abort/error status, and HKP status parsing | Partial protocol |
 | `test_CoaXPressOverFiberBridge.py` | `CoaXPressOverFiberBridge` | Top-level 32b/64b gearbox integration around the bridge leaf mapping and RX bridge status forwarding | RTL-contract with spec framing |
+| `test_CoaXPressOverFiberBridgeAxiL.py` | `CoaXPressOverFiberBridgeAxiL` | Software-visible sticky bridge RX status, last-observed sequence/HKP fields, event counters, reset behavior, and HKP classification readback | RTL-contract status consumer |
 
 ## Spec Section Notes
 
@@ -272,6 +273,11 @@ Current checked-in coverage:
   - RX-side 64b gearbox coverage for classified `/E/` abort/recovery,
     HKP-to-payload status, and lane-0 `/Q/` sequence mismatch/no-output/recovery
     guardrails
+- `test_CoaXPressOverFiberBridgeAxiL.py`
+  - AXI-Lite readback of sticky bridge RX status bits, last-observed
+    sequence/HKP fields, and event counters
+  - write-one reset coverage for sticky status and counters
+  - named HKP K-code classification sweep through the packed HKP status register
 
 The product-facing bridge status contract is the `CxpofRxStatusType` record in
 `CoaXPressPkg.vhd`. The cocotb benches use thin wrapper entities to flatten
