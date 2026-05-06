@@ -112,7 +112,7 @@ architecture rtl of CoaXPressRxHsFsm is
       waitTrailer : sl;
       waitFrameTrailer : sl;
       yCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
-      dCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+      dRem        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
       lineRem     : LineRemType;
       hdrCnt      : natural range 0 to 25;
       hdr         : ImageHdrType;
@@ -138,7 +138,7 @@ architecture rtl of CoaXPressRxHsFsm is
       waitTrailer => '0',
       waitFrameTrailer => '0',
       yCnt        => (others => '0'),
-      dCnt        => (others => '0'),
+      dRem        => (others => '0'),
       lineRem     => 0,
       hdrCnt      => 0,
       hdr         => IMAGE_HDR_INIT_C,
@@ -151,6 +151,19 @@ architecture rtl of CoaXPressRxHsFsm is
       dataMaster  => AXI_STREAM_MASTER_INIT_C,
       pendingMaster => AXI_STREAM_MASTER_INIT_C,
       state       => IDLE_S);
+
+   function satLineRem (
+      remCnt : slv)
+      return LineRemType is
+   begin
+      if (remCnt = 0) then
+         return 0;
+      elsif (remCnt > toSlv(NUM_LANES_G, remCnt'length)) then
+         return NUM_LANES_G+1;
+      else
+         return conv_integer(remCnt);
+      end if;
+   end function satLineRem;
 
    signal r       : RegType := REG_INIT_C;
    signal rin     : RegType;
@@ -169,15 +182,16 @@ begin
 
    packRst <= rxRst or rxFsmRst;
 
-   packOutSlave <= rin.packOut;
+   packOutSlave <= r.packOut;
 
    comb : process (packInSlave, packMaster, pipeMaster, r, rxFsmRst, rxRst) is
-      variable v             : RegType;
-      variable tData         : slv(31 downto 0);
-      variable eolBeat       : sl;
-      variable eolWrd        : natural range 0 to NUM_LANES_G-1;
-      variable wordCnt       : natural range 0 to NUM_LANES_G;
-      variable remCnt        : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
+      variable v        : RegType;
+      variable tData    : slv(31 downto 0);
+      variable eolBeat  : sl;
+      variable eolWrd   : natural range 0 to NUM_LANES_G-1;
+      variable wordCnt  : natural range 0 to NUM_LANES_G;
+      variable lineDec  : natural range 0 to NUM_LANES_G;
+      variable nextDRem : slv(RX_FSM_CNT_WIDTH_G-1 downto 0);
    begin
       -- Latch the current value
       v := r;
@@ -249,7 +263,8 @@ begin
             ----------------------------------------------------------------------
             when IDLE_S =>
                -- Reset counter
-               v.dCnt := (others => '0');
+               v.dRem    := (others => '0');
+               v.lineRem := 0;
 
                -- Check for the marker
                if (tData = CXP_MARKER_C) then
@@ -275,6 +290,8 @@ begin
                   -- Reset counters
                   v.endOfLine := '0';
                   v.hdrValid  := '0';
+                  v.dRem      := (others => '0');
+                  v.lineRem   := 0;
                   v.yCnt      := (others => '0');
 
                   -- Check for out of sync header
@@ -289,6 +306,9 @@ begin
                -- Check for "Rectangular line marker"
                elsif (tData = x"02_02_02_02") then
                   if (r.hdrValid = '1') then
+                     v.dRem    := r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0);
+                     v.lineRem := satLineRem(r.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0));
+
                      -- Next State
                      v.state := LINE_S;
                   else
@@ -345,8 +365,14 @@ begin
                -- Map the TKEEP word
                v.dataMasters(0).tKeep(4*r.wrd+3 downto 4*r.wrd) := x"F";
 
-               -- Increment the counter
-               v.dCnt := r.dCnt + 1;
+               -- Consume the held word from an unaligned line start.
+               if (r.dRem > 1) then
+                  nextDRem := r.dRem - 1;
+               else
+                  nextDRem := (others => '0');
+               end if;
+               v.dRem    := nextDRem;
+               v.lineRem := satLineRem(nextDRem);
 
                -- Check for max count
                if (r.lineRem = 1) then
@@ -372,6 +398,7 @@ begin
                eolBeat          := '0';
                eolWrd           := 0;
                wordCnt          := 0;
+               lineDec          := 0;
 
                -- Loop the number of 32-bit words
                for i in 0 to NUM_LANES_G-1 loop
@@ -386,8 +413,8 @@ begin
                         -- Update the TKEEP mask
                         v.dataMasters(0).tKeep(4*i+3 downto 4*i) := x"F";
 
-                        -- Increment the counter
-                        v.dCnt := v.dCnt + 1;
+                        -- Count the accepted line words in this beat.
+                        lineDec := lineDec + 1;
 
                      end if;
 
@@ -419,6 +446,19 @@ begin
                   end if;
                elsif (eolBeat = '1') then
                   v.wrd := 0;
+               end if;
+
+               -- Track the remaining line words with an incremental
+               -- countdown.  This avoids a wide dsizeL-dCnt subtraction on
+               -- every parser cycle.
+               if (lineDec /= 0) then
+                  if (r.dRem > toSlv(lineDec, RX_FSM_CNT_WIDTH_G)) then
+                     nextDRem := r.dRem - toSlv(lineDec, RX_FSM_CNT_WIDTH_G);
+                  else
+                     nextDRem := (others => '0');
+                  end if;
+                  v.dRem    := nextDRem;
+                  v.lineRem := satLineRem(nextDRem);
                end if;
          ----------------------------------------------------------------------
          end case;
@@ -553,20 +593,6 @@ begin
             when others =>
                null;
          end case;
-      end if;
-
-      -- Register a small saturated remaining-word count.  This breaks the wide
-      -- dCnt-to-wrd path when a line ends mid-beat and the next marker is held
-      -- in the current input word.
-      if (v.dCnt >= v.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0)) then
-         v.lineRem := 0;
-      else
-         remCnt := v.hdr.dsizeL(RX_FSM_CNT_WIDTH_G-1 downto 0) - v.dCnt;
-         if (conv_integer(remCnt) > NUM_LANES_G) then
-            v.lineRem := NUM_LANES_G+1;
-         else
-            v.lineRem := conv_integer(remCnt);
-         end if;
       end if;
 
       -----------------------------------------------------------------------------
