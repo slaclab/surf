@@ -54,6 +54,8 @@ end entity Dcqcn;
 
 architecture rtl of Dcqcn is
 
+   constant CNP_COUNTER_BITS_C : positive range 1 to 20 := 16;
+
    type StateType is (
       IDLE_S,
       THE_CNP_AFTERMATH_S
@@ -71,6 +73,8 @@ architecture rtl of Dcqcn is
       Rmin               : slv(31 downto 0);  -- Minimum rate, axil
       cnpDecDetected     : sl;          -- CNP detected for decrement process
       cnpAlphaDetected   : sl;          -- CNP detected for alpha process
+      cnpCnt             : slv(CNP_COUNTER_BITS_C-1 downto 0);  -- CNP counter
+      cnpCntRst          : sl;          -- CNP counter reset
       incReset           : sl;          -- Reset increment process timers
       incEn              : sl;          -- Enable Increase process
       decEn              : sl;          -- Enbale decrease process
@@ -108,6 +112,8 @@ architecture rtl of Dcqcn is
       Rmin               => x"00989680",      -- 10 MB/s
       cnpDecDetected     => '0',
       cnpAlphaDetected   => '0',
+      cnpCnt             => (others => '0'),
+      cnpCntRst          => '0',
       incReset           => '0',
       incEn              => '0',
       decEn              => '0',
@@ -137,10 +143,13 @@ architecture rtl of Dcqcn is
    signal incValid   : sl;
    signal alphaValid : sl;
 
+   signal cnpCnt    : slv(CNP_COUNTER_BITS_C-1 downto 0);
+   signal cnpCntRst : sl;
+
 begin  -- architecture rtl
 
    -----------------------------------------------------------------------------
-   -- CNP rising edge
+   -- CNP rising edge + counter
    -----------------------------------------------------------------------------
    CnpEdge_1 : entity surf.SynchronizerEdge
       generic map (
@@ -153,6 +162,22 @@ begin  -- architecture rtl
          dataIn     => cnp,
          risingEdge => cnpRe
          );
+
+   SynchronizerOneShotCnt_1 : entity surf.SynchronizerOneShotCnt
+      generic map (
+         TPD_G        => TPD_G,
+         COMMON_CLK_G => true,
+         CNT_WIDTH_G  => CNP_COUNTER_BITS_C)
+      port map (
+         wrClk      => axisClk,
+         wrRst      => axisRst,
+         dataIn     => cnpRe,
+         rdClk      => axisClk,
+         rdRst      => axisRst,
+         rollOverEn => '1',
+         cntRst     => cnpCntRst,
+         dataOut    => open,
+         cntOut     => cnpCnt);
 
    -----------------------------------------------------------------------------
    -- Rate decrease process
@@ -248,12 +273,14 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    comb : process (alphaValid, axilReadMaster, axilWriteMaster, axisRst, cnpRe,
                    decValid, incValid, newAlpha, newDecRc, newDecRt, newIncRc,
-                   newIncRt, r) is
+                   newIncRt, cnpCnt, cnpCntRst, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin  -- process comb
       -- Latch the current value
-      v := r;
+      v           := r;
+      -- Update counter
+      v.cnpCnt    := cnpCnt;
       ---------------------------------------------------------------------------
       -- Axi-Lite interface
       ---------------------------------------------------------------------------
@@ -273,6 +300,8 @@ begin  -- architecture rtl
       axiSlaveRegisterR(axilEp, x"018", 0, r.Rc);
       axiSlaveRegisterR(axilEp, x"01C", 0, r.Rt);
       axiSlaveRegisterR(axilEp, x"020", 0, r.alpha);
+      axiSlaveRegister(axilEp, x"020", 10, v.cnpCntRst);
+      axiSlaveRegisterR(axilEp, x"020", 11, r.cnpCnt);
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -324,6 +353,7 @@ begin  -- architecture rtl
       -- Outputs
       axilWriteSlave <= r.axilWriteSlave;
       axilReadSlave  <= r.axilReadSlave;
+      cnpCntRst      <= r.cnpCntRst;
 
       -- Reset
       if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then

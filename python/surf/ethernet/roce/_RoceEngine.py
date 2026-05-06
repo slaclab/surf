@@ -305,3 +305,24 @@ class Dcqcn(pr.Device):
             linkedGet   = lambda: self.Alpha.value() / 1024.0,
             dependencies = [self.Alpha],
         ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'CnpCounterReset',
+            description = 'CNP counter reset',
+            offset      = 0x020,
+            bitSize     = 1,
+            bitOffset   = 10,
+            mode        = 'RW',
+            pollInterval = 1,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'CnpCounter',
+            description = 'CNP counter',
+            offset      = 0x020,
+            bitSize     = 16,
+            bitOffset   = 11,
+            mode        = 'RO',
+            base        = pr.Int,
+            pollInterval = 1,
+        ))

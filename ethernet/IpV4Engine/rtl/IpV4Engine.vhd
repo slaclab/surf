@@ -22,16 +22,18 @@ use surf.EthMacPkg.all;
 
 entity IpV4Engine is
    generic (
-      TPD_G           : time            := 1 ns;  -- Simulation parameter only
-      RST_POLARITY_G  : sl              := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G     : boolean         := false;
-      PROTOCOL_SIZE_G : positive        := 1;  -- Default to 1x protocol
-      PROTOCOL_G      : Slv8Array       := (0 => UDP_C);  -- Default to UDP protocol
-      CLIENT_SIZE_G   : positive        := 1;  -- Sets the number of attached client engines
-      CLK_FREQ_G      : real            := 156.25E+06;    -- In units of Hz
-      TTL_G           : slv(7 downto 0) := x"20";
-      IGMP_G          : boolean         := false;
-      IGMP_GRP_SIZE   : positive        := 1);
+      TPD_G           : time                  := 1 ns;  -- Simulation parameter only
+      RST_POLARITY_G  : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean               := false;
+      PROTOCOL_SIZE_G : positive              := 1;  -- Default to 1x protocol
+      PROTOCOL_G      : Slv8Array             := (0 => UDP_C);  -- Default to UDP protocol
+      CLIENT_SIZE_G   : positive              := 1;  -- Sets the number of attached client engines
+      CLK_FREQ_G      : real                  := 156.25E+06;  -- In units of Hz
+      TTL_G           : slv(7 downto 0)       := x"20";
+      DSCP_G          : natural range 0 to 63 := 0;
+      ECN_G           : slv(1 downto 0)       := "00";
+      IGMP_G          : boolean               := false;
+      IGMP_GRP_SIZE   : positive              := 1);
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-Endian configuration
@@ -187,6 +189,8 @@ begin
          RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C,
+         DSCP_G          => DSCP_G,
+         ECN_G           => ECN_G,
          TTL_G           => TTL_G)
       port map (
          -- Local Configurations
