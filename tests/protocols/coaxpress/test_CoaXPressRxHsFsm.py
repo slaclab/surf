@@ -259,7 +259,7 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
         await _send_trailer_marker(dut)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    for _ in range(6):
+    for _ in range(12):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
@@ -337,7 +337,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     await _send_trailer_marker(dut)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    for _ in range(6):
+    for _ in range(12):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
@@ -426,7 +426,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
     await _send_trailer_marker(dut)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    for _ in range(6):
+    for _ in range(12):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
@@ -539,7 +539,7 @@ async def coaxpress_rx_hs_fsm_new_header_before_frame_complete_test(dut):
     await _send_trailer_marker(dut)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    for _ in range(6):
+    for _ in range(12):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         error_seen |= int(dut.rxFsmError.value) == 1
@@ -636,7 +636,7 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     await _send_trailer_marker(dut)
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
-    for _ in range(8):
+    for _ in range(12):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
