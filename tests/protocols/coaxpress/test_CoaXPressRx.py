@@ -40,6 +40,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_PKT_EVENT,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
+    CXP_PKT_STREAM_DATA,
     CXP_SOP,
     append_snapshot_if_valid,
     cxp_crc_word,
@@ -128,6 +129,41 @@ def _event_crc_words(*, event_bytes: tuple[int, int, int, int], packet_tag: int,
     ]
 
 
+def _control_ack_crc_words(*, ack_code: int, size_word: int, data_word: int) -> list[int]:
+    crc_inputs = [repeat_byte(ack_code), size_word, data_word]
+    return [
+        *crc_inputs,
+        cxp_crc_word(crc_inputs),
+    ]
+
+
+def _stream_packet_sequence(
+    *,
+    stream_id: int,
+    packet_tag: int,
+    payload_items: list[tuple[int, int]],
+) -> list[tuple[int, int]]:
+    payload_words = [data for data, _data_k in payload_items]
+    crc_inputs = [
+        repeat_byte(stream_id),
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+    ]
+    return [
+        (CXP_SOP, 0xF),
+        (repeat_byte(CXP_PKT_STREAM_DATA), 0x0),
+        (repeat_byte(stream_id), 0x0),
+        (repeat_byte(packet_tag), 0x0),
+        (repeat_byte((len(payload_words) >> 8) & 0xFF), 0x0),
+        (repeat_byte(len(payload_words) & 0xFF), 0x0),
+        *payload_items,
+        (cxp_crc_word(crc_inputs), 0x0),
+        (CXP_EOP, 0xF),
+    ]
+
+
 def _pack_lane_nibbles(values: list[int]) -> int:
     packed = 0
     for index, value in enumerate(values):
@@ -185,10 +221,12 @@ def _capture_outputs(
     event_tags: list[int],
     trig_ack_cycles: list[int],
     cycle_index: int,
+    event_beats: list[tuple[int, int, int, int, int]] | None = None,
 ) -> None:
     cfg_samples: list[dict[str, int]] = []
     data_samples: list[dict[str, int]] = []
     hdr_samples: list[dict[str, int]] = []
+    event_samples: list[dict[str, int]] = []
     append_snapshot_if_valid(cfg_samples, dut, valid_name="cfgTValid", field_names=("cfgTData", "cfgTKeep", "cfgTLast"))
     append_snapshot_if_valid(
         data_samples,
@@ -202,6 +240,13 @@ def _capture_outputs(
         valid_name="hdrTValid",
         field_names=("hdrTData", "hdrTKeep", "hdrTLast", "hdrTUser"),
     )
+    if event_beats is not None:
+        append_snapshot_if_valid(
+            event_samples,
+            dut,
+            valid_name="eventTValid",
+            field_names=("eventTData", "eventTKeep", "eventTLast", "eventTDest", "eventTUser"),
+        )
     cfg_beats.extend((sample["cfgTData"], sample["cfgTKeep"], sample["cfgTLast"]) for sample in cfg_samples)
     data_beats.extend(
         (sample["dataTData"], sample["dataTKeep"], sample["dataTLast"], sample["dataTUser"]) for sample in data_samples
@@ -209,6 +254,17 @@ def _capture_outputs(
     hdr_beats.extend(
         (sample["hdrTData"], sample["hdrTKeep"], sample["hdrTLast"], sample["hdrTUser"]) for sample in hdr_samples
     )
+    if event_beats is not None:
+        event_beats.extend(
+            (
+                sample["eventTData"],
+                sample["eventTKeep"],
+                sample["eventTLast"],
+                sample["eventTDest"],
+                sample["eventTUser"],
+            )
+            for sample in event_samples
+        )
     if int(dut.eventAck.value) == 1:
         event_tags.append(int(dut.eventTag.value))
     if int(dut.trigAck.value) == 1:
@@ -260,24 +316,24 @@ def _isolated_lane_frame_sequence(
         header_payload_words[corrupt_header_index] = corrupt_header_word
 
     return [
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(stream_id), 0x0),
-        (repeat_byte(packet_tag), 0x0),
-        (repeat_byte((len(header_payload_words) + 2) >> 8), 0x0),
-        (repeat_byte((len(header_payload_words) + 2) & 0xFF), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
-        *[(word, 0xF) for word in header_payload_words],
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte((stream_id + 1) & 0xFF), 0x0),
-        (repeat_byte((packet_tag + 1) & 0xFF), 0x0),
-        (repeat_byte((len(line_words) + 2) >> 8), 0x0),
-        (repeat_byte((len(line_words) + 2) & 0xFF), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
-        *[(word, 0x0) for word in line_words],
+        *_stream_packet_sequence(
+            stream_id=stream_id,
+            packet_tag=packet_tag,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in header_payload_words],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=(stream_id + 1) & 0xFF,
+            packet_tag=(packet_tag + 1) & 0xFF,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                *[(word, 0x0) for word in line_words],
+            ],
+        ),
     ]
 
 
@@ -353,24 +409,24 @@ async def _send_one_lane_frame(
     line_packet_tag: int = 0x55,
 ) -> None:
     sequence = [
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(header_stream_id), 0x0),
-        (repeat_byte(header_packet_tag), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(25), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
-        *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(line_stream_id), 0x0),
-        (repeat_byte(line_packet_tag), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(3), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
-        (line_word, 0x0),
+        *_stream_packet_sequence(
+            stream_id=header_stream_id,
+            packet_tag=header_packet_tag,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=line_stream_id,
+            packet_tag=line_packet_tag,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                (line_word, 0x0),
+            ],
+        ),
     ]
     for data, data_k in sequence:
         await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
@@ -389,24 +445,24 @@ async def _send_one_lane_frame_and_capture(
     start_cycle_index: int = 0,
 ) -> int:
     sequence = [
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(header_stream_id), 0x0),
-        (repeat_byte(header_packet_tag), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(25), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
-        *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(line_stream_id), 0x0),
-        (repeat_byte(line_packet_tag), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(3), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
-        (line_word, 0x0),
+        *_stream_packet_sequence(
+            stream_id=header_stream_id,
+            packet_tag=header_packet_tag,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=line_stream_id,
+            packet_tag=line_packet_tag,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                (line_word, 0x0),
+            ],
+        ),
     ]
     cycle_index = start_cycle_index
     for data, data_k in sequence:
@@ -500,6 +556,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             "rxNumberOfLane": 0,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -513,16 +570,14 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     cfg_beats: list[tuple[int, int, int]] = []
     data_beats: list[tuple[int, int, int, int]] = []
     hdr_beats: list[tuple[int, int, int, int]] = []
+    event_beats: list[tuple[int, int, int, int, int]] = []
     event_tags: list[int] = []
     trig_ack_cycles: list[int] = []
 
     sequence = [
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_CTRL_ACK_NO_TAG), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (0x04000000, 0x0),
-        (0x01234567, 0x0),
-        (0xCAFEBABE, 0x0),
+        *[(word, 0x0) for word in _control_ack_crc_words(ack_code=0x00, size_word=0x04000000, data_word=0x01234567)],
         (CXP_EOP, 0xF),
         (CXP_SOP, 0xF),
         (repeat_byte(CXP_PKT_EVENT), 0x0),
@@ -537,28 +592,26 @@ async def coaxpress_rx_one_lane_integration_test(dut):
         (CXP_EOP, 0xF),
         (CXP_IO_ACK, 0xF),
         (repeat_byte(0x01), 0x0),
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(0x22), 0x0),
-        (repeat_byte(0x33), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(25), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
-        *[(word, 0xF) for word in HEADER_WORDS],
-        (CXP_SOP, 0xF),
-        (repeat_byte(0x01), 0x0),
-        (repeat_byte(0x44), 0x0),
-        (repeat_byte(0x55), 0x0),
-        (repeat_byte(0x00), 0x0),
-        (repeat_byte(5), 0x0),
-        (CXP_MARKER, 0xF),
-        (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
-        (0x11111111, 0x0),
-        (0x22222222, 0x0),
-        (0x33333333, 0x0),
-        (0xBEEFBEEF, 0x0),
-        (CXP_EOP, 0xF),
+        *_stream_packet_sequence(
+            stream_id=0x22,
+            packet_tag=0x33,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in HEADER_WORDS],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=0x44,
+            packet_tag=0x55,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                (0x11111111, 0x0),
+                (0x22222222, 0x0),
+                (0x33333333, 0x0),
+            ],
+        ),
     ]
 
     for cycle_index, (data, data_k) in enumerate(sequence):
@@ -571,6 +624,7 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             event_tags=event_tags,
             trig_ack_cycles=trig_ack_cycles,
             cycle_index=cycle_index,
+            event_beats=event_beats,
         )
 
     for cycle_index in range(40):
@@ -583,9 +637,11 @@ async def coaxpress_rx_one_lane_integration_test(dut):
             event_tags=event_tags,
             trig_ack_cycles=trig_ack_cycles,
             cycle_index=cycle_index + len(sequence),
+            event_beats=event_beats,
         )
 
     assert cfg_beats == [(0x0123456700000000, 0xFF, 0)]
+    assert event_beats == [(0x11223344, 0xF, 1, 0x5A, 0x13121110)]
     assert event_tags == [0x5A]
     assert trig_ack_cycles
     assert [beat[:3] for beat in hdr_beats] == [(word, 0xF, 1 if index == len(EXPECTED_HDR_WORDS) - 1 else 0) for index, word in enumerate(EXPECTED_HDR_WORDS)]
@@ -611,6 +667,7 @@ async def _drive_two_lane_mux_rotation(
             "rxNumberOfLane": 1,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -638,52 +695,52 @@ async def _drive_two_lane_mux_rotation(
         if int(dut.rxFsmError.value) == 1:
             error_cycles.append(cycle_index)
 
-    lane0_sequence = [
-        ([CXP_SOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
-        ([repeat_byte(0x01), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x22), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x33), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x00), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(25), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([CXP_MARKER, CXP_IDLE], [0xF, CXP_IDLE_K]),
-        ([repeat_byte(CXP_PKT_IMAGE_HEADER), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        *[([word, CXP_IDLE], [0xF, CXP_IDLE_K]) for word in HEADER_WORDS],
-        ([CXP_SOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
-        ([repeat_byte(0x01), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x44), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x55), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(0x00), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([repeat_byte(5), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([CXP_MARKER, CXP_IDLE], [0xF, CXP_IDLE_K]),
-        ([repeat_byte(CXP_PKT_IMAGE_LINE), CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([0x11111111, CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([0x22222222, CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([0x33333333, CXP_IDLE], [0x0, CXP_IDLE_K]),
-        ([CXP_EOP, CXP_IDLE], [0xF, CXP_IDLE_K]),
+    lane0_packets = [
+        *_stream_packet_sequence(
+            stream_id=0x22,
+            packet_tag=0x33,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in HEADER_WORDS],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=0x44,
+            packet_tag=0x55,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                (0x11111111, 0x0),
+                (0x22222222, 0x0),
+                (0x33333333, 0x0),
+            ],
+        ),
     ]
-    lane1_sequence = [
-        ([CXP_IDLE, CXP_SOP], [CXP_IDLE_K, 0xF]),
-        ([CXP_IDLE, repeat_byte(0x01)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x22)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x33)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x00)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(25)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, CXP_MARKER], [CXP_IDLE_K, 0xF]),
-        ([CXP_IDLE, repeat_byte(CXP_PKT_IMAGE_HEADER)], [CXP_IDLE_K, 0x0]),
-        *[([CXP_IDLE, word], [CXP_IDLE_K, 0xF]) for word in HEADER_WORDS],
-        ([CXP_IDLE, CXP_SOP], [CXP_IDLE_K, 0xF]),
-        ([CXP_IDLE, repeat_byte(0x01)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x44)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x55)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(0x00)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, repeat_byte(5)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, CXP_MARKER], [CXP_IDLE_K, 0xF]),
-        ([CXP_IDLE, repeat_byte(CXP_PKT_IMAGE_LINE)], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, 0x44444444], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, 0x55555555], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, 0x66666666], [CXP_IDLE_K, 0x0]),
-        ([CXP_IDLE, CXP_EOP], [CXP_IDLE_K, 0xF]),
+    lane1_packets = [
+        *_stream_packet_sequence(
+            stream_id=0x22,
+            packet_tag=0x33,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in HEADER_WORDS],
+            ],
+        ),
+        *_stream_packet_sequence(
+            stream_id=0x44,
+            packet_tag=0x55,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+                (0x44444444, 0x0),
+                (0x55555555, 0x0),
+                (0x66666666, 0x0),
+            ],
+        ),
     ]
+    lane0_sequence = [([data, CXP_IDLE], [data_k, CXP_IDLE_K]) for data, data_k in lane0_packets]
+    lane1_sequence = [([CXP_IDLE, data], [CXP_IDLE_K, data_k]) for data, data_k in lane1_packets]
 
     cycle_index = 0
     for lane_words, lane_ks in lane0_sequence:
@@ -730,6 +787,104 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
 
 
 @cocotb.test()
+async def coaxpress_rx_lane_parser_error_status_recovery_test(dut):
+    if env_int("NUM_LANES_G", default=1) != 1:
+        return
+
+    start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
+    set_initial_values(
+        dut,
+        {
+            "rxData": 0,
+            "rxDataK": 0,
+            "rxLinkUp": 1,
+            "rxFsmRst": 0,
+            "rxNumberOfLane": 0,
+            "dataTReady": 1,
+            "hdrTReady": 1,
+            "eventTReady": 1,
+        },
+    )
+    await reset_signals(
+        dut,
+        clk=dut.rxClk,
+        reset_names=("dataRst", "cfgRst", "txRst", "rxRst"),
+        assert_cycles=4,
+        release_cycles=4,
+    )
+
+    signal_counts = {"error_pulses": 0}
+    stop_event = Event()
+    monitor_task = cocotb.start_soon(_count_signal_high_cycles(dut.rxFsmError, dut.rxClk, stop_event, signal_counts, "error_pulses"))
+
+    bad_line_packet = _stream_packet_sequence(
+        stream_id=0x44,
+        packet_tag=0x55,
+        payload_items=[
+            (CXP_MARKER, 0xF),
+            (repeat_byte(CXP_PKT_IMAGE_LINE), 0x0),
+            (0x11111111, 0x0),
+        ],
+    )
+    bad_line_packet[-2] = (bad_line_packet[-2][0] ^ 0x00000001, bad_line_packet[-2][1])
+
+    bad_data_beats: list[tuple[int, int, int, int]] = []
+    bad_hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = 0
+
+    for data, data_k in [
+        *_stream_packet_sequence(
+            stream_id=0x22,
+            packet_tag=0x33,
+            payload_items=[
+                (CXP_MARKER, 0xF),
+                (repeat_byte(CXP_PKT_IMAGE_HEADER), 0x0),
+                *[(word, 0xF) for word in SINGLE_LINE_HEADER_WORDS],
+            ],
+        ),
+        *bad_line_packet,
+    ]:
+        await send_rx_word(dut, data=data, data_k=data_k, clk=dut.rxClk)
+        _capture_outputs(
+            dut,
+            cfg_beats=[],
+            data_beats=bad_data_beats,
+            hdr_beats=bad_hdr_beats,
+            event_tags=[],
+            trig_ack_cycles=[],
+            cycle_index=cycle_index,
+        )
+        cycle_index += 1
+
+    await _drive_idle_and_capture(
+        dut,
+        cycles=32,
+        data_beats=bad_data_beats,
+        hdr_beats=bad_hdr_beats,
+        start_cycle_index=cycle_index,
+    )
+
+    data_beats: list[tuple[int, int, int, int]] = []
+    hdr_beats: list[tuple[int, int, int, int]] = []
+    cycle_index = await _send_one_lane_frame_and_capture(
+        dut,
+        line_word=0x22222222,
+        data_beats=data_beats,
+        hdr_beats=hdr_beats,
+    )
+    await _drive_idle_and_capture(dut, cycles=64, data_beats=data_beats, hdr_beats=hdr_beats, start_cycle_index=cycle_index)
+
+    stop_event.set()
+    await monitor_task
+
+    assert signal_counts["error_pulses"] >= 1, signal_counts
+    assert bad_data_beats == [(0x11111111, 0xF, 1, 1)], bad_data_beats
+    assert [beat[0] for beat in data_beats] == [0x22222222], data_beats
+    assert [beat[2] for beat in data_beats] == [1], data_beats
+    assert [beat[3] for beat in data_beats] == [0], data_beats
+
+
+@cocotb.test()
 async def coaxpress_rx_four_lane_fsm_error_reset_recovery_test(dut):
     if env_int("NUM_LANES_G", default=1) != 4:
         return
@@ -745,6 +900,7 @@ async def coaxpress_rx_four_lane_fsm_error_reset_recovery_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -815,6 +971,7 @@ async def coaxpress_rx_four_lane_clean_rotation_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -873,6 +1030,7 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -960,6 +1118,7 @@ async def coaxpress_rx_four_lane_overflow_reset_recovery_stress_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 0,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -1055,6 +1214,7 @@ async def coaxpress_rx_four_lane_overflow_recovery_stress_test(dut):
             "rxNumberOfLane": 3,
             "dataTReady": 0,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(
@@ -1148,6 +1308,7 @@ async def coaxpress_rx_repeated_single_line_frame_test(dut):
             "rxNumberOfLane": 0,
             "dataTReady": 1,
             "hdrTReady": 1,
+            "eventTReady": 1,
         },
     )
     await reset_signals(

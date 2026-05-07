@@ -45,10 +45,11 @@ entity CoaXPressOverFiberBridge is
       txLsLaneEn : in  slv(3 downto 0);
       txLsRate   : in  sl;
       -- CXP RX interface (rxClk312 domain)
-      rxClk312   : in  sl;
-      rxRst312   : in  sl;
-      rxData     : out slv(31 downto 0);
-      rxDataK    : out slv(3 downto 0));
+      rxClk312         : in  sl;
+      rxRst312         : in  sl;
+      rxData           : out slv(31 downto 0);
+      rxDataK          : out slv(3 downto 0);
+      rxStatus         : out CxpofRxStatusType);
 end entity CoaXPressOverFiberBridge;
 
 architecture mapping of CoaXPressOverFiberBridge is
@@ -92,7 +93,9 @@ begin
          xgmiiRxc => rxc,
          -- CXP interface
          rxData   => rxData,
-         rxDataK  => rxDataK);
+         rxDataK  => rxDataK,
+         -- Status Interface
+         rxStatus => rxStatus);
 
    GEN_TX : if (LANE0_G = true) generate
 

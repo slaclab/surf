@@ -54,6 +54,13 @@ entity CoaXPressRxWrapper is
       cfgTData       : out slv(63 downto 0);
       cfgTKeep       : out slv(7 downto 0);
       cfgTLast       : out sl;
+      eventTValid    : out sl;
+      eventTData     : out slv(31 downto 0);
+      eventTKeep     : out slv(3 downto 0);
+      eventTDest     : out slv(7 downto 0);
+      eventTUser     : out slv(31 downto 0);
+      eventTLast     : out sl;
+      eventTReady    : in  sl;
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
       trigAck        : out sl;
@@ -70,6 +77,8 @@ architecture rtl of CoaXPressRxWrapper is
    signal imageHdrMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal imageHdrSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
    signal cfgRxMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal eventMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal eventSlave     : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
    signal rxClkVec    : slv(NUM_LANES_G-1 downto 0);
    signal rxRstVec    : slv(NUM_LANES_G-1 downto 0);
@@ -90,12 +99,13 @@ begin
 
    dataSlave.tReady     <= dataTReady;
    imageHdrSlave.tReady <= hdrTReady;
+   eventSlave.tReady    <= eventTReady;
 
    dataTValid <= dataMaster.tValid;
    dataTData  <= dataMaster.tData(31 downto 0);
    dataTKeep  <= dataMaster.tKeep(3 downto 0);
    dataTLast  <= dataMaster.tLast;
-   dataTUser  <= dataMaster.tUser(0 downto 0);
+   dataTUser(0) <= ssiGetUserEofe(AXIS_CONFIG_C, dataMaster);
 
    hdrTValid <= imageHdrMaster.tValid;
    hdrTData  <= imageHdrMaster.tData(31 downto 0);
@@ -107,6 +117,13 @@ begin
    cfgTData  <= cfgRxMaster.tData(63 downto 0);
    cfgTKeep  <= cfgRxMaster.tKeep(7 downto 0);
    cfgTLast  <= cfgRxMaster.tLast;
+
+   eventTValid <= eventMaster.tValid;
+   eventTData  <= eventMaster.tData(31 downto 0);
+   eventTKeep  <= eventMaster.tKeep(3 downto 0);
+   eventTDest  <= eventMaster.tDest(7 downto 0);
+   eventTUser  <= eventMaster.tUser(31 downto 0);
+   eventTLast  <= eventMaster.tLast;
 
    U_DUT : entity surf.CoaXPressRx
       generic map (
@@ -124,6 +141,8 @@ begin
          cfgClk         => cfgClk,
          cfgRst         => cfgRst,
          cfgRxMaster    => cfgRxMaster,
+         eventMaster    => eventMaster,
+         eventSlave     => eventSlave,
          eventAck       => eventAck,
          eventTag       => eventTag,
          txClk          => txClk,

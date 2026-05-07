@@ -144,6 +144,7 @@ architecture rtl of CoaXPressCoreDebugWrapper is
 
    signal eventAck : sl;
    signal eventTag : slv(7 downto 0);
+   signal eventMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
    signal trigAck     : sl;
    signal txLsRateInt : sl;
@@ -379,6 +380,8 @@ begin
          cfgClk         => cfgClk,
          cfgRst         => cfgRst,
          cfgRxMaster    => cfgRxMaster,
+         eventMaster    => eventMaster,
+         eventSlave     => AXI_STREAM_SLAVE_FORCE_C,
          eventAck       => eventAck,
          eventTag       => eventTag,
          txClk          => txClk,

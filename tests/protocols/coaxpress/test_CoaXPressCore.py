@@ -41,6 +41,7 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
+    CXP_PKT_STREAM_DATA,
     CXP_SOP,
     cycle,
     collect_stream_bytes,
@@ -134,18 +135,34 @@ async def _read_counter(axil: AxiLiteMaster, dut, offset: int) -> int:
     return await axil.read_dword(offset)
 
 
-async def _send_stream_packet_words(dut, payload_words: list[int], *, stream_id: int = 0x22, packet_tag: int = 0x33) -> None:
-    words = [
-        CXP_SOP,
-        repeat_byte(0x01),
+async def _send_stream_packet_words(
+    dut,
+    payload_words: list[int],
+    *,
+    stream_id: int = 0x22,
+    packet_tag: int = 0x33,
+    corrupt_crc: bool = False,
+) -> None:
+    crc_inputs = [
         repeat_byte(stream_id),
         repeat_byte(packet_tag),
         repeat_byte((len(payload_words) >> 8) & 0xFF),
         repeat_byte(len(payload_words) & 0xFF),
         *payload_words,
     ]
+    words = [
+        CXP_SOP,
+        repeat_byte(CXP_PKT_STREAM_DATA),
+        repeat_byte(stream_id),
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+        cxp_crc_word(crc_inputs) ^ (0x00000001 if corrupt_crc else 0x00000000),
+        CXP_EOP,
+    ]
     for word in words:
-        await send_rx_word(dut, data=word, data_k=0xF if word == CXP_SOP else 0x0, clk=dut.rxClk)
+        await send_rx_word(dut, data=word, data_k=0xF if word in (CXP_SOP, CXP_EOP) else 0x0, clk=dut.rxClk)
 
 
 async def _collect_core_outputs(dut, *, cycles: int) -> tuple[list[int], list[int]]:
@@ -304,6 +321,45 @@ async def coaxpress_core_rx_fsm_error_counter_and_recovery_test(dut):
     assert hdr_words
     assert 0xAABBCCDD in data_words
     assert await _read_counter(axil, dut, 0x824) == first_error_count
+
+
+@cocotb.test()
+async def coaxpress_core_rx_lane_crc_error_counter_test(dut):
+    axil = await _setup_core(dut)
+
+    assert await _read_counter(axil, dut, 0x824) == 0
+
+    await _send_stream_packet_words(
+        dut,
+        _header_payload(y_size=1, dsize_l=1),
+        stream_id=0x52,
+        packet_tag=0x77,
+    )
+    await _send_stream_packet_words(
+        dut,
+        _line_payload(0x12345678),
+        stream_id=0x53,
+        packet_tag=0x78,
+        corrupt_crc=True,
+    )
+
+    lane_error_count = await _read_counter(axil, dut, 0x824)
+    assert lane_error_count > 0
+
+    await _collect_core_outputs(dut, cycles=32)
+    assert await _read_counter(axil, dut, 0x824) == lane_error_count
+
+    await _send_image_frame(
+        dut,
+        stream_id=0x54,
+        packet_tag=0x79,
+        y_size=1,
+        dsize_l=1,
+        line_words=[0x87654321],
+    )
+    _hdr_words, data_words = await _collect_core_outputs(dut, cycles=64)
+    assert 0x87654321 in data_words
+    assert await _read_counter(axil, dut, 0x824) == lane_error_count
 
 
 @cocotb.test()

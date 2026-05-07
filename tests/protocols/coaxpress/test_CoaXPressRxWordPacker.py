@@ -410,6 +410,7 @@ def test_CoaXPressRxWordPacker(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
+                "protocols/coaxpress/core/rtl/CoaXPressPkg.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRxWordPacker.vhd",
                 "protocols/coaxpress/core/wrappers/CoaXPressRxWordPackerWrapper.vhd",
             ]

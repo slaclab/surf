@@ -35,7 +35,9 @@ entity CoaXPressOverFiberBridgeRx is
       xgmiiRxc : in  slv(3 downto 0);
       -- Rx PHY Interface
       rxData   : out slv(31 downto 0);
-      rxDataK  : out slv(3 downto 0));
+      rxDataK  : out slv(3 downto 0);
+      -- Status Interface
+      rxStatus : out CxpofRxStatusType);
 end entity CoaXPressOverFiberBridgeRx;
 
 architecture rtl of CoaXPressOverFiberBridgeRx is
@@ -46,17 +48,19 @@ architecture rtl of CoaXPressOverFiberBridgeRx is
       PAYLOAD_S);
 
    type RegType is record
-      errDet  : sl;
+      status : CxpofRxStatusType;
+      seqLocked : sl;
       rxData  : Slv32Array(1 downto 0);
       rxDataK : Slv4Array(1 downto 0);
       state   : StateType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      errDet  => '0',
-      rxData  => (others => CXP_IDLE_C),
-      rxDataK => (others => CXP_IDLE_K_C),
-      state   => IDLE_S);
+      status    => CXPOF_RX_STATUS_INIT_C,
+      seqLocked => '0',
+      rxData    => (others => CXP_IDLE_C),
+      rxDataK   => (others => CXP_IDLE_K_C),
+      state     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -73,7 +77,15 @@ begin
       v := r;
 
       -- Reset strobe
-      v.errDet := '0';
+      v.status.rxError   := '0';
+      v.status.rxAbort  := '0';
+      v.status.rxErrorCode := CXPOF_RX_ERR_NONE_C;
+      v.status.seqValid := '0';
+      v.status.seqError := '0';
+      v.status.hkpValid := '0';
+      v.status.hkpEop   := '0';
+      v.status.hkpSof   := '0';
+      v.status.hkpError := '0';
 
       -- Update shift register
       v.rxDataK(1) := CXP_IDLE_K_C;
@@ -86,10 +98,11 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Check for SOP
-            if (xgmiiRxc = "0001") and (xgmiiRxd(15 downto 9) = "1000000") and (xgmiiRxd(7 downto 0) = CXPOF_START_C) then
+            if (xgmiiRxc = CXPOF_XGMII_LANE0_CTRL_C) and (xgmiiRxd(15 downto 9) = CXPOF_SOP_CTRL_HS_PREFIX_C) and (xgmiiRxd(7 downto 0) = CXPOF_START_C) then
 
                -- Check for HKP condition
-               if (xgmiiRxd(8) = '1') then
+               if (xgmiiRxd(8 + CXPOF_SOP_CTRL_HKP_BIT_C) = '1') then
+                  v.status.hkpWordCount := (others => '0');
                   -- Next State
                   v.state := HKP_S;
                else
@@ -97,25 +110,26 @@ begin
                   -- Check if data is being overwritten
                   if (v.rxDataK(0) /= CXP_IDLE_K_C) or (v.rxData(0) /= CXP_IDLE_C) then
                      -- Set the flag
-                     v.errDet := '1';
+                     v.status.rxError      := '1';
+                     v.status.rxErrorCode := CXPOF_RX_ERR_OVERWRITE_C;
                   end if;
 
                   -- Check for SOP
                   if (xgmiiRxd(23 downto 16) = CXP_SOP_C(7 downto 0)) then
 
                      -- Send SOP
-                     v.rxDataK(0) := x"F";
+                     v.rxDataK(0) := CXP_ALL_CTRL_K_C;
                      v.rxData(0)  := CXP_SOP_C;
 
                      -- Send type
-                     v.rxDataK(1) := x"0";
+                     v.rxDataK(1) := CXP_ALL_DATA_K_C;
                      v.rxData(1)  := xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24) & xgmiiRxd(31 downto 24);
 
                   -- Check for I/O ACK
                   elsif (xgmiiRxd(23 downto 16) = CXP_IO_ACK_C(7 downto 0)) then
 
                      -- Send I/O ACK inductor
-                     v.rxDataK(1) := x"F";
+                     v.rxDataK(1) := CXP_ALL_CTRL_K_C;
                      v.rxData(1)  := CXP_IO_ACK_C;
 
                   end if;
@@ -125,17 +139,62 @@ begin
 
                end if;
 
-            elsif (xgmiiRxc /= x"F") or (xgmiiRxd /= x"07_07_07_07") then
+            -- Check for lane-0 sequence ordered set
+            elsif (xgmiiRxc = CXPOF_XGMII_LANE0_CTRL_C) and (xgmiiRxd(7 downto 0) = CXPOF_SEQ_C) then
+
+               -- Publish the sequence data without reconstructing a CXP word.
+               v.status.seqValid := '1';
+               v.status.seqData  := xgmiiRxd(31 downto 8);
+               if (r.seqLocked = '1') and (xgmiiRxd(31 downto 8) /= r.status.seqExpected) then
+                  v.status.rxError      := '1';
+                  v.status.seqError    := '1';
+                  v.status.seqErrorExpected := r.status.seqExpected;
+                  v.status.rxErrorCode := CXPOF_RX_ERR_SEQ_MISMATCH_C;
+               end if;
+               v.seqLocked   := '1';
+               v.status.seqExpected := xgmiiRxd(31 downto 8) + 1;
+
+            -- Check for lane-0 error ordered set while idle
+            elsif (xgmiiRxc = CXPOF_XGMII_LANE0_CTRL_C) and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
+
+               -- Publish an error pulse even when no packet payload is active.
+               v.status.rxError      := '1';
+               v.status.rxAbort     := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_IDLE_ERROR_C;
+
+            elsif (xgmiiRxc /= CXPOF_XGMII_ALL_CTRL_C) or (xgmiiRxd /= CXPOF_IDLE_WORD_C) then
                -- Set the flag
-               v.errDet := '1';
+               v.status.rxError      := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_BAD_CONTROL_C;
             end if;
          ----------------------------------------------------------------------
          when HKP_S =>
             -- Send HKP
-            v.rxDataK(1) := x"F";
+            v.rxDataK(1) := CXP_ALL_CTRL_K_C;
             v.rxData(1)  := xgmiiRxd;
+            v.status.hkpValid   := '1';
+            v.status.hkpData    := xgmiiRxd;
+            v.status.hkpSof     := '1';
+            v.status.hkpWordCount := r.status.hkpWordCount + 1;
+            v.status.hkpKCodeMask := cxpKCodeMask(xgmiiRxd);
+            v.status.hkpType      := cxpHkpType(xgmiiRxd);
+            if (v.status.hkpKCodeMask = CXP_ALL_CTRL_K_C) then
+               v.status.hkpKCodeValid := '1';
+            else
+               v.status.hkpKCodeValid := '0';
+            end if;
+            if (xgmiiRxc /= CXPOF_XGMII_ALL_DATA_C) then
+               v.status.rxError      := '1';
+               v.status.hkpError    := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_HKP_MALFORMED_C;
+            elsif (v.status.hkpKCodeValid = '0') then
+               v.status.rxError      := '1';
+               v.status.hkpError    := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_HKP_BAD_K_CODE_C;
+            end if;
             -- Check for EOP
             if (xgmiiRxd = CXP_EOP_C) then
+               v.status.hkpEop := '1';
                -- Next State
                v.state := IDLE_S;
             else
@@ -145,18 +204,27 @@ begin
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
             -- Check for data word
-            if (xgmiiRxc = "0000") then
+            if (xgmiiRxc = CXPOF_XGMII_ALL_DATA_C) then
                -- Send Type
-               v.rxDataK(1) := x"0";
+               v.rxDataK(1) := CXP_ALL_DATA_K_C;
                v.rxData(1)  := xgmiiRxd;
 
+            -- Check for error ordered set
+            elsif (xgmiiRxc = CXPOF_XGMII_LANE0_CTRL_C) and (xgmiiRxd(7 downto 0) = CXPOF_ERROR_C) then
+
+               -- Abort the active packet without synthesizing a CXP EOP.
+               v.status.rxError      := '1';
+               v.status.rxAbort     := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_PAYLOAD_ABORT_C;
+               v.state       := IDLE_S;
+
             -- Check for EOP
-            elsif (xgmiiRxc = "1100") and (xgmiiRxd(31 downto 8) = x"07_FD_00") then
+            elsif (xgmiiRxc = CXPOF_XGMII_LANE2_3_CTRL_C) and (xgmiiRxd(31 downto 8) = CXPOF_TERM_SUFFIX_C) then
 
                -- Check for non-zero value
-               if (xgmiiRxd(7 downto 0) /= 0) then
+               if (xgmiiRxd(7 downto 0) /= CXPOF_RESERVED_BYTE_C) then
                   -- Send EOP
-                  v.rxDataK(1) := x"F";
+                  v.rxDataK(1) := CXP_ALL_CTRL_K_C;
                   v.rxData(1)  := xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0) & xgmiiRxd(7 downto 0);
 
                else
@@ -171,7 +239,8 @@ begin
             -- Undefined state
             else
                -- Set the flag
-               v.errDet := '1';
+               v.status.rxError      := '1';
+               v.status.rxErrorCode := CXPOF_RX_ERR_BAD_CONTROL_C;
                -- Next State
                v.state  := IDLE_S;
             end if;
@@ -181,6 +250,7 @@ begin
       -- Outputs
       rxDataK <= r.rxDataK(0);
       rxData  <= r.rxData(0);
+      rxStatus <= r.status;
 
       -- Reset
       if (rst = '1') then

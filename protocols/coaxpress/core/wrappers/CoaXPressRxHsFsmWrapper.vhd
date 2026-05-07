@@ -19,6 +19,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
+use surf.CoaXPressPkg.all;
 
 entity CoaXPressRxHsFsmWrapper is
    generic (
@@ -31,6 +32,7 @@ entity CoaXPressRxHsFsmWrapper is
       sAxisTValid : in  sl;
       sAxisTData  : in  slv(32*NUM_LANES_G-1 downto 0);
       sAxisTKeep  : in  slv(4*NUM_LANES_G-1 downto 0);
+      sAxisTUser  : in  slv(CXP_RX_STREAM_TUSER_BITS_C-1 downto 0);
       sAxisTLast  : in  sl;
       sAxisTReady : out sl;
       hdrTValid   : out sl;
@@ -54,13 +56,14 @@ architecture rtl of CoaXPressRxHsFsmWrapper is
 begin
 
    -- Present the flattened source beat as one wide AXI-stream record.
-   sAxisComb : process (sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisTData, sAxisTKeep, sAxisTLast, sAxisTUser, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
       v        := AXI_STREAM_MASTER_INIT_C;
       v.tValid := sAxisTValid;
       v.tData(32*NUM_LANES_G-1 downto 0) := sAxisTData;
       v.tKeep(4*NUM_LANES_G-1 downto 0)  := sAxisTKeep;
+      v.tUser(CXP_RX_STREAM_TUSER_BITS_C-1 downto 0) := sAxisTUser;
       v.tLast  := sAxisTLast;
       sAxisMaster <= v;
    end process sAxisComb;

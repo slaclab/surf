@@ -68,7 +68,7 @@ architecture rtl of CoaXPressOverFiberBridgeTx is
       txLsData  => (others => '0'),
       txLsDataK => '0',
       xgmiiTxd  => CXPOF_IDLE_WORD_C,
-      xgmiiTxc  => x"F",
+      xgmiiTxc  => CXPOF_XGMII_ALL_CTRL_C,
       state     => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -97,7 +97,7 @@ begin
          ----------------------------------------------------------------------
          when IDLE_S =>
             -- Send the start word
-            v.xgmiiTxc := x"F";
+            v.xgmiiTxc := CXPOF_XGMII_ALL_CTRL_C;
             v.xgmiiTxd := CXPOF_IDLE_WORD_C;
 
             -- Check for new low speed byte
@@ -111,7 +111,7 @@ begin
          ----------------------------------------------------------------------
          when LS_SOP_S =>
             -- Set the char marker
-            v.xgmiiTxc := "0001";
+            v.xgmiiTxc := CXPOF_XGMII_LANE0_CTRL_C;
 
             -- Lane[0] = Start[7:0]
             v.xgmiiTxd(0+7 downto 0+0) := CXPOF_START_C;
@@ -120,28 +120,28 @@ begin
             v.update := '0';
 
             -- Lane[1] = SopCtrl[7] - Packet type: "0" => Low-speed packet
-            v.xgmiiTxd(8+7) := '0';
+            v.xgmiiTxd(8+CXPOF_SOP_CTRL_PACKET_TYPE_BIT_C) := CXPOF_SOP_CTRL_LOW_SPEED_C;
 
             -- Lane[1] = SopCtrl[6:4] - Reserved
             v.xgmiiTxd(8+6 downto 8+4) := "000";
 
             -- Lane[1] = SopCtrl[3] - Update flag
-            v.xgmiiTxd(8+3) := r.update;
+            v.xgmiiTxd(8+CXPOF_SOP_CTRL_UPDATE_BIT_C) := r.update;
 
             -- Lane[1] = SopCtrl[2] - Reserved
             v.xgmiiTxd(8+2) := '0';
 
             -- Lane[1] = SopCtrl[1] - Low-speed rate: When '0'=> 20.83 Mbps, When '1'=> 41.6 Mbps
-            v.xgmiiTxd(8+1) := r.txLsRate;
+            v.xgmiiTxd(8+CXPOF_SOP_CTRL_LS_RATE_BIT_C) := r.txLsRate;
 
             -- Lane[1] = SopCtrl[0] - High-speed upconnection state
-            v.xgmiiTxd(8+0) := '0';
+            v.xgmiiTxd(8+CXPOF_SOP_CTRL_HKP_BIT_C) := '0';
 
             -- Lane[2] = SopData0[7:0] - reserved
-            v.xgmiiTxd(16+7 downto 16+0) := x"00";
+            v.xgmiiTxd(16+7 downto 16+0) := CXPOF_RESERVED_BYTE_C;
 
             -- Lane[3] = SopData1[7:0] - reserved
-            v.xgmiiTxd(24+7 downto 24+0) := x"00";
+            v.xgmiiTxd(24+7 downto 24+0) := CXPOF_RESERVED_BYTE_C;
 
             -- Next State
             v.state := LS_PAYLOAD_S;
@@ -151,7 +151,7 @@ begin
             v.cnt := r.cnt + 1;
 
             -- Reset the data and char bus
-            v.xgmiiTxc := (others => '0');
+            v.xgmiiTxc := CXPOF_XGMII_ALL_DATA_C;
             v.xgmiiTxd := (others => '0');
 
             -- Check for LS Stream
@@ -165,9 +165,9 @@ begin
 
                      -- LS CTRL
                      if (r.txLsDataK = '0') then
-                        v.xgmiiTxd(16*i+7 downto 16*i) := x"01";  -- data
+                        v.xgmiiTxd(16*i+7 downto 16*i) := CXPOF_LS_CTRL_DATA_C;
                      else
-                        v.xgmiiTxd(16*i+7 downto 16*i) := x"02";  -- k-code
+                        v.xgmiiTxd(16*i+7 downto 16*i) := CXPOF_LS_CTRL_K_CODE_C;
                      end if;
 
                      -- LS Char
@@ -178,9 +178,9 @@ begin
 
                      -- LS CTRL
                      if (CXP_IDLE_K_C(r.idle) = '0') then
-                        v.xgmiiTxd(16*i+7 downto 16*i) := x"01";  -- data
+                        v.xgmiiTxd(16*i+7 downto 16*i) := CXPOF_LS_CTRL_DATA_C;
                      else
-                        v.xgmiiTxd(16*i+7 downto 16*i) := x"02";  -- k-code
+                        v.xgmiiTxd(16*i+7 downto 16*i) := CXPOF_LS_CTRL_K_CODE_C;
                      end if;
 
                      -- LS Char
@@ -195,13 +195,13 @@ begin
                v.cnt := 0;
 
                -- Set the char marker
-               v.xgmiiTxc := "1100";
+               v.xgmiiTxc := CXPOF_XGMII_LANE2_3_CTRL_C;
 
                -- Lane[0] = Reserved
-               v.xgmiiTxd(7 downto 0) := x"00";
+               v.xgmiiTxd(7 downto 0) := CXPOF_RESERVED_BYTE_C;
 
                -- Lane[1] = Reserved
-               v.xgmiiTxd(15 downto 8) := x"00";
+               v.xgmiiTxd(15 downto 8) := CXPOF_RESERVED_BYTE_C;
 
                -- Lane[2] = Terminate
                v.xgmiiTxd(23 downto 16) := CXPOF_TERM_C;
