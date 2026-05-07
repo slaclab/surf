@@ -31,6 +31,7 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
@@ -50,13 +51,8 @@ DUT_PATH = "ethernet/RoCEv2/rtl/EthMacRxCheckICrc.vhd"
 async def send_crc_word(dut, *, data: int, clk) -> None:
     dut.sCrcTData.value = data
     dut.sCrcTValid.value = 1
-
-    while True:
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-        if int(dut.sCrcTReady.value) == 1:
-            dut.sCrcTValid.value = 0
-            return
+    await wait_sampled_ready(dut.sCrcTReady, clk=clk)
+    dut.sCrcTValid.value = 0
 
 
 async def capture_crc_errors(dut, *, clk, timeout_cycles: int = 64) -> list[int]:

@@ -22,8 +22,12 @@ use surf.SsiPkg.all;
 
 entity SsiFrameLimiterWrapper is
    generic (
-      DATA_BYTES_G  : positive := 2;
-      FRAME_LIMIT_G : positive := 2);
+      DATA_BYTES_G   : positive := 2;
+      FRAME_LIMIT_G  : positive := 2;
+      EN_TIMEOUT_G   : boolean  := true;
+      SLAVE_FIFO_G   : boolean  := false;
+      MASTER_FIFO_G  : boolean  := true;
+      SLAVE_READY_G  : boolean  := true);
    port (
       axisClk     : in  sl;
       axisRst     : in  sl;
@@ -102,14 +106,14 @@ begin
    U_DUT : entity surf.SsiFrameLimiter
       generic map (
          TPD_G               => 1 ns,
-         EN_TIMEOUT_G        => true,
+         EN_TIMEOUT_G        => EN_TIMEOUT_G,
          MAXIS_CLK_FREQ_G    => 200.0E+06,
          TIMEOUT_G           => 25.0E-9,
          FRAME_LIMIT_G       => FRAME_LIMIT_G,
          COMMON_CLK_G        => true,
-         SLAVE_FIFO_G        => false,
-         MASTER_FIFO_G       => true,
-         SLAVE_READY_EN_G    => true,
+         SLAVE_FIFO_G        => SLAVE_FIFO_G,
+         MASTER_FIFO_G       => MASTER_FIFO_G,
+         SLAVE_READY_EN_G    => SLAVE_READY_G,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
       port map (
