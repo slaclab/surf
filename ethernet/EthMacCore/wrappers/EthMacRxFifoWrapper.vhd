@@ -33,37 +33,37 @@ entity EthMacRxFifoWrapper is
       FIFO_ADDR_WIDTH_G : positive range 9 to 16 := 11;
       PRIM_COMMON_CLK_G : boolean                := false);
    port (
-      sClk           : in  sl;
-      sRst           : in  sl;
-      mPrimClk       : in  sl;
-      mPrimRst       : in  sl;
-      phyReady       : in  sl;
-      pauseThresh    : in  slv(15 downto 0);
-      rxFifoDrop     : out sl;
-      sAxisTValid    : in  sl;
-      sAxisTData     : in  slv(127 downto 0);
-      sAxisTKeep     : in  slv(15 downto 0);
-      sAxisTLast     : in  sl;
-      sAxisTReady    : out sl;
-      sAxisSof       : in  sl;
-      sAxisFrag      : in  sl;
-      sAxisEofe      : in  sl;
-      sAxisIpErr     : in  sl;
-      sAxisTcpErr    : in  sl;
-      sAxisUdpErr    : in  sl;
-      sAxisPause     : out sl;
-      sAxisOverflow  : out sl;
-      mAxisTValid    : out sl;
-      mAxisTData     : out slv(127 downto 0);
-      mAxisTKeep     : out slv(15 downto 0);
-      mAxisTLast     : out sl;
-      mAxisTReady    : in  sl := '1';
-      mAxisSof       : out sl;
-      mAxisFrag      : out sl;
-      mAxisEofe      : out sl;
-      mAxisIpErr     : out sl;
-      mAxisTcpErr    : out sl;
-      mAxisUdpErr    : out sl);
+      sClk          : in  sl;
+      sRst          : in  sl;
+      mPrimClk      : in  sl;
+      mPrimRst      : in  sl;
+      phyReady      : in  sl;
+      pauseThresh   : in  slv(15 downto 0);
+      rxFifoDrop    : out sl;
+      sAxisTValid   : in  sl;
+      sAxisTData    : in  slv(127 downto 0);
+      sAxisTKeep    : in  slv(15 downto 0);
+      sAxisTLast    : in  sl;
+      sAxisTReady   : out sl;
+      sAxisSof      : in  sl;
+      sAxisFrag     : in  sl;
+      sAxisEofe     : in  sl;
+      sAxisIpErr    : in  sl;
+      sAxisTcpErr   : in  sl;
+      sAxisUdpErr   : in  sl;
+      sAxisPause    : out sl;
+      sAxisOverflow : out sl;
+      mAxisTValid   : out sl;
+      mAxisTData    : out slv(127 downto 0);
+      mAxisTKeep    : out slv(15 downto 0);
+      mAxisTLast    : out sl;
+      mAxisTReady   : in  sl := '1';
+      mAxisSof      : out sl;
+      mAxisFrag     : out sl;
+      mAxisEofe     : out sl;
+      mAxisIpErr    : out sl;
+      mAxisTcpErr   : out sl;
+      mAxisUdpErr   : out sl);
 end entity EthMacRxFifoWrapper;
 
 architecture rtl of EthMacRxFifoWrapper is
@@ -78,39 +78,41 @@ begin
    -- The RX-side FIFO input is not backpressured by `TREADY`, so the wrapper
    -- ties the source ready high and exposes the real pause/overflow controls
    -- separately for observation in the sClk domain.
-   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisIpErr, sAxisSof, sAxisTData, sAxisTcpErr, sAxisTKeep, sAxisTLast, sAxisTValid, sAxisUdpErr) is
+   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisIpErr, sAxisSof, sAxisTData,
+                        sAxisTKeep, sAxisTLast, sAxisTValid, sAxisTcpErr,
+                        sAxisUdpErr) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
-      v.tKeep(15 downto 0) := sAxisTKeep;
-      v.tLast := sAxisTLast;
+      v.tKeep(15 downto 0)  := sAxisTKeep;
+      v.tLast               := sAxisTLast;
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sAxisFrag, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_IPERR_BIT_C, sAxisIpErr);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_TCPERR_BIT_C, sAxisTcpErr);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_UDPERR_BIT_C, sAxisUdpErr);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
-   sAxisTReady <= '1';
-   sAxisPause <= sAxisCtrl.pause;
-   sAxisOverflow <= sAxisCtrl.overflow;
+   sAxisTReady       <= '1';
+   sAxisPause        <= sAxisCtrl.pause;
+   sAxisOverflow     <= sAxisCtrl.overflow;
    mAxisSlave.tReady <= mAxisTReady;
 
    -- Re-expand the primary output stream after the FIFO crossing.
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisSof <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisFrag <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
-      mAxisIpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_IPERR_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisSof    <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisFrag   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisIpErr  <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_IPERR_BIT_C);
       mAxisTcpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_TCPERR_BIT_C);
       mAxisUdpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_UDPERR_BIT_C);
    end process mAxisView;

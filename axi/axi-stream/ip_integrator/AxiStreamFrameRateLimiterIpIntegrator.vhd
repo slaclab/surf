@@ -88,13 +88,13 @@ architecture rtl of AxiStreamFrameRateLimiterIpIntegrator is
       TUSER_BITS_C  => TUSER_WIDTH_G,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisAResetN     : sl := '1';
-   signal sAxiAResetN     : sl := '1';
-   signal sAxisMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mAxisMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mAxisCtrl       : AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C;
+   signal axisAResetN     : sl                     := '1';
+   signal sAxiAResetN     : sl                     := '1';
+   signal sAxisMaster     : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave      : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal mAxisMaster     : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave      : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal mAxisCtrl       : AxiStreamCtrlType      := AXI_STREAM_CTRL_UNUSED_C;
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -105,7 +105,7 @@ begin
    axisAResetN <= not axisRst when (RST_POLARITY_G = '1') else axisRst;
    sAxiAResetN <= not axilRst when (RST_POLARITY_G = '1') else axilRst;
 
-   mAxisCtrl.pause <= M_AXIS_PAUSE;
+   mAxisCtrl.pause    <= M_AXIS_PAUSE;
    mAxisCtrl.overflow <= '0';
 
    U_ShimLayerSlave : entity surf.SlaveAxiStreamIpIntegrator

@@ -36,7 +36,7 @@ architecture rtl of Pgp2fcAlignmentControllerWrapper is
 
    signal mAxilReadMaster  : AxiLiteReadMasterType;
    signal mAxilWriteMaster : AxiLiteWriteMasterType;
-   signal mAxilReadSlave   : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+   signal mAxilReadSlave   : AxiLiteReadSlaveType := AXI_LITE_READ_SLAVE_INIT_C;
 
 begin
 
@@ -50,25 +50,25 @@ begin
 
    U_DUT : entity surf.Pgp2fcAlignmentController
       port map (
-         stableClk         => clk,
-         stableRst         => rst,
-         linkAligned       => linkAligned,
-         linkAlignOverride => linkAlignOverride,
-         linkAlignSlide    => linkAlignSlide,
-         linkAlignSlideDone => linkAlignSlideDone,
-         linkAlignPhaseReq  => linkAlignPhaseReq,
-         linkAlignPhase     => linkAlignPhase,
+         stableClk           => clk,
+         stableRst           => rst,
+         linkAligned         => linkAligned,
+         linkAlignOverride   => linkAlignOverride,
+         linkAlignSlide      => linkAlignSlide,
+         linkAlignSlideDone  => linkAlignSlideDone,
+         linkAlignPhaseReq   => linkAlignPhaseReq,
+         linkAlignPhase      => linkAlignPhase,
          linkAlignPhaseValid => linkAlignPhaseValid,
-         protocolError      => protocolError,
-         rxClk              => clk,
-         rxReset            => rxReset,
-         rxSlide            => rxSlide,
-         rxReady            => rxReady,
-         axilClk            => clk,
-         axilRst            => rst,
-         mAxilReadMaster    => mAxilReadMaster,
-         mAxilReadSlave     => mAxilReadSlave,
-         mAxilWriteMaster   => mAxilWriteMaster,
-         mAxilWriteSlave    => AXI_LITE_WRITE_SLAVE_INIT_C);
+         protocolError       => protocolError,
+         rxClk               => clk,
+         rxReset             => rxReset,
+         rxSlide             => rxSlide,
+         rxReady             => rxReady,
+         axilClk             => clk,
+         axilRst             => rst,
+         mAxilReadMaster     => mAxilReadMaster,
+         mAxilReadSlave      => mAxilReadSlave,
+         mAxilWriteMaster    => mAxilWriteMaster,
+         mAxilWriteSlave     => AXI_LITE_WRITE_SLAVE_INIT_C);
 
 end architecture rtl;

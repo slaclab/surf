@@ -100,7 +100,7 @@ architecture rtl of SsiResizeFifoEofeWrapper is
    constant SLAVE_KEEP_WIDTH_C  : positive := SLAVE_AXI_CONFIG_C.TDATA_BYTES_C;
    constant MASTER_KEEP_WIDTH_C : positive := MASTER_AXI_CONFIG_C.TDATA_BYTES_C;
 
-   signal axisRst     : sl := '0';
+   signal axisRst     : sl                  := '0';
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -136,14 +136,14 @@ begin
                         S_AXIS_TLAST, S_AXIS_TVALID) is
       variable v : AxiStreamMasterType;
    begin
-      v         := AXI_STREAM_MASTER_INIT_C;
-      v.tValid  := S_AXIS_TVALID;
+      v                                      := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                               := S_AXIS_TVALID;
       v.tData(SLAVE_DATA_WIDTH_C-1 downto 0) := S_AXIS_TDATA(SLAVE_DATA_WIDTH_C-1 downto 0);
       v.tKeep(SLAVE_KEEP_WIDTH_C-1 downto 0) := S_AXIS_TKEEP(SLAVE_KEEP_WIDTH_C-1 downto 0);
-      v.tLast   := S_AXIS_TLAST;
-      v.tDest(3 downto 0) := S_AXIS_TDEST;
+      v.tLast                                := S_AXIS_TLAST;
+      v.tDest(3 downto 0)                    := S_AXIS_TDEST;
       ssiSetUserEofe(SLAVE_AXI_CONFIG_C, v, S_AXIS_EOFE);
-      sAxisMaster <= v;
+      sAxisMaster                            <= v;
    end process sAxisComb;
 
    U_AxiStreamFifoV2 : entity surf.AxiStreamFifoV2

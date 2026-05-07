@@ -60,8 +60,8 @@ architecture rtl of Pgp2fcLaneWrapper is
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
-   signal pgpTxMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal pgpTxSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal pgpTxMaster  : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal pgpTxSlave   : AxiStreamSlaveType               := AXI_STREAM_SLAVE_FORCE_C;
    signal pgpTxMasters : AxiStreamMasterArray(3 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal pgpTxSlaves  : AxiStreamSlaveArray(3 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
@@ -84,14 +84,14 @@ architecture rtl of Pgp2fcLaneWrapper is
 
 begin
 
-   LINK_READY <= pgpRxOut.linkReady and pgpTxOut.linkReady;
-   TX_FC_SENT <= pgpTxOut.fcSent;
+   LINK_READY  <= pgpRxOut.linkReady and pgpTxOut.linkReady;
+   TX_FC_SENT  <= pgpTxOut.fcSent;
    RX_FC_VALID <= pgpRxOut.fcValid;
-   RX_FC_WORD <= pgpRxOut.fcWord(15 downto 0);
+   RX_FC_WORD  <= pgpRxOut.fcWord(15 downto 0);
 
-   pgpTxMasters(0) <= pgpTxMaster;
-   pgpTxSlave      <= pgpTxSlaves(0);
-   pgpTxIn.fcValid <= TX_FC_VALID;
+   pgpTxMasters(0)             <= pgpTxMaster;
+   pgpTxSlave                  <= pgpTxSlaves(0);
+   pgpTxIn.fcValid             <= TX_FC_VALID;
    pgpTxIn.fcWord(15 downto 0) <= TX_FC_WORD;
 
    phyRxLaneIn.data    <= phyTxLaneOut.data;

@@ -29,36 +29,36 @@ entity EthMacTxCsumLoopbackWrapper is
       ROCEV2_EN_G    : boolean := false;
       SYNTH_MODE_G   : string  := "inferred");
    port (
-      ethClk       : in  sl;
-      ethRst       : in  sl;
-      sAxisTValid  : in  sl;
-      sAxisTData   : in  slv(127 downto 0);
-      sAxisTKeep   : in  slv(15 downto 0);
-      sAxisTLast   : in  sl;
-      sAxisTReady  : out sl;
-      sAxisSof     : in  sl;
-      sAxisFrag    : in  sl;
-      sAxisEofe    : in  sl;
-      mAxisTValid  : out sl;
-      mAxisTData   : out slv(127 downto 0);
-      mAxisTKeep   : out slv(15 downto 0);
-      mAxisTLast   : out sl;
-      mAxisTReady  : in  sl := '1';
-      mAxisSof     : out sl;
-      mAxisFrag    : out sl;
-      mAxisEofe    : out sl;
-      mAxisIpErr   : out sl;
-      mAxisTcpErr  : out sl;
-      mAxisUdpErr  : out sl;
-      ipCsumEn     : in  sl;
-      tcpCsumEn    : in  sl;
-      udpCsumEn    : in  sl);
+      ethClk      : in  sl;
+      ethRst      : in  sl;
+      sAxisTValid : in  sl;
+      sAxisTData  : in  slv(127 downto 0);
+      sAxisTKeep  : in  slv(15 downto 0);
+      sAxisTLast  : in  sl;
+      sAxisTReady : out sl;
+      sAxisSof    : in  sl;
+      sAxisFrag   : in  sl;
+      sAxisEofe   : in  sl;
+      mAxisTValid : out sl;
+      mAxisTData  : out slv(127 downto 0);
+      mAxisTKeep  : out slv(15 downto 0);
+      mAxisTLast  : out sl;
+      mAxisTReady : in  sl := '1';
+      mAxisSof    : out sl;
+      mAxisFrag   : out sl;
+      mAxisEofe   : out sl;
+      mAxisIpErr  : out sl;
+      mAxisTcpErr : out sl;
+      mAxisUdpErr : out sl;
+      ipCsumEn    : in  sl;
+      tcpCsumEn   : in  sl;
+      udpCsumEn   : in  sl);
 end entity EthMacTxCsumLoopbackWrapper;
 
 architecture rtl of EthMacTxCsumLoopbackWrapper is
 
-   signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal sAxisMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal txAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal txAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal mAxisMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -66,21 +66,22 @@ architecture rtl of EthMacTxCsumLoopbackWrapper is
 begin
 
    -- Flatten the source packet stream that will be repaired by TxCsum.
-   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTKeep,
+                        sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
-      v.tKeep(15 downto 0) := sAxisTKeep;
-      v.tLast := sAxisTLast;
+      v.tKeep(15 downto 0)  := sAxisTKeep;
+      v.tLast               := sAxisTLast;
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sAxisFrag, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlave.tReady;
+   sAxisTReady        <= sAxisSlave.tReady;
    txAxisSlave.tReady <= '1';
 
    -- Present the post-checker stream to cocotb so the test can confirm the
@@ -88,13 +89,13 @@ begin
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisSof <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisFrag <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
-      mAxisIpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_IPERR_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisSof    <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisFrag   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisIpErr  <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_IPERR_BIT_C);
       mAxisTcpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_TCPERR_BIT_C);
       mAxisUdpErr <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_UDPERR_BIT_C);
    end process mAxisView;

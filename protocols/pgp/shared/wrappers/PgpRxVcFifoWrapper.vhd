@@ -22,30 +22,30 @@ use surf.Pgp4Pkg.all;
 
 entity PgpRxVcFifoWrapper is
    port (
-      pgpClk         : in  sl;
-      pgpRst         : in  sl;
-      axisClk        : in  sl;
-      axisRst        : in  sl;
-      rxlinkReady    : in  sl;
-      pgpRxPause     : out sl;
-      pgpRxOverflow  : out sl;
-      pgpRxReady     : out sl;
-      S_AXIS_TVALID  : in  sl;
-      S_AXIS_TDATA   : in  slv(63 downto 0);
-      S_AXIS_TKEEP   : in  slv(7 downto 0);
-      S_AXIS_TLAST   : in  sl;
-      S_AXIS_TDEST   : in  slv(0 downto 0);
-      S_AXIS_TID     : in  slv(0 downto 0);
-      S_AXIS_TUSER   : in  slv(0 downto 0);
-      S_AXIS_TREADY  : out sl;
-      M_AXIS_TVALID  : out sl;
-      M_AXIS_TDATA   : out slv(63 downto 0);
-      M_AXIS_TKEEP   : out slv(7 downto 0);
-      M_AXIS_TLAST   : out sl;
-      M_AXIS_TDEST   : out slv(0 downto 0);
-      M_AXIS_TID     : out slv(0 downto 0);
-      M_AXIS_TUSER   : out slv(0 downto 0);
-      M_AXIS_TREADY  : in  sl);
+      pgpClk        : in  sl;
+      pgpRst        : in  sl;
+      axisClk       : in  sl;
+      axisRst       : in  sl;
+      rxlinkReady   : in  sl;
+      pgpRxPause    : out sl;
+      pgpRxOverflow : out sl;
+      pgpRxReady    : out sl;
+      S_AXIS_TVALID : in  sl;
+      S_AXIS_TDATA  : in  slv(63 downto 0);
+      S_AXIS_TKEEP  : in  slv(7 downto 0);
+      S_AXIS_TLAST  : in  sl;
+      S_AXIS_TDEST  : in  slv(0 downto 0);
+      S_AXIS_TID    : in  slv(0 downto 0);
+      S_AXIS_TUSER  : in  slv(0 downto 0);
+      S_AXIS_TREADY : out sl;
+      M_AXIS_TVALID : out sl;
+      M_AXIS_TDATA  : out slv(63 downto 0);
+      M_AXIS_TKEEP  : out slv(7 downto 0);
+      M_AXIS_TLAST  : out sl;
+      M_AXIS_TDEST  : out slv(0 downto 0);
+      M_AXIS_TID    : out slv(0 downto 0);
+      M_AXIS_TUSER  : out slv(0 downto 0);
+      M_AXIS_TREADY : in  sl);
 end entity PgpRxVcFifoWrapper;
 
 architecture rtl of PgpRxVcFifoWrapper is
@@ -58,12 +58,12 @@ architecture rtl of PgpRxVcFifoWrapper is
    signal pgpAResetN  : sl := '1';
    signal axisAResetN : sl := '1';
 
-   signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal pgpRxCtrlInt  : AxiStreamCtrlType := AXI_STREAM_CTRL_UNUSED_C;
-   signal pgpRxSlaveInt : AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
+   signal sAxisMaster   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal mAxisMaster   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal pgpRxCtrlInt  : AxiStreamCtrlType   := AXI_STREAM_CTRL_UNUSED_C;
+   signal pgpRxSlaveInt : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin
 

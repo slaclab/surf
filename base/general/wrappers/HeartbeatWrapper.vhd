@@ -21,10 +21,10 @@ use surf.StdRtlPkg.all;
 
 entity HeartbeatWrapper is
    generic (
-      TPD_G            : time     := 1 ns;
-      RST_POLARITY_G   : sl       := '1';
-      RST_ASYNC_G      : boolean  := false;
-      TOGGLE_CYCLES_G  : positive := 2);
+      TPD_G           : time     := 1 ns;
+      RST_POLARITY_G  : sl       := '1';
+      RST_ASYNC_G     : boolean  := false;
+      TOGGLE_CYCLES_G : positive := 2);
    port (
       clk : in  sl;
       rst : in  sl := not RST_POLARITY_G;

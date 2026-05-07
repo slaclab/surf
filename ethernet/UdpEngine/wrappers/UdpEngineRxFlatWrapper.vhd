@@ -71,8 +71,8 @@ end entity UdpEngineRxFlatWrapper;
 architecture rtl of UdpEngineRxFlatWrapper is
 
    signal igmpIpArray       : Slv32Array(0 downto 0);
-   signal sUdpMaster        : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sUdpSlave         : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal sUdpMaster        : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal sUdpSlave         : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
    signal serverRemotePortA : Slv16Array(0 downto 0);
    signal serverRemoteIpA   : Slv32Array(0 downto 0);
    signal serverRemoteMacA  : Slv48Array(0 downto 0);
@@ -82,67 +82,68 @@ architecture rtl of UdpEngineRxFlatWrapper is
    signal mServerSlaves     : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
    signal mClientMasters    : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal mClientSlaves     : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal mDhcpMaster       : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mDhcpSlave        : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal mDhcpMaster       : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mDhcpSlave        : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
-   sUdpComb : process (sUdpEofe, sUdpSof, sUdpTData, sUdpTKeep, sUdpTLast, sUdpTValid) is
+   sUdpComb : process (sUdpEofe, sUdpSof, sUdpTData, sUdpTKeep, sUdpTLast,
+                       sUdpTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sUdpTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sUdpTValid;
       v.tData(127 downto 0) := sUdpTData;
-      v.tKeep(15 downto 0) := sUdpTKeep;
-      v.tLast := sUdpTLast;
+      v.tKeep(15 downto 0)  := sUdpTKeep;
+      v.tLast               := sUdpTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sUdpSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sUdpEofe);
-      sUdpMaster <= v;
+      sUdpMaster            <= v;
    end process sUdpComb;
 
-   mServerView : process (mServerMasters(0)) is
+   mServerView : process (mServerMasters) is
    begin
       mServerTValid <= mServerMasters(0).tValid;
-      mServerTData <= mServerMasters(0).tData(127 downto 0);
-      mServerTKeep <= mServerMasters(0).tKeep(15 downto 0);
-      mServerTLast <= mServerMasters(0).tLast;
-      mServerTDest <= mServerMasters(0).tDest(7 downto 0);
-      mServerSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mServerMasters(0), EMAC_SOF_BIT_C, 0);
-      mServerEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mServerMasters(0), EMAC_EOFE_BIT_C);
+      mServerTData  <= mServerMasters(0).tData(127 downto 0);
+      mServerTKeep  <= mServerMasters(0).tKeep(15 downto 0);
+      mServerTLast  <= mServerMasters(0).tLast;
+      mServerTDest  <= mServerMasters(0).tDest(7 downto 0);
+      mServerSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mServerMasters(0), EMAC_SOF_BIT_C, 0);
+      mServerEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mServerMasters(0), EMAC_EOFE_BIT_C);
    end process mServerView;
 
-   mClientView : process (mClientMasters(0)) is
+   mClientView : process (mClientMasters) is
    begin
       mClientTValid <= mClientMasters(0).tValid;
-      mClientTData <= mClientMasters(0).tData(127 downto 0);
-      mClientTKeep <= mClientMasters(0).tKeep(15 downto 0);
-      mClientTLast <= mClientMasters(0).tLast;
-      mClientTDest <= mClientMasters(0).tDest(7 downto 0);
-      mClientSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mClientMasters(0), EMAC_SOF_BIT_C, 0);
-      mClientEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mClientMasters(0), EMAC_EOFE_BIT_C);
+      mClientTData  <= mClientMasters(0).tData(127 downto 0);
+      mClientTKeep  <= mClientMasters(0).tKeep(15 downto 0);
+      mClientTLast  <= mClientMasters(0).tLast;
+      mClientTDest  <= mClientMasters(0).tDest(7 downto 0);
+      mClientSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mClientMasters(0), EMAC_SOF_BIT_C, 0);
+      mClientEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mClientMasters(0), EMAC_EOFE_BIT_C);
    end process mClientView;
 
    mDhcpView : process (mDhcpMaster) is
    begin
       mDhcpTValid <= mDhcpMaster.tValid;
-      mDhcpTData <= mDhcpMaster.tData(127 downto 0);
-      mDhcpTKeep <= mDhcpMaster.tKeep(15 downto 0);
-      mDhcpTLast <= mDhcpMaster.tLast;
-      mDhcpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_SOF_BIT_C, 0);
-      mDhcpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_EOFE_BIT_C);
+      mDhcpTData  <= mDhcpMaster.tData(127 downto 0);
+      mDhcpTKeep  <= mDhcpMaster.tKeep(15 downto 0);
+      mDhcpTLast  <= mDhcpMaster.tLast;
+      mDhcpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_SOF_BIT_C, 0);
+      mDhcpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_EOFE_BIT_C);
    end process mDhcpView;
 
-   sUdpTReady <= sUdpSlave.tReady;
+   sUdpTReady              <= sUdpSlave.tReady;
    mServerSlaves(0).tReady <= mServerTReady;
    mClientSlaves(0).tReady <= mClientTReady;
-   mDhcpSlave.tReady <= mDhcpTReady;
+   mDhcpSlave.tReady       <= mDhcpTReady;
 
-   igmpIpArray(0) <= igmpIp;
-   serverRemotePort <= serverRemotePortA(0);
-   serverRemoteIp <= serverRemoteIpA(0);
-   serverRemoteMac <= serverRemoteMacA(0);
+   igmpIpArray(0)       <= igmpIp;
+   serverRemotePort     <= serverRemotePortA(0);
+   serverRemoteIp       <= serverRemoteIpA(0);
+   serverRemoteMac      <= serverRemoteMacA(0);
    clientRemoteDetValid <= clientRemoteDetVA(0);
-   clientRemoteDetIp <= clientRemoteDetIA(0);
+   clientRemoteDetIp    <= clientRemoteDetIA(0);
 
    U_DUT : entity surf.UdpEngineRx
       generic map (

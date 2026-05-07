@@ -23,24 +23,24 @@ use surf.SsiPkg.all;
 
 entity SrpV3AxiWrapper is
    port (
-      AXIS_ACLK      : in  std_logic;
-      AXIS_ARESETN   : in  std_logic;
-      S_AXIS_TVALID  : in  std_logic;
-      S_AXIS_TDATA   : in  std_logic_vector(31 downto 0);
-      S_AXIS_TKEEP   : in  std_logic_vector(3 downto 0);
-      S_AXIS_TLAST   : in  std_logic;
-      S_AXIS_TDEST   : in  std_logic_vector(3 downto 0);
-      S_AXIS_TID     : in  std_logic_vector(0 downto 0);
-      S_AXIS_TUSER   : in  std_logic_vector(1 downto 0);
-      S_AXIS_TREADY  : out std_logic;
-      M_AXIS_TVALID  : out std_logic;
-      M_AXIS_TDATA   : out std_logic_vector(31 downto 0);
-      M_AXIS_TKEEP   : out std_logic_vector(3 downto 0);
-      M_AXIS_TLAST   : out std_logic;
-      M_AXIS_TDEST   : out std_logic_vector(3 downto 0);
-      M_AXIS_TID     : out std_logic_vector(0 downto 0);
-      M_AXIS_TUSER   : out std_logic_vector(1 downto 0);
-      M_AXIS_TREADY  : in  std_logic);
+      AXIS_ACLK     : in  std_logic;
+      AXIS_ARESETN  : in  std_logic;
+      S_AXIS_TVALID : in  std_logic;
+      S_AXIS_TDATA  : in  std_logic_vector(31 downto 0);
+      S_AXIS_TKEEP  : in  std_logic_vector(3 downto 0);
+      S_AXIS_TLAST  : in  std_logic;
+      S_AXIS_TDEST  : in  std_logic_vector(3 downto 0);
+      S_AXIS_TID    : in  std_logic_vector(0 downto 0);
+      S_AXIS_TUSER  : in  std_logic_vector(1 downto 0);
+      S_AXIS_TREADY : out std_logic;
+      M_AXIS_TVALID : out std_logic;
+      M_AXIS_TDATA  : out std_logic_vector(31 downto 0);
+      M_AXIS_TKEEP  : out std_logic_vector(3 downto 0);
+      M_AXIS_TLAST  : out std_logic;
+      M_AXIS_TDEST  : out std_logic_vector(3 downto 0);
+      M_AXIS_TID    : out std_logic_vector(0 downto 0);
+      M_AXIS_TUSER  : out std_logic_vector(1 downto 0);
+      M_AXIS_TREADY : in  std_logic);
 end entity SrpV3AxiWrapper;
 
 architecture rtl of SrpV3AxiWrapper is

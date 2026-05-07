@@ -24,72 +24,72 @@ use surf.SsiPkg.all;
 
 entity AxiStreamDmaRingWriteIpIntegrator is
    port (
-      axilClk          : in  sl;
-      axilRst          : in  sl;
-      S_AXI_AWADDR     : in  slv(11 downto 0);
-      S_AXI_AWPROT     : in  slv(2 downto 0);
-      S_AXI_AWVALID    : in  sl;
-      S_AXI_AWREADY    : out sl;
-      S_AXI_WDATA      : in  slv(31 downto 0);
-      S_AXI_WSTRB      : in  slv(3 downto 0);
-      S_AXI_WVALID     : in  sl;
-      S_AXI_WREADY     : out sl;
-      S_AXI_BRESP      : out slv(1 downto 0);
-      S_AXI_BVALID     : out sl;
-      S_AXI_BREADY     : in  sl;
-      S_AXI_ARADDR     : in  slv(11 downto 0);
-      S_AXI_ARPROT     : in  slv(2 downto 0);
-      S_AXI_ARVALID    : in  sl;
-      S_AXI_ARREADY    : out sl;
-      S_AXI_RDATA      : out slv(31 downto 0);
-      S_AXI_RRESP      : out slv(1 downto 0);
-      S_AXI_RVALID     : out sl;
-      S_AXI_RREADY     : in  sl;
-      axisStatusClk    : in  sl;
-      axisStatusRst    : in  sl;
-      M_STATUS_TVALID  : out sl;
-      M_STATUS_TDATA   : out slv(7 downto 0);
-      M_STATUS_TLAST   : out sl;
-      M_STATUS_TUSER   : out slv(1 downto 0);
-      M_STATUS_TDEST   : out slv(3 downto 0);
-      M_STATUS_TREADY  : in  sl;
-      axiClk           : in  sl;
-      axiRst           : in  sl;
-      S_AXIS_TVALID    : in  sl;
-      S_AXIS_TDATA     : in  slv(31 downto 0);
-      S_AXIS_TKEEP     : in  slv(3 downto 0);
-      S_AXIS_TLAST     : in  sl;
-      S_AXIS_TDEST     : in  slv(0 downto 0);
-      S_AXIS_TUSER     : in  slv(1 downto 0);
-      S_AXIS_TREADY    : out sl;
-      bufferEnabled    : out slv(1 downto 0);
-      bufferEmpty      : out slv(1 downto 0);
-      bufferFull       : out slv(1 downto 0);
-      bufferDone       : out slv(1 downto 0);
-      bufferTriggered  : out slv(1 downto 0);
-      bufferError      : out slv(1 downto 0);
-      M_AXI_AWID       : out slv(0 downto 0);
-      M_AXI_AWADDR     : out slv(15 downto 0);
-      M_AXI_AWLEN      : out slv(7 downto 0);
-      M_AXI_AWSIZE     : out slv(2 downto 0);
-      M_AXI_AWBURST    : out slv(1 downto 0);
-      M_AXI_AWLOCK     : out sl;
-      M_AXI_AWCACHE    : out slv(3 downto 0);
-      M_AXI_AWPROT     : out slv(2 downto 0);
-      M_AXI_AWREGION   : out slv(3 downto 0);
-      M_AXI_AWQOS      : out slv(3 downto 0);
-      M_AXI_AWVALID    : out sl;
-      M_AXI_AWREADY    : in  sl;
-      M_AXI_WID        : out slv(0 downto 0);
-      M_AXI_WDATA      : out slv(31 downto 0);
-      M_AXI_WSTRB      : out slv(3 downto 0);
-      M_AXI_WLAST      : out sl;
-      M_AXI_WVALID     : out sl;
-      M_AXI_WREADY     : in  sl;
-      M_AXI_BID        : in  slv(0 downto 0);
-      M_AXI_BRESP      : in  slv(1 downto 0);
-      M_AXI_BVALID     : in  sl;
-      M_AXI_BREADY     : out sl);
+      axilClk         : in  sl;
+      axilRst         : in  sl;
+      S_AXI_AWADDR    : in  slv(11 downto 0);
+      S_AXI_AWPROT    : in  slv(2 downto 0);
+      S_AXI_AWVALID   : in  sl;
+      S_AXI_AWREADY   : out sl;
+      S_AXI_WDATA     : in  slv(31 downto 0);
+      S_AXI_WSTRB     : in  slv(3 downto 0);
+      S_AXI_WVALID    : in  sl;
+      S_AXI_WREADY    : out sl;
+      S_AXI_BRESP     : out slv(1 downto 0);
+      S_AXI_BVALID    : out sl;
+      S_AXI_BREADY    : in  sl;
+      S_AXI_ARADDR    : in  slv(11 downto 0);
+      S_AXI_ARPROT    : in  slv(2 downto 0);
+      S_AXI_ARVALID   : in  sl;
+      S_AXI_ARREADY   : out sl;
+      S_AXI_RDATA     : out slv(31 downto 0);
+      S_AXI_RRESP     : out slv(1 downto 0);
+      S_AXI_RVALID    : out sl;
+      S_AXI_RREADY    : in  sl;
+      axisStatusClk   : in  sl;
+      axisStatusRst   : in  sl;
+      M_STATUS_TVALID : out sl;
+      M_STATUS_TDATA  : out slv(7 downto 0);
+      M_STATUS_TLAST  : out sl;
+      M_STATUS_TUSER  : out slv(1 downto 0);
+      M_STATUS_TDEST  : out slv(3 downto 0);
+      M_STATUS_TREADY : in  sl;
+      axiClk          : in  sl;
+      axiRst          : in  sl;
+      S_AXIS_TVALID   : in  sl;
+      S_AXIS_TDATA    : in  slv(31 downto 0);
+      S_AXIS_TKEEP    : in  slv(3 downto 0);
+      S_AXIS_TLAST    : in  sl;
+      S_AXIS_TDEST    : in  slv(0 downto 0);
+      S_AXIS_TUSER    : in  slv(1 downto 0);
+      S_AXIS_TREADY   : out sl;
+      bufferEnabled   : out slv(1 downto 0);
+      bufferEmpty     : out slv(1 downto 0);
+      bufferFull      : out slv(1 downto 0);
+      bufferDone      : out slv(1 downto 0);
+      bufferTriggered : out slv(1 downto 0);
+      bufferError     : out slv(1 downto 0);
+      M_AXI_AWID      : out slv(0 downto 0);
+      M_AXI_AWADDR    : out slv(15 downto 0);
+      M_AXI_AWLEN     : out slv(7 downto 0);
+      M_AXI_AWSIZE    : out slv(2 downto 0);
+      M_AXI_AWBURST   : out slv(1 downto 0);
+      M_AXI_AWLOCK    : out sl;
+      M_AXI_AWCACHE   : out slv(3 downto 0);
+      M_AXI_AWPROT    : out slv(2 downto 0);
+      M_AXI_AWREGION  : out slv(3 downto 0);
+      M_AXI_AWQOS     : out slv(3 downto 0);
+      M_AXI_AWVALID   : out sl;
+      M_AXI_AWREADY   : in  sl;
+      M_AXI_WID       : out slv(0 downto 0);
+      M_AXI_WDATA     : out slv(31 downto 0);
+      M_AXI_WSTRB     : out slv(3 downto 0);
+      M_AXI_WLAST     : out sl;
+      M_AXI_WVALID    : out sl;
+      M_AXI_WREADY    : in  sl;
+      M_AXI_BID       : in  slv(0 downto 0);
+      M_AXI_BRESP     : in  slv(1 downto 0);
+      M_AXI_BVALID    : in  sl;
+      M_AXI_BREADY    : out sl);
 end entity AxiStreamDmaRingWriteIpIntegrator;
 
 architecture rtl of AxiStreamDmaRingWriteIpIntegrator is
@@ -117,22 +117,22 @@ architecture rtl of AxiStreamDmaRingWriteIpIntegrator is
       ID_BITS_C    => 1,
       LEN_BITS_C   => 8);
 
-   signal axilResetN      : sl := '1';
-   signal axisResetN      : sl := '1';
-   signal statusResetN    : sl := '1';
-   signal axiResetN       : sl := '1';
-   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
-   signal axisDataMaster  : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
-   signal axisDataSlave   : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
-   signal axisStatusMaster : AxiStreamMasterType   := AXI_STREAM_MASTER_INIT_C;
-   signal axisStatusSlave : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
-   signal axiReadMaster   : AxiReadMasterType      := AXI_READ_MASTER_INIT_C;
-   signal axiReadSlave    : AxiReadSlaveType       := AXI_READ_SLAVE_INIT_C;
-   signal axiWriteMaster  : AxiWriteMasterType     := AXI_WRITE_MASTER_INIT_C;
-   signal axiWriteSlave   : AxiWriteSlaveType      := AXI_WRITE_SLAVE_INIT_C;
+   signal axilResetN       : sl                     := '1';
+   signal axisResetN       : sl                     := '1';
+   signal statusResetN     : sl                     := '1';
+   signal axiResetN        : sl                     := '1';
+   signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave    : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilWriteMaster  : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave   : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axisDataMaster   : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal axisDataSlave    : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal axisStatusMaster : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal axisStatusSlave  : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal axiReadMaster    : AxiReadMasterType      := AXI_READ_MASTER_INIT_C;
+   signal axiReadSlave     : AxiReadSlaveType       := AXI_READ_SLAVE_INIT_C;
+   signal axiWriteMaster   : AxiWriteMasterType     := AXI_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave    : AxiWriteSlaveType      := AXI_WRITE_SLAVE_INIT_C;
 
 begin
 
@@ -242,54 +242,54 @@ begin
          ADDR_WIDTH    => 16,
          DATA_WIDTH    => 32)
       port map (
-         M_AXI_ACLK      => axiClk,
-         M_AXI_ARESETN   => axiResetN,
-         M_AXI_AWID      => M_AXI_AWID,
-         M_AXI_AWADDR    => M_AXI_AWADDR,
-         M_AXI_AWLEN     => M_AXI_AWLEN,
-         M_AXI_AWSIZE    => M_AXI_AWSIZE,
-         M_AXI_AWBURST   => M_AXI_AWBURST,
-         M_AXI_AWLOCK    => open,
-         M_AXI_AWCACHE   => M_AXI_AWCACHE,
-         M_AXI_AWPROT    => M_AXI_AWPROT,
-         M_AXI_AWREGION  => M_AXI_AWREGION,
-         M_AXI_AWQOS     => M_AXI_AWQOS,
-         M_AXI_AWVALID   => M_AXI_AWVALID,
-         M_AXI_AWREADY   => M_AXI_AWREADY,
-         M_AXI_WID       => M_AXI_WID,
-         M_AXI_WDATA     => M_AXI_WDATA,
-         M_AXI_WSTRB     => M_AXI_WSTRB,
-         M_AXI_WLAST     => M_AXI_WLAST,
-         M_AXI_WVALID    => M_AXI_WVALID,
-         M_AXI_WREADY    => M_AXI_WREADY,
-         M_AXI_BID       => M_AXI_BID,
-         M_AXI_BRESP     => M_AXI_BRESP,
-         M_AXI_BVALID    => M_AXI_BVALID,
-         M_AXI_BREADY    => M_AXI_BREADY,
-         M_AXI_ARID      => open,
-         M_AXI_ARADDR    => open,
-         M_AXI_ARLEN     => open,
-         M_AXI_ARSIZE    => open,
-         M_AXI_ARBURST   => open,
-         M_AXI_ARLOCK    => open,
-         M_AXI_ARCACHE   => open,
-         M_AXI_ARPROT    => open,
-         M_AXI_ARREGION  => open,
-         M_AXI_ARQOS     => open,
-         M_AXI_ARVALID   => open,
-         M_AXI_ARREADY   => '0',
-         M_AXI_RID       => (others => '0'),
-         M_AXI_RDATA     => (others => '0'),
-         M_AXI_RRESP     => (others => '0'),
-         M_AXI_RLAST     => '0',
-         M_AXI_RVALID    => '0',
-         M_AXI_RREADY    => open,
-         axiClk          => open,
-         axiRst          => open,
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave);
+         M_AXI_ACLK     => axiClk,
+         M_AXI_ARESETN  => axiResetN,
+         M_AXI_AWID     => M_AXI_AWID,
+         M_AXI_AWADDR   => M_AXI_AWADDR,
+         M_AXI_AWLEN    => M_AXI_AWLEN,
+         M_AXI_AWSIZE   => M_AXI_AWSIZE,
+         M_AXI_AWBURST  => M_AXI_AWBURST,
+         M_AXI_AWLOCK   => open,
+         M_AXI_AWCACHE  => M_AXI_AWCACHE,
+         M_AXI_AWPROT   => M_AXI_AWPROT,
+         M_AXI_AWREGION => M_AXI_AWREGION,
+         M_AXI_AWQOS    => M_AXI_AWQOS,
+         M_AXI_AWVALID  => M_AXI_AWVALID,
+         M_AXI_AWREADY  => M_AXI_AWREADY,
+         M_AXI_WID      => M_AXI_WID,
+         M_AXI_WDATA    => M_AXI_WDATA,
+         M_AXI_WSTRB    => M_AXI_WSTRB,
+         M_AXI_WLAST    => M_AXI_WLAST,
+         M_AXI_WVALID   => M_AXI_WVALID,
+         M_AXI_WREADY   => M_AXI_WREADY,
+         M_AXI_BID      => M_AXI_BID,
+         M_AXI_BRESP    => M_AXI_BRESP,
+         M_AXI_BVALID   => M_AXI_BVALID,
+         M_AXI_BREADY   => M_AXI_BREADY,
+         M_AXI_ARID     => open,
+         M_AXI_ARADDR   => open,
+         M_AXI_ARLEN    => open,
+         M_AXI_ARSIZE   => open,
+         M_AXI_ARBURST  => open,
+         M_AXI_ARLOCK   => open,
+         M_AXI_ARCACHE  => open,
+         M_AXI_ARPROT   => open,
+         M_AXI_ARREGION => open,
+         M_AXI_ARQOS    => open,
+         M_AXI_ARVALID  => open,
+         M_AXI_ARREADY  => '0',
+         M_AXI_RID      => (others => '0'),
+         M_AXI_RDATA    => (others => '0'),
+         M_AXI_RRESP    => (others => '0'),
+         M_AXI_RLAST    => '0',
+         M_AXI_RVALID   => '0',
+         M_AXI_RREADY   => open,
+         axiClk         => open,
+         axiRst         => open,
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave);
 
    M_AXI_AWLOCK <= '0';
 

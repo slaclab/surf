@@ -36,41 +36,41 @@ entity EthMacTopLoopbackWrapper is
       ROCEV2_EN_G       : boolean                  := false;
       FILT_EN_G         : boolean                  := false);
    port (
-      ethClk           : in  sl;
-      ethRst           : in  sl;
-      phyReady         : in  sl;
-      sAxisTValid      : in  sl;
-      sAxisTData       : in  slv(127 downto 0);
-      sAxisTKeep       : in  slv(15 downto 0);
-      sAxisTLast       : in  sl;
-      sAxisTDest       : in  slv(7 downto 0);
-      sAxisTReady      : out sl;
-      sAxisSof         : in  sl;
-      sAxisEofe        : in  sl;
-      mAxisTValid      : out sl;
-      mAxisTData       : out slv(127 downto 0);
-      mAxisTKeep       : out slv(15 downto 0);
-      mAxisTLast       : out sl;
-      mAxisTDest       : out slv(7 downto 0);
-      mAxisTReady      : in  sl := '1';
-      mAxisSof         : out sl;
-      mAxisEofe        : out sl;
-      localMac         : in  slv(47 downto 0);
-      filtEnable       : in  sl;
-      pauseEnable      : in  sl;
-      pauseTime        : in  slv(15 downto 0);
-      pauseThresh      : in  slv(15 downto 0);
-      ipCsumEn         : in  sl;
-      tcpCsumEn        : in  sl;
-      udpCsumEn        : in  sl;
-      dropOnPause      : in  sl;
-      rxPauseCnt       : out sl;
-      rxOverFlow       : out sl;
-      rxCountEn        : out sl;
-      rxCrcErrorCnt    : out sl;
-      txCountEn        : out sl;
-      txUnderRunCnt    : out sl;
-      txNotReadyCnt    : out sl);
+      ethClk        : in  sl;
+      ethRst        : in  sl;
+      phyReady      : in  sl;
+      sAxisTValid   : in  sl;
+      sAxisTData    : in  slv(127 downto 0);
+      sAxisTKeep    : in  slv(15 downto 0);
+      sAxisTLast    : in  sl;
+      sAxisTDest    : in  slv(7 downto 0);
+      sAxisTReady   : out sl;
+      sAxisSof      : in  sl;
+      sAxisEofe     : in  sl;
+      mAxisTValid   : out sl;
+      mAxisTData    : out slv(127 downto 0);
+      mAxisTKeep    : out slv(15 downto 0);
+      mAxisTLast    : out sl;
+      mAxisTDest    : out slv(7 downto 0);
+      mAxisTReady   : in  sl := '1';
+      mAxisSof      : out sl;
+      mAxisEofe     : out sl;
+      localMac      : in  slv(47 downto 0);
+      filtEnable    : in  sl;
+      pauseEnable   : in  sl;
+      pauseTime     : in  slv(15 downto 0);
+      pauseThresh   : in  slv(15 downto 0);
+      ipCsumEn      : in  sl;
+      tcpCsumEn     : in  sl;
+      udpCsumEn     : in  sl;
+      dropOnPause   : in  sl;
+      rxPauseCnt    : out sl;
+      rxOverFlow    : out sl;
+      rxCountEn     : out sl;
+      rxCrcErrorCnt : out sl;
+      txCountEn     : out sl;
+      txUnderRunCnt : out sl;
+      txNotReadyCnt : out sl);
 end entity EthMacTopLoopbackWrapper;
 
 architecture rtl of EthMacTopLoopbackWrapper is
@@ -87,52 +87,53 @@ architecture rtl of EthMacTopLoopbackWrapper is
 begin
 
    -- Flatten the primary AXIS source used by the test.
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
-      v.tKeep(15 downto 0) := sAxisTKeep;
-      v.tLast := sAxisTLast;
-      v.tDest(7 downto 0) := sAxisTDest;
+      v.tKeep(15 downto 0)  := sAxisTKeep;
+      v.tLast               := sAxisTLast;
+      v.tDest(7 downto 0)   := sAxisTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlave.tReady;
+   sAxisTReady       <= sAxisSlave.tReady;
    mAxisSlave.tReady <= mAxisTReady;
 
    -- Re-expand the received primary AXIS stream for cocotb checks.
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(7 downto 0);
-      mAxisSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(7 downto 0);
+      mAxisSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
    -- Flatten the public EthMacTop config record.
-   ethConfig.macAddress <= localMac;
-   ethConfig.filtEnable <= filtEnable;
+   ethConfig.macAddress  <= localMac;
+   ethConfig.filtEnable  <= filtEnable;
    ethConfig.pauseEnable <= pauseEnable;
-   ethConfig.pauseTime <= pauseTime;
+   ethConfig.pauseTime   <= pauseTime;
    ethConfig.pauseThresh <= pauseThresh;
-   ethConfig.ipCsumEn <= ipCsumEn;
-   ethConfig.tcpCsumEn <= tcpCsumEn;
-   ethConfig.udpCsumEn <= udpCsumEn;
+   ethConfig.ipCsumEn    <= ipCsumEn;
+   ethConfig.tcpCsumEn   <= tcpCsumEn;
+   ethConfig.udpCsumEn   <= udpCsumEn;
    ethConfig.dropOnPause <= dropOnPause;
 
    -- Flatten the small status record for direct cocotb observation.
-   rxPauseCnt <= ethStatus.rxPauseCnt;
-   rxOverFlow <= ethStatus.rxOverFlow;
-   rxCountEn <= ethStatus.rxCountEn;
+   rxPauseCnt    <= ethStatus.rxPauseCnt;
+   rxOverFlow    <= ethStatus.rxOverFlow;
+   rxCountEn     <= ethStatus.rxCountEn;
    rxCrcErrorCnt <= ethStatus.rxCrcErrorCnt;
-   txCountEn <= ethStatus.txCountEn;
+   txCountEn     <= ethStatus.txCountEn;
    txUnderRunCnt <= ethStatus.txUnderRunCnt;
    txNotReadyCnt <= ethStatus.txNotReadyCnt;
 

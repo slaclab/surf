@@ -22,11 +22,11 @@ use surf.AxiLitePkg.all;
 
 entity AxiRateGenIpIntegrator is
    generic (
-      TPD_G            : time                        := 1 ns;
-      COMMON_CLK_G     : boolean                     := true;
-      AXI_ADDR_WIDTH_G : positive range 12 to 64     := 16;
-      AXI_DATA_WIDTH_G : positive range 32 to 1024   := 32;
-      AXI_ID_WIDTH_G   : positive                    := 4);
+      TPD_G            : time                      := 1 ns;
+      COMMON_CLK_G     : boolean                   := true;
+      AXI_ADDR_WIDTH_G : positive range 12 to 64   := 16;
+      AXI_DATA_WIDTH_G : positive range 32 to 1024 := 32;
+      AXI_ID_WIDTH_G   : positive                  := 4);
    port (
       axiClk         : in  sl;
       axiRst         : in  sl;
@@ -101,23 +101,23 @@ architecture rtl of AxiRateGenIpIntegrator is
       ID_BITS_C    => AXI_ID_WIDTH_G,
       LEN_BITS_C   => 8);
 
-   signal axiResetN       : sl := '1';
-   signal axilResetN      : sl := '1';
-   signal mAxiAwLock      : slv(1 downto 0)       := (others => '0');
-   signal mAxiArLock      : slv(1 downto 0)       := (others => '0');
-   signal axilReadMaster  : AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axiResetN       : sl                     := '1';
+   signal axilResetN      : sl                     := '1';
+   signal mAxiAwLock      : slv(1 downto 0)        := (others => '0');
+   signal mAxiArLock      : slv(1 downto 0)        := (others => '0');
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
-   signal axiReadMaster   : AxiReadMasterType     := AXI_READ_MASTER_INIT_C;
-   signal axiReadSlave    : AxiReadSlaveType      := AXI_READ_SLAVE_INIT_C;
-   signal axiWriteMaster  : AxiWriteMasterType    := AXI_WRITE_MASTER_INIT_C;
-   signal axiWriteSlave   : AxiWriteSlaveType     := AXI_WRITE_SLAVE_INIT_C;
+   signal axiReadMaster   : AxiReadMasterType      := AXI_READ_MASTER_INIT_C;
+   signal axiReadSlave    : AxiReadSlaveType       := AXI_READ_SLAVE_INIT_C;
+   signal axiWriteMaster  : AxiWriteMasterType     := AXI_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave   : AxiWriteSlaveType      := AXI_WRITE_SLAVE_INIT_C;
 
 begin
 
-   axiResetN  <= not axiRst;
-   axilResetN <= not axilRst;
+   axiResetN    <= not axiRst;
+   axilResetN   <= not axilRst;
    M_AXI_AWLOCK <= mAxiAwLock(0);
    M_AXI_ARLOCK <= mAxiArLock(0);
 
@@ -163,54 +163,54 @@ begin
          ADDR_WIDTH    => AXI_ADDR_WIDTH_G,
          DATA_WIDTH    => AXI_DATA_WIDTH_G)
       port map (
-         M_AXI_ACLK      => axiClk,
-         M_AXI_ARESETN   => axiResetN,
-         M_AXI_AWID      => M_AXI_AWID,
-         M_AXI_AWADDR    => M_AXI_AWADDR,
-         M_AXI_AWLEN     => M_AXI_AWLEN,
-         M_AXI_AWSIZE    => M_AXI_AWSIZE,
-         M_AXI_AWBURST   => M_AXI_AWBURST,
-         M_AXI_AWLOCK    => mAxiAwLock,
-         M_AXI_AWCACHE   => M_AXI_AWCACHE,
-         M_AXI_AWPROT    => M_AXI_AWPROT,
-         M_AXI_AWREGION  => M_AXI_AWREGION,
-         M_AXI_AWQOS     => M_AXI_AWQOS,
-         M_AXI_AWVALID   => M_AXI_AWVALID,
-         M_AXI_AWREADY   => M_AXI_AWREADY,
-         M_AXI_WID       => M_AXI_WID,
-         M_AXI_WDATA     => M_AXI_WDATA,
-         M_AXI_WSTRB     => M_AXI_WSTRB,
-         M_AXI_WLAST     => M_AXI_WLAST,
-         M_AXI_WVALID    => M_AXI_WVALID,
-         M_AXI_WREADY    => M_AXI_WREADY,
-         M_AXI_BID       => M_AXI_BID,
-         M_AXI_BRESP     => M_AXI_BRESP,
-         M_AXI_BVALID    => M_AXI_BVALID,
-         M_AXI_BREADY    => M_AXI_BREADY,
-         M_AXI_ARID      => M_AXI_ARID,
-         M_AXI_ARADDR    => M_AXI_ARADDR,
-         M_AXI_ARLEN     => M_AXI_ARLEN,
-         M_AXI_ARSIZE    => M_AXI_ARSIZE,
-         M_AXI_ARBURST   => M_AXI_ARBURST,
-         M_AXI_ARLOCK    => mAxiArLock,
-         M_AXI_ARCACHE   => M_AXI_ARCACHE,
-         M_AXI_ARPROT    => M_AXI_ARPROT,
-         M_AXI_ARREGION  => M_AXI_ARREGION,
-         M_AXI_ARQOS     => M_AXI_ARQOS,
-         M_AXI_ARVALID   => M_AXI_ARVALID,
-         M_AXI_ARREADY   => M_AXI_ARREADY,
-         M_AXI_RID       => M_AXI_RID,
-         M_AXI_RDATA     => M_AXI_RDATA,
-         M_AXI_RRESP     => M_AXI_RRESP,
-         M_AXI_RLAST     => M_AXI_RLAST,
-         M_AXI_RVALID    => M_AXI_RVALID,
-         M_AXI_RREADY    => M_AXI_RREADY,
-         axiClk          => open,
-         axiRst          => open,
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave);
+         M_AXI_ACLK     => axiClk,
+         M_AXI_ARESETN  => axiResetN,
+         M_AXI_AWID     => M_AXI_AWID,
+         M_AXI_AWADDR   => M_AXI_AWADDR,
+         M_AXI_AWLEN    => M_AXI_AWLEN,
+         M_AXI_AWSIZE   => M_AXI_AWSIZE,
+         M_AXI_AWBURST  => M_AXI_AWBURST,
+         M_AXI_AWLOCK   => mAxiAwLock,
+         M_AXI_AWCACHE  => M_AXI_AWCACHE,
+         M_AXI_AWPROT   => M_AXI_AWPROT,
+         M_AXI_AWREGION => M_AXI_AWREGION,
+         M_AXI_AWQOS    => M_AXI_AWQOS,
+         M_AXI_AWVALID  => M_AXI_AWVALID,
+         M_AXI_AWREADY  => M_AXI_AWREADY,
+         M_AXI_WID      => M_AXI_WID,
+         M_AXI_WDATA    => M_AXI_WDATA,
+         M_AXI_WSTRB    => M_AXI_WSTRB,
+         M_AXI_WLAST    => M_AXI_WLAST,
+         M_AXI_WVALID   => M_AXI_WVALID,
+         M_AXI_WREADY   => M_AXI_WREADY,
+         M_AXI_BID      => M_AXI_BID,
+         M_AXI_BRESP    => M_AXI_BRESP,
+         M_AXI_BVALID   => M_AXI_BVALID,
+         M_AXI_BREADY   => M_AXI_BREADY,
+         M_AXI_ARID     => M_AXI_ARID,
+         M_AXI_ARADDR   => M_AXI_ARADDR,
+         M_AXI_ARLEN    => M_AXI_ARLEN,
+         M_AXI_ARSIZE   => M_AXI_ARSIZE,
+         M_AXI_ARBURST  => M_AXI_ARBURST,
+         M_AXI_ARLOCK   => mAxiArLock,
+         M_AXI_ARCACHE  => M_AXI_ARCACHE,
+         M_AXI_ARPROT   => M_AXI_ARPROT,
+         M_AXI_ARREGION => M_AXI_ARREGION,
+         M_AXI_ARQOS    => M_AXI_ARQOS,
+         M_AXI_ARVALID  => M_AXI_ARVALID,
+         M_AXI_ARREADY  => M_AXI_ARREADY,
+         M_AXI_RID      => M_AXI_RID,
+         M_AXI_RDATA    => M_AXI_RDATA,
+         M_AXI_RRESP    => M_AXI_RRESP,
+         M_AXI_RLAST    => M_AXI_RLAST,
+         M_AXI_RVALID   => M_AXI_RVALID,
+         M_AXI_RREADY   => M_AXI_RREADY,
+         axiClk         => open,
+         axiRst         => open,
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave);
 
    U_DUT : entity surf.AxiRateGen
       generic map (

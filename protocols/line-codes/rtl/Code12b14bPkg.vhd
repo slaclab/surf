@@ -448,7 +448,7 @@ package body Code12b14bPkg is
       variable data6       : slv(5 downto 0);
       variable blockDisp56 : BlockDisparityType;
 
-      variable debug      : boolean := false;
+      variable debug      : boolean               := false;
       variable tmpDisp    : integer range -8 to 8 := 0;
       variable compliment : sl;
    begin

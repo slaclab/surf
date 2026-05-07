@@ -26,14 +26,14 @@ use surf.AxiLitePkg.all;
 
 entity AxiStreamBatchingFifo is
    generic (
-        -- General Configurations
+      -- General Configurations
       TPD_G               : time                  := 1 ns;
       FIFO_ADDR_WIDTH_G   : integer range 4 to 48 := 9;
-        -- AXI Stream Port Configurations
+      -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
-        -- Control Port
+      -- Control Port
       axilClk          : in  sl;
       axilRst          : in  sl;
       sAxilWriteMaster : in  AxiLiteWriteMasterType;
@@ -41,17 +41,17 @@ entity AxiStreamBatchingFifo is
       sAxilReadMaster  : in  AxiLiteReadMasterType;
       sAxilReadSlave   : out AxiLiteReadSlaveType;
 
-        -- Slave Port
-      sAxisClk         : in  sl;
-      sAxisRst         : in  sl;
-      sAxisMaster      : in  AxiStreamMasterType;
-      sAxisSlave       : out AxiStreamSlaveType;
+      -- Slave Port
+      sAxisClk    : in  sl;
+      sAxisRst    : in  sl;
+      sAxisMaster : in  AxiStreamMasterType;
+      sAxisSlave  : out AxiStreamSlaveType;
 
-        -- Master Port
-      mAxisClk         : in  sl;
-      mAxisRst         : in  sl;
-      mAxisMaster      : out AxiStreamMasterType;
-      mAxisSlave       : in  AxiStreamSlaveType);
+      -- Master Port
+      mAxisClk    : in  sl;
+      mAxisRst    : in  sl;
+      mAxisMaster : out AxiStreamMasterType;
+      mAxisSlave  : in  AxiStreamSlaveType);
 end AxiStreamBatchingFifo;
 
 architecture rtl of AxiStreamBatchingFifo is
@@ -76,7 +76,7 @@ architecture rtl of AxiStreamBatchingFifo is
       frameBatched => (others => '0'),
       frameToSend  => (others => '0'),
       sending      => '0'
-    );
+      );
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -91,11 +91,12 @@ architecture rtl of AxiStreamBatchingFifo is
 
 begin
 
-    ----------------------------------
-    ------- CONTROL  INTERFACE -------
-    ----------------------------------
+   ----------------------------------
+   ------- CONTROL  INTERFACE -------
+   ----------------------------------
 
-   comb_axil : process (sAxilReadMaster, sAxilWriteMaster, axilRst, rAxilWriteSlave, rAxilReadSlave, batchSizeAxiL) is
+   comb_axil : process (axilRst, batchSizeAxiL, rAxilReadSlave,
+                        rAxilWriteSlave, sAxilReadMaster, sAxilWriteMaster) is
       variable vAxilWriteSlave : AxiLiteWriteSlaveType := AXI_LITE_WRITE_SLAVE_INIT_C;
       variable vAxilReadSlave  : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
       variable regCon          : AxiLiteEndPointType;
@@ -111,7 +112,7 @@ begin
       axiSlaveWaitTxn(regCon, sAxilWriteMaster, sAxilReadMaster, vAxilWriteSlave, vAxilReadSlave);
 
       -- Read batch size
-      axiSlaveRegister(regCon, "0000", 0, vBatchSize); -- 2-bit wide because only one reg
+      axiSlaveRegister(regCon, "0000", 0, vBatchSize);  -- 2-bit wide because only one reg
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, vAxilWriteSlave, vAxilReadSlave, AXI_RESP_DECERR_C);
@@ -141,25 +142,25 @@ begin
       end if;
    end process seq_axil;
 
-    ----------------------------------
-    ----- END CONTROL  INTERFACE -----
-    ----------------------------------
+   ----------------------------------
+   ----- END CONTROL  INTERFACE -----
+   ----------------------------------
 
 
-    ----------------------------------
-    ----- CLOCK DOMAIN CROSSINGS -----
-    ----------------------------------
-    -- All control signals need to be brought into the mAxisClk domain
-    -- State of the main FIFO becomes more consistent
+   ----------------------------------
+   ----- CLOCK DOMAIN CROSSINGS -----
+   ----------------------------------
+   -- All control signals need to be brought into the mAxisClk domain
+   -- State of the main FIFO becomes more consistent
 
    U_Axis_CDC : entity surf.AxiStreamFifoV2
       generic map(
          TPD_G               => TPD_G,
          MEMORY_TYPE_G       => "auto",
          GEN_SYNC_FIFO_G     => false,
-         FIFO_ADDR_WIDTH_G   => 5,                  -- Shallow, just for sync
+         FIFO_ADDR_WIDTH_G   => 5,                   -- Shallow, just for sync
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
-         MASTER_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G) -- Do not change shape
+         MASTER_AXI_CONFIG_G => SLAVE_AXI_CONFIG_G)  -- Do not change shape
       port map(
          sAxisClk    => sAxisClk,
          sAxisRst    => sAxisRst,
@@ -169,7 +170,7 @@ begin
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
          mAxisMaster => axisMasterSync,
-         mAxisSlave  => axisSlaveSync );
+         mAxisSlave  => axisSlaveSync);
 
    U_BatchSize_CDC : entity surf.SynchronizerFifo
       generic map(
@@ -177,19 +178,19 @@ begin
          DATA_WIDTH_G => 32,
          INIT_G       => x"0000_0001")
       port map(
-         wr_clk  => axilClk,
-         din     => batchSizeAxiL,
-         rd_clk  => mAxisClk,
-         dout    => batchSize);
+         wr_clk => axilClk,
+         din    => batchSizeAxiL,
+         rd_clk => mAxisClk,
+         dout   => batchSize);
 
-    ----------------------------------
-    --- END CLOCK DOMAIN CROSSINGS ---
-    ----------------------------------
+   ----------------------------------
+   --- END CLOCK DOMAIN CROSSINGS ---
+   ----------------------------------
 
 
-    ----------------------------------
-    --------- MAIN DATA FIFO ---------
-    ----------------------------------
+   ----------------------------------
+   --------- MAIN DATA FIFO ---------
+   ----------------------------------
 
    U_Data_FIFO : entity surf.AxiStreamFifoV2
       generic map(
@@ -199,24 +200,24 @@ begin
          SLAVE_AXI_CONFIG_G  => SLAVE_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => MASTER_AXI_CONFIG_G)
       port map(
-            -- Slave Port
+         -- Slave Port
          sAxisClk    => mAxisClk,
          sAxisRst    => mAxisRst,
          sAxisMaster => axisMasterSync,
          sAxisSlave  => axisSlaveSync,
 
-            -- Master Port
+         -- Master Port
          mAxisClk    => mAxisClk,
          mAxisRst    => mAxisRst,
          mAxisMaster => axisMasterFifo,
-         mAxisSlave  => axisSlaveFifo );
+         mAxisSlave  => axisSlaveFifo);
 
-    ----------------------------------
-    ------- END MAIN DATA FIFO -------
-    ----------------------------------
+   ----------------------------------
+   ------- END MAIN DATA FIFO -------
+   ----------------------------------
 
-    -- These signals are not responsible for hanshakes and can
-    -- just be forwarded
+   -- These signals are not responsible for hanshakes and can
+   -- just be forwarded
    combAxisMaster.tData <= axisMasterFifo.tData;
    combAxisMaster.tStrb <= axisMasterFifo.tStrb;
    combAxisMaster.tKeep <= axisMasterFifo.tKeep;
@@ -225,7 +226,8 @@ begin
    combAxisMaster.tId   <= axisMasterFifo.tId;
    combAxisMaster.tUser <= axisMasterFifo.tUser;
 
-   comb : process (r, axisMasterFifo, axisSlaveFifo, axisMasterSync, axisSlaveSync, batchSize, combAxisSlave) is
+   comb : process (axisMasterFifo, axisMasterSync, axisSlaveFifo,
+                   axisSlaveSync, batchSize, combAxisSlave, r) is
       variable v               : RegType;
       variable isAcceptedFrame : sl;
       variable isOutputFrame   : sl;
@@ -246,7 +248,7 @@ begin
 
       if isOutputFrame = '1' then
          v.frameBatched := v.frameBatched - 1;
-         v.frameToSend  := r.frameToSend  - 1;
+         v.frameToSend  := r.frameToSend - 1;
       end if;
 
       if v.frameToSend = 0 then
@@ -258,8 +260,8 @@ begin
          v.frameToSend := batchSize;
       end if;
 
-      combAxisMaster.tValid   <= r.sending and axisMasterFifo.tValid;
-      axisSlaveFifo.tReady <= r.sending and combAxisSlave.tReady;
+      combAxisMaster.tValid <= r.sending and axisMasterFifo.tValid;
+      axisSlaveFifo.tReady  <= r.sending and combAxisSlave.tReady;
 
       rin <= v;
    end process comb;
@@ -279,7 +281,7 @@ begin
    -- AxiStream by adding a pipeline stage
    U_Output_Pipeline : entity surf.AxiStreamPipeline
       generic map(
-         TPD_G             => TPD_G)
+         TPD_G => TPD_G)
       port map(
          axisClk => mAxisClk,
          axisRst => mAxisRst,
