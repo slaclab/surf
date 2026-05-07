@@ -13,7 +13,8 @@
 #   active-low reset case so the round-robin logic is exercised beyond a single
 #   fixed width.
 # - Stimulus: Present competing request patterns, keep the current requester
-#   asserted to exercise hold behavior, and then rotate the contenders.
+#   asserted to exercise hold behavior, repeatedly rotate contenders to check
+#   starvation resistance, and then reset the pointer history.
 # - Checks: The grant must rotate in round-robin order, the hold case must keep
 #   serving the same requester, and reset must clear the selection history.
 # - Timing: Grant updates are checked on arbitration boundaries only, and the
@@ -162,6 +163,41 @@ async def reset_behavior_test(dut):
         assert int(dut.valid.value) == 0
 
 
+@cocotb.test()
+async def starvation_rotation_test(dut):
+    if not env_flag("CHECK_STARVATION_ROTATION", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+
+    # Keep all requesters asserted, but drop the current winner for one cycle
+    # after every grant. Over several rounds every requester should be selected
+    # instead of the arbiter sticking to one low-index or high-index source.
+    seen = set()
+    all_requesters = (1 << tb.req_size) - 1
+    request_mask = all_requesters
+    for _ in range(tb.req_size * 3):
+        tb.dut.req.value = request_mask
+        await tb.cycle(1)
+        assert int(dut.valid.value) == 1
+        winner = int(dut.selected.value)
+        seen.add(winner)
+
+        request_mask = all_requesters & ~(1 << winner)
+        tb.dut.req.value = request_mask
+        await tb.cycle(1)
+        assert int(dut.valid.value) == 1
+        next_winner = int(dut.selected.value)
+        assert next_winner != winner
+        assert (request_mask >> next_winner) & 0x1
+        seen.add(next_winner)
+
+        request_mask = all_requesters
+
+    assert seen == set(range(tb.req_size))
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "size4_baseline",
@@ -183,6 +219,14 @@ PARAMETER_SWEEP = [
         RST_ASYNC_G="true",
         RST_POLARITY_G="'0'",
         CLK_PERIOD_NS="7",
+    ),
+    parameter_case(
+        "size5_starvation_rotation",
+        REQ_SIZE_G="5",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_STARVATION_ROTATION="1",
+        CLK_PERIOD_NS="5",
     ),
 ]
 
