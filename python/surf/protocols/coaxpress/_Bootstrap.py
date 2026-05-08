@@ -16,6 +16,16 @@ class Bootstrap(pr.Device):
         super().__init__(**kwargs)
         self.CoaXPressAxiL = CoaXPressAxiL
 
+        # Default write guard: no-op until setAcquisitionMonitor() provides a camera.
+        # Uses the pre-write listener API from rogue PR #1229.
+        self._acq_var = None
+
+        def _write_guard(path, value, state):
+            if self._acq_var is not None and self._acq_var.value():
+                raise pr.WriteBlockedError(path, 'cannot write registers during acquisition')
+
+        self.addPreWriteListener(_write_guard)
+
         self.add(pr.RemoteVariable(
             name        = 'Standard',
             description = 'This register shall provide a magic number indicating the Device implements the CoaXPress standard. The magic number shall be 0xC0A79AE5.',
@@ -632,6 +642,15 @@ class Bootstrap(pr.Device):
             linkedGet    = lambda: f'v{self.MajorVersionUsed.value()}.{self.MinorVersionUsed.value()}',
             dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
         ))
+
+    def setAcquisitionMonitor(self, camera):
+        """Block Bootstrap register writes while the given camera is acquiring.
+
+        Call this after the camera device is ready.  The guard checks
+        ``camera.IsAcquiring`` before every write and raises
+        ``pr.WriteBlockedError`` if acquisition is in progress.
+        """
+        self._acq_var = camera.IsAcquiring
 
     def DeviceDiscovery(self, arg=None):
         # Updates all the local device register values
