@@ -9,10 +9,14 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class PhantomS991(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        rogue.Version.minVersion('6.13.0')
+
         #############################################################
         # Start of manufacturer-specific register space at 0x00006000
         #############################################################

@@ -9,11 +9,15 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 import time
 
 class Bootstrap(pr.Device):
     def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
         super().__init__(**kwargs)
+
+        rogue.Version.minVersion('6.13.0')
+
         self.CoaXPressAxiL = CoaXPressAxiL
 
         # Default write guard: no-op until setAcquisitionMonitor() provides a camera.
