@@ -420,7 +420,7 @@ begin
          dataOut => rdFinalAddrSync);
 
    -- Synchronize read setup done strobe
-   U_Sync_axilClk_rdSetupDone : entity work.SynchronizerOneShot
+   U_Sync_axilClk_rdSetupDone : entity surf.SynchronizerOneShot
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -432,7 +432,7 @@ begin
          dataOut => rdSetupDoneSync);
 
    -- Synchronize read request strobe
-   U_Sync_axilClk_rdReq : entity work.SynchronizerOneShot
+   U_Sync_axilClk_rdReq : entity surf.SynchronizerOneShot
       generic map(
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
