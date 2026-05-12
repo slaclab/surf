@@ -77,6 +77,7 @@ entity AxiStreamFrameBuffer is
       dataValue       : in  slv(8*DATA_BYTES_G-1 downto 0);
       dataFrameTxLast : in  sl := '0';  -- Signal end of frame
       dataFrameRxDone : out sl := '0';  -- Asserted on end of frame (due to dataFrameTxLast or buffer full)
+      dataRdTrig      : in  sl;  -- Readout trigger synchronous to dataClk
       -- AXI-Lite interface (axilClk domain)
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -84,8 +85,8 @@ entity AxiStreamFrameBuffer is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType;
+      axilRdTrig      : in  sl;  -- Readout trigger synchronous to axilClk
       -- AXI-Stream Interface (axisClk domain)
-      getFrameTrig    : in  sl;
       axisClk         : in  sl;
       axisRst         : in  sl;
       axisMaster      : out AxiStreamMasterType;
@@ -116,6 +117,10 @@ architecture rtl of AxiStreamFrameBuffer is
    signal ramRdDataArr : ramRdArray(2 downto 0);
    signal ramRdData    : slv(8*DATA_BYTES_G-1 downto 0);
 
+   type DataTrigStateType is (
+      IDLE_S,
+      WAIT_S);
+
    type DataRegType is record
       ramWrEn         : sl;
       ramWrEnMask     : slv(2 downto 0);
@@ -129,6 +134,7 @@ architecture rtl of AxiStreamFrameBuffer is
       ramWrData       : slv(8*DATA_BYTES_G-1 downto 0);
       dataFrameTxLast : sl;
       dataFrameRxDone : sl;
+      dataTrigState   : DataTrigStateType;
    end record;
 
    constant DATA_REG_INIT_C : DataRegType := (
@@ -143,7 +149,8 @@ architecture rtl of AxiStreamFrameBuffer is
       rdFinalAddrNext => (others => '0'),
       ramWrData       => (others => '0'),
       dataFrameTxLast => '0',
-      dataFrameRxDone => '0');
+      dataFrameRxDone => '0',
+      dataTrigState   => IDLE_S);
 
    signal dataR   : DataRegType := DATA_REG_INIT_C;
    signal dataRin : DataRegType;
@@ -153,7 +160,7 @@ architecture rtl of AxiStreamFrameBuffer is
    --------------------------------
    type AxisStateType is (
       IDLE_S,
-      WAIT_RD_SETUP_S,
+      DONE_S,
       MOVE_S);
 
    type AxilRegType is record
@@ -161,12 +168,13 @@ architecture rtl of AxiStreamFrameBuffer is
       rdReq          : sl;
       rdFinalAddr    : slv(RAM_ADDR_WIDTH_G-1 downto 0);
       ramRdAddr      : slv(RAM_ADDR_WIDTH_G-1 downto 0);
+      rdMoveDone     : sl;
       rdEn           : slv(2 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       txMaster       : AxiStreamMasterType;
       axisState      : AxisStateType;
-      dataStateIdx   : slv(1 downto 0);
+      axisStateIdx   : slv(1 downto 0);
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -174,12 +182,13 @@ architecture rtl of AxiStreamFrameBuffer is
       rdReq          => '0',
       rdFinalAddr    => (others => '0'),
       ramRdAddr      => (others => '0'),
+      rdMoveDone     => '0',
       rdEn           => "000",
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       txMaster       => axiStreamMasterInit(AXIS_CONFIG_C),
       axisState      => IDLE_S,
-      dataStateIdx   => (others => '0'));
+      axisStateIdx   => (others => '0'));
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
@@ -189,9 +198,14 @@ architecture rtl of AxiStreamFrameBuffer is
 
    signal rdFinalAddrSync : slv(RAM_ADDR_WIDTH_G-1 downto 0);
    signal rdSetupDoneSync : sl;
+   signal rdMoveDoneSync  : sl;
 
-   signal getFrameTrigSync : sl;
-   signal rdReqSync        : sl;
+   signal dataToAxilSyncIn  : slv(RAM_ADDR_WIDTH_G downto 0);
+   signal dataToAxilSyncOut : slv(RAM_ADDR_WIDTH_G downto 0);
+   signal axilToDataSyncIn  : slv(1 downto 0);
+   signal axilToDataSyncOut : slv(1 downto 0);
+
+   signal rdReqSync : sl;
 
    signal txSlave : AxiStreamSlaveType;
 
@@ -298,7 +312,7 @@ begin
    -----------------------------
 
    dataComb : process (dataR, dataRst, axilRstSync, dataValid, dataValue, dataFrameTxLast,
-                       rdReqSync) is
+                       rdReqSync, dataRdTrig, rdMoveDoneSync) is
       variable v : DataRegType;
    begin
       -- Latch the current value
@@ -306,7 +320,6 @@ begin
 
       -- Reset strobes
       v.ramWrEn         := '0';
-      v.rdSetupDone     := '0';
       v.dataFrameRxDone := '0';
 
       -- Register data value to help with making timing
@@ -357,21 +370,33 @@ begin
 
       end if;
 
-      -- If readout requested, set read mask to the next read mask
-      if (rdReqSync = '1') then
-         -- Masks only used/updated in safe buffers mode
-         if SAFE_BUFFS_G then
-            -- Actually apply the next read mask. Do this from v, not r,
-            -- as read can start as early as the next next cycle where
-            -- a different write mask may be used.
-            v.ramRdEnMask := v.ramRdEnMaskNext;
-         end if;
-         -- Drive the read final address signal
-         v.rdFinalAddr := dataR.rdFinalAddrNext;
-         -- Signal to the axi-stream process that it can start reading by
-         -- strobing rdSetupDone (must be synchronized to other clock domain).
-         v.rdSetupDone := '1';
-      end if;
+      case dataR.dataTrigState is
+         when IDLE_S =>
+            -- If readout requested, set read mask to the next read mask
+            if (rdReqSync = '1') or (dataRdTrig = '1') then
+               -- Masks only used/updated in safe buffers mode
+               if SAFE_BUFFS_G then
+                  -- Actually apply the next read mask. Do this from v, not r,
+                  -- as read can start as early as the next next cycle where
+                  -- a different write mask may be used.
+                  v.ramRdEnMask := v.ramRdEnMaskNext;
+               end if;
+               -- Drive the read final address signal
+               v.rdFinalAddr := dataR.rdFinalAddrNext;
+
+               -- Assert setup done signal
+               v.rdSetupDone   := '1';
+               -- Wait until axil process done moving data
+               v.dataTrigState := WAIT_S;
+            end if;
+         when WAIT_S =>
+            -- Wait until the axil process completes readout
+            if (rdMoveDoneSync = '1') then
+               v.rdSetupDone   := '0';
+               v.dataTrigState := IDLE_S;
+            end if;
+      end case;
+
 
       -- Outputs
       dataFrameRxDone <= dataR.dataFrameRxDone;
@@ -407,67 +432,51 @@ begin
    -- Synchronization of signals between data/AXI-lite processes
    -------------------------------------------------------------
 
-   -- Synchronize final read address
-   U_SyncVec_axilClk_rdFinalAddr : entity surf.SynchronizerVector
+   -- Synchronize from data to axil process
+   U_SyncVec_dataToAxil : entity surf.SynchronizerVector
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         WIDTH_G        => RAM_ADDR_WIDTH_G)
+         WIDTH_G        => RAM_ADDR_WIDTH_G + 1)
       port map (
          clk     => axilClk,
-         dataIn  => dataR.rdFinalAddr,
-         dataOut => rdFinalAddrSync);
+         dataIn  => dataToAxilSyncIn,
+         dataOut => dataToAxilSyncOut);
 
-   -- Synchronize read setup done strobe
-   U_Sync_axilClk_rdSetupDone : entity surf.SynchronizerOneShot
-      generic map(
+   dataToAxilSyncIn(RAM_ADDR_WIDTH_G-1 downto 0) <= dataR.rdFinalAddr;
+   dataToAxilSyncIn(RAM_ADDR_WIDTH_G)            <= dataR.rdSetupDone;
+   rdFinalAddrSync                               <= dataToAxilSyncOut(RAM_ADDR_WIDTH_G-1 downto 0);
+   rdSetupDoneSync                               <= dataToAxilSyncOut(RAM_ADDR_WIDTH_G);
+
+   -- Synchronize from axil to data process
+   U_SyncVec_axilToData : entity surf.SynchronizerVector
+      generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G
-         )
-      port map(
+         RST_ASYNC_G    => RST_ASYNC_G,
+         WIDTH_G        => 2)
+      port map (
          clk     => axilClk,
-         dataIn  => dataR.rdSetupDone,
-         dataOut => rdSetupDoneSync);
+         dataIn  => axilToDataSyncIn,
+         dataOut => axilToDataSyncOut);
 
-   -- Synchronize read request strobe
-   U_Sync_axilClk_rdReq : entity surf.SynchronizerOneShot
-      generic map(
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G
-         )
-      port map(
-         clk     => dataClk,
-         dataIn  => axilR.rdReq,
-         dataOut => rdReqSync);
-
-   U_Sync_axilClk_getFrameTrig : entity work.SynchronizerOneShot
-      generic map(
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G
-         )
-      port map(
-         clk     => axilClk,
-         dataIn  => getFrameTrig,
-         dataOut => getFrameTrigSync);
+   axilToDataSyncIn(0) <= axilR.rdReq;
+   axilToDataSyncIn(1) <= axilR.rdMoveDone;
+   rdReqSync           <= axilToDataSyncOut(0);
+   rdMoveDoneSync      <= axilToDataSyncOut(1);
 
    -------------------------------
    -- Main AXI-Lite/Stream process
    -------------------------------
 
    axiComb : process (axilR, axilReadMaster, axilRst, dataRstSync, axilWriteMaster,
-                      getFrameTrigSync, ramRdData, rdFinalAddrSync, rdSetupDoneSync, txSlave) is
+                      ramRdData, rdFinalAddrSync, rdSetupDoneSync, txSlave, axilRdTrig) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
       -- Latch the current value
       v := axilR;
-
-      -- Reset strobes
-      v.rdReq := '0';
 
       ------------------------
       -- AXI-Lite Transactions
@@ -482,7 +491,7 @@ begin
       -- a burst of n triggers?
       axiSlaveRegisterR(axilEp, x"0", 0, axilR.rdFinalAddr);
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"0", 30, axilR.dataStateIdx);
+      axiSlaveRegisterR(axilEp, x"0", 30, axilR.axisStateIdx);
       axiSlaveRegister(axilEp, x"4", 0, v.softTrig);
 
       -- Close the transaction
@@ -506,18 +515,15 @@ begin
       case axilR.axisState is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            v.dataStateIdx := "00";
+            v.axisStateIdx := "00";
 
-            -- Check for trigger event
-            if (getFrameTrigSync = '1') or (v.softTrig = '1') then
-               -- Issue a read request (strobe)
-               v.rdReq     := '1';
-               -- Proceed to wait for data process to prepare readout
-               v.axisState := WAIT_RD_SETUP_S;
+            -- Check for trigger signals synchronous to axil clock
+            if (v.softTrig = '1') or (axilRdTrig = '1') then
+               -- Issue a read request, keep asserted until data process
+               -- signals ready to make sure the data process caches it.
+               v.rdReq := '1';
             end if;
-         ----------------------------------------------------------------------
-         when WAIT_RD_SETUP_S =>
-            v.dataStateIdx := "01";
+
             if (rdSetupDoneSync = '1') then
                -- Latch read final address
                v.rdFinalAddr := rdFinalAddrSync;
@@ -525,12 +531,27 @@ begin
                v.ramRdAddr   := (others => '0');
                -- Queue up the first read by writing to shift register
                v.rdEn(0)     := '1';
+
+               -- Reset read request signal in case it was set
+               v.rdReq     := '0';
                -- Start moving data
-               v.axisState   := MOVE_S;
+               v.axisState := MOVE_S;
+            end if;
+         ----------------------------------------------------------------------
+         when DONE_S =>
+            v.axisStateIdx := "01";
+            -- Signal done
+            v.rdMoveDone   := '1';
+            -- Wait until lowered, signaling that data process received move done
+            -- and is ready for next trigger
+            if (rdSetupDoneSync = '0') then
+               -- Lower done signal and return to idle
+               v.rdMoveDone := '0';
+               v.axisState  := IDLE_S;
             end if;
          ----------------------------------------------------------------------
          when MOVE_S =>
-            v.dataStateIdx := "10";
+            v.axisStateIdx := "10";
 
             -- Check if ready to move data
             -- TODO: Why don't we do axilR.rdEn(2) = '1', i.e. pipeline the read?
@@ -556,8 +577,8 @@ begin
                   -- Set the EOF bit
                   v.txMaster.tLast := '1';
 
-                  -- Transmission completed, move back to idle
-                  v.axisState := IDLE_S;
+                  -- Transmission completed, move signal move done to data proc
+                  v.axisState := DONE_S;
 
                else
                   -- Increment the read address

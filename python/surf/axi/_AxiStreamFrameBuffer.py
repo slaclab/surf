@@ -40,8 +40,8 @@ class AxiStreamFrameBuffer(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DataState',
-            description  = 'Current state of the data receive FSM',
+            name         = 'AxisState',
+            description  = 'Current state of the AXI-Stream readout FSM',
             offset       = 0x0,
             bitSize      = 2,
             bitOffset    = 30,
@@ -50,7 +50,7 @@ class AxiStreamFrameBuffer(pr.Device):
             hidden       = True,
             enum         = {
                 0: 'IDLE_S',
-                1: 'WAIT_RD_SETUP_S',
+                1: 'DONE_S',
                 2: 'MOVE_S',
             },
         ))

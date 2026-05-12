@@ -33,19 +33,21 @@ architecture testbed of AxiStreamFrameBufferTb is
     constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(dataBytes => 2);
 
     type RegType is record
-        data         : slv(15 downto 0);
-        dataValid    : sl;
-        frameDone    : sl;
-        cnt          : slv(11 downto 0);
-        getFrameTrig : sl;
+        data       : slv(15 downto 0);
+        dataValid  : sl;
+        frameDone  : sl;
+        cnt        : slv(11 downto 0);
+        dataRdTrig : sl;
+        axilRdTrig : sl;
     end record;
 
     constant REG_INIT_C : RegType := (
-        data         => (others => '0'),
-        dataValid    => '0',
-        frameDone    => '0',
-        cnt          => (others => '0'),
-        getFrameTrig => '0');
+        data       => (others => '0'),
+        dataValid  => '0',
+        frameDone  => '0',
+        cnt        => (others => '0'),
+        dataRdTrig => '0',
+        axilRdTrig => '0');
 
     signal r   : RegType := REG_INIT_C;
     signal rin : RegType;
@@ -81,7 +83,7 @@ begin
 
     U_AxiClkRst : entity surf.ClkRst
         generic map (
-            CLK_PERIOD_G      => CLK_PERIOD_C/3.1415, -- Make clocks more or less async
+            CLK_PERIOD_G      => CLK_PERIOD_C/3.1415,  -- Make clocks more or less async
             RST_START_DELAY_G => 0 ns,  -- Wait this long into simulation before asserting reset
             RST_HOLD_TIME_G   => 1000 ns)  -- Hold reset for this long
         port map (
@@ -111,6 +113,7 @@ begin
             dataValue       => r.data,
             dataValid       => r.dataValid,
             dataFrameTxLast => r.frameDone,
+            dataRdTrig      => r.dataRdTrig,
             -- AXI-Lite interface (axilClk domain)
             axilClk         => axiClk,
             axilRst         => dataRst,
@@ -118,8 +121,8 @@ begin
             axilReadSlave   => axilReadSlave,
             axilWriteMaster => axilWriteMaster,
             axilWriteSlave  => axilWriteSlave,
+            axilRdTrig      => r.axilRdTrig,
             -- AXI-Stream Interface (axilClk domain)
-            getFrameTrig    => r.getFrameTrig,
             axisClk         => axiClk,
             axisRst         => dataRst,
             axisMaster      => axisMaster,
@@ -132,8 +135,9 @@ begin
         v := r;
 
         -- Reset the strobes
-        v.frameDone    := '0';
-        v.getFrameTrig := '0';
+        v.frameDone  := '0';
+        v.dataRdTrig := '0';
+        v.axilRdTrig := '0';
 
         -- Check if increment the counter
         if (r.cnt /= x"FFF") then
@@ -162,7 +166,14 @@ begin
             -- Check for the readout trigger event
             if (r.cnt = 1023) then
                 -- Set the flag
-                v.getFrameTrig := '1';
+                v.dataRdTrig := '1';
+            end if;
+
+            -- Test trigger signal synchronous to axilClk.
+            -- Stretch to make sure it registers.
+            if (r.cnt > 1500) and (r.cnt < (1500 + 32)) then
+                -- Set the flag
+                v.axilRdTrig := '1';
             end if;
 
         end if;
@@ -170,9 +181,9 @@ begin
         -- Start hammering the trigger line to see if the module reacts
         -- correctly and starts next readout immediately after last one
         -- completed.
-        if (r.cnt > 1024 + 512) then
+        if (r.cnt > 2048 + 512) then
             -- Set the flag
-            v.getFrameTrig := '1';
+            v.dataRdTrig := '1';
         end if;
 
         -- Synchronous Reset
