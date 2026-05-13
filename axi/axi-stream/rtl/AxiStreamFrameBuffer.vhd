@@ -15,6 +15,21 @@
 -- Notes ----------------------------------------------------------------------
 -- Some TODOs remain and are indicated by comments in the code.
 --
+-- -- Detailed description
+-- This module in some sense complements the `AxiStreamRingBuffer` but for a
+-- scenario where a read should always start at the same address. The input
+-- interface is a general serial interface with clock/data/valid signals, but no
+-- capabilities for backpressure. Data from this interface is received until
+-- either the buffer is full or a frame done signal is received. The next frame
+-- receive can start immediately after the previous one was completed.
+-- When `SAFE_BUFFS_G` is `true`, internally three buffers are cycled to ensure
+-- that write and read are possible at all times in general asynchronously. The
+-- most recent completely received frame at the time of receiving the readout
+-- request is made available for readout. When `SAFE_BUFFS_G` is `false`, only one
+-- buffer is used internally and a ongoing write may corrupt the currently read
+-- out frame. However, only a third of the memory required for the safe mode will
+-- be used.
+--
 -- -- Safe buffering --
 -- Asynchronous write/read with only two buffers and without the ability to
 -- backpressure the input data interface did not appear to be possible (in some
@@ -31,12 +46,15 @@
 -- A frame ends when dataFrameTxLast is asserted (last transmission of the
 -- frame) or the buffer is full. One cycle after this happens the
 -- dataFrameRxDone signal is asserted, signaling that a new frame has been
--- received and is ready for readout. A readout request (getFrameTrig)
+-- received and is ready for readout. A readout request (dataRdTrig or axilRdTrig)
 -- to read out this frame over AXI-Stream can be issued during this cycle
--- or later to get the latest frame. In the safe buffer mode, the always the
+-- or later to get the latest frame. In the safe buffer mode, always the
 -- latest completely received frame is provided.
--- The user may exteranlly connect dataFrameRxDone (out) to getFrameTrig (in)
+-- The user may externally connect dataFrameRxDone (out) to dataRdTrig (in)
 -- to trigger a frame dump over AXI-Stream as soon as a new frame is available.
+-- Two readout triggers are available as to ensure reliable triggering
+-- the trigger signal should be synchronous to some clock, here the axilClk
+-- or dataClk.
 -------------------------------------------------------------------------------
 
 library ieee;
