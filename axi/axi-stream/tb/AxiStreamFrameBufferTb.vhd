@@ -98,7 +98,7 @@ begin
     U_DUT : entity surf.AxiStreamFrameBuffer
         generic map (
             TPD_G               => TPD_C,
-            COMMON_CLK_G        => true,  -- true if dataClk=axilClk
+            COMMON_CLK_G        => false,  -- true if dataClk=axilClk
             DATA_BYTES_G        => 2,     -- 16-bit data
             -- RAM_ADDR_WIDTH_G    => 11,    -- 2048 samples deep
             RAM_ADDR_WIDTH_G    => 10,    -- 1024 samples deep
@@ -116,7 +116,7 @@ begin
             dataRdTrig      => r.dataRdTrig,
             -- AXI-Lite interface (axilClk domain)
             axilClk         => axiClk,
-            axilRst         => dataRst,
+            axilRst         => axiRst,
             axilReadMaster  => axilReadMaster,
             axilReadSlave   => axilReadSlave,
             axilWriteMaster => axilWriteMaster,
