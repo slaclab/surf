@@ -586,6 +586,11 @@ begin
                end if;
 
                -- Check for End of Frame (EOF), i.e. the last address.
+               -- TODO: Could use a word count rather than final address to
+               -- detect and treat the case of zero words received. This
+               -- however would require an extra bit somewhere as the
+               -- count slv would overflow with only RAM_ADDR_WIDTH_G bits
+               -- in the case of a full buffer.
                if (axilR.ramRdAddr = axilR.rdFinalAddr) then
 
                   -- Set the EOF bit
