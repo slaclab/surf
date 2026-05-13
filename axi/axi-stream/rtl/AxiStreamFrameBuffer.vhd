@@ -485,10 +485,6 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- TODO: I thought softTrig is a trigger from software but it does not seem
-      -- to be for the ring buffer??? Maybe this is a relict from an older version
-      -- where the soft trigger could only do one at a time and now one can request
-      -- a burst of n triggers?
       axiSlaveRegisterR(axilEp, x"0", 0, axilR.rdFinalAddr);
       axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
       axiSlaveRegisterR(axilEp, x"0", 30, axilR.axisStateIdx);
