@@ -13,8 +13,6 @@
 -------------------------------------------------------------------------------
 
 -- Notes ----------------------------------------------------------------------
--- Some TODOs remain and are indicated by comments in the code.
---
 -- -- Detailed description
 -- This module in some sense complements the `AxiStreamRingBuffer` but for a
 -- scenario where a read should always start at the same address. The input
@@ -75,7 +73,6 @@ entity AxiStreamFrameBuffer is
       RST_ASYNC_G         : boolean  := false;
       SYNTH_MODE_G        : string   := "inferred";
       MEMORY_TYPE_G       : string   := "block";
-      -- TODO: Better name for that?
       SAFE_BUFFS_G        : boolean  := true;  -- If 'false' write/read target the same buffer
       COMMON_CLK_G        : boolean  := false;  -- true if dataClk=axilClk
       DATA_BYTES_G        : positive := 16;
@@ -568,9 +565,6 @@ begin
             v.axisStateIdx := "10";
 
             -- Check if ready to move data
-            -- TODO: Why don't we do axilR.rdEn(2) = '1', i.e. pipeline the read?
-            -- Checking for all zeros should mean we just wait for three cycles
-            -- before read for every read...
             if (v.txMaster.tValid = '0') and (axilR.rdEn = 0) then
 
                -- Send the data
@@ -586,11 +580,6 @@ begin
                end if;
 
                -- Check for End of Frame (EOF), i.e. the last address.
-               -- TODO: Could use a word count rather than final address to
-               -- detect and treat the case of zero words received. This
-               -- however would require an extra bit somewhere as the
-               -- count slv would overflow with only RAM_ADDR_WIDTH_G bits
-               -- in the case of a full buffer.
                if (axilR.ramRdAddr = axilR.rdFinalAddr) then
 
                   -- Set the EOF bit
@@ -611,8 +600,6 @@ begin
       -- Check for external data reset
       if (dataRstSync = '1') then
          -- Return to idle
-         -- TODO: Is it a problem if we never close out the axis transmission,
-         -- i.e. never assert tLast?
          v.axisState := IDLE_S;
       end if;
 
