@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="1479,145,1560,170"/>
 <area shape="rect" id="Node000028" href="$classSrpV3AxiLiteFull.html" title=" " alt="" coords="1612,96,1740,121"/>
 <area shape="poly" id="edge49_Node000001_Node000028" title=" " alt="" coords="1572,138,1634,119,1635,124,1574,143"/>
-<area shape="rect" id="Node000029" href="$classSrpV3AxiTb.html" title=" " alt="" coords="1627,145,1725,170"/>
-<area shape="poly" id="edge50_Node000001_Node000029" title=" " alt="" coords="1574,155,1627,155,1627,160,1574,160"/>
-<area shape="rect" id="Node000030" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="1608,194,1744,220"/>
-<area shape="poly" id="edge51_Node000001_Node000030" title=" " alt="" coords="1574,172,1635,192,1634,197,1572,177"/>
+<area shape="rect" id="Node000030" href="$classSrpV3AxiTb.html" title=" " alt="" coords="1627,145,1725,170"/>
+<area shape="poly" id="edge51_Node000001_Node000030" title=" " alt="" coords="1574,155,1627,155,1627,160,1574,160"/>
+<area shape="rect" id="Node000031" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="1608,194,1744,220"/>
+<area shape="poly" id="edge52_Node000001_Node000031" title=" " alt="" coords="1574,172,1635,192,1634,197,1572,177"/>
 <area shape="rect" id="Node000002" href="$classSrpV3Core.html" title=" " alt="" coords="1340,145,1431,170"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1444,155,1479,155,1479,160,1444,160"/>
 <area shape="rect" id="Node000003" href="$classSsiFifo.html" title=" " alt="" coords="1181,120,1247,145"/>
@@ -80,4 +80,6 @@
 <area shape="poly" id="edge42_Node000025_Node000026" title=" " alt="" coords="711,167,1088,232,1149,244,1148,249,1088,238,710,172"/>
 <area shape="poly" id="edge48_Node000027_Node000026" title=" " alt="" coords="673,136,803,67,805,71,676,141"/>
 <area shape="poly" id="edge46_Node000001_Node000027" title=" " alt="" coords="921,50,1002,51,1088,56,1186,70,1261,86,1431,131,1479,144,1478,149,1430,136,1260,92,1185,76,1088,62,1002,56,921,56"/>
+<area shape="rect" id="Node000029" href="$classSrpV3AxiLiteFullWrapper.html" title=" " alt="" coords="1792,96,1975,121"/>
+<area shape="poly" id="edge50_Node000028_Node000029" title=" " alt="" coords="1754,106,1792,106,1792,111,1754,111"/>
 </map>

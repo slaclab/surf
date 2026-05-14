@@ -1,7 +1,9 @@
 <map id="EthMacRxShift" name="EthMacRxShift">
-<area shape="rect" id="Node000001" title=" " alt="" coords="19,152,135,177"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamShift.html" title=" " alt="" coords="17,79,136,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,118,79,152,74,152,74,118"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,44,79,79,74,79,74,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,152,149,177"/>
+<area shape="rect" id="Node000004" href="$classEthMacRxShiftWrapper.html" title=" " alt="" coords="5,225,176,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="93,191,93,225,88,225,88,191"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamShift.html" title=" " alt="" coords="31,79,150,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,118,93,152,88,152,88,118"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="19,5,162,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,44,93,79,88,79,88,44"/>
 </map>

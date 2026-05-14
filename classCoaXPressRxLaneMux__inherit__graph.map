@@ -1,13 +1,23 @@
 <map id="CoaXPressRxLaneMux" name="CoaXPressRxLaneMux">
-<area shape="rect" id="Node000001" title=" " alt="" coords="127,79,293,104"/>
-<area shape="rect" id="Node000003" href="$classCoaXPressRx.html" title=" " alt="" coords="156,152,264,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,118,213,152,207,152,207,118"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="139,5,281,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,44,213,79,207,79,207,44"/>
-<area shape="rect" id="Node000004" href="$classCoaXPressCore.html" title=" " alt="" coords="149,225,271,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="213,191,213,225,207,225,207,191"/>
-<area shape="rect" id="Node000005" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,299,199,324"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="183,260,121,301,118,296,180,256"/>
-<area shape="rect" id="Node000006" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,299,416,324"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="240,256,303,296,300,301,238,260"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="196,155,363,180"/>
+<area shape="rect" id="Node000003" href="$classCoaXPressRx.html" title=" " alt="" coords="468,129,576,155"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="376,155,468,145,468,150,377,160"/>
+<area shape="rect" id="Node000011" href="$classCoaXPressRxLaneMuxWrapper.html" title=" " alt="" coords="411,179,633,204"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="377,174,411,178,410,183,376,180"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,155,148,180"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,165,196,165,196,170,162,170"/>
+<area shape="rect" id="Node000004" href="$classCoaXPressCore.html" title=" " alt="" coords="731,55,853,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="572,122,681,89,730,77,731,82,682,94,573,127"/>
+<area shape="rect" id="Node000008" href="$classCoaXPressCoreDebugWrapper.html" title=" " alt="" coords="683,104,901,129"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="590,133,682,124,682,130,590,138"/>
+<area shape="rect" id="Node000009" href="$classCoaXPressRxCorePathWrapper.html" title=" " alt="" coords="681,153,903,179"/>
+<area shape="poly" id="edge8_Node000003_Node000009" title=" " alt="" coords="590,145,681,154,681,159,589,151"/>
+<area shape="rect" id="Node000010" href="$classCoaXPressRxWrapper.html" title=" " alt="" coords="711,203,873,228"/>
+<area shape="poly" id="edge9_Node000003_Node000010" title=" " alt="" coords="590,152,634,165,659,177,682,189,721,200,720,205,680,194,656,182,632,170,589,157"/>
+<area shape="rect" id="Node000005" href="$classCoaXPressCoreWrapper.html" title=" " alt="" coords="959,5,1135,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="866,50,980,28,981,33,867,56"/>
+<area shape="rect" id="Node000006" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="951,55,1144,80"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="867,65,951,65,951,70,867,70"/>
+<area shape="rect" id="Node000007" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="951,104,1144,129"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="867,79,981,101,980,107,866,84"/>
 </map>

@@ -1,0 +1,7 @@
+<map id="CoaXPressRxLaneMuxWrapper" name="CoaXPressRxLaneMuxWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,152,228,177"/>
+<area shape="rect" id="Node000002" href="$classCoaXPressRxLaneMux.html" title=" " alt="" coords="33,79,200,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,118,119,152,114,152,114,118"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="45,5,188,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="119,44,119,79,114,79,114,44"/>
+</map>

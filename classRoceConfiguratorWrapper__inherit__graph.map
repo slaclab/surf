@@ -1,0 +1,11 @@
+<map id="RoceConfiguratorWrapper" name="RoceConfiguratorWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="91,225,280,251"/>
+<area shape="rect" id="Node000002" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="5,152,184,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,184,172,223,169,227,119,188"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="57,79,132,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,118,97,152,92,152,92,118"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="41,5,148,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,44,97,79,92,79,92,44"/>
+<area shape="rect" id="Node000005" href="$classRoceConfigurator.html" title=" " alt="" coords="209,152,343,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="252,188,202,227,199,223,249,184"/>
+</map>

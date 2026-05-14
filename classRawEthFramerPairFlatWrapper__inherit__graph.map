@@ -1,0 +1,11 @@
+<map id="RawEthFramerPairFlatWrapper" name="RawEthFramerPairFlatWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="40,225,261,251"/>
+<area shape="rect" id="Node000002" href="$classRawEthFramer.html" title=" " alt="" coords="92,152,209,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,191,153,225,148,225,148,191"/>
+<area shape="rect" id="Node000003" href="$classRawEthFramerTx.html" title=" " alt="" coords="5,79,139,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,111,140,150,136,154,93,115"/>
+<area shape="rect" id="Node000004" href="$classLutRam.html" title=" " alt="" coords="36,5,108,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="75,44,75,79,69,79,69,44"/>
+<area shape="rect" id="Node000005" href="$classRawEthFramerRx.html" title=" " alt="" coords="163,79,298,104"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="210,115,166,154,162,150,206,111"/>
+</map>

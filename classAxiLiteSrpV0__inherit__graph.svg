@@ -67,8 +67,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000019" class="node">
 <title>Node19</title>
 <g id="a_Node000019"><a xlink:href="classAxiLiteSrpV0Tb.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="252.5,-19 161.5,-19 161.5,0 252.5,0 252.5,-19"/>
-<text text-anchor="middle" x="207" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteSrpV0Tb</text>
+<polygon fill="white" stroke="#bfbfbf" points="128.5,-19 37.5,-19 37.5,0 128.5,0 128.5,-19"/>
+<text text-anchor="middle" x="83" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteSrpV0Tb</text>
 </a>
 </g>
 </g>
@@ -76,8 +76,44 @@ var sectionId = 'dynsection-0';
 <g id="edge30_Node000001_Node000019" class="edge">
 <title>Node1&#45;&gt;Node19</title>
 <g id="a_edge30_Node000001_Node000019"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M177.82,-51.03C154.89,-41.23 123.55,-27.83 103.29,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="176.51,-54.27 187.08,-54.98 179.26,-47.84 176.51,-54.27"/>
+</a>
+</g>
+</g>
+<!-- Node20 -->
+<g id="Node000020" class="node">
+<title>Node20</title>
+<g id="a_Node000020"><a xlink:href="classAxiLiteSrpV0Wrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="267,-19 147,-19 147,0 267,0 267,-19"/>
+<text text-anchor="middle" x="207" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteSrpV0Wrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node20 -->
+<g id="edge31_Node000001_Node000020" class="edge">
+<title>Node1&#45;&gt;Node20</title>
+<g id="a_edge31_Node000001_Node000020"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M207,-44.66C207,-35.93 207,-25.99 207,-19.09"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="203.5,-44.75 207,-54.75 210.5,-44.75 203.5,-44.75"/>
+</a>
+</g>
+</g>
+<!-- Node21 -->
+<g id="Node000021" class="node">
+<title>Node21</title>
+<g id="a_Node000021"><a xlink:href="classSrpV0LoopbackWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="418.5,-19 285.5,-19 285.5,0 418.5,0 418.5,-19"/>
+<text text-anchor="middle" x="352" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SrpV0LoopbackWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node21 -->
+<g id="edge32_Node000001_Node000021" class="edge">
+<title>Node1&#45;&gt;Node21</title>
+<g id="a_edge32_Node000001_Node000021"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M239.69,-51.55C266.62,-41.71 304.16,-27.98 328.28,-19.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="238.49,-48.26 230.3,-54.98 240.89,-54.84 238.49,-48.26"/>
 </a>
 </g>
 </g>

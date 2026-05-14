@@ -1,7 +1,11 @@
 <map id="AxiLiteSrpV0" name="AxiLiteSrpV0">
 <area shape="rect" id="Node000001" title=" " alt="" coords="229,445,334,471"/>
-<area shape="rect" id="Node000019" href="$classAxiLiteSrpV0Tb.html" title=" " alt="" coords="221,519,342,544"/>
-<area shape="poly" id="edge30_Node000001_Node000019" title=" " alt="" coords="284,484,284,519,279,519,279,484"/>
+<area shape="rect" id="Node000019" href="$classAxiLiteSrpV0Tb.html" title=" " alt="" coords="55,519,177,544"/>
+<area shape="poly" id="edge30_Node000001_Node000019" title=" " alt="" coords="243,478,144,521,142,516,241,474"/>
+<area shape="rect" id="Node000020" href="$classAxiLiteSrpV0Wrapper.html" title=" " alt="" coords="201,519,361,544"/>
+<area shape="poly" id="edge31_Node000001_Node000020" title=" " alt="" coords="284,484,284,519,279,519,279,484"/>
+<area shape="rect" id="Node000021" href="$classSrpV0LoopbackWrapper.html" title=" " alt="" coords="386,519,563,544"/>
+<area shape="poly" id="edge32_Node000001_Node000021" title=" " alt="" coords="326,473,444,516,442,521,324,478"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="216,372,347,397"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,411,284,445,279,445,279,411"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="47,299,193,324"/>

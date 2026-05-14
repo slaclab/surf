@@ -1,20 +1,24 @@
 <map id="SynchronizerOneShotVector" name="SynchronizerOneShotVector">
-<area shape="rect" id="Node000001" title=" " alt="" coords="109,225,311,251"/>
-<area shape="rect" id="Node000006" href="$classCoaXPressAxiL.html" title=" " alt="" coords="151,299,269,324"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="213,264,213,299,207,299,207,264"/>
-<area shape="rect" id="Node000002" href="$classSynchronizerOneShot.html" title=" " alt="" coords="129,152,291,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,191,213,225,207,225,207,191"/>
-<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="107,79,182,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="167,113,201,150,197,154,163,116"/>
-<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="157,5,263,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="192,43,157,80,153,77,188,39"/>
-<area shape="rect" id="Node000005" href="$classSynchronizerEdge.html" title=" " alt="" coords="206,79,345,104"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="232,39,267,77,263,80,228,43"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="257,116,223,154,219,150,253,113"/>
-<area shape="rect" id="Node000007" href="$classCoaXPressCore.html" title=" " alt="" coords="149,372,271,397"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="213,338,213,372,207,372,207,338"/>
-<area shape="rect" id="Node000008" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="5,445,199,471"/>
-<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="183,407,121,447,118,443,180,403"/>
-<area shape="rect" id="Node000009" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="223,445,416,471"/>
-<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="240,403,303,443,300,447,238,407"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="299,225,501,251"/>
+<area shape="rect" id="Node000006" href="$classCoaXPressAxiL.html" title=" " alt="" coords="341,299,459,324"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="403,264,403,299,397,299,397,264"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerOneShot.html" title=" " alt="" coords="319,152,481,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="403,191,403,225,397,225,397,191"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="297,79,372,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,113,391,150,387,154,353,116"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="347,5,453,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="382,43,347,80,343,77,378,39"/>
+<area shape="rect" id="Node000005" href="$classSynchronizerEdge.html" title=" " alt="" coords="396,79,535,104"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="422,39,457,77,453,80,418,43"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="447,116,413,154,409,150,443,113"/>
+<area shape="rect" id="Node000007" href="$classCoaXPressCore.html" title=" " alt="" coords="242,372,363,397"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="375,334,320,374,317,370,372,330"/>
+<area shape="rect" id="Node000011" href="$classCoaXPressCoreDebugWrapper.html" title=" " alt="" coords="388,372,607,397"/>
+<area shape="poly" id="edge11_Node000006_Node000011" title=" " alt="" coords="428,330,483,370,480,374,425,334"/>
+<area shape="rect" id="Node000008" href="$classCoaXPressCoreWrapper.html" title=" " alt="" coords="5,445,181,471"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="257,404,128,448,126,443,255,399"/>
+<area shape="rect" id="Node000009" href="$classCoaxpressOverFiberGthUs.html" title=" " alt="" coords="206,445,399,471"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="305,411,305,445,300,445,300,411"/>
+<area shape="rect" id="Node000010" href="$classCoaxpressOverFiberGtyUs.html" title=" " alt="" coords="423,445,617,471"/>
+<area shape="poly" id="edge10_Node000007_Node000010" title=" " alt="" coords="351,399,486,443,484,448,350,404"/>
 </map>
