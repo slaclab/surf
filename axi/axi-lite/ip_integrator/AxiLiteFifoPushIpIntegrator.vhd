@@ -51,7 +51,7 @@ end entity AxiLiteFifoPushIpIntegrator;
 
 architecture rtl of AxiLiteFifoPushIpIntegrator is
 
-   signal axilResetN       : sl := '1';
+   signal axilResetN       : sl                     := '1';
    signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave    : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster  : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;

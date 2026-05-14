@@ -89,8 +89,8 @@ architecture mapping of AxiStreamGearboxIpIntegrator is
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
    signal mAxisMaster : AxiStreamMasterType := axiStreamMasterInit(M_AXI_CONFIG_C);
    signal mAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal axisClk     : sl := '0';
-   signal axisRst     : sl := '0';
+   signal axisClk     : sl                  := '0';
+   signal axisRst     : sl                  := '0';
 
 begin
 

@@ -300,7 +300,6 @@ begin
             if rxMaster.tValid = '1' then
                -- Accept the data
                v.rxSlave.tReady := '1';
-
                -- Increment the header count
                v.hdrCnt := r.hdrCnt + 1;
 
@@ -309,6 +308,7 @@ begin
                if rxMaster.tLast = '1' then
                   -- Set the flags
                   v.frameError := '1';
+                  v.hdrCnt     := (others => '0');
                   -- Next State
                   v.state      := HDR_RESP_S;
                end if;
@@ -504,6 +504,13 @@ begin
                   v.state := FOOTER_S;
                   v.eofe  := '1';       -- Should assign a memResp bit
                end if;
+            end if;
+
+            -- Some downstream implementations can reject a read immediately
+            -- without producing any read-data beats. In that case the request
+            -- still needs to complete through the ack/footer path.
+            if (srpAck.done = '1' and srpRdMasterInt.tValid = '0' and r.txnCnt = 0 and srpAck.respCode /= 0) then
+               v.state := WAIT_ACK_S;
             end if;
 
 

@@ -61,7 +61,7 @@ architecture rtl of AxiStreamFlushIpIntegrator is
       TUSER_BITS_C  => TUSER_WIDTH_G,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisAResetN : sl := '1';
+   signal axisAResetN : sl                  := '1';
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -133,11 +133,11 @@ begin
 
    U_DUT : entity surf.AxiStreamFlush
       generic map (
-         TPD_G         => TPD_G,
+         TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         AXIS_CONFIG_G => AXIS_CONFIG_C,
-         SSI_EN_G      => SSI_EN_G)
+         RST_ASYNC_G    => RST_ASYNC_G,
+         AXIS_CONFIG_G  => AXIS_CONFIG_C,
+         SSI_EN_G       => SSI_EN_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

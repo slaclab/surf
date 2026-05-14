@@ -46,7 +46,7 @@ end entity AxiLiteCrossbarIpIntegrator;
 
 architecture mapping of AxiLiteCrossbarIpIntegrator is
 
-   constant NUM_AXIL_MASTERS_C : positive := 2;
+   constant NUM_AXIL_MASTERS_C : positive                                                        := 2;
    constant AXIL_XBAR_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := genAxiLiteConfig(NUM_AXIL_MASTERS_C, x"0000_0000", 22, 20);
 
    constant NUM_CASCADE_MASTERS_C : positive := 2;
@@ -60,16 +60,16 @@ architecture mapping of AxiLiteCrossbarIpIntegrator is
          addrBits     => 17,
          connectivity => X"0001"));
 
-   signal axilClk : sl;
-   signal axilRst : sl;
-   signal axilReadMaster  : AxiLiteReadMasterType;
-   signal axilReadSlave   : AxiLiteReadSlaveType;
-   signal axilWriteMaster : AxiLiteWriteMasterType;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;
-   signal axilReadMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilReadSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
-   signal axilWriteMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axilWriteSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0) := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
+   signal axilClk             : sl;
+   signal axilRst             : sl;
+   signal axilReadMaster      : AxiLiteReadMasterType;
+   signal axilReadSlave       : AxiLiteReadSlaveType;
+   signal axilWriteMaster     : AxiLiteWriteMasterType;
+   signal axilWriteSlave      : AxiLiteWriteSlaveType;
+   signal axilReadMasters     : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilReadSlaves      : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)     := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
+   signal axilWriteMasters    : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axilWriteSlaves     : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)    := (others => AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C);
    signal cascadeReadMasters  : AxiLiteReadMasterArray(NUM_CASCADE_MASTERS_C-1 downto 0);
    signal cascadeReadSlaves   : AxiLiteReadSlaveArray(NUM_CASCADE_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_DECERR_C);
    signal cascadeWriteMasters : AxiLiteWriteMasterArray(NUM_CASCADE_MASTERS_C-1 downto 0);

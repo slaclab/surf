@@ -80,11 +80,11 @@ architecture rtl of AxiStreamMuxIpIntegrator is
       0 => toSlv(TID_ROUTE_0_G, 8),
       1 => toSlv(TID_ROUTE_1_G, 8));
 
-   signal axisAResetN  : sl := '1';
+   signal axisAResetN  : sl                               := '1';
    signal sAxisMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal sAxisSlaves  : AxiStreamSlaveArray(1 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal mAxisMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlave   : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
+   signal sAxisSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal mAxisMaster  : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave   : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 

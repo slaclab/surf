@@ -96,15 +96,15 @@ end entity AxiToAxiLiteIpIntegrator;
 
 architecture rtl of AxiToAxiLiteIpIntegrator is
 
-   signal axiResetN       : sl := '1';
-   signal axiReadMaster   : AxiReadMasterType       := AXI_READ_MASTER_INIT_C;
-   signal axiReadSlave    : AxiReadSlaveType        := AXI_READ_SLAVE_INIT_C;
-   signal axiWriteMaster  : AxiWriteMasterType      := AXI_WRITE_MASTER_INIT_C;
-   signal axiWriteSlave   : AxiWriteSlaveType       := AXI_WRITE_SLAVE_INIT_C;
-   signal axilReadMaster  : AxiLiteReadMasterType   := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave   : AxiLiteReadSlaveType    := AXI_LITE_READ_SLAVE_INIT_C;
-   signal axilWriteMaster : AxiLiteWriteMasterType  := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType   := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axiResetN       : sl                     := '1';
+   signal axiReadMaster   : AxiReadMasterType      := AXI_READ_MASTER_INIT_C;
+   signal axiReadSlave    : AxiReadSlaveType       := AXI_READ_SLAVE_INIT_C;
+   signal axiWriteMaster  : AxiWriteMasterType     := AXI_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave   : AxiWriteSlaveType      := AXI_WRITE_SLAVE_INIT_C;
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 
@@ -117,54 +117,54 @@ begin
          ADDR_WIDTH    => AXI_ADDR_WIDTH_G,
          DATA_WIDTH    => AXI_DATA_WIDTH_G)
       port map (
-         S_AXI_ACLK      => axiClk,
-         S_AXI_ARESETN   => axiResetN,
-         S_AXI_AWID      => S_AXI_AWID,
-         S_AXI_AWADDR    => S_AXI_AWADDR,
-         S_AXI_AWLEN     => S_AXI_AWLEN,
-         S_AXI_AWSIZE    => S_AXI_AWSIZE,
-         S_AXI_AWBURST   => S_AXI_AWBURST,
-         S_AXI_AWLOCK    => '0' & S_AXI_AWLOCK,
-         S_AXI_AWCACHE   => S_AXI_AWCACHE,
-         S_AXI_AWPROT    => S_AXI_AWPROT,
-         S_AXI_AWREGION  => S_AXI_AWREGION,
-         S_AXI_AWQOS     => S_AXI_AWQOS,
-         S_AXI_AWVALID   => S_AXI_AWVALID,
-         S_AXI_AWREADY   => S_AXI_AWREADY,
-         S_AXI_WID       => S_AXI_WID,
-         S_AXI_WDATA     => S_AXI_WDATA,
-         S_AXI_WSTRB     => S_AXI_WSTRB,
-         S_AXI_WLAST     => S_AXI_WLAST,
-         S_AXI_WVALID    => S_AXI_WVALID,
-         S_AXI_WREADY    => S_AXI_WREADY,
-         S_AXI_BID       => S_AXI_BID,
-         S_AXI_BRESP     => S_AXI_BRESP,
-         S_AXI_BVALID    => S_AXI_BVALID,
-         S_AXI_BREADY    => S_AXI_BREADY,
-         S_AXI_ARID      => S_AXI_ARID,
-         S_AXI_ARADDR    => S_AXI_ARADDR,
-         S_AXI_ARLEN     => S_AXI_ARLEN,
-         S_AXI_ARSIZE    => S_AXI_ARSIZE,
-         S_AXI_ARBURST   => S_AXI_ARBURST,
-         S_AXI_ARLOCK    => '0' & S_AXI_ARLOCK,
-         S_AXI_ARCACHE   => S_AXI_ARCACHE,
-         S_AXI_ARPROT    => S_AXI_ARPROT,
-         S_AXI_ARREGION  => S_AXI_ARREGION,
-         S_AXI_ARQOS     => S_AXI_ARQOS,
-         S_AXI_ARVALID   => S_AXI_ARVALID,
-         S_AXI_ARREADY   => S_AXI_ARREADY,
-         S_AXI_RID       => S_AXI_RID,
-         S_AXI_RDATA     => S_AXI_RDATA,
-         S_AXI_RRESP     => S_AXI_RRESP,
-         S_AXI_RLAST     => S_AXI_RLAST,
-         S_AXI_RVALID    => S_AXI_RVALID,
-         S_AXI_RREADY    => S_AXI_RREADY,
-         axiClk          => open,
-         axiRst          => open,
-         axiReadMaster   => axiReadMaster,
-         axiReadSlave    => axiReadSlave,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave);
+         S_AXI_ACLK     => axiClk,
+         S_AXI_ARESETN  => axiResetN,
+         S_AXI_AWID     => S_AXI_AWID,
+         S_AXI_AWADDR   => S_AXI_AWADDR,
+         S_AXI_AWLEN    => S_AXI_AWLEN,
+         S_AXI_AWSIZE   => S_AXI_AWSIZE,
+         S_AXI_AWBURST  => S_AXI_AWBURST,
+         S_AXI_AWLOCK   => '0' & S_AXI_AWLOCK,
+         S_AXI_AWCACHE  => S_AXI_AWCACHE,
+         S_AXI_AWPROT   => S_AXI_AWPROT,
+         S_AXI_AWREGION => S_AXI_AWREGION,
+         S_AXI_AWQOS    => S_AXI_AWQOS,
+         S_AXI_AWVALID  => S_AXI_AWVALID,
+         S_AXI_AWREADY  => S_AXI_AWREADY,
+         S_AXI_WID      => S_AXI_WID,
+         S_AXI_WDATA    => S_AXI_WDATA,
+         S_AXI_WSTRB    => S_AXI_WSTRB,
+         S_AXI_WLAST    => S_AXI_WLAST,
+         S_AXI_WVALID   => S_AXI_WVALID,
+         S_AXI_WREADY   => S_AXI_WREADY,
+         S_AXI_BID      => S_AXI_BID,
+         S_AXI_BRESP    => S_AXI_BRESP,
+         S_AXI_BVALID   => S_AXI_BVALID,
+         S_AXI_BREADY   => S_AXI_BREADY,
+         S_AXI_ARID     => S_AXI_ARID,
+         S_AXI_ARADDR   => S_AXI_ARADDR,
+         S_AXI_ARLEN    => S_AXI_ARLEN,
+         S_AXI_ARSIZE   => S_AXI_ARSIZE,
+         S_AXI_ARBURST  => S_AXI_ARBURST,
+         S_AXI_ARLOCK   => '0' & S_AXI_ARLOCK,
+         S_AXI_ARCACHE  => S_AXI_ARCACHE,
+         S_AXI_ARPROT   => S_AXI_ARPROT,
+         S_AXI_ARREGION => S_AXI_ARREGION,
+         S_AXI_ARQOS    => S_AXI_ARQOS,
+         S_AXI_ARVALID  => S_AXI_ARVALID,
+         S_AXI_ARREADY  => S_AXI_ARREADY,
+         S_AXI_RID      => S_AXI_RID,
+         S_AXI_RDATA    => S_AXI_RDATA,
+         S_AXI_RRESP    => S_AXI_RRESP,
+         S_AXI_RLAST    => S_AXI_RLAST,
+         S_AXI_RVALID   => S_AXI_RVALID,
+         S_AXI_RREADY   => S_AXI_RREADY,
+         axiClk         => open,
+         axiRst         => open,
+         axiReadMaster  => axiReadMaster,
+         axiReadSlave   => axiReadSlave,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave);
 
    U_M : entity surf.MasterAxiLiteIpIntegrator
       generic map (

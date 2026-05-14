@@ -37,21 +37,21 @@ begin
       generic map (
          TX_LANE_CNT_G => 1)
       port map (
-         pgpTxClk       => clk,
-         pgpTxClkRst    => rst,
-         pgpTxLinkReady => pgpTxLinkReady,
-         pgpTxOpCodeEn  => pgpTxOpCodeEn,
-         pgpTxOpCode    => pgpTxOpCode,
+         pgpTxClk        => clk,
+         pgpTxClkRst     => rst,
+         pgpTxLinkReady  => pgpTxLinkReady,
+         pgpTxOpCodeEn   => pgpTxOpCodeEn,
+         pgpTxOpCode     => pgpTxOpCode,
          pgpLocLinkReady => pgpLocLinkReady,
-         pgpLocData     => pgpLocData,
-         cellTxSOC      => cellTxSOC,
-         cellTxSOF      => cellTxSOF,
-         cellTxEOC      => cellTxEOC,
-         cellTxEOF      => cellTxEOF,
-         cellTxEOFE     => cellTxEOFE,
-         cellTxData     => cellTxData,
-         phyTxData      => phyTxData,
-         phyTxDataK     => phyTxDataK,
-         phyTxReady     => phyTxReady);
+         pgpLocData      => pgpLocData,
+         cellTxSOC       => cellTxSOC,
+         cellTxSOF       => cellTxSOF,
+         cellTxEOC       => cellTxEOC,
+         cellTxEOF       => cellTxEOF,
+         cellTxEOFE      => cellTxEOFE,
+         cellTxData      => cellTxData,
+         phyTxData       => phyTxData,
+         phyTxDataK      => phyTxDataK,
+         phyTxReady      => phyTxReady);
 
 end architecture rtl;

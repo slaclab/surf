@@ -80,20 +80,21 @@ architecture rtl of SsiAxiLiteMasterWrapper is
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTKeep,
+                        sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sAxisTValid;
       v.tData(31 downto 0) := sAxisTData(31 downto 0);
-      v.tKeep(3 downto 0) := sAxisTKeep(3 downto 0);
-      v.tLast := sAxisTLast;
+      v.tKeep(3 downto 0)  := sAxisTKeep(3 downto 0);
+      v.tLast              := sAxisTLast;
       ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster          <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlave.tReady;
+   sAxisTReady       <= sAxisSlave.tReady;
    mAxisSlave.tReady <= mAxisTReady;
 
    mAxisView : process (mAxisMaster) is
@@ -104,48 +105,48 @@ begin
       keepV := (others => '0');
 
       dataV(31 downto 0) := mAxisMaster.tData(31 downto 0);
-      keepV(3 downto 0) := mAxisMaster.tKeep(3 downto 0);
+      keepV(3 downto 0)  := mAxisMaster.tKeep(3 downto 0);
 
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= dataV;
-      mAxisTKeep <= keepV;
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisSof <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
-      mAxisEofe <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
+      mAxisTData  <= dataV;
+      mAxisTKeep  <= keepV;
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
    end process mAxisView;
 
-   M_AXIL_AWADDR <= mAxiLiteWriteMaster.awaddr;
-   M_AXIL_AWPROT <= mAxiLiteWriteMaster.awprot;
+   M_AXIL_AWADDR  <= mAxiLiteWriteMaster.awaddr;
+   M_AXIL_AWPROT  <= mAxiLiteWriteMaster.awprot;
    M_AXIL_AWVALID <= mAxiLiteWriteMaster.awvalid;
-   M_AXIL_WDATA <= mAxiLiteWriteMaster.wdata;
-   M_AXIL_WSTRB <= mAxiLiteWriteMaster.wstrb;
-   M_AXIL_WVALID <= mAxiLiteWriteMaster.wvalid;
-   M_AXIL_BREADY <= mAxiLiteWriteMaster.bready;
-   M_AXIL_ARADDR <= mAxiLiteReadMaster.araddr;
-   M_AXIL_ARPROT <= mAxiLiteReadMaster.arprot;
+   M_AXIL_WDATA   <= mAxiLiteWriteMaster.wdata;
+   M_AXIL_WSTRB   <= mAxiLiteWriteMaster.wstrb;
+   M_AXIL_WVALID  <= mAxiLiteWriteMaster.wvalid;
+   M_AXIL_BREADY  <= mAxiLiteWriteMaster.bready;
+   M_AXIL_ARADDR  <= mAxiLiteReadMaster.araddr;
+   M_AXIL_ARPROT  <= mAxiLiteReadMaster.arprot;
    M_AXIL_ARVALID <= mAxiLiteReadMaster.arvalid;
-   M_AXIL_RREADY <= mAxiLiteReadMaster.rready;
+   M_AXIL_RREADY  <= mAxiLiteReadMaster.rready;
 
    mAxiLiteWriteSlave.awready <= M_AXIL_AWREADY;
-   mAxiLiteWriteSlave.wready <= M_AXIL_WREADY;
-   mAxiLiteWriteSlave.bresp <= M_AXIL_BRESP;
-   mAxiLiteWriteSlave.bvalid <= M_AXIL_BVALID;
-   mAxiLiteReadSlave.arready <= M_AXIL_ARREADY;
-   mAxiLiteReadSlave.rdata <= M_AXIL_RDATA;
-   mAxiLiteReadSlave.rresp <= M_AXIL_RRESP;
-   mAxiLiteReadSlave.rvalid <= M_AXIL_RVALID;
+   mAxiLiteWriteSlave.wready  <= M_AXIL_WREADY;
+   mAxiLiteWriteSlave.bresp   <= M_AXIL_BRESP;
+   mAxiLiteWriteSlave.bvalid  <= M_AXIL_BVALID;
+   mAxiLiteReadSlave.arready  <= M_AXIL_ARREADY;
+   mAxiLiteReadSlave.rdata    <= M_AXIL_RDATA;
+   mAxiLiteReadSlave.rresp    <= M_AXIL_RRESP;
+   mAxiLiteReadSlave.rvalid   <= M_AXIL_RVALID;
 
    U_DUT : entity surf.SsiAxiLiteMaster
       generic map (
-         TPD_G                => 1 ns,
-         RESP_THOLD_G         => 1,
-         SLAVE_READY_EN_G     => true,
-         EN_32BIT_ADDR_G      => false,
-         MEMORY_TYPE_G        => "distributed",
-         GEN_SYNC_FIFO_G      => true,
-         FIFO_ADDR_WIDTH_G    => 4,
-         FIFO_PAUSE_THRESH_G  => 1,
-         AXI_STREAM_CONFIG_G  => AXIS_CONFIG_C)
+         TPD_G               => 1 ns,
+         RESP_THOLD_G        => 1,
+         SLAVE_READY_EN_G    => true,
+         EN_32BIT_ADDR_G     => false,
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => 4,
+         FIFO_PAUSE_THRESH_G => 1,
+         AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
       port map (
          sAxisClk            => axisClk,
          sAxisRst            => axisRst,

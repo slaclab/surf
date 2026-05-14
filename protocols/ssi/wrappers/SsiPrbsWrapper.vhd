@@ -61,17 +61,17 @@ architecture rtl of SsiPrbsWrapper is
       return ret;
    end function;
 
-   constant TPD_C              : time             := 10 ns/12;
-   constant STATUS_CNT_WIDTH_C : natural          := 32;
-   constant TX_PACKET_LENGTH_C : slv(31 downto 0) := toSlv(64, 32);
-   constant MEMORY_TYPE_C       : string  := "block";
-   constant GEN_SYNC_FIFO_C     : boolean := false;
-   constant CASCADE_SIZE_C      : natural := 1;
-   constant FIFO_ADDR_WIDTH_C   : natural := 9;
-   constant FIFO_PAUSE_THRESH_C : natural := 2**8;
-   constant PRBS_SEED_SIZE_C : natural      := PRBS_SEED_SIZE_G;
-   constant PRBS_TAPS_C      : NaturalArray := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
-   constant FORCE_EOFE_C     : sl           := '0';
+   constant TPD_C               : time                := 10 ns/12;
+   constant STATUS_CNT_WIDTH_C  : natural             := 32;
+   constant TX_PACKET_LENGTH_C  : slv(31 downto 0)    := toSlv(64, 32);
+   constant MEMORY_TYPE_C       : string              := "block";
+   constant GEN_SYNC_FIFO_C     : boolean             := false;
+   constant CASCADE_SIZE_C      : natural             := 1;
+   constant FIFO_ADDR_WIDTH_C   : natural             := 9;
+   constant FIFO_PAUSE_THRESH_C : natural             := 2**8;
+   constant PRBS_SEED_SIZE_C    : natural             := PRBS_SEED_SIZE_G;
+   constant PRBS_TAPS_C         : NaturalArray        := (0 => 31, 1 => 6, 2 => 2, 3 => 1);
+   constant FORCE_EOFE_C        : sl                  := '0';
    constant AXI_STREAM_CONFIG_C : AxiStreamConfigType := PrbsAxiStreamConfig(DATA_BYTES_G, TKEEP_COMP_C);
    constant AXI_PIPE_STAGES_C   : natural             := 1;
 

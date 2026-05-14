@@ -24,13 +24,13 @@ entity Pgp4RxProtocolWrapper is
    port (
       clk            : in  sl;
       rst            : in  sl;
-      phyRxActive    : in  sl               := '1';
-      linkErrorIn    : in  sl               := '0';
-      resetRx        : in  sl               := '0';
+      phyRxActive    : in  sl := '1';
+      linkErrorIn    : in  sl := '0';
+      resetRx        : in  sl := '0';
       protRxValid    : in  sl;
       protRxHeader   : in  slv(1 downto 0);
       protRxData     : in  slv(63 downto 0);
-      pktReady       : in  sl               := '1';
+      pktReady       : in  sl := '1';
       linkReady      : out sl;
       linkDown       : out sl;
       linkErrorOut   : out sl;
@@ -49,8 +49,8 @@ end entity Pgp4RxProtocolWrapper;
 
 architecture rtl of Pgp4RxProtocolWrapper is
 
-   signal pgpRxIn       : Pgp4RxInType       := PGP4_RX_IN_INIT_C;
-   signal pgpRxOut      : Pgp4RxOutType      := PGP4_RX_OUT_INIT_C;
+   signal pgpRxIn       : Pgp4RxInType        := PGP4_RX_IN_INIT_C;
+   signal pgpRxOut      : Pgp4RxOutType       := PGP4_RX_OUT_INIT_C;
    signal pgpRxMaster   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal pgpRxSlave    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
    signal remRxFifoCtrl : AxiStreamCtrlArray(0 downto 0);

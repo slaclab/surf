@@ -44,7 +44,7 @@ begin
    -- Package-level encode/decode shim
    ---------------------------------------------------------------------------
 
-   comb : process (encDispIn, encDataIn, encDataKIn, decDispIn, decDataIn) is
+   comb : process (decDataIn, decDispIn, encDataIn, encDataKIn, encDispIn) is
       variable encodedDataVar : slv(13 downto 0);
       variable encodedDispVar : slv(1 downto 0);
       variable invalidKVar    : sl;
