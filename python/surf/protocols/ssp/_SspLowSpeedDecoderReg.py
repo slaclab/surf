@@ -90,7 +90,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        =  'DATA_WIDTH_G',
-            description =  'DATA_WIDTH_G VHDL genenic value',
+            description =  'DATA_WIDTH_G VHDL generic value',
             offset      =  0x7FC,
             bitSize     =  8,
             bitOffset   =  0,
@@ -100,7 +100,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        =  'NUM_LANE_G',
-            description =  'NUM_LANE_G VHDL genenic value',
+            description =  'NUM_LANE_G VHDL generic value',
             offset      =  0x7FC,
             bitSize     =  8,
             bitOffset   =  8,
@@ -188,7 +188,7 @@ class SspLowSpeedDecoderReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        =  'MaskOffDispErr',
-            description =  '1: Mask off dsispErr (debug only) , 0: normal operation',
+            description =  '1: Mask off dispErr (debug only) , 0: normal operation',
             offset      =  0x81C,
             bitSize     =  1,
             bitOffset   =  1,

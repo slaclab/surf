@@ -139,7 +139,7 @@ class _Regs(pr.Device):
                 resp = self.Resp.get(read=True)
                 #print(f'Resp: {resp}')
                 if resp != 0:
-                    transaction.error(f'AXIL tranaction failed with RESP: {resp}')
+                    transaction.error(f'AXIL transaction failed with RESP: {resp}')
 
                 # Finish the transaction
                 elif self.Rnw.valueDisp() == 'Write':

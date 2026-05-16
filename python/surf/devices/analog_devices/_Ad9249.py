@@ -204,7 +204,7 @@ class Ad9249ConfigGroup(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             enum        = {
-                1: 'Twos Compliment',
+                1: 'Twos Complement',
                 0: 'Offset Binary',
             },
         ))
@@ -597,9 +597,9 @@ class Ad9249ReadoutGroup2(pr.Device):
 
 
 class AdcTester(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, description='ADC Pattern Tester Registers', **kwargs):
         """Create AdcTester"""
-        super().__init__(description='ADC Pattern Tester Regsisters', **kwargs)
+        super().__init__(description=description, **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
         # contains this object. In most cases the parent and memBase are the same but they can be

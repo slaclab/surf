@@ -212,7 +212,7 @@ begin
          dout(47 downto 0)  => rxStatusSync.rxOpCodeDataLast,
          dout(50 downto 48) => rxStatusSync.rxOpCodeNumberLast);
 
-   -- Errror counters and non counted values
+   -- Error counters and non counted values
    U_RxError : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
@@ -429,7 +429,7 @@ begin
          dout(47 downto 0)  => txStatusSync.txOpCodeDataLast,
          dout(50 downto 48) => txStatusSync.txOpCodeNumberLast);
 
-   -- Errror counters and non counted values
+   -- Error counters and non counted values
    U_TxError : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
