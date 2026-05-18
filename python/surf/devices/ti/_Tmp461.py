@@ -24,7 +24,7 @@ class Tmp461(pr.Device):
             x    = var.dependencies[0].get(read=read)
             sign = x >> 7  # Get the sign bit
             x   &= 0x7F    # mask off sign bit
-            x    = float(x)# Covert to degC
+            x    = float(x)# Convert to degC
             if (sign==1):
                 x *= -1.0
             return int(x)

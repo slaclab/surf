@@ -307,7 +307,7 @@ begin
       -- Uptime counter
       ---------------------------------
 
-      -- Check for timout
+      -- Check for timeout
       if r.timer = TIMEOUT_1HZ_C then
 
          -- Reset the timer

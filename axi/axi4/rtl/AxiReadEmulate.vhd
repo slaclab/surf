@@ -146,7 +146,7 @@ begin
       ----------------------------------------------------------------------
       end case;
 
-      -- Combinatoral outputs before reset
+      -- Combinatorial outputs before reset
       intReadSlave <= v.iSlave;
 
       -- Reset

@@ -109,7 +109,7 @@ begin
 
       -- Reset
       if (RST_ASYNC_G = false and phyRxRst = RST_POLARITY_G) then
-         -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
+         -- Maintain same behavior before the remLinkData update (not resetting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
 

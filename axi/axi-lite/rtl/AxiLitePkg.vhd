@@ -262,7 +262,7 @@ package AxiLitePkg is
             connectivity => X"FFFF"));
 
    -------------------------------------------------------------------------------------------------
-   -- Initilize masters with uppder address bits already set to configuration base address
+   -- Initialize masters with upper address bits already set to configuration base address
    -------------------------------------------------------------------------------------------------
    function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigArray) return AxiLiteWriteMasterArray;
    function axiWriteMasterInit (constant config : AxiLiteCrossbarMasterConfigType) return AxiLiteWriteMasterType;

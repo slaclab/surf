@@ -814,14 +814,14 @@ class Qsfp(pr.Device):
             name     = 'UpperPage00h',
             memBase  = self.proxy,
             advDebug = advDebug,
-            offset   = (0+1)<<10, # Page00 plus 1 mem addres region offset
+            offset   = (0+1)<<10, # Page00 plus 1 mem address region offset
         ))
 
         self.add(transceivers.QsfpUpperPage03h(
             name     = 'UpperPage03h',
             memBase  = self.proxy,
             advDebug = advDebug,
-            offset   = (3+1)<<10, # Page03 plus 1 mem addres region offset
+            offset   = (3+1)<<10, # Page03 plus 1 mem address region offset
         ))
 
     def add(self, node):

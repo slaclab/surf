@@ -444,7 +444,7 @@ begin
 
                      -------------------------------------------------------------------------------
 
-                     -- If no error found above, procede with read or write request
+                     -- If no error found above, proceed with read or write request
                      if (v.state /= FOOTER_S) then
                         -- Issue an SRP request
                         v.srpReq.request := '1';
@@ -490,7 +490,7 @@ begin
 
                -- Count each txn
                -- If tLast before cntSize, eofe
-               -- if cntSize reached and no tlast, blead read data, eofe
+               -- if cntSize reached and no tlast, bleed read data, eofe
                v.txnCnt := r.txnCnt + 1;
                if r.txnCnt = r.srpReq.reqSize(31 downto 2) and srpRdMasterInt.tLast = '1' then
                   -- Done when reqSize and tlast
@@ -555,7 +555,7 @@ begin
 
                -- Count each txn
                -- If tLast before cntSize, frameError
-               -- if cntSize reached and no tlast, blead write data, frame error
+               -- if cntSize reached and no tlast, bleed write data, frame error
                v.txnCnt := r.txnCnt + 1;
                if r.txnCnt = r.srpReq.reqSize(31 downto 2) and rxMaster.tLast = '1' then
                   -- Done when reqSize reached and tlast

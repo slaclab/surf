@@ -47,7 +47,7 @@ entity AxiStreamMux is
       -- Assign a priority for each input stream index.
       -- Higher priority streams will be selected over those with lower priority of both are active.
       -- Format is (index => priority)
-      -- Leave unchanged for equal priority round-robbin
+      -- Leave unchanged for equal priority round-robin
       PRIORITY_G           : IntegerArray            := (0 => 0);
       -- In INDEXED mode, assign slave index to TDEST at this bit offset
       TDEST_LOW_G          : integer range 0 to 7    := 0;
@@ -179,7 +179,7 @@ begin
    end process;
 
    -- When in INDEXED priority mode, tvalid on a given slave side index disables selection
-   -- for all channels with higer index
+   -- for all channels with higher index
    PRIORITY_CONTROL : process (disableSel, sAxisMasters) is
       variable tmp : slv(NUM_SLAVES_G-1 downto 0);
    begin

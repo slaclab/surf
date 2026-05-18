@@ -274,7 +274,7 @@ begin
    rxCrcError <= intAdvance and intLastLine and (not crcGood);
    rxCountEn  <= intAdvance and intLastLine and crcGood;
 
-   -- Logic to dermine CRC width and valid clear timing.
+   -- Logic to determine CRC width and valid clear timing.
    process (crcDataValid, crcDataWidth, phyRxc, phyRxcDly, rxdAlign)
    begin
 
@@ -361,7 +361,7 @@ begin
                crcInit     <= '1' after TPD_G;
                rxdAlign    <= '0' after TPD_G;
 
-            -- shifted aligment
+            -- shifted alignment
             elsif lastSOF = '1' and phyReady = '1' then
                frameShift0 <= '1' after TPD_G;
                crcInit     <= '1' after TPD_G;

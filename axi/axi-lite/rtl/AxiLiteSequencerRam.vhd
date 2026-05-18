@@ -451,7 +451,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SEQ_DONE_S =>
-            -- Set all bits to 1 so SW knowns it done
+            -- Set all bits to 1 so SW knows it done
             v.addr  := (others => '0');
             v.din   := (others => '1');
             v.wstrb := (others => '1');

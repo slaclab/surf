@@ -145,7 +145,7 @@ begin
       case r.state is
          ----------------------------------------------------------------------
          when IDLE_S =>
-            -- Check if read to move data
+            -- Check if ready to move data
             if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
                -- Calculate the checksum
@@ -235,7 +235,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when PAYLOAD_S =>
-            -- Check if read to move data
+            -- Check if ready to move data
             if (phyRxMaster.tValid = '1') and (phyRxRdy = '1') then
 
                -- Advance the output pipeline
