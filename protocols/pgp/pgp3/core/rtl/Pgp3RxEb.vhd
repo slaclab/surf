@@ -31,7 +31,7 @@ entity Pgp3RxEb is
       phyRxClk    : in sl;
       phyRxRst    : in sl;
       phyRxValid  : in sl;
-      phyRxData   : in slv(63 downto 0);  -- Unscrabled data from the phy
+      phyRxData   : in slv(63 downto 0);  -- Unscrambled data from the phy
       phyRxHeader : in slv(1 downto 0);
 
       -- User Transmit interface
@@ -89,7 +89,7 @@ begin
 
       -- Reset
       if (phyRxRst = '1') then
-         -- Maintain save behavior before the remLinkData update (not reseting fifoIn or fifoWrEn)
+         -- Maintain same behavior before the remLinkData update (not resetting fifoIn or fifoWrEn)
          v.remLinkData := (others => '0');
       end if;
 

@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI stream DePacketerizer Module (non-interleave only)
+-- Description: AXI stream Depacketizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
 --    Sideband fields are placed into the data stream in a header.
 --    Long frames are broken into smaller packets.

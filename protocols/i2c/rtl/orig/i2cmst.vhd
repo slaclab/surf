@@ -29,7 +29,7 @@
 --         The OC byte- and bit-controller are located under lib/opencores/i2c
 --
 --         The original master had a WISHBONE interface with registers
---         aligned at byte boundaries. This wrapper has a slighly different
+--         aligned at byte boundaries. This wrapper has a slightly different
 --         alignment of the registers, and also (optionally) adds a filter
 --         filter register (FR):
 --
@@ -159,7 +159,7 @@ architecture rtl of i2cmst is
   signal done      : std_logic;         -- Signals completion of command
   signal rxack     : std_logic;         -- Received acknowledge
   signal busy      : std_logic;         -- I2C core busy
-  signal al        : std_logic;         -- Aribitration lost
+  signal al        : std_logic;         -- Arbitration lost
   signal irst      : std_ulogic;        -- Internal, negated reset signal
   signal iscloen   : std_ulogic;        -- Internal SCL output enable
   signal isdaoen   : std_ulogic;        -- Internal SDA output enable

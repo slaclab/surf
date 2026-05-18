@@ -71,7 +71,7 @@ entity Ad9249ReadoutGroup is
       adcStreamClk : in  sl;
       adcStreams   : out AxiStreamMasterArray(NUM_CHANNELS_G-1 downto 0) :=
       (others                                                      => axiStreamMasterInit((false, 2, 8, 0, TKEEP_NORMAL_C, 0, TUSER_NORMAL_C)));
-      -- optional ready to allow evenout samples readout in adcStreamClk
+      -- optional ready to allow even out samples readout in adcStreamClk
       adcReady     : in  slv(NUM_CHANNELS_G-1 downto 0) := (others => '1'));
 end Ad9249ReadoutGroup;
 
@@ -251,9 +251,9 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Up to 8 delay registers
-      -- Write delay values to IDELAY primatives
+      -- Write delay values to IDELAY primitives
       -- All writes go to same r.delay register,
-      -- dataDelaySet(i) or frameDelaySet enables the primative write
+      -- dataDelaySet(i) or frameDelaySet enables the primitive write
       for i in 0 to NUM_CHANNELS_G-1 loop
          axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 0, v.delay);
          axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 9, v.dataDelaySet(i), '1');
@@ -261,7 +261,7 @@ begin
       axiSlaveRegister(axilEp, X"20", 0, v.delay);
       axiSlaveRegister(axilEp, X"20", 9, v.frameDelaySet, '1');
 
-      -- Override read from r.delay and use curDealy output from delay primative instead
+      -- Override read from r.delay and use curDelay output from delay primitive instead
       for i in 0 to NUM_CHANNELS_G-1 loop
          axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, curDelayData(i));
       end loop;

@@ -45,7 +45,7 @@ use surf.AxiStreamPkg.all;
 --   [27:00]  Command-specific parameter(s)
 --
 -- Note that if the core is configured for a stream width (AXIS_WIDTH_G) > 4
--- then the header is padded up to the desired width, i.e., the paylod must
+-- then the header is padded up to the desired width, i.e., the payload must
 -- be word-aligned.
 --
 -- Each command word is answered with a reply word on the outgoing stream

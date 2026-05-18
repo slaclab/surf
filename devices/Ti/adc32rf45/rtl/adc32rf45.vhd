@@ -279,7 +279,7 @@ begin
                      -- Send the write response
                      axiSlaveWriteResponse(v.axiWriteSlave);
                   else
-                     -- Reade the bit
+                     -- Read the bit
                      v.axiReadSlave.rdata(7 downto 0) := ("0000000" & r.rst);
                      -- Send the response
                      axiSlaveReadResponse(v.axiReadSlave);
