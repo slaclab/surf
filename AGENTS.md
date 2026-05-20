@@ -48,6 +48,28 @@ SURF RTL generally follows the two-process style popularized by Gaisler: one com
 - Avoid scattering registers across multiple unrelated clocked processes in a module that otherwise uses this style. If independent clock domains are required, use one `RegType`/`comb`/`seq` set per clock domain and make CDC boundaries explicit.
 - Keep one-off concurrent assignments for simple wires acceptable, but keep state-machine decisions, counters, handshakes, and registered outputs inside the two-process structure.
 
+## VHDL Package Conventions
+
+- Put shared interface records, constants, array types, configuration records, helper functions, and protocol encoders/decoders in the nearest appropriate `*Pkg.vhd`.
+- Name record types with a `Type` suffix, arrays with an `Array` suffix, and initialization constants with an `_INIT_C` suffix, such as `Pgp2bRxOutType`, `Pgp2bRxOutArray`, and `PGP2B_RX_OUT_INIT_C`.
+- Use package-specific constant prefixes for exported constants. Follow existing all-caps prefixes such as `AXI_`, `AXI_STREAM_`, `SSI_`, `PGP2B_`, `ROCE_`, or the local protocol/device prefix.
+- Provide an init constant for every exported record type unless the record is intentionally never default-initialized.
+- Define unconstrained arrays with `natural range <>` when the type is meant to scale across lanes, virtual channels, masters, or replicated devices.
+- Keep protocol and bus semantics centralized in packages. Do not duplicate record definitions, init values, CRC functions, sideband constants, or stream configuration helpers inside leaf RTL files.
+- Avoid package bloat. If a helper is only meaningful inside one entity and is not part of a shared interface, keep it local to that entity.
+- Avoid circular package dependencies. Lower-level packages such as base, AXI, and Ethernet should not depend on higher-level protocol/device packages.
+- Keep package body functions deterministic and synthesizable unless the package is explicitly simulation-only.
+
+## Simulation And Testbench VHDL
+
+- Prefer Python/cocotb for executable stimulus, scoreboards, transaction sequencing, and randomized or parameterized checks.
+- Keep VHDL testbenches and wrappers thin. They should provide clocks/resets, flatten records, adapt simulator-facing ports, tie off unused fields, instantiate simple integration topologies, or host required vendor simulation models.
+- Name the real RTL instance `U_DUT` in wrappers and testbenches unless the file intentionally contains multiple peer instances.
+- Put reusable cocotb-facing wrappers beside the RTL family they adapt, usually under `wrappers/` or `ip_integrator/`, instead of hiding durable HDL under `tests/`.
+- Put pure simulation models under `sim/` and legacy or VHDL-only benches under `tb/`.
+- Keep wrapper port maps annotated with `-- [in]`, `-- [out]`, or `-- [inout]` comments just like production RTL.
+- Do not put protocol stimulus or assertions in VHDL when an equivalent cocotb test can own them more clearly.
+
 ## Ruckus Conventions
 
 - Treat `ruckus.tcl` files as build manifests. When adding, moving, or deleting HDL, update the closest manifest in the same change.
@@ -76,6 +98,18 @@ SURF RTL generally follows the two-process style popularized by Gaisler: one com
 - Do not treat final payload data alone as sufficient for timing-visible behavior. Backpressure, arbitration order, burst length, sideband propagation, and frame boundaries are part of the interface contract.
 - Keep protocol status/control register names and bit meanings aligned across RTL packages, PyRogue models, cocotb tests, and any user-facing documentation.
 - Prefer extending existing protocol helpers or packages over duplicating encoders, decoders, CRC logic, packet builders, or stream handshake code.
+
+## AXI-Lite Register Implementation Pattern
+
+- Prefer the existing SURF AXI-Lite endpoint helpers over hand-written read/write channel state machines for simple register blocks.
+- In two-process register blocks, keep AXI-Lite read/write slave records in `RegType` and initialize them from `AXI_LITE_*_INIT_C` constants.
+- Use `axiSlaveWaitTxn(...)` once near the start of the register section to decode the current transaction into an endpoint/status variable.
+- Use `axiSlaveRegister(...)` for read/write registers and `axiSlaveRegisterR(...)` for read-only status fields. Keep offsets explicit and aligned to the documented map.
+- Use `axiSlaveDefault(...)` at the end of the map so unmapped accesses return the intended response, commonly `AXI_RESP_DECERR_C`.
+- Apply write side effects deliberately. Pulse, clear-on-write, FIFO-write, and counter-reset behavior should be visible in the surrounding next-state logic and documented in PyRogue descriptions when user-visible.
+- For status counters and sampled signals crossing clock domains, synchronize before exposing them on AXI-Lite. Do not read raw signals from another clock domain through a register map.
+- Maintain readback behavior for writable registers unless the existing hardware contract intentionally differs.
+- When changing offsets, fields, reset values, or access modes, update matching PyRogue variables and focused tests in the same change when practical.
 
 ## Code Header Formats
 
@@ -173,6 +207,20 @@ Checked-in cocotb regression files must also include the `Test methodology` bloc
 - For cocotb tests, prefer `./.venv/bin/python -m pytest -q tests/<subsystem-or-file>`. Use `-n 0` when serial simulator logs are needed.
 - For protocol or bus behavior changes, include tests or a clear verification note covering sidebands, backpressure, reset behavior, and boundary/error cases relevant to the change.
 - Avoid hand-editing generated or cache directories such as `build/`, `tests/sim_build/`, `.pytest_cache/`, `docs/_build/`, and `docs/_generated/`.
+
+## RTL Review Checklist
+
+Before considering an RTL change done, check:
+
+- Reset behavior remains compatible with existing `TPD_G`, `RST_POLARITY_G`, `RST_ASYNC_G`, and default reset values.
+- CDC paths are explicit and use existing synchronizer, reset, FIFO, or status-crossing primitives.
+- AXI-Lite, AXI Stream, SSI, Ethernet, PGP, and protocol sidebands are preserved, including error bits, SOF/EOF/EOFE flags, `TKEEP`, `TLAST`, `TDEST`, `TID`, and `TUSER`.
+- State machines and counters follow the two-process style where the surrounding file uses it.
+- New or moved HDL is included in the correct `ruckus.tcl`, and family-specific code is guarded appropriately.
+- Register-map changes are reflected in PyRogue models, tests, and documentation.
+- Simulation wrappers remain thin and do not hide production behavior changes.
+- Generated/vendor files were not reformatted or modified incidentally.
+- Verification notes identify what was run and what risk remains if focused tests or lint were not practical.
 
 ## Documentation Updates
 
