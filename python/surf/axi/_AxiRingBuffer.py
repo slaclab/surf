@@ -138,7 +138,7 @@ class AxiRingBuffer(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = 'SoftTrig',
-            description = 'Software trigging ring buffer',
+            description = 'Software triggering ring buffer',
             offset      = 0xF8,
             bitSize     = 1,
             bitOffset   = 0,

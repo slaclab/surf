@@ -71,7 +71,7 @@ package I2cPkg is
 
    type I2cMasterOutType is record
       busAck   : sl;
-      txnError : sl;                    -- An error occured during the txn
+      txnError : sl;                    -- An error occurred during the txn
       wrAck    : sl;
       rdValid  : sl;
       rdData   : slv(7 downto 0);       -- Data received during read txn

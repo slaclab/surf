@@ -142,7 +142,7 @@ begin  -- architecture rtl
             -- Reset full flags
             v.fullBus := false;
 
-            -- get tKeet boundaries
+            -- get tKeep boundaries
             tKeepMin   := getTKeepMin(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
             tKeepWidth := getTKeep(sAxisMaster.tKeep, SLAVE_AXI_CONFIG_G);
             tDataWidth := to_integer(shift_left(to_unsigned(tKeepWidth, SLV_BYTES_C), 3));

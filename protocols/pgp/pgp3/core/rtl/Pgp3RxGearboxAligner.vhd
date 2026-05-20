@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 -- Description: Aligns a GT RX gearbox.
 -- After reset, require GOOD_COUNT_C consecutive valid headers to lock.
--- Once locked, require BAD_COUNT_C invalid headers withing GOOD_COUNT_C
+-- Once locked, require BAD_COUNT_C invalid headers within GOOD_COUNT_C
 -- total headers to break the lock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.

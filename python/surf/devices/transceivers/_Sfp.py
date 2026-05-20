@@ -22,6 +22,14 @@ class Sfp(pr.Device):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
 
+        self.add(pr.LocalVariable(
+            name        = 'ErrorCount',
+            description = 'I2C read failures after retry exhaustion (cumulative since Rogue start)',
+            mode        = 'RO',
+            value       = 0,
+            typeStr     = 'UInt32',
+        ))
+
         #####################################################
         #       Serial ID: Data Fields – Address A0h        #
         #####################################################

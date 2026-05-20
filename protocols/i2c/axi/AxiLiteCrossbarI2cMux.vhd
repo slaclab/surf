@@ -91,6 +91,8 @@ architecture mapping of AxiLiteCrossbarI2cMux is
    type StateType is (
       IDLE_S,
       RST_S,
+      DESELECT_S,
+      MUX_RST_S,
       MUX_S,
       XBAR_S);
 
@@ -98,6 +100,7 @@ architecture mapping of AxiLiteCrossbarI2cMux is
       cnt            : natural range 0 to FILTER_C;
       i2cRstL        : sl;
       rnw            : sl;
+      chanMask       : slv(7 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       i2cRegMasterIn : I2cRegMasterInType;
@@ -109,6 +112,7 @@ architecture mapping of AxiLiteCrossbarI2cMux is
       cnt            => 0,
       i2cRstL        => '1',
       rnw            => '0',
+      chanMask       => (others => '0'),
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       i2cRegMasterIn => I2C_MUX_INIT_C,
@@ -216,8 +220,9 @@ begin
                   v.i2cRstL := '0';
                   v.rnw     := '0';
 
-                  -- Setup the I2C MUX
-                  v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(wrIdx);
+                  -- Save the target channel mask; deselect step writes 0x00 first
+                  v.chanMask                              := MUX_DECODE_MAP_G(wrIdx);
+                  v.i2cRegMasterIn.regWrData(7 downto 0)  := (others => '0');
 
                   -- Next state
                   v.state := RST_S;
@@ -229,8 +234,9 @@ begin
                   v.i2cRstL := '0';
                   v.rnw     := '1';
 
-                  -- Setup the I2C MUX
-                  v.i2cRegMasterIn.regWrData(7 downto 0) := MUX_DECODE_MAP_G(rdIdx);
+                  -- Save the target channel mask; deselect step writes 0x00 first
+                  v.chanMask                              := MUX_DECODE_MAP_G(rdIdx);
+                  v.i2cRegMasterIn.regWrData(7 downto 0)  := (others => '0');
 
                   -- Next state
                   v.state := RST_S;
@@ -249,14 +255,77 @@ begin
                -- Reset the flag
                v.i2cRstL := '1';
 
-               -- Start the I2C transaction
+               -- Start the I2C transaction (deselect-all write = 0x00 already loaded)
+               v.i2cRegMasterIn.regReq := '1';
+
+               -- Write 0x00 first to deselect all channels, then write the
+               -- target channel mask, to avoid the previous channel sticking
+               -- if the channel-select write is short or marginal.
+
+               -- Next state
+               v.state := DESELECT_S;
+
+            else
+               -- Increment the counter
+               v.cnt := r.cnt + 1;
+            end if;
+         ----------------------------------------------------------------------
+         when DESELECT_S =>
+            -- Wait for the deselect (0x00) I2C write to ack
+            if (i2cRegMasterOut.regAck = '1' and r.i2cRegMasterIn.regReq = '1') then
+
+               -- Reset the flag
+               v.i2cRegMasterIn.regReq := '0';
+
+               -- If the deselect write itself failed, surface the error and abort
+               if (i2cRegMasterOut.regFail = '1') then
+
+                  if (r.rnw = '0') then
+                     axiSlaveWriteResponse(v.axilWriteSlave, AXI_RESP_SLVERR_C);
+                  else
+                     v.axilReadSlave.rData := x"000000" & i2cRegMasterOut.regFailCode;
+                     axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_SLVERR_C);
+                  end if;
+
+                  -- Next state
+                  v.state := IDLE_S;
+
+               else
+
+                  -- Load the actual target channel mask for the next I2C write,
+                  -- then route through MUX_RST_S to get the proper i2cRstL pulse
+                  -- and a clean regReq 0->1 transition. MUX_RST_S mirrors RST_S
+                  -- but transitions straight to MUX_S without re-entering
+                  -- DESELECT_S (which would be an infinite loop).
+                  v.i2cRstL                              := '0';
+                  v.i2cRegMasterIn.regWrData(7 downto 0) := r.chanMask;
+
+                  -- Next state
+                  v.state                                := MUX_RST_S;
+
+               end if;
+
+            end if;
+         ----------------------------------------------------------------------
+         when MUX_RST_S =>
+            -- Symmetric to RST_S, but transitions directly to MUX_S after the
+            -- reset pulse. Used after DESELECT_S to give I2cRegMaster a clean
+            -- handshake (regReq falling+rising edge plus i2cRstL pulse) before
+            -- issuing the channel-select write.
+            if (r.cnt = FILTER_C) then
+
+               v.cnt := 0;
+
+               v.i2cRstL := '1';
+
+               -- Start the channel-select I2C transaction (data already loaded
+               -- with r.chanMask by DESELECT_S).
                v.i2cRegMasterIn.regReq := '1';
 
                -- Next state
                v.state := MUX_S;
 
             else
-               -- Increment the counter
                v.cnt := r.cnt + 1;
             end if;
          ----------------------------------------------------------------------

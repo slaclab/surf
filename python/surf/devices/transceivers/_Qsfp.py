@@ -14,7 +14,9 @@
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
+import logging
 import pyrogue as pr
+import rogue
 import rogue.interfaces.memory as rim
 
 import threading
@@ -22,9 +24,24 @@ import queue
 
 from surf.devices import transceivers
 
+# Exception types to catch and mask in _pollWorker.  Mirrors _RETRY_EXC_TYPES
+# from __init__.py but defined here to avoid a circular import (this module is
+# loaded by __init__.py before _RETRY_EXC_TYPES is defined there).
+_POLL_EXC = (rogue.GeneralError, pr.MemoryError) if hasattr(pr, 'MemoryError') else (rogue.GeneralError,)
+
+_log = logging.getLogger(__name__)
+
 class Qsfp(pr.Device):
     def __init__(self, advDebug=False, **kwargs):
         super().__init__(**kwargs)
+
+        self.add(pr.LocalVariable(
+            name        = 'ErrorCount',
+            description = 'I2C read failures after retry exhaustion (cumulative since Rogue start)',
+            mode        = 'RO',
+            value       = 0,
+            typeStr     = 'UInt32',
+        ))
 
         ################
         # Lower Page 00h
@@ -37,6 +54,24 @@ class Qsfp(pr.Device):
             bitSize     = 5,
             mode        = 'RO',
             enum        = transceivers.IdentifierDict,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Flat_mem',
+            description = 'Upper memory flat or paged',
+            offset      = (2 << 2),
+            bitSize     = 1,
+            bitOffset   = 2,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Data_Not_Ready',
+            description = 'Indicates free-side does not yet have valid monitor data. The bit remains high until valid data can be read at which time the bit goes low.',
+            offset      = (2 << 2),
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RO',
         ))
 
         if advDebug:
@@ -62,29 +97,11 @@ class Qsfp(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name        = 'Flat_mem',
-                description = 'Upper memory flat or paged',
-                offset      = (2 << 2),
-                bitSize     = 1,
-                bitOffset   = 2,
-                mode        = 'RO',
-            ))
-
-            self.add(pr.RemoteVariable(
                 name        = 'IntL',
                 description = 'Digital state of the IntL Interrupt output pin',
                 offset      = (2 << 2),
                 bitSize     = 1,
                 bitOffset   = 1,
-                mode        = 'RO',
-            ))
-
-            self.add(pr.RemoteVariable(
-                name        = 'Data_Not_Ready',
-                description = 'Indicates free-side does not yet have valid monitor data. The bit remains high until valid data can be read at which time the bit goes low.',
-                offset      = (2 << 2),
-                bitSize     = 1,
-                bitOffset   = 0,
                 mode        = 'RO',
             ))
 
@@ -797,14 +814,14 @@ class Qsfp(pr.Device):
             name     = 'UpperPage00h',
             memBase  = self.proxy,
             advDebug = advDebug,
-            offset   = (0+1)<<10, # Page00 plus 1 mem addres region offset
+            offset   = (0+1)<<10, # Page00 plus 1 mem address region offset
         ))
 
         self.add(transceivers.QsfpUpperPage03h(
             name     = 'UpperPage03h',
             memBase  = self.proxy,
             advDebug = advDebug,
-            offset   = (3+1)<<10, # Page03 plus 1 mem addres region offset
+            offset   = (3+1)<<10, # Page03 plus 1 mem address region offset
         ))
 
     def add(self, node):
@@ -855,6 +872,12 @@ class _UpperPageProxy(pr.Device):
     def proxyTransaction(self, transaction):
         self._queue.put(transaction)
 
+    def _writePageSelect(self, pageSelect):
+        """Write the page-select byte if it differs from the cached value, or if the proxy was just armed. _CmisUpperPageProxy overrides this to write the bank-select byte first."""
+        if (self.PageSelectByte.value() != pageSelect) or not self._armed:
+            self._armed = True
+            self.PageSelectByte.set(value=pageSelect, write=True)
+
     def _pollWorker(self):
         while True:
             #print('Main thread loop start')
@@ -862,46 +885,81 @@ class _UpperPageProxy(pr.Device):
             if transaction is None:
                 return
             with self._memLock, transaction.lock():
+                try:
+                    # Determine the page select and register index
+                    pageSelect = ((transaction.address()>>10)&0xFF)-1
+                    regIndex   = ((transaction.address()>>2)&0xFF)-128
 
-                # Determine the page select and register index
-                pageSelect = ((transaction.address()>>10)&0xFF)-1
-                regIndex   = ((transaction.address()>>2)&0xFF)-128
+                    # Gate: suppress upper pages 1-3 if Flat_mem=1 (SFF-8636 flat memory)
+                    # Page 0 (upper page 00h) is always present per spec.
+                    if pageSelect >= 1:
+                        try:
+                            flat = self.parent.Flat_mem.value()
+                        except Exception:
+                            flat = 0
+                        if flat:
+                            tt = transaction.type()
+                            if (tt == rim.Write) or (tt == rim.Post):
+                                transaction.done()
+                            else:
+                                dataBa = bytearray(4)
+                                transaction.setData(dataBa, 0)
+                                transaction.done()
+                            continue
 
-                # Check if the page select has changed
-                if (self.PageSelectByte.value() != pageSelect) or not self._armed:
+                    self._writePageSelect(pageSelect)
 
-                    # Set the flag
-                    self._armed = True
+                    # Check for a write or post TXN
+                    if (transaction.type() == rim.Write) or (transaction.type() == rim.Post):
 
-                    # Perform the hardware write
-                    self.PageSelectByte.set(value=pageSelect, write=True)
+                        # Convert from TXN.data to the write byte array
+                        dataBa = bytearray(4)
+                        transaction.getData(dataBa, 0)
+                        data = int.from_bytes(dataBa, 'little', signed=False)
 
-                # Check for a write or post TXN
-                if (transaction.type() == rim.Write) or (transaction.type() == rim.Post):
+                        # Perform the hardware write
+                        self.UpperPage.set(index=regIndex, value=data, write=True)
 
-                    # Convert from TXN.data to the write byte array
-                    dataBa = bytearray(4)
-                    transaction.getData(dataBa, 0)
-                    data = int.from_bytes(dataBa, 'little', signed=False)
+                        # Close out the transaction
+                        transaction.done()
 
-                    # Perform the hardware write
-                    self.UpperPage.set(index=regIndex, value=data, write=True)
+                    # Else this is a read or verify TXN
+                    else:
 
-                    # Close out the transaction
-                    transaction.done()
+                        # Perform the hardware read
+                        data = self.UpperPage.get(index=regIndex, read=True)
 
-                # Else this is a read or verify TXN
-                else:
+                        # Convert from write byte array to TXN.data to the
+                        dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
+                        transaction.setData(dataBa, 0)
 
-                    # Perform the hardware read
-                    data = self.UpperPage.get(index=regIndex, read=True)
+                        # Close out the transaction
+                        transaction.done()
 
-                    # Convert from write byte array to TXN.data to the
-                    dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
-                    transaction.setData(dataBa, 0)
-
-                    # Close out the transaction
-                    transaction.done()
+                except _POLL_EXC as _exc:
+                    try:
+                        tt = transaction.type()
+                        if (tt == rim.Write) or (tt == rim.Post):
+                            transaction.done()
+                        else:
+                            dataBa = bytearray(4)
+                            transaction.setData(dataBa, 0)
+                            transaction.done()
+                    except Exception:
+                        pass
+                    try:
+                        self.parent.ErrorCount.set(
+                            self.parent.ErrorCount.value() + 1, write=False)
+                    except Exception:
+                        pass
+                    try:
+                        _log.warning(
+                            f"_UpperPageProxy._pollWorker masked I2C failure "
+                            f"at addr=0x{transaction.address():08x} type={transaction.type()}: "
+                            f"{type(_exc).__name__}: {_exc}"
+                        )
+                    except Exception:
+                        pass
 
     def _stop(self):
         self._queue.put(None)

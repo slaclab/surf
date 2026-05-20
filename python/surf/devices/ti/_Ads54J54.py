@@ -94,7 +94,7 @@ class Ads54J54(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "DEC_EN_CD",
-            description = "Enables dcimation filter for channel CD",
+            description = "Enables decimation filter for channel CD",
             offset      = (4*0x00),
             bitSize     = 1,
             bitOffset   = 10,
