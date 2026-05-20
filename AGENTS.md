@@ -227,3 +227,7 @@ Before considering an RTL change done, check:
 When adding a new subsystem, add or update the closest `README.md` if the layout or usage is not obvious. Keep README files short and navigational: describe what belongs in the folder, important subdirectories, and any local build/test conventions, then link upward through the parent README chain.
 
 Add deeper README files as substantial areas are touched, especially in high-traffic module families such as `axi/axi-stream`, `axi/axi-lite`, `protocols/pgp`, `protocols/coaxpress`, `protocols/ssi`, `protocols/srp`, `ethernet/IpV4Engine`, `ethernet/UdpEngine`, and `ethernet/EthMacCore`. Prefer adding the README in the same change that introduces new layout or conventions for that area.
+
+## Pull Requests
+
+When preparing pull request text, follow the repository template at [.github/pull_request_template.md](.github/pull_request_template.md). Keep the `Description` clean and release-note ready; the template notes that blank descriptions are not accepted and that this text feeds release notes. Use `Details`, `JIRA`, and `Related` only when they add useful context.
