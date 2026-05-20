@@ -13,10 +13,11 @@
 #   active-low output case so both input and output polarity handling are
 #   covered.
 # - Stimulus: Allow the watchdog to expire once with no keepalive activity,
-#   then periodically kick it before timeout to prove the non-expiring path.
+#   periodically kick it before timeout, and drive a chatter sequence that
+#   repeatedly approaches the timeout boundary before recovering.
 # - Checks: The timeout pulse or reset output must assert only after the
 #   configured idle window and remain suppressed while keepalive pulses arrive
-#   in time.
+#   in time, including after multiple near-timeout noise bursts.
 # - Timing: The bench counts the timeout interval in exact cycles and checks
 #   that each keepalive restarts the watchdog window rather than merely
 #   delaying the already-expiring event.
@@ -96,6 +97,30 @@ async def keepalive_prevents_timeout_test(dut):
     dut.monIn.value = tb.input_active_value()
     await tb.cycle(3)
     assert int(dut.rstOut.value) == tb.output_inactive_value()
+
+
+@cocotb.test()
+async def chattered_keepalive_sequence_test(dut):
+    tb = TB(dut)
+    await tb.cycle(4)
+
+    # Exercise a noisier software/firmware keepalive pattern: each inactive
+    # stretch gets close to the programmed timeout, then a short active pulse
+    # must fully restart the watchdog window.
+    for inactive_cycles in [1, max(tb.duration - 1, 1), max(tb.duration - 2, 1), tb.duration // 2]:
+        dut.monIn.value = tb.input_inactive_value()
+        await tb.cycle(inactive_cycles)
+        assert int(dut.rstOut.value) == tb.output_inactive_value()
+
+        dut.monIn.value = tb.input_active_value()
+        await tb.cycle(2)
+        assert int(dut.rstOut.value) == tb.output_inactive_value()
+
+    # After the chatter sequence, a genuinely missing keepalive still needs to
+    # time out normally rather than leaving the watchdog wedged idle.
+    dut.monIn.value = tb.input_inactive_value()
+    await tb.cycle(tb.duration + 3)
+    assert int(dut.rstOut.value) == tb.output_active_value()
 
 
 PARAMETER_SWEEP = [

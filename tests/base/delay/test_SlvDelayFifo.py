@@ -14,7 +14,8 @@
 #   across both storage styles.
 # - Stimulus: Issue short and mixed-delay requests with explicit timestamps so
 #   multiple delayed outputs are queued and released out of order in wall-clock
-#   time but in programmed-delay order.
+#   time but in programmed-delay order, then optionally reset while delayed
+#   entries are pending.
 # - Checks: Returned data must match the request payload associated with each
 #   timestamp and emerge in the same order implied by the requested delay
 #   schedule.
@@ -119,6 +120,27 @@ async def timestamped_outputs_preserve_programmed_order_test(dut):
     assert await tb.wait_for_output() == 0x22
 
 
+@cocotb.test()
+async def reset_flushes_pending_entries_test(dut):
+    if not env_flag("CHECK_RESET_FLUSH", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+
+    # Queue several delayed entries, reset before any requested timestamp can
+    # mature, and then confirm that only post-reset traffic is observable.
+    for delay, value in [(10, 0x77), (12, 0x88), (14, 0x55)]:
+        await tb.load_delay(delay)
+        await tb.write_word(value)
+    await tb.cycle(2)
+    await tb.reset()
+
+    await tb.load_delay(1)
+    await tb.write_word(0x99)
+    assert await tb.wait_for_output() == 0x99
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "block_sync_reset",
@@ -137,6 +159,16 @@ PARAMETER_SWEEP = [
         FIFO_ADDR_WIDTH_G="4",
         FIFO_MEMORY_TYPE_G="distributed",
         CLK_PERIOD_NS="7",
+    ),
+    parameter_case(
+        "reset_flush_pending",
+        RST_ASYNC_G="true",
+        DATA_WIDTH_G="8",
+        DELAY_BITS_G="6",
+        FIFO_ADDR_WIDTH_G="4",
+        FIFO_MEMORY_TYPE_G="distributed",
+        CHECK_RESET_FLUSH="1",
+        CLK_PERIOD_NS="5",
     ),
 ]
 
