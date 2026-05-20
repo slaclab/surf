@@ -13,6 +13,13 @@ import rogue
 import time
 
 class Bootstrap(pr.Device):
+    _HOST_VERSION_BITS = (
+        (0x00020001, 'Version2p1Supported', 'v2.1'),
+        (0x00020000, 'Version2p0Supported', 'v2.0'),
+        (0x00010001, 'Version1p1Supported', 'v1.1'),
+        (0x00010000, 'Version1p0Supported', 'v1.0'),
+    )
+
     def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -656,6 +663,28 @@ class Bootstrap(pr.Device):
         """
         self._acq_var = camera.IsAcquiring
 
+    def _negotiateVersionUsed(self):
+        """Return the CoaXPress version value selected during discovery.
+
+        CXP v1.x devices keep the ConnectionReset default and may not accept a
+        write to VersionUsed. For v2.x and later, the host must choose a common
+        version from VersionsSupported before switching to tagged packets.
+        """
+        revision = self.Revision.value()
+
+        if revision < 0x00020000:
+            return revision
+
+        for value, bit_name, _ in self._HOST_VERSION_BITS:
+            if getattr(self, bit_name).value():
+                self.VersionUsedCmd.set(value)
+                return value
+
+        raise RuntimeError(
+            f"Device reports revision 0x{revision:08X}, but no common "
+            "CoaXPress protocol version is set in VersionsSupported"
+        )
+
     def DeviceDiscovery(self, arg=None):
         # Updates all the local device register values
         self.CoaXPressAxiL.readBlocks(recurse=True)
@@ -685,8 +714,10 @@ class Bootstrap(pr.Device):
                 "Try power cycling the camera and verifying all connections before restarting the software."
             ) from e
 
-        # Match the device revision to host revision
-        self.VersionUsedCmd.set(self.Revision.value())
+        # Negotiate the CXP protocol version before using later bootstrap
+        # writes. CXP v1.x stays on the reset default; v2.x switches to tags.
+        version_used = self._negotiateVersionUsed()
+        self.CoaXPressAxiL.ConfigPktTag.set(1 if version_used >= 0x00020000 else 0)
 
         # The Host shall read the ConnectionConfigDefault register to find the required bit rate
         # and number of connections operating at this bit rate
