@@ -57,7 +57,7 @@ intentional limitation, not as silent proof of complete spec compliance.
 | `test_CoaXPressEventAckMsg.py` | `CoaXPressEventAckMsg` | Event acknowledgment wire format, section `9.8.3`, Table 30 | Near-normative subset |
 | `test_CoaXPressTxLsFsm.py` | `CoaXPressTxLsFsm` | Low-speed idle cadence and default trigger serialization, section `9.3.1.1` / Table 15 | Partial protocol |
 | `test_CoaXPressTx.py` | `CoaXPressTx` | Control/event-acknowledgment arbitration and software-trigger path across the TX assembly | RTL-contract with spec packet classes |
-| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting and tag handling, section `9.6.1.2` / `9.6.2` | Checked in but skipped |
+| `test_CoaXPressConfig.py` | `CoaXPressConfig` | Control command packet formatting, CRC generation, tag handling, and SRPv3 response completion through the real `SrpV3AxiLite` ingress path, section `9.6.1.2` / `9.6.2` | Near-normative subset |
 | `test_CoaXPressCore.py` | `CoaXPressCore` | AXI-Lite control of tagged config request generation plus software-visible `RxOverflowCnt` / `RxFsmErrorCnt` status behavior at the full-core boundary | RTL-contract with spec request prefix and top-level error-status checks |
 | `test_CoaXPressOverFiberBridgeTx.py` | `CoaXPressOverFiberBridgeTx` | CXPoF start/control/payload/terminate words, section `6.3.1` to `6.3.6` in `CXPR-008-2021` | Near-normative subset |
 | `test_CoaXPressOverFiberBridgeRx.py` | `CoaXPressOverFiberBridgeRx` | CXPoF start-word decode back into CoaXPress packet and `IO_ACK` words | Partial protocol |
@@ -105,10 +105,11 @@ exposed by the current checked-in RTL.
 The current checked-in coverage is split:
 
 - `test_CoaXPressConfig.py`
-  - intended normative request-format coverage for section `9.6.1.2` and
-    `9.6.2`
-  - currently skipped because the real `CoaXPressConfig` / `SrpV3AxiLite`
-    ingress path does not complete in the bench
+  - checks untagged read and tagged write control-command formatting for
+    section `9.6.1.2` and `9.6.2`
+  - drives requests through the real `CoaXPressConfig` / `SrpV3AxiLite`
+    ingress path and validates both the serialized config packet and the
+    completed SRPv3 response
 - `test_CoaXPressRxLane.py` and `test_CoaXPressRx.py`
   - now drive fuller control-ack shapes on the wire: code, size, reply data,
     CRC placeholder, and `EOP`
@@ -212,10 +213,12 @@ Current checked-in coverage:
   - `/T/` plus `/I/` termination
 - `test_CoaXPressOverFiberBridgeRx.py`
   - RX start-word decode for normal packets and `IO_ACK`
-  - HKP forwarding, including a housekeeping-to-payload transition
+  - embedded EOP K-code reconstruction for stream marker and packet-end words
+  - HKP forwarding, including a housekeeping-to-payload transition and an
+    HKP-carried CXP EOP word
   - negative lane-placement checks for `/S/`, `/Q/`, `/T/`, and `/E/`
-  - lane-0 `/Q/` no-output guardrail, `/E/` packet abort behavior, and recovery
-    to a following valid low-speed packet
+  - lane-0 `/Q/` no-output guardrail, `/E/` packet abort behavior before and
+    after payload, and recovery to a following valid low-speed packet
 - `test_CoaXPressOverFiberBridge.py`
   - top-level 32b/64b gearbox integration around the bridge leaves
   - RX-side 64b gearbox coverage for `/E/` abort/recovery, HKP-to-payload
@@ -228,6 +231,20 @@ Still open on the bridge side:
 - full housekeeping protocol semantics beyond raw HKP forwarding and the current
   HKP-to-payload transition check
 
+Current RTL support limits observed while expanding the bridge tests:
+
+- `/Q/` ordered sets are not decoded into any bridge-visible state, sequence
+  tracker, status output, or CXP-side indication. The current contract is only
+  that `/Q/` in the interpacket gap is suppressed and later valid traffic
+  recovers.
+- `/E/` has no bridge-visible status output. When it appears during a packet,
+  the RX bridge aborts the active nGMII packet and returns to idle; if the start
+  word was already accepted, the CXP `SOP` and packet-type words may already
+  have been emitted, but no synthetic CXP `EOP` is generated.
+- HKP handling is raw forwarding. The RX bridge does not validate HKP content
+  semantics or expose a separate housekeeping parser; it reconstructs K-coded
+  words and then returns to normal payload/EOP handling.
+
 ## Known Limitations
 
 The current checked-in CoaXPress suite should not be described as full protocol
@@ -235,7 +252,6 @@ compliance coverage.
 
 The most important open limits are:
 
-- `CoaXPressConfig` is still skipped
 - `CoaXPressRxHsFsm` still has an open bonded-receive issue on back-to-back
   short four-lane image frames: later one-word tails can miss `TLAST`, which
   merges or truncates adjacent frames
