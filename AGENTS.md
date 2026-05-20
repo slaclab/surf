@@ -33,6 +33,50 @@ Top-level `ruckus.tcl` loads `axi`, `base`, `dsp`, `devices`, `ethernet`, `proto
 - Keep wrappers thin. Prefer existing SURF adapter entities for AXI/AXI Stream record flattening before hand-writing bus packing.
 - Update the nearest `ruckus.tcl` when adding HDL. Use `loadRuckusTcl` for subdirectories and architecture guards such as `getFpgaArch` for family-specific sources.
 
+## Two-Process VHDL Style
+
+SURF RTL generally follows the two-process style popularized by Gaisler: one combinational process computes next state and outputs, and one sequential process registers the state.
+
+- Put registered state in a `RegType` record. Use a `REG_INIT_C` constant for reset/default state, and declare `r` and `rin` signals for current and next state.
+- Name the combinational process `comb` and the sequential process `seq` unless the surrounding file has a stronger local convention.
+- At the top of `comb`, declare `variable v : RegType;` and immediately assign `v := r;`. Make all next-state updates to `v`.
+- Assign `rin <= v;` near the end of `comb`. Drive module outputs from `r` for registered outputs and from `v` only when the local design intentionally exposes next-cycle/combinational behavior.
+- Include all combinational inputs read by the process in the sensitivity list. Existing files often use explicit lists rather than `process(all)`; match nearby style.
+- Apply synchronous reset in `comb` by assigning `v := REG_INIT_C` when `RST_ASYNC_G = false` and reset is asserted.
+- Apply asynchronous reset only in `seq`, before the rising-edge branch, by assigning `r <= REG_INIT_C after TPD_G`.
+- In `seq`, update state with `r <= rin after TPD_G;` on the rising edge. Preserve `after TPD_G` in existing RTL.
+- Avoid scattering registers across multiple unrelated clocked processes in a module that otherwise uses this style. If independent clock domains are required, use one `RegType`/`comb`/`seq` set per clock domain and make CDC boundaries explicit.
+- Keep one-off concurrent assignments for simple wires acceptable, but keep state-machine decisions, counters, handshakes, and registered outputs inside the two-process structure.
+
+## Ruckus Conventions
+
+- Treat `ruckus.tcl` files as build manifests. When adding, moving, or deleting HDL, update the closest manifest in the same change.
+- Start maintained ruckus files with `source $::env(RUCKUS_PROC_TCL)` unless a nearby file shows a different established pattern.
+- Use `loadSource -lib surf -dir "$::DIR_PATH/rtl"` or the local equivalent for source directories, and use `loadRuckusTcl "$::DIR_PATH/<subdir>"` when a child directory owns its own manifest.
+- Keep parent manifests short. They should load subdirectories and apply coarse selection logic, not list every leaf file when a child manifest exists.
+- Use `getFpgaArch` for family-specific source selection. Keep architecture guards readable and follow existing family strings such as `kintexu`, `virtexu`, `kintexuplus`, `zynquplus`, `zynquplusRFSOC`, `virtexuplus`, and `virtexuplusHBM`.
+- Do not add generated simulator outputs, build products, waveform files, imported cache files, or temporary conversion artifacts to ruckus manifests.
+- After changing ruckus structure, run `make MODULES="$PWD" import` when practical to confirm the import graph still resolves.
+
+## Reset And CDC Rules
+
+- Prefer existing `base/sync` primitives for clock-domain crossing, reset synchronization, pulse transfer, status synchronization, and frequency/rate measurement.
+- Do not hand-roll synchronizers, async FIFOs, reset pipelines, or CDC pulse logic unless there is a specific reason the existing base module cannot cover.
+- Preserve existing reset generics and semantics: `TPD_G`, `RST_POLARITY_G`, `RST_ASYNC_G`, active-high/active-low defaults, and optional reset ports should remain compatible.
+- Keep asynchronous reset handling in the sequential process and synchronous reset handling in the combinational next-state path when following the common SURF `comb`/`seq` pattern.
+- For multi-clock designs, make the crossing explicit in names and structure. Avoid passing unsynchronized control/status bits between clock domains through ordinary signals.
+- For reset fanout or deassertion timing, reuse `RstPipeline`, `RstPipelineVector`, `RstSync`, or local established wrappers instead of creating ad hoc chains.
+
+## Bus And Protocol Semantics
+
+- Use existing SURF record types and package helpers for AXI-Lite, AXI4, AXI Stream, SSI, PGP, SRP, Ethernet, and related protocols. Do not create parallel bus records for the same interface.
+- AXI-Lite register maps should use explicit offsets, stable reset values, deterministic read data, and clear write side effects. Preserve response behavior and alignment/error handling from existing helpers.
+- Keep AXI-Lite read/write endpoint code consistent with local helper procedures such as `axiSlaveWaitTxn`, `axiSlaveRegister`, `axiSlaveDefault`, and related package utilities where they are already used.
+- AXI Stream and SSI changes must preserve payload byte order, `TKEEP`, `TLAST`, `TDEST`, `TID`, and `TUSER` semantics. For SSI, be especially careful with SOF, EOF, and EOFE encodings.
+- Do not treat final payload data alone as sufficient for timing-visible behavior. Backpressure, arbitration order, burst length, sideband propagation, and frame boundaries are part of the interface contract.
+- Keep protocol status/control register names and bit meanings aligned across RTL packages, PyRogue models, cocotb tests, and any user-facing documentation.
+- Prefer extending existing protocol helpers or packages over duplicating encoders, decoders, CRC logic, packet builders, or stream handshake code.
+
 ## Code Header Formats
 
 Use the existing header style for the file type and local subtree. Do not rewrite imported vendor, generated, or third-party headers unless the user explicitly asks for license repair.
@@ -102,14 +146,36 @@ Checked-in cocotb regression files must also include the `Test methodology` bloc
 - `.flake8` intentionally relaxes many whitespace rules to support the existing aligned register-map style. Do not run an autoformatter that destroys that alignment unless the user explicitly asks for a larger formatting migration.
 - Be cautious with `setup.py`: it appends a version string into `python/surf/__init__.py` as part of packaging. Do not run packaging commands casually during documentation or small-code tasks.
 
+## PyRogue Register Maps
+
+- PyRogue register maps must mirror the RTL-visible register layout exactly. Keep `offset`, `bitOffset`, `bitSize`, `mode`, endianness/base type, and reset assumptions synchronized with firmware.
+- Use explicit offsets in hex and explicit bit fields. Avoid computed offsets unless the surrounding file already uses a clear repeated-register pattern.
+- Preserve public variable names, command names, enum strings, and link-variable names unless the user explicitly wants an API change. Downstream scripts often depend on these names.
+- Use `pr.RemoteVariable` for hardware-backed registers, `pr.RemoteCommand` for command strobes or command-like accesses, and `pr.LinkVariable` for derived display/state values.
+- Keep descriptions hardware-specific and useful. Avoid generic descriptions that repeat the variable name without explaining the register meaning or side effect.
+- Keep write guards, dependencies, polling behavior, and hidden/expert visibility consistent with neighboring PyRogue devices.
+- When changing an RTL register map, update the matching PyRogue model and any cocotb register helpers/tests in the same change when practical.
+
+## Generated And Vendor Code
+
+- Treat vendor memory models, Xilinx stubs, XCI/DCP outputs, Bluespec/RoCE generated Verilog, and imported third-party protocol support as external code unless the user specifically asks to modify them.
+- Do not reformat, license-normalize, rename signals, or modernize generated/vendor files as incidental cleanup.
+- When a wrapper around vendor/generated code is needed, put project-maintained glue in a nearby SURF-owned `rtl/`, `wrappers/`, `ip_integrator/`, or family-specific directory rather than editing the imported source.
+- Keep binary and generated artifacts out of source changes unless they are intentionally tracked release/build inputs already managed by the repository.
+
 ## Tests And Verification
 
 - For RTL regressions, use the guidance in [tests/README.md](tests/README.md). The expected stack is `pytest + cocotb + GHDL + ruckus`.
-- Run `make MODULES="$PWD" import` when the HDL import cache is missing or stale.
-- For focused tests, prefer `./.venv/bin/python -m pytest -q tests/<subsystem-or-file>`. Use `-n 0` when serial simulator logs are needed.
-- For edited VHDL, run the relevant pytest/cocotb target when practical and run `vsg` on changed files.
+- For docs-only changes, no RTL or Python tests are required, but check links and headings if the edit adds navigation.
+- For ruckus or source-list changes, run `make MODULES="$PWD" import` when practical.
+- For edited VHDL, run `./.venv/bin/vsg -c vsg-linter.yml path/to/file.vhd` and the most focused relevant cocotb/pytest target when practical.
+- For Python/PyRogue changes, run a focused import or pytest that exercises the changed module. Avoid packaging commands unless the task specifically requires packaging validation.
+- For cocotb tests, prefer `./.venv/bin/python -m pytest -q tests/<subsystem-or-file>`. Use `-n 0` when serial simulator logs are needed.
+- For protocol or bus behavior changes, include tests or a clear verification note covering sidebands, backpressure, reset behavior, and boundary/error cases relevant to the change.
 - Avoid hand-editing generated or cache directories such as `build/`, `tests/sim_build/`, `.pytest_cache/`, `docs/_build/`, and `docs/_generated/`.
 
 ## Documentation Updates
 
 When adding a new subsystem, add or update the closest `README.md` if the layout or usage is not obvious. Keep README files short and navigational: describe what belongs in the folder, important subdirectories, and any local build/test conventions, then link upward through the parent README chain.
+
+Add deeper README files as substantial areas are touched, especially in high-traffic module families such as `axi/axi-stream`, `axi/axi-lite`, `protocols/pgp`, `protocols/coaxpress`, `protocols/ssi`, `protocols/srp`, `ethernet/IpV4Engine`, `ethernet/UdpEngine`, and `ethernet/EthMacCore`. Prefer adding the README in the same change that introduces new layout or conventions for that area.
