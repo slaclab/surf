@@ -230,4 +230,4 @@ Add deeper README files as substantial areas are touched, especially in high-tra
 
 ## Pull Requests
 
-When preparing pull request text, follow the repository template at [.github/pull_request_template.md](.github/pull_request_template.md). Keep the `Description` clean and release-note ready; the template notes that blank descriptions are not accepted and that this text feeds release notes. Use `Details`, `JIRA`, and `Related` only when they add useful context.
+When preparing pull request text, follow the repository template at [.github/pull_request_template.md](.github/pull_request_template.md). PRs should generally target the `pre-release` branch unless the user or maintainer specifies a different base. Keep the `Description` clean and release-note ready; the template notes that blank descriptions are not accepted and that this text feeds release notes. Use `Details`, `JIRA`, and `Related` only when they add useful context.
