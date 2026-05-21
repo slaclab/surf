@@ -1,0 +1,190 @@
+##############################################################################
+## This file is part of 'SLAC Firmware Standard Library'.
+## It is subject to the license terms in the LICENSE.txt file found in the
+## top-level directory of this distribution and at:
+##    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+## No part of 'SLAC Firmware Standard Library', including this file,
+## may be copied, modified, propagated, or distributed except according to
+## the terms contained in the LICENSE.txt file.
+##############################################################################
+
+# Test methodology:
+# - Sweep: Use the standalone `AxiStreamDepacketizer2` wrapper with CRC
+#   disabled and a small `TDEST_BITS_G=2` address space so startup RAM
+#   initialization stays short under GHDL.
+# - Stimulus: Present packetizer-V2 header, payload, and tail beats directly,
+#   including a two-packet continuation sequence with incrementing packet
+#   sequence numbers.
+# - Checks: The depacketized application stream must restore payload bytes,
+#   `TDEST`, `TID`, first-beat SOF, final-beat `TUSER`, `TKEEP`, and `TLAST`
+#   without relying on `AxiStreamPacketizer2` as the stimulus generator.
+# - Timing: The test waits for the depacketizer `initDone` debug bit before
+#   traffic, then keeps the application sink ready while source and sink tasks
+#   run concurrently.
+
+import pytest
+import cocotb
+from cocotb.triggers import RisingEdge, Timer, with_timeout
+
+from tests.common.regression_utils import run_surf_vhdl_test
+from tests.protocols.packetizer.packetizer_test_utils import (
+    AxisBeat,
+    FlatAxisEndpoint,
+    PACKETIZER2_CRC_NONE,
+    bytes_from_word,
+    packetizer2_header_word,
+    packetizer2_tail_word,
+    recv_beats,
+    reset_packetizer_dut,
+    send_beats,
+    start_packetizer_clock,
+    word_from_bytes,
+)
+
+DEBUG_INIT_DONE = 12
+
+
+class TB:
+    def __init__(self, dut):
+        self.dut = dut
+        self.source = FlatAxisEndpoint(dut, prefix="S_AXIS")
+        self.sink = FlatAxisEndpoint(dut, prefix="M_AXIS")
+
+        start_packetizer_clock(dut)
+        dut.axisRst.setimmediatevalue(1)
+        dut.linkGood.setimmediatevalue(1)
+        dut.M_AXIS_TREADY.setimmediatevalue(0)
+        self.source.set_idle()
+
+    async def reset(self):
+        await reset_packetizer_dut(self.dut)
+        await self.wait_init_done()
+
+    async def wait_init_done(self, timeout_cycles: int = 64):
+        for _ in range(timeout_cycles):
+            if int(self.dut.debugOut.value) & (1 << DEBUG_INIT_DONE):
+                return
+            await RisingEdge(self.dut.axisClk)
+            await Timer(1, unit="ns")
+        raise AssertionError("Timed out waiting for depacketizer initDone")
+
+
+def header_beat(*, sof: int, tuser: int, dest: int, tid: int, seq: int) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer2_header_word(
+            crc_mode=PACKETIZER2_CRC_NONE,
+            sof=sof,
+            tuser=tuser,
+            tdest=dest,
+            tid=tid,
+            seq=seq,
+        ),
+        keep=0xFF,
+        last=0,
+        user=0x2,
+    )
+
+
+def data_beat(payload: bytes) -> AxisBeat:
+    return AxisBeat(data=word_from_bytes(payload), keep=0xFF, last=0, user=0)
+
+
+def tail_beat(*, eof: int, tuser: int, byte_count: int) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count),
+        keep=0xFF,
+        last=1,
+        user=0,
+    )
+
+
+def assert_app_beat(
+    beat: AxisBeat,
+    *,
+    payload: bytes,
+    keep: int = 0xFF,
+    last: int = 0,
+    dest: int,
+    tid: int,
+    user: int = 0,
+) -> None:
+    assert bytes_from_word(beat.data, keep=keep) == payload
+    assert beat.keep == keep
+    assert beat.last == last
+    assert beat.dest == dest
+    assert beat.tid == tid
+    assert beat.user == user
+
+
+@cocotb.test()
+async def depacketize_single_packet_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    first = bytes(range(0x10, 0x18))
+    last = bytes(range(0x18, 0x20))
+    packet = [
+        header_beat(sof=1, tuser=0x20, dest=0x3, tid=0xA5, seq=0),
+        data_beat(first),
+        data_beat(last),
+        tail_beat(eof=1, tuser=0x41, byte_count=8),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_app_beat(rx_beats[0], payload=first, dest=0x3, tid=0xA5, user=0x22)
+    assert_app_beat(rx_beats[1], payload=last, last=1, dest=0x3, tid=0xA5, user=0x41 << 56)
+
+
+@cocotb.test()
+async def depacketize_split_sequence_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    chunks = [
+        bytes(range(0x30, 0x38)),
+        bytes(range(0x38, 0x40)),
+        bytes(range(0x40, 0x48)),
+    ]
+    packets = [
+        header_beat(sof=1, tuser=0x10, dest=0x2, tid=0x5A, seq=0),
+        data_beat(chunks[0]),
+        data_beat(chunks[1]),
+        tail_beat(eof=0, tuser=0, byte_count=8),
+        header_beat(sof=0, tuser=0x00, dest=0x2, tid=0x5A, seq=1),
+        data_beat(chunks[2]),
+        tail_beat(eof=1, tuser=0x43, byte_count=8),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 3, clk=dut.axisClk))
+    await send_beats(tb.source, packets, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert_app_beat(rx_beats[0], payload=chunks[0], dest=0x2, tid=0x5A, user=0x12)
+    assert_app_beat(rx_beats[1], payload=chunks[1], dest=0x2, tid=0x5A)
+    assert_app_beat(rx_beats[2], payload=chunks[2], last=1, dest=0x2, tid=0x5A, user=0x43 << 56)
+
+
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        pytest.param(
+            {
+                "TDEST_BITS_G": 2,
+            },
+            id="crc_none_tdest2",
+        )
+    ],
+)
+def test_AxiStreamDepacketizer2(parameters):
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.axistreamdepacketizer2wrapper",
+        parameters=parameters,
+        extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": ["protocols/packetizer/wrappers/AxiStreamDepacketizer2Wrapper.vhd"],
+        },
+    )
