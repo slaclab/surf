@@ -408,6 +408,10 @@ begin
             -- Wait until the axil process completes readout
             if (rdMoveDoneSync = '1') then
                v.rdSetupDone   := '0';
+            end if;
+            -- Only return to idle on once the move done signal is de-asserted 
+            -- again to avoid immediately transitioning to wait state again.
+            if (v.rdSetupDone = '0') and (rdMoveDoneSync = '0') then
                v.dataTrigState := IDLE_S;
             end if;
       end case;
