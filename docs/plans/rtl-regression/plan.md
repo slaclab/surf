@@ -100,9 +100,9 @@
 - Treat checked-in Python cocotb tests the same way: use the normal repo header/comment style in the first draft instead of leaving cleanup for later.
 
 ## Rollout Planning Policy
-- The active planning driver is now manual user-directed area selection, with `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md` tracking what is done, what is intentionally narrow, and what remains open.
+- The active planning driver is now manual user-directed area selection, with `docs/plans/rtl-regression/progress.md` and `docs/plans/rtl-regression/handoff.md` tracking what is done, what is intentionally narrow, and what remains open.
 - Prefer testing high-reuse leaf primitives directly before spending effort on higher-level assemblies that mostly repackage them, but choose targets from the user's current direction and the documented open frontier.
-- Use any regenerated instantiation graph or queue only as temporary analysis output; do not check it into `docs/_meta/` or read it by default in fresh context windows.
+- Use any regenerated instantiation graph or queue only as temporary analysis output; do not check it into `docs/plans/rtl-regression/` or read it by default in fresh context windows.
 - Keep this plan policy-oriented. Day-to-day target selection, validation status, and known gaps belong in the progress and handoff docs.
 
 ## CoaXPress Spec Discipline
@@ -116,13 +116,13 @@
 - If a CoaXPress top-level bench has to be checked in as skipped because it exposes a likely RTL defect, keep the spec-shaped stimulus and the skip reason in-tree, and record the blocking symptom explicitly in the progress and handoff docs so the next pass resumes from the defect rather than from scratch.
 
 ## Optional Graph Analysis
-The old checked-in graph and queue artifacts have been retired from `docs/_meta/` to keep fresh context small and avoid stale task selection.
+The old checked-in graph and queue artifacts have been retired from this task directory to keep fresh context small and avoid stale task selection.
 
 If hierarchy analysis is useful:
 1. Use `./.venv/bin/python scripts/build_rtl_instantiation_graph.py`.
-2. Read the generated output from the script's temporary output directory, or pass an explicit non-`docs/_meta` `--output-dir`.
+2. Read the generated output from the script's temporary output directory, or pass an explicit non-`docs/plans/rtl-regression` `--output-dir`.
 3. Treat the graph and queue as disposable reference material only.
-4. Keep the real done/open frontier in `docs/_meta/rtl_regression_progress.md` and `docs/_meta/rtl_regression_handoff.md`.
+4. Keep the real done/open frontier in `docs/plans/rtl-regression/progress.md` and `docs/plans/rtl-regression/handoff.md`.
 
 ## Phase Breakdown
 ### Phase 1

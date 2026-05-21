@@ -19,7 +19,7 @@
 - Treat stale simulator cleanup as part of task completion: after any `pytest`, cocotb, GHDL, or similar launched verification step, sweep for leftover child processes and kill them before moving on
 
 ## Quick Resume Snapshot
-- Current frontier: the axi-first pass is complete, and `verification-2` has been refreshed against the current `origin/pre-release` tip while intentionally retaining the `docs/_meta/rtl_regression_*` planning files that upstream deletes. The branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, the current Ethernet coverage spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, `IpV4Engine`, and the pure-VHDL RoCEv2 quartet (`EthMacPrepareForICrc`, `EthMacRxCheckICrc`, `RoceResizeAndSwap`, and `RoceConfigurator`), and a broader user-directed CoaXPress pure-VHDL wave is checked in under `tests/protocols/coaxpress/`. The validated CoaXPress subset now includes the receive quartet `CoaXPressRxWordPacker`, `CoaXPressRxLaneMux`, `CoaXPressRxLane`, and `CoaXPressRxHsFsm`, the receive assembly `CoaXPressRx`, the transmit/bridge/config helpers `CoaXPressEventAckMsg`, `CoaXPressTxLsFsm`, `CoaXPressConfig`, `CoaXPressOverFiberBridgeRx`, and `CoaXPressOverFiberBridgeTx`, and the higher-level assemblies `CoaXPressTx`, `CoaXPressCore`, and `CoaXPressOverFiberBridge`. The SRP follow-up has a widened SRPv3 AXI protocol matrix in `tests/protocols/srp/test_SrpV3Axi.py` covering read/write/post/null flows, response backpressure, TDEST propagation, and representative protocol-error footers through the checked-in `SrpV3AxiWrapper`, plus the later SRPv3 core/AXI-Lite and SRPv0 coverage noted below. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
+- Current frontier: the axi-first pass is complete, and `verification-2` has been refreshed against the current `origin/pre-release` tip while moving the retained RTL-regression planning files into `docs/plans/rtl-regression/`. The branch line includes the landed `protocols/ssi` and `protocols/pgp` waves from `pre-release`, the current Ethernet coverage spans `EthMacCore`, `RawEthFramer`, `UdpEngine`, `IpV4Engine`, and the pure-VHDL RoCEv2 quartet (`EthMacPrepareForICrc`, `EthMacRxCheckICrc`, `RoceResizeAndSwap`, and `RoceConfigurator`), and a broader user-directed CoaXPress pure-VHDL wave is checked in under `tests/protocols/coaxpress/`. The validated CoaXPress subset now includes the receive quartet `CoaXPressRxWordPacker`, `CoaXPressRxLaneMux`, `CoaXPressRxLane`, and `CoaXPressRxHsFsm`, the receive assembly `CoaXPressRx`, the transmit/bridge/config helpers `CoaXPressEventAckMsg`, `CoaXPressTxLsFsm`, `CoaXPressConfig`, `CoaXPressOverFiberBridgeRx`, and `CoaXPressOverFiberBridgeTx`, and the higher-level assemblies `CoaXPressTx`, `CoaXPressCore`, and `CoaXPressOverFiberBridge`. The SRP follow-up has a widened SRPv3 AXI protocol matrix in `tests/protocols/srp/test_SrpV3Axi.py` covering read/write/post/null flows, response backpressure, TDEST propagation, and representative protocol-error footers through the checked-in `SrpV3AxiWrapper`, plus the later SRPv3 core/AXI-Lite and SRPv0 coverage noted below. Task selection is now user-directed rather than queue-driven, so the planning docs must track the real done/open frontier directly.
 - Current axi frontier: complete for the intended simulator-friendly pass in this branch snapshot; do not resume from the older stale `AxiResize` note.
 - Current validated-open issues:
   - The larger Ethernet families `GigEthCore`, `TenGigEthCore`, `XauiCore`, `XlauiCore`, and `Caui4Core` remain untouched in phase 1, while the remaining RoCEv2 gap is the mixed-language bench path for the five RTL entities that instantiate generated submodules: `EthMacCrcAxiStreamWrapperSend`, `EthMacCrcAxiStreamWrapperRecv`, `EthMacTxRoCEv2`, `EthMacRxRoCEv2`, and `RoceEngineWrapper`.
@@ -36,7 +36,7 @@
   - The current receive benches are intentionally mixed-depth: control-ack traffic is now driven with fuller spec-shaped framing, `CoaXPressRxLane` validates control-ack, heartbeat, bounded event payload, and stream-data CRC/`EOP` trailers, lane parser errors are visible through `rxFsmError`, and `CoaXPressRxHsFsm` detects a new image header before the prior frame's declared line count completes. The event payload path now has a bounded application-facing validate-before-release contract; do not describe stream-data receive as a buffered bad-payload dropper because the RTL still forwards stream payload before the trailer is validated. For malformed stream trailers, describe the contract as SSI terminal-error marking: final image `TUSER` carries `EOFE`, and downstream SSI consumers must reject or quarantine that frame.
 - Current planning discipline:
   - Use manual user-directed area selection as the active source of truth for what to work on next.
-  - Keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with the actual validated branch frontier.
+  - Keep `docs/plans/rtl-regression/progress.md` and this handoff file aligned with the actual validated branch frontier.
   - Do not use generated graph or queue artifacts as the next-module selector. If hierarchy analysis is useful, regenerate it temporarily with `scripts/build_rtl_instantiation_graph.py` and treat the output as disposable reference material.
   - Prefer parallel pytest for routine local validation, especially cocotb subsystem slices: `-n auto --dist=worksteal` is the default shape unless a single simulation needs serial logs or interactive debugging.
 - Current wrapper discipline:
@@ -89,7 +89,7 @@
 ## Current Status
 Planning is complete and implementation is well underway. The agreed direction is a Python-only executable regression framework with tiered `smoke` and `functional` coverage. Existing VHDL TBs are reference material only and should be rewritten in Python when migrated, unless a thin wrapper is still useful for cocotb access.
 
-The repo now has the initial handoff artifacts, a checked-in inventory scaffold at `docs/_meta/rtl_regression_inventory.yaml`, and local bootstrap helpers in `scripts/setup_regression_env.sh` plus `.vscode/tasks.json`. The first pilot modules were `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`, and the work has since moved into a graph-guided bottom-up rollout across `base/`.
+The repo now has the initial handoff artifacts, a checked-in inventory scaffold at `docs/plans/rtl-regression/inventory.yaml`, and local bootstrap helpers in `scripts/setup_regression_env.sh` plus `.vscode/tasks.json`. The first pilot modules were `FifoAsync`, `AxiStreamFifoV2`, and `AxiLiteAsync`, and the work has since moved into a graph-guided bottom-up rollout across `base/`.
 
 The local machine now has `ghdl`, a working `.venv`, the Python regression packages, a repo-local `ruckus` link to `~/ruckus`, and a successful `make MODULES="$PWD" import` run. Local environment bootstrap is no longer the blocker. The first shared-helper-based pilot regression now exists in `tests/base/fifo/test_FifoAsync.py` and passes locally.
 
@@ -175,7 +175,7 @@ The combined validation command for that batch is `./.venv/bin/python -m pytest 
 
 One small RTL fix landed during that validation pass because the new `AxiStreamDmaRingWrite` test exposed a real simulation-width hazard: `axi/dma/rtl/v1/AxiStreamDmaRingWrite.vhd` now slices `dmaAck.size` back to `RAM_DATA_WIDTH_C` before incrementing `nextAddr`. Keep that change; it is what allows the checked-in narrow wrapper to simulate cleanly under GHDL.
 
-The earlier checked-in RTL instantiation graph and phase-1 queue artifacts have been retired from `docs/_meta/` because task selection is now user-directed. The generator remains available for explicit one-off hierarchy analysis, but generated output should stay temporary unless the user asks for a specific artifact.
+The earlier checked-in RTL instantiation graph and phase-1 queue artifacts have been retired because task selection is now user-directed. The generator remains available for explicit one-off hierarchy analysis, but generated output should stay temporary unless the user asks for a specific artifact.
 
 ## Immediate Next Task
 If the user keeps the focus on stream-helper cleanup rather than resuming a new subsystem, the next practical step is the remaining PGP interleaved source/capture helpers: decide whether `tests/protocols/pgp/pgp4/test_Pgp4Rx.py` and the protocol-word collector in `tests/protocols/pgp/pgp4/pgp4_test_utils.py` should stay intentionally manual or be folded into a richer shared helper that can hold a source beat through acceptance while concurrently capturing narrow output pulses.
@@ -186,12 +186,12 @@ If the user switches back to `protocols/coaxpress`, the remaining practical work
 
 The latest CoaXPress validation after the HKP AXI-Lite consumer sweep is green for `./.venv/bin/python -m pytest -q tests/protocols/coaxpress` (`19 passed` in 560.44 seconds). The focused bridge sanity run `./.venv/bin/python -m pytest -q tests/protocols/coaxpress/test_CoaXPressOverFiberBridgeRx.py tests/protocols/coaxpress/test_CoaXPressOverFiberBridge.py` also passed with `2 passed`.
 
-If the user switches back to `ethernet/RoCEv2`, the next real step is still enabling a mixed-language cocotb path for the five remaining RTL entities listed above. Keep `docs/_meta/rtl_regression_progress.md` and this handoff file aligned with the real validated subset, and do not reintroduce local stand-ins for `blue-*`.
+If the user switches back to `ethernet/RoCEv2`, the next real step is still enabling a mixed-language cocotb path for the five remaining RTL entities listed above. Keep `docs/plans/rtl-regression/progress.md` and this handoff file aligned with the real validated subset, and do not reintroduce local stand-ins for `blue-*`.
 
 ## Read Order
-1. `docs/_meta/rtl_regression_handoff.md`
-2. `docs/_meta/rtl_regression_progress.md` only when deeper status detail is needed.
-3. `docs/_meta/rtl_regression_plan.md` only when policy details need to be checked.
+1. `docs/plans/rtl-regression/handoff.md`
+2. `docs/plans/rtl-regression/progress.md` only when deeper status detail is needed.
+3. `docs/plans/rtl-regression/plan.md` only when policy details need to be checked.
 
 Before writing code in a fresh session:
 1. Re-read the Python comment rules and the checked-in wrapper comment/header rules above.
@@ -219,15 +219,15 @@ Before writing code in a fresh session:
 - More generally, if any module needs a VHDL shim layer to fit cleanly into the cocotb flow, that shim belongs in the nearest real subsystem `ip_integrator/` tree rather than under `tests/`
 - Do not use generic `hdl/` buckets for cocotb-facing adapter layers; reserve those locations for genuinely different kinds of HDL support
 - Many VHDL wrappers live under `*/tb/`
-- The initial regression inventory lives in `docs/_meta/rtl_regression_inventory.yaml`
+- The initial regression inventory lives in `docs/plans/rtl-regression/inventory.yaml`
 - Use `./.venv/bin/python ...` for repo-local Python commands unless the virtualenv has already been activated in the current shell; do not assume a `python` shim exists on `PATH`
 - If GHDL rejects a direct command-line override for a non-scalar or real generic, prefer a generated thin test-only wrapper over simulator-specific literal workarounds or another checked-in one-off HDL shim
 - If a wrapper branch is unstable under the current open-source flow, keep the validated subset narrow and record the omitted branch explicitly in the docs instead of over-claiming wrapper coverage
 - Use `ps -Ao pid,ppid,stat,time,command` when needed to find stale simulation children, then terminate only the leftover run trees instead of broad process classes
 - `LutFixedDelay` remains intentionally deferred because it depends on `SinglePortRamPrimitive`; do not accidentally treat the now-small remaining `base/` set as phase-1 work that still needs to be forced through
-- Regenerate graph and queue analysis with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when hierarchy analysis is useful or the user explicitly asks for it; by default the script writes to a temporary output directory, not `docs/_meta/`
+- Regenerate graph and queue analysis with `./.venv/bin/python scripts/build_rtl_instantiation_graph.py` only when hierarchy analysis is useful or the user explicitly asks for it; by default the script writes to a temporary output directory, not `docs/plans/rtl-regression/`
 - Local bootstrap entrypoint: `scripts/setup_regression_env.sh`
 - Local `ruckus` is linked from `~/ruckus`
 
 ## Resume Rule
-If resuming implementation, update `docs/_meta/rtl_regression_progress.md` first.
+If resuming implementation, update `docs/plans/rtl-regression/progress.md` first.
