@@ -9,12 +9,13 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Use a two-input `AxiStreamBatcherEventBuilder` wrapper in INDEXED and
-#   ROUTED modes.  This keeps the event-builder policy visible without building
-#   an exhaustive source-count matrix.
+# - Sweep: Use a two-input `AxiStreamBatcherEventBuilder` wrapper in INDEXED,
+#   ROUTED, and one alternate routed table/transition-TDEST configuration.  This
+#   keeps event-builder policy visible without building an exhaustive
+#   source-count matrix.
 # - Stimulus: Drive small AXI Stream frames on one or both inputs, program the
-#   event-builder AXI-Lite bypass/timeout controls, and use one transition TDEST
-#   case in routed mode.
+#   event-builder AXI-Lite bypass/timeout controls, and use transition TDEST
+#   cases in routed modes.
 # - Checks: Assert source-selection policy, TDEST remap, null/transition/timeout
 #   counters, bypass/drop behavior, and the final batcher byte stream shape
 #   through the shared leaf byte helpers.
@@ -63,6 +64,8 @@ class TB:
     def __init__(self, dut):
         self.dut = dut
         self.mode = os.environ.get("MODE_G", "INDEXED").strip("'").strip('"')
+        self.route_mode = int(os.environ.get("ROUTE_MODE_G", "0"))
+        self.trans_tdest = int(os.environ.get("TRANS_TDEST_G", "255"))
         self.source0 = FlatAxisEndpoint(dut, prefix="S0_AXIS")
         self.source1 = FlatAxisEndpoint(dut, prefix="S1_AXIS")
         self.sink = FlatAxisEndpoint(dut, prefix="M_AXIS")
@@ -87,7 +90,9 @@ class TB:
     def remapped_dest(self, index: int, original: int) -> int:
         if self.mode == "ROUTED":
             if index == 1:
-                return 0x50 | (original & 0x0F)
+                if self.route_mode == 0:
+                    return 0x50 | (original & 0x0F)
+                return 0xA0 | (original & 0x0C) | 0x03
             return original & 0xFF
         return index
 
@@ -112,7 +117,7 @@ async def register_status_and_remap_test(dut):
     await tb.reset()
 
     # Pin down the management map before relying on counters later in the file.
-    assert await tb.read(TRANS_TDEST_ADDR) == 0xFF
+    assert await tb.read(TRANS_TDEST_ADDR) == tb.trans_tdest
     assert await tb.read(STATUS_ADDR) == 0x02000002
     assert await tb.read(BYPASS_ADDR) == 0
     assert await tb.read(TIMEOUT_ADDR) == 0
@@ -347,7 +352,7 @@ async def routed_transition_frame_preempts_event_test(dut):
     if tb.mode != "ROUTED":
         return
 
-    transition = _frame(bytes(range(0x80, 0x85)), dest=0xFF, first_user=0x91, last_user=0xF1)
+    transition = _frame(bytes(range(0x80, 0x85)), dest=tb.trans_tdest, first_user=0x91, last_user=0xF1)
     blocked = AxisBeat(
         data=word_from_bytes(bytes(range(0x90, 0x98))),
         keep=0xFF,
@@ -356,7 +361,7 @@ async def routed_transition_frame_preempts_event_test(dut):
         user=0xA1,
     )
     expected = [
-        _frame(transition[0], dest=0xFF, first_user=transition[2], last_user=transition[3]),
+        _frame(transition[0], dest=tb.trans_tdest, first_user=transition[2], last_user=transition[3]),
     ]
 
     # Hold source 1 valid to prove the transition path selects only the source
@@ -384,6 +389,8 @@ async def routed_transition_frame_preempts_event_test(dut):
             {
                 "VERSION_G": 2,
                 "MODE_G": "INDEXED",
+                "ROUTE_MODE_G": 0,
+                "TRANS_TDEST_G": 255,
                 "INPUT_PIPE_STAGES_G": 0,
                 "OUTPUT_PIPE_STAGES_G": 1,
             },
@@ -393,10 +400,23 @@ async def routed_transition_frame_preempts_event_test(dut):
             {
                 "VERSION_G": 2,
                 "MODE_G": "ROUTED",
+                "ROUTE_MODE_G": 0,
+                "TRANS_TDEST_G": 255,
                 "INPUT_PIPE_STAGES_G": 0,
                 "OUTPUT_PIPE_STAGES_G": 1,
             },
             id="routed_v2_2src",
+        ),
+        pytest.param(
+            {
+                "VERSION_G": 2,
+                "MODE_G": "ROUTED",
+                "ROUTE_MODE_G": 1,
+                "TRANS_TDEST_G": 165,
+                "INPUT_PIPE_STAGES_G": 0,
+                "OUTPUT_PIPE_STAGES_G": 1,
+            },
+            id="routed_alt_route_trans",
         ),
     ],
 )

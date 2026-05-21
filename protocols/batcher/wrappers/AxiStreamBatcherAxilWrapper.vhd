@@ -28,12 +28,15 @@ entity AxiStreamBatcherAxilWrapper is
       MAX_NUMBER_SUB_FRAMES_G      : positive              := 32;
       SUPER_FRAME_BYTE_THRESHOLD_G : natural               := 8192;
       MAX_CLK_GAP_G                : natural               := 256;
+      COMMON_CLOCK_G               : boolean               := true;
       INPUT_PIPE_STAGES_G          : natural               := 0;
       OUTPUT_PIPE_STAGES_G         : natural               := 1;
       AXIL_ADDR_WIDTH_G            : positive              := 12);
    port (
       axisClk       : in  sl;
       axisRst       : in  sl;
+      axilClkIn     : in  sl := '0';
+      axilRstIn     : in  sl := '1';
       idle          : out sl;
       S_AXIS_TVALID : in  sl;
       S_AXIS_TDATA  : in  slv(8*DATA_BYTES_G-1 downto 0);
@@ -83,6 +86,8 @@ architecture rtl of AxiStreamBatcherAxilWrapper is
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_FIRST_LAST_C);
 
+   signal axilHostClk     : sl;
+   signal axilHostRst     : sl;
    signal axilRstN        : sl;
    signal axilClk         : sl;
    signal axilRst         : sl;
@@ -97,7 +102,9 @@ architecture rtl of AxiStreamBatcherAxilWrapper is
 
 begin
 
-   axilRstN <= not axisRst;
+   axilHostClk <= axisClk when COMMON_CLOCK_G else axilClkIn;
+   axilHostRst <= axisRst when COMMON_CLOCK_G else axilRstIn;
+   axilRstN    <= not axilHostRst;
 
    ------------------------
    -- AXI-Lite bus shim  --
@@ -108,7 +115,7 @@ begin
          HAS_WSTRB  => 1,
          ADDR_WIDTH => AXIL_ADDR_WIDTH_G)
       port map (
-         S_AXI_ACLK      => axisClk,          -- [in]
+         S_AXI_ACLK      => axilHostClk,      -- [in]
          S_AXI_ARESETN   => axilRstN,         -- [in]
          S_AXI_AWADDR    => S_AXI_AWADDR,     -- [in]
          S_AXI_AWPROT    => S_AXI_AWPROT,     -- [in]
@@ -184,7 +191,7 @@ begin
       generic map (
          TPD_G                        => TPD_G,
          VERSION_G                    => VERSION_G,
-         COMMON_CLOCK_G               => true,
+         COMMON_CLOCK_G               => COMMON_CLOCK_G,
          MAX_NUMBER_SUB_FRAMES_G      => MAX_NUMBER_SUB_FRAMES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => SUPER_FRAME_BYTE_THRESHOLD_G,
          MAX_CLK_GAP_G                => MAX_CLK_GAP_G,

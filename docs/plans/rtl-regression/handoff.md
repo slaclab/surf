@@ -199,19 +199,21 @@ backpressure hold, and reset recovery after a partial superframe. The validated
 AXI-Lite wrapper slice covers reset/readback for the documented register map,
 control propagation for max-subframe count, byte threshold, and clock gap,
 `softRst` recovery from a partial superframe, and `blowoff` accept/drop behavior
-followed by normal recovery. The validated event-builder slice covers two-source
-INDEXED/ROUTED source selection, TDEST remap including fixed/passthrough routed
-bits, null counting without forwarding, timeout drop for a missing source
-followed by a clean later event, shared-output backpressure while both inputs
-contribute to an event, bypass skip/recovery, blowoff drop/recovery, routed
-transition-frame preemption, and visible counter/status readback. The latest
+followed by normal recovery in both common and independent AXI-Lite clock modes.
+The validated event-builder slice covers two-source INDEXED/ROUTED source
+selection, TDEST remap including fixed/passthrough routed bits and one alternate
+route table, non-default transition TDEST, null counting without forwarding,
+timeout drop for a missing source followed by a clean later event,
+shared-output backpressure while both inputs contribute to an event, bypass
+skip/recovery, blowoff drop/recovery, routed transition-frame preemption, and
+visible counter/status readback. The latest
 focused validation is
-`./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`4 passed`),
+`./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`6 passed`),
 with clean wrapper `vsg`, Python `py_compile`, stale-process sweep, and
 `git diff --check`. Possible next steps are a small V1/power-of-two leaf case,
-deeper AXI-Lite async/adverse reset timing, or targeted event-builder breadth
-such as more source-count/generic cases, alternate route tables, external-only
-blowoff, or bug-driven transition/bypass timing.
+deeper AXI-Lite adverse reset timing, or targeted event-builder breadth such as
+more source-count/generic cases, external-only blowoff, or bug-driven
+transition/bypass timing.
 
 If the user keeps the focus on `protocols/srp`, the main review findings and high-value coverage additions are complete. The optional remaining SRP follow-up is deeper timeout or posted-write disabled-op permutations if a future change touches those RTL branches. The latest focused SRP validation command is `./.venv/bin/python -m pytest -n 0 -q tests/protocols/srp`, and it passed locally with `23 passed`.
 

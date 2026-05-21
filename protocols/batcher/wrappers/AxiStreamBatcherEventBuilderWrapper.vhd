@@ -22,14 +22,15 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamBatcherEventBuilderWrapper is
    generic (
-      TPD_G                 : time                  := 1 ns;
-      VERSION_G             : positive range 1 to 2 := 2;
-      MODE_G                : string                := "INDEXED";
-      DATA_BYTES_G          : positive range 8 to 8 := 8;
-      INPUT_PIPE_STAGES_G   : natural               := 0;
-      OUTPUT_PIPE_STAGES_G  : natural               := 1;
-      AXIL_ADDR_WIDTH_G     : positive              := 12;
-      TRANS_TDEST_G         : slv(7 downto 0)       := x"FF");
+      TPD_G                 : time                   := 1 ns;
+      VERSION_G             : positive range 1 to 2  := 2;
+      MODE_G                : string                 := "INDEXED";
+      DATA_BYTES_G          : positive range 8 to 8  := 8;
+      ROUTE_MODE_G          : natural range 0 to 1   := 0;
+      INPUT_PIPE_STAGES_G   : natural                := 0;
+      OUTPUT_PIPE_STAGES_G  : natural                := 1;
+      AXIL_ADDR_WIDTH_G     : positive               := 12;
+      TRANS_TDEST_G         : natural range 0 to 255 := 255);
    port (
       axisClk        : in  sl;
       axisRst        : in  sl;
@@ -84,6 +85,15 @@ architecture rtl of AxiStreamBatcherEventBuilderWrapper is
 
    constant NUM_SLAVES_C : positive := 2;
 
+   function route1 (mode : natural) return slv is
+   begin
+      if mode = 0 then
+         return "0101----";
+      else
+         return "1010--11";
+      end if;
+   end function route1;
+
    constant AXIS_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
       TDATA_BYTES_C => DATA_BYTES_G,
@@ -95,7 +105,7 @@ architecture rtl of AxiStreamBatcherEventBuilderWrapper is
 
    constant TDEST_ROUTES_C : Slv8Array(NUM_SLAVES_C-1 downto 0) := (
       0 => "--------",
-      1 => "0101----");
+      1 => route1(ROUTE_MODE_G));
 
    signal axilRstN        : sl;
    signal axilClk         : sl;
@@ -221,7 +231,7 @@ begin
          MODE_G               => MODE_G,
          TDEST_ROUTES_G       => TDEST_ROUTES_C,
          TDEST_LOW_G          => 0,
-         TRANS_TDEST_G        => TRANS_TDEST_G,
+         TRANS_TDEST_G        => toSlv(TRANS_TDEST_G, 8),
          AXIS_CONFIG_G        => AXIS_CONFIG_C,
          INPUT_PIPE_STAGES_G  => INPUT_PIPE_STAGES_G,
          OUTPUT_PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)

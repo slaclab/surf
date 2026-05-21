@@ -9,21 +9,24 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Use the `AxiStreamBatcherAxil` wrapper in V2 mode with common AXI-Lite
-#   and stream clocks, matching the stable first control-surface target from the
-#   batcher regression plan.
+# - Sweep: Use the `AxiStreamBatcherAxil` wrapper in V2 mode with common and
+#   independent AXI-Lite/stream clocks, matching the control-surface targets
+#   from the batcher regression plan.
 # - Stimulus: Program the runtime threshold, max-subframe, max-clock-gap,
 #   `softRst`, and `blowoff` registers through a cocotb AXI-Lite master while
 #   driving flat AXI Stream subframes through the wrapped batcher.
 # - Checks: Register reset values and readback must match the RTL/PyRogue map,
 #   and control writes must change stream-side termination or drop/reset behavior
 #   without re-proving every batcher payload byte beyond the leaf helper model.
-# - Timing: AXI-Lite transactions and stream ready/valid handshakes share one
-#   clock, and the blowoff/reset checks include no-output windows after traffic
-#   is accepted.
+# - Timing: The common-clock case keeps readback strict, while the async case
+#   waits for the expected register value through the CDC bridge before using
+#   writes to steer stream-side behavior.
+
+import os
 
 import cocotb
 import pytest
+from cocotb.clock import Clock
 from cocotb.triggers import with_timeout
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
@@ -55,23 +58,61 @@ SOFT_RST_ADDR = 0xFC
 class TB:
     def __init__(self, dut):
         self.dut = dut
+        self.common_clock = os.environ.get("COMMON_CLOCK_G", "True").lower() == "true"
         self.source = FlatAxisEndpoint(dut, prefix="S_AXIS")
         self.sink = FlatAxisEndpoint(dut, prefix="M_AXIS")
-        self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.axisClk, dut.axisRst)
 
         start_batcher_clock(dut)
         dut.axisRst.setimmediatevalue(1)
+        dut.axilClkIn.setimmediatevalue(0)
+        dut.axilRstIn.setimmediatevalue(1)
+        if self.common_clock:
+            self.axil_clk = dut.axisClk
+            self.axil_rst = dut.axisRst
+        else:
+            cocotb.start_soon(Clock(dut.axilClkIn, 7.0, unit="ns").start())
+            self.axil_clk = dut.axilClkIn
+            self.axil_rst = dut.axilRstIn
+        self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), self.axil_clk, self.axil_rst)
+
         dut.M_AXIS_TREADY.setimmediatevalue(0)
         self.source.set_idle()
 
     async def reset(self):
-        await reset_batcher_dut(self.dut)
+        if self.common_clock:
+            await reset_batcher_dut(self.dut)
+        else:
+            self.dut.axisRst.setimmediatevalue(1)
+            self.dut.axilRstIn.setimmediatevalue(1)
+            await cycle(self.dut.axisClk, 8)
+            await cycle(self.dut.axilClkIn, 8)
+            self.dut.axisRst.value = 0
+            await cycle(self.dut.axisClk, 16)
+            self.dut.axilRstIn.value = 0
+            await cycle(self.dut.axisClk, 64)
+            await cycle(self.dut.axilClkIn, 64)
 
     async def read(self, address: int) -> int:
         return await with_timeout(axil_read_u32(self.axil, address), 2, "us")
 
+    async def read_eventually(self, address: int, expected: int) -> None:
+        # The async bridge can return reset/CDC-latency responses before the
+        # target register response reaches the AXI-Lite side.
+        observed = []
+        for _ in range(8):
+            observed.append(await self.read(address))
+            if observed[-1] == expected:
+                return
+            await cycle(self.axil_clk, 4)
+        raise AssertionError(
+            f"AXI-Lite readback at 0x{address:02X} never reached "
+            f"0x{expected:08X}; observed {observed}"
+        )
+
     async def write(self, address: int, value: int) -> None:
         await with_timeout(axil_write_u32(self.axil, address, value), 2, "us")
+        if not self.common_clock:
+            await cycle(self.dut.axisClk, 16)
 
 
 @cocotb.test()
@@ -81,19 +122,30 @@ async def register_reset_and_readback_test(dut):
 
     # The reset values mirror `AxiStreamBatcherAxil` generics and the PyRogue
     # register map.  Status bit 0 is idle and bits 27:24 report VERSION_G.
-    assert await tb.read(SUPER_FRAME_BYTE_THRESHOLD_ADDR) == 8192
-    assert await tb.read(MAX_SUB_FRAMES_ADDR) == 32
-    assert await tb.read(MAX_CLK_GAP_ADDR) == 256
-    assert await tb.read(STATUS_ADDR) == 0x02000001
+    if tb.common_clock:
+        assert await tb.read(SUPER_FRAME_BYTE_THRESHOLD_ADDR) == 8192
+        assert await tb.read(MAX_SUB_FRAMES_ADDR) == 32
+        assert await tb.read(MAX_CLK_GAP_ADDR) == 256
+        assert await tb.read(STATUS_ADDR) == 0x02000001
+    else:
+        await tb.read_eventually(SUPER_FRAME_BYTE_THRESHOLD_ADDR, 8192)
+        await tb.read_eventually(MAX_SUB_FRAMES_ADDR, 32)
+        await tb.read_eventually(MAX_CLK_GAP_ADDR, 256)
+        await tb.read_eventually(STATUS_ADDR, 0x02000001)
 
     # Write/readback checks keep the control register map pinned before the
     # stream-side tests rely on these fields to steer termination behavior.
     await tb.write(SUPER_FRAME_BYTE_THRESHOLD_ADDR, 24)
     await tb.write(MAX_SUB_FRAMES_ADDR, 2)
     await tb.write(MAX_CLK_GAP_ADDR, 5)
-    assert await tb.read(SUPER_FRAME_BYTE_THRESHOLD_ADDR) == 24
-    assert await tb.read(MAX_SUB_FRAMES_ADDR) == 2
-    assert await tb.read(MAX_CLK_GAP_ADDR) == 5
+    if tb.common_clock:
+        assert await tb.read(SUPER_FRAME_BYTE_THRESHOLD_ADDR) == 24
+        assert await tb.read(MAX_SUB_FRAMES_ADDR) == 2
+        assert await tb.read(MAX_CLK_GAP_ADDR) == 5
+    else:
+        await tb.read_eventually(SUPER_FRAME_BYTE_THRESHOLD_ADDR, 24)
+        await tb.read_eventually(MAX_SUB_FRAMES_ADDR, 2)
+        await tb.read_eventually(MAX_CLK_GAP_ADDR, 5)
 
 
 @cocotb.test()
@@ -257,10 +309,21 @@ async def blowoff_drops_accepted_input_test(dut):
             {
                 "VERSION_G": 2,
                 "DATA_BYTES_G": 8,
+                "COMMON_CLOCK_G": True,
                 "INPUT_PIPE_STAGES_G": 0,
                 "OUTPUT_PIPE_STAGES_G": 1,
             },
             id="v2_8byte_common_clock",
+        ),
+        pytest.param(
+            {
+                "VERSION_G": 2,
+                "DATA_BYTES_G": 8,
+                "COMMON_CLOCK_G": False,
+                "INPUT_PIPE_STAGES_G": 0,
+                "OUTPUT_PIPE_STAGES_G": 1,
+            },
+            id="v2_8byte_async_axil",
         ),
     ],
 )
