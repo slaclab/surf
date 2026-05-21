@@ -19,11 +19,11 @@ class CoaXPressOverFiberBridgeAxiL(pr.Device):
 
         rxErrorCodeEnum = {
             0x0: 'None',
-            0x1: 'BadControl',
-            0x2: 'Overwrite',
-            0x3: 'IdleError',
-            0x4: 'PayloadAbort',
-            0x5: 'SeqMismatch',
+            0x1: 'SeqMismatch',
+            0x2: 'IdleError',
+            0x3: 'PayloadAbort',
+            0x4: 'BadControl',
+            0x5: 'Overwrite',
             0x6: 'HkpMalformed',
             0x7: 'HkpBadKCode',
         }
