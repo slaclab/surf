@@ -472,7 +472,7 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          WIDTH_G        => 2)
       port map (
-         clk     => axilClk,
+         clk     => dataClk,
          dataIn  => axilToDataSyncIn,
          dataOut => axilToDataSyncOut);
 
