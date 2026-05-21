@@ -119,28 +119,28 @@ architecture rtl of AxiStreamDmaV2WriteMuxIpIntegrator is
 
 begin
 
-   dataWriteCtrlPause <= dataWriteCtrl.pause;
-   dataWriteCtrlOver  <= dataWriteCtrl.overflow;
-   mAxiWriteCtrl.pause <= mAxiWriteCtrlPause;
+   dataWriteCtrlPause     <= dataWriteCtrl.pause;
+   dataWriteCtrlOver      <= dataWriteCtrl.overflow;
+   mAxiWriteCtrl.pause    <= mAxiWriteCtrlPause;
    mAxiWriteCtrl.overflow <= mAxiWriteCtrlOver;
 
-   dataWriteMaster.awid     <= resize(DATA_AXI_AWID, dataWriteMaster.awid'length);
-   dataWriteMaster.awaddr   <= resize(DATA_AXI_AWADDR, dataWriteMaster.awaddr'length);
-   dataWriteMaster.awlen    <= DATA_AXI_AWLEN;
-   dataWriteMaster.awsize   <= DATA_AXI_AWSIZE;
-   dataWriteMaster.awburst  <= DATA_AXI_AWBURST;
+   dataWriteMaster.awid      <= resize(DATA_AXI_AWID, dataWriteMaster.awid'length);
+   dataWriteMaster.awaddr    <= resize(DATA_AXI_AWADDR, dataWriteMaster.awaddr'length);
+   dataWriteMaster.awlen     <= DATA_AXI_AWLEN;
+   dataWriteMaster.awsize    <= DATA_AXI_AWSIZE;
+   dataWriteMaster.awburst   <= DATA_AXI_AWBURST;
    dataWriteMaster.awlock(0) <= DATA_AXI_AWLOCK;
-   dataWriteMaster.awcache  <= DATA_AXI_AWCACHE;
-   dataWriteMaster.awprot   <= DATA_AXI_AWPROT;
-   dataWriteMaster.awregion <= DATA_AXI_AWREGION;
-   dataWriteMaster.awqos    <= DATA_AXI_AWQOS;
-   dataWriteMaster.awvalid  <= DATA_AXI_AWVALID;
-   dataWriteMaster.wid      <= resize(DATA_AXI_WID, dataWriteMaster.wid'length);
-   dataWriteMaster.wdata    <= resize(DATA_AXI_WDATA, dataWriteMaster.wdata'length);
-   dataWriteMaster.wstrb    <= resize(DATA_AXI_WSTRB, dataWriteMaster.wstrb'length);
-   dataWriteMaster.wlast    <= DATA_AXI_WLAST;
-   dataWriteMaster.wvalid   <= DATA_AXI_WVALID;
-   dataWriteMaster.bready   <= DATA_AXI_BREADY;
+   dataWriteMaster.awcache   <= DATA_AXI_AWCACHE;
+   dataWriteMaster.awprot    <= DATA_AXI_AWPROT;
+   dataWriteMaster.awregion  <= DATA_AXI_AWREGION;
+   dataWriteMaster.awqos     <= DATA_AXI_AWQOS;
+   dataWriteMaster.awvalid   <= DATA_AXI_AWVALID;
+   dataWriteMaster.wid       <= resize(DATA_AXI_WID, dataWriteMaster.wid'length);
+   dataWriteMaster.wdata     <= resize(DATA_AXI_WDATA, dataWriteMaster.wdata'length);
+   dataWriteMaster.wstrb     <= resize(DATA_AXI_WSTRB, dataWriteMaster.wstrb'length);
+   dataWriteMaster.wlast     <= DATA_AXI_WLAST;
+   dataWriteMaster.wvalid    <= DATA_AXI_WVALID;
+   dataWriteMaster.bready    <= DATA_AXI_BREADY;
 
    DATA_AXI_AWREADY <= dataWriteSlave.awready;
    DATA_AXI_WREADY  <= dataWriteSlave.wready;
@@ -148,23 +148,23 @@ begin
    DATA_AXI_BRESP   <= dataWriteSlave.bresp;
    DATA_AXI_BVALID  <= dataWriteSlave.bvalid;
 
-   descWriteMaster.awid     <= resize(DESC_AXI_AWID, descWriteMaster.awid'length);
-   descWriteMaster.awaddr   <= resize(DESC_AXI_AWADDR, descWriteMaster.awaddr'length);
-   descWriteMaster.awlen    <= DESC_AXI_AWLEN;
-   descWriteMaster.awsize   <= DESC_AXI_AWSIZE;
-   descWriteMaster.awburst  <= DESC_AXI_AWBURST;
+   descWriteMaster.awid      <= resize(DESC_AXI_AWID, descWriteMaster.awid'length);
+   descWriteMaster.awaddr    <= resize(DESC_AXI_AWADDR, descWriteMaster.awaddr'length);
+   descWriteMaster.awlen     <= DESC_AXI_AWLEN;
+   descWriteMaster.awsize    <= DESC_AXI_AWSIZE;
+   descWriteMaster.awburst   <= DESC_AXI_AWBURST;
    descWriteMaster.awlock(0) <= DESC_AXI_AWLOCK;
-   descWriteMaster.awcache  <= DESC_AXI_AWCACHE;
-   descWriteMaster.awprot   <= DESC_AXI_AWPROT;
-   descWriteMaster.awregion <= DESC_AXI_AWREGION;
-   descWriteMaster.awqos    <= DESC_AXI_AWQOS;
-   descWriteMaster.awvalid  <= DESC_AXI_AWVALID;
-   descWriteMaster.wid      <= resize(DESC_AXI_WID, descWriteMaster.wid'length);
-   descWriteMaster.wdata    <= resize(DESC_AXI_WDATA, descWriteMaster.wdata'length);
-   descWriteMaster.wstrb    <= resize(DESC_AXI_WSTRB, descWriteMaster.wstrb'length);
-   descWriteMaster.wlast    <= DESC_AXI_WLAST;
-   descWriteMaster.wvalid   <= DESC_AXI_WVALID;
-   descWriteMaster.bready   <= DESC_AXI_BREADY;
+   descWriteMaster.awcache   <= DESC_AXI_AWCACHE;
+   descWriteMaster.awprot    <= DESC_AXI_AWPROT;
+   descWriteMaster.awregion  <= DESC_AXI_AWREGION;
+   descWriteMaster.awqos     <= DESC_AXI_AWQOS;
+   descWriteMaster.awvalid   <= DESC_AXI_AWVALID;
+   descWriteMaster.wid       <= resize(DESC_AXI_WID, descWriteMaster.wid'length);
+   descWriteMaster.wdata     <= resize(DESC_AXI_WDATA, descWriteMaster.wdata'length);
+   descWriteMaster.wstrb     <= resize(DESC_AXI_WSTRB, descWriteMaster.wstrb'length);
+   descWriteMaster.wlast     <= DESC_AXI_WLAST;
+   descWriteMaster.wvalid    <= DESC_AXI_WVALID;
+   descWriteMaster.bready    <= DESC_AXI_BREADY;
 
    DESC_AXI_AWREADY <= descWriteSlave.awready;
    DESC_AXI_WREADY  <= descWriteSlave.wready;
@@ -190,11 +190,11 @@ begin
    M_AXI_WVALID   <= mAxiWriteMaster.wvalid;
    M_AXI_BREADY   <= mAxiWriteMaster.bready;
 
-   mAxiWriteSlave.awready <= M_AXI_AWREADY;
-   mAxiWriteSlave.wready  <= M_AXI_WREADY;
+   mAxiWriteSlave.awready         <= M_AXI_AWREADY;
+   mAxiWriteSlave.wready          <= M_AXI_WREADY;
    mAxiWriteSlave.bid(3 downto 0) <= M_AXI_BID;
-   mAxiWriteSlave.bresp   <= M_AXI_BRESP;
-   mAxiWriteSlave.bvalid  <= M_AXI_BVALID;
+   mAxiWriteSlave.bresp           <= M_AXI_BRESP;
+   mAxiWriteSlave.bvalid          <= M_AXI_BVALID;
 
    U_DUT : entity surf.AxiStreamDmaV2WriteMux
       generic map (

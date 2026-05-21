@@ -70,18 +70,18 @@ end entity FirFilterMultiChannelCacheTestWrapper;
 
 architecture rtl of FirFilterMultiChannelCacheTestWrapper is
 
-   signal axisClkSig       : sl;
-   signal axisRstSig       : sl;
-   signal sAxisMasterSig   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlaveSig    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal mAxisMasterSig   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlaveSig    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal axilClkSig       : sl;
-   signal axilRstSig       : sl;
-   signal axilReadMaster   : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave    : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal axilWriteMaster  : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal axilWriteSlave   : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal axisClkSig      : sl;
+   signal axisRstSig      : sl;
+   signal sAxisMasterSig  : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlaveSig   : AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
+   signal mAxisMasterSig  : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlaveSig   : AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
+   signal axilClkSig      : sl;
+   signal axilRstSig      : sl;
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
+   signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 

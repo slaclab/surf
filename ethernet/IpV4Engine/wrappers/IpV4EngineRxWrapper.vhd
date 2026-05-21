@@ -55,52 +55,53 @@ architecture rtl of IpV4EngineRxWrapper is
 
    constant PROTOCOL_C : Slv8Array(1 downto 0) := (0 => UDP_C, 1 => ICMP_C);
 
-   signal sIpv4Master      : AxiStreamMasterType             := AXI_STREAM_MASTER_INIT_C;
-   signal sIpv4Slave       : AxiStreamSlaveType              := AXI_STREAM_SLAVE_INIT_C;
-   signal localhostSlave   : AxiStreamSlaveType              := AXI_STREAM_SLAVE_INIT_C;
+   signal sIpv4Master      : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal sIpv4Slave       : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
+   signal localhostSlave   : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
    signal ibProtocolMaster : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal ibProtocolSlave  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
 begin
 
    -- Flatten the inbound IPv4 MAC frame stream.
-   sIpv4Comb : process (sIpv4Eofe, sIpv4Sof, sIpv4TData, sIpv4TKeep, sIpv4TLast, sIpv4TValid) is
+   sIpv4Comb : process (sIpv4Eofe, sIpv4Sof, sIpv4TData, sIpv4TKeep,
+                        sIpv4TLast, sIpv4TValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sIpv4TValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sIpv4TValid;
       v.tData(127 downto 0) := sIpv4TData;
-      v.tKeep(15 downto 0) := sIpv4TKeep;
-      v.tLast := sIpv4TLast;
+      v.tKeep(15 downto 0)  := sIpv4TKeep;
+      v.tLast               := sIpv4TLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sIpv4Sof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sIpv4Eofe);
-      sIpv4Master <= v;
+      sIpv4Master           <= v;
    end process sIpv4Comb;
 
-   sIpv4TReady <= sIpv4Slave.tReady;
+   sIpv4TReady               <= sIpv4Slave.tReady;
    ibProtocolSlave(0).tReady <= mUdpTReady;
    ibProtocolSlave(1).tReady <= mIcmpTReady;
 
    -- Expose the UDP-routed output slot directly to cocotb.
-   mUdpView : process (ibProtocolMaster(0)) is
+   mUdpView : process (ibProtocolMaster) is
    begin
       mUdpTValid <= ibProtocolMaster(0).tValid;
-      mUdpTData <= ibProtocolMaster(0).tData(127 downto 0);
-      mUdpTKeep <= ibProtocolMaster(0).tKeep(15 downto 0);
-      mUdpTLast <= ibProtocolMaster(0).tLast;
-      mUdpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(0), EMAC_SOF_BIT_C, 0);
-      mUdpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(0), EMAC_EOFE_BIT_C);
+      mUdpTData  <= ibProtocolMaster(0).tData(127 downto 0);
+      mUdpTKeep  <= ibProtocolMaster(0).tKeep(15 downto 0);
+      mUdpTLast  <= ibProtocolMaster(0).tLast;
+      mUdpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(0), EMAC_SOF_BIT_C, 0);
+      mUdpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(0), EMAC_EOFE_BIT_C);
    end process mUdpView;
 
    -- Expose the ICMP-routed output slot in the same flattened format.
-   mIcmpView : process (ibProtocolMaster(1)) is
+   mIcmpView : process (ibProtocolMaster) is
    begin
       mIcmpTValid <= ibProtocolMaster(1).tValid;
-      mIcmpTData <= ibProtocolMaster(1).tData(127 downto 0);
-      mIcmpTKeep <= ibProtocolMaster(1).tKeep(15 downto 0);
-      mIcmpTLast <= ibProtocolMaster(1).tLast;
-      mIcmpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(1), EMAC_SOF_BIT_C, 0);
-      mIcmpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(1), EMAC_EOFE_BIT_C);
+      mIcmpTData  <= ibProtocolMaster(1).tData(127 downto 0);
+      mIcmpTKeep  <= ibProtocolMaster(1).tKeep(15 downto 0);
+      mIcmpTLast  <= ibProtocolMaster(1).tLast;
+      mIcmpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(1), EMAC_SOF_BIT_C, 0);
+      mIcmpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, ibProtocolMaster(1), EMAC_EOFE_BIT_C);
    end process mIcmpView;
 
    U_DUT : entity surf.IpV4EngineRx

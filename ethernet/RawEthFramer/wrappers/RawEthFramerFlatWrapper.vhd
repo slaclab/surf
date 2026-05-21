@@ -85,53 +85,55 @@ end entity RawEthFramerFlatWrapper;
 
 architecture rtl of RawEthFramerFlatWrapper is
 
-   signal sMacMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sMacSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mMacMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mMacSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal sAppMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAppSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mAppMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAppSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal axilReadMaster : AxiLiteReadMasterType := AXI_LITE_READ_MASTER_INIT_C;
-   signal axilReadSlave  : AxiLiteReadSlaveType  := AXI_LITE_READ_SLAVE_INIT_C;
+   signal sMacMaster      : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal sMacSlave       : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal mMacMaster      : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal mMacSlave       : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal sAppMaster      : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal sAppSlave       : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal mAppMaster      : AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
+   signal mAppSlave       : AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+   signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+   signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 
    -- Flatten the inbound MAC-side stream that feeds the RX path.
-   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast, sMacTValid) is
+   sMacComb : process (sMacEofe, sMacSof, sMacTData, sMacTKeep, sMacTLast,
+                       sMacTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sMacTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sMacTValid;
       v.tData(63 downto 0) := sMacTData;
-      v.tKeep(7 downto 0) := sMacTKeep;
-      v.tLast := sMacTLast;
+      v.tKeep(7 downto 0)  := sMacTKeep;
+      v.tLast              := sMacTLast;
       ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v, sMacSof);
       ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v, sMacEofe);
-      sMacMaster <= v;
+      sMacMaster           <= v;
    end process sMacComb;
 
    -- Flatten the application-side stream that feeds the TX path.
-   sAppComb : process (sAppBcf, sAppEofe, sAppSof, sAppTData, sAppTDest, sAppTKeep, sAppTLast, sAppTValid) is
+   sAppComb : process (sAppBcf, sAppEofe, sAppSof, sAppTData, sAppTDest,
+                       sAppTKeep, sAppTLast, sAppTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAppTValid;
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := sAppTValid;
       v.tData(63 downto 0) := sAppTData;
-      v.tKeep(7 downto 0) := sAppTKeep;
-      v.tLast := sAppTLast;
-      v.tDest(7 downto 0) := sAppTDest;
+      v.tKeep(7 downto 0)  := sAppTKeep;
+      v.tLast              := sAppTLast;
+      v.tDest(7 downto 0)  := sAppTDest;
       ssiSetUserSof(RAW_ETH_CONFIG_INIT_C, v, sAppSof);
       ssiSetUserBcf(RAW_ETH_CONFIG_INIT_C, v, sAppBcf);
       ssiSetUserEofe(RAW_ETH_CONFIG_INIT_C, v, sAppEofe);
-      sAppMaster <= v;
+      sAppMaster           <= v;
    end process sAppComb;
 
-   sMacTReady <= sMacSlave.tReady;
-   sAppTReady <= sAppSlave.tReady;
+   sMacTReady       <= sMacSlave.tReady;
+   sAppTReady       <= sAppSlave.tReady;
    mMacSlave.tReady <= mMacTReady;
    mAppSlave.tReady <= mAppTReady;
 
@@ -139,24 +141,24 @@ begin
    mMacView : process (mMacMaster) is
    begin
       mMacTValid <= mMacMaster.tValid;
-      mMacTData <= mMacMaster.tData(63 downto 0);
-      mMacTKeep <= mMacMaster.tKeep(7 downto 0);
-      mMacTLast <= mMacMaster.tLast;
-      mMacSof <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mMacMaster);
-      mMacEofe <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mMacMaster);
+      mMacTData  <= mMacMaster.tData(63 downto 0);
+      mMacTKeep  <= mMacMaster.tKeep(7 downto 0);
+      mMacTLast  <= mMacMaster.tLast;
+      mMacSof    <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mMacMaster);
+      mMacEofe   <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mMacMaster);
    end process mMacView;
 
    -- Re-expand the application-side output stream and metadata.
    mAppView : process (mAppMaster) is
    begin
       mAppTValid <= mAppMaster.tValid;
-      mAppTData <= mAppMaster.tData(63 downto 0);
-      mAppTKeep <= mAppMaster.tKeep(7 downto 0);
-      mAppTLast <= mAppMaster.tLast;
-      mAppTDest <= mAppMaster.tDest(7 downto 0);
-      mAppSof <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mAppMaster);
-      mAppBcf <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mAppMaster);
-      mAppEofe <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppTData  <= mAppMaster.tData(63 downto 0);
+      mAppTKeep  <= mAppMaster.tKeep(7 downto 0);
+      mAppTLast  <= mAppMaster.tLast;
+      mAppTDest  <= mAppMaster.tDest(7 downto 0);
+      mAppSof    <= ssiGetUserSof(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppBcf    <= ssiGetUserBcf(RAW_ETH_CONFIG_INIT_C, mAppMaster);
+      mAppEofe   <= ssiGetUserEofe(RAW_ETH_CONFIG_INIT_C, mAppMaster);
    end process mAppView;
 
    U_AxilShim : entity surf.SlaveAxiLiteIpIntegrator

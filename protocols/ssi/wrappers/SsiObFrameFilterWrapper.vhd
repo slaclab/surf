@@ -26,27 +26,27 @@ entity SsiObFrameFilterWrapper is
       VALID_THOLD_G : natural               := 1;
       PIPE_STAGES_G : natural               := 1);
    port (
-      axisClk         : in  sl;
-      axisRst         : in  sl;
-      sAxisTValid     : in  sl;
-      sAxisTData      : in  slv(63 downto 0);
-      sAxisTKeep      : in  slv(7 downto 0);
-      sAxisTLast      : in  sl;
-      sAxisTDest      : in  slv(3 downto 0);
-      sAxisSof        : in  sl;
-      sAxisEofe       : in  sl;
-      sAxisTReady     : out sl;
-      sTLastEofe      : in  sl;
-      mAxisDropWord   : out sl;
-      mAxisDropFrame  : out sl;
-      mAxisTValid     : out sl;
-      mAxisTData      : out slv(63 downto 0);
-      mAxisTKeep      : out slv(7 downto 0);
-      mAxisTLast      : out sl;
-      mAxisTDest      : out slv(3 downto 0);
-      mAxisSof        : out sl;
-      mAxisEofe       : out sl;
-      mAxisTReady     : in  sl);
+      axisClk        : in  sl;
+      axisRst        : in  sl;
+      sAxisTValid    : in  sl;
+      sAxisTData     : in  slv(63 downto 0);
+      sAxisTKeep     : in  slv(7 downto 0);
+      sAxisTLast     : in  sl;
+      sAxisTDest     : in  slv(3 downto 0);
+      sAxisSof       : in  sl;
+      sAxisEofe      : in  sl;
+      sAxisTReady    : out sl;
+      sTLastEofe     : in  sl;
+      mAxisDropWord  : out sl;
+      mAxisDropFrame : out sl;
+      mAxisTValid    : out sl;
+      mAxisTData     : out slv(63 downto 0);
+      mAxisTKeep     : out slv(7 downto 0);
+      mAxisTLast     : out sl;
+      mAxisTDest     : out slv(3 downto 0);
+      mAxisSof       : out sl;
+      mAxisEofe      : out sl;
+      mAxisTReady    : in  sl);
 end entity SsiObFrameFilterWrapper;
 
 architecture rtl of SsiObFrameFilterWrapper is
@@ -57,7 +57,7 @@ architecture rtl of SsiObFrameFilterWrapper is
       tUserMode => TUSER_FIRST_LAST_C,
       tDestBits => 4,
       tUserBits => 2);
-   constant DATA_WIDTH_C  : positive := 8*DATA_BYTES_G;
+   constant DATA_WIDTH_C : positive := 8*DATA_BYTES_G;
 
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
@@ -67,23 +67,24 @@ architecture rtl of SsiObFrameFilterWrapper is
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                                := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                         := sAxisTValid;
       v.tData(DATA_WIDTH_C-1 downto 0) := sAxisTData(DATA_WIDTH_C-1 downto 0);
       v.tKeep(DATA_BYTES_G-1 downto 0) := sAxisTKeep(DATA_BYTES_G-1 downto 0);
-      v.tLast := sAxisTLast;
-      v.tDest(3 downto 0) := sAxisTDest;
+      v.tLast                          := sAxisTLast;
+      v.tDest(3 downto 0)              := sAxisTDest;
       ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster                      <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlave.tReady;
+   sAxisTReady             <= sAxisSlave.tReady;
    sTLastTUser(SSI_EOFE_C) <= sTLastEofe;
-   mAxisSlave.tReady <= mAxisTReady;
+   mAxisSlave.tReady       <= mAxisTReady;
 
    mAxisView : process (mAxisMaster) is
       variable dataV : slv(63 downto 0);
@@ -96,12 +97,12 @@ begin
       keepV(DATA_BYTES_G-1 downto 0) := mAxisMaster.tKeep(DATA_BYTES_G-1 downto 0);
 
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= dataV;
-      mAxisTKeep <= keepV;
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(3 downto 0);
-      mAxisSof <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
-      mAxisEofe <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
+      mAxisTData  <= dataV;
+      mAxisTKeep  <= keepV;
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(3 downto 0);
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
    end process mAxisView;
 
    U_DUT : entity surf.SsiObFrameFilter

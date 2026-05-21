@@ -76,7 +76,7 @@ end entity AxiLiteSequencerRamIpIntegrator;
 
 architecture rtl of AxiLiteSequencerRamIpIntegrator is
 
-   signal sAxiAResetN     : sl                     := '1';
+   signal sAxiAResetN      : sl                     := '1';
    signal sAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal sAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal sAxilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;

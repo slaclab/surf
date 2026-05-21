@@ -27,85 +27,86 @@ entity IpV4EngineTxWrapper is
       RST_ASYNC_G    : boolean         := false;
       TTL_G          : slv(7 downto 0) := x"20");
    port (
-      clk           : in  sl;
-      rst           : in  sl;
-      localMac      : in  slv(47 downto 0);
-      sProtTValid   : in  sl;
-      sProtTData    : in  slv(127 downto 0);
-      sProtTKeep    : in  slv(15 downto 0);
-      sProtTLast    : in  sl;
-      sProtTReady   : out sl;
-      sProtSof      : in  sl;
-      sProtEofe     : in  sl;
-      mIpv4TValid   : out sl;
-      mIpv4TData    : out slv(127 downto 0);
-      mIpv4TKeep    : out slv(15 downto 0);
-      mIpv4TLast    : out sl;
-      mIpv4TReady   : in  sl := '1';
-      mIpv4Sof      : out sl;
-      mIpv4Eofe     : out sl;
-      mLocalTValid  : out sl;
-      mLocalTData   : out slv(127 downto 0);
-      mLocalTKeep   : out slv(15 downto 0);
-      mLocalTLast   : out sl;
-      mLocalTReady  : in  sl := '1';
-      mLocalSof     : out sl;
-      mLocalEofe    : out sl);
+      clk          : in  sl;
+      rst          : in  sl;
+      localMac     : in  slv(47 downto 0);
+      sProtTValid  : in  sl;
+      sProtTData   : in  slv(127 downto 0);
+      sProtTKeep   : in  slv(15 downto 0);
+      sProtTLast   : in  sl;
+      sProtTReady  : out sl;
+      sProtSof     : in  sl;
+      sProtEofe    : in  sl;
+      mIpv4TValid  : out sl;
+      mIpv4TData   : out slv(127 downto 0);
+      mIpv4TKeep   : out slv(15 downto 0);
+      mIpv4TLast   : out sl;
+      mIpv4TReady  : in  sl := '1';
+      mIpv4Sof     : out sl;
+      mIpv4Eofe    : out sl;
+      mLocalTValid : out sl;
+      mLocalTData  : out slv(127 downto 0);
+      mLocalTKeep  : out slv(15 downto 0);
+      mLocalTLast  : out sl;
+      mLocalTReady : in  sl := '1';
+      mLocalSof    : out sl;
+      mLocalEofe   : out sl);
 end entity IpV4EngineTxWrapper;
 
 architecture rtl of IpV4EngineTxWrapper is
 
    constant PROTOCOL_C : Slv8Array(0 downto 0) := (0 => UDP_C);
 
-   signal sProtMaster       : AxiStreamMasterType             := AXI_STREAM_MASTER_INIT_C;
-   signal sProtSlave        : AxiStreamSlaveArray(0 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal sProtMaster       : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal sProtSlave        : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
    signal obProtocolMasters : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal mIpv4Master       : AxiStreamMasterType             := AXI_STREAM_MASTER_INIT_C;
-   signal mIpv4Slave        : AxiStreamSlaveType              := AXI_STREAM_SLAVE_INIT_C;
-   signal mLocalMaster      : AxiStreamMasterType             := AXI_STREAM_MASTER_INIT_C;
-   signal mLocalSlave       : AxiStreamSlaveType              := AXI_STREAM_SLAVE_INIT_C;
+   signal mIpv4Master       : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mIpv4Slave        : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
+   signal mLocalMaster      : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mLocalSlave       : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
    -- Flatten the single protocol-source stream that feeds the TX engine.
-   sProtComb : process (sProtEofe, sProtSof, sProtTData, sProtTKeep, sProtTLast, sProtTValid) is
+   sProtComb : process (sProtEofe, sProtSof, sProtTData, sProtTKeep,
+                        sProtTLast, sProtTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sProtTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sProtTValid;
       v.tData(127 downto 0) := sProtTData;
-      v.tKeep(15 downto 0) := sProtTKeep;
-      v.tLast := sProtTLast;
+      v.tKeep(15 downto 0)  := sProtTKeep;
+      v.tLast               := sProtTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sProtSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sProtEofe);
-      sProtMaster <= v;
+      sProtMaster           <= v;
    end process sProtComb;
 
    obProtocolMasters(0) <= sProtMaster;
-   sProtTReady <= sProtSlave(0).tReady;
-   mIpv4Slave.tReady <= mIpv4TReady;
-   mLocalSlave.tReady <= mLocalTReady;
+   sProtTReady          <= sProtSlave(0).tReady;
+   mIpv4Slave.tReady    <= mIpv4TReady;
+   mLocalSlave.tReady   <= mLocalTReady;
 
    -- Re-expand the external-IPv4 output path.
    mIpv4View : process (mIpv4Master) is
    begin
       mIpv4TValid <= mIpv4Master.tValid;
-      mIpv4TData <= mIpv4Master.tData(127 downto 0);
-      mIpv4TKeep <= mIpv4Master.tKeep(15 downto 0);
-      mIpv4TLast <= mIpv4Master.tLast;
-      mIpv4Sof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_SOF_BIT_C, 0);
-      mIpv4Eofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_EOFE_BIT_C);
+      mIpv4TData  <= mIpv4Master.tData(127 downto 0);
+      mIpv4TKeep  <= mIpv4Master.tKeep(15 downto 0);
+      mIpv4TLast  <= mIpv4Master.tLast;
+      mIpv4Sof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_SOF_BIT_C, 0);
+      mIpv4Eofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mIpv4Master, EMAC_EOFE_BIT_C);
    end process mIpv4View;
 
    -- Re-expand the localhost shortcut output path separately.
    mLocalView : process (mLocalMaster) is
    begin
       mLocalTValid <= mLocalMaster.tValid;
-      mLocalTData <= mLocalMaster.tData(127 downto 0);
-      mLocalTKeep <= mLocalMaster.tKeep(15 downto 0);
-      mLocalTLast <= mLocalMaster.tLast;
-      mLocalSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mLocalMaster, EMAC_SOF_BIT_C, 0);
-      mLocalEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mLocalMaster, EMAC_EOFE_BIT_C);
+      mLocalTData  <= mLocalMaster.tData(127 downto 0);
+      mLocalTKeep  <= mLocalMaster.tKeep(15 downto 0);
+      mLocalTLast  <= mLocalMaster.tLast;
+      mLocalSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mLocalMaster, EMAC_SOF_BIT_C, 0);
+      mLocalEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mLocalMaster, EMAC_EOFE_BIT_C);
    end process mLocalView;
 
    U_DUT : entity surf.IpV4EngineTx

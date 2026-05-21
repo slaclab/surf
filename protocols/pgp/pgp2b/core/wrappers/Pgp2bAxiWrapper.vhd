@@ -64,9 +64,9 @@ architecture rtl of Pgp2bAxiWrapper is
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
    signal axilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
 
-   signal pgpTxIn  : Pgp2bTxInType  := PGP2B_TX_IN_INIT_C;
-   signal pgpRxIn  : Pgp2bRxInType  := PGP2B_RX_IN_INIT_C;
-   signal locTxIn  : Pgp2bTxInType  := (
+   signal pgpTxIn : Pgp2bTxInType := PGP2B_TX_IN_INIT_C;
+   signal pgpRxIn : Pgp2bRxInType := PGP2B_RX_IN_INIT_C;
+   signal locTxIn : Pgp2bTxInType := (
       flush       => '0',
       opCodeEn    => '0',
       opCode      => (others => '0'),

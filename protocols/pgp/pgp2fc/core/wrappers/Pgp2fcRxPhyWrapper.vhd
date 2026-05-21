@@ -43,14 +43,14 @@ begin
 
    U_DUT : entity surf.Pgp2fcRxPhy
       port map (
-         pgpRxClk       => clk,
-         pgpRxClkRst    => rst,
-         pgpRxLinkReady => pgpRxLinkReady,
-         pgpRxLinkDown  => pgpRxLinkDown,
-         pgpRxLinkError => pgpRxLinkError,
-         fcValid        => fcValid,
-         fcWord         => fcWord,
-         fcError        => fcError,
+         pgpRxClk        => clk,
+         pgpRxClkRst     => rst,
+         pgpRxLinkReady  => pgpRxLinkReady,
+         pgpRxLinkDown   => pgpRxLinkDown,
+         pgpRxLinkError  => pgpRxLinkError,
+         fcValid         => fcValid,
+         fcWord          => fcWord,
+         fcError         => fcError,
          pgpRemLinkReady => pgpRemLinkReady,
          pgpRemData      => pgpRemData,
          cellRxPause     => cellRxPause,

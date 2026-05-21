@@ -23,27 +23,27 @@ entity AxiStreamMonIpIntegrator is
    generic (
       TPD_G : time := 1 ns);
    port (
-      axiClk         : in  sl;
-      axiRst         : in  sl;
-      axisReady      : in  sl;
-      S_AXIS_TVALID  : in  sl;
-      S_AXIS_TDATA   : in  slv(31 downto 0);
-      S_AXIS_TKEEP   : in  slv(3 downto 0);
-      S_AXIS_TLAST   : in  sl;
-      S_AXIS_TDEST   : in  slv(0 downto 0);
-      S_AXIS_TID     : in  slv(0 downto 0);
-      S_AXIS_TUSER   : in  slv(0 downto 0);
-      S_AXIS_TREADY  : out sl;
-      frameCnt       : out slv(63 downto 0);
-      frameSize      : out slv(31 downto 0);
-      frameSizeMax   : out slv(31 downto 0);
-      frameSizeMin   : out slv(31 downto 0);
-      frameRate      : out slv(31 downto 0);
-      frameRateMax   : out slv(31 downto 0);
-      frameRateMin   : out slv(31 downto 0);
-      bandwidth      : out slv(63 downto 0);
-      bandwidthMax   : out slv(63 downto 0);
-      bandwidthMin   : out slv(63 downto 0));
+      axiClk        : in  sl;
+      axiRst        : in  sl;
+      axisReady     : in  sl;
+      S_AXIS_TVALID : in  sl;
+      S_AXIS_TDATA  : in  slv(31 downto 0);
+      S_AXIS_TKEEP  : in  slv(3 downto 0);
+      S_AXIS_TLAST  : in  sl;
+      S_AXIS_TDEST  : in  slv(0 downto 0);
+      S_AXIS_TID    : in  slv(0 downto 0);
+      S_AXIS_TUSER  : in  slv(0 downto 0);
+      S_AXIS_TREADY : out sl;
+      frameCnt      : out slv(63 downto 0);
+      frameSize     : out slv(31 downto 0);
+      frameSizeMax  : out slv(31 downto 0);
+      frameSizeMin  : out slv(31 downto 0);
+      frameRate     : out slv(31 downto 0);
+      frameRateMax  : out slv(31 downto 0);
+      frameRateMin  : out slv(31 downto 0);
+      bandwidth     : out slv(63 downto 0);
+      bandwidthMax  : out slv(63 downto 0);
+      bandwidthMin  : out slv(63 downto 0));
 end entity AxiStreamMonIpIntegrator;
 
 architecture rtl of AxiStreamMonIpIntegrator is
@@ -57,7 +57,7 @@ architecture rtl of AxiStreamMonIpIntegrator is
       TUSER_BITS_C  => 1,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axiResetN  : sl := '1';
+   signal axiResetN  : sl                  := '1';
    signal axisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal axisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
@@ -66,7 +66,7 @@ begin
    ---------------------------------------------------------------------------
    -- AXI-Stream shim
    ---------------------------------------------------------------------------
-   axiResetN <= not axiRst;
+   axiResetN        <= not axiRst;
    axisSlave.tReady <= axisReady;
 
    U_S_AXIS : entity surf.SlaveAxiStreamIpIntegrator

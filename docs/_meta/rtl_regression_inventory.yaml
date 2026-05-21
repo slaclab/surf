@@ -1,5 +1,5 @@
 version: 1
-last_updated: 2026-03-21
+last_updated: 2026-05-21
 
 field_guide:
   entity: "Synthesizable RTL entity name"

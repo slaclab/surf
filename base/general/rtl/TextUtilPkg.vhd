@@ -199,7 +199,7 @@ package body TextUtilPkg is
    -- converts an integer into a character
    -- for 0 to 9 the obvious mapping is used, higher
    -- values are mapped to the characters A-Z
-   -- (this is usefull for systems with base > 10)
+   -- (this is useful for systems with base > 10)
    -- (adapted from Steve Vogwell's posting in comp.lang.vhdl)
    function chr(intValue : integer) return character is
       variable c : character;

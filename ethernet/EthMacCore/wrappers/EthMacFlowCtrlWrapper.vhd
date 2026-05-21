@@ -46,13 +46,13 @@ begin
 
    -- Flatten the small `AxiStreamCtrlType` record into individual pause and
    -- overflow bits so cocotb can drive the public control contract directly.
-   primCtrl.pause <= primPause;
+   primCtrl.pause    <= primPause;
    primCtrl.overflow <= primOverflow;
-   primCtrl.idle <= '0';
+   primCtrl.idle     <= '0';
 
-   bypCtrl.pause <= bypPause;
+   bypCtrl.pause    <= bypPause;
    bypCtrl.overflow <= bypOverflow;
-   bypCtrl.idle <= '0';
+   bypCtrl.idle     <= '0';
 
    -- Instantiate the real DUT.
    U_DUT : entity surf.EthMacFlowCtrl
@@ -70,7 +70,7 @@ begin
 
    -- Re-expand the output record so the test can observe the merged flow
    -- control result without record-field access.
-   flowPause <= flowCtrl.pause;
+   flowPause    <= flowCtrl.pause;
    flowOverflow <= flowCtrl.overflow;
 
 end architecture rtl;

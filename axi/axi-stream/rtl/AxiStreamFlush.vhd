@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description:
--- Block to flush AXI Stream frames, being mindfull of frame boundaries.
+-- Block to flush AXI Stream frames, being mindful of frame boundaries.
 -- This module is designed to feed into an AxiStreamFifo using pause to determine
 -- backpressure situations.
 -------------------------------------------------------------------------------

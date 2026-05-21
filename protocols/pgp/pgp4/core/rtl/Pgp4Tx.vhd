@@ -220,7 +220,7 @@ begin
          mAxisSlave  => packetizedTxSlave);  -- [in]
 
    -- Feed packets into PGP TX Protocol engine
-   -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
+   -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b characters
    U_Pgp4TxProtocol_1 : entity surf.Pgp4TxProtocol
       generic map (
          TPD_G             => TPD_G,

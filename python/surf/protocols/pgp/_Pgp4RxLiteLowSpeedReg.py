@@ -93,7 +93,7 @@ class Pgp4RxLiteLowSpeedReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'NUM_LANE_G',
-            description = 'NUM_LANE_G VHDL genenic value',
+            description = 'NUM_LANE_G VHDL generic value',
             offset      = 0x7FC,
             bitSize     = 8,
             bitOffset   = 8,

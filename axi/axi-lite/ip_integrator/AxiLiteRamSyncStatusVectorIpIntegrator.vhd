@@ -52,7 +52,7 @@ end entity AxiLiteRamSyncStatusVectorIpIntegrator;
 
 architecture rtl of AxiLiteRamSyncStatusVectorIpIntegrator is
 
-   signal axilResetN      : sl := '1';
+   signal axilResetN      : sl                     := '1';
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
@@ -105,9 +105,9 @@ begin
    ---------------------------------------------------------------------------
    U_DUT : entity surf.AxiLiteRamSyncStatusVector
       generic map (
-         COMMON_CLK_G   => true,
-         CNT_WIDTH_G    => 8,
-         WIDTH_G        => 4)
+         COMMON_CLK_G => true,
+         CNT_WIDTH_G  => 8,
+         WIDTH_G      => 4)
       port map (
          wrClk           => wrClk,
          wrRst           => wrRst,
