@@ -22,6 +22,7 @@ PACKETIZER2_VERSION = 0x2
 PACKETIZER2_CRC_NONE = 0x0
 PACKETIZER2_CRC_DATA = 0x1
 PACKETIZER2_CRC_FULL = 0x2
+PACKETIZER0_VERSION = 0x0
 SSI_EOFE = 0
 SSI_SOF = 1
 
@@ -183,6 +184,21 @@ def packetizer2_tail_word(*, eof: int, tuser: int, byte_count: int, crc: int = 0
         | ((byte_count & 0xF) << 16)
         | ((crc & 0xFFFFFFFF) << 32)
     )
+
+
+def packetizer0_header_word(*, frame: int, packet: int, tdest: int, tid: int, tuser: int) -> int:
+    return (
+        (PACKETIZER0_VERSION & 0xF)
+        | ((frame & 0xFFF) << 4)
+        | ((packet & 0xFFFFFF) << 16)
+        | ((tdest & 0xFF) << 40)
+        | ((tid & 0xFF) << 48)
+        | ((tuser & 0xFF) << 56)
+    )
+
+
+def packetizer0_tail_byte(*, eof: int, tuser: int) -> int:
+    return ((eof & 0x1) << 7) | (tuser & 0x7F)
 
 
 async def send_beats(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], *, clk) -> None:

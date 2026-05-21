@@ -78,11 +78,14 @@ begin
       vS                   := AXI_STREAM_MASTER_INIT_C;
       vS.tValid            := S_AXIS_TVALID;
       vS.tData(63 downto 0) := S_AXIS_TDATA;
+      vS.tStrb             := (others => '0');
       vS.tStrb(7 downto 0) := S_AXIS_TKEEP;
+      vS.tKeep             := (others => '0');
       vS.tKeep(7 downto 0) := S_AXIS_TKEEP;
       vS.tLast             := S_AXIS_TLAST;
       vS.tDest(7 downto 0) := S_AXIS_TDEST;
       vS.tId(7 downto 0)   := S_AXIS_TID;
+      vS.tUser             := (others => '0');
       vS.tUser(63 downto 0) := S_AXIS_TUSER;
 
       vM        := AXI_STREAM_SLAVE_INIT_C;
