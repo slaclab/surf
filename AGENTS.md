@@ -17,6 +17,7 @@ Start with [README.md](README.md) for user-facing links and the source tree inde
 - [xilinx/README.md](xilinx/README.md) for Xilinx-family primitives, wrappers, and XVC UDP support.
 - [python/README.md](python/README.md) for the PyRogue package under `python/surf`.
 - [tests/README.md](tests/README.md) for cocotb regression layout, methodology comments, helper reuse, and simulator conventions.
+- [docs/plans/README.md](docs/plans/README.md) for substantial task planning, progress notes, and handoff conventions.
 
 Top-level `ruckus.tcl` loads `axi`, `base`, `dsp`, `devices`, `ethernet`, `protocols`, and `xilinx`. Module-level `ruckus.tcl` files should continue to be the source of truth for which HDL files and submodules are part of a build.
 
@@ -192,7 +193,7 @@ Checked-in cocotb regression files must also include the `Test methodology` bloc
 
 ## Generated And Vendor Code
 
-- Treat vendor memory models, Xilinx stubs, XCI/DCP outputs, Bluespec/RoCE generated Verilog, and imported third-party protocol support as external code unless the user specifically asks to modify them.
+- Treat vendor memory models, Xilinx stubs, XCI/DCP outputs, Bluespec/RoCE generated Verilog, imported third-party protocol support, and the imported I2C libraries with non-SLAC license headers under `protocols/i2c/rtl` as external code unless the user specifically asks to modify them.
 - Do not reformat, license-normalize, rename signals, or modernize generated/vendor files as incidental cleanup.
 - When a wrapper around vendor/generated code is needed, put project-maintained glue in a nearby SURF-owned `rtl/`, `wrappers/`, `ip_integrator/`, or family-specific directory rather than editing the imported source.
 - Keep binary and generated artifacts out of source changes unless they are intentionally tracked release/build inputs already managed by the repository.
@@ -227,6 +228,12 @@ Before considering an RTL change done, check:
 When adding a new subsystem, add or update the closest `README.md` if the layout or usage is not obvious. Keep README files short and navigational: describe what belongs in the folder, important subdirectories, and any local build/test conventions, then link upward through the parent README chain.
 
 Add deeper README files as substantial areas are touched, especially in high-traffic module families such as `axi/axi-stream`, `axi/axi-lite`, `protocols/pgp`, `protocols/coaxpress`, `protocols/ssi`, `protocols/srp`, `ethernet/IpV4Engine`, `ethernet/UdpEngine`, and `ethernet/EthMacCore`. Prefer adding the README in the same change that introduces new layout or conventions for that area.
+
+## Task Tracking
+
+For substantial feature work, debug efforts, refactors, or multi-step investigations, keep planning, progress, and handoff Markdown under `docs/plans/<task-name>/`. Use a short kebab-case task name, keep notes factual, and update the plan as the work changes.
+
+Each task directory should include enough context for another contributor to resume without reconstructing the work from chat history. Capture the goal, current status, decisions made, files or modules involved, validation run, open risks, and next steps. Keep large logs, generated output, and simulator artifacts out of `docs/plans`; summarize them and link to durable locations instead.
 
 ## Pull Requests
 
