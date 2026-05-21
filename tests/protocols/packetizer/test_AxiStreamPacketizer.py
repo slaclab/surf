@@ -28,6 +28,7 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
+    assert_packetized_beat,
     packetizer0_header_word,
     packetizer0_tail_byte,
     recv_beats,
@@ -35,6 +36,7 @@ from tests.protocols.packetizer.packetizer_test_utils import (
     reset_packetizer_dut,
     send_beats,
     start_packetizer_clock,
+    tuser_for_lane,
     word_from_bytes,
 )
 
@@ -53,27 +55,6 @@ class TB:
 
     async def reset(self):
         await reset_packetizer_dut(self.dut)
-
-
-def tuser_for_lane(lane: int, value: int) -> int:
-    return (value & 0xFF) << (8 * lane)
-
-
-def assert_packet_beat(
-    beat: AxisBeat,
-    *,
-    data: int,
-    keep: int = 0xFF,
-    last: int = 0,
-    user: int = 0,
-) -> None:
-    assert beat.data == data
-    assert beat.keep == keep
-    assert beat.last == last
-    assert beat.dest == 0
-    assert beat.tid == 0
-    assert beat.user == user
-
 
 @cocotb.test()
 async def packetize_appended_tail_test(dut):
@@ -109,15 +90,15 @@ async def packetize_appended_tail_test(dut):
 
     # The first packet word is protocol overhead: version/frame/packet plus the
     # application sideband fields copied out of the first input beat.
-    assert_packet_beat(
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer0_header_word(frame=0, packet=0, tdest=0x3, tid=0xA5, tuser=0x20),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
     # The final output beat carries seven payload bytes plus the tail marker in
     # byte lane 7; no depacketizer is involved in forming this expectation.
-    assert_packet_beat(
+    assert_packetized_beat(
         rx_beats[2],
         data=word_from_bytes(payload[8:15] + bytes([tail])),
         last=1,
@@ -158,15 +139,15 @@ async def packetize_separate_tail_test(dut):
 
     # The packetized sideband is only present in the header; following payload
     # beats should have neutralized `TDEST`, `TID`, and `TUSER`.
-    assert_packet_beat(
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer0_header_word(frame=0, packet=0, tdest=0x2, tid=0x5A, tuser=0x10),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
     # The separate tail word uses only byte lane 0 and terminates the packet.
-    assert_packet_beat(rx_beats[3], data=tail, keep=0x01, last=1)
+    assert_packetized_beat(rx_beats[3], data=tail, keep=0x01, last=1)
 
 
 @cocotb.test()
@@ -212,21 +193,21 @@ async def packetize_split_frame_on_max_size_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 3, "us")
 
-    assert_packet_beat(
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer0_header_word(frame=0, packet=0, tdest=0x4, tid=0x22, tuser=0x31),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
-    assert_packet_beat(rx_beats[3], data=first_tail, keep=0x01, last=1)
-    assert_packet_beat(
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetized_beat(rx_beats[3], data=first_tail, keep=0x01, last=1)
+    assert_packetized_beat(
         rx_beats[4],
         data=packetizer0_header_word(frame=0, packet=1, tdest=0x4, tid=0x22, tuser=0x43),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
-    assert_packet_beat(rx_beats[6], data=final_tail, keep=0x01, last=1)
+    assert_packetized_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
+    assert_packetized_beat(rx_beats[6], data=final_tail, keep=0x01, last=1)
 
 
 @cocotb.test()
@@ -262,14 +243,14 @@ async def packetize_output_backpressure_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 4, "us")
 
-    assert_packet_beat(
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer0_header_word(frame=0, packet=0, tdest=0x5, tid=0x35, tuser=0x25),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
-    assert_packet_beat(rx_beats[3], data=tail, keep=0x01, last=1)
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetized_beat(rx_beats[3], data=tail, keep=0x01, last=1)
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="legacy_v0")])

@@ -21,23 +21,23 @@
 #   then uses ordinary AXI Stream ready/valid handshakes on the application
 #   input and output only.
 
+import os
+
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
-    AxisBeat,
     FlatAxisEndpoint,
-    bytes_from_word,
+    assert_app_beat,
     payload_to_beats,
     recv_beats_with_backpressure,
     reset_packetizer_dut,
     send_beats,
     start_packetizer_clock,
+    wait_debug_init_done,
 )
-
-DEBUG_INIT_DONE = 12
 
 
 class TB:
@@ -58,30 +58,7 @@ class TB:
         await self.wait_init_done()
 
     async def wait_init_done(self, timeout_cycles: int = 64):
-        for _ in range(timeout_cycles):
-            if int(self.dut.debugOut.value) & (1 << DEBUG_INIT_DONE):
-                return
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
-        raise AssertionError("Timed out waiting for loopback depacketizer initDone")
-
-
-def assert_app_beat(
-    beat: AxisBeat,
-    *,
-    payload: bytes,
-    keep: int = 0xFF,
-    last: int = 0,
-    dest: int,
-    tid: int,
-    user: int = 0,
-) -> None:
-    assert bytes_from_word(beat.data, keep=keep) == payload
-    assert beat.keep == keep
-    assert beat.last == last
-    assert beat.dest == dest
-    assert beat.tid == tid
-    assert beat.user == user
+        await wait_debug_init_done(self.dut, timeout_cycles=timeout_cycles)
 
 
 @cocotb.test()
@@ -92,9 +69,17 @@ async def loopback_split_partial_frame_with_backpressure_test(dut):
     # This 19-byte frame forces an internal V2 packet split at the 32-byte
     # packetized limit, then ends with a three-byte final output word.
     payload = bytes(range(0x10, 0x23))
+    tdest_bits = int(os.getenv("TDEST_BITS_G", "2"))
+    dest = 0x2
+    if tdest_bits == 0:
+        expected_dest = 0
+        dest = 0
+    else:
+        expected_dest = (1 << min(tdest_bits, 2)) - 1
+        dest = expected_dest
     input_beats = payload_to_beats(
         payload,
-        dest=0x2,
+        dest=dest,
         tid=0x39,
         first_user=0x2C,
         last_user=0x4C,
@@ -104,14 +89,14 @@ async def loopback_split_partial_frame_with_backpressure_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 6, "us")
 
-    assert_app_beat(rx_beats[0], payload=payload[0:8], dest=0x2, tid=0x39, user=0x2E)
-    assert_app_beat(rx_beats[1], payload=payload[8:16], dest=0x2, tid=0x39)
+    assert_app_beat(rx_beats[0], payload=payload[0:8], dest=expected_dest, tid=0x39, user=0x2E)
+    assert_app_beat(rx_beats[1], payload=payload[8:16], dest=expected_dest, tid=0x39)
     assert_app_beat(
         rx_beats[2],
         payload=payload[16:19],
         keep=0x07,
         last=1,
-        dest=0x2,
+        dest=expected_dest,
         tid=0x39,
         user=0x4C << 16,
     )
@@ -123,6 +108,8 @@ async def loopback_split_partial_frame_with_backpressure_test(dut):
         pytest.param({"TDEST_BITS_G": 2}, id="crc_none"),
         pytest.param({"TDEST_BITS_G": 2, "CRC_MODE_G": "DATA"}, id="crc_data"),
         pytest.param({"TDEST_BITS_G": 2, "CRC_MODE_G": "FULL"}, id="crc_full"),
+        pytest.param({"TDEST_BITS_G": 0}, id="tdest0"),
+        pytest.param({"TDEST_BITS_G": 1}, id="tdest1"),
     ],
 )
 def test_AxiStreamPacketizer2Loopback(parameters):

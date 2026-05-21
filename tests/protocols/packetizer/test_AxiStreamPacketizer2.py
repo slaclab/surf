@@ -22,8 +22,6 @@
 #   beats, so the bench observes every accepted packetized beat without using
 #   a depacketizer loopback as an oracle.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import with_timeout
@@ -32,11 +30,10 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
-    PACKETIZER2_CRC_DATA,
-    PACKETIZER2_CRC_FULL,
-    PACKETIZER2_CRC_NONE,
+    assert_packetized_beat,
+    assert_packetizer2_tail_beat,
+    crc_mode_from_env,
     packetizer2_header_word,
-    packetizer2_tail_word,
     payload_to_beats,
     recv_beats,
     recv_beats_with_backpressure,
@@ -45,12 +42,6 @@ from tests.protocols.packetizer.packetizer_test_utils import (
     start_packetizer_clock,
     word_from_bytes,
 )
-
-CRC_MODE_VALUES = {
-    "NONE": PACKETIZER2_CRC_NONE,
-    "DATA": PACKETIZER2_CRC_DATA,
-    "FULL": PACKETIZER2_CRC_FULL,
-}
 
 
 class TB:
@@ -67,33 +58,6 @@ class TB:
 
     async def reset(self):
         await reset_packetizer_dut(self.dut)
-
-
-def assert_packet_beat(beat: AxisBeat, *, data: int, last: int = 0, user: int = 0) -> None:
-    assert beat.data == data
-    assert beat.keep == 0xFF
-    assert beat.last == last
-    assert beat.dest == 0
-    assert beat.tid == 0
-    assert beat.user == user
-
-
-def packetizer2_crc_mode() -> int:
-    return CRC_MODE_VALUES[os.getenv("CRC_MODE_G", "NONE")]
-
-
-def assert_tail_beat(beat: AxisBeat, *, eof: int, tuser: int, byte_count: int) -> None:
-    expected = packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count)
-    assert (beat.data & 0xFFFFFFFF) == (expected & 0xFFFFFFFF)
-    if packetizer2_crc_mode() == PACKETIZER2_CRC_NONE:
-        assert (beat.data >> 32) == 0
-    else:
-        assert (beat.data >> 32) != 0
-    assert beat.keep == 0xFF
-    assert beat.last == 1
-    assert beat.dest == 0
-    assert beat.tid == 0
-    assert beat.user == 0
 
 
 @cocotb.test()
@@ -114,10 +78,12 @@ async def packetize_single_frame_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
-    assert_packet_beat(
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x22,
             tdest=0x3,
@@ -126,9 +92,9 @@ async def packetize_single_frame_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
-    assert_tail_beat(rx_beats[3], eof=1, tuser=0x41, byte_count=8)
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetizer2_tail_beat(rx_beats[3], eof=1, tuser=0x41, byte_count=8, crc_mode=crc_mode)
 
 
 @cocotb.test()
@@ -149,10 +115,12 @@ async def packetize_split_frame_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 3, "us")
 
-    assert_packet_beat(
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x12,
             tdest=0x2,
@@ -161,13 +129,13 @@ async def packetize_split_frame_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
-    assert_tail_beat(rx_beats[3], eof=0, tuser=0, byte_count=8)
-    assert_packet_beat(
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetizer2_tail_beat(rx_beats[3], eof=0, tuser=0, byte_count=8, crc_mode=crc_mode)
+    assert_packetized_beat(
         rx_beats[4],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=0,
             tuser=0,
             tdest=0x2,
@@ -176,8 +144,8 @@ async def packetize_split_frame_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
-    assert_tail_beat(rx_beats[6], eof=1, tuser=0x43, byte_count=8)
+    assert_packetized_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
+    assert_packetizer2_tail_beat(rx_beats[6], eof=1, tuser=0x43, byte_count=8, crc_mode=crc_mode)
 
 
 @cocotb.test()
@@ -201,10 +169,12 @@ async def packetize_partial_last_tkeep_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
-    assert_packet_beat(
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x24,
             tdest=0x1,
@@ -213,9 +183,63 @@ async def packetize_partial_last_tkeep_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:11]))
-    assert_tail_beat(rx_beats[3], eof=1, tuser=0x47, byte_count=3)
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:11]))
+    assert_packetizer2_tail_beat(rx_beats[3], eof=1, tuser=0x47, byte_count=3, crc_mode=crc_mode)
+
+
+@cocotb.test()
+async def packetize_one_byte_over_max_packet_boundary_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # With `maxPktBytes=32`, two 8-byte payload words plus header/tail exactly
+    # fill one packet. A 17-byte frame must therefore split after the first 16
+    # payload bytes and carry the final byte in a continuation packet.
+    payload = bytes(range(0x58, 0x69))
+    input_beats = payload_to_beats(
+        payload,
+        dest=0x2,
+        tid=0xB4,
+        first_user=0x26,
+        last_user=0x49,
+    )
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 7, clk=dut.axisClk))
+    await send_beats(tb.source, input_beats, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
+        rx_beats[0],
+        data=packetizer2_header_word(
+            crc_mode=crc_mode,
+            sof=1,
+            tuser=0x26,
+            tdest=0x2,
+            tid=0xB4,
+            seq=0,
+        ),
+        user=0x2,
+    )
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetizer2_tail_beat(rx_beats[3], eof=0, tuser=0, byte_count=8, crc_mode=crc_mode)
+    assert_packetized_beat(
+        rx_beats[4],
+        data=packetizer2_header_word(
+            crc_mode=crc_mode,
+            sof=0,
+            tuser=0x49,
+            tdest=0x2,
+            tid=0xB4,
+            seq=1,
+        ),
+        user=0x2,
+    )
+    assert_packetized_beat(rx_beats[5], data=word_from_bytes(payload[16:17]))
+    assert_packetizer2_tail_beat(rx_beats[6], eof=1, tuser=0x49, byte_count=1, crc_mode=crc_mode)
 
 
 @cocotb.test()
@@ -260,10 +284,12 @@ async def packetize_interleaved_tdest_state_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 4, "us")
 
-    assert_packet_beat(
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x21,
             tdest=0x1,
@@ -272,12 +298,12 @@ async def packetize_interleaved_tdest_state_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(dest_a_first))
-    assert_tail_beat(rx_beats[2], eof=0, tuser=0, byte_count=8)
-    assert_packet_beat(
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(dest_a_first))
+    assert_packetizer2_tail_beat(rx_beats[2], eof=0, tuser=0, byte_count=8, crc_mode=crc_mode)
+    assert_packetized_beat(
         rx_beats[3],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x31,
             tdest=0x2,
@@ -286,12 +312,12 @@ async def packetize_interleaved_tdest_state_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[4], data=word_from_bytes(dest_b_frame))
-    assert_tail_beat(rx_beats[5], eof=1, tuser=0x44, byte_count=8)
-    assert_packet_beat(
+    assert_packetized_beat(rx_beats[4], data=word_from_bytes(dest_b_frame))
+    assert_packetizer2_tail_beat(rx_beats[5], eof=1, tuser=0x44, byte_count=8, crc_mode=crc_mode)
+    assert_packetized_beat(
         rx_beats[6],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=0,
             tuser=0x00,
             tdest=0x1,
@@ -300,8 +326,8 @@ async def packetize_interleaved_tdest_state_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[7], data=word_from_bytes(dest_a_last))
-    assert_tail_beat(rx_beats[8], eof=1, tuser=0x45, byte_count=8)
+    assert_packetized_beat(rx_beats[7], data=word_from_bytes(dest_a_last))
+    assert_packetizer2_tail_beat(rx_beats[8], eof=1, tuser=0x45, byte_count=8, crc_mode=crc_mode)
 
 
 @cocotb.test()
@@ -325,10 +351,12 @@ async def packetize_output_backpressure_test(dut):
     await send_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 5, "us")
 
-    assert_packet_beat(
+    crc_mode = crc_mode_from_env()
+
+    assert_packetized_beat(
         rx_beats[0],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=1,
             tuser=0x2A,
             tdest=0x3,
@@ -337,13 +365,13 @@ async def packetize_output_backpressure_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
-    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
-    assert_tail_beat(rx_beats[3], eof=0, tuser=0, byte_count=8)
-    assert_packet_beat(
+    assert_packetized_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packetized_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packetizer2_tail_beat(rx_beats[3], eof=0, tuser=0, byte_count=8, crc_mode=crc_mode)
+    assert_packetized_beat(
         rx_beats[4],
         data=packetizer2_header_word(
-            crc_mode=packetizer2_crc_mode(),
+            crc_mode=crc_mode,
             sof=0,
             tuser=0,
             tdest=0x3,
@@ -352,8 +380,8 @@ async def packetize_output_backpressure_test(dut):
         ),
         user=0x2,
     )
-    assert_packet_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
-    assert_tail_beat(rx_beats[6], eof=1, tuser=0x4A, byte_count=8)
+    assert_packetized_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
+    assert_packetizer2_tail_beat(rx_beats[6], eof=1, tuser=0x4A, byte_count=8, crc_mode=crc_mode)
 
 
 @pytest.mark.parametrize(

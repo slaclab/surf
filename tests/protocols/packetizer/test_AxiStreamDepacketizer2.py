@@ -22,9 +22,9 @@
 #   traffic, then keeps the application sink ready while source and sink tasks
 #   run concurrently.
 
-import pytest
 import cocotb
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+import pytest
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
@@ -32,18 +32,19 @@ from tests.protocols.packetizer.packetizer_test_utils import (
     FlatAxisEndpoint,
     PACKETIZER2_CRC_DATA,
     PACKETIZER2_CRC_NONE,
-    bytes_from_word,
+    DEBUG_INIT_DONE,
+    assert_app_beat,
     cycle,
+    packetizer2_data_beat,
+    packetizer2_header_beat,
     packetizer2_header_word,
-    packetizer2_tail_word,
+    packetizer2_tail_beat,
     recv_beats,
     reset_packetizer_dut,
     send_beats,
     start_packetizer_clock,
-    word_from_bytes,
+    wait_debug_init_done,
 )
-
-DEBUG_INIT_DONE = 12
 
 
 class TB:
@@ -63,76 +64,7 @@ class TB:
         await self.wait_init_done()
 
     async def wait_init_done(self, timeout_cycles: int = 64):
-        for _ in range(timeout_cycles):
-            if int(self.dut.debugOut.value) & (1 << DEBUG_INIT_DONE):
-                return
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
-        raise AssertionError("Timed out waiting for depacketizer initDone")
-
-
-def header_beat(
-    *,
-    sof: int,
-    tuser: int,
-    dest: int,
-    tid: int,
-    seq: int,
-    crc_mode: int = PACKETIZER2_CRC_NONE,
-) -> AxisBeat:
-    return AxisBeat(
-        data=packetizer2_header_word(
-            crc_mode=crc_mode,
-            sof=sof,
-            tuser=tuser,
-            tdest=dest,
-            tid=tid,
-            seq=seq,
-        ),
-        keep=0xFF,
-        last=0,
-        user=0x2,
-    )
-
-
-def data_beat(payload: bytes) -> AxisBeat:
-    return AxisBeat(data=word_from_bytes(payload), keep=0xFF, last=0, user=0)
-
-
-def tail_beat(*, eof: int, tuser: int, byte_count: int) -> AxisBeat:
-    return AxisBeat(
-        data=packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count),
-        keep=0xFF,
-        last=1,
-        user=0,
-    )
-
-
-def tail_beat_with_crc(*, eof: int, tuser: int, byte_count: int, crc: int) -> AxisBeat:
-    return AxisBeat(
-        data=packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count, crc=crc),
-        keep=0xFF,
-        last=1,
-        user=0,
-    )
-
-
-def assert_app_beat(
-    beat: AxisBeat,
-    *,
-    payload: bytes,
-    keep: int = 0xFF,
-    last: int = 0,
-    dest: int,
-    tid: int,
-    user: int = 0,
-) -> None:
-    assert bytes_from_word(beat.data, keep=keep) == payload
-    assert beat.keep == keep
-    assert beat.last == last
-    assert beat.dest == dest
-    assert beat.tid == tid
-    assert beat.user == user
+        await wait_debug_init_done(self.dut, timeout_cycles=timeout_cycles)
 
 
 def assert_error_beat(beat: AxisBeat, *, dest: int, tid: int, header_user: int) -> None:
@@ -151,10 +83,10 @@ async def depacketize_single_packet_test(dut):
     first = bytes(range(0x10, 0x18))
     last = bytes(range(0x18, 0x20))
     packet = [
-        header_beat(sof=1, tuser=0x20, dest=0x3, tid=0xA5, seq=0),
-        data_beat(first),
-        data_beat(last),
-        tail_beat(eof=1, tuser=0x41, byte_count=8),
+        packetizer2_header_beat(sof=1, tuser=0x20, dest=0x3, tid=0xA5, seq=0),
+        packetizer2_data_beat(first),
+        packetizer2_data_beat(last),
+        packetizer2_tail_beat(eof=1, tuser=0x41, byte_count=8),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
@@ -176,13 +108,13 @@ async def depacketize_split_sequence_test(dut):
         bytes(range(0x40, 0x48)),
     ]
     packets = [
-        header_beat(sof=1, tuser=0x10, dest=0x2, tid=0x5A, seq=0),
-        data_beat(chunks[0]),
-        data_beat(chunks[1]),
-        tail_beat(eof=0, tuser=0, byte_count=8),
-        header_beat(sof=0, tuser=0x00, dest=0x2, tid=0x5A, seq=1),
-        data_beat(chunks[2]),
-        tail_beat(eof=1, tuser=0x43, byte_count=8),
+        packetizer2_header_beat(sof=1, tuser=0x10, dest=0x2, tid=0x5A, seq=0),
+        packetizer2_data_beat(chunks[0]),
+        packetizer2_data_beat(chunks[1]),
+        packetizer2_tail_beat(eof=0, tuser=0, byte_count=8),
+        packetizer2_header_beat(sof=0, tuser=0x00, dest=0x2, tid=0x5A, seq=1),
+        packetizer2_data_beat(chunks[2]),
+        packetizer2_tail_beat(eof=1, tuser=0x43, byte_count=8),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 3, clk=dut.axisClk))
@@ -202,10 +134,10 @@ async def depacketize_partial_last_tkeep_test(dut):
     first = bytes(range(0x50, 0x58))
     last = bytes(range(0x58, 0x5B))
     packet = [
-        header_beat(sof=1, tuser=0x24, dest=0x1, tid=0xC3, seq=0),
-        data_beat(first),
-        data_beat(last),
-        tail_beat(eof=1, tuser=0x47, byte_count=3),
+        packetizer2_header_beat(sof=1, tuser=0x24, dest=0x1, tid=0xC3, seq=0),
+        packetizer2_data_beat(first),
+        packetizer2_data_beat(last),
+        packetizer2_tail_beat(eof=1, tuser=0x47, byte_count=3),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
@@ -231,9 +163,9 @@ async def depacketize_crc_none_nonzero_crc_marks_eofe_test(dut):
 
     payload = bytes(range(0x70, 0x78))
     packet = [
-        header_beat(sof=1, tuser=0x30, dest=0x2, tid=0x55, seq=0),
-        data_beat(payload),
-        tail_beat_with_crc(eof=1, tuser=0x40, byte_count=8, crc=0x1),
+        packetizer2_header_beat(sof=1, tuser=0x30, dest=0x2, tid=0x55, seq=0),
+        packetizer2_data_beat(payload),
+        packetizer2_tail_beat(eof=1, tuser=0x40, byte_count=8, crc=0x1),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
@@ -280,7 +212,7 @@ async def depacketize_bad_crc_mode_header_marks_eofe_test(dut):
     await tb.reset()
 
     packet = [
-        header_beat(
+        packetizer2_header_beat(
             sof=1,
             tuser=0x2B,
             dest=0x2,
@@ -311,9 +243,9 @@ async def depacketize_link_drop_recovers_test(dut):
 
     payload = bytes(range(0x90, 0x98))
     packet = [
-        header_beat(sof=1, tuser=0x34, dest=0x3, tid=0x88, seq=0),
-        data_beat(payload),
-        tail_beat(eof=1, tuser=0x48, byte_count=8),
+        packetizer2_header_beat(sof=1, tuser=0x34, dest=0x3, tid=0x88, seq=0),
+        packetizer2_data_beat(payload),
+        packetizer2_tail_beat(eof=1, tuser=0x48, byte_count=8),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))

@@ -24,17 +24,20 @@ import os
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
-    bytes_from_word,
-    cycle,
+    assert_no_output,
+    assert_packed_beat,
+    byte_packer_source_beat,
+    byte_packer_source_beats_from_payload,
+    recv_valid_pulses,
     reset_packetizer_dut,
+    send_unpaced_beats,
     start_packetizer_clock,
-    word_from_bytes,
 )
 
 
@@ -55,90 +58,6 @@ class TB:
         await reset_packetizer_dut(self.dut)
 
 
-def user_from_bytes(values: list[int]) -> int:
-    user = 0
-    for lane, value in enumerate(values):
-        user |= (value & 0xFF) << (8 * lane)
-    return user
-
-
-def source_beat(payload: bytes, *, last: int = 0, user_values: list[int]) -> AxisBeat:
-    return AxisBeat(
-        data=word_from_bytes(payload),
-        keep=(1 << len(payload)) - 1,
-        last=last,
-        user=user_from_bytes(user_values),
-    )
-
-
-def source_beats_from_payload(
-    payload: bytes,
-    *,
-    max_beat_bytes: int,
-    user_base: int,
-    first_size: int | None = None,
-) -> list[AxisBeat]:
-    beats = []
-    offset = 0
-    while offset < len(payload):
-        if offset == 0 and first_size is not None:
-            size = min(first_size, max_beat_bytes, len(payload))
-        else:
-            size = min(max_beat_bytes, len(payload) - offset)
-        chunk = payload[offset : offset + size]
-        beats.append(
-            source_beat(
-                chunk,
-                last=int(offset + size == len(payload)),
-                user_values=list(range(user_base + offset, user_base + offset + len(chunk))),
-            )
-        )
-        offset += size
-    return beats
-
-
-async def send_unpaced(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], *, clk) -> None:
-    # `AxiStreamBytePacker` has no slave-ready output. Each driven beat is held
-    # for exactly one rising edge, which is the module's intended acceptance
-    # cadence.
-    for beat in beats:
-        endpoint.drive(beat)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-    endpoint.set_idle()
-
-
-async def recv_valid_pulses(endpoint: FlatAxisEndpoint, count: int, *, clk) -> list[AxisBeat]:
-    beats = []
-    while len(beats) < count:
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-        if int(endpoint._sig("TVALID").value):
-            beats.append(endpoint.snapshot())
-    return beats
-
-
-async def assert_no_output(endpoint: FlatAxisEndpoint, *, clk, cycles: int) -> None:
-    for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-        assert int(endpoint._sig("TVALID").value) == 0
-
-
-def assert_packed_beat(
-    beat: AxisBeat,
-    *,
-    payload: bytes,
-    user_values: list[int],
-    last: int = 0,
-) -> None:
-    keep = (1 << len(payload)) - 1
-    assert bytes_from_word(beat.data, keep=keep) == payload
-    assert beat.keep == keep
-    assert beat.last == last
-    assert beat.user == user_from_bytes(user_values)
-
-
 @cocotb.test()
 async def pack_partial_beats_test(dut):
     tb = TB(dut)
@@ -147,7 +66,7 @@ async def pack_partial_beats_test(dut):
     # The final input beat crosses an output-word boundary: one output word
     # becomes full and the remaining bytes start the next terminal output word.
     payload = bytes(range(0x10, 0x10 + tb.master_bytes + 3))
-    input_beats = source_beats_from_payload(
+    input_beats = byte_packer_source_beats_from_payload(
         payload,
         max_beat_bytes=tb.slave_bytes,
         user_base=0xA0,
@@ -155,7 +74,7 @@ async def pack_partial_beats_test(dut):
     )
 
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 2, clk=dut.axisClk))
-    await send_unpaced(tb.source, input_beats, clk=dut.axisClk)
+    await send_unpaced_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
     assert_packed_beat(
@@ -179,14 +98,14 @@ async def pack_exact_width_last_test(dut):
     # A frame exactly as wide as the output should produce one full terminal
     # word regardless of how many narrower input beats it takes to fill it.
     payload = bytes(range(0x30, 0x30 + tb.master_bytes))
-    input_beats = source_beats_from_payload(
+    input_beats = byte_packer_source_beats_from_payload(
         payload,
         max_beat_bytes=tb.slave_bytes,
         user_base=0x10,
     )
 
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
-    await send_unpaced(tb.source, input_beats, clk=dut.axisClk)
+    await send_unpaced_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
     assert_packed_beat(
@@ -204,9 +123,9 @@ async def reset_flushes_partial_word_test(dut):
 
     # Start a partial packed word and prove it does not leak out before reset.
     partial = bytes(range(0x40, 0x40 + min(3, tb.slave_bytes, tb.master_bytes - 1)))
-    await send_unpaced(
+    await send_unpaced_beats(
         tb.source,
-        [source_beat(partial, user_values=list(range(0x20, 0x20 + len(partial))))],
+        [byte_packer_source_beat(partial, user_values=list(range(0x20, 0x20 + len(partial))))],
         clk=dut.axisClk,
     )
     await assert_no_output(tb.sink, clk=dut.axisClk, cycles=3)
@@ -216,10 +135,10 @@ async def reset_flushes_partial_word_test(dut):
     await tb.reset()
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
     new_frame = bytes(range(0x50, 0x50 + min(2, tb.slave_bytes)))
-    await send_unpaced(
+    await send_unpaced_beats(
         tb.source,
         [
-            source_beat(
+            byte_packer_source_beat(
                 new_frame,
                 last=1,
                 user_values=list(range(0x30, 0x30 + len(new_frame))),
@@ -246,20 +165,20 @@ async def idle_gap_preserves_partial_word_test(dut):
     # filling it when traffic resumes.
     payload = bytes(range(0x60, 0x60 + tb.master_bytes))
     first_len = max(1, min(3, tb.slave_bytes, tb.master_bytes - 1))
-    first = source_beat(
+    first = byte_packer_source_beat(
         payload[:first_len],
         user_values=list(range(0x40, 0x40 + first_len)),
     )
-    remaining = source_beats_from_payload(
+    remaining = byte_packer_source_beats_from_payload(
         payload[first_len:],
         max_beat_bytes=tb.slave_bytes,
         user_base=0x40 + first_len,
     )
 
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
-    await send_unpaced(tb.source, [first], clk=dut.axisClk)
+    await send_unpaced_beats(tb.source, [first], clk=dut.axisClk)
     await assert_no_output(tb.sink, clk=dut.axisClk, cycles=4)
-    await send_unpaced(tb.source, remaining, clk=dut.axisClk)
+    await send_unpaced_beats(tb.source, remaining, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
     assert_packed_beat(
@@ -280,7 +199,7 @@ async def zero_keep_beat_is_ignored_test(dut):
     # frame should emerge exactly as if the zero-keep beat had been idle.
     payload = bytes(range(0x70, 0x70 + min(3, tb.slave_bytes)))
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
-    await send_unpaced(
+    await send_unpaced_beats(
         tb.source,
         [
             AxisBeat(
@@ -289,7 +208,7 @@ async def zero_keep_beat_is_ignored_test(dut):
                 last=0,
                 user=(1 << (8 * tb.slave_bytes)) - 1,
             ),
-            source_beat(
+            byte_packer_source_beat(
                 payload,
                 last=1,
                 user_values=list(range(0x60, 0x60 + len(payload))),
@@ -316,14 +235,14 @@ async def output_ready_is_ignored_test(dut):
     # not suppress the valid pulse for a complete packed output word.
     dut.M_AXIS_TREADY.value = 0
     payload = bytes(range(0x80, 0x80 + tb.master_bytes))
-    input_beats = source_beats_from_payload(
+    input_beats = byte_packer_source_beats_from_payload(
         payload,
         max_beat_bytes=tb.slave_bytes,
         user_base=0x50,
     )
 
     rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
-    await send_unpaced(tb.source, input_beats, clk=dut.axisClk)
+    await send_unpaced_beats(tb.source, input_beats, clk=dut.axisClk)
     rx_beats = await with_timeout(rx_task, 2, "us")
 
     assert_packed_beat(

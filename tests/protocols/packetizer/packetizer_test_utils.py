@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 
 import cocotb
@@ -25,6 +26,13 @@ PACKETIZER2_CRC_FULL = 0x2
 PACKETIZER0_VERSION = 0x0
 SSI_EOFE = 0
 SSI_SOF = 1
+DEBUG_INIT_DONE = 12
+
+CRC_MODE_VALUES = {
+    "NONE": PACKETIZER2_CRC_NONE,
+    "DATA": PACKETIZER2_CRC_DATA,
+    "FULL": PACKETIZER2_CRC_FULL,
+}
 
 
 @dataclass
@@ -124,6 +132,19 @@ async def reset_packetizer_dut(dut, *, cycles: int = 4) -> None:
     await cycle(dut.axisClk, 2)
 
 
+async def wait_debug_init_done(dut, *, timeout_cycles: int = 64) -> None:
+    for _ in range(timeout_cycles):
+        if int(dut.debugOut.value) & (1 << DEBUG_INIT_DONE):
+            return
+        await RisingEdge(dut.axisClk)
+        await Timer(1, unit="ns")
+    raise AssertionError("Timed out waiting for depacketizer initDone")
+
+
+def crc_mode_from_env(default: str = "NONE") -> int:
+    return CRC_MODE_VALUES[os.getenv("CRC_MODE_G", default)]
+
+
 def word_from_bytes(data: bytes) -> int:
     return int.from_bytes(data.ljust(8, b"\x00"), "little")
 
@@ -165,6 +186,17 @@ def payload_to_beats(
     return beats
 
 
+def user_from_bytes(values: list[int]) -> int:
+    user = 0
+    for lane, value in enumerate(values):
+        user |= (value & 0xFF) << (8 * lane)
+    return user
+
+
+def tuser_for_lane(lane: int, value: int) -> int:
+    return (value & 0xFF) << (8 * lane)
+
+
 def packetizer2_header_word(*, crc_mode: int, sof: int, tuser: int, tdest: int, tid: int, seq: int) -> int:
     return (
         (PACKETIZER2_VERSION & 0xF)
@@ -199,6 +231,206 @@ def packetizer0_header_word(*, frame: int, packet: int, tdest: int, tid: int, tu
 
 def packetizer0_tail_byte(*, eof: int, tuser: int) -> int:
     return ((eof & 0x1) << 7) | (tuser & 0x7F)
+
+
+def packetizer2_header_beat(
+    *,
+    sof: int,
+    tuser: int,
+    dest: int,
+    tid: int,
+    seq: int,
+    crc_mode: int = PACKETIZER2_CRC_NONE,
+) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer2_header_word(
+            crc_mode=crc_mode,
+            sof=sof,
+            tuser=tuser,
+            tdest=dest,
+            tid=tid,
+            seq=seq,
+        ),
+        keep=0xFF,
+        last=0,
+        user=0x2,
+    )
+
+
+def packetizer2_data_beat(payload: bytes) -> AxisBeat:
+    return AxisBeat(data=word_from_bytes(payload), keep=0xFF, last=0, user=0)
+
+
+def packetizer2_tail_beat(*, eof: int, tuser: int, byte_count: int, crc: int = 0) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count, crc=crc),
+        keep=0xFF,
+        last=1,
+        user=0,
+    )
+
+
+def packetizer0_header_beat(*, frame: int, packet: int, tuser: int, dest: int, tid: int) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer0_header_word(
+            frame=frame,
+            packet=packet,
+            tdest=dest,
+            tid=tid,
+            tuser=tuser,
+        ),
+        keep=0xFF,
+        last=0,
+        user=0x2,
+    )
+
+
+def packetizer_data_beat(payload: bytes, *, keep: int = 0xFF, last: int = 0) -> AxisBeat:
+    return AxisBeat(data=word_from_bytes(payload), keep=keep, last=last, user=0)
+
+
+def assert_packetized_beat(
+    beat: AxisBeat,
+    *,
+    data: int,
+    keep: int = 0xFF,
+    last: int = 0,
+    user: int = 0,
+    dest: int = 0,
+    tid: int = 0,
+) -> None:
+    assert beat.data == data
+    assert beat.keep == keep
+    assert beat.last == last
+    assert beat.dest == dest
+    assert beat.tid == tid
+    assert beat.user == user
+
+
+def assert_packetizer2_tail_beat(
+    beat: AxisBeat,
+    *,
+    eof: int,
+    tuser: int,
+    byte_count: int,
+    crc_mode: int = PACKETIZER2_CRC_NONE,
+) -> None:
+    expected = packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count)
+    assert (beat.data & 0xFFFFFFFF) == (expected & 0xFFFFFFFF)
+    if crc_mode == PACKETIZER2_CRC_NONE:
+        assert (beat.data >> 32) == 0
+    else:
+        assert (beat.data >> 32) != 0
+    assert beat.keep == 0xFF
+    assert beat.last == 1
+    assert beat.dest == 0
+    assert beat.tid == 0
+    assert beat.user == 0
+
+
+def assert_app_beat(
+    beat: AxisBeat,
+    *,
+    payload: bytes,
+    keep: int = 0xFF,
+    last: int = 0,
+    dest: int,
+    tid: int,
+    user: int = 0,
+) -> None:
+    assert bytes_from_word(beat.data, keep=keep) == payload
+    assert beat.keep == keep
+    assert beat.last == last
+    assert beat.dest == dest
+    assert beat.tid == tid
+    assert beat.user == user
+
+
+async def assert_no_output(
+    endpoint: FlatAxisEndpoint,
+    *,
+    clk,
+    cycles: int,
+    drive_ready: bool = False,
+) -> None:
+    if drive_ready:
+        endpoint._sig("TREADY").value = 1
+    for _ in range(cycles):
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        assert int(endpoint._sig("TVALID").value) == 0
+    if drive_ready:
+        endpoint._sig("TREADY").value = 0
+
+
+def byte_packer_source_beat(payload: bytes, *, last: int = 0, user_values: list[int]) -> AxisBeat:
+    return AxisBeat(
+        data=word_from_bytes(payload),
+        keep=(1 << len(payload)) - 1,
+        last=last,
+        user=user_from_bytes(user_values),
+    )
+
+
+def byte_packer_source_beats_from_payload(
+    payload: bytes,
+    *,
+    max_beat_bytes: int,
+    user_base: int,
+    first_size: int | None = None,
+) -> list[AxisBeat]:
+    beats = []
+    offset = 0
+    while offset < len(payload):
+        if offset == 0 and first_size is not None:
+            size = min(first_size, max_beat_bytes, len(payload))
+        else:
+            size = min(max_beat_bytes, len(payload) - offset)
+        chunk = payload[offset : offset + size]
+        beats.append(
+            byte_packer_source_beat(
+                chunk,
+                last=int(offset + size == len(payload)),
+                user_values=list(range(user_base + offset, user_base + offset + len(chunk))),
+            )
+        )
+        offset += size
+    return beats
+
+
+async def send_unpaced_beats(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], *, clk) -> None:
+    # `AxiStreamBytePacker` has no slave-ready output. Each driven beat is held
+    # for exactly one rising edge, which is the module's intended acceptance
+    # cadence.
+    for beat in beats:
+        endpoint.drive(beat)
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+    endpoint.set_idle()
+
+
+async def recv_valid_pulses(endpoint: FlatAxisEndpoint, count: int, *, clk) -> list[AxisBeat]:
+    beats = []
+    while len(beats) < count:
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TVALID").value):
+            beats.append(endpoint.snapshot())
+    return beats
+
+
+def assert_packed_beat(
+    beat: AxisBeat,
+    *,
+    payload: bytes,
+    user_values: list[int],
+    last: int = 0,
+) -> None:
+    keep = (1 << len(payload)) - 1
+    assert bytes_from_word(beat.data, keep=keep) == payload
+    assert beat.keep == keep
+    assert beat.last == last
+    assert beat.user == user_from_bytes(user_values)
 
 
 async def send_beats(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], *, clk) -> None:

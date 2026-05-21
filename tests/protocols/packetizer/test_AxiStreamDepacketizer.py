@@ -21,20 +21,21 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
-    bytes_from_word,
-    packetizer0_header_word,
+    assert_app_beat,
+    assert_no_output,
+    packetizer0_header_beat,
     packetizer0_tail_byte,
+    packetizer_data_beat,
     recv_beats,
     reset_packetizer_dut,
     send_beats,
     start_packetizer_clock,
-    word_from_bytes,
 )
 
 
@@ -54,52 +55,6 @@ class TB:
         await reset_packetizer_dut(self.dut)
 
 
-def header_beat(*, frame: int, packet: int, tuser: int, dest: int, tid: int) -> AxisBeat:
-    return AxisBeat(
-        data=packetizer0_header_word(
-            frame=frame,
-            packet=packet,
-            tdest=dest,
-            tid=tid,
-            tuser=tuser,
-        ),
-        keep=0xFF,
-        last=0,
-        user=0x2,
-    )
-
-
-def data_beat(payload: bytes, *, keep: int = 0xFF, last: int = 0) -> AxisBeat:
-    return AxisBeat(data=word_from_bytes(payload), keep=keep, last=last, user=0)
-
-
-def assert_app_beat(
-    beat: AxisBeat,
-    *,
-    payload: bytes,
-    keep: int = 0xFF,
-    last: int = 0,
-    dest: int,
-    tid: int,
-    user: int = 0,
-) -> None:
-    assert bytes_from_word(beat.data, keep=keep) == payload
-    assert beat.keep == keep
-    assert beat.last == last
-    assert beat.dest == dest
-    assert beat.tid == tid
-    assert beat.user == user
-
-
-async def assert_no_output(endpoint: FlatAxisEndpoint, *, clk, cycles: int) -> None:
-    endpoint._sig("TREADY").value = 1
-    for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
-        assert int(endpoint._sig("TVALID").value) == 0
-    endpoint._sig("TREADY").value = 0
-
-
 @cocotb.test()
 async def depacketize_appended_tail_test(dut):
     tb = TB(dut)
@@ -111,9 +66,9 @@ async def depacketize_appended_tail_test(dut):
     last = bytes(range(0x18, 0x1F))
     tail = packetizer0_tail_byte(eof=1, tuser=0x41)
     packet = [
-        header_beat(frame=0, packet=0, tuser=0x20, dest=0x3, tid=0xA5),
-        data_beat(first),
-        data_beat(last + bytes([tail]), last=1),
+        packetizer0_header_beat(frame=0, packet=0, tuser=0x20, dest=0x3, tid=0xA5),
+        packetizer_data_beat(first),
+        packetizer_data_beat(last + bytes([tail]), last=1),
     ]
 
     rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
@@ -147,9 +102,9 @@ async def depacketize_separate_tail_test(dut):
     last = bytes(range(0x38, 0x40))
     tail = packetizer0_tail_byte(eof=1, tuser=0x42)
     packet = [
-        header_beat(frame=0, packet=0, tuser=0x10, dest=0x2, tid=0x5A),
-        data_beat(first),
-        data_beat(last),
+        packetizer0_header_beat(frame=0, packet=0, tuser=0x10, dest=0x2, tid=0x5A),
+        packetizer_data_beat(first),
+        packetizer_data_beat(last),
         AxisBeat(data=tail, keep=0x01, last=1, user=0),
     ]
 
@@ -184,12 +139,12 @@ async def depacketize_split_sequence_test(dut):
         bytes(range(0x70, 0x78)),
     ]
     packet = [
-        header_beat(frame=0, packet=0, tuser=0x30, dest=0x4, tid=0x22),
-        data_beat(chunks[0]),
-        data_beat(chunks[1]),
+        packetizer0_header_beat(frame=0, packet=0, tuser=0x30, dest=0x4, tid=0x22),
+        packetizer_data_beat(chunks[0]),
+        packetizer_data_beat(chunks[1]),
         AxisBeat(data=packetizer0_tail_byte(eof=0, tuser=0), keep=0x01, last=1, user=0),
-        header_beat(frame=0, packet=1, tuser=0x00, dest=0x4, tid=0x22),
-        data_beat(chunks[2]),
+        packetizer0_header_beat(frame=0, packet=1, tuser=0x00, dest=0x4, tid=0x22),
+        packetizer_data_beat(chunks[2]),
         AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x43), keep=0x01, last=1, user=0),
     ]
 
@@ -223,14 +178,14 @@ async def depacketize_bad_continuation_bleeds_and_recovers_test(dut):
         bytes(range(0xA0, 0xA8)),
     ]
     first_packet = [
-        header_beat(frame=0, packet=0, tuser=0x34, dest=0x6, tid=0x44),
-        data_beat(chunks[0]),
-        data_beat(chunks[1]),
+        packetizer0_header_beat(frame=0, packet=0, tuser=0x34, dest=0x6, tid=0x44),
+        packetizer_data_beat(chunks[0]),
+        packetizer_data_beat(chunks[1]),
         AxisBeat(data=packetizer0_tail_byte(eof=0, tuser=0), keep=0x01, last=1, user=0),
     ]
     bad_packet = [
-        header_beat(frame=0, packet=2, tuser=0x00, dest=0x6, tid=0x44),
-        data_beat(chunks[2]),
+        packetizer0_header_beat(frame=0, packet=2, tuser=0x00, dest=0x6, tid=0x44),
+        packetizer_data_beat(chunks[2]),
         AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x47), keep=0x01, last=1, user=0),
     ]
 
@@ -242,12 +197,12 @@ async def depacketize_bad_continuation_bleeds_and_recovers_test(dut):
     assert_app_beat(rx_beats[1], payload=chunks[1], dest=0x6, tid=0x44)
 
     await send_beats(tb.source, bad_packet, clk=dut.axisClk)
-    await assert_no_output(tb.sink, clk=dut.axisClk, cycles=8)
+    await assert_no_output(tb.sink, clk=dut.axisClk, cycles=8, drive_ready=True)
 
     recovery = bytes(range(0xB0, 0xB8))
     recovery_packet = [
-        header_beat(frame=1, packet=0, tuser=0x35, dest=0x7, tid=0x45),
-        data_beat(recovery),
+        packetizer0_header_beat(frame=1, packet=0, tuser=0x35, dest=0x7, tid=0x45),
+        packetizer_data_beat(recovery),
         AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x48), keep=0x01, last=1, user=0),
     ]
 
