@@ -182,13 +182,16 @@ If the user keeps the focus on stream-helper cleanup rather than resuming a new 
 
 If the user continues the new `protocols/packetizer` slice, the standalone-first pass now has expanded leaf coverage plus one narrow V2 loopback after the direct contracts. `AxiStreamPacketizer`, `AxiStreamDepacketizer`, `AxiStreamPacketizer2`, `AxiStreamDepacketizer2`, and `AxiStreamBytePacker` are covered directly under `tests/protocols/packetizer/`, and `AxiStreamPacketizer2LoopbackWrapper` adds CRC NONE/DATA/FULL packetizer-to-depacketizer coverage. The shared helper layer in `tests/protocols/packetizer/packetizer_test_utils.py` now owns the repeated V0/V2 packet beat builders, packetized/app-stream assertions, V2 CRC-mode env decoding, depacketizer `initDone` polling, no-output checks, and BytePacker unpaced stimulus/output-valid helpers. The packetizer/depacketizer wrappers expose full per-byte `TUSER` vectors for `TUSER_FIRST_LAST` behavior, the legacy V0 pair covers both EOF/user tail encodings, split/continuation state, output backpressure, and malformed-continuation bleed/recovery, the V2 pair covers header/payload/tail, split-frame sequencing, sequence-counter wrap at `SEQ_CNT_SIZE_G=4`, partial final `TKEEP`, interleaved-`TDEST` rearbitration, `TDEST_BITS_G=0/1/2` loopback behavior, exact and one-byte-over `maxPktBytes` splitting, output backpressure, CRC-mode packetizer behavior, DATA/FULL bad-CRC rejection, CRC-none tail-error marking, header error paths, link-drop recovery, and isolated mid-frame link-drop termination/recovery, and the byte packer covers partial-beat compaction, idle gaps, reset flush, zero-keep input beats, and no-ready behavior across 1-to-8, 2-to-5, 3-to-6, 3-to-7, 4-to-8, 5-to-7, and 7-to-8 compressed-keep width conversions. The latest focused packetizer validation is `./.venv/bin/python -m pytest -n 0 -q tests/protocols/packetizer` (`22 passed`), with `git diff --check` clean after the helper refactor.
 
-If the user continues the new `protocols/batcher` slice, Phase 1 and a narrow
-Phase 2 have started. The current worktree adds
+If the user continues the new `protocols/batcher` slice, Phase 1, a narrow
+Phase 2, and a focused Phase 3 event-builder slice are in place. The current
+worktree adds
 `protocols/batcher/wrappers/AxiStreamBatcherWrapper.vhd`,
 `protocols/batcher/wrappers/AxiStreamBatcherAxilWrapper.vhd`,
+`protocols/batcher/wrappers/AxiStreamBatcherEventBuilderWrapper.vhd`,
 `tests/protocols/batcher/batcher_test_utils.py`, and
 `tests/protocols/batcher/test_AxiStreamBatcher.py` plus
-`tests/protocols/batcher/test_AxiStreamBatcherAxil.py`. The validated
+`tests/protocols/batcher/test_AxiStreamBatcherAxil.py` plus
+`tests/protocols/batcher/test_AxiStreamBatcherEventBuilder.py`. The validated
 V2/default 8-byte leaf slice covers compacted header/payload/tail bytes,
 subframe metadata, multi-subframe superframes, max-subframe/idle-gap/byte-
 threshold termination, forced termination with terminal `EOFE`, output
@@ -196,12 +199,19 @@ backpressure hold, and reset recovery after a partial superframe. The validated
 AXI-Lite wrapper slice covers reset/readback for the documented register map,
 control propagation for max-subframe count, byte threshold, and clock gap,
 `softRst` recovery from a partial superframe, and `blowoff` accept/drop behavior
-followed by normal recovery. The latest focused validation is
-`./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`2 passed`),
+followed by normal recovery. The validated event-builder slice covers two-source
+INDEXED/ROUTED source selection, TDEST remap including fixed/passthrough routed
+bits, null counting without forwarding, timeout drop for a missing source
+followed by a clean later event, shared-output backpressure while both inputs
+contribute to an event, bypass skip/recovery, blowoff drop/recovery, routed
+transition-frame preemption, and visible counter/status readback. The latest
+focused validation is
+`./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`4 passed`),
 with clean wrapper `vsg`, Python `py_compile`, stale-process sweep, and
 `git diff --check`. Possible next steps are a small V1/power-of-two leaf case,
-deeper AXI-Lite async/adverse reset timing, or Phase 3 event-builder integration
-coverage.
+deeper AXI-Lite async/adverse reset timing, or targeted event-builder breadth
+such as more source-count/generic cases, alternate route tables, external-only
+blowoff, or bug-driven transition/bypass timing.
 
 If the user keeps the focus on `protocols/srp`, the main review findings and high-value coverage additions are complete. The optional remaining SRP follow-up is deeper timeout or posted-write disabled-op permutations if a future change touches those RTL branches. The latest focused SRP validation command is `./.venv/bin/python -m pytest -n 0 -q tests/protocols/srp`, and it passed locally with `23 passed`.
 

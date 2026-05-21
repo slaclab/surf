@@ -6,8 +6,10 @@
   behavior at the default 8-byte width, now has a passing cocotb regression.
 - A narrow `AxiStreamBatcherAxil` common-clock wrapper regression is also in
   place for register readback and control propagation.
-- Do not start broad `AxiStreamBatcherEventBuilder` coverage until the leaf and
-  AXI-Lite wrapper tests remain green in the current worktree.
+- A focused `AxiStreamBatcherEventBuilder` two-source regression is in place for
+  INDEXED and ROUTED integration policy.
+- Keep any further event-builder work targeted; the current pass is not an
+  exhaustive source-count or generic matrix.
 
 ## Expected File Areas
 - RTL wrappers: `protocols/batcher/wrappers/`
@@ -20,14 +22,34 @@
 - If deepening Phase 2, keep it wrapper-specific: async AXI-Lite crossing,
   additional blowoff timing, or soft-reset timing. Avoid duplicating leaf byte
   grammar tests.
-- If moving to Phase 3, start with small event-builder source-count cases and
-  reuse the batcher byte-stream helpers for final output shape.
+- If deepening Phase 3, add only targeted event-builder integration cases such
+  as more source-count/generic breadth, alternate route tables, external-only
+  blowoff behavior, or bug-driven transition/bypass timing.
+
+## Current Coverage
+- `AxiStreamBatcher`: compacted V2 output, subframe metadata, multi-subframe
+  superframes, max-subframe/idle-gap/byte-threshold termination, forced
+  termination with terminal `EOFE`, output backpressure, and reset recovery.
+- `AxiStreamBatcherAxil`: documented register reset/readback, threshold/count/gap
+  control propagation, `softRst`, and `blowoff` drop/recovery.
+- `AxiStreamBatcherEventBuilder`: two-source INDEXED/ROUTED source selection,
+  TDEST remap including fixed/passthrough routed bits, null counting without
+  forwarding, timeout drop for a missing source followed by a clean later event,
+  shared-output backpressure while both inputs contribute to an event, bypass
+  skip/recovery, blowoff drop/recovery, routed transition-frame preemption, and
+  visible counter/status readback.
+
+## Deferred Scope
+- V1 and non-default stream-width leaf coverage.
+- Async AXI-Lite crossing in `AxiStreamBatcherAxil`.
+- Event-builder source-count matrices, alternate route-table shapes, and
+  exhaustive transition/bypass timing permutations.
 
 ## Validation Checklist
 - Latest completed:
-  - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/batcher/wrappers/AxiStreamBatcherWrapper.vhd protocols/batcher/wrappers/AxiStreamBatcherAxilWrapper.vhd`
-  - `PYTHONPYCACHEPREFIX=/private/tmp/surf-pycache ./.venv/bin/python -m py_compile tests/protocols/batcher/batcher_test_utils.py tests/protocols/batcher/test_AxiStreamBatcher.py tests/protocols/batcher/test_AxiStreamBatcherAxil.py`
-  - `./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`2 passed`)
+  - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/batcher/wrappers/AxiStreamBatcherWrapper.vhd protocols/batcher/wrappers/AxiStreamBatcherAxilWrapper.vhd protocols/batcher/wrappers/AxiStreamBatcherEventBuilderWrapper.vhd`
+  - `PYTHONPYCACHEPREFIX=/private/tmp/surf-pycache ./.venv/bin/python -m py_compile tests/protocols/batcher/batcher_test_utils.py tests/protocols/batcher/test_AxiStreamBatcher.py tests/protocols/batcher/test_AxiStreamBatcherAxil.py tests/protocols/batcher/test_AxiStreamBatcherEventBuilder.py`
+  - `./.venv/bin/python -m pytest -n 0 -q tests/protocols/batcher` (`4 passed`)
   - Stale simulator process sweep, no leftover batcher `ghdl`/`pytest`/cocotb
     processes observed
   - `git diff --check`

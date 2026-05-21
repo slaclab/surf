@@ -191,6 +191,16 @@ async def send_frame(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], *, clk) 
         await endpoint.send(beat, clk=clk)
 
 
+async def send_frames_concurrently(
+    frames: list[tuple[FlatAxisEndpoint, list[AxisBeat]]],
+    *,
+    clk,
+) -> None:
+    tasks = [cocotb.start_soon(send_frame(endpoint, beats, clk=clk)) for endpoint, beats in frames]
+    for task in tasks:
+        await task
+
+
 async def recv_until_last(endpoint: FlatAxisEndpoint, *, clk, max_beats: int = 32) -> list[AxisBeat]:
     beats = []
     for _ in range(max_beats):
