@@ -23,7 +23,9 @@ use surf.SsiPkg.all;
 
 entity AxiStreamFrameBufferIpIntegrator is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time    := 1 ns;
+      ASYNC_CLOCKS_G : boolean := true;
+      SAFE_BUFFS_G   : boolean := true);
    port (
       dataClk         : in  sl;
       dataRst         : in  sl := '0';
@@ -160,11 +162,11 @@ begin
    U_DUT : entity surf.AxiStreamFrameBuffer
       generic map (
          TPD_G               => TPD_G,
-         COMMON_CLK_G        => true,
+         COMMON_CLK_G        => not ASYNC_CLOCKS_G,
          DATA_BYTES_G        => 2,
          RAM_ADDR_WIDTH_G    => 4,
-         SAFE_BUFFS_G        => true,
-         GEN_SYNC_FIFO_G     => true,
+         SAFE_BUFFS_G        => SAFE_BUFFS_G,
+         GEN_SYNC_FIFO_G     => not ASYNC_CLOCKS_G,
          AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
       port map (
          dataClk         => dataClk,
