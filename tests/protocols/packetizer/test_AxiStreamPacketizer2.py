@@ -163,6 +163,134 @@ async def packetize_split_frame_test(dut):
     )
 
 
+@cocotb.test()
+async def packetize_partial_last_tkeep_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # A partial final input beat should still produce a full-width packetized
+    # tail word whose byte-count field tells the depacketizer how much of the
+    # previous payload word is real frame data.
+    payload = bytes(range(0x50, 0x5B))
+    input_beats = payload_to_beats(
+        payload,
+        dest=0x1,
+        tid=0xC3,
+        first_user=0x24,
+        last_user=0x47,
+    )
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 4, clk=dut.axisClk))
+    await send_beats(tb.source, input_beats, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 2, "us")
+
+    assert_packet_beat(
+        rx_beats[0],
+        data=packetizer2_header_word(
+            crc_mode=PACKETIZER2_CRC_NONE,
+            sof=1,
+            tuser=0x24,
+            tdest=0x1,
+            tid=0xC3,
+            seq=0,
+        ),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:11]))
+    assert_packet_beat(
+        rx_beats[3],
+        data=packetizer2_tail_word(eof=1, tuser=0x47, byte_count=3),
+        last=1,
+    )
+
+
+@cocotb.test()
+async def packetize_interleaved_tdest_state_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Changing TDEST mid-frame forces a non-EOF tail for the active destination
+    # without accepting the new beat. The source helper holds the new beat until
+    # the packetizer rearbitrates and returns ready.
+    dest_a_first = bytes(range(0x70, 0x78))
+    dest_b_frame = bytes(range(0x90, 0x98))
+    dest_a_last = bytes(range(0x78, 0x80))
+    input_beats = [
+        AxisBeat(
+            data=word_from_bytes(dest_a_first),
+            keep=0xFF,
+            last=0,
+            dest=0x1,
+            tid=0x11,
+            user=0x21,
+        ),
+        AxisBeat(
+            data=word_from_bytes(dest_b_frame),
+            keep=0xFF,
+            last=1,
+            dest=0x2,
+            tid=0x22,
+            user=0x31 | (0x44 << 56),
+        ),
+        AxisBeat(
+            data=word_from_bytes(dest_a_last),
+            keep=0xFF,
+            last=1,
+            dest=0x1,
+            tid=0x11,
+            user=0x45 << 56,
+        ),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 9, clk=dut.axisClk))
+    await send_beats(tb.source, input_beats, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert_packet_beat(
+        rx_beats[0],
+        data=packetizer2_header_word(
+            crc_mode=PACKETIZER2_CRC_NONE,
+            sof=1,
+            tuser=0x21,
+            tdest=0x1,
+            tid=0x11,
+            seq=0,
+        ),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[1], data=word_from_bytes(dest_a_first))
+    assert_packet_beat(rx_beats[2], data=packetizer2_tail_word(eof=0, tuser=0, byte_count=8), last=1)
+    assert_packet_beat(
+        rx_beats[3],
+        data=packetizer2_header_word(
+            crc_mode=PACKETIZER2_CRC_NONE,
+            sof=1,
+            tuser=0x31,
+            tdest=0x2,
+            tid=0x22,
+            seq=0,
+        ),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[4], data=word_from_bytes(dest_b_frame))
+    assert_packet_beat(rx_beats[5], data=packetizer2_tail_word(eof=1, tuser=0x44, byte_count=8), last=1)
+    assert_packet_beat(
+        rx_beats[6],
+        data=packetizer2_header_word(
+            crc_mode=PACKETIZER2_CRC_NONE,
+            sof=0,
+            tuser=0x00,
+            tdest=0x1,
+            tid=0x11,
+            seq=1,
+        ),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[7], data=word_from_bytes(dest_a_last))
+    assert_packet_beat(rx_beats[8], data=packetizer2_tail_word(eof=1, tuser=0x45, byte_count=8), last=1)
+
+
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="crc_none")])
 def test_AxiStreamPacketizer2(parameters):
     run_surf_vhdl_test(

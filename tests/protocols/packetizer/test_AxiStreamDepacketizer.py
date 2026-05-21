@@ -161,6 +161,45 @@ async def depacketize_separate_tail_test(dut):
     )
 
 
+@cocotb.test()
+async def depacketize_split_sequence_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Hand-build a valid two-packet V0 frame. The first packet terminates with
+    # EOF=0, so the depacketizer must retain frame state and accept packet 1 as
+    # a continuation without adding another SOF.
+    chunks = [
+        bytes(range(0x60, 0x68)),
+        bytes(range(0x68, 0x70)),
+        bytes(range(0x70, 0x78)),
+    ]
+    packet = [
+        header_beat(frame=0, packet=0, tuser=0x30, dest=0x4, tid=0x22),
+        data_beat(chunks[0]),
+        data_beat(chunks[1]),
+        AxisBeat(data=packetizer0_tail_byte(eof=0, tuser=0), keep=0x01, last=1, user=0),
+        header_beat(frame=0, packet=1, tuser=0x00, dest=0x4, tid=0x22),
+        data_beat(chunks[2]),
+        AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x43), keep=0x01, last=1, user=0),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 3, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert_app_beat(rx_beats[0], payload=chunks[0], dest=0x4, tid=0x22, user=0x32)
+    assert_app_beat(rx_beats[1], payload=chunks[1], dest=0x4, tid=0x22)
+    assert_app_beat(
+        rx_beats[2],
+        payload=chunks[2],
+        last=1,
+        dest=0x4,
+        tid=0x22,
+        user=0x43 << 56,
+    )
+
+
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="legacy_v0")])
 def test_AxiStreamDepacketizer(parameters):
     run_surf_vhdl_test(

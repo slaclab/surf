@@ -168,6 +168,66 @@ async def packetize_separate_tail_test(dut):
     assert_packet_beat(rx_beats[3], data=tail, keep=0x01, last=1)
 
 
+@cocotb.test()
+async def packetize_split_frame_on_max_size_test(dut):
+    tb = TB(dut)
+    dut.maxPktBytes.value = 32
+    await tb.reset()
+
+    # With a 32-byte packet limit, the legacy packetizer can carry two 8-byte
+    # payload words plus header/tail overhead. A three-word frame must therefore
+    # become a non-EOF packet followed by an EOF continuation packet.
+    payload = bytes(range(0x60, 0x78))
+    first_tail = packetizer0_tail_byte(eof=0, tuser=0x00)
+    final_tail = packetizer0_tail_byte(eof=1, tuser=0x43)
+    input_beats = [
+        AxisBeat(
+            data=word_from_bytes(payload[0:8]),
+            keep=0xFF,
+            last=0,
+            dest=0x4,
+            tid=0x22,
+            user=0x31,
+        ),
+        AxisBeat(
+            data=word_from_bytes(payload[8:16]),
+            keep=0xFF,
+            last=0,
+            dest=0x4,
+            tid=0x22,
+            user=0,
+        ),
+        AxisBeat(
+            data=word_from_bytes(payload[16:24]),
+            keep=0xFF,
+            last=1,
+            dest=0x4,
+            tid=0x22,
+            user=0x43,
+        ),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 7, clk=dut.axisClk))
+    await send_beats(tb.source, input_beats, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_packet_beat(
+        rx_beats[0],
+        data=packetizer0_header_word(frame=0, packet=0, tdest=0x4, tid=0x22, tuser=0x31),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[1], data=word_from_bytes(payload[0:8]))
+    assert_packet_beat(rx_beats[2], data=word_from_bytes(payload[8:16]))
+    assert_packet_beat(rx_beats[3], data=first_tail, keep=0x01, last=1)
+    assert_packet_beat(
+        rx_beats[4],
+        data=packetizer0_header_word(frame=0, packet=1, tdest=0x4, tid=0x22, tuser=0x43),
+        user=0x2,
+    )
+    assert_packet_beat(rx_beats[5], data=word_from_bytes(payload[16:24]))
+    assert_packet_beat(rx_beats[6], data=final_tail, keep=0x01, last=1)
+
+
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="legacy_v0")])
 def test_AxiStreamPacketizer(parameters):
     run_surf_vhdl_test(

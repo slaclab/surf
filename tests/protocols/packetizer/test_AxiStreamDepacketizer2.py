@@ -98,6 +98,15 @@ def tail_beat(*, eof: int, tuser: int, byte_count: int) -> AxisBeat:
     )
 
 
+def tail_beat_with_crc(*, eof: int, tuser: int, byte_count: int, crc: int) -> AxisBeat:
+    return AxisBeat(
+        data=packetizer2_tail_word(eof=eof, tuser=tuser, byte_count=byte_count, crc=crc),
+        keep=0xFF,
+        last=1,
+        user=0,
+    )
+
+
 def assert_app_beat(
     beat: AxisBeat,
     *,
@@ -165,6 +174,64 @@ async def depacketize_split_sequence_test(dut):
     assert_app_beat(rx_beats[0], payload=chunks[0], dest=0x2, tid=0x5A, user=0x12)
     assert_app_beat(rx_beats[1], payload=chunks[1], dest=0x2, tid=0x5A)
     assert_app_beat(rx_beats[2], payload=chunks[2], last=1, dest=0x2, tid=0x5A, user=0x43 << 56)
+
+
+@cocotb.test()
+async def depacketize_partial_last_tkeep_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    first = bytes(range(0x50, 0x58))
+    last = bytes(range(0x58, 0x5B))
+    packet = [
+        header_beat(sof=1, tuser=0x24, dest=0x1, tid=0xC3, seq=0),
+        data_beat(first),
+        data_beat(last),
+        tail_beat(eof=1, tuser=0x47, byte_count=3),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_app_beat(rx_beats[0], payload=first, dest=0x1, tid=0xC3, user=0x26)
+    assert_app_beat(
+        rx_beats[1],
+        payload=last,
+        keep=0x07,
+        last=1,
+        dest=0x1,
+        tid=0xC3,
+        user=0x47 << 16,
+    )
+
+
+@cocotb.test()
+async def depacketize_crc_none_nonzero_crc_marks_eofe_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    payload = bytes(range(0x70, 0x78))
+    packet = [
+        header_beat(sof=1, tuser=0x30, dest=0x2, tid=0x55, seq=0),
+        data_beat(payload),
+        tail_beat_with_crc(eof=1, tuser=0x40, byte_count=8, crc=0x1),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    # CRC mode NONE requires the CRC field to be zero. A nonzero field marks
+    # the frame as terminal-error while still forwarding the held payload beat.
+    assert_app_beat(
+        rx_beats[0],
+        payload=payload,
+        last=1,
+        dest=0x2,
+        tid=0x55,
+        user=0x32 | (0x41 << 56),
+    )
 
 
 @pytest.mark.parametrize(

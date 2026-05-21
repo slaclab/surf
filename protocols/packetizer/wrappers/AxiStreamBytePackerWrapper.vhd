@@ -21,26 +21,28 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamBytePackerWrapper is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false);
+      TPD_G          : time                   := 1 ns;
+      RST_ASYNC_G    : boolean                := false;
+      SLAVE_BYTES_G  : positive range 1 to 8  := 4;
+      MASTER_BYTES_G : positive range 1 to 8  := 8);
    port (
       axisClk       : in  sl;
       axisRst       : in  sl;
       S_AXIS_TVALID : in  sl;
-      S_AXIS_TDATA  : in  slv(31 downto 0);
-      S_AXIS_TKEEP  : in  slv(3 downto 0);
+      S_AXIS_TDATA  : in  slv(8*SLAVE_BYTES_G-1 downto 0);
+      S_AXIS_TKEEP  : in  slv(SLAVE_BYTES_G-1 downto 0);
       S_AXIS_TLAST  : in  sl;
       S_AXIS_TDEST  : in  slv(7 downto 0);
       S_AXIS_TID    : in  slv(7 downto 0);
-      S_AXIS_TUSER  : in  slv(31 downto 0);
+      S_AXIS_TUSER  : in  slv(8*SLAVE_BYTES_G-1 downto 0);
       S_AXIS_TREADY : out sl;
       M_AXIS_TVALID : out sl;
-      M_AXIS_TDATA  : out slv(63 downto 0);
-      M_AXIS_TKEEP  : out slv(7 downto 0);
+      M_AXIS_TDATA  : out slv(8*MASTER_BYTES_G-1 downto 0);
+      M_AXIS_TKEEP  : out slv(MASTER_BYTES_G-1 downto 0);
       M_AXIS_TLAST  : out sl;
       M_AXIS_TDEST  : out slv(7 downto 0);
       M_AXIS_TID    : out slv(7 downto 0);
-      M_AXIS_TUSER  : out slv(63 downto 0);
+      M_AXIS_TUSER  : out slv(8*MASTER_BYTES_G-1 downto 0);
       M_AXIS_TREADY : in  sl);
 end entity AxiStreamBytePackerWrapper;
 
@@ -48,7 +50,7 @@ architecture rtl of AxiStreamBytePackerWrapper is
 
    constant SLAVE_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
+      TDATA_BYTES_C => SLAVE_BYTES_G,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -57,7 +59,7 @@ architecture rtl of AxiStreamBytePackerWrapper is
 
    constant MASTER_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 8,
+      TDATA_BYTES_C => MASTER_BYTES_G,
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_COMP_C,
@@ -68,6 +70,9 @@ architecture rtl of AxiStreamBytePackerWrapper is
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
 begin
+
+   assert (MASTER_BYTES_G >= SLAVE_BYTES_G)
+      report "AxiStreamBytePackerWrapper does not support downsizing" severity failure;
 
    ---------------
    -- Bus shims --
@@ -80,27 +85,27 @@ begin
       vS                    := AXI_STREAM_MASTER_INIT_C;
       vS.tValid             := S_AXIS_TVALID;
       vS.tData              := (others => '0');
-      vS.tData(31 downto 0) := S_AXIS_TDATA;
+      vS.tData(8*SLAVE_BYTES_G-1 downto 0) := S_AXIS_TDATA;
       vS.tStrb              := (others => '0');
-      vS.tStrb(3 downto 0)  := S_AXIS_TKEEP;
+      vS.tStrb(SLAVE_BYTES_G-1 downto 0) := S_AXIS_TKEEP;
       vS.tKeep              := (others => '0');
-      vS.tKeep(3 downto 0)  := S_AXIS_TKEEP;
+      vS.tKeep(SLAVE_BYTES_G-1 downto 0) := S_AXIS_TKEEP;
       vS.tLast              := S_AXIS_TLAST;
       vS.tDest(7 downto 0)  := S_AXIS_TDEST;
       vS.tId(7 downto 0)    := S_AXIS_TID;
       vS.tUser              := (others => '0');
-      vS.tUser(31 downto 0) := S_AXIS_TUSER;
+      vS.tUser(8*SLAVE_BYTES_G-1 downto 0) := S_AXIS_TUSER;
 
       sAxisMaster <= vS;
 
       S_AXIS_TREADY <= '1';
       M_AXIS_TVALID <= mAxisMaster.tValid;
-      M_AXIS_TDATA  <= mAxisMaster.tData(63 downto 0);
-      M_AXIS_TKEEP  <= mAxisMaster.tKeep(7 downto 0);
+      M_AXIS_TDATA  <= mAxisMaster.tData(8*MASTER_BYTES_G-1 downto 0);
+      M_AXIS_TKEEP  <= mAxisMaster.tKeep(MASTER_BYTES_G-1 downto 0);
       M_AXIS_TLAST  <= mAxisMaster.tLast;
       M_AXIS_TDEST  <= mAxisMaster.tDest(7 downto 0);
       M_AXIS_TID    <= mAxisMaster.tId(7 downto 0);
-      M_AXIS_TUSER  <= mAxisMaster.tUser(63 downto 0);
+      M_AXIS_TUSER  <= mAxisMaster.tUser(8*MASTER_BYTES_G-1 downto 0);
    end process comb;
 
    ---------------------
