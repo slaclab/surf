@@ -175,7 +175,7 @@ begin
          dataFrameRxDone => dataFrameRxDone,
          dataRdTrig      => dataRdTrig,
          axilClk         => axilClk,
-         axilRst         => dataRst,
+         axilRst         => axilRst,
          axilReadMaster  => axilReadMaster,
          axilReadSlave   => axilReadSlave,
          axilWriteMaster => axilWriteMaster,
