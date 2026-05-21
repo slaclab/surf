@@ -271,6 +271,43 @@ async def idle_gap_preserves_partial_word_test(dut):
 
 
 @cocotb.test()
+async def zero_keep_beat_is_ignored_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # A valid beat with no asserted keep bits should not contribute data or
+    # sideband bytes to the packed output word. The following short terminal
+    # frame should emerge exactly as if the zero-keep beat had been idle.
+    payload = bytes(range(0x70, 0x70 + min(3, tb.slave_bytes)))
+    rx_task = cocotb.start_soon(recv_valid_pulses(tb.sink, 1, clk=dut.axisClk))
+    await send_unpaced(
+        tb.source,
+        [
+            AxisBeat(
+                data=(1 << (8 * tb.slave_bytes)) - 1,
+                keep=0x00,
+                last=0,
+                user=(1 << (8 * tb.slave_bytes)) - 1,
+            ),
+            source_beat(
+                payload,
+                last=1,
+                user_values=list(range(0x60, 0x60 + len(payload))),
+            ),
+        ],
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 2, "us")
+
+    assert_packed_beat(
+        rx_beats[0],
+        payload=payload,
+        user_values=list(range(0x60, 0x60 + len(payload))),
+        last=1,
+    )
+
+
+@cocotb.test()
 async def output_ready_is_ignored_test(dut):
     tb = TB(dut)
     await tb.reset()
@@ -300,10 +337,13 @@ async def output_ready_is_ignored_test(dut):
 @pytest.mark.parametrize(
     "parameters",
     [
+        pytest.param({"SLAVE_BYTES_G": 1, "MASTER_BYTES_G": 8}, id="comp_keep_1_to_8"),
         pytest.param({"SLAVE_BYTES_G": 2, "MASTER_BYTES_G": 5}, id="comp_keep_2_to_5"),
         pytest.param({"SLAVE_BYTES_G": 3, "MASTER_BYTES_G": 6}, id="comp_keep_3_to_6"),
+        pytest.param({"SLAVE_BYTES_G": 3, "MASTER_BYTES_G": 7}, id="comp_keep_3_to_7"),
         pytest.param({"SLAVE_BYTES_G": 4, "MASTER_BYTES_G": 8}, id="comp_keep_4_to_8"),
         pytest.param({"SLAVE_BYTES_G": 5, "MASTER_BYTES_G": 7}, id="comp_keep_5_to_7"),
+        pytest.param({"SLAVE_BYTES_G": 7, "MASTER_BYTES_G": 8}, id="comp_keep_7_to_8"),
     ],
 )
 def test_AxiStreamBytePacker(parameters):

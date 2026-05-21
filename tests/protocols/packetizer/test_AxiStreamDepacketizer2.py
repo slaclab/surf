@@ -30,8 +30,10 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
+    PACKETIZER2_CRC_DATA,
     PACKETIZER2_CRC_NONE,
     bytes_from_word,
+    cycle,
     packetizer2_header_word,
     packetizer2_tail_word,
     recv_beats,
@@ -69,10 +71,18 @@ class TB:
         raise AssertionError("Timed out waiting for depacketizer initDone")
 
 
-def header_beat(*, sof: int, tuser: int, dest: int, tid: int, seq: int) -> AxisBeat:
+def header_beat(
+    *,
+    sof: int,
+    tuser: int,
+    dest: int,
+    tid: int,
+    seq: int,
+    crc_mode: int = PACKETIZER2_CRC_NONE,
+) -> AxisBeat:
     return AxisBeat(
         data=packetizer2_header_word(
-            crc_mode=PACKETIZER2_CRC_NONE,
+            crc_mode=crc_mode,
             sof=sof,
             tuser=tuser,
             tdest=dest,
@@ -123,6 +133,14 @@ def assert_app_beat(
     assert beat.dest == dest
     assert beat.tid == tid
     assert beat.user == user
+
+
+def assert_error_beat(beat: AxisBeat, *, dest: int, tid: int, header_user: int) -> None:
+    assert beat.last == 1
+    assert beat.dest == dest
+    assert beat.tid == tid
+    assert (beat.user & 0xFF) == (header_user | 0x3)
+    assert (beat.user >> 56) & 0x1 == 0x1
 
 
 @cocotb.test()
@@ -231,6 +249,84 @@ async def depacketize_crc_none_nonzero_crc_marks_eofe_test(dut):
         dest=0x2,
         tid=0x55,
         user=0x32 | (0x41 << 56),
+    )
+
+
+@cocotb.test()
+async def depacketize_bad_version_header_marks_eofe_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    bad_header = packetizer2_header_word(
+        crc_mode=PACKETIZER2_CRC_NONE,
+        sof=1,
+        tuser=0x29,
+        tdest=0x1,
+        tid=0x66,
+        seq=0,
+    )
+    packet = [AxisBeat(data=(bad_header & ~0xF) | 0x7, keep=0xFF, last=0, user=0x2)]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_error_beat(rx_beats[0], dest=0x1, tid=0x66, header_user=0x29)
+
+
+@cocotb.test()
+async def depacketize_bad_crc_mode_header_marks_eofe_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    packet = [
+        header_beat(
+            sof=1,
+            tuser=0x2B,
+            dest=0x2,
+            tid=0x77,
+            seq=0,
+            crc_mode=PACKETIZER2_CRC_DATA,
+        )
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_error_beat(rx_beats[0], dest=0x2, tid=0x77, header_user=0x2B)
+
+
+@cocotb.test()
+async def depacketize_link_drop_recovers_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    dut.linkGood.value = 0
+    await cycle(dut.axisClk, 4)
+    assert (int(dut.debugOut.value) & (1 << DEBUG_INIT_DONE)) == 0
+
+    dut.linkGood.value = 1
+    await tb.wait_init_done()
+
+    payload = bytes(range(0x90, 0x98))
+    packet = [
+        header_beat(sof=1, tuser=0x34, dest=0x3, tid=0x88, seq=0),
+        data_beat(payload),
+        tail_beat(eof=1, tuser=0x48, byte_count=8),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
+    await send_beats(tb.source, packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 3, "us")
+
+    assert_app_beat(
+        rx_beats[0],
+        payload=payload,
+        last=1,
+        dest=0x3,
+        tid=0x88,
+        user=0x36 | (0x48 << 56),
     )
 
 

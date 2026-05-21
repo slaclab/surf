@@ -21,7 +21,7 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import with_timeout
+from cocotb.triggers import RisingEdge, Timer, with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
@@ -89,6 +89,15 @@ def assert_app_beat(
     assert beat.dest == dest
     assert beat.tid == tid
     assert beat.user == user
+
+
+async def assert_no_output(endpoint: FlatAxisEndpoint, *, clk, cycles: int) -> None:
+    endpoint._sig("TREADY").value = 1
+    for _ in range(cycles):
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        assert int(endpoint._sig("TVALID").value) == 0
+    endpoint._sig("TREADY").value = 0
 
 
 @cocotb.test()
@@ -197,6 +206,62 @@ async def depacketize_split_sequence_test(dut):
         dest=0x4,
         tid=0x22,
         user=0x43 << 56,
+    )
+
+
+@cocotb.test()
+async def depacketize_bad_continuation_bleeds_and_recovers_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Start a multi-packet frame, then skip packet number 1. The depacketizer
+    # should bleed the malformed packet instead of merging out-of-order payload
+    # into the frame, then return to HEADER state for the next valid frame.
+    chunks = [
+        bytes(range(0x90, 0x98)),
+        bytes(range(0x98, 0xA0)),
+        bytes(range(0xA0, 0xA8)),
+    ]
+    first_packet = [
+        header_beat(frame=0, packet=0, tuser=0x34, dest=0x6, tid=0x44),
+        data_beat(chunks[0]),
+        data_beat(chunks[1]),
+        AxisBeat(data=packetizer0_tail_byte(eof=0, tuser=0), keep=0x01, last=1, user=0),
+    ]
+    bad_packet = [
+        header_beat(frame=0, packet=2, tuser=0x00, dest=0x6, tid=0x44),
+        data_beat(chunks[2]),
+        AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x47), keep=0x01, last=1, user=0),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 2, clk=dut.axisClk))
+    await send_beats(tb.source, first_packet, clk=dut.axisClk)
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert_app_beat(rx_beats[0], payload=chunks[0], dest=0x6, tid=0x44, user=0x36)
+    assert_app_beat(rx_beats[1], payload=chunks[1], dest=0x6, tid=0x44)
+
+    await send_beats(tb.source, bad_packet, clk=dut.axisClk)
+    await assert_no_output(tb.sink, clk=dut.axisClk, cycles=8)
+
+    recovery = bytes(range(0xB0, 0xB8))
+    recovery_packet = [
+        header_beat(frame=1, packet=0, tuser=0x35, dest=0x7, tid=0x45),
+        data_beat(recovery),
+        AxisBeat(data=packetizer0_tail_byte(eof=1, tuser=0x48), keep=0x01, last=1, user=0),
+    ]
+
+    rx_task = cocotb.start_soon(recv_beats(tb.sink, 1, clk=dut.axisClk))
+    await send_beats(tb.source, recovery_packet, clk=dut.axisClk)
+    recovery_beat = (await with_timeout(rx_task, 4, "us"))[0]
+
+    assert_app_beat(
+        recovery_beat,
+        payload=recovery,
+        last=1,
+        dest=0x7,
+        tid=0x45,
+        user=0x37 | (0x48 << 56),
     )
 
 

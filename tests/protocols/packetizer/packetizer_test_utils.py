@@ -212,3 +212,26 @@ async def recv_beats(endpoint: FlatAxisEndpoint, count: int, *, clk) -> list[Axi
         beats.append(await endpoint.recv(clk=clk, keep_ready=True))
     endpoint._sig("TREADY").value = 0
     return beats
+
+
+async def recv_beats_with_backpressure(
+    endpoint: FlatAxisEndpoint,
+    count: int,
+    *,
+    clk,
+    hold_cycles: int = 2,
+) -> list[AxisBeat]:
+    beats = []
+    endpoint._sig("TREADY").value = 0
+    for _ in range(count):
+        beat = await endpoint.wait_valid(clk=clk)
+        for _ in range(hold_cycles):
+            await RisingEdge(clk)
+            await Timer(1, unit="ns")
+            assert endpoint.snapshot() == beat
+        endpoint._sig("TREADY").value = 1
+        await RisingEdge(clk)
+        await Timer(1, unit="ns")
+        endpoint._sig("TREADY").value = 0
+        beats.append(beat)
+    return beats
