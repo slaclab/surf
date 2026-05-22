@@ -9,6 +9,14 @@
 - Keep VHDL additions limited to thin cocotb-facing wrappers beside the RSSI
   RTL when existing record ports or integration topology make that necessary.
 
+## Task Tracking
+- Keep `progress.md` as the detailed chronological work log.
+- Keep `handoff.md` current as the concise resume point for the next
+  contributor. Update it whenever the active next step, validation status,
+  known issues, or remaining attention areas change.
+- Before pausing substantial work on this task, check that `handoff.md` agrees
+  with the latest validated state in `progress.md` and `rtl-changes.md`.
+
 ## Specification Sources
 - Local reference bundle:
   `docs/plans/rssi-regression/references/README.md` is the index. Use this
@@ -375,5 +383,6 @@ structure.
 - New wrappers and tests follow the RTL regression style rules.
 - Spec-derived assertions are traceable to the Rogue docs, SURF RTL comments,
   or RFC/RUDP background.
-- `docs/plans/rtl-regression/progress.md` and `handoff.md` are updated only
-  after validated RSSI work lands in the working tree.
+- `docs/plans/rssi-regression/progress.md` and
+  `docs/plans/rssi-regression/handoff.md` are updated after validated RSSI work
+  changes the task state.
