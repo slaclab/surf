@@ -1,0 +1,802 @@
+    
+
+<!DOCTYPE html>
+<html lang="en-GB"   data-theme="dark:dark light:light" data-color-mode-auto  >
+<head>
+            
+        
+
+                            <title>Reliable SLAC Streaming Protocol (RSSI) - TID Advanced Instrumentation for Research Division - SLAC Confluence</title>
+    
+        
+
+                        
+    
+                        
+    
+
+                
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=EDGE,chrome=IE7">
+<meta charset="UTF-8">
+<meta id="confluence-context-path" name="confluence-context-path" content="">
+<meta id="confluence-base-url" name="confluence-base-url" content="https://confluence.slac.stanford.edu">
+
+    <meta id="atlassian-token" name="atlassian-token" content="c580a38d57a90405c08e9fee7ead1784c09cf91c">
+
+
+<meta id="confluence-space-key" name="confluence-space-key" content="ppareg">
+<script type="text/javascript">
+        var contextPath = '';
+</script>
+
+    
+
+    <meta name="confluence-request-time" content="1779468715259">
+        
+    
+        
+            <style>.ia-fixed-sidebar, .ia-splitter-left {width: 285px;}.theme-default .ia-splitter #main {margin-left: 285px;}.ia-fixed-sidebar {visibility: hidden;}</style>
+            <script type="text/javascript">(function () {
+    window.RLABS_IFC_CONFIG = {
+        BASE_URL: 'https://confluence.slac.stanford.edu',
+        USER_DATE_FORMAT: 'MMM dd, yyyy',
+        USER_DATE_TIME_FORMAT: 'MMM dd, yyyy HH:mm'
+    }
+})()</script>
+
+            <meta name="ajs-use-keyboard-shortcuts" content="true">
+            <meta name="ajs-discovered-plugin-features" content="$discoveredList">
+            <meta name="ajs-keyboardshortcut-hash" content="d661e8f1cef2650bd9ce5edd67af7b99a7fab449605c175a3764b38e84c802d0">
+            <meta id="team-calendars-has-jira-link" content="true">
+            <meta name="ajs-team-calendars-display-time-format" content="displayTimeFormat12">
+            <meta id="team-calendars-display-week-number" content="false">
+            <meta id="team-calendars-user-timezone" content="America/Los_Angeles">
+            <script type="text/x-template" id="team-calendars-messages" title="team-calendars-messages"><fieldset class="i18n hidden"><input type="hidden" name="calendar3.month.long.july" value="July"><input type="hidden" name="calendar3.day.short.wednesday" value="Wed"><input type="hidden" name="calendar3.day.short.thursday" value="Thu"><input type="hidden" name="calendar3.month.short.march" value="Mar"><input type="hidden" name="calendar3.month.long.april" value="April"><input type="hidden" name="calendar3.month.long.october" value="October"><input type="hidden" name="calendar3.month.long.august" value="August"><input type="hidden" name="calendar3.month.short.july" value="Jul"><input type="hidden" name="calendar3.month.short.may" value="May"><input type="hidden" name="calendar3.month.short.november" value="Nov"><input type="hidden" name="calendar3.day.long.friday" value="Friday"><input type="hidden" name="calendar3.day.long.sunday" value="Sunday"><input type="hidden" name="calendar3.day.long.saturday" value="Saturday"><input type="hidden" name="calendar3.month.short.april" value="Apr"><input type="hidden" name="calendar3.day.long.wednesday" value="Wednesday"><input type="hidden" name="calendar3.month.long.december" value="December"><input type="hidden" name="calendar3.month.short.october" value="Oct"><input type="hidden" name="calendar3.day.long.monday" value="Monday"><input type="hidden" name="calendar3.month.short.june" value="Jun"><input type="hidden" name="calendar3.day.short.monday" value="Mon"><input type="hidden" name="calendar3.day.short.tuesday" value="Tue"><input type="hidden" name="calendar3.day.short.saturday" value="Sat"><input type="hidden" name="calendar3.month.long.march" value="March"><input type="hidden" name="calendar3.month.long.june" value="June"><input type="hidden" name="calendar3.month.short.february" value="Feb"><input type="hidden" name="calendar3.month.short.august" value="Aug"><input type="hidden" name="calendar3.month.short.december" value="Dec"><input type="hidden" name="calendar3.day.short.sunday" value="Sun"><input type="hidden" name="calendar3.month.long.february" value="February"><input type="hidden" name="calendar3.day.long.tuesday" value="Tuesday"><input type="hidden" name="calendar3.month.long.may" value="May"><input type="hidden" name="calendar3.month.long.september" value="September"><input type="hidden" name="calendar3.month.long.november" value="November"><input type="hidden" name="calendar3.month.short.january" value="Jan"><input type="hidden" name="calendar3.month.short.september" value="Sept"><input type="hidden" name="calendar3.day.long.thursday" value="Thursday"><input type="hidden" name="calendar3.month.long.january" value="January"><input type="hidden" name="calendar3.day.short.friday" value="Fri"></fieldset></script>
+            <meta name="ajs-emojis-allow-current-user-upload-emojis" content="true">
+<meta name="ajs-emojis-max-upload-file-size" content="1">
+
+            <meta name="ajs-is-confluence-admin" content="false">
+            <meta name="ajs-connection-timeout" content="100000">
+            <script type="text/x-template" title="gliffy-webpanel-footer">
+        <div class="gliffy-webpanel-footer"><span></span></div>
+</script>
+
+
+            
+    
+    
+            <meta name="ajs-page-title" content="Reliable SLAC Streaming Protocol (RSSI)">
+            <meta name="ajs-latest-published-page-title" content="Reliable SLAC Streaming Protocol (RSSI)">
+            <meta name="ajs-space-name" content="TID Advanced Instrumentation for Research Division">
+            <meta name="ajs-page-id" content="211782868">
+            <meta name="ajs-latest-page-id" content="211782868">
+            <meta name="ajs-content-type" content="page">
+            <meta name="ajs-parent-page-title" content="SLAC Protocols">
+            <meta name="ajs-parent-page-id" content="211097945">
+            <meta name="ajs-space-key" content="ppareg">
+            <meta name="ajs-quicksearch-request-timeout" content="5000">
+            <meta name="ajs-max-number-editors" content="12">
+            <meta name="ajs-macro-placeholder-timeout" content="5000">
+            <meta name="ajs-jira-metadata-count" content="0">
+            <meta name="ajs-from-page-title" content="">
+            <meta name="ajs-can-remove-page" content="false">
+            <meta name="ajs-can-remove-page-hierarchy" content="false">
+            <meta name="ajs-browse-page-tree-mode" content="view">
+            <meta name="ajs-shared-drafts" content="true">
+            <meta name="ajs-context-path" content="">
+            <meta name="ajs-base-url" content="https://confluence.slac.stanford.edu">
+            <meta name="ajs-version-number" content="9.2.19">
+            <meta name="ajs-build-number" content="9114">
+            <meta name="ajs-remote-user" content="">
+            <meta name="ajs-remote-user-key" content="">
+            <meta name="ajs-remote-user-has-licensed-access" content="false">
+            <meta name="ajs-remote-user-has-browse-users-permission" content="false">
+            <meta name="ajs-current-user-fullname" content="">
+            <meta name="ajs-current-user-avatar-uri-reference" content="/images/icons/profilepics/anonymous.svg">
+            <meta name="ajs-static-resource-url-prefix" content="">
+            <meta name="ajs-global-settings-attachment-max-size" content="209715200">
+            <meta name="ajs-global-settings-quick-search-enabled" content="true">
+            <meta name="ajs-user-locale" content="en_GB">
+            <meta name="ajs-user-timezone-offset" content="-28800000">
+            <meta name="ajs-enabled-dark-features" content="site-wide.synchrony.disable,com.atlassian.profiling.ita.metrics.deny,site-wide.shared-drafts,confluence.in.product.diagnostics.deny,confluence.view.edit.transition,confluence.attachments.bulk.delete,confluence-inline-comments-resolved,http.session.registrar,theme.switcher,scope.manage.subscriptions,atlassian.cdn.static.assets,confluence.efi.onboarding.rich.space.content,file-annotations,crowd.sync.nested.groups.group.membership.changes.batching.enabled,atlassian.webresource.performance.tracking.disable,confluence.page.readtime,atlassian.authentication.sso.fallback.to.cached.user.when.operation.failed,lucene.caching.filter,confluence.table.resizable,notification.batch,confluence-inline-comments-rich-editor,confluence.copy-heading-link,site-wide.synchrony.opt-in,atlassian.webresource.twophase.js.i18n.disabled,confluence.edit.wordcount,gatekeeper-ui-v2,confluence.search.improvements.ranking,crowd.event.transformer.directory.manager.cache,mobile.supported.version,crowd.sync.delete.user.memberships.batching.enabled,confluence.dark.theme.text.colors,quick-reload-inline-comments-flags,cql.search.screen,clc.quick.create,nps.survey.inline.dialog,confluence.efi.onboarding.new.templates,pdf-preview,com.atlassian.analytics.essential.supported,confluence.retention.rules.trash.fast.removal,previews.sharing,previews.versions,collaborative-audit-log,confluence.reindex.improvements,previews.conversion-service,atlassian.servlet.filter.default.to.licensed.access.enabled,read.only.mode,graphql,benefits.modal,previews.trigger-all-file-types,AsyncReplicationCache,attachment.extracted.text.extractor,confluence.readable.url,previews.sharing.pushstate,tc.tacca.dacca,confluence.reindex.audit,atlassian.rest.default.to.licensed.access.enabled,confluence.retention.rules.version.fast.removal,confluence.denormalisedpermissions,file-annotations.likes,v2.content.name.searcher,confluence.reindex.spaces,confluence.fast-xml-backup-restore,embedded.crowd.directory.azuread.enabled,pulp,confluence-inline-comments,confluence-inline-comments-dangling-comment,confluence.retention.rules">
+            <meta name="ajs-atl-token" content="c580a38d57a90405c08e9fee7ead1784c09cf91c">
+            <meta name="ajs-user-date-pattern" content="dd MMM yyyy">
+            <meta name="ajs-access-mode" content="READ_WRITE">
+            <meta name="ajs-render-mode" content="READ_WRITE">
+            <meta name="ajs-same-site-cookie-default-policy" content="Lax">
+            <meta name="ajs-date.format" content="MMM dd, yyyy">
+    
+    <link rel="shortcut icon" href="/s/7ylds/9114/1yg1r0c/23/_/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/s/7ylds/9114/1yg1r0c/23/_/favicon.ico">
+
+    
+                    
+            <meta name="ajs-create-issue-metadata-show-discovery" content="false">
+            
+
+    <script>
+window.WRM=window.WRM||{};window.WRM._unparsedData=window.WRM._unparsedData||{};window.WRM._unparsedErrors=window.WRM._unparsedErrors||{};
+WRM._unparsedData["com.atlassian.confluence.plugins.confluence-license-banner:confluence-license-banner-resources.license-details"]="{\u0022daysBeforeLicenseExpiry\u0022:0,\u0022daysBeforeMaintenanceExpiry\u0022:0,\u0022showLicenseExpiryBanner\u0022:false,\u0022showMaintenanceExpiryBanner\u0022:false,\u0022renewUrl\u0022:null,\u0022salesUrl\u0022:null}";
+WRM._unparsedData["com.onresolve.confluence.groovy.groovyrunner:pluginInfoSettingsWebResources.settings-data-provider"]="{\u0022helpBaseUrl\u0022:\u0022https://docs.adaptavist.com/sr4c/9.34.0/\u0022,\u0022pluginVersion\u0022:\u00229.34.0\u0022,\u0022buildNumber\u0022:21766,\u0022appKey\u0022:\u0022com.onresolve.confluence.groovy.groovyrunner\u0022,\u0022appVersion\u0022:\u00229.2.19\u0022,\u0022animationsEnabled\u0022:true,\u0022staticResourcePrefix\u0022:\u0022/s/7ylds/9114/1yg1r0c/_\u0022,\u0022editorSettings\u0022:{\u0022miniMapEnabled\u0022:true,\u0022hapiLinterEnabled\u0022:true}}";
+WRM._unparsedData["com.atlassian.applinks.applinks-plugin:applinks-common-exported.applinks-types"]="{\u0022crowd\u0022:\u0022Crowd\u0022,\u0022confluence\u0022:\u0022Confluence\u0022,\u0022fecru\u0022:\u0022FishEye / Crucible\u0022,\u0022stash\u0022:\u0022Stash\u0022,\u0022jiraMobile\u0022:\u0022Jira DC Mobile Application\u0022,\u0022jira\u0022:\u0022Jira\u0022,\u0022refapp\u0022:\u0022Reference Application\u0022,\u0022bamboo\u0022:\u0022Bamboo\u0022,\u0022confluenceMobile\u0022:\u0022Confluence DC Mobile Application\u0022,\u0022generic\u0022:\u0022Generic Application\u0022}";
+WRM._unparsedData["com.atlassian.confluence.plugins.confluence-feature-discovery-plugin:confluence-feature-discovery-plugin-resources.test-mode"]="false";
+WRM._unparsedData["com.onresolve.confluence.groovy.groovyrunner:enhancedSearchWebResources.enhanced-search-settings-data-provider"]="{\u0022enhancedSearchBinocularEnabled\u0022:true,\u0022enhancedSearchSectionMessagesEnabled\u0022:true}";
+WRM._unparsedData["com.atlassian.applinks.applinks-plugin:applinks-common-exported.entity-types"]="{\u0022singular\u0022:{\u0022refapp.charlie\u0022:\u0022Charlie\u0022,\u0022fecru.project\u0022:\u0022Crucible Project\u0022,\u0022fecru.repository\u0022:\u0022FishEye Repository\u0022,\u0022stash.project\u0022:\u0022Stash Project\u0022,\u0022generic.entity\u0022:\u0022Generic Project\u0022,\u0022confluence.space\u0022:\u0022Confluence Space\u0022,\u0022bamboo.project\u0022:\u0022Bamboo Project\u0022,\u0022jira.project\u0022:\u0022Jira Project\u0022},\u0022plural\u0022:{\u0022refapp.charlie\u0022:\u0022Charlies\u0022,\u0022fecru.project\u0022:\u0022Crucible Projects\u0022,\u0022fecru.repository\u0022:\u0022FishEye Repositories\u0022,\u0022stash.project\u0022:\u0022Stash Projects\u0022,\u0022generic.entity\u0022:\u0022Generic Projects\u0022,\u0022confluence.space\u0022:\u0022Confluence Spaces\u0022,\u0022bamboo.project\u0022:\u0022Bamboo Projects\u0022,\u0022jira.project\u0022:\u0022Jira Projects\u0022}}";
+WRM._unparsedData["com.onresolve.confluence.groovy.groovyrunner:web-item-response-renderer.web-item-actions-data-provider"]="[]";
+WRM._unparsedData["com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path.context-path"]="\u0022\u0022";
+WRM._unparsedData["com.atlassian.analytics.analytics-client:policy-update-init.policy-update-data-provider"]="false";
+WRM._unparsedData["com.atlassian.applinks.applinks-plugin:applinks-common-exported.authentication-types"]="{\u0022com.atlassian.applinks.api.auth.types.BasicAuthenticationProvider\u0022:\u0022Basic Access\u0022,\u0022com.atlassian.applinks.api.auth.types.TrustedAppsAuthenticationProvider\u0022:\u0022Trusted Applications\u0022,\u0022com.atlassian.applinks.api.auth.types.CorsAuthenticationProvider\u0022:\u0022CORS\u0022,\u0022com.atlassian.applinks.api.auth.types.OAuthAuthenticationProvider\u0022:\u0022OAuth\u0022,\u0022com.atlassian.applinks.api.auth.types.TwoLeggedOAuthAuthenticationProvider\u0022:\u0022OAuth\u0022,\u0022com.atlassian.applinks.api.auth.types.TwoLeggedOAuthWithImpersonationAuthenticationProvider\u0022:\u0022OAuth\u0022,\u0022com.atlassian.applinks.api.auth.types.ThreeLeggedOAuth2AuthenticationProvider\u0022:\u0022OAuth 2.0\u0022}";
+WRM._unparsedData["com.atlassian.confluence.plugins.confluence-search-ui-plugin:confluence-search-ui-plugin-resources.i18n-data"]="{\u0022search.ui.recent.link.text\u0022:\u0022View more recently visited\u0022,\u0022search.ui.search.results.empty\u0022:\u0022We couldn\u0027\u0027t find anything matching \u005C\u0022{0}\u005C\u0022.\u0022,\u0022search.ui.filter.clear.selected\u0022:\u0022Clear selected items\u0022,\u0022search.ui.content.name.search.items.panel.load.all.top.items.button.text\u0022:\u0022Show more app results...\u0022,\u0022search.ui.filter.contributor.button.text\u0022:\u0022Contributor\u0022,\u0022search.ui.filter.space.current.label\u0022:\u0022CURRENT\u0022,\u0022search.ui.clear.input.button.text\u0022:\u0022Clear text\u0022,\u0022search.ui.search.results.clear.button\u0022:\u0022clear your filters.\u0022,\u0022help.search.ui.link.title\u0022:\u0022Search tips\u0022,\u0022search.ui.container.close.text\u0022:\u0022Close\u0022,\u0022search.ui.filter.date.month.text\u0022:\u0022The past month\u0022,\u0022search.ui.infinite.scroll.button.text\u0022:\u0022More results\u0022,\u0022search.ui.filter.date.button.text\u0022:\u0022Date\u0022,\u0022search.ui.filter.date.week.text\u0022:\u0022The past week\u0022,\u0022search.ui.result.subtitle.calendar\u0022:\u0022Team calendar\u0022,\u0022search.ui.filter.date.heading\u0022:\u0022Last modified within\u0022,\u0022search.ui.filter.space.input.label\u0022:\u0022Find spaces...\u0022,\u0022search.ui.generic.error\u0022:\u0022Something went wrong. Refresh the page, or contact your admin if this keeps happening.\u0022,\u0022search.ui.recent.spaces\u0022:\u0022Recent Spaces\u0022,\u0022search.ui.result.subtitle.space\u0022:\u0022Space\u0022,\u0022search.ui.filter.space.category.input.label\u0022:\u0022Find space categories...\u0022,\u0022search.ui.filter.space.archive.label\u0022:\u0022Search archived spaces\u0022,\u0022search.ui.filter.label\u0022:\u0022filter\u0022,\u0022search.ui.filter.date.all.text\u0022:\u0022Any time\u0022,\u0022search.ui.filter.date.hour.text\u0022:\u0022The past day\u0022,\u0022search.ui.filters.heading\u0022:\u0022Filter by\u0022,\u0022search.ui.filter.label.input.label\u0022:\u0022Find labels...\u0022,\u0022search.ui.recent.items.anonymous\u0022:\u0022Start exploring. Your search results will appear here.\u0022,\u0022search.ui.input.label\u0022:\u0022Search\u0022,\u0022search.ui.input.aria.label\u0022:\u0022Search query\u0022,\u0022search.ui.search.result\u0022:\u0022{0,choice,1#{0} search result|1\u003c{0} search results}\u0022,\u0022search.ui.filter.label.button.text\u0022:\u0022Label\u0022,\u0022search.ui.container.clear.ariaLabel\u0022:\u0022Clear\u0022,\u0022search.ui.input.alert\u0022:\u0022Hit enter to search\u0022,\u0022search.ui.filter.no.result.text\u0022:\u0022We can\u0027\u0027t find anything matching your search\u0022,\u0022search.ui.result.subtitle.user\u0022:\u0022User profile\u0022,\u0022search.ui.filter.contributor.input.label\u0022:\u0022Find people...\u0022,\u0022search.ui.filter.content.type.button.text\u0022:\u0022Type\u0022,\u0022search.ui.filter.date.year.text\u0022:\u0022The past year\u0022,\u0022search.ui.advanced.search.link.text\u0022:\u0022Advanced search\u0022,\u0022search.ui.filter.space.button.text\u0022:\u0022Space\u0022,\u0022search.ui.search.results.clear.line2\u0022:\u0022Try a different search term or\u0022,\u0022search.ui.filter.space.category.button.text\u0022:\u0022Space category\u0022,\u0022search.ui.search.results.clear.line1\u0022:\u0022We couldn\u0027\u0027t find anything matching your search.\u0022,\u0022search.ui.content.name.search.items.panel.load.all.top.items.admin.button.text\u0022:\u0022Show more settings and app results...\u0022,\u0022search.ui.recent.pages\u0022:\u0022Recently visited\u0022,\u0022search.ui.search.result.anonymous\u0022:\u0022{0,choice,1#{0} search result|1\u003c{0} search results}. Have an account? {1}Log in{2} to expand your search.\u0022,\u0022search.ui.recent.items.empty\u0022:\u0022Start exploring. Pages and spaces you\u0027\u0027ve visited recently will appear here.\u0022,\u0022search.ui.filter.space.init.heading\u0022:\u0022recent spaces\u0022}";
+WRM._unparsedData["com.atlassian.confluence.plugins.synchrony-interop:synchrony-status-banner-loader.synchrony-status"]="false";
+WRM._unparsedData["com.atlassian.whisper.atlassian-whisper-plugin:atlassian-whisper-bootstrap.WhisperData"]="{\u0022hasMessages\u0022:false,\u0022syncInit\u0022:false,\u0022baseUrl\u0022:\u0022https:\u005C/\u005C/confluence.slac.stanford.edu\u0022}";
+WRM._unparsedData["com.atlassian.applinks.applinks-plugin:applinks-common-exported.applinks-help-paths"]="{\u0022entries\u0022:{\u0022applinks.docs.root\u0022:\u0022https://confluence.atlassian.com/display/APPLINKS-101/\u0022,\u0022applinks.docs.diagnostics.troubleshoot.sslunmatched\u0022:\u0022SSL+and+application+link+troubleshooting+guide\u0022,\u0022applinks.docs.diagnostics.troubleshoot.oauthsignatureinvalid\u0022:\u0022OAuth+troubleshooting+guide\u0022,\u0022applinks.docs.diagnostics.troubleshoot.oauthtimestamprefused\u0022:\u0022OAuth+troubleshooting+guide\u0022,\u0022applinks.docs.delete.entity.link\u0022:\u0022Create+links+between+projects\u0022,\u0022applinks.docs.adding.application.link\u0022:\u0022Link+Atlassian+applications+to+work+together\u0022,\u0022applinks.docs.administration.guide\u0022:\u0022Application+Links+Documentation\u0022,\u0022applinks.docs.oauth.security\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.troubleshoot.application.links\u0022:\u0022Troubleshoot+application+links\u0022,\u0022applinks.docs.diagnostics.troubleshoot.unknownerror\u0022:\u0022Network+and+connectivity+troubleshooting+guide\u0022,\u0022applinks.docs.configuring.auth.trusted.apps\u0022:\u0022Configuring+Trusted+Applications+authentication+for+an+application+link\u0022,\u0022applinks.docs.diagnostics.troubleshoot.authlevelunsupported\u0022:\u0022OAuth+troubleshooting+guide\u0022,\u0022applinks.docs.diagnostics.troubleshoot.ssluntrusted\u0022:\u0022SSL+and+application+link+troubleshooting+guide\u0022,\u0022applinks.docs.diagnostics.troubleshoot.unknownhost\u0022:\u0022Network+and+connectivity+troubleshooting+guide\u0022,\u0022applinks.docs.delete.application.link\u0022:\u0022Link+Atlassian+applications+to+work+together\u0022,\u0022applinks.docs.adding.project.link\u0022:\u0022Configuring+Project+links+across+Applications\u0022,\u0022applinks.docs.link.applications\u0022:\u0022Link+Atlassian+applications+to+work+together\u0022,\u0022applinks.docs.diagnostics.troubleshoot.oauthproblem\u0022:\u0022OAuth+troubleshooting+guide\u0022,\u0022applinks.docs.diagnostics.troubleshoot.migration\u0022:\u0022Update+application+links+to+use+OAuth\u0022,\u0022applinks.docs.relocate.application.link\u0022:\u0022Link+Atlassian+applications+to+work+together\u0022,\u0022applinks.docs.administering.entity.links\u0022:\u0022Create+links+between+projects\u0022,\u0022applinks.docs.upgrade.application.link\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.diagnostics.troubleshoot.connectionrefused\u0022:\u0022Network+and+connectivity+troubleshooting+guide\u0022,\u0022applinks.docs.configuring.auth.oauth\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.insufficient.remote.permission\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.configuring.application.link.auth\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.diagnostics\u0022:\u0022Application+links+diagnostics\u0022,\u0022applinks.docs.configured.authentication.types\u0022:\u0022OAuth+security+for+application+links\u0022,\u0022applinks.docs.adding.entity.link\u0022:\u0022Create+links+between+projects\u0022,\u0022applinks.docs.diagnostics.troubleshoot.unexpectedresponse\u0022:\u0022Network+and+connectivity+troubleshooting+guide\u0022,\u0022applinks.docs.configuring.auth.basic\u0022:\u0022Configuring+Basic+HTTP+Authentication+for+an+Application+Link\u0022,\u0022applinks.docs.diagnostics.troubleshoot.authlevelmismatch\u0022:\u0022OAuth+troubleshooting+guide\u0022}}";
+if(window.WRM._dataArrived)window.WRM._dataArrived();</script>
+<link rel="stylesheet" href="/s/637cf2cabf458bd532974342550c8b08-CDN/7ylds/9114/1yg1r0c/2785a56345c8505702b123a5e8865a83/_/download/contextbatch/css/_super/batch.css" data-wrm-key="_super" data-wrm-batch-type="context" media="all">
+<link rel="stylesheet" href="/s/5433424b7751f5942806fa61d1d4ed2e-CDN/7ylds/9114/1yg1r0c/29dd57f6e46e3e5faec754161a1ae082/_/download/contextbatch/css/atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super/batch.css?analytics-enabled=false&amp;cefp_collab_enabled=true&amp;cefp_ed_perm=false&amp;cefp_is_admin=false&amp;gatekeeper-ui-v2=true&amp;highlightactions=true&amp;table-resizable.breaking-text=false&amp;whisper-enabled=true" data-wrm-key="atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super" data-wrm-batch-type="context" media="all">
+<link rel="stylesheet" href="/s/5433424b7751f5942806fa61d1d4ed2e-CDN/7ylds/9114/1yg1r0c/29dd57f6e46e3e5faec754161a1ae082/_/download/contextbatch/css/atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super/batch.css?analytics-enabled=false&amp;cefp_collab_enabled=true&amp;cefp_ed_perm=false&amp;cefp_is_admin=false&amp;gatekeeper-ui-v2=true&amp;highlightactions=true&amp;media=print&amp;table-resizable.breaking-text=false&amp;whisper-enabled=true" media="print" data-wrm-key="atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super" data-wrm-batch-type="context">
+<link rel="stylesheet" href="/s/d41d8cd98f00b204e9800998ecf8427e-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes/com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes.css" data-wrm-key="com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes" data-wrm-batch-type="resource" media="all">
+<link rel="stylesheet" href="/s/7ylds/9114/1yg1r0c/23/_/styles/colors.css" media="all">
+<link rel="stylesheet" href="/s/7ylds/9114/1yg1r0c/11/_/styles/custom.css?spaceKey=ppareg" media="all">
+<script src="/s/232c8f7882750c520e78634743efdace-CDN/7ylds/9114/1yg1r0c/2785a56345c8505702b123a5e8865a83/_/download/contextbatch/js/_super/batch.js?locale=en-GB" data-wrm-key="_super" data-wrm-batch-type="context" data-initially-rendered></script>
+<script src="/s/c37ae3a70679988e00a1ecc7c41c0f3c-CDN/7ylds/9114/1yg1r0c/29dd57f6e46e3e5faec754161a1ae082/_/download/contextbatch/js/atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super/batch.js?analytics-enabled=false&amp;cefp_collab_enabled=true&amp;cefp_ed_perm=false&amp;cefp_is_admin=false&amp;gatekeeper-ui-v2=true&amp;highlightactions=true&amp;locale=en-GB&amp;table-resizable.breaking-text=false&amp;whisper-enabled=true" data-wrm-key="atl.confluence.plugins.pagetree-desktop,main,viewcontent,atl.general,page,atl.comments,-_super" data-wrm-batch-type="context" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.splitchunk.532dee4ffd/com.atlassian.auiplugin:split_aui.splitchunk.532dee4ffd.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.splitchunk.532dee4ffd" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.splitchunk.0e8e0008dd/com.atlassian.auiplugin:split_aui.splitchunk.0e8e0008dd.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.splitchunk.0e8e0008dd" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.page.design-tokens-base-themes/com.atlassian.auiplugin:split_aui.page.design-tokens-base-themes.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.page.design-tokens-base-themes" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes/com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.page.design-tokens-compatibility-themes" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.splitchunk.vendors--1d1867466a/com.atlassian.auiplugin:split_aui.splitchunk.vendors--1d1867466a.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.splitchunk.vendors--1d1867466a" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.splitchunk.1d1867466a/com.atlassian.auiplugin:split_aui.splitchunk.1d1867466a.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.splitchunk.1d1867466a" data-wrm-batch-type="resource" data-initially-rendered></script>
+<script src="/s/cd4ae5db660e33a7a26f413771dd1c90-CDN/7ylds/9114/1yg1r0c/9.12.12/_/download/batch/com.atlassian.auiplugin:split_aui.page.design-tokens-api/com.atlassian.auiplugin:split_aui.page.design-tokens-api.js?locale=en-GB" data-wrm-key="com.atlassian.auiplugin:split_aui.page.design-tokens-api" data-wrm-batch-type="resource" data-initially-rendered></script>
+
+    
+
+        
+    
+
+        
+        <meta name="ajs-site-title" content="SLAC Confluence" />
+            
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TKDEX24W69"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+gtag('config', 'G-TKDEX24W69');</script>
+
+<div style="margin-top:4px;margin-bottom:8px;>
+<div style="">
+<h4 style="background-color:#fffeb8;text-align:center;padding:5px;">We are aware of the license errors and will correct as soon as possible</h4>
+</div>
+</div>
+
+
+    
+                <link rel="canonical" href="https://confluence.slac.stanford.edu/spaces/ppareg/pages/211782868/Reliable+SLAC+Streaming+Protocol+RSSI">
+        <link rel="shortlink" href="https://confluence.slac.stanford.edu/x/1IyfD">
+    <meta name="wikilink" content="[ppareg:Reliable SLAC Streaming Protocol (RSSI)]">
+    <meta name="page-version" content="10">
+    <meta name="ajs-page-version" content="10">
+
+</head>
+
+    
+<body      id="com-atlassian-confluence" class="theme-default  aui-layout aui-theme-default">
+
+        
+            <div id='stp-licenseStatus-banner'></div>
+             <script> var mathjaxBlock = document.querySelector("meta[name='ajs-mathjax-block-element']"); var mathjaxInline = document.querySelector("meta[name='ajs-mathjax-inline-element']"); if ((typeof(mathjaxBlock) != 'undefined' && mathjaxBlock != null) || (typeof(mathjaxInline) != 'undefined' && mathjaxInline != null)) { document.write('<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-svg.min.js" async></scr' + 'ipt>'); } else { console.log("Ppl Mathjax macros have not been found..."); } </script> 
+    <div id="page">
+<div id="full-height-container">
+    <div id="header-precursor">
+        <div class="cell">
+            
+                            </div>
+    </div>
+    
+    
+
+
+
+
+
+<style>
+    html[data-color-mode="light"][data-theme~="light:light"],
+    html[data-color-mode="dark"][data-theme~="dark:light"] {
+        --confluence-custom-logo-content: url('/download/attachments/39419905/atl.site.logo?version=1&amp;modificationDate=1451766060000&amp;api=v2');
+    }
+</style>
+
+<header id="header" role="banner">
+            <a class="aui-skip-link" href="https://confluence.slac.stanford.edu/login.action?os_destination=%2Fspaces%2Fppareg%2Fpages%2F211782868%2FReliable%2BSLAC%2BStreaming%2BProtocol%2BRSSI" tabindex="1">Log in</a>
+        <nav class="aui-header aui-dropdown2-trigger-group" aria-label="Site"><div class="aui-header-inner"><div class="aui-header-before"><button class=" aui-dropdown2-trigger app-switcher-trigger aui-dropdown2-trigger-arrowless" aria-controls="app-switcher" aria-haspopup="true" role="button" data-aui-trigger href="#app-switcher"><span class="aui-icon aui-icon-small aui-iconfont-appswitcher">Linked Applications</span></button><div id="app-switcher" class="aui-dropdown2 aui-style-default" role="menu" hidden data-is-user-admin="false" data-is-switcher="true"><div class="app-switcher-loading">Loading&hellip;</div></div></div><div class="aui-header-primary"><span id="logo" class="aui-header-logo aui-header-logo-custom"><a href="/" aria-label="Confluence home page"><img src="/download/attachments/39419905/atl.site.logo?version=1&amp;modificationDate=1451766060000&amp;api=v2" alt="SLAC Confluence" /></a></span><ul class="aui-nav">
+                            <li>
+            
+    
+        
+<a  id="space-directory-link" href="/spacedirectory/view.action"  class=" aui-nav-imagelink"   title="Spaces">
+            <span>Spaces</span>
+    </a>
+        </li>
+                                <li class="aui-buttons">
+            </li>
+</ul>
+</div><div class="aui-header-secondary"><ul class="aui-nav">
+                        <li>
+        <div id="search-ui" class="aui-quicksearch dont-default-focus header-quicksearch"><button id="quick-search-query-button" aria-label="Search" aria-haspopup= "dialog" ></button><input id="quick-search-query" title="Search query" aria-label="Search query" placeholder="Search" type="text" aria-haspopup= "dialog" /><div id="quick-search-alert" role="alert">Hit enter to search</div><aui-spinner size="small"></aui-spinner></div>
+    </li>
+        <li>
+            
+        <a id="help-menu-link" role="button" class="aui-nav-link aui-dropdown2-trigger aui-dropdown2-trigger-arrowless" href="#" aria-haspopup="true" aria-owns="help-menu-link-content" title="Help">
+        <span class="aui-icon aui-icon-small aui-iconfont-question-filled">Help</span>
+    </a>
+    <nav id="help-menu-link-content" class="aui-dropdown2 aui-style-default" >
+                    <div class="aui-dropdown2-section">
+                                    <strong role="heading" aria-level="2"></strong>
+                                <ul role="menu"
+                     role="menu"                    aria-label="Help"                    id="help-menu-link-pages"                    class="aui-list-truncate section-pages first">
+                                            <li role="presentation">
+        
+            
+<a role="menuitem"  id="confluence-help-link" href="https://docs.atlassian.com/confluence/docs-92/" class="    "      title="Visit the Confluence documentation home"  target="_blank"
+>
+        Online Help
+</a>
+</li>
+                                            <li role="presentation">
+    
+                
+<a role="menuitem"  id="keyboard-shortcuts-link" href="#" class="    "      title="View available keyboard shortcuts" >
+        Keyboard Shortcuts
+</a>
+</li>
+                                            <li role="presentation">
+    
+            
+<a role="menuitem"  id="feed-builder-link" href="/configurerssfeed.action" class="    "      title="Create your custom RSS feed." >
+        Feed Builder
+</a>
+</li>
+                                            <li role="presentation">
+    
+            
+<a role="menuitem"  id="whats-new-menu-link" href="https://confluence.atlassian.com/display/DOC/Confluence+9.2+Release+Notes" class="    "   >
+        What’s new
+</a>
+</li>
+                                            <li role="presentation">
+    
+            
+<a role="menuitem"  id="confluence-about-link" href="/aboutconfluencepage.action" class="    "      title="Get more information about Confluence" >
+        About Confluence
+</a>
+</li>
+                                    </ul>
+            </div>
+            </nav>
+    
+    </li>
+        <li>
+                
+    
+    </li>
+        <li>
+            
+    </li>
+        <li>
+                                            <li>
+        
+            
+<a role="menuitem"  id="login-link" href="/login.action?os_destination=%2Fspaces%2Fppareg%2Fpages%2F211782868%2FReliable%2BSLAC%2BStreaming%2BProtocol%2BRSSI" class="   user-item login-link "   >
+        Log in
+</a>
+</li>
+                        
+    </li>
+    </ul>
+</div></div><!-- .aui-header-inner--><aui-header-end></aui-header-end></nav><!-- .aui-header -->
+    <br class="clear">
+</header>
+    
+
+    
+    	<div class="ia-splitter">
+    		<div class="ia-splitter-left">
+    			<div class="ia-fixed-sidebar" role="complementary" aria-label=sidebar>
+                                            
+                            <div class="acs-side-bar ia-scrollable-section"><div class="acs-side-bar-space-info tipsy-enabled" data-configure-tooltip="Edit space details"><a class="space-information-link" href="/spaces/ppareg/pages/32145483/Home" title="TID Advanced Instrumentation for Research Division"><div class="avatar"><div class="space-logo" data-key="ppareg" data-name="TID Advanced Instrumentation for Research Division" data-entity-type="confluence.space"><div class="avatar-img-container"><div class="avatar-img-wrapper"><img class="avatar-img" src="/download/attachments/32145482/ppareg?version=1&amp;modificationDate=1438888083000&amp;api=v2" alt=""></div></div></div></div><div class="space-information-container"><div class="name" title="TID Advanced Instrumentation for Research Division">TID Advanced Instrumentation for Research Division</div></div></a><button type="button" class="flyout-handle icon aui-icon aui-icon-small aui-iconfont-edit" title="Edit space details" >Edit space details</button></div><div class="acs-side-bar-content"><div class="acs-nav-wrapper"><div class="acs-nav" data-has-create-permission="false" data-quick-links-state="null" data-page-tree-state="null" data-nav-type="pages"><div class="acs-nav-sections"><div class="main-links-section "><ul class="acs-nav-list"><li class="acs-nav-item wiki aui-iconfont-page current-item" aria-current="true" data-collector-key="spacebar-pages"><a class="acs-nav-item-link tipsy-enabled" href="/collector/pages.action?key=ppareg" data-collapsed-tooltip="Pages"><span class="aui-icon wiki aui-iconfont-page"></span><span class="acs-nav-item-label">Pages</span></a></li><li class="acs-nav-item blog aui-iconfont-quote" data-collector-key="spacebar-blogs"><a class="acs-nav-item-link tipsy-enabled" href="/pages/viewrecentblogposts.action?key=ppareg" data-collapsed-tooltip="Blog"><span class="aui-icon blog aui-iconfont-quote"></span><span class="acs-nav-item-label">Blog</span></a></li></ul></div><div class="quick-links-wrapper"><h2 class="ia-quick-links-header-title">Space shortcuts</h2><button class="aui-button icon aui-icon aui-iconfont-shortcut confluence-sidebar-closed-icon-spaceshortcut sidebar-flyout-button quick-links-section-button tipsy-enabled" aria-label="Space shortcuts" aria-haspopup="dialog"></button><div class="quick-links-section "><ul class="acs-nav-list"><li class="acs-nav-item pinned_page aui-iconfont-page blueprint kb-how-to-article"><a class="acs-nav-item-link tipsy-enabled" href="/spaces/ppareg/pages/211789812/How-to+articles" data-collapsed-tooltip="null"><span class="aui-icon pinned_page aui-iconfont-page blueprint kb-how-to-article"></span><span class="acs-nav-item-label">How-to articles</span></a></li><li class="acs-nav-item pinned_page aui-iconfont-page blueprint file-list"><a class="acs-nav-item-link tipsy-enabled" href="/spaces/ppareg/pages/232080031/File+lists" data-collapsed-tooltip="null"><span class="aui-icon pinned_page aui-iconfont-page blueprint file-list"></span><span class="acs-nav-item-label">File lists</span></a></li><li class="acs-nav-item pinned_page aui-iconfont-page blueprint kb-troubleshooting-article"><a class="acs-nav-item-link tipsy-enabled" href="/spaces/ppareg/pages/363457835/Troubleshooting+articles" data-collapsed-tooltip="null"><span class="aui-icon pinned_page aui-iconfont-page blueprint kb-troubleshooting-article"></span><span class="acs-nav-item-label">Troubleshooting articles</span></a></li><li class="acs-nav-item pinned_page aui-iconfont-page blueprint meeting-notes"><a class="acs-nav-item-link tipsy-enabled" href="/spaces/ppareg/pages/368317958/Meeting+notes+2" data-collapsed-tooltip="null"><span class="aui-icon pinned_page aui-iconfont-page blueprint meeting-notes"></span><span class="acs-nav-item-label">Meeting notes (2)</span></a></li><li class="acs-nav-item pinned_page aui-iconfont-page blueprint content-formatting-template"><a class="acs-nav-item-link tipsy-enabled" href="/spaces/ppareg/pages/490668168/Content+Formatting+Templates" data-collapsed-tooltip="null"><span class="aui-icon pinned_page aui-iconfont-page blueprint content-formatting-template"></span><span class="acs-nav-item-label">Content Formatting Templates</span></a></li></ul></div></div><div class="custom-sidebar"><div class="custom-sidebar-content"><div class="content"><div><p><span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="25" width="120" src="/download/attachments/193760257/TID_web_banner_wd120.jpg?version=1&amp;modificationDate=1438885653000&amp;api=v2" data-image-src="/download/attachments/193760257/TID_web_banner_wd120.jpg?version=1&amp;modificationDate=1438885653000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="193922975" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="TID_web_banner_wd120.jpg" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/jpeg" data-linked-resource-container-id="193760257" data-linked-resource-container-version="9" tabindex="0" alt=""></span></p></div>
+<h4><a name="ReliableSLACStreamingProtocol(RSSI)-ConfluenceContent"></a>Confluence Content</h4></div></div></div></div></div></div><div class="ia-secondary-container tipsy-enabled" data-tree-type="pages"><div class="ia-secondary-header"><h5 class="ia-secondary-header-title pages"><span class="label">Child pages</span></h5></div><div class="ia-secondary-parent-content"><ul class="parent ia-secondary-header-title wiki"><li class="parent-item"><button id="child-pages-button" class="aui-button icon aui-icon aui-iconfont-location sidebar-flyout-button" aria-label="Child pages" aria-haspopup="dialog"></button><a class="parent-item-link" href="/spaces/ppareg/pages/211097945/SLAC+Protocols" title="SLAC Protocols"><span class="aui-icon aui-icon-small aui-iconfont-location"></span><span class="label">SLAC Protocols</span></a></li></ul></div><div class="ia-secondary-current-content"><ul class="ia-secondary-currentPage-title wiki current-item"><li><span class="icon"></span><span class="label">Reliable SLAC Streaming Protocol (RSSI)</span></li></ul></div><div class="ia-secondary-content"><div class="contextual-nav-child-pages"><ul class="children"><li class="child-item" data-page-id="211799742"><span class="icon"></span><a href="/spaces/ppareg/pages/211799742/RSSI+HW-to-HW+Measurements" title="RSSI: HW-to-HW Measurements"><span class="label">RSSI: HW-to-HW Measurements</span></a></li></ul></div></div></div></div><div class="hidden"><a href="/collector/pages.action?key=ppareg" id="space-pages-link"></a><script type="text/x-template" title="logo-config-content"><h2>Space Details</h2><div class="personal-space-logo-hint">Your profile picture is used as the logo for your personal space. <a href="/users/profile/editmyprofilepicture.action" target="_blank">Change your profile picture</a>.</div></script></div></div><div class="space-tools-section"><div id="space-tools-menu-additional-items" class="hidden"><div data-label="Browse pages" data-class="" data-href="/pages/reorderpages.action?key=ppareg">Browse pages</div></div><button id="space-tools-menu-trigger"  class=" aui-dropdown2-trigger aui-button aui-button-subtle tipsy-enabled aui-dropdown2-trigger-arrowless " aria-controls="space-tools-menu" aria-haspopup="true" role="button" data-aui-trigger><span class="aui-icon aui-icon-small aui-iconfont-configure">Configure</span><span class="aui-button-label">Space tools</span><span class="aui-icon "></span></button><div id="space-tools-menu" class="aui-dropdown2 aui-style-default space-tools-dropdown" role="menu" hidden data-aui-alignment="top left"></div><a href="#" role="button" class="expand-collapse-trigger aui-icon aui-icon-small aui-iconfont-chevron-double-left" aria-expanded="true"></a></div>
+                    
+                        			</div>
+    		</div>
+        <!-- \#header -->
+
+            
+    
+        <main role="main" id="main" class=" aui-page-panel clearfix">
+                        <div id="main-header">
+                        
+    <div id="navigation" class="content-navigation view" role="region" aria-label="Page tools">
+                    <ul class="ajs-menu-bar">
+                                            
+        <li class="normal ajs-menu-item">
+        <a id="action-menu-link" class="action aui-dropdown2-trigger-arrowless aui-button aui-button-subtle ajs-menu-title aui-dropdown2-trigger" href="#" aria-haspopup="true" aria-label="More options" aria-owns="action-menu" data-container="#navigation">
+            <span>
+                                    <span class="aui-icon aui-icon-small aui-iconfont-more" aria-label="More options" role="button"></span>
+                                
+            </span>
+        </a>         <div id="action-menu" class="aui-dropdown2 aui-style-default confluence-dropdown2-scrollable"  role="menu" aria-labelledby="action-menu-link" >
+                            <div class="aui-dropdown2-section">
+                    <ul  id="action-menu-primary"                          class="section-primary first"                         role="presentation" >
+                                                    <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="view-attachments-link"                href="/pages/viewpageattachments.action?pageId=211782868"
+                rel="nofollow"
+                class="action-view-attachments"
+                 accessKey="t"                 title="View Attachments"                                                 role="menuitem"                >
+
+                        <span>
+                                A<u>t</u>tachments (14)
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="action-view-history-link"                href="/pages/viewpreviousversions.action?pageId=211782868"
+                rel="nofollow"
+                class="action-view-history"
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Page History
+            </span>        </a>
+    </li>
+                                        </ul>
+                </div>
+                            <div class="aui-dropdown2-section">
+                    <ul  id="action-menu-secondary"                          class="section-secondary"                         role="presentation" >
+                                                    <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="view-page-info-link"                href="/pages/viewinfo.action?pageId=211782868"
+                rel="nofollow"
+                class="action-view-info"
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Page Information
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+            
+    
+                                                                        
+    
+    
+            <a  id="view-resolved-comments"                href="#"
+                rel="nofollow"
+                class=""
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Resolved comments
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="view-in-hierarchy-link"                href="/pages/reorderpages.action?key=ppareg&amp;openId=211782868#selectedPageInHierarchy"
+                rel="nofollow"
+                class=""
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                View in Hierarchy
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="action-view-source-link"                href="/plugins/viewsource/viewpagesrc.action?pageId=211782868"
+                rel="nofollow"
+                class="action-view-source popup-link"
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                View Source
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="action-export-pdf-link"                href="/spaces/flyingpdf/pdfpageexport.action?pageId=211782868&amp;atl_token=c580a38d57a90405c08e9fee7ead1784c09cf91c"
+                rel="nofollow"
+                class=""
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Export to PDF
+            </span>        </a>
+    </li>
+                                                <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="action-export-word-link"                href="/exportword?pageId=211782868"
+                rel="nofollow"
+                class="action-export-word"
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Export to Word
+            </span>        </a>
+    </li>
+                                        </ul>
+                </div>
+                            <div class="aui-dropdown2-section">
+                    <ul  id="action-menu-modify"                          class="section-modify"                         role="presentation" >
+                                                    <li
+                    role="presentation"
+            >
+
+    
+        
+    
+                                                                        
+    
+    
+            <a  id="scriptrunnerbuiltin_docs_link"                href="https://docs.adaptavist.com/sr4cc/latest/features/built-in-scripts"
+                rel="nofollow"
+                class=""
+                                                                                 role="menuitem"                >
+
+                        <span>
+                                Explore Built-in Scripts
+            </span>        </a>
+    </li>
+                                        </ul>
+                </div>
+                    </div>
+    </li>
+            </ul>
+    </div>
+
+            
+            <div id="title-heading" class="pagetitle with-breadcrumbs">
+                
+                                    <div id="breadcrumb-section">
+                        
+    
+    
+    <nav aria-label="Breadcrumbs">
+        <ol id="breadcrumbs">
+                                                            
+                                
+            <li class="first" >
+                                
+                                    <span class=""><a href="/collector/pages.action?key=ppareg">Pages</a></span>
+                                                                                                                                                <li id="ellipsis" title="Show all breadcrumbs"><button class="elipsis-button" aria-label="Show all breadcrumbs"><strong>&#8230;</strong></button></li>
+                                                            
+                                
+            <li class="hidden-crumb" >
+                                
+                                    <span class=""><a href="/spaces/ppareg/pages/32145483/Home">Home</a></span>
+                                                                                                                                        
+                                
+            <li class="hidden-crumb" >
+                                
+                                    <span class=""><a href="/spaces/ppareg/pages/211097933/TID+AIR+Public+Documentation">TID AIR Public Documentation</a></span>
+                                                                                                                    
+                                
+            <li>
+                                
+                                    <span class=""><a href="/spaces/ppareg/pages/211097945/SLAC+Protocols">SLAC Protocols</a></span>
+                                                                                                    </ol>
+    </nav>
+
+
+                    </div>
+                
+                
+                
+            <div id="page-metadata-banner"><ul class="banner"><li id="system-content-items" class="noprint"><a href="" aria-label="Unrestricted" data-tooltip="Unrestricted" id="content-metadata-page-restrictions-hidden"  class="hidden"></a><a href="/pages/viewpageattachments.action?pageId=211782868&amp;metadataLink=true" aria-label="14 attachments" data-tooltip="14 attachments" id="content-metadata-attachments"  class="aui-icon aui-icon-small aui-iconfont-attachment"></a></li><li class="page-metadata-item noprinthas-button"  id="content-metadata-jira-wrapper"><a href=""  id="content-metadata-jira"  class="aui-button aui-button-subtle content-metadata-jira tipsy-disabled hidden"><span>Jira links</span></a></li></ul></div>
+        
+
+                                    <div id="title-text" class="with-breadcrumbs">
+                                    <a href="/spaces/ppareg/pages/211782868/Reliable+SLAC+Streaming+Protocol+RSSI"><h1>Reliable SLAC Streaming Protocol (RSSI)</h1></a>
+                        </div>
+                            </div>
+        </div><!-- \#main-header -->
+        
+        
+
+        
+    
+
+        
+
+
+
+
+            
+    
+
+                                
+    
+
+    
+    
+        
+    
+    
+                    
+    
+
+    
+
+    
+            
+        
+
+    
+    
+
+    
+            
+        
+
+
+
+    
+<div id="content" class="page view">
+    
+
+
+<div id="action-messages">
+                        </div>
+
+
+
+            <script type="text/x-template" title="searchResultsGrid">
+    <table class="aui">
+        <thead>
+            <tr class="header">
+                <th class="search-result-title">Page Title</th>
+                <th class="search-result-space">Space</th>
+                <th class="search-result-date">Updated</th>
+            </tr>
+        </thead>
+    </table>
+</script>
+<script type="text/x-template" title="searchResultsGridCount">
+    <p class="search-result-count">{0}</p>
+</script>
+<script type="text/x-template" title="searchResultsGridRow">
+    <tr class="search-result">
+        <td class="search-result-title"><a href="{1}" class="content-type-{2}"><span>{0}</span></a></td>
+        <td class="search-result-space"><a class="space" href="/display/{4}/" title="{3}">{3}</a></td>
+        <td class="search-result-date"><span class="date" title="{6}">{5}</span></td>
+    </tr>
+</script>
+
+        
+    
+            
+
+        
+                            
+    
+
+                    
+
+        
+        <div class="page-metadata">
+    <ul>
+        <li class="page-metadata-modification-info">
+            
+        
+    
+    
+        
+    
+        
+            
+            Created by <span class='author'>     <a href="    /display/~ruckman@slac.stanford.edu
+"
+            aria-label="created by Larry Ruckman"                       class="url fn"
+                            >Larry Ruckman</a></span>, last updated by <span class='editor'>     <a href="    /display/~rherbst@slac.stanford.edu
+"
+            aria-label="last.updated.by Ryan Herbst"                       class="url fn"
+                            >Ryan Herbst</a></span> on <a class='last-modified' aria-label='modified on Sept 03, 2020, select to show changes' title='Show changes' href='/pages/diffpagesbyversion.action?pageId=211782868&amp;selectedPageVersions=9&amp;selectedPageVersions=10'>Sept 03, 2020</a>
+    
+            <span class="read-time">
+            13 minute read
+        </span>
+            </li>
+    </ul>
+</div>
+        
+                                            
+        <div id="main-content" class="wiki-content">
+                           
+        <p><a class="external-link" href="http://Link To IEEE Poster" rel="nofollow">Link To IEEE Poster</a></p><p><strong style="font-size: 24.0px;"><span>Introduction</span></strong></p><p>RSSI is a simple packet based transport protocol. RSSI is based on <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/rfc908.pdf?version=1&amp;modificationDate=1456426506000&amp;api=v2" rel="nofollow">RFC-908</a>, <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/rfc1151.pdf?version=1&amp;modificationDate=1456426525000&amp;api=v2" rel="nofollow">RFC-1151</a>, <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/draft-ietf-sigtran-reliable-udp-00.pdf?version=1&amp;modificationDate=1456426539000&amp;api=v2" rel="nofollow">draft-ietf-sigtran-reliable-udp-00</a> Reliable Data Protocols and modified internal simplifications and improvements. The communication interface is SSI (AXI-Stream based SLAC Streaming protocol). RSSI can be layered on the UDP/IP Protocols or attached to other custom AXI-Stream communication layer. It provides reliable in-order delivery (up to a maximum number of re-transmissions) for virtual connections.</p><p>The protocol is connection and packet based. Initially a connection has to be established between a Client and a Server. Connection procedure exchanges and negotiates parameters such as sequence number, timeouts, max outstanding segments, etc.  If the parameters are compatible the connection is open. An open connection allows full duplex communication between the server and the client where both sides have to acknowledge the received segments.</p><p>The transmitting side is buffering sent segments until it gets the acknowledgment from the peer. If the buffer becomes full (max number of outstanding segments reached) the transmitting side stops sending segments. After the re-transmission timeout is reached it re-sends all the buffered segments. It keeps retrying until it receives a valid acknowledgment from the peer. If the max number of re-transmissions is reached the connection is closed.</p><p>The receiving side verifies the received segments and acknowledges the segments if received in order. If the segment is received out of order the segment is dropped and the receiver waits for the re-transmission before it sends the next acknowledgment. No out of order Acknowledgments are supported in the current version of the protocol.</p><p>The RSSI connection has to be maintained. If there is no data flow the Client has to keep transmitting empty segments (NUL) to the server to actively maintain the connection. If the client fails, the server timeouts, and the connection is closed.</p><h1 id="ReliableSLACStreamingProtocol(RSSI)-Segmentformats"><strong>Segment formats</strong></h1><h2 id="ReliableSLACStreamingProtocol(RSSI)-GeneralSegmentformat">General Segment format</h2><p>Each RSSI segment starts with an eight byte header shown in Figure 1 (SYN segment contains a longer header). The first byte contains a series of single bit flags. The next three fields are each one byte in size. They are: Header length, Sequence number, and Acknowledgment number. These three bytes are followed by a spare 16-bits and two byte checksum.</p><p>Note: Spare bits are added for two reasons hardware implementation simplification (64-bit word HW processing) and possible future format extension.</p><p><span class="confluence-embedded-file-wrapper confluence-embedded-manual-size"><img class="confluence-embedded-image" draggable="false" height="250" src="/download/attachments/211782868/image2016-10-11%2017%3A44%3A55.png?version=1&amp;modificationDate=1476200696000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2017%3A44%3A55.png?version=1&amp;modificationDate=1476200696000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708341" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 17:44:55.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p>Figure 1: General header structure</p><p><strong>Control bits </strong></p><p>The control bits indicate what is present in the packet.</p><ul><li>SYN bit indicates that a synchronization segment is present.</li><li>ACK bit indicates the acknowledgment number in the header is valid.</li><li>EAC bit is not used in this version of the protocol. Reserved for an extended acknowledge segment indication.</li><li>RST bit indicates the packet is a reset segment.</li><li>NUL bit indicates the packet is a null segment.</li><li>BUSY bit indicates the receiver is busy.</li></ul><p>Some of the control bits can be combined to carry as much information in the single segment as possible. The SYN, BUSY and RST are mutually exclusive. The ACK bit is always set when the NUL bit is set. A segment with user data in it always has the ACK bit set and it is called a DATA segment. User data cannot be present in packets with the NULL, BUSY, or RST bits set.</p><p><strong>Header length</strong></p><p>The Header length field indicates where user data begins in the packet. If total length of the packet is greater than the value of the header length field, user data exists in the packet.</p><p><strong>Sequence number</strong></p><p>Each segment contains a sequence number. When a connection is first opened, each peer picks an initial sequence number (the initial sequence number can be randomly picked). This sequence number is used in the SYN segments to open the connection. Each transmitter increments the sequence number before sending a DATA, NUL, or RST segment.</p><p><strong>Acknowledgment Number</strong></p><p>The ACK number field indicates to a transmitter the last in-sequence segment the receiver has received.</p><p><strong>Checksum</strong></p><p>A checksum is calculated on the RSSI header to ensure integrity. The checksum algorithm used in RSSI is the same algorithm used in UDP and TCP headers which is the 16-bit one’s complement of the one’s complement sum of checked bytes. The header checksum calculation/verification can be turned off in SYN header properties.</p><p>Note: This version of the protocol does not support the payload checksum calculation.</p><p>Rationale: The payload checksum is already calculated by the UDP layer.</p><h2 id="ReliableSLACStreamingProtocol(RSSI)-SYNSegmentformat">SYN Segment format</h2><p>The SYN is used to establish a connection and synchronize sequence numbers between two hosts. All configurable RSSI parameters that the peer must know about are contained in this segment. This includes the maximum number of segments the local RSSI is willing to accept, various timeout values, and option flags that indicate the features of the connection being established. A SYN segment must not be combined with user data. The format is shown in Figure 2.</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2017%3A51%3A16.png?version=1&amp;modificationDate=1476201076000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2017%3A51%3A16.png?version=1&amp;modificationDate=1476201076000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708351" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 17:51:16.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p>Figure 2: SYN header structure</p><p> </p><p><strong>Sequence Number </strong></p><p>The sequence number field contains the initial sequence number selected for this connection.</p><p><strong>Acknowledgment Number</strong></p><p>This field is valid only if the ACK flag is set. In that case, this field will contain the sequence number of the SYN segment received from the other RSSI peer.</p><p><strong>Version (non-negotiable)</strong></p><p>The version field contains the version of RSSI. The initial version is one 0x1.</p><p>Note: If the version received by the peer is different the connection will be closed.</p><p><strong>CHK flag (non-negotiable)</strong></p><p>Checksum flag indicates if the header checksum is enabled ‘1’ or disabled ‘0’. This parameter is non-negotiable.</p><p>Note: If the CHK received by the peer is different the connection will be closed.</p><p><strong>Maximum Number of Outstanding Segments (non-negotiable)</strong></p><p>The maximum number of segments that can be sent by the transmitter without receiving an acknowledgment from the peer. This is used by the receiver as a means of flow control. The number is selected during connection initiation and may not be changed later in the life of the connection. This is a special non-negotiable parameter. Each side must use the value provided by its peer when sending data.</p><p>Note: The peer’s parameter will be accepted. If the received value is higher than the maximum segment buffer capacity the accepted value will be set to buffer max.</p><p><strong>Maximum Segment Size (non-negotiable)</strong></p><p>The maximum data segment size (in bytes) that can be received by the peer’s receiver. Each peer may specify a different value. Each peer must not send packets greater than the value of this field received from its peer during connection negotiation. This number includes the size of the does not include the RSSI header. This is a non-negotiable parameter.</p><p>Note: The peer’s parameter will be accepted. If the received value is higher than the maximum segment buffer capacity the accepted value will be set to buffer max.</p><p><strong>Re-transmission Timeout (negotiable)</strong></p><p>The timeout value for retransmission of unacknowledged segments. This value is specified in timeout units (timeout unit field). The valid range is 0x1 to 0xFFFF. This is a negotiable parameter, both peers must agree on the same value for this parameter.</p><p><strong>Cumulative Acknowledgment Timeout (negotiable)</strong></p><p>The timeout value for sending an acknowledgment segment if another segment is not sent. This value is specified in timeout units (timeout unit field). The valid range is 0x1 to 0xFFFF.This is a negotiable parameter, both peers must agree on the same value for this parameter. In addition, this parameter should be smaller than the Retransmission Timeout Value.</p><p><strong>Null Timeout (negotiable)</strong></p><p>Null Segment Timeout<strong> </strong>value is the server timeout value for monitoring an active connection. If no DATA or NULL packets are received in time the server closes the connection. Null Segment Timeout/3 is the Client timeout to send a null segment if a data segment has not been sent. The null segment acts as a keep-alive mechanism. This value is specified in timeout units (timeout unit field). The valid range is 0x1 to 0xFFFF. This is a negotiable parameter, both peers must agree on the same value for this parameter.</p><p><strong>Maximum Number of Retransmissions (negotiable)</strong></p><p>The maximum number of times consecutive retransmission(s) will be attempted before the connection is closed. The valid range for this value is 1 to 255. This is a negotiable parameter, both peers must agree on the same value for this parameter.</p><p><strong>Maximum Number of Cumulative Ack (negotiable)</strong></p><p>The maximum number of acknowledgments that will be accumulated before sending an acknowledgment if another segment is not sent. The valid range for this value is 0 to 255. A value of 0 indicates an acknowledgment segment will be send immediately when a data, null, or reset segment is received. This is a negotiable parameter, both peers must agree on the same value for this parameter.</p><p><strong>Timeout unit (non-negotiable)</strong></p><p>The unit is applied to all the RSSI timeouts. The value corresponds to (-log Unit). For microseconds (10E-6) the value would be 6. For millisecond (10E-3) the value would be 3.</p><p>Note: If the Timeout value received by the peer is different the connection will be closed.</p><p><strong>Connection Identifier</strong> <strong>(negotiable)</strong></p><p>When opening a new connection each peer transmits a connection identifier that is unique among all current RSSI connections. Each side then saves the connection ID received.</p><h1 id="ReliableSLACStreamingProtocol(RSSI)-Connection"><strong>Connection</strong></h1><p>A connection is defined as a unique communication interface between two peers. The connection procedure handles RSSI parameter exchange and negotiation between a Client and a Server. The Client refers to the peer that initiates the connection and the Server refers to the peer that listened for a connection.</p><p>The connection FSM is shown in Figure 3. Connection procedure is as follows. At the server side the user has to request a passive connection. The server goes to the LISTEN state. This can also be done automatically by tying the connection request input to ‘1’. In this state the server will wait to receive the SYN segment from the client. At the Client side the user has to actively request a connection. After the request the Client sends the SYN segment to the Server. The Server receives the SYN segment and acknowledges it by sending a SYN segment back with a valid ACK number. If the SYN parameters are accepted by the Client the client then opens the connection. The Sever also opens the connection after receiving a valid ACK segment from the Client. See Figure 3 for more detailed description of the particular states and transitions.</p><p> </p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2017%3A57%3A15.png?version=1&amp;modificationDate=1476201435000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2017%3A57%3A15.png?version=1&amp;modificationDate=1476201435000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708368" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 17:57:15.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p>Figure 3: Connection Finite State Machine</p><p>A part of the connection procedure is a parameter negotiation faze. Both Sever and Client have the option to accept or reject the parameters from the peer. Each peer checks the parameters values against the allowed limits. Some of the parameters are negotiable i.e. proposed by one peer and accepted by the other peer, and some are non-negotiable i.e. the values received have to be exact (correct). The parameters and their limits are listed in Table 1. The parameter negotiation differs if Server to Client. The Server receives the parameters from the Client and can decide to reject the parameters and propose different ones. The Client initially proposes the parameters from the Server and can then only accept or reject the received parameters.</p><p> </p><div class="table-wrap"><table class="confluenceTable"><tbody><tr><td class="confluenceTd"><p><strong>Parameter </strong></p></td><td class="confluenceTd"><p><strong>Type</strong></p></td><td class="confluenceTd"><p><strong>Limits(hex)</strong></p></td></tr><tr><td class="confluenceTd"><p>Version</p></td><td class="confluenceTd"><p>non-negotiable (Has to match)</p></td><td class="confluenceTd"><p>0x1</p></td></tr><tr><td class="confluenceTd"><p>CHK flag</p></td><td class="confluenceTd"><p>non-negotiable (Has to match)</p></td><td class="confluenceTd"><p>‘0’ or ’1’</p></td></tr><tr><td class="confluenceTd"><p>Timeout unit</p></td><td class="confluenceTd"><p>non-negotiable (Has to match)</p></td><td class="confluenceTd"><p>0x0 - 0xF</p></td></tr><tr><td class="confluenceTd"><p>Maximum Number of Outstanding Segments</p></td><td class="confluenceTd"><p>non-negotiable (Accepted from Peer)</p></td><td class="confluenceTd"><p>0x1 - 0xFF</p></td></tr><tr><td class="confluenceTd"><p>Maximum Segment Size</p></td><td class="confluenceTd"><p>non-negotiable (Accepted from Peer)</p></td><td class="confluenceTd"><p>0x1 – 0xFFFF</p></td></tr><tr><td class="confluenceTd"><p>Retransmission Timeout</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x1 – 0xFFFF(*Timeout unit)</p></td></tr><tr><td class="confluenceTd"><p>Cumulative Acknowledgment Timeout</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x1 – 0xFFFF(*Timeout unit)</p></td></tr><tr><td class="confluenceTd"><p>Null Timeout</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x1 – 0xFFFF(*Timeout unit)</p></td></tr><tr><td class="confluenceTd"><p>Maximum Number of Retransmissions</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x0 – 0xFF (0=Infinity)</p></td></tr><tr><td class="confluenceTd"><p>Maximum Number of Cumulative Acknowledgments</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x1 – 0xFF</p></td></tr><tr><td class="confluenceTd"><p>Connection Identifier</p></td><td class="confluenceTd"><p>negotiable</p></td><td class="confluenceTd"><p>0x0 – 0xFFFFFFFF</p></td></tr></tbody></table></div><p>Table 1: RSSI Parameters</p><p><strong><span style="font-size: 24.0px;">Data flow</span></strong></p><p>When the connection is established the data can flow in full duplex mode between the Client and the Server. Some of the examples of data flow follow. </p><p><span style="font-size: 24.0px;">Half-duplex example</span></p><p>The data is flowing in only one direction from Peer 1 to Peer 2. In A) the Transmitter 1 sent four DATA segments with SEQ numbers from 203 to 206. The transmission is halted because no ACK has been received and the Transmitter buffer is full. Note that all the DATA segments contain the ACK number of 100. The Receiver 2 received the four DATA segments and, after one of the ACK conditions are met, sends back the ACK segment with the ACK number of the last segment received in order 206. Note that the ACK segment contains a SEQ number of 101 (indicating next data segment in the opposite direction).</p><p>In the Half-duplex case the adjustment of ACK conditions can change the amount of bandwidth or is used for flow control. In A) the Maximum Number of Cumulative Acknowledgments parameter is four or more and the Cumulative Acknowledgment Timeout is longer or equal to the reception time of four segments. This results in some dead time between the Transmitter buffer is full and getting the ACK. The ACK has to come before the Retransmission Timeout of Transmitter 1 (otherwise the segments would be transmitted).  In B) the ACK conditions are adjusted as such that the ACK is sent immediately after receiving the data segment and the data flow is thus continuous.</p><p><span style="font-size: 24.0px;"><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A4%3A2.png?version=1&amp;modificationDate=1476201842000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A4%3A2.png?version=1&amp;modificationDate=1476201842000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708377" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:4:2.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></span></p><h2 id="ReliableSLACStreamingProtocol(RSSI)-Full-duplexexample">Full-duplex example</h2><p>The data flows in both directions. Both Peer 1 and Peer 2 are sending the data segments with incrementing SEQ numbers. The received data segment already contains the ACK number (of the last segment received in order) within its header and in this example no standalone ACK segments are necessary.</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A6%3A5.png?version=1&amp;modificationDate=1476201965000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A6%3A5.png?version=1&amp;modificationDate=1476201965000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708382" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:6:5.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><h2 id="ReliableSLACStreamingProtocol(RSSI)-Re-transmission">Re-transmission</h2><p>Re-transmission occurs if no ACK is received from the peer and the Re-transmission Timeout is reached. In the example below the DATA segment 203 was lost/corrupted. And the Peer 2 only received the next three segments 204 -205. Because the segment 203 has not been received no new ACK is send back. And the other out of order segments are dropped. After the Re-transmission Timeout the Transmitter 1 re-sends all the unacknowledged segments from its buffer. The Receiver 2 then accepts the re-transmitted segments and finally acknowledges the segments.</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A7%3A57.png?version=1&amp;modificationDate=1476202077000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A7%3A57.png?version=1&amp;modificationDate=1476202077000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708388" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:7:57.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p>If there is no ACK the Transmitter resends the buffer up to Maximum Number of Retransmissions and closes the connection by sending the RST segment.</p><p>Note that RSSI does not support out of order acknowledgments.</p><h2 id="ReliableSLACStreamingProtocol(RSSI)-NullSegments">Null Segments</h2><p>If there is no data flow between the peers the connection has to be maintained with NUL segments. The NUL segment operation is different at the Server and Client side. The Server has a monitoring function while the Client has the “Heartbeat” function.</p><p>If there is no data the Client has to keep sending NUL segments to the Sever. The NUL transmission period is defined as 1/3 of Null Timeout parameter. The NUL segment has a SEQ number and has to be acknowledged by the Server. The Server has to send the ACK immediately after receiving the NUL segment (the Cumulative ACK parameters are here ignored). If no NUL or DATA segments are received within the duration of Null Timeout the Server detects inactivity and closes the connection.</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A9%3A26.png?version=1&amp;modificationDate=1476202166000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A9%3A26.png?version=1&amp;modificationDate=1476202166000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708391" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:9:26.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><h2 id="ReliableSLACStreamingProtocol(RSSI)-FlowcontrolusingBUSYflag">Flow control using BUSY flag</h2><p>Some flow control can be achieved by timing the acknowledgments but it is limited to the Retransmission time. Thus the RSSI enables flow control using a BUSY flag. This enables a slow/software receiver to control the DATA flow without risking broken connections due to Max Number of Retransmissions.</p><p>To apply flow control the receiver should apply BUSY flag to outgoing data segments (if there are any) or periodically send ACK segments with BUSY flag (recommended period Retransmission Timeout/2). The received busy flag will reset the re-transmission timer of PEER transmitter. The flow control example is shown below.</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A12%3A14.png?version=1&amp;modificationDate=1476202335000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A12%3A14.png?version=1&amp;modificationDate=1476202335000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708401" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:12:14.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p>In Figure A) the Receiver 2 is busy and, to keep the Transmitter 1 from re-transmitting its Tx buffer, it periodically sends the ACK segments with BUSY flag. The BUSY segment has an ACK number of the last received segment before the receiver was busy (202). And a SEQ number of the next data to be sent in the opposite direction (101).</p><p><span class="confluence-embedded-file-wrapper"><img class="confluence-embedded-image" draggable="false" src="/download/attachments/211782868/image2016-10-11%2018%3A11%3A2.png?version=1&amp;modificationDate=1476202262000&amp;api=v2" data-image-src="/download/attachments/211782868/image2016-10-11%2018%3A11%3A2.png?version=1&amp;modificationDate=1476202262000&amp;api=v2" data-unresolved-comment-count="0" data-linked-resource-id="216708395" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="image2016-10-11 18:11:2.png" data-base-url="https://confluence.slac.stanford.edu" data-linked-resource-content-type="image/png" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10" tabindex="0" alt=""></span></p><p> </p><p>After the Receiver 2 is ready it reinitiates the data flow by sending the ACK segment with the last ACK number received in order (206). The Tx buffer of the Transmitter 1 is freed and it continues to send new segments.</p><h1 id="ReliableSLACStreamingProtocol(RSSI)-Links"><strong>Links</strong></h1><ul><li>MS Word form of this document: <a href="/download/attachments/211782868/DocumentationConfluence.docx?version=1&amp;modificationDate=1476202427000&amp;api=v2" data-linked-resource-id="216708403" data-linked-resource-version="1" data-linked-resource-type="attachment" data-linked-resource-default-alias="DocumentationConfluence.docx" data-nice-type="Word Document" data-linked-resource-content-type="application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-linked-resource-container-id="211782868" data-linked-resource-container-version="10">RssiDoc.docx</a></li></ul><ul><li><p>Drafts: <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/rfc908.pdf?version=1&amp;modificationDate=1456426506000&amp;api=v2" rel="nofollow">RFC-908</a>, <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/rfc1151.pdf?version=1&amp;modificationDate=1456426525000&amp;api=v2" rel="nofollow">RFC-1151</a>, <a href="https://confluence.slac.stanford.edu/download/attachments/198085574/draft-ietf-sigtran-reliable-udp-00.pdf?version=1&amp;modificationDate=1456426539000&amp;api=v2" rel="nofollow">draft-ietf-sigtran-reliable-udp-00</a>.</p></li></ul><ul><li>Performance for RSSI + UDP: <br/><ul><li><a href="/spaces/ppareg/pages/211799742/RSSI+HW-to-HW+Measurements">HW-to-HW Performance</a></li><li><a class="external-link" href="https://jira.slac.stanford.edu/browse/ESLCOMMON-31" rel="nofollow">SW-to-HW Performance</a></li></ul></li><li>Standard library documentation of RssiCore:<ul><li><a href="https://confluence.slac.stanford.edu/display/ppareg/StdLib+RssiCore" rel="nofollow">StdLib+RssiCore</a></li></ul></li></ul><h1 id="ReliableSLACStreamingProtocol(RSSI)-DifferencesfromRUDP(RFC/draft)"><strong>Differences from RUDP (RFC/draft)</strong></h1><p>General deviation summary:</p><ul><li><p>No auto reset functionality.</p></li><li><p>No transfer state.</p></li><li><p>No out of sequence acknowledgments (EACK).</p></li><li><p>Different header structure (see headers on figures below).</p></li><li><p>Unit for the timeouts can be set in generic. The timeout unit is also communicated in SYN header.</p></li><li><span>Value in header corresponds to (-log Unit).  Example Unit 10E-6. Value =6.</span></li><li><span>Minor deviation in re-transmission mechanism (Re-transmission mechanism below).</span></li><li>Improved flow control using BUSY flag (Flow control using BUSY flag below). <p>Handling of BUSY/flow-control implemented from server-&gt;client only (i.e., the client may signal BUSY; the server never does).</p></li><li><p>Version without re-transmissions. Implemented only in firmware transmitter module.<br/>Software client should be implemented to &quot;Smart&quot; ACK even though the segments are <br/>missing or out of order (Version with  no re-transmissions below).</p></li></ul><h1 id="ReliableSLACStreamingProtocol(RSSI)-Contact"><strong>Contact</strong></h1><p>Uros Legat</p><p>ulegat@slac.stanford.edu</p>
+
+                
+        
+    
+        </div>
+
+                        
+    
+
+
+
+<div id="labels-section" class="pageSection group">
+    <div class="labels-section-content content-column" entityid="211782868" entitytype="page">
+	<div class="labels-content">
+		
+    <ul class="label-list label-list-right ">
+            <li class="no-labels-message">
+            No labels
+        </li>
+            </ul>
+
+    </div>
+</div>
+</div>
+        
+		
+            
+
+
+
+
+            
+        
+
+
+
+
+
+
+
+
+                        
+    
+<div id="comments-section" class="pageSection group">
+        
+    
+
+
+
+</div>
+        
+
+
+                
+    
+            
+</div>
+
+    
+
+    
+
+
+
+
+    
+    
+
+    
+    
+    
+    
+
+
+    
+<div id="space-tools-web-items" class="hidden">
+                <div data-label="Overview" data-href="/spaces/viewspacesummary.action?key=ppareg">Overview</div>
+            <div data-label="Content Tools" data-href="/pages/reorderpages.action?key=ppareg">Content Tools</div>
+    </div>
+        
+
+
+
+
+        <div id="sidebar-container">
+                                                                </div><!-- \#sidebar-container -->
+
+            </main><!-- \#main -->
+            
+    
+    
+        
+            
+            
+
+<div id="footer" role="contentinfo">
+    <section class="footer-body">
+
+                                                    
+        
+
+        <ul id="poweredby">
+            <li class="noprint">Powered by <a href="https://www.atlassian.com/software/confluence" class="hover-footer-link" rel="nofollow">Atlassian Confluence</a> <span id='footer-build-information'>9.2.19</span></li>
+            <li class="print-only">Printed by Atlassian Confluence 9.2.19</li>
+            <li class="noprint"><a href="https://support.atlassian.com/confluence-server/" class="hover-footer-link" rel="nofollow">Report a bug</a></li>
+            <li class="noprint"><a href="https://www.atlassian.com/company" class="hover-footer-link" rel="nofollow">Atlassian News</a></li>
+        </ul>
+
+        
+
+        <div id="footer-logo"><a href="https://www.atlassian.com/" rel="nofollow">Atlassian</a></div>
+
+                    
+        
+    </section>
+</div>
+
+    
+</div>
+
+</div><!-- \#full-height-container -->
+</div><!-- \#page -->
+
+    <span style="display:none;" id="confluence-server-performance">{"serverDuration": 61, "requestCorrelationId": "7d63bfd028e6f863"}</span>
+</body>
+</html>
+    

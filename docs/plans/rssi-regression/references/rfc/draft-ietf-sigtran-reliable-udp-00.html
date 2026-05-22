@@ -1,0 +1,1830 @@
+
+<!DOCTYPE html>
+
+
+
+
+
+
+
+<html data-bs-theme="auto" lang="en">
+    <head>
+        
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>
+            
+                draft-ietf-sigtran-reliable-udp-00
+            
+        </title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://static.ietf.org/fonts/inter/import.css" rel="stylesheet">
+        <link href="https://static.ietf.org/fonts/noto-sans-mono/import.css" rel="stylesheet">
+        
+            <link rel="stylesheet" href="https://static.ietf.org/dt/12.65.2/ietf/css/document_html_referenced.css">
+            
+            <script type="module" crossorigin="" src="https://static.ietf.org/dt/12.65.2/assets/embedded-e98f667e.js"></script>
+<link href="https://static.ietf.org/dt/12.65.2/assets/create-pinia-singleton-ae93721b.js" type="text/javascript" crossorigin="anonymous" rel="modulepreload" as="script" />
+<link href="https://static.ietf.org/dt/12.65.2/assets/Scrollbar-ca62bf98.js" type="text/javascript" crossorigin="anonymous" rel="modulepreload" as="script" />
+            <script src="https://static.ietf.org/dt/12.65.2/ietf/js/document_html.js"></script>
+            <script src="https://static.ietf.org/dt/12.65.2/ietf/js/theme.js"></script>
+        
+        <link rel="alternate" type="application/atom+xml" title="Document changes" href="/feed/document-changes/draft-ietf-sigtran-reliable-udp/">
+        <meta name="description"
+            
+                content="RELIABLE UDP PROTOCOL (Internet-Draft, 1999)"
+            >
+        
+
+<link rel="apple-touch-icon"
+      sizes="180x180"
+      href="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-180.png">
+<link rel="icon"
+      sizes="32x32"
+      href="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-32.png">
+<link rel="icon"
+      sizes="16x16"
+      href="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon"
+      href="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-mask.svg"
+      color="#ffffff">
+<meta name="msapplication-TileColor"
+      content="#ffffff">
+<meta name="theme-color"
+      content="#ffffff">
+        
+
+
+
+
+<meta property="og:title" content="RELIABLE UDP PROTOCOL">
+<meta property="og:url" content="https://datatracker.ietf.org/doc/html/draft-ietf-sigtran-reliable-udp-00.txt">
+<link rel="canonical" href="https://datatracker.ietf.org/doc/html/draft-ietf-sigtran-reliable-udp-00.txt">
+<meta property="og:site_name" content="IETF Datatracker">
+<meta property="og:description" content="This Internet Draft discusses Reliable UDP (RUDP). RUDP is a simple packet based transport protocol. RUDP is based on RFCs 1151 and 908 - Reliable Data Protocol. RUDP is layered on the UDP/IP Protocols and provides reliable in-order delivery (up to a maximum number of retransmissions) for virtual connections. RUDP has a very flexible design that would make it suitable for a variety of transport uses. One such use would be to transport telecommunication signaling protocols.">
+<meta property="og:type" content="article">
+
+<meta property="og:image" content="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-card.png">
+<meta property="og:image:alt" content="Logo of the IETF">
+<meta property="article:section" content="IETF - Internet Engineering Task Force">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta property="article:author" content="Tom Bova">
+<meta property="article:author" content="Ted Krivoruchka">
+
+
+
+        
+        <style>
+            
+            .diff-form .select2-selection__rendered {
+                direction: rtl;
+                text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <noscript><iframe class="status" title="Site status" src="/status/latest"></iframe></noscript>
+<div class="vue-embed" data-component="Status"></div>
+        <div class="btn-toolbar sidebar-toolbar position-fixed top-0 end-0 m-2 m-lg-3 d-print-none">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm me-1 dropdown-toggle d-flex align-items-center"
+                    id="bd-theme" type="button" aria-expanded="false" data-bs-toggle="dropdown"
+                    aria-label="Toggle theme">
+                        <i class="theme-icon-active bi bi-circle-half"></i>
+                </button>
+
+                <ul class="dropdown-menu" aria-labelledby="bd-theme">
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center"
+                            data-bs-theme-value="light" aria-pressed="false">
+                            <i class="me-2 opacity-50 theme-icon bi bi-sun-fill"></i>
+                            Light<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center"
+                            data-bs-theme-value="dark" aria-pressed="false">
+                            <i class="me-2 opacity-50 theme-icon bi bi-moon-stars-fill"></i>
+                            Dark<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center active"
+                            data-bs-theme-value="auto" aria-pressed="true">
+                            <i class="me-2 opacity-50 theme-icon bi bi-circle-half"></i>
+                            Auto<i class="bi bi-check2 ms-auto d-none"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm sidebar-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#sidebar"
+                    aria-expanded="true"
+                    aria-controls="sidebar"
+                    aria-label="Toggle metadata sidebar"
+                    title="Toggle metadata sidebar">
+            <i class="bi bi-arrow-bar-left sidebar-shown"></i>
+            <i class="bi bi-arrow-bar-right sidebar-collapsed"></i>
+            </button>
+        </div>
+        <nav class="navbar bg-light-subtle px-1 fixed-top d-print-none d-md-none">
+            <a class="nav-link ps-1"
+               href="/doc/draft-ietf-sigtran-reliable-udp/">
+                 
+                    draft-ietf-sigtran-reliable-udp-00
+                
+                <br class="d-sm-none">
+
+                <span class="ms-sm-3 badge rounded-pill badge-draft">
+                    
+                        None
+                    
+                </span>
+            </a>
+            <button class="navbar-toggler p-1"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#docinfo-collapse"
+                    aria-controls="docinfo-collapse"
+                    aria-expanded="false"
+                    aria-label="Show document information">
+                <span class="navbar-toggler-icon small"></span>
+            </button>
+            <div class="navbar-nav navbar-nav-scroll overscroll-none collapse pt-1" id="docinfo-collapse">
+                <div class="bg-light-subtle p-0">
+                    <table class="table table-sm table-borderless small">
+                        <tbody class="meta align-top">
+                            <tr>
+                                <th scope="row"></th>
+                                <th scope="row">Title</th>
+                                <td class="edit"></td>
+                                <td>RELIABLE UDP PROTOCOL</td>
+                            </tr>
+                        </tbody>
+                        
+
+
+
+
+
+
+
+<tbody class="meta align-top ">
+    <tr>
+        <th scope="row">Document</th>
+        <th scope="row">Document type</th>
+        <td class="edit"></td>
+        <td>
+            
+
+
+
+
+
+
+
+    <span class="text-danger">Expired Internet-Draft</span>
+    (<a href="/wg/sigtran/about/">sigtran WG</a>)
+    
+
+            
+            
+                <div class="badge rounded-pill text-bg-warning">
+                    Expired &amp; archived
+                </div>
+            
+            
+                
+
+
+
+
+    
+
+
+            
+        </td>
+    </tr>
+    
+        <tr>
+            <td></td>
+            <th scope="row">Select version</th>
+            <td class="edit"></td>
+            <td>
+                
+
+
+
+    <ul class="revision-list pagination pagination-sm text-center flex-wrap my-0">
+        
+            
+                 
+                    <li class="page-item active">
+                        <a class="page-link"
+                        href="/doc/html/draft-ietf-sigtran-reliable-udp-00"
+                        >
+                            00
+                        </a>
+                    </li>
+                
+            
+            
+        
+    </ul>
+
+            </td>
+        </tr>
+        
+    
+    <tr>
+        <td></td>
+        <th scope="row">Authors</th>
+        <td class="edit">
+            
+        </td>
+        <td>
+            
+            
+                <span ><a 
+           title="Datatracker profile of Tom Bova"
+            href="/person/tbova@cisco.com" >Tom Bova</a> <a 
+               href="mailto:tbova%40cisco.com"
+               aria-label="Compose email to tbova@cisco.com"
+               title="Compose email to tbova@cisco.com">
+                <i class="bi bi-envelope"></i></a></span>,
+            
+                <span ><a 
+           title="Datatracker profile of Ted Krivoruchka"
+            href="/person/tedk@cisco.com" >Ted Krivoruchka</a> <a 
+               href="mailto:tedk%40cisco.com"
+               aria-label="Compose email to tedk@cisco.com"
+               title="Compose email to tedk@cisco.com">
+                <i class="bi bi-envelope"></i></a></span>
+            
+            
+                <br>
+                <a class="btn btn-primary btn-sm mt-1" href="mailto:draft-ietf-sigtran-reliable-udp@ietf.org?subject=draft-ietf-sigtran-reliable-udp" title="Send email to the document authors">Email authors</a>
+            
+        </td>
+    </tr>
+    
+    
+        
+        
+        
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            RFC stream
+        </th>
+        <td class="edit">
+            
+        </td>
+        <td >
+            
+                
+                
+                    
+                        
+
+
+
+<img alt="IETF Logo"
+     class="d-lm-none w-25 mt-1"
+     
+     
+        
+             src="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-white.svg"
+        
+     
+     >
+
+<img alt="IETF Logo"
+     class="d-dm-none w-25 mt-1"
+     
+     
+        
+             src="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor.svg"
+        
+     
+     >
+                    
+                
+                
+            
+        </td>
+    </tr>
+    
+        <tr>
+            <td></td>
+            <th scope="row">
+                Intended RFC status
+            </th>
+            <td class="edit">
+                
+            </td>
+            <td>
+                
+                    <span class="text-body-secondary">
+                        (None)
+                    </span>
+                
+            </td>
+        </tr>
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            Other formats
+        </th>
+        <td class="edit">
+        </td>
+        <td>
+            
+                
+    <div class="buttonlist">
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="https://www.ietf.org/archive/id/draft-ietf-sigtran-reliable-udp-00.txt">
+            
+                <i class="bi bi-file-text"></i> txt
+            
+        </a>
+        
+    
+        
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="/doc/draft-ietf-sigtran-reliable-udp/00/bibtex/">
+            
+                <i class="bi bi-file-ruled"></i> bibtex
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="/doc/bibxml3/draft-ietf-sigtran-reliable-udp-00.xml">
+            
+                <i class="bi bi-file-code"></i> bibxml
+            
+        </a>
+        
+    
+</div>
+
+            
+        </td>
+    </tr>
+    
+    
+        
+            <tr>
+                <td>
+                </td>
+                <th scope="row">
+                    Additional resources
+                </th>
+                <td class="edit">
+                    
+                </td>
+                <td>
+                    
+                        
+                        
+                            
+                                <a href="https://mailarchive.ietf.org/arch/browse/sigtran?q=draft-ietf-sigtran-reliable-udp">
+                                    Mailing list discussion
+                                </a>
+                            
+                        
+                    
+                </td>
+            </tr>
+        
+    
+</tbody>
+                        <tr>
+                            <th scope="row"></th>
+                            <th scope="row"></th>
+                            <td class="edit"></td>
+                            <td>
+                                <a class="btn btn-sm btn-warning mb-3"
+                                target="_blank"
+                                href="https://github.com/ietf-tools/datatracker/issues/new/choose">
+                                    Report a bug
+                                    <i class="bi bi-bug"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </nav>
+        <div class="row g-0">
+            <div class="col-md-9 d-flex justify-content-center lh-sm"
+                 data-bs-spy="scroll"
+                 data-bs-target="#toc-nav"
+                 data-bs-smooth-scroll="true"
+                 tabindex="0"
+                 id="content">
+                
+                    <div class="rfcmarkup">
+                        <br class="noprint">
+                        <!-- [html-validate-disable-block attr-quotes, void-style, element-permitted-content, heading-level -- FIXME: rfcmarkup/rfc2html generates HTML with issues] -->
+                        <div class="rfcmarkup"><pre>Network Working Group                                            T. Bova
+INTERNET-DRAFT                                            T. Krivoruchka
+                                                           Cisco Systems
+
+Expires in six months                                   25 Feburary 1999
+
+
+
+                     <span class="h1">RELIABLE UDP PROTOCOL</span>
+                 <span class="h1">&lt;<a href="/doc/html/draft-ietf-sigtran-reliable-udp-00.txt">draft-ietf-sigtran-reliable-udp-00.txt</a>&gt;</span>
+
+
+Status of This Memo
+
+This document is an Internet-Draft and is in full conformance
+with all provisions of <a href="/doc/html/rfc2026#section-10">Section&nbsp;10 of RFC 2026</a>. Internet-Drafts are working
+documents of the Internet Engineering Task Force (IETF), its areas,
+and its working groups.  Note that other groups may also distribute
+working documents as Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any
+time.  It is inappropriate to use Internet-Drafts as reference
+material or to cite them other than as &quot;work in progress.&quot;
+
+To learn the current status of any Internet-Draft, please check the
+&quot;1id-abstracts.txt&quot; listing contained in the Internet- Drafts Shadow
+Directories on ftp.is.co.za (Africa), nic.nordu.net (Europe),
+munnari.oz.au (Pacific Rim), ftp.ietf.org (US East Coast), or
+ftp.isi.edu (US West Coast).
+
+
+
+
+Abstract
+
+This Internet Draft discusses Reliable UDP (RUDP).  RUDP is a simple
+packet based transport protocol.  RUDP is based on RFCs 1151 and 908 -
+Reliable Data Protocol.  RUDP is layered on the UDP/IP Protocols and
+provides reliable in-order delivery (up to a maximum number of
+retransmissions) for virtual connections.  RUDP has a very flexible
+design that would make it suitable for a variety of transport uses.
+One such use would be to transport telecommunication signaling
+protocols.
+
+
+
+
+
+
+
+
+Bova &amp; Krivoruchka                                             [Page  1]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+                        TABLE OF CONTENTS
+
+<a href="#section-1">1</a>.  Introduction...............................................<a href="#page-3">3</a>
+     <a href="#section-1.1">1.1</a> System Overview.......................................<a href="#page-3">3</a>
+     <a href="#section-1.2">1.2</a> Background............................................<a href="#page-5">5</a>
+     <a href="#section-1.3">1.3</a> Data Structure Format.................................<a href="#page-5">5</a>
+     <a href="#section-1.4">1.4</a> Feature Negotiation..................................<a href="#page-16">16</a>
+<a href="#section-2">2</a>.  Future Potential Enhancements.............................<a href="#page-16">16</a>
+<a href="#section-3">3</a>.  References................................................<a href="#page-17">17</a>
+<a href="#section-4">4</a>.  Author&#x27;s Addresses........................................<a href="#page-17">17</a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bova &amp; Krivoruchka                                             [Page  2]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+<span class="h2"><a class="selflink" id="section-1" href="#section-1">1</a>.  Introduction</span>
+
+This Internet Draft discusses a simple packet based transport
+protocol designed to support applications that require a
+reliable, sequenced packet based transport protocol.  RUDP is based
+on RFCs 1151 and 908 - Reliable Data Protocol.  RUDP is layered on
+the UDP/IP Protocols and provides reliable in-order delivery (up to
+a maximum number of retransmissions) for virtual connections.
+
+<span class="h3"><a class="selflink" id="section-1.1" href="#section-1.1">1.1</a> Background</span>
+
+A reliable transport protocol is needed to transport of telephony signaling
+across IP networks. This reliable transport must be able to provide an
+architecture for a variety of applications (i.e. signaling protocols)
+requiring transport over IP.
+
+Existing IP protocols have been scrutinized and it has been concluded that
+a new reliable transport mechanism for telecommunication signaling
+protocols is needed.  This protocol should meet the following criteria:
+
+*  transport should provide reliable delivery up to a maximum number of
+   retransmissions (i.e. avoid stale signaling messages).
+*  transport should provide in-order delivery.
+*  transport should be a message based.
+*  transport should provide flow control mechanism.
+*  transport should have low overhead, high performance.
+*  characteristics of each virtual connection should be configurable
+   (i.e. timers).
+*  transport should provide a keep-alive mechanism.
+*  transport should provide error detection.
+*  transport should provide for secure transmission.
+
+RUDP is designed to allow characteristics of each connection to be
+   individually configured so that many protocols with different transport
+   requirements can be implemented simultaneously on the same platform.
+
+<span class="h3"><a class="selflink" id="section-1.3" href="#section-1.3">1.3</a>  Data Structure Format</span>
+
+<span class="h2"><a class="selflink" id="section-1" href="#section-1">1</a>. Six octet minimum RUDP header for data transmissions</span>
+
+Each UDP packet sent by RUDP must start with at least a six octet header.
+The first octet contains a series of single bit flags. The next three
+fields are each one octet in size. They are: Header length, Sequence
+
+
+Bova &amp; Krivoruchka                                             [Page  3]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+number, and Acknowledgment number.  These three octets are followed by a
+two octet checksum.
+
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   |S|A|E|R|N|C|T| |    Header     |
+   |Y|C|A|S|U|H|C|0|    Length     |
+   |N|K|K|T|L|K|S| |               |
+   +-+-+-+-+-+-+-+-+---------------+
+   |  Sequence #   +   Ack Number  |
+   +---------------+---------------+
+   |            Checksum           |
+   +---------------+---------------+
+
+        Figure 1, RUDP Header
+
+
+Control bits
+
+The control bits indicate what is present in the packet. The SYN bit
+indicate a synchronization segment is present. The ACK bit indicates the
+acknowledgment number in the header is valid.  The EACK bit indicates an
+extended acknowledge segment is present.  The RST bit indicates the packet
+is a reset segment.  The NUL bit indicates the packet is a null segment.
+The TCS bit indicates the packet is a transfer connection state segment.
+The SYN, EACK, RST, and TCS bits are mutually exclusive.  The ACK bit is
+always set when the NUL bit is set.  The CHK bit indicates whether the
+Checksum field contains the checksum of just the header or the header
+and the body (data).  If the CHK bit is zero, the Checksum field only
+contains the checksum of the header.  If the CHK bit is one, the
+Checksum field contains the checksum of the header and data.
+
+Header length.
+
+The Header length field indicates where user data begins in the packet.
+If total length of the packet is greater than the value of the header
+length field, user data exists in the packet. User data cannot be present
+in packets with the EACK, NULL, or RST bits set.  A packet with user data
+in it always has the ACK bit set and is called a data segment.
+
+Sequence number.
+
+Each packet contains a sequence number. When a connection is first opened,
+each peer randomly picks an initial sequence number. This sequence number
+is used in the SYN segments to open the connection.  Each transmitter
+increments the sequence number before sending a data, null, or reset
+segment.
+
+
+Bova &amp; Krivoruchka                                             [Page  4]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+Acknowledgment Number.
+
+The acknowledgment number field indicates to a transmitter the last in-
+sequence packet the receiver has received.
+
+Checksum.
+
+A checksum is always calculated on the RUDP header to ensure integrity.
+In addition, the checksum can be calculated on the header and body
+if the CHK bit is set to one.  The checksum algorithm used in RUDP is
+the same algorithm used in UDP and TCP headers which is the 16-bit
+one&#x27;s complement of the one&#x27;s complement sum of bytes being checksumed.
+
+<span class="h2"><a class="selflink" id="section-2" href="#section-2">2</a>.  SYN Segment</span>
+
+The SYN is used to establish a connection and synchronize sequence numbers
+between two hosts.  The SYN segment also contains the negotiable parameters
+of the connection.  All configurable parameters that the peer must know
+about are contained in this segment.  This includes the maximum number of
+segments the local RUDP is willing to accept and option flags that indicate
+the features of the connection being established.  A SYN segment must not
+be combined with user data.  A SYN segment is also used to perform an auto
+reset on a connection.  Auto reset is described later.
+
+Figure 2 shows a SYN segment.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Bova &amp; Krivoruchka                                             [Page  5]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+    0             7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   | |A| | | | | | |               |
+   |1|C|0|0|0|0|0|0|       28      |
+   | |K| | | | | | |               |
+   +-+-+-+-+-+-+-+-+---------------+
+   +  Sequence #   +   Ack Number  |
+   +---------------+---------------+
+   | Vers  | Spare | Max # of Out  |
+   |       |       | standing Segs |
+   +---------------+---------------+
+   | Option Flags  |     Spare     |
+   +---------------+---------------+
+   |      Maximum Segment Size       |
+   +---------------+---------------+
+   | Retransmission Timeout Value  |
+   +---------------+---------------+
+   | Cumulative Ack Timeout Value  |
+   +---------------+---------------+
+   |   Null Segment Timeout Value  |
+   +---------------+---------------+
+   | Transfer State Timeout Value  |
+   +---------------+---------------+
+   |  Max Retrans  | Max Cum Ack   |
+   +---------------+---------------+
+   | Max Out of Seq| Max Auto Reset|
+   +---------------+---------------+
+   |    Connection Identifier      |
+   +                               +
+   |      (32 bits in length)      |
+   +---------------+---------------+
+   |           Checksum            |
+   +---------------+---------------+
+
+        Figure 2, SYN segment
+
+Sequence Number
+
+The sequence number field contains the initial sequence number selected for
+this connection.
+
+Acknowledgment Number
+
+This field is valid only if the ACK flag is set.  In that case, this
+field will contain the sequence number of the SYN segment received from
+the other RUDP.
+
+Version
+
+The version field contains the version of RUDP.  The initial version is
+one (1).
+
+
+Bova &amp; Krivoruchka                                             [Page  6]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+Maximum Number of Outstanding Segments
+
+The maximum number of segments that should be sent without getting an
+acknowledgment.  This is used by the receiver as a means of flow control.
+The number is selected during connection initiation and may not be
+changed later in the life of the connection.  This is not a negotiable
+parameter.  Each side must use the value provided by its peer when
+sending data.
+
+Options Flag Field
+
+This field of two octets contains a set of options flags that specify
+the set of optional functions that are desired for this connection.
+A preliminary subset of flags are defined as follows:
+
+   Bit #        Bit Name        Description
+    0       not used          not used, must always be set to 1.
+    1       CHK               Data Checksum enable. If this bit is set
+                              then the checksum field will contain a
+                              checksum of the entire RUDP packet (header
+                              and data).  This is a negotiable
+                              parameter.
+    2       REUSE             This bit must be set during an auto reset to
+                              indicate the previous negotiable parameters
+                              should be used.  When this bit is set the
+                              following fields of the SYN should be set to
+                              zero by the sender and must be ignored by the
+                              receiver:  Maximum Segment Size,
+                              Retransmission Timeout Value, Cumulative Ack
+                              Timeout Value, Max Retransmissions, Max
+                              Cumulative Ack, Max Out of Sequence, and Max
+                              Auto Reset.
+    3-7     Spare
+
+Maximum Segment Size
+
+The maximum number of octets that can be received by the peer sending the
+SYN segment.  Each peer may specify a different value.  Each peer must not
+send packets greater than the value of this field received from its peer
+during connection negotiation.  This number includes the size of the RUDP
+header. This is not a negotiable parameter.
+
+Retransmission Timeout Value
+
+The timeout value for retransmission of unacknowledged packets.  This value
+is specified in milliseconds. The valid range is 100 to 65536.  This is a
+negotiable parameter, both peers must agree on the same value for this
+parameter.
+
+
+Bova &amp; Krivoruchka                                             [Page  7]
+
+
+Internet Draft             Reliable UDP Protocol                Feb 1999
+
+
+Cumulative Ack Timeout Value
+
+The timeout value for sending an acknowledgment segment if another segment
+is not sent.  This value is specified in milliseconds. The valid range is
+<span class="h2"><a class="selflink" id="section-100" href="#section-100">100</a> to 65536.  </span>This is a negotiable parameter, both peers must agree on the
+same value for this parameter.  In addition, this parameter should be
+smaller than the Retransmission Timeout Value.
+
+Null Segment Timeout Value
+
+The timeout value for sending a null segment if a data segment has not
+been sent.  Thus, the null segment acts as a keep-alive mechanism.
+This value is specified in milliseconds.  The valid range is 0 to 65536.
+A value of 0 disables null segments. This is a negotiable parameter, both
+peers must agree on the same value for this parameter.
+
+Transfer State Timeout Value
+
+This timeout value indicate the amount of time the state information will
+be  saved for a connection before an auto reset occurs.  This value is
+specified in milliseconds.  The valid range is 0 to 65536.  This is a
+negotiable parameter, both peers must agree on the same value for this
+parameter.  A value of 0 indicates the connection will be auto-reset
+immediately.
+
+Max Retrans
+
+The maximum number of times consecutive retransmission(s) will be attempted
+before the connection is considered broken.  The valid range for this value
+is 0 to 255.  A value of 0 indicates retransmission should be attempted
+forever.  This is a negotiable parameter, both peers must agree on the same
+value for this parameter.
+
+Max Cum Ack
+
+The maximum number of acknowledgments that will be accumulated before
+sending an acknowledgment if another segment is not sent. The valid range
+for this value is 0 to 255.  A value of 0 indicates an acknowledgment
+segment will be send immediately when a data, null, or reset segment is
+received.  This is a negotiable parameter, both peers must agree on the
+same value for this parameter.
+
+Max Out of Seq
+
+The maximum number of out of sequence packets that will be accumulated
+before an EACK (Extended Acknowledgement) segment is sent. The valid range
+for this value is 0 to 255.  A value of 0 indicates an EACK will be sent
+immediately if an out of order segment is received.  This is a negotiable
+parameter, both peers must agree on the same value for this parameter.
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 8]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-9" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+Max Auto Reset
+
+The maximum number of consecutive auto reset that will performed before
+a connection is reset.  The valid range for this value is 0 to 255.  A
+value of 0 indicates that an auto reset will not be attempted, the
+connection will be reset immediately if an auto reset condition occurs.
+This is a negotiable parameter, both peers must agree on the same value
+for this parameter.  The consecutive auto reset counter is cleared once
+a connection is opened.
+
+Connection Identifier
+
+When opening a new connection each peer transmits a connection identifier
+that is unique among all RUDP current connections.  Each side then saves
+the connection ID received.  When an auto reset is performed, the peer
+shall send the saved connection ID originally received to indicate that
+an auto reset is being performed on the connection.
+
+<span class="h2"><a class="selflink" id="section-3" href="#section-3">3</a>.  ACK Segment</span>
+
+The ACK Segment is used to acknowledge in-sequence segments.  It contains
+both the next send sequence number and the acknowledgment sequence number
+in the RUDP header.  The ACK segment may be sent as a separate segment, but
+it should be combined with data whenever possible.  Data and Null segments
+must always include the ACK bit and Acknowledgment Number field.  The size
+of a stand-alone ACK segment is six octets.  Figure 3 shows a stand-alone
+ACK segment.
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   |0|1|0|0|0|0|0|0|       6       |
+   +-+-+-+-+-+-+-+-+---------------+
+   | Sequence #    |   Ack Number  |
+   +---------------+---------------+
+   |           Checksum            |
+   +---------------+---------------+
+
+    Figure 3, Stand-alone ACK segment
+
+<span class="h2"><a class="selflink" id="section-4" href="#section-4">4</a>.  EACK segment</span>
+
+The EACK segment is used to acknowledge segments received out of sequence.
+It contains the sequence numbers of one or more segments received out of
+sequence.  The EACK is always combined with an ACK in the segment, giving
+the sequence number of the last segment received in sequence.  The header
+length is variable for the EACK segment.  Its minimum value is seven and
+its maximum value depends on the maximum receive queue length.  Figure 4
+shows a stand-alone EACK segment.
+
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 9]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-10" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   |0|1|1|0|0|0|0|0|     N + 6     |
+   +-+-+-+-+-+-+-+-+---------------+
+   | Sequence #    |   Ack Number  |
+   +---------------+---------------+
+   |1st out of seq |2nd out of seq |
+   |  ack number   |   ack number  |
+   +---------------+---------------+
+   |  . . .            |Nth out of seq |
+   |                     |   ack number  |
+   +---------------+---------------+
+   |            Checksum           |
+   +---------------+---------------+
+
+       Figure 4, EACK segment
+
+<span class="h2"><a class="selflink" id="section-5" href="#section-5">5</a>.  RST segment</span>
+
+The RST segment is used to close or reset a connection.  Upon receipt of an
+RST segment, the sender must stop sending new packets, but must continue
+to attempt delivery of packets already accepted from the API.  The RST is
+sent as a separate segment and does not include any data.  Figure 5 shows
+a RST segment.
+
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   | |A| | | | | | |               |
+   |0|C|0|1|0|0|0|0|        6      |
+   | |K| | | | | | |               |
+   +-+-+-+-+-+-+-+-+---------------+
+   | Sequence #    |   Ack Number  |
+   +---------------+---------------+
+   |         Header Checksum       |
+   +---------------+---------------+
+
+          Figure 5, RST segment
+
+
+<span class="h2"><a class="selflink" id="section-6" href="#section-6">6</a>.  NUL segment</span>
+
+The NUL segment is used to determine if the other side of a connection
+is still active.  Thus, the NUL segment performs a keep-alive function.
+When a NUL segment is received, an RUDP implementation must immediately
+acknowledge the segment if a valid connection exists and the segment
+sequence number is the next one in sequence.  The segment is then
+discarded.  The NUL must be combined with an ACK in a segment but never
+combined with user data.  Figure 6 shows a NUL segment.
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 10]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-11" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   |0|1|0|0|1|0|0|0|       6       |
+   +-+-+-+-+-+-+-+-+---------------+
+   | Sequence #    |  Ack Number   |
+   +---------------+---------------+
+   |            Checksum           |
+   +---------------+---------------+
+
+        Figure 6, NUL segment
+
+<span class="h2"><a class="selflink" id="section-7" href="#section-7">7</a>.  TCS Segment</span>
+
+The TCS is used to transfer the state of connection.  Figure 7 shows a TCS
+segment.
+
+    0 1 2 3 4 5 6 7 8            15
+   +-+-+-+-+-+-+-+-+---------------+
+   | |A| | | | | | |               |
+   |0|C|0|0|0|0|1|0|       12      |
+   | |K| | | | | | |               |
+   +-+-+-+-+-+-+-+-+---------------+
+   | Sequence #    |   Ack Number  |
+   +---------------+---------------+
+   | Seq Adj Factor|      Spare    |
+   +---------------+---------------+
+   |      Connection Identifier    |
+   +                               +                                                                                                                     +
+   |       (32 bits in length)     |
+   +---------------+---------------+
+   |            Checksum           |
+   +---------------+---------------+
+
+          Figure 7, TCS segment
+
+Sequence Number
+
+The sequence number field contains the initial sequence number selected for
+this connection.
+
+Acknowledgment Number
+
+The acknowledgment number field indicates to a transmitted that last in-
+sequence packet the receiver has received.
+
+Seq Adj Factor
+
+This field is used during transfer of state to adjust sequence numbers
+between the old and current connections.
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 11]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-12" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+Connection Identifier
+
+When opening a new connection each peer transmits a  connection identifier
+that is unique among all current RUDP connections. Each side then saves
+the connection ID received.  This field is used to inform the peer connection
+of the connection record that is being transferred to this connection.
+
+<span class="h4"><a class="selflink" id="section-1.3.1" href="#section-1.3.1">1.3.1</a>    Detailed Design</span>
+
+A separate internet draft is being prepared which details in connections
+state transitions in Specification and Description Language (SDL) format.
+It also contains more details on the internal design of RUDP.
+
+<span class="h4"><a class="selflink" id="section-1.3.2" href="#section-1.3.2">1.3.2</a>  Feature Description</span>
+
+The following features are supported by RUDP.  In the following description,
+transmitter and receiver refer to either clients or servers that are sending
+or receiving a data segment respectively on a connection.  Client refers to
+the peer that initiates the connection and Server refers to the peer that
+listened for a connection.  A connection is defined as an interface that
+serves a unique peer IP address/UDP port pair.  A server or a client can
+have multiple connections on a particular IP address/UDP port, each
+connection will be with a unique peer IP address/UDP port pair.
+
+<span class="h2"><a class="selflink" id="section-1" href="#section-1">1</a>.  Retransmission timer.</span>
+
+The transmitter has a retransmission timer with a configurable time-
+out value.  This timer is initialized every time a data, null, or
+reset segment is sent and there is not a segment currently being timed.
+If an acknowledgment for this data segment is not received by the time
+the timer expires, all segments that have been sent but not acknowledged
+are retransmitted.  The Retransmission timer is re-started when the
+timed segment is received, if there is still one or more packets that
+have been sent but not acknowledged.  The recommended value of the
+retransmission timer is 600 milliseconds.
+
+<span class="h2"><a class="selflink" id="section-2" href="#section-2">2</a>.  Retransmission Counter.</span>
+
+The transmitter maintains a counter of the number of times a segment
+has been retransmitted.  The maximum value of this counter is configurable
+with a recommended value is 2.  If this counter exceeds its maximum, the
+connection will be considered broken.  Refer to paragraph item 14 below,
+Broken Connection Handling, for a description of how RUDP handles a
+broken connection.
+
+<span class="h2"><a class="selflink" id="section-3" href="#section-3">3</a>.  Stand-alone acknowledgments.</span>
+
+A stand-alone acknowledgment segment is a segment that contains only
+acknowledgment information.  Its sequence number field contains the
+sequence number of the next data, null, or reset segment to be sent.
+
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 12]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-13" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+<span class="h2"><a class="selflink" id="section-4" href="#section-4">4</a>.  Piggyback acknowledgments.</span>
+
+Whenever a receiver sends a data, null, or reset segment to the transmitter,
+the receiver includes the sequence number of the last in-sequence data,
+null, or reset segment received from the transmitter in the acknowledgment
+number field of the header of the segment being sent by the receiver.
+
+<span class="h2"><a class="selflink" id="section-5" href="#section-5">5</a>.  Cumulative acknowledge counter.</span>
+
+The receiver maintains a counter of unacknowledged segments received
+without an acknowledgment being sent to the transmitter.  The maximum
+value of this counter is configurable.  If this counter&#x27;s maximum is
+exceeded, the receiver sends either a stand-alone acknowledgment, or an
+extended acknowledgment if there are currently any out-of-sequence
+segments.  The recommended value for the cumulative acknowledge counter
+is 3.
+
+<span class="h2"><a class="selflink" id="section-6" href="#section-6">6</a>.  Out-of-sequence acknowledgments counter.</span>
+
+The receiver maintains a counter of the number of segments that have arrived
+out-of-sequence.  Each time this counter exceeds its configurable maximum,
+an extended acknowledgment segment containing the sequence numbers of all
+current out-of-sequence segments that have been received is sent to
+the transmitter.  The counter is then reset to zero.  The recommended
+value for the out-of-sequence acknowledgements counter is 3.
+
+When a transmitter receives an Extended Acknowledgment, it retransmits
+the missing data segments to the receiver.
+
+<span class="h2"><a class="selflink" id="section-7" href="#section-7">7</a>.  Cumulative acknowledge timer.</span>
+
+When a receiver has any segments that it has not acknowledged or if it has
+segments on its out-of-sequence queue, it waits a maximum amount of
+time before sending a stand-alone acknowledgment or an extended acknowledg-
+ment, respectively.  When this timer expires, if there are segments on the
+out-of-sequence queue, an extended acknowledgment is sent.  Otherwise,
+if there are any segments currently unacknowledged, a stand-alone
+acknowledgment is sent.  The recommended value of the cumulative
+acknowledgement timer is 300 milliseconds.
+
+The cumulative acknowledge timer is restarted whenever an acknowledgment is
+sent in a data, null, or reset segment, provided that there are no segments
+currently on the out-of-sequence queue.  If there are segments on the out-
+of-sequence queue, the timer is not restarted, so that another extended
+acknowledgment will be sent when it expires again.
+
+<span class="h2"><a class="selflink" id="section-8" href="#section-8">8</a>.  Null segment timer</span>
+
+The client maintains a timer which is started when the connection is opened
+and is reset every time a data segment is sent.  If the client&#x27;s null
+segment timer expires, the client sends a null segment to the server.
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 13]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-14" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+The null segment is acknowledged by the server if its sequence number
+is valid.  The server maintains a null segment timer with a time-out
+value of twice the client&#x27;s time-out value.  The server&#x27;s timer is reset
+whenever a data or null segment is received from the client.  If the
+server&#x27;s null segment timer expires, the connection is considered broken.
+Refer to paragraph item 14 below, Broken Connection Handling, for a
+description of how RUDP handles a broken connection.  The recommended
+value of the Null segment timer is 2 seconds.
+
+<span class="h2"><a class="selflink" id="section-9" href="#section-9">9</a>.  Auto Reset</span>
+
+Either side of a connection can initiate an auto reset.  An auto reset
+can be caused by the retransmission count exceeding its maximum, the
+the expiration of the server&#x27;s Null segment timer, or the expiration
+of the transfer state timer.  An auto reset will cause both peers to
+reset their current states including flushing retransmission and
+out-of-sequence queues and then reset their initial sequence number
+and re-negotiate the connection.  Each peer will notify its Upper Layer
+Protocol (ULP) of the auto reset.  There is a consecutive reset counter
+that sets the maximum number of auto-reset that can occur without the
+connection opening.  If this counter exceeds its maximum the connection
+is reset.  The recommended value for the consecutive reset counter is 3.
+
+<span class="h2"><a class="selflink" id="section-10" href="#section-10">10</a>.  Receiver Input Queue Size</span>
+
+The size of the receiver&#x27;s input queue is a configurable parameter.
+The recommended value of the receiver input queue size is 32 packets.  The
+input queue size acts as a flow control mechanism.
+
+<span class="h2"><a class="selflink" id="section-11" href="#section-11">11</a>.  Congestion control and slow start</span>
+
+RUDP does not provide any congestion control or slow start algorithms.
+
+<span class="h2"><a class="selflink" id="section-12" href="#section-12">12</a>.  UDP port numbers</span>
+
+RUDP doesn&#x27;t place any restrictions on which UDP port numbers are used.
+Valid port numbers are ports not defined in <a href="/doc/html/rfc1700">RFC 1700</a>.
+
+<span class="h2"><a class="selflink" id="section-13" href="#section-13">13</a>.  Support for redundant connections</span>
+
+If an RUDP connection fails, the Upper Layer Protocol will be signaled
+and the transfer state timer will be started. The ULP can initiate the
+transfer of this state to another RUDP connection via an API call and
+RUDP will transfer the state information to the new connection ensuring
+that packets are not duplicated or lost.  If the ULP does not transfer
+the state to another connection before the Transfer State Timer expires,
+the connection state is lost and buffers of the queues of the
+connection are freed.  The time-out value for the Transfer State
+timer is configurable.  The recommended value for the Transfer State
+timer is 1 second.
+
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 14]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-15" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+<span class="h2"><a class="selflink" id="section-14" href="#section-14">14</a>.  Broken connection handling</span>
+
+An RUDP connection is considered broken if either of the following
+situations occur:
+
+ - The Retransmission Timer expires and the Retransmission Count has
+   been exceeded its maximum.
+
+ - A server&#x27;s Null Segment Timer expires.
+
+If either of the above two situations occur and the Transfer State
+timeout value is non-zero, the ULP will be notified of the connection
+failure via the Connection failure signal of the API and the Transfer
+State Timer will be started.  If the Transfer State Timer expires, an
+Auto Reset is performed and the ULP is notified via the Connection auto
+reset signal of the API.
+
+If the transfer state timeout value is zero, then an auto reset will be
+performed immediately when either of the above two situlations occur.
+The ULP will be notified of a connection failure via the Connection
+auto reset signal of the API.
+
+<span class="h2"><a class="selflink" id="section-15" href="#section-15">15</a>.  Retransmission Algorithm</span>
+
+Retransmission occurs as a result of receiving an EACK segment or the
+time-out of the Retransmission timer.
+
+When an EACK segment is received.  The segments specified in the message
+are removed from the unacknowledged sent queue.  The segments to be
+retransmitted are determined by examining the Ack Number and the last out
+of seq ack number in the EACK segment.  All segments between but not
+including these two sequence numbers that are on the unacknowledged sent
+queue are retransmitted.
+
+When a retransmission time-out occurs, all messages on the unacknowledged
+sent queue are retransmitted.
+
+<span class="h2"><a class="selflink" id="section-16" href="#section-16">16</a>.   Signals to Upper Layer Protocol (ULP)</span>
+
+The following signals are sent to the ULP via the API.  These are used to
+signal asynchronous events to the ULP:
+
+   Connection open - This signal is generated when the state of the
+                     connection transitions to Open.
+   Connection refused - This signal is generated when the state of a
+                     connection transitions to the Closed state from other
+                     than the Close Wait state.
+   Connection closed - This signal is generated when the state of a
+                     connection transitions from the Close Wait state to
+                     the Closed state.
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 15]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span id="page-16" ></span>
+<span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+   Connection failure - This signal is generated when a connection is
+                     declared broken, as described in <a href="#section-1.3.2">section 1.3.2</a>,
+                     item 15 (Retransmission Algorithm) above.
+   Connection auto reset - This signal is generated when a connection auto
+                     resets.  This is an indication to the ULP that data
+                     may have been lost and RUDP is attempting to return
+                     the connection to the Open state.
+
+<span class="h2"><a class="selflink" id="section-17" href="#section-17">17</a>.  Checksum Algorithm</span>
+
+The checksum algorithm used in RUDP is the same algorithm used in UDP and
+TCP headers which is the 16-bit one&#x27;s complement of the one&#x27;s complement
+sum of data being checksumed.  The checksum is calculated over the entire
+RUDP packet if negotiated at the time the connection was opened.  The
+negotiation is based on setting the CHK bit of the options field in the
+SYN segment used to open the connection.  Otherwise, the checksum is
+calculated over the RUDP header only.  Refer to <a href="/doc/html/rfc1071">RFC 1071</a> for implementation
+information for this algorithm.
+
+<span class="h2"><a class="selflink" id="section-18" href="#section-18">18</a>.  FEC</span>
+
+RUDP does not define a procedure for generate Forward Error Correction
+(FEC).  It is compatible with FEC algorithms that generate duplicate
+packets because it will throw away any duplicate packets it receives.
+
+<span class="h2"><a class="selflink" id="section-19" href="#section-19">19</a>.  Security</span>
+
+RUDP will be compatible with the IPsec standard for secure IP
+communications.
+
+<span class="h3"><a class="selflink" id="section-1.4" href="#section-1.4">1.4</a>  Feature Negotiation</span>
+
+When client initiates a connection its sends a SYN segment which contains
+the negotiable parameters defined by the ULP via the API.  The server can
+accept these parameters by echoing them back in its SYN with ACK response
+or propose different parameters in its SYN with ACK response.  The client
+can then choose to accept the parameters sent by the server by sending an
+ACK to establish the connection or it can refuse the connection by sending
+send a RST.  Features cannot be re-negotiated during an auto reset.
+
+<span class="h3"><a class="selflink" id="section-2.0" href="#section-2.0">2.0</a>  Future Potential Enhancements</span>
+
+RUDP should support a symmetrical mode of operation in addition to the
+current client/server mode of operation.  This would allow both sides to
+actively start the connection.
+
+RUDP should support the ability to expand the sequence and acknowledge
+fields from their current one octet length to two octets.  This will allow
+transmission windows of greater than 255 buffer to be used.
+
+Investigate use of the Nagle algorithm to improve network efficiency.
+
+
+
+<span class="grey">Bova &amp; Krivoruchka                                             [Page 16]</span></pre>
+<hr class='noprint'/><!--NewPage--><pre class='newpage'><span class="grey">Internet Draft             Reliable UDP Protocol                Feb 1999</span>
+
+
+<span class="h3"><a class="selflink" id="section-3.0" href="#section-3.0">3.0</a>  References</span>
+
+[<a id="ref-1">1</a>]  Postel, J. (ed.), &quot;Internet Protocol - DARPA Internet Program
+     Protocol Specification&quot;, <a href="/doc/html/rfc791">RFC 791</a>, USC/Information Sciences Institute,
+     September 1981.
+
+[<a id="ref-2">2</a>]  Postel, J., &quot;User Datagram Protocol&quot;, <a href="/doc/html/rfc768">RFC 768</a>, USC/Information
+     Sciences Institute, August 1980.
+
+[<a id="ref-3">3</a>]  Postel, J. (ed.), &quot;Transmission Control Protocol&quot;, <a href="/doc/html/rfc793">RFC 793</a>,
+     USC/Information Sciences Institute, September 1981.
+
+[<a id="ref-4">4</a>]  Velten, D., Hinden, R. and Sax, J., &quot;Reliable Data Protocol&quot;, <a href="/doc/html/rfc908">RFC</a>
+     <a href="/doc/html/rfc908">908</a>, BBN Communications Corporation, July 1984.
+
+[<a id="ref-5">5</a>]  Partridge, C. and Hinden, R., &quot;Version 2 of the Reliable Data
+     Protocol&quot;, <a href="/doc/html/rfc1151">RFC 1151</a>, BBN Corporation, April 1990.
+
+[<a id="ref-6">6</a>]  Braden, R., &quot;Computing the Internet Checksum&quot;, <a href="/doc/html/rfc1071">RFC 1071</a>, ISI,
+     September 1988
+
+[<a id="ref-7">7</a>]  V. Jacobson, &quot;Congestion Avoidance and Control,&quot; Computer
+     Communication Review, Val. 18, no. 4, pp. 314-329, Aug. 1988.
+
+[<a id="ref-8">8</a>]  W. Stevens, <a href="/doc/html/rfc2001">RFC 2001</a> TCP Slow Start, Congestion Avoidance, Fast
+     Retransmit, and Fast Recovery Algorithms, January 1997
+
+[<a id="ref-9">9</a>]  V. Jacobson, &quot;Modified TCP Congestion Avoidance Algorithm&quot;, April
+     30, 1990.
+
+[<a id="ref-10">10</a>] Z. Wang, J. Crowcroft, A Dual-Window Model for Flow and Congestion
+     Control, The Distributed Computing Engineering Journal, Institute
+     of Physics/British Computer Society/IEEE, Vol 1, No 3, page 162-172,
+     May 1994.
+
+[<a id="ref-11">11</a>] Romanow, Allyn, &quot;TCP over ATM: Some Performance Results&quot;,
+     ATM Forum/93-784
+
+<span class="h3"><a class="selflink" id="section-4.0" href="#section-4.0">4.0</a>  Author&#x27;s Addresses</span>
+
+Tom Bova                               Tel:  +1-703-484-3331
+Cisco Systems                          Email:  tbova@cisco.com
+<span class="h2"><a class="selflink" id="section-13615" href="#section-13615">13615</a> Dulles Technology Drive</span>
+Herndon, VA  20171
+USA
+
+Ted Krivoruchka                        Tel:  +1-703-484-3325
+Cisco Systems                          Email:  tedk@cisco.com
+<span class="h2"><a class="selflink" id="section-13615" href="#section-13615">13615</a> Dulles Technology Drive</span>
+Herndon, VA  20171
+USA
+</pre></div>
+                    </div>
+                
+            </div>
+            <div class="d-print-none col-md-3 bg-light-subtle collapse show" id="sidebar">
+                <div class="position-fixed border-start sidebar overflow-scroll overscroll-none no-scrollbar">
+                    <div class="d-flex flex-column vh-100 pt-2 pt-lg-3 ps-3 pl-md-2 pl-lg-3">
+                        <div>
+                            <a class="btn btn-primary btn-sm" href="/doc/draft-ietf-sigtran-reliable-udp/">Datatracker</a>
+                            <p class="fw-bold pt-2">
+                                
+                                    draft-ietf-sigtran-reliable-udp-00
+                                
+                                <br>
+                                
+
+
+
+
+
+
+
+    <span class="text-danger">Expired Internet-Draft</span>
+    (<a href="/wg/sigtran/about/">sigtran WG</a>)
+    
+
+                            </p>
+                        </div>
+                        
+                        <ul class="nav nav-tabs nav-fill small me-2" role="tablist">
+                            <li class="nav-item" role="presentation" title="Document information">
+                                <button class="nav-link px-2"
+                                        id="docinfo-tab"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#docinfo-tab-pane"
+                                        type="button"
+                                        role="tab"
+                                        aria-controls="docinfo-tab-pane"
+                                        aria-selected="true">
+                                    <i class="bi bi-info-circle"></i><span class="d-none d-md-block d-xl-inline ms-xl-1">Info</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation" title="Table of contents">
+                                <button class="nav-link px-2"
+                                        id="toc-tab"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#toc-tab-pane"
+                                        type="button"
+                                        role="tab"
+                                        aria-controls="toc-tab-pane"
+                                        aria-selected="false">
+                                    <i class="bi bi-list-ol"></i><span class="d-none d-md-block d-xl-inline ms-xl-1">Contents</span>
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation" title="Preferences">
+                                <button class="nav-link px-2"
+                                        id="pref-tab"
+                                        data-bs-toggle="tab"
+                                        data-bs-target="#pref-tab-pane"
+                                        type="button"
+                                        role="tab"
+                                        aria-controls="pref-tab-pane"
+                                        aria-selected="false">
+                                    <i class="bi bi-gear"></i><span class="d-none d-md-block d-xl-inline ms-xl-1">Prefs</span>
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="overflow-auto tab-content pt-2 me-2">
+                            <div class="tab-pane"
+                                 id="docinfo-tab-pane"
+                                 role="tabpanel"
+                                 aria-labelledby="docinfo-tab"
+                                 tabindex="0">
+                                <table class="table table-sm table-borderless">
+                                    
+
+
+
+
+
+
+
+<tbody class="meta align-top ">
+    <tr>
+        <th scope="row">Document</th>
+        <th scope="row">Document type</th>
+        <td class="edit"></td>
+        <td>
+            
+
+
+
+
+
+
+
+    <span class="text-danger">Expired Internet-Draft</span>
+    (<a href="/wg/sigtran/about/">sigtran WG</a>)
+    
+
+            
+            
+                <div class="badge rounded-pill text-bg-warning">
+                    Expired &amp; archived
+                </div>
+            
+            
+                
+
+
+
+
+    
+
+
+            
+        </td>
+    </tr>
+    
+        <tr>
+            <td></td>
+            <th scope="row">Select version</th>
+            <td class="edit"></td>
+            <td>
+                
+
+
+
+    <ul class="revision-list pagination pagination-sm text-center flex-wrap my-0">
+        
+            
+                 
+                    <li class="page-item active">
+                        <a class="page-link"
+                        href="/doc/html/draft-ietf-sigtran-reliable-udp-00"
+                        >
+                            00
+                        </a>
+                    </li>
+                
+            
+            
+        
+    </ul>
+
+            </td>
+        </tr>
+        
+    
+    <tr>
+        <td></td>
+        <th scope="row">Authors</th>
+        <td class="edit">
+            
+        </td>
+        <td>
+            
+            
+                <span ><a 
+           title="Datatracker profile of Tom Bova"
+            href="/person/tbova@cisco.com" >Tom Bova</a> <a 
+               href="mailto:tbova%40cisco.com"
+               aria-label="Compose email to tbova@cisco.com"
+               title="Compose email to tbova@cisco.com">
+                <i class="bi bi-envelope"></i></a></span>,
+            
+                <span ><a 
+           title="Datatracker profile of Ted Krivoruchka"
+            href="/person/tedk@cisco.com" >Ted Krivoruchka</a> <a 
+               href="mailto:tedk%40cisco.com"
+               aria-label="Compose email to tedk@cisco.com"
+               title="Compose email to tedk@cisco.com">
+                <i class="bi bi-envelope"></i></a></span>
+            
+            
+                <br>
+                <a class="btn btn-primary btn-sm mt-1" href="mailto:draft-ietf-sigtran-reliable-udp@ietf.org?subject=draft-ietf-sigtran-reliable-udp" title="Send email to the document authors">Email authors</a>
+            
+        </td>
+    </tr>
+    
+    
+        
+        
+        
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            RFC stream
+        </th>
+        <td class="edit">
+            
+        </td>
+        <td >
+            
+                
+                
+                    
+                        
+
+
+
+<img alt="IETF Logo"
+     class="d-lm-none w-25 mt-1"
+     
+     
+        
+             src="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor-white.svg"
+        
+     
+     >
+
+<img alt="IETF Logo"
+     class="d-dm-none w-25 mt-1"
+     
+     
+        
+             src="https://static.ietf.org/dt/12.65.2/ietf/images/ietf-logo-nor.svg"
+        
+     
+     >
+                    
+                
+                
+            
+        </td>
+    </tr>
+    
+        <tr>
+            <td></td>
+            <th scope="row">
+                Intended RFC status
+            </th>
+            <td class="edit">
+                
+            </td>
+            <td>
+                
+                    <span class="text-body-secondary">
+                        (None)
+                    </span>
+                
+            </td>
+        </tr>
+    
+    <tr>
+        <td></td>
+        <th scope="row">
+            Other formats
+        </th>
+        <td class="edit">
+        </td>
+        <td>
+            
+                
+    <div class="buttonlist">
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="https://www.ietf.org/archive/id/draft-ietf-sigtran-reliable-udp-00.txt">
+            
+                <i class="bi bi-file-text"></i> txt
+            
+        </a>
+        
+    
+        
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="/doc/draft-ietf-sigtran-reliable-udp/00/bibtex/">
+            
+                <i class="bi bi-file-ruled"></i> bibtex
+            
+        </a>
+        
+    
+        
+        <a class="btn btn-primary btn-sm"
+          
+          target="_blank"
+          href="/doc/bibxml3/draft-ietf-sigtran-reliable-udp-00.xml">
+            
+                <i class="bi bi-file-code"></i> bibxml
+            
+        </a>
+        
+    
+</div>
+
+            
+        </td>
+    </tr>
+    
+    
+        
+            <tr>
+                <td>
+                </td>
+                <th scope="row">
+                    Additional resources
+                </th>
+                <td class="edit">
+                    
+                </td>
+                <td>
+                    
+                        
+                        
+                            
+                                <a href="https://mailarchive.ietf.org/arch/browse/sigtran?q=draft-ietf-sigtran-reliable-udp">
+                                    Mailing list discussion
+                                </a>
+                            
+                        
+                    
+                </td>
+            </tr>
+        
+    
+</tbody>
+                                </table>
+                                <a class="btn btn-sm btn-warning mb-3"
+                                target="_blank"
+                                href="https://github.com/ietf-tools/datatracker/issues/new/choose">
+                                    Report a datatracker bug
+                                    <i class="bi bi-bug"></i>
+                                </a>
+                            </div>
+                            <div class="tab-pane mb-5"
+                                 id="toc-tab-pane"
+                                 role="tabpanel"
+                                 aria-labelledby="toc-tab"
+                                 tabindex="0">
+                                <nav class="nav nav-pills flex-column small" id="toc-nav">
+                                </nav>
+                            </div>
+                            <div class="tab-pane mb-5 small"
+                                 id="pref-tab-pane"
+                                 role="tabpanel"
+                                 aria-labelledby="pref-tab"
+                                 tabindex="0">
+                                <label class="form-label fw-bold mb-2">Show sidebar by default</label>
+                                <div class="btn-group-vertical btn-group-sm d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="sidebar" id="on-radio">
+                                    <label class="btn btn-outline-primary" for="on-radio">Yes</label>
+                                    <input type="radio" class="btn-check" name="sidebar" id="off-radio">
+                                    <label class="btn btn-outline-primary" for="off-radio">No</label>
+                                </div>
+                                <label class="form-label fw-bold mt-4 mb-2">Tab to show by default</label>
+                                <div class="btn-group-vertical btn-group-sm d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="deftab" id="docinfo-radio">
+                                    <label class="btn btn-outline-primary" for="docinfo-radio">
+                                        <i class="bi bi-info-circle me-1"></i>Info
+                                    </label>
+                                    <input type="radio" class="btn-check" name="deftab" id="toc-radio">
+                                    <label class="btn btn-outline-primary" for="toc-radio">
+                                        <i class="bi bi-list-ol me-1"></i>Contents
+                                    </label>
+                                </div>
+                                <label class="form-label fw-bold mt-4 mb-2">HTMLization configuration</label>
+                                <div class="btn-group-vertical btn-group-sm d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="htmlconf" id="txt-radio">
+                                    <label class="btn btn-outline-primary" for="txt-radio" title="This is the traditional HTMLization method.">
+                                        <i class="bi bi-badge-sd me-1"></i>HTMLize the plaintext
+                                    </label>
+                                    <input type="radio" class="btn-check" name="htmlconf" id="html-radio">
+                                    <label class="btn btn-outline-primary" for="html-radio" title="This is the modern HTMLization method.">
+                                        <i class="bi bi-badge-hd me-1"></i>Plaintextify the HTML
+                                    </label>
+                                </div>
+                                <label class="form-label fw-bold mt-4 mb-2" for="ptsize">Maximum font size</label>
+                                <input type="range" class="form-range" min="7" max="16" id="ptsize" oninput="ptdemo.value = ptsize.value">
+                                <label class="form-label fw-bold mt-4 mb-2">Page dependencies</label>
+                                <div class="btn-group-vertical btn-group-sm d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="pagedeps" id="inline-radio">
+                                    <label class="btn btn-outline-primary" for="inline-radio" title="Generate larger, standalone web pages that do not require network access to render.">
+                                        <i class="bi bi-box me-1"></i>Inline
+                                    </label>
+                                    <input type="radio" class="btn-check" name="pagedeps" id="reference-radio">
+                                    <label class="btn btn-outline-primary" for="reference-radio" title="Generate regular web pages that require network access to render.">
+                                        <i class="bi bi-link-45deg me-1"></i>Reference
+                                    </label>
+                                </div>
+                                <label class="form-label fw-bold mt-4 mb-2">Citation links</label>
+                                <div class="btn-group-vertical btn-group-sm d-flex" role="group">
+                                    <input type="radio" class="btn-check" name="reflinks" id="refsection-radio">
+                                    <label class="btn btn-outline-primary" for="refsection-radio" title="Citation links go to the reference section.">
+                                        <i class="bi bi-arrow-clockwise"></i> Go to reference section
+                                    </label>
+                                    <input type="radio" class="btn-check" name="reflinks" id="citation-radio">
+                                    <label class="btn btn-outline-primary" for="citation-radio" title="Citation links go directly to the cited document.">
+                                        <i class="bi bi-link-45deg me-1"></i>Go to linked document
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+<script>
+  var _paq = window._paq || [];
+  
+  _paq.push(['disableCookies']);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//analytics.ietf.org/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', 7]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//analytics.ietf.org/matomo.php?idsite=7" style="border:0;" alt="" /></p></noscript>
+
+    </body>
+</html>
