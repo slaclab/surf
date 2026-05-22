@@ -33,6 +33,12 @@
     application payload delivery. The wrapper-level RAM model still does not
     provide a trustworthy full-frame payload oracle, so the default RX FSM test
     continues to pin accept/drop status and header fields only.
+  - Added `protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd` with flattened
+    application/transport SSI ports, a real `RssiHeaderReg` hookup, a
+    deterministic checksum handshake, and a small behavioral segment RAM.
+  - Added `tests/protocols/rssi/test_RssiTxFsm.py` covering standalone ACK
+    emission and verifying that ACK-only segments do not consume the TX
+    sequence number.
 
 ## Notes
 - Primary local spec source is now
@@ -67,6 +73,10 @@
   payload data. That expectation is now captured under
   `valid_data_payload_delivery_known_issue_test` and remains opt-in with
   `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+- The first `RssiTxFsm` regression intentionally waits for
+  `chksumStrobe_o` before driving `chksumValid_i`. Driving checksum-valid from
+  reset can let the FSM sample the header path before `RssiHeaderReg` has
+  produced the selected ACK header word, which hides the behavior under test.
 
 ## Validation
 - 2026-05-22:
@@ -114,6 +124,18 @@
 - 2026-05-22:
   `make MODULES=/Users/bareese/surf import` did not run because this checkout
   does not currently have `ruckus/system_ghdl.mk`.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
@@ -122,5 +144,7 @@
   remain explicitly out of scope.
 - Decide whether to improve the `RssiRxFsmWrapper` segment RAM timing or cover
   application payload ordering first through a core-level client/server wrapper.
+- Extend `RssiTxFsm` coverage to DATA segmentation/sequence consumption, ACK
+  window release, retransmit, NULL, SYN, and RST behavior.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.
