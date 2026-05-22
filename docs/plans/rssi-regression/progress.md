@@ -4,6 +4,7 @@
 - Task plan created.
 - Local reference bundle created under `references/`.
 - Pre-implementation RTL/spec review created in `rtl-spec-review.md`.
+- Production RTL changes are now tracked in `rtl-changes.md`.
 - Expected-behavior decisions, first implementation slice, and wrapper strategy
   have been written into `plan.md`.
 - Phase 1 implementation has started:
@@ -45,6 +46,13 @@
     RST sequence consumption without buffering.
   - Fixed the `RssiTxFsmWrapper` application-side `TKEEP` wiring and promoted
     the one-word DATA `TKEEP` check into the default TX FSM regression.
+  - Added default `RssiTxFsm` coverage for oversized application frame
+    `lenErr_o` behavior and ACK/NULL/DATA one-shot checksum fault injection.
+  - Updated `RssiTxFsm` checksum fault injection so ACK and NULL paths honor the
+    documented one-shot injection behavior, and so injection corrupts the
+    checksum field rather than inverting the whole header word.
+  - Added an opt-in `RssiTxFsm` known-issue regression for multi-word DATA
+    payload buffering and resend ordering.
 
 ## Notes
 - Primary local spec source is now
@@ -83,6 +91,11 @@
 - The `RssiTxFsm` and `RssiRxFsm` regressions now include the live RTL files in
   `extra_vhdl_sources` with `force_compile=True` so they do not accidentally
   validate stale imported sources under `build/SRC_VHDL`.
+- The opt-in TX multi-word DATA known-issue test currently emits payload words
+  2, 3, and 3 for a three-word application frame instead of words 1, 2, and 3.
+  This points at the `RssiTxFsm` application-side buffer write alignment for
+  multi-beat frames; default one-word DATA, length-error handling, and checksum
+  fault-injection coverage remain green.
 
 ## Validation
 - 2026-05-22:
@@ -181,13 +194,33 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with four RSSI pytest wrappers.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
+  passed after adding TX length-error, checksum fault-injection, and opt-in
+  multi-word DATA coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd`
+  passed after the checksum fault-injection RTL update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed with the multi-word DATA known-issue test skipped by default.
+- 2026-05-22:
+  `/usr/bin/env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  failed only in `multi_word_data_preserves_payload_keep_and_resend_known_issue_test`,
+  confirming the current DATA buffer emits payload words 2, 3, and 3 instead of
+  1, 2, and 3 for a three-word frame.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Extend `RssiTxFsm` coverage to multi-word DATA segmentation, length errors,
-  remote busy behavior, and fault-injection checksum corruption.
+- Fix or deliberately document `RssiTxFsm` multi-word DATA buffering; the
+  opt-in known-issue regression now captures the current skipped/duplicated
+  payload behavior.
+- Extend `RssiTxFsm`/`RssiMonitor` coverage to remote busy behavior.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.

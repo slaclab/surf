@@ -21,6 +21,8 @@
 #   valid only after the DUT asks for a checksum so the header RAM path is
 #   sampled after its registered update.
 
+import os
+
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
@@ -33,11 +35,13 @@ from tests.protocols.rssi.rssi_test_utils import (
     build_null_header,
     build_rst_header,
     build_syn_header,
+    checksum_is_valid,
     parse_header,
 )
 from tests.protocols.ssi.ssi_test_utils import (
     SsiBeat,
     cycle as ssi_cycle,
+    expect_no_output,
     recv_frame_and_check,
     send_contiguous_frame,
     setup_flat_ssi_testbench,
@@ -60,11 +64,33 @@ def _header_with_test_checksum(header: bytes) -> bytes:
     return header[:-2] + bytes.fromhex("beef")
 
 
+def _header_with_corrupted_test_checksum(header: bytes) -> bytes:
+    checksum = int.from_bytes(header[-2:], "big") ^ 0xFFFF
+    return header[:-2] + checksum.to_bytes(2, "big")
+
+
 def _stream_words_from_header(header: bytes) -> list[int]:
     return [
         _stream_word_from_header(header[index : index + 8])
         for index in range(0, len(header), 8)
     ]
+
+
+async def _send_contiguous_frame_after_tpd(endpoint, beats: list[SsiBeat], *, clk) -> None:
+    # `RssiTxFsm` drives its application buffer controls with the default
+    # 1 ns `TPD_G`.  Hold each accepted beat beyond that delay before advancing
+    # to the next beat so the wrapper RAM samples the same stable value a real
+    # registered SSI source would present after the clock edge.
+    for beat in beats:
+        endpoint.drive(beat)
+        for _ in range(1024):
+            await RisingEdge(clk)
+            await Timer(2, unit="ns")
+            if int(endpoint._sig("TReady").value) == 1:
+                break
+        else:
+            raise AssertionError(f"Timed out waiting for sampled handshake on {endpoint.prefix}TReady")
+    endpoint.set_idle()
 
 
 class TB:
@@ -77,7 +103,14 @@ class TB:
         assert self.sink is not None
 
     @classmethod
-    async def create(cls, dut, *, connected: bool = True, tx_ack_flag: int = 1):
+    async def create(
+        cls,
+        dut,
+        *,
+        connected: bool = True,
+        tx_ack_flag: int = 1,
+        buffer_size: int = 4,
+    ):
         bench = await setup_flat_ssi_testbench(
             dut,
             source_prefix="sAxis",
@@ -92,7 +125,7 @@ class TB:
                 "sndResend_i": 0,
                 "sndNull_i": 0,
                 "windowSize_i": 4,
-                "bufferSize_i": 4,
+                "bufferSize_i": buffer_size,
                 "initSeqN_i": 0x12,
                 "txAckFlag_i": tx_ack_flag,
                 "rxAckN_i": 0x34,
@@ -419,6 +452,204 @@ async def one_word_data_tkeep_test(dut):
     await tb.provide_checksum_after_strobe()
 
     await recv_task
+
+
+@cocotb.test(skip=os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") != "1")
+async def multi_word_data_preserves_payload_keep_and_resend_known_issue_test(dut):
+    tb = await TB.create(dut)
+
+    initial_seq = int(dut.txSeqN_o.value)
+    expected_header = _header_with_test_checksum(
+        build_data_header(
+            sequence=initial_seq,
+            acknowledge=0x34,
+            enable_checksum=False,
+        )
+    )
+    expected_stream_word = _stream_word_from_header(expected_header)
+    payload = [
+        SsiBeat(data=0x0102_0304_0506_0708, keep=0xFF, last=0, sof=1, eofe=0),
+        SsiBeat(data=0x1112_1314_1516_1718, keep=0xFF, last=0, sof=0, eofe=0),
+        SsiBeat(data=0x2122_2324_0000_0000, keep=0x0F, last=1, sof=0, eofe=0),
+    ]
+    expected = [
+        (expected_stream_word, 0xFF, 0, 1, 0),
+        (payload[0].data, 0xFF, 0, 0, 0),
+        (payload[1].data, 0xFF, 0, 0, 0),
+        (payload[2].data, 0x0F, 1, 0, 0),
+    ]
+
+    recv_task = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.sink,
+            clk=tb.clk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=expected,
+        )
+    )
+
+    await _send_contiguous_frame_after_tpd(tb.source, payload, clk=tb.clk)
+    await tb.provide_checksum_after_strobe()
+    await recv_task
+    await tb.finish_checksum()
+
+    await tb.cycle(2)
+    assert int(dut.txSeqN_o.value) == (initial_seq + 1) & 0xFF
+    assert int(dut.bufferEmpty_o.value) == 0
+
+    resend_task = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.sink,
+            clk=tb.clk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=expected,
+        )
+    )
+
+    await tb.pulse("sndResend_i")
+    await tb.provide_checksum_after_strobe()
+    await resend_task
+    await tb.finish_checksum()
+
+    assert int(dut.txSeqN_o.value) == (initial_seq + 1) & 0xFF
+
+
+@cocotb.test()
+async def oversized_application_frame_reports_len_error_without_transport_output_test(dut):
+    tb = await TB.create(dut, buffer_size=1)
+
+    await send_contiguous_frame(
+        tb.source,
+        [
+            SsiBeat(data=0x0000_0000_0000_0001, keep=0xFF, last=0, sof=1, eofe=0),
+            SsiBeat(data=0x0000_0000_0000_0002, keep=0xFF, last=0, sof=0, eofe=0),
+            SsiBeat(data=0x0000_0000_0000_0003, keep=0xFF, last=0, sof=0, eofe=0),
+            SsiBeat(data=0x0000_0000_0000_0004, keep=0xFF, last=0, sof=0, eofe=0),
+        ],
+        clk=tb.clk,
+    )
+
+    await wait_signal_pulse(dut.lenErr_o, clk=tb.clk)
+    await expect_no_output(tb.sink, clk=tb.clk, cycles=16)
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+@cocotb.test()
+async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
+    tb = await TB.create(dut)
+
+    initial_seq = int(dut.txSeqN_o.value)
+
+    ack_header = _header_with_corrupted_test_checksum(
+        _header_with_test_checksum(
+            build_ack_header(
+                sequence=initial_seq,
+                acknowledge=0x34,
+                enable_checksum=False,
+            )
+        )
+    )
+    ack_task = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.sink,
+            clk=tb.clk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(_stream_word_from_header(ack_header), 0xFF, 1, 1, 0)],
+        )
+    )
+
+    await tb.pulse("injectFault_i")
+    await tb.pulse("sndAck_i")
+    await tb.provide_checksum_after_strobe()
+    [ack_beat] = await ack_task
+    await tb.finish_checksum()
+
+    parsed_ack = parse_header(_protocol_bytes_from_stream_word(ack_beat.data))
+    assert parsed_ack.ack
+    assert parsed_ack.sequence == initial_seq
+    assert parsed_ack.acknowledge == 0x34
+    assert parsed_ack.checksum == 0x4110
+    assert not checksum_is_valid(_protocol_bytes_from_stream_word(ack_beat.data))
+
+    await tb.cycle(2)
+    null_seq = int(dut.txSeqN_o.value)
+    null_header = _header_with_corrupted_test_checksum(
+        _header_with_test_checksum(
+            build_null_header(
+                sequence=null_seq,
+                acknowledge=0x34,
+                enable_checksum=False,
+            )
+        )
+    )
+    null_task = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.sink,
+            clk=tb.clk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(_stream_word_from_header(null_header), 0xFF, 1, 1, 0)],
+        )
+    )
+
+    await tb.pulse("injectFault_i")
+    await tb.pulse("sndNull_i")
+    await tb.provide_checksum_after_strobe()
+    [null_beat] = await null_task
+    await tb.finish_checksum()
+
+    parsed_null = parse_header(_protocol_bytes_from_stream_word(null_beat.data))
+    assert parsed_null.ack
+    assert parsed_null.nul
+    assert parsed_null.sequence == null_seq
+    assert parsed_null.acknowledge == 0x34
+    assert parsed_null.checksum == 0x4110
+    assert not checksum_is_valid(_protocol_bytes_from_stream_word(null_beat.data))
+
+    await tb.cycle(2)
+    data_seq = int(dut.txSeqN_o.value)
+    data_header = _header_with_corrupted_test_checksum(
+        _header_with_test_checksum(
+            build_data_header(
+                sequence=data_seq,
+                acknowledge=0x34,
+                enable_checksum=False,
+            )
+        )
+    )
+    payload_word = 0xA1A2_A3A4_A5A6_A7A8
+    data_task = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.sink,
+            clk=tb.clk,
+            ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[
+                (_stream_word_from_header(data_header), 0xFF, 0, 1, 0),
+                (payload_word, 0xFF, 1, 0, 0),
+            ],
+        )
+    )
+
+    await tb.pulse("injectFault_i")
+    await send_contiguous_frame(
+        tb.source,
+        [SsiBeat(data=payload_word, keep=0xFF, last=1, sof=1, eofe=0)],
+        clk=tb.clk,
+    )
+    await tb.provide_checksum_after_strobe()
+    beats = await data_task
+    await tb.finish_checksum()
+
+    parsed_data = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
+    assert parsed_data.ack
+    assert parsed_data.sequence == data_seq
+    assert parsed_data.acknowledge == 0x34
+    assert parsed_data.checksum == 0x4110
+    assert not checksum_is_valid(_protocol_bytes_from_stream_word(beats[0].data))
 
 
 @cocotb.test()

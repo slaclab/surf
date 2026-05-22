@@ -357,6 +357,7 @@ architecture rtl of RssiTxFsm is
    signal rin               : RegType;
    signal s_chksum          : slv(chksum_i'range);
    signal s_headerAndChksum : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+   signal s_corruptHeader   : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
    -- attribute dont_touch                      : string;
    -- attribute dont_touch of r                 : signal is "TRUE";
@@ -368,13 +369,15 @@ begin
    -- Send all 0 if checksum disabled
    s_chksum          <= ite(HEADER_CHKSUM_EN_G, chksum_i, (chksum_i'range => '0'));
    s_headerAndChksum <= rdHeaderData_i(63 downto 16) & s_chksum(15 downto 0);
+   s_corruptHeader   <= s_headerAndChksum xor x"000000000000FFFF";
 
    -----------------------------------------------------------------------------------------------
    comb : process (ackN_i, ack_i, appSsiMaster_i, bufferSize_i, chksumValid_i,
                    closed_i, connActive_i, headerLength_i, headerRdy_i,
                    initSeqN_i, injectFault_i, r, rdBuffData_i, rdHeaderData_i,
-                   rst_i, s_headerAndChksum, sndAck_i, sndNull_i, sndResend_i,
-                   sndRst_i, sndSyn_i, tspSsiSlave_i, windowSize_i) is
+                   rst_i, s_corruptHeader, s_headerAndChksum, sndAck_i,
+                   sndNull_i, sndResend_i, sndRst_i, sndSyn_i, tspSsiSlave_i,
+                   windowSize_i) is
 
       variable v : RegType;
 
@@ -1008,7 +1011,14 @@ begin
                v.tspSsiMaster.eofe  := '0';
 
                -- Add checksum to last two bytes
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_corruptHeader);
+               else
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
+               end if;
+
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
 
                --
                if connActive_i = '0' then
@@ -1178,8 +1188,14 @@ begin
                v.tspSsiMaster.eof   := '1';
                v.tspSsiMaster.eofe  := '0';
 
-               -- Add checksum to last two bytes
-               v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
+               if (r.injectFaultReg = '1') then
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_corruptHeader);
+               else
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
+               end if;
+
+               -- Set the fault reg to 0
+               v.injectFaultReg := '0';
 
                -- Increment seqN
                v.nextSeqN := r.nextSeqN+1;  -- Increment SEQ number at the end of segment transmission
@@ -1268,7 +1284,7 @@ begin
 
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1');  -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_corruptHeader);
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);  -- Add checksum to last two bytes
                end if;
@@ -1447,7 +1463,7 @@ begin
 
                -- Inject fault into checksum
                if (r.injectFaultReg = '1') then
-                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum) xor (s_headerAndChksum'range => '1');  -- Flip bits in checksum! Point of fault injection!
+                  v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_corruptHeader);
                else
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);  -- Add checksum to last two bytes
                end if;
