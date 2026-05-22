@@ -53,6 +53,14 @@
     checksum field rather than inverting the whole header word.
   - Added an opt-in `RssiTxFsm` known-issue regression for multi-word DATA
     payload buffering and resend ordering.
+  - Added `protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd` with flattened
+    RSSI parameter and flag records.
+  - Added `tests/protocols/rssi/test_RssiMonitor.py` covering received BUSY
+    suppression of retransmission timeout progress and server null-timeout
+    behavior under ACK/BUSY-only traffic.
+  - Updated `RssiMonitor` server null-timeout accounting so only DATA or NULL
+    receipt refreshes server liveness; standalone ACK/BUSY traffic no longer
+    prevents the server null timeout.
 
 ## Notes
 - Primary local spec source is now
@@ -70,8 +78,9 @@
   retransmission. Rogue software's out-of-order queue is noted as a software
   behavior, not a hardware test requirement.
 - High-priority regression hypotheses include DATA without ACK, DATA+BUSY,
-  server null-timeout reset on ACK/BUSY, runtime parameter range validation,
-  RST non-retransmission, and checksum fault-injection scope.
+  runtime parameter range validation, RST non-retransmission, and checksum
+  fault-injection scope. Server null-timeout reset on ACK/BUSY is now covered
+  by `test_RssiMonitor.py` and fixed in `RssiMonitor`.
 - First implementation target is now the module-level header/checksum slice:
   `rssi_test_utils.py`, `test_RssiChksum.py`, and `test_RssiHeaderReg.py`.
 - `RssiHeaderReg` busy handling is tested by keeping `busyHeadSt_i` asserted as
@@ -101,6 +110,10 @@
   RAMs for the TX segment buffer; the wrapper had modeled the read side
   combinationally. The wrapper now uses a registered read path, and the
   multi-word DATA/resend test is default coverage.
+- `RssiMonitor` still treats received BUSY as a retransmission-timer reset, as
+  required by the flow-control behavior. The server null-timeout fix is scoped
+  only to liveness detection, where the spec describes DATA/NULL receipt as the
+  keepalive condition.
 
 ## Validation
 - 2026-05-22:
@@ -227,12 +240,24 @@
 - 2026-05-22:
   `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd`
   passed after the TX wrapper RAM timing update.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiMonitor.py`
+  passed after adding monitor coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed after the server null-timeout RTL update.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+  passed after the monitor update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with five RSSI pytest wrappers after adding `RssiMonitor` coverage.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Extend `RssiTxFsm`/`RssiMonitor` coverage to remote busy behavior.
+- Extend coverage for local busy ACK generation and periodic busy ACK behavior.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.

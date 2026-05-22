@@ -14,8 +14,13 @@ test-wrapper memory-model mismatch. `RssiCore` uses registered-read RAMs for
 the TX segment buffer, while `RssiTxFsmWrapper` had modeled the read side
 combinationally. The wrapper now uses a registered read path, and
 `multi_word_data_preserves_payload_keep_and_resend_test` is default TX coverage.
-The next technical work should move on to remote busy behavior and the
-remaining `rtl-spec-review.md` findings.
+
+`RssiMonitor` coverage now verifies that received BUSY suppresses
+retransmission timeout progress and that ACK/BUSY-only traffic does not refresh
+server liveness. The server null-timeout RTL was updated so only DATA or NULL
+receipt resets the server null-timeout counter. The next technical work should
+continue with local busy ACK generation/periodic busy ACK behavior, EACK scope,
+or the remaining `rtl-spec-review.md` findings.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -35,7 +40,7 @@ remaining `rtl-spec-review.md` findings.
 
 ## Validation
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
-  2026-05-22 with four RSSI pytest wrappers.
+  2026-05-22 with five RSSI pytest wrappers.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
   passed on 2026-05-22.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
@@ -44,6 +49,11 @@ remaining `rtl-spec-review.md` findings.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd`
   passed on 2026-05-22 after matching the wrapper RAM read timing to
   `RssiCore`.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed on 2026-05-22 after adding monitor coverage and the server
+  null-timeout RTL update.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+  passed on 2026-05-22.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -51,11 +61,12 @@ remaining `rtl-spec-review.md` findings.
 - SURF RTL should be tested for out-of-order drop/retransmission recovery, not
   Rogue software out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
-  `RssiRxFsm`, and `RssiTxFsm`.
+  `RssiRxFsm`, `RssiTxFsm`, and `RssiMonitor`.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
-  `RssiRxFsm` illegal DATA flag filtering and `RssiTxFsm` checksum fault
-  injection scope.
-- Extend `RssiTxFsm`/`RssiMonitor` coverage to remote busy behavior.
+  `RssiRxFsm` illegal DATA flag filtering, `RssiTxFsm` checksum fault
+  injection scope, and `RssiMonitor` server null-timeout liveness handling.
+- Extend `RssiMonitor` coverage to local busy ACK generation and periodic busy
+  ACK behavior.
 - Confirm whether EACK behavior is implemented enough to test or should remain
   explicitly out of scope.
 - Decide which remaining `rtl-spec-review.md` findings should become

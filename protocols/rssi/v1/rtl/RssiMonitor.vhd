@@ -52,8 +52,7 @@ entity RssiMonitor is
       STATUS_WIDTH_G      : positive := 8;
       CNT_WIDTH_G         : positive := 32;
       RETRANSMIT_ENABLE_G : boolean  := true
-    --
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -184,8 +183,9 @@ architecture rtl of RssiMonitor is
    signal r        : RegType := REG_INIT_C;
    signal rin      : RegType;
    signal s_status : slv(STATUS_WIDTH_G - 1 downto 0);
---
+
 begin
+
    -- Status assignment
    s_status(0) <= r.retransMax and r.sndResend and not r.sndResendD1;
    s_status(1) <= r.nullTout;
@@ -312,8 +312,6 @@ begin
          if (connActive_i = '0' or
              (rxValid_i = '1' and rxFlags_i.data = '1') or
              (rxValid_i = '1' and rxFlags_i.nul = '1') or
-             (rxValid_i = '1' and rxFlags_i.ack = '1') or
-             (rxValid_i = '1' and rxFlags_i.busy = '1') or
              RETRANSMIT_ENABLE_G = false  -- Disable null timeout
              ) then
             v.nullToutCnt := (others => '0');
@@ -460,4 +458,5 @@ begin
    resendCnt_o <= r.resendCnt;
    reconCnt_o  <= r.reconCnt;
 ---------------------------------------------------------------------
+
 end architecture rtl;

@@ -6,6 +6,38 @@ not as a chronological log. Update or replace entries when the production RTL
 changes under `protocols/rssi/v1/rtl/`; simulation-only wrappers belong in
 `progress.md` unless they change the intended DUT contract.
 
+## 2026-05-22: `RssiMonitor` Server Null Timeout Liveness
+
+File: `protocols/rssi/v1/rtl/RssiMonitor.vhd`
+
+### What Changed
+
+- Removed standalone ACK and BUSY receive events from the server null-timeout
+  counter reset condition.
+- Left DATA and NULL receive events as the liveness refreshes for server mode.
+- Left received BUSY handling in the retransmission timeout path unchanged, so
+  remote BUSY still suppresses retransmission timeout progress.
+
+### Why
+
+The RSSI protocol page describes the server null timeout as detecting the
+absence of DATA or NULL packets. ACK/BUSY-only traffic should not keep the
+server link alive indefinitely when the peer is no longer sending DATA or NULL
+keepalive traffic.
+
+### Validation
+
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiMonitor.py` verifies received BUSY suppresses
+  retransmission timeout progress and verifies ACK/BUSY-only server traffic
+  does not prevent null-timeout close.
+
 ## 2026-05-22: `RssiTxFsm` Checksum Fault Injection
 
 File: `protocols/rssi/v1/rtl/RssiTxFsm.vhd`
