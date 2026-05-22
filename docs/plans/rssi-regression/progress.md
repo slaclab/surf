@@ -39,6 +39,12 @@
   - Added `tests/protocols/rssi/test_RssiTxFsm.py` covering standalone ACK
     emission and verifying that ACK-only segments do not consume the TX
     sequence number.
+  - Extended `tests/protocols/rssi/test_RssiTxFsm.py` to cover SYN header
+    emission, one-word DATA header/payload emission, DATA retransmit without
+    sequence reallocation, ACK window release, NULL sequence consumption, and
+    RST sequence consumption without buffering.
+  - Added an opt-in known-issue characterization for DATA `TKEEP` validity on
+    the `RssiTxFsm` transport output using `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
 
 ## Notes
 - Primary local spec source is now
@@ -77,6 +83,11 @@
   `chksumStrobe_o` before driving `chksumValid_i`. Driving checksum-valid from
   reset can let the FSM sample the header path before `RssiHeaderReg` has
   produced the selected ACK header word, which hides the behavior under test.
+- The default DATA transmit test checks `TDATA`, `TLAST`, `SOF`, `EOFE`,
+  sequence consumption, retransmit sequence reuse, and ACK window release. It
+  deliberately avoids reading `TKEEP` because the opt-in
+  `one_word_data_tkeep_known_issue_test` shows `RssiTxFsm` can drive
+  non-0/1 `TKEEP` values on a valid DATA transfer.
 
 ## Validation
 - 2026-05-22:
@@ -91,6 +102,22 @@
 - 2026-05-22:
   `./.venv/bin/python -m py_compile tests/protocols/rssi/rssi_test_utils.py tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py tests/protocols/rssi/test_RssiRxFsm.py`
   passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
+  passed after expanding TX FSM coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd`
+  passed after expanding TX FSM coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed with default known-issue tests skipped.
+- 2026-05-22:
+  `/usr/bin/env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  failed only in `one_word_data_tkeep_known_issue_test`, confirming DATA
+  `TKEEP` contains non-0/1 values on a valid transfer.
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
@@ -144,7 +171,9 @@
   remain explicitly out of scope.
 - Decide whether to improve the `RssiRxFsmWrapper` segment RAM timing or cover
   application payload ordering first through a core-level client/server wrapper.
-- Extend `RssiTxFsm` coverage to DATA segmentation/sequence consumption, ACK
-  window release, retransmit, NULL, SYN, and RST behavior.
+- Decide whether to fix `RssiTxFsm` DATA `TKEEP` initialization in RTL or keep
+  it documented as a hardware-profile deviation.
+- Extend `RssiTxFsm` coverage to multi-word DATA segmentation, length errors,
+  remote busy behavior, and fault-injection checksum corruption.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.
