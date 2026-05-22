@@ -669,15 +669,24 @@ class Bootstrap(pr.Device):
         CXP v1.x devices keep the ConnectionReset default and may not accept a
         write to VersionUsed. For v2.x and later, the host must choose a common
         version from VersionsSupported before switching to tagged packets.
+
+        Some devices implicitly negotiate after ConnectionReset, so we check
+        the read-back first and only write if the version doesn't match.
         """
         revision = self.Revision.value()
 
         if revision < 0x00020000:
             return revision
 
+        current = (self.MajorVersionUsed.value() << 16) | self.MinorVersionUsed.value()
+
         for value, bit_name, _ in self._HOST_VERSION_BITS:
             if getattr(self, bit_name).value():
-                self.VersionUsedCmd.set(value)
+                if current != value:
+                    try:
+                        self.VersionUsedCmd.set(value)
+                    except Exception:
+                        pass
                 return value
 
         raise RuntimeError(
