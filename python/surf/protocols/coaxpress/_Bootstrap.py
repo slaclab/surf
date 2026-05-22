@@ -370,6 +370,7 @@ class Bootstrap(pr.Device):
             offset      = 0x00004010,
             base        = pr.UIntBE,
             mode        = 'RW',
+            verify      = False,
             disp        = '{:d}',
         ))
 
