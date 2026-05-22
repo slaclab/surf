@@ -57,7 +57,7 @@ entity RssiRxFsm is
       WINDOW_ADDR_SIZE_G  : positive := 7;  -- 2^WINDOW_ADDR_SIZE_G  = Number of segments
       HEADER_CHKSUM_EN_G  : boolean  := true;
       SEGMENT_ADDR_SIZE_G : positive := 3  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -121,17 +121,17 @@ entity RssiRxFsm is
       -- SSI Application side interface OUT
       appSsiMaster_o : out SsiMasterType;
       appSsiSlave_i  : in  SsiSlaveType
-
       );
 end entity RssiRxFsm;
 
 architecture rtl of RssiRxFsm is
+
    -- Init SSI bus
    constant SSI_MASTER_INIT_C  : SsiMasterType := axis2SsiMaster(RSSI_AXIS_CONFIG_C, AXI_STREAM_MASTER_INIT_C);
    constant SSI_SLAVE_NOTRDY_C : SsiSlaveType  := axis2SsiSlave(RSSI_AXIS_CONFIG_C, AXI_STREAM_SLAVE_INIT_C, AXI_STREAM_CTRL_UNUSED_C);
    constant SSI_SLAVE_RDY_C    : SsiSlaveType  := axis2SsiSlave(RSSI_AXIS_CONFIG_C, AXI_STREAM_SLAVE_FORCE_C, AXI_STREAM_CTRL_UNUSED_C);
 
-   type tspStateType is (
+   type TspStateType is (
       --
       WAIT_SOF_S,
       CHECK_S,
@@ -139,17 +139,16 @@ architecture rtl of RssiRxFsm is
       VALID_S,
       DROP_S,
       DATA_S
-      );
+   );
 
    type AppStateType is (
       --
       CHECK_BUFFER_S,
       DATA_S,
       SENT_S
-      );
+   );
 
    type RegType is record
-
       -- Reception buffer window
       windowArray : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
 
@@ -205,7 +204,6 @@ architecture rtl of RssiRxFsm is
       -- State Machine
       appState   : AppStateType;
       rxAppState : slv(3 downto 0);
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -404,7 +402,11 @@ begin
                   (r.rxAckN - lastAckN_i)    <= txWindowSize_i
                   ) then
                   -- Valid data segment
-                  if (r.rxF.data = '1' and v.rxF.nul = '0' and v.rxF.rst = '0') then
+                  if (r.rxF.data = '1' and
+                      v.rxF.ack = '1' and
+                      v.rxF.nul = '0' and
+                      v.rxF.rst = '0' and
+                      v.rxF.busy = '0') then
                      -- Wait if the buffer full
                      -- Note: Deadlock possibility! If the peer is not accepting data!
                      if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
@@ -686,6 +688,7 @@ begin
                   v.appSsiMaster.valid                                := '1';
                   v.appSsiMaster.strb                                 := (others => '1');
                   v.appSsiMaster.dest                                 := (others => '0');
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
                   v.appSsiMaster.eof                                  := '0';
                   v.appSsiMaster.eofe                                 := '0';
                   v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
@@ -716,6 +719,7 @@ begin
             -- SSI parameters
             v.appSsiMaster.sof                                  := '0';
             v.appSsiMaster.strb                                 := (others => '1');
+            v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
             v.appSsiMaster.dest                                 := (others => '0');
             v.appSsiMaster.eof                                  := '0';
             v.appSsiMaster.eofe                                 := '0';
@@ -824,5 +828,7 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
 ---------------------------------------------------------------------
+
 end architecture rtl;
