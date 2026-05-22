@@ -154,6 +154,10 @@ test unclear.
 - New Python regression files need the standard SURF header, a module-specific
   `Test methodology` block, and in-body comments explaining major cocotb
   steps.
+- RSSI regression comments should explain the reason for each non-obvious
+  stimulus or timing choice: protocol byte order, checksum field treatment,
+  registered control capture, `TPD_G` settle timing, wrapper-flattened record
+  ports, and any current RTL behavior being pinned for later review.
 - Checked-in VHDL wrappers need the standard SURF banner and short section
   comments for bus shims, DUT hookup, and flattened/status wiring.
 - Validate edited VHDL with `./.venv/bin/vsg -c vsg-linter.yml ...`.

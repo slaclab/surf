@@ -6,7 +6,18 @@
 - Pre-implementation RTL/spec review created in `rtl-spec-review.md`.
 - Expected-behavior decisions, first implementation slice, and wrapper strategy
   have been written into `plan.md`.
-- No RSSI regression implementation has started in this task directory yet.
+- Phase 1 implementation has started:
+  - Added shared RSSI protocol helpers in
+    `tests/protocols/rssi/rssi_test_utils.py`.
+  - Added direct `RssiChksum` cocotb coverage in
+    `tests/protocols/rssi/test_RssiChksum.py`.
+  - Added `RssiHeaderReg` cocotb coverage in
+    `tests/protocols/rssi/test_RssiHeaderReg.py`.
+  - Added `protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd` because GHDL
+    cocotb did not expose the `RssiParamType` record port as Python child
+    handles.
+  - Updated `protocols/rssi/v1/ruckus.tcl` to include the wrapper directory as
+    simulation-only VHDL.
 
 ## Notes
 - Primary local spec source is now
@@ -28,9 +39,27 @@
   RST non-retransmission, and checksum fault-injection scope.
 - First implementation target is now the module-level header/checksum slice:
   `rssi_test_utils.py`, `test_RssiChksum.py`, and `test_RssiHeaderReg.py`.
+- `RssiHeaderReg` busy handling is tested by keeping `busyHeadSt_i` asserted as
+  local status while selecting ACK/DATA/NULL/RST headers. Clearing that signal
+  during header selection would not match how `RssiCore` connects local busy.
+
+## Validation
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/rssi_test_utils.py tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd`
+  passed.
+- 2026-05-22:
+  `make MODULES=/Users/bareese/surf import` did not run because this checkout
+  does not currently have `ruckus/system_ghdl.mk`.
 
 ## Open Items
-- Inventory existing SSI/AXI-Lite helper reuse before writing RSSI helpers.
+- Re-run `make MODULES="$PWD" import` after the local ruckus support files are
+  restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
