@@ -64,7 +64,7 @@ entity RssiTxFsm is
       DATA_HEADER_SIZE_G : natural := 8;
 
       HEADER_CHKSUM_EN_G : boolean := true
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -185,7 +185,7 @@ architecture rtl of RssiTxFsm is
       RESEND_H_S,
       RESEND_DATA_S,
       RESEND_PP_S
-      );
+   );
 
    type AppStateType is (
       IDLE_S,
@@ -193,17 +193,16 @@ architecture rtl of RssiTxFsm is
       SEG_RCV_S,
       SEG_RDY_S,
       SEG_LEN_ERR
-      );
+   );
 
    type AckStateType is (
       IDLE_S,
       ERR_S,
       ACK_S
     --EACK_S,
-      );
+   );
 
    type RegType is record
-
       -- Buffer window handling and acknowledgment control
       -----------------------------------------
       windowArray    : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
@@ -275,7 +274,7 @@ architecture rtl of RssiTxFsm is
       tspSsiSlave  : SsiSlaveType;
 
       -- State Machine
-      tspState   : tspStateType;
+      tspState   : TspStateType;
       txTspState : slv(7 downto 0);
    end record RegType;
 
@@ -943,6 +942,7 @@ begin
                   -- Add checksum
                   v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := endianSwap64(s_headerAndChksum);
                   v.tspSsiMaster.valid                                := '1';
+                  v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
                   v.tspSsiMaster.eof                                  := '1';
                   v.tspSsiMaster.eofe                                 := '0';
 
@@ -1261,6 +1261,7 @@ begin
                v.tspSsiMaster.valid := '1';
                v.tspSsiMaster.sof   := '1';
                v.tspSsiMaster.strb  := (others => '1');
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := (others => '1');
                v.tspSsiMaster.dest  := (others => '0');
                v.tspSsiMaster.eof   := '0';
                v.tspSsiMaster.eofe  := '0';
@@ -1307,6 +1308,7 @@ begin
             -- Other SSI parameters
             v.tspSsiMaster.sof                                  := '0';
             v.tspSsiMaster.strb                                 := (others => '1');
+            v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
             v.tspSsiMaster.dest                                 := (others => '0');
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
 
@@ -1440,6 +1442,7 @@ begin
                v.tspSsiMaster.sof   := '1';
                v.tspSsiMaster.valid := '1';
                v.tspSsiMaster.strb  := (others => '1');
+               v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := (others => '1');
                v.tspSsiMaster.dest  := (others => '0');
 
                -- Inject fault into checksum
@@ -1501,6 +1504,7 @@ begin
             -- Other SSI parameters
             v.tspSsiMaster.sof                                  := '0';
             v.tspSsiMaster.strb                                 := (others => '1');
+            v.tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
             v.tspSsiMaster.dest                                 := (others => '0');
             v.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
 
@@ -1639,4 +1643,5 @@ begin
    end process seq;
 
 ---------------------------------------------------------------------
+
 end architecture rtl;
