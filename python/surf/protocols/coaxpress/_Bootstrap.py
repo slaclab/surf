@@ -683,10 +683,7 @@ class Bootstrap(pr.Device):
         for value, bit_name, _ in self._HOST_VERSION_BITS:
             if getattr(self, bit_name).value():
                 if current != value:
-                    try:
-                        self.VersionUsedCmd.set(value)
-                    except Exception:
-                        pass
+                    self.VersionUsedCmd.set(value)
                 return value
 
         raise RuntimeError(
@@ -723,6 +720,10 @@ class Bootstrap(pr.Device):
                 "Try power cycling the camera and verifying all connections before restarting the software."
             ) from e
 
+        # Some cameras don't ACK control writes (treating them as fire-and-forget).
+        # Suppress CXP timeout errors for the discovery write phase.
+        self.CoaXPressAxiL.ConfigErrResp.set(0)
+
         # Negotiate the CXP protocol version before using later bootstrap
         # writes. CXP v1.x stays on the reset default; v2.x switches to tags.
         version_used = self._negotiateVersionUsed()
@@ -739,6 +740,12 @@ class Bootstrap(pr.Device):
             # Switch to 41.66 Mb/s mode
             self.CoaXPressAxiL.TxLsRate.set(1)
 
+        # Setup for 4KB packets
+        self.StreamPacketSizeMax.set(4096)
+
+        # Restore error reporting before the final read validation
+        self.CoaXPressAxiL.ConfigErrResp.set(1)
+
         # After it is sending a stable low speed upconnection at the defined rate the Host
         # shall wait 200ms to allow the Device to complete connection re-configuration.
         time.sleep(0.5)
@@ -749,6 +756,3 @@ class Bootstrap(pr.Device):
 
         # Reset the RX lane index pointer and flush the elastic buffers
         self.CoaXPressAxiL.RxFsmRst()
-
-        # Setup for 4KB packets
-        self.StreamPacketSizeMax.set(4096)
