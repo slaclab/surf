@@ -23,6 +23,10 @@
     transport/application SSI ports and a small behavioral segment buffer.
   - Added `tests/protocols/rssi/test_RssiRxFsm.py` covering in-order DATA
     acceptance and checksum-failure drops.
+  - Renamed the `RssiRxFsmWrapper` flattened SSI ports to the shared
+    `sAxis`/`mAxis` cocotb convention and refactored the RX test to reuse
+    `tests/protocols/ssi/ssi_test_utils.py` for stream drive and quiet-output
+    checks.
   - Added an opt-in known-issue test for DATA without ACK and DATA+BUSY using
     `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
 
@@ -73,6 +77,18 @@
   passed.
 - 2026-05-22:
   `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after refactoring the RX test onto the shared SSI helpers.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
+  passed after renaming the flattened SSI wrapper ports.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
 - 2026-05-22:
   `make MODULES=/Users/bareese/surf import` did not run because this checkout

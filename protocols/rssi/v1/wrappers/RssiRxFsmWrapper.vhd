@@ -29,8 +29,8 @@ entity RssiRxFsmWrapper is
       SEGMENT_ADDR_SIZE_G : positive := 2
    );
    port (
-      clk_i : in sl;
-      rst_i : in sl;
+      axisClk : in sl;
+      axisRst : in sl;
 
       connActive_i   : in sl;
       rxWindowSize_i : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
@@ -38,21 +38,21 @@ entity RssiRxFsmWrapper is
       txWindowSize_i : in integer range 1 to 2 ** (WINDOW_ADDR_SIZE_G);
       lastAckN_i     : in slv(7 downto 0);
 
-      tspTValid_i : in  sl;
-      tspTReady_o : out sl;
-      tspTData_i  : in  slv(63 downto 0);
-      tspTKeep_i  : in  slv(7 downto 0);
-      tspTLast_i  : in  sl;
-      tspSof_i    : in  sl;
-      tspEofe_i   : in  sl;
+      sAxisTValid : in  sl;
+      sAxisTReady : out sl;
+      sAxisTData  : in  slv(63 downto 0);
+      sAxisTKeep  : in  slv(7 downto 0);
+      sAxisTLast  : in  sl;
+      sAxisSof    : in  sl;
+      sAxisEofe   : in  sl;
 
-      appTValid_o : out sl;
-      appTReady_i : in  sl;
-      appTData_o  : out slv(63 downto 0);
-      appTKeep_o  : out slv(7 downto 0);
-      appTLast_o  : out sl;
-      appSof_o    : out sl;
-      appEofe_o   : out sl;
+      mAxisTValid : out sl;
+      mAxisTReady : in  sl;
+      mAxisTData  : out slv(63 downto 0);
+      mAxisTKeep  : out slv(7 downto 0);
+      mAxisTLast  : out sl;
+      mAxisSof    : out sl;
+      mAxisEofe   : out sl;
 
       chksumValid_i : in sl;
       chksumOk_i    : in sl;
@@ -101,38 +101,38 @@ architecture mapping of RssiRxFsmWrapper is
 begin
 
    -- Flattened transport-side SSI input.
-   tspSsiMaster.valid             <= tspTValid_i;
-   tspSsiMaster.data(63 downto 0) <= tspTData_i;
+   tspSsiMaster.valid             <= sAxisTValid;
+   tspSsiMaster.data(63 downto 0) <= sAxisTData;
    tspSsiMaster.data(tspSsiMaster.data'high downto 64) <= (others => '0');
    tspSsiMaster.strb              <= (others => '1');
    tspSsiMaster.keep              <= (others => '0');
-   tspSsiMaster.keep(7 downto 0)  <= tspTKeep_i;
+   tspSsiMaster.keep(7 downto 0)  <= sAxisTKeep;
    tspSsiMaster.dest              <= (others => '0');
    tspSsiMaster.packed            <= '0';
-   tspSsiMaster.sof               <= tspSof_i;
-   tspSsiMaster.eof               <= tspTLast_i;
-   tspSsiMaster.eofe              <= tspEofe_i;
-   tspTReady_o                    <= tspSsiSlave.ready;
+   tspSsiMaster.sof               <= sAxisSof;
+   tspSsiMaster.eof               <= sAxisTLast;
+   tspSsiMaster.eofe              <= sAxisEofe;
+   sAxisTReady                    <= tspSsiSlave.ready;
 
    -- Flattened application-side SSI output.
-   appTValid_o <= appSsiMaster.valid;
-   appTData_o  <= appSsiMaster.data(63 downto 0);
-   appTKeep_o  <= appSsiMaster.keep(7 downto 0);
-   appTLast_o  <= appSsiMaster.eof;
-   appSof_o    <= appSsiMaster.sof;
-   appEofe_o   <= appSsiMaster.eofe;
+   mAxisTValid <= appSsiMaster.valid;
+   mAxisTData  <= appSsiMaster.data(63 downto 0);
+   mAxisTKeep  <= appSsiMaster.keep(7 downto 0);
+   mAxisTLast  <= appSsiMaster.eof;
+   mAxisSof    <= appSsiMaster.sof;
+   mAxisEofe   <= appSsiMaster.eofe;
 
-   appSsiSlave.ready    <= appTReady_i;
-   appSsiSlave.pause    <= not appTReady_i;
+   appSsiSlave.ready    <= mAxisTReady;
+   appSsiSlave.pause    <= not mAxisTReady;
    appSsiSlave.overflow <= '0';
 
    -- Small behavioral RAM that represents the segment buffer attached to
    -- `RssiRxFsm` in `RssiCore`.  Writes remain clocked, while the read side is
    -- asynchronous so the wrapper tests RX FSM behavior without adding another
    -- registered RAM latency to the application stream.
-   seq : process (clk_i) is
+   seq : process (axisClk) is
    begin
-      if rising_edge(clk_i) then
+      if rising_edge(axisClk) then
          if wrBuffWe = '1' then
             mem(to_integer(unsigned(wrBuffAddr))) <= wrBuffData after TPD_G;
          end if;
@@ -149,8 +149,8 @@ begin
          HEADER_CHKSUM_EN_G  => HEADER_CHKSUM_EN_G,
          SEGMENT_ADDR_SIZE_G => SEGMENT_ADDR_SIZE_G)
       port map (
-         clk_i          => clk_i,        -- [in]
-         rst_i          => rst_i,        -- [in]
+         clk_i          => axisClk,      -- [in]
+         rst_i          => axisRst,      -- [in]
          connActive_i   => connActive_i, -- [in]
          rxWindowSize_i => rxWindowSize_i, -- [in]
          rxBufferSize_i => rxBufferSize_i, -- [in]

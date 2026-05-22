@@ -23,15 +23,19 @@ import os
 
 import cocotb
 import pytest
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
 
-from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     build_data_header,
     header_words,
     stream_word_from_header_word,
+)
+from tests.protocols.ssi.ssi_test_utils import (
+    cycle as ssi_cycle,
+    expect_no_output,
+    setup_flat_ssi_testbench,
+    SsiBeat,
 )
 
 
@@ -39,39 +43,39 @@ RUN_KNOWN_ISSUE_TESTS = os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") == "1"
 
 
 class TB:
-    def __init__(self, dut):
+    def __init__(self, dut, bench):
         self.dut = dut
-        cocotb.start_soon(Clock(dut.clk_i, 5.0, unit="ns").start())
+        self.clk = bench.clk
+        self.source = bench.source
+        self.sink = bench.sink
+        assert self.source is not None
+        assert self.sink is not None
+
+    @classmethod
+    async def create(cls, dut):
+        # Reuse the SSI test infrastructure now that the RSSI wrapper exposes
+        # the same flattened `sAxis`/`mAxis` names as the SSI wrappers.  The
+        # RSSI-specific class only needs to add connection state and checksum
+        # timing around those generic frame helpers.
+        bench = await setup_flat_ssi_testbench(
+            dut,
+            source_prefix="sAxis",
+            sink_prefix="mAxis",
+            initial_values={
+                "connActive_i": 1,
+                "rxWindowSize_i": 4,
+                "rxBufferSize_i": 4,
+                "txWindowSize_i": 4,
+                "lastAckN_i": 0,
+                "mAxisTReady": 0,
+                "chksumValid_i": 0,
+                "chksumOk_i": 1,
+            },
+        )
+        return cls(dut, bench)
 
     async def cycle(self, count: int = 1) -> None:
-        for _ in range(count):
-            await RisingEdge(self.dut.clk_i)
-            await Timer(2, unit="ns")
-
-    def idle_transport(self) -> None:
-        # Keep every SSI sideband deterministic when the source is idle so a
-        # failed waveform is readable and does not contain stale packet fields.
-        self.dut.tspTValid_i.value = 0
-        self.dut.tspTData_i.value = 0
-        self.dut.tspTKeep_i.value = 0
-        self.dut.tspTLast_i.value = 0
-        self.dut.tspSof_i.value = 0
-        self.dut.tspEofe_i.value = 0
-
-    async def reset(self) -> None:
-        self.dut.rst_i.setimmediatevalue(1)
-        self.dut.connActive_i.setimmediatevalue(1)
-        self.dut.rxWindowSize_i.setimmediatevalue(4)
-        self.dut.rxBufferSize_i.setimmediatevalue(4)
-        self.dut.txWindowSize_i.setimmediatevalue(4)
-        self.dut.lastAckN_i.setimmediatevalue(0)
-        self.dut.appTReady_i.setimmediatevalue(0)
-        self.dut.chksumValid_i.setimmediatevalue(0)
-        self.dut.chksumOk_i.setimmediatevalue(1)
-        self.idle_transport()
-        await self.cycle(4)
-        self.dut.rst_i.value = 0
-        await self.cycle(4)
+        await ssi_cycle(self.clk, count=count)
 
     async def send_transport_word(
         self,
@@ -82,15 +86,13 @@ class TB:
         keep: int = 0xFF,
         eofe: int = 0,
     ) -> None:
-        # The source holds each beat until the DUT samples `tspTReady_o`.
-        self.dut.tspTData_i.value = data
-        self.dut.tspTKeep_i.value = keep
-        self.dut.tspTLast_i.value = last
-        self.dut.tspSof_i.value = sof
-        self.dut.tspEofe_i.value = eofe
-        self.dut.tspTValid_i.value = 1
-        await wait_sampled_ready(self.dut.tspTReady_o, clk=self.dut.clk_i)
-        self.idle_transport()
+        # `FlatSsiEndpoint.send()` owns the ready/valid handshake and returns
+        # the source to idle.  RSSI still controls the protocol-level SOF/LAST
+        # placement, so the header is the only beat with `sof=1`.
+        await self.source.send(
+            SsiBeat(data=data, keep=keep, last=last, sof=sof, eofe=eofe),
+            clk=self.clk,
+        )
         await self.cycle()
 
     async def send_data_segment(
@@ -148,17 +150,14 @@ class TB:
     async def expect_no_app_output(self, *, cycles: int = 16) -> None:
         # Dropped segments may take a few cycles to unwind back to WAIT_SOF, so
         # check a bounded quiet window rather than only the immediate cycle.
-        self.dut.appTReady_i.value = 1
-        for _ in range(cycles):
-            await self.cycle()
-            assert int(self.dut.appTValid_o.value) == 0
-        self.dut.appTReady_i.value = 0
+        self.dut.mAxisTReady.value = 1
+        await expect_no_output(self.sink, clk=self.clk, cycles=cycles)
+        self.dut.mAxisTReady.value = 0
 
 
 @cocotb.test()
 async def valid_in_order_data_segment_is_accepted_test(dut):
-    tb = TB(dut)
-    await tb.reset()
+    tb = await TB.create(dut)
 
     payload = 0x8877_6655_4433_2211
     tail_payload = 0x0123_4567_89AB_CDEF
@@ -181,8 +180,7 @@ async def valid_in_order_data_segment_is_accepted_test(dut):
 
 @cocotb.test()
 async def checksum_failure_drops_without_application_output_test(dut):
-    tb = TB(dut)
-    await tb.reset()
+    tb = await TB.create(dut)
 
     await tb.send_data_segment(
         sequence=1,
@@ -196,8 +194,7 @@ async def checksum_failure_drops_without_application_output_test(dut):
 
 @cocotb.test(skip=not RUN_KNOWN_ISSUE_TESTS)
 async def illegal_data_flag_combinations_drop_test(dut):
-    tb = TB(dut)
-    await tb.reset()
+    tb = await TB.create(dut)
 
     # Spec-shaped expectation from the regression plan: DATA must carry ACK and
     # must not be combined with BUSY.  This is opt-in while the current RTL

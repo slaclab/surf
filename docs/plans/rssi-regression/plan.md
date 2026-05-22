@@ -137,6 +137,12 @@ checked-in wrappers under `protocols/rssi/v1/wrappers/` only when record ports,
 RAM-style side ports, or multi-core integration would otherwise make the Python
 test unclear.
 
+When a wrapper exposes SSI or AXI Stream traffic to cocotb, use the existing
+flat test port convention before inventing RSSI-specific signal names:
+`axisClk`/`axisRst`, `sAxis*` for source-side input traffic, and `mAxis*` for
+sink-side output traffic. This lets RSSI tests reuse the shared SSI stream
+drivers and scoreboards directly.
+
 | Module | Expected Strategy |
 | --- | --- |
 | `RssiChksum` | Direct cocotb DUT. Ports are scalar/vector only. |
@@ -166,10 +172,20 @@ test unclear.
 
 ## Helper And Reuse Directives
 - Create `tests/protocols/rssi/rssi_test_utils.py` for shared RSSI helpers.
+- Before adding a new RSSI-local cocotb helper, check the existing protocol and
+  common test modules for a matching abstraction. Prefer reuse over parallel
+  hand-written source/sink, AXI-Lite, or timing helpers.
 - Reuse existing SSI helpers from `tests/protocols/ssi/ssi_test_utils.py` for
-  SOF/EOF/EOFE-aware stream transaction handling where practical.
+  SOF/EOF/EOFE-aware stream transaction handling. RSSI wrappers that expose
+  SSI-facing ports should use the shared `axisClk`/`axisRst`, `sAxis*`, and
+  `mAxis*` names so `setup_flat_ssi_testbench`, `SsiBeat`,
+  `send_contiguous_frame`, `recv_frame`, and quiet-output helpers are usable
+  without adapters.
 - Reuse AXI-Lite helpers from `tests/axi/utils.py` where they fit the RSSI
-  register tests.
+  register tests, including sampled ready/valid timing helpers for any
+  AXI-style side channels.
+- Reuse `tests/common/regression_utils.py` for runner integration, environment
+  parsing, parameter sweeps, and shared clock/reset utilities where applicable.
 - Keep header byte construction and checksum calculation in shared helpers so
   every test uses one protocol oracle.
 - Keep policy assertions visible in the tests. Helpers may build frames,
