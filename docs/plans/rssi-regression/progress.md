@@ -66,6 +66,12 @@
   - Updated `RssiMonitor` ACK timeout counting so steady local BUSY can request
     periodic ACKs after each transmitted busy ACK, even when there is no newly
     pending cumulative ACK.
+  - Extended `tests/protocols/rssi/test_RssiRxFsm.py` to cover valid SYN
+    parameter capture, illegal SYN+EACK/BUSY/RST/NULL flag combinations, and
+    SYN frames with extra payload.
+  - Updated `RssiRxFsm` SYN handling so invalid SYN frames do not refresh the
+    visible peer parameters and so a valid SYN must end cleanly at the expected
+    parameter word.
 
 ## Notes
 - Primary local spec source is now
@@ -123,6 +129,10 @@
   path, matching the existing SURF/Rogue behavior. The RSSI page recommends a
   Retransmission Timeout/2 period, so this is now documented as a cadence
   difference rather than left uncharacterized.
+- `RssiRxFsm` SYN parameter updates are now staged until the full SYN header is
+  accepted. This prevents a malformed multi-word SYN from changing
+  `rxParam_o` before the late checksum/length/frame-boundary decision drops the
+  frame.
 
 ## Validation
 - 2026-05-22:
@@ -274,6 +284,18 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with five RSSI pytest wrappers after the local-busy ACK counter
   update.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding RX SYN legality coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+  passed after the RX SYN filtering update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after the RX SYN filtering update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with five RSSI pytest wrappers after the RX SYN filtering update.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
@@ -283,5 +305,5 @@
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
-- Decide which `rtl-spec-review.md` findings should become expected-fail tests
-  versus immediate RTL fixes after the first failing regressions exist.
+- Continue triaging the remaining `rtl-spec-review.md` findings into default
+  coverage, expected-fail characterization, or immediate RTL fixes.

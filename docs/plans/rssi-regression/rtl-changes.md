@@ -151,3 +151,37 @@ of stale registered flag state from a prior segment.
   suite.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
   passed as part of the focused RSSI VHDL lint run recorded in `progress.md`.
+
+## 2026-05-22: `RssiRxFsm` SYN Filtering And Parameter Staging
+
+File: `protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+
+### What Changed
+
+- Added staging registers for received SYN parameters.
+- Committed staged SYN parameters to `rxParam_o` only after the SYN passes
+  checksum, header-length, and frame-boundary checks.
+- Rejected SYN frames combined with NULL, BUSY, RST, or EACK control flags.
+- Required the final SYN parameter word to be a clean EOF without EOFE.
+
+### Why
+
+SYN carries connection parameters rather than application payload. A malformed
+SYN should not partially update the visible peer parameters before being
+dropped, and a SYN frame that continues past the expected 24-byte header should
+not be accepted as a valid connection setup segment.
+
+### Validation
+
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiRxFsm.py` verifies valid SYN parameter
+  capture, SYN+EACK/BUSY/RST/NULL drops, and SYN-with-extra-payload drops
+  without changing `rxParam_o` or producing application output.

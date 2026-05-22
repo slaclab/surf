@@ -21,7 +21,12 @@ server liveness. The server null-timeout RTL was updated so only DATA or NULL
 receipt resets the server null-timeout counter. Local-busy ACK generation is
 also covered now: rising local BUSY requests an ACK immediately, and steady
 local BUSY requests periodic ACKs through the cumulative ACK timeout path. The
-next technical work should continue with the local-busy cadence decision
+RX SYN coverage now verifies valid SYN parameter capture, rejects illegal
+SYN+EACK/BUSY/RST/NULL flag combinations, and rejects SYN frames that continue
+past the expected parameter word. `RssiRxFsm` stages SYN parameters until the
+whole SYN is accepted, so malformed late-drop SYN frames do not update
+`rxParam_o`.
+The next technical work should continue with the local-busy cadence decision
 against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
 the remaining `rtl-spec-review.md` findings.
 
@@ -60,6 +65,11 @@ the remaining `rtl-spec-review.md` findings.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
   passed on 2026-05-22 after adding local-busy ACK coverage and the periodic
   busy ACK counter update.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-22 after adding RX SYN legality coverage and updating SYN
+  parameter staging.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+  passed on 2026-05-22 after the RX SYN filtering update.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -69,8 +79,9 @@ the remaining `rtl-spec-review.md` findings.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, and `RssiMonitor`.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
-  `RssiRxFsm` illegal DATA flag filtering, `RssiTxFsm` checksum fault
-  injection scope, and `RssiMonitor` server null-timeout liveness handling.
+  `RssiRxFsm` illegal DATA flag filtering and SYN filtering/parameter staging,
+  `RssiTxFsm` checksum fault injection scope, and `RssiMonitor` server
+  null-timeout liveness handling.
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.

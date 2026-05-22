@@ -25,8 +25,15 @@ from cocotb.triggers import Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
+    RssiParams,
+    RSSI_FLAG_BUSY,
+    RSSI_FLAG_EACK,
+    RSSI_FLAG_NULL,
+    RSSI_FLAG_RST,
     build_data_header,
+    build_syn_header,
     header_words,
+    stream_words_from_header,
     stream_word_from_header_word,
 )
 from tests.protocols.ssi.ssi_test_utils import (
@@ -48,7 +55,7 @@ class TB:
         assert self.sink is not None
 
     @classmethod
-    async def create(cls, dut):
+    async def create(cls, dut, *, connected: bool = True):
         # Reuse the SSI test infrastructure now that the RSSI wrapper exposes
         # the same flattened `sAxis`/`mAxis` names as the SSI wrappers.  The
         # RSSI-specific class only needs to add connection state and checksum
@@ -58,7 +65,7 @@ class TB:
             source_prefix="sAxis",
             sink_prefix="mAxis",
             initial_values={
-                "connActive_i": 1,
+                "connActive_i": int(connected),
                 "rxWindowSize_i": 4,
                 "rxBufferSize_i": 4,
                 "txWindowSize_i": 4,
@@ -124,6 +131,52 @@ class TB:
 
         if not checksum_ok:
             return
+
+        for index, payload_word in enumerate(payload_words):
+            await self.send_transport_word(
+                data=payload_word,
+                sof=0,
+                last=int(index == len(payload_words) - 1),
+            )
+
+    async def send_syn_segment(
+        self,
+        *,
+        sequence: int,
+        acknowledge: int,
+        ack: bool = False,
+        extra_flags: int = 0,
+        extra_payload_words: list[int] | None = None,
+        checksum_ok: bool = True,
+    ) -> None:
+        params = RssiParams(connection_id=0xA5A5_1234)
+        header = bytearray(
+            build_syn_header(
+                sequence=sequence,
+                acknowledge=acknowledge,
+                ack=ack,
+                params=params,
+                enable_checksum=False,
+            )
+        )
+        header[0] |= extra_flags
+        words = stream_words_from_header(bytes(header))
+        payload_words = extra_payload_words or []
+
+        self.dut.chksumValid_i.value = 0
+        self.dut.chksumOk_i.value = int(checksum_ok)
+
+        for index, word in enumerate(words):
+            is_last = index == len(words) - 1 and not payload_words
+            await self.send_transport_word(
+                data=word,
+                sof=int(index == 0),
+                last=int(is_last),
+            )
+
+        self.dut.chksumValid_i.value = 1
+        await self.cycle()
+        self.dut.chksumValid_i.value = 0
 
         for index, payload_word in enumerate(payload_words):
             await self.send_transport_word(
@@ -229,6 +282,61 @@ async def illegal_data_flag_combinations_drop_test(dut):
         )
         await drop_wait
         await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def valid_syn_segment_is_accepted_and_captures_parameters_test(dut):
+    tb = await TB.create(dut, connected=False)
+
+    await tb.send_syn_segment(sequence=0x22, acknowledge=0x00)
+    await tb.wait_status_pulse("rxValidSeg_o")
+
+    assert int(dut.rxSeqN_o.value) == 0x22
+    assert int(dut.rxFlagSyn_o.value) == 1
+    assert int(dut.rxFlagNull_o.value) == 0
+    assert int(dut.rxFlagBusy_o.value) == 0
+    assert int(dut.paramVersion_o.value) == 1
+    assert int(dut.paramChksumEn_o.value) == 1
+    assert int(dut.paramConnId_o.value) == 0xA5A5_1234
+
+
+@cocotb.test()
+async def illegal_syn_flag_combinations_drop_test(dut):
+    tb = await TB.create(dut, connected=False)
+
+    # The RSSI profile keeps SYN separate from extended ACK, RST, BUSY, and NUL
+    # semantics.
+    for extra_flags in (
+        RSSI_FLAG_EACK,
+        RSSI_FLAG_BUSY,
+        RSSI_FLAG_RST,
+        RSSI_FLAG_NULL,
+    ):
+        drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+        await tb.send_syn_segment(
+            sequence=0x31,
+            acknowledge=0x00,
+            extra_flags=extra_flags,
+        )
+        await drop_wait
+        assert int(dut.rxValidSeg_o.value) == 0
+        assert int(dut.paramConnId_o.value) == 0
+
+
+@cocotb.test()
+async def syn_with_extra_payload_drops_test(dut):
+    tb = await TB.create(dut, connected=False)
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_syn_segment(
+        sequence=0x42,
+        acknowledge=0x00,
+        extra_payload_words=[0x1122_3344_5566_7788],
+    )
+    await drop_wait
+    assert int(dut.rxValidSeg_o.value) == 0
+    assert int(dut.paramConnId_o.value) == 0
+    await tb.expect_no_app_output()
 
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]

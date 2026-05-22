@@ -167,11 +167,14 @@ architecture rtl of RssiRxFsm is
       rxF : flagsType;
 
       -- Received RSSI parameters
-      rxParam : RssiParamType;
+      rxParam  : RssiParamType;
+      synParam : RssiParamType;
 
       rxHeadLen : slv(7 downto 0);
       rxSeqN    : slv(7 downto 0);      -- Received seqN
       rxAckN    : slv(7 downto 0);      -- Received ackN
+      synEof    : sl;
+      synEofe   : sl;
 
       --
       chkEn      : sl;
@@ -225,11 +228,14 @@ architecture rtl of RssiRxFsm is
       rxF => (others => ('0')),
 
       -- Received RSSI parameters
-      rxParam => RSSI_PARAM_INIT_C,
+      rxParam  => RSSI_PARAM_INIT_C,
+      synParam => RSSI_PARAM_INIT_C,
 
       rxHeadLen => (others => '0'),     -- Received seqN
       rxSeqN    => (others => '0'),     -- Received seqN
       rxAckN    => (others => '0'),     -- Received ackN
+      synEof    => '0',
+      synEofe   => '0',
 
       --
       chkEn      => '0',
@@ -305,6 +311,9 @@ begin
             v.rxHeaderAddr  := (others => '0');
             v.rxSegmentAddr := (others => '1');  -- "-1" so the first address after increment to be 0
             v.segmentWe     := '0';
+            v.synParam      := RSSI_PARAM_INIT_C;
+            v.synEof        := '0';
+            v.synEofe       := '0';
 
             -- Ready until SOF received
             -- Also flush any dropped or non SOF segments
@@ -369,17 +378,17 @@ begin
             if (v.rxF.syn = '1') then
 
                -- Register SYN header word 0 parameters
-               v.chkLen             := 3;  -- TODO make generic
-               v.rxParam.version    := r.headerData (31 downto 28);
-               v.rxParam.chksumEn   := r.headerData (26 downto 26);
-               v.rxParam.maxOutsSeg := r.headerData (23 downto 16);
-               v.rxParam.maxSegSize := r.headerData (15 downto 0);
+               v.chkLen              := 3;  -- TODO make generic
+               v.synParam.version    := r.headerData (31 downto 28);
+               v.synParam.chksumEn   := r.headerData (26 downto 26);
+               v.synParam.maxOutsSeg := r.headerData (23 downto 16);
+               v.synParam.maxSegSize := r.headerData (15 downto 0);
 
                --
                if (v.rxF.ack = '1' and v.rxAckN /= lastAckN_i) then
                   -- Acknowledgment not valid
                   v.tspState := DROP_S;
-               elsif (v.rxF.eack = '1' or v.rxF.rst = '1' or v.rxF.busy = '1') then
+               elsif (v.rxF.eack = '1' or v.rxF.rst = '1' or v.rxF.nul = '1' or v.rxF.busy = '1') then
                   -- Wrong flags
                   v.tspState := DROP_S;
                else
@@ -458,11 +467,11 @@ begin
             -- Register SYN header word 1 parameters
             if (r.rxHeaderAddr = x"01" and r.tspSsiMaster.valid = '1') then
                -- Syn parameters
-               v.rxParam.retransTout  := r.headerData (63 downto 48);
-               v.rxParam.cumulAckTout := r.headerData (47 downto 32);
-               v.rxParam.nullSegTout  := r.headerData (31 downto 16);
-               v.rxParam.maxRetrans   := r.headerData (15 downto 8);
-               v.rxParam.maxCumAck    := r.headerData (7 downto 0);
+               v.synParam.retransTout  := r.headerData (63 downto 48);
+               v.synParam.cumulAckTout := r.headerData (47 downto 32);
+               v.synParam.nullSegTout  := r.headerData (31 downto 16);
+               v.synParam.maxRetrans   := r.headerData (15 downto 8);
+               v.synParam.maxCumAck    := r.headerData (7 downto 0);
             --
             end if;
 
@@ -475,9 +484,11 @@ begin
                if (r.tspSsiMaster.valid = '1') then
 
                   -- Syn parameters
-                  v.rxParam.maxOutofseq               := r.headerData (63 downto 56);
-                  v.rxParam.timeoutUnit               := r.headerData (55 downto 48);
-                  v.rxParam.connectionId(31 downto 0) := r.headerData (47 downto 16);
+                  v.synParam.maxOutofseq               := r.headerData (63 downto 56);
+                  v.synParam.timeoutUnit               := r.headerData (55 downto 48);
+                  v.synParam.connectionId(31 downto 0) := r.headerData (47 downto 16);
+                  v.synEof                             := r.tspSsiMaster.eof;
+                  v.synEofe                            := r.tspSsiMaster.eofe;
 
                   -- Tsp parameters
                   v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
@@ -491,9 +502,13 @@ begin
                      -- Checksum
                      s_chksumOk = '1' and
                      -- Check length
-                     r.rxHeadLen = toSlv(24, 8)
+                     r.rxHeadLen = toSlv(24, 8) and
+                     -- Check frame boundary
+                     r.synEof = '1' and
+                     r.synEofe = '0'
                      ) then
                      -- Header is valid
+                     v.rxParam  := r.synParam;
                      v.tspState := VALID_S;
                   else
                      -- Header not valid
