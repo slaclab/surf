@@ -315,6 +315,17 @@ def header_words(header: bytes) -> list[int]:
     return [int.from_bytes(header[index : index + 8], "big") for index in range(0, len(header), 8)]
 
 
+def stream_word_from_header_word(header_word: int) -> int:
+    # `RssiRxFsm` applies `endianSwap64()` to the incoming 64-bit stream word
+    # before decoding it.  Drive the byte-reversed value on the flattened SSI
+    # port so the internal protocol word matches `header_words()`.
+    return int.from_bytes(header_word.to_bytes(8, "big")[::-1], "big")
+
+
+def stream_words_from_header(header: bytes) -> list[int]:
+    return [stream_word_from_header_word(word) for word in header_words(header)]
+
+
 def header_without_checksum(header: bytes) -> bytes:
     # Checksum-generation tests need the same header content with only the final
     # checksum field cleared.

@@ -18,6 +18,13 @@
     handles.
   - Updated `protocols/rssi/v1/ruckus.tcl` to include the wrapper directory as
     simulation-only VHDL.
+- Phase 2 implementation has started:
+  - Added `protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd` with flattened
+    transport/application SSI ports and a small behavioral segment buffer.
+  - Added `tests/protocols/rssi/test_RssiRxFsm.py` covering in-order DATA
+    acceptance and checksum-failure drops.
+  - Added an opt-in known-issue test for DATA without ACK and DATA+BUSY using
+    `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
 
 ## Notes
 - Primary local spec source is now
@@ -42,6 +49,11 @@
 - `RssiHeaderReg` busy handling is tested by keeping `busyHeadSt_i` asserted as
   local status while selecting ACK/DATA/NULL/RST headers. Clearing that signal
   during header selection would not match how `RssiCore` connects local busy.
+- The first `RssiRxFsm` wrapper pins receive-side accept/drop status but does
+  not yet use application payload delivery as the oracle. The simplified
+  wrapper RAM needs exact read-latency alignment before it can prove payload
+  ordering without producing misleading expectations. Payload preservation
+  remains a Phase 2/core-wrapper item.
 
 ## Validation
 - 2026-05-22:
@@ -54,6 +66,15 @@
   `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd`
   passed.
 - 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/rssi_test_utils.py tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
+  passed.
+- 2026-05-22:
   `make MODULES=/Users/bareese/surf import` did not run because this checkout
   does not currently have `ruckus/system_ghdl.mk`.
 
@@ -62,5 +83,7 @@
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
+- Decide whether to improve the `RssiRxFsmWrapper` segment RAM timing or cover
+  application payload ordering first through a core-level client/server wrapper.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.
