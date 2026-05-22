@@ -29,6 +29,10 @@
     checks.
   - Added an opt-in known-issue test for DATA without ACK and DATA+BUSY using
     `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+  - Added an opt-in known-issue characterization for full `RssiRxFsm`
+    application payload delivery. The wrapper-level RAM model still does not
+    provide a trustworthy full-frame payload oracle, so the default RX FSM test
+    continues to pin accept/drop status and header fields only.
 
 ## Notes
 - Primary local spec source is now
@@ -58,6 +62,11 @@
   wrapper RAM needs exact read-latency alignment before it can prove payload
   ordering without producing misleading expectations. Payload preservation
   remains a Phase 2/core-wrapper item.
+- Attempting to promote payload delivery into the default `RssiRxFsm` test
+  showed the current wrapper RAM can expose stale or shifted application
+  payload data. That expectation is now captured under
+  `valid_data_payload_delivery_known_issue_test` and remains opt-in with
+  `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
 
 ## Validation
 - 2026-05-22:
@@ -71,6 +80,18 @@
   passed.
 - 2026-05-22:
   `./.venv/bin/python -m py_compile tests/protocols/rssi/rssi_test_utils.py tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding the opt-in RX payload-delivery characterization.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed with default known-issue tests skipped.
+- 2026-05-22:
+  `./.venv/bin/vsg --configuration vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
   passed.
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`

@@ -34,6 +34,7 @@ from tests.protocols.rssi.rssi_test_utils import (
 from tests.protocols.ssi.ssi_test_utils import (
     cycle as ssi_cycle,
     expect_no_output,
+    recv_frame_and_check,
     setup_flat_ssi_testbench,
     SsiBeat,
 )
@@ -190,6 +191,34 @@ async def checksum_failure_drops_without_application_output_test(dut):
     )
     await tb.wait_status_pulse("rxDropSeg_o")
     await tb.expect_no_app_output()
+
+
+@cocotb.test(skip=not RUN_KNOWN_ISSUE_TESTS)
+async def valid_data_payload_delivery_known_issue_test(dut):
+    tb = await TB.create(dut)
+
+    payload = 0x8877_6655_4433_2211
+    tail_payload = 0x0123_4567_89AB_CDEF
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[payload, tail_payload],
+    )
+    await tb.wait_status_pulse("rxValidSeg_o")
+
+    # Characterization item: the current RX module wrapper does not yet model
+    # the core segment RAM timing closely enough to use full application
+    # payload delivery as the default oracle.
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.clk,
+        ready_signal=dut.mAxisTReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[
+            (payload, 0xFF, 0, 1, 0),
+            (tail_payload, 0xFF, 1, 0, 0),
+        ],
+    )
 
 
 @cocotb.test(skip=not RUN_KNOWN_ISSUE_TESTS)
