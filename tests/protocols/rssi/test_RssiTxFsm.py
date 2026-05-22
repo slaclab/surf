@@ -21,8 +21,6 @@
 #   valid only after the DUT asks for a checksum so the header RAM path is
 #   sampled after its registered update.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
@@ -454,8 +452,8 @@ async def one_word_data_tkeep_test(dut):
     await recv_task
 
 
-@cocotb.test(skip=os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") != "1")
-async def multi_word_data_preserves_payload_keep_and_resend_known_issue_test(dut):
+@cocotb.test()
+async def multi_word_data_preserves_payload_keep_and_resend_test(dut):
     tb = await TB.create(dut)
 
     initial_seq = int(dut.txSeqN_o.value)
@@ -513,6 +511,7 @@ async def multi_word_data_preserves_payload_keep_and_resend_known_issue_test(dut
     await resend_task
     await tb.finish_checksum()
 
+    await tb.cycle(2)
     assert int(dut.txSeqN_o.value) == (initial_seq + 1) & 0xFF
 
 

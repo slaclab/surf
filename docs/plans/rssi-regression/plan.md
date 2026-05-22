@@ -14,6 +14,12 @@
 - Keep `handoff.md` current as the concise resume point for the next
   contributor. Update it whenever the active next step, validation status,
   known issues, or remaining attention areas change.
+- Keep `rtl-changes.md` as a current-state summary of actual implemented
+  production RTL changes under `protocols/rssi/v1/rtl/`, not as a chronological
+  log. Update or replace entries as the RTL changes evolve. Track wrapper,
+  testbench, test-model, and documentation changes in `progress.md` and
+  `handoff.md` instead, unless a wrapper change deliberately changes the
+  intended DUT contract.
 - Before pausing substantial work on this task, check that `handoff.md` agrees
   with the latest validated state in `progress.md` and `rtl-changes.md`.
 

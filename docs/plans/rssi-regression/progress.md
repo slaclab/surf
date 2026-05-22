@@ -91,11 +91,16 @@
 - The `RssiTxFsm` and `RssiRxFsm` regressions now include the live RTL files in
   `extra_vhdl_sources` with `force_compile=True` so they do not accidentally
   validate stale imported sources under `build/SRC_VHDL`.
-- The opt-in TX multi-word DATA known-issue test currently emits payload words
-  2, 3, and 3 for a three-word application frame instead of words 1, 2, and 3.
-  This points at the `RssiTxFsm` application-side buffer write alignment for
-  multi-beat frames; default one-word DATA, length-error handling, and checksum
-  fault-injection coverage remain green.
+- Before the TX wrapper RAM timing fix, the opt-in TX multi-word DATA
+  known-issue test emitted payload words 2, 3, and 3 for a three-word
+  application frame instead of words 1, 2, and 3. That first looked like
+  `RssiTxFsm` application-side buffer write alignment, but later validation
+  showed it was caused by the wrapper's combinational read model.
+- The multi-word DATA issue was resolved as a `RssiTxFsmWrapper` memory-model
+  mismatch, not a production `RssiTxFsm` bug. `RssiCore` uses registered-read
+  RAMs for the TX segment buffer; the wrapper had modeled the read side
+  combinationally. The wrapper now uses a registered read path, and the
+  multi-word DATA/resend test is default coverage.
 
 ## Validation
 - 2026-05-22:
@@ -212,15 +217,22 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed after matching the TX wrapper segment RAM read timing to `RssiCore`
+  and promoting multi-word DATA/resend coverage into the default suite.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed after the TX wrapper RAM timing update.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd`
+  passed after the TX wrapper RAM timing update.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Fix or deliberately document `RssiTxFsm` multi-word DATA buffering; the
-  opt-in known-issue regression now captures the current skipped/duplicated
-  payload behavior.
 - Extend `RssiTxFsm`/`RssiMonitor` coverage to remote busy behavior.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.

@@ -149,10 +149,9 @@ begin
          if wrBuffWe = '1' then
             mem(to_integer(unsigned(wrBuffAddr))) <= wrBuffData after TPD_G;
          end if;
+         rdBuffData <= mem(to_integer(unsigned(rdBuffAddr))) after TPD_G;
       end if;
    end process seq;
-
-   rdBuffData <= mem(to_integer(unsigned(rdBuffAddr)));
 
    -- Header generator wired as it is in RssiCore, with flattened control
    -- values that make standalone ACK/DATA/NULL/RST requests deterministic.

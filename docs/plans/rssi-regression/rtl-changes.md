@@ -1,8 +1,9 @@
-# RSSI RTL Change Log
+# RSSI RTL Changes
 
-This file records production RTL changes made while implementing the RSSI
-regression plan. Keep entries factual and update this file whenever the task
-changes files under `protocols/rssi/v1/rtl/`. Simulation-only wrappers belong in
+This file summarizes the current production RTL changes made while implementing
+the RSSI regression plan. Keep it aligned with the actual implemented RTL state,
+not as a chronological log. Update or replace entries when the production RTL
+changes under `protocols/rssi/v1/rtl/`; simulation-only wrappers belong in
 `progress.md` unless they change the intended DUT contract.
 
 ## 2026-05-22: `RssiTxFsm` Checksum Fault Injection
@@ -80,16 +81,3 @@ of stale registered flag state from a prior segment.
   suite.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
   passed as part of the focused RSSI VHDL lint run recorded in `progress.md`.
-
-## Known RTL Issues Captured By Tests
-
-### `RssiTxFsm` Multi-Word DATA Buffering
-
-The opt-in test
-`multi_word_data_preserves_payload_keep_and_resend_known_issue_test` currently
-fails when `RUN_RSSI_KNOWN_ISSUE_TESTS=1`. For a three-word application frame,
-the TX path emits payload words 2, 3, and 3 instead of words 1, 2, and 3.
-
-This is not fixed yet. The failure points at application-side buffer write
-alignment for multi-beat DATA frames. Keep this section updated when that bug is
-fixed or deliberately reclassified.
