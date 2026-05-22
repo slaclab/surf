@@ -107,6 +107,24 @@ class TB:
                 return
         raise AssertionError("Timed out waiting for closeRq_o")
 
+    async def wait_for_ack(self, cycles: int) -> None:
+        for _ in range(cycles):
+            await self.cycle()
+            if int(self.dut.sndAck_o.value) == 1:
+                return
+        raise AssertionError("Timed out waiting for sndAck_o")
+
+    async def expect_no_ack(self, cycles: int) -> None:
+        for _ in range(cycles):
+            await self.cycle()
+            assert int(self.dut.sndAck_o.value) == 0
+
+    async def pulse_ack_sent(self) -> None:
+        self.dut.ackHeadSt_i.value = 1
+        await self.cycle()
+        self.dut.ackHeadSt_i.value = 0
+        await self.cycle()
+
     async def pulse_rx_flag(self, flag_name: str) -> None:
         self._set_flag_defaults()
         getattr(self.dut, flag_name).value = 1
@@ -157,6 +175,42 @@ async def server_ack_and_busy_only_traffic_does_not_reset_null_timeout_test(dut)
             break
     else:
         raise AssertionError("ACK/BUSY-only traffic incorrectly prevented server null timeout")
+
+
+@cocotb.test()
+async def local_busy_rising_edge_requests_ack_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Local busy is advertised through the next outgoing header.  The monitor
+    # must request an ACK immediately so the header generator can carry BUSY
+    # even when no cumulative ACK threshold has been reached.
+    dut.localBusy_i.value = 1
+    await tb.wait_for_ack(cycles=2)
+    assert int(dut.sndAck_o.value) == 1
+    assert int(dut.statusReg_o.value) & (1 << 7)
+
+    await tb.pulse_ack_sent()
+    assert int(dut.sndAck_o.value) == 0
+
+
+@cocotb.test()
+async def local_busy_generates_periodic_ack_after_cumulative_timeout_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # The RSSI page recommends BUSY ACKs at Retransmission Timeout/2.  Current
+    # SURF/Rogue behavior drives the periodic request from the cumulative ACK
+    # timeout path while local BUSY remains asserted.
+    dut.paramCumulAckTout_i.value = 3
+    dut.paramRetransTout_i.value = 8
+    dut.localBusy_i.value = 1
+
+    await tb.wait_for_ack(cycles=2)
+    await tb.pulse_ack_sent()
+    await tb.expect_no_ack(cycles=2)
+    await tb.wait_for_ack(cycles=4)
+    assert int(dut.sndAck_o.value) == 1
 
 
 PARAMETER_SWEEP = [pytest.param({}, id="server_monitor")]

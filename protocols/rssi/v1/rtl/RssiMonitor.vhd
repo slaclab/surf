@@ -354,7 +354,7 @@ begin
           dataHeadSt_i = '1' or
           rstHeadSt_i = '1' or
           nullHeadSt_i = '1' or
-          (rxLastSeqN_i - r.lastAckSeqN) = 0
+          ((rxLastSeqN_i - r.lastAckSeqN) = 0 and localBusy_i = '0')
           ) then
          v.ackToutCnt := (others => '0');
       elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0 and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (localBusy_i = '1') then

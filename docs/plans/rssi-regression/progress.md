@@ -61,6 +61,11 @@
   - Updated `RssiMonitor` server null-timeout accounting so only DATA or NULL
     receipt refreshes server liveness; standalone ACK/BUSY traffic no longer
     prevents the server null timeout.
+  - Extended `tests/protocols/rssi/test_RssiMonitor.py` to cover local busy
+    rising-edge ACK requests and periodic local-busy ACK requests.
+  - Updated `RssiMonitor` ACK timeout counting so steady local BUSY can request
+    periodic ACKs after each transmitted busy ACK, even when there is no newly
+    pending cumulative ACK.
 
 ## Notes
 - Primary local spec source is now
@@ -114,6 +119,10 @@
   required by the flow-control behavior. The server null-timeout fix is scoped
   only to liveness detection, where the spec describes DATA/NULL receipt as the
   keepalive condition.
+- Periodic local-busy ACK generation remains tied to the cumulative ACK timeout
+  path, matching the existing SURF/Rogue behavior. The RSSI page recommends a
+  Retransmission Timeout/2 period, so this is now documented as a cadence
+  difference rather than left uncharacterized.
 
 ## Validation
 - 2026-05-22:
@@ -252,12 +261,27 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with five RSSI pytest wrappers after adding `RssiMonitor` coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiMonitor.py`
+  passed after adding local-busy ACK coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+  passed after the local-busy ACK counter update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed after the local-busy ACK counter update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with five RSSI pytest wrappers after the local-busy ACK counter
+  update.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Extend coverage for local busy ACK generation and periodic busy ACK behavior.
+- Decide whether the local-busy ACK cadence should remain tied to cumulative
+  ACK timeout or be changed to the RSSI page's recommended Retransmission
+  Timeout/2 period.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests
   versus immediate RTL fixes after the first failing regressions exist.

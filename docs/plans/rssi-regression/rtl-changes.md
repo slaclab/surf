@@ -38,6 +38,44 @@ keepalive traffic.
   retransmission timeout progress and verifies ACK/BUSY-only server traffic
   does not prevent null-timeout close.
 
+## 2026-05-22: `RssiMonitor` Periodic Local Busy ACK Requests
+
+File: `protocols/rssi/v1/rtl/RssiMonitor.vhd`
+
+### What Changed
+
+- Updated ACK timeout counter reset logic so local BUSY can keep the ACK
+  timeout counter running after a busy ACK has already been transmitted.
+- This lets steady local BUSY request another ACK after the cumulative ACK
+  timeout expires, even when there is no newly pending received sequence number
+  to acknowledge.
+
+### Why
+
+The RSSI BUSY flow-control behavior relies on the busy receiver periodically
+advertising BUSY so the peer transmitter keeps resetting its retransmission
+timer. Before this change, `RssiMonitor` requested an ACK on the local BUSY
+rising edge, but once that ACK was transmitted the normal "nothing pending to
+acknowledge" reset condition prevented further periodic busy ACK requests.
+
+The implemented cadence remains the existing cumulative ACK timeout path used by
+SURF/Rogue behavior. The RSSI protocol page recommends a Retransmission
+Timeout/2 period, so that cadence difference remains a review decision rather
+than an untested behavior.
+
+### Validation
+
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiMonitor.py` verifies a local BUSY rising edge
+  requests an ACK immediately and verifies steady local BUSY requests another
+  ACK after the cumulative ACK timeout path runs.
+
 ## 2026-05-22: `RssiTxFsm` Checksum Fault Injection
 
 File: `protocols/rssi/v1/rtl/RssiTxFsm.vhd`

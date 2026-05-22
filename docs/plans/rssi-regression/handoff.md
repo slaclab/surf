@@ -18,9 +18,12 @@ combinationally. The wrapper now uses a registered read path, and
 `RssiMonitor` coverage now verifies that received BUSY suppresses
 retransmission timeout progress and that ACK/BUSY-only traffic does not refresh
 server liveness. The server null-timeout RTL was updated so only DATA or NULL
-receipt resets the server null-timeout counter. The next technical work should
-continue with local busy ACK generation/periodic busy ACK behavior, EACK scope,
-or the remaining `rtl-spec-review.md` findings.
+receipt resets the server null-timeout counter. Local-busy ACK generation is
+also covered now: rising local BUSY requests an ACK immediately, and steady
+local BUSY requests periodic ACKs through the cumulative ACK timeout path. The
+next technical work should continue with the local-busy cadence decision
+against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
+the remaining `rtl-spec-review.md` findings.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -54,6 +57,9 @@ or the remaining `rtl-spec-review.md` findings.
   null-timeout RTL update.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
   passed on 2026-05-22.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
+  passed on 2026-05-22 after adding local-busy ACK coverage and the periodic
+  busy ACK counter update.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -65,8 +71,9 @@ or the remaining `rtl-spec-review.md` findings.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA flag filtering, `RssiTxFsm` checksum fault
   injection scope, and `RssiMonitor` server null-timeout liveness handling.
-- Extend `RssiMonitor` coverage to local busy ACK generation and periodic busy
-  ACK behavior.
+- Decide whether the local-busy ACK cadence should remain tied to cumulative
+  ACK timeout or be changed to the RSSI page's recommended Retransmission
+  Timeout/2 period.
 - Confirm whether EACK behavior is implemented enough to test or should remain
   explicitly out of scope.
 - Decide which remaining `rtl-spec-review.md` findings should become
