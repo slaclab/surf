@@ -27,12 +27,12 @@
     `sAxis`/`mAxis` cocotb convention and refactored the RX test to reuse
     `tests/protocols/ssi/ssi_test_utils.py` for stream drive and quiet-output
     checks.
-  - Added an opt-in known-issue test for DATA without ACK and DATA+BUSY using
-    `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
-  - Added an opt-in known-issue characterization for full `RssiRxFsm`
-    application payload delivery. The wrapper-level RAM model still does not
-    provide a trustworthy full-frame payload oracle, so the default RX FSM test
-    continues to pin accept/drop status and header fields only.
+  - Added default `RssiRxFsm` coverage for DATA without ACK and DATA+BUSY
+    drops after tightening the RTL legality check to use the current decoded
+    header flags.
+  - Fixed the `RssiRxFsmWrapper` segment RAM read timing and `TKEEP` wiring so
+    full application payload delivery is now covered by the default RX FSM
+    regression.
   - Added `protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd` with flattened
     application/transport SSI ports, a real `RssiHeaderReg` hookup, a
     deterministic checksum handshake, and a small behavioral segment RAM.
@@ -43,8 +43,8 @@
     emission, one-word DATA header/payload emission, DATA retransmit without
     sequence reallocation, ACK window release, NULL sequence consumption, and
     RST sequence consumption without buffering.
-  - Added an opt-in known-issue characterization for DATA `TKEEP` validity on
-    the `RssiTxFsm` transport output using `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+  - Fixed the `RssiTxFsmWrapper` application-side `TKEEP` wiring and promoted
+    the one-word DATA `TKEEP` check into the default TX FSM regression.
 
 ## Notes
 - Primary local spec source is now
@@ -69,25 +69,20 @@
 - `RssiHeaderReg` busy handling is tested by keeping `busyHeadSt_i` asserted as
   local status while selecting ACK/DATA/NULL/RST headers. Clearing that signal
   during header selection would not match how `RssiCore` connects local busy.
-- The first `RssiRxFsm` wrapper pins receive-side accept/drop status but does
-  not yet use application payload delivery as the oracle. The simplified
-  wrapper RAM needs exact read-latency alignment before it can prove payload
-  ordering without producing misleading expectations. Payload preservation
-  remains a Phase 2/core-wrapper item.
-- Attempting to promote payload delivery into the default `RssiRxFsm` test
-  showed the current wrapper RAM can expose stale or shifted application
-  payload data. That expectation is now captured under
-  `valid_data_payload_delivery_known_issue_test` and remains opt-in with
-  `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+- The `RssiRxFsmWrapper` segment RAM model now uses a synchronous read path to
+  match the core RAM latency closely enough for wrapper-level payload ordering
+  checks.
 - The first `RssiTxFsm` regression intentionally waits for
   `chksumStrobe_o` before driving `chksumValid_i`. Driving checksum-valid from
   reset can let the FSM sample the header path before `RssiHeaderReg` has
   produced the selected ACK header word, which hides the behavior under test.
-- The default DATA transmit test checks `TDATA`, `TLAST`, `SOF`, `EOFE`,
-  sequence consumption, retransmit sequence reuse, and ACK window release. It
-  deliberately avoids reading `TKEEP` because the opt-in
-  `one_word_data_tkeep_known_issue_test` shows `RssiTxFsm` can drive
-  non-0/1 `TKEEP` values on a valid DATA transfer.
+- The default DATA transmit test now checks `TDATA`, `TKEEP`, `TLAST`, `SOF`,
+  `EOFE`, sequence consumption, retransmit sequence reuse, and ACK window
+  release. The original non-0/1 `TKEEP` symptom came from wrapper-level
+  double-driving of the lower keep bits.
+- The `RssiTxFsm` and `RssiRxFsm` regressions now include the live RTL files in
+  `extra_vhdl_sources` with `force_compile=True` so they do not accidentally
+  validate stale imported sources under `build/SRC_VHDL`.
 
 ## Validation
 - 2026-05-22:
@@ -163,16 +158,35 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
+- 2026-05-22:
+  `/usr/bin/env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed after the TX DATA `TKEEP` fix.
+- 2026-05-22:
+  `/usr/bin/env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after the RX payload-delivery and illegal-DATA-flag fixes.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/common/regression_utils.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiRxFsm.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
+  passed with the resolved known-issue case promoted into the default TX FSM
+  suite.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed with the resolved known-issue cases promoted into the default RX FSM
+  suite.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with four RSSI pytest wrappers.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
   restored or initialized.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Decide whether to improve the `RssiRxFsmWrapper` segment RAM timing or cover
-  application payload ordering first through a core-level client/server wrapper.
-- Decide whether to fix `RssiTxFsm` DATA `TKEEP` initialization in RTL or keep
-  it documented as a hardware-profile deviation.
 - Extend `RssiTxFsm` coverage to multi-word DATA segmentation, length errors,
   remote busy behavior, and fault-injection checksum corruption.
 - Decide which `rtl-spec-review.md` findings should become expected-fail tests

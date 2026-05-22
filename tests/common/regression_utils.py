@@ -218,6 +218,7 @@ def run_surf_vhdl_test(
     extra_env: dict[str, object] | None = None,
     extra_vhdl_sources: dict[str, list[str]] | None = None,
     sim_build_key: str | None = None,
+    force_compile: bool = False,
 ) -> None:
     test_file = Path(test_file)
     simulator_env = None
@@ -239,4 +240,5 @@ def run_surf_vhdl_test(
         extra_env=simulator_env,
         simulator="ghdl",
         vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
+        force_compile=force_compile,
     )

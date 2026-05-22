@@ -22,7 +22,6 @@
 #   sampled after its registered update.
 
 import cocotb
-import os
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
@@ -66,10 +65,6 @@ def _stream_words_from_header(header: bytes) -> list[int]:
         _stream_word_from_header(header[index : index + 8])
         for index in range(0, len(header), 8)
     ]
-
-
-def _run_known_issue_tests() -> bool:
-    return os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") == "1"
 
 
 class TB:
@@ -388,8 +383,8 @@ async def one_word_data_ack_and_resend_sequence_test(dut):
     assert int(dut.bufferEmpty_o.value) == 1
 
 
-@cocotb.test(skip=not _run_known_issue_tests())
-async def one_word_data_tkeep_known_issue_test(dut):
+@cocotb.test()
+async def one_word_data_tkeep_test(dut):
     tb = await TB.create(dut)
 
     initial_seq = int(dut.txSeqN_o.value)
@@ -514,5 +509,11 @@ def test_RssiTxFsm(parameters):
         toplevel="surf.rssitxfsmwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd"]},
+        extra_vhdl_sources={
+            "surf": [
+                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
+                "protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd",
+            ],
+        },
+        force_compile=True,
     )

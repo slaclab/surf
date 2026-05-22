@@ -121,8 +121,8 @@ begin
    appSsiMaster.data(63 downto 0) <= sAxisTData;
    appSsiMaster.data(appSsiMaster.data'high downto 64) <= (others => '0');
    appSsiMaster.strb              <= (others => '1');
-   appSsiMaster.keep              <= (others => '0');
-   appSsiMaster.keep(7 downto 0)  <= sAxisTKeep;
+   appSsiMaster.keep(appSsiMaster.keep'high downto RSSI_WORD_WIDTH_C) <= (others => '0');
+   appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) <= sAxisTKeep;
    appSsiMaster.dest              <= (others => '0');
    appSsiMaster.packed            <= '0';
    appSsiMaster.sof               <= sAxisSof;

@@ -96,7 +96,7 @@ architecture mapping of RssiRxFsmWrapper is
    signal wrBuffAddr   : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
    signal wrBuffData   : slv(63 downto 0);
    signal rdBuffAddr   : slv((SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G)-1 downto 0);
-   signal rdBuffData   : slv(63 downto 0);
+   signal rdBuffData   : slv(63 downto 0) := (others => '0');
 
 begin
 
@@ -105,8 +105,8 @@ begin
    tspSsiMaster.data(63 downto 0) <= sAxisTData;
    tspSsiMaster.data(tspSsiMaster.data'high downto 64) <= (others => '0');
    tspSsiMaster.strb              <= (others => '1');
-   tspSsiMaster.keep              <= (others => '0');
-   tspSsiMaster.keep(7 downto 0)  <= sAxisTKeep;
+   tspSsiMaster.keep(tspSsiMaster.keep'high downto RSSI_WORD_WIDTH_C) <= (others => '0');
+   tspSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) <= sAxisTKeep;
    tspSsiMaster.dest              <= (others => '0');
    tspSsiMaster.packed            <= '0';
    tspSsiMaster.sof               <= sAxisSof;
@@ -127,19 +127,16 @@ begin
    appSsiSlave.overflow <= '0';
 
    -- Small behavioral RAM that represents the segment buffer attached to
-   -- `RssiRxFsm` in `RssiCore`.  Writes remain clocked, while the read side is
-   -- asynchronous so the wrapper tests RX FSM behavior without adding another
-   -- registered RAM latency to the application stream.
+   -- `RssiRxFsm` in `RssiCore`.
    seq : process (axisClk) is
    begin
       if rising_edge(axisClk) then
          if wrBuffWe = '1' then
             mem(to_integer(unsigned(wrBuffAddr))) <= wrBuffData after TPD_G;
          end if;
+         rdBuffData <= mem(to_integer(unsigned(rdBuffAddr))) after TPD_G;
       end if;
    end process seq;
-
-   rdBuffData <= mem(to_integer(unsigned(rdBuffAddr)));
 
    -- Real DUT hookup.
    U_DUT : entity surf.RssiRxFsm

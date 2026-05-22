@@ -19,8 +19,6 @@
 # - Timing: Transport input waits for sampled ready before changing beats, and
 #   all status checks wait past the default `TPD_G` output delay.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import Timer
@@ -38,9 +36,6 @@ from tests.protocols.ssi.ssi_test_utils import (
     setup_flat_ssi_testbench,
     SsiBeat,
 )
-
-
-RUN_KNOWN_ISSUE_TESTS = os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") == "1"
 
 
 class TB:
@@ -193,8 +188,8 @@ async def checksum_failure_drops_without_application_output_test(dut):
     await tb.expect_no_app_output()
 
 
-@cocotb.test(skip=not RUN_KNOWN_ISSUE_TESTS)
-async def valid_data_payload_delivery_known_issue_test(dut):
+@cocotb.test()
+async def valid_data_payload_delivery_test(dut):
     tb = await TB.create(dut)
 
     payload = 0x8877_6655_4433_2211
@@ -206,9 +201,6 @@ async def valid_data_payload_delivery_known_issue_test(dut):
     )
     await tb.wait_status_pulse("rxValidSeg_o")
 
-    # Characterization item: the current RX module wrapper does not yet model
-    # the core segment RAM timing closely enough to use full application
-    # payload delivery as the default oracle.
     await recv_frame_and_check(
         tb.sink,
         clk=tb.clk,
@@ -221,14 +213,13 @@ async def valid_data_payload_delivery_known_issue_test(dut):
     )
 
 
-@cocotb.test(skip=not RUN_KNOWN_ISSUE_TESTS)
+@cocotb.test()
 async def illegal_data_flag_combinations_drop_test(dut):
     tb = await TB.create(dut)
 
-    # Spec-shaped expectation from the regression plan: DATA must carry ACK and
-    # must not be combined with BUSY.  This is opt-in while the current RTL
-    # behavior is being characterized.
+    # DATA must carry ACK and must not be combined with BUSY.
     for ack, busy in ((False, False), (True, True)):
+        drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
         await tb.send_data_segment(
             sequence=1,
             acknowledge=0,
@@ -236,7 +227,7 @@ async def illegal_data_flag_combinations_drop_test(dut):
             ack=ack,
             busy=busy,
         )
-        await tb.wait_status_pulse("rxDropSeg_o")
+        await drop_wait
         await tb.expect_no_app_output()
 
 
@@ -250,5 +241,11 @@ def test_RssiRxFsm(parameters):
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd"]},
+        extra_vhdl_sources={
+            "surf": [
+                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
+                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
+            ],
+        },
+        force_compile=True,
     )
