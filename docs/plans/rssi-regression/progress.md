@@ -72,6 +72,11 @@
   - Updated `RssiRxFsm` SYN handling so invalid SYN frames do not refresh the
     visible peer parameters and so a valid SYN must end cleanly at the expected
     parameter word.
+  - Added `RssiRxFsm` coverage for the SURF RSSI hardware profile's
+    out-of-order DATA behavior: an out-of-order DATA segment is dropped without
+    application output, and the missing in-order retransmit is accepted.
+  - Extended `RssiRxFsm` illegal DATA coverage to DATA+EACK and updated the RTL
+    to drop unsupported non-SYN EACK segments explicitly.
 
 ## Notes
 - Primary local spec source is now
@@ -296,6 +301,28 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with five RSSI pytest wrappers after the RX SYN filtering update.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding RX out-of-order DATA characterization.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding RX out-of-order DATA characterization.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with five RSSI pytest wrappers after adding RX out-of-order DATA
+  characterization.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding DATA+EACK drop coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+  passed after the non-SYN EACK drop update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after the non-SYN EACK drop update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with five RSSI pytest wrappers after the non-SYN EACK drop update.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are

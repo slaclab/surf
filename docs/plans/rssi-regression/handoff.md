@@ -25,7 +25,10 @@ RX SYN coverage now verifies valid SYN parameter capture, rejects illegal
 SYN+EACK/BUSY/RST/NULL flag combinations, and rejects SYN frames that continue
 past the expected parameter word. `RssiRxFsm` stages SYN parameters until the
 whole SYN is accepted, so malformed late-drop SYN frames do not update
-`rxParam_o`.
+`rxParam_o`. RX out-of-order DATA behavior is now characterized for the SURF
+hardware profile: out-of-order DATA drops without application output, and the
+missing in-order retransmit is accepted. Unsupported non-SYN EACK segments now
+drop explicitly through the RX header-screen path.
 The next technical work should continue with the local-busy cadence decision
 against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
 the remaining `rtl-spec-review.md` findings.
@@ -70,22 +73,29 @@ the remaining `rtl-spec-review.md` findings.
   parameter staging.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
   passed on 2026-05-22 after the RX SYN filtering update.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-22 after adding RX out-of-order DATA characterization.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-22 after adding DATA+EACK drop coverage and the explicit
+  non-SYN EACK drop update.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
 ## Current Attention Areas
-- SURF RTL should be tested for out-of-order drop/retransmission recovery, not
-  Rogue software out-of-order queue behavior.
+- SURF RTL out-of-order drop/retransmission recovery is now covered at the
+  `RssiRxFsm` level; do not add tests that require Rogue software's
+  out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, and `RssiMonitor`.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
-  `RssiRxFsm` illegal DATA flag filtering and SYN filtering/parameter staging,
-  `RssiTxFsm` checksum fault injection scope, and `RssiMonitor` server
-  null-timeout liveness handling.
+  `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
+  staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`
+  server null-timeout liveness handling.
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
-- Confirm whether EACK behavior is implemented enough to test or should remain
-  explicitly out of scope.
+- Keep EACK-specific behavior out of scope except for explicit rejection;
+  SURF/Rogue RSSI does not implement EACK/out-of-sequence acknowledgment
+  handling.
 - Decide which remaining `rtl-spec-review.md` findings should become
   expected-fail tests versus immediate RTL fixes.

@@ -133,6 +133,9 @@ File: `protocols/rssi/v1/rtl/RssiRxFsm.vhd`
 
 - Tightened receive-side DATA legality checking to use the current decoded
   header flags when deciding whether a transport frame is valid DATA.
+- Changed non-SYN EACK handling from "do not enter the validation path" to an
+  explicit validation failure, so unsupported EACK segments drop instead of
+  leaving the RX FSM waiting for a decision.
 
 ### Why
 
@@ -144,13 +147,17 @@ that must be dropped without application delivery.
 Using the current decoded flags avoids accepting an illegal DATA frame because
 of stale registered flag state from a prior segment.
 
+The SURF/Rogue RSSI hardware profile omits EACK support. Unsupported EACK
+segments should be rejected explicitly rather than stalling in the receive
+header screen.
+
 ### Validation
 
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
-  passed with DATA-without-ACK and DATA-plus-BUSY checks in the default RX FSM
-  suite.
+  passed with DATA-without-ACK, DATA-plus-BUSY, and DATA-plus-EACK checks in
+  the default RX FSM suite.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd`
-  passed as part of the focused RSSI VHDL lint run recorded in `progress.md`.
+  passed.
 
 ## 2026-05-22: `RssiRxFsm` SYN Filtering And Parameter Staging
 

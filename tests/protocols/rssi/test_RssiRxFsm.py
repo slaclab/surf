@@ -106,15 +106,19 @@ class TB:
         payload_words: list[int],
         ack: bool = True,
         busy: bool = False,
+        extra_flags: int = 0,
         checksum_ok: bool = True,
     ) -> None:
-        header = build_data_header(
-            sequence=sequence,
-            acknowledge=acknowledge,
-            ack=ack,
-            busy=busy,
-            enable_checksum=False,
+        header = bytearray(
+            build_data_header(
+                sequence=sequence,
+                acknowledge=acknowledge,
+                ack=ack,
+                busy=busy,
+                enable_checksum=False,
+            )
         )
+        header[0] |= extra_flags
         header_word = stream_word_from_header_word(header_words(header)[0])
 
         # `RssiRxFsm` receives checksum status from the core-level checksum
@@ -218,13 +222,22 @@ async def valid_in_order_data_segment_is_accepted_test(dut):
     await tb.wait_status_pulse("rxValidSeg_o")
 
     # The RX FSM records the accepted RSSI header fields when the header screen
-    # and sequence-window checks pass.  Full payload ordering is left to the
-    # later integration wrapper because it depends on matching the core's RAM
-    # read latency exactly.
+    # and sequence-window checks pass.
     assert int(dut.rxSeqN_o.value) == 1
     assert int(dut.rxAckN_o.value) == 0
     assert int(dut.rxFlagAck_o.value) == 1
     assert int(dut.rxFlagData_o.value) == 1
+
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.clk,
+        ready_signal=dut.mAxisTReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[
+            (payload, 0xFF, 0, 1, 0),
+            (tail_payload, 0xFF, 1, 0, 0),
+        ],
+    )
 
 
 @cocotb.test()
@@ -270,8 +283,12 @@ async def valid_data_payload_delivery_test(dut):
 async def illegal_data_flag_combinations_drop_test(dut):
     tb = await TB.create(dut)
 
-    # DATA must carry ACK and must not be combined with BUSY.
-    for ack, busy in ((False, False), (True, True)):
+    # DATA must carry ACK and must not be combined with BUSY or unsupported EACK.
+    for ack, busy, extra_flags in (
+        (False, False, 0),
+        (True, True, 0),
+        (True, False, RSSI_FLAG_EACK),
+    ):
         drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
         await tb.send_data_segment(
             sequence=1,
@@ -279,6 +296,7 @@ async def illegal_data_flag_combinations_drop_test(dut):
             payload_words=[0x0102_0304_0506_0708],
             ack=ack,
             busy=busy,
+            extra_flags=extra_flags,
         )
         await drop_wait
         await tb.expect_no_app_output()
@@ -337,6 +355,33 @@ async def syn_with_extra_payload_drops_test(dut):
     assert int(dut.rxValidSeg_o.value) == 0
     assert int(dut.paramConnId_o.value) == 0
     await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def out_of_order_data_drops_then_in_order_retransmit_accepts_test(dut):
+    tb = await TB.create(dut)
+
+    out_of_order_payload = 0x2222_2222_2222_2222
+    in_order_payload = 0x1111_1111_1111_1111
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_data_segment(
+        sequence=2,
+        acknowledge=0,
+        payload_words=[out_of_order_payload],
+    )
+    await drop_wait
+    assert int(dut.rxValidSeg_o.value) == 0
+    assert int(dut.rxSeqN_o.value) == 2
+    await tb.expect_no_app_output()
+
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[in_order_payload],
+    )
+    await tb.wait_status_pulse("rxValidSeg_o")
+    assert int(dut.rxSeqN_o.value) == 1
 
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]

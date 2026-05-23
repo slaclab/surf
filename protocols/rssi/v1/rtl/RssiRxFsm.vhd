@@ -397,12 +397,14 @@ begin
                end if;
 
             -- Segment is ACK, DATA, RST, or NULL
-            elsif (v.rxF.syn = '0' and v.rxF.eack = '0' and chksumValid_i = '1') then  --
+            elsif (v.rxF.syn = '0' and chksumValid_i = '1') then  --
 
                -- Check header
                if (
                   -- Checksum
                   s_chksumOk = '1' and
+                  -- EACK is not supported by this RSSI profile
+                  v.rxF.eack = '0' and
                   -- Check length
                   r.rxHeadLen = toSlv(8, 8) and
                   -- Check SeqN range
