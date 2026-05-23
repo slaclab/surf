@@ -34,10 +34,13 @@ handling, max outstanding/segment-size clamp behavior, and client RST rejection
 of mismatched server parameters. It also covers server/client SYN retry followed
 by peer-timeout close behavior; the RTL timeout counter now saturates at the
 retry threshold so simulation does not overflow the constrained counter range
-while waiting to retransmit or close.
-The next technical work should continue with the local-busy cadence decision
-against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
-the remaining `rtl-spec-review.md` findings.
+while waiting to retransmit or close. `RssiAxiLiteRegItf` now has register
+boundary coverage for reset defaults, writable parameter readback,
+max-segment-size clamping, negotiated/status/counter/state/sequence readback,
+and AXI-Lite `DECERR` propagation through the test wrapper.
+The next technical work should move into `RssiCore` integration coverage, while
+keeping the local-busy cadence decision against the RSSI page's Retransmission
+Timeout/2 recommendation and EACK scope as explicit review items.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -97,6 +100,15 @@ the remaining `rtl-spec-review.md` findings.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-22 with seven RSSI pytest wrappers/parameter sweeps after the
   `RssiConnFsm` retry timeout update.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiAxiLiteRegItf.py`
+  passed on 2026-05-22 after adding AXI-Lite register-interface coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiAxiLiteRegItfWrapper.vhd`
+  passed on 2026-05-22 after adding the AXI-Lite wrapper.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py`
+  passed on 2026-05-22.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-22 with eight RSSI pytest wrappers/parameter sweeps after adding
+  `RssiAxiLiteRegItf` coverage.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -105,7 +117,10 @@ the remaining `rtl-spec-review.md` findings.
   `RssiRxFsm` level; do not add tests that require Rogue software's
   out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
-  `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, and `RssiConnFsm`.
+  `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`, and
+  `RssiAxiLiteRegItf`.
+- The next implementation slice should start `RssiCore` integrated
+  client/server coverage rather than adding more leaf-only tests by default.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`

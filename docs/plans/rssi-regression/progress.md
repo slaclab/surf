@@ -88,6 +88,12 @@
   - Updated `RssiConnFsm` retry timeout counting so the counter saturates at
     the retransmission threshold before the retry/peer-timeout decision,
     avoiding a range overflow in the wait-for-SYN and wait-for-ACK states.
+  - Added `protocols/rssi/v1/wrappers/RssiAxiLiteRegItfWrapper.vhd` with a
+    standard AXI-Lite shim and flattened RSSI parameter/status ports.
+  - Added `tests/protocols/rssi/test_RssiAxiLiteRegItf.py` covering reset
+    defaults, writable parameter readback, max-segment-size clamping,
+    negotiated/status/counter/state/sequence readback, and unmapped/unaligned
+    `DECERR` responses.
 
 ## Notes
 - Primary local spec source is now
@@ -154,6 +160,9 @@
   close pulse and then the retransmit request, and deassert `connRq_i` before
   the final peer timeout so active-open does not immediately restart from
   `CLOSED_S`.
+- `RssiAxiLiteRegItfWrapper` enables `SlaveAxiLiteIpIntegrator` error response
+  propagation with `EN_ERROR_RESP => true`; otherwise the shim masks register
+  block `DECERR` responses as AXI OKAY and hides the behavior under test.
 
 ## Validation
 - 2026-05-22:
@@ -365,6 +374,19 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with seven RSSI pytest wrappers/parameter sweeps after the
   `RssiConnFsm` retry timeout update.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiAxiLiteRegItf.py`
+  passed after adding AXI-Lite register-interface coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiAxiLiteRegItfWrapper.vhd`
+  passed after adding the AXI-Lite wrapper.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py`
+  passed.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with eight RSSI pytest wrappers/parameter sweeps after adding
+  `RssiAxiLiteRegItf` coverage.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
@@ -374,5 +396,7 @@
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
+- Continue from `RssiCore` integration coverage now that the focused leaf FSM
+  and AXI-Lite register-interface slices have default green coverage.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.
