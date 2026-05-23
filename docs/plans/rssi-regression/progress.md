@@ -77,6 +77,12 @@
     application output, and the missing in-order retransmit is accepted.
   - Extended `RssiRxFsm` illegal DATA coverage to DATA+EACK and updated the RTL
     to drop unsupported non-SYN EACK segments explicitly.
+  - Added `protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd` with flattened
+    RSSI parameter and flag records.
+  - Added `tests/protocols/rssi/test_RssiConnFsm.py` covering server SYN
+    acceptance/open, server proposal of local required parameters on mismatch,
+    client SYN+ACK acceptance with clamp behavior, and client rejection of
+    mismatched server parameters with RST.
 
 ## Notes
 - Primary local spec source is now
@@ -323,6 +329,19 @@
 - 2026-05-22:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with five RSSI pytest wrappers after the non-SYN EACK drop update.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiConnFsm.py`
+  passed after adding connection FSM coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd`
+  passed after adding the connection FSM wrapper.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed with server and client sweeps.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with seven RSSI pytest wrappers/parameter sweeps after adding
+  `RssiConnFsm` coverage.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are

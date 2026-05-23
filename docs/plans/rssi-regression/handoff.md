@@ -28,7 +28,10 @@ whole SYN is accepted, so malformed late-drop SYN frames do not update
 `rxParam_o`. RX out-of-order DATA behavior is now characterized for the SURF
 hardware profile: out-of-order DATA drops without application output, and the
 missing in-order retransmit is accepted. Unsupported non-SYN EACK segments now
-drop explicitly through the RX header-screen path.
+drop explicitly through the RX header-screen path. `RssiConnFsm` now has
+server/client leaf coverage for SYN acceptance, required-parameter mismatch
+handling, max outstanding/segment-size clamp behavior, and client RST rejection
+of mismatched server parameters.
 The next technical work should continue with the local-busy cadence decision
 against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
 the remaining `rtl-spec-review.md` findings.
@@ -78,6 +81,10 @@ the remaining `rtl-spec-review.md` findings.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
   passed on 2026-05-22 after adding DATA+EACK drop coverage and the explicit
   non-SYN EACK drop update.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed on 2026-05-22 with server and client parameter-negotiation sweeps.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd`
+  passed on 2026-05-22.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -86,7 +93,7 @@ the remaining `rtl-spec-review.md` findings.
   `RssiRxFsm` level; do not add tests that require Rogue software's
   out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
-  `RssiRxFsm`, `RssiTxFsm`, and `RssiMonitor`.
+  `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, and `RssiConnFsm`.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`
