@@ -17,7 +17,8 @@
 #   size, bidirectional application payloads are delivered with SSI sideband
 #   fields preserved, dropped and corrupted client DATA frames are recovered by
 #   retransmission, client NULL keepalive traffic keeps the idle server
-#   connected, and an explicit close request tears the link down.
+#   connected, missing client keepalives close the server, and an explicit close
+#   request tears the link down.
 # - Timing: Small timeout generics keep connection, ACK, and NULL behavior
 #   cycle-bounded while preserving the relative RSSI timeout relationships.
 
@@ -402,6 +403,21 @@ async def idle_client_null_keepalive_keeps_server_connected_test(dut):
     assert int(dut.cltConnected_o.value) == 1
     assert int(dut.srvConnected_o.value) == 1
     assert (int(dut.srvStatusReg_o.value) >> 2) & 0x1 == 0
+
+
+@cocotb.test()
+async def missing_client_keepalives_close_server_connection_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    dut.cltDropTsp_i.value = 1
+    await tb.cycle(96)
+    dut.cltDropTsp_i.value = 0
+
+    assert int(dut.srvConnected_o.value) == 0
+    assert (int(dut.srvStatusReg_o.value) >> 2) & 0x1 == 1
 
 
 @cocotb.test()

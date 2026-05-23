@@ -45,20 +45,24 @@ directly connected transport streams and passive transport monitor outputs.
 Default `test_RssiCore.py` coverage now checks active-open connection status,
 negotiated max-segment-size readback, bidirectional application payload
 delivery with transport monitor checks, idle client NULL keepalive preserving
-the server connection, explicit client close, and one dropped client DATA frame
-recovering through retransmission with the same sequence number and payload.
+the server connection, missing client keepalives closing the server with the
+null-timeout status bit set, explicit client close, and dropped/corrupted
+client DATA frames recovering through retransmission with the same sequence
+number and payload.
 The latest Phase 3 RTL fixes are in `RssiRxFsm`: DATA EOF segment length now
 uses the incremented next segment address, app output waits one registered RAM
 read cycle before using the first payload word, and duplicate DATA is dropped
 before entering the payload-buffering state. The next technical work should add
-Phase 3 perturbation coverage for corruption, reorder/drop, additional
-retransmission/counter visibility, or busy behavior. Keep the local-busy
-cadence decision against the RSSI page's Retransmission Timeout/2
-recommendation and EACK scope as explicit review items. Also triage the
-additional zero-valued server application frame observed during a longer
-post-retransmission collection window; it may belong to integrated NULL
-keepalive or output-FIFO reset/release behavior and is not yet a default
-failure.
+Phase 3 perturbation coverage for reorder/drop, additional
+retransmission/counter visibility, or busy behavior. Keep the local-busy cadence
+decision against the RSSI page's Retransmission Timeout/2 recommendation and
+EACK scope as explicit review items. Also triage the additional zero-valued
+server application frame observed during a longer post-retransmission
+collection window; it may belong to integrated NULL keepalive or
+output-FIFO reset/release behavior and is not yet a default failure. A first
+integrated busy-flow attempt using stalled server application output produced
+ordinary ACK/RST/reconnect traffic without a BUSY ACK, so integrated BUSY
+coverage still needs a focused stimulus or RTL decision.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -182,6 +186,15 @@ failure.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-23 with nine RSSI pytest wrappers/parameter sweeps after adding the
   integrated DATA loss/retransmission slice.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23 after adding integrated missing-client-keepalive close
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23 after adding integrated missing-client-keepalive close
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on 2026-05-23
+  with nine RSSI pytest wrappers/parameter sweeps after adding integrated
+  missing-client-keepalive close coverage.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -190,7 +203,7 @@ failure.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`,
   `RssiAxiLiteRegItf`, and the current `RssiCore`
-  connection/payload/retransmission/keepalive/close slice.
+  connection/payload/retransmission/keepalive/missing-keepalive/close slice.
 - The next implementation slice should extend integrated `RssiCore` coverage
   with perturbations such as corruption, reorder/drop, additional
   retransmission/counter visibility, or busy behavior.

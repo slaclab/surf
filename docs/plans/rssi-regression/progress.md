@@ -138,6 +138,10 @@
     checksum fault injection on a client DATA frame, observe a retransmit with
     the same RSSI sequence number and payload, and recover the server
     application payload.
+  - Extended `tests/protocols/rssi/test_RssiCore.py` to hold the
+    client-to-server transport drop gate active across the client NULL
+    keepalive interval and verify the server closes with the null-timeout
+    status bit set.
 
 ## Notes
 - Primary local spec source is now
@@ -217,6 +221,11 @@
   keeps observing past the first recovery. The current default `RssiCore`
   regression verifies recovery and leaves the duplicate/extra-output behavior
   as a separate triage item.
+- A first integrated busy-flow attempt stalled the server application output
+  and sent repeated client DATA frames, but the observed server transport
+  traffic remained ordinary ACK/RST/reconnect traffic without a BUSY ACK. Keep
+  integrated BUSY characterization as a separate triage item rather than a
+  default test until the correct production stimulus or RTL behavior is clear.
 
 ## Validation
 - 2026-05-22:
@@ -246,6 +255,16 @@
 - 2026-05-23:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
+- 2026-05-23:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed after adding integrated missing-keepalive close coverage.
+- 2026-05-23:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed after adding integrated missing-keepalive close coverage.
+- 2026-05-23:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed with nine
+  RSSI pytest wrappers/parameter sweeps after adding integrated
+  missing-keepalive close coverage.
 - 2026-05-22:
   `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
   passed after expanding TX FSM coverage.
