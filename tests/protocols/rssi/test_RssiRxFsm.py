@@ -30,6 +30,7 @@ from tests.protocols.rssi.rssi_test_utils import (
     RSSI_FLAG_EACK,
     RSSI_FLAG_NULL,
     RSSI_FLAG_RST,
+    build_null_header,
     build_data_header,
     build_syn_header,
     header_words,
@@ -143,6 +144,25 @@ class TB:
                 last=int(index == len(payload_words) - 1),
             )
 
+    async def send_single_word_header(
+        self,
+        header: bytes,
+        *,
+        checksum_ok: bool = True,
+        eofe: int = 0,
+    ) -> None:
+        # Non-DATA control segments are one RSSI header word.  The receive FSM
+        # still waits for the core checksum result before accepting or dropping
+        # the segment.
+        header_word = stream_word_from_header_word(header_words(header)[0])
+        self.dut.chksumValid_i.value = 0
+        self.dut.chksumOk_i.value = int(checksum_ok)
+
+        await self.send_transport_word(data=header_word, sof=1, last=1, eofe=eofe)
+        self.dut.chksumValid_i.value = 1
+        await self.cycle()
+        self.dut.chksumValid_i.value = 0
+
     async def send_syn_segment(
         self,
         *,
@@ -255,6 +275,23 @@ async def checksum_failure_drops_without_application_output_test(dut):
 
 
 @cocotb.test()
+async def null_segment_is_accepted_without_application_output_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.send_single_word_header(
+        build_null_header(sequence=1, acknowledge=0, enable_checksum=False)
+    )
+    await tb.wait_status_pulse("rxValidSeg_o")
+
+    assert int(dut.rxSeqN_o.value) == 1
+    assert int(dut.rxAckN_o.value) == 0
+    assert int(dut.rxFlagAck_o.value) == 1
+    assert int(dut.rxFlagNull_o.value) == 1
+    assert int(dut.rxFlagData_o.value) == 0
+    await tb.expect_no_app_output()
+
+
+@cocotb.test()
 async def valid_data_payload_delivery_test(dut):
     tb = await TB.create(dut)
 
@@ -300,6 +337,29 @@ async def illegal_data_flag_combinations_drop_test(dut):
         )
         await drop_wait
         await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def malformed_header_and_ack_window_violations_drop_test(dut):
+    tb = await TB.create(dut)
+
+    malformed_header = bytearray(
+        build_null_header(sequence=1, acknowledge=0, enable_checksum=False)
+    )
+    malformed_header[1] = 9
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_single_word_header(bytes(malformed_header))
+    await drop_wait
+    await tb.expect_no_app_output()
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=5,
+        payload_words=[0x0102_0304_0506_0708],
+    )
+    await drop_wait
+    await tb.expect_no_app_output()
 
 
 @cocotb.test()

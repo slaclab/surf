@@ -6,8 +6,9 @@ protocol compliance for the SURF/Rogue RSSI profile.
 
 ## Resume Point
 Read `progress.md`, `rtl-changes.md`, `plan.md`, `rtl-spec-review.md`, and
-`references/README.md` first. Phase 1 is complete and Phase 2 leaf-FSM coverage
-is in progress.
+`references/README.md` first. Phase 1 and Phase 2 are complete. The next
+technical work should start Phase 3 `RssiCore` integrated client/server
+coverage.
 
 The previous `RssiTxFsm` multi-word DATA known issue has been resolved as a
 test-wrapper memory-model mismatch. `RssiCore` uses registered-read RAMs for
@@ -109,6 +110,15 @@ Timeout/2 recommendation and EACK scope as explicit review items.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-22 with eight RSSI pytest wrappers/parameter sweeps after adding
   `RssiAxiLiteRegItf` coverage.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-22 after adding final Phase 2 RX control/header-drop
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-22 after adding final Phase 2 RX control/header-drop
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-22 with eight RSSI pytest wrappers/parameter sweeps after closing
+  Phase 2.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -119,8 +129,8 @@ Timeout/2 recommendation and EACK scope as explicit review items.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`, and
   `RssiAxiLiteRegItf`.
-- The next implementation slice should start `RssiCore` integrated
-  client/server coverage rather than adding more leaf-only tests by default.
+- The next implementation slice is Phase 3 `RssiCore` integrated client/server
+  coverage rather than adding more leaf-only tests by default.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`

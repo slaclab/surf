@@ -19,7 +19,7 @@
     handles.
   - Updated `protocols/rssi/v1/ruckus.tcl` to include the wrapper directory as
     simulation-only VHDL.
-- Phase 2 implementation has started:
+- Phase 2 implementation is complete:
   - Added `protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd` with flattened
     transport/application SSI ports and a small behavioral segment buffer.
   - Added `tests/protocols/rssi/test_RssiRxFsm.py` covering in-order DATA
@@ -94,6 +94,9 @@
     defaults, writable parameter readback, max-segment-size clamping,
     negotiated/status/counter/state/sequence readback, and unmapped/unaligned
     `DECERR` responses.
+  - Extended `tests/protocols/rssi/test_RssiRxFsm.py` to cover received NULL
+    acceptance without application payload, malformed non-SYN header drops, and
+    ACK-window violation drops.
 
 ## Notes
 - Primary local spec source is now
@@ -387,6 +390,16 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with eight RSSI pytest wrappers/parameter sweeps after adding
   `RssiAxiLiteRegItf` coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding the final Phase 2 RX control/header-drop coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding the final Phase 2 RX control/header-drop coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with eight RSSI pytest wrappers/parameter sweeps after closing the
+  Phase 2 leaf-FSM/control coverage.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are
@@ -396,7 +409,8 @@
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
-- Continue from `RssiCore` integration coverage now that the focused leaf FSM
-  and AXI-Lite register-interface slices have default green coverage.
+- Continue with Phase 3 `RssiCore` integration coverage now that the focused
+  leaf FSM/control and AXI-Lite register-interface slices have default green
+  coverage.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.
