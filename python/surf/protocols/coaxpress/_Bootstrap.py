@@ -673,6 +673,8 @@ class Bootstrap(pr.Device):
 
         Some devices implicitly negotiate after ConnectionReset, so we check
         the read-back first and only write if the version doesn't match.
+        If the write fails (some cameras don't ACK), fall back to whatever
+        version the camera already reports.
         """
         revision = self.Revision.value()
 
@@ -684,7 +686,10 @@ class Bootstrap(pr.Device):
         for value, bit_name, _ in self._HOST_VERSION_BITS:
             if getattr(self, bit_name).value():
                 if current != value:
-                    self.VersionUsedCmd.set(value)
+                    try:
+                        self.VersionUsedCmd.set(value)
+                    except Exception:
+                        return current
                 return value
 
         raise RuntimeError(
@@ -721,10 +726,6 @@ class Bootstrap(pr.Device):
                 "Try power cycling the camera and verifying all connections before restarting the software."
             ) from e
 
-        # Some cameras don't ACK control writes (treating them as fire-and-forget).
-        # Suppress CXP timeout errors for the discovery write phase.
-        self.CoaXPressAxiL.ConfigErrResp.set(0)
-
         # Negotiate the CXP protocol version before using later bootstrap
         # writes. CXP v1.x stays on the reset default; v2.x switches to tags.
         version_used = self._negotiateVersionUsed()
@@ -733,7 +734,10 @@ class Bootstrap(pr.Device):
         # The Host shall read the ConnectionConfigDefault register to find the required bit rate
         # and number of connections operating at this bit rate
         ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
-        self.ConnectionConfig.set(ConnectionConfigDefault)
+        try:
+            self.ConnectionConfig.set(ConnectionConfigDefault)
+        except Exception:
+            pass
 
         # If the new high speed connection bit rate requires a change in low speed connection bit rate,
         # it shall also change the low speed upconnection speed to the value defined in Table 6.
@@ -742,10 +746,10 @@ class Bootstrap(pr.Device):
             self.CoaXPressAxiL.TxLsRate.set(1)
 
         # Setup for 4KB packets
-        self.StreamPacketSizeMax.set(4096)
-
-        # Restore error reporting before the final read validation
-        self.CoaXPressAxiL.ConfigErrResp.set(1)
+        try:
+            self.StreamPacketSizeMax.set(4096)
+        except Exception:
+            pass
 
         # After it is sending a stable low speed upconnection at the defined rate the Host
         # shall wait 200ms to allow the Device to complete connection re-configuration.
