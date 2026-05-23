@@ -40,7 +40,7 @@ entity RssiConnFsm is
       --
       WINDOW_ADDR_SIZE_G  : positive := 3;
       SEGMENT_ADDR_SIZE_G : positive := 7  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -95,10 +95,11 @@ entity RssiConnFsm is
       -- Status signals
       peerTout_o    : out sl;
       paramReject_o : out sl
-      );
+   );
 end entity RssiConnFsm;
 
 architecture rtl of RssiConnFsm is
+
    --
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    --
@@ -112,7 +113,7 @@ architecture rtl of RssiConnFsm is
       WAIT_ACK_S,
       SEND_RST_S,
       OPEN_S
-      );
+   );
 
    type RegType is record
       connActive  : sl;
@@ -136,7 +137,6 @@ architecture rtl of RssiConnFsm is
       ---
       state     : StateType;
       connState : slv(3 downto 0);
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -234,7 +234,9 @@ begin
             v.sndAck      := '0';
             v.sndRst      := '0';
             v.txAckF      := '0';
-            v.timeoutCntr := r.timeoutCntr + 1;
+            if (r.timeoutCntr /= RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               v.timeoutCntr := r.timeoutCntr + 1;
+            end if;
             --
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
@@ -398,7 +400,9 @@ begin
             v.txAckF      := '0';
             v.paramReject := '0';
             --
-            v.timeoutCntr := r.timeoutCntr+1;
+            if (r.timeoutCntr /= RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               v.timeoutCntr := r.timeoutCntr + 1;
+            end if;
 
             --
             v.rssiParam := r.rssiParam;
@@ -507,5 +511,7 @@ begin
    connState_o    <= r.connState;
    peerTout_o     <= r.peerTout;
    paramReject_o  <= r.paramReject;
+
 ---------------------------------------------------------------------
+
 end architecture rtl;

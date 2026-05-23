@@ -139,6 +139,16 @@ class TB:
                 return
         raise AssertionError(f"Timed out waiting for {signal_name}")
 
+    async def wait_state(self, expected: int, *, cycles: int = 16) -> None:
+        await Timer(1, unit="ns")
+        if int(self.dut.connState_o.value) == expected:
+            return
+        for _ in range(cycles):
+            await self.cycle()
+            if int(self.dut.connState_o.value) == expected:
+                return
+        raise AssertionError(f"Timed out waiting for connState_o={expected:#x}")
+
 
 def server_mode() -> bool:
     return os.environ.get("SERVER_G", "true").lower() == "true"
@@ -209,6 +219,34 @@ async def server_proposes_local_required_parameters_on_mismatch_test(dut):
 
 
 @cocotb.test()
+async def server_retries_syn_ack_then_times_out_waiting_for_ack_test(dut):
+    if not server_mode():
+        return
+
+    tb = await TB.create(dut)
+    tb.dut.connRq_i.value = 1
+    await tb.cycle()
+
+    await tb.receive_segment(syn=1)
+    await tb.wait_high("sndSyn_o")
+    await tb.pulse("synHeadSt_i")
+    await tb.wait_state(0x6)
+
+    await tb.wait_high("closed_o", cycles=10)
+    assert int(dut.peerTout_o.value) == 0
+    await tb.wait_high("sndSyn_o", cycles=4)
+
+    await tb.pulse("synHeadSt_i")
+    tb.dut.connRq_i.value = 0
+    await tb.wait_state(0x6)
+    await tb.wait_high("peerTout_o", cycles=10)
+    await tb.cycle()
+
+    assert int(dut.connActive_o.value) == 0
+    assert int(dut.closed_o.value) == 1
+
+
+@cocotb.test()
 async def client_accepts_syn_ack_clamps_and_opens_test(dut):
     if server_mode():
         return
@@ -260,6 +298,31 @@ async def client_rejects_mismatched_syn_ack_with_rst_test(dut):
     await tb.wait_high("closed_o")
 
     assert int(dut.connActive_o.value) == 0
+
+
+@cocotb.test()
+async def client_retries_syn_then_times_out_waiting_for_syn_ack_test(dut):
+    if server_mode():
+        return
+
+    tb = await TB.create(dut)
+    tb.dut.connRq_i.value = 1
+    await tb.wait_high("sndSyn_o")
+    await tb.pulse("synHeadSt_i")
+    await tb.wait_state(0x2)
+
+    await tb.wait_high("closed_o", cycles=10)
+    assert int(dut.peerTout_o.value) == 0
+    await tb.wait_high("sndSyn_o", cycles=4)
+
+    await tb.pulse("synHeadSt_i")
+    tb.dut.connRq_i.value = 0
+    await tb.wait_state(0x2)
+    await tb.wait_high("peerTout_o", cycles=10)
+    await tb.cycle()
+
+    assert int(dut.connActive_o.value) == 0
+    assert int(dut.closed_o.value) == 1
 
 
 PARAMETER_SWEEP = [

@@ -83,6 +83,11 @@
     acceptance/open, server proposal of local required parameters on mismatch,
     client SYN+ACK acceptance with clamp behavior, and client rejection of
     mismatched server parameters with RST.
+  - Extended `tests/protocols/rssi/test_RssiConnFsm.py` to cover server and
+    client SYN retransmission followed by peer-timeout close behavior.
+  - Updated `RssiConnFsm` retry timeout counting so the counter saturates at
+    the retransmission threshold before the retry/peer-timeout decision,
+    avoiding a range overflow in the wait-for-SYN and wait-for-ACK states.
 
 ## Notes
 - Primary local spec source is now
@@ -144,6 +149,11 @@
   accepted. This prevents a malformed multi-word SYN from changing
   `rxParam_o` before the late checksum/length/frame-boundary decision drops the
   frame.
+- `RssiConnFsm` retry close pulses occur one registered cycle before the
+  retransmitted SYN/SYN+ACK output is visible. The retry timeout tests check the
+  close pulse and then the retransmit request, and deassert `connRq_i` before
+  the final peer timeout so active-open does not immediately restart from
+  `CLOSED_S`.
 
 ## Validation
 - 2026-05-22:
@@ -342,6 +352,19 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with seven RSSI pytest wrappers/parameter sweeps after adding
   `RssiConnFsm` coverage.
+- 2026-05-22:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiConnFsm.py`
+  passed after adding `RssiConnFsm` retry/timeout coverage.
+- 2026-05-22:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd`
+  passed after the retry timeout counter saturation update.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed with server and client retry/timeout sweeps.
+- 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with seven RSSI pytest wrappers/parameter sweeps after the
+  `RssiConnFsm` retry timeout update.
 
 ## Open Items
 - Re-run `make MODULES="$PWD" import` after the local ruckus support files are

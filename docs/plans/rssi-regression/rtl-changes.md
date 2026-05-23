@@ -192,3 +192,41 @@ not be accepted as a valid connection setup segment.
 - `tests/protocols/rssi/test_RssiRxFsm.py` verifies valid SYN parameter
   capture, SYN+EACK/BUSY/RST/NULL drops, and SYN-with-extra-payload drops
   without changing `rxParam_o` or producing application output.
+
+## 2026-05-22: `RssiConnFsm` Retry Timeout Counter Saturation
+
+File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`
+
+### What Changed
+
+- Updated the wait-for-SYN and wait-for-ACK states to stop incrementing
+  `timeoutCntr` once it reaches the retransmission timeout threshold.
+- Left the existing retry and peer-timeout decisions keyed to the saturated
+  threshold value.
+
+### Why
+
+`timeoutCntr` is constrained to the retransmission timeout range. The retry
+wait states previously incremented the counter before testing for retry or
+peer-timeout, which could drive the counter past its declared range in
+simulation at the exact timeout boundary.
+
+Saturating the counter preserves the intended retry/close behavior while
+keeping the registered value inside its declared bounds.
+
+### Validation
+
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiConnFsm.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiConnFsm.py` verifies server SYN+ACK retry and
+  client SYN retry behavior, then verifies peer-timeout closure after the retry
+  count is exhausted.

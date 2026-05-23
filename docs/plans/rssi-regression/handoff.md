@@ -31,7 +31,10 @@ missing in-order retransmit is accepted. Unsupported non-SYN EACK segments now
 drop explicitly through the RX header-screen path. `RssiConnFsm` now has
 server/client leaf coverage for SYN acceptance, required-parameter mismatch
 handling, max outstanding/segment-size clamp behavior, and client RST rejection
-of mismatched server parameters.
+of mismatched server parameters. It also covers server/client SYN retry followed
+by peer-timeout close behavior; the RTL timeout counter now saturates at the
+retry threshold so simulation does not overflow the constrained counter range
+while waiting to retransmit or close.
 The next technical work should continue with the local-busy cadence decision
 against the RSSI page's Retransmission Timeout/2 recommendation, EACK scope, or
 the remaining `rtl-spec-review.md` findings.
@@ -85,6 +88,15 @@ the remaining `rtl-spec-review.md` findings.
   passed on 2026-05-22 with server and client parameter-negotiation sweeps.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd`
   passed on 2026-05-22.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiConnFsm.py`
+  passed on 2026-05-22 after adding `RssiConnFsm` retry/timeout coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd`
+  passed on 2026-05-22 after the retry timeout counter saturation update.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed on 2026-05-22 with server and client retry/timeout sweeps.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-22 with seven RSSI pytest wrappers/parameter sweeps after the
+  `RssiConnFsm` retry timeout update.
 - `make MODULES="$PWD" import` has not been re-run successfully because this
   checkout is currently missing `ruckus/system_ghdl.mk`.
 
@@ -97,7 +109,8 @@ the remaining `rtl-spec-review.md` findings.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`
-  server null-timeout liveness handling.
+  server null-timeout liveness handling, and `RssiConnFsm` retry timeout
+  counter saturation.
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
