@@ -193,6 +193,50 @@ not be accepted as a valid connection setup segment.
   capture, SYN+EACK/BUSY/RST/NULL drops, and SYN-with-extra-payload drops
   without changing `rxParam_o` or producing application output.
 
+## 2026-05-23: `RssiRxFsm` Integrated DATA Payload Timing
+
+File: `protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+
+### What Changed
+
+- Corrected DATA EOF segment length calculation to use the incremented
+  next-state segment address.
+- Added registered payload write-data staging for DATA RAM writes while
+  preserving the existing checksum/header write path.
+- Added an application-output `READ_S` state so the first DATA beat is emitted
+  after the registered RAM read data is available.
+- Made the final application DATA beat wait for `appSsiSlave_i.pause = '0'`
+  before marking the segment sent and releasing the receive buffer.
+
+### Why
+
+The integrated RSSI core wrapper exposed receive-path timing that standalone
+unit tests did not cover. A one-word DATA segment was recorded with a zero
+payload length, and the application-output path read the registered payload RAM
+one cycle too early, producing a zero first beat in the delivered application
+frame.
+
+The write-data staging keeps the DATA payload aligned with the delayed payload
+write enable while leaving the checksum/SYN header words on the original
+current-cycle data path.
+
+### Validation
+
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+  passed.
+- `make MODULES=/Users/bareese import` passed.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiCore.py` includes default bidirectional
+  payload delivery regression coverage with passive transport monitors that
+  confirm both transport DATA frames carry the expected payload before peer RX.
+
 ## 2026-05-22: `RssiConnFsm` Retry Timeout Counter Saturation
 
 File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`

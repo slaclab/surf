@@ -144,6 +144,7 @@ architecture rtl of RssiRxFsm is
    type AppStateType is (
       --
       CHECK_BUFFER_S,
+      READ_S,
       DATA_S,
       SENT_S
    );
@@ -162,6 +163,7 @@ architecture rtl of RssiRxFsm is
       rxBufferAddr  : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --
       segmentWe     : sl;
+      segmentData   : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
       -- Packet flags
       rxF : flagsType;
@@ -222,7 +224,8 @@ architecture rtl of RssiRxFsm is
       rxBufferAddr  => (others => '0'),
 
       --
-      segmentWe => '0',
+      segmentWe   => '0',
+      segmentData => (others => '0'),
 
       -- Packet flags
       rxF => (others => ('0')),
@@ -553,7 +556,7 @@ begin
                v.windowArray(conv_integer(r.rxBufferAddr)).keep := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
 
                -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0))+1;
+               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(v.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
 
                -- Check EOF Error
                if (tspSsiMaster_i.eofe = '0') then
@@ -677,42 +680,14 @@ begin
                    ) then
                --
                v.txBufferAddr := r.txBufferAddr;
-
-               if (appSsiSlave_i.pause = '0') then
-
-                  v.appSsiMaster.sof                                  := '1';
-                  v.appSsiMaster.valid                                := '1';
-                  v.appSsiMaster.strb                                 := (others => '1');
-                  v.appSsiMaster.dest                                 := (others => '0');
-                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := r.windowArray(conv_integer(r.txBufferAddr)).keep;
-                  v.appSsiMaster.eof                                  := '1';
-                  v.appSsiMaster.eofe                                 := '0';
-                  v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
-                  v.txSegmentAddr                                     := r.txSegmentAddr;
-
-                  v.appState := SENT_S;
-               end if;
+               v.appState     := READ_S;
             -- Data segment in buffer longer than one word go to DATA_S
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1' and
                    r.windowArray(conv_integer(r.txBufferAddr)).segType = "001"  -- Data segment type
                    ) then
                --
                v.txBufferAddr := r.txBufferAddr;
-
-               if (appSsiSlave_i.pause = '0') then
-
-                  v.appSsiMaster.sof                                  := '1';
-                  v.appSsiMaster.valid                                := '1';
-                  v.appSsiMaster.strb                                 := (others => '1');
-                  v.appSsiMaster.dest                                 := (others => '0');
-                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0)   := (others => '1');
-                  v.appSsiMaster.eof                                  := '0';
-                  v.appSsiMaster.eofe                                 := '0';
-                  v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
-                  v.txSegmentAddr                                     := r.txSegmentAddr + 1;
-
-                  v.appState := DATA_S;
-               end if;
+               v.appState     := READ_S;
             -- None data segment type  (Go directly to SENT_S)
             elsif (r.windowArray(conv_integer(r.txBufferAddr)).occupied = '1') then
                --
@@ -726,8 +701,39 @@ begin
                v.appState           := CHECK_BUFFER_S;
             end if;
          ----------------------------------------------------------------------
-         when DATA_S =>
+         when READ_S =>
             v.rxAppState := x"1";
+
+            -- Counters
+            v.txBufferAddr := r.txBufferAddr;
+            v.rxLastSeqN   := r.rxLastSeqN;
+
+            if (appSsiSlave_i.pause = '0') then
+               v.appSsiMaster.sof                                  := '1';
+               v.appSsiMaster.valid                                := '1';
+               v.appSsiMaster.strb                                 := (others => '1');
+               v.appSsiMaster.dest                                 := (others => '0');
+               v.appSsiMaster.eofe                                 := '0';
+               v.appSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0) := rdBuffData_i;
+
+               if (r.windowArray(conv_integer(r.txBufferAddr)).segSize = 0) then
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := r.windowArray(conv_integer(r.txBufferAddr)).keep;
+                  v.appSsiMaster.eof                                := '1';
+                  v.txSegmentAddr                                   := r.txSegmentAddr;
+                  v.appState                                        := SENT_S;
+               else
+                  v.appSsiMaster.keep(RSSI_WORD_WIDTH_C-1 downto 0) := (others => '1');
+                  v.appSsiMaster.eof                                := '0';
+                  v.txSegmentAddr                                   := r.txSegmentAddr + 1;
+                  v.appState                                        := DATA_S;
+               end if;
+            else
+               v.appSsiMaster.valid := '0';
+               v.txSegmentAddr      := r.txSegmentAddr;
+            end if;
+         ----------------------------------------------------------------------
+         when DATA_S =>
+            v.rxAppState := x"2";
 
             -- Counters
             v.txBufferAddr := r.txBufferAddr;
@@ -744,7 +750,7 @@ begin
 
             -- Next state condition
             -- When segment address reaches segment size then go to SENT_S
-            if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize) then
+            if (r.txSegmentAddr >= r.windowArray(conv_integer(r.txBufferAddr)).segSize and appSsiSlave_i.pause = '0') then
 
                -- Send EOF at the end of the segment
                v.appSsiMaster.valid                              := '1';
@@ -769,7 +775,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>
-            v.rxAppState := x"2";
+            v.rxAppState := x"3";
 
             -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
             v.rxLastSeqN := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -802,6 +808,10 @@ begin
       ----------------------------------------------------------------------
       end case;
 
+      if (v.segmentWe = '1') then
+         v.segmentData := tspSsiMaster_i.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      end if;
+
       -- Combinatorial outputs before the reset
       rdBuffAddr_o  <= v.txBufferAddr & v.txSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       -- Transport side SSI output
@@ -818,7 +828,7 @@ begin
       -- Write and read ports
       wrBuffAddr_o <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o   <= r.segmentWe;
-      wrBuffData_o <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      wrBuffData_o <= r.segmentData when r.segmentWe = '1' else r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
 
       -- Assign outputs
       rxFlags_o      <= r.rxF;

@@ -39,8 +39,18 @@ while waiting to retransmit or close. `RssiAxiLiteRegItf` now has register
 boundary coverage for reset defaults, writable parameter readback,
 max-segment-size clamping, negotiated/status/counter/state/sequence readback,
 and AXI-Lite `DECERR` propagation through the test wrapper.
-The next technical work should move into `RssiCore` integration coverage, while
-keeping the local-busy cadence decision against the RSSI page's Retransmission
+Phase 3 `RssiCore` integration coverage has started. The new
+`RssiCoreIntegrationWrapper` instantiates a client and server `RssiCore` with
+directly connected transport streams and passive transport monitor outputs.
+Default `test_RssiCore.py` coverage now checks active-open connection status,
+negotiated max-segment-size readback, bidirectional application payload
+delivery with transport monitor checks, idle client NULL keepalive preserving
+the server connection, and explicit client close. The latest Phase 3 RTL fix is
+in `RssiRxFsm`: DATA EOF segment length now uses the incremented next segment
+address, and app output waits one registered RAM read cycle before using the
+first payload word. The next technical work should add Phase 3 perturbation
+coverage for loss, corruption, reorder/drop, or retransmission behavior. Keep
+the local-busy cadence decision against the RSSI page's Retransmission
 Timeout/2 recommendation and EACK scope as explicit review items.
 
 ## Key References
@@ -119,18 +129,53 @@ Timeout/2 recommendation and EACK scope as explicit review items.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-22 with eight RSSI pytest wrappers/parameter sweeps after closing
   Phase 2.
-- `make MODULES="$PWD" import` has not been re-run successfully because this
-  checkout is currently missing `ruckus/system_ghdl.mk`.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-22 after adding initial Phase 3 `RssiCore` coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed on 2026-05-22.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-22 with default Phase 3 coverage.
+- `env RUN_RSSI_CORE_PAYLOAD_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  failed on 2026-05-22 only in the opt-in integrated bidirectional payload
+  characterization, where zero-valued server application output beats replaced
+  the expected client payload.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-22 with nine RSSI pytest wrappers/parameter sweeps after adding the
+  default `RssiCore` integration slice.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/rtl/RssiTxFsm.vhd`
+  passed on 2026-05-23 after the Phase 3 RX payload-delivery fixes and after
+  backing out a non-working TX partial fix.
+- `make MODULES=/Users/bareese import` passed on 2026-05-23 after the Phase 3
+  RTL/wrapper changes. `make MODULES="$PWD" import` is not the right invocation
+  for this checkout because `system_ghdl.mk` is resolved relative to
+  `/Users/bareese`.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23 after the Phase 3 core test updates.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-23 with nine RSSI pytest wrappers/parameter sweeps.
+- `env RUN_RSSI_CORE_PAYLOAD_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed twice on 2026-05-23 after the Phase 3 RX payload-delivery fixes.
+- `env RUN_RSSI_CORE_PAYLOAD_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed on 2026-05-23 with nine RSSI pytest wrappers/parameter sweeps.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-23 after promoting bidirectional `RssiCore` DATA payload delivery
+  into default coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed on 2026-05-23 after the final Phase 3 payload promotion.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
   `RssiRxFsm` level; do not add tests that require Rogue software's
   out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
-  `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`, and
-  `RssiAxiLiteRegItf`.
-- The next implementation slice is Phase 3 `RssiCore` integrated client/server
-  coverage rather than adding more leaf-only tests by default.
+  `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`,
+  `RssiAxiLiteRegItf`, and the current `RssiCore`
+  connection/payload/keepalive/close slice.
+- The next implementation slice should extend integrated `RssiCore` coverage
+  with perturbations such as transport loss, corruption, reorder/drop, or
+  retransmission behavior.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`
