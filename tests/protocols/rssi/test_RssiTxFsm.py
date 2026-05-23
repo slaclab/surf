@@ -415,6 +415,39 @@ async def one_word_data_ack_and_resend_sequence_test(dut):
 
 
 @cocotb.test()
+async def null_request_is_ignored_while_data_is_unacknowledged_test(dut):
+    tb = await TB.create(dut)
+
+    payload_word = 0x1122_3344_5566_7788
+    data_task = cocotb.start_soon(
+        tb.recv_frame_selected_fields(
+            fields=("mAxisTData", "mAxisTLast", "mAxisSof", "mAxisEofe"),
+        )
+    )
+
+    await send_contiguous_frame(
+        tb.source,
+        [SsiBeat(data=payload_word, keep=0xFF, last=1, sof=1, eofe=0)],
+        clk=tb.clk,
+    )
+    await tb.provide_checksum_after_strobe()
+    await data_task
+    await tb.finish_checksum()
+
+    await tb.cycle(2)
+    assert int(dut.bufferEmpty_o.value) == 0
+
+    await tb.pulse("sndNull_i")
+    dut.mAxisTReady.value = 1
+    for _ in range(16):
+        await Timer(1, unit="ns")
+        assert int(dut.chksumStrobe_o.value) == 0
+        assert int(dut.mAxisTValid.value) == 0
+        await tb.cycle()
+    dut.mAxisTReady.value = 0
+
+
+@cocotb.test()
 async def one_word_data_tkeep_test(dut):
     tb = await TB.create(dut)
 

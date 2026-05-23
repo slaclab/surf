@@ -123,10 +123,21 @@
   - Extended `tests/protocols/rssi/test_RssiCore.py` to drop the first
     client-to-server DATA frame, verify the retransmitted DATA keeps the same
     RSSI sequence number and payload, and verify the expected application
-    payload is delivered once.
+    payload is recovered at the server application boundary.
   - Updated `RssiRxFsm` so duplicate DATA frames are dropped before entering
     the payload-buffering state; only the next in-order DATA sequence can write
     into the receive payload buffer.
+  - Extended `tests/protocols/rssi/test_RssiTxFsm.py` to cover suppressing
+    NULL requests while DATA remains unacknowledged in the transmit buffer.
+  - Updated `RssiTxFsm` so client keepalive NULL segments only start when the
+    transmit buffer is empty, preventing NULL sequence numbers from advancing
+    the peer past a lost DATA segment.
+  - Extended `tests/protocols/rssi/test_RssiRxFsm.py` to cover a checksum
+    failed DATA frame with trailing payload followed by a valid retransmit.
+  - Extended `tests/protocols/rssi/test_RssiCore.py` to verify deterministic
+    checksum fault injection on a client DATA frame, observe a retransmit with
+    the same RSSI sequence number and payload, and recover the server
+    application payload.
 
 ## Notes
 - Primary local spec source is now
@@ -201,6 +212,11 @@
   window. The default regression now asserts the lost DATA payload is recovered
   once; the extra zero frame should be triaged separately against the
   integrated NULL/output-FIFO behavior before making it a default failure.
+- Integrated DATA loss/corruption recovery can still expose an additional
+  server application output after the expected recovered frame when the test
+  keeps observing past the first recovery. The current default `RssiCore`
+  regression verifies recovery and leaves the duplicate/extra-output behavior
+  as a separate triage item.
 
 ## Validation
 - 2026-05-22:
@@ -216,6 +232,18 @@
   `./.venv/bin/python -m py_compile tests/protocols/rssi/rssi_test_utils.py tests/protocols/rssi/test_RssiChksum.py tests/protocols/rssi/test_RssiHeaderReg.py tests/protocols/rssi/test_RssiRxFsm.py`
   passed.
 - 2026-05-22:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed.
+- 2026-05-23:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- 2026-05-23:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd`
+  passed.
+- 2026-05-23:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- 2026-05-23:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed.
 - 2026-05-22:

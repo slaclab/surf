@@ -109,6 +109,7 @@ class TB:
         busy: bool = False,
         extra_flags: int = 0,
         checksum_ok: bool = True,
+        send_payload_after_bad_checksum: bool = False,
     ) -> None:
         header = bytearray(
             build_data_header(
@@ -134,7 +135,7 @@ class TB:
         await self.cycle()
         self.dut.chksumValid_i.value = 0
 
-        if not checksum_ok:
+        if not checksum_ok and not send_payload_after_bad_checksum:
             return
 
         for index, payload_word in enumerate(payload_words):
@@ -272,6 +273,39 @@ async def checksum_failure_drops_without_application_output_test(dut):
     )
     await tb.wait_status_pulse("rxDropSeg_o")
     await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def checksum_failed_data_payload_is_flushed_before_retransmit_test(dut):
+    tb = await TB.create(dut)
+
+    bad_payload = 0xDEAD_BEEF_CAFE_1234
+    retransmit_payload = 0x1234_5678_9ABC_DEF0
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[bad_payload],
+        checksum_ok=False,
+        send_payload_after_bad_checksum=True,
+    )
+    await drop_wait
+    await tb.expect_no_app_output()
+
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[retransmit_payload],
+    )
+    await tb.wait_status_pulse("rxValidSeg_o")
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.clk,
+        ready_signal=dut.mAxisTReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(retransmit_payload, 0xFF, 1, 1, 0)],
+    )
 
 
 @cocotb.test()

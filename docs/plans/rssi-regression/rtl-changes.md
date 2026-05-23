@@ -125,6 +125,45 @@ fault-injection scope.
   checksum is flipped from the deterministic test checksum, and the Python
   checksum oracle rejects the header.
 
+## 2026-05-23: `RssiTxFsm` NULL Suppression With Unacknowledged DATA
+
+File: `protocols/rssi/v1/rtl/RssiTxFsm.vhd`
+
+### What Changed
+
+- Changed the connected-state NULL request gate from `bufferFull = '0'` to
+  `bufferEmpty = '1'`.
+- A NULL segment can still be generated when idle, but it is no longer allowed
+  to enter the transmit sequence while an earlier DATA/NULL/RST segment remains
+  in the unacknowledged transmit buffer.
+
+### Why
+
+Integrated checksum-fault recovery exposed a sequence hazard: if a DATA segment
+is lost or rejected by checksum, a later client NULL can consume the next RSSI
+sequence number before the lost DATA is retransmitted. The peer can then advance
+its in-order receive sequence with the NULL and treat the DATA retransmit as
+old.
+
+The RSSI page describes client NULL traffic as idle keepalive behavior. Blocking
+NULL generation while the transmit buffer is non-empty preserves recovery order
+for outstanding DATA.
+
+### Validation
+
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiTxFsm.py` verifies a NULL request is ignored
+  while a DATA segment is still unacknowledged.
+- `tests/protocols/rssi/test_RssiCore.py` verifies dropped and
+  checksum-corrupted client DATA frames are recovered by retransmission with
+  the same RSSI sequence number and payload.
+
 ## 2026-05-22: `RssiRxFsm` Illegal DATA Flag Filtering
 
 File: `protocols/rssi/v1/rtl/RssiRxFsm.vhd`

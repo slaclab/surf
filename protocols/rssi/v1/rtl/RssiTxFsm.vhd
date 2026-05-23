@@ -894,7 +894,7 @@ begin
                v.tspState := RESEND_INIT_S;
             elsif (sndAck_i = '1') then
                v.tspState := ACK_H_S;
-            elsif (sndNull_i = '1' and r.bufferFull = '0' and r.appBusy = '0') then
+            elsif (sndNull_i = '1' and r.bufferEmpty = '1' and r.appBusy = '0') then
                v.tspState := NULL_WE_S;
             elsif (connActive_i = '0') then
                v.tspState := INIT_S;
