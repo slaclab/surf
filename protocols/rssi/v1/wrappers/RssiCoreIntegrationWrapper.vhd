@@ -46,12 +46,14 @@ entity RssiCoreIntegrationWrapper is
       axisClk : in sl;
       axisRst : in sl;
 
-      cltOpen_i   : in sl;
-      cltClose_i  : in sl;
-      cltInject_i : in sl;
-      srvOpen_i   : in sl;
-      srvClose_i  : in sl;
-      srvInject_i : in sl;
+      cltOpen_i    : in sl;
+      cltClose_i   : in sl;
+      cltInject_i  : in sl;
+      cltDropTsp_i : in sl;
+      srvOpen_i    : in sl;
+      srvClose_i   : in sl;
+      srvInject_i  : in sl;
+      srvDropTsp_i : in sl;
 
       cltSAppTValid : in  sl;
       cltSAppTReady : out sl;
@@ -126,6 +128,11 @@ architecture mapping of RssiCoreIntegrationWrapper is
    signal srvTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal srvTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
+   signal cltToSrvTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cltToSrvTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal srvToCltTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal srvToCltTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+
    signal cltAxilReadSlave   : AxiLiteReadSlaveType;
    signal cltAxilWriteSlave  : AxiLiteWriteSlaveType;
    signal srvAxilReadSlave   : AxiLiteReadSlaveType;
@@ -133,6 +140,20 @@ architecture mapping of RssiCoreIntegrationWrapper is
 
    signal cltStatusReg : slv(8 downto 0);
    signal srvStatusReg : slv(8 downto 0);
+
+   type DropRegType is record
+      armed    : sl;
+      dropping : sl;
+   end record DropRegType;
+
+   constant DROP_REG_INIT_C : DropRegType := (
+      armed    => '0',
+      dropping => '0');
+
+   signal cltToSrvDrop : DropRegType := DROP_REG_INIT_C;
+   signal cltToSrvDropIn : DropRegType;
+   signal srvToCltDrop : DropRegType := DROP_REG_INIT_C;
+   signal srvToCltDropIn : DropRegType;
 
 begin
 
@@ -211,6 +232,88 @@ begin
    cltConnected_o <= cltStatusReg(0);
    srvConnected_o <= srvStatusReg(0);
 
+   -- One-shot client-to-server transport frame drop for loss/retransmission tests.
+   cltToSrvDropComb : process (axisRst, cltDropTsp_i, cltToSrvDrop, cltToSrvTspSlave, cltTspMaster) is
+      variable v : DropRegType;
+   begin
+      v := cltToSrvDrop;
+
+      cltToSrvTspMaster <= cltTspMaster;
+      cltTspSlave       <= cltToSrvTspSlave;
+
+      if (cltDropTsp_i = '1') then
+         v.armed := '1';
+      end if;
+
+      if (cltToSrvDrop.dropping = '1') or ((cltToSrvDrop.armed = '1') and (cltTspMaster.tValid = '1')) then
+         cltToSrvTspMaster <= AXI_STREAM_MASTER_INIT_C;
+         cltTspSlave       <= AXI_STREAM_SLAVE_FORCE_C;
+
+         if (cltTspMaster.tValid = '1') then
+            if (cltTspMaster.tLast = '1') then
+               v.armed    := '0';
+               v.dropping := '0';
+            else
+               v.dropping := '1';
+            end if;
+         end if;
+      end if;
+
+      if (axisRst = '1') then
+         v := DROP_REG_INIT_C;
+      end if;
+
+      cltToSrvDropIn <= v;
+   end process cltToSrvDropComb;
+
+   cltToSrvDropSeq : process (axisClk) is
+   begin
+      if rising_edge(axisClk) then
+         cltToSrvDrop <= cltToSrvDropIn after TPD_G;
+      end if;
+   end process cltToSrvDropSeq;
+
+   -- One-shot server-to-client transport frame drop for symmetric perturbation tests.
+   srvToCltDropComb : process (axisRst, srvDropTsp_i, srvToCltDrop, srvToCltTspSlave, srvTspMaster) is
+      variable v : DropRegType;
+   begin
+      v := srvToCltDrop;
+
+      srvToCltTspMaster <= srvTspMaster;
+      srvTspSlave       <= srvToCltTspSlave;
+
+      if (srvDropTsp_i = '1') then
+         v.armed := '1';
+      end if;
+
+      if (srvToCltDrop.dropping = '1') or ((srvToCltDrop.armed = '1') and (srvTspMaster.tValid = '1')) then
+         srvToCltTspMaster <= AXI_STREAM_MASTER_INIT_C;
+         srvTspSlave       <= AXI_STREAM_SLAVE_FORCE_C;
+
+         if (srvTspMaster.tValid = '1') then
+            if (srvTspMaster.tLast = '1') then
+               v.armed    := '0';
+               v.dropping := '0';
+            else
+               v.dropping := '1';
+            end if;
+         end if;
+      end if;
+
+      if (axisRst = '1') then
+         v := DROP_REG_INIT_C;
+      end if;
+
+      srvToCltDropIn <= v;
+   end process srvToCltDropComb;
+
+   srvToCltDropSeq : process (axisClk) is
+   begin
+      if rising_edge(axisClk) then
+         srvToCltDrop <= srvToCltDropIn after TPD_G;
+      end if;
+   end process srvToCltDropSeq;
+
    -- Client core with transport connected directly to the server core.
    U_Client : entity surf.RssiCore
       generic map (
@@ -244,8 +347,8 @@ begin
          sAppAxisSlave_o  => cltSAppSlave, -- [out]
          mAppAxisMaster_o => cltMAppMaster, -- [out]
          mAppAxisSlave_i  => cltMAppSlave, -- [in]
-         sTspAxisMaster_i => srvTspMaster, -- [in]
-         sTspAxisSlave_o  => srvTspSlave, -- [out]
+         sTspAxisMaster_i => srvToCltTspMaster, -- [in]
+         sTspAxisSlave_o  => srvToCltTspSlave, -- [out]
          mTspAxisMaster_o => cltTspMaster, -- [out]
          mTspAxisSlave_i  => cltTspSlave, -- [in]
          axilReadSlave    => cltAxilReadSlave, -- [out]
@@ -286,8 +389,8 @@ begin
          sAppAxisSlave_o  => srvSAppSlave, -- [out]
          mAppAxisMaster_o => srvMAppMaster, -- [out]
          mAppAxisSlave_i  => srvMAppSlave, -- [in]
-         sTspAxisMaster_i => cltTspMaster, -- [in]
-         sTspAxisSlave_o  => cltTspSlave, -- [out]
+         sTspAxisMaster_i => cltToSrvTspMaster, -- [in]
+         sTspAxisSlave_o  => cltToSrvTspSlave, -- [out]
          mTspAxisMaster_o => srvTspMaster, -- [out]
          mTspAxisSlave_i  => srvTspSlave, -- [in]
          axilReadSlave    => srvAxilReadSlave, -- [out]

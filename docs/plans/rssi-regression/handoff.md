@@ -45,13 +45,20 @@ directly connected transport streams and passive transport monitor outputs.
 Default `test_RssiCore.py` coverage now checks active-open connection status,
 negotiated max-segment-size readback, bidirectional application payload
 delivery with transport monitor checks, idle client NULL keepalive preserving
-the server connection, and explicit client close. The latest Phase 3 RTL fix is
-in `RssiRxFsm`: DATA EOF segment length now uses the incremented next segment
-address, and app output waits one registered RAM read cycle before using the
-first payload word. The next technical work should add Phase 3 perturbation
-coverage for loss, corruption, reorder/drop, or retransmission behavior. Keep
-the local-busy cadence decision against the RSSI page's Retransmission
-Timeout/2 recommendation and EACK scope as explicit review items.
+the server connection, explicit client close, and one dropped client DATA frame
+recovering through retransmission with the same sequence number and payload.
+The latest Phase 3 RTL fixes are in `RssiRxFsm`: DATA EOF segment length now
+uses the incremented next segment address, app output waits one registered RAM
+read cycle before using the first payload word, and duplicate DATA is dropped
+before entering the payload-buffering state. The next technical work should add
+Phase 3 perturbation coverage for corruption, reorder/drop, additional
+retransmission/counter visibility, or busy behavior. Keep the local-busy
+cadence decision against the RSSI page's Retransmission Timeout/2
+recommendation and EACK scope as explicit review items. Also triage the
+additional zero-valued server application frame observed during a longer
+post-retransmission collection window; it may belong to integrated NULL
+keepalive or output-FIFO reset/release behavior and is not yet a default
+failure.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -164,6 +171,17 @@ Timeout/2 recommendation and EACK scope as explicit review items.
   into default coverage.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
   passed on 2026-05-23 after the final Phase 3 payload promotion.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23 after adding integrated DATA loss/retransmission
+  coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed on 2026-05-23 after adding wrapper one-shot transport drop controls
+  and the RX duplicate-DATA filter.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-23 after adding integrated retransmission coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
+  2026-05-23 with nine RSSI pytest wrappers/parameter sweeps after adding the
+  integrated DATA loss/retransmission slice.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -172,15 +190,19 @@ Timeout/2 recommendation and EACK scope as explicit review items.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`,
   `RssiAxiLiteRegItf`, and the current `RssiCore`
-  connection/payload/keepalive/close slice.
+  connection/payload/retransmission/keepalive/close slice.
 - The next implementation slice should extend integrated `RssiCore` coverage
-  with perturbations such as transport loss, corruption, reorder/drop, or
-  retransmission behavior.
+  with perturbations such as corruption, reorder/drop, additional
+  retransmission/counter visibility, or busy behavior.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
-  staging, `RssiTxFsm` checksum fault injection scope, and `RssiMonitor`
-  server null-timeout liveness handling, and `RssiConnFsm` retry timeout
-  counter saturation.
+  staging, integrated DATA payload timing, and duplicate DATA payload
+  filtering; `RssiTxFsm` checksum fault injection scope; `RssiMonitor` server
+  null-timeout liveness handling; and `RssiConnFsm` retry timeout counter
+  saturation.
+- Triage the extra zero-valued server application frame observed during a
+  longer post-retransmission collection window before deciding whether it is a
+  bug, a wrapper/output-FIFO artifact, or a test setup issue.
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.

@@ -15,8 +15,9 @@
 #   drive flattened SSI-style application frames into each core.
 # - Checks: Both cores report connection-active status and negotiated segment
 #   size, bidirectional application payloads are delivered exactly once with SSI
-#   sideband fields preserved, client NULL keepalive traffic keeps the idle
-#   server connected, and an explicit close request tears the link down.
+#   sideband fields preserved, a dropped client DATA frame is recovered by
+#   retransmission and delivered once, client NULL keepalive traffic keeps the
+#   idle server connected, and an explicit close request tears the link down.
 # - Timing: Small timeout generics keep connection, ACK, and NULL behavior
 #   cycle-bounded while preserving the relative RSSI timeout relationships.
 
@@ -73,9 +74,11 @@ class TB:
             "cltOpen_i": 1,
             "cltClose_i": 0,
             "cltInject_i": 0,
+            "cltDropTsp_i": 0,
             "srvOpen_i": 1,
             "srvClose_i": 0,
             "srvInject_i": 0,
+            "srvDropTsp_i": 0,
             "cltMAppTReady": 0,
             "srvMAppTReady": 0,
         }.items():
@@ -86,6 +89,11 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         await ssi_cycle(self.clk, count=count)
+
+    async def pulse(self, signal_name: str) -> None:
+        getattr(self.dut, signal_name).value = 1
+        await self.cycle()
+        getattr(self.dut, signal_name).value = 0
 
     async def wait_connected(self, *, timeout_cycles: int = 256) -> None:
         for _ in range(timeout_cycles):
@@ -121,6 +129,35 @@ class TB:
             await RisingEdge(self.clk)
         ready_signal.value = 0
         raise AssertionError(f"Timed out draining {endpoint.prefix} output")
+
+    async def assert_no_app_output(self, endpoint: FlatSsiEndpoint, *, cycles: int) -> None:
+        for _ in range(cycles):
+            await Timer(1, unit="ns")
+            assert int(endpoint._sig("TValid").value) == 0, f"Unexpected {endpoint.prefix} application output"
+            await RisingEdge(self.clk)
+
+    async def collect_app_frames(
+        self,
+        endpoint: FlatSsiEndpoint,
+        ready_signal,
+        *,
+        cycles: int,
+    ) -> list[list[SsiBeat]]:
+        ready_signal.value = 1
+        frames = []
+        frame = []
+        for _ in range(cycles):
+            await FallingEdge(self.clk)
+            await Timer(1, unit="ns")
+            if int(endpoint._sig("TValid").value) == 1:
+                beat = endpoint.snapshot()
+                frame.append(beat)
+                if beat.last == 1:
+                    frames.append(frame)
+                    frame = []
+        ready_signal.value = 0
+        assert not frame, f"Partial {endpoint.prefix} application frame was left unterminated"
+        return frames
 
     async def drain_app_outputs(self) -> None:
         await self.drain_app_output(self.clt_sink, self.dut.cltMAppTReady)
@@ -236,6 +273,62 @@ async def bidirectional_payload_delivery_test(dut):
         srv_transport_beats[1].data == server_payload
     ), f"Server transport DATA payload was corrupted before client RX: {_transport_frame_view(srv_transport_beats)}"
     await clt_recv
+
+
+@cocotb.test()
+async def dropped_client_data_retransmits_and_delivers_once_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    payload = 0xCAFE_BABE_1234_5678
+
+    await tb.pulse("cltDropTsp_i")
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+
+    first_beats = await first_transport
+    first_header = parse_header(_protocol_bytes_from_stream_word(first_beats[0].data))
+    assert (
+        first_beats[1].data == payload
+    ), f"Initial client DATA payload was corrupted before the loss gate: {_transport_frame_view(first_beats)}"
+
+    # The one-shot wrapper gate consumes the first DATA frame before server RX.
+    # Before the retransmit timeout has room to fire, no application payload
+    # should be visible at the server.
+    await tb.assert_no_app_output(tb.srv_sink, cycles=6)
+
+    second_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    srv_frames = cocotb.start_soon(
+        tb.collect_app_frames(
+            tb.srv_sink,
+            dut.srvMAppTReady,
+            cycles=64,
+        )
+    )
+
+    second_beats = await second_transport
+    second_header = parse_header(_protocol_bytes_from_stream_word(second_beats[0].data))
+    assert second_header.sequence == first_header.sequence
+    assert (
+        second_beats[1].data == payload
+    ), f"Retransmitted client DATA payload was corrupted: {_transport_frame_view(second_beats)}"
+
+    frames = await srv_frames
+    payload_frames = [
+        frame for frame in frames
+        if [(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in frame] == [
+            (payload, 0xFF, 1, 1, 0)
+        ]
+    ]
+    assert len(payload_frames) == 1
+    assert [(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in payload_frames[0]] == [
+        (payload, 0xFF, 1, 1, 0)
+    ]
 
 
 @cocotb.test()

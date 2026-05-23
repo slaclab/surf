@@ -237,6 +237,45 @@ current-cycle data path.
   payload delivery regression coverage with passive transport monitors that
   confirm both transport DATA frames carry the expected payload before peer RX.
 
+## 2026-05-23: `RssiRxFsm` Duplicate DATA Payload Filtering
+
+File: `protocols/rssi/v1/rtl/RssiRxFsm.vhd`
+
+### What Changed
+
+- Tightened DATA receive screening so only the next in-order sequence number can
+  enter `DATA_S` and write into the receive payload buffer.
+- Duplicate DATA frames are now dropped before payload buffering, instead of
+  being allowed into `DATA_S` and then rejected later in `VALID_S`.
+
+### Why
+
+The integrated loss/retransmission regression showed that duplicate DATA can
+arrive after a lost segment has already been retransmitted and delivered. The
+previous broad sequence check allowed both the current and next sequence
+numbers into the DATA payload path. The later `VALID_S` state did not advance
+or mark a duplicate as occupied, but the duplicate had already been allowed to
+touch payload-buffer side state.
+
+Dropping duplicate DATA before payload buffering matches the SURF/Rogue RSSI
+hardware profile: out-of-order or duplicate DATA is not queued, and recovery
+comes from retransmission of the missing in-order segment.
+
+### Validation
+
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiCore.py` now drops the first client DATA
+  transport frame, observes retransmission with the same RSSI sequence number
+  and payload, and verifies the recovered payload is delivered once at the
+  server application boundary.
+
 ## 2026-05-22: `RssiConnFsm` Retry Timeout Counter Saturation
 
 File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`

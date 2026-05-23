@@ -421,13 +421,19 @@ begin
                       v.rxF.nul = '0' and
                       v.rxF.rst = '0' and
                       v.rxF.busy = '0') then
-                     -- Wait if the buffer full
-                     -- Note: Deadlock possibility! If the peer is not accepting data!
-                     if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
-                        -- Go to data segment
-                        v.tspState := DATA_S;
+                     -- Only the next in-order DATA segment may enter the payload buffer.
+                     if (r.rxSeqN - r.inOrderSeqN = 1) then
+                        -- Wait if the buffer full
+                        -- Note: Deadlock possibility! If the peer is not accepting data!
+                        if (r.windowArray(conv_integer(r.rxBufferAddr)).occupied = '0') then
+                           -- Go to data segment
+                           v.tspState := DATA_S;
+                        else
+                           -- Buffer is full -> drop segment
+                           v.tspState := DROP_S;
+                        end if;
                      else
-                        -- Buffer is full -> drop segment
+                        -- Duplicate DATA -> drop without touching the payload buffer
                         v.tspState := DROP_S;
                      end if;
                   elsif (r.rxF.data = '0') then

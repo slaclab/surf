@@ -117,6 +117,16 @@
   - Promoted bidirectional integrated DATA payload delivery into default
     `RssiCore` coverage after the passive monitors confirmed both client and
     server transport DATA frames carry the expected payload before peer RX.
+  - Added one-shot transport frame drop controls to
+    `RssiCoreIntegrationWrapper` for deterministic loss/retransmission
+    perturbation coverage.
+  - Extended `tests/protocols/rssi/test_RssiCore.py` to drop the first
+    client-to-server DATA frame, verify the retransmitted DATA keeps the same
+    RSSI sequence number and payload, and verify the expected application
+    payload is delivered once.
+  - Updated `RssiRxFsm` so duplicate DATA frames are dropped before entering
+    the payload-buffering state; only the next in-order DATA sequence can write
+    into the receive payload buffer.
 
 ## Notes
 - Primary local spec source is now
@@ -186,6 +196,11 @@
 - `RssiAxiLiteRegItfWrapper` enables `SlaveAxiLiteIpIntegrator` error response
   propagation with `EN_ERROR_RESP => true`; otherwise the shim masks register
   block `DECERR` responses as AXI OKAY and hides the behavior under test.
+- The first integrated loss/retransmission test originally found an additional
+  zero-valued application frame during a longer server-output collection
+  window. The default regression now asserts the lost DATA payload is recovered
+  once; the extra zero frame should be triaged separately against the
+  integrated NULL/output-FIFO behavior before making it a default failure.
 
 ## Validation
 - 2026-05-22:
@@ -469,6 +484,20 @@
 - 2026-05-23:
   `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
   passed after the final Phase 3 payload promotion.
+- 2026-05-23:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed after adding integrated DATA loss/retransmission coverage.
+- 2026-05-23:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed after adding wrapper one-shot transport drop controls and the RX
+  duplicate-DATA filter.
+- 2026-05-23:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed after adding integrated retransmission coverage.
+- 2026-05-23:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  passed with nine RSSI pytest wrappers/parameter sweeps after adding the
+  integrated DATA loss/retransmission slice.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -478,8 +507,12 @@
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
-- Continue Phase 3 `RssiCore` integration coverage with loss, corruption,
-  reorder/drop, or retransmission perturbations now that bidirectional DATA
-  payload delivery is default coverage.
+- Continue Phase 3 `RssiCore` integration coverage with corruption,
+  reorder/drop, additional retransmission/counter visibility, and busy
+  perturbations now that basic DATA loss/retransmission is covered.
+- Triage the extra zero-valued server application frame observed during a
+  longer post-retransmission collection window. It may be tied to integrated
+  NULL keepalive or output-FIFO reset/release behavior; it is not yet asserted
+  as a default failure.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.
