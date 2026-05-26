@@ -733,7 +733,9 @@ class Bootstrap(pr.Device):
         if self._simpleDiscovery:
             # Simple discovery: no version negotiation, no tags, no writes.
             # Used for cameras that don't ACK control writes or support tagged packets.
-            ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
+            # Don't change TxLsRate either — without writing ConnectionConfig to the
+            # camera, only the host would switch speed, breaking communication.
+            pass
 
         else:
             # Negotiate the CXP protocol version before using later bootstrap
@@ -749,17 +751,17 @@ class Bootstrap(pr.Device):
             except Exception:
                 pass
 
+            # If the new high speed connection bit rate requires a change in low speed connection bit rate,
+            # it shall also change the low speed upconnection speed to the value defined in Table 6.
+            if (ConnectionConfigDefault & 0xFF) >= 0x50:
+                # Switch to 41.66 Mb/s mode
+                self.CoaXPressAxiL.TxLsRate.set(1)
+
             # Setup for 4KB packets
             try:
                 self.StreamPacketSizeMax.set(4096)
             except Exception:
                 pass
-
-        # If the new high speed connection bit rate requires a change in low speed connection bit rate,
-        # it shall also change the low speed upconnection speed to the value defined in Table 6.
-        if (ConnectionConfigDefault & 0xFF) >= 0x50:
-            # Switch to 41.66 Mb/s mode
-            self.CoaXPressAxiL.TxLsRate.set(1)
 
         # After it is sending a stable low speed upconnection at the defined rate the Host
         # shall wait 200ms to allow the Device to complete connection re-configuration.
