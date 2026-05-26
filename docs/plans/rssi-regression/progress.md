@@ -142,6 +142,17 @@
     client-to-server transport drop gate active across the client NULL
     keepalive interval and verify the server closes with the null-timeout
     status bit set.
+- Phase 4 implementation has started:
+  - Added `protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd`,
+    a cocotb-facing integration wrapper that instantiates one client
+    `RssiCoreWrapper` and one server `RssiCoreWrapper` with one flattened
+    application stream each and directly connected RSSI transport streams.
+  - Added `tests/protocols/rssi/test_RssiCoreWrapper.py` covering active-open
+    connection and bidirectional application payload delivery through
+    `RssiCoreWrapper`.
+  - Swept the wrapper smoke test across bypass-chunker mode and legacy
+    packetizer/depacketizer mode, keeping the assertions narrow so packetizer
+    coverage does not replay the full RSSI core matrix.
 
 ## Notes
 - Primary local spec source is now
@@ -265,6 +276,22 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed with nine
   RSSI pytest wrappers/parameter sweeps after adding integrated
   missing-keepalive close coverage.
+- 2026-05-26:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed after adding `RssiCoreWrapper` smoke coverage.
+- 2026-05-26:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd`
+  passed after adding the `RssiCoreWrapper` integration wrapper.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed with bypass-chunker and packetizer parameter cases.
+- 2026-05-26:
+  `make MODULES=/Users/bareese import` passed after adding the
+  `RssiCoreWrapper` integration wrapper.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed with eleven
+  RSSI pytest wrappers/parameter sweeps after adding `RssiCoreWrapper`
+  bypass-chunker and packetizer smoke coverage.
 - 2026-05-22:
   `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
   passed after expanding TX FSM coverage.

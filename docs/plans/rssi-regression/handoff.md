@@ -6,8 +6,10 @@ protocol compliance for the SURF/Rogue RSSI profile.
 
 ## Resume Point
 Read `progress.md`, `rtl-changes.md`, `plan.md`, `rtl-spec-review.md`, and
-`references/README.md` first. Phase 1 and Phase 2 are complete. The next
-technical work should start Phase 3 `RssiCore` integrated client/server
+`references/README.md` first. Phase 1 and Phase 2 are complete. Phase 3
+`RssiCore` integrated client/server coverage is in place for connection,
+payload, retransmission, keepalive, missing-keepalive close, and explicit
+close behavior. Phase 4 has started with narrow `RssiCoreWrapper` smoke
 coverage.
 
 The previous `RssiTxFsm` multi-word DATA known issue has been resolved as a
@@ -52,17 +54,23 @@ number and payload.
 The latest Phase 3 RTL fixes are in `RssiRxFsm`: DATA EOF segment length now
 uses the incremented next segment address, app output waits one registered RAM
 read cycle before using the first payload word, and duplicate DATA is dropped
-before entering the payload-buffering state. The next technical work should add
-Phase 3 perturbation coverage for reorder/drop, additional
-retransmission/counter visibility, or busy behavior. Keep the local-busy cadence
-decision against the RSSI page's Retransmission Timeout/2 recommendation and
-EACK scope as explicit review items. Also triage the additional zero-valued
-server application frame observed during a longer post-retransmission
-collection window; it may belong to integrated NULL keepalive or
-output-FIFO reset/release behavior and is not yet a default failure. A first
-integrated busy-flow attempt using stalled server application output produced
-ordinary ACK/RST/reconnect traffic without a BUSY ACK, so integrated BUSY
-coverage still needs a focused stimulus or RTL decision.
+before entering the payload-buffering state. Phase 4 now adds
+`RssiCoreWrapperIntegrationWrapper`, which instantiates one client and one
+server `RssiCoreWrapper` with one flattened application stream each and direct
+RSSI transport connection. `test_RssiCoreWrapper.py` verifies active-open
+connection and bidirectional application payload delivery in both
+bypass-chunker and legacy packetizer/depacketizer modes.
+
+The next technical work should extend integrated coverage for reorder/drop,
+additional retransmission/counter visibility, or busy behavior. Keep the
+local-busy cadence decision against the RSSI page's Retransmission Timeout/2
+recommendation and EACK scope as explicit review items. Also triage the
+additional zero-valued server application frame observed during a longer
+post-retransmission collection window; it may belong to integrated NULL
+keepalive or output-FIFO reset/release behavior and is not yet a default
+failure. A first integrated busy-flow attempt using stalled server application
+output produced ordinary ACK/RST/reconnect traffic without a BUSY ACK, so
+integrated BUSY coverage still needs a focused stimulus or RTL decision.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -195,6 +203,17 @@ coverage still needs a focused stimulus or RTL decision.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on 2026-05-23
   with nine RSSI pytest wrappers/parameter sweeps after adding integrated
   missing-client-keepalive close coverage.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed on 2026-05-26 after adding `RssiCoreWrapper` smoke coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd`
+  passed on 2026-05-26 after adding the `RssiCoreWrapper` integration wrapper.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed on 2026-05-26 with bypass-chunker and packetizer parameter cases.
+- `make MODULES=/Users/bareese import` passed on 2026-05-26 after adding the
+  `RssiCoreWrapper` integration wrapper.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on 2026-05-26
+  with eleven RSSI pytest wrappers/parameter sweeps after adding
+  `RssiCoreWrapper` bypass-chunker and packetizer smoke coverage.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -202,10 +221,11 @@ coverage still needs a focused stimulus or RTL decision.
   out-of-order queue behavior.
 - Default RSSI coverage is green for `RssiChksum`, `RssiHeaderReg`,
   `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`,
-  `RssiAxiLiteRegItf`, and the current `RssiCore`
-  connection/payload/retransmission/keepalive/missing-keepalive/close slice.
-- The next implementation slice should extend integrated `RssiCore` coverage
-  with perturbations such as corruption, reorder/drop, additional
+  `RssiAxiLiteRegItf`, the current `RssiCore`
+  connection/payload/retransmission/keepalive/missing-keepalive/close slice,
+  and narrow `RssiCoreWrapper` bypass/packetizer smoke coverage.
+- The next implementation slice should extend integrated coverage with
+  perturbations such as corruption, reorder/drop, additional
   retransmission/counter visibility, or busy behavior.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
