@@ -163,6 +163,15 @@
     `(2**SEGMENT_ADDR_SIZE_G) - 16`, elaborated for 256-byte wrapper segments
     but became 0 or negative for smaller `MAX_SEG_SIZE_G` values because
     `RssiCoreWrapper` derives `SEGMENT_ADDR_SIZE_G` from `MAX_SEG_SIZE_G`.
+  - Added `protocols/rssi/README.md` to document normal `RssiCoreWrapper`
+    use, the core/wrapper split, important generic relationships, and current
+    regression coverage.
+  - Added
+    `protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+    and `tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py` to exercise
+    the user-facing `RssiCoreWrapper` path with `APP_STREAMS_G=2`,
+    `APP_ILEAVE_EN_G=true`, routed application streams, and the
+    packetizer2/depacketizer2 path.
 
 ## Notes
 - Primary local spec source is now
@@ -252,6 +261,10 @@
   64-byte RSSI segments. This is smoke coverage for connection and one-frame
   bidirectional payload only; it does not replace implementation synthesis or a
   hardware build for BRAM/resource validation.
+- The first multi-stream `RssiCoreWrapper` regression is intentionally an
+  active-open/elaboration smoke test. Direct routed payload assertions through
+  the packetizer2/interleave path need focused triage before becoming default
+  pass/fail coverage.
 
 ## Validation
 - 2026-05-22:
@@ -598,6 +611,23 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
   passed with four wrapper parameter cases covering multiple window and
   segment sizes.
+- 2026-05-26:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after adding the multi-stream wrapper smoke test.
+- 2026-05-26:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+  passed after adding the multi-stream wrapper and small-segment threshold
+  clamp.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with the two-stream packetizer2 active-open smoke case.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with five wrapper parameter cases across the one-stream and
+  two-stream wrapper regressions.
+- 2026-05-26:
+  `make MODULES=/Users/bareese import` passed after adding the multi-stream
+  wrapper file under the simulation wrapper source directory.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import

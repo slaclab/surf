@@ -4,7 +4,7 @@ This tree contains reusable protocol cores layered above the base, AXI, and Ethe
 
 ## Layout
 
-- Link/protocol families include `pgp/`, `ssi/`, `srp/`, `rssi/`, `sugoi/`, `salt/`, `glink/`, `htsp/`, and `coaxpress/`.
+- Link/protocol families include `pgp/`, `ssi/`, `srp/`, [`rssi/`](rssi/README.md), `sugoi/`, `salt/`, `glink/`, `htsp/`, and `coaxpress/`.
 - Peripheral/control protocols include `i2c/`, `spi/`, `uart/`, `mdio/`, `pmbus/`, and `saci/`.
 - Data formatting and protection helpers include `batcher/`, `packetizer/`, `line-codes/`, `hamming-ecc/`, and `event-frame-sequencer/`.
 - JESD support lives in `jesd204b/`.

@@ -68,6 +68,15 @@ wrapper segment sizes: `RssiCore` now clamps its output FIFO pause threshold to
 the minimum legal `AxiStreamFifoV2` value of 1 when
 `SEGMENT_ADDR_SIZE_G` would otherwise make the old one-segment-minus-padding
 threshold 0 or negative.
+`protocols/rssi/README.md` now documents the normal `RssiCoreWrapper` use
+case, the direct `RssiCore` use case, important generic relationships, and the
+current regression coverage. A second cocotb-facing wrapper,
+`RssiCoreWrapperMultiStreamIntegrationWrapper`, now covers the user-facing
+wrapper path with two application streams, `APP_ILEAVE_EN_G=true`, explicit
+stream routes, and the packetizer2/depacketizer2 path. Its current regression
+is an active-open/elaboration smoke test only; routed payload delivery through
+that multi-stream/interleave path still needs focused triage before it should
+be promoted into default pass/fail coverage.
 
 The next technical work should extend integrated coverage for reorder/drop,
 additional retransmission/counter visibility, or busy behavior. Keep the
@@ -230,6 +239,18 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
   passed on 2026-05-26 with four wrapper parameter cases covering multiple
   window and segment sizes.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-26 after adding the multi-stream wrapper smoke test.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+  passed on 2026-05-26 after adding the multi-stream wrapper and
+  small-segment threshold clamp.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-26 with the two-stream packetizer2 active-open smoke case.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-26 with five wrapper parameter cases across the one-stream
+  and two-stream wrapper regressions.
+- `make MODULES=/Users/bareese import` passed on 2026-05-26 after adding the
+  multi-stream wrapper file under the simulation wrapper source directory.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -241,6 +262,9 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   connection/payload/retransmission/keepalive/missing-keepalive/close slice,
   and narrow `RssiCoreWrapper` bypass/packetizer smoke coverage with multiple
   window and segment sizes.
+- The new two-stream `RssiCoreWrapper` regression proves elaboration and
+  active-open connection for the packetizer2/interleave path. Routed payload
+  delivery through that path is still an open test/RTL triage item.
 - The next implementation slice should extend integrated coverage with
   perturbations such as corruption, reorder/drop, additional
   retransmission/counter visibility, or busy behavior.
