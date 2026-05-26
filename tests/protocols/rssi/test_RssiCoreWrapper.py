@@ -16,6 +16,10 @@
 #   drive SSI-style application frames through the wrapper application boundary.
 # - Checks: Both wrappers report connected status, and bidirectional
 #   application payloads are delivered with SSI sideband fields preserved.
+# - Parameters: Sweep bypass-chunker and packetizer modes across multiple
+#   `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values so the wrapper elaborates
+#   the derived RSSI buffer dimensions used to trade BRAM depth against segment
+#   size.
 # - Timing: Small timeout generics keep the wrapper smoke test bounded. The
 #   RSSI protocol matrix remains covered by `test_RssiCore.py`; this test only
 #   checks that `RssiCoreWrapper` preserves the core behavior through its
@@ -158,32 +162,51 @@ async def wrapper_active_open_and_bidirectional_payload_test(dut):
     await clt_recv
 
 
+BASE_PARAMETERS = {
+    "ACK_TOUT_G": 4,
+    "RETRANS_TOUT_G": 16,
+    "NULL_TOUT_G": 48,
+    "MAX_RETRANS_CNT_G": 2,
+    "MAX_CUM_ACK_CNT_G": 2,
+}
+
+
 PARAMETER_SWEEP = [
     pytest.param(
         {
+            **BASE_PARAMETERS,
             "BYPASS_CHUNKER_G": True,
-            "WINDOW_ADDR_SIZE_G": 2,
-            "MAX_SEG_SIZE_G": 256,
-            "ACK_TOUT_G": 4,
-            "RETRANS_TOUT_G": 16,
-            "NULL_TOUT_G": 48,
-            "MAX_RETRANS_CNT_G": 2,
-            "MAX_CUM_ACK_CNT_G": 2,
+            "WINDOW_ADDR_SIZE_G": 1,
+            "MAX_SEG_SIZE_G": 64,
         },
-        id="bypass_chunker_small_timeouts",
+        id="bypass_chunker_window1_seg64",
     ),
     pytest.param(
         {
+            **BASE_PARAMETERS,
+            "BYPASS_CHUNKER_G": True,
+            "WINDOW_ADDR_SIZE_G": 3,
+            "MAX_SEG_SIZE_G": 256,
+        },
+        id="bypass_chunker_window3_seg256",
+    ),
+    pytest.param(
+        {
+            **BASE_PARAMETERS,
             "BYPASS_CHUNKER_G": False,
             "WINDOW_ADDR_SIZE_G": 2,
-            "MAX_SEG_SIZE_G": 256,
-            "ACK_TOUT_G": 4,
-            "RETRANS_TOUT_G": 16,
-            "NULL_TOUT_G": 48,
-            "MAX_RETRANS_CNT_G": 2,
-            "MAX_CUM_ACK_CNT_G": 2,
+            "MAX_SEG_SIZE_G": 128,
         },
-        id="packetizer_small_timeouts",
+        id="packetizer_window2_seg128",
+    ),
+    pytest.param(
+        {
+            **BASE_PARAMETERS,
+            "BYPASS_CHUNKER_G": False,
+            "WINDOW_ADDR_SIZE_G": 3,
+            "MAX_SEG_SIZE_G": 64,
+        },
+        id="packetizer_window3_seg64",
     ),
 ]
 

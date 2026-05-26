@@ -315,6 +315,48 @@ comes from retransmission of the missing in-order segment.
   and payload, and verifies the recovered payload is delivered once at the
   server application boundary.
 
+## 2026-05-26: `RssiCore` Small Segment FIFO Pause Threshold
+
+File: `protocols/rssi/v1/rtl/RssiCore.vhd`
+
+### What Changed
+
+- Added `FIFO_PAUSE_THRESH_C` and clamped the output FIFO pause threshold to at
+  least 1:
+
+  ```vhdl
+  constant FIFO_PAUSE_THRESH_C : positive := maximum(1, (2**SEGMENT_ADDR_SIZE_G) - 16);
+  ```
+
+- Used that constant for both application-side and transport-side output
+  `AxiStreamFifoV2` instances.
+
+### Why
+
+`RssiCoreWrapper` derives `SEGMENT_ADDR_SIZE_G` from `MAX_SEG_SIZE_G`. The
+previous pause-threshold expression, `(2**SEGMENT_ADDR_SIZE_G) - 16`,
+elaborated for 256-byte wrapper segments but became 0 or negative for smaller
+segment sizes such as 128 bytes and 64 bytes. `AxiStreamFifoV2` requires
+`FIFO_PAUSE_THRESH_G` to be in the positive range, so these smaller segment
+configurations failed during elaboration before the regression could exercise
+the connection.
+
+Clamping preserves the existing threshold for larger segment buffers and makes
+small segment configurations legal to elaborate.
+
+### Validation
+
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed with four wrapper parameter cases.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiCoreWrapper.py` now sweeps
+  `WINDOW_ADDR_SIZE_G` values 1, 2, and 3 and `MAX_SEG_SIZE_G` values 64, 128,
+  and 256 across bypass-chunker and packetizer modes.
+
 ## 2026-05-22: `RssiConnFsm` Retry Timeout Counter Saturation
 
 File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`

@@ -59,7 +59,15 @@ before entering the payload-buffering state. Phase 4 now adds
 server `RssiCoreWrapper` with one flattened application stream each and direct
 RSSI transport connection. `test_RssiCoreWrapper.py` verifies active-open
 connection and bidirectional application payload delivery in both
-bypass-chunker and legacy packetizer/depacketizer modes.
+bypass-chunker and legacy packetizer/depacketizer modes. The wrapper smoke
+sweep now covers multiple `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values:
+bypass mode checks window sizes 1 and 3 with 64-byte and 256-byte segment
+sizes, while packetizer mode checks window sizes 2 and 3 with 128-byte and
+64-byte segment sizes. This exposed and fixed an elaboration failure for small
+wrapper segment sizes: `RssiCore` now clamps its output FIFO pause threshold to
+the minimum legal `AxiStreamFifoV2` value of 1 when
+`SEGMENT_ADDR_SIZE_G` would otherwise make the old one-segment-minus-padding
+threshold 0 or negative.
 
 The next technical work should extend integrated coverage for reorder/drop,
 additional retransmission/counter visibility, or busy behavior. Keep the
@@ -214,6 +222,14 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on 2026-05-26
   with eleven RSSI pytest wrappers/parameter sweeps after adding
   `RssiCoreWrapper` bypass-chunker and packetizer smoke coverage.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed on 2026-05-26 after extending the `RssiCoreWrapper` parameter sweep.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed on 2026-05-26 after clamping the output FIFO pause threshold for
+  small segment sizes.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed on 2026-05-26 with four wrapper parameter cases covering multiple
+  window and segment sizes.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -223,7 +239,8 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   `RssiRxFsm`, `RssiTxFsm`, `RssiMonitor`, `RssiConnFsm`,
   `RssiAxiLiteRegItf`, the current `RssiCore`
   connection/payload/retransmission/keepalive/missing-keepalive/close slice,
-  and narrow `RssiCoreWrapper` bypass/packetizer smoke coverage.
+  and narrow `RssiCoreWrapper` bypass/packetizer smoke coverage with multiple
+  window and segment sizes.
 - The next implementation slice should extend integrated coverage with
   perturbations such as corruption, reorder/drop, additional
   retransmission/counter visibility, or busy behavior.
@@ -231,8 +248,9 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, integrated DATA payload timing, and duplicate DATA payload
   filtering; `RssiTxFsm` checksum fault injection scope; `RssiMonitor` server
-  null-timeout liveness handling; and `RssiConnFsm` retry timeout counter
-  saturation.
+  null-timeout liveness handling; `RssiConnFsm` retry timeout counter
+  saturation; and `RssiCore` output FIFO pause-threshold clamping for small
+  segment sizes.
 - Triage the extra zero-valued server application frame observed during a
   longer post-retransmission collection window before deciding whether it is a
   bug, a wrapper/output-FIFO artifact, or a test setup issue.

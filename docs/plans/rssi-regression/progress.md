@@ -153,6 +153,16 @@
   - Swept the wrapper smoke test across bypass-chunker mode and legacy
     packetizer/depacketizer mode, keeping the assertions narrow so packetizer
     coverage does not replay the full RSSI core matrix.
+  - Extended the `RssiCoreWrapper` smoke sweep across multiple
+    `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values: bypass mode now covers
+    window sizes 1 and 3 with 64-byte and 256-byte segment sizes, and
+    packetizer mode covers window sizes 2 and 3 with 128-byte and 64-byte
+    segment sizes.
+  - Updated `RssiCore` output FIFO pause-threshold calculation to clamp at the
+    minimum legal `AxiStreamFifoV2` threshold of 1. The previous expression,
+    `(2**SEGMENT_ADDR_SIZE_G) - 16`, elaborated for 256-byte wrapper segments
+    but became 0 or negative for smaller `MAX_SEG_SIZE_G` values because
+    `RssiCoreWrapper` derives `SEGMENT_ADDR_SIZE_G` from `MAX_SEG_SIZE_G`.
 
 ## Notes
 - Primary local spec source is now
@@ -237,6 +247,11 @@
   traffic remained ordinary ACK/RST/reconnect traffic without a BUSY ACK. Keep
   integrated BUSY characterization as a separate triage item rather than a
   default test until the correct production stimulus or RTL behavior is clear.
+- `RssiCoreWrapper` now has executable coverage for smaller window and segment
+  configurations, including a two-segment window (`WINDOW_ADDR_SIZE_G=1`) and
+  64-byte RSSI segments. This is smoke coverage for connection and one-frame
+  bidirectional payload only; it does not replace implementation synthesis or a
+  hardware build for BRAM/resource validation.
 
 ## Validation
 - 2026-05-22:
@@ -572,6 +587,17 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi`
   passed with nine RSSI pytest wrappers/parameter sweeps after adding the
   integrated DATA loss/retransmission slice.
+- 2026-05-26:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed after extending the wrapper parameter sweep.
+- 2026-05-26:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed after clamping the output FIFO pause threshold for small segment
+  sizes.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py`
+  passed with four wrapper parameter cases covering multiple window and
+  segment sizes.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import

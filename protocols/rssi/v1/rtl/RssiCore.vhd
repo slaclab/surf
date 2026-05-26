@@ -89,7 +89,7 @@ entity RssiCore is
       -- Counters
       MAX_RETRANS_CNT_G : positive := 2;
       MAX_CUM_ACK_CNT_G : positive := 3
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -128,6 +128,7 @@ end entity RssiCore;
 architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
+   constant FIFO_PAUSE_THRESH_C : positive := maximum(1, (2**SEGMENT_ADDR_SIZE_G) - 16);
 
    -- Busy Flags
    signal s_localBusy : sl;
@@ -291,8 +292,8 @@ architecture rtl of RssiCore is
    -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";
    -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";
 
-----------------------------------------------------------------------
 begin
+
    -- Assertions to check generics
    assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <= (2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;
    assert (8 <= MAX_SEG_SIZE_G and MAX_SEG_SIZE_G <= (2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
@@ -737,7 +738,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
          CSUM_WIDTH_G => 16
-         )
+      )
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
@@ -866,7 +867,7 @@ begin
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
          CSUM_WIDTH_G => 16
-         )
+      )
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
@@ -910,7 +911,7 @@ begin
          MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
@@ -942,7 +943,7 @@ begin
          MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
