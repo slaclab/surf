@@ -33,7 +33,13 @@ import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.protocols.rssi.rssi_test_utils import parse_header
+from tests.protocols.rssi.rssi_test_utils import (
+    RSSI_CORE_WRAPPER_VHDL_SOURCES,
+    format_transport_frame,
+    parse_header,
+    protocol_bytes_from_stream_word,
+    recv_transport_data_frame,
+)
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
@@ -55,19 +61,6 @@ def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, i
         (beat.data, beat.keep, beat.last, beat.sof, beat.eofe)
         for beat in beats[:limit]
     ]
-
-
-def _protocol_bytes_from_stream_word(word: int) -> bytes:
-    # RSSI transport headers are byte-swapped onto the 64-bit stream.
-    return word.to_bytes(8, "big")[::-1]
-
-
-def _transport_frame_view(beats: list[SsiBeat]) -> str:
-    header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
-    return (
-        f"flags=0x{header.flags:02x}, seq={header.sequence}, "
-        f"ack={header.acknowledge}, beats={[f'0x{beat.data:016x}' for beat in beats]}"
-    )
 
 
 class TB:
@@ -228,27 +221,11 @@ class TB:
         *,
         timeout_cycles: int = 1024,
     ) -> list[SsiBeat]:
-        beats = []
-        seen = []
-        for _ in range(timeout_cycles):
-            await FallingEdge(self.clk)
-            await Timer(1, unit="ns")
-            if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
-                beat = endpoint.snapshot()
-                if not beats and beat.sof != 1:
-                    continue
-                beats.append(beat)
-                if beat.last == 1:
-                    try:
-                        header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
-                    except ValueError:
-                        seen.append(f"malformed beats={[f'0x{item.data:016x}' for item in beats]}")
-                    else:
-                        seen.append(_transport_frame_view(beats))
-                        if not header.syn and len(beats) > 1:
-                            return beats
-                    beats = []
-        raise AssertionError(f"Timed out waiting for {endpoint.prefix} DATA frame; seen={seen}")
+        return await recv_transport_data_frame(
+            endpoint,
+            clk=self.clk,
+            timeout_cycles=timeout_cycles,
+        )
 
 
 @cocotb.test()
@@ -334,18 +311,18 @@ async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
     )
 
     first_beats = await first_transport
-    first_header = parse_header(_protocol_bytes_from_stream_word(first_beats[0].data))
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
 
     second_transport = cocotb.start_soon(
         tb.recv_transport_data_frame(tb.clt_tsp_monitor, timeout_cycles=2048)
     )
     second_beats = await second_transport
-    second_header = parse_header(_protocol_bytes_from_stream_word(second_beats[0].data))
+    second_header = parse_header(protocol_bytes_from_stream_word(second_beats[0].data))
 
     assert second_header.sequence == first_header.sequence, (
         "Retransmitted wrapper DATA did not reuse the dropped sequence; "
-        f"first={_transport_frame_view(first_beats)} "
-        f"second={_transport_frame_view(second_beats)}"
+        f"first={format_transport_frame(first_beats)} "
+        f"second={format_transport_frame(second_beats)}"
     )
 
     await recv_frame_and_check(
@@ -385,12 +362,7 @@ def test_RssiCoreWrapperMultiStream(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiCore.vhd",
-                "protocols/rssi/v1/rtl/RssiCoreWrapper.vhd",
+                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
                 "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
             ],
         },

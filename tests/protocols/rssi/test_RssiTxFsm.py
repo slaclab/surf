@@ -35,6 +35,9 @@ from tests.protocols.rssi.rssi_test_utils import (
     build_syn_header,
     checksum_is_valid,
     parse_header,
+    protocol_bytes_from_stream_word,
+    stream_word_from_protocol_bytes,
+    stream_words_from_header,
 )
 from tests.protocols.ssi.ssi_test_utils import (
     SsiBeat,
@@ -47,17 +50,6 @@ from tests.protocols.ssi.ssi_test_utils import (
 )
 
 
-def _protocol_bytes_from_stream_word(word: int) -> bytes:
-    # `RssiTxFsm` byte-swaps protocol-order header words onto the 64-bit stream
-    # port.  Reverse the emitted stream word before parsing with the shared RSSI
-    # protocol helper.
-    return word.to_bytes(8, "big")[::-1]
-
-
-def _stream_word_from_header(header: bytes) -> int:
-    return int.from_bytes(header[::-1], "big")
-
-
 def _header_with_test_checksum(header: bytes) -> bytes:
     return header[:-2] + bytes.fromhex("beef")
 
@@ -65,13 +57,6 @@ def _header_with_test_checksum(header: bytes) -> bytes:
 def _header_with_corrupted_test_checksum(header: bytes) -> bytes:
     checksum = int.from_bytes(header[-2:], "big") ^ 0xFFFF
     return header[:-2] + checksum.to_bytes(2, "big")
-
-
-def _stream_words_from_header(header: bytes) -> list[int]:
-    return [
-        _stream_word_from_header(header[index : index + 8])
-        for index in range(0, len(header), 8)
-    ]
 
 
 async def _send_contiguous_frame_after_tpd(endpoint, beats: list[SsiBeat], *, clk) -> None:
@@ -196,7 +181,7 @@ def _assert_non_syn_header(
     rst: bool = False,
     nul: bool = False,
 ) -> None:
-    parsed = parse_header(_protocol_bytes_from_stream_word(beat.data))
+    parsed = parse_header(protocol_bytes_from_stream_word(beat.data))
     assert parsed.ack is ack
     assert not parsed.syn
     assert parsed.rst is rst
@@ -218,7 +203,7 @@ async def standalone_ack_emits_one_header_without_sequence_consumption_test(dut)
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
 
     recv_task = cocotb.start_soon(
         recv_frame_and_check(
@@ -274,7 +259,7 @@ async def syn_emits_three_word_header_and_consumes_sequence_test(dut):
             enable_checksum=False,
         )
     )
-    expected_words = _stream_words_from_header(expected_header)
+    expected_words = stream_words_from_header(expected_header)
 
     recv_task = cocotb.start_soon(
         recv_frame_and_check(
@@ -296,7 +281,7 @@ async def syn_emits_three_word_header_and_consumes_sequence_test(dut):
     beats = await recv_task
     await tb.finish_checksum()
 
-    parsed = parse_header(b"".join(_protocol_bytes_from_stream_word(beat.data) for beat in beats))
+    parsed = parse_header(b"".join(protocol_bytes_from_stream_word(beat.data) for beat in beats))
     assert parsed.syn
     assert not parsed.ack
     assert parsed.sequence == initial_seq
@@ -333,7 +318,7 @@ async def one_word_data_ack_and_resend_sequence_test(dut):
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
     payload_word = 0x1122_3344_5566_7788
 
     recv_task = cocotb.start_soon(
@@ -365,7 +350,7 @@ async def one_word_data_ack_and_resend_sequence_test(dut):
         "mAxisEofe": 0,
     }
 
-    parsed = parse_header(_protocol_bytes_from_stream_word(header_beat["mAxisTData"]))
+    parsed = parse_header(protocol_bytes_from_stream_word(header_beat["mAxisTData"]))
     assert parsed.ack
     assert not parsed.syn
     assert not parsed.rst
@@ -474,7 +459,7 @@ async def cumulative_ack_releases_multiple_outstanding_segments_test(dut):
                 ready_signal=dut.mAxisTReady,
                 fields=("data", "keep", "last", "sof", "eofe"),
                 expected=[
-                    (_stream_word_from_header(expected_header), 0xFF, 0, 1, 0),
+                    (stream_word_from_protocol_bytes(expected_header), 0xFF, 0, 1, 0),
                     (payload_word, 0xFF, 1, 0, 0),
                 ],
             )
@@ -511,7 +496,7 @@ async def one_word_data_tkeep_test(dut):
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
     payload_word = 0x1122_3344_5566_7788
 
     recv_task = cocotb.start_soon(
@@ -549,7 +534,7 @@ async def multi_word_data_preserves_payload_keep_and_resend_test(dut):
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
     payload = [
         SsiBeat(data=0x0102_0304_0506_0708, keep=0xFF, last=0, sof=1, eofe=0),
         SsiBeat(data=0x1112_1314_1516_1718, keep=0xFF, last=0, sof=0, eofe=0),
@@ -641,7 +626,7 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
             clk=tb.clk,
             ready_signal=dut.mAxisTReady,
             fields=("data", "keep", "last", "sof", "eofe"),
-            expected=[(_stream_word_from_header(ack_header), 0xFF, 1, 1, 0)],
+            expected=[(stream_word_from_protocol_bytes(ack_header), 0xFF, 1, 1, 0)],
         )
     )
 
@@ -651,12 +636,12 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
     [ack_beat] = await ack_task
     await tb.finish_checksum()
 
-    parsed_ack = parse_header(_protocol_bytes_from_stream_word(ack_beat.data))
+    parsed_ack = parse_header(protocol_bytes_from_stream_word(ack_beat.data))
     assert parsed_ack.ack
     assert parsed_ack.sequence == initial_seq
     assert parsed_ack.acknowledge == 0x34
     assert parsed_ack.checksum == 0x4110
-    assert not checksum_is_valid(_protocol_bytes_from_stream_word(ack_beat.data))
+    assert not checksum_is_valid(protocol_bytes_from_stream_word(ack_beat.data))
 
     await tb.cycle(2)
     null_seq = int(dut.txSeqN_o.value)
@@ -675,7 +660,7 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
             clk=tb.clk,
             ready_signal=dut.mAxisTReady,
             fields=("data", "keep", "last", "sof", "eofe"),
-            expected=[(_stream_word_from_header(null_header), 0xFF, 1, 1, 0)],
+            expected=[(stream_word_from_protocol_bytes(null_header), 0xFF, 1, 1, 0)],
         )
     )
 
@@ -685,13 +670,13 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
     [null_beat] = await null_task
     await tb.finish_checksum()
 
-    parsed_null = parse_header(_protocol_bytes_from_stream_word(null_beat.data))
+    parsed_null = parse_header(protocol_bytes_from_stream_word(null_beat.data))
     assert parsed_null.ack
     assert parsed_null.nul
     assert parsed_null.sequence == null_seq
     assert parsed_null.acknowledge == 0x34
     assert parsed_null.checksum == 0x4110
-    assert not checksum_is_valid(_protocol_bytes_from_stream_word(null_beat.data))
+    assert not checksum_is_valid(protocol_bytes_from_stream_word(null_beat.data))
 
     await tb.cycle(2)
     data_seq = int(dut.txSeqN_o.value)
@@ -712,7 +697,7 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
             ready_signal=dut.mAxisTReady,
             fields=("data", "keep", "last", "sof", "eofe"),
             expected=[
-                (_stream_word_from_header(data_header), 0xFF, 0, 1, 0),
+                (stream_word_from_protocol_bytes(data_header), 0xFF, 0, 1, 0),
                 (payload_word, 0xFF, 1, 0, 0),
             ],
         )
@@ -728,12 +713,12 @@ async def checksum_fault_injection_corrupts_ack_null_and_data_headers_test(dut):
     beats = await data_task
     await tb.finish_checksum()
 
-    parsed_data = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
+    parsed_data = parse_header(protocol_bytes_from_stream_word(beats[0].data))
     assert parsed_data.ack
     assert parsed_data.sequence == data_seq
     assert parsed_data.acknowledge == 0x34
     assert parsed_data.checksum == 0x4110
-    assert not checksum_is_valid(_protocol_bytes_from_stream_word(beats[0].data))
+    assert not checksum_is_valid(protocol_bytes_from_stream_word(beats[0].data))
 
 
 @cocotb.test()
@@ -748,7 +733,7 @@ async def null_segment_emits_ack_header_and_consumes_sequence_test(dut):
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
 
     recv_task = cocotb.start_soon(
         recv_frame_and_check(
@@ -787,7 +772,7 @@ async def rst_segment_emits_header_and_consumes_sequence_without_buffering_test(
             enable_checksum=False,
         )
     )
-    expected_stream_word = _stream_word_from_header(expected_header)
+    expected_stream_word = stream_word_from_protocol_bytes(expected_header)
 
     recv_task = cocotb.start_soon(
         recv_frame_and_check(

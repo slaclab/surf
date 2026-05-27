@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from cocotb.triggers import FallingEdge, Timer
+
 RSSI_HEADER_SIZE = 8
 RSSI_SYN_HEADER_SIZE = 24
 
@@ -23,6 +25,18 @@ RSSI_FLAG_NULL = 0x08
 RSSI_FLAG_BUSY = 0x01
 
 RSSI_VERSION = 0x1
+
+RSSI_CORE_VHDL_SOURCES = [
+    "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
+    "protocols/rssi/v1/rtl/RssiMonitor.vhd",
+    "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
+    "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
+    "protocols/rssi/v1/rtl/RssiCore.vhd",
+]
+
+RSSI_CORE_WRAPPER_VHDL_SOURCES = RSSI_CORE_VHDL_SOURCES + [
+    "protocols/rssi/v1/rtl/RssiCoreWrapper.vhd",
+]
 
 
 @dataclass(frozen=True)
@@ -324,6 +338,70 @@ def stream_word_from_header_word(header_word: int) -> int:
 
 def stream_words_from_header(header: bytes) -> list[int]:
     return [stream_word_from_header_word(word) for word in header_words(header)]
+
+
+def protocol_bytes_from_stream_word(word: int) -> bytes:
+    # RSSI transport headers are byte-swapped onto the 64-bit AXI Stream data
+    # bus.  Reverse the stream word before parsing it as protocol-order bytes.
+    return word.to_bytes(8, "big")[::-1]
+
+
+def stream_word_from_protocol_bytes(protocol_bytes: bytes) -> int:
+    if len(protocol_bytes) != 8:
+        raise ValueError("RSSI stream words must be exactly 8 bytes")
+    return int.from_bytes(protocol_bytes[::-1], "big")
+
+
+def format_transport_frame(beats) -> str:
+    header = parse_header(protocol_bytes_from_stream_word(beats[0].data))
+    return (
+        f"flags=0x{header.flags:02x}, seq={header.sequence}, "
+        f"ack={header.acknowledge}, beats={[f'0x{beat.data:016x}' for beat in beats]}"
+    )
+
+
+async def recv_matching_transport_frame(
+    endpoint,
+    *,
+    clk,
+    match,
+    timeout_cycles: int = 512,
+):
+    beats = []
+    seen = []
+    for _ in range(timeout_cycles):
+        await FallingEdge(clk)
+        await Timer(1, unit="ns")
+        if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
+            beat = endpoint.snapshot()
+            if not beats and beat.sof != 1:
+                continue
+            beats.append(beat)
+            if beat.last == 1:
+                try:
+                    header = parse_header(protocol_bytes_from_stream_word(beats[0].data))
+                except ValueError:
+                    seen.append(f"malformed beats={[f'0x{item.data:016x}' for item in beats]}")
+                else:
+                    seen.append(format_transport_frame(beats))
+                    if match(header, beats):
+                        return beats
+                beats = []
+    raise AssertionError(f"Timed out waiting for matching {endpoint.prefix} frame; seen={seen}")
+
+
+async def recv_transport_data_frame(
+    endpoint,
+    *,
+    clk,
+    timeout_cycles: int = 512,
+):
+    return await recv_matching_transport_frame(
+        endpoint,
+        clk=clk,
+        match=lambda header, beats: not header.syn and not header.nul and len(beats) > 1,
+        timeout_cycles=timeout_cycles,
+    )
 
 
 def header_without_checksum(header: bytes) -> bytes:

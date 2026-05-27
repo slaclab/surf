@@ -27,7 +27,15 @@ import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.protocols.rssi.rssi_test_utils import checksum_is_valid, parse_header
+from tests.protocols.rssi.rssi_test_utils import (
+    RSSI_CORE_VHDL_SOURCES,
+    checksum_is_valid,
+    format_transport_frame,
+    parse_header,
+    protocol_bytes_from_stream_word,
+    recv_matching_transport_frame,
+    recv_transport_data_frame,
+)
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
@@ -37,19 +45,6 @@ from tests.protocols.ssi.ssi_test_utils import (
     start_clock,
     recv_frame_and_check,
 )
-
-
-def _protocol_bytes_from_stream_word(word: int) -> bytes:
-    # RSSI transport headers are byte-swapped onto the 64-bit stream.
-    return word.to_bytes(8, "big")[::-1]
-
-
-def _transport_frame_view(beats: list[SsiBeat]) -> str:
-    header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
-    return (
-        f"flags=0x{header.flags:02x}, seq={header.sequence}, "
-        f"ack={header.acknowledge}, beats={[f'0x{beat.data:016x}' for beat in beats]}"
-    )
 
 
 class TB:
@@ -177,9 +172,9 @@ class TB:
         *,
         timeout_cycles: int = 512,
     ) -> list[SsiBeat]:
-        return await self.recv_transport_frame(
+        return await recv_transport_data_frame(
             endpoint,
-            match=lambda header, beats: not header.syn and not header.nul and len(beats) > 1,
+            clk=self.clk,
             timeout_cycles=timeout_cycles,
         )
 
@@ -190,27 +185,12 @@ class TB:
         match,
         timeout_cycles: int = 512,
     ) -> list[SsiBeat]:
-        beats = []
-        seen = []
-        for _ in range(timeout_cycles):
-            await FallingEdge(self.clk)
-            await Timer(1, unit="ns")
-            if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
-                beat = endpoint.snapshot()
-                if not beats and beat.sof != 1:
-                    continue
-                beats.append(beat)
-                if beat.last == 1:
-                    try:
-                        header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
-                    except ValueError:
-                        seen.append(f"malformed beats={[f'0x{item.data:016x}' for item in beats]}")
-                    else:
-                        seen.append(_transport_frame_view(beats))
-                        if match(header, beats):
-                            return beats
-                    beats = []
-        raise AssertionError(f"Timed out waiting for matching {endpoint.prefix} frame; seen={seen}")
+        return await recv_matching_transport_frame(
+            endpoint,
+            clk=self.clk,
+            match=match,
+            timeout_cycles=timeout_cycles,
+        )
 
 
 @cocotb.test()
@@ -254,7 +234,7 @@ async def bidirectional_payload_delivery_test(dut):
     clt_transport_beats = await clt_transport
     assert (
         clt_transport_beats[1].data == client_payload
-    ), f"Client transport DATA payload was corrupted before server RX: {_transport_frame_view(clt_transport_beats)}"
+    ), f"Client transport DATA payload was corrupted before server RX: {format_transport_frame(clt_transport_beats)}"
     await srv_recv
 
     srv_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.srv_tsp_sink))
@@ -275,7 +255,7 @@ async def bidirectional_payload_delivery_test(dut):
     srv_transport_beats = await srv_transport
     assert (
         srv_transport_beats[1].data == server_payload
-    ), f"Server transport DATA payload was corrupted before client RX: {_transport_frame_view(srv_transport_beats)}"
+    ), f"Server transport DATA payload was corrupted before client RX: {format_transport_frame(srv_transport_beats)}"
     await clt_recv
 
 
@@ -305,10 +285,10 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
     dut.cltDropTsp_i.value = 0
 
     first_beats = await first_transport
-    first_header = parse_header(_protocol_bytes_from_stream_word(first_beats[0].data))
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
     assert (
         first_beats[1].data == payload
-    ), f"Initial client DATA payload was corrupted before the loss gate: {_transport_frame_view(first_beats)}"
+    ), f"Initial client DATA payload was corrupted before the loss gate: {format_transport_frame(first_beats)}"
 
     # The one-shot wrapper gate consumes the first DATA frame before server RX.
     # Before the retransmit timeout has room to fire, no application payload
@@ -317,11 +297,11 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
 
     second_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
     second_beats = await second_transport
-    second_header = parse_header(_protocol_bytes_from_stream_word(second_beats[0].data))
+    second_header = parse_header(protocol_bytes_from_stream_word(second_beats[0].data))
     assert second_header.sequence == first_header.sequence
     assert (
         second_beats[1].data == payload
-    ), f"Retransmitted client DATA payload was corrupted: {_transport_frame_view(second_beats)}"
+    ), f"Retransmitted client DATA payload was corrupted: {format_transport_frame(second_beats)}"
 
     frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=128)
     assert len(frames) == 1, f"Unexpected server output frames after retransmission: {frames}"
@@ -356,24 +336,24 @@ async def corrupted_client_data_retransmits_and_recovers_payload_test(dut):
     await tb.pulse("cltInject_i")
 
     first_beats = await first_transport
-    first_header_bytes = _protocol_bytes_from_stream_word(first_beats[0].data)
+    first_header_bytes = protocol_bytes_from_stream_word(first_beats[0].data)
     first_header = parse_header(first_header_bytes)
     assert not checksum_is_valid(first_header_bytes)
     assert (
         first_beats[1].data == payload
-    ), f"Injected client DATA payload was corrupted before server RX: {_transport_frame_view(first_beats)}"
+    ), f"Injected client DATA payload was corrupted before server RX: {format_transport_frame(first_beats)}"
 
     await tb.assert_no_app_output(tb.srv_sink, cycles=6)
 
     second_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
     second_beats = await second_transport
-    second_header_bytes = _protocol_bytes_from_stream_word(second_beats[0].data)
+    second_header_bytes = protocol_bytes_from_stream_word(second_beats[0].data)
     second_header = parse_header(second_header_bytes)
     assert second_header.sequence == first_header.sequence
     assert checksum_is_valid(second_header_bytes)
     assert (
         second_beats[1].data == payload
-    ), f"Retransmitted client DATA payload was corrupted: {_transport_frame_view(second_beats)}"
+    ), f"Retransmitted client DATA payload was corrupted: {format_transport_frame(second_beats)}"
 
     frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=128)
     assert len(frames) == 1, f"Unexpected server output frames after checksum recovery: {frames}"
@@ -408,7 +388,7 @@ async def server_backpressure_advertises_busy_to_client_test(dut):
             break
 
     busy_beats = await busy_transport
-    busy_header = parse_header(_protocol_bytes_from_stream_word(busy_beats[0].data))
+    busy_header = parse_header(protocol_bytes_from_stream_word(busy_beats[0].data))
     assert busy_header.busy
     assert busy_header.ack
     assert int(dut.cltStatusReg_o.value) & (1 << 8)
@@ -436,7 +416,7 @@ async def max_retransmissions_close_client_and_emit_rst_test(dut):
     )
 
     rst_beats = await rst_transport
-    rst_header = parse_header(_protocol_bytes_from_stream_word(rst_beats[0].data))
+    rst_header = parse_header(protocol_bytes_from_stream_word(rst_beats[0].data))
     assert rst_header.rst
     assert not rst_header.ack
 
@@ -515,11 +495,7 @@ def test_RssiCore(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiCore.vhd",
+                *RSSI_CORE_VHDL_SOURCES,
                 "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
             ],
         },

@@ -30,6 +30,7 @@ import pytest
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.protocols.rssi.rssi_test_utils import RSSI_CORE_WRAPPER_VHDL_SOURCES
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
@@ -220,12 +221,7 @@ def test_RssiCoreWrapper(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-                "protocols/rssi/v1/rtl/RssiCore.vhd",
-                "protocols/rssi/v1/rtl/RssiCoreWrapper.vhd",
+                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
                 "protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd",
             ],
         },
