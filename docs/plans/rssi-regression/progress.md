@@ -202,11 +202,16 @@
   - Added default leaf coverage for cumulative ACK release of multiple TX
     segments, RX duplicate-DATA drop after delivery, invalid peer parameter
     rejection, runtime register clamps, and max-retransmit RST/close behavior.
-  - Added opt-in direct-core probes for integrated BUSY advertisement and strict
-    no-extra-output checks after DATA retransmission recovery. Both remain
-    conformance gaps: the BUSY probe observes ACK/RST/reconnect traffic without a
-    BUSY ACK, and strict retransmit recovery still observes repeated recovered
-    server application output.
+  - Promoted the direct-core integrated BUSY and strict retransmit recovery
+    probes into default `test_RssiCore.py` coverage. `RssiCore` local BUSY now
+    preserves the application output FIFO write-count trigger and also includes
+    output FIFO pause/direct downstream backpressure. The drop/corruption
+    recovery tests now verify exactly one recovered server application frame.
+  - Tightened direct-core test stimulus so each application beat is accepted
+    once, and targeted DATA loss/corruption after the pending client control
+    segment is observed. This removed the earlier repeated-output artifact from
+    overdriven application input and prevented perturbation hooks from consuming
+    header-only control traffic.
 
 ## Notes
 - Primary local spec source is now
@@ -736,17 +741,28 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
   passed with seven focused RSSI pytest wrappers/parameter sweeps.
 - 2026-05-27:
+  `COCOTB_TESTCASE=dropped_client_data_retransmits_and_recovers_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed after targeting the direct-core drop hook to the DATA frame and
+  checking for exactly one recovered server application frame.
+- 2026-05-27:
+  `COCOTB_TESTCASE=corrupted_client_data_retransmits_and_recovers_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed after targeting checksum injection to the DATA frame and checking for
+  exactly one recovered server application frame.
+- 2026-05-27:
+  `COCOTB_TESTCASE=server_backpressure_advertises_busy_to_client_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed after extending `RssiCore` local BUSY to include application output
+  pause/backpressure while preserving the existing FIFO write-count trigger.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed with direct-core integrated BUSY and strict retransmit recovery in
+  default coverage.
+- 2026-05-27:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed after the direct-core local BUSY update.
+- 2026-05-27:
   `./.venv/bin/python -m py_compile python/surf/protocols/rssi/_RssiCore.py`
   passed after adding the PyRogue writable parameter ranges; an import probe in
   the `rogue_build` environment confirmed the default `loc*` range metadata.
-- 2026-05-27:
-  The opt-in `RUN_RSSI_BUSY_INTEGRATION_TESTS=1` direct-core BUSY probe still
-  failed to observe a BUSY ACK; the captured transport traffic was ACK/RST and
-  reconnect traffic.
-- 2026-05-27:
-  The opt-in `RUN_RSSI_STRICT_RETRANSMIT_TESTS=1` direct-core retransmit
-  recovery checks still observed repeated recovered server application output
-  after drop/corruption recovery.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -760,12 +776,5 @@
 - Consider refactoring `RssiCoreIntegrationWrapper` transport loss/corruption
   hooks to the same flattened-transport/cocotb-loopback pattern used by the
   multi-stream wrapper.
-- Triage the opt-in direct-core BUSY probe. Current stalled-server-output
-  stimulus does not produce a BUSY ACK, so either the stimulus still misses the
-  receiver local-busy condition or the integrated core path is not advertising
-  BUSY as expected.
-- Triage the opt-in strict direct-core retransmit recovery checks. Leaf
-  `RssiRxFsm` duplicate-DATA rejection passes, but integrated drop/corruption
-  recovery can still repeat the recovered server application payload.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.

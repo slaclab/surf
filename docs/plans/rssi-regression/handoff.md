@@ -98,14 +98,14 @@ rejects invalid peer parameters before converting negotiated window/buffer
 sizes. `RssiMonitor` now uses Retransmission Timeout/2 for steady BUSY ACKs.
 `RssiTxFsm` has a default cumulative-ACK test that frees multiple outstanding
 segments, and `RssiCore` has default max-retransmit close/RST coverage.
-
-Two conformance probes remain opt-in because they expose unresolved integrated
-behavior. `RUN_RSSI_BUSY_INTEGRATION_TESTS=1` keeps the direct-core BUSY probe
-available; the current stalled-server-output stimulus observes ACK/RST/reconnect
-traffic but no BUSY ACK. `RUN_RSSI_STRICT_RETRANSMIT_TESTS=1` keeps strict
-post-retransmit no-extra-output checks available; leaf duplicate-DATA rejection
-passes, but direct-core drop/corruption recovery can still repeat the recovered
-server application payload.
+The two direct-core conformance probes that were previously opt-in are now
+default coverage. `RssiCore` local BUSY now reflects application output FIFO
+write-count, pause, and direct downstream backpressure, so stalled server
+application output is advertised back to the client with a BUSY ACK. The strict
+direct-core drop/corruption retransmit checks now expect exactly one recovered server
+application frame; the old repeated-output symptom was caused by test stimulus
+holding the application source valid for multiple accepted beats and by arming
+loss/corruption before pending control traffic instead of targeting DATA.
 
 The RSSI wrapper audit found one similar remaining candidate:
 `RssiCoreIntegrationWrapper` still contains VHDL transport drop-gate logic for
@@ -114,14 +114,12 @@ direct-core integration perturbations. `RssiTxFsmWrapper` and
 RAM modeling required by those leaf-FSM interfaces rather than avoidable
 traffic perturbation.
 
-The next technical work should focus on the two opt-in conformance probes:
-integrated BUSY advertisement and strict no-extra-output behavior after
-direct-core retransmit recovery. Keep EACK scope as an explicit review item.
-The local-busy cadence decision has been made in favor of the RSSI page's
-Retransmission Timeout/2 recommendation. A first integrated busy-flow attempt
-using stalled server application output produced ordinary ACK/RST/reconnect
-traffic without a BUSY ACK, so integrated BUSY coverage still needs a focused
-stimulus or RTL decision.
+The next technical work should continue triaging the remaining
+`rtl-spec-review.md` findings into default coverage, expected-fail
+characterization, or narrow RTL fixes. Keep EACK scope as an explicit review
+item. The local-busy cadence decision has been made in favor of the RSSI page's
+Retransmission Timeout/2 recommendation, and direct-core BUSY advertisement is
+now covered at the integrated `RssiCore` level.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -140,6 +138,20 @@ stimulus or RTL decision.
   `tests/protocols/rssi/`
 
 ## Validation
+- `COCOTB_TESTCASE=dropped_client_data_retransmits_and_recovers_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after targeting the direct-core drop hook to DATA and
+  enforcing exactly one recovered server application frame.
+- `COCOTB_TESTCASE=corrupted_client_data_retransmits_and_recovers_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after targeting checksum injection to DATA and enforcing
+  exactly one recovered server application frame.
+- `COCOTB_TESTCASE=server_backpressure_advertises_busy_to_client_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after extending `RssiCore` local BUSY to application
+  output pause/backpressure while preserving the FIFO write-count trigger.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 with the direct-core BUSY and strict retransmit recovery
+  probes in default coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed on 2026-05-27 after the direct-core local BUSY update.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-22 with five RSSI pytest wrappers.
 - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
@@ -354,9 +366,9 @@ stimulus or RTL decision.
   path. Keep the post-connection delay unless the wrapper exposes
   `AxiStreamDepacketizer2` `debug.initDone` or otherwise makes depacketizer
   route-state initialization directly observable.
-- The next implementation slice should focus on the two opt-in conformance
-  probes: integrated BUSY advertisement and strict direct-core no-extra-output
-  behavior after retransmit recovery.
+- Direct-core integrated BUSY advertisement and strict no-extra-output behavior
+  after drop/corruption retransmit recovery are now default `test_RssiCore.py`
+  coverage.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, integrated DATA payload timing, and duplicate DATA payload
@@ -364,9 +376,8 @@ stimulus or RTL decision.
   release; `RssiMonitor` server null-timeout liveness handling and BUSY cadence;
   `RssiConnFsm` retry timeout counter saturation and invalid peer-parameter
   rejection; `RssiAxiLiteRegItf` runtime parameter clamps; and `RssiCore`
-  output FIFO pause-threshold clamping for small segment sizes.
-- Triage the strict direct-core post-retransmit repeated-output symptom before
-  promoting those opt-in assertions into default coverage.
+  output FIFO pause-threshold clamping for small segment sizes and local BUSY
+  advertisement from application output backpressure.
 - Keep EACK-specific behavior out of scope except for explicit rejection;
   SURF/Rogue RSSI does not implement EACK/out-of-sequence acknowledgment
   handling.

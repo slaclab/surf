@@ -889,7 +889,8 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
-   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G);
+   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G) or s_mAppAxisCtrl.pause or
+                       (monMasters(1).tValid and not(mAppAxisSlave_i.tReady));
 
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);

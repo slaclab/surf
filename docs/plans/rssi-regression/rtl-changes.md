@@ -77,6 +77,45 @@ cumulative ACK timeout path when no new received sequence is pending.
   ACK at Retransmission Timeout/2 even when the cumulative ACK timeout is
   shorter.
 
+## 2026-05-27: `RssiCore` Application Backpressure Local Busy
+
+File: `protocols/rssi/v1/rtl/RssiCore.vhd`
+
+### What Changed
+
+- Preserved the existing internal application FIFO write-count high-bit local
+  BUSY source.
+- Added the application output flow-control path to local BUSY:
+  `s_mAppAxisCtrl.pause`, or a valid pending monitored application beat while
+  `mAppAxisSlave_i.tReady` is deasserted.
+
+### Why
+
+Direct `RssiCore` integration testing showed that stalling the server
+application output did not advertise BUSY back to the client. The old local BUSY
+expression only watched the FIFO write-count high bit, which missed direct
+application output pause/backpressure conditions already exposed through the
+SSI/AXI stream control path.
+
+Advertising local BUSY from the actual application-output backpressure point
+lets the monitor generate BUSY ACK traffic before the peer transmitter advances
+into retransmit/RST behavior.
+
+### Validation
+
+- `COCOTB_TESTCASE=server_backpressure_advertises_busy_to_client_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiCore.vhd`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiCore.py` verifies that stalled server
+  application output causes a server-to-client BUSY ACK and updates the client
+  status register's peer-busy bit.
+
 ## 2026-05-27: `RssiConnFsm` Peer Parameter Range Validation
 
 File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`

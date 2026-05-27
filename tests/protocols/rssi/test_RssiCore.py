@@ -22,8 +22,6 @@
 # - Timing: Small timeout generics keep connection, ACK, and NULL behavior
 #   cycle-bounded while preserving the relative RSSI timeout relationships.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
@@ -33,6 +31,7 @@ from tests.protocols.rssi.rssi_test_utils import checksum_is_valid, parse_header
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
+    assert_beat_views,
     cycle as ssi_cycle,
     reset_dut,
     start_clock,
@@ -139,14 +138,6 @@ class TB:
             assert int(endpoint._sig("TValid").value) == 0, f"Unexpected {endpoint.prefix} application output"
             await RisingEdge(self.clk)
 
-    async def wait_app_output_clear(self, endpoint: FlatSsiEndpoint, *, cycles: int = 8) -> None:
-        for _ in range(cycles):
-            await Timer(1, unit="ns")
-            if int(endpoint._sig("TValid").value) == 0:
-                return
-            await RisingEdge(self.clk)
-        raise AssertionError(f"{endpoint.prefix} application output did not go idle")
-
     async def collect_app_frames(
         self,
         endpoint: FlatSsiEndpoint,
@@ -175,41 +166,9 @@ class TB:
         await self.drain_app_output(self.srv_sink, self.dut.srvMAppTReady)
 
     async def send_app_frame(self, endpoint: FlatSsiEndpoint, beats: list[SsiBeat]) -> None:
-        # RssiTxFsm's application ingress is sensitive to the local `after
-        # TPD_G` timing in GHDL.  Keep the accepted beat stable for a few
-        # additional cycles so this integration test exercises RSSI payload
-        # delivery rather than a cocotb/VHDL delta-cycle race at the source.
         for beat in beats:
             endpoint.drive(beat)
-            for _ in range(256):
-                await RisingEdge(self.clk)
-                await Timer(2, unit="ns")
-                if int(endpoint._sig("TReady").value) == 1:
-                    break
-            else:
-                raise AssertionError(f"Timed out waiting for {endpoint.prefix}TReady")
-            await self.cycle(8)
-        endpoint.set_idle()
-
-    async def send_app_frame_with_post_accept_pulse(
-        self,
-        endpoint: FlatSsiEndpoint,
-        beats: list[SsiBeat],
-        *,
-        pulse_signal_name: str,
-    ) -> None:
-        for index, beat in enumerate(beats):
-            endpoint.drive(beat)
-            for _ in range(256):
-                await RisingEdge(self.clk)
-                await Timer(2, unit="ns")
-                if int(endpoint._sig("TReady").value) == 1:
-                    break
-            else:
-                raise AssertionError(f"Timed out waiting for {endpoint.prefix}TReady")
-            if index == 0:
-                await self.pulse(pulse_signal_name)
-            await self.cycle(8)
+            await endpoint.wait_ready(clk=self.clk)
         endpoint.set_idle()
 
     async def recv_transport_data_frame(
@@ -329,15 +288,21 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
 
     payload = 0xCAFE_BABE_1234_5678
 
-    dut.cltDropTsp_i.value = 1
-    await tb.cycle()
-    dut.cltDropTsp_i.value = 0
-
+    control_transport = cocotb.start_soon(
+        tb.recv_transport_frame(
+            tb.clt_tsp_sink,
+            match=lambda header, beats: len(beats) == 1 and not header.syn,
+        )
+    )
     first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
     await tb.send_app_frame(
         tb.clt_source,
         [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
     )
+    await control_transport
+    dut.cltDropTsp_i.value = 1
+    await tb.cycle()
+    dut.cltDropTsp_i.value = 0
 
     first_beats = await first_transport
     first_header = parse_header(_protocol_bytes_from_stream_word(first_beats[0].data))
@@ -358,18 +323,13 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
         second_beats[1].data == payload
     ), f"Retransmitted client DATA payload was corrupted: {_transport_frame_view(second_beats)}"
 
-    await recv_frame_and_check(
-        tb.srv_sink,
-        clk=tb.clk,
-        ready_signal=dut.srvMAppTReady,
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=128)
+    assert len(frames) == 1, f"Unexpected server output frames after retransmission: {frames}"
+    assert_beat_views(
+        frames[0],
         fields=("data", "keep", "last", "sof", "eofe"),
         expected=[(payload, 0xFF, 1, 1, 0)],
-        timeout_cycles=512,
     )
-    if os.getenv("RUN_RSSI_STRICT_RETRANSMIT_TESTS") == "1":
-        await tb.wait_app_output_clear(tb.srv_sink)
-        extra_frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=96)
-        assert extra_frames == [], f"Unexpected extra server output after retransmission: {extra_frames}"
 
 
 @cocotb.test()
@@ -381,12 +341,19 @@ async def corrupted_client_data_retransmits_and_recovers_payload_test(dut):
 
     payload = 0x0BAD_F00D_4455_6677
 
+    control_transport = cocotb.start_soon(
+        tb.recv_transport_frame(
+            tb.clt_tsp_sink,
+            match=lambda header, beats: len(beats) == 1 and not header.syn,
+        )
+    )
     first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
-    await tb.send_app_frame_with_post_accept_pulse(
+    await tb.send_app_frame(
         tb.clt_source,
         [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
-        pulse_signal_name="cltInject_i",
     )
+    await control_transport
+    await tb.pulse("cltInject_i")
 
     first_beats = await first_transport
     first_header_bytes = _protocol_bytes_from_stream_word(first_beats[0].data)
@@ -408,21 +375,16 @@ async def corrupted_client_data_retransmits_and_recovers_payload_test(dut):
         second_beats[1].data == payload
     ), f"Retransmitted client DATA payload was corrupted: {_transport_frame_view(second_beats)}"
 
-    await recv_frame_and_check(
-        tb.srv_sink,
-        clk=tb.clk,
-        ready_signal=dut.srvMAppTReady,
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=128)
+    assert len(frames) == 1, f"Unexpected server output frames after checksum recovery: {frames}"
+    assert_beat_views(
+        frames[0],
         fields=("data", "keep", "last", "sof", "eofe"),
         expected=[(payload, 0xFF, 1, 1, 0)],
-        timeout_cycles=512,
     )
-    if os.getenv("RUN_RSSI_STRICT_RETRANSMIT_TESTS") == "1":
-        await tb.wait_app_output_clear(tb.srv_sink)
-        extra_frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=96)
-        assert extra_frames == [], f"Unexpected extra server output after checksum recovery: {extra_frames}"
 
 
-@cocotb.test(skip=os.getenv("RUN_RSSI_BUSY_INTEGRATION_TESTS") != "1")
+@cocotb.test()
 async def server_backpressure_advertises_busy_to_client_test(dut):
     tb = await TB.create(dut)
 
