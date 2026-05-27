@@ -14,16 +14,17 @@
 #   destinations.
 # - Stimulus: Hold both endpoints open and wait for the active-open handshake.
 # - Checks: Both wrappers report connected status with the two-stream wrapper
-#   path elaborated and active. An opt-in known-issue payload characterization
-#   sends independent routed frames on both client streams, confirms the client
-#   emits transport DATA, and records that the server application streams do
-#   not yet receive those frames.
+#   path elaborated and active. Routed payload coverage sends independent
+#   frames on both client streams, confirms the client emits transport DATA,
+#   and verifies the server application streams receive the expected routed
+#   payloads.
+# - Timing: Payload stimulus waits after RSSI connection so the server-side
+#   `AxiStreamDepacketizer2` can finish initializing its per-`TDEST` route
+#   state before DATA frames arrive.
 # - Parameters: Exercise the user-facing multi-stream wrapper path with
 #   `APP_STREAMS_G=2`, `APP_STREAM_ROUTES_G`, `APP_ILEAVE_EN_G=true`, and the
 #   legacy packetizer/depacketizer path. Single-stream and segment-size sweeps
 #   remain in `test_RssiCoreWrapper.py`.
-
-import os
 
 import cocotb
 import pytest
@@ -38,6 +39,11 @@ from tests.protocols.ssi.ssi_test_utils import (
     reset_dut,
     start_clock,
 )
+
+
+# RssiCoreWrapper uses TDEST_BITS_G=8 for AxiStreamDepacketizer2, which clears
+# per-route state after link-up before it can safely accept routed DATA.
+DEPACKETIZER2_INIT_WAIT_CYCLES = 1024
 
 
 def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, int, int, int, int]]:
@@ -144,13 +150,13 @@ async def multi_stream_active_open_smoke_test(dut):
     assert int(dut.srvStatusReg_o.value) & 0x1
 
 
-@cocotb.test(skip=os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") != "1")
-async def multi_stream_client_to_server_payload_routes_known_issue_test(dut):
+@cocotb.test()
+async def multi_stream_client_to_server_payload_routes_test(dut):
     tb = await TB.create(dut)
 
     await tb.wait_connected()
     await tb.drain_app_outputs()
-    await tb.cycle(512)
+    await tb.cycle(DEPACKETIZER2_INIT_WAIT_CYCLES)
 
     payload0 = 0x1111_2222_3333_4444
     payload1 = 0xAAAA_BBBB_CCCC_DDDD

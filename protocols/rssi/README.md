@@ -159,17 +159,13 @@ Default cocotb coverage under `tests/protocols/rssi/` includes:
   `WINDOW_ADDR_SIZE_G` values 1, 2, and 3 and `MAX_SEG_SIZE_G` values 64, 128,
   and 256.
 - `test_RssiCoreWrapperMultiStream.py`: two-stream `RssiCoreWrapper` active-open
-  smoke coverage with `APP_STREAMS_G=2`, routed stream destinations,
-  `APP_ILEAVE_EN_G=true`, and the packetizer2/depacketizer2 path. It also has
-  an opt-in known-issue routed-payload characterization enabled with
-  `RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+  and routed payload coverage with `APP_STREAMS_G=2`, routed stream
+  destinations, `APP_ILEAVE_EN_G=true`, and the packetizer2/depacketizer2 path.
+  The routed payload test waits after RSSI connection so the server-side
+  `AxiStreamDepacketizer2` can finish initializing its per-`TDEST` route state.
 
 Known remaining test gaps:
 
-- Multi-stream routed payload delivery through the packetizer2/interleave path
-  needs focused triage before it should become default pass/fail coverage. The
-  opt-in characterization currently shows client transport DATA emission with
-  no matching server application output.
 - Hardware resource reduction from smaller `WINDOW_ADDR_SIZE_G` values still
   needs synthesis or target-level validation. The cocotb tests prove
   elaboration and basic behavior, not BRAM inference.

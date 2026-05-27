@@ -73,16 +73,13 @@ case, the direct `RssiCore` use case, important generic relationships, and the
 current regression coverage. A second cocotb-facing wrapper,
 `RssiCoreWrapperMultiStreamIntegrationWrapper`, now covers the user-facing
 wrapper path with two application streams, `APP_ILEAVE_EN_G=true`, explicit
-stream routes, and the packetizer2/depacketizer2 path. Its current regression
-is an active-open/elaboration smoke test only; routed payload delivery through
-that multi-stream/interleave path still needs focused triage before it should
-be promoted into default pass/fail coverage. The test now includes an opt-in
-known-issue characterization gated by `RUN_RSSI_KNOWN_ISSUE_TESTS=1`. That
-case confirms the client wrapper accepts both routed application stream frames
-and emits accepted transport DATA frames containing the packetizer2 header,
-payload, and tail, but both server application outputs remain empty. This
-localizes the current failure past the client-side mux/packetizer and toward
-the server-side RSSI receive/depacketizer path.
+stream routes, and the packetizer2/depacketizer2 path. The routed-payload
+known issue has been resolved as a test stimulus race, not an observed RSSI or
+packetizer2 payload defect. The test was sending application DATA before the
+server-side `AxiStreamDepacketizer2` finished clearing its per-`TDEST` route
+state after RSSI link-up. The routed-payload case now waits 1024 `axisClk`
+cycles after connection and verifies both server application streams by
+default.
 
 The next technical work should extend integrated coverage for reorder/drop,
 additional retransmission/counter visibility, or busy behavior. Keep the
@@ -277,6 +274,20 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   opt-in known-issue characterization.
 - `make MODULES=/Users/bareese import` passed on 2026-05-26 after the passive
   transport monitor port additions.
+- `env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 after adding a longer post-connection wait, proving the
+  multi-stream routed-payload symptom was a depacketizer2 initialization race
+  in the test stimulus.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 after promoting the routed-payload case into default
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 with the two-stream active-open and routed-payload
+  packetizer2 cases.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 with five wrapper cases across the one-stream and
+  two-stream wrapper regressions after promoting multi-stream routed payload
+  delivery.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -288,13 +299,11 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   connection/payload/retransmission/keepalive/missing-keepalive/close slice,
   and narrow `RssiCoreWrapper` bypass/packetizer smoke coverage with multiple
   window and segment sizes.
-- The new two-stream `RssiCoreWrapper` regression proves elaboration and
-  active-open connection for the packetizer2/interleave path. Routed payload
-  delivery through that path is still an open test/RTL triage item. Next, add
-  visibility before the server-side `AxiStreamDepacketizer2`, or add a direct
-  `RssiCore` integration test with a multi-beat DATA payload matching the
-  packetizer2 frame shape, to decide whether the loss is in RSSI receive/output
-  or in depacketizer2 handling after RSSI.
+- The two-stream `RssiCoreWrapper` regression now proves active-open connection
+  and routed client-to-server payload delivery for the packetizer2/interleave
+  path. Keep the post-connection delay unless the wrapper exposes
+  `AxiStreamDepacketizer2` `debug.initDone` or otherwise makes depacketizer
+  route-state initialization directly observable.
 - The next implementation slice should extend integrated coverage with
   perturbations such as corruption, reorder/drop, additional
   retransmission/counter visibility, or busy behavior.

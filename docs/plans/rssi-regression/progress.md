@@ -172,6 +172,11 @@
     the user-facing `RssiCoreWrapper` path with `APP_STREAMS_G=2`,
     `APP_ILEAVE_EN_G=true`, routed application streams, and the
     packetizer2/depacketizer2 path.
+  - Resolved the multi-stream wrapper routed-payload known issue as a test
+    stimulus race against server-side `AxiStreamDepacketizer2` route-state
+    initialization. The routed-payload test now waits after RSSI connection
+    before sending application DATA, and verifies both routed server
+    application outputs by default.
 
 ## Notes
 - Primary local spec source is now
@@ -261,18 +266,13 @@
   64-byte RSSI segments. This is smoke coverage for connection and one-frame
   bidirectional payload only; it does not replace implementation synthesis or a
   hardware build for BRAM/resource validation.
-- The first multi-stream `RssiCoreWrapper` regression is intentionally an
-  active-open/elaboration smoke test. Direct routed payload assertions through
-  the packetizer2/interleave path need focused triage before becoming default
-  pass/fail coverage.
-- `test_RssiCoreWrapperMultiStream.py` now includes an opt-in
-  `RUN_RSSI_KNOWN_ISSUE_TESTS=1` characterization for routed payload delivery
-  through the packetizer2/interleave path. The characterization confirms the
-  client wrapper accepts both application stream frames and emits transport
-  DATA frames containing the packetizer2 header, payload, and tail, but both
-  server application output streams remain empty. The current evidence points
-  past the client-side mux/packetizer and toward the server-side
-  RSSI-receive/depacketizer path.
+- The multi-stream `RssiCoreWrapper` routed-payload issue was a test timing
+  problem, not an observed RSSI payload or packetizer2 data-path defect. The
+  test had sent client application DATA before the server-side
+  `AxiStreamDepacketizer2` finished clearing its per-`TDEST` route state after
+  RSSI link-up. Waiting 1024 `axisClk` cycles after connection makes routed
+  payload delivery deterministic, and the payload route assertions are now
+  default coverage.
 
 ## Validation
 - 2026-05-22:
@@ -660,6 +660,21 @@
 - 2026-05-26:
   `make MODULES=/Users/bareese import` passed after the passive transport
   monitor port additions.
+- 2026-05-27:
+  `env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after adding a longer post-connection wait, proving the multi-stream
+  routed-payload symptom was a depacketizer2 initialization race in the test
+  stimulus.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after promoting the routed-payload case into default coverage.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with the two-stream active-open and routed-payload packetizer2 cases.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with five wrapper cases across the one-stream and two-stream wrapper
+  regressions after promoting multi-stream routed payload delivery.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -678,7 +693,3 @@
   as a default failure.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.
-- Continue multi-stream wrapper payload triage by exposing or otherwise
-  observing the server-side `RssiCore` application output before
-  `AxiStreamDepacketizer2`, or by adding a direct `RssiCore` integration case
-  with a multi-beat DATA payload matching the packetizer2 frame shape.
