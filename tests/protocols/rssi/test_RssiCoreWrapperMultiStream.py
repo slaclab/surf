@@ -14,11 +14,16 @@
 #   destinations.
 # - Stimulus: Hold both endpoints open and wait for the active-open handshake.
 # - Checks: Both wrappers report connected status with the two-stream wrapper
-#   path elaborated and active.
+#   path elaborated and active. An opt-in known-issue payload characterization
+#   sends independent routed frames on both client streams, confirms the client
+#   emits transport DATA, and records that the server application streams do
+#   not yet receive those frames.
 # - Parameters: Exercise the user-facing multi-stream wrapper path with
 #   `APP_STREAMS_G=2`, `APP_STREAM_ROUTES_G`, `APP_ILEAVE_EN_G=true`, and the
 #   legacy packetizer/depacketizer path. Single-stream and segment-size sweeps
 #   remain in `test_RssiCoreWrapper.py`.
+
+import os
 
 import cocotb
 import pytest
@@ -27,10 +32,19 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
+    SsiBeat,
+    capture_accepted_beats,
     cycle as ssi_cycle,
     reset_dut,
     start_clock,
 )
+
+
+def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, int, int, int, int]]:
+    return [
+        (beat.data, beat.keep, beat.last, beat.sof, beat.eofe)
+        for beat in beats[:limit]
+    ]
 
 
 class TB:
@@ -53,6 +67,8 @@ class TB:
             FlatSsiEndpoint(dut, prefix="srvMApp0"),
             FlatSsiEndpoint(dut, prefix="srvMApp1"),
         ]
+        self.clt_tsp_monitor = FlatSsiEndpoint(dut, prefix="cltMTsp")
+        self.srv_tsp_monitor = FlatSsiEndpoint(dut, prefix="srvMTsp")
 
     @classmethod
     async def create(cls, dut):
@@ -111,6 +127,11 @@ class TB:
         for index, endpoint in enumerate(self.srv_sinks):
             await self.drain_app_output(endpoint, getattr(self.dut, f"srvMApp{index}TReady"))
 
+    async def send_app_frame(self, endpoint: FlatSsiEndpoint, beats: list[SsiBeat]) -> None:
+        for beat in beats:
+            await endpoint.send(beat, clk=self.clk)
+        endpoint.set_idle()
+
 
 @cocotb.test()
 async def multi_stream_active_open_smoke_test(dut):
@@ -121,6 +142,58 @@ async def multi_stream_active_open_smoke_test(dut):
 
     assert int(dut.cltStatusReg_o.value) & 0x1
     assert int(dut.srvStatusReg_o.value) & 0x1
+
+
+@cocotb.test(skip=os.getenv("RUN_RSSI_KNOWN_ISSUE_TESTS") != "1")
+async def multi_stream_client_to_server_payload_routes_known_issue_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+    await tb.cycle(512)
+
+    payload0 = 0x1111_2222_3333_4444
+    payload1 = 0xAAAA_BBBB_CCCC_DDDD
+
+    dut.srvMApp0TReady.value = 1
+    dut.srvMApp1TReady.value = 1
+
+    clt_tsp_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.clt_tsp_monitor, clk=tb.clk, cycles=1024)
+    )
+    srv_out0_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.srv_sinks[0], clk=tb.clk, cycles=1024)
+    )
+    srv_out1_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.srv_sinks[1], clk=tb.clk, cycles=1024)
+    )
+
+    await tb.send_app_frame(
+        tb.clt_sources[0],
+        [SsiBeat(data=payload0, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await tb.send_app_frame(
+        tb.clt_sources[1],
+        [SsiBeat(data=payload1, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+
+    clt_tsp_beats = await clt_tsp_capture
+    srv_out0_beats = await srv_out0_capture
+    srv_out1_beats = await srv_out1_capture
+
+    assert clt_tsp_beats, "Client wrapper accepted application frames but emitted no transport beats"
+    assert _beat_summary(srv_out0_beats) == [(payload0, 0xFF, 1, 1, 0)], (
+        "Server stream 0 did not receive the expected routed payload; "
+        f"clt_tsp={_beat_summary(clt_tsp_beats)} "
+        f"srv0={_beat_summary(srv_out0_beats)} "
+        f"srv1={_beat_summary(srv_out1_beats)}"
+    )
+    assert _beat_summary(srv_out1_beats) == [(payload1, 0xFF, 1, 1, 0)], (
+        "Server stream 1 did not receive the expected routed payload; "
+        f"clt_tsp={_beat_summary(clt_tsp_beats)} "
+        f"srv0={_beat_summary(srv_out0_beats)} "
+        f"srv1={_beat_summary(srv_out1_beats)}"
+    )
 
 
 PARAMETER_SWEEP = [

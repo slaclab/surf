@@ -265,6 +265,14 @@
   active-open/elaboration smoke test. Direct routed payload assertions through
   the packetizer2/interleave path need focused triage before becoming default
   pass/fail coverage.
+- `test_RssiCoreWrapperMultiStream.py` now includes an opt-in
+  `RUN_RSSI_KNOWN_ISSUE_TESTS=1` characterization for routed payload delivery
+  through the packetizer2/interleave path. The characterization confirms the
+  client wrapper accepts both application stream frames and emits transport
+  DATA frames containing the packetizer2 header, payload, and tail, but both
+  server application output streams remain empty. The current evidence points
+  past the client-side mux/packetizer and toward the server-side
+  RSSI-receive/depacketizer path.
 
 ## Validation
 - 2026-05-22:
@@ -628,6 +636,30 @@
 - 2026-05-26:
   `make MODULES=/Users/bareese import` passed after adding the multi-stream
   wrapper file under the simulation wrapper source directory.
+- 2026-05-26:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after adding the opt-in multi-stream routed-payload characterization.
+- 2026-05-26:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+  passed after adding passive transport monitor ports to the multi-stream
+  integration wrapper.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with the known-issue routed-payload characterization skipped by
+  default.
+- 2026-05-26:
+  `env RUN_RSSI_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  failed in `multi_stream_client_to_server_payload_routes_known_issue_test`.
+  The failure showed repeated accepted client transport DATA frames containing
+  both payloads, while `srvMApp0` and `srvMApp1` captured no application
+  output beats.
+- 2026-05-26:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with five default wrapper cases after adding the opt-in known-issue
+  characterization.
+- 2026-05-26:
+  `make MODULES=/Users/bareese import` passed after the passive transport
+  monitor port additions.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -646,3 +678,7 @@
   as a default failure.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.
+- Continue multi-stream wrapper payload triage by exposing or otherwise
+  observing the server-side `RssiCore` application output before
+  `AxiStreamDepacketizer2`, or by adding a direct `RssiCore` integration case
+  with a multi-beat DATA payload matching the packetizer2 frame shape.

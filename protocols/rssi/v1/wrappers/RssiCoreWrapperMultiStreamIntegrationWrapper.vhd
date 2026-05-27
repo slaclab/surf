@@ -114,6 +114,22 @@ entity RssiCoreWrapperMultiStreamIntegrationWrapper is
       srvMApp1Sof    : out sl;
       srvMApp1Eofe   : out sl;
 
+      cltMTspTValid : out sl;
+      cltMTspTReady : out sl;
+      cltMTspTData  : out slv(63 downto 0);
+      cltMTspTKeep  : out slv(7 downto 0);
+      cltMTspTLast  : out sl;
+      cltMTspSof    : out sl;
+      cltMTspEofe   : out sl;
+
+      srvMTspTValid : out sl;
+      srvMTspTReady : out sl;
+      srvMTspTData  : out slv(63 downto 0);
+      srvMTspTKeep  : out slv(7 downto 0);
+      srvMTspTLast  : out sl;
+      srvMTspSof    : out sl;
+      srvMTspEofe   : out sl;
+
       cltConnected_o : out sl;
       srvConnected_o : out sl;
       cltStatusReg_o : out slv(8 downto 0);
@@ -259,6 +275,23 @@ begin
    srvMApp1TLast           <= srvMAppMasters(1).tLast;
    srvMApp1Sof             <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvMAppMasters(1));
    srvMApp1Eofe            <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvMAppMasters(1));
+
+   -- Passive transport monitors.
+   cltMTspTValid <= cltTspMaster.tValid;
+   cltMTspTReady <= cltTspSlave.tReady;
+   cltMTspTData  <= cltTspMaster.tData(63 downto 0);
+   cltMTspTKeep  <= cltTspMaster.tKeep(7 downto 0);
+   cltMTspTLast  <= cltTspMaster.tLast;
+   cltMTspSof    <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, cltTspMaster);
+   cltMTspEofe   <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, cltTspMaster);
+
+   srvMTspTValid <= srvTspMaster.tValid;
+   srvMTspTReady <= srvTspSlave.tReady;
+   srvMTspTData  <= srvTspMaster.tData(63 downto 0);
+   srvMTspTKeep  <= srvTspMaster.tKeep(7 downto 0);
+   srvMTspTLast  <= srvTspMaster.tLast;
+   srvMTspSof    <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvTspMaster);
+   srvMTspEofe   <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvTspMaster);
 
    -- Client wrapper with transport connected directly to the server wrapper.
    U_Client : entity surf.RssiCoreWrapper
