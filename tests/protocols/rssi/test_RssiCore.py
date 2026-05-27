@@ -10,9 +10,10 @@
 
 # Test methodology:
 # - Sweep: Run one client `RssiCore` and one server `RssiCore` through a thin
-#   integration wrapper with their transport AXI streams connected directly.
-# - Stimulus: Hold both endpoints open, wait for the active-open handshake, and
-#   drive flattened SSI-style application frames into each core.
+#   integration wrapper with flattened transport streams.
+# - Stimulus: Cocotb loops transport streams between endpoints, holds both
+#   endpoints open, waits for the active-open handshake, and drives flattened
+#   SSI-style application frames into each core.
 # - Checks: Both cores report connection-active status and negotiated segment
 #   size, bidirectional application payloads are delivered with SSI sideband
 #   fields preserved, dropped and corrupted client DATA frames are recovered by
@@ -55,8 +56,17 @@ class TB:
         self.clt_sink = FlatSsiEndpoint(dut, prefix="cltMApp")
         self.srv_source = FlatSsiEndpoint(dut, prefix="srvSApp")
         self.srv_sink = FlatSsiEndpoint(dut, prefix="srvMApp")
-        self.clt_tsp_sink = FlatSsiEndpoint(dut, prefix="cltMTsp")
-        self.srv_tsp_sink = FlatSsiEndpoint(dut, prefix="srvMTsp")
+        self.clt_tsp_input = FlatSsiEndpoint(dut, prefix="cltSTsp")
+        self.clt_tsp_output = FlatSsiEndpoint(dut, prefix="cltMTsp")
+        self.srv_tsp_input = FlatSsiEndpoint(dut, prefix="srvSTsp")
+        self.srv_tsp_output = FlatSsiEndpoint(dut, prefix="srvMTsp")
+        self.clt_tsp_sink = self.clt_tsp_output
+        self.srv_tsp_sink = self.srv_tsp_output
+        self.drop_next_client_data = False
+        self.drop_next_server_data = False
+        self.drop_all_client = False
+        self.drop_all_server = False
+        self.loopback_tasks = []
 
     @classmethod
     async def create(cls, dut):
@@ -66,22 +76,25 @@ class TB:
         tb = cls(dut)
         tb.clt_source.set_idle()
         tb.srv_source.set_idle()
+        tb.clt_tsp_input.set_idle()
+        tb.srv_tsp_input.set_idle()
 
         for signal_name, value in {
             "cltOpen_i": 1,
             "cltClose_i": 0,
             "cltInject_i": 0,
-            "cltDropTsp_i": 0,
             "srvOpen_i": 1,
             "srvClose_i": 0,
             "srvInject_i": 0,
-            "srvDropTsp_i": 0,
             "cltMAppTReady": 0,
+            "cltMTspTReady": 0,
             "srvMAppTReady": 0,
+            "srvMTspTReady": 0,
         }.items():
             getattr(dut, signal_name).setimmediatevalue(value)
 
         await reset_dut(dut, clk_name="axisClk", rst_name="axisRst")
+        tb.start_transport_loopbacks()
         return tb
 
     async def cycle(self, count: int = 1) -> None:
@@ -165,6 +178,69 @@ class TB:
             endpoint.drive(beat)
             await endpoint.wait_ready(clk=self.clk)
         endpoint.set_idle()
+
+    def start_transport_loopbacks(self) -> None:
+        self.loopback_tasks = [
+            cocotb.start_soon(
+                self.loopback_transport(
+                    self.clt_tsp_output,
+                    self.srv_tsp_input,
+                    self.dut.cltMTspTReady,
+                    drop_next_attr="drop_next_client_data",
+                    drop_all_attr="drop_all_client",
+                )
+            ),
+            cocotb.start_soon(
+                self.loopback_transport(
+                    self.srv_tsp_output,
+                    self.clt_tsp_input,
+                    self.dut.srvMTspTReady,
+                    drop_next_attr="drop_next_server_data",
+                    drop_all_attr="drop_all_server",
+                )
+            ),
+        ]
+
+    async def loopback_transport(
+        self,
+        source: FlatSsiEndpoint,
+        destination: FlatSsiEndpoint,
+        source_ready,
+        *,
+        drop_next_attr: str,
+        drop_all_attr: str,
+    ) -> None:
+        dropping = False
+        destination.set_idle()
+        source_ready.value = 0
+
+        while True:
+            await FallingEdge(self.clk)
+            await Timer(1, unit="ns")
+
+            valid = int(source._sig("TValid").value) == 1
+            beat = source.snapshot() if valid else None
+            drop_frame = valid and (
+                dropping
+                or getattr(self, drop_all_attr)
+                or (getattr(self, drop_next_attr) and beat.last == 0)
+            )
+
+            if drop_frame:
+                destination.set_idle()
+                source_ready.value = 1
+                dropping = beat.last == 0
+                if getattr(self, drop_next_attr):
+                    setattr(self, drop_next_attr, False)
+                continue
+
+            if valid:
+                destination.drive(beat)
+            else:
+                destination.set_idle()
+
+            await Timer(1, unit="ns")
+            source_ready.value = destination._sig("TReady").value
 
     async def recv_transport_data_frame(
         self,
@@ -268,21 +344,12 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
 
     payload = 0xCAFE_BABE_1234_5678
 
-    control_transport = cocotb.start_soon(
-        tb.recv_transport_frame(
-            tb.clt_tsp_sink,
-            match=lambda header, beats: len(beats) == 1 and not header.syn,
-        )
-    )
     first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    tb.drop_next_client_data = True
     await tb.send_app_frame(
         tb.clt_source,
         [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
     )
-    await control_transport
-    dut.cltDropTsp_i.value = 1
-    await tb.cycle()
-    dut.cltDropTsp_i.value = 0
 
     first_beats = await first_transport
     first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
@@ -409,7 +476,7 @@ async def max_retransmissions_close_client_and_emit_rst_test(dut):
         )
     )
 
-    dut.cltDropTsp_i.value = 1
+    tb.drop_all_client = True
     await tb.send_app_frame(
         tb.clt_source,
         [SsiBeat(data=0xDDDD_EEEE_AAAA_5555, keep=0xFF, last=1, sof=1, eofe=0)],
@@ -447,9 +514,8 @@ async def missing_client_keepalives_close_server_connection_test(dut):
     await tb.wait_connected()
     await tb.drain_app_outputs()
 
-    dut.cltDropTsp_i.value = 1
+    tb.drop_all_client = True
     await tb.cycle(96)
-    dut.cltDropTsp_i.value = 0
 
     assert int(dut.srvConnected_o.value) == 0
     assert (int(dut.srvStatusReg_o.value) >> 2) & 0x1 == 1

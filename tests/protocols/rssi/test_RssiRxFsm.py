@@ -23,7 +23,7 @@ import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     RSSI_FLAG_BUSY,
@@ -310,6 +310,32 @@ async def checksum_failed_data_payload_is_flushed_before_retransmit_test(dut):
 
 
 @cocotb.test()
+async def checksum_disabled_accepts_data_when_checksum_status_is_bad_test(dut):
+    if not env_flag("RSSI_CHECKSUM_DISABLED_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    payload = 0xCAFE_0000_0000_BEEF
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[payload],
+        checksum_ok=False,
+        send_payload_after_bad_checksum=True,
+    )
+    await tb.wait_status_pulse("rxValidSeg_o", cycles=128)
+
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.clk,
+        ready_signal=dut.mAxisTReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(payload, 0xFF, 1, 1, 0)],
+    )
+
+
+@cocotb.test()
 async def null_segment_is_accepted_without_application_output_test(dut):
     tb = await TB.create(dut)
 
@@ -536,6 +562,27 @@ def test_RssiRxFsm(parameters):
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": [
+                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
+                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiRxFsm_checksum_disabled():
+    parameters = {"HEADER_CHKSUM_EN_G": "false"}
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssirxfsmwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "checksum_disabled_accepts_data_when_checksum_status_is_bad_test",
+            "RSSI_CHECKSUM_DISABLED_CASE": 1,
+        },
         extra_vhdl_sources={
             "surf": [
                 "protocols/rssi/v1/rtl/RssiRxFsm.vhd",

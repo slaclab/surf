@@ -49,11 +49,9 @@ entity RssiCoreIntegrationWrapper is
       cltOpen_i    : in sl;
       cltClose_i   : in sl;
       cltInject_i  : in sl;
-      cltDropTsp_i : in sl;
       srvOpen_i    : in sl;
       srvClose_i   : in sl;
       srvInject_i  : in sl;
-      srvDropTsp_i : in sl;
 
       cltSAppTValid : in  sl;
       cltSAppTReady : out sl;
@@ -87,16 +85,32 @@ entity RssiCoreIntegrationWrapper is
       srvMAppSof    : out sl;
       srvMAppEofe   : out sl;
 
+      cltSTspTValid : in  sl;
+      cltSTspTReady : out sl;
+      cltSTspTData  : in  slv(63 downto 0);
+      cltSTspTKeep  : in  slv(7 downto 0);
+      cltSTspTLast  : in  sl;
+      cltSTspSof    : in  sl;
+      cltSTspEofe   : in  sl;
+
       cltMTspTValid : out sl;
-      cltMTspTReady : out sl;
+      cltMTspTReady : in  sl;
       cltMTspTData  : out slv(63 downto 0);
       cltMTspTKeep  : out slv(7 downto 0);
       cltMTspTLast  : out sl;
       cltMTspSof    : out sl;
       cltMTspEofe   : out sl;
 
+      srvSTspTValid : in  sl;
+      srvSTspTReady : out sl;
+      srvSTspTData  : in  slv(63 downto 0);
+      srvSTspTKeep  : in  slv(7 downto 0);
+      srvSTspTLast  : in  sl;
+      srvSTspSof    : in  sl;
+      srvSTspEofe   : in  sl;
+
       srvMTspTValid : out sl;
-      srvMTspTReady : out sl;
+      srvMTspTReady : in  sl;
       srvMTspTData  : out slv(63 downto 0);
       srvMTspTKeep  : out slv(7 downto 0);
       srvMTspTLast  : out sl;
@@ -128,10 +142,10 @@ architecture mapping of RssiCoreIntegrationWrapper is
    signal srvTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal srvTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
-   signal cltToSrvTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal cltToSrvTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal srvToCltTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal srvToCltTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal cltRxTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cltRxTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal srvRxTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal srvRxTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
    signal cltAxilReadSlave   : AxiLiteReadSlaveType;
    signal cltAxilWriteSlave  : AxiLiteWriteSlaveType;
@@ -140,20 +154,6 @@ architecture mapping of RssiCoreIntegrationWrapper is
 
    signal cltStatusReg : slv(8 downto 0);
    signal srvStatusReg : slv(8 downto 0);
-
-   type DropRegType is record
-      armed    : sl;
-      dropping : sl;
-   end record DropRegType;
-
-   constant DROP_REG_INIT_C : DropRegType := (
-      armed    => '0',
-      dropping => '0');
-
-   signal cltToSrvDrop : DropRegType := DROP_REG_INIT_C;
-   signal cltToSrvDropIn : DropRegType;
-   signal srvToCltDrop : DropRegType := DROP_REG_INIT_C;
-   signal srvToCltDropIn : DropRegType;
 
 begin
 
@@ -210,17 +210,52 @@ begin
    srvMAppSof          <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvMAppMaster);
    srvMAppEofe         <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvMAppMaster);
 
-   -- Passive flattened transport monitors for cocotb perturbation/debug.
+   -- Flattened client transport input.
+   cltSTspComb : process (cltSTspEofe, cltSTspSof, cltSTspTData,
+                          cltSTspTKeep, cltSTspTLast, cltSTspTValid) is
+      variable v : AxiStreamMasterType;
+   begin
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := cltSTspTValid;
+      v.tData(63 downto 0) := cltSTspTData;
+      v.tStrb(7 downto 0)  := cltSTspTKeep;
+      v.tKeep(7 downto 0)  := cltSTspTKeep;
+      v.tLast              := cltSTspTLast;
+      ssiSetUserSof(RSSI_AXIS_CONFIG_C, v, cltSTspSof);
+      ssiSetUserEofe(RSSI_AXIS_CONFIG_C, v, cltSTspEofe);
+      cltRxTspMaster <= v;
+   end process cltSTspComb;
+
+   -- Flattened server transport input.
+   srvSTspComb : process (srvSTspEofe, srvSTspSof, srvSTspTData,
+                          srvSTspTKeep, srvSTspTLast, srvSTspTValid) is
+      variable v : AxiStreamMasterType;
+   begin
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := srvSTspTValid;
+      v.tData(63 downto 0) := srvSTspTData;
+      v.tStrb(7 downto 0)  := srvSTspTKeep;
+      v.tKeep(7 downto 0)  := srvSTspTKeep;
+      v.tLast              := srvSTspTLast;
+      ssiSetUserSof(RSSI_AXIS_CONFIG_C, v, srvSTspSof);
+      ssiSetUserEofe(RSSI_AXIS_CONFIG_C, v, srvSTspEofe);
+      srvRxTspMaster <= v;
+   end process srvSTspComb;
+
+   cltSTspTReady <= cltRxTspSlave.tReady;
+   srvSTspTReady <= srvRxTspSlave.tReady;
+
+   -- Flattened transport outputs for cocotb loopback/perturbation.
+   cltTspSlave.tReady <= cltMTspTReady;
    cltMTspTValid <= cltTspMaster.tValid;
-   cltMTspTReady <= cltTspSlave.tReady;
    cltMTspTData  <= cltTspMaster.tData(63 downto 0);
    cltMTspTKeep  <= cltTspMaster.tKeep(7 downto 0);
    cltMTspTLast  <= cltTspMaster.tLast;
    cltMTspSof    <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, cltTspMaster);
    cltMTspEofe   <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, cltTspMaster);
 
+   srvTspSlave.tReady <= srvMTspTReady;
    srvMTspTValid <= srvTspMaster.tValid;
-   srvMTspTReady <= srvTspSlave.tReady;
    srvMTspTData  <= srvTspMaster.tData(63 downto 0);
    srvMTspTKeep  <= srvTspMaster.tKeep(7 downto 0);
    srvMTspTLast  <= srvTspMaster.tLast;
@@ -232,89 +267,7 @@ begin
    cltConnected_o <= cltStatusReg(0);
    srvConnected_o <= srvStatusReg(0);
 
-   -- One-shot client-to-server transport frame drop for loss/retransmission tests.
-   cltToSrvDropComb : process (axisRst, cltDropTsp_i, cltToSrvDrop, cltToSrvTspSlave, cltTspMaster) is
-      variable v : DropRegType;
-   begin
-      v := cltToSrvDrop;
-
-      cltToSrvTspMaster <= cltTspMaster;
-      cltTspSlave       <= cltToSrvTspSlave;
-
-      if (cltDropTsp_i = '1') then
-         v.armed := '1';
-      end if;
-
-      if (cltToSrvDrop.dropping = '1') or ((cltToSrvDrop.armed = '1') and (cltTspMaster.tValid = '1')) then
-         cltToSrvTspMaster <= AXI_STREAM_MASTER_INIT_C;
-         cltTspSlave       <= AXI_STREAM_SLAVE_FORCE_C;
-
-         if (cltTspMaster.tValid = '1') then
-            if (cltTspMaster.tLast = '1') then
-               v.armed    := '0';
-               v.dropping := '0';
-            else
-               v.dropping := '1';
-            end if;
-         end if;
-      end if;
-
-      if (axisRst = '1') then
-         v := DROP_REG_INIT_C;
-      end if;
-
-      cltToSrvDropIn <= v;
-   end process cltToSrvDropComb;
-
-   cltToSrvDropSeq : process (axisClk) is
-   begin
-      if rising_edge(axisClk) then
-         cltToSrvDrop <= cltToSrvDropIn after TPD_G;
-      end if;
-   end process cltToSrvDropSeq;
-
-   -- One-shot server-to-client transport frame drop for symmetric perturbation tests.
-   srvToCltDropComb : process (axisRst, srvDropTsp_i, srvToCltDrop, srvToCltTspSlave, srvTspMaster) is
-      variable v : DropRegType;
-   begin
-      v := srvToCltDrop;
-
-      srvToCltTspMaster <= srvTspMaster;
-      srvTspSlave       <= srvToCltTspSlave;
-
-      if (srvDropTsp_i = '1') then
-         v.armed := '1';
-      end if;
-
-      if (srvToCltDrop.dropping = '1') or ((srvToCltDrop.armed = '1') and (srvTspMaster.tValid = '1')) then
-         srvToCltTspMaster <= AXI_STREAM_MASTER_INIT_C;
-         srvTspSlave       <= AXI_STREAM_SLAVE_FORCE_C;
-
-         if (srvTspMaster.tValid = '1') then
-            if (srvTspMaster.tLast = '1') then
-               v.armed    := '0';
-               v.dropping := '0';
-            else
-               v.dropping := '1';
-            end if;
-         end if;
-      end if;
-
-      if (axisRst = '1') then
-         v := DROP_REG_INIT_C;
-      end if;
-
-      srvToCltDropIn <= v;
-   end process srvToCltDropComb;
-
-   srvToCltDropSeq : process (axisClk) is
-   begin
-      if rising_edge(axisClk) then
-         srvToCltDrop <= srvToCltDropIn after TPD_G;
-      end if;
-   end process srvToCltDropSeq;
-
-   -- Client core with transport connected directly to the server core.
+   -- Client core with transport exposed to cocotb for loopback.
    U_Client : entity surf.RssiCore
       generic map (
          TPD_G               => TPD_G,
@@ -347,8 +300,8 @@ begin
          sAppAxisSlave_o  => cltSAppSlave, -- [out]
          mAppAxisMaster_o => cltMAppMaster, -- [out]
          mAppAxisSlave_i  => cltMAppSlave, -- [in]
-         sTspAxisMaster_i => srvToCltTspMaster, -- [in]
-         sTspAxisSlave_o  => srvToCltTspSlave, -- [out]
+         sTspAxisMaster_i => cltRxTspMaster, -- [in]
+         sTspAxisSlave_o  => cltRxTspSlave, -- [out]
          mTspAxisMaster_o => cltTspMaster, -- [out]
          mTspAxisSlave_i  => cltTspSlave, -- [in]
          axilReadSlave    => cltAxilReadSlave, -- [out]
@@ -356,7 +309,7 @@ begin
          statusReg_o      => cltStatusReg, -- [out]
          maxSegSize_o     => cltMaxSegSize_o); -- [out]
 
-   -- Server core with transport connected directly to the client core.
+   -- Server core with transport exposed to cocotb for loopback.
    U_Server : entity surf.RssiCore
       generic map (
          TPD_G               => TPD_G,
@@ -389,8 +342,8 @@ begin
          sAppAxisSlave_o  => srvSAppSlave, -- [out]
          mAppAxisMaster_o => srvMAppMaster, -- [out]
          mAppAxisSlave_i  => srvMAppSlave, -- [in]
-         sTspAxisMaster_i => cltToSrvTspMaster, -- [in]
-         sTspAxisSlave_o  => cltToSrvTspSlave, -- [out]
+         sTspAxisMaster_i => srvRxTspMaster, -- [in]
+         sTspAxisSlave_o  => srvRxTspSlave, -- [out]
          mTspAxisMaster_o => srvTspMaster, -- [out]
          mTspAxisSlave_i  => srvTspSlave, -- [in]
          axilReadSlave    => srvAxilReadSlave, -- [out]

@@ -107,22 +107,21 @@ application frame; the old repeated-output symptom was caused by test stimulus
 holding the application source valid for multiple accepted beats and by arming
 loss/corruption before pending control traffic instead of targeting DATA.
 
-The RSSI wrapper audit found one similar remaining candidate:
-`RssiCoreIntegrationWrapper` still contains VHDL transport drop-gate logic for
-direct-core integration perturbations. `RssiTxFsmWrapper` and
-`RssiRxFsmWrapper` also contain behavioral logic, but that is segment-buffer
-RAM modeling required by those leaf-FSM interfaces rather than avoidable
+The direct-core wrapper audit candidate is closed:
+`RssiCoreIntegrationWrapper` now exposes flattened client/server transport
+input and output ports, and `test_RssiCore.py` owns transparent loopback,
+one-shot DATA loss, and sustained client-transport drop behavior in cocotb.
+`RssiTxFsmWrapper` and `RssiRxFsmWrapper` still contain behavioral segment RAM
+models, which are required by those leaf-FSM interfaces rather than avoidable
 traffic perturbation.
 
-The next technical work should continue triaging the remaining
-`rtl-spec-review.md` findings into default coverage, expected-fail
-characterization, or narrow RTL fixes. EACK scope has been decided: EACK is
-reserved/unsupported in the SURF RSSI v1 hardware profile, matching the primary
-SLAC RSSI page. Tests should verify explicit rejection of received EACK flag
-combinations, not EACK compliance. The local-busy cadence decision has been
-made in favor of the RSSI page's Retransmission Timeout/2 recommendation, and
-direct-core BUSY advertisement is now covered at the integrated `RssiCore`
-level.
+The checksum-disabled RX finding is closed as a characterization stimulus bug,
+not a production RTL defect. `RssiRxFsm` already bypasses `chksumOk_i` when
+`HEADER_CHKSUM_EN_G=false`; the fixed regression now sends the DATA payload
+while forcing `chksumOk_i=0`, preserving the existing contract that the
+checksum block still provides the `chksumValid_i` timing pulse. EACK scope has
+been decided: EACK is reserved/unsupported in the SURF RSSI v1 hardware
+profile, matching the primary SLAC RSSI page.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -359,6 +358,18 @@ level.
   comments, and task docs.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
   passed on 2026-05-27 after adding standalone ACK+EACK rejection coverage.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after adding the checksum-disabled RX characterization
+  and moving direct-core transport loopback/drop behavior into cocotb.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed on 2026-05-27 after exposing flattened direct-core transport ports
+  and removing VHDL drop-gate logic.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py::test_RssiRxFsm_checksum_disabled`
+  passed on 2026-05-27 after fixing the characterization stimulus to continue
+  sending the DATA payload while forcing `chksumOk_i=0`.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 with the checksum-disabled RX characterization covered
+  as a normal regression.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -391,5 +402,7 @@ level.
   rejection. SURF RSSI v1 does not implement EACK/out-of-sequence
   acknowledgment handling; SYN+EACK, DATA+EACK, and standalone ACK+EACK are
   default RX rejection coverage.
-- Decide which remaining `rtl-spec-review.md` findings should become
-  expected-fail tests versus immediate RTL fixes.
+- The checksum-disabled RX characterization is now passing as a normal
+  regression. The contract is that `HEADER_CHKSUM_EN_G=false` ignores
+  `chksumOk_i`, while `chksumValid_i` still supplies the checksum-block timing
+  pulse.

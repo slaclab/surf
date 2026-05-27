@@ -778,6 +778,22 @@
 - 2026-05-27:
   `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
   passed after adding standalone ACK+EACK rejection coverage.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed after adding the checksum-disabled RX characterization and moving
+  direct-core transport loopback/drop behavior into cocotb.
+- 2026-05-27:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed after exposing flattened direct-core transport ports and removing the
+  VHDL drop-gate logic.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py::test_RssiRxFsm_checksum_disabled`
+  passed after fixing the characterization stimulus to continue sending the
+  DATA payload while forcing `chksumOk_i=0`.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed with the checksum-disabled RX characterization covered as a normal
+  regression.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -788,8 +804,8 @@
   retransmission/counter visibility, and busy perturbations now that direct
   `RssiCore` and multi-stream `RssiCoreWrapper` DATA loss/retransmission are
   covered.
-- Consider refactoring `RssiCoreIntegrationWrapper` transport loss/corruption
-  hooks to the same flattened-transport/cocotb-loopback pattern used by the
-  multi-stream wrapper.
-- Continue triaging the remaining `rtl-spec-review.md` findings into default
-  coverage, expected-fail characterization, or immediate RTL fixes.
+- The checksum-disabled RX finding is closed as a test-stimulus bug, not a
+  production RTL defect. `RssiRxFsm` already bypasses `chksumOk_i` when
+  `HEADER_CHKSUM_EN_G=false`; the regression now sends the DATA payload while
+  forcing `chksumOk_i=0`, preserving the existing contract that the checksum
+  block still provides the `chksumValid_i` timing pulse.
