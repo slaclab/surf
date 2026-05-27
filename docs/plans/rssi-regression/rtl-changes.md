@@ -38,7 +38,7 @@ keepalive traffic.
   retransmission timeout progress and verifies ACK/BUSY-only server traffic
   does not prevent null-timeout close.
 
-## 2026-05-22: `RssiMonitor` Periodic Local Busy ACK Requests
+## 2026-05-27: `RssiMonitor` Periodic Local Busy ACK Requests
 
 File: `protocols/rssi/v1/rtl/RssiMonitor.vhd`
 
@@ -46,9 +46,10 @@ File: `protocols/rssi/v1/rtl/RssiMonitor.vhd`
 
 - Updated ACK timeout counter reset logic so local BUSY can keep the ACK
   timeout counter running after a busy ACK has already been transmitted.
-- This lets steady local BUSY request another ACK after the cumulative ACK
-  timeout expires, even when there is no newly pending received sequence number
-  to acknowledge.
+- Added a steady local-BUSY ACK request at `Retransmission Timeout/2` when there
+  is no newly pending receive sequence number to acknowledge.
+- Restricted the ordinary cumulative ACK timeout request to cases where
+  `rxLastSeqN_i` has advanced beyond the last ACKed receive sequence.
 
 ### Why
 
@@ -58,23 +59,98 @@ timer. Before this change, `RssiMonitor` requested an ACK on the local BUSY
 rising edge, but once that ACK was transmitted the normal "nothing pending to
 acknowledge" reset condition prevented further periodic busy ACK requests.
 
-The implemented cadence remains the existing cumulative ACK timeout path used by
-SURF/Rogue behavior. The RSSI protocol page recommends a Retransmission
-Timeout/2 period, so that cadence difference remains a review decision rather
-than an untested behavior.
+The RSSI protocol page recommends a Retransmission Timeout/2 cadence for BUSY
+acknowledgments. Using that cadence also avoids generating BUSY ACKs through the
+cumulative ACK timeout path when no new received sequence is pending.
 
 ### Validation
 
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiMonitor.py`
   passed.
-- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd`
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
   passed.
 
 ### Related Tests
 
 - `tests/protocols/rssi/test_RssiMonitor.py` verifies a local BUSY rising edge
   requests an ACK immediately and verifies steady local BUSY requests another
-  ACK after the cumulative ACK timeout path runs.
+  ACK at Retransmission Timeout/2 even when the cumulative ACK timeout is
+  shorter.
+
+## 2026-05-27: `RssiConnFsm` Peer Parameter Range Validation
+
+File: `protocols/rssi/v1/rtl/RssiConnFsm.vhd`
+
+### What Changed
+
+- Added local helpers to validate peer RSSI parameters before negotiation uses
+  them.
+- Rejected peer SYN/SYN+ACK parameters where `maxOutsSeg`, `retransTout`,
+  `cumulAckTout`, or `nullSegTout` are zero, or where `maxSegSize` is below the
+  minimum 8-byte segment granularity used by the core.
+- Clamped negotiated local window and buffer sizes to the legal implementation
+  ranges before assigning integer state.
+- Changed server-side mismatch handling so invalid peer parameters cause a full
+  local-parameter proposal instead of accepting the peer record and then
+  partially overwriting required matching fields.
+
+### Why
+
+Peer-provided connection parameters are protocol inputs and can arrive before
+the local AXI-Lite register map has had a chance to constrain the peer's values.
+The previous server path converted `maxOutsSeg` and `maxSegSize/8` directly into
+integer state before checking for invalid zero or undersized values. That could
+produce illegal window/buffer sizes or simulation range errors instead of the
+RSSI negotiation behavior of rejecting/proposing valid parameters.
+
+The client path already rejected required version/checksum/timeout-unit
+mismatches; it now also rejects out-of-range peer values with a RST, matching the
+same validity boundary.
+
+### Validation
+
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiConnFsm.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiConnFsm.py` verifies server rejection/proposal
+  for out-of-range SYN parameters and client rejection/RST for out-of-range
+  SYN+ACK parameters.
+
+## 2026-05-27: `RssiAxiLiteRegItf` Writable Parameter Clamps
+
+File: `protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
+
+### What Changed
+
+- Added write-time clamping for `appRssiParam.maxOutsSeg` to the legal
+  `1 .. MAX_NUM_OUTS_SEG_G` range.
+- Added write-time minimum clamps for `retransTout`, `cumulAckTout`, and
+  `nullSegTout` so software cannot program zero-timeout runtime values.
+- Left the existing `maxSegSize` clamp behavior unchanged.
+
+### Why
+
+The AXI-Lite register interface is the software-facing source of local RSSI
+parameters. Allowing zero outstanding segments or zero timeout fields creates
+invalid negotiated parameters and can break the monitor/connection FSM timing
+assumptions. Clamping at the register boundary keeps local runtime parameters in
+the same valid range enforced during peer negotiation.
+
+### Validation
+
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py`
+  passed.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
+  passed.
+
+### Related Tests
+
+- `tests/protocols/rssi/test_RssiAxiLiteRegItf.py` verifies `maxOutsSeg` clamps
+  at both ends and that the writable timeout fields clamp zero to one.
 
 ## 2026-05-22: `RssiTxFsm` Checksum Fault Injection
 

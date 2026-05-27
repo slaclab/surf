@@ -478,6 +478,35 @@ async def out_of_order_data_drops_then_in_order_retransmit_accepts_test(dut):
     assert int(dut.rxSeqN_o.value) == 1
 
 
+@cocotb.test()
+async def duplicate_data_after_delivery_drops_without_second_output_test(dut):
+    tb = await TB.create(dut)
+
+    payload = 0x1357_9BDF_2468_ACE0
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[payload],
+    )
+    await tb.wait_status_pulse("rxValidSeg_o")
+    await recv_frame_and_check(
+        tb.sink,
+        clk=tb.clk,
+        ready_signal=dut.mAxisTReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(payload, 0xFF, 1, 1, 0)],
+    )
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_data_segment(
+        sequence=1,
+        acknowledge=0,
+        payload_words=[payload],
+    )
+    await drop_wait
+    await tb.expect_no_app_output()
+
+
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
 
 

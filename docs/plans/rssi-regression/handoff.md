@@ -23,8 +23,9 @@ retransmission timeout progress and that ACK/BUSY-only traffic does not refresh
 server liveness. The server null-timeout RTL was updated so only DATA or NULL
 receipt resets the server null-timeout counter. Local-busy ACK generation is
 also covered now: rising local BUSY requests an ACK immediately, and steady
-local BUSY requests periodic ACKs through the cumulative ACK timeout path. The
-RX SYN coverage now verifies valid SYN parameter capture, rejects illegal
+local BUSY requests periodic ACKs at the RSSI page's recommended
+Retransmission Timeout/2 cadence. The RX SYN coverage now verifies valid SYN
+parameter capture, rejects illegal
 SYN+EACK/BUSY/RST/NULL flag combinations, and rejects SYN frames that continue
 past the expected parameter word. `RssiRxFsm` stages SYN parameters until the
 whole SYN is accepted, so malformed late-drop SYN frames do not update
@@ -88,6 +89,24 @@ routed server stream 1 payload is recovered. The cocotb loss hook ignores
 header-only ACK/NULL traffic by dropping only the next multi-beat transport
 frame after the test arms it.
 
+The latest conformance pass added default coverage and RTL updates for runtime
+parameter validity, peer SYN/SYN+ACK range rejection, local-BUSY ACK cadence,
+cumulative ACK window release, max-retransmit RST/close, and RX duplicate-DATA
+drop after delivery. `RssiAxiLiteRegItf` now clamps writable `maxOutsSeg` and
+timeout fields away from illegal zero/out-of-range values. `RssiConnFsm` now
+rejects invalid peer parameters before converting negotiated window/buffer
+sizes. `RssiMonitor` now uses Retransmission Timeout/2 for steady BUSY ACKs.
+`RssiTxFsm` has a default cumulative-ACK test that frees multiple outstanding
+segments, and `RssiCore` has default max-retransmit close/RST coverage.
+
+Two conformance probes remain opt-in because they expose unresolved integrated
+behavior. `RUN_RSSI_BUSY_INTEGRATION_TESTS=1` keeps the direct-core BUSY probe
+available; the current stalled-server-output stimulus observes ACK/RST/reconnect
+traffic but no BUSY ACK. `RUN_RSSI_STRICT_RETRANSMIT_TESTS=1` keeps strict
+post-retransmit no-extra-output checks available; leaf duplicate-DATA rejection
+passes, but direct-core drop/corruption recovery can still repeat the recovered
+server application payload.
+
 The RSSI wrapper audit found one similar remaining candidate:
 `RssiCoreIntegrationWrapper` still contains VHDL transport drop-gate logic for
 direct-core integration perturbations. `RssiTxFsmWrapper` and
@@ -95,17 +114,14 @@ direct-core integration perturbations. `RssiTxFsmWrapper` and
 RAM modeling required by those leaf-FSM interfaces rather than avoidable
 traffic perturbation.
 
-The next technical work should extend integrated coverage for reorder/drop,
-additional retransmission/counter visibility, or busy behavior beyond the
-covered direct-core and multi-stream wrapper DATA loss cases. Keep the
-local-busy cadence decision against the RSSI page's Retransmission Timeout/2
-recommendation and EACK scope as explicit review items. Also triage the
-additional zero-valued server application frame observed during a longer
-post-retransmission collection window; it may belong to integrated NULL
-keepalive or output-FIFO reset/release behavior and is not yet a default
-failure. A first integrated busy-flow attempt using stalled server application
-output produced ordinary ACK/RST/reconnect traffic without a BUSY ACK, so
-integrated BUSY coverage still needs a focused stimulus or RTL decision.
+The next technical work should focus on the two opt-in conformance probes:
+integrated BUSY advertisement and strict no-extra-output behavior after
+direct-core retransmit recovery. Keep EACK scope as an explicit review item.
+The local-busy cadence decision has been made in favor of the RSSI page's
+Retransmission Timeout/2 recommendation. A first integrated busy-flow attempt
+using stalled server application output produced ordinary ACK/RST/reconnect
+traffic without a BUSY ACK, so integrated BUSY coverage still needs a focused
+stimulus or RTL decision.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -314,6 +330,14 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   passed on 2026-05-27 with five wrapper cases across the one-stream and
   two-stream wrapper regressions after promoting multi-stream routed payload
   delivery.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after the conformance pass coverage updates.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
+  passed on 2026-05-27 after the peer-parameter, BUSY-cadence, and register
+  clamp RTL updates.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 with seven focused RSSI pytest wrappers/parameter
+  sweeps.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -330,22 +354,19 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
   path. Keep the post-connection delay unless the wrapper exposes
   `AxiStreamDepacketizer2` `debug.initDone` or otherwise makes depacketizer
   route-state initialization directly observable.
-- The next implementation slice should extend integrated coverage with
-  perturbations such as corruption, reorder/drop, additional
-  retransmission/counter visibility, or busy behavior.
+- The next implementation slice should focus on the two opt-in conformance
+  probes: integrated BUSY advertisement and strict direct-core no-extra-output
+  behavior after retransmit recovery.
 - Production RTL changes made so far are documented in `rtl-changes.md`:
   `RssiRxFsm` illegal DATA/EACK flag filtering and SYN filtering/parameter
   staging, integrated DATA payload timing, and duplicate DATA payload
-  filtering; `RssiTxFsm` checksum fault injection scope; `RssiMonitor` server
-  null-timeout liveness handling; `RssiConnFsm` retry timeout counter
-  saturation; and `RssiCore` output FIFO pause-threshold clamping for small
-  segment sizes.
-- Triage the extra zero-valued server application frame observed during a
-  longer post-retransmission collection window before deciding whether it is a
-  bug, a wrapper/output-FIFO artifact, or a test setup issue.
-- Decide whether the local-busy ACK cadence should remain tied to cumulative
-  ACK timeout or be changed to the RSSI page's recommended Retransmission
-  Timeout/2 period.
+  filtering; `RssiTxFsm` checksum fault injection scope and cumulative ACK
+  release; `RssiMonitor` server null-timeout liveness handling and BUSY cadence;
+  `RssiConnFsm` retry timeout counter saturation and invalid peer-parameter
+  rejection; `RssiAxiLiteRegItf` runtime parameter clamps; and `RssiCore`
+  output FIFO pause-threshold clamping for small segment sizes.
+- Triage the strict direct-core post-retransmit repeated-output symptom before
+  promoting those opt-in assertions into default coverage.
 - Keep EACK-specific behavior out of scope except for explicit rejection;
   SURF/Rogue RSSI does not implement EACK/out-of-sequence acknowledgment
   handling.

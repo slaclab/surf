@@ -185,6 +185,28 @@
     the first client-to-server multi-stream wrapper DATA frame, verify the
     retransmitted RSSI sequence is reused, and confirm the stream-1 routed
     payload is recovered at the server application boundary.
+  - Added the RSSI conformance pass for parameter range validation, BUSY cadence,
+    cumulative ACK window release, max-retransmit RST/close behavior, and
+    duplicate DATA suppression coverage.
+  - Updated `RssiAxiLiteRegItf` writable runtime parameters so `maxOutsSeg` and
+    timeout fields clamp away illegal zero/out-of-range values.
+  - Updated the PyRogue `RssiCore` register model to expose matching writable
+    RSSI parameter ranges, preventing software-side verify mismatches when
+    users attempt values the RTL clamps at the register boundary.
+  - Updated `RssiConnFsm` peer-parameter screening so invalid SYN/SYN+ACK
+    parameters are rejected instead of being accepted or converted into illegal
+    local ranges.
+  - Updated `RssiMonitor` steady local-BUSY ACK cadence to use the RSSI page's
+    recommended Retransmission Timeout/2 interval instead of the cumulative ACK
+    timeout path.
+  - Added default leaf coverage for cumulative ACK release of multiple TX
+    segments, RX duplicate-DATA drop after delivery, invalid peer parameter
+    rejection, runtime register clamps, and max-retransmit RST/close behavior.
+  - Added opt-in direct-core probes for integrated BUSY advertisement and strict
+    no-extra-output checks after DATA retransmission recovery. Both remain
+    conformance gaps: the BUSY probe observes ACK/RST/reconnect traffic without a
+    BUSY ACK, and strict retransmit recovery still observes repeated recovered
+    server application output.
 
 ## Notes
 - Primary local spec source is now
@@ -238,10 +260,10 @@
   required by the flow-control behavior. The server null-timeout fix is scoped
   only to liveness detection, where the spec describes DATA/NULL receipt as the
   keepalive condition.
-- Periodic local-busy ACK generation remains tied to the cumulative ACK timeout
-  path, matching the existing SURF/Rogue behavior. The RSSI page recommends a
-  Retransmission Timeout/2 period, so this is now documented as a cadence
-  difference rather than left uncharacterized.
+- Periodic local-busy ACK generation now uses the RSSI page's recommended
+  Retransmission Timeout/2 period. The leaf monitor test intentionally sets the
+  cumulative ACK timeout shorter than Retransmission Timeout/2 to prove BUSY does
+  not fire from the cumulative ACK timeout path.
 - `RssiRxFsm` SYN parameter updates are now staged until the full SYN header is
   accepted. This prevents a malformed multi-word SYN from changing
   `rxParam_o` before the late checksum/length/frame-boundary decision drops the
@@ -254,11 +276,6 @@
 - `RssiAxiLiteRegItfWrapper` enables `SlaveAxiLiteIpIntegrator` error response
   propagation with `EN_ERROR_RESP => true`; otherwise the shim masks register
   block `DECERR` responses as AXI OKAY and hides the behavior under test.
-- The first integrated loss/retransmission test originally found an additional
-  zero-valued application frame during a longer server-output collection
-  window. The default regression now asserts the lost DATA payload is recovered
-  once; the extra zero frame should be triaged separately against the
-  integrated NULL/output-FIFO behavior before making it a default failure.
 - Integrated DATA loss/corruption recovery can still expose an additional
   server application output after the expected recovered frame when the test
   keeps observing past the first recovery. The current default `RssiCore`
@@ -708,15 +725,34 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
   passed with the two-stream active-open, routed-payload, and
   loss/retransmission packetizer2 cases.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed after adding the conformance pass coverage.
+- 2026-05-27:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiConnFsm.vhd protocols/rssi/v1/rtl/RssiMonitor.vhd protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd`
+  passed after the parameter-validation, BUSY-cadence, and register-clamp RTL
+  updates.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
+  passed with seven focused RSSI pytest wrappers/parameter sweeps.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile python/surf/protocols/rssi/_RssiCore.py`
+  passed after adding the PyRogue writable parameter ranges; an import probe in
+  the `rogue_build` environment confirmed the default `loc*` range metadata.
+- 2026-05-27:
+  The opt-in `RUN_RSSI_BUSY_INTEGRATION_TESTS=1` direct-core BUSY probe still
+  failed to observe a BUSY ACK; the captured transport traffic was ACK/RST and
+  reconnect traffic.
+- 2026-05-27:
+  The opt-in `RUN_RSSI_STRICT_RETRANSMIT_TESTS=1` direct-core retransmit
+  recovery checks still observed repeated recovered server application output
+  after drop/corruption recovery.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
   validation.
 - Confirm whether any EACK behavior is implemented enough to test or should
   remain explicitly out of scope.
-- Decide whether the local-busy ACK cadence should remain tied to cumulative
-  ACK timeout or be changed to the RSSI page's recommended Retransmission
-  Timeout/2 period.
 - Continue integrated RSSI coverage with reorder/drop variants, additional
   retransmission/counter visibility, and busy perturbations now that direct
   `RssiCore` and multi-stream `RssiCoreWrapper` DATA loss/retransmission are
@@ -724,9 +760,12 @@
 - Consider refactoring `RssiCoreIntegrationWrapper` transport loss/corruption
   hooks to the same flattened-transport/cocotb-loopback pattern used by the
   multi-stream wrapper.
-- Triage the extra zero-valued server application frame observed during a
-  longer post-retransmission collection window. It may be tied to integrated
-  NULL keepalive or output-FIFO reset/release behavior; it is not yet asserted
-  as a default failure.
+- Triage the opt-in direct-core BUSY probe. Current stalled-server-output
+  stimulus does not produce a BUSY ACK, so either the stimulus still misses the
+  receiver local-busy condition or the integrated core path is not advertising
+  BUSY as expected.
+- Triage the opt-in strict direct-core retransmit recovery checks. Leaf
+  `RssiRxFsm` duplicate-DATA rejection passes, but integrated drop/corruption
+  recovery can still repeat the recovered server application payload.
 - Continue triaging the remaining `rtl-spec-review.md` findings into default
   coverage, expected-fail characterization, or immediate RTL fixes.

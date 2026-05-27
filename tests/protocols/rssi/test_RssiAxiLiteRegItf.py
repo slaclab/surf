@@ -187,6 +187,29 @@ async def max_segment_size_clamps_to_supported_range_test(dut):
 
 
 @cocotb.test()
+async def writable_parameter_ranges_clamp_to_valid_runtime_values_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    await tb.write(REG_MAX_OUTS_SEG, 0)
+    assert await tb.read(REG_MAX_OUTS_SEG) & 0xFF == 1
+    assert int(dut.appParamMaxOutsSeg_o.value) == 1
+
+    await tb.write(REG_MAX_OUTS_SEG, 0xFF)
+    assert await tb.read(REG_MAX_OUTS_SEG) & 0xFF == 8
+    assert int(dut.appParamMaxOutsSeg_o.value) == 8
+
+    for address, signal_name in (
+        (REG_RETRANS_TOUT, "appParamRetransTout_o"),
+        (REG_CUMUL_ACK_TOUT, "appParamCumulAckTout_o"),
+        (REG_NULL_SEG_TOUT, "appParamNullSegTout_o"),
+    ):
+        await tb.write(address, 0)
+        assert await tb.read(address) & 0xFFFF == 1
+        assert int(getattr(dut, signal_name).value) == 1
+
+
+@cocotb.test()
 async def status_counters_states_and_negotiated_parameters_read_back_test(dut):
     tb = TB(dut)
     await tb.reset()

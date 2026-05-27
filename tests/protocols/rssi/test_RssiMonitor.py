@@ -199,17 +199,16 @@ async def local_busy_generates_periodic_ack_after_cumulative_timeout_test(dut):
     tb = TB(dut)
     await tb.reset()
 
-    # The RSSI page recommends BUSY ACKs at Retransmission Timeout/2.  Current
-    # SURF/Rogue behavior drives the periodic request from the cumulative ACK
-    # timeout path while local BUSY remains asserted.
-    dut.paramCumulAckTout_i.value = 3
-    dut.paramRetransTout_i.value = 8
+    # Local BUSY periodic ACKs follow the RSSI page recommendation of
+    # Retransmission Timeout/2, not the shorter cumulative ACK timeout.
+    dut.paramCumulAckTout_i.value = 2
+    dut.paramRetransTout_i.value = 20
     dut.localBusy_i.value = 1
 
     await tb.wait_for_ack(cycles=2)
     await tb.pulse_ack_sent()
-    await tb.expect_no_ack(cycles=2)
-    await tb.wait_for_ack(cycles=4)
+    await tb.expect_no_ack(cycles=6)
+    await tb.wait_for_ack(cycles=6)
     assert int(dut.sndAck_o.value) == 1
 
 

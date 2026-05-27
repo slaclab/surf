@@ -448,6 +448,58 @@ async def null_request_is_ignored_while_data_is_unacknowledged_test(dut):
 
 
 @cocotb.test()
+async def cumulative_ack_releases_multiple_outstanding_segments_test(dut):
+    tb = await TB.create(dut)
+
+    initial_seq = int(dut.txSeqN_o.value)
+    payloads = [
+        0x0101_0101_0101_0101,
+        0x0202_0202_0202_0202,
+        0x0303_0303_0303_0303,
+    ]
+
+    for index, payload_word in enumerate(payloads):
+        seq = (initial_seq + index) & 0xFF
+        expected_header = _header_with_test_checksum(
+            build_data_header(
+                sequence=seq,
+                acknowledge=0x34,
+                enable_checksum=False,
+            )
+        )
+        recv_task = cocotb.start_soon(
+            recv_frame_and_check(
+                tb.sink,
+                clk=tb.clk,
+                ready_signal=dut.mAxisTReady,
+                fields=("data", "keep", "last", "sof", "eofe"),
+                expected=[
+                    (_stream_word_from_header(expected_header), 0xFF, 0, 1, 0),
+                    (payload_word, 0xFF, 1, 0, 0),
+                ],
+            )
+        )
+        await send_contiguous_frame(
+            tb.source,
+            [SsiBeat(data=payload_word, keep=0xFF, last=1, sof=1, eofe=0)],
+            clk=tb.clk,
+        )
+        await tb.provide_checksum_after_strobe()
+        await recv_task
+        await tb.finish_checksum()
+        await tb.cycle(2)
+        assert int(dut.bufferEmpty_o.value) == 0
+
+    assert int(dut.txSeqN_o.value) == (initial_seq + len(payloads)) & 0xFF
+
+    dut.ackN_i.value = (initial_seq + len(payloads) - 1) & 0xFF
+    await tb.pulse("ack_i")
+    await tb.cycle(8)
+    assert int(dut.lastAckN_o.value) == (initial_seq + len(payloads) - 1) & 0xFF
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+@cocotb.test()
 async def one_word_data_tkeep_test(dut):
     tb = await TB.create(dut)
 

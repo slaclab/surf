@@ -372,8 +372,16 @@ begin
           ) then
          v.sndAck := '0';
 
+      -- Periodic BUSY acknowledgment request.  The RSSI page recommends
+      -- Retransmission Timeout/2 so the peer keeps its retransmission timer
+      -- reset while this receiver remains busy.
+      elsif (localBusy_i = '1' and (rxLastSeqN_i - r.lastAckSeqN) = 0 and
+             r.ackToutCnt >= ((conv_integer(rssiParam_i.retransTout)*SAMPLES_PER_TIME_C)/2)) then
+         v.sndAck := '1';
+
       -- Timeout acknowledgment request
-      elsif (r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
+      elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0 and
+             r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
          v.sndAck := '1';
 
       -- Cumulative acknowledgment request

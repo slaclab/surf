@@ -246,6 +246,11 @@ begin
                v.appRssiParam.version := axilWriteMaster.wdata(3 downto 0);
             when 16#03# =>              -- ADDR (12)
                v.appRssiParam.maxOutsSeg := axilWriteMaster.wdata(7 downto 0);
+               if (v.appRssiParam.maxOutsSeg = 0) then
+                  v.appRssiParam.maxOutsSeg := toSlv(1, v.appRssiParam.maxOutsSeg'length);
+               elsif (unsigned(v.appRssiParam.maxOutsSeg) > MAX_NUM_OUTS_SEG_G) then
+                  v.appRssiParam.maxOutsSeg := toSlv(MAX_NUM_OUTS_SEG_G, v.appRssiParam.maxOutsSeg'length);
+               end if;
             when 16#04# =>              -- ADDR (16)
                v.appRssiParam.maxSegSize := axilWriteMaster.wdata(15 downto 0);
                if (unsigned(v.appRssiParam.maxSegSize) < 8) then
@@ -255,10 +260,19 @@ begin
                end if;
             when 16#05# =>
                v.appRssiParam.retransTout := axilWriteMaster.wdata(15 downto 0);
+               if (v.appRssiParam.retransTout = 0) then
+                  v.appRssiParam.retransTout := toSlv(1, v.appRssiParam.retransTout'length);
+               end if;
             when 16#06# =>
                v.appRssiParam.cumulAckTout := axilWriteMaster.wdata(15 downto 0);
+               if (v.appRssiParam.cumulAckTout = 0) then
+                  v.appRssiParam.cumulAckTout := toSlv(1, v.appRssiParam.cumulAckTout'length);
+               end if;
             when 16#07# =>
                v.appRssiParam.nullSegTout := axilWriteMaster.wdata(15 downto 0);
+               if (v.appRssiParam.nullSegTout = 0) then
+                  v.appRssiParam.nullSegTout := toSlv(1, v.appRssiParam.nullSegTout'length);
+               end if;
             when 16#08# =>
                v.appRssiParam.maxRetrans := axilWriteMaster.wdata(7 downto 0);
             when 16#09# =>

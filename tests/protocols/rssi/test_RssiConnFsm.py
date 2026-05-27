@@ -219,6 +219,51 @@ async def server_proposes_local_required_parameters_on_mismatch_test(dut):
 
 
 @cocotb.test()
+async def server_rejects_out_of_range_syn_parameters_test(dut):
+    if not server_mode():
+        return
+
+    tb = await TB.create(dut)
+    app_params = RssiParams(
+        version=1,
+        chksum_en=1,
+        timeout_unit=1,
+        max_outs_seg=4,
+        max_seg_size=64,
+        retrans_tout=12,
+        cumul_ack_tout=4,
+        null_seg_tout=24,
+    )
+    tb.set_app_params(app_params)
+    tb.set_rx_params(
+        RssiParams(
+            version=1,
+            chksum_en=1,
+            timeout_unit=1,
+            max_outs_seg=0,
+            max_seg_size=4,
+            retrans_tout=0,
+            cumul_ack_tout=0,
+            null_seg_tout=0,
+        )
+    )
+
+    tb.dut.connRq_i.value = 1
+    await tb.cycle()
+    await tb.receive_segment(syn=1)
+
+    assert int(dut.paramReject_o.value) == 1
+    assert int(dut.paramMaxOutsSeg_o.value) == app_params.max_outs_seg
+    assert int(dut.paramMaxSegSize_o.value) == app_params.max_seg_size
+    assert int(dut.paramRetransTout_o.value) == app_params.retrans_tout
+    assert int(dut.paramCumulAckTout_o.value) == app_params.cumul_ack_tout
+    assert int(dut.paramNullSegTout_o.value) == app_params.null_seg_tout
+    assert int(dut.txWindowSize_o.value) == app_params.max_outs_seg
+    assert int(dut.txBufferSize_o.value) == app_params.max_seg_size // 8
+    await tb.wait_high("sndSyn_o")
+
+
+@cocotb.test()
 async def server_retries_syn_ack_then_times_out_waiting_for_ack_test(dut):
     if not server_mode():
         return
@@ -297,6 +342,40 @@ async def client_rejects_mismatched_syn_ack_with_rst_test(dut):
     await tb.pulse("rstHeadSt_i")
     await tb.wait_high("closed_o")
 
+    assert int(dut.connActive_o.value) == 0
+
+
+@cocotb.test()
+async def client_rejects_out_of_range_syn_ack_with_rst_test(dut):
+    if server_mode():
+        return
+
+    tb = await TB.create(dut)
+    tb.set_app_params(RssiParams(version=1, chksum_en=1, timeout_unit=1))
+    tb.set_rx_params(
+        RssiParams(
+            version=1,
+            chksum_en=1,
+            timeout_unit=1,
+            max_outs_seg=0,
+            max_seg_size=4,
+            retrans_tout=0,
+            cumul_ack_tout=0,
+            null_seg_tout=0,
+        )
+    )
+
+    tb.dut.connRq_i.value = 1
+    await tb.wait_high("sndSyn_o")
+    await tb.pulse("synHeadSt_i")
+
+    reject_wait = cocotb.start_soon(tb.wait_high("paramReject_o"))
+    await tb.receive_segment(syn=1, ack=1)
+    await reject_wait
+    await tb.wait_high("sndRst_o")
+
+    await tb.pulse("rstHeadSt_i")
+    await tb.wait_high("closed_o")
     assert int(dut.connActive_o.value) == 0
 
 

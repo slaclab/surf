@@ -18,8 +18,15 @@
 import pyrogue as pr
 
 class RssiCore(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            maxNumOutsSeg = 8,
+            segmentAddrSize = 7,
+            **kwargs):
         super().__init__(**kwargs)
+
+        maxOutsSeg = min(maxNumOutsSeg, 0xFF)
+        maxSegSize = (2**segmentAddrSize)*8
 
         ##############################
         # Variables
@@ -101,6 +108,10 @@ class RssiCore(pr.Device):
 
         varPrefix = ['loc','cur']
         for i in range(2):
+            mode = ('RW' if i==0 else 'RO')
+            maxOutsSegRange = ({'minimum': 1, 'maximum': maxOutsSeg} if i==0 else {})
+            maxSegSizeRange = ({'minimum': 8, 'maximum': maxSegSize} if i==0 else {})
+            timeoutRange = ({'minimum': 1} if i==0 else {})
 
             self.add(pr.RemoteVariable(
                 name        =  (varPrefix[i]+'MaxOutsSeg'),
@@ -108,8 +119,9 @@ class RssiCore(pr.Device):
                 offset      =  0x0C,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **maxOutsSegRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -118,8 +130,9 @@ class RssiCore(pr.Device):
                 offset      =  0x10,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **maxSegSizeRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -128,8 +141,9 @@ class RssiCore(pr.Device):
                 offset      =  0x14,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -138,8 +152,9 @@ class RssiCore(pr.Device):
                 offset      =  0x18,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -148,8 +163,9 @@ class RssiCore(pr.Device):
                 offset      =  0x1C,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -158,7 +174,7 @@ class RssiCore(pr.Device):
                 offset      =  0x20,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
             ))
 
@@ -168,7 +184,7 @@ class RssiCore(pr.Device):
                 offset      =  0x24,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
             ))
 
