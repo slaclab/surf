@@ -177,6 +177,14 @@
     initialization. The routed-payload test now waits after RSSI connection
     before sending application DATA, and verifies both routed server
     application outputs by default.
+  - Refactored `RssiCoreWrapperMultiStreamIntegrationWrapper` so the
+    client/server transport interfaces are flattened to cocotb instead of
+    connected through VHDL perturbation logic. Cocotb now owns the transparent
+    transport loopback and one-shot packetizer2 DATA drop behavior.
+  - Extended `tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py` to drop
+    the first client-to-server multi-stream wrapper DATA frame, verify the
+    retransmitted RSSI sequence is reused, and confirm the stream-1 routed
+    payload is recovered at the server application boundary.
 
 ## Notes
 - Primary local spec source is now
@@ -273,6 +281,16 @@
   RSSI link-up. Waiting 1024 `axisClk` cycles after connection makes routed
   payload delivery deterministic, and the payload route assertions are now
   default coverage.
+- The multi-stream wrapper loss model now lives in cocotb. Its transparent
+  transport loopback drops only the next multi-beat transport frame after the
+  test arms the loss hook, so periodic header-only ACK/NULL traffic does not
+  consume the armed loss event before application DATA arrives.
+- RSSI wrapper audit note: `RssiCoreIntegrationWrapper` still contains VHDL
+  transport drop-gate logic and is the next integration wrapper that could be
+  refactored into flattened transport ports plus cocotb loopback. The
+  behavioral RAMs in `RssiTxFsmWrapper` and `RssiRxFsmWrapper` are different:
+  those leaf FSMs require adjacent segment-buffer models and the wrapper RAM
+  keeps that required DUT-side interface explicit.
 
 ## Validation
 - 2026-05-22:
@@ -675,6 +693,21 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
   passed with five wrapper cases across the one-stream and two-stream wrapper
   regressions after promoting multi-stream routed payload delivery.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after adding the multi-stream wrapper loss/retransmission route
+  coverage.
+- 2026-05-27:
+  `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+  passed after moving the multi-stream wrapper transport loopback/drop behavior
+  into cocotb and exposing flattened transport ports.
+- 2026-05-27:
+  `COCOTB_TESTCASE=multi_stream_dropped_client_data_retransmits_to_route_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed for the new multi-stream loss/retransmission route case.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed with the two-stream active-open, routed-payload, and
+  loss/retransmission packetizer2 cases.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
@@ -684,9 +717,13 @@
 - Decide whether the local-busy ACK cadence should remain tied to cumulative
   ACK timeout or be changed to the RSSI page's recommended Retransmission
   Timeout/2 period.
-- Continue Phase 3 `RssiCore` integration coverage with corruption,
-  reorder/drop, additional retransmission/counter visibility, and busy
-  perturbations now that basic DATA loss/retransmission is covered.
+- Continue integrated RSSI coverage with reorder/drop variants, additional
+  retransmission/counter visibility, and busy perturbations now that direct
+  `RssiCore` and multi-stream `RssiCoreWrapper` DATA loss/retransmission are
+  covered.
+- Consider refactoring `RssiCoreIntegrationWrapper` transport loss/corruption
+  hooks to the same flattened-transport/cocotb-loopback pattern used by the
+  multi-stream wrapper.
 - Triage the extra zero-valued server application frame observed during a
   longer post-retransmission collection window. It may be tied to integrated
   NULL keepalive or output-FIFO reset/release behavior; it is not yet asserted

@@ -114,16 +114,32 @@ entity RssiCoreWrapperMultiStreamIntegrationWrapper is
       srvMApp1Sof    : out sl;
       srvMApp1Eofe   : out sl;
 
+      cltSTspTValid : in  sl;
+      cltSTspTReady : out sl;
+      cltSTspTData  : in  slv(63 downto 0);
+      cltSTspTKeep  : in  slv(7 downto 0);
+      cltSTspTLast  : in  sl;
+      cltSTspSof    : in  sl;
+      cltSTspEofe   : in  sl;
+
       cltMTspTValid : out sl;
-      cltMTspTReady : out sl;
+      cltMTspTReady : in  sl;
       cltMTspTData  : out slv(63 downto 0);
       cltMTspTKeep  : out slv(7 downto 0);
       cltMTspTLast  : out sl;
       cltMTspSof    : out sl;
       cltMTspEofe   : out sl;
 
+      srvSTspTValid : in  sl;
+      srvSTspTReady : out sl;
+      srvSTspTData  : in  slv(63 downto 0);
+      srvSTspTKeep  : in  slv(7 downto 0);
+      srvSTspTLast  : in  sl;
+      srvSTspSof    : in  sl;
+      srvSTspEofe   : in  sl;
+
       srvMTspTValid : out sl;
-      srvMTspTReady : out sl;
+      srvMTspTReady : in  sl;
       srvMTspTData  : out slv(63 downto 0);
       srvMTspTKeep  : out slv(7 downto 0);
       srvMTspTLast  : out sl;
@@ -159,10 +175,14 @@ architecture mapping of RssiCoreWrapperMultiStreamIntegrationWrapper is
    signal srvMAppMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
    signal srvMAppSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
 
-   signal cltTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal cltTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal srvTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal srvTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal cltSTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cltSTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal cltMTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal cltMTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal srvSTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal srvSTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal srvMTspMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal srvMTspSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
 
    signal cltAxilReadSlave  : AxiLiteReadSlaveType;
    signal cltAxilWriteSlave : AxiLiteWriteSlaveType;
@@ -276,24 +296,63 @@ begin
    srvMApp1Sof             <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvMAppMasters(1));
    srvMApp1Eofe            <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvMAppMasters(1));
 
-   -- Passive transport monitors.
-   cltMTspTValid <= cltTspMaster.tValid;
-   cltMTspTReady <= cltTspSlave.tReady;
-   cltMTspTData  <= cltTspMaster.tData(63 downto 0);
-   cltMTspTKeep  <= cltTspMaster.tKeep(7 downto 0);
-   cltMTspTLast  <= cltTspMaster.tLast;
-   cltMTspSof    <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, cltTspMaster);
-   cltMTspEofe   <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, cltTspMaster);
+   -- Flattened client transport input.
+   cltSTspComb : process (cltSTspEofe, cltSTspSof, cltSTspTData,
+                          cltSTspTKeep, cltSTspTLast,
+                          cltSTspTValid) is
+      variable v : AxiStreamMasterType;
+   begin
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := cltSTspTValid;
+      v.tData(63 downto 0) := cltSTspTData;
+      v.tStrb(7 downto 0)  := cltSTspTKeep;
+      v.tKeep(7 downto 0)  := cltSTspTKeep;
+      v.tLast              := cltSTspTLast;
+      ssiSetUserSof(RSSI_AXIS_CONFIG_C, v, cltSTspSof);
+      ssiSetUserEofe(RSSI_AXIS_CONFIG_C, v, cltSTspEofe);
+      cltSTspMaster <= v;
+   end process cltSTspComb;
 
-   srvMTspTValid <= srvTspMaster.tValid;
-   srvMTspTReady <= srvTspSlave.tReady;
-   srvMTspTData  <= srvTspMaster.tData(63 downto 0);
-   srvMTspTKeep  <= srvTspMaster.tKeep(7 downto 0);
-   srvMTspTLast  <= srvTspMaster.tLast;
-   srvMTspSof    <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvTspMaster);
-   srvMTspEofe   <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvTspMaster);
+   cltSTspTReady <= cltSTspSlave.tReady;
 
-   -- Client wrapper with transport connected directly to the server wrapper.
+   -- Flattened server transport input.
+   srvSTspComb : process (srvSTspEofe, srvSTspSof, srvSTspTData,
+                          srvSTspTKeep, srvSTspTLast,
+                          srvSTspTValid) is
+      variable v : AxiStreamMasterType;
+   begin
+      v                    := AXI_STREAM_MASTER_INIT_C;
+      v.tValid             := srvSTspTValid;
+      v.tData(63 downto 0) := srvSTspTData;
+      v.tStrb(7 downto 0)  := srvSTspTKeep;
+      v.tKeep(7 downto 0)  := srvSTspTKeep;
+      v.tLast              := srvSTspTLast;
+      ssiSetUserSof(RSSI_AXIS_CONFIG_C, v, srvSTspSof);
+      ssiSetUserEofe(RSSI_AXIS_CONFIG_C, v, srvSTspEofe);
+      srvSTspMaster <= v;
+   end process srvSTspComb;
+
+   srvSTspTReady <= srvSTspSlave.tReady;
+
+   -- Flattened client transport output.
+   cltMTspSlave.tReady <= cltMTspTReady;
+   cltMTspTValid       <= cltMTspMaster.tValid;
+   cltMTspTData        <= cltMTspMaster.tData(63 downto 0);
+   cltMTspTKeep        <= cltMTspMaster.tKeep(7 downto 0);
+   cltMTspTLast        <= cltMTspMaster.tLast;
+   cltMTspSof          <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, cltMTspMaster);
+   cltMTspEofe         <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, cltMTspMaster);
+
+   -- Flattened server transport output.
+   srvMTspSlave.tReady <= srvMTspTReady;
+   srvMTspTValid       <= srvMTspMaster.tValid;
+   srvMTspTData        <= srvMTspMaster.tData(63 downto 0);
+   srvMTspTKeep        <= srvMTspMaster.tKeep(7 downto 0);
+   srvMTspTLast        <= srvMTspMaster.tLast;
+   srvMTspSof          <= ssiGetUserSof(RSSI_AXIS_CONFIG_C, srvMTspMaster);
+   srvMTspEofe         <= ssiGetUserEofe(RSSI_AXIS_CONFIG_C, srvMTspMaster);
+
+   -- Client wrapper with flattened transport ports driven by cocotb.
    U_Client : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
@@ -324,10 +383,10 @@ begin
          sAppAxisSlaves_o  => cltSAppSlaves, -- [out]
          mAppAxisMasters_o => cltMAppMasters, -- [out]
          mAppAxisSlaves_i  => cltMAppSlaves, -- [in]
-         sTspAxisMaster_i  => srvTspMaster, -- [in]
-         sTspAxisSlave_o   => srvTspSlave, -- [out]
-         mTspAxisMaster_o  => cltTspMaster, -- [out]
-         mTspAxisSlave_i   => cltTspSlave, -- [in]
+         sTspAxisMaster_i  => cltSTspMaster, -- [in]
+         sTspAxisSlave_o   => cltSTspSlave, -- [out]
+         mTspAxisMaster_o  => cltMTspMaster, -- [out]
+         mTspAxisSlave_i   => cltMTspSlave, -- [in]
          openRq_i          => cltOpen_i, -- [in]
          closeRq_i         => cltClose_i, -- [in]
          rssiConnected_o   => cltConnected_o, -- [out]
@@ -335,7 +394,7 @@ begin
          axilWriteSlave    => cltAxilWriteSlave, -- [out]
          statusReg_o       => cltStatusReg_o); -- [out]
 
-   -- Server wrapper with transport connected directly to the client wrapper.
+   -- Server wrapper with flattened transport ports driven by cocotb.
    U_Server : entity surf.RssiCoreWrapper
       generic map (
          TPD_G               => TPD_G,
@@ -366,10 +425,10 @@ begin
          sAppAxisSlaves_o  => srvSAppSlaves, -- [out]
          mAppAxisMasters_o => srvMAppMasters, -- [out]
          mAppAxisSlaves_i  => srvMAppSlaves, -- [in]
-         sTspAxisMaster_i  => cltTspMaster, -- [in]
-         sTspAxisSlave_o   => cltTspSlave, -- [out]
-         mTspAxisMaster_o  => srvTspMaster, -- [out]
-         mTspAxisSlave_i   => srvTspSlave, -- [in]
+         sTspAxisMaster_i  => srvSTspMaster, -- [in]
+         sTspAxisSlave_o   => srvSTspSlave, -- [out]
+         mTspAxisMaster_o  => srvMTspMaster, -- [out]
+         mTspAxisSlave_i   => srvMTspSlave, -- [in]
          openRq_i          => srvOpen_i, -- [in]
          closeRq_i         => srvClose_i, -- [in]
          rssiConnected_o   => srvConnected_o, -- [out]

@@ -12,12 +12,14 @@
 # - Sweep: Run one client `RssiCoreWrapper` and one server `RssiCoreWrapper`
 #   through a two-application-stream integration wrapper with routed stream
 #   destinations.
-# - Stimulus: Hold both endpoints open and wait for the active-open handshake.
+# - Stimulus: Cocotb loops the flattened transport streams between endpoints,
+#   holds both endpoints open, and waits for the active-open handshake.
 # - Checks: Both wrappers report connected status with the two-stream wrapper
 #   path elaborated and active. Routed payload coverage sends independent
 #   frames on both client streams, confirms the client emits transport DATA,
 #   and verifies the server application streams receive the expected routed
-#   payloads.
+#   payloads. Loss coverage drops the first client DATA transport frame and
+#   verifies retransmission recovers the stream-1 routed payload.
 # - Timing: Payload stimulus waits after RSSI connection so the server-side
 #   `AxiStreamDepacketizer2` can finish initializing its per-`TDEST` route
 #   state before DATA frames arrive.
@@ -28,14 +30,16 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.protocols.rssi.rssi_test_utils import parse_header
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
     capture_accepted_beats,
     cycle as ssi_cycle,
+    recv_frame_and_check,
     reset_dut,
     start_clock,
 )
@@ -51,6 +55,19 @@ def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, i
         (beat.data, beat.keep, beat.last, beat.sof, beat.eofe)
         for beat in beats[:limit]
     ]
+
+
+def _protocol_bytes_from_stream_word(word: int) -> bytes:
+    # RSSI transport headers are byte-swapped onto the 64-bit stream.
+    return word.to_bytes(8, "big")[::-1]
+
+
+def _transport_frame_view(beats: list[SsiBeat]) -> str:
+    header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
+    return (
+        f"flags=0x{header.flags:02x}, seq={header.sequence}, "
+        f"ack={header.acknowledge}, beats={[f'0x{beat.data:016x}' for beat in beats]}"
+    )
 
 
 class TB:
@@ -73,8 +90,15 @@ class TB:
             FlatSsiEndpoint(dut, prefix="srvMApp0"),
             FlatSsiEndpoint(dut, prefix="srvMApp1"),
         ]
-        self.clt_tsp_monitor = FlatSsiEndpoint(dut, prefix="cltMTsp")
-        self.srv_tsp_monitor = FlatSsiEndpoint(dut, prefix="srvMTsp")
+        self.clt_tsp_input = FlatSsiEndpoint(dut, prefix="cltSTsp")
+        self.clt_tsp_output = FlatSsiEndpoint(dut, prefix="cltMTsp")
+        self.srv_tsp_input = FlatSsiEndpoint(dut, prefix="srvSTsp")
+        self.srv_tsp_output = FlatSsiEndpoint(dut, prefix="srvMTsp")
+        self.clt_tsp_monitor = self.clt_tsp_output
+        self.srv_tsp_monitor = self.srv_tsp_output
+        self.drop_next_client_data = False
+        self.drop_next_server_data = False
+        self.loopback_tasks = []
 
     @classmethod
     async def create(cls, dut):
@@ -82,7 +106,7 @@ class TB:
         dut.axisRst.setimmediatevalue(1)
 
         tb = cls(dut)
-        for endpoint in tb.clt_sources + tb.srv_sources:
+        for endpoint in tb.clt_sources + tb.srv_sources + [tb.clt_tsp_input, tb.srv_tsp_input]:
             endpoint.set_idle()
 
         for signal_name, value in {
@@ -92,18 +116,21 @@ class TB:
             "srvClose_i": 0,
             "cltMApp0TReady": 0,
             "cltMApp1TReady": 0,
+            "cltMTspTReady": 0,
             "srvMApp0TReady": 0,
             "srvMApp1TReady": 0,
+            "srvMTspTReady": 0,
         }.items():
             getattr(dut, signal_name).setimmediatevalue(value)
 
         await reset_dut(dut, clk_name="axisClk", rst_name="axisRst")
+        tb.start_transport_loopbacks()
         return tb
 
     async def cycle(self, count: int = 1) -> None:
         await ssi_cycle(self.clk, count=count)
 
-    async def wait_connected(self, *, timeout_cycles: int = 512) -> None:
+    async def wait_connected(self, *, timeout_cycles: int = 1024) -> None:
         for _ in range(timeout_cycles):
             await Timer(1, unit="ns")
             if int(self.dut.cltConnected_o.value) and int(self.dut.srvConnected_o.value):
@@ -137,6 +164,91 @@ class TB:
         for beat in beats:
             await endpoint.send(beat, clk=self.clk)
         endpoint.set_idle()
+
+    def start_transport_loopbacks(self) -> None:
+        self.loopback_tasks = [
+            cocotb.start_soon(
+                self.loopback_transport(
+                    self.clt_tsp_output,
+                    self.srv_tsp_input,
+                    self.dut.cltMTspTReady,
+                    drop_attr="drop_next_client_data",
+                )
+            ),
+            cocotb.start_soon(
+                self.loopback_transport(
+                    self.srv_tsp_output,
+                    self.clt_tsp_input,
+                    self.dut.srvMTspTReady,
+                    drop_attr="drop_next_server_data",
+                )
+            ),
+        ]
+
+    async def loopback_transport(
+        self,
+        source: FlatSsiEndpoint,
+        destination: FlatSsiEndpoint,
+        source_ready,
+        *,
+        drop_attr: str,
+    ) -> None:
+        dropping = False
+        destination.set_idle()
+        source_ready.value = 0
+
+        while True:
+            await FallingEdge(self.clk)
+            await Timer(1, unit="ns")
+
+            valid = int(source._sig("TValid").value) == 1
+            beat = source.snapshot() if valid else None
+
+            if (
+                valid
+                and (dropping or (getattr(self, drop_attr) and beat.last == 0))
+            ):
+                destination.set_idle()
+                source_ready.value = 1
+                dropping = beat.last == 0
+                setattr(self, drop_attr, False)
+                continue
+
+            if valid:
+                destination.drive(beat)
+            else:
+                destination.set_idle()
+
+            await Timer(1, unit="ns")
+            source_ready.value = destination._sig("TReady").value
+
+    async def recv_transport_data_frame(
+        self,
+        endpoint: FlatSsiEndpoint,
+        *,
+        timeout_cycles: int = 1024,
+    ) -> list[SsiBeat]:
+        beats = []
+        seen = []
+        for _ in range(timeout_cycles):
+            await FallingEdge(self.clk)
+            await Timer(1, unit="ns")
+            if int(endpoint._sig("TValid").value) == 1 and int(endpoint._sig("TReady").value) == 1:
+                beat = endpoint.snapshot()
+                if not beats and beat.sof != 1:
+                    continue
+                beats.append(beat)
+                if beat.last == 1:
+                    try:
+                        header = parse_header(_protocol_bytes_from_stream_word(beats[0].data))
+                    except ValueError:
+                        seen.append(f"malformed beats={[f'0x{item.data:016x}' for item in beats]}")
+                    else:
+                        seen.append(_transport_frame_view(beats))
+                        if not header.syn and len(beats) > 1:
+                            return beats
+                    beats = []
+        raise AssertionError(f"Timed out waiting for {endpoint.prefix} DATA frame; seen={seen}")
 
 
 @cocotb.test()
@@ -199,6 +311,50 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
         f"clt_tsp={_beat_summary(clt_tsp_beats)} "
         f"srv0={_beat_summary(srv_out0_beats)} "
         f"srv1={_beat_summary(srv_out1_beats)}"
+    )
+
+
+@cocotb.test()
+async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+    await tb.cycle(DEPACKETIZER2_INIT_WAIT_CYCLES)
+
+    payload = 0xDEAD_BEEF_0102_0304
+
+    first_transport = cocotb.start_soon(
+        tb.recv_transport_data_frame(tb.clt_tsp_monitor, timeout_cycles=2048)
+    )
+    tb.drop_next_client_data = True
+    await tb.send_app_frame(
+        tb.clt_sources[1],
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+
+    first_beats = await first_transport
+    first_header = parse_header(_protocol_bytes_from_stream_word(first_beats[0].data))
+
+    second_transport = cocotb.start_soon(
+        tb.recv_transport_data_frame(tb.clt_tsp_monitor, timeout_cycles=2048)
+    )
+    second_beats = await second_transport
+    second_header = parse_header(_protocol_bytes_from_stream_word(second_beats[0].data))
+
+    assert second_header.sequence == first_header.sequence, (
+        "Retransmitted wrapper DATA did not reuse the dropped sequence; "
+        f"first={_transport_frame_view(first_beats)} "
+        f"second={_transport_frame_view(second_beats)}"
+    )
+
+    await recv_frame_and_check(
+        tb.srv_sinks[1],
+        clk=tb.clk,
+        ready_signal=dut.srvMApp1TReady,
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(payload, 0xFF, 1, 1, 0)],
+        timeout_cycles=1024,
     )
 
 

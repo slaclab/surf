@@ -79,10 +79,25 @@ packetizer2 payload defect. The test was sending application DATA before the
 server-side `AxiStreamDepacketizer2` finished clearing its per-`TDEST` route
 state after RSSI link-up. The routed-payload case now waits 1024 `axisClk`
 cycles after connection and verifies both server application streams by
-default.
+default. The multi-stream wrapper now also has deterministic loss coverage:
+`RssiCoreWrapperMultiStreamIntegrationWrapper` exposes flattened transport
+interfaces, cocotb owns the transparent transport loopback, and the default
+cocotb regression drops a client-to-server packetizer2 DATA frame on stream 1,
+verifies retransmission with the same RSSI sequence number, and checks that the
+routed server stream 1 payload is recovered. The cocotb loss hook ignores
+header-only ACK/NULL traffic by dropping only the next multi-beat transport
+frame after the test arms it.
+
+The RSSI wrapper audit found one similar remaining candidate:
+`RssiCoreIntegrationWrapper` still contains VHDL transport drop-gate logic for
+direct-core integration perturbations. `RssiTxFsmWrapper` and
+`RssiRxFsmWrapper` also contain behavioral logic, but that is segment-buffer
+RAM modeling required by those leaf-FSM interfaces rather than avoidable
+traffic perturbation.
 
 The next technical work should extend integrated coverage for reorder/drop,
-additional retransmission/counter visibility, or busy behavior. Keep the
+additional retransmission/counter visibility, or busy behavior beyond the
+covered direct-core and multi-stream wrapper DATA loss cases. Keep the
 local-busy cadence decision against the RSSI page's Retransmission Timeout/2
 recommendation and EACK scope as explicit review items. Also triage the
 additional zero-valued server application frame observed during a longer
@@ -111,6 +126,17 @@ integrated BUSY coverage still needs a focused stimulus or RTL decision.
 ## Validation
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed on
   2026-05-22 with five RSSI pytest wrappers.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 after adding multi-stream wrapper
+  loss/retransmission route coverage.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd`
+  passed on 2026-05-27 after moving multi-stream transport loopback/drop
+  behavior into cocotb and exposing flattened transport ports.
+- `COCOTB_TESTCASE=multi_stream_dropped_client_data_retransmits_to_route_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 for the new loss/retransmission route case.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 with the active-open, routed-payload, and
+  loss/retransmission packetizer2 cases.
 - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/rtl/RssiTxFsm.vhd protocols/rssi/v1/rtl/RssiRxFsm.vhd protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd`
   passed on 2026-05-22.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiTxFsm.py`
