@@ -155,6 +155,18 @@ Regression target:
   out-of-order DATA to be dropped, then recovered by retransmission.
 - Do not write SURF RTL tests that require Rogue software's out-of-order queue.
 
+Resolution:
+- Closed as an RSSI v1 hardware-profile decision on 2026-05-27.
+- The primary SLAC RSSI page says the EACK bit is reserved/not used in this
+  version, out-of-order segments are dropped, and no out-of-order
+  acknowledgments are supported. Its RUDP differences section explicitly lists
+  no out-of-sequence acknowledgments.
+- RFC/RUDP EACK behavior remains background only. SURF RSSI tests should verify
+  explicit rejection of received EACK flag combinations, not EACK compliance.
+- Default RX coverage now rejects SYN+EACK, DATA+EACK, and standalone ACK+EACK.
+- `maxOutofseq`/EACK-facing fields are kept only as reserved compatibility
+  surface unless a future RSSI profile deliberately implements EACK.
+
 ### 8. BUSY behavior needs explicit characterization
 Spec rule: BUSY on outgoing data/ACK tells the peer the receiver is busy; the
 peer resets the retransmission timer. The page recommends periodic BUSY ACKs

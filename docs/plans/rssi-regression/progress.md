@@ -212,6 +212,14 @@
     segment is observed. This removed the earlier repeated-output artifact from
     overdriven application input and prevented perturbation hooks from consuming
     header-only control traffic.
+  - Closed the EACK scope decision against the local reference bundle: the
+    primary SLAC RSSI page reserves/does not use EACK in RSSI v1, drops
+    out-of-order segments, and explicitly lists no out-of-sequence
+    acknowledgments as a difference from RUDP. Added default `RssiRxFsm`
+    coverage for standalone ACK+EACK rejection, kept existing SYN+EACK and
+    DATA+EACK rejection coverage, and updated PyRogue/register-map wording so
+    the EACK/out-of-sequence field is described as reserved/unsupported rather
+    than pending behavior.
 
 ## Notes
 - Primary local spec source is now
@@ -763,12 +771,19 @@
   `./.venv/bin/python -m py_compile python/surf/protocols/rssi/_RssiCore.py`
   passed after adding the PyRogue writable parameter ranges; an import probe in
   the `rogue_build` environment confirmed the default `loc*` range metadata.
+- 2026-05-27:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py python/surf/protocols/rssi/_RssiCore.py`
+  and `git diff --check` passed after closing EACK as reserved/unsupported and
+  updating the RX test, PyRogue wording, register-map comments, and task docs.
+- 2026-05-27:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed after adding standalone ACK+EACK rejection coverage.
 
 ## Open Items
 - Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
   validation.
-- Confirm whether any EACK behavior is implemented enough to test or should
-  remain explicitly out of scope.
+- EACK is now explicitly out of scope except for rejection coverage. SURF RSSI
+  v1 does not implement EACK/out-of-sequence acknowledgments.
 - Continue integrated RSSI coverage with reorder/drop variants, additional
   retransmission/counter visibility, and busy perturbations now that direct
   `RssiCore` and multi-stream `RssiCoreWrapper` DATA loss/retransmission are

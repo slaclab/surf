@@ -30,6 +30,7 @@ from tests.protocols.rssi.rssi_test_utils import (
     RSSI_FLAG_EACK,
     RSSI_FLAG_NULL,
     RSSI_FLAG_RST,
+    build_ack_header,
     build_null_header,
     build_data_header,
     build_syn_header,
@@ -371,6 +372,24 @@ async def illegal_data_flag_combinations_drop_test(dut):
         )
         await drop_wait
         await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def standalone_eack_segment_drops_test(dut):
+    tb = await TB.create(dut)
+
+    # EACK is reserved by the SURF RSSI v1 profile.  Even when combined with
+    # ACK as in the RUDP lineage, hardware should reject it rather than treat
+    # it as a supported extended acknowledgment.
+    header = bytearray(
+        build_ack_header(sequence=1, acknowledge=0, enable_checksum=False)
+    )
+    header[0] |= RSSI_FLAG_EACK
+
+    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    await tb.send_single_word_header(bytes(header))
+    await drop_wait
+    await tb.expect_no_app_output()
 
 
 @cocotb.test()

@@ -190,7 +190,7 @@ class RssiCore(pr.Device):
 
             # self.add(pr.RemoteVariable(
                 # name         = (varPrefix[i]+'MaxOutOfSeq'),
-                # description  = 'Max out of sequence segments (EACK) [7:0]',
+                # description  = 'Reserved: out-of-sequence/EACK is not implemented in RSSI v1 [7:0]',
                 # offset       = 0x28,
                 # bitSize      = 8,
                 # bitOffset    = i*16,
@@ -418,7 +418,7 @@ class RssiCore(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         =  'TxAckState',
-            description  =  'TX Acknowledge FSM state',
+            description  =  'TX Acknowledge FSM state; EACK state is reserved/unused in RSSI v1',
             offset       =  0x6C,
             bitSize      =  4,
             bitOffset    =  12,

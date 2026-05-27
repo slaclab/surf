@@ -116,10 +116,13 @@ traffic perturbation.
 
 The next technical work should continue triaging the remaining
 `rtl-spec-review.md` findings into default coverage, expected-fail
-characterization, or narrow RTL fixes. Keep EACK scope as an explicit review
-item. The local-busy cadence decision has been made in favor of the RSSI page's
-Retransmission Timeout/2 recommendation, and direct-core BUSY advertisement is
-now covered at the integrated `RssiCore` level.
+characterization, or narrow RTL fixes. EACK scope has been decided: EACK is
+reserved/unsupported in the SURF RSSI v1 hardware profile, matching the primary
+SLAC RSSI page. Tests should verify explicit rejection of received EACK flag
+combinations, not EACK compliance. The local-busy cadence decision has been
+made in favor of the RSSI page's Retransmission Timeout/2 recommendation, and
+direct-core BUSY advertisement is now covered at the integrated `RssiCore`
+level.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -350,6 +353,12 @@ now covered at the integrated `RssiCore` level.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiAxiLiteRegItf.py tests/protocols/rssi/test_RssiConnFsm.py tests/protocols/rssi/test_RssiMonitor.py tests/protocols/rssi/test_RssiRxFsm.py tests/protocols/rssi/test_RssiTxFsm.py tests/protocols/rssi/test_RssiCore.py`
   passed on 2026-05-27 with seven focused RSSI pytest wrappers/parameter
   sweeps.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiRxFsm.py python/surf/protocols/rssi/_RssiCore.py`
+  and `git diff --check` passed on 2026-05-27 after closing EACK as
+  reserved/unsupported and updating the RX test, PyRogue wording, register-map
+  comments, and task docs.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiRxFsm.py`
+  passed on 2026-05-27 after adding standalone ACK+EACK rejection coverage.
 
 ## Current Attention Areas
 - SURF RTL out-of-order drop/retransmission recovery is now covered at the
@@ -378,8 +387,9 @@ now covered at the integrated `RssiCore` level.
   rejection; `RssiAxiLiteRegItf` runtime parameter clamps; and `RssiCore`
   output FIFO pause-threshold clamping for small segment sizes and local BUSY
   advertisement from application output backpressure.
-- Keep EACK-specific behavior out of scope except for explicit rejection;
-  SURF/Rogue RSSI does not implement EACK/out-of-sequence acknowledgment
-  handling.
+- EACK-specific behavior is closed as out of scope except for explicit
+  rejection. SURF RSSI v1 does not implement EACK/out-of-sequence
+  acknowledgment handling; SYN+EACK, DATA+EACK, and standalone ACK+EACK are
+  default RX rejection coverage.
 - Decide which remaining `rtl-spec-review.md` findings should become
   expected-fail tests versus immediate RTL fixes.

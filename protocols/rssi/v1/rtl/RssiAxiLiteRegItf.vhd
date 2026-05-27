@@ -33,8 +33,8 @@
 --                            When more than maxCumAck are received and not acknowledged the
 --                            ACK packet will be sent to acknowledge the received packets. Even though the
 --                            cumulative acknowledgment timeout has not been reached yet!
---               0x0A (RW)- Max out of sequence segments (EACK) [7:0](Default x"03")
---                            Currently not used TBD
+--               0x0A (RW)- Reserved max out-of-sequence/EACK field [7:0](Default x"03")
+--                            EACK is not implemented in RSSI v1.
 --               0x0B (RW)- Connection ID [31:0](Default x"12345678")
 --                            Every connection should have unique connection ID.
 --               Statuses
