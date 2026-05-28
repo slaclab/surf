@@ -90,6 +90,7 @@ architecture mapping of CoaXPressRx is
       TDEST_BITS_C  => 8,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      -- TUSER_NORMAL_C is per-byte, so 4 data bytes x 8 bits preserves the 32-bit event ID.
       TUSER_BITS_C  => 8,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
@@ -368,7 +369,7 @@ begin
       port map (
          -- Slave Port
          sAxisClk    => rxClk(0),
-         sAxisRst    => rxRst(0),
+         sAxisRst    => rxPathRst,
          sAxisMaster => eventMasters(0),
          -- Master Port
          mAxisClk    => cfgClk,
