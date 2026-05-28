@@ -29,7 +29,7 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import RSSI_CORE_WRAPPER_VHDL_SOURCES
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
@@ -163,6 +163,28 @@ async def wrapper_active_open_and_bidirectional_payload_test(dut):
     await clt_recv
 
 
+@cocotb.test()
+async def wrapper_server_backpressure_advertises_busy_test(dut):
+    if not env_flag("RSSI_WRAPPER_BACKPRESSURE_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    for index in range(40):
+        await tb.send_app_frame(
+            tb.clt_source,
+            [SsiBeat(data=0xBEEF_0000_0000_0000 | index, keep=0xFF, last=1, sof=1, eofe=0)],
+        )
+        await tb.cycle(4)
+        if int(dut.cltStatusReg_o.value) & (1 << 8):
+            break
+
+    assert int(dut.cltStatusReg_o.value) & (1 << 8)
+
+
 BASE_PARAMETERS = {
     "ACK_TOUT_G": 4,
     "RETRANS_TOUT_G": 16,
@@ -219,6 +241,32 @@ def test_RssiCoreWrapper(parameters):
         toplevel="surf.rssicorewrapperintegrationwrapper",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCoreWrapper_backpressure():
+    parameters = {
+        **BASE_PARAMETERS,
+        "BYPASS_CHUNKER_G": True,
+        "WINDOW_ADDR_SIZE_G": 2,
+        "MAX_SEG_SIZE_G": 128,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicorewrapperintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "wrapper_server_backpressure_advertises_busy_test",
+            "RSSI_WRAPPER_BACKPRESSURE_CASE": 1,
+        },
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_WRAPPER_VHDL_SOURCES,

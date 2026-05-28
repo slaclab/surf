@@ -27,9 +27,13 @@ import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RSSI_CORE_VHDL_SOURCES,
+    RSSI_FLAG_ACK,
+    RSSI_FLAG_NULL,
+    RSSI_FLAG_RST,
+    RSSI_FLAG_SYN,
     checksum_is_valid,
     format_transport_frame,
     parse_header,
@@ -64,12 +68,24 @@ class TB:
         self.srv_tsp_sink = self.srv_tsp_output
         self.drop_next_client_data = False
         self.drop_next_server_data = False
+        self.drop_client_data_count = 0
+        self.drop_server_data_count = 0
+        self.drop_next_client_syn = False
+        self.drop_next_server_syn = False
+        self.drop_next_client_ack = False
+        self.drop_next_server_ack = False
+        self.drop_next_client_null = False
+        self.drop_next_server_null = False
+        self.dropped_client_ack_count = 0
+        self.dropped_server_ack_count = 0
+        self.dropped_client_null_count = 0
+        self.dropped_server_null_count = 0
         self.drop_all_client = False
         self.drop_all_server = False
         self.loopback_tasks = []
 
     @classmethod
-    async def create(cls, dut):
+    async def create(cls, dut, *, start_loopbacks: bool = True):
         start_clock(dut.axisClk, period_ns=5.0)
         dut.axisRst.setimmediatevalue(1)
 
@@ -94,7 +110,8 @@ class TB:
             getattr(dut, signal_name).setimmediatevalue(value)
 
         await reset_dut(dut, clk_name="axisClk", rst_name="axisRst")
-        tb.start_transport_loopbacks()
+        if start_loopbacks:
+            tb.start_transport_loopbacks()
         return tb
 
     async def cycle(self, count: int = 1) -> None:
@@ -186,8 +203,7 @@ class TB:
                     self.clt_tsp_output,
                     self.srv_tsp_input,
                     self.dut.cltMTspTReady,
-                    drop_next_attr="drop_next_client_data",
-                    drop_all_attr="drop_all_client",
+                    side="client",
                 )
             ),
             cocotb.start_soon(
@@ -195,11 +211,48 @@ class TB:
                     self.srv_tsp_output,
                     self.clt_tsp_input,
                     self.dut.srvMTspTReady,
-                    drop_next_attr="drop_next_server_data",
-                    drop_all_attr="drop_all_server",
+                    side="server",
                 )
             ),
         ]
+
+    def should_drop_transport_frame(self, *, side: str, beat: SsiBeat) -> bool:
+        if getattr(self, f"drop_all_{side}"):
+            return True
+        if beat.sof != 1:
+            return False
+
+        header_word = protocol_bytes_from_stream_word(beat.data)
+        flags = header_word[0]
+        is_syn = bool(flags & RSSI_FLAG_SYN)
+        is_ack = bool(flags & RSSI_FLAG_ACK)
+        is_null = bool(flags & RSSI_FLAG_NULL)
+        is_rst = bool(flags & RSSI_FLAG_RST)
+
+        if is_syn and getattr(self, f"drop_next_{side}_syn"):
+            setattr(self, f"drop_next_{side}_syn", False)
+            return True
+
+        is_data = not is_syn and not is_null and not is_rst and beat.last == 0
+        if is_data and getattr(self, f"drop_next_{side}_data"):
+            setattr(self, f"drop_next_{side}_data", False)
+            return True
+        if is_data and getattr(self, f"drop_{side}_data_count") > 0:
+            setattr(self, f"drop_{side}_data_count", getattr(self, f"drop_{side}_data_count") - 1)
+            return True
+
+        is_ack_only = is_ack and not is_syn and not is_null and not is_rst and beat.last == 1
+        if is_ack_only and getattr(self, f"drop_next_{side}_ack"):
+            setattr(self, f"drop_next_{side}_ack", False)
+            setattr(self, f"dropped_{side}_ack_count", getattr(self, f"dropped_{side}_ack_count") + 1)
+            return True
+
+        if is_null and getattr(self, f"drop_next_{side}_null"):
+            setattr(self, f"drop_next_{side}_null", False)
+            setattr(self, f"dropped_{side}_null_count", getattr(self, f"dropped_{side}_null_count") + 1)
+            return True
+
+        return False
 
     async def loopback_transport(
         self,
@@ -207,8 +260,7 @@ class TB:
         destination: FlatSsiEndpoint,
         source_ready,
         *,
-        drop_next_attr: str,
-        drop_all_attr: str,
+        side: str,
     ) -> None:
         dropping = False
         destination.set_idle()
@@ -220,18 +272,12 @@ class TB:
 
             valid = int(source._sig("TValid").value) == 1
             beat = source.snapshot() if valid else None
-            drop_frame = valid and (
-                dropping
-                or getattr(self, drop_all_attr)
-                or (getattr(self, drop_next_attr) and beat.last == 0)
-            )
+            drop_frame = valid and (dropping or self.should_drop_transport_frame(side=side, beat=beat))
 
             if drop_frame:
                 destination.set_idle()
                 source_ready.value = 1
                 dropping = beat.last == 0
-                if getattr(self, drop_next_attr):
-                    setattr(self, drop_next_attr, False)
                 continue
 
             if valid:
@@ -280,6 +326,45 @@ async def active_open_negotiates_parameters_test(dut):
     assert int(dut.srvStatusReg_o.value) & 0x1
     assert int(dut.cltMaxSegSize_o.value) == 32
     assert int(dut.srvMaxSegSize_o.value) == 32
+
+
+@cocotb.test()
+async def dropped_client_syn_retries_and_connects_test(dut):
+    tb = await TB.create(dut, start_loopbacks=False)
+    tb.drop_next_client_syn = True
+    tb.start_transport_loopbacks()
+
+    await tb.wait_connected(timeout_cycles=1024)
+    await tb.drain_app_outputs()
+
+    assert int(dut.cltStatusReg_o.value) & 0x1
+    assert int(dut.srvStatusReg_o.value) & 0x1
+
+
+@cocotb.test()
+async def dropped_server_syn_ack_retries_and_connects_test(dut):
+    tb = await TB.create(dut, start_loopbacks=False)
+    tb.drop_next_server_syn = True
+    tb.start_transport_loopbacks()
+
+    await tb.wait_connected(timeout_cycles=1024)
+    await tb.drain_app_outputs()
+
+    assert int(dut.cltStatusReg_o.value) & 0x1
+    assert int(dut.srvStatusReg_o.value) & 0x1
+
+
+@cocotb.test()
+async def dropped_client_final_ack_retries_and_connects_test(dut):
+    tb = await TB.create(dut, start_loopbacks=False)
+    tb.drop_next_client_ack = True
+    tb.start_transport_loopbacks()
+
+    await tb.wait_connected(timeout_cycles=1024)
+    await tb.drain_app_outputs()
+
+    assert int(dut.cltStatusReg_o.value) & 0x1
+    assert int(dut.srvStatusReg_o.value) & 0x1
 
 
 @cocotb.test()
@@ -336,6 +421,43 @@ async def bidirectional_payload_delivery_test(dut):
 
 
 @cocotb.test()
+async def server_data_loss_retransmits_and_recovers_payload_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    payload = 0xABCD_0000_1234_EF01
+
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.srv_tsp_sink))
+    tb.drop_next_server_data = True
+    await tb.send_app_frame(
+        tb.srv_source,
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+
+    first_beats = await first_transport
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
+    assert first_beats[1].data == payload
+
+    await tb.assert_no_app_output(tb.clt_sink, cycles=6)
+
+    second_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.srv_tsp_sink))
+    second_beats = await second_transport
+    second_header = parse_header(protocol_bytes_from_stream_word(second_beats[0].data))
+    assert second_header.sequence == first_header.sequence
+    assert second_beats[1].data == payload
+
+    frames = await tb.collect_app_frames(tb.clt_sink, dut.cltMAppTReady, cycles=128)
+    assert len(frames) == 1, f"Unexpected client output frames after retransmission: {frames}"
+    assert_beat_views(
+        frames[0],
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(payload, 0xFF, 1, 1, 0)],
+    )
+
+
+@cocotb.test()
 async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
     tb = await TB.create(dut)
 
@@ -370,13 +492,110 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
         second_beats[1].data == payload
     ), f"Retransmitted client DATA payload was corrupted: {format_transport_frame(second_beats)}"
 
-    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=128)
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=512)
     assert len(frames) == 1, f"Unexpected server output frames after retransmission: {frames}"
     assert_beat_views(
         frames[0],
         fields=("data", "keep", "last", "sof", "eofe"),
         expected=[(payload, 0xFF, 1, 1, 0)],
     )
+
+
+@cocotb.test()
+async def bidirectional_data_losses_recover_without_duplicate_delivery_test(dut):
+    if not env_flag("RSSI_REPEATED_LOSS_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    client_payload = 0xA5A5_5A5A_0000_0000
+    tb.drop_next_client_data = True
+
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=client_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    first_beats = await first_transport
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
+    assert first_beats[1].data == client_payload
+
+    second_beats = await tb.recv_transport_data_frame(tb.clt_tsp_sink, timeout_cycles=2048)
+    second_header = parse_header(protocol_bytes_from_stream_word(second_beats[0].data))
+    assert second_header.sequence == first_header.sequence
+    assert second_beats[1].data == client_payload
+
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=512)
+    assert len(frames) == 1, f"Unexpected server output frames after client loss: {frames}"
+    assert_beat_views(
+        frames[0],
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(client_payload, 0xFF, 1, 1, 0)],
+    )
+
+    await tb.cycle(128)
+
+    server_payload = 0x5A5A_A5A5_0000_0001
+    tb.drop_next_server_data = True
+
+    third_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.srv_tsp_sink))
+    await tb.send_app_frame(
+        tb.srv_source,
+        [SsiBeat(data=server_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    third_beats = await third_transport
+    third_header = parse_header(protocol_bytes_from_stream_word(third_beats[0].data))
+    assert third_beats[1].data == server_payload
+
+    fourth_beats = await tb.recv_transport_data_frame(tb.srv_tsp_sink, timeout_cycles=2048)
+    fourth_header = parse_header(protocol_bytes_from_stream_word(fourth_beats[0].data))
+    assert fourth_header.sequence == third_header.sequence
+    assert fourth_beats[1].data == server_payload
+
+    frames = await tb.collect_app_frames(tb.clt_sink, dut.cltMAppTReady, cycles=512)
+    assert len(frames) == 1, f"Unexpected client output frames after server loss: {frames}"
+    assert_beat_views(
+        frames[0],
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(server_payload, 0xFF, 1, 1, 0)],
+    )
+
+    assert int(dut.cltConnected_o.value) == 1
+    assert int(dut.srvConnected_o.value) == 1
+
+
+@cocotb.test()
+async def lost_server_ack_control_does_not_duplicate_delivery_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    payload = 0x1111_AAAA_2222_BBBB
+    tb.drop_next_server_ack = True
+    tb.drop_next_server_null = True
+
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    first_beats = await first_transport
+    assert first_beats[1].data == payload
+
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=160)
+    assert len(frames) == 1, f"ACK loss caused duplicate server delivery: {frames}"
+    assert_beat_views(
+        frames[0],
+        fields=("data", "keep", "last", "sof", "eofe"),
+        expected=[(payload, 0xFF, 1, 1, 0)],
+    )
+    assert tb.dropped_server_ack_count + tb.dropped_server_null_count >= 1
+    assert int(dut.cltConnected_o.value) == 1
+    assert int(dut.srvConnected_o.value) == 1
 
 
 @cocotb.test()
@@ -491,6 +710,22 @@ async def max_retransmissions_close_client_and_emit_rst_test(dut):
 
 
 @cocotb.test()
+async def dropped_client_null_keepalive_does_not_close_server_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    tb.drop_next_client_null = True
+    await tb.cycle(96)
+
+    assert tb.dropped_client_null_count >= 1
+    assert int(dut.cltConnected_o.value) == 1
+    assert int(dut.srvConnected_o.value) == 1
+    assert (int(dut.srvStatusReg_o.value) >> 2) & 0x1 == 0
+
+
+@cocotb.test()
 async def idle_client_null_keepalive_keeps_server_connected_test(dut):
     tb = await TB.create(dut)
 
@@ -534,6 +769,86 @@ async def explicit_client_close_tears_down_integrated_connection_test(dut):
     await tb.wait_disconnected()
 
 
+@cocotb.test()
+async def bidirectional_multi_frame_stress_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    for index in range(6):
+        client_payload = 0xC100_0000_0000_0000 | index
+        server_payload = 0x5E00_0000_0000_0000 | index
+
+        srv_recv = cocotb.start_soon(
+            recv_frame_and_check(
+                tb.srv_sink,
+                clk=tb.clk,
+                ready_signal=dut.srvMAppTReady,
+                fields=("data", "keep", "last", "sof", "eofe"),
+                expected=[(client_payload, 0xFF, 1, 1, 0)],
+                timeout_cycles=512,
+            )
+        )
+        await tb.send_app_frame(
+            tb.clt_source,
+            [SsiBeat(data=client_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+        )
+        await srv_recv
+
+        clt_recv = cocotb.start_soon(
+            recv_frame_and_check(
+                tb.clt_sink,
+                clk=tb.clk,
+                ready_signal=dut.cltMAppTReady,
+                fields=("data", "keep", "last", "sof", "eofe"),
+                expected=[(server_payload, 0xFF, 1, 1, 0)],
+                timeout_cycles=512,
+            )
+        )
+        await tb.send_app_frame(
+            tb.srv_source,
+            [SsiBeat(data=server_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+        )
+        await clt_recv
+
+    assert int(dut.cltConnected_o.value) == 1
+    assert int(dut.srvConnected_o.value) == 1
+
+
+@cocotb.test()
+async def client_sequence_wraparound_delivers_frame_test(dut):
+    if not env_flag("RSSI_SEQUENCE_WRAP_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    first_payload = 0x00FF_0000_0000_0001
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    first_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(first_payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=first_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    first_beats = await first_transport
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
+    await first_recv
+
+    assert first_header.sequence <= 1
+
+
 PARAMETER_SWEEP = [
     pytest.param(
         {
@@ -559,6 +874,69 @@ def test_RssiCore(parameters):
         toplevel="surf.rssicoreintegrationwrapper",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCore_sequence_wraparound():
+    parameters = {
+        "WINDOW_ADDR_SIZE_G": 2,
+        "SEGMENT_ADDR_SIZE_G": 5,
+        "MAX_NUM_OUTS_SEG_G": 4,
+        "MAX_SEG_SIZE_G": 32,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 16,
+        "NULL_TOUT_G": 48,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+        "CLIENT_INIT_SEQ_N_G": 254,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicoreintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "client_sequence_wraparound_delivers_frame_test",
+            "RSSI_SEQUENCE_WRAP_CASE": 1,
+        },
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCore_repeated_data_loss():
+    parameters = {
+        "WINDOW_ADDR_SIZE_G": 2,
+        "SEGMENT_ADDR_SIZE_G": 5,
+        "MAX_NUM_OUTS_SEG_G": 4,
+        "MAX_SEG_SIZE_G": 32,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 16,
+        "NULL_TOUT_G": 48,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicoreintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "bidirectional_data_losses_recover_without_duplicate_delivery_test",
+            "RSSI_REPEATED_LOSS_CASE": 1,
+        },
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_VHDL_SOURCES,

@@ -4,13 +4,21 @@
 Add focused cocotb regressions for `protocols/rssi/v1/` that verify RSSI/RUDP
 protocol compliance for the SURF/Rogue RSSI profile.
 
-## Resume Point
-Read `progress.md`, `rtl-changes.md`, `plan.md`, `rtl-spec-review.md`, and
-`references/README.md` first. Phase 1 and Phase 2 are complete. Phase 3
-`RssiCore` integrated client/server coverage is in place for connection,
-payload, retransmission, keepalive, missing-keepalive close, and explicit
-close behavior. Phase 4 has started with narrow `RssiCoreWrapper` smoke
+## Status
+Final coverage expansion was implemented on 2026-05-27. The original
+spec-review findings have been triaged into default coverage, documented SURF
+RSSI hardware-profile decisions, or focused production RTL fixes. The broader
+integration-depth pass now covers direct-core transport perturbations, visible
+status/counter assertions, wrapper backpressure, and bounded stress/parameter
 coverage.
+
+## Resume Point
+For future work, read `progress.md`, `rtl-changes.md`, `plan.md`,
+`rtl-spec-review.md`, and `references/README.md` first. Phase 1 and Phase 2
+are complete. Phase 3 `RssiCore` integrated client/server coverage is in place
+for connection, payload, retransmission, keepalive, missing-keepalive close,
+and explicit close behavior. Phase 4 has started with narrow
+`RssiCoreWrapper` smoke coverage.
 
 The previous `RssiTxFsm` multi-word DATA known issue has been resolved as a
 test-wrapper memory-model mismatch. `RssiCore` uses registered-read RAMs for
@@ -107,6 +115,19 @@ application frame; the old repeated-output symptom was caused by test stimulus
 holding the application source valid for multiple accepted beats and by arming
 loss/corruption before pending control traffic instead of targeting DATA.
 
+The final direct-core expansion adds handshake-loss and retry coverage for
+client SYN, server SYN+ACK, and client final ACK; server-side DATA
+retransmission; ACK/NULL perturbation without duplicate delivery or link
+closure; sequence-number wraparound from a near-maximum initial sequence; and
+bidirectional multi-frame stress. A focused small-parameter pytest entry drops
+one DATA frame in each direction within the same connection and verifies
+exactly one recovered application delivery per side. A stricter experimental
+probe that dropped two consecutive client DATA transmissions in one connection
+did not deliver the second recovered payload within the bounded observation
+window; it was not promoted into default closeout coverage because that would
+open a new hardware-contract question rather than close one of the existing
+review findings.
+
 The direct-core wrapper audit candidate is closed:
 `RssiCoreIntegrationWrapper` now exposes flattened client/server transport
 input and output ports, and `test_RssiCore.py` owns transparent loopback,
@@ -122,6 +143,13 @@ while forcing `chksumOk_i=0`, preserving the existing contract that the
 checksum block still provides the `chksumValid_i` timing pulse. EACK scope has
 been decided: EACK is reserved/unsupported in the SURF RSSI v1 hardware
 profile, matching the primary SLAC RSSI page.
+
+`test_RssiCoreWrapper.py` now includes a focused server-output backpressure
+case that verifies the client-visible BUSY status bit. The multi-stream wrapper
+suite now also includes a bidirectional packetizer2 routing case for two
+application streams and a dedicated pytest entry for the small
+window/segment-size parameter set, so this coverage can be validated without
+running the full long multi-stream sweep.
 
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
@@ -140,6 +168,30 @@ profile, matching the primary SLAC RSSI page.
   `tests/protocols/rssi/`
 
 ## Validation
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-27 after the final coverage expansion.
+- `git diff --check` passed on 2026-05-27 after the final coverage expansion.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore_sequence_wraparound tests/protocols/rssi/test_RssiCore.py::test_RssiCore_repeated_data_loss`
+  passed on 2026-05-27 for the focused sequence-wrap and bidirectional
+  DATA-loss parameter cases.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-27 after adding the final direct-core transport
+  perturbation and bounded stress cases.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py::test_RssiCoreWrapper_backpressure`
+  passed on 2026-05-27 for wrapper-level application backpressure/BUSY
+  coverage.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+  passed on 2026-05-27 for the packetizer2 two-stream bidirectional route
+  coverage.
+- `make MODULES=/Users/bareese/surf import` failed on 2026-05-27 before import
+  because `/Users/bareese/surf/ruckus/system_ghdl.mk` is missing in this
+  checkout.
+- A full
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  run was stopped on 2026-05-27 after 14:44 to avoid leaving a long simulator
+  run active; before termination it had passed the new packetizer2
+  bidirectional route cocotb test and was running the existing dropped-client
+  DATA route test.
 - `COCOTB_TESTCASE=dropped_client_data_retransmits_and_recovers_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
   passed on 2026-05-27 after targeting the direct-core drop hook to DATA and
   enforcing exactly one recovered server application frame.
@@ -402,7 +454,9 @@ profile, matching the primary SLAC RSSI page.
   rejection. SURF RSSI v1 does not implement EACK/out-of-sequence
   acknowledgment handling; SYN+EACK, DATA+EACK, and standalone ACK+EACK are
   default RX rejection coverage.
-- The checksum-disabled RX characterization is now passing as a normal
-  regression. The contract is that `HEADER_CHKSUM_EN_G=false` ignores
-  `chksumOk_i`, while `chksumValid_i` still supplies the checksum-block timing
-  pulse.
+- The checksum-disabled RX characterization is passing as a normal regression.
+  The contract is that `HEADER_CHKSUM_EN_G=false` ignores `chksumOk_i`, while
+  `chksumValid_i` still supplies the checksum-block timing pulse.
+- Before final closeout, add integrated reorder/drop variants, additional
+  retransmission/counter visibility, wrapper-level BUSY/backpressure checks,
+  and bounded stress/parameter coverage.

@@ -347,6 +347,36 @@ Acceptance for Phase 4:
 - Wrapper tests do not replay the full core matrix unless a wrapper-specific
   branch requires it.
 
+## Final Coverage Expansion
+The closeout expansion adds the remaining integration-depth checks without
+changing production RSSI RTL.
+
+Implemented direct-core checks:
+- Handshake loss/retry for client SYN, server SYN+ACK, and client final ACK.
+- DATA loss and retransmission in both directions, ACK/NULL perturbation,
+  sequence-number wraparound, and multi-frame bidirectional payload stress.
+- Focused status/error assertions for max retransmit close/RST, peer BUSY,
+  missing keepalive close, and invalid/control-only traffic that should not
+  refresh server liveness or duplicate application delivery.
+
+Implemented wrapper checks:
+- `RssiCoreWrapper` application-output backpressure advertises BUSY through the
+  client-visible status path.
+- `RssiCoreWrapperMultiStream` packetizer2 routing now covers bidirectional
+  payload delivery for two application streams and has a dedicated small
+  window/segment-size pytest entry for focused validation.
+
+Closeout notes:
+- The checksum-disabled RX finding is covered as valid current-contract
+  behavior: checksum validation is bypassed when `HEADER_CHKSUM_EN_G=false`,
+  but the checksum block still supplies the timing pulse.
+- A stricter two-consecutive-client-DATA-loss experiment did not become default
+  coverage because it exposes a new hardware-contract question. Current
+  default coverage proves one recovered DATA loss per direction in a single
+  connection.
+- The ruckus import check is still environment-blocked if
+  `ruckus/system_ghdl.mk` is absent from the checkout.
+
 ## Out Of Scope
 - Exhaustive generic Cartesian sweeps.
 - Full software Rogue interoperability in the first RTL regression pass.

@@ -292,6 +292,58 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
 
 
 @cocotb.test()
+async def multi_stream_bidirectional_payload_routes_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+    await tb.cycle(DEPACKETIZER2_INIT_WAIT_CYCLES)
+
+    client_payload0 = 0x1111_0000_0000_0000
+    client_payload1 = 0x1111_0000_0000_0001
+    server_payload0 = 0x2222_0000_0000_0000
+    server_payload1 = 0x2222_0000_0000_0001
+
+    dut.srvMApp0TReady.value = 1
+    dut.srvMApp1TReady.value = 1
+    srv_out0_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.srv_sinks[0], clk=tb.clk, cycles=1024)
+    )
+    srv_out1_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.srv_sinks[1], clk=tb.clk, cycles=1024)
+    )
+    await tb.send_app_frame(
+        tb.clt_sources[0],
+        [SsiBeat(data=client_payload0, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await tb.send_app_frame(
+        tb.clt_sources[1],
+        [SsiBeat(data=client_payload1, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    assert _beat_summary(await srv_out0_capture) == [(client_payload0, 0xFF, 1, 1, 0)]
+    assert _beat_summary(await srv_out1_capture) == [(client_payload1, 0xFF, 1, 1, 0)]
+
+    dut.cltMApp0TReady.value = 1
+    dut.cltMApp1TReady.value = 1
+    clt_out0_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.clt_sinks[0], clk=tb.clk, cycles=1024)
+    )
+    clt_out1_capture = cocotb.start_soon(
+        capture_accepted_beats(tb.clt_sinks[1], clk=tb.clk, cycles=1024)
+    )
+    await tb.send_app_frame(
+        tb.srv_sources[0],
+        [SsiBeat(data=server_payload0, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await tb.send_app_frame(
+        tb.srv_sources[1],
+        [SsiBeat(data=server_payload1, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    assert _beat_summary(await clt_out0_capture) == [(server_payload0, 0xFF, 1, 1, 0)]
+    assert _beat_summary(await clt_out1_capture) == [(server_payload1, 0xFF, 1, 1, 0)]
+
+
+@cocotb.test()
 async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
     tb = await TB.create(dut)
 
@@ -350,6 +402,20 @@ PARAMETER_SWEEP = [
         },
         id="packetizer2_two_streams_window3_seg128",
     ),
+    pytest.param(
+        {
+            "BYPASS_CHUNKER_G": False,
+            "APP_ILEAVE_EN_G": True,
+            "WINDOW_ADDR_SIZE_G": 2,
+            "MAX_SEG_SIZE_G": 64,
+            "ACK_TOUT_G": 4,
+            "RETRANS_TOUT_G": 16,
+            "NULL_TOUT_G": 48,
+            "MAX_RETRANS_CNT_G": 2,
+            "MAX_CUM_ACK_CNT_G": 2,
+        },
+        id="packetizer2_two_streams_window2_seg64",
+    ),
 ]
 
 
@@ -360,6 +426,36 @@ def test_RssiCoreWrapperMultiStream(parameters):
         toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCoreWrapperMultiStream_bidirectional_packetizer2():
+    parameters = {
+        "BYPASS_CHUNKER_G": False,
+        "APP_ILEAVE_EN_G": True,
+        "WINDOW_ADDR_SIZE_G": 2,
+        "MAX_SEG_SIZE_G": 64,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 16,
+        "NULL_TOUT_G": 48,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "multi_stream_bidirectional_payload_routes_test",
+        },
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_WRAPPER_VHDL_SOURCES,

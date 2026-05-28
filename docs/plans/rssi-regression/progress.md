@@ -795,17 +795,65 @@
   passed with the checksum-disabled RX characterization covered as a normal
   regression.
 
-## Open Items
-- Use `make MODULES=/Users/bareese import` for this checkout's ruckus import
-  validation.
-- EACK is now explicitly out of scope except for rejection coverage. SURF RSSI
-  v1 does not implement EACK/out-of-sequence acknowledgments.
-- Continue integrated RSSI coverage with reorder/drop variants, additional
-  retransmission/counter visibility, and busy perturbations now that direct
-  `RssiCore` and multi-stream `RssiCoreWrapper` DATA loss/retransmission are
-  covered.
-- The checksum-disabled RX finding is closed as a test-stimulus bug, not a
-  production RTL defect. `RssiRxFsm` already bypasses `chksumOk_i` when
+## Reopened Coverage Expansion
+- The RSSI regression task was reopened after closeout review to add the
+  remaining integration-depth coverage before final wrap-up. The original
+  `rtl-spec-review.md` findings are closed, but the suite still needs broader
+  transport perturbation, status/counter, wrapper, and bounded stress coverage.
+- Implemented additions:
+  - direct-core handshake loss/retry for SYN, SYN+ACK, and final ACK;
+  - direct-core ACK loss, NULL loss, server-side DATA loss, bidirectional
+    DATA-loss recovery in one connection, sequence-number wraparound, and
+    multi-frame bidirectional stress;
+  - stronger assertions on visible status/error bits around retransmit,
+    peer-busy, and null-timeout behavior;
+  - wrapper-level application backpressure/BUSY coverage and additional
+    multi-stream wrapper parameter routing coverage;
+  - a renewed attempt at `make MODULES=/Users/bareese/surf import`.
+- The checksum-disabled RX item closed as a test-stimulus bug, not a production
+  RTL defect. `RssiRxFsm` already bypasses `chksumOk_i` when
   `HEADER_CHKSUM_EN_G=false`; the regression now sends the DATA payload while
   forcing `chksumOk_i=0`, preserving the existing contract that the checksum
   block still provides the `chksumValid_i` timing pulse.
+- `rtl-spec-review.md` remains the original review/planning input. Keep future
+  triage notes in this progress log and keep production RTL rationale in
+  `rtl-changes.md`.
+- `test_RssiCore.py` now owns all direct-core transport perturbation in
+  cocotb loopback: one-shot control/DATA drops, sustained client transport
+  drops, and passive transport capture. The final expansion adds SYN retry,
+  SYN+ACK retry, final ACK retry, server-side DATA retransmit, ACK/NULL
+  perturbation, sequence wrap, bidirectional multi-frame stress, and a focused
+  small-parameter run that drops one DATA frame in each direction and verifies
+  exactly one recovered application delivery per side.
+- A stricter experimental probe that dropped two consecutive client DATA
+  transmissions in one connection did not deliver the second recovered payload
+  inside the bounded observation window. That behavior was not promoted into
+  default coverage for this closeout pass; it remains a possible future
+  characterization item if the hardware contract is extended to require
+  repeated same-direction loss recovery without a clean ACK/drain interval.
+- `test_RssiCoreWrapper.py` now has a focused backpressure case that holds the
+  server application output stalled and verifies the client-visible BUSY status
+  bit.
+- `test_RssiCoreWrapperMultiStream.py` now covers bidirectional packetizer2
+  routing for two application streams and adds a dedicated pytest entry for
+  the small window/segment parameter set so this route coverage can be run
+  without the full long multi-stream sweep.
+- Validation added on 2026-05-27:
+  - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+    passed.
+  - `git diff --check` passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore_sequence_wraparound tests/protocols/rssi/test_RssiCore.py::test_RssiCore_repeated_data_loss`
+    passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py`
+    passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py::test_RssiCoreWrapper_backpressure`
+    passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+    passed.
+  - `make MODULES=/Users/bareese/surf import` failed before import because
+    this checkout cannot find `/Users/bareese/surf/ruckus/system_ghdl.mk`.
+  - A full
+    `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+    run was stopped after 14:44 to avoid leaving a long simulator run active;
+    before termination it had passed the new packetizer2 bidirectional route
+    cocotb test and was running the existing dropped-client-DATA route test.
