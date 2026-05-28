@@ -731,11 +731,16 @@ class Bootstrap(pr.Device):
             ) from e
 
         if self._simpleDiscovery:
-            # Simple discovery: no version negotiation, no tags, no writes.
-            # Used for cameras that don't ACK control writes or support tagged packets.
-            # Don't change TxLsRate either — without writing ConnectionConfig to the
-            # camera, only the host would switch speed, breaking communication.
-            pass
+            # Simple discovery: no version negotiation, no tags.
+            # Still must write ConnectionConfig to activate all downconnection lanes.
+            ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
+            try:
+                self.ConnectionConfig.set(ConnectionConfigDefault)
+            except Exception:
+                pass
+
+            if (ConnectionConfigDefault & 0xFF) >= 0x50:
+                self.CoaXPressAxiL.TxLsRate.set(1)
 
         else:
             # Negotiate the CXP protocol version before using later bootstrap
