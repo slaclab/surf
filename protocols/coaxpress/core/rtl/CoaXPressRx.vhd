@@ -44,7 +44,7 @@ entity CoaXPressRx is
       cfgRst         : in  sl;
       cfgRxMaster    : out AxiStreamMasterType;
       eventMaster    : out AxiStreamMasterType;
-      eventSlave     : in  AxiStreamSlaveType;
+      eventSlave     : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
       -- Event ACK Interface (cfgClk domain)
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
