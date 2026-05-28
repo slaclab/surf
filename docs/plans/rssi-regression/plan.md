@@ -377,6 +377,19 @@ Closeout notes:
 - The ruckus import check is still environment-blocked if
   `ruckus/system_ghdl.mk` is absent from the checkout.
 
+## Post-Commit Spec Compliance Expansion
+After committing the final coverage expansion, continue adding small,
+spec-shaped direct-core probes that validate protocol behavior across the
+integrated TX/RX boundary.
+
+Implemented follow-on checks:
+- Out-of-order DATA recovery: drop DATA N, send DATA N+1, assert no
+  out-of-order application delivery, then verify retransmission recovers both
+  payloads in order.
+- NULL keepalive acknowledgment: observe an idle client NULL segment and
+  verify the server sends an ACK-only segment acknowledging that NULL sequence
+  while the connection remains open.
+
 ## Out Of Scope
 - Exhaustive generic Cartesian sweeps.
 - Full software Rogue interoperability in the first RTL regression pass.

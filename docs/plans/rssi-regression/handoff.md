@@ -5,12 +5,12 @@ Add focused cocotb regressions for `protocols/rssi/v1/` that verify RSSI/RUDP
 protocol compliance for the SURF/Rogue RSSI profile.
 
 ## Status
-Final coverage expansion was implemented on 2026-05-27. The original
-spec-review findings have been triaged into default coverage, documented SURF
-RSSI hardware-profile decisions, or focused production RTL fixes. The broader
-integration-depth pass now covers direct-core transport perturbations, visible
-status/counter assertions, wrapper backpressure, and bounded stress/parameter
-coverage.
+Final coverage expansion was implemented on 2026-05-27 and committed on
+2026-05-28 as `58ea8b5bb` (`Expand RSSI integration regression coverage`).
+The original spec-review findings have been triaged into default coverage,
+documented SURF RSSI hardware-profile decisions, or focused production RTL
+fixes. Follow-on direct-core spec work now adds integrated out-of-order DATA
+recovery and NULL acknowledgment checks.
 
 ## Resume Point
 For future work, read `progress.md`, `rtl-changes.md`, `plan.md`,
@@ -128,6 +128,15 @@ window; it was not promoted into default closeout coverage because that would
 open a new hardware-contract question rather than close one of the existing
 review findings.
 
+The post-commit direct-core spec slice adds two more compliance checks:
+`test_RssiCore_out_of_order_recovery` drops the first client DATA segment,
+sends the next DATA segment while the first is missing, verifies the server
+does not deliver out-of-order application output, and then verifies both
+payloads are delivered in sequence after retransmission. Default
+`test_RssiCore.py` coverage also now observes an idle client NULL segment and
+checks that the server ACK-only segment acknowledges that exact NULL sequence
+while the link remains connected.
+
 The direct-core wrapper audit candidate is closed:
 `RssiCoreIntegrationWrapper` now exposes flattened client/server transport
 input and output ports, and `test_RssiCore.py` owns transparent loopback,
@@ -168,6 +177,14 @@ running the full long multi-stream sweep.
   `tests/protocols/rssi/`
 
 ## Validation
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+  passed on 2026-05-28 after adding integrated out-of-order recovery and NULL
+  acknowledgment coverage.
+- `git diff --check` passed on 2026-05-28 after the post-commit compliance
+  slice.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore tests/protocols/rssi/test_RssiCore.py::test_RssiCore_out_of_order_recovery`
+  passed on 2026-05-28 for the default direct-core batch and focused
+  out-of-order recovery parameter case.
 - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
   passed on 2026-05-27 after the final coverage expansion.
 - `git diff --check` passed on 2026-05-27 after the final coverage expansion.

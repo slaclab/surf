@@ -857,3 +857,25 @@
     run was stopped after 14:44 to avoid leaving a long simulator run active;
     before termination it had passed the new packetizer2 bidirectional route
     cocotb test and was running the existing dropped-client-DATA route test.
+
+## Post-Commit Spec Compliance Expansion
+- 2026-05-28: committed the final coverage expansion as
+  `58ea8b5bb` (`Expand RSSI integration regression coverage`), then continued
+  with additional direct-core spec-compliance checks.
+- Added integrated out-of-order recovery coverage in `test_RssiCore.py`.
+  The focused `test_RssiCore_out_of_order_recovery` parameter run drops the
+  first client DATA segment, sends the next client DATA segment while the
+  first is missing, verifies no server application output is delivered before
+  retransmission, and then verifies both payloads are delivered in original
+  sequence order after retransmission. This covers the RSSI rule that
+  out-of-order DATA is dropped until the missing in-order segment is recovered.
+- Added default direct-core NULL acknowledgment coverage. The new cocotb test
+  observes an idle client NULL segment and checks that the server emits an
+  ACK-only segment whose acknowledge field matches the NULL sequence number,
+  while the server remains connected.
+- Validation added on 2026-05-28:
+  - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
+    passed.
+  - `git diff --check` passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore tests/protocols/rssi/test_RssiCore.py::test_RssiCore_out_of_order_recovery`
+    passed.

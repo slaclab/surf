@@ -17,9 +17,10 @@
 # - Checks: Both cores report connection-active status and negotiated segment
 #   size, bidirectional application payloads are delivered with SSI sideband
 #   fields preserved, dropped and corrupted client DATA frames are recovered by
-#   retransmission, client NULL keepalive traffic keeps the idle server
-#   connected, missing client keepalives close the server, and an explicit close
-#   request tears the link down.
+#   retransmission, later DATA is not delivered ahead of a lost earlier DATA,
+#   client NULL keepalive traffic is acknowledged and keeps the idle server
+#   connected, missing client keepalives close the server, and an explicit
+#   close request tears the link down.
 # - Timing: Small timeout generics keep connection, ACK, and NULL behavior
 #   cycle-bounded while preserving the relative RSSI timeout relationships.
 
@@ -568,6 +569,50 @@ async def bidirectional_data_losses_recover_without_duplicate_delivery_test(dut)
 
 
 @cocotb.test()
+async def lost_first_data_drops_later_data_until_retransmit_test(dut):
+    if not env_flag("RSSI_OUT_OF_ORDER_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    first_payload = 0x0F00_0000_0000_0001
+    second_payload = 0x0F00_0000_0000_0002
+    tb.drop_next_client_data = True
+
+    first_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=first_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    first_beats = await first_transport
+    first_header = parse_header(protocol_bytes_from_stream_word(first_beats[0].data))
+
+    second_transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=second_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    second_beats = await second_transport
+    second_header = parse_header(protocol_bytes_from_stream_word(second_beats[0].data))
+
+    assert second_header.sequence == ((first_header.sequence + 1) & 0xFF)
+    await tb.assert_no_app_output(tb.srv_sink, cycles=32)
+
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=2048)
+    summaries = [
+        [(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in frame]
+        for frame in frames
+    ]
+    assert summaries == [
+        [(first_payload, 0xFF, 1, 1, 0)],
+        [(second_payload, 0xFF, 1, 1, 0)],
+    ]
+
+
+@cocotb.test()
 async def lost_server_ack_control_does_not_duplicate_delivery_test(dut):
     tb = await TB.create(dut)
 
@@ -740,6 +785,31 @@ async def idle_client_null_keepalive_keeps_server_connected_test(dut):
     assert int(dut.cltConnected_o.value) == 1
     assert int(dut.srvConnected_o.value) == 1
     assert (int(dut.srvStatusReg_o.value) >> 2) & 0x1 == 0
+
+
+@cocotb.test()
+async def client_null_keepalive_is_acknowledged_by_server_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    null_beats = await tb.recv_transport_frame(
+        tb.clt_tsp_sink,
+        match=lambda header, beats: header.nul and len(beats) == 1,
+        timeout_cycles=512,
+    )
+    null_header = parse_header(protocol_bytes_from_stream_word(null_beats[0].data))
+
+    ack_beats = await tb.recv_transport_frame(
+        tb.srv_tsp_sink,
+        match=lambda header, beats: header.ack and not header.syn and not header.nul and not header.rst,
+        timeout_cycles=128,
+    )
+    ack_header = parse_header(protocol_bytes_from_stream_word(ack_beats[0].data))
+
+    assert ack_header.acknowledge == null_header.sequence
+    assert int(dut.srvConnected_o.value) == 1
 
 
 @cocotb.test()
@@ -936,6 +1006,37 @@ def test_RssiCore_repeated_data_loss():
             **parameters,
             "COCOTB_TESTCASE": "bidirectional_data_losses_recover_without_duplicate_delivery_test",
             "RSSI_REPEATED_LOSS_CASE": 1,
+        },
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCore_out_of_order_recovery():
+    parameters = {
+        "WINDOW_ADDR_SIZE_G": 2,
+        "SEGMENT_ADDR_SIZE_G": 5,
+        "MAX_NUM_OUTS_SEG_G": 4,
+        "MAX_SEG_SIZE_G": 32,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 96,
+        "NULL_TOUT_G": 192,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicoreintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "lost_first_data_drops_later_data_until_retransmit_test",
+            "RSSI_OUT_OF_ORDER_CASE": 1,
         },
         extra_vhdl_sources={
             "surf": [
