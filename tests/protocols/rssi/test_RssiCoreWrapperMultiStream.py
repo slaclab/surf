@@ -9,24 +9,37 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run one client `RssiCoreWrapper` and one server `RssiCoreWrapper`
-#   through a two-application-stream integration wrapper with routed stream
-#   destinations.
-# - Stimulus: Cocotb loops the flattened transport streams between endpoints,
-#   holds both endpoints open, and waits for the active-open handshake.
-# - Checks: Both wrappers report connected status with the two-stream wrapper
-#   path elaborated and active. Routed payload coverage sends independent
-#   frames on both client streams, confirms the client emits transport DATA,
-#   and verifies the server application streams receive the expected routed
-#   payloads. Loss coverage drops the first client DATA transport frame and
-#   verifies retransmission recovers the stream-1 routed payload.
-# - Timing: Payload stimulus waits after RSSI connection so the server-side
-#   `AxiStreamDepacketizer2` can finish initializing its per-`TDEST` route
-#   state before DATA frames arrive.
-# - Parameters: Exercise the user-facing multi-stream wrapper path with
-#   `APP_STREAMS_G=2`, `APP_STREAM_ROUTES_G`, `APP_ILEAVE_EN_G=true`, and the
-#   legacy packetizer/depacketizer path. Single-stream and segment-size sweeps
-#   remain in `test_RssiCoreWrapper.py`.
+# - Purpose: Exercise the `RssiCoreWrapper` path that is most visible to users
+#   with multiple application streams.  `test_RssiCoreWrapper.py` covers the
+#   one-stream wrapper and segment-size sweeps; this file proves that the
+#   packetizer2/depacketizer2 routing layer preserves RSSI reliability and
+#   stream identity when `APP_STREAMS_G > 1`.
+# - DUT shape: `RssiCoreWrapperMultiStreamIntegrationWrapper` instantiates a
+#   client wrapper and a server wrapper, each with two flattened application
+#   streams.  RSSI transport streams are exposed to cocotb and looped back in
+#   Python so the tests can observe DATA frames and inject one transport loss
+#   without adding behavior to the VHDL wrapper.
+# - Stimulus: Hold both endpoints open, wait for the active-open handshake, and
+#   then wait an additional initialization interval before sending payloads.
+#   The extra wait lets `AxiStreamDepacketizer2` clear its per-`TDEST` route
+#   state after RSSI link-up, avoiding a test race that is unrelated to RSSI
+#   protocol behavior.
+# - Checks: Active-open smoke verifies that the two-stream wrapper elaborates
+#   and connects.  Routed payload tests send independent frames on client
+#   streams 0 and 1, confirm transport DATA is emitted, and verify the server
+#   receives each payload on the expected routed stream.  Bidirectional routing
+#   repeats this in both directions.  Loss coverage drops the first client DATA
+#   transport frame and checks that retransmission reuses the same RSSI
+#   sequence number and recovers the stream-1 payload exactly once.
+# - Parameter strategy: Use `APP_STREAMS_G=2`, explicit `APP_STREAM_ROUTES_G`,
+#   `APP_ILEAVE_EN_G=true`, and the legacy packetizer/depacketizer path.  A
+#   focused pytest entry runs only the bidirectional route case for a small
+#   window/segment-size parameter set so this coverage can be validated without
+#   the full long multi-stream sweep.
+# - Timing: Capture helpers observe accepted beats for a bounded number of
+#   clock cycles.  Transport loopback drops only multi-beat DATA frames after a
+#   test arms the hook, leaving ACK/NULL control traffic free to maintain the
+#   connection.
 
 import cocotb
 import pytest

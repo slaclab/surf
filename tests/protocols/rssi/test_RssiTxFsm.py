@@ -9,17 +9,31 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiTxFsm` through a thin wrapper with small transmit window,
-#   deterministic header checksum input, a real `RssiHeaderReg`, and a small
-#   behavioral segment RAM.
-# - Stimulus: Start from an active connection, issue directed segment requests,
-#   and use flattened SSI handshakes on the application and transport sides.
-# - Checks: Standalone ACK emits exactly one RSSI ACK segment with the expected
-#   sequence/ack fields and checksum while preserving the current TX sequence;
-#   DATA, NULL, and RST emit expected headers and consume one sequence number.
+# - Purpose: Verify transmit-side RSSI segment generation, sequence
+#   consumption, ACK processing, window release, retransmission, and checksum
+#   insertion at the `RssiTxFsm` boundary.  This file proves the TX leaf logic
+#   before it is paired with the RX FSM and monitor in `RssiCore`.
+# - DUT shape: Run `RssiTxFsm` through a thin wrapper with a small transmit
+#   window, deterministic checksum provider, a real `RssiHeaderReg`, and a
+#   behavioral segment RAM whose read timing matches the registered RAM path
+#   used by `RssiCore`.  The wrapper exposes flattened SSI application and
+#   transport streams plus control/status signals for directed checks.
+# - Stimulus: Start from an active connection, issue ACK, DATA, NULL, RST, SYN,
+#   resend, and close requests, drive application payload beats, and return
+#   checksum-valid strobes only after the DUT asks for a header checksum.
+#   Separate cases drive peer ACK numbers to release one or multiple
+#   outstanding segments.
+# - Checks: Standalone ACK emits exactly one RSSI ACK segment, preserves the
+#   current TX sequence, and carries the expected checksum.  DATA, NULL, RST,
+#   and SYN emit the expected headers and consume sequence numbers where the
+#   RSSI profile requires it.  Multi-word DATA preserves payload/TKEEP/TLAST
+#   across the segment RAM and resend path.  Cumulative ACK frees multiple
+#   buffered segments.  Checksum injection corrupts ACK, NULL, and DATA header
+#   checksums without corrupting payload.
 # - Timing: Output checks start with `TREADY` asserted, then present checksum
-#   valid only after the DUT asks for a checksum so the header RAM path is
-#   sampled after its registered update.
+#   valid after the DUT's checksum request so the header RAM path is sampled
+#   after its registered update.  Tests observe complete accepted transport
+#   frames rather than peeking at internal state-machine cycles.
 
 import cocotb
 import pytest

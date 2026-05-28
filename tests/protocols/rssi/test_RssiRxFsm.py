@@ -9,15 +9,30 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiRxFsm` through a thin wrapper with small receive and
-#   transmit windows, checksum enabled, and an internal behavioral segment RAM.
-# - Stimulus: Drive flattened transport-side SSI frames containing RSSI DATA
-#   headers and payload words, then vary checksum and illegal flag cases.
-# - Checks: A valid in-order DATA segment must pulse `rxValidSeg_o` and update
-#   the visible sequence/ack/flag fields.  A checksum failure must pulse
-#   `rxDropSeg_o` and stay silent on the application side.
-# - Timing: Transport input waits for sampled ready before changing beats, and
-#   all status checks wait past the default `TPD_G` output delay.
+# - Purpose: Verify receive-side RSSI header screening, payload buffering, and
+#   application delivery at the `RssiRxFsm` boundary.  This is the directed
+#   decode/drop/accept layer below `RssiCore`; connection negotiation and TX
+#   retransmission policy are tested elsewhere.
+# - DUT shape: Run `RssiRxFsm` through a thin wrapper with small receive and
+#   transmit windows, optional header checksum validation, and an internal
+#   behavioral segment RAM.  The wrapper flattens SSI records, RX/TX sequence
+#   inputs, decoded flag outputs, and SYN parameter outputs so tests can assert
+#   leaf-FSM behavior directly.
+# - Stimulus: Drive flattened transport-side SSI frames containing encoded RSSI
+#   ACK, DATA, NULL, RST, and SYN headers plus payload words where applicable.
+#   Tests vary checksum validity, unsupported flag combinations, SYN length,
+#   payload continuation, sequence numbers, and duplicate/out-of-order DATA.
+# - Checks: Valid in-order DATA must pulse `rxValidSeg_o`, update visible
+#   sequence/ack/flag fields, and deliver exactly the expected application
+#   frame.  Invalid checksum, unsupported EACK, illegal DATA/BUSY/ACK flag
+#   combinations, malformed SYN, out-of-order DATA, and duplicate DATA must
+#   pulse/drop as appropriate and stay silent on the application side.  With
+#   `HEADER_CHKSUM_EN_G=false`, `chksumOk_i` is ignored while the checksum
+#   valid pulse still supplies timing.
+# - Timing: Transport input waits for sampled ready before changing beats.
+#   Status checks wait past the default `TPD_G` output delay, and app-output
+#   checks account for the registered segment RAM read latency used by the real
+#   `RssiCore` path.
 
 import cocotb
 import pytest

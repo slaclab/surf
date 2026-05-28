@@ -9,15 +9,27 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run the 64-bit RSSI/RUDP checksum engine with its production data
-#   and checksum widths.
-# - Stimulus: Feed fixed ACK/DATA/SYN header words, complete headers with
-#   checksum fields, disabled-enable gaps, and reset interruptions.
-# - Checks: The RTL checksum must match the Python one's-complement oracle,
-#   valid headers must assert `check_o`, corrupted headers must not, and low
-#   enable/reset must restart accumulation.
-# - Timing: The bench drives one 64-bit word per strobe, then waits for the
+# - Purpose: Treat `RssiChksum` as the checksum oracle used by the RSSI
+#   transmit and receive paths.  The tests pin the one's-complement arithmetic
+#   independently of the higher-level FSMs so header-format or state-machine
+#   failures are not confused with checksum datapath failures.
+# - DUT shape: Run the production 64-bit checksum engine with the normal RSSI
+#   checksum width.  No RSSI FSMs are instantiated here; the test drives raw
+#   header words directly and compares the block against the Python helper in
+#   `rssi_test_utils.py`.
+# - Stimulus: Feed ACK, DATA, and multi-word SYN headers with the checksum field
+#   cleared for generation mode, then feed complete headers with the checksum
+#   included for validation mode.  Additional cases cover enable gaps and reset
+#   interruptions so the accumulator restart behavior is explicit.
+# - Checks: Generated checksums must match the Python one's-complement oracle.
+#   Complete valid headers must assert `check_o`; headers with one altered byte
+#   must leave `check_o` deasserted.  Dropping enable or asserting reset must
+#   restart accumulation and prevent stale partial sums from leaking into the
+#   next header.
+# - Timing: The bench drives one 64-bit word per strobe and then waits for the
 #   registered `valid_o` response before sampling `chksum_o` and `check_o`.
+#   This matches the way the RSSI header path observes checksum completion in
+#   the TX and RX FSM tests.
 
 import cocotb
 import pytest

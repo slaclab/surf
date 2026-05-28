@@ -9,14 +9,27 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiConnFsm` through a thin wrapper in server and client modes.
-# - Stimulus: Drive connection requests, received SYN/SYN+ACK/ACK flags, and
-#   header-sent strobes directly at the leaf FSM boundary.
-# - Checks: Matching peer parameters open the connection, oversized peer window
-#   and segment-size values are clamped, and non-negotiable parameter
-#   mismatches reject the peer proposal.
+# - Purpose: Verify RSSI connection-state behavior at the `RssiConnFsm` leaf
+#   boundary before it is composed with TX, RX, monitor, and AXI-Lite logic in
+#   `RssiCore`.  These tests focus on active/passive open, SYN negotiation,
+#   retry/timeout behavior, and parameter rejection decisions.
+# - DUT shape: Run the FSM through a thin wrapper in both server and client
+#   modes.  The wrapper flattens `RssiParamType` and header flag records so the
+#   test can drive exact peer proposals and observe accepted/current parameter
+#   outputs without depending on the header decoder or register map.
+# - Stimulus: Drive connection requests, received SYN/SYN+ACK/ACK/RST flags,
+#   peer parameter records, and header-sent strobes directly.  Tests model the
+#   minimum surrounding handshake needed to advance the FSM and intentionally
+#   avoid sending SSI traffic or encoded header bytes.
+# - Checks: Matching parameters open the connection.  Legal peer window and
+#   segment-size proposals are accepted or clamped as the SURF hardware profile
+#   defines.  Non-negotiable mismatches and out-of-range peer parameters reject
+#   the proposal and, on the client side, request RST.  Retry cases verify that
+#   missing peer responses cause bounded SYN retransmission attempts followed
+#   by close rather than counter overflow.
 # - Timing: Status checks wait past the default `TPD_G` output delay after each
-#   clock edge.
+#   clock edge.  Timeout generics are kept small so retries and peer-timeout
+#   closure remain deterministic within a directed cocotb test.
 
 import os
 

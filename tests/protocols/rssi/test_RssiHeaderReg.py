@@ -9,15 +9,26 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiHeaderReg` with the default SURF RSSI header-size generics.
-# - Stimulus: Register one set of sequence, acknowledgment, busy, ACK-valid,
-#   and SYN negotiation parameters, then request ACK, DATA, NULL, RST, and SYN
-#   header words by address.
-# - Checks: The emitted 64-bit words must match the protocol-byte helper for
-#   flags, busy propagation, ACK bit capture, sequence/ack fields, header
-#   lengths, reserved bytes, checksum placeholders, and all SYN parameters.
-# - Timing: Inputs are captured while no header strobe is active; each header
-#   request is sampled after the module's registered one-cycle response.
+# - Purpose: Pin the RSSI header encoder independently of checksum generation
+#   and transmit-state sequencing.  This file is the byte-layout oracle for
+#   ACK, DATA, NULL, RST, and SYN headers emitted by the RTL.
+# - DUT shape: Run `RssiHeaderReg` directly with the default SURF RSSI
+#   header-size generics.  The test drives scalar request strobes and flattened
+#   parameter fields, then samples the 64-bit header word returned for each
+#   requested address.
+# - Stimulus: Register one coherent set of TX sequence, RX acknowledgment,
+#   busy, ACK-valid, and SYN negotiation parameters.  Request ACK, DATA, NULL,
+#   RST, and SYN header words by address.  DATA is checked both with and without
+#   a valid ACK so the ACK-bit capture rule is explicit.
+# - Checks: Emitted words must match the shared Python protocol helper for flag
+#   bits, busy propagation, ACK bit capture, sequence/ack fields, header
+#   lengths, reserved bytes, checksum placeholders, and all SYN parameter
+#   fields.  The test intentionally compares protocol-order bytes so endian
+#   mistakes in the packed 64-bit word are visible.
+# - Timing: Inputs are captured while no header strobe is active.  Each header
+#   request is sampled after the module's registered one-cycle response, which
+#   matches the timing assumed by `RssiTxFsm` when it asks for a header word
+#   before checksum insertion.
 
 import cocotb
 import pytest

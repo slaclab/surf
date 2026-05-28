@@ -9,17 +9,25 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiMonitor` through a thin wrapper that flattens RSSI parameter
-#   and received-flag records while keeping timeout scales at one count per
-#   clock for focused directed checks.
-# - Stimulus: Start from an active connection, drive received header flags,
-#   transmit-head strobes, local busy state, and transmit-buffer occupancy
-#   directly.
-# - Checks: Remote BUSY must suppress retransmission timeout progress, and a
-#   server must not treat ACK/BUSY-only traffic as DATA/NULL liveness for the
-#   null-timeout close rule.
-# - Timing: Samples are taken after the default `TPD_G` output delay; timeout
-#   thresholds are small deterministic cycle counts.
+# - Purpose: Verify the RSSI monitor/timer side effects that drive ACK, NULL,
+#   retransmission, BUSY, and close requests.  These behaviors are timing-heavy
+#   and easier to isolate here than through a full `RssiCore` integration test.
+# - DUT shape: Run `RssiMonitor` through a thin wrapper that flattens RSSI
+#   parameter and received-flag records.  Timeout scale is one count per clock
+#   so tests can reason in cycles and avoid long protocol-time waits.
+# - Stimulus: Start from an active connection and drive received header flags,
+#   transmitted-header strobes, local BUSY state, and transmit-buffer
+#   occupancy directly.  This bypasses the RX/TX FSMs while still exercising
+#   the monitor's policy decisions.
+# - Checks: Remote BUSY must suppress retransmission timeout progress.  Server
+#   liveness must refresh only on DATA or NULL receipt, not ACK/BUSY-only
+#   traffic.  Local BUSY must request an immediate ACK on assertion and then
+#   periodic BUSY ACKs at the RSSI page's recommended Retransmission
+#   Timeout/2 cadence.
+# - Timing: Samples are taken after the default `TPD_G` output delay.  Timeout
+#   thresholds are small deterministic cycle counts, and each test uses direct
+#   cycle waits rather than real-time delays so failures map cleanly to counter
+#   behavior.
 
 import cocotb
 import pytest

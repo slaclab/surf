@@ -9,21 +9,32 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run one client `RssiCoreWrapper` and one server `RssiCoreWrapper`
-#   through a thin integration wrapper with one flattened application stream on
-#   each side and direct transport loopback between wrappers.
-# - Stimulus: Hold both endpoints open, wait for the active-open handshake, and
-#   drive SSI-style application frames through the wrapper application boundary.
-# - Checks: Both wrappers report connected status, and bidirectional
-#   application payloads are delivered with SSI sideband fields preserved.
-# - Parameters: Sweep bypass-chunker and packetizer modes across multiple
-#   `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values so the wrapper elaborates
-#   the derived RSSI buffer dimensions used to trade BRAM depth against segment
-#   size.
-# - Timing: Small timeout generics keep the wrapper smoke test bounded. The
-#   RSSI protocol matrix remains covered by `test_RssiCore.py`; this test only
-#   checks that `RssiCoreWrapper` preserves the core behavior through its
-#   mux/demux and optional packetizer boundary.
+# - Purpose: Verify that the user-facing `RssiCoreWrapper` preserves the
+#   already-tested `RssiCore` behavior while adding the wrapper's application
+#   mux/demux, chunker bypass, legacy packetizer/depacketizer, and derived
+#   buffer sizing.  This file is intentionally a wrapper smoke/regression layer,
+#   not a replay of the full RSSI protocol matrix in `test_RssiCore.py`.
+# - DUT shape: `RssiCoreWrapperIntegrationWrapper` instantiates one client
+#   wrapper and one server wrapper with one flattened application stream on each
+#   side.  RSSI transport is connected directly between wrappers, while cocotb
+#   drives only the application streams and observes wrapper status registers.
+# - Stimulus: Hold both endpoints open, wait for active-open connection, drain
+#   reset-release application output, and send SSI-style payload frames through
+#   each wrapper's application boundary.  The backpressure case holds server
+#   application output stalled long enough to exercise the wrapper/core BUSY
+#   reporting path.
+# - Checks: Both wrappers must report connected status.  Bidirectional payload
+#   delivery must preserve DATA, TKEEP, TLAST, SOF, and EOFE.  The focused
+#   backpressure run verifies that stalled server output is advertised through
+#   the client-visible BUSY status bit.
+# - Parameter strategy: Sweep bypass-chunker and packetizer modes across
+#   multiple `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values.  This catches
+#   wrapper elaboration and derived RSSI FIFO/pause-threshold issues without
+#   requiring an exhaustive Cartesian product.
+# - Timing: Small timeout generics keep the wrapper checks bounded.  If a
+#   protocol-level failure appears here, reproduce it in `test_RssiCore.py`
+#   unless the failure is clearly caused by wrapper-only packetizer, chunker, or
+#   route logic.
 
 import cocotb
 import pytest

@@ -9,15 +9,30 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run `RssiAxiLiteRegItf` through a thin AXI-Lite wrapper with a
-#   common AXI/device clock so register behavior is deterministic.
-# - Stimulus: Use `cocotbext.axi` to issue ordinary AXI-Lite reads/writes while
-#   driving flattened negotiated-parameter and status inputs directly.
-# - Checks: Reset defaults, writable parameter readback, max-segment-size
-#   clamping, status/counter packing, state/sequence packing, and DECERR
-#   responses are verified at the register boundary.
-# - Timing: Output checks wait a few AXI clocks after writes so synchronized
-#   device-domain outputs settle even when the wrapper is later retimed.
+# - Purpose: Verify the user-visible RSSI AXI-Lite register contract at the
+#   `RssiAxiLiteRegItf` boundary.  These tests are intentionally register-map
+#   tests, not protocol-flow tests; they prove that software-facing fields
+#   match the RTL register layout and that device-domain control/status wiring
+#   is packed into the documented offsets.
+# - DUT shape: Run `RssiAxiLiteRegItf` through a thin wrapper that flattens the
+#   RSSI parameter, status, counter, state, and sequence records.  The wrapper
+#   uses one AXI/device clock so the test can focus on register semantics
+#   instead of CDC timing.  CDC behavior is covered by the production
+#   synchronizers inside the RTL and by integration tests that exercise
+#   `RssiCore`.
+# - Stimulus: Use `cocotbext.axi` to issue ordinary AXI-Lite reads and writes.
+#   Drive flattened negotiated-parameter, status, counter, state, and sequence
+#   inputs directly to model the rest of the RSSI core.  Keep stimulus values
+#   deliberately nonzero and visually distinct so bit packing mistakes are
+#   obvious in assertion failures.
+# - Checks: Cover reset defaults, writable local parameter readback, clamping of
+#   illegal or too-small local parameter values, negotiated/current readback,
+#   status/counter packing, FSM state packing, sequence/ack readback, and
+#   `DECERR` propagation for unmapped addresses.  These checks align the RTL
+#   with `python/surf/protocols/rssi/_RssiCore.py`.
+# - Timing: Readback checks wait a few AXI clocks after writes before sampling
+#   flattened device outputs.  This keeps the test tolerant of the wrapper's
+#   synchronization pipeline while still making register behavior deterministic.
 
 import cocotb
 import pytest

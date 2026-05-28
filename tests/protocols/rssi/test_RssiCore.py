@@ -9,20 +9,41 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Run one client `RssiCore` and one server `RssiCore` through a thin
-#   integration wrapper with flattened transport streams.
-# - Stimulus: Cocotb loops transport streams between endpoints, holds both
-#   endpoints open, waits for the active-open handshake, and drives flattened
-#   SSI-style application frames into each core.
-# - Checks: Both cores report connection-active status and negotiated segment
-#   size, bidirectional application payloads are delivered with SSI sideband
-#   fields preserved, dropped and corrupted client DATA frames are recovered by
-#   retransmission, later DATA is not delivered ahead of a lost earlier DATA,
-#   client NULL keepalive traffic is acknowledged and keeps the idle server
-#   connected, missing client keepalives close the server, and an explicit
-#   close request tears the link down.
-# - Timing: Small timeout generics keep connection, ACK, and NULL behavior
-#   cycle-bounded while preserving the relative RSSI timeout relationships.
+# - Purpose: Exercise the integrated `RssiCore` contract with one client and
+#   one server connected back-to-back.  Leaf-FSM tests prove individual decode,
+#   transmit, monitor, and connection decisions; this file proves that the
+#   composed core behaves like an RSSI endpoint pair at the flattened
+#   application and transport boundaries.
+# - DUT shape: `RssiCoreIntegrationWrapper` instantiates a client `RssiCore`
+#   and a server `RssiCore`.  The wrapper exposes flattened SSI-style
+#   application streams, flattened RSSI transport streams, status registers,
+#   negotiated segment-size outputs, and open/close/inject controls.  Cocotb
+#   owns the transport loopback so tests can drop or observe individual RSSI
+#   frames without embedding traffic perturbation logic in VHDL.
+# - Stimulus: The default run holds both endpoints open, waits for the
+#   active-open handshake, drains reset-release application output, and sends
+#   application frames from either side.  Directed transport hooks can drop
+#   SYN, SYN+ACK, final ACK, DATA, NULL, or ACK-only frames, corrupt one client
+#   DATA header with the production injection input, or suppress all client
+#   transport traffic to model missing keepalives and max-retransmit closure.
+# - Protocol checks: The suite covers negotiated connection status, max segment
+#   readback, bidirectional payload delivery with SSI sidebands preserved,
+#   handshake retransmission, DATA loss/corruption recovery, duplicate-free ACK
+#   loss behavior, out-of-order DATA recovery, sequence-number wraparound, NULL
+#   keepalive acknowledgment, idle keepalive liveness, missing-keepalive server
+#   close, max-retransmit client close/RST emission, explicit close, and
+#   backpressure-driven BUSY reporting.
+# - Parameter strategy: The default pytest entry uses small but valid timeout
+#   generics so the full integration batch remains bounded.  Separate pytest
+#   entries enable narrower cocotb tests for sequence wrap, bidirectional DATA
+#   loss in one connection, and out-of-order recovery with longer retransmit
+#   spacing.  Environment flags keep those specialized cocotb tests inert
+#   during unrelated parameter runs.
+# - Timing and scoreboarding: Transport monitors sample accepted RSSI frames at
+#   the source side before optional loopback drops.  Application scoreboards
+#   assert both absence of premature output and exact recovered frames.  Quiet
+#   output drains account for reset-release FIFO behavior so payload assertions
+#   are about RSSI DATA delivery rather than wrapper initialization.
 
 import cocotb
 import pytest
