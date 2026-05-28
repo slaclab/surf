@@ -27,10 +27,13 @@
 # - Checks: Active-open smoke verifies that the two-stream wrapper elaborates
 #   and connects.  Routed payload tests send independent frames on client
 #   streams 0 and 1, confirm transport DATA is emitted, and verify the server
-#   receives each payload on the expected routed stream.  Bidirectional routing
-#   repeats this in both directions.  Loss coverage drops the first client DATA
-#   transport frame and checks that retransmission reuses the same RSSI
-#   sequence number and recovers the stream-1 payload exactly once.
+#   receives each payload on the expected routed stream.  Partial-keep coverage
+#   compares only bytes selected by `TKEEP` and verifies that the packetizer2
+#   wrapper path preserves application EOFE at the routed boundary.
+#   Bidirectional routing repeats this in both directions.  Loss coverage drops
+#   the first client DATA transport frame and checks that retransmission reuses
+#   the same RSSI sequence number and recovers the stream-1 payload exactly
+#   once.
 # - Parameter strategy: Use `APP_STREAMS_G=2`, explicit `APP_STREAM_ROUTES_G`,
 #   `APP_ILEAVE_EN_G=true`, and the legacy packetizer/depacketizer path.  A
 #   focused pytest entry runs only the bidirectional route case for a small
@@ -58,6 +61,8 @@ from tests.protocols.ssi.ssi_test_utils import (
     SsiBeat,
     capture_accepted_beats,
     cycle as ssi_cycle,
+    data_mask_from_keep,
+    recv_frame,
     recv_frame_and_check,
     reset_dut,
     start_clock,
@@ -74,6 +79,17 @@ def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, i
         (beat.data, beat.keep, beat.last, beat.sof, beat.eofe)
         for beat in beats[:limit]
     ]
+
+
+def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
+    assert len(actual) == len(expected)
+    for actual_beat, expected_beat in zip(actual, expected):
+        mask = data_mask_from_keep(expected_beat.keep)
+        assert actual_beat.data & mask == expected_beat.data & mask
+        assert actual_beat.keep == expected_beat.keep
+        assert actual_beat.last == expected_beat.last
+        assert actual_beat.sof == expected_beat.sof
+        assert actual_beat.eofe == expected_beat.eofe
 
 
 class TB:
@@ -354,6 +370,31 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
     )
     assert _beat_summary(await clt_out0_capture) == [(server_payload0, 0xFF, 1, 1, 0)]
     assert _beat_summary(await clt_out1_capture) == [(server_payload1, 0xFF, 1, 1, 0)]
+
+
+@cocotb.test()
+async def multi_stream_partial_keep_and_eofe_routes_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+    await tb.cycle(DEPACKETIZER2_INIT_WAIT_CYCLES)
+
+    beats = [
+        SsiBeat(data=0x4400_0000_0000_0001, keep=0xFF, last=0, sof=1, eofe=0),
+        SsiBeat(data=0x4400_0000_0000_0002, keep=0x1F, last=1, sof=0, eofe=1),
+    ]
+
+    srv_recv = cocotb.start_soon(
+        recv_frame(
+            tb.srv_sinks[1],
+            clk=tb.clk,
+            ready_signal=dut.srvMApp1TReady,
+            timeout_cycles=2048,
+        )
+    )
+    await tb.send_app_frame(tb.clt_sources[1], beats)
+    assert_frame_preserves_valid_bytes(await srv_recv, beats)
 
 
 @cocotb.test()

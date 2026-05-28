@@ -24,9 +24,11 @@
 #   application output stalled long enough to exercise the wrapper/core BUSY
 #   reporting path.
 # - Checks: Both wrappers must report connected status.  Bidirectional payload
-#   delivery must preserve DATA, TKEEP, TLAST, SOF, and EOFE.  The focused
-#   backpressure run verifies that stalled server output is advertised through
-#   the client-visible BUSY status bit.
+#   delivery must preserve valid DATA bytes, TKEEP, TLAST, and SOF.  Focused
+#   partial-keep coverage pins the current RSSI v1 behavior that application
+#   EOFE is cleared on receive.  The focused backpressure run verifies that
+#   stalled server output is advertised through the client-visible BUSY status
+#   bit.
 # - Parameter strategy: Sweep bypass-chunker and packetizer modes across
 #   multiple `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values.  This catches
 #   wrapper elaboration and derived RSSI FIFO/pause-threshold issues without
@@ -46,6 +48,8 @@ from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
     cycle as ssi_cycle,
+    data_mask_from_keep,
+    recv_frame,
     reset_dut,
     start_clock,
     recv_frame_and_check,
@@ -117,15 +121,19 @@ class TB:
     async def send_app_frame(self, endpoint: FlatSsiEndpoint, beats: list[SsiBeat]) -> None:
         for beat in beats:
             endpoint.drive(beat)
-            for _ in range(256):
-                await RisingEdge(self.clk)
-                await Timer(2, unit="ns")
-                if int(endpoint._sig("TReady").value) == 1:
-                    break
-            else:
-                raise AssertionError(f"Timed out waiting for {endpoint.prefix}TReady")
-            await self.cycle(8)
+            await endpoint.wait_ready(clk=self.clk)
         endpoint.set_idle()
+
+
+def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
+    assert len(actual) == len(expected)
+    for actual_beat, expected_beat in zip(actual, expected):
+        mask = data_mask_from_keep(expected_beat.keep)
+        assert actual_beat.data & mask == expected_beat.data & mask
+        assert actual_beat.keep == expected_beat.keep
+        assert actual_beat.last == expected_beat.last
+        assert actual_beat.sof == expected_beat.sof
+        assert actual_beat.eofe == 0
 
 
 @cocotb.test()
@@ -172,6 +180,30 @@ async def wrapper_active_open_and_bidirectional_payload_test(dut):
         [SsiBeat(data=server_payload, keep=0xFF, last=1, sof=1, eofe=0)],
     )
     await clt_recv
+
+
+@cocotb.test()
+async def wrapper_partial_keep_and_eofe_payload_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    beats = [
+        SsiBeat(data=0x3300_0000_0000_0001, keep=0xFF, last=0, sof=1, eofe=0),
+        SsiBeat(data=0x3300_0000_0000_0002, keep=0x03, last=1, sof=0, eofe=1),
+    ]
+
+    srv_recv = cocotb.start_soon(
+        recv_frame(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            timeout_cycles=1024,
+        )
+    )
+    await tb.send_app_frame(tb.clt_source, beats)
+    assert_frame_preserves_valid_bytes(await srv_recv, beats)
 
 
 @cocotb.test()

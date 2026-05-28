@@ -879,3 +879,39 @@
   - `git diff --check` passed.
   - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore tests/protocols/rssi/test_RssiCore.py::test_RssiCore_out_of_order_recovery`
     passed.
+
+## 2026-05-28 Test-Suite Expansion Follow-Up
+- Implemented the six additional regression items requested after the coverage
+  review:
+  - direct-core multi-beat partial-`TKEEP` delivery with EOFE characterization;
+  - direct-core BUSY recovery that drains stalled server output and checks for
+    no lost or duplicate frames;
+  - close/reopen lifecycle with fresh post-reconnect payload delivery;
+  - client AXI-Lite control path coverage for open, runtime parameter writes,
+    status/counter reads, checksum injection, and close;
+  - direct-core `HEADER_CHKSUM_EN_G=false` connection and payload delivery;
+  - transport-output ready stalls on header and payload beats.
+- Extended wrapper coverage:
+  - one-stream wrapper partial-`TKEEP` coverage now runs across bypass-chunker
+    and legacy packetizer/depacketizer parameter sets, comparing only payload
+    bytes selected by `TKEEP`;
+  - packetizer2 multi-stream wrapper coverage now verifies routed
+    partial-`TKEEP` delivery and EOFE preservation on stream 1.
+- `RssiCoreIntegrationWrapper` now exposes a flattened client AXI-Lite bus so
+  `test_RssiCore.py` can exercise the real `RssiAxiLiteRegItf` path through
+  the full core.
+- `protocols/rssi/README.md` was updated to remove the stale integrated-BUSY
+  gap and document the new coverage and path-specific EOFE behavior.
+- Validation added on 2026-05-28:
+  - `./.venv/bin/python -m py_compile tests/protocols/ssi/ssi_test_utils.py tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+    passed.
+  - `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+    passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore_axil_control_path tests/protocols/rssi/test_RssiCore.py::test_RssiCore_checksum_disabled`
+    passed.
+  - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+    passed.
+  - `COCOTB_TESTCASE=wrapper_partial_keep_and_eofe_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py::test_RssiCoreWrapper`
+    passed.
+  - `COCOTB_TESTCASE=multi_stream_partial_keep_and_eofe_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+    passed.

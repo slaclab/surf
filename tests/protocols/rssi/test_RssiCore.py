@@ -48,7 +48,9 @@
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
+from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RSSI_CORE_VHDL_SOURCES,
@@ -73,11 +75,19 @@ from tests.protocols.ssi.ssi_test_utils import (
     recv_frame_and_check,
 )
 
+REG_CONTROL = 0x00
+REG_MAX_OUTS_SEG = 0x0C
+REG_MAX_SEG_SIZE = 0x10
+REG_STATUS = 0x40
+REG_VALID_CNT = 0x44
+REG_RESEND_CNT = 0x4C
+
 
 class TB:
     def __init__(self, dut):
         self.dut = dut
         self.clk = dut.axisClk
+        self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(dut, "S_AXI"), dut.axisClk, dut.axisRst)
         self.clt_source = FlatSsiEndpoint(dut, prefix="cltSApp")
         self.clt_sink = FlatSsiEndpoint(dut, prefix="cltMApp")
         self.srv_source = FlatSsiEndpoint(dut, prefix="srvSApp")
@@ -104,10 +114,21 @@ class TB:
         self.dropped_server_null_count = 0
         self.drop_all_client = False
         self.drop_all_server = False
+        self.pause_next_client_header_cycles = 0
+        self.pause_next_server_header_cycles = 0
+        self.pause_next_client_payload_cycles = 0
+        self.pause_next_server_payload_cycles = 0
         self.loopback_tasks = []
 
     @classmethod
-    async def create(cls, dut, *, start_loopbacks: bool = True):
+    async def create(
+        cls,
+        dut,
+        *,
+        start_loopbacks: bool = True,
+        direct_client_open: int = 1,
+        direct_server_open: int = 1,
+    ):
         start_clock(dut.axisClk, period_ns=5.0)
         dut.axisRst.setimmediatevalue(1)
 
@@ -118,10 +139,10 @@ class TB:
         tb.srv_tsp_input.set_idle()
 
         for signal_name, value in {
-            "cltOpen_i": 1,
+            "cltOpen_i": direct_client_open,
             "cltClose_i": 0,
             "cltInject_i": 0,
-            "srvOpen_i": 1,
+            "srvOpen_i": direct_server_open,
             "srvClose_i": 0,
             "srvInject_i": 0,
             "cltMAppTReady": 0,
@@ -143,6 +164,13 @@ class TB:
         getattr(self.dut, signal_name).value = 1
         await self.cycle()
         getattr(self.dut, signal_name).value = 0
+
+    async def axil_write(self, address: int, value: int) -> None:
+        await axil_write_u32(self.axil, address, value)
+        await self.cycle(2)
+
+    async def axil_read(self, address: int) -> int:
+        return await axil_read_u32(self.axil, address)
 
     async def wait_connected(self, *, timeout_cycles: int = 256) -> None:
         for _ in range(timeout_cycles):
@@ -294,6 +322,23 @@ class TB:
 
             valid = int(source._sig("TValid").value) == 1
             beat = source.snapshot() if valid else None
+
+            if valid and beat.sof == 1 and getattr(self, f"pause_next_{side}_header_cycles") > 0:
+                pause_cycles = getattr(self, f"pause_next_{side}_header_cycles")
+                setattr(self, f"pause_next_{side}_header_cycles", 0)
+                destination.set_idle()
+                source_ready.value = 0
+                await self.cycle(pause_cycles)
+                continue
+
+            if valid and beat.sof == 0 and getattr(self, f"pause_next_{side}_payload_cycles") > 0:
+                pause_cycles = getattr(self, f"pause_next_{side}_payload_cycles")
+                setattr(self, f"pause_next_{side}_payload_cycles", 0)
+                destination.set_idle()
+                source_ready.value = 0
+                await self.cycle(pause_cycles)
+                continue
+
             drop_frame = valid and (dropping or self.should_drop_transport_frame(side=side, beat=beat))
 
             if drop_frame:
@@ -440,6 +485,35 @@ async def bidirectional_payload_delivery_test(dut):
         srv_transport_beats[1].data == server_payload
     ), f"Server transport DATA payload was corrupted before client RX: {format_transport_frame(srv_transport_beats)}"
     await clt_recv
+
+
+@cocotb.test()
+async def multi_beat_partial_keep_and_eofe_round_trip_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    beats = [
+        SsiBeat(data=0x0102_0304_0506_0708, keep=0xFF, last=0, sof=1, eofe=0),
+        SsiBeat(data=0x1112_1314_0000_0000, keep=0x0F, last=1, sof=0, eofe=1),
+    ]
+
+    srv_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[
+                (beats[0].data, beats[0].keep, beats[0].last, beats[0].sof, 0),
+                (beats[1].data, beats[1].keep, beats[1].last, beats[1].sof, 0),
+            ],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(tb.clt_source, beats)
+    await srv_recv
 
 
 @cocotb.test()
@@ -747,6 +821,38 @@ async def server_backpressure_advertises_busy_to_client_test(dut):
 
 
 @cocotb.test()
+async def server_backpressure_recovers_without_lost_or_duplicate_frames_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    sent_payloads = []
+    for index in range(40):
+        payload = 0xBC00_0000_0000_0000 | index
+        await tb.send_app_frame(
+            tb.clt_source,
+            [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+        )
+        sent_payloads.append(payload)
+        await tb.cycle(4)
+        if int(dut.cltStatusReg_o.value) & (1 << 8):
+            break
+
+    assert int(dut.cltStatusReg_o.value) & (1 << 8)
+
+    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=4096)
+    summaries = [
+        [(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in frame]
+        for frame in frames
+    ]
+    expected = [[(payload, 0xFF, 1, 1, 0)] for payload in sent_payloads]
+    assert summaries == expected
+    assert int(dut.cltConnected_o.value) == 1
+    assert int(dut.srvConnected_o.value) == 1
+
+
+@cocotb.test()
 async def max_retransmissions_close_client_and_emit_rst_test(dut):
     tb = await TB.create(dut)
 
@@ -858,6 +964,196 @@ async def explicit_client_close_tears_down_integrated_connection_test(dut):
     dut.cltClose_i.value = 0
 
     await tb.wait_disconnected()
+
+
+@cocotb.test()
+async def close_then_reopen_clears_state_and_delivers_new_payload_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    first_payload = 0xC105_E000_0000_0001
+    first_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(first_payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=first_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await first_recv
+
+    dut.cltOpen_i.value = 0
+    dut.srvOpen_i.value = 0
+    await tb.pulse("cltClose_i")
+    await tb.wait_disconnected(timeout_cycles=512)
+    await tb.cycle(8)
+
+    dut.srvOpen_i.value = 1
+    await tb.cycle(2)
+    dut.cltOpen_i.value = 1
+    await tb.wait_connected(timeout_cycles=2048)
+    await tb.drain_app_outputs()
+
+    second_payload = 0xC105_E000_0000_0002
+    second_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(second_payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=second_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await second_recv
+
+
+@cocotb.test()
+async def client_axil_control_path_opens_injects_reads_and_closes_test(dut):
+    if not env_flag("RSSI_AXIL_CONTROL_CASE", default=False):
+        return
+
+    tb = await TB.create(dut, direct_client_open=0)
+
+    await tb.axil_write(REG_CONTROL, 0x0C)
+    await tb.axil_write(REG_MAX_OUTS_SEG, 2)
+    await tb.axil_write(REG_MAX_SEG_SIZE, 16)
+    await tb.axil_write(REG_CONTROL, 0x0D)
+
+    await tb.wait_connected(timeout_cycles=1024)
+    await tb.drain_app_outputs()
+
+    assert int(dut.cltMaxSegSize_o.value) == 16
+    assert (await tb.axil_read(REG_MAX_SEG_SIZE)) & 0xFFFF == 16
+    assert (await tb.axil_read(REG_STATUS)) & 0x1 == 1
+
+    payload = 0xA711_0000_0000_0001
+    recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await recv
+
+    faulted_transport = cocotb.start_soon(
+        tb.recv_transport_frame(
+            tb.clt_tsp_sink,
+            match=lambda header, beats: (
+                not header.syn
+                and not checksum_is_valid(protocol_bytes_from_stream_word(beats[0].data))
+            ),
+            timeout_cycles=2048,
+        )
+    )
+    await tb.axil_write(REG_CONTROL, 0x1D)
+    faulted_beats = await faulted_transport
+    faulted_header_bytes = protocol_bytes_from_stream_word(faulted_beats[0].data)
+    assert not checksum_is_valid(faulted_header_bytes)
+    await tb.axil_write(REG_CONTROL, 0x0D)
+
+    assert await tb.axil_read(REG_VALID_CNT) >= 1
+    assert await tb.axil_read(REG_RESEND_CNT) >= 0
+
+    await tb.axil_write(REG_CONTROL, 0x0E)
+    await tb.wait_disconnected(timeout_cycles=512)
+    assert (await tb.axil_read(REG_STATUS)) & 0x1 == 0
+
+
+@cocotb.test()
+async def checksum_disabled_connection_and_payload_test(dut):
+    if not env_flag("RSSI_CHECKSUM_DISABLED_CORE_CASE", default=False):
+        return
+
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    payload = 0xC0DE_0000_0000_0000
+    transport = cocotb.start_soon(tb.recv_transport_data_frame(tb.clt_tsp_sink))
+    recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    beats = await transport
+    header = parse_header(protocol_bytes_from_stream_word(beats[0].data))
+    assert header.checksum == 0
+    await recv
+
+
+@cocotb.test()
+async def transport_ready_stalls_preserve_header_and_payload_test(dut):
+    tb = await TB.create(dut)
+
+    await tb.wait_connected()
+    await tb.drain_app_outputs()
+
+    header_stall_payload = 0x5700_0000_0000_0001
+    tb.pause_next_client_header_cycles = 5
+    header_stall_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(header_stall_payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
+    )
+    await tb.send_app_frame(
+        tb.clt_source,
+        [SsiBeat(data=header_stall_payload, keep=0xFF, last=1, sof=1, eofe=0)],
+    )
+    await header_stall_recv
+
+    payload_stall_beats = [
+        SsiBeat(data=0x5700_0000_0000_0010, keep=0xFF, last=0, sof=1, eofe=0),
+        SsiBeat(data=0x5700_0000_0000_0011, keep=0xFF, last=1, sof=0, eofe=0),
+    ]
+    tb.pause_next_client_payload_cycles = 5
+    payload_stall_recv = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in payload_stall_beats],
+            timeout_cycles=1024,
+        )
+    )
+    await tb.send_app_frame(tb.clt_source, payload_stall_beats)
+    await payload_stall_recv
 
 
 @cocotb.test()
@@ -1058,6 +1354,69 @@ def test_RssiCore_out_of_order_recovery():
             **parameters,
             "COCOTB_TESTCASE": "lost_first_data_drops_later_data_until_retransmit_test",
             "RSSI_OUT_OF_ORDER_CASE": 1,
+        },
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCore_axil_control_path():
+    parameters = {
+        "WINDOW_ADDR_SIZE_G": 2,
+        "SEGMENT_ADDR_SIZE_G": 5,
+        "MAX_NUM_OUTS_SEG_G": 4,
+        "MAX_SEG_SIZE_G": 32,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 16,
+        "NULL_TOUT_G": 48,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicoreintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "client_axil_control_path_opens_injects_reads_and_closes_test",
+            "RSSI_AXIL_CONTROL_CASE": 1,
+        },
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCore_checksum_disabled():
+    parameters = {
+        "WINDOW_ADDR_SIZE_G": 2,
+        "SEGMENT_ADDR_SIZE_G": 5,
+        "MAX_NUM_OUTS_SEG_G": 4,
+        "MAX_SEG_SIZE_G": 32,
+        "ACK_TOUT_G": 4,
+        "RETRANS_TOUT_G": 16,
+        "NULL_TOUT_G": 48,
+        "MAX_RETRANS_CNT_G": 2,
+        "MAX_CUM_ACK_CNT_G": 2,
+        "HEADER_CHKSUM_EN_G": False,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicoreintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TESTCASE": "checksum_disabled_connection_and_payload_test",
+            "RSSI_CHECKSUM_DISABLED_CORE_CASE": 1,
         },
         extra_vhdl_sources={
             "surf": [

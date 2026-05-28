@@ -160,6 +160,19 @@ application streams and a dedicated pytest entry for the small
 window/segment-size parameter set, so this coverage can be validated without
 running the full long multi-stream sweep.
 
+The 2026-05-28 follow-up expansion is in the working tree. It adds direct-core
+coverage for multi-beat partial `TKEEP`, BUSY recovery with no lost or duplicate
+server frames, close/reopen lifecycle, transport-output ready stalls, a full
+client AXI-Lite control path, and `HEADER_CHKSUM_EN_G=false` integration.
+`RssiCoreIntegrationWrapper` now exposes the client AXI-Lite bus through a
+flattened IP-integrator shim so the AXI-Lite test reaches the real core
+register interface. Wrapper coverage now also includes one-stream
+partial-`TKEEP` across bypass and legacy packetizer modes and packetizer2
+multi-stream partial-`TKEEP` routing. EOFE behavior is intentionally
+path-specific in the tests: direct `RssiCore` and the one-stream legacy wrapper
+clear application EOFE on receive, while packetizer2 routed wrapper coverage
+preserves EOFE at the application boundary.
+
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
 - Local reference bundle: `docs/plans/rssi-regression/references/`
@@ -180,6 +193,21 @@ running the full long multi-stream sweep.
 - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
   passed on 2026-05-28 after adding integrated out-of-order recovery and NULL
   acknowledgment coverage.
+- `./.venv/bin/python -m py_compile tests/protocols/ssi/ssi_test_utils.py tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapper.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-28 after the six-item follow-up expansion.
+- `./.venv/bin/vsg -c vsg-linter.yml -f protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd`
+  passed on 2026-05-28 after adding the flattened client AXI-Lite shim.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore_axil_control_path tests/protocols/rssi/test_RssiCore.py::test_RssiCore_checksum_disabled`
+  passed on 2026-05-28 for the full-core AXI-Lite control path and
+  checksum-disabled integration cases.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+  passed on 2026-05-28 with the new direct-core partial-keep, BUSY recovery,
+  close/reopen, and transport-stall cases in default coverage.
+- `COCOTB_TESTCASE=wrapper_partial_keep_and_eofe_payload_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapper.py::test_RssiCoreWrapper`
+  passed on 2026-05-28 across bypass and legacy packetizer one-stream wrapper
+  parameter sets.
+- `COCOTB_TESTCASE=multi_stream_partial_keep_and_eofe_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+  passed on 2026-05-28 for the packetizer2 routed partial-keep/EOFE case.
 - `git diff --check` passed on 2026-05-28 after the post-commit compliance
   slice.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore tests/protocols/rssi/test_RssiCore.py::test_RssiCore_out_of_order_recovery`
