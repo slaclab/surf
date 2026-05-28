@@ -13,7 +13,8 @@
 #   registration, byte-write enable, and asynchronous plus active-low reset
 #   behavior.
 # - Stimulus: Write through port A and read through port B, apply partial byte
-#   masks to an existing word, and then reset after a registered output has
+#   masks to an existing word, optionally hold port-B enable low in direct and
+#   registered-output modes, and then reset after a registered output has
 #   captured data.
 # - Checks: The bench checks basic dual-port readback, byte-write merging, hold
 #   behavior of the optional B output register, and reset clearing of that
@@ -114,6 +115,56 @@ async def byte_write_enable_test(dut):
 
 
 @cocotb.test()
+async def read_enable_hold_test(dut):
+    if not env_flag("CHECK_READ_ENABLE_HOLD", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.cycle_a(1)
+    await tb.cycle_b(1)
+
+    await tb.write_word(0, 0x1111)
+    await tb.write_word(1, 0x2222)
+    assert await tb.read_word(0) == 0x1111
+
+    # Port B should hold its previous output while `enb` is low, even if the
+    # address changes underneath it.
+    dut.enb.value = 0
+    dut.addrb.value = 1
+    await tb.cycle_b(2)
+    assert int(dut.doutb.value) == 0x1111
+
+    dut.enb.value = 1
+    assert await tb.read_word(1) == 0x2222
+
+
+@cocotb.test()
+async def registered_read_enable_hold_test(dut):
+    if not env_flag("CHECK_REGISTERED_ENB_HOLD", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.cycle_a(1)
+    await tb.cycle_b(1)
+    assert tb.dob_reg_enabled
+
+    await tb.write_word(0, 0x1111)
+    await tb.write_word(1, 0x2222)
+    assert await tb.read_word(0) == 0x1111
+
+    # With DOB_REG_G enabled, `enb=0` should hold the registered B output even
+    # while the address changes and port A updates the addressed memory word.
+    dut.enb.value = 0
+    dut.addrb.value = 1
+    await tb.write_word(1, 0x3333)
+    await tb.cycle_b(3)
+    assert int(dut.doutb.value) == 0x1111
+
+    dut.enb.value = 1
+    assert await tb.read_word(1) == 0x3333
+
+
+@cocotb.test()
 async def registered_output_hold_test(dut):
     tb = TB(dut)
     if not tb.dob_reg_enabled:
@@ -193,6 +244,7 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         RST_ASYNC_G="false",
         RST_POLARITY_G="'1'",
+        CHECK_REGISTERED_ENB_HOLD="1",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),
@@ -232,6 +284,20 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         RST_ASYNC_G="false",
         RST_POLARITY_G="'0'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_enable_hold",
+        MEMORY_TYPE_G="block",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_READ_ENABLE_HOLD="1",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),

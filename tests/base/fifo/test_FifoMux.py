@@ -9,11 +9,12 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one explicit `split_to_narrow_little_endian` case so this file
-#   stays focused on the stable width-conversion path the wrapper is meant to
-#   expose.
+# - Sweep: Keep explicit split-to-narrow and pack-to-wide cases so both sides
+#   of the FifoMux width-conversion logic are covered without turning the
+#   wrapper test into a broad FIFO matrix.
 # - Stimulus: Write wider words that must be unpacked into several narrower
-#   output beats, then reset the write packer while it still holds partial
+#   output beats, write narrower words that must be packed into one wider
+#   output beat, then reset the write packer while it still holds partial
 #   state.
 # - Checks: The output beat order and byte ordering must match the
 #   little-endian split model, and reset must discard any partially assembled
@@ -142,6 +143,11 @@ class TB:
         while int(self.dut.valid.value) == 0:
             await RisingEdge(self.dut.rd_clk)
 
+    async def assert_no_valid(self, cycles: int) -> None:
+        for _ in range(cycles):
+            await self.cycle_rd(1)
+            assert int(self.dut.valid.value) == 0
+
 
 @cocotb.test()
 async def width_conversion_test(dut):
@@ -186,6 +192,7 @@ async def write_packer_reset_test(dut):
     # pre-reset fragments leak into the next output word.
     await tb.write_word(0xAA)
     await tb.reset()
+    await tb.assert_no_valid(4)
 
     post_reset_words = [0x11, 0x22]
     expected = _expected_reads(
@@ -222,6 +229,23 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         WR_CLK_PERIOD_NS="5",
         RD_CLK_PERIOD_NS="9",
+    ),
+    parameter_case(
+        "pack_to_wide_big_endian",
+        RST_ASYNC_G="true",
+        RST_POLARITY_G="'1'",
+        CASCADE_SIZE_G="1",
+        LAST_STAGE_ASYNC_G="true",
+        GEN_SYNC_FIFO_G="false",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="distributed",
+        FWFT_EN_G="true",
+        WR_DATA_WIDTH_G="8",
+        RD_DATA_WIDTH_G="16",
+        LITTLE_ENDIAN_G="false",
+        ADDR_WIDTH_G="4",
+        WR_CLK_PERIOD_NS="7",
+        RD_CLK_PERIOD_NS="11",
     ),
 ]
 

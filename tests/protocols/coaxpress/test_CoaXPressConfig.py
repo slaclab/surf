@@ -52,6 +52,7 @@ CONFIG_READ_ERROR_FOOTER = 0x1
 CONFIG_WRITE_ERROR_FOOTER = 0x2
 
 
+
 async def _drive_cfg_rx_completion(dut, value: int, *, hold_cycles: int = 8) -> None:
     dut.cfgRxTData.value = value
     dut.cfgRxTValid.value = 1
@@ -189,6 +190,7 @@ async def coaxpress_config_tagged_write_tag_increment_test(dut):
             request,
             [write_data],
         )
+
 
 
 @cocotb.test()

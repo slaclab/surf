@@ -13,8 +13,8 @@
 #   byte-write plus `DOB`-registered case, and include an asynchronous
 #   active-low reset case.
 # - Stimulus: Alternate reads and writes on both ports, create same-address
-#   interactions to expose mode semantics, apply partial byte writes, and then
-#   reset after a registered capture.
+#   interactions to expose mode semantics, optionally collide both write ports,
+#   apply partial byte writes, and then reset after a registered capture.
 # - Checks: The bench verifies cross-port visibility, mode-specific
 #   read-during-write results, byte-lane masking, registered-output hold
 #   behavior, and reset recovery.
@@ -174,6 +174,46 @@ async def byte_write_enable_test(dut):
 
 
 @cocotb.test()
+async def dual_write_collision_test(dut):
+    if not env_flag("CHECK_DUAL_WRITE_COLLISION", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.warmup()
+
+    await tb.write_a(5, 0x1111)
+    assert await tb.read_a(5) == 0x1111
+
+    # Drive simultaneous same-address writes from both ports on a shared clock.
+    # The final winner is not a portable contract for inferred dual-write RAMs,
+    # but the collision must not poison adjacent addresses or prevent later
+    # deterministic writes to the collided address.
+    dut.addra.value = 5
+    dut.dina.value = 0xAAAA
+    dut.wea.value = 1
+    dut.weaByte.value = tb.full_byte_mask("weaByte")
+    dut.addrb.value = 5
+    dut.dinb.value = 0x5555
+    dut.web.value = 1
+    dut.webByte.value = tb.full_byte_mask("webByte")
+    await RisingEdge(dut.clka)
+    await tb.settle()
+    dut.wea.value = 0
+    dut.weaByte.value = 0
+    dut.web.value = 0
+    dut.webByte.value = 0
+
+    observed = await tb.read_a(5)
+    assert observed in (0xAAAA, 0x5555)
+
+    await tb.write_b(6, 0x3333)
+    assert await tb.read_a(6) == 0x3333
+
+    await tb.write_a(5, 0x7777)
+    assert await tb.read_b(5) == 0x7777
+
+
+@cocotb.test()
 async def registered_output_hold_test(dut):
     tb = TB(dut)
     await tb.warmup()
@@ -289,6 +329,21 @@ PARAMETER_SWEEP = [
         RST_POLARITY_G="'0'",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="7",
+    ),
+    parameter_case(
+        "same_clock_dual_write_collision",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_DUAL_WRITE_COLLISION="1",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
     ),
 ]
 

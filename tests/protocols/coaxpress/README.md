@@ -324,6 +324,20 @@ Current RTL support limits observed while expanding the bridge tests:
   K-code words where possible. HKP does not define a separate command opcode
   layer in this bridge contract.
 
+Current RTL support limits observed while expanding the bridge tests:
+
+- `/Q/` ordered sets are not decoded into any bridge-visible state, sequence
+  tracker, status output, or CXP-side indication. The current contract is only
+  that `/Q/` in the interpacket gap is suppressed and later valid traffic
+  recovers.
+- `/E/` has no bridge-visible status output. When it appears during a packet,
+  the RX bridge aborts the active nGMII packet and returns to idle; if the start
+  word was already accepted, the CXP `SOP` and packet-type words may already
+  have been emitted, but no synthetic CXP `EOP` is generated.
+- HKP handling is raw forwarding. The RX bridge does not validate HKP content
+  semantics or expose a separate housekeeping parser; it reconstructs K-coded
+  words and then returns to normal payload/EOP handling.
+
 ## Known Limitations
 
 The current checked-in CoaXPress suite should not be described as full protocol
