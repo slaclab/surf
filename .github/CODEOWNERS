@@ -1,0 +1,5 @@
+# GitHub requests reviews from CODEOWNERS when matching files change.
+# If path-specific rules are added later, include one of these owners on each
+# rule to keep code-owner review required for every PR into pre-release.
+
+* @bengineerd @slacrherbst
