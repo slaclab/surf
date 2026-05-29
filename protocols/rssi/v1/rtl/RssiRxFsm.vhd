@@ -834,7 +834,11 @@ begin
       -- Write and read ports
       wrBuffAddr_o <= r.rxBufferAddr & r.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0);
       wrBuffWe_o   <= r.segmentWe;
-      wrBuffData_o <= r.segmentData when r.segmentWe = '1' else r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      if r.segmentWe = '1' then
+         wrBuffData_o <= r.segmentData;
+      else
+         wrBuffData_o <= r.tspSsiMaster.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      end if;
 
       -- Assign outputs
       rxFlags_o      <= r.rxF;

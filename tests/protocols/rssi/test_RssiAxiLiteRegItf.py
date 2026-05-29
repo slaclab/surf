@@ -306,6 +306,21 @@ async def unmapped_and_unaligned_accesses_return_decerr_test(dut):
     assert unaligned_write.resp == AxiResp.DECERR
 
 
+@cocotb.test()
+async def build_time_capability_advertised_in_upper_byte_test(dut):
+    # The upper byte of REG_MAX_OUTS_SEG advertises MAX_NUM_OUTS_SEG_G and the
+    # upper byte of REG_MAX_OUTOFSEQ advertises SEGMENT_ADDR_SIZE_G so that
+    # software can auto-discover firmware capability without per-app generics.
+    tb = TB(dut)
+    await tb.reset()
+
+    expected_max_num_outs_seg = int(dut.MAX_NUM_OUTS_SEG_G.value)
+    expected_segment_addr_size = int(dut.SEGMENT_ADDR_SIZE_G.value)
+
+    assert (await tb.read(REG_MAX_OUTS_SEG) >> 24) & 0xFF == expected_max_num_outs_seg
+    assert (await tb.read(REG_MAX_OUTOFSEQ) >> 24) & 0xFF == expected_segment_addr_size
+
+
 PARAMETER_SWEEP = [pytest.param({}, id="axi_lite")]
 
 

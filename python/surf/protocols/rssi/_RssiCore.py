@@ -18,15 +18,20 @@
 import pyrogue as pr
 
 class RssiCore(pr.Device):
-    def __init__(
-            self,
-            maxNumOutsSeg = 8,
-            segmentAddrSize = 7,
-            **kwargs):
+
+    # Defaults used when older firmware does not advertise its build-time
+    # capability through the upper byte of registers 0x0C and 0x28.
+    DEFAULT_MAX_NUM_OUTS_SEG = 8
+    DEFAULT_SEGMENT_ADDR_SIZE = 7
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        maxOutsSeg = min(maxNumOutsSeg, 0xFF)
-        maxSegSize = (2**segmentAddrSize)*8
+        # Range bounds are tightened in _start() once firmware capability
+        # registers can be read. Seed with the legacy defaults so the rogue
+        # tree is well-formed before the link comes up.
+        maxOutsSeg = min(self.DEFAULT_MAX_NUM_OUTS_SEG, 0xFF)
+        maxSegSize = (2**self.DEFAULT_SEGMENT_ADDR_SIZE)*8
 
         ##############################
         # Variables
@@ -197,6 +202,31 @@ class RssiCore(pr.Device):
                 # mode         = ('RW' if i==0 else 'RO')',
                 # disp         = '{:d}',
             # ))
+
+        # Build-time capability advertisements injected into the upper byte of
+        # registers 0x0C and 0x28. Older firmware reads 0 here, signalling
+        # that the legacy defaults should be used (see _discoverCapabilities).
+        self.add(pr.RemoteVariable(
+            name        = 'FwMaxNumOutsSeg',
+            description = 'Firmware MAX_NUM_OUTS_SEG_G build-time generic (0 = legacy firmware)',
+            offset      = 0x0C,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            hidden      = True,
+            disp        = '{:d}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'FwSegmentAddrSize',
+            description = 'Firmware SEGMENT_ADDR_SIZE_G build-time generic (0 = legacy firmware)',
+            offset      = 0x28,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            hidden      = True,
+            disp        = '{:d}',
+        ))
 
         self.add(pr.RemoteVariable(
             name         =  'ConnectionActive',
@@ -553,3 +583,28 @@ class RssiCore(pr.Device):
         def C_InjectFault():
             self.InjectFault.set(1)
             self.InjectFault.set(0)
+
+    def _start(self):
+        super()._start()
+        self._discoverCapabilities()
+
+    def _discoverCapabilities(self):
+        # Firmware advertises MAX_NUM_OUTS_SEG_G in 0x0C[31:24] and
+        # SEGMENT_ADDR_SIZE_G in 0x28[31:24]. Older firmware reads 0 there;
+        # in that case fall back to the legacy compile-time defaults.
+        try:
+            maxNumOutsSeg   = self.FwMaxNumOutsSeg.get()
+            segmentAddrSize = self.FwSegmentAddrSize.get()
+        except Exception:
+            return
+
+        if maxNumOutsSeg == 0:
+            maxNumOutsSeg = self.DEFAULT_MAX_NUM_OUTS_SEG
+        if segmentAddrSize == 0:
+            segmentAddrSize = self.DEFAULT_SEGMENT_ADDR_SIZE
+
+        # Range bounds are advisory metadata in rogue (the firmware itself
+        # clamps writes via the AXI-Lite handler). Update the private state
+        # directly so GUIs and EPICS records see the discovered limits.
+        self.locMaxOutsSeg._maximum = min(maxNumOutsSeg, 0xFF)
+        self.locMaxSegSize._maximum = (2**segmentAddrSize)*8
