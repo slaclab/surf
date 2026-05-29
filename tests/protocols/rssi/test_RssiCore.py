@@ -841,13 +841,16 @@ async def server_backpressure_recovers_without_lost_or_duplicate_frames_test(dut
 
     assert int(dut.cltStatusReg_o.value) & (1 << 8)
 
-    frames = await tb.collect_app_frames(tb.srv_sink, dut.srvMAppTReady, cycles=4096)
-    summaries = [
-        [(beat.data, beat.keep, beat.last, beat.sof, beat.eofe) for beat in frame]
-        for frame in frames
-    ]
-    expected = [[(payload, 0xFF, 1, 1, 0)] for payload in sent_payloads]
-    assert summaries == expected
+    for payload in sent_payloads:
+        await recv_frame_and_check(
+            tb.srv_sink,
+            clk=tb.clk,
+            ready_signal=dut.srvMAppTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(payload, 0xFF, 1, 1, 0)],
+            timeout_cycles=512,
+        )
+    await tb.assert_no_app_output(tb.srv_sink, cycles=16)
     assert int(dut.cltConnected_o.value) == 1
     assert int(dut.srvConnected_o.value) == 1
 

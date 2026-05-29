@@ -59,7 +59,6 @@ from tests.protocols.rssi.rssi_test_utils import (
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
-    capture_accepted_beats,
     cycle as ssi_cycle,
     data_mask_from_keep,
     recv_frame,
@@ -72,13 +71,6 @@ from tests.protocols.ssi.ssi_test_utils import (
 # RssiCoreWrapper uses TDEST_BITS_G=8 for AxiStreamDepacketizer2, which clears
 # per-route state after link-up before it can safely accept routed DATA.
 DEPACKETIZER2_INIT_WAIT_CYCLES = 1024
-
-
-def _beat_summary(beats: list[SsiBeat], *, limit: int = 16) -> list[tuple[int, int, int, int, int]]:
-    return [
-        (beat.data, beat.keep, beat.last, beat.sof, beat.eofe)
-        for beat in beats[:limit]
-    ]
 
 
 def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
@@ -279,17 +271,28 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
     payload0 = 0x1111_2222_3333_4444
     payload1 = 0xAAAA_BBBB_CCCC_DDDD
 
-    dut.srvMApp0TReady.value = 1
-    dut.srvMApp1TReady.value = 1
-
-    clt_tsp_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.clt_tsp_monitor, clk=tb.clk, cycles=1024)
+    clt_tsp_data = cocotb.start_soon(
+        tb.recv_transport_data_frame(tb.clt_tsp_monitor, timeout_cycles=1024)
     )
-    srv_out0_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.srv_sinks[0], clk=tb.clk, cycles=1024)
+    srv_out0 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sinks[0],
+            clk=tb.clk,
+            ready_signal=dut.srvMApp0TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(payload0, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
-    srv_out1_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.srv_sinks[1], clk=tb.clk, cycles=1024)
+    srv_out1 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sinks[1],
+            clk=tb.clk,
+            ready_signal=dut.srvMApp1TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(payload1, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
 
     await tb.send_app_frame(
@@ -301,23 +304,9 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
         [SsiBeat(data=payload1, keep=0xFF, last=1, sof=1, eofe=0)],
     )
 
-    clt_tsp_beats = await clt_tsp_capture
-    srv_out0_beats = await srv_out0_capture
-    srv_out1_beats = await srv_out1_capture
-
-    assert clt_tsp_beats, "Client wrapper accepted application frames but emitted no transport beats"
-    assert _beat_summary(srv_out0_beats) == [(payload0, 0xFF, 1, 1, 0)], (
-        "Server stream 0 did not receive the expected routed payload; "
-        f"clt_tsp={_beat_summary(clt_tsp_beats)} "
-        f"srv0={_beat_summary(srv_out0_beats)} "
-        f"srv1={_beat_summary(srv_out1_beats)}"
-    )
-    assert _beat_summary(srv_out1_beats) == [(payload1, 0xFF, 1, 1, 0)], (
-        "Server stream 1 did not receive the expected routed payload; "
-        f"clt_tsp={_beat_summary(clt_tsp_beats)} "
-        f"srv0={_beat_summary(srv_out0_beats)} "
-        f"srv1={_beat_summary(srv_out1_beats)}"
-    )
+    await clt_tsp_data
+    await srv_out0
+    await srv_out1
 
 
 @cocotb.test()
@@ -333,13 +322,25 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
     server_payload0 = 0x2222_0000_0000_0000
     server_payload1 = 0x2222_0000_0000_0001
 
-    dut.srvMApp0TReady.value = 1
-    dut.srvMApp1TReady.value = 1
-    srv_out0_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.srv_sinks[0], clk=tb.clk, cycles=1024)
+    srv_out0 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sinks[0],
+            clk=tb.clk,
+            ready_signal=dut.srvMApp0TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(client_payload0, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
-    srv_out1_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.srv_sinks[1], clk=tb.clk, cycles=1024)
+    srv_out1 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.srv_sinks[1],
+            clk=tb.clk,
+            ready_signal=dut.srvMApp1TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(client_payload1, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
     await tb.send_app_frame(
         tb.clt_sources[0],
@@ -349,16 +350,28 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
         tb.clt_sources[1],
         [SsiBeat(data=client_payload1, keep=0xFF, last=1, sof=1, eofe=0)],
     )
-    assert _beat_summary(await srv_out0_capture) == [(client_payload0, 0xFF, 1, 1, 0)]
-    assert _beat_summary(await srv_out1_capture) == [(client_payload1, 0xFF, 1, 1, 0)]
+    await srv_out0
+    await srv_out1
 
-    dut.cltMApp0TReady.value = 1
-    dut.cltMApp1TReady.value = 1
-    clt_out0_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.clt_sinks[0], clk=tb.clk, cycles=1024)
+    clt_out0 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.clt_sinks[0],
+            clk=tb.clk,
+            ready_signal=dut.cltMApp0TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(server_payload0, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
-    clt_out1_capture = cocotb.start_soon(
-        capture_accepted_beats(tb.clt_sinks[1], clk=tb.clk, cycles=1024)
+    clt_out1 = cocotb.start_soon(
+        recv_frame_and_check(
+            tb.clt_sinks[1],
+            clk=tb.clk,
+            ready_signal=dut.cltMApp1TReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(server_payload1, 0xFF, 1, 1, 0)],
+            timeout_cycles=1024,
+        )
     )
     await tb.send_app_frame(
         tb.srv_sources[0],
@@ -368,8 +381,8 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
         tb.srv_sources[1],
         [SsiBeat(data=server_payload1, keep=0xFF, last=1, sof=1, eofe=0)],
     )
-    assert _beat_summary(await clt_out0_capture) == [(server_payload0, 0xFF, 1, 1, 0)]
-    assert _beat_summary(await clt_out1_capture) == [(server_payload1, 0xFF, 1, 1, 0)]
+    await clt_out0
+    await clt_out1
 
 
 @cocotb.test()

@@ -173,6 +173,17 @@ path-specific in the tests: direct `RssiCore` and the one-stream legacy wrapper
 clear application EOFE on receive, while packetizer2 routed wrapper coverage
 preserves EOFE at the application boundary.
 
+The 2026-05-29 runtime investigation found that the long RSSI validation time
+is dominated by forced GHDL recompiles, packetizer2 multi-stream cocotb polling,
+and the required 1024-cycle `AxiStreamDepacketizer2` route-state guard. The
+safe reductions are in the working tree: multi-stream routed payload checks now
+use event-driven frame receives instead of fixed 1024-cycle captures, and the
+direct-core BUSY recovery test drains the exact expected frame count before a
+short duplicate quiet check. A 384-cycle packetizer2 guard experiment failed and
+was reverted; keep the 1024-cycle guard unless the wrapper exposes
+depacketizer2 `debug.initDone` or `RssiCoreWrapper` changes its hard-coded
+`TDEST_BITS_G=8` packetizer2/depacketizer2 configuration.
+
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
 - Local reference bundle: `docs/plans/rssi-regression/references/`
@@ -208,6 +219,17 @@ preserves EOFE at the application boundary.
   parameter sets.
 - `COCOTB_TESTCASE=multi_stream_partial_keep_and_eofe_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
   passed on 2026-05-28 for the packetizer2 routed partial-keep/EOFE case.
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-29 after the runtime reductions.
+- `env COCOTB_TESTCASE=server_backpressure_recovers_without_lost_or_duplicate_frames_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+  passed on 2026-05-29 in 24.94 seconds after replacing the fixed 4096-cycle
+  BUSY-recovery collection window.
+- `env COCOTB_TESTCASE=multi_stream_bidirectional_payload_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+  passed on 2026-05-29 in 109.72 seconds after replacing fixed 1024-cycle
+  multi-stream captures with event-driven frame receives.
+- `env COCOTB_TESTCASE=multi_stream_client_to_server_payload_routes_test ./.venv/bin/python -m pytest -q 'tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream[packetizer2_two_streams_window2_seg64]'`
+  passed on 2026-05-29 in 101.53 seconds with the same event-driven receive
+  change.
 - `git diff --check` passed on 2026-05-28 after the post-commit compliance
   slice.
 - `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore tests/protocols/rssi/test_RssiCore.py::test_RssiCore_out_of_order_recovery`

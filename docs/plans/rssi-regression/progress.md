@@ -915,3 +915,44 @@
     passed.
   - `COCOTB_TESTCASE=multi_stream_partial_keep_and_eofe_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
     passed.
+
+## 2026-05-29 Runtime Investigation
+- Interrupted a full `./.venv/bin/python -m pytest -q tests/protocols/rssi`
+  run after it reached the multi-stream packetizer2 wrapper path and was no
+  longer giving useful closeout signal. No stale pytest/GHDL processes were
+  left running afterward.
+- Parsed cocotb result XML under `tests/sim_build/protocols/rssi/` to identify
+  the runtime hotspots. The slowest cases were the packetizer2 multi-stream
+  route tests, with historical cocotb test times up to roughly 200 seconds, and
+  the direct-core BUSY recovery test, with historical cocotb test times around
+  100 seconds.
+- Root causes found:
+  - all current RSSI pytest wrappers use `force_compile=True`, so each pytest
+    case recompiles a broad SURF source list instead of reusing the
+    parameter-specific sim-build directory;
+  - multi-stream route tests used fixed 1024-cycle capture windows even after
+    the expected routed frames were accepted;
+  - direct-core BUSY recovery used a fixed 4096-cycle output collection window
+    even though it already knew how many frames were sent;
+  - the packetizer2 wrapper still needs the 1024-cycle post-link
+    `AxiStreamDepacketizer2` route-state guard. A 384-cycle experiment failed
+    deterministically with no routed stream-0 output by 2726 ns, so that guard
+    was restored.
+- Implemented safe test-harness reductions:
+  - `test_RssiCoreWrapperMultiStream.py` now uses event-driven
+    `recv_frame_and_check`/transport receives for the routed payload checks
+    instead of fixed 1024-cycle captures;
+  - `test_RssiCore.py` now drains exactly the sent BUSY-recovery frames and
+    then checks a short quiet window for duplicates instead of collecting for
+    4096 cycles.
+- Timing/validation added on 2026-05-29:
+  - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+    passed.
+  - `env COCOTB_TESTCASE=server_backpressure_recovers_without_lost_or_duplicate_frames_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+    passed in 24.94 seconds, down from roughly 96-104 seconds in prior XML.
+  - `env COCOTB_TESTCASE=multi_stream_bidirectional_payload_routes_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+    passed in 109.72 seconds, down from roughly 198-207 seconds for the same
+    cocotb test in prior XML.
+  - `env COCOTB_TESTCASE=multi_stream_client_to_server_payload_routes_test ./.venv/bin/python -m pytest -q 'tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream[packetizer2_two_streams_window2_seg64]'`
+    passed in 101.53 seconds, with the latest result XML reporting 69.40
+    seconds of cocotb runtime and about 5.9 us of simulated time.
