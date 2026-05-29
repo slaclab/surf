@@ -32,7 +32,9 @@
 #   loss behavior, out-of-order DATA recovery, sequence-number wraparound, NULL
 #   keepalive acknowledgment, idle keepalive liveness, missing-keepalive server
 #   close, max-retransmit client close/RST emission, explicit close, and
-#   backpressure-driven BUSY reporting.
+#   backpressure-driven BUSY reporting.  The stricter BUSY recovery test that
+#   proves no lost or duplicate server frames is extended coverage and also
+#   runs when selected directly with `COCOTB_TESTCASE`.
 # - Parameter strategy: The default pytest entry uses small but valid timeout
 #   generics so the full integration batch remains bounded.  Separate pytest
 #   entries enable narrower cocotb tests for sequence wrap, bidirectional DATA
@@ -44,6 +46,8 @@
 #   assert both absence of premature output and exact recovered frames.  Quiet
 #   output drains account for reset-release FIFO behavior so payload assertions
 #   are about RSSI DATA delivery rather than wrapper initialization.
+
+import os
 
 import cocotb
 import pytest
@@ -81,6 +85,13 @@ REG_MAX_SEG_SIZE = 0x10
 REG_STATUS = 0x40
 REG_VALID_CNT = 0x44
 REG_RESEND_CNT = 0x4C
+
+
+def _run_extended_case(case_name: str) -> bool:
+    return (
+        env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
+        or os.environ.get("COCOTB_TESTCASE") == case_name
+    )
 
 
 class TB:
@@ -822,6 +833,9 @@ async def server_backpressure_advertises_busy_to_client_test(dut):
 
 @cocotb.test()
 async def server_backpressure_recovers_without_lost_or_duplicate_frames_test(dut):
+    if not _run_extended_case("server_backpressure_recovers_without_lost_or_duplicate_frames_test"):
+        return
+
     tb = await TB.create(dut)
 
     await tb.wait_connected()

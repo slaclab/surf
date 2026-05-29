@@ -220,6 +220,18 @@
     DATA+EACK rejection coverage, and updated PyRogue/register-map wording so
     the EACK/out-of-sequence field is described as reserved/unsupported rather
     than pending behavior.
+  - Split the most expensive RSSI wrapper coverage into default and extended
+    tiers after the 2026-05-29 runtime investigation. The default
+    `test_RssiCoreWrapperMultiStream.py` pytest entry now runs the small
+    packetizer2 parameter set with only the client-to-server routed payload
+    cocotb case selected. `RUN_RSSI_EXTENDED_TESTS=1` enables the heavier
+    bidirectional, partial-keep/EOFE, routed DATA loss/retransmit, and second
+    parameter coverage. The dedicated bidirectional packetizer2 pytest entry is
+    skipped during whole-file collection unless the same flag is set, but still
+    runs when that pytest nodeid is selected directly. The direct-core
+    duplicate-free BUSY recovery probe is also gated by
+    `RUN_RSSI_EXTENDED_TESTS=1` unless selected explicitly with
+    `COCOTB_TESTCASE`.
 
 ## Notes
 - Primary local spec source is now
@@ -321,6 +333,10 @@
   behavioral RAMs in `RssiTxFsmWrapper` and `RssiRxFsmWrapper` are different:
   those leaf FSMs require adjacent segment-buffer models and the wrapper RAM
   keeps that required DUT-side interface explicit.
+- The default RSSI multi-stream wrapper coverage is intentionally thinner than
+  the full packetizer2 characterization. Use
+  `RUN_RSSI_EXTENDED_TESTS=1 ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  before a release-style regression when the extra runtime is acceptable.
 
 ## Validation
 - 2026-05-22:
@@ -376,6 +392,33 @@
   `./.venv/bin/python -m pytest -q tests/protocols/rssi` passed with eleven
   RSSI pytest wrappers/parameter sweeps after adding `RssiCoreWrapper`
   bypass-chunker and packetizer smoke coverage.
+- 2026-05-29:
+  `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed after adding the default/extended coverage split.
+- 2026-05-29:
+  `./.venv/bin/python -m pytest --collect-only -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  collected the default small packetizer2 entry, the extended parameter entry,
+  and the focused bidirectional packetizer2 entry.
+- 2026-05-29:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream`
+  passed in 107.51 seconds with only the default client-to-server routed
+  payload cocotb case selected.
+- 2026-05-29:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_extended`
+  skipped in 0.10 seconds when `RUN_RSSI_EXTENDED_TESTS` was unset.
+- 2026-05-29:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py -k bidirectional_packetizer2`
+  skipped the focused bidirectional packetizer2 entry in 0.11 seconds when the
+  test was not selected by explicit nodeid and `RUN_RSSI_EXTENDED_TESTS` was
+  unset.
+- 2026-05-29:
+  `env COCOTB_TESTCASE=server_backpressure_recovers_without_lost_or_duplicate_frames_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+  passed in 25.55 seconds, confirming the focused direct-core BUSY recovery
+  probe still runs when explicitly selected.
+- 2026-05-29:
+  `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+  passed in 112.49 seconds, confirming the focused bidirectional packetizer2
+  route case still runs without the extended environment flag.
 - 2026-05-22:
   `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiTxFsm.py`
   passed after expanding TX FSM coverage.

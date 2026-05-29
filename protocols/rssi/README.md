@@ -154,9 +154,9 @@ Default cocotb coverage under `tests/protocols/rssi/` includes:
   connection, parameter negotiation, payload delivery, retransmission,
   checksum-corruption recovery, keepalive, missing-keepalive close, explicit
   close, close/reopen lifecycle, partial `TKEEP` delivery, transport
-  backpressure stalls, and BUSY recovery without lost or duplicate frames.
-  Focused pytest entries also cover AXI-Lite controlled open/parameter
-  writes/status/counter reads/checksum injection/close and
+  backpressure stalls, and backpressure-driven BUSY reporting. Focused pytest
+  entries also cover duplicate-free BUSY recovery, AXI-Lite controlled
+  open/parameter writes/status/counter reads/checksum injection/close, and
   `HEADER_CHKSUM_EN_G=false` connection/payload delivery.
 - `test_RssiCoreWrapper.py`: one-stream `RssiCoreWrapper` smoke coverage across
   bypass-chunker and legacy packetizer/depacketizer modes, including
@@ -165,12 +165,15 @@ Default cocotb coverage under `tests/protocols/rssi/` includes:
   bytes outside `TKEEP` are not part of the payload contract and may be changed
   by the packetizer path.
 - `test_RssiCoreWrapperMultiStream.py`: two-stream `RssiCoreWrapper` active-open
-  and routed payload coverage with `APP_STREAMS_G=2`, routed stream
-  destinations, `APP_ILEAVE_EN_G=true`, and the packetizer2/depacketizer2 path.
-  The routed payload test waits after RSSI connection so the server-side
-  `AxiStreamDepacketizer2` can finish initializing its per-`TDEST` route state.
-  It also covers routed partial-`TKEEP` and EOFE preservation through the
-  packetizer2 application boundary.
+  and routed client-to-server payload coverage with `APP_STREAMS_G=2`, routed
+  stream destinations, `APP_ILEAVE_EN_G=true`, and the
+  packetizer2/depacketizer2 path. The routed payload test waits after RSSI
+  connection so the server-side `AxiStreamDepacketizer2` can finish
+  initializing its per-`TDEST` route state. Extended coverage covers
+  bidirectional routing, routed partial-`TKEEP` and EOFE preservation through
+  the packetizer2 application boundary, one routed DATA loss/retransmit case,
+  and a second window/segment-size parameter set. Run it with
+  `RUN_RSSI_EXTENDED_TESTS=1`.
 
 Current EOFE behavior is path-specific in the regression suite: direct
 `RssiCore` and the one-stream legacy wrapper path clear application EOFE on

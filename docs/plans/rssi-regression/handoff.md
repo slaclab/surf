@@ -184,6 +184,18 @@ was reverted; keep the 1024-cycle guard unless the wrapper exposes
 depacketizer2 `debug.initDone` or `RssiCoreWrapper` changes its hard-coded
 `TDEST_BITS_G=8` packetizer2/depacketizer2 configuration.
 
+The default/extended split is also in the working tree. Default
+`test_RssiCoreWrapperMultiStream.py` now runs only the small packetizer2
+parameter set and pins `COCOTB_TESTCASE` to the client-to-server routed payload
+case, which keeps CI from replaying the full packetizer2 characterization. Set
+`RUN_RSSI_EXTENDED_TESTS=1` to run the heavier bidirectional,
+partial-keep/EOFE, routed DATA loss/retransmit, and second-parameter coverage.
+The dedicated bidirectional packetizer2 pytest entry is skipped during
+whole-file collection unless the same flag is set, but still runs when that
+pytest nodeid is selected directly. The direct-core duplicate-free BUSY
+recovery probe is similarly gated by `RUN_RSSI_EXTENDED_TESTS=1`, but remains
+runnable with an explicit `COCOTB_TESTCASE`.
+
 ## Key References
 - SURF plan: `docs/plans/rssi-regression/plan.md`
 - Local reference bundle: `docs/plans/rssi-regression/references/`
@@ -201,6 +213,28 @@ depacketizer2 `debug.initDone` or `RssiCoreWrapper` changes its hard-coded
   `tests/protocols/rssi/`
 
 ## Validation
+- `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-29 after adding the default/extended coverage split.
+- `./.venv/bin/python -m pytest --collect-only -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py`
+  passed on 2026-05-29 and collected the default small packetizer2 entry, the
+  extended parameter entry, and the focused bidirectional packetizer2 entry.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream`
+  passed on 2026-05-29 in 107.51 seconds with only the default
+  client-to-server routed payload cocotb case selected.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_extended`
+  skipped on 2026-05-29 in 0.10 seconds when `RUN_RSSI_EXTENDED_TESTS` was
+  unset.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py -k bidirectional_packetizer2`
+  skipped on 2026-05-29 in 0.11 seconds when the focused bidirectional
+  packetizer2 entry was not selected by explicit nodeid and
+  `RUN_RSSI_EXTENDED_TESTS` was unset.
+- `env COCOTB_TESTCASE=server_backpressure_recovers_without_lost_or_duplicate_frames_test ./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCore.py::test_RssiCore`
+  passed on 2026-05-29 in 25.55 seconds, confirming the focused direct-core
+  BUSY recovery probe still runs when selected explicitly.
+- `./.venv/bin/python -m pytest -q tests/protocols/rssi/test_RssiCoreWrapperMultiStream.py::test_RssiCoreWrapperMultiStream_bidirectional_packetizer2`
+  passed on 2026-05-29 in 112.49 seconds, confirming the focused
+  bidirectional packetizer2 route case still runs without the extended
+  environment flag.
 - `./.venv/bin/python -m py_compile tests/protocols/rssi/test_RssiCore.py`
   passed on 2026-05-28 after adding integrated out-of-order recovery and NULL
   acknowledgment coverage.

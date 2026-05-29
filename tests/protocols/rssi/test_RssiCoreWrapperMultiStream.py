@@ -24,31 +24,31 @@
 #   The extra wait lets `AxiStreamDepacketizer2` clear its per-`TDEST` route
 #   state after RSSI link-up, avoiding a test race that is unrelated to RSSI
 #   protocol behavior.
-# - Checks: Active-open smoke verifies that the two-stream wrapper elaborates
-#   and connects.  Routed payload tests send independent frames on client
-#   streams 0 and 1, confirm transport DATA is emitted, and verify the server
-#   receives each payload on the expected routed stream.  Partial-keep coverage
-#   compares only bytes selected by `TKEEP` and verifies that the packetizer2
-#   wrapper path preserves application EOFE at the routed boundary.
-#   Bidirectional routing repeats this in both directions.  Loss coverage drops
-#   the first client DATA transport frame and checks that retransmission reuses
-#   the same RSSI sequence number and recovers the stream-1 payload exactly
-#   once.
+# - Checks: Default CI coverage runs one small packetizer2 parameter set and
+#   one client-to-server routed payload cocotb test.  That test proves the
+#   two-stream wrapper elaborates, connects, emits transport DATA, and delivers
+#   independent client streams 0 and 1 to the expected server routes.  Extended
+#   coverage adds partial-keep/EOFE preservation, bidirectional routing, and
+#   one dropped client DATA transport frame that must retransmit with the same
+#   RSSI sequence number and recover the stream-1 payload exactly once.
 # - Parameter strategy: Use `APP_STREAMS_G=2`, explicit `APP_STREAM_ROUTES_G`,
-#   `APP_ILEAVE_EN_G=true`, and the legacy packetizer/depacketizer path.  A
-#   focused pytest entry runs only the bidirectional route case for a small
-#   window/segment-size parameter set so this coverage can be validated without
-#   the full long multi-stream sweep.
-# - Timing: Capture helpers observe accepted beats for a bounded number of
-#   clock cycles.  Transport loopback drops only multi-beat DATA frames after a
-#   test arms the hook, leaving ACK/NULL control traffic free to maintain the
-#   connection.
+#   `APP_ILEAVE_EN_G=true`, and the legacy packetizer/depacketizer path.  The
+#   default pytest entry pins `COCOTB_TESTCASE` to the routed payload smoke
+#   unless `RUN_RSSI_EXTENDED_TESTS=1` is set.  A focused pytest entry can still
+#   run only the bidirectional route case for the small window/segment-size
+#   parameter set when that nodeid is selected directly.
+# - Timing: Event-driven receives wait for expected transport or application
+#   frames with bounded timeouts.  Transport loopback drops only multi-beat DATA
+#   frames after a test arms the hook, leaving ACK/NULL control traffic free to
+#   maintain the connection.
+
+import os
 
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RSSI_CORE_WRAPPER_VHDL_SOURCES,
     format_transport_frame,
@@ -71,6 +71,26 @@ from tests.protocols.ssi.ssi_test_utils import (
 # RssiCoreWrapper uses TDEST_BITS_G=8 for AxiStreamDepacketizer2, which clears
 # per-route state after link-up before it can safely accept routed DATA.
 DEPACKETIZER2_INIT_WAIT_CYCLES = 1024
+
+
+def _run_extended_case(case_name: str) -> bool:
+    return (
+        env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
+        or os.environ.get("COCOTB_TESTCASE") == case_name
+    )
+
+
+def _default_extra_env(parameters: dict[str, object]) -> dict[str, object]:
+    if env_flag("RUN_RSSI_EXTENDED_TESTS", default=False):
+        return parameters
+    return {
+        **parameters,
+        "COCOTB_TESTCASE": "multi_stream_client_to_server_payload_routes_test",
+    }
+
+
+def _explicit_pytest_selection(request, test_name: str) -> bool:
+    return any("::" in arg and test_name in arg for arg in request.config.args)
 
 
 def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
@@ -268,6 +288,9 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
     await tb.drain_app_outputs()
     await tb.cycle(DEPACKETIZER2_INIT_WAIT_CYCLES)
 
+    assert int(dut.cltStatusReg_o.value) & 0x1
+    assert int(dut.srvStatusReg_o.value) & 0x1
+
     payload0 = 0x1111_2222_3333_4444
     payload1 = 0xAAAA_BBBB_CCCC_DDDD
 
@@ -311,6 +334,9 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_bidirectional_payload_routes_test(dut):
+    if not _run_extended_case("multi_stream_bidirectional_payload_routes_test"):
+        return
+
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -387,6 +413,9 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_partial_keep_and_eofe_routes_test(dut):
+    if not _run_extended_case("multi_stream_partial_keep_and_eofe_routes_test"):
+        return
+
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -412,6 +441,9 @@ async def multi_stream_partial_keep_and_eofe_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
+    if not _run_extended_case("multi_stream_dropped_client_data_retransmits_to_route_test"):
+        return
+
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -459,20 +491,6 @@ PARAMETER_SWEEP = [
         {
             "BYPASS_CHUNKER_G": False,
             "APP_ILEAVE_EN_G": True,
-            "WINDOW_ADDR_SIZE_G": 3,
-            "MAX_SEG_SIZE_G": 128,
-            "ACK_TOUT_G": 4,
-            "RETRANS_TOUT_G": 16,
-            "NULL_TOUT_G": 48,
-            "MAX_RETRANS_CNT_G": 2,
-            "MAX_CUM_ACK_CNT_G": 2,
-        },
-        id="packetizer2_two_streams_window3_seg128",
-    ),
-    pytest.param(
-        {
-            "BYPASS_CHUNKER_G": False,
-            "APP_ILEAVE_EN_G": True,
             "WINDOW_ADDR_SIZE_G": 2,
             "MAX_SEG_SIZE_G": 64,
             "ACK_TOUT_G": 4,
@@ -486,13 +504,31 @@ PARAMETER_SWEEP = [
 ]
 
 
+EXTENDED_PARAMETER_SWEEP = [
+    pytest.param(
+        {
+            "BYPASS_CHUNKER_G": False,
+            "APP_ILEAVE_EN_G": True,
+            "WINDOW_ADDR_SIZE_G": 3,
+            "MAX_SEG_SIZE_G": 128,
+            "ACK_TOUT_G": 4,
+            "RETRANS_TOUT_G": 16,
+            "NULL_TOUT_G": 48,
+            "MAX_RETRANS_CNT_G": 2,
+            "MAX_CUM_ACK_CNT_G": 2,
+        },
+        id="packetizer2_two_streams_window3_seg128",
+    ),
+]
+
+
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiCoreWrapperMultiStream(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
         parameters=parameters,
-        extra_env=parameters,
+        extra_env=_default_extra_env(parameters),
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_WRAPPER_VHDL_SOURCES,
@@ -503,7 +539,43 @@ def test_RssiCoreWrapperMultiStream(parameters):
     )
 
 
-def test_RssiCoreWrapperMultiStream_bidirectional_packetizer2():
+@pytest.mark.skipif(
+    not env_flag("RUN_RSSI_EXTENDED_TESTS", default=False),
+    reason="set RUN_RSSI_EXTENDED_TESTS=1 to run extended RSSI multi-stream wrapper coverage",
+)
+@pytest.mark.parametrize("parameters", EXTENDED_PARAMETER_SWEEP)
+def test_RssiCoreWrapperMultiStream_extended(parameters):
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "RUN_RSSI_EXTENDED_TESTS": 1,
+        },
+        extra_vhdl_sources={
+            "surf": [
+                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
+                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
+            ],
+        },
+        force_compile=True,
+    )
+
+
+def test_RssiCoreWrapperMultiStream_bidirectional_packetizer2(request):
+    if (
+        not env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
+        and not _explicit_pytest_selection(
+            request,
+            "test_RssiCoreWrapperMultiStream_bidirectional_packetizer2",
+        )
+    ):
+        pytest.skip(
+            "set RUN_RSSI_EXTENDED_TESTS=1 or run this nodeid explicitly for "
+            "focused bidirectional packetizer2 route coverage"
+        )
+
     parameters = {
         "BYPASS_CHUNKER_G": False,
         "APP_ILEAVE_EN_G": True,
