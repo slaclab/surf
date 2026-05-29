@@ -17,6 +17,7 @@
 --               0x02 (RW)- Version register [3:0](Default x"1")
 --               0x03 (RW)- Maximum out standing segments [7:0](Default "008"):
 --                            Defines the max number of segments in the RSSI receiver buffer
+--                            [31:24] (RO): MAX_NUM_OUTS_SEG_G build-time capability (0 in older firmware)
 --               0x04 (RW)- Maximum segment size [15:0](Default x"0400")
 --                            Defines the size of segment buffer! Number of bytes!
 --               0x05 (RW)- Retransmission timeout [15:0](Default 50)
@@ -35,6 +36,7 @@
 --                            cumulative acknowledgment timeout has not been reached yet!
 --               0x0A (RW)- Reserved max out-of-sequence/EACK field [7:0](Default x"03")
 --                            EACK is not implemented in RSSI v1.
+--                            [31:24] (RO): SEGMENT_ADDR_SIZE_G build-time capability (0 in older firmware)
 --               0x0B (RW)- Connection ID [31:0](Default x"12345678")
 --                            Every connection should have unique connection ID.
 --               Statuses
@@ -300,6 +302,9 @@ begin
             when 16#03# =>              -- ADDR (12)
                v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxOutsSeg;
                v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxOutsSeg;
+               -- Build-time capability advertisement (software auto-discovery).
+               -- Older firmware reads 0 here, signalling "fall back to defaults".
+               v.axilReadSlave.rdata(31 downto 24) := toSlv(MAX_NUM_OUTS_SEG_G, 8);
             when 16#04# =>              -- ADDR (16)
                v.axilReadSlave.rdata(15 downto 0)  := r.appRssiParam.maxSegSize;
                v.axilReadSlave.rdata(31 downto 16) := negRssiParam.maxSegSize;
@@ -321,6 +326,9 @@ begin
             when 16#0A# =>              -- ADDR (40)
                v.axilReadSlave.rdata(7 downto 0)   := r.appRssiParam.maxOutofseq;
                v.axilReadSlave.rdata(23 downto 16) := negRssiParam.maxOutofseq;
+               -- Build-time capability advertisement (software auto-discovery).
+               -- Older firmware reads 0 here, signalling "fall back to defaults".
+               v.axilReadSlave.rdata(31 downto 24) := toSlv(SEGMENT_ADDR_SIZE_G, 8);
             when 16#0B# =>              -- ADDR (44)
                v.axilReadSlave.rdata(31 downto 0) := r.appRssiParam.connectionId;
             when 16#0C# =>              -- ADDR (48)
