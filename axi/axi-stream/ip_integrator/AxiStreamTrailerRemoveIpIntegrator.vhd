@@ -59,7 +59,7 @@ architecture rtl of AxiStreamTrailerRemoveIpIntegrator is
       TUSER_BITS_C  => 2,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisAResetN : sl := '1';
+   signal axisAResetN : sl                  := '1';
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
@@ -127,12 +127,12 @@ begin
 
    U_DUT : entity surf.AxiStreamTrailerRemove
       generic map (
-         TPD_G         => TPD_G,
+         TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => PIPE_STAGES_G,
-         BYTES_TO_RM_G => BYTES_TO_RM_G,
-         AXI_CONFIG_G  => AXI_CONFIG_C)
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G,
+         BYTES_TO_RM_G  => BYTES_TO_RM_G,
+         AXI_CONFIG_G   => AXI_CONFIG_C)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

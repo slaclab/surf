@@ -495,7 +495,7 @@ begin
 
       end if;
 
-      -- Check if reseting counters
+      -- Check if resetting counters
       if (r.cntRst = '1') then
          v.dataCnt        := (others => (others => '0'));
          v.nullCnt        := (others => (others => '0'));

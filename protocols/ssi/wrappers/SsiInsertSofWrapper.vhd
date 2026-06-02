@@ -1,0 +1,145 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: Cocotb-facing wrapper for SsiInsertSof
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_arith.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
+
+entity SsiInsertSofWrapper is
+   generic (
+      DATA_BYTES_G      : positive range 1 to 8  := 2;
+      TUSER_BITS_G      : positive range 2 to 8  := 4;
+      INSERT_USER_HDR_G : boolean                := false;
+      COMMON_CLK_G      : boolean                := true;
+      SLAVE_FIFO_G      : boolean                := false;
+      MASTER_FIFO_G     : boolean                := false;
+      TUSER_MASK_G      : natural range 0 to 255 := 0);
+   port (
+      axisClk     : in  sl;
+      axisRst     : in  sl;
+      sAxisTValid : in  sl;
+      sAxisTData  : in  slv(63 downto 0);
+      sAxisTKeep  : in  slv(7 downto 0);
+      sAxisTLast  : in  sl;
+      sAxisTDest  : in  slv(3 downto 0);
+      sAxisSof    : in  sl;
+      sAxisEofe   : in  sl;
+      sAxisTReady : out sl;
+      mUserHdr    : in  slv(63 downto 0);
+      mAxisTValid : out sl;
+      mAxisTData  : out slv(63 downto 0);
+      mAxisTKeep  : out slv(7 downto 0);
+      mAxisTLast  : out sl;
+      mAxisTDest  : out slv(3 downto 0);
+      mAxisSof    : out sl;
+      mAxisEofe   : out sl;
+      mAxisTReady : in  sl);
+end entity SsiInsertSofWrapper;
+
+architecture rtl of SsiInsertSofWrapper is
+
+   function buildUserMask return slv is
+      variable ret : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
+   begin
+      ret(TUSER_BITS_G-1 downto 0) := conv_std_logic_vector(TUSER_MASK_G, TUSER_BITS_G);
+      return ret;
+   end function buildUserMask;
+
+   constant AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+      dataBytes => DATA_BYTES_G,
+      tUserMode => TUSER_NORMAL_C,
+      tDestBits => 4,
+      tUserBits => TUSER_BITS_G);
+
+   constant DATA_WIDTH_C : positive                                     := 8*AXIS_CONFIG_C.TDATA_BYTES_C;
+   constant KEEP_WIDTH_C : positive                                     := AXIS_CONFIG_C.TDATA_BYTES_C;
+   constant TUSER_MASK_C : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := buildUserMask;
+
+   signal sAxisMaster : AxiStreamMasterType                          := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave  : AxiStreamSlaveType                           := AXI_STREAM_SLAVE_FORCE_C;
+   signal mAxisMaster : AxiStreamMasterType                          := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave  : AxiStreamSlaveType                           := AXI_STREAM_SLAVE_FORCE_C;
+   signal mUserHdrInt : slv(AXI_STREAM_MAX_TDATA_WIDTH_C-1 downto 0) := (others => '0');
+
+begin
+
+   -- Flatten the cocotb-driven scalar/vector ports into a normal SURF stream.
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
+      variable v : AxiStreamMasterType;
+   begin
+      v                                := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                         := sAxisTValid;
+      v.tData(DATA_WIDTH_C-1 downto 0) := sAxisTData(DATA_WIDTH_C-1 downto 0);
+      v.tKeep(KEEP_WIDTH_C-1 downto 0) := sAxisTKeep(KEEP_WIDTH_C-1 downto 0);
+      v.tLast                          := sAxisTLast;
+      v.tDest(3 downto 0)              := sAxisTDest;
+      ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
+      ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
+      sAxisMaster                      <= v;
+   end process sAxisComb;
+
+   sAxisTReady <= sAxisSlave.tReady;
+
+   -- Present the DUT's stream output with fixed-width cocotb ports.
+   mAxisComb : process (mAxisMaster) is
+      variable tData : slv(63 downto 0);
+      variable tKeep : slv(7 downto 0);
+   begin
+      tData := (others => '0');
+      tKeep := (others => '0');
+
+      tData(DATA_WIDTH_C-1 downto 0) := mAxisMaster.tData(DATA_WIDTH_C-1 downto 0);
+      tKeep(KEEP_WIDTH_C-1 downto 0) := mAxisMaster.tKeep(KEEP_WIDTH_C-1 downto 0);
+
+      mAxisTValid <= mAxisMaster.tValid;
+      mAxisTData  <= tData;
+      mAxisTKeep  <= tKeep;
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(3 downto 0);
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
+   end process mAxisComb;
+
+   mAxisSlave.tReady <= mAxisTReady;
+
+   mUserHdrInt(DATA_WIDTH_C-1 downto 0) <= mUserHdr(DATA_WIDTH_C-1 downto 0);
+
+   U_DUT : entity surf.SsiInsertSof
+      generic map (
+         TPD_G               => 1 ns,
+         TUSER_MASK_G        => TUSER_MASK_C,
+         INSERT_USER_HDR_G   => INSERT_USER_HDR_G,
+         COMMON_CLK_G        => COMMON_CLK_G,
+         SLAVE_FIFO_G        => SLAVE_FIFO_G,
+         MASTER_FIFO_G       => MASTER_FIFO_G,
+         SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
+      port map (
+         sAxisClk    => axisClk,
+         sAxisRst    => axisRst,
+         sAxisMaster => sAxisMaster,
+         sAxisSlave  => sAxisSlave,
+         mAxisClk    => axisClk,
+         mAxisRst    => axisRst,
+         mUserHdr    => mUserHdrInt,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => mAxisSlave);
+
+end architecture rtl;

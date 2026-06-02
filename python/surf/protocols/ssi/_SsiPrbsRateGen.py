@@ -23,24 +23,24 @@ class SsiPrbsRateGen(pr.Device):
         ##############################
         def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
             self.add(pr.RemoteVariable(
-                name         = ("Raw"+name),
-                offset       = offset,
-                bitSize      = bitSize,
-                bitOffset    = bitOffset,
-                base         = pr.UInt,
-                mode         = 'RO',
-                description  = description,
-                pollInterval = pollInterval,
-                hidden       = True,
+                name         =  ("Raw"+name),
+                offset       =  offset,
+                bitSize      =  bitSize,
+                bitOffset    =  bitOffset,
+                base         =  pr.UInt,
+                mode         =  'RO',
+                description  =  description,
+                pollInterval =  pollInterval,
+                hidden       =  True,
             ))
             self.add(pr.LinkVariable(
-                name         = name,
-                description  = description,
-                mode         = 'RO',
-                units        = units,
-                linkedGet    = function,
-                disp         = '{:1.1f}',
-                dependencies = [self.variables["Raw"+name]],
+                name         =  name,
+                description  =  description,
+                mode         =  'RO',
+                units        =  units,
+                linkedGet    =  function,
+                disp         =  '{:1.1f}',
+                dependencies =  [self.variables["Raw"+name]],
             ))
 
         ##############################
@@ -48,34 +48,34 @@ class SsiPrbsRateGen(pr.Device):
         ##############################
 
         self.add(pr.RemoteCommand(
-            name         = "StatReset",
-            description  = "Reset all statistics counters",
-            offset       = 0x00,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            function     = pr.Command.toggle,
-            hidden       = False,
+            name        =  "StatReset",
+            description =  "Reset all statistics counters",
+            offset      =  0x00,
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        =  pr.UInt,
+            function    =  pr.Command.toggle,
+            hidden      =  False,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PacketLength",
-            description  = "Number of PRBS data words per generated packet",
-            offset       = 0x04,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            mode         = "RW",
+            name        =  "PacketLength",
+            description =  "Number of PRBS data words per generated packet",
+            offset      =  0x04,
+            bitSize     =  32,
+            bitOffset   =  0,
+            base        =  pr.UInt,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RawPeriod",
-            description  = "Raw packet generation period in clock cycles",
-            offset       = 0x08,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            mode         = "RW",
+            name        =  "RawPeriod",
+            description =  "Raw packet generation period in clock cycles",
+            offset      =  0x08,
+            bitSize     =  32,
+            bitOffset   =  0,
+            base        =  pr.UInt,
+            mode        =  "RW",
         ))
 
         def get_conv(var, read):
@@ -91,86 +91,86 @@ class SsiPrbsRateGen(pr.Device):
                 self.RawPeriod.set(v, write=write)
 
         self.add(pr.LinkVariable(
-            name         = 'TxRate',
-            description  = 'Packet transmission rate derived from RawPeriod register',
-            dependencies = [self.RawPeriod],
-            units        = 'Hz',
-            disp         = '{:0.3f}',
-            linkedGet    = get_conv,
-            linkedSet    = set_conv))
+            name         =  'TxRate',
+            description  =  'Packet transmission rate derived from RawPeriod register',
+            dependencies =  [self.RawPeriod],
+            units        =  'Hz',
+            disp         =  '{:0.3f}',
+            linkedGet    =  get_conv,
+            linkedSet    =  set_conv))
 
 
 
         self.add(pr.RemoteVariable(
-            name         = "TxEn",
-            description  = "Enable continuous rate-limited PRBS packet generation",
-            offset       = 0x0C,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.Bool,
-            mode         = "RW",
+            name        =  "TxEn",
+            description =  "Enable continuous rate-limited PRBS packet generation",
+            offset      =  0x0C,
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        =  pr.Bool,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "OneShot",
-            description  = "Send a single rate-limited PRBS packet",
-            offset       = 0x0C,
-            bitSize      = 1,
-            bitOffset    = 1,
-            base         = pr.UInt,
-            function     = pr.BaseCommand.toggle,
-            hidden       = False,
+            name        =  "OneShot",
+            description =  "Send a single rate-limited PRBS packet",
+            offset      =  0x0C,
+            bitSize     =  1,
+            bitOffset   =  1,
+            base        =  pr.UInt,
+            function    =  pr.BaseCommand.toggle,
+            hidden      =  False,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Missed",
-            description  = "Count of missed packet generation events (rate too high)",
-            offset       = 0x10,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            disp         = '{:d}',
-            pollInterval = 1,
-            mode         = "RO",
+            name         =  "Missed",
+            description  =  "Count of missed packet generation events (rate too high)",
+            offset       =  0x10,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         =  pr.UInt,
+            disp         =  '{:d}',
+            pollInterval =  1,
+            mode         =  "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FrameRate",
-            description  = "Current measured packet generation rate",
-            offset       = 0x14,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            units        = 'Hz',
-            disp         = '{:d}',
-            pollInterval = 1,
-            mode         = "RO",
+            name         =  "FrameRate",
+            description  =  "Current measured packet generation rate",
+            offset       =  0x14,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         =  pr.UInt,
+            units        =  'Hz',
+            disp         =  '{:d}',
+            pollInterval =  1,
+            mode         =  "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FrameRateMax",
-            description  = "Maximum measured packet generation rate",
-            offset       = 0x18,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            units        = 'Hz',
-            disp         = '{:d}',
-            pollInterval = 1,
-            mode         = "RO",
+            name         =  "FrameRateMax",
+            description  =  "Maximum measured packet generation rate",
+            offset       =  0x18,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         =  pr.UInt,
+            units        =  'Hz',
+            disp         =  '{:d}',
+            pollInterval =  1,
+            mode         =  "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FrameRateMin",
-            description  = "Minimum measured packet generation rate",
-            offset       = 0x1C,
-            bitSize      = 32,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            units        = 'Hz',
-            disp         = '{:d}',
-            pollInterval = 1,
-            mode         = "RO",
+            name         =  "FrameRateMin",
+            description  =  "Minimum measured packet generation rate",
+            offset       =  0x1C,
+            bitSize      =  32,
+            bitOffset    =  0,
+            base         =  pr.UInt,
+            units        =  'Hz',
+            disp         =  '{:d}',
+            pollInterval =  1,
+            mode         =  "RO",
         ))
 
         addPair(
@@ -207,14 +207,14 @@ class SsiPrbsRateGen(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = "FrameCount",
-            description  = "Cumulative count of PRBS packets generated",
-            offset       = 0x40,
-            bitSize      = 64,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            pollInterval = 1,
-            mode         = "RO",
+            name         =  "FrameCount",
+            description  =  "Cumulative count of PRBS packets generated",
+            offset       =  0x40,
+            bitSize      =  64,
+            bitOffset    =  0,
+            base         =  pr.UInt,
+            pollInterval =  1,
+            mode         =  "RO",
         ))
 
     @staticmethod

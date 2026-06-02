@@ -196,7 +196,7 @@ begin
                   -- Next State
                   v.state := INIT_S;
 
-               -- Check if booting comand and BOOT ROM generated
+               -- Check if booting command and BOOT ROM generated
                elsif (axiWriteMaster.awaddr(14) = '1') and BOOT_ROM_C then
                   -- Reset the counter
                   v.ramAddr := (others => '0');

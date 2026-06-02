@@ -267,49 +267,49 @@ class Gtye4Common(pr.Device):
         self.add(pr.RemoteVariable(
             offset=0x0048 << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG0',
             description='Microblaze configuration register 0'))
 
         self.add(pr.RemoteVariable(
             offset=0x004C << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG1',
             description='Microblaze configuration register 1'))
 
         self.add(pr.RemoteVariable(
             offset=0x0050 << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG2',
             description='Microblaze configuration register 2'))
 
         self.add(pr.RemoteVariable(
             offset=0x0054 << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG3',
             description='Microblaze configuration register 3'))
 
         self.add(pr.RemoteVariable(
             offset=0x0058 << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG4',
             description='Microblaze configuration register 4'))
 
         self.add(pr.RemoteVariable(
             offset=0x005C << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG5',
             description='Microblaze configuration register 5'))
 
         self.add(pr.RemoteVariable(
             offset=0x005F << 2,
             bitSize = 16,
-            mode = 'RW',
+            mode    = 'RW',
             name='UB_CFG6',
             description='Microblaze configuration register 6'))
 
@@ -372,7 +372,7 @@ class Gtye4Common(pr.Device):
         self.add(pr.RemoteVariable(
             offset = 0x008D << 2,
             bitSize=16,
-            name = 'PPF1_CFG',
+            name   = 'PPF1_CFG',
             description='QPLL1 post-PLL filter configuration'))
 
         self.add(pr.RemoteVariable(
@@ -381,12 +381,12 @@ class Gtye4Common(pr.Device):
             bitOffset=0,
             name='QPLL1CLKOUT_RATE',
             description='QPLL1 clock output rate selection (HALF or FULL)',
-            enum = {
+            enum   = {
                 0: 'HALF',
                 1: 'FULL'}))
 
         self.add(pr.RemoteVariable(
-            offset = 0x008F << 2,
+            offset  = 0x008F << 2,
             bitSize = 16,
             name='BIAS_CFG_RSVD',
             description='Common block bias reserved configuration'))
@@ -459,10 +459,10 @@ class Gtye4Common(pr.Device):
             description='QPLL1 reference clock input divider'))
 
         self.add(pr.RemoteVariable(
-            offset = 0x0098 << 2,
-            bitSize = 3,
+            offset    = 0x0098 << 2,
+            bitSize   = 3,
             bitOffset = 3,
-            name = 'QPLL1_IPS_REFCLK_SEL',
+            name      = 'QPLL1_IPS_REFCLK_SEL',
             description='QPLL1 in-phase separator reference clock selection'))
 
         self.add(pr.RemoteVariable(
@@ -474,10 +474,10 @@ class Gtye4Common(pr.Device):
             description='Spread-spectrum aware reference clock enable'))
 
         self.add(pr.RemoteVariable(
-            offset = 0x0098 << 2,
-            bitSize = 1,
+            offset    = 0x0098 << 2,
+            bitSize   = 1,
             bitOffset = 6,
-            name = 'QPLL1_IPS_EN',
+            name      = 'QPLL1_IPS_EN',
             description='QPLL1 in-phase separator enable'))
 
         self.add(pr.RemoteVariable(
@@ -540,15 +540,15 @@ class Gtye4Common(pr.Device):
             description='QPLL1 feedback divider value for Gen3 rate'))
 
         self.add(pr.RemoteVariable(
-            offset = 0x009F << 2,
-            bitSize = 1,
+            offset    = 0x009F << 2,
+            bitSize   = 1,
             bitOffset = 3,
             name='QPLL1_RATE_SW_USE_DRP',
             description='QPLL1 rate switching via DRP enable'))
 
         self.add(pr.RemoteVariable(
-            offset = 0x009F << 2,
-            bitSize = 1,
+            offset    = 0x009F << 2,
+            bitSize   = 1,
             bitOffset = 2,
             name='QPLL1_PCI_EN',
             description='QPLL1 PCIe mode enable'))

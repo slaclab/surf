@@ -204,7 +204,7 @@ class Ad9249ConfigGroup(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             enum        = {
-                1: 'Twos Compliment',
+                1: 'Twos Complement',
                 0: 'Offset Binary',
             },
         ))
@@ -315,14 +315,14 @@ class Ad9249ReadoutGroup(pr.Device):
 
         for i in range(channels):
             self.add(pr.RemoteVariable(
-                name         = f'ChannelDelay[{i}]',
-                description  = f'IDELAY value for serial channel {i}',
-                offset       = i*4,
-                bitSize      = delayBits,
-                bitOffset    = 0,
-                base         = pr.UInt,
-                mode         = 'RW',
-                verify       = False,
+                name        = f'ChannelDelay[{i}]',
+                description = f'IDELAY value for serial channel {i}',
+                offset      = i*4,
+                bitSize     = delayBits,
+                bitOffset   = 0,
+                base        = pr.UInt,
+                mode        = 'RW',
+                verify      = False,
             ))
 
         self.add(pr.RemoteVariable(
@@ -333,7 +333,7 @@ class Ad9249ReadoutGroup(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-            verify       = False,
+            verify      = False,
         ))
 
         self.add(pr.RemoteVariable(
@@ -463,15 +463,15 @@ class Ad9249ReadoutGroup2(pr.Device):
 
 
         self.add(pr.RemoteVariable(
-            name         = 'Delay',
-            description  = 'IDELAY value',
-            offset       = 0x00,
-            bitSize      = delayBits,
-            bitOffset    = 0,
-            base         = pr.UInt,
-            mode         = 'RW',
-            verify       = False,
-            groups       = ['NoConfig'],
+            name        = 'Delay',
+            description = 'IDELAY value',
+            offset      = 0x00,
+            bitSize     = delayBits,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
+            verify      = False,
+            groups      = ['NoConfig'],
         ))
 
         self.add(pr.RemoteCommand(
@@ -488,7 +488,7 @@ class Ad9249ReadoutGroup2(pr.Device):
             name        = 'ErrorDetCount',
             description = 'Number of times that frame lock has been lost since reset',
             offset      = 0x30,
-            disp = '{:d}',
+            disp        = '{:d}',
             bitSize     = 16,
             bitOffset   = 0,
             base        = pr.UInt,
@@ -548,13 +548,13 @@ class Ad9249ReadoutGroup2(pr.Device):
 
         for i in range(channels):
             self.add(pr.LinkVariable(
-                name = f'AdcVoltage[{i}]',
+                name        = f'AdcVoltage[{i}]',
                 description = f'Converted voltage for ADC channel {i}',
-                mode = 'RO',
-                disp = '{:1.9f}',
-                variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
-                units = 'V'))
+                mode        = 'RO',
+                disp        = '{:1.9f}',
+                variable    = self.AdcChannel[i],
+                linkedGet   = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
+                units       = 'V'))
 
         self.add(pr.RemoteCommand(
             name        = 'LostLockCountReset',
@@ -597,9 +597,9 @@ class Ad9249ReadoutGroup2(pr.Device):
 
 
 class AdcTester(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, description='ADC Pattern Tester Registers', **kwargs):
         """Create AdcTester"""
-        super().__init__(description='ADC Pattern Tester Regsisters', **kwargs)
+        super().__init__(description=description, **kwargs)
 
         # Creation. memBase is either the register bus server (srp, rce mapped memory, etc) or the device which
         # contains this object. In most cases the parent and memBase are the same but they can be
@@ -614,83 +614,83 @@ class AdcTester(pr.Device):
 
         #Setup registers & variables
         self.add(pr.RemoteVariable(
-            name       = 'TestChannel',
-            description= 'Test Channel Select',
-            offset     = 0x00000000,
-            bitSize    = 32,
-            bitOffset  = 0,
-            base       = pr.UInt,
-            mode       = 'RW',
+            name        = 'TestChannel',
+            description = 'Test Channel Select',
+            offset      = 0x00000000,
+            bitSize     = 32,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestDataMask',
-            description= 'Test Data Mask',
-            offset     = 0x00000004,
-            bitSize    = 32,
-            bitOffset  = 0,
-            base       = pr.UInt,
-            mode       = 'RW',
+            name        = 'TestDataMask',
+            description = 'Test Data Mask',
+            offset      = 0x00000004,
+            bitSize     = 32,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestPattern',
-            description= 'Test Pattern',
-            offset     = 0x00000008,
-            bitSize    = 32,
-            bitOffset  = 0,
-            base       = pr.UInt,
-            mode       = 'RW',
+            name        = 'TestPattern',
+            description = 'Test Pattern',
+            offset      = 0x00000008,
+            bitSize     = 32,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestSamples',
-            description= 'Test Samples Number',
-            offset     = 0x0000000C,
-            bitSize    = 32,
-            bitOffset  = 0,
-            base       = pr.UInt,
-            mode       = 'RW',
+            name        = 'TestSamples',
+            description = 'Test Samples Number',
+            offset      = 0x0000000C,
+            bitSize     = 32,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestTimeout',
-            description= 'Test Timeout',
-            offset     = 0x00000010,
-            bitSize    = 32,
-            bitOffset  = 0,
-            base       = pr.UInt,
-            mode       = 'RW',
+            name        = 'TestTimeout',
+            description = 'Test Timeout',
+            offset      = 0x00000010,
+            bitSize     = 32,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestRequest',
-            description= 'Test Request',
-            offset     = 0x00000014,
-            bitSize    = 1,
-            bitOffset  = 0,
-            base       = pr.Bool,
-            mode       = 'RW',
+            name        = 'TestRequest',
+            description = 'Test Request',
+            offset      = 0x00000014,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestPassed',
-            description= 'Test Passed Flag',
-            offset     = 0x00000018,
-            bitSize    = 1,
-            bitOffset  = 0,
-            base       = pr.Bool,
-            mode       = 'RO',
+            name        = 'TestPassed',
+            description = 'Test Passed Flag',
+            offset      = 0x00000018,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name       = 'TestFailed',
-            description= 'Test Failed Flag',
-            offset     = 0x0000001C,
-            bitSize    = 1,
-            bitOffset  = 0,
-            base       = pr.Bool,
-            mode       = 'RO',
+            name        = 'TestFailed',
+            description = 'Test Failed Flag',
+            offset      = 0x0000001C,
+            bitSize     = 1,
+            bitOffset   = 0,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
     #####################################

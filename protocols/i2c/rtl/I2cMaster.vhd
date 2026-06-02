@@ -342,7 +342,7 @@ begin
                      v.i2cMasterOut.txnError := '0';  -- Necessary, should already be 0?
                      v.state                 := WAIT_TXN_REQ_S;
                   else
-                     -- If not last byte, write nother
+                     -- If not last byte, write another
                      v.state := WRITE_S;
                   end if;
                else

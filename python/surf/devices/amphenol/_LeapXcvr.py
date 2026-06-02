@@ -17,9 +17,9 @@ class LeapXcvr(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name         = "WriteEn",
-            mode         = "RO",
-            value        = writeEn,
+            name  = "WriteEn",
+            mode  = "RO",
+            value = writeEn,
         ))
 
         self.add(pr.RemoteVariable(

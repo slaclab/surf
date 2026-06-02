@@ -13,7 +13,9 @@
 #   reset case so the small CDC FIFO is covered both in its fast path and in
 #   real CDC mode.
 # - Stimulus: Send an ordered data stream through the FIFO, run a common-clock
-#   bypass transfer, and then assert reset while data history exists.
+#   bypass transfer, optionally pause the read side between bursty writes,
+#   optionally reset while FWFT data is pending, and then assert reset while
+#   data history exists.
 # - Checks: Data ordering must be preserved, the common-clock path must bypass
 #   the deeper CDC behavior, and reset must restore the configured initial
 #   output value.
@@ -132,6 +134,21 @@ class TB:
         await self.cycle_rd(1)
         return value
 
+    async def read_with_pause(self) -> int:
+        assert not self.common_clk
+
+        # Most SynchronizerFifo users tie rd_en high, but the FIFO still has a
+        # real read-enable input. This helper models a consumer that explicitly
+        # pauses between pops, so valid can rise and hold before the pop edge.
+        self.dut.rd_en.value = 0
+        await with_timeout(self._wait_valid(), 5, "us")
+        value = int(self.dut.dout.value)
+        self.dut.rd_en.value = 1
+        await self.cycle_rd(1)
+        self.dut.rd_en.value = 0
+        await self.cycle_rd(1)
+        return value
+
     async def _wait_valid(self) -> None:
         # Poll on the read clock because valid is generated in that domain and
         # can appear several cycles after the write that filled the FIFO.
@@ -187,6 +204,67 @@ async def reset_value_test(dut):
         assert observed == tb.init_value
 
 
+@cocotb.test()
+async def async_burst_read_gap_test(dut):
+    if not env_flag("CHECK_ASYNC_BURST_GAPS", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+    assert not tb.common_clk
+    dut.rd_en.value = 0
+
+    first_burst = [0x10 + index for index in range(5)]
+    for value in first_burst:
+        await tb.write(value)
+
+    # Hold the read side idle long enough for pointer synchronization and FWFT
+    # prefetch to settle, then consume only part of the burst.
+    await tb.cycle_rd(8)
+    for expected in first_burst:
+        assert await tb.read_with_pause() == expected
+
+    # After a paused burst drains, a second burst should still cross correctly.
+    # This keeps the test focused on explicit read-enable gaps rather than
+    # overflow behavior, because SynchronizerFifo intentionally exposes no
+    # source-side backpressure.
+    second_burst = [0x40 + index for index in range(4)]
+    for value in second_burst:
+        await tb.write(value)
+    for expected in second_burst:
+        assert await tb.read_with_pause() == expected
+
+
+@cocotb.test()
+async def reset_while_prefetched_test(dut):
+    if not env_flag("CHECK_RESET_WHILE_PREFETCHED", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+    assert not tb.common_clk
+    dut.rd_en.value = 0
+
+    # Let a burst cross into the read domain while the consumer is paused. In
+    # FWFT mode that can leave a visible word waiting at dout before the pop
+    # edge, which is the reset crossing this case is meant to guard.
+    for value in [0x20, 0x21, 0x22]:
+        await tb.write(value)
+    await with_timeout(tb._wait_valid(), 5, "us")
+
+    await tb.reset()
+    dut.rd_en.value = 0
+    assert int(dut.valid.value) == 0
+
+    # Post-reset data should transfer cleanly with no stale pre-reset word
+    # leaking through the paused read path.
+    post_reset = [0x60, 0x61]
+    for value in post_reset:
+        await tb.write(value)
+    for expected in post_reset:
+        assert await tb.read_with_pause() == expected
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "common_clock_bypass",
@@ -209,6 +287,19 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="3",
         WR_CLK_PERIOD_NS="5",
         RD_CLK_PERIOD_NS="9",
+    ),
+    parameter_case(
+        "async_bursty_read_gaps",
+        RST_ASYNC_G="true",
+        RST_POLARITY_G="'1'",
+        COMMON_CLK_G="false",
+        MEMORY_TYPE_G="distributed",
+        DATA_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        CHECK_ASYNC_BURST_GAPS="1",
+        CHECK_RESET_WHILE_PREFETCHED="1",
+        WR_CLK_PERIOD_NS="3",
+        RD_CLK_PERIOD_NS="13",
     ),
 ]
 

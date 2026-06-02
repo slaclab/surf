@@ -230,9 +230,9 @@ begin
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
       -- Up to 8 delay registers
-      -- Write delay values to IDELAY primatives
+      -- Write delay values to IDELAY primitives
       -- All writes go to same r.delay register,
-      -- dataDelaySet(i) or frameDelaySet enables the primative write
+      -- dataDelaySet(i) or frameDelaySet enables the primitive write
       for i in 0 to NUM_CHANNELS_G-1 loop
          axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 0, v.delay);
          axiSlaveRegister(axilEp, X"00"+toSlv((i*4), 8), 5, v.dataDelaySet(i), '1');
@@ -240,7 +240,7 @@ begin
       axiSlaveRegister(axilEp, X"20", 0, v.delay);
       axiSlaveRegister(axilEp, X"20", 5, v.frameDelaySet, '1');
 
-      -- Override read from r.delay and use curDealy output from delay primative instead
+      -- Override read from r.delay and use curDelay output from delay primitive instead
       for i in 0 to NUM_CHANNELS_G-1 loop
          axiSlaveRegisterR(axilEp, X"00"+toSlv((i*4), 8), 0, axilR.curDelayData(i));
       end loop;

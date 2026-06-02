@@ -197,12 +197,12 @@ class Pgp4AxiLCtrl(pr.Device):
 
         if writeEn:
             self.add(pr.RemoteCommand(
-                name         = 'FecInjectBitError',
-                description  = "Inject a bit error into the FEC stream for testing",
-                offset       = 0x010,
-                bitSize      = 1,
-                bitOffset    = 0,
-                function     = lambda cmd: cmd.post(1),
+                name        = 'FecInjectBitError',
+                description = "Inject a bit error into the FEC stream for testing",
+                offset      = 0x010,
+                bitSize     = 1,
+                bitOffset   = 0,
+                function    = lambda cmd: cmd.post(1),
             ))
 
         self.add(pr.RemoteVariable(
@@ -226,13 +226,13 @@ class Pgp4AxiLCtrl(pr.Device):
                 return str(datetime.timedelta(seconds=seconds))
 
         self.add(pr.LinkVariable(
-            name         = 'UpTime',
-            description  = 'Time since power up or last CountReset event',
-            mode         = 'RO',
-            disp         = '{}',
-            variable     = self.UpTimeCnt,
-            linkedGet    = parseUpTime,
-            units        = 'HH:MM:SS',
+            name        = 'UpTime',
+            description = 'Time since power up or last CountReset event',
+            mode        = 'RO',
+            disp        = '{}',
+            variable    = self.UpTimeCnt,
+            linkedGet   = parseUpTime,
+            units       = 'HH:MM:SS',
         ))
 
     def countReset(self):

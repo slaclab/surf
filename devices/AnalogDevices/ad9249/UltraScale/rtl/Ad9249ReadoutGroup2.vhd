@@ -304,7 +304,7 @@ begin
 
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
-      -- Write delay values to IDELAY primatives
+      -- Write delay values to IDELAY primitives
       -- Overriding gearbox aligner
       -- All writes go to same r.delay register,
       axiSlaveRegister(axilEp, X"00", 0, v.delay);

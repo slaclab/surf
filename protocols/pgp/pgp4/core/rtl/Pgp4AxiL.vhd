@@ -198,11 +198,11 @@ begin
    ---------------------
    -- AXI-Lite Registers
    ---------------------
-   comb : process (axilReadMaster, axilRst, axilWriteMaster, locData, locOverflowCnt,
-                   locPause, locPauseCnt, phyFec, phyFecCnt, r, remLinkData,
-                   remRxOverflowCnt, remRxPause, remRxPauseCnt, rxClkFreq, rxError,
-                   rxErrorCnt, rxOpCodeData, rxStatusCnt, txClkFreq, txError,
-                   txErrorCnt, txOpCodeData, txStatusCnt) is
+   comb : process (axilReadMaster, axilRst, axilWriteMaster, locData,
+                   locOverflowCnt, locPause, locPauseCnt, phyFec, phyFecCnt, r,
+                   remLinkData, remRxOverflowCnt, remRxPause, remRxPauseCnt,
+                   rxClkFreq, rxError, rxErrorCnt, rxOpCodeData, rxStatusCnt,
+                   txClkFreq, txError, txErrorCnt, txOpCodeData, txStatusCnt) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -216,7 +216,7 @@ begin
       -- Uptime counter
       ---------------------------------
 
-      -- Check for timout
+      -- Check for timeout
       if r.timer = TIMEOUT_1HZ_C then
 
          -- Reset the timer

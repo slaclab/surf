@@ -26,124 +26,124 @@ class AxiMemTester(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = 'Passed',
-            description  = 'Passed Memory Test',
-            offset       =  0x100,
-            bitSize      =  1,
-            bitOffset    =  0,
-            mode         = 'RO',
+            name        = 'Passed',
+            description = 'Passed Memory Test',
+            offset      =  0x100,
+            bitSize     =  1,
+            bitOffset   =  0,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Start',
-            description  = 'Current value of the start signal',
-            offset       =  0x100,
-            bitSize      =  1,
-            bitOffset    =  1,
-            mode         = 'RO',
+            name        = 'Start',
+            description = 'Current value of the start signal',
+            offset      =  0x100,
+            bitSize     =  1,
+            bitOffset   =  1,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Busy',
-            description  = '1 if not IDLE_S else 0',
-            offset       =  0x100,
-            bitSize      =  1,
-            bitOffset    =  2,
-            mode         = 'RO',
+            name        = 'Busy',
+            description = '1 if not IDLE_S else 0',
+            offset      =  0x100,
+            bitSize     =  1,
+            bitOffset   =  2,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Failed',
-            description  = 'Failed Memory Test',
-            offset       =  0x104,
-            bitSize      =  1,
-            mode         = 'RO',
+            name        = 'Failed',
+            description = 'Failed Memory Test',
+            offset      =  0x104,
+            bitSize     =  1,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'WriteTimer',
-            description  = 'Write Timer',
-            offset       =  0x108,
-            bitSize      =  32,
-            mode         = 'RO',
+            name        = 'WriteTimer',
+            description = 'Write Timer',
+            offset      =  0x108,
+            bitSize     =  32,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ReadTimer',
-            description  = 'Read Timer',
-            offset       =  0x10C,
-            bitSize      =  32,
-            mode         = 'RO',
+            name        = 'ReadTimer',
+            description = 'Read Timer',
+            offset      =  0x10C,
+            bitSize     =  32,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'StartAddress',
-            description  = 'Start Address',
-            offset       =  0x110,
-            bitSize      =  64,
-            mode         = 'RO',
+            name        = 'StartAddress',
+            description = 'Start Address',
+            offset      =  0x110,
+            bitSize     =  64,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'StopAddress',
-            description  = 'Stop Address',
-            offset       =  0x118,
-            bitSize      =  64,
-            mode         = 'RO',
+            name        = 'StopAddress',
+            description = 'Stop Address',
+            offset      =  0x118,
+            bitSize     =  64,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ADDR_WIDTH_C',
-            description  = 'AXI4 Address Bus Width (units of bits)',
-            offset       =  0x120,
-            bitSize      =  32,
-            mode         = 'RO',
+            name        = 'ADDR_WIDTH_C',
+            description = 'AXI4 Address Bus Width (units of bits)',
+            offset      =  0x120,
+            bitSize     =  32,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DATA_BYTES_C',
-            description  = 'AXI4 Data Bus Width (units of bits)',
-            offset       =  0x124,
-            bitSize      =  32,
-            mode         = 'RO',
+            name        = 'DATA_BYTES_C',
+            description = 'AXI4 Data Bus Width (units of bits)',
+            offset      =  0x124,
+            bitSize     =  32,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ID_BITS_C',
-            description  = 'AXI4 ID Bus Width (units of bits)',
-            offset       =  0x128,
-            bitSize      =  32,
-            mode         = 'RO',
+            name        = 'ID_BITS_C',
+            description = 'AXI4 ID Bus Width (units of bits)',
+            offset      =  0x128,
+            bitSize     =  32,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'WrErrResp',
-            description  = 'AXI4 Bus Write Error Response',
-            offset       =  0x12C,
-            bitSize      =  1,
-            bitOffset    =  0,
-            base         = pr.Bool,
-            mode         = 'RO',
+            name        = 'WrErrResp',
+            description = 'AXI4 Bus Write Error Response',
+            offset      =  0x12C,
+            bitSize     =  1,
+            bitOffset   =  0,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RdErrResp',
-            description  = 'AXI4 Bus Read Error Response',
-            offset       =  0x12C,
-            bitSize      =  1,
-            bitOffset    =  1,
-            base         = pr.Bool,
-            mode         = 'RO',
+            name        = 'RdErrResp',
+            description = 'AXI4 Bus Read Error Response',
+            offset      =  0x12C,
+            bitSize     =  1,
+            bitOffset   =  1,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RdErrData',
-            description  = 'Read Data Error',
-            offset       =  0x12C,
-            bitSize      =  1,
-            bitOffset    =  2,
-            base         = pr.Bool,
-            mode         = 'RO',
+            name        = 'RdErrData',
+            description = 'Read Data Error',
+            offset      =  0x12C,
+            bitSize     =  1,
+            bitOffset   =  2,
+            base        = pr.Bool,
+            mode        = 'RO',
         ))
 
         for i in range(32):

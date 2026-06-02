@@ -504,7 +504,7 @@ begin
             nxtEOF <= '0'             after TPD_G;
          else
 
-            -- EOF Charactor Required If CRC was in last word and there was
+            -- EOF Character Required If CRC was in last word and there was
             -- not enough space for EOF
             if nxtEOF = '1' then
                phyTxd <= X"07070707070707FD" after TPD_G;

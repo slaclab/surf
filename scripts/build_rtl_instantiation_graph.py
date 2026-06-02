@@ -17,6 +17,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import tempfile
 
 
 RE_ENTITY_DECL = re.compile(r"\bentity\s+(?P<name>[A-Za-z][A-Za-z0-9_]*)\s+is\b", re.IGNORECASE)
@@ -53,7 +54,7 @@ ARCH_BODY_SKIP_TOKENS = {
     "while",
 }
 
-DEFAULT_SCAN_DIRS = ("base", "axi", "protocols", "ethernet", "devices", "xilinx")
+DEFAULT_SCAN_DIRS = ("base", "axi", "dsp", "protocols", "ethernet", "devices", "xilinx")
 EXCLUDED_PARTS = {"tb", "build", ".venv", "__pycache__"}
 PHASE1_QUEUE_OVERRIDES_FILENAME = "rtl_phase1_queue_overrides.json"
 
@@ -71,6 +72,10 @@ class EntityDefinition:
 
 def _repo_root() -> Path:
     return Path(__file__).resolve().parents[1]
+
+
+def _default_output_dir() -> Path:
+    return Path(tempfile.gettempdir()) / "surf_rtl_instantiation_graph"
 
 
 def _strip_comments(text: str) -> str:
@@ -957,6 +962,10 @@ def _write_phase1_queue_artifacts(
     layers = _bottom_up_layers(phase1_graph, phase1_defs)
     queue = [node_id for layer in layers for node_id in layer]
     queue, applied_overrides = _apply_order_overrides(queue, phase1_graph, phase1_defs, overrides)
+    try:
+        displayed_override_path = override_path.relative_to(repo_root)
+    except ValueError:
+        displayed_override_path = override_path
 
     layer_by_node = {
         node_id: layer_index
@@ -967,7 +976,7 @@ def _write_phase1_queue_artifacts(
     _write_phase1_queue_json(
         output_dir / "rtl_phase1_queue.json",
         scan_dirs=scan_dirs,
-        override_path=override_path.relative_to(repo_root),
+        override_path=displayed_override_path,
         overrides=overrides,
         definitions=phase1_defs,
         graph=phase1_graph,
@@ -980,7 +989,7 @@ def _write_phase1_queue_artifacts(
     _write_phase1_queue_markdown(
         output_dir / "rtl_phase1_queue.md",
         scan_dirs=scan_dirs,
-        override_path=override_path.relative_to(repo_root),
+        override_path=displayed_override_path,
         overrides=overrides,
         definitions=phase1_defs,
         graph=phase1_graph,
@@ -1016,8 +1025,11 @@ def main() -> None:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(_repo_root() / "docs" / "_meta"),
-        help="Directory for generated graph and queue artifacts.",
+        default=str(_default_output_dir()),
+        help=(
+            "Directory for generated graph and queue artifacts. Defaults to a temporary "
+            "directory so generated analysis does not become normal docs context."
+        ),
     )
     parser.add_argument(
         "--scan-dir",

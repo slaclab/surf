@@ -29,22 +29,22 @@ class ClinkTop(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "ChanCount",
-            description  = "Supported channels",
-            offset       =  0x00,
-            bitSize      =  4,
-            bitOffset    =  0x00,
-            mode         = "RO",
+            name        = "ChanCount",
+            description = "Supported channels",
+            offset      =  0x00,
+            bitSize     =  4,
+            bitOffset   =  0x00,
+            mode        = "RO",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RstPll",
-            description  = "Camera link channel PLL reset",
-            offset       =  0x04,
-            bitSize      =  1,
-            bitOffset    =  0,
-            mode         = "RW",
-            hidden       = True,
+            name        = "RstPll",
+            description = "Camera link channel PLL reset",
+            offset      =  0x04,
+            bitSize     =  1,
+            bitOffset   =  0,
+            mode        = "RW",
+            hidden      = True,
         ))
 
         @self.command(description="toggles Camera link channel PLL reset",)
@@ -53,21 +53,21 @@ class ClinkTop(pr.Device):
             self.RstPll.set(0x0)
 
         self.add(pr.RemoteCommand(
-            name         = "ResetFsm",
-            description  = "Camera link channel FSM reset",
-            offset       =  0x04,
-            bitSize      =  1,
-            bitOffset    =  1,
-            function     = pr.BaseCommand.toggle,
+            name        = "ResetFsm",
+            description = "Camera link channel FSM reset",
+            offset      =  0x04,
+            bitSize     =  1,
+            bitOffset   =  1,
+            function    = pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "CntRst",
-            description  = "Reset all Camera Link counters",
-            offset       = 0x04,
-            bitSize      = 1,
-            bitOffset    = 2,
-            function     = pr.BaseCommand.toggle,
+            name        = "CntRst",
+            description = "Reset all Camera Link counters",
+            offset      = 0x04,
+            bitSize     = 1,
+            bitOffset   = 2,
+            function    = pr.BaseCommand.toggle,
         ))
 
         self.add(pr.RemoteVariable(
@@ -243,10 +243,10 @@ class ClinkTop(pr.Device):
 
         for i in range(3):
             self.add(pr.LocalVariable(
-                name         = f'PllConfig[{i}]',
-                description  = 'Sets the PLL to a known set of configurations',
-                mode         = 'RW',
-                value        = '',
+                name        = f'PllConfig[{i}]',
+                description = 'Sets the PLL to a known set of configurations',
+                mode        = 'RW',
+                value       = '',
             ))
 
     def hardReset(self):

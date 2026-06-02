@@ -185,44 +185,44 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "GtRstAll",
-            description  = "Used to reset the GTs",
-            offset       = 0xFDC,
-            bitSize      = 1,
-            mode         = "RW",
+            name        = "GtRstAll",
+            description = "Used to reset the GTs",
+            offset      = 0xFDC,
+            bitSize     = 1,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'NUM_LANES_G',
-            description  = 'Generic: number of CoaXPress lanes',
-            offset       = 0xFE0,
-            bitSize      = 8,
-            bitOffset    = 0,
-            disp         = '{:d}',
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'NUM_LANES_G',
+            description = 'Generic: number of CoaXPress lanes',
+            offset      = 0xFE0,
+            bitSize     = 8,
+            bitOffset   = 0,
+            disp        = '{:d}',
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'STATUS_CNT_WIDTH_G',
-            description  = 'Generic: status counter bit width',
-            offset       = 0xFE0,
-            bitSize      = 8,
-            bitOffset    = 8,
-            disp         = '{:d}',
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'STATUS_CNT_WIDTH_G',
+            description = 'Generic: status counter bit width',
+            offset      = 0xFE0,
+            bitSize     = 8,
+            bitOffset   = 8,
+            disp        = '{:d}',
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RX_FSM_CNT_WIDTH_G',
-            description  = 'Generic: RX FSM counter bit width',
-            offset       = 0xFE0,
-            bitSize      = 8,
-            bitOffset    = 16,
-            disp         = '{:d}',
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'RX_FSM_CNT_WIDTH_G',
+            description = 'Generic: RX FSM counter bit width',
+            offset      = 0xFE0,
+            bitSize     = 8,
+            bitOffset   = 16,
+            disp        = '{:d}',
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteCommand(
@@ -234,13 +234,13 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "TrigPulseWidthRaw",
-            description  = "Sets the CXP trigger pulse width",
-            offset       = 0xFEC,
-            bitSize      = 32,
-            mode         = "RW",
-            units        = '1/312.5MHz',
-            hidden       = True,
+            name        = "TrigPulseWidthRaw",
+            description = "Sets the CXP trigger pulse width",
+            offset      = 0xFEC,
+            bitSize     = 32,
+            mode        = "RW",
+            units       = '1/312.5MHz',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -263,78 +263,78 @@ class CoaXPressAxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ConfigTimerSize',
-            description  = 'Configuration packet inter-frame timer size',
-            offset       = 0xFF4,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'ConfigTimerSize',
+            description = 'Configuration packet inter-frame timer size',
+            offset      = 0xFF4,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxNumberOfLane',
-            description  = 'Number of active RX lanes',
-            offset       = 0xFF8,
-            bitSize      = 4,
-            bitOffset    = 0,
-            mode         = 'RW',
-            disp         = '{:d}',
+            name        = 'RxNumberOfLane',
+            description = 'Number of active RX lanes',
+            offset      = 0xFF8,
+            bitSize     = 4,
+            bitOffset   = 0,
+            mode        = 'RW',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxTrigInv',
-            description  = 'Invert TX trigger polarity',
-            offset       = 0xFF8,
-            bitSize      = 1,
-            bitOffset    = 24,
-            mode         = 'RW',
+            name        = 'TxTrigInv',
+            description = 'Invert TX trigger polarity',
+            offset      = 0xFF8,
+            bitSize     = 1,
+            bitOffset   = 24,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ConfigErrResp',
-            description  = 'Enable AXI error response on configuration packet errors',
-            offset       = 0xFF8,
-            bitSize      = 1,
-            bitOffset    = 25,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'ConfigErrResp',
+            description = 'Enable AXI error response on configuration packet errors',
+            offset      = 0xFF8,
+            bitSize     = 1,
+            bitOffset   = 25,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ConfigPktTag',
-            description  = 'Enable tag insertion in configuration packets',
-            offset       = 0xFF8,
-            bitSize      = 1,
-            bitOffset    = 26,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'ConfigPktTag',
+            description = 'Enable tag insertion in configuration packets',
+            offset      = 0xFF8,
+            bitSize     = 1,
+            bitOffset   = 26,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxLsRate',
-            description  = 'TX low-speed upconnection rate select (0=20.83Mb/s, 1=41.66Mb/s)',
-            offset       = 0xFF8,
-            bitSize      = 1,
-            bitOffset    = 27,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'TxLsRate',
+            description = 'TX low-speed upconnection rate select (0=20.83Mb/s, 1=41.66Mb/s)',
+            offset      = 0xFF8,
+            bitSize     = 1,
+            bitOffset   = 27,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxLsLaneEnable',
-            description  = 'TX low-speed upconnection lane enable bitmask',
-            offset       = 0xFF8,
-            bitSize      = 4,
-            bitOffset    = 28,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'TxLsLaneEnable',
+            description = 'TX low-speed upconnection lane enable bitmask',
+            offset      = 0xFF8,
+            bitSize     = 4,
+            bitOffset   = 28,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'CountReset',
-            description  = 'Status counter reset',
-            offset       = 0xFFC,
-            bitSize      = 1,
-            function     = pr.BaseCommand.touchOne
+            name        = 'CountReset',
+            description = 'Status counter reset',
+            offset      = 0xFFC,
+            bitSize     = 1,
+            function    = pr.BaseCommand.touchOne
         ))
 
     def countReset(self):

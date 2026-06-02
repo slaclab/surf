@@ -77,9 +77,10 @@ architecture mapping of FirFilterSingleChannel is
 
    constant NUM_ADDR_BITS_C : positive := bitSize(NUM_TAPS_G-1);
 
-   constant FILTER_DELAY_C : integer := (NUM_TAPS_G-1)/2;
+   constant FILTER_DELAY_C : integer  := (NUM_TAPS_G-1)/2;
+   constant OUTPUT_DELAY_C : positive := FILTER_DELAY_C+1;
 
-   type SidebandPipelineArray is array (FILTER_DELAY_C-1 downto 0) of slv(SIDEBAND_WIDTH_G-1 downto 0);
+   type SidebandPipelineArray is array (OUTPUT_DELAY_C downto 0) of slv(SIDEBAND_WIDTH_G-1 downto 0);
 
    type RegType is record
       coeffin    : CoeffArray;
@@ -88,7 +89,7 @@ architecture mapping of FirFilterSingleChannel is
       din        : DinArray;
       tdata      : slv(DATA_WIDTH_G-1 downto 0);
       sideband   : SidebandPipelineArray;
-      tValid     : slv(FILTER_DELAY_C-1 downto 0);
+      tValid     : slv(OUTPUT_DELAY_C downto 0);
       readSlave  : AxiLiteReadSlaveType;
       writeSlave : AxiLiteWriteSlaveType;
    end record RegType;
@@ -222,8 +223,11 @@ begin
          v.din         := (others => din);  -- Using array to help with fanout
          v.sideband(0) := sbIn;
 
-         v.tValid(FILTER_DELAY_C-1 downto 1)   := r.tValid(FILTER_DELAY_C-2 downto 0);
-         v.sideband(FILTER_DELAY_C-1 downto 1) := r.sideband(FILTER_DELAY_C-2 downto 0);
+         for i in OUTPUT_DELAY_C downto 1 loop
+            v.sideband(i) := r.sideband(i-1);
+         end loop;
+
+         v.tValid(OUTPUT_DELAY_C downto 1) := r.tValid(OUTPUT_DELAY_C-1 downto 0);
 
          -- Truncate the fractional bits (COEFF_WIDTH_G-1) and overflow bits for output
          v.tData := cascout(NUM_TAPS_G-1)(DATA_WIDTH_G-1+COEFF_WIDTH_G-1 downto COEFF_WIDTH_G-1);
@@ -234,8 +238,8 @@ begin
       cascTapEn <= v.ibReady;
       ibReady   <= v.ibReady;
       dout      <= r.tdata;
-      obValid   <= r.tValid(FILTER_DELAY_C-1);
-      sbOut     <= r.sideband(FILTER_DELAY_C-1);
+      obValid   <= r.tValid(OUTPUT_DELAY_C);
+      sbOut     <= r.sideband(OUTPUT_DELAY_C);
 
       -- Reset
       if (rst = '1') then
@@ -280,7 +284,7 @@ begin
             clk     => clk,
             en      => cascTapEn,
             -- Data and tap coefficient Interface
-            datain  => r.din(i),  -- Common data input because Transpose Multiply-Accumulate architecture
+            datain  => din,  -- Use the accepted sample directly so data and sideband stay aligned
             coeffin => r.coeffin(NUM_TAPS_G-1-i),
             coeffce => r.coeffce(NUM_TAPS_G-1-i),  -- Reversed order because Transpose Multiply-Accumulate architecture
             -- Cascade Interface
