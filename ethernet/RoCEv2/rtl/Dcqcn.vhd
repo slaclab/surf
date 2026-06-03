@@ -32,7 +32,7 @@ entity Dcqcn is
       AXIS_CONFIG_G  : AxiStreamConfigType := SSI_CONFIG_INIT_C;
       RST_ASYNC_G    : boolean             := false;
       RST_POLARITY_G : sl                  := '1'
-      );
+   );
    port (
       axisClk         : in  sl;
       axisRst         : in  sl;
@@ -59,7 +59,7 @@ architecture rtl of Dcqcn is
    type StateType is (
       IDLE_S,
       THE_CNP_AFTERMATH_S
-      );
+   );
 
    type RegType is record
       Rc                 : slv(31 downto 0);  -- Current rate, int
@@ -155,7 +155,7 @@ begin  -- architecture rtl
       generic map (
          TPD_G    => TPD_G,
          STAGES_G => 3
-         )
+      )
       port map (
          clk        => axisClk,
          rst        => axisRst,

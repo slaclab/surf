@@ -134,8 +134,8 @@ architecture mapping of RoceEngineWrapper is
    end component mkAxiSTransportLayer;
 
    constant NUM_AXIL_MASTERS_C : positive := 2;
-   constant XBAR_CONFIG_C      : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0)
-      := genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
+   constant XBAR_CONFIG_C      : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
+       genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 16, 12);
    constant XBAR_ROCE_CONFIG_C  : natural := 0;
    constant XBAR_DCQCN_CONFIG_C : natural := 1;
 

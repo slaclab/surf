@@ -25,10 +25,10 @@ use surf.SsiPkg.all;
 entity TokenBucket is
    generic (
       TPD_G         : time    := 1 ns;
-      CLK_FREQ_G    : real    := 156.25e+6;
+      CLK_FREQ_G    : real    := 156.25E+6;
       FRAC_BITS_G   : natural := 16;
       AXIS_CONFIG_G : AxiStreamConfigType
-      );
+   );
    port (
       axisClk     : in  sl;
       axisRst     : in  sl;

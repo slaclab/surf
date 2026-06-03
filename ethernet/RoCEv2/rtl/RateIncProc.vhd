@@ -26,7 +26,7 @@ entity RateIncProc is
       LINE_RATE_G    : integer := 1_250_000_000;  -- 1.25 GB/s = 10 Gb/s
       RST_ASYNC_G    : boolean := false;
       RST_POLARITY_G : sl      := '1'
-      );
+   );
    port (
       clk                : in  sl;
       rst                : in  sl;

@@ -25,7 +25,7 @@ entity AlphaUpdate is
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
       RST_POLARITY_G : sl      := '1'
-      );
+   );
    port (
       clk              : in  sl;
       rst              : in  sl;
@@ -72,11 +72,11 @@ begin  -- architecture rtl
 
    comb : process (AlphaG, alphaUpdInterval, cnpDetected, curAlpha, r, rst,
                    start) is
-      variable v          : RegType;
-      variable mult       : slv(19 downto 0);
-      variable mult_s     : slv(19 downto 0);
-      variable mult_round : slv(19 downto 0);
-      variable term2      : slv(10 downto 0);
+      variable v         : RegType;
+      variable mult      : slv(19 downto 0);
+      variable multS     : slv(19 downto 0);
+      variable multRound : slv(19 downto 0);
+      variable term2     : slv(10 downto 0);
    begin  -- process comb
       -- Latch the current value
       v       := r;
@@ -100,21 +100,21 @@ begin  -- architecture rtl
          when UPDATE_S =>
             if cnpDetected = '1' then
                mult               := curAlpha * AlphaG;
-               -- mult_s     := mult srl 10;
-               -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
-               mult_round         := mult + 512;
-               mult_s             := (others => '0');
-               mult_s(9 downto 0) := mult_round(19 downto 10);
+               -- multS     := mult srl 10;
+               -- multS := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
+               multRound         := mult + 512;
+               multS             := (others => '0');
+               multS(9 downto 0) := multRound(19 downto 10);
                term2              := ONE_FP_C - AlphaG;
-               v.newAlpha         := mult_s(9 downto 0) + term2(9 downto 0);
+               v.newAlpha         := multS(9 downto 0) + term2(9 downto 0);
             else
                mult               := curAlpha * AlphaG;
-               -- mult_s     := mult srl 10;
-               -- mult_s := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
-               mult_round         := mult + 512;
-               mult_s             := (others => '0');
-               mult_s(9 downto 0) := mult_round(19 downto 10);
-               v.newAlpha         := mult_s(9 downto 0);
+               -- multS     := mult srl 10;
+               -- multS := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
+               multRound         := mult + 512;
+               multS             := (others => '0');
+               multS(9 downto 0) := multRound(19 downto 10);
+               v.newAlpha         := multS(9 downto 0);
             end if;
             v.valid := '1';
             v.timer := (others => '0');

@@ -29,9 +29,9 @@ use surf.SsiPkg.all;
 entity tokenCalc is
    generic (
       TPD_G       : time    := 1 ns;
-      CLK_FREQ_G  : real    := 156.25e+6;
+      CLK_FREQ_G  : real    := 156.25E+6;
       FRAC_BITS_G : natural := 16
-      );
+   );
    port (
       clk          : in  sl;
       rst          : in  sl;
@@ -43,10 +43,10 @@ end entity tokenCalc;
 architecture rtl of tokenCalc is
 
    function calc_k(n_bits : positive; f_hz : natural; frac_bits : natural) return slv is
-      variable k_int : integer;
+      variable kInt : integer;
    begin
-      k_int := integer(exp(real(n_bits + frac_bits) * log(2.0)) / real(f_hz));
-      return conv_std_logic_vector(k_int, 32);
+      kInt := integer(exp(real(n_bits + frac_bits) * log(2.0)) / real(f_hz));
+      return conv_std_logic_vector(kInt, 32);
    end function;
 
    constant N_C                : natural          := 48 - FRAC_BITS_G;

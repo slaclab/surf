@@ -32,7 +32,7 @@ entity AxisBucket is
       FRAC_BITS_G    : natural          := 16;
       BUCKET_SIZE_G  : slv(31 downto 0) := x"10000000";  -- in bytes
       AXIS_CONFIG_G  : AxiStreamConfigType
-      );
+   );
 
    port (
       axisClk      : in  sl;
@@ -52,7 +52,7 @@ architecture rtl of AxisBucket is
    type FrameState is (
       IDLE_S,
       READ_S
-      );
+   );
 
    type RegType is record
       state      : FrameState;
@@ -85,9 +85,9 @@ begin  -- architecture rtl
 
    comb : process (axisRst, byte_per_clk, packet_size, pipeAxisSlave, r,
                    sAxisMaster) is
-      variable v                         : RegType;
-      variable packet_size_full          : slv(31 + FRAC_BITS_G downto 0);
-      variable frac_bits_for_packet_size : slv(FRAC_BITS_G-1 downto 0);
+      variable v                     : RegType;
+      variable packetSizeFull        : slv(31 + FRAC_BITS_G downto 0);
+      variable fracBitsForPacketSize : slv(FRAC_BITS_G-1 downto 0);
    begin  -- process comb
       -- Latch the current value
       v := r;
@@ -97,8 +97,8 @@ begin  -- architecture rtl
       v.rd_en            := '0';
 
       -- Set fixed point arithmetic
-      frac_bits_for_packet_size := (others => '0');
-      packet_size_full          := packet_size & frac_bits_for_packet_size;
+      fracBitsForPacketSize := (others => '0');
+      packetSizeFull          := packet_size & fracBitsForPacketSize;
 
       -- Choose ready source and clear valid
       if (pipeAxisSlave.tReady = '1') then
@@ -114,7 +114,7 @@ begin  -- architecture rtl
          -------------------------------------------------------------------------
          when IDLE_S =>
             v.axisMaster := axiStreamMasterInit(AXIS_CONFIG_G);
-            if sAxisMaster.tValid = '1' and r.count >= packet_size_full then
+            if sAxisMaster.tValid = '1' and r.count >= packetSizeFull then
                v.rd_en := '1';
                v.state := READ_S;
             end if;
@@ -141,7 +141,7 @@ begin  -- architecture rtl
       end if;
 
       if v.rd_en = '1' then
-         v.count := v.count - packet_size_full;
+         v.count := v.count - packetSizeFull;
       end if;
 
       -- Outputs

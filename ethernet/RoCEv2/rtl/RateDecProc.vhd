@@ -25,7 +25,7 @@ entity RateDecProc is
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
       RST_POLARITY_G : sl      := '1'
-      );
+   );
    port (
       clk             : in  sl;
       rst             : in  sl;
