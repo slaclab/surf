@@ -12,11 +12,9 @@
 # - Sweep: Keep one stable same-width wrapper case.
 # - Stimulus: Drive one contiguous full-keep beat directly into the flat slave
 #   port and hold the master ready high.
-# - Checks: The accepted output beat must preserve the full-byte keep mask and
-#   terminate with `tLast`.
-# - Timing: The beat is driven through the real compact datapath, but the
-#   bench samples only the stable payload handshake fields under the current
-#   simulator stack.
+# - Checks: A full-keep beat passes straight through, so the output beat must
+#   preserve the payload data and full-byte keep mask and terminate with
+#   `tLast`.
 
 import cocotb
 import pytest
@@ -86,7 +84,7 @@ async def contiguous_full_keep_test(dut):
     await tb.reset()
     await tb.drive_beat(data=0x44332211, keep=0xF, last=1)
     await tb.cycle(2)
-    assert tb.rx_beats == [(0, 0xF, 1)]
+    assert tb.rx_beats == [(0x44332211, 0xF, 1)]
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="contiguous_same_width")])
