@@ -376,15 +376,14 @@ class Bootstrap(pr.Device):
             disp        = '{:d}',
         ))
 
-        if not simpleDiscovery:
-            self.add(pr.RemoteVariable(
-                name        = 'ConnectionConfig',
-                description = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
-                offset      = 0x00004014,
-                base        = pr.UIntBE,
-                mode        = 'WO',
-                overlapEn   = True,
-            ))
+        self.add(pr.RemoteVariable(
+            name        = 'ConnectionConfig',
+            description = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
+            offset      = 0x00004014,
+            base        = pr.UIntBE,
+            mode        = 'WO',
+            overlapEn   = True,
+        ))
 
         self.add(pr.RemoteVariable(
             name        = 'NumberOfConnections',
