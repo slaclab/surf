@@ -9,8 +9,8 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Cover the two request-serialization branches that are unique to
-#   `CoaXPressConfig`: untagged reads and tagged writes.
+# - Sweep: Cover all four config request-format quadrants plus local timeout
+#   and nonzero control-ack response error handling.
 # - Stimulus: Drive wide SRPv3 request frames into `cfgIb`, capture the emitted
 #   CoaXPress low-speed byte stream on `cfgTx`, and feed the completion side
 #   with one config receive acknowledgment.
@@ -46,6 +46,11 @@ from tests.protocols.srp.srp_test_utils import (
     assert_srpv3_response,
     srpv3_frame,
 )
+
+
+CONFIG_READ_ERROR_FOOTER = 0x1
+CONFIG_WRITE_ERROR_FOOTER = 0x2
+
 
 
 async def _drive_cfg_rx_completion(dut, value: int, *, hold_cycles: int = 8) -> None:
@@ -185,6 +190,139 @@ async def coaxpress_config_tagged_write_tag_increment_test(dut):
             request,
             [write_data],
         )
+
+
+
+@cocotb.test()
+async def coaxpress_config_tagged_read_and_untagged_write_request_test(dut):
+    # Cover the two request-format quadrants not hit by the original directed
+    # cases: tagged read and untagged write.
+    axis = await _setup_config_bench(dut, config_pkt_tag=1)
+
+    read_request = SrpV3Request(SRP_READ, 0x12340001, 0x00000120, 4)
+    read_data = 0x13579BDF
+    read_tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.cfgClk,
+            valid_name="M_CFG_TX_TVALID",
+            data_name="M_CFG_TX_TDATA",
+            ready_name="M_CFG_TX_TREADY",
+            count=28,
+            timeout_cycles=8000,
+        )
+    )
+    read_response_task = cocotb.start_soon(axis.recv_response(timeout_time=20))
+    await axis.send_words(srpv3_frame(read_request))
+
+    read_tx_bytes = await with_timeout(read_tx_task, 20, "us")
+    assert read_tx_bytes[:4] == bytes(word_to_bytes(CXP_SOP))
+    assert read_tx_bytes[4:8] == bytes([0x05] * 4)
+    assert read_tx_bytes[8:12] == bytes([0x00] * 4)
+    assert read_tx_bytes[12:16] == bytes(word_to_bytes(0x04000000))
+    assert read_tx_bytes[16:20] == bytes(word_to_bytes(endian_swap32(read_request.address)))
+    expected_read_crc = cxp_crc_word(
+        [0x00000000, 0x04000000, endian_swap32(read_request.address)]
+    )
+    assert read_tx_bytes[20:24] == bytes(word_to_bytes(expected_read_crc))
+    assert read_tx_bytes[-4:] == bytes(word_to_bytes(CXP_EOP))
+
+    await _drive_cfg_rx_completion(dut, read_data << 32)
+    assert_srpv3_response(await read_response_task, read_request, [read_data])
+
+    dut.configPktTag.value = 0
+    await RisingEdge(dut.cfgClk)
+    await Timer(1, unit="ns")
+
+    write_request = SrpV3Request(SRP_WRITE, 0x12340002, 0x00000124, 4)
+    write_data = 0x2468ACE0
+    write_tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.cfgClk,
+            valid_name="M_CFG_TX_TVALID",
+            data_name="M_CFG_TX_TDATA",
+            ready_name="M_CFG_TX_TREADY",
+            count=28,
+            timeout_cycles=8000,
+        )
+    )
+    write_response_task = cocotb.start_soon(axis.recv_response(timeout_time=20))
+    await axis.send_words(srpv3_frame(write_request, [write_data]))
+
+    write_tx_bytes = await with_timeout(write_tx_task, 20, "us")
+    assert write_tx_bytes[:4] == bytes(word_to_bytes(CXP_SOP))
+    assert write_tx_bytes[4:8] == bytes([0x02] * 4)
+    assert write_tx_bytes[8:12] == bytes(word_to_bytes(0x04000001))
+    assert write_tx_bytes[12:16] == bytes(word_to_bytes(endian_swap32(write_request.address)))
+    assert write_tx_bytes[16:20] == bytes(word_to_bytes(write_data))
+    expected_write_crc = cxp_crc_word(
+        [0x04000001, endian_swap32(write_request.address), write_data]
+    )
+    assert write_tx_bytes[20:24] == bytes(word_to_bytes(expected_write_crc))
+    assert write_tx_bytes[-4:] == bytes(word_to_bytes(CXP_EOP))
+
+    await _drive_cfg_rx_completion(dut, 0)
+    assert_srpv3_response(await write_response_task, write_request, [write_data])
+
+
+@cocotb.test()
+async def coaxpress_config_response_error_paths_test(dut):
+    # The current RTL maps either a local config-response timeout or a nonzero
+    # control-ack status word into the local SRPv3 AXI-Lite error footer when
+    # `configErrResp` is asserted.
+    axis = await _setup_config_bench(dut, config_pkt_tag=0)
+    dut.configTimerSize.value = 8
+
+    timeout_request = SrpV3Request(SRP_READ, 0xABC00001, 0x00000200, 4)
+    timeout_tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.cfgClk,
+            valid_name="M_CFG_TX_TVALID",
+            data_name="M_CFG_TX_TDATA",
+            ready_name="M_CFG_TX_TREADY",
+            count=24,
+            timeout_cycles=8000,
+        )
+    )
+    timeout_response_task = cocotb.start_soon(axis.recv_response(timeout_time=20))
+    await axis.send_words(srpv3_frame(timeout_request))
+    await with_timeout(timeout_tx_task, 20, "us")
+    assert_srpv3_response(
+        await timeout_response_task,
+        timeout_request,
+        [],
+        footer_mask=CONFIG_READ_ERROR_FOOTER,
+        footer_value=CONFIG_READ_ERROR_FOOTER,
+    )
+
+    dut.configTimerSize.value = 4096
+    status_request = SrpV3Request(SRP_WRITE, 0xABC00002, 0x00000204, 4)
+    status_write_data = 0xA5A55A5A
+    status_tx_task = cocotb.start_soon(
+        collect_stream_bytes(
+            dut,
+            clk=dut.cfgClk,
+            valid_name="M_CFG_TX_TVALID",
+            data_name="M_CFG_TX_TDATA",
+            ready_name="M_CFG_TX_TREADY",
+            count=28,
+            timeout_cycles=8000,
+        )
+    )
+    status_response_task = cocotb.start_soon(axis.recv_response(timeout_time=20))
+    await axis.send_words(srpv3_frame(status_request, [status_write_data]))
+    await with_timeout(status_tx_task, 20, "us")
+
+    await _drive_cfg_rx_completion(dut, 0x00000001)
+    assert_srpv3_response(
+        await status_response_task,
+        status_request,
+        [status_write_data],
+        footer_mask=CONFIG_WRITE_ERROR_FOOTER,
+        footer_value=CONFIG_WRITE_ERROR_FOOTER,
+    )
 
 
 def test_CoaXPressConfig():

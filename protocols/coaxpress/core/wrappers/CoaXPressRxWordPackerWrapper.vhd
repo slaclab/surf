@@ -38,6 +38,7 @@ end entity CoaXPressRxWordPackerWrapper;
 architecture rtl of CoaXPressRxWordPackerWrapper is
 
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal mAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
 
 begin
@@ -69,6 +70,8 @@ begin
          rxClk       => rxClk,
          rxRst       => rxRst,
          sAxisMaster => sAxisMaster,
-         mAxisMaster => mAxisMaster);
+         sAxisSlave  => sAxisSlave,
+         mAxisMaster => mAxisMaster,
+         mAxisSlave  => AXI_STREAM_SLAVE_FORCE_C);
 
 end architecture rtl;

@@ -13,10 +13,19 @@ import rogue
 import time
 
 class Bootstrap(pr.Device):
-    def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
+    _HOST_VERSION_BITS = (
+        (0x00020001, 'Version2p1Supported', 'v2.1'),
+        (0x00020000, 'Version2p0Supported', 'v2.0'),
+        (0x00010001, 'Version1p1Supported', 'v1.1'),
+        (0x00010000, 'Version1p0Supported', 'v1.0'),
+    )
+
+    def __init__(self, GenDc=False, CoaXPressAxiL=None, simpleDiscovery=False, **kwargs):
         super().__init__(**kwargs)
 
         rogue.Version.minVersion('6.13.0')
+
+        self._simpleDiscovery = simpleDiscovery
 
         self.CoaXPressAxiL = CoaXPressAxiL
 
@@ -362,7 +371,8 @@ class Bootstrap(pr.Device):
             description = 'This register shall hold the maximum stream packet size the Host can accept. The size is defined in bytes, and shall be a multiple of 4 bytes. The Device can use any packet size it wants to up to this size. The defined size is that of the entire packet, not just the payload.',
             offset      = 0x00004010,
             base        = pr.UIntBE,
-            mode        = 'RW',
+            mode        = 'RO' if simpleDiscovery else 'RW',
+            verify      = False,
             disp        = '{:d}',
         ))
 
@@ -604,15 +614,16 @@ class Bootstrap(pr.Device):
             mode        = 'RO',
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'VersionUsedCmd',
-            description = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
-            offset      = 0x00004048,
-            base        = pr.UIntBE,
-            mode        = 'WO',
-            hidden      = True,
-            overlapEn   = True,
-        ))
+        if not simpleDiscovery:
+            self.add(pr.RemoteVariable(
+                name        = 'VersionUsedCmd',
+                description = 'This register shall hold a valid combination of the Device connection speed and number of active downconnections. Writing to this register shall set the connection speeds on the specified connections. It may also result in a corresponding speed change of the low speed upconnection.',
+                offset      = 0x00004048,
+                base        = pr.UIntBE,
+                mode        = 'WO',
+                hidden      = True,
+                overlapEn   = True,
+            ))
 
         self.add(pr.RemoteVariable(
             name        = 'MajorVersionUsed',
@@ -656,6 +667,39 @@ class Bootstrap(pr.Device):
         """
         self._acq_var = camera.IsAcquiring
 
+    def _negotiateVersionUsed(self):
+        """Return the CoaXPress version value selected during discovery.
+
+        CXP v1.x devices keep the ConnectionReset default and may not accept a
+        write to VersionUsed. For v2.x and later, the host must choose a common
+        version from VersionsSupported before switching to tagged packets.
+
+        Some devices implicitly negotiate after ConnectionReset, so we check
+        the read-back first and only write if the version doesn't match.
+        If the write fails (some cameras don't ACK), fall back to whatever
+        version the camera already reports.
+        """
+        revision = self.Revision.value()
+
+        if revision < 0x00020000:
+            return revision
+
+        current = (self.MajorVersionUsed.value() << 16) | self.MinorVersionUsed.value()
+
+        for value, bit_name, _ in self._HOST_VERSION_BITS:
+            if getattr(self, bit_name).value():
+                if current != value:
+                    try:
+                        self.VersionUsedCmd.set(value)
+                    except Exception:
+                        return current
+                return value
+
+        raise RuntimeError(
+            f"Device reports revision 0x{revision:08X}, but no common "
+            "CoaXPress protocol version is set in VersionsSupported"
+        )
+
     def DeviceDiscovery(self, arg=None):
         # Updates all the local device register values
         self.CoaXPressAxiL.readBlocks(recurse=True)
@@ -685,19 +729,43 @@ class Bootstrap(pr.Device):
                 "Try power cycling the camera and verifying all connections before restarting the software."
             ) from e
 
-        # Match the device revision to host revision
-        self.VersionUsedCmd.set(self.Revision.value())
+        if self._simpleDiscovery:
+            # Simple discovery: no version negotiation, no tags.
+            # Still must write ConnectionConfig to activate all downconnection lanes.
+            ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
+            try:
+                self.ConnectionConfig.set(ConnectionConfigDefault)
+            except Exception:
+                pass
 
-        # The Host shall read the ConnectionConfigDefault register to find the required bit rate
-        # and number of connections operating at this bit rate
-        ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
-        self.ConnectionConfig.set(ConnectionConfigDefault)
+            if (ConnectionConfigDefault & 0xFF) >= 0x50:
+                self.CoaXPressAxiL.TxLsRate.set(1)
 
-        # If the new high speed connection bit rate requires a change in low speed connection bit rate,
-        # it shall also change the low speed upconnection speed to the value defined in Table 6.
-        if (ConnectionConfigDefault & 0xFF) >= 0x50:
-            # Switch to 41.66 Mb/s mode
-            self.CoaXPressAxiL.TxLsRate.set(1)
+        else:
+            # Negotiate the CXP protocol version before using later bootstrap
+            # writes. CXP v1.x stays on the reset default; v2.x switches to tags.
+            version_used = self._negotiateVersionUsed()
+            self.CoaXPressAxiL.ConfigPktTag.set(1 if version_used >= 0x00020000 else 0)
+
+            # The Host shall read the ConnectionConfigDefault register to find the required bit rate
+            # and number of connections operating at this bit rate
+            ConnectionConfigDefault = arg if arg is not None else self.ConnectionConfigDefault.value()
+            try:
+                self.ConnectionConfig.set(ConnectionConfigDefault)
+            except Exception:
+                pass
+
+            # If the new high speed connection bit rate requires a change in low speed connection bit rate,
+            # it shall also change the low speed upconnection speed to the value defined in Table 6.
+            if (ConnectionConfigDefault & 0xFF) >= 0x50:
+                # Switch to 41.66 Mb/s mode
+                self.CoaXPressAxiL.TxLsRate.set(1)
+
+            # Setup for 4KB packets
+            try:
+                self.StreamPacketSizeMax.set(4096)
+            except Exception:
+                pass
 
         # After it is sending a stable low speed upconnection at the defined rate the Host
         # shall wait 200ms to allow the Device to complete connection re-configuration.
@@ -709,6 +777,3 @@ class Bootstrap(pr.Device):
 
         # Reset the RX lane index pointer and flush the elastic buffers
         self.CoaXPressAxiL.RxFsmRst()
-
-        # Setup for 4KB packets
-        self.StreamPacketSizeMax.set(4096)

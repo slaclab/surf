@@ -18,6 +18,7 @@ use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
+use surf.CoaXPressPkg.all;
 
 entity CoaXPressRxLaneMuxWrapper is
    generic (
@@ -30,6 +31,7 @@ entity CoaXPressRxLaneMuxWrapper is
       sAxisTValid : in  slv(NUM_LANES_G-1 downto 0);
       sAxisTData  : in  slv(32*NUM_LANES_G*NUM_LANES_G-1 downto 0);
       sAxisTKeep  : in  slv(4*NUM_LANES_G*NUM_LANES_G-1 downto 0);
+      sAxisTUser  : in  slv(CXP_RX_STREAM_TUSER_BITS_C*NUM_LANES_G-1 downto 0);
       sAxisTLast  : in  slv(NUM_LANES_G-1 downto 0);
       sAxisTReady : out slv(NUM_LANES_G-1 downto 0);
       mAxisTValid : out sl;
@@ -49,7 +51,7 @@ architecture rtl of CoaXPressRxLaneMuxWrapper is
 begin
 
    -- Rebuild the per-lane record array from the concatenated cocotb ports.
-   sAxisComb : process (sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisTData, sAxisTKeep, sAxisTLast, sAxisTUser, sAxisTValid) is
       variable masters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
    begin
       masters := (others => AXI_STREAM_MASTER_INIT_C);
@@ -59,6 +61,8 @@ begin
             sAxisTData(32*NUM_LANES_G*(i+1)-1 downto 32*NUM_LANES_G*i);
          masters(i).tKeep(4*NUM_LANES_G-1 downto 0) :=
             sAxisTKeep(4*NUM_LANES_G*(i+1)-1 downto 4*NUM_LANES_G*i);
+         masters(i).tUser(CXP_RX_STREAM_TUSER_BITS_C-1 downto 0) :=
+            sAxisTUser(CXP_RX_STREAM_TUSER_BITS_C*(i+1)-1 downto CXP_RX_STREAM_TUSER_BITS_C*i);
          masters(i).tLast := sAxisTLast(i);
       end loop;
       rxMasters <= masters;

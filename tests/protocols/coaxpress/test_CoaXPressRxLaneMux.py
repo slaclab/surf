@@ -28,13 +28,17 @@ from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import pack_words, reset_dut, start_clock
 
+CXP_RX_STREAM_TRAILER_USER = 1 << 4
+
 
 def _set_lane_inputs(dut, lane_beats, *, num_lanes: int) -> None:
     lane_width = 32 * num_lanes
     keep_width = 4 * num_lanes
+    user_width = 8
     valid = 0
     data = 0
     keep = 0
+    user = 0
     last = 0
     for lane, beat in enumerate(lane_beats):
         if beat is None:
@@ -42,10 +46,12 @@ def _set_lane_inputs(dut, lane_beats, *, num_lanes: int) -> None:
         valid |= 1 << lane
         data |= beat["data"] << (lane * lane_width)
         keep |= beat["keep"] << (lane * keep_width)
+        user |= beat.get("user", 0) << (lane * user_width)
         last |= beat["last"] << lane
     dut.sAxisTValid.value = valid
     dut.sAxisTData.value = data
     dut.sAxisTKeep.value = keep
+    dut.sAxisTUser.value = user
     dut.sAxisTLast.value = last
 
 
@@ -60,6 +66,7 @@ async def coaxpress_rx_lane_mux_round_robin_test(dut):
     dut.sAxisTValid.setimmediatevalue(0)
     dut.sAxisTData.setimmediatevalue(0)
     dut.sAxisTKeep.setimmediatevalue(0)
+    dut.sAxisTUser.setimmediatevalue(0)
     dut.sAxisTLast.setimmediatevalue(0)
     await reset_dut(dut, reset_names=("rxRst",))
 
@@ -67,9 +74,16 @@ async def coaxpress_rx_lane_mux_round_robin_test(dut):
         [
             {"data": pack_words([0x10, 0x11, 0x12]), "keep": 0x0FFF, "last": 0},
             {"data": pack_words([0x13, 0x14, 0x15]), "keep": 0x0FFF, "last": 1},
+            {"data": 0, "keep": 0x0FFF, "user": CXP_RX_STREAM_TRAILER_USER, "last": 1},
         ],
-        [{"data": pack_words([0x20, 0x21, 0x22]), "keep": 0x0FFF, "last": 1}],
-        [{"data": pack_words([0x30, 0x31, 0x32]), "keep": 0x0FFF, "last": 1}],
+        [
+            {"data": pack_words([0x20, 0x21, 0x22]), "keep": 0x0FFF, "last": 1},
+            {"data": 0, "keep": 0x0FFF, "user": CXP_RX_STREAM_TRAILER_USER, "last": 1},
+        ],
+        [
+            {"data": pack_words([0x30, 0x31, 0x32]), "keep": 0x0FFF, "last": 1},
+            {"data": 0, "keep": 0x0FFF, "user": CXP_RX_STREAM_TRAILER_USER, "last": 1},
+        ],
     ]
 
     observed: list[tuple[int, int, int]] = []
@@ -105,8 +119,11 @@ async def coaxpress_rx_lane_mux_round_robin_test(dut):
     assert observed == [
         (pack_words([0x10, 0x11, 0x12]), 0x0FFF, 0),
         (pack_words([0x13, 0x14, 0x15]), 0x0FFF, 1),
+        (0, 0x0FFF, 1),
         (pack_words([0x20, 0x21, 0x22]), 0x0FFF, 1),
+        (0, 0x0FFF, 1),
         (pack_words([0x30, 0x31, 0x32]), 0x0FFF, 1),
+        (0, 0x0FFF, 1),
     ]
 
 
@@ -122,6 +139,7 @@ def test_CoaXPressRxLaneMux(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
+                "protocols/coaxpress/core/rtl/CoaXPressPkg.vhd",
                 "protocols/coaxpress/core/rtl/CoaXPressRxLaneMux.vhd",
                 "protocols/coaxpress/core/wrappers/CoaXPressRxLaneMuxWrapper.vhd",
             ]

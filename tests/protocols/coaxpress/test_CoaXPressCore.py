@@ -38,11 +38,14 @@ from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IDLE,
     CXP_IDLE_K,
     CXP_MARKER,
+    CXP_EOP,
     CXP_PKT_IMAGE_HEADER,
     CXP_PKT_IMAGE_LINE,
+    CXP_PKT_STREAM_DATA,
     CXP_SOP,
     cycle,
     collect_stream_bytes,
+    cxp_crc_word,
     endian_swap32,
     find_subsequence,
     pack_u32_words_le,
@@ -132,18 +135,34 @@ async def _read_counter(axil: AxiLiteMaster, dut, offset: int) -> int:
     return await axil.read_dword(offset)
 
 
-async def _send_stream_packet_words(dut, payload_words: list[int], *, stream_id: int = 0x22, packet_tag: int = 0x33) -> None:
-    words = [
-        CXP_SOP,
-        repeat_byte(0x01),
+async def _send_stream_packet_words(
+    dut,
+    payload_words: list[int],
+    *,
+    stream_id: int = 0x22,
+    packet_tag: int = 0x33,
+    corrupt_crc: bool = False,
+) -> None:
+    crc_inputs = [
         repeat_byte(stream_id),
         repeat_byte(packet_tag),
         repeat_byte((len(payload_words) >> 8) & 0xFF),
         repeat_byte(len(payload_words) & 0xFF),
         *payload_words,
     ]
+    words = [
+        CXP_SOP,
+        repeat_byte(CXP_PKT_STREAM_DATA),
+        repeat_byte(stream_id),
+        repeat_byte(packet_tag),
+        repeat_byte((len(payload_words) >> 8) & 0xFF),
+        repeat_byte(len(payload_words) & 0xFF),
+        *payload_words,
+        cxp_crc_word(crc_inputs) ^ (0x00000001 if corrupt_crc else 0x00000000),
+        CXP_EOP,
+    ]
     for word in words:
-        await send_rx_word(dut, data=word, data_k=0xF if word == CXP_SOP else 0x0, clk=dut.rxClk)
+        await send_rx_word(dut, data=word, data_k=0xF if word in (CXP_SOP, CXP_EOP) else 0x0, clk=dut.rxClk)
 
 
 async def _collect_core_outputs(dut, *, cycles: int) -> tuple[list[int], list[int]]:
@@ -242,14 +261,16 @@ async def coaxpress_core_tagged_config_tx_path_test(dut):
     await send_axis_payload(dut, clk=dut.cfgClk, prefix="S_CFG_IB", payload=request_payload, width_bytes=32, tuser=0x2)
 
     tx_bytes = await with_timeout(tx_task, 20, "us")
-    expected_request = (
+    expected_packet = (
         bytes(word_to_bytes(CXP_SOP))
         + bytes([0x05] * 4)
         + b"\x00\x00\x00\x00"
         + bytes(word_to_bytes(0x04000000))
         + bytes(word_to_bytes(endian_swap32(addr)))
+        + bytes(word_to_bytes(cxp_crc_word([0x00000000, 0x04000000, endian_swap32(addr)])))
+        + bytes(word_to_bytes(CXP_EOP))
     )
-    request_start = find_subsequence(tx_bytes, expected_request)
+    request_start = find_subsequence(tx_bytes, expected_packet)
     assert request_start is not None, tx_bytes
 
 
@@ -302,17 +323,55 @@ async def coaxpress_core_rx_fsm_error_counter_and_recovery_test(dut):
     assert await _read_counter(axil, dut, 0x824) == first_error_count
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
-async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issue_test(dut):
+@cocotb.test()
+async def coaxpress_core_rx_lane_crc_error_counter_test(dut):
+    axil = await _setup_core(dut)
+
+    assert await _read_counter(axil, dut, 0x824) == 0
+
+    await _send_stream_packet_words(
+        dut,
+        _header_payload(y_size=1, dsize_l=1),
+        stream_id=0x52,
+        packet_tag=0x77,
+    )
+    await _send_stream_packet_words(
+        dut,
+        _line_payload(0x12345678),
+        stream_id=0x53,
+        packet_tag=0x78,
+        corrupt_crc=True,
+    )
+
+    lane_error_count = await _read_counter(axil, dut, 0x824)
+    assert lane_error_count > 0
+
+    await _collect_core_outputs(dut, cycles=32)
+    assert await _read_counter(axil, dut, 0x824) == lane_error_count
+
+    await _send_image_frame(
+        dut,
+        stream_id=0x54,
+        packet_tag=0x79,
+        y_size=1,
+        dsize_l=1,
+        line_words=[0x87654321],
+    )
+    _hdr_words, data_words = await _collect_core_outputs(dut, cycles=64)
+    assert 0x87654321 in data_words
+    assert await _read_counter(axil, dut, 0x824) == lane_error_count
+
+
+@cocotb.test()
+async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_test(dut):
     axil = await _setup_core(dut, data_ready=0, hdr_ready=1)
 
     assert await _read_counter(axil, dut, 0x820) == 0
     assert await _read_counter(axil, dut, 0x824) == 0
 
-    frame_count = env_int("CXP_RX_OVERFLOW_STORM_FRAME_COUNT", default=96)
-    # Hold opaque stream metadata constant to separate a true backpressure issue
-    # from metadata-sensitive parsing behavior in the exploratory bench.
-    fixed_packet_fields = env_flag("CXP_CORE_KNOWN_ISSUE_FIXED_PACKET_FIELDS", default=False)
+    frame_count = env_int("CXP_RX_OVERFLOW_STORM_FRAME_COUNT", default=8)
+    line_word_count = env_int("CXP_RX_OVERFLOW_STORM_LINE_WORD_COUNT", default=96)
+    vary_packet_fields = env_flag("CXP_CORE_RX_OVERFLOW_VARY_PACKET_FIELDS", default=True)
     signal_counts = {
         "core_rx_fsm_error": 0,
         "core_rx_overflow": 0,
@@ -365,15 +424,15 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
 
     for index in range(frame_count):
         phase_trace["frame_index"] = index
-        stream_id = 0x50 if fixed_packet_fields else (0x50 + (2 * index)) & 0xFF
-        packet_tag = 0x70 if fixed_packet_fields else (0x70 + (2 * index)) & 0xFF
+        stream_id = (0x50 + (2 * index)) & 0xFF if vary_packet_fields else 0x50
+        packet_tag = (0x70 + (2 * index)) & 0xFF if vary_packet_fields else 0x70
         await _send_image_frame(
             dut,
             stream_id=stream_id,
             packet_tag=packet_tag,
             y_size=1,
-            dsize_l=1,
-            line_words=[0x10000000 + index],
+            dsize_l=line_word_count,
+            line_words=[0x10000000 | (index << 12) | word_index for word_index in range(line_word_count)],
         )
 
     phase_trace["label"] = "idle_quiesce"
@@ -387,10 +446,6 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
     for task in monitor_tasks:
         await task
 
-    # Known issue under investigation:
-    # with the current 72-frame workload the realistic core path still shows no
-    # RX overflow. The remaining anomaly is a late lone RxFsmError pulse that
-    # only appears when the bench sweeps packet stream/tag fields.
     assert overflow_count > 0, (
         f"overflow_count={overflow_count} first_error_count={first_error_count} "
         f"core_overflow={signal_counts['core_rx_overflow']} core_error={signal_counts['core_rx_fsm_error']} "
@@ -420,6 +475,8 @@ async def coaxpress_core_rx_overflow_does_not_trigger_fsm_error_storm_known_issu
     await _collect_core_outputs(dut, cycles=256)
     released_error_count = await _read_counter(axil, dut, 0x824)
     assert released_error_count == first_error_count
+
+    await _collect_core_outputs(dut, cycles=env_int("CXP_RX_OVERFLOW_STORM_DRAIN_CYCLES", default=1024))
 
     await _send_image_frame(
         dut,

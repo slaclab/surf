@@ -55,7 +55,7 @@ entity CoaXPressOverFiberGtyUsIpWrapper is
       rxDispErr       : out sl                    := '0';
       rxDecErr        : out sl                    := '0';
       rxLinkUp        : out sl;
-      -- AXI-Lite DRP Interface
+      -- AXI-Lite Bridge Status Interface
       axilClk         : in  sl;
       axilRst         : in  sl;
       axilReadMaster  : in  AxiLiteReadMasterType;
@@ -156,6 +156,7 @@ architecture mapping of CoaXPressOverFiberGtyUsIpWrapper is
    signal xgmiiRxc : slv(7 downto 0);
 
    signal gtResetAll : sl;
+   signal bridgeRxStatus : CxpofRxStatusType;
 
 begin
 
@@ -357,6 +358,21 @@ begin
          rxClk312   => phyClk312,
          rxRst312   => phyRst312,
          rxData     => rxData,
-         rxDataK    => rxDataK);
+         rxDataK    => rxDataK,
+         rxStatus   => bridgeRxStatus);
+
+   U_BridgeAxiL : entity surf.CoaXPressOverFiberBridgeAxiL
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         rxClk           => phyClk312,
+         rxRst           => phyRst312,
+         rxStatus        => bridgeRxStatus,
+         axilClk         => axilClk,
+         axilRst         => axilRst,
+         axilReadMaster  => axilReadMaster,
+         axilReadSlave   => axilReadSlave,
+         axilWriteMaster => axilWriteMaster,
+         axilWriteSlave  => axilWriteSlave);
 
 end mapping;

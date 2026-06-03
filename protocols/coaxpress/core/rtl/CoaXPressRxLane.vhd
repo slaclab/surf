@@ -40,12 +40,15 @@ entity CoaXPressRxLane is
       dataMaster     : out AxiStreamMasterType;
       -- Heartbeat Interface
       heatbeatMaster : out AxiStreamMasterType;
+      -- Event payload Interface
+      eventMaster    : out AxiStreamMasterType;
       -- Image header Interface
       imageHdrMaster : out AxiStreamMasterType;
       -- ACK Interface
       ioAck          : out sl;
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
+      rxError        : out sl;
       -- RX PHY Interface
       rxData         : in  slv(31 downto 0);
       rxDataK        : in  slv(3 downto 0);
@@ -54,13 +57,26 @@ end entity CoaXPressRxLane;
 
 architecture rtl of CoaXPressRxLane is
 
+   constant EVENT_BUFFER_DEPTH_C : positive := 16;
+   constant EVENT_BUFFER_ADDR_WIDTH_C : positive := 4;
+   constant STREAM_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+      dataBytes => 4,
+      tKeepMode => TKEEP_NORMAL_C,
+      tUserMode => TUSER_NORMAL_C,
+      tDestBits => 0,
+      tUserBits => CXP_RX_STREAM_TUSER_BITS_C);
+
    type StateType is (
       IO_ACK_S,
       IDLE_S,
       TYPE_S,
       CTRL_ACK_TAG_S,
       CTRL_ACK_S,
+      CTRL_ACK_CRC_S,
+      CTRL_ACK_EOP_S,
       HEARTBEAT_S,
+      HEARTBEAT_CRC_S,
+      HEARTBEAT_EOP_S,
       EVENT_ACK_S,
       EVENT_DSIZE_UPPER_S,
       EVENT_DSIZE_LOWER_S,
@@ -71,7 +87,9 @@ architecture rtl of CoaXPressRxLane is
       PACKET_TAG_S,
       DSIZE_UPPER_S,
       DSIZE_LOWER_S,
-      STREAM_DATA_S);
+      STREAM_DATA_S,
+      STREAM_CRC_S,
+      STREAM_EOP_S);
 
    type RegType is record
       errDet         : sl;
@@ -80,6 +98,13 @@ architecture rtl of CoaXPressRxLane is
       eventAck       : sl;
       eventTag       : slv(7 downto 0);
       ackCnt         : natural range 0 to 15;
+      eventId        : slv(31 downto 0);
+      eventPending   : sl;
+      eventReleaseCnt : natural range 0 to EVENT_BUFFER_DEPTH_C-1;
+      eventRamWrEn   : sl;
+      eventRamWrAddr : slv(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
+      eventRamWrData : slv(31 downto 0);
+      eventReadAddr  : slv(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
       -- Stream data payload
       streamID       : slv(7 downto 0);
       packetTag      : slv(7 downto 0);
@@ -91,6 +116,7 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      : AxiStreamMasterType;
       dataMaster     : AxiStreamMasterType;
       heatbeatMaster : AxiStreamMasterType;
+      eventMaster    : AxiStreamMasterType;
       -- State Types
       saved          : StateType;
       state          : StateType;
@@ -102,6 +128,13 @@ architecture rtl of CoaXPressRxLane is
       eventAck       => '0',
       eventTag       => (others => '0'),
       ackCnt         => 0,
+      eventId        => (others => '0'),
+      eventPending   => '0',
+      eventReleaseCnt => 0,
+      eventRamWrEn   => '0',
+      eventRamWrAddr => (others => '0'),
+      eventRamWrData => (others => '0'),
+      eventReadAddr  => (others => '0'),
       -- Stream data payload
       streamID       => (others => '0'),
       packetTag      => (others => '0'),
@@ -113,12 +146,15 @@ architecture rtl of CoaXPressRxLane is
       cfgMaster      => AXI_STREAM_MASTER_INIT_C,
       dataMaster     => AXI_STREAM_MASTER_INIT_C,
       heatbeatMaster => AXI_STREAM_MASTER_INIT_C,
+      eventMaster    => AXI_STREAM_MASTER_INIT_C,
       -- State Types
       saved          => IDLE_S,
       state          => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal eventRamRdData : slv(31 downto 0);
 
    function cxpCrcUpdate (
       crcIn : slv(31 downto 0);
@@ -148,12 +184,23 @@ architecture rtl of CoaXPressRxLane is
       return endianSwap(retVar);
    end function cxpCrcFinal;
 
+   function cxpAckIsSuccess (
+      data : slv(31 downto 0))
+      return boolean is
+   begin
+      return (
+         (data = x"01_01_01_01") or
+         (data = x"04_04_04_04") or
+         (data = x"00_00_00_01") or
+         (data = x"00_00_00_04"));
+   end function cxpAckIsSuccess;
+
    -- attribute dont_touch      : string;
    -- attribute dont_touch of r : signal is "TRUE";
 
 begin
 
-   comb : process (r, rxData, rxDataK, rxLinkUp, rxRst) is
+   comb : process (eventRamRdData, r, rxData, rxDataK, rxLinkUp, rxRst) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -166,7 +213,34 @@ begin
       v.cfgMaster.tValid      := '0';
       v.dataMaster.tValid     := '0';
       v.dataMaster.tLast      := '0';
+      v.dataMaster.tKeep      := (others => '0');
+      v.dataMaster.tUser      := (others => '0');
       v.heatbeatMaster.tValid := '0';
+      v.eventMaster.tValid    := '0';
+      v.eventMaster.tLast     := '0';
+      v.eventRamWrEn          := '0';
+
+      -- Release event payload only after the packet CRC and EOP have passed.
+      if (r.eventPending = '1') then
+         v.eventMaster.tValid             := '1';
+         v.eventMaster.tData(31 downto 0) := eventRamRdData;
+         v.eventMaster.tKeep(3 downto 0)  := x"F";
+         v.eventMaster.tDest(7 downto 0)  := r.eventTag;
+         v.eventMaster.tUser(31 downto 0) := r.eventId;
+         if (r.eventReleaseCnt = (conv_integer(r.dsize)-1)) then
+            v.eventMaster.tLast   := '1';
+            v.eventPending        := '0';
+            v.eventReleaseCnt     := 0;
+            v.eventReadAddr       := (others => '0');
+         else
+            v.eventReleaseCnt := r.eventReleaseCnt + 1;
+            if (r.eventReleaseCnt < (conv_integer(r.dsize)-2)) then
+               v.eventReadAddr := r.eventReadAddr + 1;
+            else
+               v.eventReadAddr := (others => '0');
+            end if;
+         end if;
+      end if;
 
       -- Check for I/O
       if (rxDataK = x"F") and (rxData = CXP_IO_ACK_C) then
@@ -210,31 +284,54 @@ begin
 
                   -- Check for "Stream data packet"
                   if (rxData = x"01_01_01_01") then
+                     -- Reset stream packet parser
+                     v.dcnt  := (others => '0');
+                     v.dsize := (others => '0');
+                     v.crc   := x"FFFFFFFF";
                      -- Next State
                      v.state := STREAM_ID_S;
 
                   -- Check for "control acknowledge with no tag"
                   elsif (rxData = x"03_03_03_03") then
+                     -- Reset control acknowledgment parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := CTRL_ACK_S;
 
                   -- Check for "control acknowledge with tag"
                   elsif (rxData = x"06_06_06_06") then
+                     -- Reset control acknowledgment parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := CTRL_ACK_TAG_S;
 
                   -- Check for "Event packet"
                   elsif (rxData = x"07_07_07_07") then
-                     -- Reset event parser counters
-                     v.ackCnt := 0;
-                     v.dcnt   := (others => '0');
-                     v.dsize  := (others => '0');
-                     v.crc    := x"FFFFFFFF";
-                     -- Next State
-                     v.state := EVENT_ACK_S;
+                     -- Check for pending event payload release
+                     if (r.eventPending = '0') then
+                        -- Reset event parser counters
+                        v.ackCnt          := 0;
+                        v.dcnt            := (others => '0');
+                        v.dsize           := (others => '0');
+                        v.eventReleaseCnt := 0;
+                        v.eventReadAddr   := (others => '0');
+                        v.crc             := x"FFFFFFFF";
+                        -- Next State
+                        v.state           := EVENT_ACK_S;
+                     else
+                        -- Set the flag
+                        v.errDet := '1';
+                        -- Next State
+                        v.state  := IDLE_S;
+                     end if;
 
                   -- Check for "Heartbeat Payload"
                   elsif (rxData = x"09_09_09_09") then
+                     -- Reset heartbeat parser
+                     v.ackCnt := 0;
+                     v.crc    := x"FFFFFFFF";
                      -- Next State
                      v.state := HEARTBEAT_S;
 
@@ -253,8 +350,13 @@ begin
                end if;
             ----------------------------------------------------------------------
             when CTRL_ACK_TAG_S =>
-               -- Check for non-k word
-               if (rxDataK = x"0") then
+               -- Check for repeated-byte tag word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+                  -- Include packet tag word in the CRC
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state := CTRL_ACK_S;
                else
@@ -267,41 +369,88 @@ begin
             when CTRL_ACK_S =>
                -- Check for non-k word
                if (rxDataK = x"0") then
-
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
 
                   -- "Acknowledgment code" index
                   if (r.ackCnt = 0) then
+                     -- Include acknowledgment code in the CRC
+                     v.crc := cxpCrcUpdate(r.crc, rxData);
 
                      -- Save the response code
                      v.cfgMaster.tData(31 downto 0) := rxData;
 
                      -- Check for Success ACK
-                     if (rxData = x"01_01_01_01") or (rxData = x"04_04_04_04") then
+                     if (cxpAckIsSuccess(rxData)) then
                         -- Always send ZERO for successful ACK
                         v.cfgMaster.tData(31 downto 0) := (others => '0');
                      end if;
 
+                  -- "Size field" index: check if data follows
+                  elsif (r.ackCnt = 1) then
+
+                     -- Some cameras return write ACK as code+CRC+EOP,
+                     -- without an explicit zero-size word.
+                     if (rxData = cxpCrcFinal(r.crc)) then
+                        -- Next State
+                        v.state := CTRL_ACK_EOP_S;
+
+                     -- If DSize=0 (write ACK, no data word follows), skip to CRC
+                     elsif (rxData(31 downto 8) = 0) then
+                        -- Include size word in the CRC
+                        v.crc := cxpCrcUpdate(r.crc, rxData);
+                        -- Next State
+                        v.state := CTRL_ACK_CRC_S;
+
+                     else
+                        -- Include size word in the CRC
+                        v.crc := cxpCrcUpdate(r.crc, rxData);
+                     end if;
+
                   -- "Data field" index
                   elsif (r.ackCnt = 2) then
+                     -- Include data word in the CRC
+                     v.crc := cxpCrcUpdate(r.crc, rxData);
 
                      -- Save the data field
                      v.cfgMaster.tData(63 downto 32) := rxData;
 
-                     -- Forward the response
-                     v.cfgMaster.tValid := '1';
-
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state := CTRL_ACK_CRC_S;
 
                   end if;
 
                else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when CTRL_ACK_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := CTRL_ACK_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when CTRL_ACK_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
                   -- Forward the response
                   v.cfgMaster.tValid := '1';
                   -- Next State
                   v.state            := IDLE_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
                end if;
             ----------------------------------------------------------------------
             when EVENT_ACK_S =>
@@ -319,7 +468,13 @@ begin
                   v.ackCnt := r.ackCnt + 1;
 
                   -- Packet Tag index
-                  if (r.ackCnt = 4) then
+                  if (r.ackCnt < 4) then
+
+                     -- Save the event identifier bytes for payload sideband use.
+                     v.eventId(8*r.ackCnt+7 downto 8*r.ackCnt) := rxData(7 downto 0);
+
+                  -- Packet Tag index
+                  elsif (r.ackCnt = 4) then
 
                      -- Save the packet tag
                      v.eventTag := rxData(7 downto 0);
@@ -367,8 +522,11 @@ begin
                   -- Next State
                   if (r.dsize(15 downto 8) = 0) and (rxData(7 downto 0) = 0) then
                      v.state := EVENT_CRC_S;
-                  else
+                  elsif (r.dsize(15 downto 8) = 0) and (conv_integer(rxData(7 downto 0)) <= EVENT_BUFFER_DEPTH_C) then
                      v.state := EVENT_PAYLOAD_S;
+                  else
+                     v.errDet := '1';
+                     v.state  := IDLE_S;
                   end if;
                else
                   -- Set the flag
@@ -380,7 +538,10 @@ begin
             when EVENT_PAYLOAD_S =>
                -- Check for event payload word
                if (rxDataK = x"0") then
-                  v.crc := cxpCrcUpdate(r.crc, rxData);
+                  v.eventRamWrEn   := '1';
+                  v.eventRamWrAddr := r.dcnt(EVENT_BUFFER_ADDR_WIDTH_C-1 downto 0);
+                  v.eventRamWrData := rxData;
+                  v.crc            := cxpCrcUpdate(r.crc, rxData);
                   -- Check the counter
                   if (r.dcnt = (r.dsize-1)) then
                      -- Next State
@@ -415,6 +576,15 @@ begin
                   v.eventAck := '1';
                   -- Next State
                   v.state    := IDLE_S;
+                  if (r.dsize /= 0) then
+                     v.eventPending    := '1';
+                     v.eventReleaseCnt := 0;
+                     if (r.dsize = 1) then
+                        v.eventReadAddr := (others => '0');
+                     else
+                        v.eventReadAddr := toSlv(1, EVENT_BUFFER_ADDR_WIDTH_C);
+                     end if;
+                  end if;
                else
                   -- Set the flag
                   v.errDet := '1';
@@ -423,8 +593,14 @@ begin
                end if;
             ----------------------------------------------------------------------
             when HEARTBEAT_S =>
-               -- Check for non-k word
-               if (rxDataK = x"0") then
+               -- Check for repeated-byte heartbeat payload word
+               if (rxDataK = x"0")
+                  and (rxData(7 downto 0) = rxData(15 downto 8))
+                  and (rxData(7 downto 0) = rxData(23 downto 16))
+                  and (rxData(7 downto 0) = rxData(31 downto 24)) then
+
+                  -- Include heartbeat payload word in the CRC
+                  v.crc := cxpCrcUpdate(r.crc, rxData);
 
                   -- Increment the counter
                   v.ackCnt := r.ackCnt + 1;
@@ -435,15 +611,38 @@ begin
                   -- "Acknowledgment code" index
                   if (r.ackCnt = 11) then
 
-                     -- Forward the response
-                     v.heatbeatMaster.tValid := '1';
-                     v.heatbeatMaster.tLast  := '1';
-
                      -- Next State
-                     v.state := IDLE_S;
+                     v.state := HEARTBEAT_CRC_S;
 
                   end if;
 
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when HEARTBEAT_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := HEARTBEAT_EOP_S;
+               else
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when HEARTBEAT_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Forward the response
+                  v.heatbeatMaster.tValid := '1';
+                  v.heatbeatMaster.tLast  := '1';
+                  -- Next State
+                  v.state                 := IDLE_S;
                else
                   -- Set the flag
                   v.errDet := '1';
@@ -459,6 +658,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.streamID := rxData(7 downto 0);
+                  v.crc      := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state    := PACKET_TAG_S;
                else
@@ -476,6 +676,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Save the value
                   v.packetTag := rxData(7 downto 0);
+                  v.crc       := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state     := DSIZE_UPPER_S;
                else
@@ -493,6 +694,7 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(15 downto 8) := rxData(7 downto 0);
+                  v.crc                := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
                   v.state              := DSIZE_LOWER_S;
                else
@@ -510,8 +712,14 @@ begin
                   and (rxData(7 downto 0) = rxData(31 downto 24)) then
                   -- Set the TDEST to the packet tag
                   v.dsize(7 downto 0) := rxData(7 downto 0);
+                  v.dcnt              := (others => '0');
+                  v.crc               := cxpCrcUpdate(r.crc, rxData);
                   -- Next State
-                  v.state             := STREAM_DATA_S;
+                  if (r.dsize(15 downto 8) = 0) and (rxData(7 downto 0) = 0) then
+                     v.state := STREAM_CRC_S;
+                  else
+                     v.state := STREAM_DATA_S;
+                  end if;
                else
                   -- Set the flag
                   v.errDet := '1';
@@ -523,7 +731,9 @@ begin
                -- Move the data
                v.dataMaster.tValid             := '1';
                v.dataMaster.tData(31 downto 0) := rxData;
+               v.dataMaster.tKeep(3 downto 0)  := x"F";
                v.dataMaster.tUser(3 downto 0)  := rxDataK;
+               v.crc                            := cxpCrcUpdate(r.crc, rxData);
 
                -- Increment counter
                v.dbgCnt := r.dbgCnt + 1;
@@ -534,11 +744,63 @@ begin
                   v.dataMaster.tLast := '1';
 
                   -- Next State
-                  v.state := IDLE_S;
+                  v.state := STREAM_CRC_S;
 
                else
                   -- Increment counter
                   v.dcnt := r.dcnt + 1;
+               end if;
+            ----------------------------------------------------------------------
+            when STREAM_CRC_S =>
+               -- Check for CRC word
+               if (rxDataK = x"0") and (rxData = cxpCrcFinal(r.crc)) then
+                  -- Next State
+                  v.state := STREAM_EOP_S;
+               else
+                  -- Publish an in-order SSI-style trailer verdict marker for
+                  -- the image FSM. The raw stream payload has already moved.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '1');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '1';
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
+               end if;
+            ----------------------------------------------------------------------
+            when STREAM_EOP_S =>
+               -- Check for end of packet indication
+               if (rxDataK = x"F") and (rxData = CXP_EOP_C) then
+                  -- Publish a clean in-order trailer verdict marker.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '0');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '0';
+                  -- Next State
+                  v.state := IDLE_S;
+               else
+                  -- Publish a bad in-order trailer verdict marker.
+                  v.dataMaster.tValid             := '1';
+                  v.dataMaster.tData(31 downto 0) := (others => '0');
+                  v.dataMaster.tKeep(3 downto 0)  := x"F";
+                  v.dataMaster.tLast              := '1';
+                  v.dataMaster.tUser(CXP_RX_STREAM_TRAILER_TUSER_C) := '1';
+                  axiStreamSetUserBit(STREAM_AXIS_CONFIG_C, v.dataMaster, CXP_RX_STREAM_TRAILER_TUSER_C, '1');
+                  ssiSetUserEofe(STREAM_AXIS_CONFIG_C, v.dataMaster, '1');
+                  v.dataMaster.tUser(SSI_EOFE_C) := '1';
+                  -- Set the flag
+                  v.errDet := '1';
+                  -- Next State
+                  v.state  := IDLE_S;
                end if;
          ----------------------------------------------------------------------
          end case;
@@ -549,9 +811,11 @@ begin
       cfgMaster      <= r.cfgMaster;
       dataMaster     <= r.dataMaster;
       heatbeatMaster <= r.heatbeatMaster;
+      eventMaster    <= r.eventMaster;
       ioAck          <= r.ioAck;
       eventAck       <= r.eventAck;
       eventTag       <= r.eventTag;
+      rxError        <= r.errDet;
 
       -- Reset
       if (rxRst = '1') or (rxLinkUp = '0') then
@@ -569,5 +833,21 @@ begin
          r <= rin after TPD_G;
       end if;
    end process seq;
+
+   U_EventBuffer : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G         => TPD_G,
+         MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G  => 32,
+         ADDR_WIDTH_G  => EVENT_BUFFER_ADDR_WIDTH_C)
+      port map (
+         clka  => rxClk,
+         wea   => r.eventRamWrEn,
+         addra => r.eventRamWrAddr,
+         dina  => r.eventRamWrData,
+         clkb  => rxClk,
+         rstb  => rxRst,
+         addrb => r.eventReadAddr,
+         doutb => eventRamRdData);
 
 end rtl;

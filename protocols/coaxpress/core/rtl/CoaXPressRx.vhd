@@ -43,6 +43,8 @@ entity CoaXPressRx is
       cfgClk         : in  sl;
       cfgRst         : in  sl;
       cfgRxMaster    : out AxiStreamMasterType;
+      eventMaster    : out AxiStreamMasterType;
+      eventSlave     : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
       -- Event ACK Interface (cfgClk domain)
       eventAck       : out sl;
       eventTag       : out slv(7 downto 0);
@@ -70,7 +72,7 @@ architecture mapping of CoaXPressRx is
       TDEST_BITS_C  => 0,
       TID_BITS_C    => 0,
       TKEEP_MODE_C  => TKEEP_NORMAL_C,
-      TUSER_BITS_C  => 1,
+      TUSER_BITS_C  => CXP_RX_STREAM_TUSER_BITS_C,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
    constant WIDE_AXIS_CONFIG_C : AxiStreamConfigType := (
@@ -82,9 +84,21 @@ architecture mapping of CoaXPressRx is
       TUSER_BITS_C  => NARROW_AXIS_CONFIG_C.TUSER_BITS_C,
       TUSER_MODE_C  => NARROW_AXIS_CONFIG_C.TUSER_MODE_C);
 
+   constant EVENT_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => false,
+      TDATA_BYTES_C => 4,
+      TDEST_BITS_C  => 8,
+      TID_BITS_C    => 0,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      -- TUSER_NORMAL_C is per-byte, so 4 data bytes x 8 bits preserves the 32-bit event ID.
+      TUSER_BITS_C  => 8,
+      TUSER_MODE_C  => TUSER_NORMAL_C);
+
    signal ioAck       : slv(NUM_LANES_G-1 downto 0);
    signal eventAckVec : slv(NUM_LANES_G-1 downto 0);
    signal eventTagVec : Slv8Array(NUM_LANES_G-1 downto 0);
+   signal eventMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
+   signal rxLaneError : slv(NUM_LANES_G-1 downto 0);
    signal cfgMasters  : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
 
    signal dataMasters : AxiStreamMasterArray(NUM_LANES_G-1 downto 0);
@@ -100,17 +114,42 @@ architecture mapping of CoaXPressRx is
    signal fsmMaster : AxiStreamMasterType;
    signal hdrMaster : AxiStreamMasterType;
    signal hdrCtrl   : AxiStreamCtrlType;
+   signal hsFsmError : sl;
 
    signal dataIntMaster : AxiStreamMasterType;
    signal dataIntSlave  : AxiStreamSlaveType;
 
    signal overflowData : slv(NUM_LANES_G-1 downto 0);
+   signal rxFsmRstSync : slv(NUM_LANES_G-1 downto 0);
+   signal rxLaneRst    : slv(NUM_LANES_G-1 downto 0);
+   signal rxPathRst    : sl;
+   signal dataPathRst  : sl;
 
 begin
 
    rxOverflow <= uOr(overflowData) or rxCtrl.overflow or hdrCtrl.overflow;
+   rxFsmError <= hsFsmError or uOr(rxLaneError);
+   rxPathRst  <= rxRst(0) or rxFsmRst;
+
+   U_DataPathRst : entity surf.RstSync
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk      => dataClk,
+         asyncRst => dataRst or rxFsmRst,
+         syncRst  => dataPathRst);
 
    GEN_LANE : for i in NUM_LANES_G-1 downto 0 generate
+
+      U_RxFsmRstSync : entity surf.RstSync
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk      => rxClk(i),
+            asyncRst => rxFsmRst,
+            syncRst  => rxFsmRstSync(i));
+
+      rxLaneRst(i) <= rxRst(i) or rxFsmRstSync(i);
 
       U_Lane : entity surf.CoaXPressRxLane
          generic map (
@@ -123,10 +162,13 @@ begin
             cfgMaster  => cfgMasters(i),
             -- Data Interface
             dataMaster => dataMasters(i),
+            -- Event payload Interface
+            eventMaster => eventMasters(i),
             -- ACK Interface
             ioAck      => ioAck(i),
             eventAck   => eventAckVec(i),
             eventTag   => eventTagVec(i),
+            rxError    => rxLaneError(i),
             -- RX PHY Interface
             rxData     => rxData(i),
             rxDataK    => rxDataK(i),
@@ -146,7 +188,7 @@ begin
          port map (
             -- Slave Port
             sAxisClk    => rxClk(i),
-            sAxisRst    => rxRst(i),
+            sAxisRst    => rxLaneRst(i),
             sAxisMaster => dataMasters(i),
             sAxisCtrl   => dataCtrls(i),
             -- Master Port
@@ -188,7 +230,7 @@ begin
          rxRst      => rxRst(0),
          -- Config/Status Interface
          rxFsmRst   => rxFsmRst,
-         rxFsmError => rxFsmError,
+         rxFsmError => hsFsmError,
          -- Inbound Stream Interface
          rxMaster   => rxMaster,
          rxSlave    => rxSlave,
@@ -210,14 +252,14 @@ begin
          SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (224/8), tDestBits => 0),
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- Slave Port
+            -- Slave Port
          sAxisClk    => rxClk(0),
-         sAxisRst    => rxRst(0),
+         sAxisRst    => rxPathRst,
          sAxisMaster => hdrMaster,
          sAxisCtrl   => hdrCtrl,
-         -- Master Port
+            -- Master Port
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => imageHdrMaster,
          mAxisSlave  => imageHdrSlave);
 
@@ -227,17 +269,17 @@ begin
          SLAVE_READY_EN_G    => false,
          GEN_SYNC_FIFO_G     => false,
          FIFO_ADDR_WIDTH_G   => 9,
-         SLAVE_AXI_CONFIG_G  => ssiAxiStreamConfig(dataBytes => (4*NUM_LANES_G), tDestBits => 0),
+         SLAVE_AXI_CONFIG_G  => WIDE_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- INbound Interface
+            -- INbound Interface
          sAxisClk    => rxClk(0),
-         sAxisRst    => rxRst(0),
+         sAxisRst    => rxPathRst,
          sAxisMaster => fsmMaster,
          sAxisCtrl   => rxCtrl,
-         -- Outbound Interface
+            -- Outbound Interface
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => dataIntMaster,
          mAxisSlave  => dataIntSlave);
 
@@ -245,6 +287,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         TUSER_MASK_G        => (others => '0'),
          -- FIFO configurations
          COMMON_CLK_G        => true,
          SLAVE_FIFO_G        => false,
@@ -253,14 +296,14 @@ begin
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_G,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_G)
       port map (
-         -- Slave Port
+            -- Slave Port
          sAxisClk    => dataClk,
-         sAxisRst    => dataRst,
+         sAxisRst    => dataPathRst,
          sAxisMaster => dataIntMaster,
          sAxisSlave  => dataIntSlave,
-         -- Master Port
+            -- Master Port
          mAxisClk    => dataClk,
-         mAxisRst    => dataRst,
+         mAxisRst    => dataPathRst,
          mAxisMaster => dataMaster,
          mAxisSlave  => dataSlave);
 
@@ -310,5 +353,28 @@ begin
          rd_clk => cfgClk,
          valid  => eventAck,
          dout   => eventTag);
+
+   U_EventPayload : entity surf.AxiStreamFifoV2
+      generic map (
+         -- General Configurations
+         TPD_G               => TPD_G,
+         SLAVE_READY_EN_G    => false,
+         -- FIFO configurations
+         MEMORY_TYPE_G       => "distributed",
+         GEN_SYNC_FIFO_G     => false,
+         FIFO_ADDR_WIDTH_G   => 4,
+         -- AXI Stream Port Configurations
+         SLAVE_AXI_CONFIG_G  => EVENT_AXIS_CONFIG_C,
+         MASTER_AXI_CONFIG_G => EVENT_AXIS_CONFIG_C)
+      port map (
+         -- Slave Port
+         sAxisClk    => rxClk(0),
+         sAxisRst    => rxPathRst,
+         sAxisMaster => eventMasters(0),
+         -- Master Port
+         mAxisClk    => cfgClk,
+         mAxisRst    => cfgRst,
+         mAxisMaster => eventMaster,
+         mAxisSlave  => eventSlave);
 
 end mapping;

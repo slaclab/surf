@@ -93,6 +93,7 @@ architecture mapping of CoaXPressCore is
 
    signal eventAck : sl;
    signal eventTag : slv(7 downto 0);
+   signal eventMaster : AxiStreamMasterType;
 
    signal trigAck     : sl;
    signal txLsRateInt : sl;
@@ -177,6 +178,8 @@ begin
          cfgClk         => cfgClk,
          cfgRst         => cfgRst,
          cfgRxMaster    => cfgRxMaster,
+         eventMaster    => eventMaster,
+         eventSlave     => AXI_STREAM_SLAVE_FORCE_C,
          -- Event ACK Interface (cfgClk domain)
          eventAck       => eventAck,
          eventTag       => eventTag,
