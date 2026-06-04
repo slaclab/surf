@@ -30,8 +30,8 @@ entity IpV4Engine is
       CLIENT_SIZE_G   : positive              := 1;  -- Sets the number of attached client engines
       CLK_FREQ_G      : real                  := 156.25E+06;  -- In units of Hz
       TTL_G           : slv(7 downto 0)       := x"20";
-      DSCP_G          : natural range 0 to 63 := 0;
-      ECN_G           : slv(1 downto 0)       := "00";
+      ROCEV2_DSCP_G   : natural range 0 to 63 := 0;
+      ROCEV2_ECN_G    : slv(1 downto 0)       := "00";
       IGMP_G          : boolean               := false;
       IGMP_GRP_SIZE   : positive              := 1);
    port (
@@ -189,8 +189,8 @@ begin
          RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C,
-         DSCP_G          => DSCP_G,
-         ECN_G           => ECN_G,
+         ROCEV2_DSCP_G          => ROCEV2_DSCP_G,
+         ROCEV2_ECN_G           => ROCEV2_ECN_G,
          TTL_G           => TTL_G)
       port map (
          -- Local Configurations

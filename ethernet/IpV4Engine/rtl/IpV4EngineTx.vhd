@@ -31,8 +31,8 @@ entity IpV4EngineTx is
       RST_ASYNC_G     : boolean               := false;
       PROTOCOL_SIZE_G : positive              := 1;
       PROTOCOL_G      : Slv8Array             := (0 => UDP_C);
-      DSCP_G          : natural range 0 to 63 := 0;
-      ECN_G           : slv(1 downto 0)       := "00";
+      ROCEV2_DSCP_G   : natural range 0 to 63 := 0;
+      ROCEV2_ECN_G    : slv(1 downto 0)       := "00";
       TTL_G           : slv(7 downto 0)       := x"20");
    port (
       -- Local Configurations
@@ -160,8 +160,8 @@ begin
                   v.txMaster.tData(95 downto 48)   := localMac;
                   v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
                   v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
-                  v.txMaster.tData(127 downto 122) := toSlv(DSCP_G, 6);  --- DSCP
-                  v.txMaster.tData(121 downto 120) := ECN_G;  --- ECN
+                  v.txMaster.tData(127 downto 122) := toSlv(ROCEV2_DSCP_G, 6);  --- DSCP
+                  v.txMaster.tData(121 downto 120) := ROCEV2_ECN_G;  --- ECN
                   -- Track the leftovers
                   v.tData(63 downto 0)             := rxMaster.tData(127 downto 64);
                   -- Next state

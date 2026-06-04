@@ -44,8 +44,8 @@ entity UdpEngineWrapper is
       IGMP_GRP_SIZE       : positive range 1 to 8 := 1;
       IGMP_INIT_G         : Slv32Array            := (0 => x"0000_0000");
       CLK_FREQ_G          : real                  := 156.25E+06;  -- In units of Hz
-      DSCP_G              : natural range 0 to 63 := 0;
-      ECN_G               : slv(1 downto 0)       := "00";
+      ROCEV2_DSCP_G       : natural range 0 to 63 := 0;
+      ROCEV2_ECN_G        : slv(1 downto 0)       := "00";
       COMM_TIMEOUT_G      : positive              := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0)       := x"20";  -- IPv4's Time-To-Live (TTL)
       SYNTH_MODE_G        : string                := "inferred");  -- Synthesis mode for internal RAMs
@@ -137,8 +137,8 @@ begin
          PROTOCOL_G      => (0 => UDP_C),
          CLIENT_SIZE_G   => CLIENT_SIZE_G,
          CLK_FREQ_G      => CLK_FREQ_G,
-         DSCP_G          => DSCP_G,
-         ECN_G           => ECN_G,
+         ROCEV2_DSCP_G          => ROCEV2_DSCP_G,
+         ROCEV2_ECN_G           => ROCEV2_ECN_G,
          IGMP_G          => IGMP_G,
          IGMP_GRP_SIZE   => IGMP_GRP_SIZE,
          TTL_G           => TTL_G)

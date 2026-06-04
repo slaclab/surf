@@ -7,4 +7,5 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.ethernet.roce._Dcqcn      import *
 from surf.ethernet.roce._RoceEngine import *
