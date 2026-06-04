@@ -26,7 +26,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-entity tokenCalc is
+entity RoCEv2TokenCalc is
    generic (
       TPD_G       : time    := 1 ns;
       CLK_FREQ_G  : real    := 156.25E+6;
@@ -38,9 +38,9 @@ entity tokenCalc is
       Rc           : in  slv(31 downto 0);
       byte_per_clk : out slv(15 + FRAC_BITS_G downto 0)
       );
-end entity tokenCalc;
+end entity RoCEv2TokenCalc;
 
-architecture rtl of tokenCalc is
+architecture rtl of RoCEv2TokenCalc is
 
    function calc_k(n_bits : positive; f_hz : natural; frac_bits : natural) return slv is
       variable kInt : integer;

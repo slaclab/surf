@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity RateIncProc is
+entity RoCEv2RateIncProc is
    generic (
       TPD_G          : time    := 1 ns;
       LINE_RATE_G    : integer := 1_250_000_000;  -- 1.25 GB/s = 10 Gb/s
@@ -45,9 +45,9 @@ entity RateIncProc is
       newRt              : out slv(31 downto 0);
       valid              : out sl
       );
-end entity RateIncProc;
+end entity RoCEv2RateIncProc;
 
-architecture rtl of RateIncProc is
+architecture rtl of RoCEv2RateIncProc is
 
    type StateType is (
       IDLE_S,

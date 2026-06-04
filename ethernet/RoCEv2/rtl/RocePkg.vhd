@@ -33,7 +33,7 @@ package RocePkg is
       tDestBits => 0
       );
 
-   constant SURF_DATA_STREAM_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+   constant ROCEV2_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
       dataBytes => TDATA_UDP_NUM_BYTES_C,
       tKeepMode => TKEEP_NORMAL_C,
       tDestBits => 0

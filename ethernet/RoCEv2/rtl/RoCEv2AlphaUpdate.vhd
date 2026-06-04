@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity AlphaUpdate is
+entity RoCEv2AlphaUpdate is
    generic (
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
@@ -40,9 +40,9 @@ entity AlphaUpdate is
       newAlpha         : out slv(9 downto 0);
       valid            : out sl
       );
-end entity AlphaUpdate;
+end entity RoCEv2AlphaUpdate;
 
-architecture rtl of AlphaUpdate is
+architecture rtl of RoCEv2AlphaUpdate is
 
    type StateType is (
       IDLE_S,

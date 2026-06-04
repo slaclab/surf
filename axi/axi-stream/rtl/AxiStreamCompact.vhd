@@ -47,18 +47,6 @@ architecture rtl of AxiStreamCompact is
    constant SLV_BYTES_C : positive := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant MST_BYTES_C : positive := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
 
-   -- Return number of asserted bits in tKeep[nBytes-1:0]
-   function countKeepBytes (tKeep : slv; nBytes : positive) return natural is
-      variable n : natural := 0;
-   begin
-      for i in 0 to nBytes-1 loop
-         if tKeep(i) = '1' then
-            n := n + 1;
-         end if;
-      end loop;
-      return n;
-   end function;
-
    -- accData / accKeep are double-wide so we can always shift new bytes in
    -- at offset r.count without overflow (count < MST_BYTES_C, new bytes
    -- <= SLV_BYTES_C, MST_BYTES_C >= SLV_BYTES_C).
@@ -135,7 +123,7 @@ begin
 
             if sAxisMaster.tValid = '1' then
 
-               newBytes := countKeepBytes(sAxisMaster.tKeep, SLV_BYTES_C);
+               newBytes := conv_integer(onesCount(sAxisMaster.tKeep(SLV_BYTES_C-1 downto 0)));
 
                -- Latch tUser from the first beat of each packet
                if not r.tUserSet then

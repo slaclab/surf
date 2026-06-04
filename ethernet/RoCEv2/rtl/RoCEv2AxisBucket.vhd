@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-entity AxisBucket is
+entity RoCEv2AxisBucket is
 
    generic (
       TPD_G          : time             := 1 ns;
@@ -45,9 +45,9 @@ entity AxisBucket is
       mAxisMaster  : out AxiStreamMasterType;
       mAxisSlave   : in  AxiStreamSlaveType
       );
-end entity AxisBucket;
+end entity RoCEv2AxisBucket;
 
-architecture rtl of AxisBucket is
+architecture rtl of RoCEv2AxisBucket is
 
    type FrameState is (
       IDLE_S,

@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity RateDecProc is
+entity RoCEv2RateDecProc is
    generic (
       TPD_G          : time    := 1 ns;
       RST_ASYNC_G    : boolean := false;
@@ -46,9 +46,9 @@ entity RateDecProc is
       newRt           : out slv(31 downto 0);
       valid           : out sl
       );
-end entity RateDecProc;
+end entity RoCEv2RateDecProc;
 
-architecture rtl of RateDecProc is
+architecture rtl of RoCEv2RateDecProc is
 
    type StateType is (
       IDLE_S,

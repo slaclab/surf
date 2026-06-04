@@ -23,7 +23,7 @@ use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
 
-entity Dcqcn is
+entity RoCEv2Dcqcn is
 
    generic (
       TPD_G          : time                := 1 ns;
@@ -50,9 +50,9 @@ entity Dcqcn is
       mAxisSlave      : in  AxiStreamSlaveType
       );
 
-end entity Dcqcn;
+end entity RoCEv2Dcqcn;
 
-architecture rtl of Dcqcn is
+architecture rtl of RoCEv2Dcqcn is
 
    constant CNP_COUNTER_BITS_C : positive range 1 to 20 := 16;
 
@@ -182,7 +182,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Rate decrease process
    -----------------------------------------------------------------------------
-   RateDecProc_1 : entity surf.RateDecProc
+   RateDecProc_1 : entity surf.RoCEv2RateDecProc
       generic map (
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,
@@ -208,7 +208,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Rate increase process
    -----------------------------------------------------------------------------
-   RateIncProc_1 : entity surf.RateIncProc
+   RateIncProc_1 : entity surf.RoCEv2RateIncProc
       generic map (
          TPD_G          => TPD_G,
          LINE_RATE_G    => LINE_RATE_G,
@@ -234,7 +234,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Alpha update process
    -----------------------------------------------------------------------------
-   AlphaUpdate_1 : entity surf.AlphaUpdate
+   AlphaUpdate_1 : entity surf.RoCEv2AlphaUpdate
       generic map (
          TPD_G          => TPD_G,
          RST_ASYNC_G    => RST_ASYNC_G,
@@ -253,7 +253,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Token Bucket
    -----------------------------------------------------------------------------
-   TokenBucket_1 : entity surf.TokenBucket
+   TokenBucket_1 : entity surf.RoCEv2TokenBucket
       generic map (
          TPD_G         => TPD_G,
          CLK_FREQ_G    => CLK_FREQ_G,

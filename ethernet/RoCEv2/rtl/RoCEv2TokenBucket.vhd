@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-entity TokenBucket is
+entity RoCEv2TokenBucket is
    generic (
       TPD_G         : time    := 1 ns;
       CLK_FREQ_G    : real    := 156.25E+6;
@@ -38,9 +38,9 @@ entity TokenBucket is
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType
       );
-end entity TokenBucket;
+end entity RoCEv2TokenBucket;
 
-architecture rtl of TokenBucket is
+architecture rtl of RoCEv2TokenBucket is
 
    constant CLK_PERIOD_C : real := 1.0/CLK_FREQ_G;  -- seconds
 
@@ -60,7 +60,7 @@ begin  -- architecture rtl
 
    sAxisSlave <= s_sAxisSlave;
 
-   AxiStreamMon_1 : entity surf.AxiStreamMonDcqcn
+   AxiStreamMon_1 : entity surf.AxiStreamMon
       generic map (
          TPD_G           => TPD_G,
          COMMON_CLK_G    => true,
@@ -140,7 +140,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Token Bucket
    -----------------------------------------------------------------------------
-   AxisBucket_1 : entity surf.AxisBucket
+   AxisBucket_1 : entity surf.RoCEv2AxisBucket
       generic map (
          TPD_G         => TPD_G,
          FRAC_BITS_G   => FRAC_BITS_G,  -- frac bits for byte per clk
@@ -160,7 +160,7 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- Token Calculator
    -----------------------------------------------------------------------------
-   tokenCalc_1 : entity surf.tokenCalc
+   tokenCalc_1 : entity surf.RoCEv2TokenCalc
       generic map (
          TPD_G       => TPD_G,
          CLK_FREQ_G  => CLK_FREQ_G,

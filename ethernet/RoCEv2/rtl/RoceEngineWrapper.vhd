@@ -46,7 +46,7 @@ entity RoceEngineWrapper is
       sAxisMetaDataMaster : in  AxiStreamMasterType    := AXI_STREAM_MASTER_INIT_C;
       sAxisMetaDataSlave  : out AxiStreamSlaveType;
       mAxisMetaDataMaster : out AxiStreamMasterType;
-      mAxisMetaDataSlave  : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_INIT_C;
+      mAxisMetaDataSlave  : in  AxiStreamSlaveType     := AXI_STREAM_SLAVE_FORCE_C;
       -- AXI-Lite Interface
       axilReadMaster      : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
       axilReadSlave       : out AxiLiteReadSlaveType;
@@ -210,10 +210,10 @@ begin
    -- DCQCN Congestion Control
    -----------------------------------------------------------------------------
    GEN_DCQCN : if DCQCN_EN_G generate
-      Dcqcn_1 : entity surf.Dcqcn
+      Dcqcn_1 : entity surf.RoCEv2Dcqcn
          generic map (
             TPD_G         => TPD_G,
-            AXIS_CONFIG_G => SURF_DATA_STREAM_CONFIG_C)
+            AXIS_CONFIG_G => ROCEV2_AXIS_CONFIG_C)
          port map (
             axisClk         => clk,
             axisRst         => rst,
@@ -238,7 +238,7 @@ begin
    -----------------------------------------------------------------------------
    AxiStreamResize_Inst : entity surf.RoceResizeAndSwap
       generic map (
-         SLAVE_AXI_CONFIG_G  => SURF_DATA_STREAM_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => ROCEV2_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => BLUE_DATA_STREAM_CONFIG_C,
          SWAP_ENDIAN_G       => true,
          LITTLE_ENDIAN_G     => false)
@@ -253,7 +253,7 @@ begin
    AxiStreamResize_1 : entity surf.RoceResizeAndSwap
       generic map (
          SLAVE_AXI_CONFIG_G  => BLUE_DATA_STREAM_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SURF_DATA_STREAM_CONFIG_C,
+         MASTER_AXI_CONFIG_G => ROCEV2_AXIS_CONFIG_C,
          SWAP_ENDIAN_G       => true,
          LITTLE_ENDIAN_G     => false)
       port map (
