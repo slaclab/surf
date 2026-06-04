@@ -99,22 +99,22 @@ begin  -- architecture rtl
          -----------------------------------------------------------------------
          when UPDATE_S =>
             if cnpDetected = '1' then
-               mult               := curAlpha * AlphaG;
+               mult              := curAlpha * AlphaG;
                -- multS     := mult srl 10;
                -- multS := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
                multRound         := mult + 512;
                multS             := (others => '0');
                multS(9 downto 0) := multRound(19 downto 10);
-               term2              := ONE_FP_C - AlphaG;
-               v.newAlpha         := multS(9 downto 0) + term2(9 downto 0);
+               term2             := ONE_FP_C - AlphaG;
+               v.newAlpha        := multS(9 downto 0) + term2(9 downto 0);
             else
-               mult               := curAlpha * AlphaG;
+               mult              := curAlpha * AlphaG;
                -- multS     := mult srl 10;
                -- multS := (mult + 512) srl 10;  -- add 0.5 in Q0.10 before shifting
                multRound         := mult + 512;
                multS             := (others => '0');
                multS(9 downto 0) := multRound(19 downto 10);
-               v.newAlpha         := multS(9 downto 0);
+               v.newAlpha        := multS(9 downto 0);
             end if;
             v.valid := '1';
             v.timer := (others => '0');

@@ -271,16 +271,16 @@ begin  -- architecture rtl
    -----------------------------------------------------------------------------
    -- DCQCN
    -----------------------------------------------------------------------------
-   comb : process (alphaValid, axilReadMaster, axilWriteMaster, axisRst, cnpRe,
-                   decValid, incValid, newAlpha, newDecRc, newDecRt, newIncRc,
-                   newIncRt, cnpCnt, cnpCntRst, r) is
+   comb : process (alphaValid, axilReadMaster, axilWriteMaster, axisRst,
+                   cnpCnt, cnpRe, decValid, incValid, newAlpha, newDecRc,
+                   newDecRt, newIncRc, newIncRt, r) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndPointType;
    begin  -- process comb
       -- Latch the current value
-      v           := r;
+      v        := r;
       -- Update counter
-      v.cnpCnt    := cnpCnt;
+      v.cnpCnt := cnpCnt;
       ---------------------------------------------------------------------------
       -- Axi-Lite interface
       ---------------------------------------------------------------------------

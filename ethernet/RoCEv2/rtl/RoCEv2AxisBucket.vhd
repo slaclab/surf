@@ -98,7 +98,7 @@ begin  -- architecture rtl
 
       -- Set fixed point arithmetic
       fracBitsForPacketSize := (others => '0');
-      packetSizeFull          := packet_size & fracBitsForPacketSize;
+      packetSizeFull        := packet_size & fracBitsForPacketSize;
 
       -- Choose ready source and clear valid
       if (pipeAxisSlave.tReady = '1') then

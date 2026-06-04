@@ -189,8 +189,8 @@ begin
          RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C,
-         ROCEV2_DSCP_G          => ROCEV2_DSCP_G,
-         ROCEV2_ECN_G           => ROCEV2_ECN_G,
+         ROCEV2_DSCP_G   => ROCEV2_DSCP_G,
+         ROCEV2_ECN_G    => ROCEV2_ECN_G,
          TTL_G           => TTL_G)
       port map (
          -- Local Configurations

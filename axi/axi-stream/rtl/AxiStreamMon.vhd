@@ -38,7 +38,7 @@ entity AxiStreamMon is
       -- Status Interface
       statusClk    : in  sl;
       statusRst    : in  sl;
-      frameUpdate  : out sl := '0';            -- end-of-frame strobe (only valid when COMMON_CLK_G = true)
+      frameUpdate  : out sl := '0';  -- end-of-frame strobe (only valid when COMMON_CLK_G = true)
       frameCnt     : out slv(63 downto 0);     -- units of frames
       frameSize    : out slv(31 downto 0);     -- units of Byte
       frameSizeMax : out slv(31 downto 0);     -- units of Byte

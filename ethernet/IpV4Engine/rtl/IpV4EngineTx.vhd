@@ -161,7 +161,7 @@ begin
                   v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
                   v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
                   v.txMaster.tData(127 downto 122) := toSlv(ROCEV2_DSCP_G, 6);  --- DSCP
-                  v.txMaster.tData(121 downto 120) := ROCEV2_ECN_G;  --- ECN
+                  v.txMaster.tData(121 downto 120) := ROCEV2_ECN_G;   --- ECN
                   -- Track the leftovers
                   v.tData(63 downto 0)             := rxMaster.tData(127 downto 64);
                   -- Next state

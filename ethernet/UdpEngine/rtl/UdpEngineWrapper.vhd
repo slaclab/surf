@@ -137,8 +137,8 @@ begin
          PROTOCOL_G      => (0 => UDP_C),
          CLIENT_SIZE_G   => CLIENT_SIZE_G,
          CLK_FREQ_G      => CLK_FREQ_G,
-         ROCEV2_DSCP_G          => ROCEV2_DSCP_G,
-         ROCEV2_ECN_G           => ROCEV2_ECN_G,
+         ROCEV2_DSCP_G   => ROCEV2_DSCP_G,
+         ROCEV2_ECN_G    => ROCEV2_ECN_G,
          IGMP_G          => IGMP_G,
          IGMP_GRP_SIZE   => IGMP_GRP_SIZE,
          TTL_G           => TTL_G)
