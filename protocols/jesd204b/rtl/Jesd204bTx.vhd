@@ -10,7 +10,9 @@
 --              - Synchronization of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-32)
 --
---          Warning: Scrambling support has not been tested on the TX module yet.
+--          TX scrambling exercised end-to-end by
+--          tests/protocols/jesd204b/test_Jesd204bLoopback.py loopback bench
+--          (lfsr_scramble_tx golden cross-check, all parameter cases green).
 --
 --          Note: extSampleDataArray_i should be little endian and not byte swapped
 --                First sample in time:  sampleData_i(15 downto 0)
