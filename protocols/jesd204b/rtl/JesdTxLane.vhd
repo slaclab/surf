@@ -44,9 +44,19 @@ use surf.Jesd204bPkg.all;
 
 entity JesdTxLane is
    generic (
-      TPD_G : time     := 1 ns;
-      F_G   : positive := 2;
-      K_G   : positive := 32);
+      TPD_G    : time            := 1 ns;
+      F_G      : positive        := 2;
+      K_G      : positive        := 32;
+      -- ILAS config generics (all defaulted -- existing instances unaffected)
+      DID_G    : slv(7 downto 0) := x"00";     -- Device ID
+      BID_G    : slv(3 downto 0) := x"0";      -- Bank ID
+      M_G      : slv(7 downto 0) := x"00";     -- Converters per device - 1
+      N_G      : slv(4 downto 0) := "00000";   -- Converter resolution - 1
+      NPRIME_G : slv(4 downto 0) := "00000";   -- Total bits/sample - 1
+      CS_G     : slv(1 downto 0) := "00";      -- Control bits/sample
+      S_G      : slv(4 downto 0) := "00000";   -- Samples/converter/frame - 1
+      HD_G     : sl              := '0';       -- High-density format
+      CF_G     : slv(4 downto 0) := "00000");  -- Control words/frame/lane
    port (
       -- JESD
       -- Clocks and Resets
@@ -73,6 +83,9 @@ entity JesdTxLane is
 
       -- SYSREF for subclass 1 fixed latency
       sysRef_i : in sl;
+
+      -- Lane ID for ILAS config octets
+      lid_i : in slv(4 downto 0) := (others => '0');
 
       -- Status of the transmitter
       status_o   : out slv(TX_STAT_WIDTH_C-1 downto 0);
@@ -133,16 +146,29 @@ begin
    -- Initial Synchronization Data Sequence (ILAS)
    ilasGen_INST : entity surf.JesdIlasGen
       generic map (
-         TPD_G => TPD_G,
-         F_G   => F_G)
+         TPD_G    => TPD_G,
+         F_G      => F_G,
+         K_G      => K_G,
+         DID_G    => DID_G,
+         BID_G    => BID_G,
+         M_G      => M_G,
+         N_G      => N_G,
+         NPRIME_G => NPRIME_G,
+         CS_G     => CS_G,
+         S_G      => S_G,
+         HD_G     => HD_G,
+         CF_G     => CF_G)
       port map (
-         clk        => devClk_i,
-         rst        => devRst_i,
-         enable_i   => enable_i,
-         ilas_i     => s_ila,
-         lmfc_i     => lmfc_i,
-         ilasData_o => s_ilaDataMux,
-         ilasK_o    => s_ilaKMux);
+         clk         => devClk_i,
+         rst         => devRst_i,
+         enable_i    => enable_i,
+         ilas_i      => s_ila,
+         lmfc_i      => lmfc_i,
+         lid_i       => lid_i,
+         scrEnable_i => scrEnable_i,
+         subClass_i  => subClass_i,
+         ilasData_o  => s_ilaDataMux,
+         ilasK_o     => s_ilaKMux);
 
    ----------------------------------------------------
    -- Sample data with added synchronization characters TODO
