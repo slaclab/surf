@@ -28,16 +28,19 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamCompact is
    generic (
       TPD_G               : time    := 1 ns;
-      RST_POLARITY_G      : sl      := '1';
+      RST_POLARITY_G      : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean := false;
       PIPE_STAGES_G       : natural := 0;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
+      -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
+      -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
+      -- Master Port
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamCompact;
