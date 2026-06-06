@@ -10,9 +10,9 @@
 
 import pyrogue as pr
 
-from surf.ethernet.roce._Dcqcn import Dcqcn
+from surf.ethernet.roce._RoCEv2Dcqcn import RoCEv2Dcqcn
 
-class RoceEngine(pr.Device):
+class RoCEv2Engine(pr.Device):
     def __init__( self,
                   dcqcn = True,
                   **kwargs):
@@ -53,7 +53,7 @@ class RoceEngine(pr.Device):
         ))
 
         if dcqcn:
-            self.add(Dcqcn(
+            self.add(RoCEv2Dcqcn(
                 name   = "Dcqcn",
                 offset = 0x1000,
                 expand = False,

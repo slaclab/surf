@@ -22,7 +22,7 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
-entity EthMacRxRoCEv2 is
+entity RoCEv2EthMacRx is
    generic (
       TPD_G          : time := 1 ns;
       RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
@@ -34,9 +34,9 @@ entity EthMacRxRoCEv2 is
       obCsumMaster   : in  AxiStreamMasterType;
       -- Bypass Interface
       ibBypassMaster : out AxiStreamMasterType);
-end EthMacRxRoCEv2;
+end RoCEv2EthMacRx;
 
-architecture mapping of EthMacRxRoCEv2 is
+architecture mapping of RoCEv2EthMacRx is
 
    constant ROCE_CRC32_AXI_CONFIG_C : AxiStreamConfigType := (
       TSTRB_EN_C    => false,

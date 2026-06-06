@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-package RocePkg is
+package RoCEv2Pkg is
 
    -- Types
    constant TDATA_ROCE_NUM_BYTES_C : natural range 1 to 128 := 32;
@@ -282,9 +282,9 @@ package RocePkg is
    --   rKeyToInv : slv(32 downto 0))
    --   return RoceWorkCompMasterType;
 
-end package RocePkg;
+end package RoCEv2Pkg;
 
-package body RocePkg is
+package body RoCEv2Pkg is
 
    function ToRoceWorkReqMasterType (
       valid     : sl;
@@ -471,4 +471,4 @@ package body RocePkg is
    -- end function ToRoceWorkCompMasterType;
 
 
-end package body RocePkg;
+end package body RoCEv2Pkg;

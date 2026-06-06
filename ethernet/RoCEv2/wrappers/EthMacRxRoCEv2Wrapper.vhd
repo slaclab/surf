@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Cocotb-facing wrapper for EthMacRxRoCEv2
+-- Description: Cocotb-facing wrapper for RoCEv2EthMacRx
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -92,7 +92,7 @@ begin
    ----------------------------------------------------------------------------
    -- DUT hookup
    ----------------------------------------------------------------------------
-   U_DUT : entity surf.EthMacRxRoCEv2
+   U_DUT : entity surf.RoCEv2EthMacRx
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G)

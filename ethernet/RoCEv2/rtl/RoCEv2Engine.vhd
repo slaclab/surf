@@ -20,9 +20,9 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
-use surf.RocePkg.all;
+use surf.RoCEv2Pkg.all;
 
-entity RoceEngineWrapper is
+entity RoCEv2Engine is
    generic (
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
@@ -59,9 +59,9 @@ entity RoceEngineWrapper is
       dmaReadReqSlave     : in  RoceDmaReadReqSlaveType;
       -- CNP
       cnp_received        : out sl);
-end RoceEngineWrapper;
+end RoCEv2Engine;
 
-architecture mapping of RoceEngineWrapper is
+architecture mapping of RoCEv2Engine is
 
    component mkAxiSTransportLayer
       port (

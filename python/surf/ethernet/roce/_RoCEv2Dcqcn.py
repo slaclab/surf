@@ -11,7 +11,7 @@
 import pyrogue as pr
 
 # DCQCN parameters
-class Dcqcn(pr.Device):
+class RoCEv2Dcqcn(pr.Device):
     def __init__(self, clockPeriodNs=6.4, **kwargs):
         super().__init__(**kwargs)
 
