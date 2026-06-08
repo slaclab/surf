@@ -380,7 +380,7 @@ begin
                v.pntr := r.pntr + 1;
                if r.pntr = 15 then
                   v.pntr := (others => '0');
-                  -- Check if we need to perform a read or write reponse
+                  -- Check if we need to perform a read or write response
                   if r.serReg(15) = '0' then
                      axiSlaveWriteResponse(v.axiWriteSlave);
                   else

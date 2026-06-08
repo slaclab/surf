@@ -103,22 +103,22 @@ architecture rtl of EventFrameSequencerWrapper is
 
    constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(1 downto 0) := genAxiLiteConfig(2, x"0000_0000", 20, 16);
 
-   signal axilReadMaster  : AxiLiteReadMasterType;
-   signal axilReadSlave   : AxiLiteReadSlaveType;
-   signal axilWriteMaster : AxiLiteWriteMasterType;
-   signal axilWriteSlave  : AxiLiteWriteSlaveType;
+   signal axilReadMaster   : AxiLiteReadMasterType;
+   signal axilReadSlave    : AxiLiteReadSlaveType;
+   signal axilWriteMaster  : AxiLiteWriteMasterType;
+   signal axilWriteSlave   : AxiLiteWriteSlaveType;
    signal axilReadMasters  : AxiLiteReadMasterArray(1 downto 0);
    signal axilReadSlaves   : AxiLiteReadSlaveArray(1 downto 0);
    signal axilWriteMasters : AxiLiteWriteMasterArray(1 downto 0);
    signal axilWriteSlaves  : AxiLiteWriteSlaveArray(1 downto 0);
-   signal axisClk : sl := '0';
-   signal axisRst : sl := '0';
-   signal sAxisMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal sAxisSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
-   signal axisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal axisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal mAxisMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal mAxisSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal axisClk          : sl                               := '0';
+   signal axisRst          : sl                               := '0';
+   signal sAxisMasters     : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal sAxisSlaves      : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
+   signal axisMaster       : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal axisSlave        : AxiStreamSlaveType               := AXI_STREAM_SLAVE_FORCE_C;
+   signal mAxisMasters     : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal mAxisSlaves      : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_FORCE_C);
 
 begin
 
@@ -319,9 +319,9 @@ begin
 
    U_Demux : entity surf.EventFrameSequencerDemux
       generic map (
-         TPD_G          => TPD_C,
-         NUM_MASTERS_G  => 2,
-         AXIS_CONFIG_G  => AXIS_CONFIG_C)
+         TPD_G         => TPD_C,
+         NUM_MASTERS_G => 2,
+         AXIS_CONFIG_G => AXIS_CONFIG_C)
       port map (
          axisClk         => axisClk,
          axisRst         => axisRst,

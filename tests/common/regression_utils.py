@@ -140,6 +140,11 @@ def env_float(name: str, *, default: float) -> float:
     return float(normalized)
 
 
+def env_int(name: str, *, default: int) -> int:
+    raw = os.environ.get(name)
+    return default if raw is None else int(raw.strip().strip("'").strip('"'))
+
+
 def parameter_case(case_id: str, **parameters: str):
     return pytest.param(parameters, id=case_id)
 

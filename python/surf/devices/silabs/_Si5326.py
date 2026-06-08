@@ -75,7 +75,7 @@ class Si5326(pr.Device):
                         data   = int(data,16),
                     )
 
-            # Update local RemoteVariables and verify conflagration
+            # Update local RemoteVariables and verify configuration
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
 

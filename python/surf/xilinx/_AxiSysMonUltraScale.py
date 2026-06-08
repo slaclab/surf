@@ -13,7 +13,7 @@ import pyrogue as pr
 class AxiSysMonUltraScale(pr.Device):
     def __init__(
             self,
-            description    = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
+            description    = "AXI-Lite System Management for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G   = "ULTRASCALE",
             simpleViewList = None,
             pollInterval   = 5,
@@ -434,7 +434,7 @@ class AxiSysMonUltraScale(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "OTAutomaticShutdown",
-            description = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (defatul 125 degC)",
+            description = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (default 125 degC)",
             offset      =  0x54C,
             bitSize     =  4,
             bitOffset   =  0x0,

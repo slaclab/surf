@@ -167,7 +167,7 @@ begin
          axisSlave       => AXI_STREAM_SLAVE_FORCE_C);
 
    --------------------------------------
-   -- Load waveofrm and check the Results
+   -- Load waveform and check the Results
    --------------------------------------
    comb : process (axisMaster, r, rst) is
       variable v : RegType;

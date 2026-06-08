@@ -9,10 +9,14 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
 
 class PhantomS991(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        rogue.Version.minVersion('6.13.0')
+
         #############################################################
         # Start of manufacturer-specific register space at 0x00006000
         #############################################################
@@ -166,6 +170,22 @@ class PhantomS991(pr.Device):
             },
         ))
 
+        self.add(pr.LocalVariable(
+            name        = 'IsAcquiring',
+            description = 'True while the camera is acquiring frames.',
+            mode        = 'RO',
+            value       = False,
+            hidden      = True,
+        ))
+
+        def _acq_start(cmd):
+            cmd.post(1)
+            self.IsAcquiring.set(True)
+
+        def _acq_stop(cmd):
+            cmd.post(0)
+            self.IsAcquiring.set(False)
+
         self.add(pr.RemoteCommand(
             name        = 'AcquisitionStart',
             description = 'This feature starts the Acquisition of the device.',
@@ -173,7 +193,7 @@ class PhantomS991(pr.Device):
             base        = pr.UIntBE,
             bitSize     = 8,
             bitOffset   = 24,
-            function    = lambda cmd: cmd.post(1),
+            function    = _acq_start,
         ))
 
         self.add(pr.RemoteCommand(
@@ -183,7 +203,7 @@ class PhantomS991(pr.Device):
             base        = pr.UIntBE,
             bitSize     = 8,
             bitOffset   = 24,
-            function    = lambda cmd: cmd.post(0),
+            function    = _acq_stop,
         ))
 
         self.add(pr.RemoteVariable(
@@ -636,3 +656,14 @@ class PhantomS991(pr.Device):
             mode        = 'RW',
             hidden      = True,
         ))
+
+        # Block all register writes while the camera is acquiring.
+        # AcquisitionStart and AcquisitionStop must remain writable to allow stopping.
+        # Uses the pre-write listener API from rogue PR #1229.
+        def _write_guard(path, value, state):
+            if state.get(self.IsAcquiring.path):
+                name = path.rsplit('.', 1)[-1]
+                if name not in ('AcquisitionStart', 'AcquisitionStop', 'IsAcquiring'):
+                    raise pr.WriteBlockedError(path, 'cannot write registers during acquisition')
+
+        self.addPreWriteListener(_write_guard, stateVars=[self.IsAcquiring])

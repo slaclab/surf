@@ -77,7 +77,7 @@ architecture mapping of FirFilterSingleChannel is
 
    constant NUM_ADDR_BITS_C : positive := bitSize(NUM_TAPS_G-1);
 
-   constant FILTER_DELAY_C : integer := (NUM_TAPS_G-1)/2;
+   constant FILTER_DELAY_C : integer  := (NUM_TAPS_G-1)/2;
    constant OUTPUT_DELAY_C : positive := FILTER_DELAY_C+1;
 
    type SidebandPipelineArray is array (OUTPUT_DELAY_C downto 0) of slv(SIDEBAND_WIDTH_G-1 downto 0);

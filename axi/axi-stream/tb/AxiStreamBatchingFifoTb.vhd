@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Simulation Testbed for testing the AxiStreamBatchinFifo module
+-- Description: Simulation Testbed for testing the AxiStreamBatchingFifo module
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -53,7 +53,7 @@ end AxiStreamBatchingFifoTb;
 
 architecture testbed of AxiStreamBatchingFifoTb is
 
-    -- Constants
+   -- Constants
    constant CLK_PERIOD_C : time := 4 ns;
    constant TPD_C        : time := CLK_PERIOD_C/4;
 
@@ -74,7 +74,7 @@ architecture testbed of AxiStreamBatchingFifoTb is
       TUSER_BITS_C  => 0,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-    -- Signals
+   -- Signals
    signal toFifoMaster   : AxiStreamMasterType;
    signal toFifoSlave    : AxiStreamSlaveType;
    signal fromFifoMaster : AxiStreamMasterType;
@@ -94,8 +94,8 @@ begin
          SLAVE_AXI_CONFIG_G  => AXIS_RX_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_TX_CONFIG_C)
       port map (
-         axilClk => clk,
-         axilRst => rst,
+         axilClk          => clk,
+         axilRst          => rst,
          sAxilWriteMaster => sAxilWriteMaster,
          sAxilWriteSlave  => sAxilWriteSlave,
          sAxilReadMaster  => sAxilReadMaster,
@@ -111,32 +111,32 @@ begin
          mAxisMaster => fromFifoMaster,
          mAxisSlave  => fromFifoSlave);
 
-    -- Map input AXI Stream
-   toFifoMaster.tValid <= s_axis_tvalid;
-   toFifoMaster.tLast  <= s_axis_tlast;
-   toFifoMaster.tData(8*AXIS_RX_CONFIG_C.TDATA_BYTES_C-1 downto 0)  <= s_axis_tdata;
-   s_axis_tready       <= toFifoSlave.tReady;
+   -- Map input AXI Stream
+   toFifoMaster.tValid                                             <= s_axis_tvalid;
+   toFifoMaster.tLast                                              <= s_axis_tlast;
+   toFifoMaster.tData(8*AXIS_RX_CONFIG_C.TDATA_BYTES_C-1 downto 0) <= s_axis_tdata;
+   s_axis_tready                                                   <= toFifoSlave.tReady;
 
-    -- Continuous read of output AXI Stream
+   -- Continuous read of output AXI Stream
    fromFifoSlave.tReady <= '1';
 
-    -- Map AXI LITE
-   sAxilWriteMaster.awaddr(3 downto 0)  <= s_axil_AWADDR;
-   sAxilWriteMaster.awvalid             <= s_axil_AWVALID;
-   sAxilWriteMaster.wdata               <= s_axil_WDATA;
-   sAxilWriteMaster.wstrb               <= s_axil_WSTRB;
-   sAxilWriteMaster.wvalid              <= s_axil_WVALID;
-   sAxilWriteMaster.bready              <= s_axil_BREADY;
-   sAxilReadMaster.araddr(3 downto 0)   <= s_axil_ARADDR;
-   sAxilReadMaster.arvalid              <= s_axil_ARVALID;
-   sAxilReadMaster.rready               <= s_axil_RREADY;
-   s_axil_ARREADY                       <= sAxilReadSlave.arready;
-   s_axil_RDATA                         <= sAxilReadSlave.rdata;
-   s_axil_RRESP                         <= sAxilReadSlave.rresp;
-   s_axil_RVALID                        <= sAxilReadSlave.rvalid;
-   s_axil_AWREADY                       <= sAxilWriteSlave.awready;
-   s_axil_WREADY                        <= sAxilWriteSlave.wready;
-   s_axil_BRESP                         <= sAxilWriteSlave.bresp;
-   s_axil_BVALID                        <= sAxilWriteSlave.bvalid;
+   -- Map AXI LITE
+   sAxilWriteMaster.awaddr(3 downto 0) <= s_axil_AWADDR;
+   sAxilWriteMaster.awvalid            <= s_axil_AWVALID;
+   sAxilWriteMaster.wdata              <= s_axil_WDATA;
+   sAxilWriteMaster.wstrb              <= s_axil_WSTRB;
+   sAxilWriteMaster.wvalid             <= s_axil_WVALID;
+   sAxilWriteMaster.bready             <= s_axil_BREADY;
+   sAxilReadMaster.araddr(3 downto 0)  <= s_axil_ARADDR;
+   sAxilReadMaster.arvalid             <= s_axil_ARVALID;
+   sAxilReadMaster.rready              <= s_axil_RREADY;
+   s_axil_ARREADY                      <= sAxilReadSlave.arready;
+   s_axil_RDATA                        <= sAxilReadSlave.rdata;
+   s_axil_RRESP                        <= sAxilReadSlave.rresp;
+   s_axil_RVALID                       <= sAxilReadSlave.rvalid;
+   s_axil_AWREADY                      <= sAxilWriteSlave.awready;
+   s_axil_WREADY                       <= sAxilWriteSlave.wready;
+   s_axil_BRESP                        <= sAxilWriteSlave.bresp;
+   s_axil_BVALID                       <= sAxilWriteSlave.bvalid;
 
 end testbed;

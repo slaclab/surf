@@ -23,6 +23,7 @@ import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, with_timeout
 
+from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 
 
@@ -105,9 +106,7 @@ class TB:
         self.dut.S_AXIS_EOFE.value = 1
         self.dut.S_AXIS_TDATA.value = int.from_bytes(bytes(range(self.slave_bytes)), "little")
         self.dut.S_AXIS_TKEEP.value = (1 << self.slave_bytes) - 1
-        while int(self.dut.S_AXIS_TREADY.value) != 1:
-            await RisingEdge(self.dut.AXIS_ACLK)
-        await RisingEdge(self.dut.AXIS_ACLK)
+        await wait_sampled_ready(self.dut.S_AXIS_TREADY, clk=self.dut.AXIS_ACLK)
         self.dut.S_AXIS_TVALID.value = 0
         self.dut.S_AXIS_TLAST.value = 0
         self.dut.S_AXIS_EOFE.value = 0

@@ -28,3 +28,4 @@ sim_build/
 .planning/
 planning/
 CLAUDE.md
+.DS_Store

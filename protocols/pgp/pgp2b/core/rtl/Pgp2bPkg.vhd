@@ -70,9 +70,9 @@ package Pgp2bPkg is
       linkPolarity : slv(1 downto 0);   -- Receive link polarity
       frameRx      : sl;                -- A good frame was received
       frameRxErr   : sl;                -- An errored frame was received
-      cellError    : sl;                -- A cell error has occured
-      linkDown     : sl;                -- A link down event has occured
-      linkError    : sl;                -- A link error has occured
+      cellError    : sl;                -- A cell error has occurred
+      linkDown     : sl;                -- A link down event has occurred
+      linkError    : sl;                -- A link error has occurred
       opCodeEn     : sl;                -- Opcode receive enable
       opCode       : slv(7 downto 0);   -- Opcode receive value
       remLinkReady : sl;                -- Far end side has link

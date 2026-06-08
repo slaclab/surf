@@ -21,14 +21,14 @@ use surf.StdRtlPkg.all;
 
 entity DebouncerWrapper is
    generic (
-      TPD_G              : time     := 1 ns;
-      RST_POLARITY_G     : sl       := '1';
-      RST_ASYNC_G        : boolean  := false;
-      INPUT_POLARITY_G   : sl       := '0';
-      OUTPUT_POLARITY_G  : sl       := '1';
-      SYNCHRONIZE_G      : boolean  := true;
-      SYNC_EDGE_TRIG_G   : boolean  := false;
-      DEBOUNCE_CYCLES_G  : positive := 3);
+      TPD_G             : time     := 1 ns;
+      RST_POLARITY_G    : sl       := '1';
+      RST_ASYNC_G       : boolean  := false;
+      INPUT_POLARITY_G  : sl       := '0';
+      OUTPUT_POLARITY_G : sl       := '1';
+      SYNCHRONIZE_G     : boolean  := true;
+      SYNC_EDGE_TRIG_G  : boolean  := false;
+      DEBOUNCE_CYCLES_G : positive := 3);
    port (
       clk : in  sl;
       rst : in  sl := not RST_POLARITY_G;

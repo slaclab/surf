@@ -211,7 +211,7 @@ begin
             v.tDataK(0) := '1';
             v.tData(0)  := CXP_SOP_C;
 
-            -- Control command indication: with or with tag
+            -- Control command indication: with or without tag
             if (r.configPktTag = '1') then
 
                -- Type=0x05 = Indicates control command with tag

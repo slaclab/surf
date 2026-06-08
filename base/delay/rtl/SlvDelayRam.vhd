@@ -1,13 +1,34 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Shift Register Delay module for std_logic_vector
---              Uses a counter and single port RAM (distributed, block, ultra)
---              Single port RAM setup in read first mode
---              Counter counts 0...maxCount
---              Optional data out register (DO_REG_G) on the RAM
+-- Description: Runtime-configurable delay line for std_logic_vector data.
 --
---              delay = maxCount + ite(DO_REG_G, 3, 2)
+--              SlvDelayRam stores each accepted din sample in an inferred
+--              single-port RAM and reads back the sample located at the
+--              current circular address.  The RAM is used in read-before-write
+--              mode, so the visible output is the sample captured on an
+--              earlier visit to the same address.  The address counter wraps
+--              when it reaches the registered maxCount value, which sets the
+--              requested delay depth.  The en input freezes the address
+--              counter, maxCount register, RAM write, and output update.
+--
+--              DO_REG_G adds an output register after the RAM read data.
+--              With the current implementation, the observable delay is:
+--
+--                 delay = maxCount + ite(DO_REG_G, 3, 2)
+--
+--              maxCount is sampled while en is asserted and is intended to be
+--              programmed during initialization or while the module is held in
+--              reset.  If maxCount is changed while traffic is flowing, the
+--              circular address phase is not automatically realigned.  The
+--              transition samples are therefore undefined, and shrinking
+--              maxCount below the current address can violate the internal
+--              counter range in simulation.  Software or firmware that changes
+--              maxCount at runtime must assert rst afterward and should discard
+--              any pre-reset output history before relying on dout again.  In
+--              practice, allow at least one newly configured delay interval
+--              after reset release before treating dout as aligned to the new
+--              maxCount setting.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

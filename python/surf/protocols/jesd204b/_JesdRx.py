@@ -130,7 +130,7 @@ class JesdRx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        =  "LinkErrMask",
-                description =  "Mask Enable the errors that are required to brake the link. bit 5-0: positionErr - s_bufOvf - s_bufUnf - dispErr - decErr - s_alignErr",
+                description =  "Mask Enable the errors that are required to break the link. bit 5-0: positionErr - s_bufOvf - s_bufUnf - dispErr - decErr - s_alignErr",
                 offset      =   0x14,
                 bitSize     =   6,
                 bitOffset   =   0x00,
@@ -202,7 +202,7 @@ class JesdRx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         =  "AlignErr",
-                description  =  "Jesd Character Alignment Error. The control characters in the data are missaligned. This error will trigger JESD re-synchronization.",
+                description  =  "Jesd Character Alignment Error. The control characters in the data are misaligned. This error will trigger JESD re-synchronization.",
                 offset       =  range(0x40,0x40+4*numRxLanes,4),
                 bitSize      =  1,
                 bitOffset    =  2,
@@ -212,7 +212,7 @@ class JesdRx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        =  "nSync",
-                description =  "Synchronisation request. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
+                description =  "Synchronisation request. 0 - Not synchronised. 1 - Indicates that code group synchronization has been completed.",
                 offset      =  range(0x40,0x40+4*numRxLanes,4),
                 bitSize     =  1,
                 bitOffset   =  3,
@@ -221,7 +221,7 @@ class JesdRx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         =  "RxBuffUfl",
-                description  =  "Jesd sync fifo buffer undeflow. This error will trigger JESD re-synchronization.",
+                description  =  "Jesd sync fifo buffer underflow. This error will trigger JESD re-synchronization.",
                 offset       =  range(0x40,0x40+4*numRxLanes,4),
                 bitSize      =  1,
                 bitOffset    =  4,
@@ -322,7 +322,7 @@ class JesdRx(pr.Device):
             if (debug):
                 self.addRemoteVariables(
                     name         = "ThresholdLow",
-                    description  = "Threshold_Low. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
+                    description  = "Threshold_Low. Debug functionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
                     bitSize      =  16,
                     bitOffset    =  0x00,
@@ -334,7 +334,7 @@ class JesdRx(pr.Device):
 
                 self.addRemoteVariables(
                     name         = "ThresholdHigh",
-                    description  = "Threshold_High. Debug funtionality. Threshold for generating a digital signal from the ADC data.",
+                    description  = "Threshold_High. Debug functionality. Threshold for generating a digital signal from the ADC data.",
                     offset       =  0xC0,
                     bitSize      =  16,
                     bitOffset    =  16,
@@ -346,7 +346,7 @@ class JesdRx(pr.Device):
 
             self.addRemoteVariables(
                 name         = "StatusValidCnt",
-                description  = "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
+                description  = "StatusValidCnt. Shows stability of JESD lanes. Counts number of JESD re-synchronisations.",
                 offset       =  0x100,
                 bitSize      =  32,
                 bitOffset    =  0x00,

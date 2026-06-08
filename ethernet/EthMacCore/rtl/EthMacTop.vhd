@@ -165,7 +165,7 @@ begin
          -- Misc. Configurations
          ROCEV2_EN_G     => ROCEV2_EN_G,
          BYP_EN_G        => BYP_EN_G,
-         -- RAM sythesis Mode
+         -- RAM synthesis Mode
          SYNTH_MODE_G    => SYNTH_MODE_G)
       port map (
          -- Clocks

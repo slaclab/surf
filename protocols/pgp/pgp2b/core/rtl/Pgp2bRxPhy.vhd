@@ -38,8 +38,8 @@ entity Pgp2bRxPhy is
       pgpRxLinkReady : out sl;          -- Local side has link
 
       -- Error Flags, one pulse per event
-      pgpRxLinkDown  : out sl := '0';   -- A link down event has occured
-      pgpRxLinkError : out sl := '0';   -- A link error has occured
+      pgpRxLinkDown  : out sl := '0';   -- A link down event has occurred
+      pgpRxLinkError : out sl := '0';   -- A link error has occurred
 
       -- Opcode Receive Interface
       pgpRxOpCodeEn : out sl;               -- Opcode receive enable
@@ -49,7 +49,7 @@ entity Pgp2bRxPhy is
       pgpRemLinkReady : out sl              := '0';  -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
-      -- Cell Receive Interfac e
+      -- Cell Receive Interface
       cellRxPause : out sl;             -- Cell data pause
       cellRxSOC   : out sl;             -- Cell data start of cell
       cellRxSOF   : out sl;             -- Cell data start of frame

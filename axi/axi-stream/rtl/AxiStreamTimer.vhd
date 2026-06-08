@@ -27,16 +27,16 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamTimer is
    generic (
-      TPD_G             : time                  := 1 ns;
-      NUM_STREAMS_G     : integer range 1 to 8  := 1;
-      NUM_EVENT_G       : integer range 1 to 16 := 1
+      TPD_G         : time                  := 1 ns;
+      NUM_STREAMS_G : integer range 1 to 8  := 1;
+      NUM_EVENT_G   : integer range 1 to 16 := 1
    );
    port (
       -- AXI-Stream interfaces
-      axisClk         : in sl;
-      axisRst         : in sl;
-      streamMasters   : in AxiStreamMasterArray(NUM_STREAMS_G-1 downto 0);
-      streamSlaves    : in AxiStreamSlaveArray(NUM_STREAMS_G-1 downto 0);
+      axisClk       : in sl;
+      axisRst       : in sl;
+      streamMasters : in AxiStreamMasterArray(NUM_STREAMS_G-1 downto 0);
+      streamSlaves  : in AxiStreamSlaveArray(NUM_STREAMS_G-1 downto 0);
 
       -- AXI-Lite Interface
       axilClk         : in  sl;
@@ -45,12 +45,12 @@ entity AxiStreamTimer is
       axilReadSlave   : out AxiLiteReadSlaveType;
       axilWriteMaster : in  AxiLiteWriteMasterType;
       axilWriteSlave  : out AxiLiteWriteSlaveType
-    );
+      );
 end AxiStreamTimer;
 
 architecture rtl of AxiStreamTimer is
 
-    -- Internal AXI Lite synced with axisClk
+   -- Internal AXI Lite synced with axisClk
    signal axilReadIntMaster  : AxiLiteReadMasterType;
    signal axilReadIntSlave   : AxiLiteReadSlaveType;
    signal axilWriteIntMaster : AxiLiteWriteMasterType;
@@ -100,17 +100,17 @@ architecture rtl of AxiStreamTimer is
 
    -- Procedure used to monitor a single channel
    procedure monitorChannel(
-      timer      : slv(31 downto 0);
-      axisMaster : in AxiStreamMasterType;
-      axisSlave  : in AxiStreamSlaveType;
-      channel    : in ChannelStateType;
+      timer               :       slv(31 downto 0);
+      axisMaster          : in    AxiStreamMasterType;
+      axisSlave           : in    AxiStreamSlaveType;
+      channel             : in    ChannelStateType;
       variable vchannel   : inout ChannelStateType;
       variable notDoneSof : inout sl;
       variable notDoneEof : inout sl)
    is
-      variable handshake  : sl;
-      variable hasSof     : sl;
-      variable hasEof     : sl;
+      variable handshake : sl;
+      variable hasSof    : sl;
+      variable hasEof    : sl;
    begin
       -- Find handshake
       handshake := axisMaster.tValid and axisSlave.tReady;
@@ -139,18 +139,19 @@ architecture rtl of AxiStreamTimer is
 
       if (hasSof = '1' and notDoneSof = '1') then
          vchannel.timeSof(channel.sofIdx) := timer;
-         vchannel.sofIdx := channel.sofIdx + 1;
+         vchannel.sofIdx                  := channel.sofIdx + 1;
       end if;
 
       if (hasEof = '1' and notDoneEof = '1') then
          vchannel.timeEof(channel.eofIdx) := timer;
-         vchannel.eofIdx := channel.eofIdx + 1;
+         vchannel.eofIdx                  := channel.eofIdx + 1;
       end if;
    end procedure;
 
 begin
 
-   comb : process (streamMasters, streamSlaves, axisRst, r, axilWriteIntMaster, axilReadIntMaster) is
+   comb : process (axilReadIntMaster, axilWriteIntMaster, axisRst, r,
+                   streamMasters, streamSlaves) is
       variable v           : RegType;
       variable notDoneSofs : slv(NUM_STREAMS_G-1 downto 0);
       variable notDoneEofs : slv(NUM_STREAMS_G-1 downto 0);

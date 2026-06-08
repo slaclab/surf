@@ -14,8 +14,10 @@
 #   threshold placements with a small curated matrix instead of a Cartesian
 #   explosion.
 # - Stimulus: Drive burst writes and reads on independent clocks so the FIFO
-#   fills, drains, crosses programmable threshold points, and encounters both
-#   empty and full boundaries.
+#   fills, drains, crosses programmable threshold points, encounters both
+#   empty and full boundaries, optionally turns over near full with concurrent
+#   reads and writes, and optionally resets while traffic history is still
+#   present.
 # - Checks: The bench checks end-to-end ordering, `full`/`empty` behavior,
 #   programmable threshold flags, deeper and wider geometry variants, and the
 #   behavioral difference between `FWFT` and standard read mode.
@@ -89,6 +91,11 @@ class TB:
         # Let FWFT outputs settle before the next operation samples status.
         await Timer(2, unit="ns")
 
+    async def cycle_rd(self, count: int = 1) -> None:
+        for _ in range(count):
+            await RisingEdge(self.dut.rd_clk)
+            await Timer(2, unit="ns")
+
     async def read_word(self) -> int:
         if self.fwft_enabled:
             await with_timeout(self._wait_valid(), 5, "us")
@@ -137,6 +144,14 @@ class TB:
     async def _wait_prog_empty(self, expected: int) -> None:
         while int(self.dut.prog_empty.value) != expected:
             await RisingEdge(self.dut.rd_clk)
+
+    async def assert_reset_clears_visible_state(self) -> None:
+        # Apply reset after data has moved into the FIFO. The storage contents
+        # themselves are not part of the contract, but the public status must
+        # return to an empty/no-valid state before new traffic is accepted.
+        await self.reset()
+        assert int(self.dut.valid.value) == 0
+        await with_timeout(self._wait_empty(), 5, "us")
 
 
 @cocotb.test()
@@ -224,6 +239,100 @@ async def threshold_flag_test(dut):
         for _ in range(refill_count):
             await tb.read_word()
         await with_timeout(tb._wait_prog_empty(1), 5, "us")
+
+
+@cocotb.test()
+async def burst_backpressure_and_reset_test(dut):
+    if not env_flag("CHECK_STRESS_BEHAVIOR", default=False):
+        return
+
+    tb = TB(
+        dut,
+        wr_clk_period_ns=float(os.environ["WR_CLK_PERIOD_NS"]),
+        rd_clk_period_ns=float(os.environ["RD_CLK_PERIOD_NS"]),
+    )
+    await tb.reset()
+
+    # Fill enough entries to let FWFT prefetch and pointer synchronization
+    # settle, then drain only part of the burst to emulate a read side that
+    # periodically withholds service.
+    first_burst = [0x20 + index for index in range(8)]
+    for value in first_burst:
+        await tb.write_word(value)
+
+    observed = []
+    for _ in range(3):
+        observed.append(await tb.read_word())
+    assert observed == first_burst[:3]
+
+    # Keep writing while the read side is intentionally idle. This stresses the
+    # near-full bookkeeping path without depending on one exact CDC count.
+    second_burst = [0x80 + index for index in range(6)]
+    for value in second_burst:
+        await tb.write_word(value)
+        await tb.cycle_rd(2)
+
+    expected_tail = first_burst[3:] + second_burst
+    for expected in expected_tail[:5]:
+        assert await tb.read_word() == expected
+
+    await tb.assert_reset_clears_visible_state()
+
+    # After reset, new traffic must not be contaminated by the discarded
+    # pre-reset tail.
+    post_reset = [0xA0, 0xA1, 0xA2]
+    for value in post_reset:
+        await tb.write_word(value)
+    for expected in post_reset:
+        assert await tb.read_word() == expected
+
+
+@cocotb.test()
+async def near_full_turnover_test(dut):
+    if not env_flag("CHECK_NEAR_FULL_TURNOVER", default=False):
+        return
+
+    tb = TB(
+        dut,
+        wr_clk_period_ns=float(os.environ["WR_CLK_PERIOD_NS"]),
+        rd_clk_period_ns=float(os.environ["RD_CLK_PERIOD_NS"]),
+    )
+    await tb.reset()
+
+    # Fill the FIFO close to capacity, but leave enough margin that the writer
+    # can make progress as the slower read clock begins popping data. This
+    # stresses pointer synchronization and full deassertion during sustained
+    # boundary turnover without relying on one exact gray-pointer latency.
+    capacity = 2 ** int(os.environ["ADDR_WIDTH_G"])
+    seed_values = [0x100 + index for index in range(capacity - 2)]
+    replacement_values = [0x180 + index for index in range(6)]
+    for value in seed_values:
+        await tb.write_word(value)
+
+    observed = []
+
+    async def reader() -> None:
+        for _ in range(10):
+            observed.append(await tb.read_word())
+            await tb.cycle_rd(1)
+
+    async def writer() -> None:
+        for value in replacement_values:
+            await tb.write_word(value)
+
+    read_task = cocotb.start_soon(reader())
+    write_task = cocotb.start_soon(writer())
+    await read_task
+    await write_task
+
+    expected_stream = seed_values + replacement_values
+    assert observed == expected_stream[: len(observed)]
+
+    # Drain the rest to prove the near-full turnover did not reorder or drop
+    # the new tail words that arrived while the read side was active.
+    for expected in expected_stream[len(observed) :]:
+        assert await tb.read_word() == expected
+    await with_timeout(tb._wait_empty(), 5, "us")
 
 
 PARAMETER_SWEEP = [
@@ -445,6 +554,26 @@ PARAMETER_SWEEP = [
         CHECK_THRESHOLD_FLAGS="1",
         WR_CLK_PERIOD_NS="5",
         RD_CLK_PERIOD_NS="13",
+        RST_ACTIVE_HIGH="1",
+    ),
+    parameter_case(
+        "fwft_adversarial_backpressure",
+        DATA_WIDTH_G="16",
+        ADDR_WIDTH_G="4",
+        FWFT_EN_G="true",
+        MEMORY_TYPE_G="block",
+        PIPE_STAGES_G="0",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        SYNC_STAGES_G="3",
+        FULL_THRES_G="12",
+        EMPTY_THRES_G="2",
+        CHECK_FULL_EMPTY="0",
+        CHECK_THRESHOLD_FLAGS="0",
+        CHECK_STRESS_BEHAVIOR="1",
+        CHECK_NEAR_FULL_TURNOVER="1",
+        WR_CLK_PERIOD_NS="3",
+        RD_CLK_PERIOD_NS="17",
         RST_ACTIVE_HIGH="1",
     ),
 ]

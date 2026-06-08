@@ -64,36 +64,37 @@ architecture rtl of SsiFifoWrapper is
       tUserMode => TUSER_FIRST_LAST_C,
       tDestBits => 4,
       tUserBits => 2);
-   constant DATA_WIDTH_C  : positive := 8*DATA_BYTES_G;
+   constant DATA_WIDTH_C : positive := 8*DATA_BYTES_G;
 
-   signal sAxisMasterInt : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sAxisSlaveInt  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
-   signal sAxisCtrlInt   : AxiStreamCtrlType   := AXI_STREAM_CTRL_INIT_C;
-   signal mAxisMasterInt : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlaveInt  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+   signal sAxisMasterInt : AxiStreamMasterType               := AXI_STREAM_MASTER_INIT_C;
+   signal sAxisSlaveInt  : AxiStreamSlaveType                := AXI_STREAM_SLAVE_FORCE_C;
+   signal sAxisCtrlInt   : AxiStreamCtrlType                 := AXI_STREAM_CTRL_INIT_C;
+   signal mAxisMasterInt : AxiStreamMasterType               := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlaveInt  : AxiStreamSlaveType                := AXI_STREAM_SLAVE_FORCE_C;
    signal fifoWrCntInt   : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '0');
    signal pauseThreshInt : slv(FIFO_ADDR_WIDTH_G-1 downto 0) := (others => '1');
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                                := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                         := sAxisTValid;
       v.tData(DATA_WIDTH_C-1 downto 0) := sAxisTData(DATA_WIDTH_C-1 downto 0);
       v.tKeep(DATA_BYTES_G-1 downto 0) := sAxisTKeep(DATA_BYTES_G-1 downto 0);
-      v.tLast := sAxisTLast;
-      v.tDest(3 downto 0) := sAxisTDest;
+      v.tLast                          := sAxisTLast;
+      v.tDest(3 downto 0)              := sAxisTDest;
       ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
-      sAxisMasterInt <= v;
+      sAxisMasterInt                   <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlaveInt.tReady;
-   sAxisPause <= sAxisCtrlInt.pause;
-   pauseThreshInt <= fifoPauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
-   fifoWrCnt <= resize(fifoWrCntInt, fifoWrCnt'length);
+   sAxisTReady          <= sAxisSlaveInt.tReady;
+   sAxisPause           <= sAxisCtrlInt.pause;
+   pauseThreshInt       <= fifoPauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
+   fifoWrCnt            <= resize(fifoWrCntInt, fifoWrCnt'length);
    mAxisSlaveInt.tReady <= mAxisTReady;
 
    mAxisView : process (mAxisMasterInt) is
@@ -107,12 +108,12 @@ begin
       keepV(DATA_BYTES_G-1 downto 0) := mAxisMasterInt.tKeep(DATA_BYTES_G-1 downto 0);
 
       mAxisTValid <= mAxisMasterInt.tValid;
-      mAxisTData <= dataV;
-      mAxisTKeep <= keepV;
-      mAxisTLast <= mAxisMasterInt.tLast;
-      mAxisTDest <= mAxisMasterInt.tDest(3 downto 0);
-      mAxisSof <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMasterInt);
-      mAxisEofe <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMasterInt);
+      mAxisTData  <= dataV;
+      mAxisTKeep  <= keepV;
+      mAxisTLast  <= mAxisMasterInt.tLast;
+      mAxisTDest  <= mAxisMasterInt.tDest(3 downto 0);
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMasterInt);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMasterInt);
    end process mAxisView;
 
    U_DUT : entity surf.SsiFifo

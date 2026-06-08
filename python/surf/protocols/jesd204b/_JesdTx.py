@@ -98,7 +98,7 @@ class JesdTx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name        =  "InvertSync",
-                description =  "InvertSync. Invert sync input (the AMC card schematics should be checkes if inverted). ",
+                description =  "InvertSync. Invert sync input (the AMC card schematics should be checked if inverted). ",
                 offset      =   0x10,
                 bitSize     =   1,
                 bitOffset   =   0x04,
@@ -244,7 +244,7 @@ class JesdTx(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         =  "nSync",
-                description  =  "nSync. 0 - Not synchronised. 1 - Indicades that code group synchronization has been completed.",
+                description  =  "nSync. 0 - Not synchronised. 1 - Indicates that code group synchronization has been completed.",
                 offset       =  range(0x40,0x40+4*numTxLanes+1,4),
                 bitSize      =  1,
                 bitOffset    =  3,
@@ -274,7 +274,7 @@ class JesdTx(pr.Device):
 
             self.addRemoteVariables(
                 name         = "StatusValidCnt",
-                description  = "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-syncronisations.",
+                description  = "StatusValidCnt[31:0]. Shows stability of JESD lanes. Counts number of JESD re-synchronisations.",
                 offset       =  0x100,
                 bitSize      =  32,
                 bitOffset    =  0x00,

@@ -43,7 +43,7 @@ entity Pgp2bRxCell is
       pgpRxLinkReady : in sl;           -- Local side has link
 
       -- Cell Error, one pulse per error
-      pgpRxCellError : out sl;          -- A cell error has occured
+      pgpRxCellError : out sl;          -- A cell error has occurred
 
       -- Interface to PHY Logic
       cellRxPause : in sl;              -- Cell data pause
@@ -703,7 +703,7 @@ begin
    end process;
 
 
-   -- Update buffer status on successfull cell reception
+   -- Update buffer status on successful cell reception
    process (pgpRxClk)
    begin
       if rising_edge(pgpRxClk) then

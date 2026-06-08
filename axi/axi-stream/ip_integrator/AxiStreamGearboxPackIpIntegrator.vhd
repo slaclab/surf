@@ -59,7 +59,7 @@ architecture rtl of AxiStreamGearboxPackIpIntegrator is
       tUserBits => TUSER_WIDTH_G,
       tIdBits   => 8);
 
-   signal axisAResetN      : sl := '1';
+   signal axisAResetN      : sl                  := '1';
    signal rawAxisMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal rawAxisSlave     : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
    signal packedAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
