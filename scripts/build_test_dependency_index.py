@@ -622,8 +622,13 @@ def _production_set_for_test(
 
 def build_forward_index(
     repo_root: Path,
+    tests_root: Path | None = None,
 ) -> tuple[dict[str, set[str]], list[str], list[dict], dict[str, set[str]]]:
     """Scan all tests and build the forward mapping (test -> production_set).
+
+    Args:
+        repo_root:   repository root
+        tests_root:  root to scan for test_*.py files; defaults to repo_root/tests
 
     Returns:
         forward_map:   test_file_rel -> set of production-RTL paths
@@ -632,9 +637,9 @@ def build_forward_index(
         infra_map:     infra_path -> set of owning test file paths (D-03/SEL-08)
     """
     surf_workdir = repo_root / "build"
-    tests_root = repo_root / "tests"
+    effective_tests_root = tests_root if tests_root is not None else repo_root / "tests"
 
-    test_files = discover_tests(tests_root, repo_root)
+    test_files = discover_tests(effective_tests_root, repo_root)
     logger.info("Discovered %d test files (excluding legacy/ethernet)", len(test_files))
 
     forward_map: dict[str, set[str]] = {}
@@ -692,10 +697,14 @@ def build_forward_index(
 # Index assembly and JSON serialization (D-06/D-07)
 # ---------------------------------------------------------------------------
 
-def build_index(repo_root: Path) -> dict:
+def build_index(repo_root: Path, tests_root: Path | None = None) -> dict:
     """Build the four-section test-dependency index.
 
     Precondition: repo_root/build/surf-obj08.cf must exist (run `make analysis` first).
+
+    Args:
+        repo_root:   repository root
+        tests_root:  root to scan for test_*.py files; defaults to repo_root/tests
 
     Returns a dict with keys: production_rtl, test_infra, always_run, fallback_log.
     Also writes a fresh JSON to repo_root/build/test_dependency_index.json (D-06).
@@ -706,7 +715,9 @@ def build_index(repo_root: Path) -> dict:
             f"{cf_path} not found. Run `make MODULES=\"$PWD\" analysis` first."
         )
 
-    forward_map, always_run, fallback_log, infra_map = build_forward_index(repo_root)
+    forward_map, always_run, fallback_log, infra_map = build_forward_index(
+        repo_root, tests_root=tests_root
+    )
 
     # Invert forward_map to production_rtl[src] = sorted(tests) (D-07)
     production_rtl: dict[str, list[str]] = {}
@@ -789,16 +800,9 @@ def main() -> None:
     else:
         output_path = repo_root / "build" / "test_dependency_index.json"
 
-    if args.tests_root is not None:
-        # tests_root override: patch discover_tests via a local wrapper
-        custom_tests_root = Path(args.tests_root)
-        test_files = discover_tests(custom_tests_root, repo_root)
-        logger.info(
-            "Discovered %d test files (excluding legacy/ethernet) from %s",
-            len(test_files), custom_tests_root,
-        )
+    custom_tests_root = Path(args.tests_root) if args.tests_root is not None else None
 
-    index = build_index(repo_root)
+    index = build_index(repo_root, tests_root=custom_tests_root)
 
     # Write to the user-specified output path if it differs from the default
     default_out = repo_root / "build" / "test_dependency_index.json"
