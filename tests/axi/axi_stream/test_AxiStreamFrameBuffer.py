@@ -236,6 +236,36 @@ async def trigger_exports_captured_frame_multi_longshort_test(dut):
     assert bytes(frame_1.tdata) == expected_1
 
 
+@cocotb.test()
+async def soft_trigger_exports_captured_frame_single_short_test(dut):
+    tb = TB.from_generics(dut)
+    await tb.reset()
+    tb.start_agents()
+
+    samples = [0x0210, 0x0F23, 0x1131, 0x014E, 0x0C5A, 0x01AA]
+    for i in range(len(samples)):
+        sample = samples[i]
+        last = i == len(samples) - 1
+        await tb.push_value(sample, last)
+    await tb.cycle(tb.dut.dataClk, 1)
+
+    # Issue software trigger
+    txn = await tb.axil.write(0x4, 0x1.to_bytes(4, "little"))
+    assert txn.resp == AxiResp.OKAY
+
+    # Read register and check that its automatically reset to zero
+    txn = await tb.axil.read(0x4, 4)
+    assert txn.resp == AxiResp.OKAY
+    assert int.from_bytes(txn.data, "little") == 0
+
+    # Frame readout can start immediately but may wait a few cycles until first
+    # valid data (tvalid = 1) data available.
+    frame = await with_timeout(tb.sink.recv(), 3, "us")
+    expected = b"".join(sample.to_bytes(2, "little") for sample in samples)
+
+    assert bytes(frame.tdata) == expected
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "async_clk_capture_safebuf",
