@@ -63,3 +63,27 @@ def test_boxcarfilter_narrow(index):
     assert len(dependents) <= 2, (
         f"BoxcarFilter.vhd has {len(dependents)} dependents — expected narrow leaf <= 2 (SEL-03)"
     )
+
+
+def test_always_run_nonempty(index):
+    """At least some tests must be classified always-run (D-02/SEL-10 sanity check)."""
+    assert len(index["always_run"]) > 0, (
+        "always_run is empty — either every test resolved cleanly (unlikely) "
+        "or the fail-safe fallback is broken (D-02)"
+    )
+
+
+def test_fallback_log_populated(index):
+    """fallback_log must be non-empty and consistent with always_run.
+
+    Every test in fallback_log must also appear in always_run (fail-safe contract).
+    """
+    assert len(index["fallback_log"]) > 0, (
+        "fallback_log is empty — unresolvable tests are silently dropped (CR-01/D-02)"
+    )
+    always_run_set = set(index["always_run"])
+    for entry in index["fallback_log"]:
+        assert entry["test"] in always_run_set, (
+            f"fallback_log entry {entry['test']!r} is not in always_run — "
+            "fail-safe contract violated: every logged test must be always-run"
+        )
