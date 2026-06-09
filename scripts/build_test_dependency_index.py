@@ -180,6 +180,7 @@ _HELPER_NAMES = {
     "run_pgp_wrapper_test",
     "run_line_code_package_test",
     "run_line_code_integration_test",
+    "run_line_code_entity_test",
 }
 
 
@@ -598,6 +599,19 @@ def _production_set_for_test(
         if any(tok in path_str for tok in _INFRA_TOKENS):
             continue
         final_set.add(path_str)
+
+    # D-02 fail-safe: if no production set was built and we never found a
+    # recognized helper (entity is None, unresolved_toplevel is False), the
+    # test uses an unrecognized call pattern (e.g. direct simulator.run()).
+    # Classify always-run and log — never silently drop.
+    if not final_set and entity is None and not signals.unresolved_toplevel:
+        detail = f"no recognized helper call found in {test_rel}"
+        logger.warning("always-run fallback [no-recognized-helper]: %s", test_rel)
+        fallback_records.append({
+            "test": test_rel,
+            "reason": "no-recognized-helper",
+            "detail": detail,
+        })
 
     return final_set, fallback_records
 
