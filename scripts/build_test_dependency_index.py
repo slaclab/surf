@@ -487,8 +487,10 @@ def _find_wrapper_source(signals: "TestSignals", repo_root: Path) -> Path | None
 
     p = Path(candidate)
     if p.is_absolute():
-        # Security: reject paths outside repo_root (ValueError propagates to caller)
-        p.relative_to(repo_root)
+        # Security: resolve symlinks then reject paths outside repo_root
+        # (ValueError propagates to caller); consistent with the downstream
+        # closure_via_on_the_fly_wrapper guard.
+        p.resolve().relative_to(repo_root)
         return p
     return repo_root / p
 
