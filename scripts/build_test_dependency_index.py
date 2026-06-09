@@ -235,7 +235,7 @@ def _resolve_fstring_toplevel(
     # The f-string values list contains ast.Constant nodes (literal parts)
     # and ast.FormattedValue nodes (expressions).
     values = fstr_node.values
-    if len(values) < 2:
+    if len(values) != 2:
         return None, True
 
     # Check that the first part is "surf."
