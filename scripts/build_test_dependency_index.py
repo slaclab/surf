@@ -465,7 +465,279 @@ def extract_test_signals(test_file: Path, repo_root: Path) -> TestSignals:
 
 
 # ---------------------------------------------------------------------------
-# CLI scaffolding (Plan 02 wires build_index and JSON output)
+# Per-test production-RTL closure with fallback hierarchy (D-01/D-02/D-04)
+# ---------------------------------------------------------------------------
+
+def _find_wrapper_source(signals: "TestSignals", repo_root: Path) -> Path | None:
+    """Locate a wrapper .vhd for on-the-fly analysis.
+
+    Prefers signals.wrapper_source; falls back to any declared source path that
+    contains '/wrappers/' or ends with 'Wrapper.vhd' (case-insensitive).
+    Returns an absolute Path or None if nothing resolvable is found.
+    """
+    candidate: str | None = signals.wrapper_source
+    if candidate is None:
+        for src in signals.declared_sources:
+            if "/wrappers/" in src or src.lower().endswith("wrapper.vhd"):
+                candidate = src
+                break
+
+    if candidate is None:
+        return None
+
+    p = Path(candidate)
+    if p.is_absolute():
+        # Security: reject paths outside repo_root (ValueError propagates to caller)
+        p.relative_to(repo_root)
+        return p
+    return repo_root / p
+
+
+def _production_set_for_test(
+    signals: "TestSignals",
+    surf_workdir: Path,
+    repo_root: Path,
+) -> tuple[set[str], list[dict]]:
+    """Compute the production-RTL closure for one test and any fallback-log records.
+
+    Fallback hierarchy (D-01/D-02):
+      1. gen-depends surf.<entity>  -> success  -> closure
+      2. exit 1  -> on-the-fly wrapper via closure_via_on_the_fly_wrapper
+      3. wrapper analysis fails / missing  -> always-run fallback
+
+    Returns:
+        (production_set, fallback_records)
+        production_set is empty when the test should be classified always-run.
+    """
+    test_rel = signals.test_file  # already repo-relative posix
+
+    # Step 0: dynamic/unresolvable toplevel — cannot proceed
+    if signals.unresolved_toplevel:
+        detail = f"toplevel contains an unresolvable f-string or dynamic expression in {test_rel}"
+        logger.warning("always-run fallback [dynamic-toplevel]: %s", test_rel)
+        return set(), [{"test": test_rel, "reason": "dynamic-toplevel", "detail": detail}]
+
+    # Step 1: attempt direct gen-depends against the surf library
+    entity = signals.toplevel_entity
+    production_set: set[str] = set()
+    fallback_records: list[dict] = []
+
+    if entity is not None:
+        closure = gen_depends_closure(
+            entity_spec=f"surf.{entity}",
+            workdir=surf_workdir,
+            work_lib="surf",
+            extra_lib_paths=[],
+            repo_root=repo_root,
+        )
+        if closure is not None:
+            production_set = closure
+        else:
+            # Step 2: entity not in surf lib — try on-the-fly wrapper analysis (D-01)
+            try:
+                wrapper_path = _find_wrapper_source(signals, repo_root)
+            except ValueError:
+                wrapper_path = None
+
+            if wrapper_path is None:
+                detail = (
+                    f"gen-depends surf.{entity} failed and no wrapper source found "
+                    f"in declared_sources for {test_rel}"
+                )
+                logger.warning("always-run fallback [wrapper-source-missing]: %s", test_rel)
+                fallback_records.append({
+                    "test": test_rel,
+                    "reason": "wrapper-source-missing",
+                    "detail": detail,
+                })
+            else:
+                otf_closure = closure_via_on_the_fly_wrapper(
+                    wrapper_vhd=wrapper_path,
+                    entity_name=entity,
+                    surf_workdir=surf_workdir,
+                    repo_root=repo_root,
+                )
+                if otf_closure is not None:
+                    production_set = otf_closure
+                else:
+                    detail = (
+                        f"on-the-fly wrapper analysis failed for {wrapper_path.name} "
+                        f"(entity surf.{entity}) in {test_rel}"
+                    )
+                    logger.warning("always-run fallback [wrapper-analyze-failed]: %s", test_rel)
+                    fallback_records.append({
+                        "test": test_rel,
+                        "reason": "wrapper-analyze-failed",
+                        "detail": detail,
+                    })
+
+    # D-04 union: fold in declared production-RTL sources (*/rtl/*.vhd) directly.
+    # Re-relativize any absolute declared-source path to repo_root first.
+    for src in signals.declared_sources:
+        p = Path(src)
+        if p.is_absolute():
+            try:
+                rel = p.relative_to(repo_root).as_posix()
+            except ValueError:
+                continue
+        else:
+            rel = p.as_posix()
+        # Only include paths that are production-RTL (contain /rtl/)
+        if "/rtl/" in rel:
+            production_set.add(rel)
+
+    # Production-RTL filter: drop anything that is NOT a /rtl/ path, drop
+    # system library paths and test-infrastructure paths.
+    _INFRA_TOKENS = ("/wrappers/", "/tb/", "/sim/", "/tests/", "/usr/local/lib/ghdl/")
+    final_set: set[str] = set()
+    for path_str in production_set:
+        if "/rtl/" not in path_str:
+            continue
+        if any(tok in path_str for tok in _INFRA_TOKENS):
+            continue
+        final_set.add(path_str)
+
+    return final_set, fallback_records
+
+
+# ---------------------------------------------------------------------------
+# Forward index accumulation and inversion (D-03/D-04/D-07)
+# ---------------------------------------------------------------------------
+
+def build_forward_index(
+    repo_root: Path,
+) -> tuple[dict[str, set[str]], list[str], list[dict], dict[str, set[str]]]:
+    """Scan all tests and build the forward mapping (test -> production_set).
+
+    Returns:
+        forward_map:   test_file_rel -> set of production-RTL paths
+        always_run:    sorted list of test files whose production set is empty (fallback)
+        fallback_log:  structured fallback records
+        infra_map:     infra_path -> set of owning test file paths (D-03/SEL-08)
+    """
+    surf_workdir = repo_root / "build"
+    tests_root = repo_root / "tests"
+
+    test_files = discover_tests(tests_root, repo_root)
+    logger.info("Discovered %d test files (excluding legacy/ethernet)", len(test_files))
+
+    forward_map: dict[str, set[str]] = {}
+    always_run_set: set[str] = set()
+    fallback_log: list[dict] = []
+    # infra_map: keyed by infra file path -> set of test file paths owning it (D-03)
+    infra_map: dict[str, set[str]] = {}
+
+    for test_file in test_files:
+        signals = extract_test_signals(test_file, repo_root)
+        test_rel = signals.test_file  # repo-relative posix
+
+        # Record test file itself as infra owned by itself (D-03/SEL-08)
+        infra_map.setdefault(test_rel, set()).add(test_rel)
+
+        # Record wrapper_source and declared non-RTL sources as infra (D-03)
+        _INFRA_TOKENS = ("/wrappers/", "/tb/", "/sim/", "/tests/")
+        for src in signals.declared_sources:
+            p = Path(src)
+            if p.is_absolute():
+                try:
+                    rel = p.relative_to(repo_root).as_posix()
+                except ValueError:
+                    continue
+            else:
+                rel = p.as_posix()
+            # If the path is NOT a production-RTL path, it is infra
+            if "/rtl/" not in rel or any(tok in rel for tok in _INFRA_TOKENS):
+                infra_map.setdefault(rel, set()).add(test_rel)
+
+        if signals.wrapper_source is not None:
+            ws = signals.wrapper_source
+            p = Path(ws)
+            if p.is_absolute():
+                try:
+                    ws = p.relative_to(repo_root).as_posix()
+                except ValueError:
+                    ws = p.as_posix()
+            infra_map.setdefault(ws, set()).add(test_rel)
+
+        # Compute production-RTL closure for this test
+        prod_set, records = _production_set_for_test(signals, surf_workdir, repo_root)
+        fallback_log.extend(records)
+
+        if not prod_set:
+            # Empty production set -> always-run (D-02)
+            always_run_set.add(test_rel)
+        else:
+            forward_map[test_rel] = prod_set
+
+    return forward_map, sorted(always_run_set), fallback_log, infra_map
+
+
+# ---------------------------------------------------------------------------
+# Index assembly and JSON serialization (D-06/D-07)
+# ---------------------------------------------------------------------------
+
+def build_index(repo_root: Path) -> dict:
+    """Build the four-section test-dependency index.
+
+    Precondition: repo_root/build/surf-obj08.cf must exist (run `make analysis` first).
+
+    Returns a dict with keys: production_rtl, test_infra, always_run, fallback_log.
+    Also writes a fresh JSON to repo_root/build/test_dependency_index.json (D-06).
+    """
+    cf_path = repo_root / "build" / "surf-obj08.cf"
+    if not cf_path.exists():
+        raise FileNotFoundError(
+            f"{cf_path} not found. Run `make MODULES=\"$PWD\" analysis` first."
+        )
+
+    forward_map, always_run, fallback_log, infra_map = build_forward_index(repo_root)
+
+    # Invert forward_map to production_rtl[src] = sorted(tests) (D-07)
+    production_rtl: dict[str, list[str]] = {}
+    for test_rel, prod_set in forward_map.items():
+        for src in prod_set:
+            src_key = Path(src).as_posix()
+            production_rtl.setdefault(src_key, set()).add(test_rel)  # type: ignore[arg-type]
+
+    # Sort the value sets into lists for deterministic JSON output
+    production_rtl_final: dict[str, list[str]] = {
+        k: sorted(v) for k, v in production_rtl.items()  # type: ignore[arg-type]
+    }
+
+    # Invert infra_map to test_infra[infra_path] = sorted(tests) (D-03/SEL-08)
+    test_infra: dict[str, list[str]] = {
+        k: sorted(v) for k, v in infra_map.items()
+    }
+
+    index = {
+        "production_rtl": production_rtl_final,
+        "test_infra": test_infra,
+        "always_run": always_run,
+        "fallback_log": fallback_log,
+    }
+
+    # Write fresh JSON (D-06 — gitignored, never committed)
+    output_path = repo_root / "build" / "test_dependency_index.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        json.dumps(index, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    logger.info(
+        "Index written to %s: %d production_rtl keys, %d test_infra keys, "
+        "%d always_run, %d fallback_log entries",
+        output_path,
+        len(production_rtl_final),
+        len(test_infra),
+        len(always_run),
+        len(fallback_log),
+    )
+
+    return index
+
+
+# ---------------------------------------------------------------------------
+# CLI
 # ---------------------------------------------------------------------------
 
 def main() -> None:
@@ -484,33 +756,43 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    repo_root = _repo_root()
-    tests_root = Path(args.tests_root) if args.tests_root else repo_root / "tests"
-    output_path = Path(args.output) if args.output else repo_root / "build" / "test_dependency_index.json"
-
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    tests = discover_tests(tests_root, repo_root)
-    logger.info("Discovered %d test files (excluding legacy/ethernet)", len(tests))
+    repo_root = _repo_root()
 
-    cf_path = repo_root / "build" / "surf-obj08.cf"
-    if not cf_path.exists():
-        raise FileNotFoundError(
-            f"{cf_path} not found. Run `make MODULES=\"$PWD\" analysis` first."
+    # Resolve output path and enforce repo-root containment (T-01-04)
+    if args.output is not None:
+        output_path = Path(args.output).resolve()
+        try:
+            output_path.relative_to(repo_root.resolve())
+        except ValueError:
+            raise ValueError(
+                f"--output path {output_path} escapes repo root {repo_root}; "
+                "only paths inside the repository are allowed."
+            )
+    else:
+        output_path = repo_root / "build" / "test_dependency_index.json"
+
+    if args.tests_root is not None:
+        # tests_root override: patch discover_tests via a local wrapper
+        custom_tests_root = Path(args.tests_root)
+        test_files = discover_tests(custom_tests_root, repo_root)
+        logger.info(
+            "Discovered %d test files (excluding legacy/ethernet) from %s",
+            len(test_files), custom_tests_root,
         )
 
-    # Plan 02 implements build_index() and JSON serialization.
-    # This stub call preserves the CLI entry-point contract.
-    logger.info(
-        "Index build requires build_index() from Plan 02 — "
-        "run with a complete installation once Plan 02 is merged."
-    )
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        json.dumps({"production_rtl": {}, "test_infra": {}, "always_run": [], "fallback_log": []},
-                   indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    index = build_index(repo_root)
+
+    # Write to the user-specified output path if it differs from the default
+    default_out = repo_root / "build" / "test_dependency_index.json"
+    if output_path.resolve() != default_out.resolve():
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            json.dumps(index, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        logger.info("Index also written to %s", output_path)
 
 
 if __name__ == "__main__":
