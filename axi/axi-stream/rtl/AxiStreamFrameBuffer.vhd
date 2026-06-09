@@ -497,6 +497,9 @@ begin
       -- Latch the current value
       v := axilR;
 
+      -- Reset strobes
+      v.softTrig := '0';
+
       ------------------------
       -- AXI-Lite Transactions
       ------------------------
