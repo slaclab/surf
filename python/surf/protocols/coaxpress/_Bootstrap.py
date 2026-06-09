@@ -11,9 +11,9 @@
 import pyrogue as pr
 import time
 
-from surf.protocols.coaxpress._WriteGuard import WriteGuardMixin, WriteBlockedError
+import surf.protocols.coaxpress as cxp
 
-class Bootstrap(WriteGuardMixin, pr.Device):
+class Bootstrap(cxp.WriteGuardMixin, pr.Device):
     def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -24,7 +24,7 @@ class Bootstrap(WriteGuardMixin, pr.Device):
 
         def _write_guard(path, value, state):
             if self._acq_var is not None and self._acq_var.value():
-                raise WriteBlockedError(path, 'cannot write registers during acquisition')
+                raise cxp.WriteBlockedError(path, 'cannot write registers during acquisition')
 
         self.addPreWriteListener(_write_guard)
 

@@ -10,9 +10,9 @@
 
 import pyrogue as pr
 
-from surf.protocols.coaxpress._WriteGuard import WriteGuardMixin, WriteBlockedError
+import surf.protocols.coaxpress as cxp
 
-class PhantomS991(WriteGuardMixin, pr.Device):
+class PhantomS991(cxp.WriteGuardMixin, pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -662,6 +662,6 @@ class PhantomS991(WriteGuardMixin, pr.Device):
             if state.get(self.IsAcquiring.path):
                 name = path.rsplit('.', 1)[-1]
                 if name not in ('AcquisitionStart', 'AcquisitionStop', 'IsAcquiring'):
-                    raise WriteBlockedError(path, 'cannot write registers during acquisition')
+                    raise cxp.WriteBlockedError(path, 'cannot write registers during acquisition')
 
         self.addPreWriteListener(_write_guard, stateVars=[self.IsAcquiring])
