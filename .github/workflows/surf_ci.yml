@@ -95,10 +95,16 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Setup GHDL
+        uses: ghdl/setup-ghdl@v1
+        with:
+          version: '6.0.0'
+          backend: llvm
+
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make python3 python3-pip tclsh ghdl
+          sudo apt-get install -y make python3 python3-pip tclsh
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
