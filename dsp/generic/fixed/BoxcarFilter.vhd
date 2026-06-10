@@ -69,6 +69,6 @@ begin
          obFull   => obFull,
          obPeriod => obPeriod);
 
-   obData <= intData(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto ADDR_WIDTH_G);  -- Truncate the integrator output (power of 2 divide)
+   obData <= intData(DATA_WIDTH_G+ADDR_WIDTH_G-1 downto ADDR_WIDTH_G);  -- Truncate the integrator output (power of 2 divide) [ci-validate]
 
 end mapping;
