@@ -14,7 +14,11 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-on: [push]
+on:
+  push:
+    branches: [main, pre-release]
+    tags: ['**']
+  pull_request:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -84,6 +88,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -104,10 +110,20 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
+      - name: Build dependency index
+        run: |
+          make MODULES=$PWD analysis
+          python scripts/build_test_dependency_index.py
+
       - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+          pytest_cmd=$(python scripts/select_tests.py)
+          if [ -z "$pytest_cmd" ]; then
+            echo "No tests selected — skipping pytest (SEL-07)"
+            exit 0
+          fi
+          eval "$pytest_cmd"
 
       - name: Code Coverage
         run: |
