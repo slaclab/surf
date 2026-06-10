@@ -73,6 +73,16 @@ def gen_depends_closure(
         cwd=str(repo_root),
     )
     if result.returncode != 0:
+        # Surface the ghdl error instead of swallowing it — a wholesale
+        # gen-depends failure (e.g. an incompatible ghdl version) otherwise
+        # only shows up downstream as every test collapsing to always-run.
+        stderr_head = " | ".join(
+            line.strip() for line in result.stderr.splitlines() if line.strip()
+        )[:300]
+        logger.warning(
+            "gen-depends %s exited %d: %s",
+            entity_spec, result.returncode, stderr_head or "(no stderr)",
+        )
         return None
 
     source_files: set[str] = set()
