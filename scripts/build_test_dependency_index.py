@@ -88,15 +88,27 @@ def gen_depends_closure(
             continue
         if not line or line.startswith("#"):
             continue
-        # Skip absolute paths (system libraries under /usr/local/lib/ghdl/)
-        if line.startswith("/"):
-            continue
-        # Format: <workdir_relative_path>.o: <source_path>
+        # NOTE: do NOT skip lines that start with "/". When --workdir is an
+        # absolute path, the target (left of the colon) is also absolute
+        # (e.g. /abs/build/StdRtlPkg.o: /abs/.../StdRtlPkg.vhd), so a blanket
+        # startswith("/") skip would drop every real dependency. System
+        # libraries are excluded instead by the `.vhd` extension test (they are
+        # `.vhdl`) and the relative_to(repo_root) guard below (they live outside
+        # the repo and raise ValueError).
+        # Format: <workdir_path>.o: <source_path>
+        # gen-depends emits ABSOLUTE source paths; relativize to repo_root so the
+        # index keys are repo-relative (required by the proof and Phase 2's diff
+        # intersection). Production-vs-infra filtering is applied by the caller.
         parts = line.split(": ", 1)
         if len(parts) == 2:
             source_path = parts[1].strip()
-            if source_path.endswith(".vhd") and "/rtl/" in source_path:
-                source_files.add(Path(source_path).as_posix())
+            if source_path.endswith(".vhd"):
+                p = Path(source_path)
+                try:
+                    rel = p.relative_to(repo_root).as_posix() if p.is_absolute() else p.as_posix()
+                except ValueError:
+                    continue
+                source_files.add(rel)
 
     return source_files
 
@@ -524,13 +536,19 @@ def _production_set_for_test(
     entity = signals.toplevel_entity
     production_set: set[str] = set()
     fallback_records: list[dict] = []
+    closure_failed = False
 
     if entity is not None:
+        # `make analysis` compiles TWO libraries into surf_workdir: `surf` and
+        # `ruckus`. Loading the surf work library pulls in TB units that declare
+        # `library ruckus;`, so the ruckus library directory MUST be on GHDL's
+        # secondary-library search path (-P) or the whole library load fails with
+        # "cannot find resource library ruckus" and every closure query errors out.
         closure = gen_depends_closure(
             entity_spec=f"surf.{entity}",
             workdir=surf_workdir,
             work_lib="surf",
-            extra_lib_paths=[],
+            extra_lib_paths=[surf_workdir],
             repo_root=repo_root,
         )
         if closure is not None:
@@ -553,6 +571,7 @@ def _production_set_for_test(
                     "reason": "wrapper-source-missing",
                     "detail": detail,
                 })
+                closure_failed = True
             else:
                 otf_closure = closure_via_on_the_fly_wrapper(
                     wrapper_vhd=wrapper_path,
@@ -573,8 +592,9 @@ def _production_set_for_test(
                         "reason": "wrapper-analyze-failed",
                         "detail": detail,
                     })
+                    closure_failed = True
 
-    # D-04 union: fold in declared production-RTL sources (*/rtl/*.vhd) directly.
+    # D-04 union: fold in declared production sources directly.
     # Re-relativize any absolute declared-source path to repo_root first.
     for src in signals.declared_sources:
         p = Path(src)
@@ -585,20 +605,32 @@ def _production_set_for_test(
                 continue
         else:
             rel = p.as_posix()
-        # Only include paths that are production-RTL (contain /rtl/)
-        if "/rtl/" in rel:
-            production_set.add(rel)
+        production_set.add(rel)
 
-    # Production-RTL filter: drop anything that is NOT a /rtl/ path, drop
-    # system library paths and test-infrastructure paths.
+    # Production filter: "production RTL" is defined by GHDL closure membership
+    # (what surf actually compiles into the production library), NOT by a /rtl/
+    # path substring. surf keeps production .vhd in /rtl/, /fixed/, /inferred/,
+    # /ip_integrator/, /dummy/, etc. — a /rtl/-only filter would silently make
+    # ~430 production files unselectable (e.g. dsp/generic/fixed/BoxcarFilter.vhd),
+    # which would under-select and miss regressions. We therefore keep every
+    # closure .vhd and exclude only test-infrastructure and system-library paths.
     _INFRA_TOKENS = ("/wrappers/", "/tb/", "/sim/", "/tests/", "/usr/local/lib/ghdl/")
     final_set: set[str] = set()
     for path_str in production_set:
-        if "/rtl/" not in path_str:
+        if not path_str.endswith(".vhd"):
             continue
         if any(tok in path_str for tok in _INFRA_TOKENS):
             continue
         final_set.add(path_str)
+
+    # D-02 fail-safe: when the toplevel closure computation FAILED
+    # (wrapper-source-missing / wrapper-analyze-failed), the dependency set is
+    # unknown. Be conservative and classify always-run — do NOT let a partial
+    # declared-source union mask the failure and route the test into
+    # production_rtl. This also keeps the invariant that every fallback_log
+    # record corresponds to an always-run test.
+    if closure_failed:
+        return set(), fallback_records
 
     # D-02 fail-safe: if no production set was built and we never found a
     # recognized helper (entity is None, unresolved_toplevel is False), the
