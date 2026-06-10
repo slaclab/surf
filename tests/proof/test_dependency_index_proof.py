@@ -9,10 +9,19 @@
 ##############################################################################
 
 # Test methodology:
-# - Precondition: `make MODULES=$PWD analysis` must have been run (surf library
-#   analyzed into build/). The test skips with a clear message if absent.
-# - Mechanism: Import and call build_index() from the builder script directly,
-#   rather than running it as a subprocess, so the proof exercises the live code.
+# - Precondition: test_dependency_index.json must exist (produced by
+#   'make MODULES=$PWD analysis && python scripts/build_test_dependency_index.py').
+#   In CI, the "Build dependency index" step stashes the file at
+#   <repo_root>/test_dependency_index.json before `make import` wipes build/.
+#   Locally it lives at build/test_dependency_index.json after running the indexer.
+# - Mechanism: Load the pre-built index JSON directly rather than calling
+#   build_index() from scratch.  build_index() requires ghdl gen-depends to
+#   work against a fully *analyzed* library (ghdl -a).  After `make import`
+#   replaces build/ with ghdl -i output the analyzed objects (.o files) are
+#   gone, so gen-depends returns empty dependency sets and the proof would
+#   silently produce a vacuously-empty index and fail.  Loading the stashed
+#   JSON avoids this: it is the exact index that select_tests.py also reads,
+#   so this proof validates both the index structure and the selector input.
 # - Assertions:
 #   - SEL-02 (broad): base/general/rtl/StdRtlPkg.vhd must appear in the index
 #     with > 10 dependent tests (package use edges honored).
@@ -22,14 +31,9 @@
 #     defined by GHDL closure membership, not a /rtl/ path substring (surf keeps
 #     production .vhd in /rtl/, /fixed/, /inferred/, /ip_integrator/, /dummy/).
 # - Regression guard: asserts survive future GHDL upgrades / RTL refactors.
-# - CI note: This proof is auto-discovered by a local `pytest` invocation, but
-#   the existing CI command (surf_ci.yml) lists explicit directories
-#   (tests/axi tests/base tests/dsp tests/protocols) and does NOT include
-#   tests/proof. Phase 3 (CI workflow integration) must add tests/proof to the
-#   CI invocation (or switch CI to tree-scan discovery) so this proof runs in CI.
 
+import json
 from pathlib import Path
-import sys
 
 import pytest
 
@@ -42,12 +46,20 @@ BOXCAR_TEST = "tests/dsp/generic/test_BoxcarFilter.py"
 
 @pytest.fixture(scope="module")
 def index():
-    cf_path = REPO_ROOT / "build" / "surf-obj08.cf"
-    if not cf_path.exists():
-        pytest.skip("build/surf-obj08.cf not found — run `make MODULES=$PWD analysis` first")
-    sys.path.insert(0, str(REPO_ROOT / "scripts"))
-    from build_test_dependency_index import build_index
-    return build_index(repo_root=REPO_ROOT)
+    # CI stash (created before make import wipes build/); falls back to the
+    # default build output for local development.
+    stash = REPO_ROOT / "test_dependency_index.json"
+    default_out = REPO_ROOT / "build" / "test_dependency_index.json"
+    if stash.exists():
+        json_path = stash
+    elif default_out.exists():
+        json_path = default_out
+    else:
+        pytest.skip(
+            "test_dependency_index.json not found — run "
+            "'make MODULES=$PWD analysis && python scripts/build_test_dependency_index.py' first"
+        )
+    return json.loads(json_path.read_text(encoding="utf-8"))
 
 
 def test_stdrtlpkg_broad(index):
