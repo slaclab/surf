@@ -16,8 +16,11 @@
 # - Assertions:
 #   - SEL-02 (broad): base/general/rtl/StdRtlPkg.vhd must appear in the index
 #     with > 10 dependent tests (package use edges honored).
-#   - SEL-03 (narrow): dsp/generic/rtl/BoxcarFilter.vhd must appear with <= 2
-#     dependent tests (leaf module, not a shared package).
+#   - SEL-03 (narrow): dsp/generic/fixed/BoxcarFilter.vhd must appear with <= 2
+#     dependent tests (leaf module, not a shared package). Note: BoxcarFilter
+#     lives under dsp/generic/fixed/, NOT dsp/generic/rtl/ — "production RTL" is
+#     defined by GHDL closure membership, not a /rtl/ path substring (surf keeps
+#     production .vhd in /rtl/, /fixed/, /inferred/, /ip_integrator/, /dummy/).
 # - Regression guard: asserts survive future GHDL upgrades / RTL refactors.
 # - CI note: This proof is auto-discovered by a local `pytest` invocation, but
 #   the existing CI command (surf_ci.yml) lists explicit directories
@@ -33,7 +36,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 STD_RTL_PKG = "base/general/rtl/StdRtlPkg.vhd"
-BOXCAR_FILTER = "dsp/generic/rtl/BoxcarFilter.vhd"
+BOXCAR_FILTER = "dsp/generic/fixed/BoxcarFilter.vhd"
 BOXCAR_TEST = "tests/dsp/generic/test_BoxcarFilter.py"
 
 
