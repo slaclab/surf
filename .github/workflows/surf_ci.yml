@@ -114,11 +114,14 @@ jobs:
         run: |
           make MODULES=$PWD analysis
           python scripts/build_test_dependency_index.py
+          # `make import` below runs `clean` (rm -rf build/) first, so stash the
+          # index outside build/ to survive it; the selector reads it via --index-path.
+          cp build/test_dependency_index.json ./test_dependency_index.json
 
       - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          pytest_cmd=$(python scripts/select_tests.py)
+          pytest_cmd=$(python scripts/select_tests.py --index-path ./test_dependency_index.json)
           if [ -z "$pytest_cmd" ]; then
             echo "No tests selected — skipping pytest (SEL-07)"
             exit 0
