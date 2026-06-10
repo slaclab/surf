@@ -218,14 +218,20 @@ def main() -> None:
     repo_root = _repo_root()
 
     # Resolve mode: CLI override takes precedence; else classify from env vars.
+    # All diagnostics go to stderr (logging default) so stdout stays clean for
+    # the command captured by $(...).
     if args.mode is not None:
         mode = args.mode
+        logger.info("mode forced via --mode: %s", mode)
     else:
-        mode = classify_ref(
-            os.environ.get("GITHUB_EVENT_NAME", ""),
-            os.environ.get("GITHUB_REF_TYPE", ""),
-            os.environ.get("GITHUB_REF_NAME", ""),
-            os.environ.get("GITHUB_BASE_REF", ""),
+        event    = os.environ.get("GITHUB_EVENT_NAME", "")
+        ref_type = os.environ.get("GITHUB_REF_TYPE", "")
+        ref_name = os.environ.get("GITHUB_REF_NAME", "")
+        base_env = os.environ.get("GITHUB_BASE_REF", "")
+        mode = classify_ref(event, ref_type, ref_name, base_env)
+        logger.info(
+            "classify_ref -> %s (event=%r ref_type=%r ref_name=%r base_ref=%r)",
+            mode, event, ref_type, ref_name, base_env,
         )
 
     if mode == "full":
@@ -267,6 +273,10 @@ def main() -> None:
 
     changed = changed_vhd_files(base_ref, repo_root)
     selected = select_tests(changed, index)
+    logger.info(
+        "selective: base_ref=%r changed_vhd=%d selected_tests=%d",
+        base_ref, len(changed), len(selected),
+    )
     cmd = build_pytest_command(selected, "selective")
 
     if cmd is None:
