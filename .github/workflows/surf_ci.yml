@@ -159,6 +159,7 @@ jobs:
 
   gen_release:
     needs: [lint, test, docs]
+    if: github.event_name != 'pull_request'
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
@@ -169,6 +170,7 @@ jobs:
 
   conda_build_lib:
     needs: [lint, test, docs]
+    if: github.event_name != 'pull_request'
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:
       version: '1.0.0'
