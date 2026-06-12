@@ -37,7 +37,7 @@ from tests.axi.utils import (
     axil_write_u32,
     ring_buffer_axil_addr,
 )
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import parameter_case, run_surf_vhdl_test, start_lockstep_clocks
 
 
 class TB:
@@ -121,7 +121,16 @@ async def configured_buffer_capture_test(dut):
     assert int(dut.bufferTriggered.value) & 0x1
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="buffer0_capture_done")])
+# The wide-address case elaborates the DUT with ADDR_WIDTH_C > 32, which is the
+# configuration class that exposed generic-dependent slice bounds against the
+# fixed 32-bit dmaAck.size field (Vivado-only failure before this coverage).
+PARAMETER_SWEEP = [
+    parameter_case("buffer0_capture_done"),
+    parameter_case("wide_addr_33bit", AXI_ADDR_WIDTH_G="33"),
+]
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_AxiStreamDmaRingWrite(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
