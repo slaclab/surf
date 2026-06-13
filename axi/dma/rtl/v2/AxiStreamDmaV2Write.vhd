@@ -383,9 +383,28 @@ begin
                   if r.awlen = 0 then
                      -- Set the flag
                      v.wMaster.wlast := '1';
-                     -- If next state has not already been updated go to idle
+                     -- If next state has not already been updated, decide where
+                     -- to go next.
                      if v.state = MOVE_S then
-                        v.state := IDLE_S;
+                        -- If this burst exactly filled the buffer while the
+                        -- frame continues, start the continue here (return the
+                        -- descriptor with continue set) rather than re-entering
+                        -- ADDR_S.  Re-entering ADDR_S with maxSize=0 would issue
+                        -- a stray zero-length burst at the next buffer's base
+                        -- address; on a host DMA that off-by-one write lands
+                        -- past the mapped page and raises an IOMMU page fault.
+                        -- (contEn=0 keeps the legacy overflow/drop path.)
+                        if (v.dmaWrTrack.maxSize(31 downto log2(DATA_BYTES_C)) = 0) and (r.dmaWrTrack.contEn = '1') then
+                           v.continue         := '1';
+                           v.dmaWrTrack.inUse := '0';
+                           if r.dmaWrTrack.metaEnable = '1' then
+                              v.state := META_S;
+                           else
+                              v.state := RETURN_S;
+                           end if;
+                        else
+                           v.state := IDLE_S;
+                        end if;
                      end if;
                   else
                      -- Decrement the transaction counter
