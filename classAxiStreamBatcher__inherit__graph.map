@@ -1,15 +1,21 @@
 <map id="AxiStreamBatcher" name="AxiStreamBatcher">
-<area shape="rect" id="Node000001" title=" " alt="" coords="127,225,267,251"/>
-<area shape="rect" id="Node000005" href="$classAxiStreamBatcherAxil.html" title=" " alt="" coords="5,299,171,324"/>
-<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="170,260,107,301,104,296,167,256"/>
-<area shape="rect" id="Node000006" href="$classAxiStreamBatcherEventBuilder.html" title=" " alt="" coords="195,299,418,324"/>
-<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="228,256,290,296,287,301,225,260"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="122,5,265,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,44,171,105,168,141,172,177,181,202,192,224,188,226,176,204,167,178,163,141,166,104,181,43"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="181,152,326,177"/>
-<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="202,44,221,103,248,151,243,153,216,105,197,45"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamResize.html" title=" " alt="" coords="231,79,364,104"/>
-<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="223,36,282,76,279,81,220,41"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,190,208,227,204,224,233,187"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="285,117,263,153,258,150,281,114"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="284,225,424,251"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamBatcherAxil.html" title=" " alt="" coords="46,299,211,324"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="306,257,166,301,164,296,304,252"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamBatcherEventBuilder.html" title=" " alt="" coords="243,299,465,324"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="357,264,357,299,351,299,351,264"/>
+<area shape="rect" id="Node000009" href="$classAxiStreamBatcherWrapper.html" title=" " alt="" coords="490,299,685,324"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="405,252,550,296,549,301,404,257"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="279,5,421,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="343,44,328,105,325,141,329,177,338,202,349,224,344,226,333,204,323,178,320,141,323,104,338,43"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="337,152,483,177"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="358,44,378,103,405,151,400,153,373,105,353,45"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamResize.html" title=" " alt="" coords="387,79,521,104"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="380,36,438,76,435,81,377,41"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="394,190,365,227,361,224,390,187"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="442,117,419,153,415,150,437,114"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamBatcherAxilWrapper.html" title=" " alt="" coords="5,379,225,405"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="127,338,120,380,115,379,122,337"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamBatcherEventBuilderWrapper.html" title=" " alt="" coords="249,372,472,412"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="359,338,362,372,356,372,353,338"/>
 </map>

@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 712;
+var viewWidth = 913;
 var viewHeight = 326;
 var sectionId = 'dynsection-0';
 </script>
@@ -60,6 +60,24 @@ var sectionId = 'dynsection-0';
 <g id="a_Node000001"><a xlink:title=" ">
 <polygon fill="#999999" stroke="#666666" points="704,-262 580,-262 580,-243 704,-243 704,-262"/>
 <text text-anchor="middle" x="642" y="-250" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamBatcherAxil</text>
+</a>
+</g>
+</g>
+<!-- Node15 -->
+<g id="Node000015" class="node">
+<title>Node15</title>
+<g id="a_Node000015"><a xlink:href="classAxiStreamBatcherAxilWrapper.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="905,-262 740,-262 740,-243 905,-243 905,-262"/>
+<text text-anchor="middle" x="822.5" y="-250" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamBatcherAxilWrapper</text>
+</a>
+</g>
+</g>
+<!-- Node1&#45;&gt;Node15 -->
+<g id="edge18_Node000001_Node000015" class="edge">
+<title>Node1&#45;&gt;Node15</title>
+<g id="a_edge18_Node000001_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M714.46,-252.5C722.79,-252.5 731.33,-252.5 739.78,-252.5"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="714.43,-249 704.43,-252.5 714.43,-256 714.43,-249"/>
 </a>
 </g>
 </g>

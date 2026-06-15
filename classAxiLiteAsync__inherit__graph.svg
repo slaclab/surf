@@ -391,7 +391,7 @@ var sectionId = 'dynsection-0';
 <g id="Node000132" class="node">
 <title>Node132</title>
 <g id="a_Node000132"><a xlink:href="classAxiStreamBatcherAxil.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="616.5,-204 492.5,-204 492.5,-185 616.5,-185 616.5,-204"/>
+<polygon fill="white" stroke="orangered" points="616.5,-204 492.5,-204 492.5,-185 616.5,-185 616.5,-204"/>
 <text text-anchor="middle" x="554.5" y="-192" font-family="Helvetica,sans-Serif" font-size="10.00">AxiStreamBatcherAxil</text>
 </a>
 </g>
@@ -423,73 +423,73 @@ var sectionId = 'dynsection-0';
 </a>
 </g>
 </g>
-<!-- Node133 -->
-<g id="Node000133" class="node">
-<title>Node133</title>
-<g id="a_Node000133"><a xlink:href="classPgp4RxLiteLowSpeedReg.html" target="_top" xlink:title=" ">
+<!-- Node134 -->
+<g id="Node000134" class="node">
+<title>Node134</title>
+<g id="a_Node000134"><a xlink:href="classPgp4RxLiteLowSpeedReg.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="orangered" points="624.5,-130 484.5,-130 484.5,-111 624.5,-111 624.5,-130"/>
 <text text-anchor="middle" x="554.5" y="-118" font-family="Helvetica,sans-Serif" font-size="10.00">Pgp4RxLiteLowSpeedReg</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node133 -->
-<g id="edge48_Node000001_Node000133" class="edge">
-<title>Node1&#45;&gt;Node133</title>
-<g id="a_edge48_Node000001_Node000133"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node134 -->
+<g id="edge48_Node000001_Node000134" class="edge">
+<title>Node1&#45;&gt;Node134</title>
+<g id="a_edge48_Node000001_Node000134"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M410.38,-414.67C417.96,-354.91 443.33,-178.24 483,-138.5 486.39,-135.1 490.33,-132.32 494.58,-130.04"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="406.9,-414.34 409.14,-424.7 413.84,-415.2 406.9,-414.34"/>
 </a>
 </g>
 </g>
-<!-- Node138 -->
-<g id="Node000138" class="node">
-<title>Node138</title>
-<g id="a_Node000138"><a xlink:href="classSspLowSpeedDecoderReg.html" target="_top" xlink:title=" ">
+<!-- Node139 -->
+<g id="Node000139" class="node">
+<title>Node139</title>
+<g id="a_Node000139"><a xlink:href="classSspLowSpeedDecoderReg.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="orangered" points="626,-93 483,-93 483,-74 626,-74 626,-93"/>
 <text text-anchor="middle" x="554.5" y="-81" font-family="Helvetica,sans-Serif" font-size="10.00">SspLowSpeedDecoderReg</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node138 -->
-<g id="edge49_Node000001_Node000138" class="edge">
-<title>Node1&#45;&gt;Node138</title>
-<g id="a_edge49_Node000001_Node000138"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node139 -->
+<g id="edge49_Node000001_Node000139" class="edge">
+<title>Node1&#45;&gt;Node139</title>
+<g id="a_edge49_Node000001_Node000139"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M409.77,-414.78C415.96,-350.28 438.68,-147.1 483,-101.5 486.26,-98.15 490.05,-95.39 494.14,-93.12"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="406.28,-414.55 408.83,-424.83 413.25,-415.2 406.28,-414.55"/>
 </a>
 </g>
 </g>
-<!-- Node142 -->
-<g id="Node000142" class="node">
-<title>Node142</title>
-<g id="a_Node000142"><a xlink:href="classSugoiManagerCore.html" target="_top" xlink:title=" ">
+<!-- Node143 -->
+<g id="Node000143" class="node">
+<title>Node143</title>
+<g id="a_Node000143"><a xlink:href="classSugoiManagerCore.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="orangered" points="609,-56 500,-56 500,-37 609,-37 609,-56"/>
 <text text-anchor="middle" x="554.5" y="-44" font-family="Helvetica,sans-Serif" font-size="10.00">SugoiManagerCore</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node142 -->
-<g id="edge50_Node000001_Node000142" class="edge">
-<title>Node1&#45;&gt;Node142</title>
-<g id="a_edge50_Node000001_Node000142"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node143 -->
+<g id="edge50_Node000001_Node000143" class="edge">
+<title>Node1&#45;&gt;Node143</title>
+<g id="a_edge50_Node000001_Node000143"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M409.31,-414.44C414.27,-344.94 434.11,-115.9 483,-64.5 487.7,-59.56 493.56,-55.9 499.87,-53.2"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="405.79,-414.62 408.6,-424.84 412.78,-415.1 405.79,-414.62"/>
 </a>
 </g>
 </g>
-<!-- Node144 -->
-<g id="Node000144" class="node">
-<title>Node144</title>
-<g id="a_Node000144"><a xlink:href="classSsiSem.html" target="_top" xlink:title=" ">
+<!-- Node145 -->
+<g id="Node000145" class="node">
+<title>Node145</title>
+<g id="a_Node000145"><a xlink:href="classSsiSem.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="581,-19 528,-19 528,0 581,0 581,-19"/>
 <text text-anchor="middle" x="554.5" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">SsiSem</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node144 -->
-<g id="edge51_Node000001_Node000144" class="edge">
-<title>Node1&#45;&gt;Node144</title>
-<g id="a_edge51_Node000001_Node000144"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node145 -->
+<g id="edge51_Node000001_Node000145" class="edge">
+<title>Node1&#45;&gt;Node145</title>
+<g id="a_edge51_Node000001_Node000145"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M408.89,-414.85C412.62,-341.49 429.33,-84.93 483,-27.5 494.38,-15.32 512.77,-10.91 527.91,-9.5"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="405.39,-414.83 408.4,-424.99 412.38,-415.17 405.39,-414.83"/>
 </a>

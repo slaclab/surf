@@ -432,13 +432,20 @@ var hierarchy =
         ] ]
       ] ],
       [ "AxisToJtag", "classAxisToJtag.html", null ],
-      [ "AxiStreamBatcher", "classAxiStreamBatcher.html", [
-        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-        [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ]
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiStreamBatcherAxil", "classAxiStreamBatcherAxil.html", [
+        [ "AxiStreamBatcher", "classAxiStreamBatcher.html", [
+          [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+          [ "AxiStreamGearbox", "classAxiStreamGearbox.html", null ]
+        ] ],
+        [ "AxiLiteAsync", "classAxiLiteAsync.html", null ]
       ] ],
-      [ "AxiLiteAsync", "classAxiLiteAsync.html", null ],
-      [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-      [ "DspComparator", "classDspComparator.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiStreamBatcherEventBuilder", "classAxiStreamBatcherEventBuilder.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+        [ "DspComparator", "classDspComparator.html", null ],
+        [ "AxiStreamBatcher", "classAxiStreamBatcher.html", null ]
+      ] ],
       [ "AxiStreamBatcher", "classAxiStreamBatcher.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
@@ -453,6 +460,7 @@ var hierarchy =
       [ "AxiStreamBytePackerTbTx", "classAxiStreamBytePackerTbTx.html", null ],
       [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "AxiStreamBytePackerTbRx", "classAxiStreamBytePackerTbRx.html", null ],
+      [ "AxiStreamBytePacker", "classAxiStreamBytePacker.html", null ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
       [ "AxiStreamCombiner", "classAxiStreamCombiner.html", null ],
@@ -477,6 +485,15 @@ var hierarchy =
         [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
       ] ],
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
+      [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
+        [ "DualPortRam", "classDualPortRam.html", null ],
+        [ "Crc32Parallel", "classCrc32Parallel.html", null ],
+        [ "Crc32", "classCrc32.html", null ]
+      ] ],
+      [ "AxiStreamDepacketizer", "classAxiStreamDepacketizer.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiStreamDmaFifo", "classAxiStreamDmaFifo.html", [
         [ "AxiStreamDmaWrite", "classAxiStreamDmaWrite.html", [
@@ -619,22 +636,23 @@ var hierarchy =
         [ "SynchronizerFifo", "classSynchronizerFifo.html", null ],
         [ "SyncStatusVector", "classSyncStatusVector.html", null ]
       ] ],
-      [ "ClkRst", "classClkRst.html", null ],
-      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
-      [ "AxiStreamMux", "classAxiStreamMux.html", null ],
       [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", [
         [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
         [ "DualPortRam", "classDualPortRam.html", null ],
         [ "Crc32Parallel", "classCrc32Parallel.html", null ],
         [ "Crc32", "classCrc32.html", null ]
       ] ],
-      [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", [
-        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
-        [ "DualPortRam", "classDualPortRam.html", null ],
-        [ "Crc32Parallel", "classCrc32Parallel.html", null ],
-        [ "Crc32", "classCrc32.html", null ]
-      ] ],
+      [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
+      [ "ClkRst", "classClkRst.html", null ],
+      [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
+      [ "AxiStreamMux", "classAxiStreamMux.html", null ],
+      [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", null ],
+      [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
       [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ],
+      [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", null ],
+      [ "AxiStreamPacketizer", "classAxiStreamPacketizer.html", [
+        [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
+      ] ],
       [ "SlaveAxiStreamIpIntegrator", "classSlaveAxiStreamIpIntegrator.html", null ],
       [ "MasterAxiStreamIpIntegrator", "classMasterAxiStreamIpIntegrator.html", null ],
       [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ],
@@ -1927,9 +1945,7 @@ var hierarchy =
       [ "RssiCoreWrapper", "classRssiCoreWrapper.html", [
         [ "AxiStreamResize", "classAxiStreamResize.html", null ],
         [ "AxiStreamMux", "classAxiStreamMux.html", null ],
-        [ "AxiStreamPacketizer", "classAxiStreamPacketizer.html", [
-          [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
-        ] ],
+        [ "AxiStreamPacketizer", "classAxiStreamPacketizer.html", null ],
         [ "AxiStreamPacketizer2", "classAxiStreamPacketizer2.html", null ],
         [ "RssiCore", "classRssiCore.html", [
           [ "RssiAxiLiteRegItf", "classRssiAxiLiteRegItf.html", [
@@ -1951,9 +1967,7 @@ var hierarchy =
           [ "AxiStreamFifoV2", "classAxiStreamFifoV2.html", null ],
           [ "AxiStreamMon", "classAxiStreamMon.html", null ]
         ] ],
-        [ "AxiStreamDepacketizer", "classAxiStreamDepacketizer.html", [
-          [ "AxiStreamPipeline", "classAxiStreamPipeline.html", null ]
-        ] ],
+        [ "AxiStreamDepacketizer", "classAxiStreamDepacketizer.html", null ],
         [ "AxiStreamDepacketizer2", "classAxiStreamDepacketizer2.html", null ],
         [ "AxiStreamDeMux", "classAxiStreamDeMux.html", null ]
       ] ],

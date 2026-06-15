@@ -247,7 +247,7 @@ var NAVTREEINDEX0 =
 "classAxiSpiMaster_1_1rtl.html":[0,0,125,0],
 "classAxiStreamBatcher.html":[0,0,131],
 "classAxiStreamBatcherAxil.html":[0,0,132],
-"classAxiStreamBatcherAxil_1_1rtl.html":[0,0,132,0],
-"classAxiStreamBatcherEventBuilder.html":[0,0,133],
-"classAxiStreamBatcherEventBuilder_1_1rtl.html":[0,0,133,0]
+"classAxiStreamBatcherAxilWrapper.html":[0,0,133],
+"classAxiStreamBatcherAxilWrapper_1_1rtl.html":[0,0,133,0],
+"classAxiStreamBatcherAxil_1_1rtl.html":[0,0,132,0]
 };

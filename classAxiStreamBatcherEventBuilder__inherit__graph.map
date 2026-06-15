@@ -1,5 +1,7 @@
 <map id="AxiStreamBatcherEventBuilder" name="AxiStreamBatcherEventBuilder">
 <area shape="rect" id="Node000001" title=" " alt="" coords="24,299,247,324"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamBatcherEventBuilderWrapper.html" title=" " alt="" coords="24,372,247,412"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="138,338,138,372,133,372,133,338"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,5,148,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,44,55,86,43,138,41,195,46,223,56,249,67,264,80,277,110,296,107,301,77,281,63,268,52,252,41,225,36,196,38,138,49,84,64,43"/>
 <area shape="rect" id="Node000005" href="$classAxiStreamBatcher.html" title=" " alt="" coords="65,225,205,251"/>
