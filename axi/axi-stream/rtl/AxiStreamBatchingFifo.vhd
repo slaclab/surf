@@ -216,7 +216,7 @@ begin
    ------- END MAIN DATA FIFO -------
    ----------------------------------
 
-   -- These signals are not responsible for hanshakes and can
+   -- These signals are not responsible for handshakes and can
    -- just be forwarded
    combAxisMaster.tData <= axisMasterFifo.tData;
    combAxisMaster.tStrb <= axisMasterFifo.tStrb;

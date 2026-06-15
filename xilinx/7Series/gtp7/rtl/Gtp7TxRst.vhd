@@ -98,7 +98,7 @@ entity Gtp7TxRst is
       MMCM_RESET        : out std_logic := '1';
       PLL0_RESET        : out std_logic := '0';             --Reset PLL0
       PLL1_RESET        : out std_logic := '0';             --Reset PLL1
-      TX_FSM_RESET_DONE : out std_logic;  --Reset-sequence has sucessfully been finished.
+      TX_FSM_RESET_DONE : out std_logic;  --Reset-sequence has successfully been finished.
       TXUSERRDY         : out std_logic := '0';
       RUN_PHALIGNMENT   : out std_logic := '0';
       RESET_PHALIGNMENT : out std_logic := '0';

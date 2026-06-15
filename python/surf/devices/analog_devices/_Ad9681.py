@@ -195,7 +195,7 @@ class Ad9681Config(pr.Device):
             bitSize     = 1,
             bitOffset   = 0,
             enum        = {
-                1: 'Twos Compliment',
+                1: 'Twos Complement',
                 0: 'Offset Binary',
             },
         ))

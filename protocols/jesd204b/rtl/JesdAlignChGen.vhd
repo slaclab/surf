@@ -9,9 +9,9 @@
 --     A(K28.3) - x"7C" - Inserted at the end of a multi-frame.
 --     F(K28.7) - x"FC" - Inserted at the end of a frame.
 --
---     Note: Character replacement mechanism is different weather scrambler is enabled or disabled.
+--     Note: Character replacement mechanism is different whether scrambler is enabled or disabled.
 --     Disabled: The characters are inserted if two corresponding octets in consecutive samples have the same value.
---     Enabled:  The characters are inserted it the corresponding octet has the same value as the inserted character.
+--     Enabled:  The characters are inserted if the corresponding octet has the same value as the inserted character.
 --
 --     3 c-c data latency
 --

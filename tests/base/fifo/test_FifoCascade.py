@@ -12,9 +12,9 @@
 # - Sweep: Sweep a single-stage cascade and a three-stage cascade with an
 #   asynchronous tail so the bench covers both the minimal wrapper case and a
 #   real multi-stage chain.
-# - Stimulus: Push an ordered burst through the cascade and then inspect both
-#   the final output stream and the exported per-stage vector signals during
-#   movement.
+# - Stimulus: Push ordered bursts through the cascade, intermittently pause the
+#   read side so stage boundaries fill and drain, and then inspect both the
+#   final output stream and exported per-stage vector signals during movement.
 # - Checks: The final stream must preserve ordering across all stages, and the
 #   stage vector mapping must reflect the expected stage-local occupancy/data
 #   plumbing for the selected cascade depth.
@@ -166,6 +166,37 @@ async def stage_vector_mapping_test(dut):
     assert top_prog_full == int(dut.prog_full.value)
 
 
+@cocotb.test()
+async def staged_pressure_recovery_test(dut):
+    if not env_flag("CHECK_STAGE_PRESSURE", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+
+    first_burst = [0x40 + index for index in range(6)]
+    for value in first_burst:
+        await tb.write_word(value)
+
+    # Let internal FWFT stages move data while the public consumer is paused.
+    await tb.cycle_wr(8)
+    await tb.cycle_rd(4)
+
+    observed = []
+    for _ in range(3):
+        observed.append(await tb.read_word())
+
+    assert observed == first_burst[:3]
+
+    second_burst = [0x80 + index for index in range(4)]
+    for value in second_burst:
+        await tb.write_word(value)
+
+    expected_tail = first_burst[3:] + second_burst
+    for expected in expected_tail:
+        assert await tb.read_word() == expected
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "single_stage_async",
@@ -196,6 +227,22 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         WR_CLK_PERIOD_NS="5",
         RD_CLK_PERIOD_NS="9",
+    ),
+    parameter_case(
+        "three_stage_pressure",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CASCADE_SIZE_G="3",
+        LAST_STAGE_ASYNC_G="true",
+        GEN_SYNC_FIFO_G="false",
+        FWFT_EN_G="true",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="distributed",
+        DATA_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        CHECK_STAGE_PRESSURE="1",
+        WR_CLK_PERIOD_NS="5",
+        RD_CLK_PERIOD_NS="11",
     ),
 ]
 

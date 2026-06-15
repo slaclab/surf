@@ -52,7 +52,7 @@ entity SsiFifo is
       MEMORY_TYPE_G          : string   := "block";
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
-      -- CUSOTM uses passed FIFO_DATA_WIDTH_G
+      -- CUSTOM uses passed FIFO_DATA_WIDTH_G
       INT_WIDTH_SELECT_G     : string   := "WIDE";
       INT_DATA_WIDTH_G       : positive := 16;
       -- If VALID_THOLD_G /=1, FIFO that stores on tLast transaction can be smaller.

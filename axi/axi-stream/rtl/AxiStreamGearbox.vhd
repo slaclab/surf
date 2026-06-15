@@ -118,7 +118,7 @@ begin
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
-   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   -- Can't use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamGearbox: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"

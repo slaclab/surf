@@ -12,8 +12,9 @@
 # - Sweep: Sweep memory type, `FWFT` vs standard mode, output pipeline depth,
 #   reset polarity/style, width/depth scaling, and threshold placements under a
 #   single common clock.
-# - Stimulus: Drive burst writes and reads to fill, drain, and hover around the
-#   threshold points while the same clock advances both sides of the FIFO.
+# - Stimulus: Drive burst writes and reads to fill, drain, hover around the
+#   threshold points, and optionally perform simultaneous read/write cycles at
+#   near-boundary occupancies while the same clock advances both sides.
 # - Checks: The bench verifies ordering, `full`/`empty` transitions,
 #   programmable threshold behavior, and the latency difference between `FWFT`
 #   and standard read operation.
@@ -128,6 +129,23 @@ class TB:
         while int(self.dut.prog_empty.value) != expected:
             await RisingEdge(self.dut.clk)
 
+    async def simultaneous_cycle(self, write_value: int) -> int:
+        # FWFT mode presents the current head word before the pop. Sampling
+        # before the edge lets the test prove that the same edge can consume the
+        # old head while accepting a new tail word.
+        await with_timeout(self._wait_valid(), 5, "us")
+        read_value = int(self.dut.dout.value)
+        await with_timeout(self._wait_not_full(), 5, "us")
+        self.dut.din.value = write_value
+        self.dut.wr_en.value = 1
+        self.dut.rd_en.value = 1
+        await RisingEdge(self.dut.clk)
+        self.dut.wr_en.value = 0
+        self.dut.rd_en.value = 0
+        await RisingEdge(self.dut.clk)
+        await Timer(2, unit="ns")
+        return read_value
+
 
 @cocotb.test()
 async def basic_ordering_test(dut):
@@ -205,6 +223,36 @@ async def threshold_flag_test(dut):
         for expected in refill_values:
             assert await tb.read_word() == expected
         await with_timeout(tb._wait_prog_empty(1), 5, "us")
+
+
+@cocotb.test()
+async def simultaneous_boundary_test(dut):
+    if not env_flag("CHECK_SIMULTANEOUS_BOUNDARY", default=False):
+        return
+
+    tb = TB(dut, clk_period_ns=float(os.environ["CLK_PERIOD_NS"]))
+    await tb.reset()
+
+    if not tb.fwft_enabled:
+        return
+
+    capacity = 2 ** int(os.environ["ADDR_WIDTH_G"])
+    seed_values = [0x30 + index for index in range(capacity - 1)]
+    for value in seed_values:
+        await tb.write_word(value)
+
+    observed = []
+    replacement_values = [0x90, 0x91, 0x92, 0x93]
+    for value in replacement_values:
+        observed.append(await tb.simultaneous_cycle(value))
+
+    assert observed == seed_values[: len(replacement_values)]
+
+    expected_tail = seed_values[len(replacement_values) :] + replacement_values
+    for expected in expected_tail:
+        assert await tb.read_word() == expected
+
+    await with_timeout(tb._wait_empty(), 5, "us")
 
 
 PARAMETER_SWEEP = [
@@ -383,6 +431,23 @@ PARAMETER_SWEEP = [
         EMPTY_THRES_G="2",
         CHECK_FULL_EMPTY="1",
         CHECK_THRESHOLD_FLAGS="1",
+        CLK_PERIOD_NS="5",
+        RST_ACTIVE_HIGH="1",
+    ),
+    parameter_case(
+        "fwft_simultaneous_near_full",
+        DATA_WIDTH_G="16",
+        ADDR_WIDTH_G="4",
+        FWFT_EN_G="true",
+        MEMORY_TYPE_G="block",
+        PIPE_STAGES_G="0",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        FULL_THRES_G="12",
+        EMPTY_THRES_G="2",
+        CHECK_FULL_EMPTY="0",
+        CHECK_THRESHOLD_FLAGS="0",
+        CHECK_SIMULTANEOUS_BOUNDARY="1",
         CLK_PERIOD_NS="5",
         RST_ACTIVE_HIGH="1",
     ),

@@ -515,7 +515,7 @@ begin
          DIV     => "000",
          O       => rxOutClkB);
 
-   -- Cant seem to use txoutclk to drive txusrclk without placement errors
+   -- Can't seem to use txoutclk to drive txusrclk without placement errors
    -- if one does not use the userRefClk for the txOutClk, placement errors occur
 --       TXOUTCLK_BUFG_GT : BUFG_GT
 --          port map (

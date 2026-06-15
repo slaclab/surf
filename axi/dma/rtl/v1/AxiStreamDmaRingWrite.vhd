@@ -487,7 +487,7 @@ begin
                    statusRamDout, trigRamDout) is
       variable v            : RegType;
       variable axilEndpoint : AxiLiteEndpointType;
-      variable endRamSize   : integer;
+      variable endRamSize   : slv(RAM_DATA_WIDTH_C-1 downto 0);
    begin
       v := r;
 
@@ -571,9 +571,11 @@ begin
             -- Writes always start on a BURST_SIZE_BYTES_G boundary, so can drive low dmaReq.address
             -- bits to zero for optimization.
             v.dmaReq.address(AXI_WRITE_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := v.nextAddr;
-            endRamSize                                                   := conv_integer(endRamDout - v.nextAddr);
+            -- Keep the remaining-bytes math in the vector domain: conv_integer
+            -- overflows for address widths wider than 32 bits.
+            endRamSize                                                   := endRamDout - v.nextAddr;
             if FORCE_WRAP_ALIGN_G and endRamSize < BURST_SIZE_BYTES_G then
-               v.dmaReq.maxSize := toSlv(endRamSize, 32);
+               v.dmaReq.maxSize := resize(endRamSize, 32);
             else
                v.dmaReq.maxSize := toSlv(BURST_SIZE_BYTES_G, 32);
             end if;
@@ -596,10 +598,10 @@ begin
                v.ramWe           := '1';  -- write new values into register ram
 
                -- Increment the stored write pointer by the acknowledged byte
-               -- count. Slice the DMA size back down to the local address
-               -- width so the arithmetic stays range-safe for narrower test
-               -- wrappers and smaller address maps.
-               v.nextAddr := r.nextAddr + dmaAck.size(RAM_DATA_WIDTH_C-1 downto 0);
+               -- count. Resize the DMA size to the local address width so the
+               -- arithmetic stays range-safe for both narrower address maps
+               -- (truncate) and wider than 32-bit address maps (zero-pad).
+               v.nextAddr := r.nextAddr + resize(dmaAck.size, RAM_DATA_WIDTH_C);
                if (v.nextAddr = r.endAddr) then
                   v.status(FULL_C) := '1';
                   if (r.mode(DONE_WHEN_FULL_C) = '1') then

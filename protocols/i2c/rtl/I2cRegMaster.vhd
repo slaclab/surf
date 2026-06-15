@@ -241,7 +241,7 @@ begin
 
       end case;
 
-      -- Always check for errors an cancel the txn if they happen
+      -- Always check for errors and cancel the txn if they happen
       if (i2cMasterOut.txnError = '1' and i2cMasterOut.rdValid = '1') then
          v.regOut.regFail     := '1';
          v.regOut.regFailCode := i2cMasterOut.rdData;

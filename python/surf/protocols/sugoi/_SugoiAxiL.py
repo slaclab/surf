@@ -114,7 +114,7 @@ class SugoiAxiL(pr.Device):
 
         self.addRemoteVariables(
             name         = 'DropTrigOpCodeCnt',
-            description  = 'Increments if unable to transmit the OP-cde control word',
+            description  = 'Increments if unable to transmit the OP-code control word',
             offset       = 0x80,
             bitSize      = statusCntSize,
             mode         = 'RO',

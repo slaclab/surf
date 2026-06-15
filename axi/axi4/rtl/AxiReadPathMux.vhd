@@ -139,7 +139,7 @@ begin
             v.master.arcache := selAddr.arcache;
             v.addrState      := S_LAST_C;
 
-         -- Laster transfer
+         -- Last transfer
          when S_LAST_C =>
             if mAxiReadSlave.arready = '1' then
                v.master.arvalid := '0';

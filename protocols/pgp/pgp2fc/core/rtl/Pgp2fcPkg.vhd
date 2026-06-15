@@ -72,9 +72,9 @@ package Pgp2fcPkg is
       linkReady    : sl;                -- Local side has link
       frameRx      : sl;                -- A good frame was received
       frameRxErr   : sl;                -- An errored frame was received
-      cellError    : sl;                -- A cell error has occured
-      linkDown     : sl;                -- A link down event has occured
-      linkError    : sl;                -- A link error has occured
+      cellError    : sl;                -- A cell error has occurred
+      linkDown     : sl;                -- A link down event has occurred
+      linkError    : sl;                -- A link error has occurred
       fcValid      : sl;                -- Fast Control word received
       fcError      : sl;  -- Fast Control word received with error
       fcWord       : slv(MAX_FC_BITS_C-1 downto 0);  -- Fast control word

@@ -517,7 +517,7 @@ class _Regs(pr.Device):
                 #print(f'Resp: {resp}')
                 if resp != 0:
                     self.ResetHw()
-                    transaction.error(f'AXIL tranaction failed with RESP: {resp}')
+                    transaction.error(f'AXIL transaction failed with RESP: {resp}')
 
                 # Finish the transaction
                 elif transaction.type() == rogue.interfaces.memory.Write:

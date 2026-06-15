@@ -20,7 +20,7 @@
 --                   - If it does not find the SEQ number it reports Ack Error,
 --                   - Goes back to IDLE.
 --              Transport side FSM. Send and resend various segments to Transport side.
---                   - INIT Initializes seqN to initSeqN. Waits until new connection requested. ConnFSM goin out od Closed state.
+--                   - INIT Initializes seqN to initSeqN. Waits until new connection requested. ConnFSM going out of Closed state.
 --                   - DISS_CONN allows sending SYN, ACK, or RST segments. Goes to CONN when connection becomes active.
 --                   - CONN allows sending DATA, NULL, ACK, or RST segments.
 --                     In Resend procedure the FSM resends all the unacknowledged (DATA, NULL, RST) segments in the buffer window.
