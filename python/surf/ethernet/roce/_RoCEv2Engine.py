@@ -52,6 +52,17 @@ class RoCEv2Engine(pr.Device):
             mode        = 'RO',
         ))
 
+        self.add(pr.RemoteCommand(
+            name        = 'SoftReset',
+            description = 'Soft-reset the RoCE transport core to clear stale QP/PSN '
+                          'state from a prior session (without disturbing the '
+                          'RUDP/UDP link). Pulse before re-establishing a QP.',
+            offset      = 0xF50,
+            bitSize     = 1,
+            bitOffset   = 0,
+            function    = pr.RemoteCommand.toggle,
+        ))
+
         if dcqcn:
             self.add(RoCEv2Dcqcn(
                 name   = "Dcqcn",

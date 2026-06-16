@@ -38,7 +38,11 @@ entity RoceConfigurator is
       axilReadMaster          : in  AxiLiteReadMasterType;
       axilReadSlave           : out AxiLiteReadSlaveType;
       axilWriteMaster         : in  AxiLiteWriteMasterType;
-      axilWriteSlave          : out AxiLiteWriteSlaveType);
+      axilWriteSlave          : out AxiLiteWriteSlaveType;
+      -- Soft-reset request (active high). A rising edge on the 0xF50 register
+      -- fires a fixed-width one-shot here; the engine ORs it into the transport
+      -- core's reset to clear stale QP/PSN state on a software reconnect.
+      softRst                 : out sl);
 end entity RoceConfigurator;
 
 architecture rtl of RoceConfigurator is
@@ -60,6 +64,10 @@ architecture rtl of RoceConfigurator is
       txMaster        : AxiStreamMasterType;
       rxSlave         : AxiStreamSlaveType;
       state           : StateType;
+      -- Soft-reset one-shot
+      softRstReq      : sl;
+      softRstCnt      : natural range 0 to 255;
+      softRst         : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -73,7 +81,11 @@ architecture rtl of RoceConfigurator is
       metaDataRx      => (others => '0'),
       txMaster        => AXI_STREAM_MASTER_INIT_C,
       rxSlave         => AXI_STREAM_SLAVE_INIT_C,
-      state           => IDLE_S);
+      state           => IDLE_S,
+      -- Soft-reset one-shot
+      softRstReq      => '0',
+      softRstCnt      => 0,
+      softRst         => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -100,6 +112,7 @@ begin
       axiSlaveRegister (axilEp, x"F04", 0, v.metaDataTx);
       axiSlaveRegisterR(axilEp, x"F00", 1, r.metaDataIsReady);
       axiSlaveRegisterR(axilEp, x"F2C", 0, r.metaDataRx);
+      axiSlaveRegister (axilEp, x"F50", 0, v.softRstReq);
 
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -140,11 +153,29 @@ begin
       -----------------------------------------------------------------------
       end case;
 
+      ----------------------------------------------------------------------------------
+      -- Soft-reset one-shot (0xF50)
+      --
+      -- A rising edge on softRstReq loads an 8-bit counter that holds softRst
+      -- asserted for 256 clk cycles, giving the RoCE transport core a clean,
+      -- FW-guaranteed reset pulse to clear stale QP/PSN state on a software
+      -- reconnect. This logic is reset only by the hard 'rst' (the engine feeds
+      -- this configurator the un-soft-reset 'rst'), so the request path itself
+      -- survives the softRst it generates.
+      ----------------------------------------------------------------------------------
+      if (r.softRstReq = '0') and (v.softRstReq = '1') then
+         v.softRstCnt := 255;
+      elsif (r.softRstCnt /= 0) then
+         v.softRstCnt := r.softRstCnt - 1;
+      end if;
+      v.softRst := ite(v.softRstCnt /= 0, '1', '0');
+
       -- Outputs
       axilWriteSlave         <= r.axilWriteSlave;
       axilReadSlave          <= r.axilReadSlave;
       sAxisMetaDataRespSlave <= v.rxSlave;
       mAxisMetaDataReqMaster <= r.txMaster;
+      softRst                <= r.softRst;
 
       -- Reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

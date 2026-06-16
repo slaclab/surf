@@ -179,10 +179,15 @@ architecture mapping of RoCEv2Engine is
    signal axilReadSlavesX   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0)  := (others => AXI_LITE_READ_SLAVE_EMPTY_SLVERR_C);
 
    signal s_cnp_received : sl;
+   signal s_softRst      : sl;
 
 begin
 
-   roceRstN     <= not rst when (RST_POLARITY_G = '1') else rst;
+   -- Transport-core reset = hard 'rst' OR the configurator-generated softRst
+   -- (active high). The softRst clears stale QP/PSN state on a software
+   -- reconnect without disturbing the rest of the engine or the RUDP/UDP link.
+   roceRstN     <= not (rst or s_softRst) when (RST_POLARITY_G = '1')
+                   else (rst and not s_softRst);
    cnp_received <= s_cnp_received;
 
    ----------------------------------------------------------------------------
@@ -380,6 +385,7 @@ begin
       s_axisMetaDataRespSlave              <= AXI_STREAM_SLAVE_FORCE_C;
       axilReadSlavesX(XBAR_ROCE_CONFIG_C)  <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
       axilWriteSlavesX(XBAR_ROCE_CONFIG_C) <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
+      s_softRst                            <= '0';  -- ext config drives its own QP/PSN
    end generate ROCE_EXT_CONFIG_GEN;
 
    ROCE_INT_CONFIG_GEN : if not EXT_ROCE_CONFIG_G generate
@@ -397,7 +403,8 @@ begin
             axilReadMaster          => axilReadMastersX(XBAR_ROCE_CONFIG_C),
             axilReadSlave           => axilReadSlavesX(XBAR_ROCE_CONFIG_C),
             axilWriteMaster         => axilWriteMastersX(XBAR_ROCE_CONFIG_C),
-            axilWriteSlave          => axilWriteSlavesX(XBAR_ROCE_CONFIG_C));
+            axilWriteSlave          => axilWriteSlavesX(XBAR_ROCE_CONFIG_C),
+            softRst                 => s_softRst);
    end generate ROCE_INT_CONFIG_GEN;
 
    -----------------------------------------------------------------------------
