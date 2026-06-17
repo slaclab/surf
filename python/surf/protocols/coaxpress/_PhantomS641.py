@@ -9,13 +9,13 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
 
-class PhantomS641(pr.Device):
+import surf.protocols.coaxpress as cxp
+
+class PhantomS641(cxp.WriteGuardMixin, pr.Device):
     def __init__(self, isPhantomS711=False, **kwargs):
         super().__init__(**kwargs)
 
-        rogue.Version.minVersion('6.13.0')
         #############################################################
         # Start of manufacturer-specific register space at 0x00006000
         #############################################################
@@ -805,11 +805,10 @@ class PhantomS641(pr.Device):
 
         # Block all register writes while the camera is acquiring.
         # AcquisitionStart and AcquisitionStop must remain writable to allow stopping.
-        # Uses the pre-write listener API from rogue PR #1229.
         def _write_guard(path, value, state):
             if state.get(self.IsAcquiring.path):
                 name = path.rsplit('.', 1)[-1]
                 if name not in ('AcquisitionStart', 'AcquisitionStop', 'IsAcquiring'):
-                    raise pr.WriteBlockedError(path, 'cannot write registers during acquisition')
+                    raise cxp.WriteBlockedError(path, 'cannot write registers during acquisition')
 
         self.addPreWriteListener(_write_guard, stateVars=[self.IsAcquiring])
