@@ -25,13 +25,13 @@ use surf.SsiPkg.all;
 entity RoCEv2AxisBucket is
 
    generic (
-      TPD_G          : time             := 1 ns;
-      RST_ASYNC_G    : boolean          := false;
-      PIPE_STAGES_G  : natural          := 0;
-      RST_POLARITY_G : sl               := '1';
-      FRAC_BITS_G    : natural          := 16;
-      BUCKET_SIZE_G  : slv(31 downto 0) := x"10000000";  -- in bytes
-      AXIS_CONFIG_G  : AxiStreamConfigType
+      TPD_G          : time             := 1 ns;        -- simulation propagation delay
+      RST_ASYNC_G    : boolean          := false;       -- true = asynchronous reset
+      PIPE_STAGES_G  : natural          := 0;           -- output AXI-Stream pipeline stages
+      RST_POLARITY_G : sl               := '1';         -- '1' = active-HIGH reset, '0' = active-LOW
+      FRAC_BITS_G    : natural          := 16;          -- fixed-point fractional bits (rate calc)
+      BUCKET_SIZE_G  : slv(31 downto 0) := x"10000000";  -- token-bucket depth (bytes)
+      AXIS_CONFIG_G  : AxiStreamConfigType              -- AXI-Stream config
    );
 
    port (

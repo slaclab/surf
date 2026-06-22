@@ -26,12 +26,12 @@ use surf.SsiPkg.all;
 entity RoCEv2Dcqcn is
 
    generic (
-      TPD_G          : time                := 1 ns;
-      LINE_RATE_G    : integer             := 1_250_000_000;  -- 1.25 GB/s = 10 Gb/s
-      CLK_FREQ_G     : real                := 156.25E+6;
-      AXIS_CONFIG_G  : AxiStreamConfigType := SSI_CONFIG_INIT_C;
-      RST_ASYNC_G    : boolean             := false;
-      RST_POLARITY_G : sl                  := '1'
+      TPD_G          : time                := 1 ns;             -- simulation propagation delay
+      LINE_RATE_G    : integer             := 1_250_000_000;    -- link byte rate (1.25 GB/s = 10 Gb/s)
+      CLK_FREQ_G     : real                := 156.25E+6;        -- module clock frequency (Hz)
+      AXIS_CONFIG_G  : AxiStreamConfigType := SSI_CONFIG_INIT_C;  -- AXI-Stream config
+      RST_ASYNC_G    : boolean             := false;            -- true = asynchronous reset
+      RST_POLARITY_G : sl                  := '1'               -- '1' = active-HIGH reset, '0' = active-LOW
    );
    port (
       axisClk         : in  sl;
@@ -70,6 +70,7 @@ architecture rtl of RoCEv2Dcqcn is
       Rai                : slv(31 downto 0);  -- Additive step, axil
       Rhai               : slv(31 downto 0);  -- Hyper step, axil
       clampTgtRate       : sl;          -- Clamp target rate step, axil
+      dcqcnBypass        : sl;          -- Bypass DCQCN: gate CNP + clamp Rc/Rt to LINE_RATE, axil
       Rmin               : slv(31 downto 0);  -- Minimum rate, axil
       cnpDecDetected     : sl;          -- CNP detected for decrement process
       cnpAlphaDetected   : sl;          -- CNP detected for alpha process
@@ -109,6 +110,7 @@ architecture rtl of RoCEv2Dcqcn is
       Rai                => x"005B8D80",      -- 6 MB/s
       Rhai               => x"00B71B00",      -- 12 MB/s
       clampTgtRate       => '0',              -- false
+      dcqcnBypass        => '0',              -- false (default-off: preserves current behavior)
       Rmin               => x"00989680",      -- 10 MB/s
       cnpDecDetected     => '0',
       cnpAlphaDetected   => '0',
@@ -302,6 +304,7 @@ begin  -- architecture rtl
       axiSlaveRegisterR(axilEp, x"020", 0, r.alpha);
       axiSlaveRegister(axilEp, x"020", 10, v.cnpCntRst);
       axiSlaveRegisterR(axilEp, x"020", 11, r.cnpCnt);
+      axiSlaveRegister(axilEp, x"024", 0, v.dcqcnBypass);
       -- Closeout the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
 
@@ -313,7 +316,7 @@ begin  -- architecture rtl
          -------------------------------------------------------------------------
          when IDLE_S =>
             -----------------------------------------------------------------------
-            if cnpRe = '1' then
+            if cnpRe = '1' and r.dcqcnBypass = '0' then
                v.cnpAlphaDetected := '1';
                v.cnpDecDetected   := '1';
                v.alphaUpdEn       := '1';
@@ -348,6 +351,14 @@ begin  -- architecture rtl
       if alphaValid = '1' then
          v.cnpAlphaDetected := '0';
          v.alpha            := newAlpha;
+      end if;
+
+      -- Bypass clamp: force line rate every cycle so the TokenBucket
+      -- reservoir never drains and the readback (r.Rc@0x018 / r.Rt@0x01C) reflects
+      -- the clamp. Placed AFTER inc/dec/alpha so it wins over any residual write.
+      if r.dcqcnBypass = '1' then
+         v.Rc := LINE_RATE_SLV_C;
+         v.Rt := LINE_RATE_SLV_C;
       end if;
 
       -- Outputs

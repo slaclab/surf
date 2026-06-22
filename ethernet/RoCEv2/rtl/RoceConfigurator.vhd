@@ -22,9 +22,9 @@ use surf.AxiStreamPkg.all;
 
 entity RoceConfigurator is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean := false);
+      TPD_G          : time    := 1 ns;   -- simulation propagation delay
+      RST_POLARITY_G : sl      := '1';    -- '1' = active-HIGH reset, '0' = active-LOW
+      RST_ASYNC_G    : boolean := false);  -- true = asynchronous reset
    port (
       -- Clock and Reset
       clk                     : in  sl;
@@ -169,6 +169,22 @@ begin
          v.softRstCnt := r.softRstCnt - 1;
       end if;
       v.softRst := ite(v.softRstCnt /= 0, '1', '0');
+
+      -- Keep the metadata FSM in lockstep with the transport core across a
+      -- soft-reset. softRst (0xF50) resets the core but NOT this configurator
+      -- (the one-shot above must survive its own pulse). If the pulse lands
+      -- while an exchange is in flight, the core never answers the pre-reset
+      -- request and this FSM would stall forever in GET_RESPONSE_S, ignoring
+      -- the next SendMetaData -- RecvMetaData never returns to 1, wedging the
+      -- reconnect until an FPGA reload. Abort any in-flight exchange and hold
+      -- IDLE_S for the pulse so the configurator comes out of soft-reset clean
+      -- and resynced. The one-shot state (softRstReq/softRstCnt/softRst) is
+      -- intentionally left untouched.
+      if (v.softRst = '1') then
+         v.state           := IDLE_S;
+         v.txMaster.tValid := '0';
+         v.metaDataIsReady := '0';
+      end if;
 
       -- Outputs
       axilWriteSlave         <= r.axilWriteSlave;
