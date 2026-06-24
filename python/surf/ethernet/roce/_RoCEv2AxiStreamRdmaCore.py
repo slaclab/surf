@@ -147,6 +147,20 @@ class RoCEv2AxiStreamRdmaCore(pr.Device):
             disp         = '{:d}',
         ))
 
+        self.add(pr.RemoteVariable(
+            name         = 'DmaReadCount',
+            description  = 'Count of DMA-read requests served = one per SEND TRANSMISSION '
+                           '(original or retransmit). Compared to SuccessCounter (one per '
+                           'COMPLETION) it exposes retransmits: DmaReadCount ~= 2*SuccessCounter '
+                           'means every SEND is being emitted twice (diagnostic for the '
+                           'sticky-half-bandwidth investigation).',
+            offset       = 0x110,
+            bitSize      = dispatchBits,
+            mode         = 'RO',
+            pollInterval = 1,
+            disp         = '{:d}',
+        ))
+
         # AxiStreamMon status (RO, based at 0x200) — throughput of the FIFO drain
         # stream (PRBS packets drained into the replay ring). Cumulative since the
         # last ResetCounters (or roceRst); rate/bandwidth refresh at 1 Hz in the FW.

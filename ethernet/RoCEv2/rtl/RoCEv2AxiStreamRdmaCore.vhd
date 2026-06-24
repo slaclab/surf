@@ -260,6 +260,10 @@ architecture rtl of RoCEv2AxiStreamRdmaCore is
       reqInit           : slv(3 downto 0);
       reqSqpn           : slv(23 downto 0);
       reqWrId           : slv(63 downto 0);
+      -- Diagnostic: count of DMA-read requests accepted (one per SEND TRANSMISSION,
+      -- original or retransmit). Compared to SuccessCounter (one per COMPLETION) it
+      -- exposes retransmits: dmaReadCnt ~= 2*successCounter => each SEND emitted twice.
+      dmaReadCnt        : slv(DISPATCH_COUNTER_BITS_G-1 downto 0);
       dmaReadReqSlave   : RoCEv2DmaReadReqSlaveType;
       dmaReadRespMaster : RoCEv2DmaReadRespMasterType;
    end record ServeRegType;
@@ -273,6 +277,7 @@ architecture rtl of RoCEv2AxiStreamRdmaCore is
       reqInit           => (others => '0'),
       reqSqpn           => (others => '0'),
       reqWrId           => (others => '0'),
+      dmaReadCnt        => (others => '0'),
       dmaReadReqSlave   => ROCE_DMA_READ_REQ_SLAVE_INIT_C,
       dmaReadRespMaster => ROCE_DMA_READ_RESP_MASTER_INIT_C);
 
@@ -451,7 +456,7 @@ begin  -- architecture rtl
    regComb : process (axilReadMaster, axilWriteMaster, fillR, monBandwidth,
                       monBandwidthMax, monBandwidthMin, monFrameCnt,
                       monFrameRate, monFrameRateMax, monFrameRateMin,
-                      monFrameSize, monFrameSizeMax, monFrameSizeMin, r,
+                      monFrameSize, monFrameSizeMax, monFrameSizeMin, r, servR,
                       workCompMaster) is
       variable v      : RegType;
       variable regCon : AxiLiteEndPointType;
@@ -474,6 +479,7 @@ begin  -- architecture rtl
       axiSlaveRegisterR(regCon, x"104", 0, r.unsuccessCounter);
       axiSlaveRegister (regCon, x"108", 0, v.resetCounters);
       axiSlaveRegisterR(regCon, x"10C", 0, fillR.oversizeCount);  -- RO: over-cap frames dropped
+      axiSlaveRegisterR(regCon, x"110", 0, servR.dmaReadCnt);  -- RO: SEND transmissions (incl. retransmits)
 
       -- AxiStreamMon throughput status (RO) of the FIFO drain stream.
       axiSlaveRegisterR(regCon, x"200", 0, monFrameCnt);  -- 64-bit: 0x200/0x204
@@ -716,6 +722,8 @@ begin  -- architecture rtl
                v.idx                   := (others => '0');
                v.lastIdx               := unsigned(fillR.lastIdx(slotInt));
                v.slotErrLatched        := fillR.slotErr(slotInt);
+               -- Diagnostic: one DMA-read accepted == one SEND transmission (incl. retransmit).
+               v.dmaReadCnt            := std_logic_vector(unsigned(servR.dmaReadCnt) + 1);
                v.state                 := S_READ;
             end if;
 
@@ -764,6 +772,12 @@ begin  -- architecture rtl
       -- Clean re-arm on disarm (drop any in-flight replay).
       if r.dispatchEnable = '0' then
          v := SERVE_INIT_C;
+      end if;
+
+      -- ResetCounters (0x108) zeroes the diagnostic DMA-read count alongside the
+      -- FW Success/Unsuccess counters, without disturbing an in-flight replay.
+      if r.resetCounters = '1' then
+         v.dmaReadCnt := (others => '0');
       end if;
 
       dmaReadReqSlave   <= servR.dmaReadReqSlave;
