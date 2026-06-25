@@ -37,6 +37,8 @@ entity IpV4EngineTx is
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-Endian configuration
+      ecn               : in  slv(1 downto 0) := ECN_G;  -- runtime IP-header ECN field (defaults to ECN_G)
+      dscp              : in  slv(5 downto 0) := toSlv(DSCP_G, 6);  -- runtime IP-header DSCP field (defaults to DSCP_G)
       -- Interface to Ethernet Frame MUX/DEMUX
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
@@ -115,7 +117,7 @@ begin
          mAxisMaster  => rxMaster,
          mAxisSlave   => rxSlave);
 
-   comb : process (localMac, r, rst, rxMaster, txSlave) is
+   comb : process (dscp, ecn, localMac, r, rst, rxMaster, txSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -160,8 +162,8 @@ begin
                   v.txMaster.tData(95 downto 48)   := localMac;
                   v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
                   v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
-                  v.txMaster.tData(127 downto 122) := toSlv(DSCP_G, 6);  --- DSCP
-                  v.txMaster.tData(121 downto 120) := ECN_G;  --- ECN
+                  v.txMaster.tData(127 downto 122) := dscp;  --- DSCP (runtime register; resets to DSCP_G)
+                  v.txMaster.tData(121 downto 120) := ecn;  --- ECN (runtime register; resets to ECN_G)
                   -- Track the leftovers
                   v.tData(63 downto 0)             := rxMaster.tData(127 downto 64);
                   -- Next state

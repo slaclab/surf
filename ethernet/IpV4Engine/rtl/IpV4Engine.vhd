@@ -38,6 +38,8 @@ entity IpV4Engine is
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-Endian configuration
       localIp           : in  slv(31 downto 0);  --  big-Endian configuration
+      ecn               : in  slv(1 downto 0) := ECN_G;  -- runtime IP-header ECN field (defaults to ECN_G)
+      dscp              : in  slv(5 downto 0) := toSlv(DSCP_G, 6);  -- runtime IP-header DSCP field (defaults to DSCP_G)
       igmpIp            : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
@@ -195,6 +197,8 @@ begin
       port map (
          -- Local Configurations
          localMac          => localMac,
+         ecn               => ecn,
+         dscp              => dscp,
          -- Interface to Ethernet Frame MUX/DEMUX
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,

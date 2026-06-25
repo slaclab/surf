@@ -89,6 +89,8 @@ architecture rtl of UdpEngineWrapper is
       softMac          : slv(47 downto 0);
       softIp           : slv(31 downto 0);
       broadcastIp      : slv(31 downto 0);
+      ecnFlag          : slv(1 downto 0);
+      dscpFlag         : slv(5 downto 0);
       igmpIp           : Slv32Array(IGMP_GRP_SIZE-1 downto 0);
       clientRemotePort : Slv16Array(CLIENT_SIZE_G-1 downto 0);
       clientRemoteIp   : Slv32Array(CLIENT_SIZE_G-1 downto 0);
@@ -100,6 +102,8 @@ architecture rtl of UdpEngineWrapper is
       softMac          => (others => '0'),
       softIp           => (others => '0'),
       broadcastIp      => (others => '0'),
+      ecnFlag          => ECN_G,
+      dscpFlag         => toSlv(DSCP_G, 6),
       igmpIp           => IGMP_INIT_G,
       clientRemotePort => (others => (others => '0')),
       clientRemoteIp   => (others => (others => '0')),
@@ -146,6 +150,8 @@ begin
          -- Local Configurations
          localMac             => localMac,
          localIp              => dhcpIp,
+         ecn                  => r.ecnFlag,
+         dscp                 => r.dscpFlag,
          igmpIp               => r.igmpIp,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMaster,
@@ -252,6 +258,8 @@ begin
       for i in IGMP_GRP_SIZE-1 downto 0 loop
          axiSlaveRegister(regCon, toSlv((4*i)+4048, 12), 0, v.igmpIp(i));  --  big-Endian configuration
       end loop;
+      axiSlaveRegister (regCon, x"FE0", 0, v.ecnFlag);
+      axiSlaveRegister (regCon, x"FE0", 2, v.dscpFlag);
       axiSlaveRegister (regCon, x"FE4", 0, v.softIp);
       axiSlaveRegister (regCon, x"FE8", 0, v.softMac);
       axiSlaveRegister (regCon, x"FF0", 0, v.broadcastIp);
