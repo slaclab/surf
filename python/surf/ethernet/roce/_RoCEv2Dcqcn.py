@@ -279,3 +279,18 @@ class RoCEv2Dcqcn(pr.Device):
             base        = pr.Int,
             pollInterval = 1,
         ))
+
+        # -------------------------
+        # 0x024 - dcqcnBypass
+        # -------------------------
+
+        self.add(pr.RemoteVariable(
+            name        = 'DcqcnBypass',
+            description = 'Disable DCQCN CNP rate control for point-to-point operation: '
+                          'False = normal DCQCN, True = gate CNP and clamp Rc/Rt to LINE_RATE (default off)',
+            offset      = 0x024,
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RW',
+            base        = pr.Bool,
+        ))
