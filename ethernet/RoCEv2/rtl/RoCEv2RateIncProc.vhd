@@ -22,10 +22,10 @@ use surf.StdRtlPkg.all;
 
 entity RoCEv2RateIncProc is
    generic (
-      TPD_G          : time    := 1 ns;
-      LINE_RATE_G    : integer := 1_250_000_000;  -- 1.25 GB/s = 10 Gb/s
-      RST_ASYNC_G    : boolean := false;
-      RST_POLARITY_G : sl      := '1'
+      TPD_G          : time    := 1 ns;             -- simulation propagation delay
+      LINE_RATE_G    : integer := 1_250_000_000;    -- link byte rate (1.25 GB/s = 10 Gb/s)
+      RST_ASYNC_G    : boolean := false;            -- true = asynchronous reset
+      RST_POLARITY_G : sl      := '1'               -- '1' = active-HIGH reset, '0' = active-LOW
    );
    port (
       clk                : in  sl;

@@ -28,9 +28,9 @@ use surf.SsiPkg.all;
 
 entity RoCEv2TokenCalc is
    generic (
-      TPD_G       : time    := 1 ns;
-      CLK_FREQ_G  : real    := 156.25E+6;
-      FRAC_BITS_G : natural := 16
+      TPD_G       : time    := 1 ns;        -- simulation propagation delay
+      CLK_FREQ_G  : real    := 156.25E+6;   -- module clock frequency (Hz)
+      FRAC_BITS_G : natural := 16           -- fixed-point fractional bits (byte/clk rate)
    );
    port (
       clk          : in  sl;

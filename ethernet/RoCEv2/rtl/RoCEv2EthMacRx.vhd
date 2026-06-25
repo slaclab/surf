@@ -24,8 +24,8 @@ use surf.EthMacPkg.all;
 
 entity RoCEv2EthMacRx is
    generic (
-      TPD_G          : time := 1 ns;
-      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
+      TPD_G          : time := 1 ns;   -- simulation propagation delay
+      RST_POLARITY_G : sl   := '1');    -- '1' = active-HIGH reset, '0' = active-LOW
    port (
       -- Clock and Reset
       ethClk         : in  sl;

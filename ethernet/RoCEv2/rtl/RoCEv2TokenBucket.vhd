@@ -24,10 +24,10 @@ use surf.SsiPkg.all;
 
 entity RoCEv2TokenBucket is
    generic (
-      TPD_G         : time    := 1 ns;
-      CLK_FREQ_G    : real    := 156.25E+6;
-      FRAC_BITS_G   : natural := 16;
-      AXIS_CONFIG_G : AxiStreamConfigType
+      TPD_G         : time    := 1 ns;        -- simulation propagation delay
+      CLK_FREQ_G    : real    := 156.25E+6;   -- module clock frequency (Hz)
+      FRAC_BITS_G   : natural := 16;          -- fixed-point fractional bits (rate calc)
+      AXIS_CONFIG_G : AxiStreamConfigType     -- monitored AXI-Stream config
    );
    port (
       axisClk     : in  sl;

@@ -22,9 +22,9 @@ use surf.StdRtlPkg.all;
 
 entity RoCEv2AlphaUpdate is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_ASYNC_G    : boolean := false;
-      RST_POLARITY_G : sl      := '1'
+      TPD_G          : time    := 1 ns;   -- simulation propagation delay
+      RST_ASYNC_G    : boolean := false;  -- true = asynchronous reset
+      RST_POLARITY_G : sl      := '1'     -- '1' = active-HIGH reset, '0' = active-LOW
    );
    port (
       clk              : in  sl;
