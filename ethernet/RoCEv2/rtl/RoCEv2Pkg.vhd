@@ -22,7 +22,7 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
-package RocePkg is
+package RoCEv2Pkg is
 
    -- Types
    constant TDATA_ROCE_NUM_BYTES_C : natural range 1 to 128 := 32;
@@ -33,12 +33,13 @@ package RocePkg is
       tDestBits => 0
       );
 
-   constant SURF_DATA_STREAM_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+   constant ROCEV2_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
       dataBytes => TDATA_UDP_NUM_BYTES_C,
+      tKeepMode => TKEEP_NORMAL_C,
       tDestBits => 0
       );
 
-   type RoceWorkReqMasterType is record
+   type RoCEv2WorkReqMasterType is record
       valid     : sl;
       id        : slv(63 downto 0);
       opCode    : slv(3 downto 0);
@@ -57,9 +58,9 @@ package RocePkg is
       srqn      : slv(24 downto 0);
       dQpn      : slv(24 downto 0);
       qKey      : slv(32 downto 0);
-   end record RoceWorkReqMasterType;
+   end record RoCEv2WorkReqMasterType;
 
-   constant ROCE_WORK_REQ_MASTER_INIT_C : RoceWorkReqMasterType := (
+   constant ROCE_WORK_REQ_MASTER_INIT_C : RoCEv2WorkReqMasterType := (
       valid     => '0',
       id        => (others => '0'),
       opCode    => (others => '0'),
@@ -80,17 +81,17 @@ package RocePkg is
       qKey      => (others => '0')
       );
 
-   type RoceWorkReqSlaveType is record
+   type RoCEv2WorkReqSlaveType is record
       ready : sl;
-   end record RoceWorkReqSlaveType;
+   end record RoCEv2WorkReqSlaveType;
 
-   constant ROCE_WORK_REQ_SLAVE_INIT_C : RoceWorkReqSlaveType := (
+   constant ROCE_WORK_REQ_SLAVE_INIT_C : RoCEv2WorkReqSlaveType := (
       ready => '0');
 
-   constant ROCE_WORK_REQ_SLAVE_FORCE_C : RoceWorkReqSlaveType := (
+   constant ROCE_WORK_REQ_SLAVE_FORCE_C : RoCEv2WorkReqSlaveType := (
       ready => '1');
 
-   type RoceWorkCompMasterType is record
+   type RoCEv2WorkCompMasterType is record
       valid     : sl;
       id        : slv(63 downto 0);
       opCode    : slv(7 downto 0);
@@ -101,9 +102,9 @@ package RocePkg is
       qpn       : slv(23 downto 0);
       immDt     : slv(32 downto 0);
       rKeyToInv : slv(32 downto 0);
-   end record RoceWorkCompMasterType;
+   end record RoCEv2WorkCompMasterType;
 
-   constant ROCE_WORK_COMP_MASTER_INIT_C : RoceWorkCompMasterType := (
+   constant ROCE_WORK_COMP_MASTER_INIT_C : RoCEv2WorkCompMasterType := (
       valid     => '0',
       id        => (others => '0'),
       opCode    => (others => '0'),
@@ -116,17 +117,17 @@ package RocePkg is
       rKeyToInv => (others => '0')
       );
 
-   type RoceWorkCompSlaveType is record
+   type RoCEv2WorkCompSlaveType is record
       ready : sl;
-   end record RoceWorkCompSlaveType;
+   end record RoCEv2WorkCompSlaveType;
 
-   constant ROCE_WORK_COMP_SLAVE_INIT_C : RoceWorkCompSlaveType := (
+   constant ROCE_WORK_COMP_SLAVE_INIT_C : RoCEv2WorkCompSlaveType := (
       ready => '0');
 
-   constant ROCE_WORK_COMP_SLAVE_FORCE_C : RoceWorkCompSlaveType := (
+   constant ROCE_WORK_COMP_SLAVE_FORCE_C : RoCEv2WorkCompSlaveType := (
       ready => '1');
 
-   type RoceDmaReadReqMasterType is record
+   type RoCEv2DmaReadReqMasterType is record
       valid     : sl;
       initiator : slv(3 downto 0);
       sQpn      : slv(23 downto 0);
@@ -134,9 +135,9 @@ package RocePkg is
       startAddr : slv(63 downto 0);
       len       : slv(12 downto 0);
       mrIdx     : sl;
-   end record RoceDmaReadReqMasterType;
+   end record RoCEv2DmaReadReqMasterType;
 
-   constant ROCE_DMA_READ_REQ_MASTER_INIT_C : RoceDmaReadReqMasterType := (
+   constant ROCE_DMA_READ_REQ_MASTER_INIT_C : RoCEv2DmaReadReqMasterType := (
       valid     => '0',
       initiator => (others => '0'),
       sQpn      => (others => '0'),
@@ -146,26 +147,26 @@ package RocePkg is
       mrIdx     => '0'
       );
 
-   type RoceDmaReadReqSlaveType is record
+   type RoCEv2DmaReadReqSlaveType is record
       ready : sl;
-   end record RoceDmaReadReqSlaveType;
+   end record RoCEv2DmaReadReqSlaveType;
 
-   constant ROCE_DMA_READ_REQ_SLAVE_INIT_C : RoceDmaReadReqSlaveType := (
+   constant ROCE_DMA_READ_REQ_SLAVE_INIT_C : RoCEv2DmaReadReqSlaveType := (
       ready => '0');
 
-   constant ROCE_DMA_READ_REQ_SLAVE_FORCE_C : RoceDmaReadReqSlaveType := (
+   constant ROCE_DMA_READ_REQ_SLAVE_FORCE_C : RoCEv2DmaReadReqSlaveType := (
       ready => '1');
 
-   type RoceDmaReadRespMasterType is record
+   type RoCEv2DmaReadRespMasterType is record
       valid      : sl;
       initiator  : slv(3 downto 0);
       sQpn       : slv(23 downto 0);
       wrId       : slv(63 downto 0);
       isRespErr  : sl;
       dataStream : slv(289 downto 0);
-   end record RoceDmaReadRespMasterType;
+   end record RoCEv2DmaReadRespMasterType;
 
-   constant ROCE_DMA_READ_RESP_MASTER_INIT_C : RoceDmaReadRespMasterType := (
+   constant ROCE_DMA_READ_RESP_MASTER_INIT_C : RoCEv2DmaReadRespMasterType := (
       valid      => '0',
       initiator  => (others => '0'),
       sQpn       => (others => '0'),
@@ -174,18 +175,18 @@ package RocePkg is
       dataStream => (others => '0')
       );
 
-   type RoceDmaReadRespSlaveType is record
+   type RoCEv2DmaReadRespSlaveType is record
       ready : sl;
-   end record RoceDmaReadRespSlaveType;
+   end record RoCEv2DmaReadRespSlaveType;
 
-   constant ROCE_DMA_READ_RESP_SLAVE_INIT_C : RoceDmaReadRespSlaveType := (
+   constant ROCE_DMA_READ_RESP_SLAVE_INIT_C : RoCEv2DmaReadRespSlaveType := (
       ready => '0');
 
-   constant ROCE_DMA_READ_RESP_SLAVE_FORCE_C : RoceDmaReadRespSlaveType := (
+   constant ROCE_DMA_READ_RESP_SLAVE_FORCE_C : RoCEv2DmaReadRespSlaveType := (
       ready => '1');
 
    -- Functions
-   function ToRoceWorkReqMasterType (
+   function ToRoCEv2WorkReqMasterType (
       valid     : sl;
       id        : slv(63 downto 0);
       opCode    : slv(3 downto 0);
@@ -204,11 +205,11 @@ package RocePkg is
       srqn      : slv(24 downto 0);
       dQpn      : slv(24 downto 0);
       qKey      : slv(32 downto 0))
-      return RoceWorkReqMasterType;
+      return RoCEv2WorkReqMasterType;
 
-   function toRoceWorkCompSlaveType (
+   function toRoCEv2WorkCompSlaveType (
       ready : sl)
-      return RoceWorkCompSlaveType;
+      return RoCEv2WorkCompSlaveType;
 
    function ToAxisMetadataMasterType (
       valid : sl;
@@ -226,49 +227,49 @@ package RocePkg is
       wrId       : slv(63 downto 0);
       isRespErr  : sl;
       dataStream : slv(289 downto 0))
-      return RoceDmaReadRespMasterType;
+      return RoCEv2DmaReadRespMasterType;
 
    function ToDmaReadReqSlaveType (
       ready : sl)
-      return RoceDmaReadReqSlaveType;
+      return RoCEv2DmaReadReqSlaveType;
 
    function DmaReadReqToAxiStreamMaster (
-      wrIn : RoceDmaReadReqMasterType)
+      wrIn : RoCEv2DmaReadReqMasterType)
       return AxiStreamMasterType;
 
    function DmaReadReqToAxiStreamSlave (
-      wrIn : RoceDmaReadReqSlaveType)
+      wrIn : RoCEv2DmaReadReqSlaveType)
       return AxiStreamSlaveType;
 
    function AxiStreamToDmaReadReqMaster (
       wrIn : AxiStreamMasterType)
-      return RoceDmaReadReqMasterType;
+      return RoCEv2DmaReadReqMasterType;
 
    function AxiStreamToDmaReadReqSlave (
       wrIn : AxiStreamSlaveType)
-      return RoceDmaReadReqSlaveType;
+      return RoCEv2DmaReadReqSlaveType;
 
    -- function WorkReqToAxiStreamMaster (
-   --   wrIn : RoceWorkReqMasterType)
+   --   wrIn : RoCEv2WorkReqMasterType)
    --   return AxiStreamMasterType;
 
    -- function AxiStreamToWorkReqMaster (
    --   wrIn : AxiStreamMasterType)
-   --   return RoceWorkReqMasterType;
+   --   return RoCEv2WorkReqMasterType;
 
    -- function WorkReqToAxiStreamSlave (
-   --   wrIn : RoceWorkReqSlaveType)
+   --   wrIn : RoCEv2WorkReqSlaveType)
    --   return AxiStreamSlaveType;
 
    -- function AxiStreamToWorkReqSlave (
    --   wrIn : AxiStreamSlaveType)
-   --   return RoceWorkReqSlaveType;
+   --   return RoCEv2WorkReqSlaveType;
 
-   -- function FromRoceWorkReqSlaveType (
-   --   roceWorkReqSlave : RoceWorkReqSlaveType)
+   -- function FromRoCEv2WorkReqSlaveType (
+   --   roceWorkReqSlave : RoCEv2WorkReqSlaveType)
    --   return sl;
 
-   -- function ToRoceWorkCompMasterType (
+   -- function ToRoCEv2WorkCompMasterType (
    --   valid     : sl;
    --   id        : slv(63 downto 0);
    --   opCode    : slv(7 downto 0);
@@ -279,13 +280,13 @@ package RocePkg is
    --   qpn       : slv(23 downto 0);
    --   immDt     : slv(32 downto 0);
    --   rKeyToInv : slv(32 downto 0))
-   --   return RoceWorkCompMasterType;
+   --   return RoCEv2WorkCompMasterType;
 
-end package RocePkg;
+end package RoCEv2Pkg;
 
-package body RocePkg is
+package body RoCEv2Pkg is
 
-   function ToRoceWorkReqMasterType (
+   function ToRoCEv2WorkReqMasterType (
       valid     : sl;
       id        : slv(63 downto 0);
       opCode    : slv(3 downto 0);
@@ -304,9 +305,9 @@ package body RocePkg is
       srqn      : slv(24 downto 0);
       dQpn      : slv(24 downto 0);
       qKey      : slv(32 downto 0))
-      return RoceWorkReqMasterType is
-      variable ret : RoceWorkReqMasterType;
-   begin  -- function ToRoceWorkReqMasterType
+      return RoCEv2WorkReqMasterType is
+      variable ret : RoCEv2WorkReqMasterType;
+   begin  -- function ToRoCEv2WorkReqMasterType
       ret.valid     := valid;
       ret.id        := id;
       ret.opCode    := opCode;
@@ -326,16 +327,16 @@ package body RocePkg is
       ret.dQpn      := dQpn;
       ret.qKey      := qKey;
       return ret;
-   end function ToRoceWorkReqMasterType;
+   end function ToRoCEv2WorkReqMasterType;
 
-   function ToRoceWorkCompSlaveType (
+   function ToRoCEv2WorkCompSlaveType (
       ready : sl)
-      return RoceWorkCompSlaveType is
-      variable ret : RoceWorkCompSlaveType;
+      return RoCEv2WorkCompSlaveType is
+      variable ret : RoCEv2WorkCompSlaveType;
    begin
       ret.ready := ready;
       return ret;
-   end function ToRoceWorkCompSlaveType;
+   end function ToRoCEv2WorkCompSlaveType;
 
    function ToAxisMetadataMasterType (
       valid : sl;
@@ -365,8 +366,8 @@ package body RocePkg is
       wrId       : slv(63 downto 0);
       isRespErr  : sl;
       dataStream : slv(289 downto 0))
-      return RoceDmaReadRespMasterType is
-      variable ret : RoceDmaReadRespMasterType;
+      return RoCEv2DmaReadRespMasterType is
+      variable ret : RoCEv2DmaReadRespMasterType;
    begin
       ret.valid      := valid;
       ret.initiator  := initiator;
@@ -379,18 +380,18 @@ package body RocePkg is
 
    function ToDmaReadReqSlaveType (
       ready : sl)
-      return RoceDmaReadReqSlaveType is
-      variable ret : RoceDmaReadReqSlaveType;
+      return RoCEv2DmaReadReqSlaveType is
+      variable ret : RoCEv2DmaReadReqSlaveType;
    begin
       ret.ready := ready;
       return ret;
    end function ToDmaReadReqSlaveType;
 
    function DmaReadReqToAxiStreamMaster (
-      wrIn : RoceDmaReadReqMasterType)
+      wrIn : RoCEv2DmaReadReqMasterType)
       return AxiStreamMasterType is
       variable ret : AxiStreamMasterType;
-   begin  -- function RoceWorkReqToAxiStream
+   begin  -- function DmaReadReqToAxiStreamMaster
       ret                     := AXI_STREAM_MASTER_INIT_C;
       ret.tValid              := wrIn.valid;
       ret.tData(169 downto 0) := wrIn.initiator &
@@ -403,19 +404,19 @@ package body RocePkg is
    end function DmaReadReqToAxiStreamMaster;
 
    function DmaReadReqToAxiStreamSlave (
-      wrIn : RoceDmaReadReqSlaveType)
+      wrIn : RoCEv2DmaReadReqSlaveType)
       return AxiStreamSlaveType is
       variable ret : AxiStreamSlaveType;
-   begin  -- function RoceWorkReqToAxiStream
+   begin  -- function DmaReadReqToAxiStreamSlave
       ret.tReady := wrIn.ready;
       return ret;
    end function DmaReadReqToAxiStreamSlave;
 
    function AxiStreamToDmaReadReqMaster (
       wrIn : AxiStreamMasterType)
-      return RoceDmaReadReqMasterType is
-      variable ret : RoceDmaReadReqMasterType;
-   begin  -- function AxiStreamToRoceWorkReq
+      return RoCEv2DmaReadReqMasterType is
+      variable ret : RoCEv2DmaReadReqMasterType;
+   begin  -- function AxiStreamToDmaReadReqMaster
       ret.valid     := wrIn.tValid;
       ret.mrIdx     := wrIn.tData(0);
       ret.len       := wrIn.tData(13 downto 1);
@@ -428,21 +429,21 @@ package body RocePkg is
 
    function AxiStreamToDmaReadReqSlave (
       wrIn : AxiStreamSlaveType)
-      return RoceDmaReadReqSlaveType is
-      variable ret : RoceDmaReadReqSlaveType;
-   begin  -- function AxiStreamToRoceWorkReq
+      return RoCEv2DmaReadReqSlaveType is
+      variable ret : RoCEv2DmaReadReqSlaveType;
+   begin  -- function AxiStreamToDmaReadReqSlave
       ret.ready := wrIn.tReady;
       return ret;
    end function AxiStreamToDmaReadReqSlave;
 
-   -- function FromRoceWorkReqSlaveType (
-   --   roceWorkReqSlave : RoceWorkReqSlaveType)
+   -- function FromRoCEv2WorkReqSlaveType (
+   --   roceWorkReqSlave : RoCEv2WorkReqSlaveType)
    --   return sl is
    -- begin
    --   return roceWorkReqSlave.tReady;
-   -- end function FromRoceWorkReqSlaveType;
+   -- end function FromRoCEv2WorkReqSlaveType;
 
-   -- function ToRoceWorkCompMasterType (
+   -- function ToRoCEv2WorkCompMasterType (
    --   valid     : sl;
    --   id        : slv(63 downto 0);
    --   opCode    : slv(7 downto 0);
@@ -453,9 +454,9 @@ package body RocePkg is
    --   qpn       : slv(23 downto 0);
    --   immDt     : slv(32 downto 0);
    --   rKeyToInv : slv(32 downto 0))
-   --   return RoceWorkCompMasterType is
-   --   variable ret : RoceWorkCompMasterType;
-   -- begin  -- function ToRoceWorkCompMasterType
+   --   return RoCEv2WorkCompMasterType is
+   --   variable ret : RoCEv2WorkCompMasterType;
+   -- begin  -- function ToRoCEv2WorkCompMasterType
    --   ret.valid     := valid;
    --   ret.id        := id;
    --   ret.opCode    := opCode;
@@ -467,7 +468,7 @@ package body RocePkg is
    --   ret.immDt     := immDt;
    --   ret.rKeyToInv := rKeyToInv;
    --   return ret;
-   -- end function ToRoceWorkCompMasterType;
+   -- end function ToRoCEv2WorkCompMasterType;
 
 
-end package body RocePkg;
+end package body RoCEv2Pkg;

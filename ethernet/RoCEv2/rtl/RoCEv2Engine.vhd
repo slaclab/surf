@@ -20,44 +20,40 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.SsiPkg.all;
-use surf.RocePkg.all;
+use surf.RoCEv2Pkg.all;
 
-entity RoceEngineWrapper is
+entity RoCEv2Engine is
    generic (
-      TPD_G             : time    := 1 ns;
-      RST_POLARITY_G    : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      EXT_ROCE_CONFIG_G : boolean := false);
+      TPD_G          : time := 1 ns;   -- simulation propagation delay
+      RST_POLARITY_G : sl   := '1');   -- '1' = active-HIGH reset, '0' = active-LOW
    port (
-      clk                 : in  sl;
-      rst                 : in  sl;
+      clk               : in  sl;
+      rst               : in  sl;
       -- Work Requests and Comps
-      workReqMaster       : in  RoceWorkReqMasterType;
-      workReqSlave        : out RoceWorkReqSlaveType;
-      workCompMaster      : out RoceWorkCompMasterType;
-      workCompSlave       : in  RoceWorkCompSlaveType;
+      workReqMaster     : in  RoCEv2WorkReqMasterType;
+      workReqSlave      : out RoCEv2WorkReqSlaveType;
+      workCompMaster    : out RoCEv2WorkCompMasterType;
+      workCompSlave     : in  RoCEv2WorkCompSlaveType;
       -- Interface to UDP Engine
-      obUdpMaster         : in  AxiStreamMasterType;
-      obUdpSlave          : out AxiStreamSlaveType;
-      ibUdpMaster         : out AxiStreamMasterType;
-      ibUdpSlave          : in  AxiStreamSlaveType;
-      -- MetaData Config Bus
-      sAxisMetaDataMaster : in  AxiStreamMasterType;
-      sAxisMetaDataSlave  : out AxiStreamSlaveType;
-      mAxisMetaDataMaster : out AxiStreamMasterType;
-      mAxisMetaDataSlave  : in  AxiStreamSlaveType;
+      obUdpMaster       : in  AxiStreamMasterType;
+      obUdpSlave        : out AxiStreamSlaveType;
+      ibUdpMaster       : out AxiStreamMasterType;
+      ibUdpSlave        : in  AxiStreamSlaveType;
       -- AXI-Lite Interface
-      axilReadMaster      : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-      axilReadSlave       : out AxiLiteReadSlaveType;
-      axilWriteMaster     : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-      axilWriteSlave      : out AxiLiteWriteSlaveType;
+      axilReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axilReadSlave     : out AxiLiteReadSlaveType;
+      axilWriteMaster   : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axilWriteSlave    : out AxiLiteWriteSlaveType;
       -- DMA Interface
-      dmaReadRespMaster   : in  RoceDmaReadRespMasterType;
-      dmaReadRespSlave    : out RoceDmaReadRespSlaveType;
-      dmaReadReqMaster    : out RoceDmaReadReqMasterType;
-      dmaReadReqSlave     : in  RoceDmaReadReqSlaveType);
-end RoceEngineWrapper;
+      dmaReadRespMaster : in  RoCEv2DmaReadRespMasterType;
+      dmaReadRespSlave  : out RoCEv2DmaReadRespSlaveType;
+      dmaReadReqMaster  : out RoCEv2DmaReadReqMasterType;
+      dmaReadReqSlave   : in  RoCEv2DmaReadReqSlaveType;
+      -- CNP
+      cnp_received      : out sl);
+end RoCEv2Engine;
 
-architecture mapping of RoceEngineWrapper is
+architecture mapping of RoCEv2Engine is
 
    component mkAxiSTransportLayer
       port (
@@ -125,8 +121,9 @@ architecture mapping of RoceEngineWrapper is
          s_dma_read_wr_id           : in  std_logic_vector(63 downto 0);
          s_dma_read_is_resp_err     : in  std_logic;
          s_dma_read_data_stream     : in  std_logic_vector(289 downto 0);
-         s_dma_read_ready           : out std_logic);
-   end component;
+         s_dma_read_ready           : out std_logic;
+         cnp_received               : out std_logic);
+   end component mkAxiSTransportLayer;
 
    signal roceRstN               : sl;
    signal obUdpRoceMaster_tValid : sl;
@@ -149,25 +146,29 @@ architecture mapping of RoceEngineWrapper is
    signal ibUdpRoceMaster : AxiStreamMasterType;
    signal ibUdpRoceSlave  : AxiStreamSlaveType;
 
-   signal s_axisMetaDataReqMaster     : AxiStreamMasterType;
-   signal s_axisMetaDataReqSlave      : AxiStreamSlaveType;
-   signal s_axisMetaDataRespMaster    : AxiStreamMasterType;
-   signal s_axisMetaDataRespSlave     : AxiStreamSlaveType;
-   signal s_axisMetaDataReqMasterMux  : AxiStreamMasterType;
-   signal s_axisMetaDataReqSlaveMux   : AxiStreamSlaveType;
-   signal s_axisMetaDataRespMasterMux : AxiStreamMasterType;
-   signal s_axisMetaDataRespSlaveMux  : AxiStreamSlaveType;
+   signal s_axisMetaDataReqMaster  : AxiStreamMasterType;
+   signal s_axisMetaDataReqSlave   : AxiStreamSlaveType;
+   signal s_axisMetaDataRespMaster : AxiStreamMasterType;
+   signal s_axisMetaDataRespSlave  : AxiStreamSlaveType;
+
+   signal s_cnp_received : sl;
+   signal s_softRst      : sl;
 
 begin
 
-   roceRstN <= not rst when (RST_POLARITY_G = '1') else rst;
+   -- Transport-core reset = hard 'rst' OR the configurator-generated softRst
+   -- (active high). The softRst clears stale QP/PSN state on a software
+   -- reconnect without disturbing the rest of the engine or the RUDP/UDP link.
+   roceRstN     <= not (rst or s_softRst) when (RST_POLARITY_G = '1') else
+                   (rst and not s_softRst);
+   cnp_received <= s_cnp_received;
 
    -----------------------------------------------------------------------------
    -- Adjust Roce/SURF interface
    -----------------------------------------------------------------------------
    AxiStreamResize_Inst : entity surf.RoceResizeAndSwap
       generic map (
-         SLAVE_AXI_CONFIG_G  => SURF_DATA_STREAM_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => ROCEV2_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => BLUE_DATA_STREAM_CONFIG_C,
          SWAP_ENDIAN_G       => true,
          LITTLE_ENDIAN_G     => false)
@@ -182,7 +183,7 @@ begin
    AxiStreamResize_1 : entity surf.RoceResizeAndSwap
       generic map (
          SLAVE_AXI_CONFIG_G  => BLUE_DATA_STREAM_CONFIG_C,
-         MASTER_AXI_CONFIG_G => SURF_DATA_STREAM_CONFIG_C,
+         MASTER_AXI_CONFIG_G => ROCEV2_AXIS_CONFIG_C,
          SWAP_ENDIAN_G       => true,
          LITTLE_ENDIAN_G     => false)
       port map (
@@ -278,12 +279,12 @@ begin
          m_work_comp_sq_imm_dt      => workCompMaster.immDt,
          m_work_comp_sq_rkey_to_inv => workCompMaster.rkeyToInv,
          m_work_comp_sq_ready       => workCompSlave.ready,
-         s_meta_data_tvalid         => s_axisMetaDataReqMasterMux.tValid,
-         s_meta_data_tdata          => s_axisMetaDataReqMasterMux.tData(302 downto 0),
-         s_meta_data_tready         => s_axisMetaDataReqSlaveMux.tReady,
-         m_meta_data_tvalid         => s_axisMetaDataRespMasterMux.tValid,
-         m_meta_data_tdata          => s_axisMetaDataRespMasterMux.tData(275 downto 0),
-         m_meta_data_tready         => s_axisMetaDataRespSlaveMux.tReady,
+         s_meta_data_tvalid         => s_axisMetaDataReqMaster.tValid,
+         s_meta_data_tdata          => s_axisMetaDataReqMaster.tData(302 downto 0),
+         s_meta_data_tready         => s_axisMetaDataReqSlave.tReady,
+         m_meta_data_tvalid         => s_axisMetaDataRespMaster.tValid,
+         m_meta_data_tdata          => s_axisMetaDataRespMaster.tData(275 downto 0),
+         m_meta_data_tready         => s_axisMetaDataRespSlave.tReady,
          m_dma_read_valid           => dmaReadReqMaster.valid,
          m_dma_read_initiator       => dmaReadReqMaster.initiator,
          m_dma_read_sqpn            => dmaReadReqMaster.sQpn,
@@ -298,54 +299,27 @@ begin
          s_dma_read_wr_id           => dmaReadRespMaster.wrId,
          s_dma_read_is_resp_err     => dmaReadRespMaster.isRespErr,
          s_dma_read_data_stream     => dmaReadRespMaster.dataStream,
-         s_dma_read_ready           => dmaReadRespSlave.ready);
+         s_dma_read_ready           => dmaReadRespSlave.ready,
+         cnp_received               => s_cnp_received);
 
    -----------------------------------------------------------------------------
    -- RoCE Metadata Configurator
    -----------------------------------------------------------------------------
-   ROCE_EXT_CONFIG_GEN : if EXT_ROCE_CONFIG_G generate
-      s_axisMetaDataReqMaster <= AXI_STREAM_MASTER_INIT_C;
-      s_axisMetaDataRespSlave <= AXI_STREAM_SLAVE_FORCE_C;
-      axilReadSlave           <= AXI_LITE_READ_SLAVE_EMPTY_DECERR_C;
-      axilWriteSlave          <= AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C;
-   end generate ROCE_EXT_CONFIG_GEN;
-
-   ROCE_INT_CONFIG_GEN : if not EXT_ROCE_CONFIG_G generate
-      RoceConfigurator_1 : entity surf.RoceConfigurator
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G)
-         port map (
-            clk                     => clk,
-            rst                     => rst,
-            mAxisMetaDataReqMaster  => s_axisMetaDataReqMaster,
-            mAxisMetaDataReqSlave   => s_axisMetaDataReqSlave,
-            sAxisMetaDataRespMaster => s_axisMetaDataRespMaster,
-            sAxisMetaDataRespSlave  => s_axisMetaDataRespSlave,
-            axilReadMaster          => axilReadMaster,
-            axilReadSlave           => axilReadSlave,
-            axilWriteMaster         => axilWriteMaster,
-            axilWriteSlave          => axilWriteSlave);
-   end generate ROCE_INT_CONFIG_GEN;
-
-   -----------------------------------------------------------------------------
-   -- Axi-Stream Metadata source selection
-   -----------------------------------------------------------------------------
-   metaSel : process (mAxisMetaDataSlave, sAxisMetaDataMaster,
-                      s_axisMetaDataReqMaster, s_axisMetaDataReqSlaveMux,
-                      s_axisMetaDataRespMasterMux, s_axisMetaDataRespSlave) is
-   begin  -- process metadata_source_select
-      if EXT_ROCE_CONFIG_G then
-         s_axisMetaDataReqMasterMux <= sAxisMetaDataMaster;
-         sAxisMetaDataSlave         <= s_axisMetaDataReqSlaveMux;
-         mAxisMetaDataMaster        <= s_axisMetaDataRespMasterMux;
-         s_axisMetaDataRespSlaveMux <= mAxisMetaDataSlave;
-      else
-         s_axisMetaDataReqMasterMux <= s_axisMetaDataReqMaster;
-         s_axisMetaDataReqSlave     <= s_axisMetaDataReqSlaveMux;
-         s_axisMetaDataRespMaster   <= s_axisMetaDataRespMasterMux;
-         s_axisMetaDataRespSlaveMux <= s_axisMetaDataRespSlave;
-      end if;
-   end process metaSel;
+   RoceConfigurator_1 : entity surf.RoceConfigurator
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G)
+      port map (
+         clk                     => clk,
+         rst                     => rst,
+         mAxisMetaDataReqMaster  => s_axisMetaDataReqMaster,
+         mAxisMetaDataReqSlave   => s_axisMetaDataReqSlave,
+         sAxisMetaDataRespMaster => s_axisMetaDataRespMaster,
+         sAxisMetaDataRespSlave  => s_axisMetaDataRespSlave,
+         axilReadMaster          => axilReadMaster,
+         axilReadSlave           => axilReadSlave,
+         axilWriteMaster         => axilWriteMaster,
+         axilWriteSlave          => axilWriteSlave,
+         softRst                 => s_softRst);
 
 end mapping;
