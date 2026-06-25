@@ -131,6 +131,27 @@ class UdpEngine(pr.Device):
         ##############
 
         self.add(pr.RemoteVariable(
+            name        = 'EcnFlag',
+            description = 'Runtime IP-header ECN field for all TX IP packets (resets to the ECN_G generic). '
+                          '0=Not-ECT, 1=ECT(1), 2=ECT(0), 3=CE. Set to 0 (Not-ECT) on a switchless '
+                          'point-to-point link to keep the host NIC from engaging RoCEv2 DCQCN.',
+            offset      = 0xFE0,
+            bitSize     = 2,
+            mode        = 'RW',
+            enum        = {0: 'Not-ECT', 1: 'ECT(1)', 2: 'ECT(0)', 3: 'CE'},
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Dscp',
+            description = 'Runtime IP-header DSCP field for all TX IP packets (resets to the DSCP_G generic). '
+                          'On a managed fabric, set to match the switch lossless/ECN traffic class.',
+            offset      = 0xFE0,
+            bitOffset   = 2,
+            bitSize     = 6,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
             name        = 'SoftIpRaw',
             description = 'software configurable IP used when softIp connected to localIp in firmware (big-Endian configuration)',
             offset      = 0xFE4,
