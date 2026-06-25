@@ -25,11 +25,12 @@ import random
 
 import pytest
 
-import rogue
-
-# rogue source-of-truth (snake_case originals)
+# rogue source-of-truth (snake_case originals). importorskip MUST precede the
+# `import rogue` below so this module skips cleanly on runners without rogue
+# (e.g. surf CI) instead of erroring out during collection.
 rogue_mod = pytest.importorskip("pyrogue.protocols._RoCEv2")
 
+import rogue                                          # noqa: E402
 import surf.ethernet.roce as r                       # noqa: E402
 import surf.ethernet.roce._RoCEv2Protocol as proto   # noqa: E402
 
