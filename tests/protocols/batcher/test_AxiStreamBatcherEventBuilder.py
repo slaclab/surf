@@ -22,6 +22,9 @@
 # - Timing: Inputs are driven concurrently where the event builder requires all
 #   active sources to be present, and timeout/bypass cases verify progress when
 #   one source is absent or intentionally skipped.
+# - Alignment check: With EnableAlignCheck=1, verify the builder stalls and flags
+#   ErrorAlignDet on a tUserFirst mismatch, passes when aligned, ignores bypassed
+#   channels, and that EnableAlignCheck survives a soft reset.
 
 import os
 
@@ -55,9 +58,17 @@ TIMEOUT_DROP_CNT_BASE = 0x200
 TRANS_CNT_ADDR = 0xFC0
 TRANS_TDEST_ADDR = 0xFC4
 BYPASS_ADDR = 0xFD0
+ERROR_ALIGN_DET_ADDR = 0xFD4
 TIMEOUT_ADDR = 0xFF0
 STATUS_ADDR = 0xFF4
 BLOWOFF_ADDR = 0xFF8
+RST_ADDR = 0xFFC
+
+# 0xFF8 control bits
+BLOWOFF_BIT = 0x1
+ENABLE_ALIGN_CHECK_BIT = 0x2
+# 0xFFC reset strobes
+SOFT_RST_BIT = 0x8
 
 
 class TB:
@@ -379,6 +390,144 @@ async def routed_transition_frame_preempts_event_test(dut):
     assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected)
     assert await tb.read(TRANS_CNT_ADDR) == 1
     assert await tb.read(DATA_CNT_BASE + 0) == 0
+    assert await tb.read(DATA_CNT_BASE + 4) == 0
+
+
+@cocotb.test()
+async def enable_align_check_survives_soft_reset_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # EnableAlignCheck is persistent configuration and must be preserved across a
+    # soft reset, like the bypass/timeout/blowoff settings.
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+    assert await tb.read(BLOWOFF_ADDR) == ENABLE_ALIGN_CHECK_BIT
+
+    await tb.write(RST_ADDR, SOFT_RST_BIT)
+    await cycle(dut.axisClk, 6)
+
+    assert await tb.read(BLOWOFF_ADDR) == ENABLE_ALIGN_CHECK_BIT
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+
+
+@cocotb.test()
+async def align_check_passes_when_first_user_matches_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+
+    # Identical tUserFirst on both inputs satisfies the check, so the event is
+    # built normally and nothing is flagged.
+    first = _frame(bytes(range(0x10, 0x15)), dest=0x03, first_user=0x42, last_user=0x81)
+    second = _frame(bytes(range(0x20, 0x25)), dest=0x07, first_user=0x42, last_user=0x91)
+    expected = [
+        _frame(first[0], dest=tb.remapped_dest(0, first[1]), first_user=first[2], last_user=first[3]),
+        _frame(second[0], dest=tb.remapped_dest(1, second[1]), first_user=second[2], last_user=second[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frames_concurrently(
+        [
+            (tb.source0, payload_to_beats(first[0], dest=first[1], first_user=first[2], last_user=first[3])),
+            (tb.source1, payload_to_beats(second[0], dest=second[1], first_user=second[2], last_user=second[3])),
+        ],
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 0) == 1
+    assert await tb.read(DATA_CNT_BASE + 4) == 1
+
+
+@cocotb.test()
+async def align_check_blocks_on_first_user_mismatch_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+
+    # Mismatched tUserFirst (0x21 vs 0x99): with the check enabled the builder
+    # must stall and flag the offending channel rather than forward data.  Both
+    # single-beat frames are held valid so the heads stay misaligned.
+    blocked0 = payload_to_beats(bytes(range(0x30, 0x35)), dest=0x03, first_user=0x21, last_user=0x81)
+    blocked1 = payload_to_beats(bytes(range(0x40, 0x45)), dest=0x07, first_user=0x99, last_user=0x91)
+    tb.source0.drive(blocked0[0])
+    tb.source1.drive(blocked1[0])
+    await cycle(dut.axisClk, 6)
+
+    # No event is forwarded; channel 1 (compared against the channel 0 reference)
+    # is flagged while channel 0 stays clear.
+    await expect_no_valid(tb.sink, clk=dut.axisClk, cycles=12)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0b10
+    assert await tb.read(DATA_CNT_BASE + 0) == 0
+    assert await tb.read(DATA_CNT_BASE + 4) == 0
+
+    # Documented recovery: blowoff flushes the stalled pipeline, then resume.  The
+    # blowoff 1->0 edge issues a soft reset that must NOT drop EnableAlignCheck.
+    await tb.write(BLOWOFF_ADDR, BLOWOFF_BIT | ENABLE_ALIGN_CHECK_BIT)
+    await cycle(dut.axisClk, 4)
+    tb.source0.set_idle()
+    tb.source1.set_idle()
+    await cycle(dut.axisClk, 4)
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+    await cycle(dut.axisClk, 4)
+
+    assert await tb.read(BLOWOFF_ADDR) == ENABLE_ALIGN_CHECK_BIT
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+
+    # An aligned event now flows normally with the check still enabled.
+    recovery0 = _frame(bytes(range(0xD0, 0xD5)), dest=0x0F, first_user=0x55, last_user=0xC4)
+    recovery1 = _frame(bytes(range(0xE0, 0xE5)), dest=0x10, first_user=0x55, last_user=0xD4)
+    expected = [
+        _frame(recovery0[0], dest=tb.remapped_dest(0, recovery0[1]), first_user=recovery0[2], last_user=recovery0[3]),
+        _frame(recovery1[0], dest=tb.remapped_dest(1, recovery1[1]), first_user=recovery1[2], last_user=recovery1[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frames_concurrently(
+        [
+            (tb.source0, payload_to_beats(recovery0[0], dest=recovery0[1], first_user=recovery0[2], last_user=recovery0[3])),
+            (tb.source1, payload_to_beats(recovery1[0], dest=recovery1[1], first_user=recovery1[2], last_user=recovery1[3])),
+        ],
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected, seq=0)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 0) == 1
+    assert await tb.read(DATA_CNT_BASE + 4) == 1
+
+
+@cocotb.test()
+async def align_check_ignores_bypassed_source_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Bypass source 1, then enable the alignment check.  A bypassed channel must
+    # not contribute to the misalignment flag even though its idle tUserFirst
+    # differs from the active channel, otherwise the flow would deadlock.
+    await tb.write(BYPASS_ADDR, 0b10)
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+    await cycle(dut.axisClk, 4)
+
+    data = _frame(bytes(range(0x50, 0x55)), dest=0x08, first_user=0x61, last_user=0xC1)
+    expected = [
+        _frame(data[0], dest=tb.remapped_dest(0, data[1]), first_user=data[2], last_user=data[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frame(
+        tb.source0,
+        payload_to_beats(data[0], dest=data[1], first_user=data[2], last_user=data[3]),
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 0) == 1
     assert await tb.read(DATA_CNT_BASE + 4) == 0
 
 
