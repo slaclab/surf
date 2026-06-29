@@ -501,6 +501,39 @@ async def align_check_blocks_on_first_user_mismatch_test(dut):
 
 
 @cocotb.test()
+async def align_check_ignores_null_source_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+
+    # A NULL frame carries tUserFirst=0x01 (EOFE), which differs from the active
+    # source's tUserFirst.  A NULL channel must NOT be treated as a misalignment
+    # (otherwise the event builder deadlocks whenever a source has no data for an
+    # event, e.g. the trigSeqCnt-tagged streams where ch0 is real and a data
+    # channel issues a NULL).  The builder should forward source 0, count the
+    # NULL on source 1, and leave ErrorAlignDet clear.
+    data = _frame(bytes(range(0x30, 0x35)), dest=0x04, first_user=0x41, last_user=0xA1)
+    expected = [
+        _frame(data[0], dest=tb.remapped_dest(0, data[1]), first_user=data[2], last_user=data[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frames_concurrently(
+        [
+            (tb.source0, payload_to_beats(data[0], dest=data[1], first_user=data[2], last_user=data[3])),
+            (tb.source1, [_null_beat(dest=0x05)]),
+        ],
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 0) == 1
+    assert await tb.read(NULL_CNT_BASE + 4) == 1
+
+
+@cocotb.test()
 async def align_check_ignores_bypassed_source_test(dut):
     tb = TB(dut)
     await tb.reset()
