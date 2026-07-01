@@ -62,7 +62,7 @@ architecture mapping of DualPortRam is
 begin
 
    GEN_BRAM : if (MEMORY_TYPE_G /= "distributed") generate
-      TrueDualPortRam_Inst : entity surf.TrueDualPortRam
+      TrueDualPortRam_Inst : entity surf.TrueDualPortRamInferred
          generic map (
             TPD_G          => TPD_G,
             RST_ASYNC_G    => RST_ASYNC_G,
