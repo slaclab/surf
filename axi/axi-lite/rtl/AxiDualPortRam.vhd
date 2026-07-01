@@ -172,6 +172,10 @@ begin
             doutb   => doutInt);
    end generate GEN_VENDOR;
 
+   -- Keep the inferred read-only/simple-dual cases on DualPortRam for
+   -- compatibility. Those paths preserve the legacy inferred distributed RAM
+   -- behavior, including READ_LATENCY_G = 0 support, that the selector
+   -- wrappers intentionally do not imply.
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
 
       -- AXI read only, sys writable or read only (rom)
