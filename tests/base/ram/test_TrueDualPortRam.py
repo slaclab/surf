@@ -21,7 +21,8 @@
 # - Timing: Because both ports are active, the bench checks results relative to
 #   the specific `clka` or `clkb` edge that triggered the interaction and
 #   expects registered outputs to lag by one extra cycle. READ_LATENCY_G = 2
-#   enables both output registers in the inferred selector path.
+#   enables both output registers in the inferred selector path, and
+#   READ_LATENCY_A_G/B_G can select the registered path per port.
 
 import os
 
@@ -43,8 +44,10 @@ class TB(DualClockRamTB):
         super().__init__(dut)
         self.mode = os.environ["MODE_G"]
         self.read_latency = int(os.environ.get("READ_LATENCY_G", "1"))
-        self.doa_reg_enabled = env_flag("DOA_REG_G", default=False) or self.read_latency == 2
-        self.dob_reg_enabled = env_flag("DOB_REG_G", default=False) or self.read_latency == 2
+        self.read_latency_a = self._effective_read_latency("A", env_flag("DOA_REG_G", default=False))
+        self.read_latency_b = self._effective_read_latency("B", env_flag("DOB_REG_G", default=False))
+        self.doa_reg_enabled = self.read_latency_a == 2
+        self.dob_reg_enabled = self.read_latency_b == 2
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
 
         # Put every input into a defined idle state before the simulator starts.
@@ -63,6 +66,13 @@ class TB(DualClockRamTB):
         dut.addrb.value = 0
         dut.dinb.value = 0
         dut.regceb.value = 1
+
+    def _effective_read_latency(self, port: str, legacy_reg_enabled: bool) -> int:
+        port_latency = int(os.environ.get(f"READ_LATENCY_{port}_G", "-1"))
+        latency = self.read_latency if port_latency < 0 else port_latency
+        if legacy_reg_enabled and latency == 1:
+            latency = 2
+        return latency
 
     async def write_a(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
         self.dut.addra.value = addr
@@ -370,6 +380,25 @@ PARAMETER_SWEEP = [
         SYNTH_MODE_G="inferred",
         MEMORY_TYPE_G="block",
         READ_LATENCY_G="2",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_latency_a_registered",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
+        READ_LATENCY_A_G="2",
+        READ_LATENCY_B_G="1",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="false",

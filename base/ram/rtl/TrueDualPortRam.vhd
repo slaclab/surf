@@ -5,16 +5,20 @@
 --
 -- Supported RAM memory configurations:
 --
--- SYNTH_MODE_G | MEMORY_TYPE_G | READ_LATENCY_G
+-- SYNTH_MODE_G | MEMORY_TYPE_G | Effective READ_LATENCY_A_G/B_G
 -- "inferred"   | "block"       |      1 ~ 2
 -- "xpm"        | delegated to TrueDualPortRamXpm/vendor rules
--- "altera_mf"  | delegated to TrueDualPortRamAlteraMf/vendor rules
+-- "altera_mf"  | delegated to TrueDualPortRamAlteraMf/vendor rules, shared A/B latency only
 --
 -- The inferred implementation remains the legacy block RAM implementation,
 -- now named TrueDualPortRamInferred. Its base read latency is one clock cycle.
 -- DOA_REG_G and DOB_REG_G add the historical output registers. MODE_G keeps
 -- the legacy {"no-change", "read-first", "write-first"} spelling and is
 -- translated to XPM WRITE_MODE_G spelling when SYNTH_MODE_G = "xpm".
+-- READ_LATENCY_A_G and READ_LATENCY_B_G default to -1, which selects the
+-- shared READ_LATENCY_G value for that port. DO*_REG_G remains the legacy way
+-- to select the 2-cycle registered-output path and must not be combined with
+-- explicit shared or per-port read latency settings.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -52,7 +56,9 @@ entity TrueDualPortRam is
       MEMORY_TYPE_G       : string                     := "block";
       MEMORY_INIT_FILE_G  : string                     := "none";
       MEMORY_INIT_PARAM_G : string                     := "0";
-      READ_LATENCY_G      : natural range 0 to 100     := 1);
+      READ_LATENCY_G      : natural range 0 to 100     := 1;
+      READ_LATENCY_A_G    : integer range -1 to 100    := -1;
+      READ_LATENCY_B_G    : integer range -1 to 100    := -1);
    port (
       -- Port A
       clka    : in  sl                                                    := '0';
@@ -91,11 +97,14 @@ architecture rtl of TrueDualPortRam is
       end if;
    end function;
 
-   constant LEGACY_OUT_REG_C : boolean := DOA_REG_G or DOB_REG_G;
-   constant READ_LATENCY_C   : natural := ite(LEGACY_OUT_REG_C and READ_LATENCY_G = 1, 2, READ_LATENCY_G);
-   constant DOA_REG_C        : boolean := DOA_REG_G or (READ_LATENCY_G = 2);
-   constant DOB_REG_C        : boolean := DOB_REG_G or (READ_LATENCY_G = 2);
-   constant WRITE_MODE_C     : string  := toXpmWriteMode(MODE_G);
+   constant READ_LATENCY_A_BASE_C : natural := ite(READ_LATENCY_A_G < 0, READ_LATENCY_G, READ_LATENCY_A_G);
+   constant READ_LATENCY_B_BASE_C : natural := ite(READ_LATENCY_B_G < 0, READ_LATENCY_G, READ_LATENCY_B_G);
+   constant READ_LATENCY_A_C      : natural := ite(DOA_REG_G and (READ_LATENCY_A_BASE_C = 1), 2, READ_LATENCY_A_BASE_C);
+   constant READ_LATENCY_B_C      : natural := ite(DOB_REG_G and (READ_LATENCY_B_BASE_C = 1), 2, READ_LATENCY_B_BASE_C);
+   constant READ_LATENCY_C        : natural := ite(READ_LATENCY_A_C > READ_LATENCY_B_C, READ_LATENCY_A_C, READ_LATENCY_B_C);
+   constant DOA_REG_C             : boolean := (READ_LATENCY_A_C = 2);
+   constant DOB_REG_C             : boolean := (READ_LATENCY_B_C = 2);
+   constant WRITE_MODE_C          : string  := toXpmWriteMode(MODE_G);
 
    signal weaVector : slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0);
    signal webVector : slv(ite(BYTE_WR_EN_G, wordCount(DATA_WIDTH_G, BYTE_WIDTH_G), 1)-1 downto 0);
@@ -110,16 +119,46 @@ begin
       report "TrueDualPortRam: MODE_G must be no-change, read-first, or write-first"
       severity failure;
 
-   assert (not LEGACY_OUT_REG_C) or (READ_LATENCY_G /= 0)
-      report "TrueDualPortRam: DOA_REG_G/DOB_REG_G are incompatible with READ_LATENCY_G = 0"
+   assert (not DOA_REG_G) or (READ_LATENCY_A_G < 0)
+      report "TrueDualPortRam: DOA_REG_G must not be combined with explicit READ_LATENCY_A_G"
+      severity failure;
+
+   assert (not DOB_REG_G) or (READ_LATENCY_B_G < 0)
+      report "TrueDualPortRam: DOB_REG_G must not be combined with explicit READ_LATENCY_B_G"
+      severity failure;
+
+   assert (not DOA_REG_G) or (READ_LATENCY_G = 1)
+      report "TrueDualPortRam: DOA_REG_G must not be combined with READ_LATENCY_G /= 1"
+      severity failure;
+
+   assert (not DOB_REG_G) or (READ_LATENCY_G = 1)
+      report "TrueDualPortRam: DOB_REG_G must not be combined with READ_LATENCY_G /= 1"
+      severity failure;
+
+   assert (not DOA_REG_G) or (READ_LATENCY_A_BASE_C /= 0)
+      report "TrueDualPortRam: DOA_REG_G is incompatible with effective READ_LATENCY_A_G = 0"
+      severity failure;
+
+   assert (not DOB_REG_G) or (READ_LATENCY_B_BASE_C /= 0)
+      report "TrueDualPortRam: DOB_REG_G is incompatible with effective READ_LATENCY_B_G = 0"
+      severity failure;
+
+   assert (READ_LATENCY_A_C <= 100) and (READ_LATENCY_B_C <= 100)
+      report "TrueDualPortRam: effective read latency must be <= 100"
       severity failure;
 
    assert (SYNTH_MODE_G /= "inferred") or (MEMORY_TYPE_G = "block")
       report "TrueDualPortRam: inferred mode supports MEMORY_TYPE_G = block"
       severity failure;
 
-   assert (SYNTH_MODE_G /= "inferred") or (READ_LATENCY_C = 1) or (READ_LATENCY_C = 2)
-      report "TrueDualPortRam: inferred mode supports READ_LATENCY_G = 1 or 2 because the legacy TrueDualPortRam implementation is synchronous-read"
+   assert (SYNTH_MODE_G /= "inferred") or
+      (((READ_LATENCY_A_C = 1) or (READ_LATENCY_A_C = 2)) and
+       ((READ_LATENCY_B_C = 1) or (READ_LATENCY_B_C = 2)))
+      report "TrueDualPortRam: inferred mode supports effective READ_LATENCY_A_G/B_G = 1 or 2 because the legacy TrueDualPortRam implementation is synchronous-read"
+      severity failure;
+
+   assert (SYNTH_MODE_G /= "altera_mf") or (READ_LATENCY_A_C = READ_LATENCY_B_C)
+      report "TrueDualPortRam: altera_mf mode supports only shared A/B read latency"
       severity failure;
 
    weaVector <= weaByte when BYTE_WR_EN_G else (others => wea);
@@ -136,6 +175,8 @@ begin
             MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
             WRITE_MODE_G        => WRITE_MODE_C,
             READ_LATENCY_G      => READ_LATENCY_C,
+            READ_LATENCY_A_G    => READ_LATENCY_A_C,
+            READ_LATENCY_B_G    => READ_LATENCY_B_C,
             DATA_WIDTH_G        => DATA_WIDTH_G,
             BYTE_WR_EN_G        => BYTE_WR_EN_G,
             BYTE_WIDTH_G        => BYTE_WIDTH_G,
