@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import hashlib
 import os
 from pathlib import Path
 import shlex
@@ -207,6 +208,8 @@ def _sim_build_path(test_file: Path, parameters: dict[str, object] | None) -> st
     # Parameter-specific build directories keep parallel pytest runs from
     # trampling each other's compile/elaboration artifacts.
     suffix = ",".join(f"{key}={value}" for key, value in parameters.items())
+    if len(suffix) > 120:
+        suffix = f"params-{hashlib.sha1(suffix.encode()).hexdigest()}"
     return str(build_dir.with_name(f"{test_file.stem}.{suffix}"))
 
 
@@ -224,8 +227,10 @@ def run_surf_vhdl_test(
     sim_build_parameters = parameters
     if extra_env is not None:
         simulator_env = {key: str(value) for key, value in extra_env.items()}
-        if sim_build_parameters is None:
-            sim_build_parameters = simulator_env
+        sim_build_parameters = {
+            **({key: str(value) for key, value in parameters.items()} if parameters is not None else {}),
+            **simulator_env,
+        }
     elif parameters is not None:
         simulator_env = {key: str(value) for key, value in parameters.items()}
 
