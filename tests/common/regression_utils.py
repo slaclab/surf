@@ -200,9 +200,9 @@ def cocotb_module_name_from_test_file(test_file: str | Path) -> str:
 
 
 def _sim_build_suffix(parameters: dict[str, object]) -> str:
-    suffix = ",".join(f"{key}={value}" for key, value in parameters.items())
+    suffix = ",".join(f"{key}={value}" for key, value in sorted(parameters.items()))
     if len(suffix) > 120 or "/" in suffix or "\\" in suffix:
-        suffix = f"params-{hashlib.sha1(suffix.encode()).hexdigest()}"
+        suffix = f"params-{hashlib.sha256(suffix.encode()).hexdigest()}"
     return suffix
 
 

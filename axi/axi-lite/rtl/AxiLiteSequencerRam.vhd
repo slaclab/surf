@@ -140,6 +140,10 @@ architecture rtl of AxiLiteSequencerRam is
 
 begin
 
+   assert (SYNTH_MODE_G /= "inferred") or (READ_LATENCY_G >= 1)
+      report "AxiLiteSequencerRam: inferred mode requires READ_LATENCY_G >= 1"
+      severity failure;
+
    U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
          TPD_G          => TPD_G,

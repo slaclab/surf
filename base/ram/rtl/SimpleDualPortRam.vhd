@@ -160,6 +160,10 @@ begin
       report "SimpleDualPortRam: SYNTH_MODE_G must be inferred, xpm, or altera_mf"
       severity failure;
 
+   assert (not RST_ASYNC_G) or (SYNTH_MODE_G = "inferred")
+      report "SimpleDualPortRam: RST_ASYNC_G is supported only for SYNTH_MODE_G = inferred"
+      severity failure;
+
    assert (SYNTH_MODE_G /= "inferred") or (READ_LATENCY_C = 1) or (READ_LATENCY_C = 2)
       report "SimpleDualPortRam: inferred mode supports READ_LATENCY_G = 1 or 2 because the legacy SimpleDualPortRam implementation is synchronous-read for all MEMORY_TYPE_G values"
       severity failure;

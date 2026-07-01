@@ -6,10 +6,10 @@
 --
 -- Supported RAM memory configurations:
 --
---    SYNTH_MODE_G     |    MEMORY_TYPE_G   | READ_LATENCY_G
--- "XPM" or "inferred" | "block" or "ultra" |      1 ~ 3
---       "XPM"         |  "distributed"     |      0 ~ 3
---       "inferred"    |  "distributed"     |      0 ~ 1
+--    SYNTH_MODE_G                 |    MEMORY_TYPE_G   | READ_LATENCY_G
+-- "xpm", "altera_mf", "inferred" | "block" or "ultra" |      1 ~ 3
+--       "xpm"                     |  "distributed"     |      0 ~ 3
+--       "inferred"                |  "distributed"     |      0 ~ 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
