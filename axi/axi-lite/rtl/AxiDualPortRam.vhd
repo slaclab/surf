@@ -3,6 +3,13 @@
 -------------------------------------------------------------------------------
 -- Description: A wrapper of StdLib DualPortRam that places an AxiLite
 -- interface on the read/write port.
+--
+-- Supported RAM memory configurations:
+--
+--    SYNTH_MODE_G     |    MEMORY_TYPE_G   | READ_LATENCY_G
+-- "XPM" or "inferred" | "block" or "ultra" |      1 ~ 3
+--       "XPM"         |  "distributed"     |      0 ~ 3
+--       "inferred"    |  "distributed"     |      0 ~ 1
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -82,6 +89,8 @@ architecture rtl of AxiDualPortRam is
    constant RAM_WIDTH_C      : natural := ADDR_AXI_WORDS_C*32;
    constant STRB_WIDTH_C     : natural := minimum(4, ADDR_AXI_BYTES_C);
 
+   constant RAM_READ_LATENCY_C : natural := ite(SYNTH_MODE_G = "xpm", READ_LATENCY_G, ite(READ_LATENCY_G >= 2, 2, 1));
+
    type StateType is (
       IDLE_S,
       RD_S);
@@ -118,87 +127,50 @@ architecture rtl of AxiDualPortRam is
 
 begin
 
-   ------------------------------------------------------------
-   --       Supported RAM memory configurations
-   ------------------------------------------------------------
-   --    SYNTH_MODE_G     |    MEMORY_TYPE_G   | READ_LATENCY_G
-   ------------------------------------------------------------
-   -- "XPM" or "inferred" | "block" or "ultra" |      1 ~ 3
-   ------------------------------------------------------------
-   --       "XPM"         |  "distributed"     |      0 ~ 3
-   ------------------------------------------------------------
-   --       "inferred"    |  "distributed"     |      0 ~ 1
-   ------------------------------------------------------------
    assert
       (MEMORY_TYPE_G /= "distributed" and (READ_LATENCY_G >= 1 and READ_LATENCY_G      <= 3)) or
       (SYNTH_MODE_G = "xpm" and MEMORY_TYPE_G = "distributed" and (READ_LATENCY_G      <= 3)) or
       (SYNTH_MODE_G = "inferred" and MEMORY_TYPE_G = "distributed" and (READ_LATENCY_G <= 1))
       report "RAM memory configuration not supported" severity failure;
 
-   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity surf.TrueDualPortRamXpm
+   GEN_VENDOR : if (SYNTH_MODE_G /= "inferred") generate
+      U_RAM : entity surf.TrueDualPortRam
          generic map (
             TPD_G               => TPD_G,
             RST_POLARITY_G      => RST_POLARITY_G,
+            SYNTH_MODE_G        => SYNTH_MODE_G,
             COMMON_CLK_G        => COMMON_CLK_G,
             MEMORY_TYPE_G       => MEMORY_TYPE_G,
             MEMORY_INIT_FILE_G  => MEMORY_INIT_FILE_G,
             MEMORY_INIT_PARAM_G => MEMORY_INIT_PARAM_G,
-            WRITE_MODE_G        => ite(MEMORY_TYPE_G = "distributed", "read_first", "no_change"),
-            READ_LATENCY_G      => READ_LATENCY_G,
+            MODE_G              => ite(MEMORY_TYPE_G = "distributed", "read-first", "no-change"),
+            READ_LATENCY_G      => RAM_READ_LATENCY_C,
+            READ_LATENCY_A_G    => RAM_READ_LATENCY_C,
+            READ_LATENCY_B_G    => RAM_READ_LATENCY_C,
             DATA_WIDTH_G        => DATA_WIDTH_G,
             BYTE_WR_EN_G        => true,
             BYTE_WIDTH_G        => 8,
             ADDR_WIDTH_G        => ADDR_WIDTH_G)
          port map (
             -- Port A
-            clka  => axiClk,
-            ena   => '1',
-            wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
-            rsta  => NOT_RST_C,
-            addra => r.axiAddr,
-            dina  => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
-            douta => axiDout(DATA_WIDTH_G-1 downto 0),
+            clka    => axiClk,
+            ena     => '1',
+            wea     => '1',
+            weaByte => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
+            rsta    => NOT_RST_C,
+            addra   => r.axiAddr,
+            dina    => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
+            douta   => axiDout(DATA_WIDTH_G-1 downto 0),
             -- Port B
-            clkb  => clk,
-            enb   => en,
-            web   => weByteMask,
-            rstb  => NOT_RST_C,
-            addrb => addr,
-            dinb  => din,
-            doutb => doutInt);
-   end generate;
-
-   GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity surf.TrueDualPortRamAlteraMf
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
-            COMMON_CLK_G   => COMMON_CLK_G,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_G,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_G)
-         port map (
-            -- Port A
-            clka  => axiClk,
-            ena   => '1',
-            wea   => r.axiWrStrobe(ADDR_AXI_BYTES_C-1 downto 0),
-            rsta  => NOT_RST_C,
-            addra => r.axiAddr,
-            dina  => axiWrDataFanout(DATA_WIDTH_G-1 downto 0),
-            douta => axiDout(DATA_WIDTH_G-1 downto 0),
-            -- Port B
-            clkb  => clk,
-            enb   => en,
-            web   => weByteMask,
-            rstb  => NOT_RST_C,
-            addrb => addr,
-            dinb  => din,
-            doutb => doutInt);
-   end generate;
+            clkb    => clk,
+            enb     => en,
+            web     => we,
+            webByte => weByteMask,
+            rstb    => NOT_RST_C,
+            addrb   => addr,
+            dinb    => din,
+            doutb   => doutInt);
+   end generate GEN_VENDOR;
 
    GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
 
@@ -270,16 +242,17 @@ begin
       AXI_RW_SYS_RW : if (AXI_WR_EN_G and SYS_WR_EN_G) generate
          U_TrueDualPortRam_1 : entity surf.TrueDualPortRam
             generic map (
-               TPD_G          => TPD_G,
-               RST_POLARITY_G => RST_POLARITY_G,
-               RST_ASYNC_G    => RST_ASYNC_G,
-               BYTE_WR_EN_G   => true,
-               DOA_REG_G      => ite(READ_LATENCY_G >= 2, true, false),
-               DOB_REG_G      => ite(READ_LATENCY_G >= 2, true, false),
-               DATA_WIDTH_G   => DATA_WIDTH_G,
-               BYTE_WIDTH_G   => 8,
-               ADDR_WIDTH_G   => ADDR_WIDTH_G,
-               INIT_G         => INIT_G)
+               TPD_G            => TPD_G,
+               RST_POLARITY_G   => RST_POLARITY_G,
+               RST_ASYNC_G      => RST_ASYNC_G,
+               BYTE_WR_EN_G     => true,
+               DATA_WIDTH_G     => DATA_WIDTH_G,
+               BYTE_WIDTH_G     => 8,
+               ADDR_WIDTH_G     => ADDR_WIDTH_G,
+               INIT_G           => INIT_G,
+               READ_LATENCY_G   => RAM_READ_LATENCY_C,
+               READ_LATENCY_A_G => RAM_READ_LATENCY_C,
+               READ_LATENCY_B_G => RAM_READ_LATENCY_C)
             port map (
                clka    => axiClk,                                    -- [in]
                ena     => '1',                                       -- [in]
