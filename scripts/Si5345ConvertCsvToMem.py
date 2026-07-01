@@ -47,7 +47,7 @@ cnt = 0
 ofd = open(args.memPath, 'w')
 
 # Power down during the configuration load
-ofd.write('001E' + '01' + ',')
+ofd.write('001E' + '01' + '\n')
 cnt = cnt + 1
 
 # Open the .CSV file
@@ -59,25 +59,25 @@ with open(args.csvFile) as csvfile:
         if (row[0]!='Address'):
             offset = row[0]
             data   = row[1]
-            ofd.write(offset[2:] + data[2:] + ',')
+            ofd.write(offset[2:] + data[2:] + '\n')
             cnt = cnt + 1
 
 # Execute the Page5.BW_UPDATE_PLL command
-ofd.write('0514' + '01' + ',')
-ofd.write('0514' + '00' + ',')
+ofd.write('0514' + '01' + '\n')
+ofd.write('0514' + '00' + '\n')
 cnt = cnt + 2
 
 # Power Up after the configuration load
-ofd.write('001E' + '00' + ',')
+ofd.write('001E' + '00' + '\n')
 cnt = cnt + 1
 
 # Clear the internal error flags
-ofd.write('0011' + '01' + ',')
+ofd.write('0011' + '01' + '\n')
 cnt = cnt + 1
 
 # Fill the reset of the BRAM with zeros
 for i in range(1024-cnt):
-    ofd.write('0000' + '00' + ',')
+    ofd.write('0000' + '00' + '\n')
     cnt = cnt + 1
 
 # Close the file
