@@ -258,13 +258,13 @@ begin
       for i in IGMP_GRP_SIZE-1 downto 0 loop
          axiSlaveRegister(regCon, toSlv((4*i)+4048, 12), 0, v.igmpIp(i));  --  big-Endian configuration
       end loop;
-      axiSlaveRegister (regCon, x"FE0", 0, v.ecnFlag);
-      axiSlaveRegister (regCon, x"FE0", 2, v.dscpFlag);
       axiSlaveRegister (regCon, x"FE4", 0, v.softIp);
       axiSlaveRegister (regCon, x"FE8", 0, v.softMac);
       axiSlaveRegister (regCon, x"FF0", 0, v.broadcastIp);
       axiSlaveRegisterR(regCon, x"FF4", 0, dhcpIp);
       axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
+      axiSlaveRegister (regCon, x"FFC", 0, v.ecnFlag);
+      axiSlaveRegister (regCon, x"FFC", 2, v.dscpFlag);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);

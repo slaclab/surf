@@ -9,12 +9,17 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one stable same-width wrapper case.
-# - Stimulus: Drive one contiguous full-keep beat directly into the flat slave
-#   port and hold the master ready high.
-# - Checks: A full-keep beat passes straight through, so the output beat must
-#   preserve the payload data and full-byte keep mask and terminate with
-#   `tLast`.
+# - Sweep: Keep one stable same-width (4-byte) wrapper case.
+# - Stimulus: Drive contiguous-from-bit-0 tKeep beats into the flat slave port
+#   and hold the master ready high.
+# - Checks (three scenarios, reset between each):
+#   1. Full-keep passthrough: a full-keep beat passes straight through, so the
+#      output must preserve the payload data + full-byte keep mask and end with
+#      `tLast`.
+#   2. Multi-beat repack: four contiguous single-byte beats compact into one
+#      full 4-byte output word.
+#   3. Overflow + partial-final flush: two 3-byte beats fill one word and spill
+#      the remainder onto a second beat carrying `tLast` with a partial keep.
 
 import cocotb
 import pytest
@@ -79,12 +84,33 @@ class TB:
 
 
 @cocotb.test()
-async def contiguous_full_keep_test(dut):
+async def repack_scenarios_test(dut):
     tb = TB(dut)
+
+    # Scenario 1: a full-keep beat passes straight through unchanged.
     await tb.reset()
+    tb.rx_beats.clear()
     await tb.drive_beat(data=0x44332211, keep=0xF, last=1)
-    await tb.cycle(2)
-    assert tb.rx_beats == [(0x44332211, 0xF, 1)]
+    await tb.cycle(4)
+    assert tb.rx_beats == [(0x44332211, 0xF, 1)], tb.rx_beats
+
+    # Scenario 2: four contiguous single-byte beats compact into one full word.
+    await tb.reset()
+    tb.rx_beats.clear()
+    payload = (0x21, 0x32, 0x43, 0x54)
+    for i, byte in enumerate(payload):
+        await tb.drive_beat(data=byte, keep=0x1, last=1 if i == len(payload) - 1 else 0)
+    await tb.cycle(4)
+    assert tb.rx_beats == [(0x54433221, 0xF, 1)], tb.rx_beats
+
+    # Scenario 3: two 3-byte beats overflow the 4-byte word; the remainder is
+    # flushed on a second beat carrying tLast and a partial keep mask.
+    await tb.reset()
+    tb.rx_beats.clear()
+    await tb.drive_beat(data=0x00332211, keep=0x7, last=0)
+    await tb.drive_beat(data=0x00665544, keep=0x7, last=1)
+    await tb.cycle(4)
+    assert tb.rx_beats == [(0x44332211, 0xF, 0), (0x00006655, 0x3, 1)], tb.rx_beats
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="contiguous_same_width")])

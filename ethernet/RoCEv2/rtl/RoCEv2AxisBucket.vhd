@@ -171,9 +171,10 @@ begin  -- architecture rtl
 -- Optional output pipeline registers to ease timing
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

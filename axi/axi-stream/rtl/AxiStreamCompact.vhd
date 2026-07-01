@@ -78,10 +78,37 @@ architecture rtl of AxiStreamCompact is
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
+   -- True when the low SLV_BYTES_C of tKeep form a contiguous run of valid
+   -- bytes starting at bit 0 (e.g. 0x0F ok, 0xF0 / 0x0D not). This block only
+   -- supports that framing; feeding a non-contiguous/high-offset mask is a
+   -- design error and is flagged by the assertion below.
+   function tKeepContiguousFromZero (
+      tKeep : slv;
+      bytes : positive)
+      return boolean is
+      variable seenZero : boolean;
+   begin
+      seenZero := false;
+      for i in 0 to bytes-1 loop
+         if tKeep(i) = '0' then
+            seenZero := true;
+         elsif seenZero then
+            return false;
+         end if;
+      end loop;
+      return true;
+   end function tKeepContiguousFromZero;
+
 begin
 
    assert (MST_BYTES_C >= SLV_BYTES_C)
       report "Master data width must be >= slave data width" severity failure;
+
+   -- Enforce the contiguous-from-bit-0 tKeep contract at simulation time
+   assert (sAxisMaster.tValid = '0')
+      or tKeepContiguousFromZero(sAxisMaster.tKeep(SLV_BYTES_C-1 downto 0), SLV_BYTES_C)
+      report "AxiStreamCompact: tKeep must be a contiguous mask from bit 0 (e.g. 0x0F legal, 0xF0/0x0D not)"
+      severity failure;
 
    comb : process (axisRst, pipeAxisSlave, r, sAxisMaster) is
       variable v        : RegType;
@@ -239,9 +266,10 @@ begin
 
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
