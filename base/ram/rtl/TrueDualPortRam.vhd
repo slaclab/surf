@@ -119,6 +119,10 @@ begin
       report "TrueDualPortRam: MODE_G must be no-change, read-first, or write-first"
       severity failure;
 
+   assert (not RST_ASYNC_G) or (SYNTH_MODE_G = "inferred")
+      report "TrueDualPortRam: RST_ASYNC_G is supported only for SYNTH_MODE_G = inferred"
+      severity failure;
+
    assert (not DOA_REG_G) or (READ_LATENCY_A_G < 0)
       report "TrueDualPortRam: DOA_REG_G must not be combined with explicit READ_LATENCY_A_G"
       severity failure;

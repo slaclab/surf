@@ -21,8 +21,8 @@
 # - Timing: Because both ports are active, the bench checks results relative to
 #   the specific `clka` or `clkb` edge that triggered the interaction and
 #   expects registered outputs to lag by one extra cycle. READ_LATENCY_G = 2
-#   enables both output registers in the inferred selector path, and
-#   READ_LATENCY_A_G/B_G can select the registered path per port.
+#   enables both output registers in the inferred selector path, and explicit
+#   READ_LATENCY_A_G/B_G cases select and check the registered path per port.
 
 import os
 
@@ -249,6 +249,29 @@ async def registered_output_hold_test(dut):
 
 
 @cocotb.test()
+async def registered_output_hold_a_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    if not tb.doa_reg_enabled:
+        return
+
+    await tb.write_b(0, 0x1111)
+    await tb.write_b(1, 0x2222)
+    assert await tb.read_a(0) == 0x1111
+
+    # With `regcea=0`, the A-side registered output should keep the previously
+    # captured word even though the address and internal RAM output are moving.
+    tb.dut.addra.value = 1
+    tb.dut.regcea.value = 0
+    await tb.cycle_a(2)
+    assert int(dut.douta.value) == 0x1111
+
+    tb.dut.regcea.value = 1
+    await tb.cycle_a(1)
+    assert int(dut.douta.value) == 0x2222
+
+
+@cocotb.test()
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.warmup()
@@ -399,6 +422,25 @@ PARAMETER_SWEEP = [
         READ_LATENCY_G="1",
         READ_LATENCY_A_G="2",
         READ_LATENCY_B_G="1",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_latency_b_registered",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
+        READ_LATENCY_A_G="1",
+        READ_LATENCY_B_G="2",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="false",
