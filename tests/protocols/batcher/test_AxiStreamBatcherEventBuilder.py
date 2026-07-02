@@ -24,7 +24,9 @@
 #   one source is absent or intentionally skipped.
 # - Alignment check: With EnableAlignCheck=1, verify the builder stalls and flags
 #   ErrorAlignDet on a tUserFirst mismatch, passes when aligned, ignores bypassed
-#   channels, and that EnableAlignCheck survives a soft reset.
+#   channels and NULL sources, does not false-trip (and deadlock the timeout path)
+#   when the reference source 0 is the missing source, and that EnableAlignCheck
+#   survives a soft reset.
 
 import os
 
@@ -562,6 +564,61 @@ async def align_check_ignores_bypassed_source_test(dut):
     assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
     assert await tb.read(DATA_CNT_BASE + 0) == 1
     assert await tb.read(DATA_CNT_BASE + 4) == 0
+
+
+@cocotb.test()
+async def align_check_survives_missing_reference_source_with_timeout_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    await tb.write(TIMEOUT_ADDR, 4)
+    await tb.write(BLOWOFF_ADDR, ENABLE_ALIGN_CHECK_BIT)
+
+    # The reference channel (source 0) is the missing source for this event while
+    # source 1 is present with a differing tUserFirst.  The alignment comparison is
+    # gated on the reference actually presenting a word, so an absent source 0 must
+    # NOT set ErrorAlignDet.  Otherwise the errorAlignDet move-gate would block the
+    # timeout path (which exists to drop a missing source) and deadlock recovery.
+    data = _frame(bytes(range(0x40, 0x45)), dest=0x06, first_user=0x51, last_user=0xB1)
+    expected = [
+        _frame(data[0], dest=tb.remapped_dest(1, data[1]), first_user=data[2], last_user=data[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frame(
+        tb.source1,
+        payload_to_beats(data[0], dest=data[1], first_user=data[2], last_user=data[3]),
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 4) == 1
+    assert await tb.read(TIMEOUT_DROP_CNT_BASE + 0) == 1
+
+    # A later complete, aligned event still flows normally with the check enabled,
+    # confirming the missing-reference timeout drop did not wedge the flow.
+    recovery0 = _frame(bytes(range(0x48, 0x4D)), dest=0x07, first_user=0x59, last_user=0xB9)
+    recovery1 = _frame(bytes(range(0x58, 0x5D)), dest=0x08, first_user=0x59, last_user=0xC9)
+    expected = [
+        _frame(recovery0[0], dest=tb.remapped_dest(0, recovery0[1]), first_user=recovery0[2], last_user=recovery0[3]),
+        _frame(recovery1[0], dest=tb.remapped_dest(1, recovery1[1]), first_user=recovery1[2], last_user=recovery1[3]),
+    ]
+
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frames_concurrently(
+        [
+            (tb.source0, payload_to_beats(recovery0[0], dest=recovery0[1], first_user=recovery0[2], last_user=recovery0[3])),
+            (tb.source1, payload_to_beats(recovery1[0], dest=recovery1[1], first_user=recovery1[2], last_user=recovery1[3])),
+        ],
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_bytes(expected, seq=1)
+    assert await tb.read(ERROR_ALIGN_DET_ADDR) == 0
+    assert await tb.read(DATA_CNT_BASE + 0) == 1
+    assert await tb.read(DATA_CNT_BASE + 4) == 2
 
 
 @pytest.mark.parametrize(

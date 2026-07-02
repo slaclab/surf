@@ -352,13 +352,17 @@ begin
 
                   -- Check for tUserFirst misalignment
                   -- NOTE: rxMasters(0) is the reference channel for the alignment check.
-                  -- When EnableAlignCheck=1, stream[0] MUST always carry the reference
-                  -- tUserFirst for every event: it can never be a NULL frame and can
-                  -- never be bypassed.  A NULL/bypassed stream[0] would make the reference
-                  -- meaningless and the check would either false-trip every other channel
-                  -- or stall the builder.  NULL frames are therefore only expected on the
-                  -- data channels (i > 0), which is why they are excluded below.
-                  if (rxMasters(0).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) /= rxMasters(i).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0)) then
+                  -- The comparison is only meaningful while the reference channel is
+                  -- actually presenting a word, so it is gated on rxMasters(0).tValid.
+                  -- This keeps EnableAlignCheck compatible with the timeout feature:
+                  -- when stream[0] is the missing source for an event, the reference is
+                  -- absent (tValid = '0'), so the check is skipped for that event instead
+                  -- of comparing against a stale reference, false-tripping every other
+                  -- present channel, and blocking the timeout recovery path forever.  When
+                  -- stream[0] is present it MUST carry the reference tUserFirst and can
+                  -- never be a NULL frame.  NULL frames are only expected on the data
+                  -- channels (i > 0), which is why they are excluded via not(v.nullDet(i)).
+                  if (rxMasters(0).tValid = '1') and (rxMasters(0).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) /= rxMasters(i).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0)) then
                      -- Set the misaligned flag if the checking is enabled and the channel is not bypassed and not a NULL frame
                      v.errorAlignDet(i) := r.enAlignCheck and not(r.bypass(i)) and not(v.nullDet(i));
                   else
