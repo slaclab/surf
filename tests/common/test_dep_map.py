@@ -735,7 +735,7 @@ def test_import_test_local_sources_invokes_ghdl_i_with_absolute_paths(monkeypatc
     count = dep_map.import_test_local_sources(tmp_path, "/wd", ["--std=08", "-fsynopsys"])
 
     assert count == 2
-    assert captured["cmd"][:2] == [dep_map.GHDL_CMD, "-i"]
+    assert captured["cmd"][: len(dep_map.GHDL_CMD) + 1] == [*dep_map.GHDL_CMD, "-i"]
     assert "--workdir=/wd" in captured["cmd"]
     assert "--work=surf" in captured["cmd"]
     assert "--std=08" in captured["cmd"] and "-fsynopsys" in captured["cmd"]

@@ -162,7 +162,7 @@ jobs:
           # resolver prints a rationale (resolved/unresolved counts) to stderr;
           # set SURF_DEP_MAP_DEBUG=1 here to also log why each toplevel is
           # unresolved when diagnosing selection.
-          if resolver_output="$(GHDL="$LLVM_GHDL" python -m tests.common)"; then
+          if resolver_output="$(GHDL_CMD="$LLVM_GHDL" python -m tests.common)"; then
             resolver_rc=0
           else
             resolver_rc=$?

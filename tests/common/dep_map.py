@@ -14,6 +14,7 @@ import ast
 import os
 import re
 from pathlib import Path, PurePosixPath
+import shlex
 import subprocess
 import sys
 
@@ -31,11 +32,15 @@ DEFAULT_SCAN_DIRS = ("axi", "base", "dsp", "protocols")
 # whenever the changed-files -> affected-tests resolution is indeterminate.
 FORCE_FULL = "FORCE_FULL"
 
-# GHDL binary used for `--gen-depends`. Overridable via the GHDL env var: the
-# apt `ghdl-mcode` backend on the CI runner does not implement `--gen-depends`,
-# so CI points this at an LLVM-backend GHDL for dependency resolution while the
-# cocotb simulations still run on the default `ghdl`. Defaults to `ghdl`.
-GHDL_CMD = os.environ.get("GHDL", "ghdl")
+# GHDL binary used for `--gen-depends`. Overridable via the GHDL_CMD env var --
+# the repo-wide convention (Makefile exports `GHDL_CMD`, regression_utils.py
+# reads it), so `make import` and the resolver never disagree on which `ghdl`
+# to use. The apt `ghdl-mcode` backend on the CI runner does not implement
+# `--gen-depends`, so CI points GHDL_CMD at an LLVM-backend GHDL for dependency
+# resolution while the cocotb simulations still run on the default `ghdl`.
+# shlex.split (matching regression_utils.py) tolerates a command with args.
+# Defaults to `ghdl`.
+GHDL_CMD = shlex.split(os.environ.get("GHDL_CMD", "ghdl"))
 
 # Minimum fraction of the discovered universe (len(set(dep_map) | always_run))
 # a source must appear in to be treated as a shared base-package hub. 0.09 is
@@ -229,7 +234,7 @@ def gen_depends_sources(toplevel: str, workdir: str, ghdl_flags: list[str]) -> s
     force-full-eligible on its own (D-10), never as "no dependencies"."""
     try:
         result = subprocess.run(
-            [GHDL_CMD, "--gen-depends", *ghdl_flags, f"-P{workdir}", "--work=surf", toplevel.split(".")[-1]],
+            [*GHDL_CMD, "--gen-depends", *ghdl_flags, f"-P{workdir}", "--work=surf", toplevel.split(".")[-1]],
             capture_output=True,
             text=True,
             cwd=workdir,
@@ -469,7 +474,7 @@ def import_test_local_sources(repo_root: Path, workdir: str, ghdl_flags: list[st
     if not sources:
         return 0
     result = subprocess.run(
-        [GHDL_CMD, "-i", f"--workdir={workdir}", *ghdl_flags, "--work=surf", *(str(path) for path in sources)],
+        [*GHDL_CMD, "-i", f"--workdir={workdir}", *ghdl_flags, "--work=surf", *(str(path) for path in sources)],
         capture_output=True,
         text=True,
         cwd=workdir,
