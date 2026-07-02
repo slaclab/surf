@@ -281,7 +281,4 @@ def test_JesdScramblerWrapper(parameters):
         toplevel="surf.jesdscramblerwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["protocols/jesd204b/wrappers/JesdScramblerWrapper.vhd"]
-        },
     )

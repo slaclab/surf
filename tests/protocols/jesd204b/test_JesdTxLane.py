@@ -805,7 +805,4 @@ def test_JesdTxLane(parameters):
         toplevel="surf.jesdtxlanewrapper",
         parameters=hdl_parameters_from(parameters),   # strips SUBCLASS, SCR_ENABLE
         extra_env=parameters,                          # full dict -> unique sim_build
-        extra_vhdl_sources={
-            "surf": ["protocols/jesd204b/wrappers/JesdTxLaneWrapper.vhd"]
-        },
     )

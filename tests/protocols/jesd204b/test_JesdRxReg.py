@@ -638,10 +638,4 @@ def test_JesdRxReg(parameters):
         toplevel="surf.jesd204brxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "protocols/jesd204b/wrappers/Jesd204bRxWrapper.vhd",
-            ]
-        },
     )
