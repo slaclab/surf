@@ -520,7 +520,7 @@ async def check_latency_step(axil_rx, *, lane: int = 0) -> int:
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test(skip=True)
+@cocotb.test()
 async def test_jesd204b_dlat_sweep(dut):
     """Full-LMFC-wrap arrival-phase sweep.
 
@@ -733,7 +733,7 @@ async def _wait_data_valid_drop(tb: Jesd204bLoopbackTB, l_g: int, timeout: int =
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test(skip=True)
+@cocotb.test()
 async def test_jesd204b_resync_matrix(dut):
     """Marked-sample latency invariant across all four resync paths.
 
@@ -921,7 +921,7 @@ async def test_jesd204b_resync_matrix(dut):
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test(skip=True)
+@cocotb.test()
 async def test_jesd204b_rst02(dut):
     """Behavior contract: sticky error latches, counter resume, status tracking.
 
