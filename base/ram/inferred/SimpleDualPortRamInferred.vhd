@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity SimpleDualPortRam is
+entity SimpleDualPortRamInferred is
    generic (
       TPD_G          : time                       := 1 ns;
       RST_POLARITY_G : sl                         := '1';  -- '1' for active high rst, '0' for active low
@@ -47,9 +47,9 @@ entity SimpleDualPortRam is
       rstb    : in  sl                                                    := not(RST_POLARITY_G);
       addrb   : in  slv(ADDR_WIDTH_G-1 downto 0)                          := (others => '0');
       doutb   : out slv(DATA_WIDTH_G-1 downto 0));
-end SimpleDualPortRam;
+end SimpleDualPortRamInferred;
 
-architecture rtl of SimpleDualPortRam is
+architecture rtl of SimpleDualPortRamInferred is
 
    -- Set byte width to word width if byte writes not enabled
    -- Otherwise block ram parity bits wont be utilized
