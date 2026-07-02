@@ -1197,15 +1197,6 @@ def test_Jesd204bLoopback(parameters):
         toplevel="surf.jesd204bloopbackwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        # Cases share identical *_G generics and differ only in SUBCLASS/SCR_ENABLE
-        # (env, not HDL) -- give each a unique build dir so parallel -n auto runs
-        # do not race on a shared GHDL work library.
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_Jesd204bLoopback."
-            f"smoke_{parameters.get('L_G')}_{parameters.get('F_G')}_"
-            f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
-            f"{parameters.get('SCR_ENABLE')}"
-        ),
     )
 
 
@@ -1219,12 +1210,6 @@ def test_Jesd204bLoopbackDlat(parameters):
         extra_env=dict(
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_dlat_sweep",
-        ),
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_Jesd204bLoopback."
-            f"dlat_{parameters.get('L_G')}_{parameters.get('F_G')}_"
-            f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
-            f"{parameters.get('SCR_ENABLE')}"
         ),
     )
 
@@ -1244,12 +1229,6 @@ def test_Jesd204bLoopbackResync(parameters):
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_resync_matrix",
         ),
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_Jesd204bLoopback."
-            f"resync_{parameters.get('L_G')}_{parameters.get('F_G')}_"
-            f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
-            f"{parameters.get('SCR_ENABLE')}"
-        ),
     )
 
 
@@ -1263,11 +1242,5 @@ def test_Jesd204bLoopbackRst02(parameters):
         extra_env=dict(
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_rst02",
-        ),
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_Jesd204bLoopback."
-            f"rst02_{parameters.get('L_G')}_{parameters.get('F_G')}_"
-            f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
-            f"{parameters.get('SCR_ENABLE')}"
         ),
     )

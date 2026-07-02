@@ -282,8 +282,4 @@ def test_Jesd16bTo32b(parameters):
         toplevel="surf.jesd16bto32b",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_Jesd16bTo32b."
-            + ".".join(f"{k}={v}" for k, v in parameters.items())
-        ),
     )

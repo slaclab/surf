@@ -436,10 +436,6 @@ def test_JesdIlasGen_ilas01(parameters):
         toplevel="surf.jesdilasgen",
         parameters=parameters,
         extra_env={**parameters, "COCOTB_TEST_FILTER": "test_ilas01_framing"},
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_JesdIlasGen.ilas01."
-            + ".".join(f"{k}={v}" for k, v in parameters.items())
-        ),
     )
 
 
@@ -452,10 +448,6 @@ def test_JesdIlasGen_ilas02(parameters):
         toplevel="surf.jesdilasgen",
         parameters=hdl_params,
         extra_env={**parameters, "COCOTB_TEST_FILTER": "test_ilas02_config_octets"},
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_JesdIlasGen.ilas02."
-            + ".".join(f"{k}={v}" for k, v in parameters.items())
-        ),
     )
 
 

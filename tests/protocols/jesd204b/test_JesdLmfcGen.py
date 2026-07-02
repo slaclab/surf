@@ -367,10 +367,6 @@ def test_JesdLmfcGen_period(parameters):
         toplevel="surf.jesdlmfcgen",
         parameters=parameters,
         extra_env={**parameters, "COCOTB_TEST_FILTER": "test_period"},
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_JesdLmfcGen.period."
-            + ".".join(f"{k}={v}" for k, v in parameters.items())
-        ),
     )
 
 
@@ -386,10 +382,6 @@ def test_JesdLmfcGen_sysref(parameters):
             # Regex matches all four test_sysref_*_clause_* coroutines
             "COCOTB_TEST_FILTER": "test_sysref",
         },
-        sim_build_key=(
-            "tests/sim_build/protocols/jesd204b/test_JesdLmfcGen.sysref."
-            + ".".join(f"{k}={v}" for k, v in parameters.items())
-        ),
     )
 
 
