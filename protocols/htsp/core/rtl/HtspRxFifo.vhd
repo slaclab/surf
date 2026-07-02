@@ -32,7 +32,7 @@ entity HtspRxFifo is
       FIFO_PAUSE_THRESH_G   : positive := 256;
       TX_MAX_PAYLOAD_SIZE_G : positive := 8192;
       ROGUE_SIM_EN_G        : boolean  := false;
-      GEN_SYNC_FIFO_G       : boolean  := false;
+      GEN_SYNC_FIFO_G       : boolean  := false;  -- Set true only when appClks(i) equals htspClk
       MEMORY_TYPE_G         : string   := "uram";
       NUM_VC_G              : positive;
       APP_AXI_CONFIG_G      : AxiStreamConfigType);
@@ -167,6 +167,7 @@ begin
                mAxisSlave  => appRxSlaves(i));
       end generate;
 
+      -- When clocks are common, use gearbox directly instead of an async resize FIFO
       GEN_SYNC_FIFO : if GEN_SYNC_FIFO_G generate
          U_Gearbox : entity surf.AxiStreamGearbox
             generic map (
