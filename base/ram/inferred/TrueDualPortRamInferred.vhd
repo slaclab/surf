@@ -21,7 +21,7 @@ use ieee.std_logic_unsigned.all;
 library surf;
 use surf.StdRtlPkg.all;
 
-entity TrueDualPortRam is
+entity TrueDualPortRamInferred is
    -- MODE_G = {"no-change","read-first","write-first"}
    generic (
       TPD_G          : time                       := 1 ns;
@@ -56,9 +56,9 @@ entity TrueDualPortRam is
       dinb    : in  slv(DATA_WIDTH_G-1 downto 0)                          := (others => '0');
       doutb   : out slv(DATA_WIDTH_G-1 downto 0);
       regceb  : in  sl                                                    := '1');  -- Clock enable for extra output reg. Only used when DOA_REG_G = true
-end TrueDualPortRam;
+end TrueDualPortRamInferred;
 
-architecture rtl of TrueDualPortRam is
+architecture rtl of TrueDualPortRamInferred is
 
    -- Set byte width to word width if byte writes not enabled
    -- Otherwise block ram parity bits wont be utilized

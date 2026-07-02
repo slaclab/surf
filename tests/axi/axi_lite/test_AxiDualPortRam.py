@@ -9,9 +9,10 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep a three-case wrapper-focused sweep covering AXI-writeable RAM,
-#   dual-port RAM with byte-enabled system writes, and AXI read-only behavior
-#   with error responses exposed through the existing IP-integrator wrapper.
+# - Sweep: Keep a wrapper-focused sweep covering AXI-writeable RAM, dual-port
+#   RAM with byte-enabled system writes, latency-3 output-register behavior,
+#   and AXI read-only behavior with error responses exposed through the
+#   existing IP-integrator wrapper.
 # - Stimulus: Drive AXI-Lite reads and writes through the flat wrapper port,
 #   read the same locations back through the system-side port, and in writable
 #   system-port cases issue full-word and partial-byte writes from the system
@@ -179,6 +180,19 @@ PARAMETER_SWEEP = [
         SYNTH_MODE="inferred",
         MEMORY_TYPE="block",
         READ_LATENCY="2",
+        AXI_WR_EN="true",
+        SYS_WR_EN="true",
+        SYS_BYTE_WR_EN="true",
+        COMMON_CLK="false",
+        ADDR_WIDTH="6",
+        DATA_WIDTH="32",
+    ),
+    parameter_case(
+        "dual_port_byte_write_latency3_async",
+        EN_ERROR_RESP="true",
+        SYNTH_MODE="inferred",
+        MEMORY_TYPE="block",
+        READ_LATENCY="3",
         AXI_WR_EN="true",
         SYS_WR_EN="true",
         SYS_BYTE_WR_EN="true",

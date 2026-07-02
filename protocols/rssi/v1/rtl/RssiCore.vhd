@@ -669,66 +669,25 @@ begin
    -- Tx buffer RAM
    GEN_TX : if (BYP_TX_BUFFER_G = false) generate
 
-      GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity surf.SimpleDualPortRamXpm
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_txWrBuffWe,
-               addra  => s_txWrBuffAddr,
-               dina   => s_txWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_txRdBuffAddr,
-               doutb  => s_txRdBuffData);
-      end generate;
-
-      GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity surf.SimpleDualPortRamAlteraMf
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_txWrBuffWe,
-               addra  => s_txWrBuffAddr,
-               dina   => s_txWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_txRdBuffAddr,
-               doutb  => s_txRdBuffData);
-      end generate;
-
-      GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity surf.SimpleDualPortRam
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka  => clk_i,
-               wea   => s_txWrBuffWe,
-               addra => s_txWrBuffAddr,
-               dina  => s_txWrBuffData,
-               -- Port B - Read only
-               clkb  => clk_i,
-               rstb  => rst_i,
-               addrb => s_txRdBuffAddr,
-               doutb => s_txRdBuffData);
-      end generate;
+      U_RAM : entity surf.SimpleDualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            SYNTH_MODE_G  => SYNTH_MODE_G,
+            COMMON_CLK_G  => true,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
+            ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
+         port map (
+            -- Port A - Write only
+            clka  => clk_i,
+            wea   => s_txWrBuffWe,
+            addra => s_txWrBuffAddr,
+            dina  => s_txWrBuffData,
+            -- Port B - Read only
+            clkb  => clk_i,
+            rstb  => rst_i,
+            addrb => s_txRdBuffAddr,
+            doutb => s_txRdBuffData);
 
    end generate;
 
@@ -795,66 +754,25 @@ begin
    -- Rx buffer RAM
    GEN_RX : if (BYP_RX_BUFFER_G = false) generate
 
-      GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity surf.SimpleDualPortRamXpm
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_rxWrBuffWe,
-               addra  => s_rxWrBuffAddr,
-               dina   => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_rxRdBuffAddr,
-               doutb  => s_rxRdBuffData);
-      end generate;
-
-      GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity surf.SimpleDualPortRamAlteraMf
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_rxWrBuffWe,
-               addra  => s_rxWrBuffAddr,
-               dina   => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_rxRdBuffAddr,
-               doutb  => s_rxRdBuffData);
-      end generate;
-
-      GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity surf.SimpleDualPortRam
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka  => clk_i,
-               wea   => s_rxWrBuffWe,
-               addra => s_rxWrBuffAddr,
-               dina  => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb  => clk_i,
-               rstb  => rst_i,
-               addrb => s_rxRdBuffAddr,
-               doutb => s_rxRdBuffData);
-      end generate;
+      U_RAM : entity surf.SimpleDualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            SYNTH_MODE_G  => SYNTH_MODE_G,
+            COMMON_CLK_G  => true,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
+            ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
+         port map (
+            -- Port A - Write only
+            clka  => clk_i,
+            wea   => s_rxWrBuffWe,
+            addra => s_rxWrBuffAddr,
+            dina  => s_rxWrBuffData,
+            -- Port B - Read only
+            clkb  => clk_i,
+            rstb  => rst_i,
+            addrb => s_rxRdBuffAddr,
+            doutb => s_rxRdBuffData);
 
    end generate;
 
