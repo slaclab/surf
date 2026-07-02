@@ -1197,12 +1197,15 @@ def test_Jesd204bLoopback(parameters):
         toplevel="surf.jesd204bloopbackwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "protocols/jesd204b/wrappers/Jesd204bLoopbackWrapper.vhd",
-            ]
-        },
+        # Cases share identical *_G generics and differ only in SUBCLASS/SCR_ENABLE
+        # (env, not HDL) -- give each a unique build dir so parallel -n auto runs
+        # do not race on a shared GHDL work library.
+        sim_build_key=(
+            "tests/sim_build/protocols/jesd204b/test_Jesd204bLoopback."
+            f"smoke_{parameters.get('L_G')}_{parameters.get('F_G')}_"
+            f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
+            f"{parameters.get('SCR_ENABLE')}"
+        ),
     )
 
 
@@ -1223,12 +1226,6 @@ def test_Jesd204bLoopbackDlat(parameters):
             f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
             f"{parameters.get('SCR_ENABLE')}"
         ),
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "protocols/jesd204b/wrappers/Jesd204bLoopbackWrapper.vhd",
-            ]
-        },
     )
 
 
@@ -1253,12 +1250,6 @@ def test_Jesd204bLoopbackResync(parameters):
             f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
             f"{parameters.get('SCR_ENABLE')}"
         ),
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "protocols/jesd204b/wrappers/Jesd204bLoopbackWrapper.vhd",
-            ]
-        },
     )
 
 
@@ -1279,10 +1270,4 @@ def test_Jesd204bLoopbackRst02(parameters):
             f"{parameters.get('K_G')}_{parameters.get('SUBCLASS')}_"
             f"{parameters.get('SCR_ENABLE')}"
         ),
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "protocols/jesd204b/wrappers/Jesd204bLoopbackWrapper.vhd",
-            ]
-        },
     )

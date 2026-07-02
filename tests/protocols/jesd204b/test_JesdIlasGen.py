@@ -86,6 +86,12 @@ ILAS02_SWEEP = [
         K_G="16", F_G="4",
         LID="7", SCR="1", SUBCLASS="0",
     ),
+    # Multi-lane: L_G=2 must advertise L-1=1 in octet 3 (bits [4:0]).
+    parameter_case(
+        "ilas02_l2_k32_f2",
+        K_G="32", F_G="2", L_G="2",
+        LID="1", SCR="1", SUBCLASS="1",
+    ),
 ]
 
 
@@ -303,6 +309,7 @@ async def test_ilas02_config_octets(dut):
     lid    = env_int("LID",      default=0)
     scr    = env_int("SCR",      default=0)
     subcls = env_int("SUBCLASS", default=0)
+    l_g    = env_int("L_G",      default=1)
 
     dut.enable_i.setimmediatevalue(0)
     dut.ilas_i.setimmediatevalue(0)
@@ -317,7 +324,7 @@ async def test_ilas02_config_octets(dut):
 
     # Golden model using the same values driven into the DUT
     config_octets = build_ilas_config_octets(
-        did=did, bid=bid, lid=lid, scr=scr,
+        did=did, bid=bid, lid=lid, scr=scr, l_val=l_g - 1,
         f_val=f, k_val=k, m=m, cs=cs, n=n,
         nprime=nprime, subclassv=subcls, jesdv=1, s=s, hd=hd, cf=cf,
     )
@@ -382,6 +389,16 @@ async def test_ilas02_config_octets(dut):
             f"  DUT   ={[(hex(b), ik) for b, ik in d_octs]}"
         )
 
+    # --- Test 2b: octet-3 lane-count field advertises L-1 explicitly ---
+    # cfg[2..5] land in the GT word right after the /R/+/Q/ opener (RTL wordCnt=2):
+    # cfg[2]@oct0, cfg[3]@oct1, cfg[4]@oct2, cfg[5]@oct3.  octet 3 carries SCR|L-1.
+    cfg_word_octets = decode_gt_word(*words[mf1_start + 1])
+    octet3_val = cfg_word_octets[1][0]
+    assert (octet3_val & 0x1F) == (l_g - 1), (
+        f"ILAS lane-count FAIL: K={k} F={f} L_G={l_g}: octet-3 L field "
+        f"expected L-1={l_g - 1}, got {octet3_val & 0x1F}"
+    )
+
     # --- Test 3: Config octets absent from MF0, MF2, MF3 ---
     for mf_idx in [0, 2, 3]:
         mf_start = first_r + mf_idx * mf_period
@@ -418,7 +435,7 @@ def test_JesdIlasGen_ilas01(parameters):
         test_file=__file__,
         toplevel="surf.jesdilasgen",
         parameters=parameters,
-        extra_env={**parameters, "TESTCASE": "test_ilas01_framing"},
+        extra_env={**parameters, "COCOTB_TEST_FILTER": "test_ilas01_framing"},
         sim_build_key=(
             "tests/sim_build/protocols/jesd204b/test_JesdIlasGen.ilas01."
             + ".".join(f"{k}={v}" for k, v in parameters.items())
@@ -434,7 +451,7 @@ def test_JesdIlasGen_ilas02(parameters):
         test_file=__file__,
         toplevel="surf.jesdilasgen",
         parameters=hdl_params,
-        extra_env={**parameters, "TESTCASE": "test_ilas02_config_octets"},
+        extra_env={**parameters, "COCOTB_TEST_FILTER": "test_ilas02_config_octets"},
         sim_build_key=(
             "tests/sim_build/protocols/jesd204b/test_JesdIlasGen.ilas02."
             + ".".join(f"{k}={v}" for k, v in parameters.items())

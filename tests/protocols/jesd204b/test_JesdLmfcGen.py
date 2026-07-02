@@ -350,10 +350,12 @@ async def test_sysref_re_pulse_clause_d(dut):
 # ---------------------------------------------------------------------------
 # pytest wrappers
 #
-# Three wrappers allow independent -k selection:
-#   pytest -k period  → test_JesdLmfcGen_period  (period sweep only)
-#   pytest -k sysref  → test_JesdLmfcGen_sysref  (SYSREF-gating only)
-#   pytest            → test_JesdLmfcGen          (all coroutines)
+# Selective cocotb execution uses COCOTB_TEST_FILTER (a coroutine-name regex
+# honored by cocotb 2.x); the bare TESTCASE env var is NOT read by cocotb 2.x
+# and would run every coroutine.
+#   pytest -k period  → test_JesdLmfcGen_period  (COCOTB_TEST_FILTER=test_period)
+#   pytest -k sysref  → test_JesdLmfcGen_sysref  (COCOTB_TEST_FILTER=test_sysref)
+#   pytest            → test_JesdLmfcGen          (all coroutines, no filter)
 # Each wrapper uses a unique sim_build_key for parallel xdist isolation.
 # ---------------------------------------------------------------------------
 
@@ -364,7 +366,7 @@ def test_JesdLmfcGen_period(parameters):
         test_file=__file__,
         toplevel="surf.jesdlmfcgen",
         parameters=parameters,
-        extra_env={**parameters, "TESTCASE": "test_period"},
+        extra_env={**parameters, "COCOTB_TEST_FILTER": "test_period"},
         sim_build_key=(
             "tests/sim_build/protocols/jesd204b/test_JesdLmfcGen.period."
             + ".".join(f"{k}={v}" for k, v in parameters.items())
@@ -381,12 +383,8 @@ def test_JesdLmfcGen_sysref(parameters):
         parameters=parameters,
         extra_env={
             **parameters,
-            "TESTCASE": (
-                "test_sysref_realign_clause_a,"
-                "test_sysref_gate_clause_b,"
-                "test_sysref_phase_neutral_clause_c,"
-                "test_sysref_re_pulse_clause_d"
-            ),
+            # Regex matches all four test_sysref_*_clause_* coroutines
+            "COCOTB_TEST_FILTER": "test_sysref",
         },
         sim_build_key=(
             "tests/sim_build/protocols/jesd204b/test_JesdLmfcGen.sysref."
