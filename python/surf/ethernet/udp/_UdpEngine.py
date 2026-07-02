@@ -136,6 +136,7 @@ class UdpEngine(pr.Device):
                           '0=Not-ECT, 1=ECT(1), 2=ECT(0), 3=CE. Set to 0 (Not-ECT) on a switchless '
                           'point-to-point link to keep the host NIC from engaging RoCEv2 DCQCN.',
             offset      = 0xFFC,
+            bitOffset   = 16,
             bitSize     = 2,
             mode        = 'RW',
             enum        = {0: 'Not-ECT', 1: 'ECT(1)', 2: 'ECT(0)', 3: 'CE'},
@@ -146,7 +147,7 @@ class UdpEngine(pr.Device):
             description = 'Runtime IP-header DSCP field for all TX IP packets (resets to the DSCP_G generic). '
                           'On a managed fabric, set to match the switch lossless/ECN traffic class.',
             offset      = 0xFFC,
-            bitOffset   = 2,
+            bitOffset   = 18,
             bitSize     = 6,
             mode        = 'RW',
         ))

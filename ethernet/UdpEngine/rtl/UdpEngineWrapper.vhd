@@ -263,8 +263,8 @@ begin
       axiSlaveRegister (regCon, x"FF0", 0, v.broadcastIp);
       axiSlaveRegisterR(regCon, x"FF4", 0, dhcpIp);
       axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
-      axiSlaveRegister (regCon, x"FFC", 0, v.ecnFlag);
-      axiSlaveRegister (regCon, x"FFC", 2, v.dscpFlag);
+      axiSlaveRegister (regCon, x"FFC", 16, v.ecnFlag);
+      axiSlaveRegister (regCon, x"FFC", 18, v.dscpFlag);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
