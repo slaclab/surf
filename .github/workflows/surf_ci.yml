@@ -14,7 +14,10 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-on: [push]
+on:
+  push:
+  pull_request:
+    branches: [ main ]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -84,6 +87,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -104,12 +109,74 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
+      # The resolver needs `ghdl --gen-depends`, which apt mcode lacks and apt
+      # ghdl-llvm is broken for on ubuntu-24.04. Install GHDL's official LLVM
+      # build (bundles libLLVM) for the resolver ONLY; the cocotb sims run on
+      # the apt mcode ghdl (fast -- llvm codegen is far slower).
+      - name: Setup GHDL (official LLVM build, for the resolver)
+        uses: ghdl/setup-ghdl@v1
+        with:
+          version: v6.0.0
+          backend: llvm
+
+      - name: Determine run mode
+        id: mode
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/main" ]] \
+             || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=selective" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Parallel Regression Tests
         run: |
-          make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+          # setup-ghdl prepended the official llvm ghdl (has --gen-depends).
+          # The apt mcode ghdl (/usr/bin/ghdl) runs the fast cocotb sims; build
+          # MCODE_PATH by dropping the llvm bin dir so bare `ghdl` is mcode.
+          LLVM_GHDL="$(command -v ghdl)"
+          LLVM_DIR="$(dirname "$LLVM_GHDL")"
+          MCODE_PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$LLVM_DIR" | paste -sd:)"
+
+          # Build the surf library with the llvm ghdl so the resolver's
+          # gen-depends (also llvm) reads a version-consistent .cf. build/ is
+          # consumed only by the resolver and the source-list step; the sims
+          # recompile from source on mcode.
+          GHDL_CMD="$LLVM_GHDL" make MODULES=$PWD import
+
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            PATH="$MCODE_PATH" python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+            exit 0
+          fi
+
+          # Resolve affected tests with the llvm ghdl (--gen-depends). The
+          # resolver prints a rationale (resolved/unresolved counts) to stderr;
+          # set SURF_DEP_MAP_DEBUG=1 here to also log why each toplevel is
+          # unresolved when diagnosing selection.
+          if resolver_output="$(GHDL="$LLVM_GHDL" python -m tests.common)"; then
+            resolver_rc=0
+          else
+            resolver_rc=$?
+          fi
+
+          echo "${resolver_output}"
+
+          # Run the cocotb sims on the fast apt mcode ghdl, not llvm.
+          export PATH="$MCODE_PATH"
+
+          if [[ "${resolver_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${resolver_output}"; then
+            echo "Resolver forced a full run (rc=${resolver_rc})"
+            python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+          elif [[ -z "${resolver_output}" ]]; then
+            echo "No affected tests for this change set -- nothing to run."
+          else
+            mapfile -t targets < <(printf '%s\n' "${resolver_output}" | tr '.' '/' | sed 's/$/.py/')
+            python -m pytest --cov -v -n auto --dist=worksteal "${targets[@]}"
+          fi
 
       - name: Code Coverage
+        if: steps.mode.outputs.value == 'full'
         run: |
           codecov
           coverage report -m
