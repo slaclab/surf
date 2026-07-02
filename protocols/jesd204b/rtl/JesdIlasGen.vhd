@@ -44,6 +44,7 @@ entity JesdIlasGen is
       TPD_G    : time            := 1 ns;
       F_G      : positive        := 2;
       K_G      : positive        := 32;
+      L_G      : positive        := 1;         -- Lanes in link (Table 21 octet 3, encoded L-1)
       -- ILAS config generics (all default 0 -- existing instances unaffected)
       DID_G    : slv(7 downto 0) := x"00";     -- Device ID
       BID_G    : slv(3 downto 0) := x"0";      -- Bank ID
@@ -137,8 +138,8 @@ begin
       cfg(1)  := "0000" & BID_G;
       -- octet 2: X=0, ADJDIR=0, PHADJ=0, LID[4:0]
       cfg(2)  := "000" & lid_i;
-      -- octet 3: SCR[7], X=0, X=0, L[4:0]=0 (single-lane wrapper; L=1 encoded as 0)
-      cfg(3)  := scrEnable_i & "00" & "00000";
+      -- octet 3: SCR[7], X=0, X=0, L-1[4:0] (Table 21 lane count, L encoded as L-1)
+      cfg(3)  := scrEnable_i & "00" & conv_std_logic_vector(L_G - 1, 5);
       -- octet 4: F-1 [7:0]
       cfg(4)  := conv_std_logic_vector(F_G - 1, 8);
       -- octet 5: X=0, X=0, X=0, K-1 [4:0]

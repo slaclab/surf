@@ -342,6 +342,7 @@ begin
             TPD_G    => TPD_G,
             F_G      => F_G,
             K_G      => K_G,
+            L_G      => L_G,
             DID_G    => DID_G,
             BID_G    => BID_G,
             M_G      => M_G,

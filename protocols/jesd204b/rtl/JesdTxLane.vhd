@@ -47,6 +47,7 @@ entity JesdTxLane is
       TPD_G    : time            := 1 ns;
       F_G      : positive        := 2;
       K_G      : positive        := 32;
+      L_G      : positive        := 1;         -- Lanes in link (Table 21 octet 3, encoded L-1)
       -- ILAS config generics (all defaulted -- existing instances unaffected)
       DID_G    : slv(7 downto 0) := x"00";     -- Device ID
       BID_G    : slv(3 downto 0) := x"0";      -- Bank ID
@@ -149,6 +150,7 @@ begin
          TPD_G    => TPD_G,
          F_G      => F_G,
          K_G      => K_G,
+         L_G      => L_G,
          DID_G    => DID_G,
          BID_G    => BID_G,
          M_G      => M_G,
