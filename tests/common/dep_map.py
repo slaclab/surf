@@ -19,7 +19,6 @@ import sys
 
 from tests.common.regression_utils import (
     REPO_ROOT,
-    TESTS_ROOT,
     cocotb_module_name_from_test_file,
 )
 
@@ -77,16 +76,17 @@ def discover_toplevels(
     resolved: dict[str, set[str]] = {}
     always_run: set[str] = set()
 
+    tests_root = repo_root / "tests"
     test_files: list[Path] = []
     for scan_dir in scan_dirs:
-        scan_path = TESTS_ROOT / scan_dir
+        scan_path = tests_root / scan_dir
         if not scan_path.is_dir():
             # Path.rglob on a nonexistent directory returns an empty
             # iterator rather than raising, which would otherwise silently
             # discover zero tests for a mistyped --scan-dir (or a future
             # DEFAULT_SCAN_DIRS typo) with no always_run/FORCE_FULL trigger
             # to catch it. Raise loudly instead (D-10 indeterminacy).
-            raise FileNotFoundError(f"--scan-dir {scan_dir!r} does not exist under {TESTS_ROOT}")
+            raise FileNotFoundError(f"--scan-dir {scan_dir!r} does not exist under {tests_root}")
         test_files.extend(sorted(scan_path.rglob("test_*.py")))
 
     for test_file in test_files:
