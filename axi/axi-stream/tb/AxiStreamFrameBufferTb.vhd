@@ -124,7 +124,7 @@ begin
          axilRdTrig      => r.axilRdTrig,
          -- AXI-Stream Interface (axilClk domain)
          axisClk         => axiClk,
-         axisRst         => dataRst,
+         axisRst         => axiRst,
          axisMaster      => axisMaster,
          axisSlave       => axisSlave);
 
