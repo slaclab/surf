@@ -231,6 +231,11 @@ begin
    ----------------------
 
    GEN_RAM : for i in N_BUFFS_C - 1 downto 0 generate
+      signal ramWrEnMasked : sl;
+   begin
+
+      ramWrEnMasked <= dataR.ramWrEn and dataR.ramWrEnMask(i);
+
       GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
          U_Ram : entity surf.SimpleDualPortRamXpm
             generic map (
@@ -244,7 +249,7 @@ begin
             port map (
                -- Port A
                clka   => dataClk,
-               wea(0) => dataR.ramWrEn and dataR.ramWrEnMask(i),
+               wea(0) => ramWrEnMasked,
                addra  => dataR.ramWrAddr,
                dina   => dataR.ramWrData,
                -- Port B
@@ -266,7 +271,7 @@ begin
             port map (
                -- Port A
                clka   => dataClk,
-               wea(0) => dataR.ramWrEn and dataR.ramWrEnMask(i),
+               wea(0) => ramWrEnMasked,
                addra  => dataR.ramWrAddr,
                dina   => dataR.ramWrData,
                -- Port B
@@ -288,7 +293,7 @@ begin
             port map (
                -- Port A
                clka  => dataClk,
-               wea   => dataR.ramWrEn and dataR.ramWrEnMask(i),
+               wea   => ramWrEnMasked,
                addra => dataR.ramWrAddr,
                dina  => dataR.ramWrData,
                -- Port B
