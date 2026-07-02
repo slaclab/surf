@@ -158,6 +158,8 @@ begin
                -- Latch tUser from the first beat of each packet
                if not r.tUserSet then
                   v.obMaster.tUser := sAxisMaster.tUser;
+                  v.obMaster.tDest := sAxisMaster.tDest;
+                  v.obMaster.tId   := sAxisMaster.tId;
                   v.tUserSet       := true;
                end if;
 

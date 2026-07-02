@@ -9,17 +9,18 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep one stable same-width (4-byte) wrapper case.
+# - Sweep: Run same-width and widening cases through the flat IP-integrator
+#   wrapper, including 4-byte and 8-byte output widths.
 # - Stimulus: Drive contiguous-from-bit-0 tKeep beats into the flat slave port
-#   and hold the master ready high.
-# - Checks (three scenarios, reset between each):
-#   1. Full-keep passthrough: a full-keep beat passes straight through, so the
-#      output must preserve the payload data + full-byte keep mask and end with
-#      `tLast`.
+#   with both always-ready and held-ready-low sink behavior.
+# - Checks (four scenarios, reset between each):
+#   1. Single-beat final flush preserves payload, keep, sidebands, and `tLast`.
 #   2. Multi-beat repack: four contiguous single-byte beats compact into one
 #      full 4-byte output word.
-#   3. Overflow + partial-final flush: two 3-byte beats fill one word and spill
-#      the remainder onto a second beat carrying `tLast` with a partial keep.
+#   3. Overflow + partial-final flush: more than one master word of payload
+#      fills one word and spills the remainder onto a second beat carrying
+#      `tLast` with a partial keep.
+#   4. Output backpressure holds the output beat stable until `M_AXIS_TREADY`.
 
 import cocotb
 import pytest
@@ -33,6 +34,9 @@ class TB:
     def __init__(self, dut):
         self.dut = dut
         self.rx_beats = []
+        self.slave_bytes = len(dut.S_AXIS_TKEEP)
+        self.master_bytes = len(dut.M_AXIS_TKEEP)
+        self.user_mask = (1 << len(dut.S_AXIS_TUSER)) - 1
 
         cocotb.start_soon(Clock(dut.axisClk, 5.0, unit="ns").start())
         dut.axisRst.setimmediatevalue(1)
@@ -67,13 +71,19 @@ class TB:
                         int(self.dut.M_AXIS_TDATA.value),
                         int(self.dut.M_AXIS_TKEEP.value),
                         int(self.dut.M_AXIS_TLAST.value),
+                        int(self.dut.M_AXIS_TDEST.value),
+                        int(self.dut.M_AXIS_TID.value),
+                        int(self.dut.M_AXIS_TUSER.value),
                     )
                 )
 
-    async def drive_beat(self, *, data: int, keep: int, last: int):
+    async def drive_beat(self, *, data: int, keep: int, last: int, dest: int, tid: int, user: int):
         self.dut.S_AXIS_TDATA.value = data
         self.dut.S_AXIS_TKEEP.value = keep
         self.dut.S_AXIS_TLAST.value = last
+        self.dut.S_AXIS_TDEST.value = dest
+        self.dut.S_AXIS_TID.value = tid
+        self.dut.S_AXIS_TUSER.value = user & self.user_mask
         self.dut.S_AXIS_TVALID.value = 1
         while True:
             await RisingEdge(self.dut.axisClk)
@@ -82,38 +92,93 @@ class TB:
                 break
         self.dut.S_AXIS_TVALID.value = 0
 
+    async def drive_payload(self, payload: bytes, *, chunk_size: int, dest: int, tid: int, user: int):
+        offset = 0
+        while offset < len(payload):
+            chunk = payload[offset:offset + chunk_size]
+            offset += len(chunk)
+            await self.drive_beat(
+                data=int.from_bytes(chunk, "little"),
+                keep=(1 << len(chunk)) - 1,
+                last=1 if offset == len(payload) else 0,
+                dest=dest,
+                tid=tid,
+                user=user,
+            )
+
+    def expected_beat(self, payload: bytes, *, last: int, dest: int, tid: int, user: int):
+        return (
+            int.from_bytes(payload.ljust(self.master_bytes, b"\x00"), "little"),
+            (1 << len(payload)) - 1,
+            last,
+            dest,
+            tid,
+            user & self.user_mask,
+        )
+
 
 @cocotb.test()
 async def repack_scenarios_test(dut):
     tb = TB(dut)
 
-    # Scenario 1: a full-keep beat passes straight through unchanged.
+    dest = 0x5A
+    tid = 0xC3
+    user = 0x3
+
+    # Scenario 1: a single final beat flushes unchanged.
     await tb.reset()
     tb.rx_beats.clear()
-    await tb.drive_beat(data=0x44332211, keep=0xF, last=1)
+    single = bytes(range(0x11, 0x11 + tb.slave_bytes))
+    await tb.drive_payload(single, chunk_size=tb.slave_bytes, dest=dest, tid=tid, user=user)
     await tb.cycle(4)
-    assert tb.rx_beats == [(0x44332211, 0xF, 1)], tb.rx_beats
+    assert tb.rx_beats == [tb.expected_beat(single, last=1, dest=dest, tid=tid, user=user)], tb.rx_beats
 
     # Scenario 2: four contiguous single-byte beats compact into one full word.
     await tb.reset()
     tb.rx_beats.clear()
-    payload = (0x21, 0x32, 0x43, 0x54)
-    for i, byte in enumerate(payload):
-        await tb.drive_beat(data=byte, keep=0x1, last=1 if i == len(payload) - 1 else 0)
+    payload = bytes(range(0x21, 0x21 + tb.master_bytes))
+    await tb.drive_payload(payload, chunk_size=1, dest=dest, tid=tid, user=user)
     await tb.cycle(4)
-    assert tb.rx_beats == [(0x54433221, 0xF, 1)], tb.rx_beats
+    assert tb.rx_beats == [tb.expected_beat(payload, last=1, dest=dest, tid=tid, user=user)], tb.rx_beats
 
-    # Scenario 3: two 3-byte beats overflow the 4-byte word; the remainder is
-    # flushed on a second beat carrying tLast and a partial keep mask.
+    # Scenario 3: payload longer than the master width spills onto a final
+    # partial beat.
     await tb.reset()
     tb.rx_beats.clear()
-    await tb.drive_beat(data=0x00332211, keep=0x7, last=0)
-    await tb.drive_beat(data=0x00665544, keep=0x7, last=1)
+    payload = bytes(range(0x31, 0x31 + tb.master_bytes + 2))
+    await tb.drive_payload(payload, chunk_size=min(tb.slave_bytes, tb.master_bytes - 1), dest=dest, tid=tid, user=user)
     await tb.cycle(4)
-    assert tb.rx_beats == [(0x44332211, 0xF, 0), (0x00006655, 0x3, 1)], tb.rx_beats
+    assert tb.rx_beats == [
+        tb.expected_beat(payload[:tb.master_bytes], last=0, dest=dest, tid=tid, user=user),
+        tb.expected_beat(payload[tb.master_bytes:], last=1, dest=dest, tid=tid, user=user),
+    ], tb.rx_beats
+
+    # Scenario 4: backpressure holds a completed output beat until the sink is ready.
+    await tb.reset()
+    tb.rx_beats.clear()
+    dut.M_AXIS_TREADY.value = 0
+    payload = bytes(range(0x51, 0x51 + tb.slave_bytes))
+    await tb.drive_payload(payload, chunk_size=tb.slave_bytes, dest=dest, tid=tid, user=user)
+    await tb.cycle(3)
+    assert tb.rx_beats == []
+    assert int(dut.M_AXIS_TVALID.value) == 1
+    assert int(dut.M_AXIS_TDATA.value) == int.from_bytes(payload.ljust(tb.master_bytes, b"\x00"), "little")
+    assert int(dut.M_AXIS_TKEEP.value) == (1 << len(payload)) - 1
+    assert int(dut.M_AXIS_TLAST.value) == 1
+    dut.M_AXIS_TREADY.value = 1
+    await tb.cycle(4)
+    assert tb.rx_beats == [tb.expected_beat(payload, last=1, dest=dest, tid=tid, user=user)], tb.rx_beats
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="contiguous_same_width")])
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        pytest.param({}, id="contiguous_same_width"),
+        pytest.param({"SLAVE_DATA_BYTES_G": 2, "MASTER_DATA_BYTES_G": 4}, id="contiguous_2_to_4"),
+        pytest.param({"SLAVE_DATA_BYTES_G": 4, "MASTER_DATA_BYTES_G": 8}, id="contiguous_4_to_8"),
+        pytest.param({"SLAVE_DATA_BYTES_G": 8, "MASTER_DATA_BYTES_G": 8}, id="contiguous_8_to_8"),
+    ],
+)
 def test_AxiStreamCompact(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
