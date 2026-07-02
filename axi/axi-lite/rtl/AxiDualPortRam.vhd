@@ -36,8 +36,8 @@ entity AxiDualPortRam is
       SYS_WR_EN_G         : boolean                    := false;
       SYS_BYTE_WR_EN_G    : boolean                    := false;
       COMMON_CLK_G        : boolean                    := false;
-      ADDR_WIDTH_G        : integer range 1 to (2**24) := 5;
-      DATA_WIDTH_G        : integer                    := 32;
+      ADDR_WIDTH_G        : integer;
+      DATA_WIDTH_G        : integer;
       INIT_G              : slv                        := "0");
    port (
       -- Axi Port
