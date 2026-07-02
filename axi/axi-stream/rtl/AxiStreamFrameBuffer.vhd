@@ -552,13 +552,22 @@ begin
                v.rdFinalAddr := rdFinalAddrSync;
                -- Reset read address
                v.ramRdAddr   := (others => '0');
-               -- Queue up the first read by writing to shift register
-               v.rdEn(0)     := '1';
-
                -- Reset read request signal in case it was set
-               v.rdReq     := '0';
-               -- Start moving data
-               v.axisState := MOVE_S;
+               v.rdReq       := '0';
+
+               -- Check edge case of empty buffer. Move immediately to next state
+               -- if buffer is empty to avoid spurious word on axi-stream
+               -- interface as move logic always transmits at least one word
+               -- while asserting the tLast signal.
+               if rdFinalAddrSync = 0 then
+                  -- Shortcut to DONE_S
+                  v.axisState := DONE_S;
+               else
+                  -- Queue up the first read by writing to shift register
+                  v.rdEn(0)   := '1';
+                  -- Start moving data
+                  v.axisState := MOVE_S;
+               end if;
             end if;
          ----------------------------------------------------------------------
          when DONE_S =>
