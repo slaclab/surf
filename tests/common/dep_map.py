@@ -638,8 +638,18 @@ def select_tests(
 
     A changed `wrappers/*.vhd` file with a `wrapper_index` entry selects
     exactly its attributed owner module(s) and is never subjected to the
-    generic dependency-set check above — a wrapper edit for an
-    always_run/unresolved owner must not trip a needless full run.
+    generic dependency-set check above. `wrapper_index` is built from the
+    `resolved` toplevels (CLI: `build_wrapper_index(cf_units, resolved)`),
+    which still carry the literal `toplevel=` names of modules whose
+    `ghdl --gen-depends` later failed (`unresolved_modules`, folded into
+    `always_run`). So a wrapper edit for such an *unresolved* owner is
+    attributed precisely by the wrapper scan and does not trip a full run,
+    even though that owner's toplevel can't be GHDL-analyzed on its own. A
+    wrapper whose only owner is a *non-literal-toplevel* always_run test
+    (absent from `resolved`, so unattributable) has no `wrapper_index` entry
+    and does fall to the unattributable-wrapper FORCE_FULL branch above — the
+    precise handling here covers resolved and gen-depends-unresolved owners,
+    not non-literal always_run owners.
 
     Python test/helper changes are resolved by `map_python_changes` (D-11)
     and unioned into the selection; they participate in this function only
