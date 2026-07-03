@@ -73,7 +73,17 @@ def main() -> int:
             print("rationale: could not compute merge-base with origin/main", file=sys.stderr)
             return 1
 
-    resolved, always_run = dep_map.discover_toplevels(REPO_ROOT, scan_dirs)
+    try:
+        resolved, always_run = dep_map.discover_toplevels(REPO_ROOT, scan_dirs)
+    except FileNotFoundError as exc:
+        # A bad --scan-dir (mistyped, or a future DEFAULT_SCAN_DIRS typo)
+        # makes discover_toplevels() raise loudly rather than silently
+        # discover zero tests. Fail open the same way as the merge-base and
+        # .cf paths below: emit the FORCE_FULL sentinel on stdout so the
+        # single-stdout-line contract holds (indeterminate -> full run).
+        print(dep_map.FORCE_FULL)
+        print(f"rationale: could not discover test toplevels ({exc})", file=sys.stderr)
+        return 1
     # Import the wrapper / ip_integrator sources `make import` omits so their
     # toplevels are analyzable by `ghdl --gen-depends`. Without this, the
     # majority of cocotb tests -- which wrap their DUT because cocotb cannot

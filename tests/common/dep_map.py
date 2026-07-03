@@ -354,12 +354,15 @@ def parse_wrapper_entity_units(
 
     No `ruckus.tcl` in this repo ever loads a `wrappers/` directory into
     `make import` (verified: zero `wrappers/` entries in a clean
-    `build/surf-obj08.cf`), so `parse_cf_units` alone can never see these
-    files -- every wrapper is compiled per-test via `extra_vhdl_sources`
-    instead. This is the primary source `build_wrapper_index` needs for
-    wrapper unit names; `.cf` is joined only opportunistically for the
-    (currently nonexistent, but not structurally impossible) case of a
-    wrapper file that also happens to be pulled into a normal build.
+    `build/surf-obj08.cf`), so a `.cf` from `make import` alone would not
+    carry these files -- every wrapper is compiled per-test via
+    `extra_vhdl_sources` instead. This direct scan is therefore the primary
+    source `build_wrapper_index` needs for wrapper unit names. The resolver
+    does inject wrapper sources into the `.cf` itself (the CLI runs
+    `import_test_local_sources` -> `ghdl -i` on these same files before
+    reading the `.cf`), so `parse_cf_units` can in fact surface wrappers;
+    they are unioned in on top of this scan, which is harmless -- both
+    describe the same file -> unit mapping.
 
     The scan is scoped to `scan_dirs` (mirroring
     `discover_test_local_sources`): a wrapper outside the scanned universe
@@ -389,9 +392,13 @@ def build_wrapper_index(
 
     `cf_units` need not come from `.cf` alone -- callers should union
     `parse_cf_units`'s output with `parse_wrapper_entity_units`'s output
-    before calling this, since `.cf` never contains wrapper files (see
-    `parse_wrapper_entity_units`). This join itself is source-agnostic: it
-    only cares that wrapper paths map to the unit name(s) they declare.
+    before calling this. A `.cf` produced by `make import` alone carries no
+    wrapper files, so the direct wrapper scan is the reliable source; note
+    the resolver can still add wrapper/ip_integrator sources to the `.cf` by
+    running `ghdl -i` in the same workdir (see `parse_wrapper_entity_units`),
+    so `.cf` is not guaranteed wrapper-free. This join itself is
+    source-agnostic: it only cares that wrapper paths map to the unit
+    name(s) they declare.
 
     A wrapper file whose unit no test's `toplevel=` names produces no
     entry here -- that is not an error, it is the expected shape for a

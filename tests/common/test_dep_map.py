@@ -805,3 +805,22 @@ def test_import_test_local_sources_ghdl_failure_is_nonfatal(monkeypatch, tmp_pat
     monkeypatch.setattr(dep_map.subprocess, "run", fake_run)
 
     assert dep_map.import_test_local_sources(tmp_path, "/wd", []) == 1
+
+
+# --- CLI fail-open (tests/common/__main__.py) -------------------------------
+
+
+def test_cli_bad_scan_dir_fails_open_to_force_full(monkeypatch, capsys):
+    # discover_toplevels() raises FileNotFoundError on a bad --scan-dir; the
+    # CLI must fail open by printing the FORCE_FULL sentinel on stdout (single
+    # line, per the indeterminate-resolution contract) and returning non-zero,
+    # rather than letting the exception escape unhandled.
+    from tests.common import __main__ as cli
+
+    monkeypatch.setattr(cli.sys, "argv", ["dep_map", "--scan-dir", "no_such_subtree", "--changed-files-override", ""])
+
+    rc = cli.main()
+
+    out = capsys.readouterr().out.splitlines()
+    assert rc == 1
+    assert out == [dep_map.FORCE_FULL]
