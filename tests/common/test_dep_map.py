@@ -145,6 +145,32 @@ def test_changed_files_classification(tmp_path):
     assert "old_name.vhd" not in changes
 
 
+def test_changed_files_normalizes_unknown_status_to_modified():
+    # git can emit statuses beyond {A, M, D, R} (e.g. 'T' typechange). The
+    # documented contract is {A, M, D}, so any such status must normalize to
+    # 'M' — downstream select_tests only special-cases 'D', treating every
+    # other status as a modification anyway.
+    import tests.common.dep_map as dep_map_module
+
+    class _FakeCompleted:
+        stdout = "T\ttypechanged.vhd\nX\tweird.vhd\nM\tmodified.vhd\n"
+
+    def fake_run(args, **kwargs):
+        return _FakeCompleted()
+
+    old_run = dep_map_module.subprocess.run
+    dep_map_module.subprocess.run = fake_run
+    try:
+        changes = dep_map_module.changed_files("deadbeef")
+    finally:
+        dep_map_module.subprocess.run = old_run
+
+    assert changes["typechanged.vhd"] == "M"
+    assert changes["weird.vhd"] == "M"
+    assert changes["modified.vhd"] == "M"
+    assert set(changes.values()) <= {"A", "M", "D"}
+
+
 # --- D-10: broad fail-open --------------------------------------------------
 
 

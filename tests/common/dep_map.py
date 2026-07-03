@@ -373,14 +373,17 @@ def parse_wrapper_entity_units(
     for scan_dir in scan_dirs:
         for wrapper_file in sorted((repo_root / scan_dir).rglob("wrappers/*.vhd")):
             repo_relative = wrapper_file.resolve().relative_to(repo_root).as_posix()
-            for line in wrapper_file.read_text(encoding="utf-8").splitlines():
-                match = _WRAPPER_ENTITY_LINE.match(line)
-                if match:
-                    wrapper_units.setdefault(repo_relative, set()).add(match.group(1).lower())
-                    # A wrapper file declares exactly one entity (the DUT it
-                    # wraps for cocotb), so stop at the first declaration
-                    # rather than scanning the rest of the file.
-                    break
+            with wrapper_file.open(encoding="utf-8") as handle:
+                for line in handle:
+                    match = _WRAPPER_ENTITY_LINE.match(line)
+                    if match:
+                        wrapper_units.setdefault(repo_relative, set()).add(match.group(1).lower())
+                        # A wrapper file declares exactly one entity (the DUT it
+                        # wraps for cocotb), so stop at the first declaration.
+                        # Iterating the handle reads lazily, so the break also
+                        # avoids reading the rest of the file (unlike
+                        # read_text(), which loads it all up front).
+                        break
     return dict(sorted(wrapper_units.items()))
 
 
@@ -604,7 +607,13 @@ def changed_files(merge_base: str) -> dict[str, str]:
         elif status.startswith("D"):
             changes[paths[0]] = "D"
         else:
-            changes[paths[0]] = status[0]
+            # Normalize any other status code (e.g. 'T' typechange) to 'M' so
+            # the documented {A, M, D} contract holds. Downstream select_tests
+            # only special-cases 'D'; every other status is treated like a
+            # modification anyway, so this is contract-tightening, not a
+            # behavior change.
+            code = status[0]
+            changes[paths[0]] = code if code in ("A", "M") else "M"
     return changes
 
 
