@@ -17,7 +17,11 @@ import subprocess
 import pytest
 
 from tests.common import dep_map
-from tests.common.regression_utils import REPO_ROOT, TESTS_ROOT
+from tests.common.regression_utils import (
+    REPO_ROOT,
+    TESTS_ROOT,
+    cocotb_module_name_from_test_file,
+)
 
 
 def test_select_tests_happy_path():
@@ -47,10 +51,9 @@ def test_select_tests_happy_path():
 
 def test_select_tests_no_matching_dependency():
     # A changed .vhd that matches no test's dependency set is exactly the
-    # D-10 fail-open trigger (superseding Plan 01's placeholder
-    # "force_full is always False" note) — see
+    # fail-open trigger — see
     # test_select_tests_force_full_on_unresolved_changed_rtl_file below for
-    # the dedicated D-10 assertion.
+    # the dedicated assertion.
     built_map = {"tests.base.fifo.test_FifoAsync": {"base/fifo/rtl/FifoAsync.vhd"}}
     always_run: set[str] = set()
     changed = {"axi/axi-lite/rtl/AxiLiteAsync.vhd": "M"}
@@ -73,9 +76,26 @@ def test_discover_toplevels_always_run_for_dynamic_toplevel():
 
     # test_FirFilterTap.py builds its toplevel from an f-string
     # (`f"surf.{wrapper_name.lower()}"`) — not a literal, so it must be
-    # conservatively always-run per D-08, never silently resolved/skipped.
+    # conservatively always-run, never silently resolved/skipped.
     assert "tests.dsp.generic.test_FirFilterTap" in always_run
     assert "tests.dsp.generic.test_FirFilterTap" not in resolved
+
+
+def test_discover_toplevels_scoped_to_repo_root(tmp_path):
+    # discover_toplevels() must derive the module name relative to the
+    # passed-in `repo_root`, not the module-global REPO_ROOT. A temp checkout
+    # whose paths are outside REPO_ROOT would otherwise raise ValueError in
+    # `relative_to(REPO_ROOT)`; here the resolved key is anchored to tmp_path.
+    test_dir = tmp_path / "tests" / "axi" / "foo"
+    test_dir.mkdir(parents=True)
+    (test_dir / "test_Bar.py").write_text(
+        "run_surf_vhdl_test(toplevel='surf.bar')\n", encoding="utf-8"
+    )
+
+    resolved, always_run = dep_map.discover_toplevels(tmp_path, scan_dirs=("axi",))
+
+    assert resolved == {"tests.axi.foo.test_Bar": {"surf.bar"}}
+    assert always_run == set()
 
 
 def test_discover_toplevels_raises_on_nonexistent_scan_dir():
@@ -171,13 +191,13 @@ def test_changed_files_normalizes_unknown_status_to_modified():
     assert set(changes.values()) <= {"A", "M", "D"}
 
 
-# --- D-10: broad fail-open --------------------------------------------------
+# --- broad fail-open --------------------------------------------------
 
 
 def test_select_tests_force_full_on_unresolved_changed_rtl_file():
     # A changed .vhd that intersects NO test's dependency set (a new,
     # renamed-away, or unwired unit the current graph can't attribute) must
-    # fail open to a full run, not silently select nothing (D-10).
+    # fail open to a full run, not silently select nothing.
     built_map = {"tests.base.fifo.test_FifoAsync": {"base/fifo/rtl/FifoAsync.vhd"}}
     always_run: set[str] = set()
     changed = {"axi/axi-lite/rtl/NewNeverSeenEntity.vhd": "A"}
@@ -208,7 +228,7 @@ def test_select_tests_no_force_full_when_all_changed_rtl_resolves():
 
 
 def test_select_tests_force_full_on_deletion():
-    # D-14: a true deletion (status 'D', not a rename) forces a full run —
+    # A true deletion (status 'D', not a rename) forces a full run —
     # the former dependents can't be resolved from the post-change graph.
     built_map = {"tests.base.fifo.test_FifoAsync": {"base/fifo/rtl/FifoAsync.vhd"}}
     always_run: set[str] = set()
@@ -220,7 +240,7 @@ def test_select_tests_force_full_on_deletion():
 
 
 def test_select_tests_rename_stays_precise():
-    # D-14: a rename resolves via the new path (changed_files() already
+    # A rename resolves via the new path (changed_files() already
     # emits status 'M' at the new path for renames) and stays precise — it
     # must NOT force a full run merely because the path is "new" to us.
     # The dep_map is padded with unrelated modules so the changed source's
@@ -271,7 +291,7 @@ def test_select_tests_wrapper_change_unattributable_forces_full():
 def test_merge_base_failure_is_a_fail_open_trigger(monkeypatch):
     # merge_base_with_origin_main() raises subprocess.CalledProcessError on
     # failure (e.g. origin/main absent) rather than returning a sentinel —
-    # callers (the CLI) must catch this and fail open, never crash (D-10).
+    # callers (the CLI) must catch this and fail open, never crash.
     def raise_called_process_error(*args, **kwargs):
         raise subprocess.CalledProcessError(returncode=128, cmd=args[0] if args else [])
 
@@ -287,11 +307,25 @@ def test_merge_base_failure_is_a_fail_open_trigger(monkeypatch):
 def test_gen_depends_sources_returns_none_on_ghdl_failure(monkeypatch):
     # A `ghdl --gen-depends` failure (CalledProcessError) must be signaled
     # distinctly from "no dependencies" -- None, not set() -- so callers can
-    # tell "unresolved" apart from "genuinely empty" (D-10).
+    # tell "unresolved" apart from "genuinely empty".
     def raise_called_process_error(*args, **kwargs):
         raise subprocess.CalledProcessError(returncode=1, cmd=args[0] if args else [])
 
     monkeypatch.setattr(dep_map.subprocess, "run", raise_called_process_error)
+
+    result = dep_map.gen_depends_sources("surf.somewrapper", "/nonexistent/workdir", [])
+
+    assert result is None
+
+
+def test_gen_depends_sources_returns_none_when_ghdl_missing(monkeypatch):
+    # A misconfigured GHDL_CMD (or `ghdl` absent from PATH) makes subprocess.run
+    # raise FileNotFoundError, not CalledProcessError. That must fail open to
+    # None (toplevel stays unresolved -> always-run), not crash the resolver.
+    def raise_file_not_found(*args, **kwargs):
+        raise FileNotFoundError(2, "No such file or directory", "ghdl")
+
+    monkeypatch.setattr(dep_map.subprocess, "run", raise_file_not_found)
 
     result = dep_map.gen_depends_sources("surf.somewrapper", "/nonexistent/workdir", [])
 
@@ -322,7 +356,7 @@ def test_build_dependency_map_reports_unresolved_toplevel(monkeypatch):
 
 
 def test_unresolved_toplevel_is_not_silently_dropped_from_selection(monkeypatch):
-    # CR-01 repro: toplevel A's GHDL analysis fails (unresolved) while
+    # Regression repro: toplevel A's GHDL analysis fails (unresolved) while
     # healthy toplevel B shares a changed file (StdRtlPkg.vhd) with it. Prior
     # to the fix, gen_depends_sources() folded A's failure into set(), so
     # dep_map["tests.axi.test_A"] == set() -- A could never be selected via
@@ -330,11 +364,11 @@ def test_unresolved_toplevel_is_not_silently_dropped_from_selection(monkeypatch)
     # (it's a "resolved" toplevel, not a non-literal one) -- so it silently
     # dropped out of `selected` entirely. Worse, `force_full` also stayed
     # False, because StdRtlPkg.vhd was still a "known source" via B's healthy
-    # entry -- a hard false-skip on the one path D-10 must not allow.
+    # entry -- a hard false-skip on the one path the fail-open contract must not allow.
     #
     # This test asserts the fix: A's failure is threaded through as an
     # `unresolved_modules` entry and unioned into `always_run` (the same
-    # fail-safe treatment D-08 already gives non-literal toplevels), so A's
+    # fail-safe treatment already given to non-literal toplevels), so A's
     # test is unconditionally selected -- never silently dropped.
     def fake_gen_depends_sources(toplevel, workdir, ghdl_flags):
         if toplevel == "surf.brokenwrapper":
@@ -358,7 +392,7 @@ def test_unresolved_toplevel_is_not_silently_dropped_from_selection(monkeypatch)
     assert "tests.base.test_B" in selected  # healthy toplevel still selected normally
 
 
-# --- D-11: Python test/helper change mapping --------------------------------
+# --- Python test/helper change mapping --------------------------------
 
 
 def test_map_python_changes_test_file_selects_itself():
@@ -388,7 +422,7 @@ def test_map_python_changes_subsystem_helper_selects_whole_subtree():
 
 
 def test_map_python_changes_common_carve_out_selects_nothing():
-    # PROJECT.md accepted-risk carve-out: a change confined to tests/common/
+    # accepted-risk carve-out: a change confined to tests/common/
     # (including regression_utils.py) must neither force full nor select
     # anything by itself.
     resolved_map = {"tests.axi.axi_lite.test_AxiLiteAsync": {"axi/axi-lite/rtl/AxiLiteAsync.vhd"}}
@@ -401,7 +435,7 @@ def test_map_python_changes_common_carve_out_selects_nothing():
     assert force_full is False
 
 
-# --- D-08: dict-literal AST backtrack ---------------------------------------
+# --- dict-literal AST backtrack ---------------------------------------
 
 
 def test_discover_toplevels_dict_literal_backtrack_resolves_pgp2b_wrappers():
@@ -433,7 +467,7 @@ def test_discover_toplevels_fstring_toplevel_stays_always_run():
 
     # Genuinely dynamic f-string toplevels (test_FirFilterTap.py,
     # test_FirFilterMultiChannel.py) are not resolvable by any static
-    # backtrack and must remain always-run (D-08).
+    # backtrack and must remain always-run.
     assert "tests.dsp.generic.test_FirFilterTap" in always_run
     assert "tests.dsp.generic.test_FirFilterMultiChannel" in always_run
     assert "tests.dsp.generic.test_FirFilterTap" not in resolved
@@ -459,7 +493,7 @@ def test_every_toplevel_call_site_is_resolved_or_always_run():
     unaccounted = []
     for scan_dir in dep_map.DEFAULT_SCAN_DIRS:
         for test_file in sorted((TESTS_ROOT / scan_dir).rglob("test_*.py")):
-            module_name = dep_map.cocotb_module_name_from_test_file(test_file)
+            module_name = cocotb_module_name_from_test_file(test_file)
             has_call_site = bool(_toplevel_call_sites(test_file))
             if not has_call_site:
                 continue  # no toplevel= call site in this file at all
@@ -504,6 +538,29 @@ def test_parse_cf_units_architecture_line_names_entity(tmp_path):
     # "architecture rtl of axilitetodrp" contributes "axilitetodrp" (the
     # entity name after "of"), not "rtl" (the architecture's own name).
     assert result == {"axi/bridge/rtl/AxiLiteToDrp.vhd": {"axilitetodrp"}}
+
+
+def test_parse_cf_units_accepts_absolute_and_relative_dir_field(tmp_path):
+    # The mandatory `<dir>` field in a `.cf` file line is `/` for an
+    # absolute-path import and `.` for a cwd-relative one. Both forms must
+    # parse identically; the field is matched, not optional (a line without it
+    # is not valid GHDL output and is intentionally left unmatched).
+    cf_file = tmp_path / "surf-obj08.cf"
+    cf_file.write_text(
+        "v 4\n"
+        f'file / "{REPO_ROOT}/base/general/rtl/StdRtlPkg.vhd" "sha1" "ts":\n'
+        "  package stdrtlpkg at 17( 979) + 0 on 4;\n"
+        f'file . "{REPO_ROOT}/axi/bridge/rtl/AxiLiteToDrp.vhd" "sha1" "ts":\n'
+        "  entity axilitetodrp at 15( 869) + 0 on 4;\n",
+        encoding="utf-8",
+    )
+
+    result = dep_map.parse_cf_units(cf_file)
+
+    assert result == {
+        "base/general/rtl/StdRtlPkg.vhd": {"stdrtlpkg"},
+        "axi/bridge/rtl/AxiLiteToDrp.vhd": {"axilitetodrp"},
+    }
 
 
 def test_is_wrapper_path_matches_segment_rejects_near_miss():
@@ -831,6 +888,23 @@ def test_import_test_local_sources_ghdl_failure_is_nonfatal(monkeypatch, tmp_pat
     monkeypatch.setattr(dep_map.subprocess, "run", fake_run)
 
     assert dep_map.import_test_local_sources(tmp_path, "/wd", []) == 1
+
+
+def test_import_test_local_sources_missing_ghdl_is_nonfatal(monkeypatch, tmp_path):
+    # A misconfigured GHDL_CMD (or `ghdl` absent from PATH) makes subprocess.run
+    # raise FileNotFoundError. That must be caught and treated as a non-fatal
+    # warning returning 0 imported sources -- every wrapper toplevel then stays
+    # always-run -- rather than crashing the CLI.
+    monkeypatch.setattr(
+        dep_map, "discover_test_local_sources", lambda *args, **kwargs: [tmp_path / "w/wrappers/W.vhd"]
+    )
+
+    def raise_file_not_found(*args, **kwargs):
+        raise FileNotFoundError(2, "No such file or directory", "ghdl")
+
+    monkeypatch.setattr(dep_map.subprocess, "run", raise_file_not_found)
+
+    assert dep_map.import_test_local_sources(tmp_path, "/wd", []) == 0
 
 
 # --- CLI fail-open (tests/common/__main__.py) -------------------------------

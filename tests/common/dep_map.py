@@ -18,10 +18,7 @@ import shlex
 import subprocess
 import sys
 
-from tests.common.regression_utils import (
-    REPO_ROOT,
-    cocotb_module_name_from_test_file,
-)
+from tests.common.regression_utils import REPO_ROOT
 
 
 # Scanned cocotb-test universe (surf_ci.yml simulates `tests/axi tests/base
@@ -64,20 +61,20 @@ def discover_toplevels(
     test's `toplevel` design unit(s) from its `toplevel=` call site(s)
     (`run_surf_vhdl_test(...)` and its thin per-family wrappers, e.g.
     `run_pgp_wrapper_test`/`run_line_code_*_test` — any call passing a
-    `toplevel=` keyword is in scope, per D-07/D-08).
+    `toplevel=` keyword is in scope).
 
     Returns `(resolved, always_run)`:
     - `resolved`: {cocotb_module_name: {toplevel_unit, ...}} for tests whose
       `toplevel=` kwarg(s) are literal string constants, or a one-level
       dict-literal backtrack (`parameters["TOPLEVEL"]`) that resolves to one
-      or more literal string values (D-08). A module can resolve to more
+      or more literal string values. A module can resolve to more
       than one toplevel when its `toplevel=` call site is itself
       parametrized over several literal design units (e.g. one wrapper test
       module sweeping several `surf.*wrapper` entities) — every one of them
       is included so the module's dependency set is the union of all of
       them, never a silent partial match.
     - `always_run`: cocotb module names whose `toplevel` could not be
-      statically resolved to a literal string (fail-safe per D-08) —
+      statically resolved to a literal string (fail-safe) —
       f-strings, cross-module passthrough params, or ambiguous backtracks.
     """
     resolved: dict[str, set[str]] = {}
@@ -92,19 +89,27 @@ def discover_toplevels(
             # iterator rather than raising, which would otherwise silently
             # discover zero tests for a mistyped --scan-dir (or a future
             # DEFAULT_SCAN_DIRS typo) with no always_run/FORCE_FULL trigger
-            # to catch it. Raise loudly instead (D-10 indeterminacy).
+            # to catch it. Raise loudly instead (indeterminacy).
             raise FileNotFoundError(f"--scan-dir {scan_dir!r} does not exist under {tests_root}")
         test_files.extend(sorted(scan_path.rglob("test_*.py")))
 
     for test_file in test_files:
-        module_name = cocotb_module_name_from_test_file(test_file)
+        # Derive the cocotb module import path relative to the passed-in
+        # `repo_root`, not the module-global REPO_ROOT: this keeps discovery
+        # fully scoped by the function's parameters (matching sibling helpers
+        # like `parse_wrapper_entity_units`/`discover_test_local_sources`) so a
+        # caller passing a different tree (e.g. a temp checkout in a unit test)
+        # resolves cleanly instead of raising in `relative_to`. In production
+        # `repo_root is REPO_ROOT`, so this is identical to
+        # `cocotb_module_name_from_test_file()`.
+        module_name = ".".join(test_file.resolve().relative_to(repo_root).with_suffix("").parts)
         toplevels = _literal_toplevels_from_file(test_file)
         if toplevels:
             resolved[module_name] = toplevels
         else:
             # Zero calls found, or an unresolvable kwarg (f-string,
             # cross-module passthrough, ambiguous dict backtrack) —
-            # conservatively always-run rather than guess (D-08).
+            # conservatively always-run rather than guess.
             always_run.add(module_name)
 
     return dict(sorted(resolved.items())), always_run
@@ -147,7 +152,7 @@ def _literal_toplevel_from_call(call: ast.Call, module_tree: ast.Module) -> set[
 
 def _resolve_literal_value(value: ast.expr, module_tree: ast.Module) -> set[str] | None:
     """Resolve a `toplevel=` kwarg's AST value to a set of literal strings,
-    or None if it cannot be statically resolved (D-08 always-run fallback).
+    or None if it cannot be statically resolved (always-run fallback).
 
     Handles the direct literal case and one level of dict-literal backtrack:
     `parameters["TOPLEVEL"]`, where `parameters` is ultimately sourced (via a
@@ -233,7 +238,11 @@ def gen_depends_sources(toplevel: str, workdir: str, ghdl_flags: list[str]) -> s
     indistinguishable here from any other genuine GHDL analysis error, so
     it is NOT folded into an empty (but valid) dependency set: `None` is
     returned instead, and callers must treat an unresolved toplevel as
-    force-full-eligible on its own (D-10), never as "no dependencies"."""
+    force-full-eligible on its own, never as "no dependencies".
+
+    A misconfigured GHDL_CMD (or `ghdl` missing from PATH) makes
+    subprocess.run raise FileNotFoundError; that is caught and folded into the
+    same `None` fail-open path rather than crashing the resolver."""
     try:
         result = subprocess.run(
             [*GHDL_CMD, "--gen-depends", *ghdl_flags, f"-P{workdir}", "--work=surf", toplevel.split(".")[-1]],
@@ -253,6 +262,14 @@ def gen_depends_sources(toplevel: str, workdir: str, ghdl_flags: list[str]) -> s
             detail = stderr_lines[0] if stderr_lines else f"ghdl exit {exc.returncode}"
             print(f"gen-depends unresolved: {toplevel} -- {detail}", file=sys.stderr)
         return None  # genuine analysis failure -- distinguish from "no deps"
+    except FileNotFoundError:
+        # GHDL_CMD is misconfigured or `ghdl` is not on PATH. Fail open the
+        # same way as an analysis failure -- the toplevel stays unresolved
+        # (always-run), never silently "no deps" -- instead of letting the
+        # missing-binary error escape and crash the resolver.
+        if os.environ.get("SURF_DEP_MAP_DEBUG"):
+            print(f"gen-depends unresolved: {toplevel} -- {GHDL_CMD[0]!r} not found", file=sys.stderr)
+        return None
 
     sources: set[str] = set()
     in_targets_section = False
@@ -290,15 +307,26 @@ def is_wrapper_path(repo_relative_path: str) -> bool:
     return "wrappers" in PurePosixPath(repo_relative_path).parts
 
 
+# A GHDL `.cf` file line is `file <dir> "<path>" "<sha1>" "<ts>":`. The
+# <dir> field is mandatory in every GHDL library-file version (`v N`): it is
+# `/` for an absolute-path import and `.` for a cwd-relative one -- GHDL never
+# omits it. Matching it with `\S+` (rather than making it optional) is
+# deliberate: if a future GHDL ever changed the format, the line stops
+# matching, `current_file` stays None, no units are attributed, and wrapper
+# resolution falls back to a full run -- the module's fail-safe direction. A
+# tolerant regex could instead partial-match a malformed line and mis-attribute
+# units, silently under-selecting tests.
 _CF_FILE_LINE = re.compile(r'^file\s+\S+\s+"([^"]+)"')
 _CF_UNIT_LINE = re.compile(r'^\s\s(entity|architecture|package)\s+(?:body\s+)?(\S+)')
 
 
 def parse_cf_units(cf_path: Path) -> dict[str, set[str]]:
     """{repo_relative_source_path: {design_unit_name, ...}} reversed from a
-    GHDL `.cf` library index (`file "<path>" ...:` blocks followed by
-    2-space-indented `entity`/`architecture ... of ...`/`package`/
-    `package body` lines).
+    GHDL `.cf` library index (`file <dir> "<path>" "<sha1>" "<ts>":` blocks
+    followed by 2-space-indented `entity`/`architecture ... of ...`/`package`/
+    `package body` lines). The `<dir>` field (`/` for absolute imports, `.`
+    for relative) is a mandatory part of the format, so it is matched, not
+    treated as optional -- see the `_CF_FILE_LINE` comment above.
 
     `architecture <arch> of <entity>` lines contribute the entity name
     parsed from the `" of "` substring rather than being skipped: nothing
@@ -455,7 +483,7 @@ def is_base_package_hub(source: str, dep_map: dict[str, set[str]], universe_size
 # `make MODULES=$PWD import`, so they are absent from the surf work library the
 # resolver queries. A test whose `toplevel=` names one of these entities
 # therefore fails `ghdl --gen-depends` ("cannot find entity") and falls back to
-# always-run (D-08/D-10). Because most surf cocotb tests wrap their DUT (cocotb
+# always-run. Because most surf cocotb tests wrap their DUT (cocotb
 # cannot drive VHDL records), that fallback collapses selective mode into a
 # near-full run. Importing these sources into the resolver's surf library makes
 # their toplevels analyzable, so each such test gets a precise transitive
@@ -513,17 +541,29 @@ def import_test_local_sources(
     Returns the number of sources imported. A non-zero `ghdl -i` exit is
     non-fatal (logged under SURF_DEP_MAP_DEBUG): any toplevel that still cannot
     be found simply stays always-run, preserving the never-false-skip
-    fail-safe."""
+    fail-safe. A misconfigured GHDL_CMD (or `ghdl` missing from PATH) raises
+    FileNotFoundError from subprocess.run; that is caught and treated as the
+    same non-fatal warning, returning 0 imported sources -- every wrapper
+    toplevel then simply stays always-run rather than crashing the CLI."""
     sources = discover_test_local_sources(repo_root, scan_dirs)
     if not sources:
         return 0
-    result = subprocess.run(
-        [*GHDL_CMD, "-i", f"--workdir={workdir}", *ghdl_flags, "--work=surf", *(str(path) for path in sources)],
-        capture_output=True,
-        text=True,
-        cwd=workdir,
-        check=False,
-    )
+    try:
+        result = subprocess.run(
+            [*GHDL_CMD, "-i", f"--workdir={workdir}", *ghdl_flags, "--work=surf", *(str(path) for path in sources)],
+            capture_output=True,
+            text=True,
+            cwd=workdir,
+            check=False,
+        )
+    except FileNotFoundError:
+        # GHDL_CMD is misconfigured or `ghdl` is not on PATH. Nothing is
+        # imported, so every wrapper/ip_integrator toplevel stays unresolved
+        # (always-run) downstream -- the fail-safe direction -- instead of the
+        # missing-binary error escaping and crashing the CLI.
+        if os.environ.get("SURF_DEP_MAP_DEBUG"):
+            print(f"import-test-local-sources warning: {GHDL_CMD[0]!r} not found", file=sys.stderr)
+        return 0
     if result.returncode != 0 and os.environ.get("SURF_DEP_MAP_DEBUG"):
         stderr_lines = (result.stderr or "").strip().splitlines()
         detail = stderr_lines[0] if stderr_lines else f"ghdl exit {result.returncode}"
@@ -540,8 +580,8 @@ def build_dependency_map(
 
     `dep_map`: {cocotb_module_name: {repo_relative_source, ...}} for every
     module in `toplevels` whose GHDL analysis fully succeeded, sorted for
-    reproducibility (DEP-02). A module resolved to multiple toplevels
-    (parametrized `toplevel=` call site, D-08) gets the union of every
+    reproducibility. A module resolved to multiple toplevels
+    (parametrized `toplevel=` call site) gets the union of every
     toplevel's transitive dependency set — a changed file that only one of
     the parametrized toplevels depends on must still select the module
     (never-false-skip).
@@ -552,7 +592,7 @@ def build_dependency_map(
     genuine GHDL analysis failure). These modules are deliberately excluded
     from `dep_map` rather than given an empty-but-valid dependency set —
     an empty set would be indistinguishable from "no dependencies" and
-    would let the module silently drop out of `select_tests` (D-10)."""
+    would let the module silently drop out of `select_tests`."""
     dep_map: dict[str, set[str]] = {}
     unresolved_modules: set[str] = set()
     for module_name, module_toplevels in toplevels.items():
@@ -574,7 +614,7 @@ def build_dependency_map(
 def merge_base_with_origin_main() -> str:
     """`git merge-base origin/main HEAD`. Raises subprocess.CalledProcessError
     if it cannot be computed (e.g. `origin/main` missing) — callers must
-    treat that as a fail-open trigger (D-10), not a crash."""
+    treat that as a fail-open trigger, not a crash."""
     result = subprocess.run(
         ["git", "merge-base", "origin/main", "HEAD"],
         capture_output=True,
@@ -586,8 +626,8 @@ def merge_base_with_origin_main() -> str:
 
 def changed_files(merge_base: str) -> dict[str, str]:
     """{repo_relative_path: status} where status in {A, M, D}. Renames
-    resolve to the new path with status 'M' (content-preserving, D-14);
-    true deletions get status 'D' (a force-full trigger upstream, D-10)."""
+    resolve to the new path with status 'M' (content-preserving);
+    true deletions get status 'D' (a force-full trigger upstream)."""
     result = subprocess.run(
         ["git", "diff", "--name-status", "-M", merge_base, "HEAD"],
         capture_output=True,
@@ -628,11 +668,11 @@ def select_tests(
 ) -> tuple[set[str], bool]:
     """(selected_module_names, force_full).
 
-    force_full becomes True (D-10 broad fail-open) when either:
+    force_full becomes True (broad fail-open) when either:
     - a changed `.vhd`/`.vhdl` file is a true deletion (status 'D', not a
       rename — renames already resolve to the new path as 'M' upstream in
       `changed_files`); a deleted unit's former dependents can't be
-      resolved from the post-change graph (D-14), or
+      resolved from the post-change graph, or
     - a changed `wrappers/*.vhd` file has no entry in `wrapper_index` —
       the join could not attribute it to any owning test, so its effect
       is indeterminate, or
@@ -660,7 +700,7 @@ def select_tests(
     precise handling here covers resolved and gen-depends-unresolved owners,
     not non-literal always_run owners.
 
-    Python test/helper changes are resolved by `map_python_changes` (D-11)
+    Python test/helper changes are resolved by `map_python_changes`
     and unioned into the selection; they participate in this function only
     via the `changed` file/status map's RTL entries."""
     changed_paths = set(changed.keys())
@@ -681,7 +721,7 @@ def select_tests(
             continue
         if status == "D":
             # True deletion: former dependents are unresolvable from the
-            # post-change graph (D-14) — fail open rather than guess.
+            # post-change graph — fail open rather than guess.
             force_full = True
             continue
         if is_wrapper_path(path):
@@ -694,7 +734,7 @@ def select_tests(
             continue  # never fall through to the generic check below
         if path not in all_known_sources:
             # Added/renamed-away/unwired unit that no known test's
-            # dependency set attributes to anything — indeterminate (D-10).
+            # dependency set attributes to anything — indeterminate.
             force_full = True
         if is_base_package_hub(path, dep_map, universe_size):
             # Widely-shared base package: a selective run can't be trusted
@@ -710,7 +750,7 @@ def map_python_changes(
     resolved_map: dict[str, set[str]],
     always_run: set[str],
 ) -> tuple[set[str], bool]:
-    """D-11 Python test/helper change mapping. Returns
+    """Python test/helper change mapping. Returns
     (selected_module_names, force_full) contributed by changed `tests/**`
     Python files only (RTL `.vhd`/`.vhdl` changes are handled by
     `select_tests`, not here):
@@ -726,11 +766,11 @@ def map_python_changes(
       `tests/<sub>/...` (at any depth, e.g. `tests/axi/utils.py` or
       `tests/base/sync/sync_test_utils.py`) selects every discovered test
       module under that same top-level `tests/<sub>` subtree — a safe
-      directory-prefix over-approximation keyed on `<sub>` alone (D-11),
+      directory-prefix over-approximation keyed on `<sub>` alone,
       not import-graph resolution;
     - a change confined to `tests/common/` (including
       `regression_utils.py`) selects nothing and never forces full — the
-      PROJECT.md accepted-risk carve-out.
+      accepted-risk carve-out.
 
     This function never sets force_full=True on its own; Python-side
     changes are an over-approximation by design and cannot be
@@ -757,7 +797,7 @@ def map_python_changes(
         elif filename.endswith(".py"):
             # Subsystem helper (e.g. tests/axi/utils.py, tests/base/sync/
             # sync_test_utils.py) — over-approximate to every discovered
-            # module under this subsystem's subtree (D-11).
+            # module under this subsystem's subtree.
             prefix = f"tests.{subsystem}."
             selected |= {module for module in all_modules if module.startswith(prefix)}
 
