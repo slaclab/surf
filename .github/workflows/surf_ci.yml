@@ -14,6 +14,16 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
+# Triggers: every push runs the workflow (selective regression on feature
+# branches, full on main/tags); PRs into main additionally run it in full.
+# A feature branch with an open PR into main therefore runs the regression
+# job twice per push -- once selective (push ref) and once full (PR merge
+# ref). The two use distinct concurrency groups (github.ref differs) so
+# neither cancels the other. This is intentional: the push run gives fast
+# per-commit feedback and the PR run is the full pre-merge release gate; the
+# selective set is always a strict subset of the full suite, so the overlap
+# is redundant-but-safe, and in this repo feature branches target
+# pre-release (not main), so the double run is confined to release PRs.
 on:
   push:
   pull_request:
