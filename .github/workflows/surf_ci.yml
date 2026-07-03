@@ -140,7 +140,7 @@ jobs:
           # simulate on the apt mcode ghdl and collect coverage for Codecov.
           if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
             make MODULES=$PWD import
-            python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+            python -m pytest --cov -v -n auto --dist=worksteal tests/common tests/axi tests/base tests/dsp tests/protocols
             exit 0
           fi
 
@@ -177,7 +177,7 @@ jobs:
 
           if [[ "${resolver_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${resolver_output}"; then
             echo "Resolver forced a full run (rc=${resolver_rc})"
-            python -m pytest -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+            python -m pytest -v -n auto --dist=worksteal tests/common tests/axi tests/base tests/dsp tests/protocols
           elif [[ -z "${resolver_output}" ]]; then
             echo "No affected tests for this change set -- nothing to run."
           else

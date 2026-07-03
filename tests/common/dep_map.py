@@ -24,8 +24,10 @@ from tests.common.regression_utils import (
 )
 
 
-# CI test universe (surf_ci.yml: `pytest ... tests/axi tests/base tests/dsp
-# tests/protocols`); tests/ethernet is deliberately excluded.
+# Scanned cocotb-test universe (surf_ci.yml simulates `tests/axi tests/base
+# tests/dsp tests/protocols`); tests/ethernet is deliberately excluded.
+# tests/common (the resolver's own unit tests) is also run by CI but is not a
+# scan dir -- it holds no cocotb toplevels for this map to resolve.
 DEFAULT_SCAN_DIRS = ("axi", "base", "dsp", "protocols")
 
 # Sentinel line printed on stdout (and used as the CLI's fail-open signal)
@@ -437,24 +439,42 @@ def is_base_package_hub(source: str, dep_map: dict[str, set[str]], universe_size
 _TEST_LOCAL_SOURCE_GLOBS = ("wrappers/*.vhd", "ip_integrator/*.vhd")
 
 
-def discover_test_local_sources(repo_root: Path) -> list[Path]:
+def discover_test_local_sources(
+    repo_root: Path,
+    scan_dirs: tuple[str, ...] = DEFAULT_SCAN_DIRS,
+) -> list[Path]:
     """Absolute, de-duplicated, sorted paths of every wrapper / ip_integrator
-    VHDL source in the tree (excluding the build/ output dir). These are exactly
-    the design units `make import` omits but tests compile via
-    `extra_vhdl_sources`."""
+    VHDL source under the active scan-dir subtrees (excluding the build/ output
+    dir). These are exactly the design units `make import` omits but tests
+    compile via `extra_vhdl_sources`.
+
+    The search is scoped to `scan_dirs` -- the top-level RTL source dirs share
+    their names with the cocotb scan dirs (`axi`, `base`, `dsp`, `protocols`),
+    so restricting to them keeps a selective run from importing wrapper sources
+    for subsystems outside the scanned universe (e.g. the ~40 sources under
+    `ethernet/**/wrappers/`, which `DEFAULT_SCAN_DIRS` excludes) -- pure
+    resolver overhead, since no scanned test resolves to those toplevels. A
+    scan dir with no source subtree of that name simply contributes nothing."""
     build_root = (repo_root / "build").resolve()
     sources: set[Path] = set()
-    for pattern in _TEST_LOCAL_SOURCE_GLOBS:
-        for path in repo_root.rglob(pattern):
-            resolved_path = path.resolve()
-            if build_root in resolved_path.parents:
-                continue  # skip copies under the GHDL output tree (build/SRC_VHDL)
-            if resolved_path.is_file():
-                sources.add(resolved_path)
+    for scan_dir in scan_dirs:
+        scan_root = repo_root / scan_dir
+        for pattern in _TEST_LOCAL_SOURCE_GLOBS:
+            for path in scan_root.rglob(pattern):
+                resolved_path = path.resolve()
+                if build_root in resolved_path.parents:
+                    continue  # skip copies under the GHDL output tree (build/SRC_VHDL)
+                if resolved_path.is_file():
+                    sources.add(resolved_path)
     return sorted(sources)
 
 
-def import_test_local_sources(repo_root: Path, workdir: str, ghdl_flags: list[str]) -> int:
+def import_test_local_sources(
+    repo_root: Path,
+    workdir: str,
+    ghdl_flags: list[str],
+    scan_dirs: tuple[str, ...] = DEFAULT_SCAN_DIRS,
+) -> int:
     """`ghdl -i` the wrapper / ip_integrator sources into the surf work library
     at `workdir`, so `gen_depends_sources` can analyze wrapper/ip_integrator
     toplevels instead of failing them open (which makes selective mode near-full
@@ -470,7 +490,7 @@ def import_test_local_sources(repo_root: Path, workdir: str, ghdl_flags: list[st
     non-fatal (logged under SURF_DEP_MAP_DEBUG): any toplevel that still cannot
     be found simply stays always-run, preserving the never-false-skip
     fail-safe."""
-    sources = discover_test_local_sources(repo_root)
+    sources = discover_test_local_sources(repo_root, scan_dirs)
     if not sources:
         return 0
     result = subprocess.run(
@@ -656,14 +676,18 @@ def map_python_changes(
     `select_tests`, not here):
 
     - a changed `tests/<sub>/.../test_X.py` selects the cocotb module for
-      that exact file (if it's a known test module, resolved or
-      always-run; otherwise it's a new/unknown test file and is ignored
-      here — it has no prior dependency-map entry to select);
-    - a changed `tests/<sub>/*_utils.py` (any non-`test_*.py` helper
-      directly under a scanned subsystem subtree) selects every discovered
-      test module under that same `tests/<sub>` subtree — a safe
-      directory-prefix over-approximation (D-11), not import-graph
-      resolution;
+      that exact file. `resolved_map`/`always_run` are discovered from the
+      current checkout, so a test file added on this branch is already in
+      the universe and selects itself; a test file is ignored here only
+      when it falls outside the discovered universe (e.g. under a
+      non-scanned subtree such as `tests/ethernet/...`), since it has no
+      dependency-map entry to select;
+    - a changed non-`test_*.py` `.py` helper anywhere under
+      `tests/<sub>/...` (at any depth, e.g. `tests/axi/utils.py` or
+      `tests/base/sync/sync_test_utils.py`) selects every discovered test
+      module under that same top-level `tests/<sub>` subtree — a safe
+      directory-prefix over-approximation keyed on `<sub>` alone (D-11),
+      not import-graph resolution;
     - a change confined to `tests/common/` (including
       `regression_utils.py`) selects nothing and never forces full — the
       PROJECT.md accepted-risk carve-out.
