@@ -188,10 +188,20 @@ jobs:
           if [[ "${resolver_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${resolver_output}"; then
             echo "Resolver forced a full run (rc=${resolver_rc})"
             python -m pytest -v -n auto --dist=worksteal tests/common tests/axi tests/base tests/dsp tests/protocols
-          elif [[ -z "${resolver_output}" ]]; then
-            echo "No affected tests for this change set -- nothing to run."
           else
-            mapfile -t targets < <(printf '%s\n' "${resolver_output}" | tr '.' '/' | sed 's/$/.py/')
+            # Always run the resolver's own unit tests (tests/common) on
+            # selective runs. They are fast (pure-Python, GHDL monkeypatched)
+            # and are the only coverage a feature-branch push that touches just
+            # the resolver would get: a resolver-only change resolves to zero
+            # affected cocotb tests, so without this the run would execute
+            # nothing and leave the resolver change untested until a full run.
+            targets=(tests/common)
+            if [[ -n "${resolver_output}" ]]; then
+              mapfile -t selected < <(printf '%s\n' "${resolver_output}" | tr '.' '/' | sed 's/$/.py/')
+              targets+=("${selected[@]}")
+            else
+              echo "No affected cocotb tests for this change set -- running resolver unit tests only."
+            fi
             python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
           fi
 

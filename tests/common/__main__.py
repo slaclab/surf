@@ -84,6 +84,19 @@ def main() -> int:
         print(dep_map.FORCE_FULL)
         print(f"rationale: could not discover test toplevels ({exc})", file=sys.stderr)
         return 1
+
+    # Every GHDL call below runs with cwd=workdir (import_test_local_sources'
+    # `ghdl -i` and build_dependency_map's `ghdl --gen-depends`). A missing
+    # workdir makes subprocess.run raise FileNotFoundError before the
+    # parse_cf_units guard downstream can catch it, escaping unhandled. Fail
+    # open the same way as the merge-base, scan-dir, and .cf paths: emit the
+    # FORCE_FULL sentinel on stdout so the single-stdout-line contract holds
+    # (indeterminate -> full run).
+    if not Path(args.workdir).is_dir():
+        print(dep_map.FORCE_FULL)
+        print(f"rationale: GHDL working directory does not exist ({args.workdir})", file=sys.stderr)
+        return 1
+
     # Import the wrapper / ip_integrator sources `make import` omits so their
     # toplevels are analyzable by `ghdl --gen-depends`. Without this, the
     # majority of cocotb tests -- which wrap their DUT because cocotb cannot

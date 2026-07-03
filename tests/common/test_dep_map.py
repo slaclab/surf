@@ -824,3 +824,24 @@ def test_cli_bad_scan_dir_fails_open_to_force_full(monkeypatch, capsys):
     out = capsys.readouterr().out.splitlines()
     assert rc == 1
     assert out == [dep_map.FORCE_FULL]
+
+
+def test_cli_bad_workdir_fails_open_to_force_full(monkeypatch, capsys):
+    # A missing --workdir would make the first GHDL subprocess (ghdl -i, run
+    # with cwd=workdir) raise FileNotFoundError before the parse_cf_units guard
+    # can catch it. The CLI must instead fail open by printing FORCE_FULL on a
+    # single stdout line and returning non-zero, so the indeterminate-resolution
+    # contract holds without a stray subprocess touching a real ghdl.
+    from tests.common import __main__ as cli
+
+    monkeypatch.setattr(
+        cli.sys,
+        "argv",
+        ["dep_map", "--workdir", "/no/such/workdir/xyz", "--changed-files-override", ""],
+    )
+
+    rc = cli.main()
+
+    out = capsys.readouterr().out.splitlines()
+    assert rc == 1
+    assert out == [dep_map.FORCE_FULL]
