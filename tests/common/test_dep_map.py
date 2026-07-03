@@ -698,10 +698,27 @@ def test_discover_test_local_sources_collects_wrappers_and_ip_integrator(tmp_pat
     assert result == sorted([wrapper.resolve(), ip_integrator.resolve()])
 
 
+def test_discover_test_local_sources_scoped_to_scan_dirs(tmp_path):
+    # The scan is scoped to `scan_dirs`: a wrapper under a scanned subtree is
+    # collected, one under an unscanned subtree (ethernet) is not -- so a
+    # selective run never imports wrapper sources for subsystems outside the
+    # scanned universe.
+    (tmp_path / "protocols/srp/wrappers").mkdir(parents=True)
+    (tmp_path / "ethernet/RoCEv2/wrappers").mkdir(parents=True)
+    in_scope = tmp_path / "protocols/srp/wrappers/SrpV3AxiWrapper.vhd"
+    in_scope.write_text("-- wrapper\n", encoding="utf-8")
+    out_of_scope = tmp_path / "ethernet/RoCEv2/wrappers/RoceConfiguratorWrapper.vhd"
+    out_of_scope.write_text("-- wrapper\n", encoding="utf-8")
+
+    result = dep_map.discover_test_local_sources(tmp_path, scan_dirs=("protocols",))
+
+    assert result == [in_scope.resolve()]
+
+
 def test_discover_test_local_sources_finds_real_wrapper_and_ip_integrator():
     # Live-repo smoke check (pure filesystem scan, no GHDL): the real
-    # wrapper/ip_integrator sources are discovered, all absolute and none under
-    # the build/ output tree.
+    # wrapper/ip_integrator sources under the scanned universe are discovered,
+    # all absolute and none under the build/ output tree.
     sources = dep_map.discover_test_local_sources(REPO_ROOT)
     names = {path.name for path in sources}
 
@@ -721,7 +738,7 @@ def test_import_test_local_sources_invokes_ghdl_i_with_absolute_paths(monkeypatc
     # write `.././...` entries that resolve against the wrong base).
     src_a = tmp_path / "a/wrappers/A.vhd"
     src_b = tmp_path / "b/ip_integrator/B.vhd"
-    monkeypatch.setattr(dep_map, "discover_test_local_sources", lambda repo_root: [src_a, src_b])
+    monkeypatch.setattr(dep_map, "discover_test_local_sources", lambda *args, **kwargs: [src_a, src_b])
 
     captured = {}
 
@@ -746,7 +763,7 @@ def test_import_test_local_sources_invokes_ghdl_i_with_absolute_paths(monkeypatc
 def test_import_test_local_sources_no_sources_is_noop(monkeypatch, tmp_path):
     # With no wrapper/ip_integrator sources, ghdl is never invoked and the
     # count is zero.
-    monkeypatch.setattr(dep_map, "discover_test_local_sources", lambda repo_root: [])
+    monkeypatch.setattr(dep_map, "discover_test_local_sources", lambda *args, **kwargs: [])
 
     def fail_run(*args, **kwargs):
         raise AssertionError("ghdl must not run when there are no sources")
@@ -760,7 +777,7 @@ def test_import_test_local_sources_ghdl_failure_is_nonfatal(monkeypatch, tmp_pat
     # A non-zero `ghdl -i` exit must not raise (check=False): any toplevel that
     # still cannot be found simply stays always-run (fail-safe preserved).
     monkeypatch.setattr(
-        dep_map, "discover_test_local_sources", lambda repo_root: [tmp_path / "w/wrappers/W.vhd"]
+        dep_map, "discover_test_local_sources", lambda *args, **kwargs: [tmp_path / "w/wrappers/W.vhd"]
     )
 
     def fake_run(cmd, **kwargs):

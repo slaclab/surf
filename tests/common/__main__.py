@@ -79,7 +79,7 @@ def main() -> int:
     # majority of cocotb tests -- which wrap their DUT because cocotb cannot
     # drive VHDL records -- fail resolution and fall back to always-run,
     # degrading selective mode into a near-full run.
-    dep_map.import_test_local_sources(REPO_ROOT, args.workdir, BASE_GHDL_COMPILE_ARGS)
+    dep_map.import_test_local_sources(REPO_ROOT, args.workdir, BASE_GHDL_COMPILE_ARGS, scan_dirs)
     built_map, unresolved_modules = dep_map.build_dependency_map(resolved, args.workdir, BASE_GHDL_COMPILE_ARGS)
     # A module whose GHDL analysis failed (ip_integrator wrapper only
     # compiled via extra_vhdl_sources, or a genuine analysis error) gets
