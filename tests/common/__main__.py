@@ -21,10 +21,10 @@ from tests.common.regression_utils import BASE_GHDL_COMPILE_ARGS, REPO_ROOT
 
 
 def _parse_changed_files_override(raw: str) -> dict[str, str]:
-    # Unit tests / Phase 2 pass an explicit changed-file list rather than
-    # having the CLI compute the diff itself (D-13). Entries default to
+    # Unit tests pass an explicit changed-file list rather than
+    # having the CLI compute the diff itself. Entries default to
     # status 'M'; an optional ':A'/':D' suffix expresses Added/Deleted so
-    # callers can exercise the D-14 deletion-forces-full path without a
+    # callers can exercise the deletion-forces-full path without a
     # real git history (e.g. `--changed-files-override foo.vhd:D`).
     changed: dict[str, str] = {}
     for entry in raw.split(","):
@@ -56,7 +56,7 @@ def main() -> int:
     parser.add_argument(
         "--changed-files-override",
         help="Comma-separated list of repo-relative changed files, used instead of "
-        "computing the diff against origin/main (for unit tests / Phase 2).",
+        "computing the diff against origin/main (for unit tests).",
     )
     args = parser.parse_args()
 
@@ -106,8 +106,8 @@ def main() -> int:
     built_map, unresolved_modules = dep_map.build_dependency_map(resolved, args.workdir, BASE_GHDL_COMPILE_ARGS)
     # A module whose GHDL analysis failed (ip_integrator wrapper only
     # compiled via extra_vhdl_sources, or a genuine analysis error) gets
-    # the same fail-safe treatment as a non-literal toplevel (D-08): it is
-    # unconditionally selected rather than silently dropped (D-10).
+    # the same fail-safe treatment as a non-literal toplevel: it is
+    # unconditionally selected rather than silently dropped.
     always_run = always_run | unresolved_modules
 
     try:
