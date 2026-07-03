@@ -377,6 +377,10 @@ def parse_wrapper_entity_units(
                 match = _WRAPPER_ENTITY_LINE.match(line)
                 if match:
                     wrapper_units.setdefault(repo_relative, set()).add(match.group(1).lower())
+                    # A wrapper file declares exactly one entity (the DUT it
+                    # wraps for cocotb), so stop at the first declaration
+                    # rather than scanning the rest of the file.
+                    break
     return dict(sorted(wrapper_units.items()))
 
 
