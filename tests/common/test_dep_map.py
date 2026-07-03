@@ -515,6 +515,25 @@ def test_parse_wrapper_entity_units_finds_real_sync_trig_wrapper():
     }
 
 
+def test_parse_wrapper_entity_units_scoped_to_scan_dirs(tmp_path):
+    # The scan is scoped to `scan_dirs` (mirroring discover_test_local_sources):
+    # a wrapper under a scanned subtree is parsed, one under an unscanned subtree
+    # (ethernet) is not -- so a selective run never does wrapper-attribution IO
+    # for subsystems outside the scanned universe.
+    (tmp_path / "protocols/srp/wrappers").mkdir(parents=True)
+    (tmp_path / "ethernet/RoCEv2/wrappers").mkdir(parents=True)
+    (tmp_path / "protocols/srp/wrappers/SrpV3AxiWrapper.vhd").write_text(
+        "entity SrpV3AxiWrapper is\n", encoding="utf-8"
+    )
+    (tmp_path / "ethernet/RoCEv2/wrappers/RoceConfiguratorWrapper.vhd").write_text(
+        "entity RoceConfiguratorWrapper is\n", encoding="utf-8"
+    )
+
+    result = dep_map.parse_wrapper_entity_units(tmp_path, scan_dirs=("protocols",))
+
+    assert result == {"protocols/srp/wrappers/SrpV3AxiWrapper.vhd": {"srpv3axiwrapper"}}
+
+
 def test_wrapper_change_selects_owner_live_repo():
     # The full live-repo join: parse_wrapper_entity_units gives the
     # wrapper's own declared entity name (never available from .cf), joined

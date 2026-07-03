@@ -344,10 +344,13 @@ def parse_cf_units(cf_path: Path) -> dict[str, set[str]]:
 _WRAPPER_ENTITY_LINE = re.compile(r'^\s*entity\s+(\S+)\s+is\b', re.IGNORECASE)
 
 
-def parse_wrapper_entity_units(repo_root: Path) -> dict[str, set[str]]:
+def parse_wrapper_entity_units(
+    repo_root: Path,
+    scan_dirs: tuple[str, ...] = DEFAULT_SCAN_DIRS,
+) -> dict[str, set[str]]:
     """{repo_relative_wrapper_path: {declared_entity_name}} from a direct
-    regex scan of every `**/wrappers/*.vhd` file's own `entity <Name> is`
-    declaration line.
+    regex scan of every `<scan_dir>/**/wrappers/*.vhd` file's own
+    `entity <Name> is` declaration line.
 
     No `ruckus.tcl` in this repo ever loads a `wrappers/` directory into
     `make import` (verified: zero `wrappers/` entries in a clean
@@ -356,14 +359,21 @@ def parse_wrapper_entity_units(repo_root: Path) -> dict[str, set[str]]:
     instead. This is the primary source `build_wrapper_index` needs for
     wrapper unit names; `.cf` is joined only opportunistically for the
     (currently nonexistent, but not structurally impossible) case of a
-    wrapper file that also happens to be pulled into a normal build."""
+    wrapper file that also happens to be pulled into a normal build.
+
+    The scan is scoped to `scan_dirs` (mirroring
+    `discover_test_local_sources`): a wrapper outside the scanned universe
+    (e.g. under `ethernet/**/wrappers/`) can never join to a discovered
+    module owner in `build_wrapper_index` -- `discover_toplevels()` is
+    itself scoped to `scan_dirs` -- so scanning it is pure IO overhead."""
     wrapper_units: dict[str, set[str]] = {}
-    for wrapper_file in sorted(repo_root.rglob("wrappers/*.vhd")):
-        repo_relative = wrapper_file.resolve().relative_to(repo_root).as_posix()
-        for line in wrapper_file.read_text(encoding="utf-8").splitlines():
-            match = _WRAPPER_ENTITY_LINE.match(line)
-            if match:
-                wrapper_units.setdefault(repo_relative, set()).add(match.group(1).lower())
+    for scan_dir in scan_dirs:
+        for wrapper_file in sorted((repo_root / scan_dir).rglob("wrappers/*.vhd")):
+            repo_relative = wrapper_file.resolve().relative_to(repo_root).as_posix()
+            for line in wrapper_file.read_text(encoding="utf-8").splitlines():
+                match = _WRAPPER_ENTITY_LINE.match(line)
+                if match:
+                    wrapper_units.setdefault(repo_relative, set()).add(match.group(1).lower())
     return dict(sorted(wrapper_units.items()))
 
 

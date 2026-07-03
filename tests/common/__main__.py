@@ -97,7 +97,7 @@ def main() -> int:
     # are compiled per-test via extra_vhdl_sources instead), so wrapper
     # unit names come from a direct scan of the wrapper files themselves;
     # `.cf` is unioned in only opportunistically.
-    wrapper_units = dep_map.parse_wrapper_entity_units(REPO_ROOT)
+    wrapper_units = dep_map.parse_wrapper_entity_units(REPO_ROOT, scan_dirs)
     for path, units in wrapper_units.items():
         cf_units.setdefault(path, set()).update(units)
     wrapper_index = dep_map.build_wrapper_index(cf_units, resolved)
