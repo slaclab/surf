@@ -131,7 +131,7 @@ jobs:
           fi
 
       # The resolver needs `ghdl --gen-depends`, which apt mcode lacks and apt
-      # ghdl-llvm is broken for on ubuntu-24.04. Install GHDL's official LLVM
+      # ghdl-llvm is broken on ubuntu-24.04. Install GHDL's official LLVM
       # build (bundles libLLVM) for the resolver ONLY, and only on selective
       # runs -- full runs (tag/main/PR->main) skip the resolver entirely and
       # build/simulate on the apt mcode ghdl, so the llvm install is pure
@@ -157,10 +157,12 @@ jobs:
           # Selective runs: setup-ghdl prepended the official llvm ghdl (has
           # --gen-depends). The apt mcode ghdl (/usr/bin/ghdl) runs the fast
           # cocotb sims; build MCODE_PATH by dropping the llvm bin dir so bare
-          # `ghdl` is mcode.
+          # `ghdl` is mcode. `grep -v` exits 1 when it filters out every entry
+          # (e.g. PATH were only the llvm dir); `|| true` keeps that from
+          # tripping the step's `pipefail`.
           LLVM_GHDL="$(command -v ghdl)"
           LLVM_DIR="$(dirname "$LLVM_GHDL")"
-          MCODE_PATH="$(printf '%s' "$PATH" | tr ':' '\n' | grep -vxF "$LLVM_DIR" | paste -sd:)"
+          MCODE_PATH="$(printf '%s' "$PATH" | tr ':' '\n' | { grep -vxF "$LLVM_DIR" || true; } | paste -sd:)"
 
           # Build the surf library with the llvm ghdl so the resolver's
           # gen-depends (also llvm) reads a version-consistent .cf. build/ is

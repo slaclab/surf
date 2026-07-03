@@ -132,8 +132,9 @@ def main() -> int:
     if force_full:
         print(dep_map.FORCE_FULL)
         print(
-            "rationale: full run because a changed RTL file could not be resolved "
-            "(deleted, renamed-away, or unresolvable design unit)",
+            "rationale: full run because a changed RTL file could not be resolved to a "
+            "safe test subset (deleted/renamed-away/unwired design unit, unattributable "
+            "wrapper edit, or a high-fanout hub file above FAN_OUT_THRESHOLD)",
             file=sys.stderr,
         )
         return 1
