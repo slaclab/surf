@@ -81,6 +81,24 @@ def test_discover_toplevels_always_run_for_dynamic_toplevel():
     assert "tests.dsp.generic.test_FirFilterTap" not in resolved
 
 
+def test_discover_toplevels_simlink_dir_is_always_run():
+    # _ALWAYS_RUN_DIR_PREFIXES directory-scoped rule: every discovered
+    # tests/axi/simlink/ test module is always-run and never resolved, so
+    # a flat-wrapper or GHDL C-model change can never fail to select them
+    # (SC2).
+    resolved, always_run = dep_map.discover_toplevels(REPO_ROOT, scan_dirs=("axi",))
+
+    simlink_modules = {
+        "tests.axi.simlink.test_RogueTcpStreamWrap",
+        "tests.axi.simlink.test_RogueTcpMemoryWrap",
+        "tests.axi.simlink.test_RogueTcpStream",
+        "tests.axi.simlink.test_RogueTcpMemory",
+    }
+
+    assert simlink_modules <= always_run
+    assert not (simlink_modules & set(resolved))
+
+
 def test_discover_toplevels_scoped_to_repo_root(tmp_path):
     # discover_toplevels() must derive the module name relative to the
     # passed-in `repo_root`, not the module-global REPO_ROOT. A temp checkout

@@ -2,6 +2,7 @@ flake8
 cocotb
 cocotbext-axi
 cocotb-test
+pyzmq
 coverage
 codecov
 pytest

@@ -41,6 +41,14 @@ FORCE_FULL = "FORCE_FULL"
 # Defaults to `ghdl`.
 GHDL_CMD = shlex.split(os.environ.get("GHDL_CMD", "ghdl"))
 
+# Test modules under these repo-relative directory prefixes are
+# unconditionally always-run -- a directory-scoped over-approximation
+# (mirroring map_python_changes' subsystem-prefix style) that guarantees the
+# simlink RogueTcp round-trip + smoke tests are selected on every selective
+# run, so a flat-wrapper or GHDL C-model change can never skip them, without
+# a per-module or per-file manifest.
+_ALWAYS_RUN_DIR_PREFIXES = ("tests/axi/simlink",)
+
 # Minimum fraction of the discovered universe (len(set(dep_map) | always_run))
 # a source must appear in to be treated as a shared base-package hub. 0.09 is
 # the tightest value that still catches all three widely-shared packages a
@@ -102,7 +110,15 @@ def discover_toplevels(
         # resolves cleanly instead of raising in `relative_to`. In production
         # `repo_root is REPO_ROOT`, so this is identical to
         # `cocotb_module_name_from_test_file()`.
+        rel_path = test_file.resolve().relative_to(repo_root).as_posix()
         module_name = ".".join(test_file.resolve().relative_to(repo_root).with_suffix("").parts)
+        if _is_always_run_dir(rel_path):
+            # Directory-scoped fail-safe (see _ALWAYS_RUN_DIR_PREFIXES): never
+            # attempt static toplevel resolution for these paths, and never
+            # also add them to `resolved` -- exactly one classification per
+            # module keeps the two sets unambiguous.
+            always_run.add(module_name)
+            continue
         toplevels = _literal_toplevels_from_file(test_file)
         if toplevels:
             resolved[module_name] = toplevels
@@ -113,6 +129,14 @@ def discover_toplevels(
             always_run.add(module_name)
 
     return dict(sorted(resolved.items())), always_run
+
+
+def _is_always_run_dir(rel_path: str) -> bool:
+    """True when `rel_path` (repo-relative, POSIX-separated) falls under one
+    of `_ALWAYS_RUN_DIR_PREFIXES`. Directory-segment scoped via a trailing
+    "/" on the prefix, so e.g. "tests/axi/simlinkXYZ/test_Foo.py" is
+    correctly rejected as a near-miss on "tests/axi/simlink"."""
+    return any(rel_path.startswith(prefix + "/") for prefix in _ALWAYS_RUN_DIR_PREFIXES)
 
 
 def _literal_toplevels_from_file(test_file: Path) -> set[str]:
