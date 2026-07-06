@@ -35,11 +35,79 @@ end RogueSideBand;
 architecture RogueSideBand of RogueSideBand is
 
 ------------------------------------------------------------------------
--- VHPI not supported by GHDL yet
+-- GHDL lacks the AxiSim VHPI interface, so this fork binds the C model
+-- via VHPIDIRECT (below) instead. VHPI original:
+-- axi/simlink/vcs/RogueSideBand.vhd
 ------------------------------------------------------------------------
---   attribute FOREIGN of RogueSideBand : architecture is
---      "vhpi:AxiSim:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
+
+   -- GHDL foreign function return types must be a plain type mark, not an
+   -- inline-constrained subtype indication.
+   subtype Word8 is std_logic_vector(7 downto 0);
+
+   -- Per-edge update procedure: all "in" parameters, called every
+   -- rising_edge(clock). The C-side FSM (unchanged from RogueSideBand.c)
+   -- decides internally whether to latch reset/port or move data.
+   procedure rogueSideBandUpdate (
+      clkRst     : std_logic;
+      portNum    : std_logic_vector(15 downto 0);
+      txOpCode   : std_logic_vector(7 downto 0);
+      txOpCodeEn : std_logic;
+      txRemData  : std_logic_vector(7 downto 0));
+   attribute foreign of rogueSideBandUpdate : procedure is
+      "VHPIDIRECT libRogueSideBand.so rogueSideBandUpdate";
+
+   procedure rogueSideBandUpdate (
+      clkRst     : std_logic;
+      portNum    : std_logic_vector(15 downto 0);
+      txOpCode   : std_logic_vector(7 downto 0);
+      txOpCodeEn : std_logic;
+      txRemData  : std_logic_vector(7 downto 0)) is
+   begin
+      -- Body is never executed once the foreign symbol resolves.
+      assert false report "rogueSideBandUpdate: VHPIDIRECT stub body should never execute" severity failure;
+   end procedure rogueSideBandUpdate;
+
+   -- One zero-arg getter per output port.
+   impure function rogueSideBandGetRxOpCode return Word8;
+   attribute foreign of rogueSideBandGetRxOpCode : function is
+      "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxOpCode";
+
+   impure function rogueSideBandGetRxOpCode return Word8 is
+   begin
+      assert false report "rogueSideBandGetRxOpCode: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueSideBandGetRxOpCode;
+
+   impure function rogueSideBandGetRxOpCodeEn return std_logic;
+   attribute foreign of rogueSideBandGetRxOpCodeEn : function is
+      "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxOpCodeEn";
+
+   impure function rogueSideBandGetRxOpCodeEn return std_logic is
+   begin
+      assert false report "rogueSideBandGetRxOpCodeEn: VHPIDIRECT stub body should never execute" severity failure;
+      return '0';
+   end function rogueSideBandGetRxOpCodeEn;
+
+   impure function rogueSideBandGetRxRemData return Word8;
+   attribute foreign of rogueSideBandGetRxRemData : function is
+      "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxRemData";
+
+   impure function rogueSideBandGetRxRemData return Word8 is
+   begin
+      assert false report "rogueSideBandGetRxRemData: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueSideBandGetRxRemData;
 
 begin
+
+   UpdateProc : process (clock) is
+   begin
+      if rising_edge(clock) then
+         rogueSideBandUpdate(reset, portNum, txOpCode, txOpCodeEn, txRemData);
+         rxOpCode   <= rogueSideBandGetRxOpCode;
+         rxOpCodeEn <= rogueSideBandGetRxOpCodeEn;
+         rxRemData  <= rogueSideBandGetRxRemData;
+      end if;
+   end process UpdateProc;
 
 end RogueSideBand;
