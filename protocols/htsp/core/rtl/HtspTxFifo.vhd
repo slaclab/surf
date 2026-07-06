@@ -28,7 +28,8 @@ entity HtspTxFifo is
    generic (
       TPD_G                 : time     := 1 ns;
       TX_MAX_PAYLOAD_SIZE_G : positive := 8192;
-      NUM_VC_G              : positive);
+      NUM_VC_G              : positive;
+      APP_AXI_CONFIG_G      : AxiStreamConfigType);
    port (
       -- APP Interface (appClks domain)
       appClks       : in  slv(NUM_VC_G-1 downto 0);
@@ -97,7 +98,7 @@ begin
       U_Flush : entity surf.AxiStreamFlush
          generic map (
             TPD_G         => TPD_G,
-            AXIS_CONFIG_G => HTSP_AXIS_CONFIG_C,
+            AXIS_CONFIG_G => APP_AXI_CONFIG_G,
             SSI_EN_G      => true)
          port map (
             axisClk     => appClks(vc),
@@ -123,7 +124,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 9,
             FIFO_PAUSE_THRESH_G => 256,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => APP_AXI_CONFIG_G,
             MASTER_AXI_CONFIG_G => HTSP_AXIS_CONFIG_C)
          port map (
             -- Slave Port

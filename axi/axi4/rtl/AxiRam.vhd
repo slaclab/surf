@@ -113,82 +113,30 @@ begin
       ((SYNTH_MODE_G = "inferred") and (READ_LATENCY_G > 0))
       report "AxiRam: Inferred SimpleDualPortRam does not support zero latency reads" severity failure;
 
-   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_RAM : entity surf.SimpleDualPortRamXpm
-         generic map (
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => true,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_C,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_C)
-         port map (
-            -- Port A
-            ena    => wrEn,
-            clka   => axiClk,
-            addra  => wrAddr,
-            dina   => wrData,
-            wea    => wstrb,
-            -- Read Interface
-            enb    => rdEn(0),
-            clkb   => axiClk,
-            addrb  => rdAddr,
-            doutb  => rdData,
-            regceb => rdEn(1));
-   end generate;
-
-   GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-      U_RAM : entity surf.SimpleDualPortRamAlteraMf
-         generic map (
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => true,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => READ_LATENCY_G,
-            DATA_WIDTH_G   => DATA_WIDTH_C,
-            BYTE_WR_EN_G   => true,
-            BYTE_WIDTH_G   => 8,
-            ADDR_WIDTH_G   => ADDR_WIDTH_C)
-         port map (
-            -- Port A
-            ena    => wrEn,
-            clka   => axiClk,
-            addra  => wrAddr,
-            dina   => wrData,
-            wea    => wstrb,
-            -- Read Interface
-            enb    => rdEn(0),
-            clkb   => axiClk,
-            addrb  => rdAddr,
-            doutb  => rdData,
-            regceb => rdEn(1));
-   end generate;
-
-   GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_RAM : entity surf.SimpleDualPortRam
-         generic map (
-            TPD_G         => TPD_G,
-            MEMORY_TYPE_G => MEMORY_TYPE_G,
-            DOB_REG_G     => ite(READ_LATENCY_G = 2, true, false),
-            BYTE_WR_EN_G  => true,
-            DATA_WIDTH_G  => DATA_WIDTH_C,
-            BYTE_WIDTH_G  => 8,
-            ADDR_WIDTH_G  => ADDR_WIDTH_C)
-         port map (
-            -- Port A
-            ena     => wrEn,
-            clka    => axiClk,
-            addra   => wrAddr,
-            dina    => wrData,
-            weaByte => wstrb,
-            -- Read Interface
-            enb     => rdEn(0),
-            clkb    => axiClk,
-            addrb   => rdAddr,
-            doutb   => rdData,
-            regceb  => rdEn(1));
-   end generate;
+   U_RAM : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G,
+         COMMON_CLK_G   => true,
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
+         READ_LATENCY_G => READ_LATENCY_G,
+         BYTE_WR_EN_G   => true,
+         DATA_WIDTH_G   => DATA_WIDTH_C,
+         BYTE_WIDTH_G   => 8,
+         ADDR_WIDTH_G   => ADDR_WIDTH_C)
+      port map (
+         -- Port A
+         ena     => wrEn,
+         clka    => axiClk,
+         addra   => wrAddr,
+         dina    => wrData,
+         weaByte => wstrb,
+         -- Read Interface
+         enb     => rdEn(0),
+         clkb    => axiClk,
+         addrb   => rdAddr,
+         doutb   => rdData,
+         regceb  => rdEn(1));
 
    comb : process (axiRst, r, rdData, sAxiReadMaster, sAxiWriteMaster) is
       variable v : RegType;
