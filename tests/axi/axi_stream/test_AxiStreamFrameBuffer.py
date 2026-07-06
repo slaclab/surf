@@ -26,9 +26,10 @@
 #   first valid stream beat is presented (`tValid = 1`). Further,
 #   dataFrameRxDone timing is checked.
 
+import math
+
 import cocotb
 import pytest
-import numpy as np
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, with_timeout
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiStreamBus, AxiStreamSink
@@ -84,8 +85,8 @@ class TB:
         tb = cls(
             dut,
             dataClkPeriod=baseClkPeriod,
-            axilClkPeriod=round(baseClkPeriod / np.pi, 5),
-            axisClkPeriod=round(baseClkPeriod * np.e, 5),
+            axilClkPeriod=round(baseClkPeriod / math.pi, 5),
+            axisClkPeriod=round(baseClkPeriod * math.e, 5),
         )
         return tb
 
