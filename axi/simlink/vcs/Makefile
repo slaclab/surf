@@ -16,7 +16,10 @@ CC     := gcc
 DEF    := 
 OUT    := $(SIMLINK_PWD)
 OBJ    := $(SIMLINK_PWD)/.obj
-CFLAGS := -Wall -fPIC -I$(VCS_HOME)/include -DVCS_VERSION=$(VCS_VERSION) `pkg-config --cflags libzmq`
+# -I$(SIMLINK_PWD)/../shared resolves the RogueTcp*Core.h headers shared with
+# the GHDL backend (../shared); gcc searches each .c file's own dir first, so
+# the local RogueTcp*.h still take precedence.
+CFLAGS := -Wall -fPIC -I$(SIMLINK_PWD)/../shared -I$(VCS_HOME)/include -DVCS_VERSION=$(VCS_VERSION) `pkg-config --cflags libzmq`
 LFLAGS := -lrt -pthread `pkg-config --libs libzmq`
 LIB    := $(OUT)/libAxiSim.so
 
