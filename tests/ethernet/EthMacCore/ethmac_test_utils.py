@@ -32,11 +32,11 @@ ETHMAC_RTL_SOURCES.append(str(Path(__file__).resolve().parents[3] / "dsp" / "xil
 
 ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
 ROCE_ANALYSIS_SOURCES = [
-    str(ROCE_RTL_ROOT / "RocePkg.vhd"),
+    str(ROCE_RTL_ROOT / "RoCEv2Pkg.vhd"),
     *(
         str(path)
         for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RocePkg.vhd"
+        if path.name != "RoCEv2Pkg.vhd"
     ),
 ]
 
