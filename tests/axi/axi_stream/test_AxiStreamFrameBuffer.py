@@ -250,11 +250,11 @@ async def soft_trigger_exports_captured_frame_single_short_test(dut):
     await tb.cycle(tb.dut.dataClk, 1)
 
     # Issue software trigger
-    txn = await tb.axil.write(0x4, 0x1.to_bytes(4, "little"))
+    txn = await tb.axil.write(0x8, 0x1.to_bytes(4, "little"))
     assert txn.resp == AxiResp.OKAY
 
     # Read register and check that its automatically reset to zero
-    txn = await tb.axil.read(0x4, 4)
+    txn = await tb.axil.read(0x8, 4)
     assert txn.resp == AxiResp.OKAY
     assert int.from_bytes(txn.data, "little") == 0
 

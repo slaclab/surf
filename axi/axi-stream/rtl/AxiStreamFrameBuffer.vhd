@@ -68,21 +68,21 @@ use surf.SsiPkg.all;
 
 entity AxiStreamFrameBuffer is
    generic (
-      TPD_G               : time     := 1 ns;
-      RST_POLARITY_G      : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G         : boolean  := false;
-      SYNTH_MODE_G        : string   := "inferred";
-      MEMORY_TYPE_G       : string   := "block";
-      SAFE_BUFFS_G        : boolean  := true;  -- If 'false' write/read target the same buffer
-      COMMON_CLK_G        : boolean  := false;  -- true if dataClk=axilClk
-      DATA_BYTES_G        : positive := 16;
-      RAM_ADDR_WIDTH_G    : positive := 9;
+      TPD_G               : time                   := 1 ns;
+      RST_POLARITY_G      : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G         : boolean                := false;
+      SYNTH_MODE_G        : string                 := "inferred";
+      MEMORY_TYPE_G       : string                 := "block";
+      SAFE_BUFFS_G        : boolean                := true;  -- If 'false' write/read target the same buffer
+      COMMON_CLK_G        : boolean                := false;  -- true if dataClk=axilClk
+      DATA_BYTES_G        : positive               := 16;
+      RAM_ADDR_WIDTH_G    : positive range 1 to 32 := 9;
       -- AXI Stream Configurations
-      INT_PIPE_STAGES_G   : natural  := 1;
-      PIPE_STAGES_G       : natural  := 1;
-      GEN_SYNC_FIFO_G     : boolean  := false;
-      FIFO_MEMORY_TYPE_G  : string   := "block";
-      FIFO_ADDR_WIDTH_G   : positive := 9;
+      INT_PIPE_STAGES_G   : natural                := 1;
+      PIPE_STAGES_G       : natural                := 1;
+      GEN_SYNC_FIFO_G     : boolean                := false;
+      FIFO_MEMORY_TYPE_G  : string                 := "block";
+      FIFO_ADDR_WIDTH_G   : positive               := 9;
       AXI_STREAM_CONFIG_G : AxiStreamConfigType);
    port (
       -- Data to store in frame buffer (dataClk domain)
@@ -512,10 +512,12 @@ begin
       -- Determine the transaction type
       axiSlaveWaitTxn(axilEp, axilWriteMaster, axilReadMaster, v.axilWriteSlave, v.axilReadSlave);
 
+      -- ADDR_WIDTH_G is restricted to maximally 32 so final address always
+      -- fits in 32 bit register.
       axiSlaveRegisterR(axilEp, x"0", 0, axilR.rdFinalAddr);
-      axiSlaveRegisterR(axilEp, x"0", 20, toSlv(RAM_ADDR_WIDTH_G, 8));
-      axiSlaveRegisterR(axilEp, x"0", 30, axilR.axisStateIdx);
-      axiSlaveRegister(axilEp, x"4", 0, v.softTrig);
+      axiSlaveRegisterR(axilEp, x"4", 0, toSlv(RAM_ADDR_WIDTH_G, 8));
+      axiSlaveRegisterR(axilEp, x"4", 8, axilR.axisStateIdx);
+      axiSlaveRegister (axilEp, x"8", 0, v.softTrig);
 
       -- Close the transaction
       axiSlaveDefault(axilEp, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);

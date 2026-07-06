@@ -23,7 +23,7 @@ class AxiStreamFrameBuffer(pr.Device):
             name         = 'RdFinalAddr',
             description  = 'Last occupied address in readable buffer (equals frame length - 1)',
             offset       = 0x0,
-            bitSize      = 20,
+            bitSize      = 32,
             bitOffset    = 0,
             mode         = 'RO',
             pollInterval = 1,
@@ -32,9 +32,9 @@ class AxiStreamFrameBuffer(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'RAM_ADDR_WIDTH_G',
             description = 'Frame Buffer RAM Width configuration',
-            offset      = 0x0,
+            offset      = 0x4,
             bitSize     = 8,
-            bitOffset   = 20,
+            bitOffset   = 0,
             mode        = 'RO',
             disp        = '{:d}',
         ))
@@ -42,9 +42,9 @@ class AxiStreamFrameBuffer(pr.Device):
         self.add(pr.RemoteVariable(
             name         = 'AxisState',
             description  = 'Current state of the AXI-Stream readout FSM',
-            offset       = 0x0,
+            offset       = 0x4,
             bitSize      = 2,
-            bitOffset    = 30,
+            bitOffset    = 8,
             mode         = 'RO',
             pollInterval = 1,
             hidden       = True,
@@ -58,7 +58,7 @@ class AxiStreamFrameBuffer(pr.Device):
         self.add(pr.RemoteVariable(
             name        = 'SoftTrig',
             description = 'Software trigger request',
-            offset      = 0x4,
+            offset      = 0x8,
             bitSize     = 1,
             bitOffset   = 0,
             mode        = 'WO',
