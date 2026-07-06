@@ -9,9 +9,9 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Sweep `read-first`, `write-first`, and `no-change` modes, add a
-#   byte-write plus `DOB`-registered case, and include an asynchronous
-#   active-low reset case.
+# - Sweep: Sweep legacy inferred `read-first`, `write-first`, and `no-change`
+#   modes, add a byte-write plus `DOB`-registered case, check explicit
+#   selector read latency, and include an asynchronous active-low reset case.
 # - Stimulus: Alternate reads and writes on both ports, create same-address
 #   interactions to expose mode semantics, optionally collide both write ports,
 #   apply partial byte writes, and then reset after a registered capture.
@@ -20,7 +20,9 @@
 #   behavior, and reset recovery.
 # - Timing: Because both ports are active, the bench checks results relative to
 #   the specific `clka` or `clkb` edge that triggered the interaction and
-#   expects registered outputs to lag by one extra cycle.
+#   expects registered outputs to lag by one extra cycle. READ_LATENCY_G = 2
+#   enables both output registers in the inferred selector path, and explicit
+#   READ_LATENCY_A_G/B_G cases select and check the registered path per port.
 
 import os
 
@@ -41,8 +43,11 @@ class TB(DualClockRamTB):
     def __init__(self, dut):
         super().__init__(dut)
         self.mode = os.environ["MODE_G"]
-        self.doa_reg_enabled = env_flag("DOA_REG_G", default=False)
-        self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
+        self.read_latency = int(os.environ.get("READ_LATENCY_G", "1"))
+        self.read_latency_a = self._effective_read_latency("A", env_flag("DOA_REG_G", default=False))
+        self.read_latency_b = self._effective_read_latency("B", env_flag("DOB_REG_G", default=False))
+        self.doa_reg_enabled = self.read_latency_a == 2
+        self.dob_reg_enabled = self.read_latency_b == 2
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
 
         # Put every input into a defined idle state before the simulator starts.
@@ -61,6 +66,13 @@ class TB(DualClockRamTB):
         dut.addrb.value = 0
         dut.dinb.value = 0
         dut.regceb.value = 1
+
+    def _effective_read_latency(self, port: str, legacy_reg_enabled: bool) -> int:
+        port_latency = int(os.environ.get(f"READ_LATENCY_{port}_G", "-1"))
+        latency = self.read_latency if port_latency < 0 else port_latency
+        if legacy_reg_enabled and latency == 1:
+            latency = 2
+        return latency
 
     async def write_a(self, addr: int, value: int, *, byte_mask: int | None = None) -> None:
         self.dut.addra.value = addr
@@ -237,6 +249,29 @@ async def registered_output_hold_test(dut):
 
 
 @cocotb.test()
+async def registered_output_hold_a_test(dut):
+    tb = TB(dut)
+    await tb.warmup()
+    if not tb.doa_reg_enabled:
+        return
+
+    await tb.write_b(0, 0x1111)
+    await tb.write_b(1, 0x2222)
+    assert await tb.read_a(0) == 0x1111
+
+    # With `regcea=0`, the A-side registered output should keep the previously
+    # captured word even though the address and internal RAM output are moving.
+    tb.dut.addra.value = 1
+    tb.dut.regcea.value = 0
+    await tb.cycle_a(2)
+    assert int(dut.douta.value) == 0x1111
+
+    tb.dut.regcea.value = 1
+    await tb.cycle_a(1)
+    assert int(dut.douta.value) == 0x2222
+
+
+@cocotb.test()
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.warmup()
@@ -262,6 +297,9 @@ async def reset_behavior_test(dut):
 PARAMETER_SWEEP = [
     parameter_case(
         "read_first_baseline",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="false",
@@ -276,6 +314,9 @@ PARAMETER_SWEEP = [
     ),
     parameter_case(
         "write_first_baseline",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="write-first",
         DOA_REG_G="false",
         DOB_REG_G="false",
@@ -290,6 +331,9 @@ PARAMETER_SWEEP = [
     ),
     parameter_case(
         "no_change_baseline",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="no-change",
         DOA_REG_G="false",
         DOB_REG_G="false",
@@ -304,6 +348,9 @@ PARAMETER_SWEEP = [
     ),
     parameter_case(
         "byte_write_and_dob_reg",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="true",
@@ -318,6 +365,9 @@ PARAMETER_SWEEP = [
     ),
     parameter_case(
         "async_active_low_reset",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="false",
@@ -332,6 +382,9 @@ PARAMETER_SWEEP = [
     ),
     parameter_case(
         "same_clock_dual_write_collision",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
         MODE_G="read-first",
         DOA_REG_G="false",
         DOB_REG_G="false",
@@ -342,6 +395,61 @@ PARAMETER_SWEEP = [
         RST_ASYNC_G="false",
         RST_POLARITY_G="'1'",
         CHECK_DUAL_WRITE_COLLISION="1",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_latency_registered",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="2",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_latency_a_registered",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
+        READ_LATENCY_A_G="2",
+        READ_LATENCY_B_G="1",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_latency_b_registered",
+        SYNTH_MODE_G="inferred",
+        MEMORY_TYPE_G="block",
+        READ_LATENCY_G="1",
+        READ_LATENCY_A_G="1",
+        READ_LATENCY_B_G="2",
+        MODE_G="read-first",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),

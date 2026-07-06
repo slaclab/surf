@@ -23,6 +23,8 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 
 entity AxiStreamDmaRingWriteIpIntegrator is
+   generic (
+      AXI_ADDR_WIDTH_G : positive range 12 to 64 := 16);
    port (
       axilClk         : in  sl;
       axilRst         : in  sl;
@@ -69,7 +71,7 @@ entity AxiStreamDmaRingWriteIpIntegrator is
       bufferTriggered : out slv(1 downto 0);
       bufferError     : out slv(1 downto 0);
       M_AXI_AWID      : out slv(0 downto 0);
-      M_AXI_AWADDR    : out slv(15 downto 0);
+      M_AXI_AWADDR    : out slv(AXI_ADDR_WIDTH_G-1 downto 0);
       M_AXI_AWLEN     : out slv(7 downto 0);
       M_AXI_AWSIZE    : out slv(2 downto 0);
       M_AXI_AWBURST   : out slv(1 downto 0);
@@ -112,7 +114,7 @@ architecture rtl of AxiStreamDmaRingWriteIpIntegrator is
       tIdBits   => 0);
 
    constant AXI_CONFIG_C : AxiConfigType := axiConfig(
-      ADDR_WIDTH_C => 16,
+      ADDR_WIDTH_C => AXI_ADDR_WIDTH_G,
       DATA_BYTES_C => 4,
       ID_BITS_C    => 1,
       LEN_BITS_C   => 8);
@@ -239,7 +241,7 @@ begin
       generic map (
          EN_ERROR_RESP => true,
          ID_WIDTH      => 1,
-         ADDR_WIDTH    => 16,
+         ADDR_WIDTH    => AXI_ADDR_WIDTH_G,
          DATA_WIDTH    => 32)
       port map (
          M_AXI_ACLK     => axiClk,

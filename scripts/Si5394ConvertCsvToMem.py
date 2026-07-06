@@ -50,9 +50,9 @@ ofd = open(args.memPath, 'w')
 # 0x0B25,0x00
 # 0x0540,0x01
 ##############################
-ofd.write('0B24' + 'C0' + ',')
-ofd.write('0B25' + '00' + ',')
-ofd.write('0540' + '01' + ',')
+ofd.write('0B24' + 'C0' + '\n')
+ofd.write('0B25' + '00' + '\n')
+ofd.write('0540' + '01' + '\n')
 cnt = 3 # Init the counter
 
 #######################################################################
@@ -64,7 +64,7 @@ cnt = 3 # Init the counter
 #######################################################################
 #    0xFFFFFF is special code in firmware boot ROM to wait 625 ms
 #######################################################################
-ofd.write('FFFFFF' + ',')
+ofd.write('FFFFFF' + '\n')
 cnt = cnt + 1
 
 # Open the .CSV file
@@ -76,7 +76,7 @@ with open(args.csvFile) as csvfile:
         if (row[0]!='Address'):
             offset = row[0]
             data   = row[1]
-            ofd.write(offset[2:] + data[2:] + ',')
+            ofd.write(offset[2:] + data[2:] + '\n')
             cnt = cnt + 1
 
 ###############################
@@ -88,16 +88,16 @@ with open(args.csvFile) as csvfile:
 # 0x0B24,0xC3
 # 0x0B25,0x02
 ###############################
-ofd.write('0514' + '01' + ',')
-ofd.write('001C' + '01' + ',')
-ofd.write('0540' + '00' + ',')
-ofd.write('0B24' + 'C3' + ',')
-ofd.write('0B25' + '02' + ',')
+ofd.write('0514' + '01' + '\n')
+ofd.write('001C' + '01' + '\n')
+ofd.write('0540' + '00' + '\n')
+ofd.write('0B24' + 'C3' + '\n')
+ofd.write('0B25' + '02' + '\n')
 cnt = cnt + 5
 
 # Fill the reset of the BRAM with zeros
 for i in range(1024-cnt):
-    ofd.write('0000' + '00' + ',')
+    ofd.write('0000' + '00' + '\n')
 
 # Close the file
 ofd.close()
