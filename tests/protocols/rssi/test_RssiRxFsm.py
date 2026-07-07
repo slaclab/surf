@@ -569,10 +569,7 @@ async def duplicate_data_after_delivery_drops_without_second_output_test(dut):
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiRxFsm(parameters):
     run_surf_vhdl_test(
@@ -590,7 +587,6 @@ def test_RssiRxFsm(parameters):
     )
 
 
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 def test_RssiRxFsm_checksum_disabled():
     parameters = {"HEADER_CHKSUM_EN_G": "false"}
     run_surf_vhdl_test(
