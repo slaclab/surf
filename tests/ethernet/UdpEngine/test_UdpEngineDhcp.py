@@ -121,6 +121,12 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     request_payload = payload_from_beats(request_observed)
     request_xid = extract_dhcp_xid(request_payload)
     assert extract_dhcp_message_type(request_payload) == DHCP_REQUEST
+    # RFC 2131 4.4.1 / Table 5: the SELECTING-state request reuses the XID from
+    # the discover/offer exchange.
+    assert request_xid == discover_xid, (
+        f"Request XID 0x{request_xid:08x} does not match Discover XID "
+        f"0x{discover_xid:08x}"
+    )
     assert extract_dhcp_requested_ip(request_payload) == "192.168.2.44"
     assert extract_dhcp_server_identifier(request_payload) == LEGACY_IPS[1]
 

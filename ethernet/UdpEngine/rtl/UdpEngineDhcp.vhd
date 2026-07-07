@@ -262,8 +262,12 @@ begin
                   if r.commCnt = 0 then
                      -- Reset the counter
                      v.cnt   := 0;
-                     -- Increment the counter
-                     v.xid   := r.xid + 1;
+                     -- Start a new transaction ID only for a new DHCP Discover or a
+                     -- lease renewal; the SELECTING-state DHCP Request must reuse the
+                     -- XID from the Discover/Offer exchange (RFC 2131 4.4.1, Table 5)
+                     if (r.dhcpReq = '0') or (r.leaseCnt /= 0) then
+                        v.xid := r.xid + 1;
+                     end if;
                      -- Next state
                      v.state := REQ_S;
                   end if;
