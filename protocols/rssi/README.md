@@ -172,8 +172,7 @@ Only `test_RssiChksum.py` and `test_RssiHeaderReg.py` are intended to run in def
   initializing its per-`TDEST` route state. Extended coverage covers
   bidirectional routing, routed partial-`TKEEP` and EOFE preservation through
   the packetizer2 application boundary, one routed DATA loss/retransmit case,
-  and a second window/segment-size parameter set. Run it with
-  `RUN_RSSI_EXTENDED_TESTS=1`.
+and a second window/segment-size parameter set. Run it with `RUN_RSSI_KNOWN_ISSUE_TESTS=1` (and `RUN_RSSI_EXTENDED_TESTS=1` for extended cases).
 
 Current EOFE behavior is path-specific in the regression suite: direct
 `RssiCore` and the one-stream legacy wrapper path clear application EOFE on
