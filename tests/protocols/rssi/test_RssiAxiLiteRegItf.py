@@ -41,7 +41,7 @@ from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test
 
 
 REG_CONTROL = 0x00
@@ -323,10 +323,7 @@ async def build_time_capability_advertised_in_upper_byte_test(dut):
 
 PARAMETER_SWEEP = [pytest.param({}, id="axi_lite")]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiAxiLiteRegItf(parameters):
     run_surf_vhdl_test(
