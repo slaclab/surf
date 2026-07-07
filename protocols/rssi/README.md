@@ -146,8 +146,8 @@ For direct `RssiCore`, keep these relationships valid:
 
 ## Regression Coverage
 
-Default cocotb coverage under `tests/protocols/rssi/` includes:
-
+Cocotb regression coverage under `tests/protocols/rssi/` includes:
+Only `test_RssiChksum.py` and `test_RssiHeaderReg.py` are intended to run in default CI; set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable the remaining characterization tests.
 - Module-level checksum, header, RX FSM, TX FSM, monitor, connection FSM, and
   AXI-Lite register-interface tests.
 - `test_RssiCore.py`: direct `RssiCore` client/server integration with
