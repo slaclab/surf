@@ -18,8 +18,20 @@
 import pyrogue as pr
 
 class RssiCore(pr.Device):
+
+    # Defaults used when older firmware does not advertise its build-time
+    # capability through the upper byte of registers 0x0C and 0x28.
+    DEFAULT_MAX_NUM_OUTS_SEG = 8
+    DEFAULT_SEGMENT_ADDR_SIZE = 7
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # Range bounds are tightened in _start() once firmware capability
+        # registers can be read. Seed with the legacy defaults so the rogue
+        # tree is well-formed before the link comes up.
+        maxOutsSeg = min(self.DEFAULT_MAX_NUM_OUTS_SEG, 0xFF)
+        maxSegSize = (2**self.DEFAULT_SEGMENT_ADDR_SIZE)*8
 
         ##############################
         # Variables
@@ -101,6 +113,10 @@ class RssiCore(pr.Device):
 
         varPrefix = ['loc','cur']
         for i in range(2):
+            mode = ('RW' if i==0 else 'RO')
+            maxOutsSegRange = ({'minimum': 1, 'maximum': maxOutsSeg} if i==0 else {})
+            maxSegSizeRange = ({'minimum': 8, 'maximum': maxSegSize} if i==0 else {})
+            timeoutRange = ({'minimum': 1} if i==0 else {})
 
             self.add(pr.RemoteVariable(
                 name        =  (varPrefix[i]+'MaxOutsSeg'),
@@ -108,8 +124,9 @@ class RssiCore(pr.Device):
                 offset      =  0x0C,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **maxOutsSegRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -118,8 +135,9 @@ class RssiCore(pr.Device):
                 offset      =  0x10,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **maxSegSizeRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -128,8 +146,9 @@ class RssiCore(pr.Device):
                 offset      =  0x14,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -138,8 +157,9 @@ class RssiCore(pr.Device):
                 offset      =  0x18,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -148,8 +168,9 @@ class RssiCore(pr.Device):
                 offset      =  0x1C,
                 bitSize     =  16,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
+                **timeoutRange,
             ))
 
             self.add(pr.RemoteVariable(
@@ -158,7 +179,7 @@ class RssiCore(pr.Device):
                 offset      =  0x20,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
             ))
 
@@ -168,19 +189,44 @@ class RssiCore(pr.Device):
                 offset      =  0x24,
                 bitSize     =  8,
                 bitOffset   =  i*16,
-                mode        =  ('RW' if i==0 else 'RO'),
+                mode        =  mode,
                 disp        =  '{:d}',
             ))
 
             # self.add(pr.RemoteVariable(
                 # name         = (varPrefix[i]+'MaxOutOfSeq'),
-                # description  = 'Max out of sequence segments (EACK) [7:0]',
+                # description  = 'Reserved: out-of-sequence/EACK is not implemented in RSSI v1 [7:0]',
                 # offset       = 0x28,
                 # bitSize      = 8,
                 # bitOffset    = i*16,
                 # mode         = ('RW' if i==0 else 'RO')',
                 # disp         = '{:d}',
             # ))
+
+        # Build-time capability advertisements injected into the upper byte of
+        # registers 0x0C and 0x28. Older firmware reads 0 here, signalling
+        # that the legacy defaults should be used (see _discoverCapabilities).
+        self.add(pr.RemoteVariable(
+            name        = 'FwMaxNumOutsSeg',
+            description = 'Firmware MAX_NUM_OUTS_SEG_G build-time generic (0 = legacy firmware)',
+            offset      = 0x0C,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            hidden      = True,
+            disp        = '{:d}',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'FwSegmentAddrSize',
+            description = 'Firmware SEGMENT_ADDR_SIZE_G build-time generic (0 = legacy firmware)',
+            offset      = 0x28,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            hidden      = True,
+            disp        = '{:d}',
+        ))
 
         self.add(pr.RemoteVariable(
             name         =  'ConnectionActive',
@@ -402,7 +448,7 @@ class RssiCore(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         =  'TxAckState',
-            description  =  'TX Acknowledge FSM state',
+            description  =  'TX Acknowledge FSM state; EACK state is reserved/unused in RSSI v1',
             offset       =  0x6C,
             bitSize      =  4,
             bitOffset    =  12,
@@ -537,3 +583,28 @@ class RssiCore(pr.Device):
         def C_InjectFault():
             self.InjectFault.set(1)
             self.InjectFault.set(0)
+
+    def _start(self):
+        super()._start()
+        self._discoverCapabilities()
+
+    def _discoverCapabilities(self):
+        # Firmware advertises MAX_NUM_OUTS_SEG_G in 0x0C[31:24] and
+        # SEGMENT_ADDR_SIZE_G in 0x28[31:24]. Older firmware reads 0 there;
+        # in that case fall back to the legacy compile-time defaults.
+        try:
+            maxNumOutsSeg   = self.FwMaxNumOutsSeg.get()
+            segmentAddrSize = self.FwSegmentAddrSize.get()
+        except Exception:
+            return
+
+        if maxNumOutsSeg == 0:
+            maxNumOutsSeg = self.DEFAULT_MAX_NUM_OUTS_SEG
+        if segmentAddrSize == 0:
+            segmentAddrSize = self.DEFAULT_SEGMENT_ADDR_SIZE
+
+        # Range bounds are advisory metadata in rogue (the firmware itself
+        # clamps writes via the AXI-Lite handler). Update the private state
+        # directly so GUIs and EPICS records see the discovered limits.
+        self.locMaxOutsSeg._maximum = min(maxNumOutsSeg, 0xFF)
+        self.locMaxSegSize._maximum = (2**segmentAddrSize)*8
