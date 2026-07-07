@@ -34,7 +34,7 @@ import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test
 
 
 class TB:
@@ -222,10 +222,7 @@ async def local_busy_generates_periodic_ack_after_cumulative_timeout_test(dut):
 
 PARAMETER_SWEEP = [pytest.param({}, id="server_monitor")]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiMonitor(parameters):
     run_surf_vhdl_test(
