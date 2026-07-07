@@ -33,6 +33,7 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 )
 from tests.ethernet.UdpEngine.udp_test_utils import (
     DHCP_ACK,
+    DHCP_BOOTP_FLAG_BROADCAST,
     DHCP_DISCOVER,
     DHCP_OFFER,
     DHCP_REQUEST,
@@ -40,6 +41,7 @@ from tests.ethernet.UdpEngine.udp_test_utils import (
     LEGACY_MAC_WIRES,
     UDP_RTL_SOURCES,
     build_dhcp_reply_payload,
+    extract_dhcp_bootp_flags,
     extract_dhcp_message_type,
     extract_dhcp_requested_ip,
     extract_dhcp_server_identifier,
@@ -69,6 +71,16 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     discover_xid = extract_dhcp_xid(discover_payload)
     assert extract_dhcp_message_type(discover_payload) == DHCP_DISCOVER
 
+    # RFC 2131 4.1: a client that cannot receive unicast datagrams before its IP
+    # is configured must set the BOOTP broadcast flag (bit 15, 0x8000). With the
+    # flag clear, a spec-compliant server unicasts its Offer to the not-yet-leased
+    # yiaddr, which may never be delivered to the client (observed in the field as
+    # an endless Discover/Offer loop), so the client never sends a Request.
+    discover_flags = extract_dhcp_bootp_flags(discover_payload)
+    assert discover_flags & DHCP_BOOTP_FLAG_BROADCAST, (
+        f"BOOTP broadcast flag missing from Discover: flags=0x{discover_flags:04x}"
+    )
+
     # A matching offer should move the state machine into the request phase
     # while preserving the same DHCP transaction identifier.
     offer_payload = build_dhcp_reply_payload(
@@ -93,6 +105,11 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     assert extract_dhcp_message_type(request_payload) == DHCP_REQUEST
     assert extract_dhcp_requested_ip(request_payload) == "192.168.2.44"
     assert extract_dhcp_server_identifier(request_payload) == LEGACY_IPS[1]
+
+    request_flags = extract_dhcp_bootp_flags(request_payload)
+    assert request_flags & DHCP_BOOTP_FLAG_BROADCAST, (
+        f"BOOTP broadcast flag missing from Request: flags=0x{request_flags:04x}"
+    )
 
     # The ack is the step that should finally publish the leased IP address on
     # the wrapper-visible `dhcpIp` output.

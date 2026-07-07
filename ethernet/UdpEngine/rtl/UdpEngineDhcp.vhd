@@ -294,7 +294,10 @@ begin
                      v.txMaster.tData(7 downto 0)   := r.xid(31 downto 24);
                   -- SECS/FLAGS
                   when 2 =>
-                     v.txMaster.tData(31 downto 0) := x"00080000";
+                     -- FLAGS = 0x8000: BOOTP broadcast flag (RFC 2131 4.1) so the
+                     -- server broadcasts the Offer/ACK rather than unicasting to the
+                     -- not-yet-leased yiaddr.
+                     v.txMaster.tData(31 downto 0) := x"00800000";
                   -- SIADDR
                   when 5 =>
                      -- Check for DHCP request

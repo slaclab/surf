@@ -72,6 +72,8 @@ DHCP_OPT_REQUESTED_IP = 50
 DHCP_OPT_LEASE_TIME = 51
 DHCP_OPT_SERVER_IDENTIFIER = 54
 DHCP_OPT_END = 255
+DHCP_BOOTP_FLAGS_OFFSET = 10
+DHCP_BOOTP_FLAG_BROADCAST = 0x8000
 
 
 @dataclass
@@ -238,6 +240,14 @@ def build_dhcp_reply_payload(
 
 def extract_dhcp_xid(payload: bytes) -> int:
     return int.from_bytes(payload[4:8], byteorder="big")
+
+
+def extract_dhcp_bootp_flags(payload: bytes) -> int:
+    """Return the 16-bit big-endian BOOTP flags field (header bytes 10-11)."""
+    return int.from_bytes(
+        payload[DHCP_BOOTP_FLAGS_OFFSET : DHCP_BOOTP_FLAGS_OFFSET + 2],
+        byteorder="big",
+    )
 
 
 def extract_dhcp_message_type(payload: bytes) -> int | None:
