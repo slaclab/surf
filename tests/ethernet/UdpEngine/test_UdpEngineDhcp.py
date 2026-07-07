@@ -76,9 +76,12 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     # flag clear, a spec-compliant server unicasts its Offer to the not-yet-leased
     # yiaddr, which may never be delivered to the client (observed in the field as
     # an endless Discover/Offer loop), so the client never sends a Request.
+    # RFC 2131 also requires the remaining 15 flag bits to be zero, so check
+    # for exact equality rather than just the broadcast bit.
     discover_flags = extract_dhcp_bootp_flags(discover_payload)
-    assert discover_flags & DHCP_BOOTP_FLAG_BROADCAST, (
-        f"BOOTP broadcast flag missing from Discover: flags=0x{discover_flags:04x}"
+    assert discover_flags == DHCP_BOOTP_FLAG_BROADCAST, (
+        f"Unexpected BOOTP flags in Discover: flags=0x{discover_flags:04x} "
+        f"(expected 0x{DHCP_BOOTP_FLAG_BROADCAST:04x})"
     )
 
     # A matching offer should move the state machine into the request phase
@@ -107,8 +110,9 @@ async def udp_engine_dhcp_offer_ack_sequence_test(dut):
     assert extract_dhcp_server_identifier(request_payload) == LEGACY_IPS[1]
 
     request_flags = extract_dhcp_bootp_flags(request_payload)
-    assert request_flags & DHCP_BOOTP_FLAG_BROADCAST, (
-        f"BOOTP broadcast flag missing from Request: flags=0x{request_flags:04x}"
+    assert request_flags == DHCP_BOOTP_FLAG_BROADCAST, (
+        f"Unexpected BOOTP flags in Request: flags=0x{request_flags:04x} "
+        f"(expected 0x{DHCP_BOOTP_FLAG_BROADCAST:04x})"
     )
 
     # The ack is the step that should finally publish the leased IP address on
