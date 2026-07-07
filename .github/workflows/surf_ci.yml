@@ -107,7 +107,7 @@ jobs:
       - name: Parallel Regression Tests
         run: |
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols tests/ethernet/RoCEv2
+          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols tests/ethernet/RoCEv2 tests/ethernet/UdpEngine
 
       - name: Code Coverage
         run: |
