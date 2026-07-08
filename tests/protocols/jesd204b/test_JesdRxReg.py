@@ -53,9 +53,13 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
     K_CHAR,
     build_ilas_config_octets,
     build_rx_link_timeline,
+    jesd_wrapper_sources,
     wait_data_valid_all,
     wait_nSync,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bRxWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # RX status bit constants (JesdRxLane.vhd:322 + :267 verified in 04-04-SUMMARY)
@@ -638,4 +642,5 @@ def test_JesdRxReg(parameters):
         toplevel="surf.jesd204brxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )

@@ -51,8 +51,12 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
     build_ilas_config_octets,
     build_ilas_gt_words,
     decode_gt_word,
+    jesd_wrapper_sources,
     predict_char_replacement,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("JesdTxLaneWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -805,4 +809,5 @@ def test_JesdTxLane(parameters):
         toplevel="surf.jesdtxlanewrapper",
         parameters=hdl_parameters_from(parameters),   # strips SUBCLASS, SCR_ENABLE
         extra_env=parameters,                          # full dict -> unique sim_build
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )

@@ -41,7 +41,11 @@ from tests.common.regression_utils import (
 from tests.protocols.jesd204b.jesd204b_test_utils import (
     K_CHAR,
     endian_swap_32,
+    jesd_wrapper_sources,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bTxWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # StatusLane bit positions (JesdTxReg.vhd TX_STAT_WIDTH_C=6, JesdTxLane status_o)
@@ -665,4 +669,5 @@ def test_JesdTxReg(parameters):
         toplevel="surf.jesd204btxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
