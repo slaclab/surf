@@ -403,7 +403,9 @@ Required GT/profile properties:
 - Deterministic 64b/66b gearbox/block alignment.
 - No reset-dependent latency variation from RX word alignment, gearbox, or FEC.
 
-The existing `GtRxAlignCheck` reads comma/latency DRP fields that are relevant to comma/byte alignment. It is probably not sufficient as-is for PGP4 64b/66b non-8b10b configurations.
+The existing `GtRxAlignCheck` reads comma/latency DRP fields that are relevant to 8b10b comma/byte alignment. It must not be reused as-is for PGP4 fixed latency. PGP4 uses 64b/66b sync headers, GT RX gearbox slip, optional Clause 74 FEC alignment, and a different set of possible latency/phase observables.
+
+The existing `Pgp3RxGearboxAligner` is also not sufficient by itself. It is still useful as the block-sync mechanism because it monitors 64b/66b headers and issues `rxGearboxSlip` until valid headers are found. However, it only answers "am I on a valid 66-bit boundary?" It does not answer "did this link come up with the same deterministic RX latency phase as last time?"
 
 Open AMD documentation items:
 
@@ -417,7 +419,182 @@ Potential implementation approach:
 - Create a new PGP4 GTY US+ fixed-lat wrapper/profile rather than silently changing existing PGP4 wrappers.
 - Expose `SKIP_EN_G` and fixed-latency generics through the wrapper.
 - Wire `pgpRxClk` to the deterministic RX PHY word clock when bypassing `Pgp4RxEb`, or otherwise ensure a deterministic same-clock relationship.
-- Add a new 64b/66b/FEC-aware alignment checker analogous in role to `GtRxAlignCheck`, but not based on 8b10b comma-latency fields.
+- Add a new 64b/66b/FEC-aware fixed-latency alignment checker. This should be analogous in purpose to `GtRxAlignCheck`, but must not be based on 8b10b comma-latency fields.
+
+## Required 64b/66b Fixed-Latency Aligner
+
+Implement a new aligner/checker for fixed-latency PGP4. The exact name is open, but a descriptive name would be:
+
+```text
+Pgp4RxFixedLatAligner
+```
+
+or, if it is kept generic to GTY/GTH and not PGP4-specific:
+
+```text
+GtRxFixedLat64b66bAlignCheck
+```
+
+This block should be a new RTL module. Do not extend `GtRxAlignCheck` in place because the existing module is specifically tied to comma/latency DRP behavior used by 8b10b-style links.
+
+### Aligner Responsibilities
+
+The new aligner must perform three distinct jobs:
+
+1. Establish valid 64b/66b block alignment.
+2. Verify optional FEC alignment/lock when FEC is enabled.
+3. Verify that the final deterministic RX latency phase equals a configured target phase.
+
+Only after all three are true should the fixed-latency PGP4 RX path be considered ready.
+
+### Proposed Inputs And Outputs
+
+Candidate ports:
+
+```vhdl
+clk              : in  sl;
+rst              : in  sl;
+
+rxHeader         : in  slv(1 downto 0);
+rxHeaderValid    : in  sl;
+rxData           : in  slv(63 downto 0);
+rxDataValid      : in  sl;
+rxStartOfSeq     : in  sl := '0';
+
+rxFecEnable      : in  sl := '0';
+rxFecLock        : in  sl := '1';
+rxFecCorInc      : in  sl := '0';
+rxFecUnCorInc    : in  sl := '0';
+
+rxGearboxSlip    : out sl;
+rxResetReq       : out sl;
+locked           : out sl;
+phaseLocked      : out sl;
+phaseValue       : out slv(PHASE_WIDTH_G-1 downto 0);
+phaseError       : out sl;
+```
+
+If the final implementation uses DRP-visible phase/latency fields, add a DRP read interface or connect to an existing DRP access helper:
+
+```vhdl
+drpReq           : out sl;
+drpRdy           : in  sl;
+drpAddr          : out slv(...);
+drpData          : in  slv(15 downto 0);
+```
+
+The exact DRP interface should follow the local GT wrapper pattern selected for the fixed-latency profile.
+
+### Block-Sync Stage
+
+Reuse the `Pgp3RxGearboxAligner` algorithm or instantiate it internally:
+
+- Treat `rxHeader = "01"` and `rxHeader = "10"` as valid 64b/66b sync headers.
+- Treat `rxHeader = "00"` and `rxHeader = "11"` as invalid.
+- While unlocked, issue `rxGearboxSlip` on invalid headers and wait the AMD-recommended slip settling interval before checking again.
+- Once locked, keep monitoring headers and drop lock if too many invalid headers occur.
+
+This stage replaces neither FEC lock nor phase checking. It only establishes a valid 66-bit word boundary.
+
+### FEC-Aware Stage
+
+When `PGP_FEC_ENABLE_G = true`:
+
+- Require `rxFecLock = '1'` before fixed-latency lock can assert.
+- Route FEC-generated slip requests correctly. The current `Pgp4GtyUsIpFecWrapper` drives `rx_din_slip` as `rxGearboxSlipOut` when FEC is not bypassed. The fixed-latency aligner must be placed so that there is exactly one owner of the final GT `rxGearboxSlip` input.
+- Treat FEC lock loss as fixed-latency lock loss.
+- Count/report FEC corrected and uncorrected events, but do not allow corrected events to change timing.
+- On uncorrected events, the RX FL path should report an error or force relock, depending on final policy.
+
+Open question for implementation:
+
+- Determine from AMD documentation and hardware testing whether Clause 74 FEC can lock in multiple deterministic latency phases. If yes, the phase-check stage must include FEC phase, not only GT gearbox phase.
+
+### Phase-Check Stage
+
+This is the part that does not exist today.
+
+After 64b/66b block sync and FEC lock, the aligner must measure a reset-dependent phase/latency indicator and compare it against a target:
+
+```vhdl
+if measuredPhase = TARGET_PHASE_G then
+   phaseLocked <= '1';
+else
+   phaseError  <= '1';
+   rxResetReq  <= '1';
+end if;
+```
+
+The preferred phase measurement is a GT/FEC status or DRP field that directly exposes RX gearbox/FEC latency or phase. The implementation must consult AMD documentation for the selected UltraScale+ GTY configuration and record the exact field/address in comments and documentation.
+
+If no suitable DRP/status field exists in the selected fixed-latency 64b/66b configuration, use a protocol training phase measurement:
+
+- During link bring-up, the TX emits a deterministic alignment pattern on a known local event phase.
+- Candidate pattern: repeated IDLE/FL alignment words containing a small modulo phase counter.
+- The RX captures the received phase counter at the first fixed-latency-safe boundary after block/FEC lock.
+- The RX compares the captured counter to `TARGET_PHASE_G`.
+- If the phase is wrong, assert `rxResetReq` and retry GT/FEC alignment.
+
+The DRP/status method is preferred because it is lower-level and does not consume protocol format space. The training-pattern method is acceptable if it is deterministic and fully specified.
+
+### Reset-Until-Target-Phase Loop
+
+The fixed-latency profile should use a reset loop similar in spirit to PGP2FC's fixed-latency bring-up:
+
+1. Reset RX datapath/GT/FEC.
+2. Wait for GT RX reset done.
+3. Run 64b/66b block-sync slip until valid headers are stable.
+4. Wait for FEC lock if enabled.
+5. Measure phase.
+6. If phase equals `TARGET_PHASE_G`, assert fixed-latency lock.
+7. If phase does not match, reset RX and retry.
+8. If too many attempts fail, expose an error/status bit and leave the link down.
+
+Recommended generics:
+
+```vhdl
+FIXED_LAT_ALIGN_EN_G : boolean := false;
+TARGET_PHASE_G       : natural := 0;
+MAX_ALIGN_RETRIES_G  : natural := 255;
+PHASE_WIDTH_G        : positive := <depends on selected measurement>;
+```
+
+Recommended status outputs:
+
+```vhdl
+alignDone       : sl;
+alignError      : sl;
+alignRetryCount : slv(7 downto 0);
+alignPhase      : slv(PHASE_WIDTH_G-1 downto 0);
+```
+
+### Integration Point
+
+For the fixed-latency PGP4 profile:
+
+- Replace or wrap the current direct `Pgp3RxGearboxAligner` instantiation in `Pgp4Rx.vhd`.
+- In ordinary non-fixed-latency PGP4 builds, preserve current behavior.
+- The fixed-latency aligner output should gate `phyRxActive`/`linkReady` so PGP4 does not declare the link ready until phase lock is achieved.
+- The aligner must drive the GT/FEC slip/reset path in the wrapper, not only internal PGP4 status.
+- Expose status through AXI-Lite if `EN_PGP_MON_G` is enabled.
+
+### Validation Requirements
+
+Simulation:
+
+- Prove the aligner performs ordinary 64b/66b block sync from invalid header phases.
+- Prove it does not assert fixed-latency lock until FEC lock is present when FEC is enabled.
+- Mock phase measurements and verify target match/mismatch behavior.
+- Verify retry counter and align-error behavior.
+
+Hardware:
+
+- Record measured phase across many RX resets.
+- Confirm the aligner retries until the configured phase is reached.
+- Confirm final FL latency is identical across RX resets.
+- Confirm final FL latency is identical across full link reinitialization.
+- If practical, confirm final FL latency is identical across power cycles.
+- Run the above with FEC enabled, because FEC is part of the target high-rate profile.
 
 ## Example Application: Trigger-Primitives
 
@@ -596,7 +773,7 @@ Tasks:
 - Integrate FEC enabled profile.
 - Expose deterministic clocks.
 - Ensure `Pgp4RxEb` is bypassed (`SKIP_EN_G=false`) and clocks are wired correctly.
-- Build or adapt an alignment/phase checker for 64b/66b/FEC.
+- Implement the new 64b/66b/FEC fixed-latency aligner described above; do not reuse `GtRxAlignCheck` as the implementation.
 - Define link-ready condition that includes FEC lock and target phase.
 
 Validation:
