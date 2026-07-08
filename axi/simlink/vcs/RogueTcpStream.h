@@ -62,10 +62,24 @@ typedef struct {
     uint8_t   ssi;
     time_t    ltime;
 
+    // Input snapshot / output state driven by the shared FSM core through the
+    // getInt/setInt seam below; RogueTcpStreamUpdate bridges these to/from
+    // portData->intValue around each step.
+    unsigned int inSnap[PORT_COUNT];
+    unsigned int outState[PORT_COUNT];
+
     void *    zmqCtx;
     void *    zmqPush;
     void *    zmqPull;
 } RogueTcpStreamData;
+
+// The shared FSM core (RogueTcpStreamCore.h) drives the state machine through
+// getInt/setInt. Override VhpiGeneric.h's portData-based definitions so the
+// shared body compiles against RogueTcpStreamData's local snapshot arrays.
+#undef getInt
+#undef setInt
+#define getInt(idx)      (data->inSnap[idx])
+#define setInt(idx, val) (data->outState[idx] = (val))
 
 // Init function
 void RogueTcpStreamInit(vhpiHandleT compInst);
@@ -73,13 +87,13 @@ void RogueTcpStreamInit(vhpiHandleT compInst);
 // Callback function for updating
 void RogueTcpStreamUpdate(void *userPtr);
 
-// Start/resetart zeromq server
-void RogueTcpStreamRestart(RogueTcpStreamData *data, portDataT *portData);
+// Start/restart zeromq server
+void RogueTcpStreamRestart(RogueTcpStreamData *data);
 
 // Send a message
-void RogueTcpStreamSend(RogueTcpStreamData *data, portDataT *portData);
+void RogueTcpStreamSend(RogueTcpStreamData *data);
 
 // Receive data if it is available
-int RogueTcpStreamRecv(RogueTcpStreamData *data, portDataT *portData);
+int RogueTcpStreamRecv(RogueTcpStreamData *data);
 
 #endif

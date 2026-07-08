@@ -44,10 +44,24 @@ typedef struct {
     uint8_t   txOpCode;
     uint8_t   txOpCodeEn;
 
+    // Input snapshot / output state driven by the shared FSM core through the
+    // getInt/setInt seam below; RogueSideBandUpdate bridges these to/from
+    // portData->intValue around each step.
+    unsigned int inSnap[PORT_COUNT];
+    unsigned int outState[PORT_COUNT];
+
     void *    zmqCtx;
     void *    zmqPull;
     void *    zmqPush;
 } RogueSideBandData;
+
+// The shared FSM core (RogueSideBandCore.h) drives the state machine through
+// getInt/setInt. Override VhpiGeneric.h's portData-based definitions so the
+// shared body compiles against RogueSideBandData's local snapshot arrays.
+#undef getInt
+#undef setInt
+#define getInt(idx)      (data->inSnap[idx])
+#define setInt(idx, val) (data->outState[idx] = (val))
 
 // Init function
 void RogueSideBandInit(vhpiHandleT compInst);
@@ -55,13 +69,13 @@ void RogueSideBandInit(vhpiHandleT compInst);
 // Callback function for updating
 void RogueSideBandUpdate(void *userPtr);
 
-// Restart the zmq link
-void RogueSideBandRestart(RogueSideBandData *data, portDataT *portData);
+// Start/restart zeromq server
+void RogueSideBandRestart(RogueSideBandData *data);
 
-// Send data
-void RogueSideBandSend(RogueSideBandData *data, portDataT *portData);
+// Send a message
+void RogueSideBandSend(RogueSideBandData *data);
 
 // Receive data if it is available
-int RogueSideBandRecv(RogueSideBandData *data, portDataT *portData);
+int RogueSideBandRecv(RogueSideBandData *data);
 
 #endif
