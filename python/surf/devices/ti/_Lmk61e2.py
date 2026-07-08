@@ -336,7 +336,7 @@ class Lmk61e2(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'NVMSCRC',
-            description = 'The NVMSCRC register holds the Stored CRC (Cyclic Redundancy Check) byte that has been retreived from onchip EEPROM',
+            description = 'The NVMSCRC register holds the Stored CRC (Cyclic Redundancy Check) byte that has been retrieved from onchip EEPROM',
             offset      = (47 << 2),
             bitSize     = 8,
             bitOffset   = 0,

@@ -75,61 +75,63 @@ architecture rtl of UdpEngineTxFlatWrapper is
    signal arpTabIpAddrA : Slv32Array(0 downto 0);
    signal arpTabMacA    : Slv48Array(0 downto 0);
    signal linkUpA       : slv(0 downto 0);
-   signal sDhcpMaster   : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal sDhcpSlave    : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal mUdpMaster    : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mUdpSlave     : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal sDhcpMaster   : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal sDhcpSlave    : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
+   signal mUdpMaster    : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mUdpSlave     : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
-   sAppComb : process (sAppEofe, sAppSof, sAppTData, sAppTDest, sAppTKeep, sAppTLast, sAppTValid) is
+   sAppComb : process (sAppEofe, sAppSof, sAppTData, sAppTDest, sAppTKeep,
+                       sAppTLast, sAppTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAppTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAppTValid;
       v.tData(127 downto 0) := sAppTData;
-      v.tKeep(15 downto 0) := sAppTKeep;
-      v.tLast := sAppTLast;
-      v.tDest(7 downto 0) := sAppTDest;
+      v.tKeep(15 downto 0)  := sAppTKeep;
+      v.tLast               := sAppTLast;
+      v.tDest(7 downto 0)   := sAppTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAppSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAppEofe);
-      sAppMasters(0) <= v;
+      sAppMasters(0)        <= v;
    end process sAppComb;
 
-   sDhcpComb : process (sDhcpEofe, sDhcpSof, sDhcpTData, sDhcpTKeep, sDhcpTLast, sDhcpTValid) is
+   sDhcpComb : process (sDhcpEofe, sDhcpSof, sDhcpTData, sDhcpTKeep,
+                        sDhcpTLast, sDhcpTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sDhcpTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sDhcpTValid;
       v.tData(127 downto 0) := sDhcpTData;
-      v.tKeep(15 downto 0) := sDhcpTKeep;
-      v.tLast := sDhcpTLast;
+      v.tKeep(15 downto 0)  := sDhcpTKeep;
+      v.tLast               := sDhcpTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sDhcpSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sDhcpEofe);
-      sDhcpMaster <= v;
+      sDhcpMaster           <= v;
    end process sDhcpComb;
 
    mUdpView : process (mUdpMaster) is
    begin
       mUdpTValid <= mUdpMaster.tValid;
-      mUdpTData <= mUdpMaster.tData(127 downto 0);
-      mUdpTKeep <= mUdpMaster.tKeep(15 downto 0);
-      mUdpTLast <= mUdpMaster.tLast;
-      mUdpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mUdpMaster, EMAC_SOF_BIT_C, 0);
-      mUdpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mUdpMaster, EMAC_EOFE_BIT_C);
+      mUdpTData  <= mUdpMaster.tData(127 downto 0);
+      mUdpTKeep  <= mUdpMaster.tKeep(15 downto 0);
+      mUdpTLast  <= mUdpMaster.tLast;
+      mUdpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mUdpMaster, EMAC_SOF_BIT_C, 0);
+      mUdpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mUdpMaster, EMAC_EOFE_BIT_C);
    end process mUdpView;
 
-   sAppTReady <= sAppSlaves(0).tReady;
-   sDhcpTReady <= sDhcpSlave.tReady;
+   sAppTReady       <= sAppSlaves(0).tReady;
+   sDhcpTReady      <= sDhcpSlave.tReady;
    mUdpSlave.tReady <= mUdpTReady;
 
-   linkUp <= linkUpA(0);
-   arpTabPos <= arpTabPosA(0);
-   remotePortA(0) <= remotePort;
-   remoteIpA(0) <= remoteIp;
-   remoteMacA(0) <= remoteMac;
+   linkUp           <= linkUpA(0);
+   arpTabPos        <= arpTabPosA(0);
+   remotePortA(0)   <= remotePort;
+   remoteIpA(0)     <= remoteIp;
+   remoteMacA(0)    <= remoteMac;
    arpTabIpAddrA(0) <= arpTabIpAddr;
-   arpTabMacA(0) <= arpTabMacAddr;
+   arpTabMacA(0)    <= arpTabMacAddr;
 
    U_DUT : entity surf.UdpEngineTx
       generic map (
@@ -141,23 +143,23 @@ begin
          IS_CLIENT_G    => IS_CLIENT_G,
          PORT_G         => (0 => PORT_G_VALUE))
       port map (
-         obUdpMaster      => mUdpMaster,
-         obUdpSlave       => mUdpSlave,
-         linkUp           => linkUpA,
-         localMac         => localMac,
-         localIp          => localIp,
-         remotePort       => remotePortA,
-         remoteIp         => remoteIpA,
-         remoteMac        => remoteMacA,
-         ibMasters        => sAppMasters,
-         ibSlaves         => sAppSlaves,
-         arpTabPos        => arpTabPosA,
-         arpTabFound(0)   => arpTabFound,
-         arpTabIpAddr     => arpTabIpAddrA,
-         arpTabMacAddr    => arpTabMacA,
-         obDhcpMaster     => sDhcpMaster,
-         obDhcpSlave      => sDhcpSlave,
-         clk              => clk,
-         rst              => rst);
+         obUdpMaster    => mUdpMaster,
+         obUdpSlave     => mUdpSlave,
+         linkUp         => linkUpA,
+         localMac       => localMac,
+         localIp        => localIp,
+         remotePort     => remotePortA,
+         remoteIp       => remoteIpA,
+         remoteMac      => remoteMacA,
+         ibMasters      => sAppMasters,
+         ibSlaves       => sAppSlaves,
+         arpTabPos      => arpTabPosA,
+         arpTabFound(0) => arpTabFound,
+         arpTabIpAddr   => arpTabIpAddrA,
+         arpTabMacAddr  => arpTabMacA,
+         obDhcpMaster   => sDhcpMaster,
+         obDhcpSlave    => sDhcpSlave,
+         clk            => clk,
+         rst            => rst);
 
 end architecture rtl;

@@ -28,13 +28,13 @@
 --                    running on a BUFG.
 --
 --                    To set the parameters correctly here is what you need to
---                    do.  Lets assume taht the reference and recovered
+--                    do.  Lets assume that the reference and recovered
 --                    clocks are running at 156MHz and the system clock is
 --                    running at 50MHz.
 --
---                    To ensure that the interval is long enough we want to
+--                    To ensure that the interval is long enough we want
 --                    to make the COUNTER_UPPER_VALUE to be reasonable.  The
---                    CLOCK_PULSES is the number of sytem clock cycles we can
+--                    CLOCK_PULSES is the number of system clock cycles we can
 --                    expect to be off based on these frequencies:
 --
 --                    Example: Rec Clk and Ref Clk 156MHz, System clock 50MHz
@@ -46,7 +46,7 @@
 --                    PPM OFFSET = 5000 => 32768 * 5000/1000000 = 164
 --
 --                    Now we are using the system clock to do the
---                    calculations, therfore we need to scale the PPM_OFFSET
+--                    calculations, therefore we need to scale the PPM_OFFSET
 --                    accordingly.
 --
 --                    CLOCK_PULSES = PPM_OFFSET * sysclk_freq/refclk_freq
@@ -54,7 +54,7 @@
 --
 --
 --                    When the counters are checked if they are off by less
---                    than 52, we can delcare that the particular RECCLK is
+--                    than 52, we can declare that the particular RECCLK is
 --                    stable.
 --
 --                    All FFs that have the _meta are metastability FFs and
@@ -357,7 +357,7 @@ begin
 
 
 
--- On clock roll-over, latch counter value once and event occurance.
+-- On clock roll-over, latch counter value once and event occurrence.
       process (SYSTEM_CLK)
       begin
          if rising_edge(SYSTEM_CLK) then

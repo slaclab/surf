@@ -23,27 +23,27 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamDmaFifoIpIntegrator is
    port (
-      axiClk         : in  sl;
-      axiRst         : in  sl;
-      S_AXI_AWADDR   : in  slv(7 downto 0);
-      S_AXI_AWPROT   : in  slv(2 downto 0);
-      S_AXI_AWVALID  : in  sl;
-      S_AXI_AWREADY  : out sl;
-      S_AXI_WDATA    : in  slv(31 downto 0);
-      S_AXI_WSTRB    : in  slv(3 downto 0);
-      S_AXI_WVALID   : in  sl;
-      S_AXI_WREADY   : out sl;
-      S_AXI_BRESP    : out slv(1 downto 0);
-      S_AXI_BVALID   : out sl;
-      S_AXI_BREADY   : in  sl;
-      S_AXI_ARADDR   : in  slv(7 downto 0);
-      S_AXI_ARPROT   : in  slv(2 downto 0);
-      S_AXI_ARVALID  : in  sl;
-      S_AXI_ARREADY  : out sl;
-      S_AXI_RDATA    : out slv(31 downto 0);
-      S_AXI_RRESP    : out slv(1 downto 0);
-      S_AXI_RVALID   : out sl;
-      S_AXI_RREADY   : in  sl);
+      axiClk        : in  sl;
+      axiRst        : in  sl;
+      S_AXI_AWADDR  : in  slv(7 downto 0);
+      S_AXI_AWPROT  : in  slv(2 downto 0);
+      S_AXI_AWVALID : in  sl;
+      S_AXI_AWREADY : out sl;
+      S_AXI_WDATA   : in  slv(31 downto 0);
+      S_AXI_WSTRB   : in  slv(3 downto 0);
+      S_AXI_WVALID  : in  sl;
+      S_AXI_WREADY  : out sl;
+      S_AXI_BRESP   : out slv(1 downto 0);
+      S_AXI_BVALID  : out sl;
+      S_AXI_BREADY  : in  sl;
+      S_AXI_ARADDR  : in  slv(7 downto 0);
+      S_AXI_ARPROT  : in  slv(2 downto 0);
+      S_AXI_ARVALID : in  sl;
+      S_AXI_ARREADY : out sl;
+      S_AXI_RDATA   : out slv(31 downto 0);
+      S_AXI_RRESP   : out slv(1 downto 0);
+      S_AXI_RVALID  : out sl;
+      S_AXI_RREADY  : in  sl);
 end entity AxiStreamDmaFifoIpIntegrator;
 
 architecture rtl of AxiStreamDmaFifoIpIntegrator is
@@ -63,7 +63,7 @@ architecture rtl of AxiStreamDmaFifoIpIntegrator is
       ID_BITS_C    => 1,
       LEN_BITS_C   => 8);
 
-   signal axilResetN      : sl := '1';
+   signal axilResetN      : sl                     := '1';
    signal axilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
    signal axilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
    signal axilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;

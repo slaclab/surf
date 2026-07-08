@@ -45,7 +45,7 @@ entity AxiStreamDmaV2Desc is
       -- Choose between one-clock arbitration for return descriptors or count and check selection
       DESC_ARB_G : boolean := true;
 
-      -- Choose between infeered or xpm generated descriptor FIFOs
+      -- Choose between inferred or xpm generated descriptor FIFOs
       DESC_SYNTH_MODE_G : string := "inferred";
 
       -- Choose the type of resources for the descriptor FIFOs when DESC_SYNTH_MODE_G="xpm"

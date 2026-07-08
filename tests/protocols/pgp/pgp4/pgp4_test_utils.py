@@ -13,6 +13,9 @@ from __future__ import annotations
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
+
+from tests.axi.utils import wait_sampled_ready
+
 PGP4_VERSION = 0x04
 
 PGP4_IDLE = 0x99
@@ -94,6 +97,18 @@ def initialize_flat_tx_inputs(dut, *, include_opcode: bool = False):
         initialize_signals(dut, opCodeEn=0, opCodeData=0)
 
 
+def tb_sample_clk(tb):
+    clk = getattr(tb, "clk", None)
+    if clk is not None:
+        return clk
+
+    clk = getattr(tb, "cycle_clk", None)
+    if clk is not None:
+        return clk
+
+    raise AttributeError(f"{type(tb).__name__} does not expose a sampling clock handle")
+
+
 async def send_opcode(tb: Pgp4FlatTB, opcode: int):
     """Pulse one opcode request through the flat PGP4 wrapper interface."""
 
@@ -167,8 +182,7 @@ async def send_single_word_frame(tb, *, payload: int, eofe: int = 0, ready_name:
     tb.dut.txSof.value = 1
     tb.dut.txEof.value = 1
     tb.dut.txEofe.value = eofe
-    await wait_for_signal(tb, ready_name, cycles=cycles)
-    await tb.cycle()
+    await wait_sampled_ready(getattr(tb.dut, ready_name), clk=tb_sample_clk(tb), timeout_cycles=cycles)
     tb.dut.txValid.value = 0
     tb.dut.txSof.value = 0
     tb.dut.txEof.value = 0

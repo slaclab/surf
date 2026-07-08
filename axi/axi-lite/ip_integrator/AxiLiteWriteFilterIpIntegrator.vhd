@@ -73,17 +73,17 @@ end entity AxiLiteWriteFilterIpIntegrator;
 
 architecture rtl of AxiLiteWriteFilterIpIntegrator is
 
-   constant FILTER_ADDR_C : Slv32Array(FILTER_SIZE_G-1 downto 0) := (0 => toSlv(FILTER_ADDR_0_G, 32), others => toSlv(FILTER_ADDR_0_G, 32));
-   signal sAxiAResetN     : sl := '1';
-   signal mAxiAResetN     : sl := '1';
-   signal sAxilReadMaster : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal sAxilReadSlave  : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal sAxilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal sAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
-   signal mAxilReadMaster  : AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
-   signal mAxilReadSlave   : AxiLiteReadSlaveType   := AXI_LITE_READ_SLAVE_INIT_C;
-   signal mAxilWriteMaster : AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
-   signal mAxilWriteSlave  : AxiLiteWriteSlaveType  := AXI_LITE_WRITE_SLAVE_INIT_C;
+   constant FILTER_ADDR_C  : Slv32Array(FILTER_SIZE_G-1 downto 0) := (0 => toSlv(FILTER_ADDR_0_G, 32), others => toSlv(FILTER_ADDR_0_G, 32));
+   signal sAxiAResetN      : sl                                   := '1';
+   signal mAxiAResetN      : sl                                   := '1';
+   signal sAxilReadMaster  : AxiLiteReadMasterType                := AXI_LITE_READ_MASTER_INIT_C;
+   signal sAxilReadSlave   : AxiLiteReadSlaveType                 := AXI_LITE_READ_SLAVE_INIT_C;
+   signal sAxilWriteMaster : AxiLiteWriteMasterType               := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal sAxilWriteSlave  : AxiLiteWriteSlaveType                := AXI_LITE_WRITE_SLAVE_INIT_C;
+   signal mAxilReadMaster  : AxiLiteReadMasterType                := AXI_LITE_READ_MASTER_INIT_C;
+   signal mAxilReadSlave   : AxiLiteReadSlaveType                 := AXI_LITE_READ_SLAVE_INIT_C;
+   signal mAxilWriteMaster : AxiLiteWriteMasterType               := AXI_LITE_WRITE_MASTER_INIT_C;
+   signal mAxilWriteSlave  : AxiLiteWriteSlaveType                := AXI_LITE_WRITE_SLAVE_INIT_C;
 
 begin
 

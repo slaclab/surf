@@ -49,7 +49,7 @@ entity AxiStreamFifoV2 is
 
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
-      -- CUSOTM uses passed FIFO_DATA_WIDTH_G
+      -- CUSTOM uses passed FIFO_DATA_WIDTH_G
       INT_WIDTH_SELECT_G : string                                          := "WIDE";
       INT_DATA_WIDTH_G   : natural range 1 to AXI_STREAM_MAX_TKEEP_WIDTH_C := 16;
 
@@ -176,7 +176,7 @@ architecture rtl of AxiStreamFifoV2 is
 
 begin
 
-   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   -- Can't use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamFifoV2: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
@@ -225,7 +225,7 @@ begin
    -- Is ready enabled?
    fifoReady <= (not fifoAFull) when SLAVE_READY_EN_G else '1';
 
-   -- Output a copy of FIFO WR count incase application needs more than one threshold
+   -- Output a copy of FIFO WR count in case application needs more than one threshold
    fifoWrCnt <= fifoWrCount;
 
    -- Map bits

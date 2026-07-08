@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Description: Taylor series corrected SinCosLut, stores 1/4 cos in
 --              INT_PHASE_WIDTH_G - 2 bits LUT and does 1st order Taylor series
---              correction on ouput (3 real multipliers)
+--              correction on output (3 real multipliers)
 --              dout.re <= cos
 --              dout.im <= sin
 --

@@ -75,11 +75,11 @@ architecture rtl of AxiStreamCombinerIpIntegrator is
       TUSER_BITS_C  => TUSER_WIDTH_G,
       TUSER_MODE_C  => TUSER_NORMAL_C);
 
-   signal axisAResetN : sl := '1';
+   signal axisAResetN  : sl                               := '1';
    signal sAxisMasters : AxiStreamMasterArray(1 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal sAxisSlaves  : AxiStreamSlaveArray(1 downto 0) := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal mAxisMaster  : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-   signal mAxisSlave   : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
+   signal sAxisSlaves  : AxiStreamSlaveArray(1 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal mAxisMaster  : AxiStreamMasterType              := AXI_STREAM_MASTER_INIT_C;
+   signal mAxisSlave   : AxiStreamSlaveType               := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 

@@ -27,28 +27,28 @@ entity EthMacRxFilterWrapper is
       RST_ASYNC_G    : boolean := false;
       FILT_EN_G      : boolean := true);
    port (
-      ethClk        : in  sl;
-      ethRst        : in  sl;
-      sAxisTValid   : in  sl;
-      sAxisTData    : in  slv(127 downto 0);
-      sAxisTKeep    : in  slv(15 downto 0);
-      sAxisTLast    : in  sl;
-      sAxisTReady   : out sl;
-      sAxisSof      : in  sl;
-      sAxisFrag     : in  sl;
-      sAxisEofe     : in  sl;
-      mAxisTValid   : out sl;
-      mAxisTData    : out slv(127 downto 0);
-      mAxisTKeep    : out slv(15 downto 0);
-      mAxisTLast    : out sl;
-      mAxisTReady   : in  sl := '1';
-      mAxisSof      : out sl;
-      mAxisFrag     : out sl;
-      mAxisEofe     : out sl;
-      mAxisPause    : in  sl;
-      dropOnPause   : in  sl;
-      macAddress    : in  slv(47 downto 0);
-      filtEnable    : in  sl);
+      ethClk      : in  sl;
+      ethRst      : in  sl;
+      sAxisTValid : in  sl;
+      sAxisTData  : in  slv(127 downto 0);
+      sAxisTKeep  : in  slv(15 downto 0);
+      sAxisTLast  : in  sl;
+      sAxisTReady : out sl;
+      sAxisSof    : in  sl;
+      sAxisFrag   : in  sl;
+      sAxisEofe   : in  sl;
+      mAxisTValid : out sl;
+      mAxisTData  : out slv(127 downto 0);
+      mAxisTKeep  : out slv(15 downto 0);
+      mAxisTLast  : out sl;
+      mAxisTReady : in  sl := '1';
+      mAxisSof    : out sl;
+      mAxisFrag   : out sl;
+      mAxisEofe   : out sl;
+      mAxisPause  : in  sl;
+      dropOnPause : in  sl;
+      macAddress  : in  slv(47 downto 0);
+      filtEnable  : in  sl);
 end entity EthMacRxFilterWrapper;
 
 architecture rtl of EthMacRxFilterWrapper is
@@ -59,34 +59,35 @@ architecture rtl of EthMacRxFilterWrapper is
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTKeep,
+                        sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
-      v.tKeep(15 downto 0) := sAxisTKeep;
-      v.tLast := sAxisTLast;
+      v.tKeep(15 downto 0)  := sAxisTKeep;
+      v.tLast               := sAxisTLast;
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sAxisFrag, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
-   sAxisTReady <= '1';
-   mAxisCtrl.pause <= mAxisPause;
+   sAxisTReady        <= '1';
+   mAxisCtrl.pause    <= mAxisPause;
    mAxisCtrl.overflow <= '0';
-   mAxisCtrl.idle <= '0';
+   mAxisCtrl.idle     <= '0';
 
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisSof <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisFrag <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisSof    <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisFrag   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
    U_DUT : entity surf.EthMacRxFilter

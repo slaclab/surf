@@ -285,7 +285,6 @@ class HtspAxiLRxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  =  'Status count',
                 bitSize      =  statusCountBits,
                 mode         =  'RO',
                 disp         =  '{:d}',
@@ -294,7 +293,6 @@ class HtspAxiLRxStatus(pr.Device):
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  =  'Error count',
                 bitSize      =  errorCountBits,
                 mode         =  'RO',
                 disp         =  '{:d}',
@@ -477,7 +475,6 @@ class HtspAxiLTxStatus(pr.Device):
 
         def addStatusCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  =  'Status count',
                 bitSize      =  statusCountBits,
                 mode         =  'RO',
                 disp         =  '{:d}',
@@ -486,7 +483,6 @@ class HtspAxiLTxStatus(pr.Device):
 
         def addErrorCountVar(**ecvkwargs):
             self.add(pr.RemoteVariable(
-                description  =  'Error count',
                 bitSize      =  errorCountBits,
                 mode         =  'RO',
                 disp         =  '{:d}',

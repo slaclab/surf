@@ -22,10 +22,10 @@ use surf.AxiLitePkg.all;
 
 entity FirFilterSingleChannelWrapper is
    generic (
-      NUM_TAPS_G        : positive               := 3;
-      SIDEBAND_WIDTH_G  : positive               := 1;
-      DATA_WIDTH_G      : positive               := 8;
-      COEFF_WIDTH_G     : positive range 1 to 32 := 4);
+      NUM_TAPS_G       : positive               := 3;
+      SIDEBAND_WIDTH_G : positive               := 1;
+      DATA_WIDTH_G     : positive               := 8;
+      COEFF_WIDTH_G    : positive range 1 to 32 := 4);
    port (
       clk           : in  sl;
       rst           : in  sl;

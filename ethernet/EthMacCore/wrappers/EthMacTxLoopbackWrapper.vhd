@@ -91,59 +91,61 @@ architecture rtl of EthMacTxLoopbackWrapper is
 begin
 
    -- Flatten the primary client stream that feeds the TX assembly.
-   sPrimComb : process (sPrimEofe, sPrimFrag, sPrimSof, sPrimTData, sPrimTKeep, sPrimTLast, sPrimTValid) is
+   sPrimComb : process (sPrimEofe, sPrimFrag, sPrimSof, sPrimTData, sPrimTKeep,
+                        sPrimTLast, sPrimTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sPrimTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sPrimTValid;
       v.tData(127 downto 0) := sPrimTData;
-      v.tKeep(15 downto 0) := sPrimTKeep;
-      v.tLast := sPrimTLast;
+      v.tKeep(15 downto 0)  := sPrimTKeep;
+      v.tLast               := sPrimTLast;
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sPrimSof, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sPrimFrag, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sPrimEofe);
-      sPrimMaster <= v;
+      sPrimMaster           <= v;
    end process sPrimComb;
 
    -- Flatten the bypass stream independently so the test can drive both ports.
-   sBypComb : process (sBypEofe, sBypFrag, sBypSof, sBypTData, sBypTKeep, sBypTLast, sBypTValid) is
+   sBypComb : process (sBypEofe, sBypFrag, sBypSof, sBypTData, sBypTKeep,
+                       sBypTLast, sBypTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sBypTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sBypTValid;
       v.tData(127 downto 0) := sBypTData;
-      v.tKeep(15 downto 0) := sBypTKeep;
-      v.tLast := sBypTLast;
+      v.tKeep(15 downto 0)  := sBypTKeep;
+      v.tLast               := sBypTLast;
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sBypSof, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sBypFrag, 0);
       axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sBypEofe);
-      sBypMaster <= v;
+      sBypMaster            <= v;
    end process sBypComb;
 
    sPrimTReady <= sPrimSlave.tReady;
-   sBypTReady <= sBypSlave.tReady;
+   sBypTReady  <= sBypSlave.tReady;
 
    -- Present the recovered on-wire frame back to cocotb as a flat AXIS view.
    mAxisView : process (mAxisMaster) is
    begin
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= mAxisMaster.tData(127 downto 0);
-      mAxisTKeep <= mAxisMaster.tKeep(15 downto 0);
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisSof <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
-      mAxisFrag <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
-      mAxisEofe <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
+      mAxisTData  <= mAxisMaster.tData(127 downto 0);
+      mAxisTKeep  <= mAxisMaster.tKeep(15 downto 0);
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisSof    <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_SOF_BIT_C, 0);
+      mAxisFrag   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_FRAG_BIT_C, 0);
+      mAxisEofe   <= axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
    -- Flatten the relevant TX config fields under software control.
-   ethConfig.macAddress <= macAddress;
-   ethConfig.filtEnable <= '0';
+   ethConfig.macAddress  <= macAddress;
+   ethConfig.filtEnable  <= '0';
    ethConfig.pauseEnable <= pauseEnable;
-   ethConfig.pauseTime <= pauseTime;
+   ethConfig.pauseTime   <= pauseTime;
    ethConfig.pauseThresh <= (others => '0');
-   ethConfig.ipCsumEn <= ipCsumEn;
-   ethConfig.tcpCsumEn <= tcpCsumEn;
-   ethConfig.udpCsumEn <= udpCsumEn;
+   ethConfig.ipCsumEn    <= ipCsumEn;
+   ethConfig.tcpCsumEn   <= tcpCsumEn;
+   ethConfig.udpCsumEn   <= udpCsumEn;
    ethConfig.dropOnPause <= '0';
 
    -- Drive the full TX assembly, including checksum, pause, and export logic.

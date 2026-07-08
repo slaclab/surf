@@ -23,54 +23,54 @@ use surf.AxiStreamPkg.all;
 
 entity AxiStreamDmaWriteIpIntegrator is
    port (
-      axiClk            : in  sl;
-      axiRst            : in  sl;
-      dmaReqRequest     : in  sl;
-      dmaReqDrop        : in  sl;
-      dmaReqAddress     : in  slv(63 downto 0);
-      dmaReqMaxSize     : in  slv(31 downto 0);
-      dmaReqProt        : in  slv(2 downto 0);
-      dmaAckDone        : out sl;
-      dmaAckIdle        : out sl;
-      dmaAckSize        : out slv(31 downto 0);
-      dmaAckOverflow    : out sl;
-      dmaAckWriteError  : out sl;
-      dmaAckErrorValue  : out slv(1 downto 0);
-      dmaAckFirstUser   : out slv(7 downto 0);
-      dmaAckLastUser    : out slv(7 downto 0);
-      dmaAckDest        : out slv(7 downto 0);
-      dmaAckId          : out slv(7 downto 0);
-      axiCache          : in  slv(3 downto 0);
-      S_AXIS_TVALID     : in  sl;
-      S_AXIS_TDATA      : in  slv(63 downto 0);
-      S_AXIS_TKEEP      : in  slv(7 downto 0);
-      S_AXIS_TLAST      : in  sl;
-      S_AXIS_TDEST      : in  slv(7 downto 0);
-      S_AXIS_TID        : in  slv(7 downto 0);
-      S_AXIS_TUSER      : in  slv(1 downto 0);
-      S_AXIS_TREADY     : out sl;
-      M_AXI_AWID        : out slv(7 downto 0);
-      M_AXI_AWADDR      : out slv(15 downto 0);
-      M_AXI_AWLEN       : out slv(7 downto 0);
-      M_AXI_AWSIZE      : out slv(2 downto 0);
-      M_AXI_AWBURST     : out slv(1 downto 0);
-      M_AXI_AWLOCK      : out sl;
-      M_AXI_AWCACHE     : out slv(3 downto 0);
-      M_AXI_AWPROT      : out slv(2 downto 0);
-      M_AXI_AWREGION    : out slv(3 downto 0);
-      M_AXI_AWQOS       : out slv(3 downto 0);
-      M_AXI_AWVALID     : out sl;
-      M_AXI_AWREADY     : in  sl;
-      M_AXI_WID         : out slv(7 downto 0);
-      M_AXI_WDATA       : out slv(63 downto 0);
-      M_AXI_WSTRB       : out slv(7 downto 0);
-      M_AXI_WLAST       : out sl;
-      M_AXI_WVALID      : out sl;
-      M_AXI_WREADY      : in  sl;
-      M_AXI_BID         : in  slv(7 downto 0);
-      M_AXI_BRESP       : in  slv(1 downto 0);
-      M_AXI_BVALID      : in  sl;
-      M_AXI_BREADY      : out sl);
+      axiClk           : in  sl;
+      axiRst           : in  sl;
+      dmaReqRequest    : in  sl;
+      dmaReqDrop       : in  sl;
+      dmaReqAddress    : in  slv(63 downto 0);
+      dmaReqMaxSize    : in  slv(31 downto 0);
+      dmaReqProt       : in  slv(2 downto 0);
+      dmaAckDone       : out sl;
+      dmaAckIdle       : out sl;
+      dmaAckSize       : out slv(31 downto 0);
+      dmaAckOverflow   : out sl;
+      dmaAckWriteError : out sl;
+      dmaAckErrorValue : out slv(1 downto 0);
+      dmaAckFirstUser  : out slv(7 downto 0);
+      dmaAckLastUser   : out slv(7 downto 0);
+      dmaAckDest       : out slv(7 downto 0);
+      dmaAckId         : out slv(7 downto 0);
+      axiCache         : in  slv(3 downto 0);
+      S_AXIS_TVALID    : in  sl;
+      S_AXIS_TDATA     : in  slv(63 downto 0);
+      S_AXIS_TKEEP     : in  slv(7 downto 0);
+      S_AXIS_TLAST     : in  sl;
+      S_AXIS_TDEST     : in  slv(7 downto 0);
+      S_AXIS_TID       : in  slv(7 downto 0);
+      S_AXIS_TUSER     : in  slv(1 downto 0);
+      S_AXIS_TREADY    : out sl;
+      M_AXI_AWID       : out slv(7 downto 0);
+      M_AXI_AWADDR     : out slv(15 downto 0);
+      M_AXI_AWLEN      : out slv(7 downto 0);
+      M_AXI_AWSIZE     : out slv(2 downto 0);
+      M_AXI_AWBURST    : out slv(1 downto 0);
+      M_AXI_AWLOCK     : out sl;
+      M_AXI_AWCACHE    : out slv(3 downto 0);
+      M_AXI_AWPROT     : out slv(2 downto 0);
+      M_AXI_AWREGION   : out slv(3 downto 0);
+      M_AXI_AWQOS      : out slv(3 downto 0);
+      M_AXI_AWVALID    : out sl;
+      M_AXI_AWREADY    : in  sl;
+      M_AXI_WID        : out slv(7 downto 0);
+      M_AXI_WDATA      : out slv(63 downto 0);
+      M_AXI_WSTRB      : out slv(7 downto 0);
+      M_AXI_WLAST      : out sl;
+      M_AXI_WVALID     : out sl;
+      M_AXI_WREADY     : in  sl;
+      M_AXI_BID        : in  slv(7 downto 0);
+      M_AXI_BRESP      : in  slv(1 downto 0);
+      M_AXI_BVALID     : in  sl;
+      M_AXI_BREADY     : out sl);
 end entity AxiStreamDmaWriteIpIntegrator;
 
 architecture rtl of AxiStreamDmaWriteIpIntegrator is
@@ -90,13 +90,13 @@ architecture rtl of AxiStreamDmaWriteIpIntegrator is
       ID_BITS_C    => 8,
       LEN_BITS_C   => 8);
 
-   signal axiResetN      : sl := '1';
-   signal dmaReq         : AxiWriteDmaReqType := AXI_WRITE_DMA_REQ_INIT_C;
-   signal dmaAck         : AxiWriteDmaAckType := AXI_WRITE_DMA_ACK_INIT_C;
+   signal axiResetN      : sl                  := '1';
+   signal dmaReq         : AxiWriteDmaReqType  := AXI_WRITE_DMA_REQ_INIT_C;
+   signal dmaAck         : AxiWriteDmaAckType  := AXI_WRITE_DMA_ACK_INIT_C;
    signal axisMaster     : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal axisSlave      : AxiStreamSlaveType  := AXI_STREAM_SLAVE_INIT_C;
-   signal axiWriteMaster : AxiWriteMasterType := AXI_WRITE_MASTER_INIT_C;
-   signal axiWriteSlave  : AxiWriteSlaveType  := AXI_WRITE_SLAVE_INIT_C;
+   signal axiWriteMaster : AxiWriteMasterType  := AXI_WRITE_MASTER_INIT_C;
+   signal axiWriteSlave  : AxiWriteSlaveType   := AXI_WRITE_SLAVE_INIT_C;
 
 begin
 
@@ -157,54 +157,54 @@ begin
          ADDR_WIDTH    => 16,
          DATA_WIDTH    => 64)
       port map (
-         M_AXI_ACLK      => axiClk,
-         M_AXI_ARESETN   => axiResetN,
-         M_AXI_AWID      => M_AXI_AWID,
-         M_AXI_AWADDR    => M_AXI_AWADDR,
-         M_AXI_AWLEN     => M_AXI_AWLEN,
-         M_AXI_AWSIZE    => M_AXI_AWSIZE,
-         M_AXI_AWBURST   => M_AXI_AWBURST,
-         M_AXI_AWLOCK    => open,
-         M_AXI_AWCACHE   => M_AXI_AWCACHE,
-         M_AXI_AWPROT    => M_AXI_AWPROT,
-         M_AXI_AWREGION  => M_AXI_AWREGION,
-         M_AXI_AWQOS     => M_AXI_AWQOS,
-         M_AXI_AWVALID   => M_AXI_AWVALID,
-         M_AXI_AWREADY   => M_AXI_AWREADY,
-         M_AXI_WID       => M_AXI_WID,
-         M_AXI_WDATA     => M_AXI_WDATA,
-         M_AXI_WSTRB     => M_AXI_WSTRB,
-         M_AXI_WLAST     => M_AXI_WLAST,
-         M_AXI_WVALID    => M_AXI_WVALID,
-         M_AXI_WREADY    => M_AXI_WREADY,
-         M_AXI_BID       => M_AXI_BID,
-         M_AXI_BRESP     => M_AXI_BRESP,
-         M_AXI_BVALID    => M_AXI_BVALID,
-         M_AXI_BREADY    => M_AXI_BREADY,
-         M_AXI_ARID      => open,
-         M_AXI_ARADDR    => open,
-         M_AXI_ARLEN     => open,
-         M_AXI_ARSIZE    => open,
-         M_AXI_ARBURST   => open,
-         M_AXI_ARLOCK    => open,
-         M_AXI_ARCACHE   => open,
-         M_AXI_ARPROT    => open,
-         M_AXI_ARREGION  => open,
-         M_AXI_ARQOS     => open,
-         M_AXI_ARVALID   => open,
-         M_AXI_ARREADY   => '0',
-         M_AXI_RID       => (others => '0'),
-         M_AXI_RDATA     => (others => '0'),
-         M_AXI_RRESP     => (others => '0'),
-         M_AXI_RLAST     => '0',
-         M_AXI_RVALID    => '0',
-         M_AXI_RREADY    => open,
-         axiClk          => open,
-         axiRst          => open,
-         axiReadMaster   => AXI_READ_MASTER_INIT_C,
-         axiReadSlave    => open,
-         axiWriteMaster  => axiWriteMaster,
-         axiWriteSlave   => axiWriteSlave);
+         M_AXI_ACLK     => axiClk,
+         M_AXI_ARESETN  => axiResetN,
+         M_AXI_AWID     => M_AXI_AWID,
+         M_AXI_AWADDR   => M_AXI_AWADDR,
+         M_AXI_AWLEN    => M_AXI_AWLEN,
+         M_AXI_AWSIZE   => M_AXI_AWSIZE,
+         M_AXI_AWBURST  => M_AXI_AWBURST,
+         M_AXI_AWLOCK   => open,
+         M_AXI_AWCACHE  => M_AXI_AWCACHE,
+         M_AXI_AWPROT   => M_AXI_AWPROT,
+         M_AXI_AWREGION => M_AXI_AWREGION,
+         M_AXI_AWQOS    => M_AXI_AWQOS,
+         M_AXI_AWVALID  => M_AXI_AWVALID,
+         M_AXI_AWREADY  => M_AXI_AWREADY,
+         M_AXI_WID      => M_AXI_WID,
+         M_AXI_WDATA    => M_AXI_WDATA,
+         M_AXI_WSTRB    => M_AXI_WSTRB,
+         M_AXI_WLAST    => M_AXI_WLAST,
+         M_AXI_WVALID   => M_AXI_WVALID,
+         M_AXI_WREADY   => M_AXI_WREADY,
+         M_AXI_BID      => M_AXI_BID,
+         M_AXI_BRESP    => M_AXI_BRESP,
+         M_AXI_BVALID   => M_AXI_BVALID,
+         M_AXI_BREADY   => M_AXI_BREADY,
+         M_AXI_ARID     => open,
+         M_AXI_ARADDR   => open,
+         M_AXI_ARLEN    => open,
+         M_AXI_ARSIZE   => open,
+         M_AXI_ARBURST  => open,
+         M_AXI_ARLOCK   => open,
+         M_AXI_ARCACHE  => open,
+         M_AXI_ARPROT   => open,
+         M_AXI_ARREGION => open,
+         M_AXI_ARQOS    => open,
+         M_AXI_ARVALID  => open,
+         M_AXI_ARREADY  => '0',
+         M_AXI_RID      => (others => '0'),
+         M_AXI_RDATA    => (others => '0'),
+         M_AXI_RRESP    => (others => '0'),
+         M_AXI_RLAST    => '0',
+         M_AXI_RVALID   => '0',
+         M_AXI_RREADY   => open,
+         axiClk         => open,
+         axiRst         => open,
+         axiReadMaster  => AXI_READ_MASTER_INIT_C,
+         axiReadSlave   => open,
+         axiWriteMaster => axiWriteMaster,
+         axiWriteSlave  => axiWriteSlave);
 
    M_AXI_AWLOCK <= '0';
 

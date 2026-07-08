@@ -118,7 +118,7 @@ begin
    begin
       rVar := r;
 
-      -- Defualt values
+      -- Default values
       -- Overridden in some states
       rVar.exec    := '0';
       rVar.saciRsp := '0';

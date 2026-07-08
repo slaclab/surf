@@ -13,10 +13,11 @@
 #   unregistered active-low reset case to cover the RAM-backed delay line
 #   across its two main shapes.
 # - Stimulus: Drive known input patterns while programming delay, hold the
-#   enable low to freeze the output, and assert reset after the RAM has
-#   buffered data.
+#   enable low to freeze the output, assert reset after the RAM has buffered
+#   data, and optionally change `maxCount` followed by the required reset.
 # - Checks: The output must reproduce the delayed sample selected by the
-#   programmed latency, hold steady while disabled, and clear after reset.
+#   programmed latency, reproduce the new delay after a reset-aligned
+#   reprogramming event, hold steady while disabled, and clear after reset.
 # - Timing: Checks are cycle-accurate against the programmed delay, with one
 #   extra observable cycle for the registered-output configuration before the
 #   delayed sample appears.
@@ -100,6 +101,12 @@ class TB:
         await self.cycle()
         await self.cycle()
 
+    async def set_max_count(self, value: int) -> None:
+        self.dut.maxCount.value = value
+        self.max_count = value
+        self.effective_delay = self.max_count + (2 if self.do_reg else 1)
+        await self.cycle(en=1)
+
 
 @cocotb.test()
 async def configured_delay_test(dut):
@@ -143,6 +150,59 @@ async def enable_hold_test(dut):
 
 
 @cocotb.test()
+async def dynamic_delay_change_requires_reset_test(dut):
+    if not env_flag("CHECK_DYNAMIC_DELAY_CHANGE", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.reset()
+
+    # Start with a short delay and prove live traffic emerges normally.
+    await tb.set_max_count(1)
+    short_delay_values = [0x10 + index for index in range(8)]
+    short_observed = []
+    for value in short_delay_values:
+        observed = await tb.cycle(din=value, en=1)
+        if observed is not None:
+            short_observed.append(observed)
+    for _ in range(tb.effective_delay):
+        observed = await tb.cycle(din=0x00, en=1)
+        if observed is not None:
+            short_observed.append(observed)
+    assert short_observed[-len(short_delay_values) :] == short_delay_values
+
+    # The RTL contract requires reset after reprogramming maxCount. Apply the
+    # new value, reset the circular address phase, and then start fresh traffic
+    # against the new delay setting.
+    tb.dut.maxCount.value = 4
+    tb.max_count = 4
+    tb.effective_delay = tb.max_count + (2 if tb.do_reg else 1)
+    await tb.reset()
+    for _ in range(tb.effective_delay):
+        await tb.cycle(din=0x00, en=1)
+
+    long_delay_values = [0x80 + index for index in range(10)]
+    long_observed = []
+    for value in long_delay_values:
+        observed = await tb.cycle(din=value, en=1)
+        if observed is not None:
+            long_observed.append(observed)
+    for _ in range(tb.effective_delay + 2):
+        observed = await tb.cycle(din=0x00, en=1)
+        if observed is not None:
+            long_observed.append(observed)
+
+    # The first few post-reset samples are still part of the documented output
+    # history discard interval. Once that interval has passed, later traffic
+    # must follow the newly configured delay.
+    stable_values = long_delay_values[2:]
+    assert any(
+        long_observed[index : index + len(stable_values)] == stable_values
+        for index in range(len(long_observed) - len(stable_values) + 1)
+    )
+
+
+@cocotb.test()
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
@@ -168,6 +228,17 @@ PARAMETER_SWEEP = [
         DELAY_G="8",
         WIDTH_G="8",
         MAX_COUNT="3",
+        CLK_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "block_dynamic_delay_change",
+        RST_POLARITY_G="'1'",
+        MEMORY_TYPE_G="block",
+        DO_REG_G="true",
+        DELAY_G="8",
+        WIDTH_G="8",
+        MAX_COUNT="1",
+        CHECK_DYNAMIC_DELAY_CHANGE="1",
         CLK_PERIOD_NS="5",
     ),
     parameter_case(

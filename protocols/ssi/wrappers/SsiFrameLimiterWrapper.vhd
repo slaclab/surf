@@ -22,8 +22,12 @@ use surf.SsiPkg.all;
 
 entity SsiFrameLimiterWrapper is
    generic (
-      DATA_BYTES_G  : positive := 2;
-      FRAME_LIMIT_G : positive := 2);
+      DATA_BYTES_G   : positive := 2;
+      FRAME_LIMIT_G  : positive := 2;
+      EN_TIMEOUT_G   : boolean  := true;
+      SLAVE_FIFO_G   : boolean  := false;
+      MASTER_FIFO_G  : boolean  := true;
+      SLAVE_READY_G  : boolean  := true);
    port (
       axisClk     : in  sl;
       axisRst     : in  sl;
@@ -53,7 +57,7 @@ architecture rtl of SsiFrameLimiterWrapper is
       tUserMode => TUSER_FIRST_LAST_C,
       tDestBits => 4,
       tUserBits => 2);
-   constant DATA_WIDTH_C  : positive := 8*DATA_BYTES_G;
+   constant DATA_WIDTH_C : positive := 8*DATA_BYTES_G;
 
    signal sAxisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal sAxisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
@@ -62,21 +66,22 @@ architecture rtl of SsiFrameLimiterWrapper is
 
 begin
 
-   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sAxisTValid;
+      v                                := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                         := sAxisTValid;
       v.tData(DATA_WIDTH_C-1 downto 0) := sAxisTData(DATA_WIDTH_C-1 downto 0);
       v.tKeep(DATA_BYTES_G-1 downto 0) := sAxisTKeep(DATA_BYTES_G-1 downto 0);
-      v.tLast := sAxisTLast;
-      v.tDest(3 downto 0) := sAxisTDest;
+      v.tLast                          := sAxisTLast;
+      v.tDest(3 downto 0)              := sAxisTDest;
       ssiSetUserSof(AXIS_CONFIG_C, v, sAxisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster                      <= v;
    end process sAxisComb;
 
-   sAxisTReady <= sAxisSlave.tReady;
+   sAxisTReady       <= sAxisSlave.tReady;
    mAxisSlave.tReady <= mAxisTReady;
 
    mAxisView : process (mAxisMaster) is
@@ -90,25 +95,25 @@ begin
       keepV(DATA_BYTES_G-1 downto 0) := mAxisMaster.tKeep(DATA_BYTES_G-1 downto 0);
 
       mAxisTValid <= mAxisMaster.tValid;
-      mAxisTData <= dataV;
-      mAxisTKeep <= keepV;
-      mAxisTLast <= mAxisMaster.tLast;
-      mAxisTDest <= mAxisMaster.tDest(3 downto 0);
-      mAxisSof <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
-      mAxisEofe <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
+      mAxisTData  <= dataV;
+      mAxisTKeep  <= keepV;
+      mAxisTLast  <= mAxisMaster.tLast;
+      mAxisTDest  <= mAxisMaster.tDest(3 downto 0);
+      mAxisSof    <= ssiGetUserSof(AXIS_CONFIG_C, mAxisMaster);
+      mAxisEofe   <= ssiGetUserEofe(AXIS_CONFIG_C, mAxisMaster);
    end process mAxisView;
 
    U_DUT : entity surf.SsiFrameLimiter
       generic map (
          TPD_G               => 1 ns,
-         EN_TIMEOUT_G        => true,
+         EN_TIMEOUT_G        => EN_TIMEOUT_G,
          MAXIS_CLK_FREQ_G    => 200.0E+06,
          TIMEOUT_G           => 25.0E-9,
          FRAME_LIMIT_G       => FRAME_LIMIT_G,
          COMMON_CLK_G        => true,
-         SLAVE_FIFO_G        => false,
-         MASTER_FIFO_G       => true,
-         SLAVE_READY_EN_G    => true,
+         SLAVE_FIFO_G        => SLAVE_FIFO_G,
+         MASTER_FIFO_G       => MASTER_FIFO_G,
+         SLAVE_READY_EN_G    => SLAVE_READY_G,
          SLAVE_AXI_CONFIG_G  => AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)
       port map (

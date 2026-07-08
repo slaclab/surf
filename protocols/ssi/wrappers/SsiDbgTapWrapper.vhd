@@ -24,16 +24,16 @@ entity SsiDbgTapWrapper is
    generic (
       DATA_BYTES_G : positive := 2);
    port (
-      axisClk     : in sl;
-      axisRst     : in sl;
-      axisTValid  : in sl;
-      axisTData   : in slv(63 downto 0);
-      axisTKeep   : in slv(7 downto 0);
-      axisTLast   : in sl;
-      axisTDest   : in slv(3 downto 0);
-      axisSof     : in sl;
-      axisEofe    : in sl;
-      axisTReady  : in sl);
+      axisClk    : in sl;
+      axisRst    : in sl;
+      axisTValid : in sl;
+      axisTData  : in slv(63 downto 0);
+      axisTKeep  : in slv(7 downto 0);
+      axisTLast  : in sl;
+      axisTDest  : in slv(3 downto 0);
+      axisSof    : in sl;
+      axisEofe   : in sl;
+      axisTReady : in sl);
 end entity SsiDbgTapWrapper;
 
 architecture rtl of SsiDbgTapWrapper is
@@ -44,25 +44,26 @@ architecture rtl of SsiDbgTapWrapper is
       tUserMode => TUSER_FIRST_LAST_C,
       tDestBits => 4,
       tUserBits => 2);
-   constant DATA_WIDTH_C  : positive := 8*DATA_BYTES_G;
+   constant DATA_WIDTH_C : positive := 8*DATA_BYTES_G;
 
    signal axisMaster : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
    signal axisSlave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin
 
-   axisComb : process (axisEofe, axisSof, axisTData, axisTDest, axisTKeep, axisTLast, axisTValid) is
+   axisComb : process (axisEofe, axisSof, axisTData, axisTDest, axisTKeep,
+                       axisTLast, axisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := axisTValid;
+      v                                := AXI_STREAM_MASTER_INIT_C;
+      v.tValid                         := axisTValid;
       v.tData(DATA_WIDTH_C-1 downto 0) := axisTData(DATA_WIDTH_C-1 downto 0);
       v.tKeep(DATA_BYTES_G-1 downto 0) := axisTKeep(DATA_BYTES_G-1 downto 0);
-      v.tLast := axisTLast;
-      v.tDest(3 downto 0) := axisTDest;
+      v.tLast                          := axisTLast;
+      v.tDest(3 downto 0)              := axisTDest;
       ssiSetUserSof(AXIS_CONFIG_C, v, axisSof);
       ssiSetUserEofe(AXIS_CONFIG_C, v, axisEofe);
-      axisMaster <= v;
+      axisMaster                       <= v;
    end process axisComb;
 
    axisSlave.tReady <= axisTReady;

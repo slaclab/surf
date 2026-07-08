@@ -59,47 +59,48 @@ end entity UdpEngineArpFlatWrapper;
 
 architecture rtl of UdpEngineArpFlatWrapper is
 
-   signal arpReqMasters : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal arpReqSlaves  : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal arpAckMasters : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
-   signal arpAckSlaves  : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
-   signal arpTabMacAddrWArray : Slv48Array(0 downto 0);
+   signal arpReqMasters          : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal arpReqSlaves           : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal arpAckMasters          : AxiStreamMasterArray(0 downto 0) := (others => AXI_STREAM_MASTER_INIT_C);
+   signal arpAckSlaves           : AxiStreamSlaveArray(0 downto 0)  := (others => AXI_STREAM_SLAVE_INIT_C);
+   signal arpTabMacAddrWArray    : Slv48Array(0 downto 0);
    signal clientRemoteDetIpArray : Slv32Array(0 downto 0);
-   signal clientRemoteIpArray : Slv32Array(0 downto 0);
-   signal clientRemoteMacArray : Slv48Array(0 downto 0);
+   signal clientRemoteIpArray    : Slv32Array(0 downto 0);
+   signal clientRemoteMacArray   : Slv48Array(0 downto 0);
 
 begin
 
-   arpAckComb : process (arpAckEofe, arpAckSof, arpAckTData, arpAckTKeep, arpAckTLast, arpAckTValid) is
+   arpAckComb : process (arpAckEofe, arpAckSof, arpAckTData, arpAckTKeep,
+                         arpAckTLast, arpAckTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := arpAckTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := arpAckTValid;
       v.tData(127 downto 0) := arpAckTData;
-      v.tKeep(15 downto 0) := arpAckTKeep;
-      v.tLast := arpAckTLast;
+      v.tKeep(15 downto 0)  := arpAckTKeep;
+      v.tLast               := arpAckTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, arpAckSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, arpAckEofe);
-      arpAckMasters(0) <= v;
+      arpAckMasters(0)      <= v;
    end process arpAckComb;
 
-   arpReqView : process (arpReqMasters(0)) is
+   arpReqView : process (arpReqMasters) is
    begin
       arpReqTValid <= arpReqMasters(0).tValid;
-      arpReqTData <= arpReqMasters(0).tData(127 downto 0);
-      arpReqTKeep <= arpReqMasters(0).tKeep(15 downto 0);
-      arpReqTLast <= arpReqMasters(0).tLast;
-      arpReqSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, arpReqMasters(0), EMAC_SOF_BIT_C, 0);
-      arpReqEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, arpReqMasters(0), EMAC_EOFE_BIT_C);
+      arpReqTData  <= arpReqMasters(0).tData(127 downto 0);
+      arpReqTKeep  <= arpReqMasters(0).tKeep(15 downto 0);
+      arpReqTLast  <= arpReqMasters(0).tLast;
+      arpReqSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, arpReqMasters(0), EMAC_SOF_BIT_C, 0);
+      arpReqEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, arpReqMasters(0), EMAC_EOFE_BIT_C);
    end process arpReqView;
 
    arpReqSlaves(0).tReady <= arpReqTReady;
-   arpAckTReady <= arpAckSlaves(0).tReady;
+   arpAckTReady           <= arpAckSlaves(0).tReady;
 
    clientRemoteDetIpArray(0) <= clientRemoteDetIp;
-   clientRemoteIpArray(0) <= clientRemoteIp;
-   clientRemoteMac <= clientRemoteMacArray(0);
-   arpTabMacAddrW <= arpTabMacAddrWArray(0);
+   clientRemoteIpArray(0)    <= clientRemoteIp;
+   clientRemoteMac           <= clientRemoteMacArray(0);
+   arpTabMacAddrW            <= arpTabMacAddrWArray(0);
 
    U_DUT : entity surf.UdpEngineArp
       generic map (
@@ -111,21 +112,21 @@ begin
          COMM_TIMEOUT_G => COMM_TIMEOUT_G,
          RESP_TIMEOUT_G => RESP_TIMEOUT_G)
       port map (
-         localIp              => localIp,
-         arpReqMasters        => arpReqMasters,
-         arpReqSlaves         => arpReqSlaves,
-         arpAckMasters        => arpAckMasters,
-         arpAckSlaves         => arpAckSlaves,
-         arpTabFound(0)       => arpTabFound,
-         arpTabMacAddr(0)     => arpTabMacAddr,
-         arpTabIpWe(0)        => arpTabIpWe,
-         arpTabMacWe(0)       => arpTabMacWe,
-         arpTabMacAddrW       => arpTabMacAddrWArray,
+         localIp                 => localIp,
+         arpReqMasters           => arpReqMasters,
+         arpReqSlaves            => arpReqSlaves,
+         arpAckMasters           => arpAckMasters,
+         arpAckSlaves            => arpAckSlaves,
+         arpTabFound(0)          => arpTabFound,
+         arpTabMacAddr(0)        => arpTabMacAddr,
+         arpTabIpWe(0)           => arpTabIpWe,
+         arpTabMacWe(0)          => arpTabMacWe,
+         arpTabMacAddrW          => arpTabMacAddrWArray,
          clientRemoteDetValid(0) => clientRemoteDetValid,
-         clientRemoteDetIp    => clientRemoteDetIpArray,
-         clientRemoteIp       => clientRemoteIpArray,
-         clientRemoteMac      => clientRemoteMacArray,
-         clk                  => clk,
-         rst                  => rst);
+         clientRemoteDetIp       => clientRemoteDetIpArray,
+         clientRemoteIp          => clientRemoteIpArray,
+         clientRemoteMac         => clientRemoteMacArray,
+         clk                     => clk,
+         rst                     => rst);
 
 end architecture rtl;

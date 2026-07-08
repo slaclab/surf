@@ -4,7 +4,7 @@
 -- Description: Firmware module that AxiStreamConcat multiple AXI stream frames
 --              together.  It will ignore TKEEP and the format of the frame.
 -------------------------------------------------------------------------------
--- Note: This module is similiar to "AxiStreamBatcher.vhd" but does NOT
+-- Note: This module is similar to "AxiStreamBatcher.vhd" but does NOT
 --       have the following features
 --          1) No super header
 --          2) No tail footer

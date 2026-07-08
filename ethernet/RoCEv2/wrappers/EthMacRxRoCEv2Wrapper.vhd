@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Cocotb-facing wrapper for EthMacRxRoCEv2
+-- Description: Cocotb-facing wrapper for RoCEv2EthMacRx
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -56,10 +56,11 @@ begin
    ----------------------------------------------------------------------------
    -- Flat cocotb input shim
    ----------------------------------------------------------------------------
-   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTDest, sAxisTKeep, sAxisTLast, sAxisTValid) is
+   sAxisComb : process (sAxisEofe, sAxisFrag, sAxisSof, sAxisTData, sAxisTDest,
+                        sAxisTKeep, sAxisTLast, sAxisTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
+      v                     := AXI_STREAM_MASTER_INIT_C;
       v.tValid              := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
       v.tKeep(15 downto 0)  := sAxisTKeep;
@@ -68,7 +69,7 @@ begin
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_FRAG_BIT_C, sAxisFrag, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sAxisMaster <= v;
+      sAxisMaster           <= v;
    end process sAxisComb;
 
    sAxisTReady <= '1';
@@ -91,7 +92,7 @@ begin
    ----------------------------------------------------------------------------
    -- DUT hookup
    ----------------------------------------------------------------------------
-   U_DUT : entity surf.EthMacRxRoCEv2
+   U_DUT : entity surf.RoCEv2EthMacRx
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G)

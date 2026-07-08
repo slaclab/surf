@@ -18,6 +18,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
+
 
 # Shared EMAC helpers centralize the flattened lane ordering and the common
 # packet builders used throughout `tests/ethernet/`.
@@ -30,11 +32,11 @@ ETHMAC_RTL_SOURCES.append(str(Path(__file__).resolve().parents[3] / "dsp" / "xil
 
 ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
 ROCE_ANALYSIS_SOURCES = [
-    str(ROCE_RTL_ROOT / "RocePkg.vhd"),
+    str(ROCE_RTL_ROOT / "RoCEv2Pkg.vhd"),
     *(
         str(path)
         for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RocePkg.vhd"
+        if path.name != "RoCEv2Pkg.vhd"
     ),
 ]
 
@@ -115,13 +117,12 @@ class FlatEmacEndpoint:
             self._sig("UdpErr").value = beat.udperr
 
     async def wait_ready(self, *, clk) -> None:
-        # A source-side driver must hold the current beat until the DUT raises
-        # `TREADY`, even when that takes multiple cycles.
-        while True:
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
-            if int(self._sig("TReady").value) == 1:
-                return
+        # A source-side driver must hold the current beat until a sampled edge
+        # confirms that the DUT raised `TREADY`.
+        await wait_sampled_ready(
+            self._sig("TReady"),
+            clk=clk,
+        )
 
     async def send(self, beat: EmacBeat, *, clk) -> None:
         # `send()` is the simple one-beat helper: drive, wait for acceptance,

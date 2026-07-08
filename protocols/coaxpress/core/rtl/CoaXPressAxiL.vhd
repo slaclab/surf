@@ -564,4 +564,3 @@ begin
          dataOut => dataReset);
 
 end rtl;
-

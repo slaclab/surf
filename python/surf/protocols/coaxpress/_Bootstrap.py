@@ -11,10 +11,22 @@
 import pyrogue as pr
 import time
 
-class Bootstrap(pr.Device):
+import surf.protocols.coaxpress as cxp
+
+class Bootstrap(cxp.WriteGuardMixin, pr.Device):
     def __init__(self, GenDc=False, CoaXPressAxiL=None, **kwargs):
         super().__init__(**kwargs)
+
         self.CoaXPressAxiL = CoaXPressAxiL
+
+        # Default write guard: no-op until setAcquisitionMonitor() provides a camera.
+        self._acq_var = None
+
+        def _write_guard(path, value, state):
+            if self._acq_var is not None and self._acq_var.value():
+                raise cxp.WriteBlockedError(path, 'cannot write registers during acquisition')
+
+        self.addPreWriteListener(_write_guard)
 
         self.add(pr.RemoteVariable(
             name        = 'Standard',
@@ -632,6 +644,15 @@ class Bootstrap(pr.Device):
             linkedGet    = lambda: f'v{self.MajorVersionUsed.value()}.{self.MinorVersionUsed.value()}',
             dependencies = [self.MajorVersionUsed,self.MinorVersionUsed],
         ))
+
+    def setAcquisitionMonitor(self, camera):
+        """Block Bootstrap register writes while the given camera is acquiring.
+
+        Call this after the camera device is ready.  The guard checks
+        ``camera.IsAcquiring`` before every write and raises
+        ``WriteBlockedError`` if acquisition is in progress.
+        """
+        self._acq_var = camera.IsAcquiring
 
     def DeviceDiscovery(self, arg=None):
         # Updates all the local device register values

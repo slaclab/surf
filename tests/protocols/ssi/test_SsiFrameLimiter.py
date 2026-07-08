@@ -54,7 +54,7 @@ async def enforces_frame_limit_and_timeout_policy(dut):
         dut,
         source_prefix="sAxis",
         sink_prefix="mAxis",
-        initial_values={"mAxisTReady": 1},
+        initial_values={"mAxisTReady": 0},
     )
     source = bench.source
     sink = bench.sink

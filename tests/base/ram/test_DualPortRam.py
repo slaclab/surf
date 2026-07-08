@@ -14,8 +14,9 @@
 #   active-high vs active-low reset so the wrapper-facing RAM modes are all
 #   touched once.
 # - Stimulus: Write and read through both ports, create same-address read/write
-#   interactions to expose mode semantics, apply partial byte masks, and then
-#   assert reset on the B side.
+#   interactions to expose mode semantics, apply partial byte masks, optionally
+#   collide port-A writes with port-B reads, and then assert reset on the B
+#   side.
 # - Checks: The bench checks cross-port readback, port-A read-during-write
 #   behavior, byte-lane merging, the extra hold behavior from `DOB_REG_G`, and
 #   reset clearing of the registered output.
@@ -174,6 +175,34 @@ async def byte_write_and_reset_test(dut):
     assert await tb.read_b(4) == 0xCAFE
 
 
+@cocotb.test()
+async def cross_port_collision_test(dut):
+    if not env_flag("CHECK_CROSS_PORT_COLLISION", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.warmup()
+
+    await tb.write_a(5, 0x1357)
+    assert await tb.read_b(5) == 0x1357
+
+    # Schedule a port-A write and a port-B read to the same address on the same
+    # clock edge. The exact collision mode is backend dependent, so the durable
+    # contract for this portable inferred wrapper is that the new value is
+    # visible after the collision has settled.
+    tb.dut.addra.value = 5
+    tb.dut.dina.value = 0x2468
+    tb.dut.wea.value = 1
+    tb.dut.weaByte.value = tb.full_byte_mask("weaByte")
+    tb.dut.addrb.value = 5
+    await RisingEdge(dut.clka)
+    await tb.settle()
+    tb.dut.wea.value = 0
+    tb.dut.weaByte.value = 0
+
+    assert await tb.read_b(5) == 0x2468
+
+
 PARAMETER_SWEEP = [
     parameter_case(
         "block_read_first",
@@ -220,6 +249,23 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         RST_ASYNC_G="false",
         RST_POLARITY_G="'0'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "block_same_clock_collision",
+        MEMORY_TYPE_G="block",
+        REG_EN_G="true",
+        DOA_REG_G="false",
+        DOB_REG_G="false",
+        MODE_G="read-first",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_CROSS_PORT_COLLISION="1",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),

@@ -9,17 +9,22 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Sweep block vs distributed implementations, optional `DOB` output
-#   registration, byte-write enable, and asynchronous plus active-low reset
-#   behavior.
+# - Sweep: Sweep legacy inferred block vs distributed attributes, optional
+#   `DOB` output registration, explicit inferred synthesis selection/read
+#   latency, byte-write enable, and asynchronous plus active-low reset behavior.
 # - Stimulus: Write through port A and read through port B, apply partial byte
-#   masks to an existing word, and then reset after a registered output has
+#   masks to an existing word, optionally hold port-B enable low in direct and
+#   registered-output modes, and then reset after a registered output has
 #   captured data.
 # - Checks: The bench checks basic dual-port readback, byte-write merging, hold
 #   behavior of the optional B output register, and reset clearing of that
 #   registered output.
-# - Timing: Latency is checked across separate A and B clocks, with one
-#   additional cycle expected when the B-side output register is enabled.
+# - Timing: The inferred SimpleDualPortRam implementation is synchronous-read
+#   for every MEMORY_TYPE_G value. Latency is checked across separate A and B
+#   clocks, with one additional cycle expected when the B-side output register
+#   is enabled directly or through READ_LATENCY_G = 2.
+
+import os
 
 import cocotb
 import pytest
@@ -40,7 +45,8 @@ class TB(DualClockRamTB):
         # This DUT has two independent clocks, so the cocotb testbench needs to
         # drive both domains explicitly.
         self.byte_write_enabled = env_flag("BYTE_WR_EN_G", default=False)
-        self.dob_reg_enabled = env_flag("DOB_REG_G", default=False)
+        self.read_latency = int(os.environ.get("READ_LATENCY_G", "1"))
+        self.dob_reg_enabled = env_flag("DOB_REG_G", default=False) or self.read_latency == 2
 
         # Initialize every DUT input to a known idle state before time starts.
         dut.ena.value = 1
@@ -114,6 +120,56 @@ async def byte_write_enable_test(dut):
 
 
 @cocotb.test()
+async def read_enable_hold_test(dut):
+    if not env_flag("CHECK_READ_ENABLE_HOLD", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.cycle_a(1)
+    await tb.cycle_b(1)
+
+    await tb.write_word(0, 0x1111)
+    await tb.write_word(1, 0x2222)
+    assert await tb.read_word(0) == 0x1111
+
+    # Port B should hold its previous output while `enb` is low, even if the
+    # address changes underneath it.
+    dut.enb.value = 0
+    dut.addrb.value = 1
+    await tb.cycle_b(2)
+    assert int(dut.doutb.value) == 0x1111
+
+    dut.enb.value = 1
+    assert await tb.read_word(1) == 0x2222
+
+
+@cocotb.test()
+async def registered_read_enable_hold_test(dut):
+    if not env_flag("CHECK_REGISTERED_ENB_HOLD", default=False):
+        return
+
+    tb = TB(dut)
+    await tb.cycle_a(1)
+    await tb.cycle_b(1)
+    assert tb.dob_reg_enabled
+
+    await tb.write_word(0, 0x1111)
+    await tb.write_word(1, 0x2222)
+    assert await tb.read_word(0) == 0x1111
+
+    # With DOB_REG_G enabled, `enb=0` should hold the registered B output even
+    # while the address changes and port A updates the addressed memory word.
+    dut.enb.value = 0
+    dut.addrb.value = 1
+    await tb.write_word(1, 0x3333)
+    await tb.cycle_b(3)
+    assert int(dut.doutb.value) == 0x1111
+
+    dut.enb.value = 1
+    assert await tb.read_word(1) == 0x3333
+
+
+@cocotb.test()
 async def registered_output_hold_test(dut):
     tb = TB(dut)
     if not tb.dob_reg_enabled:
@@ -173,6 +229,8 @@ PARAMETER_SWEEP = [
     parameter_case(
         "block_baseline",
         MEMORY_TYPE_G="block",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
         DOB_REG_G="false",
         BYTE_WR_EN_G="false",
         DATA_WIDTH_G="16",
@@ -186,6 +244,8 @@ PARAMETER_SWEEP = [
     parameter_case(
         "distributed_dob_reg",
         MEMORY_TYPE_G="distributed",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
         DOB_REG_G="true",
         BYTE_WR_EN_G="false",
         DATA_WIDTH_G="16",
@@ -193,12 +253,15 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         RST_ASYNC_G="false",
         RST_POLARITY_G="'1'",
+        CHECK_REGISTERED_ENB_HOLD="1",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),
     parameter_case(
         "byte_write_enable",
         MEMORY_TYPE_G="block",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
         DOB_REG_G="false",
         BYTE_WR_EN_G="true",
         DATA_WIDTH_G="16",
@@ -212,6 +275,8 @@ PARAMETER_SWEEP = [
     parameter_case(
         "async_reset",
         MEMORY_TYPE_G="distributed",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
         DOB_REG_G="false",
         BYTE_WR_EN_G="false",
         DATA_WIDTH_G="16",
@@ -225,6 +290,8 @@ PARAMETER_SWEEP = [
     parameter_case(
         "active_low_reset",
         MEMORY_TYPE_G="block",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
         DOB_REG_G="false",
         BYTE_WR_EN_G="false",
         DATA_WIDTH_G="16",
@@ -232,6 +299,38 @@ PARAMETER_SWEEP = [
         ADDR_WIDTH_G="4",
         RST_ASYNC_G="false",
         RST_POLARITY_G="'0'",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "read_enable_hold",
+        MEMORY_TYPE_G="block",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="1",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_READ_ENABLE_HOLD="1",
+        CLKA_PERIOD_NS="5",
+        CLKB_PERIOD_NS="5",
+    ),
+    parameter_case(
+        "block_read_latency_registered",
+        MEMORY_TYPE_G="block",
+        SYNTH_MODE_G="inferred",
+        READ_LATENCY_G="2",
+        DOB_REG_G="false",
+        BYTE_WR_EN_G="false",
+        DATA_WIDTH_G="16",
+        BYTE_WIDTH_G="8",
+        ADDR_WIDTH_G="4",
+        RST_ASYNC_G="false",
+        RST_POLARITY_G="'1'",
+        CHECK_REGISTERED_ENB_HOLD="1",
         CLKA_PERIOD_NS="5",
         CLKB_PERIOD_NS="5",
     ),

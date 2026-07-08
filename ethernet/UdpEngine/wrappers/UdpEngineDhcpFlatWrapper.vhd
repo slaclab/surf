@@ -59,30 +59,31 @@ architecture rtl of UdpEngineDhcpFlatWrapper is
 
 begin
 
-   sDhcpComb : process (sDhcpEofe, sDhcpSof, sDhcpTData, sDhcpTKeep, sDhcpTLast, sDhcpTValid) is
+   sDhcpComb : process (sDhcpEofe, sDhcpSof, sDhcpTData, sDhcpTKeep,
+                        sDhcpTLast, sDhcpTValid) is
       variable v : AxiStreamMasterType;
    begin
-      v := AXI_STREAM_MASTER_INIT_C;
-      v.tValid := sDhcpTValid;
+      v                     := AXI_STREAM_MASTER_INIT_C;
+      v.tValid              := sDhcpTValid;
       v.tData(127 downto 0) := sDhcpTData;
-      v.tKeep(15 downto 0) := sDhcpTKeep;
-      v.tLast := sDhcpTLast;
+      v.tKeep(15 downto 0)  := sDhcpTKeep;
+      v.tLast               := sDhcpTLast;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sDhcpSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sDhcpEofe);
-      sDhcpMaster <= v;
+      sDhcpMaster           <= v;
    end process sDhcpComb;
 
    mDhcpView : process (mDhcpMaster) is
    begin
       mDhcpTValid <= mDhcpMaster.tValid;
-      mDhcpTData <= mDhcpMaster.tData(127 downto 0);
-      mDhcpTKeep <= mDhcpMaster.tKeep(15 downto 0);
-      mDhcpTLast <= mDhcpMaster.tLast;
-      mDhcpSof <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_SOF_BIT_C, 0);
-      mDhcpEofe <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_EOFE_BIT_C);
+      mDhcpTData  <= mDhcpMaster.tData(127 downto 0);
+      mDhcpTKeep  <= mDhcpMaster.tKeep(15 downto 0);
+      mDhcpTLast  <= mDhcpMaster.tLast;
+      mDhcpSof    <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_SOF_BIT_C, 0);
+      mDhcpEofe   <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mDhcpMaster, EMAC_EOFE_BIT_C);
    end process mDhcpView;
 
-   sDhcpTReady <= sDhcpSlave.tReady;
+   sDhcpTReady       <= sDhcpSlave.tReady;
    mDhcpSlave.tReady <= mDhcpTReady;
 
    U_DUT : entity surf.UdpEngineDhcp

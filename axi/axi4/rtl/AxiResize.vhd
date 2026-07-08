@@ -171,36 +171,36 @@ begin
                   v.rdMaster.rready := '1';
 
                   if (ibRdM.rvalid = '1') then
-                     v.rdHold := AXI_READ_SLAVE_INIT_C;
+                     v.rdHold                                   := AXI_READ_SLAVE_INIT_C;
                      v.rdHold.rdata((MST_BYTES_C*8)-1 downto 0) := ibRdM.rdata((MST_BYTES_C*8)-1 downto 0);
-                     v.rdHold.rid   := ibRdM.rid;
-                     v.rdHold.rresp := ibRdM.rresp;
-                     v.rdHold.rlast := ibRdM.rlast;
-                     v.rdHold.rvalid := '1';
+                     v.rdHold.rid                               := ibRdM.rid;
+                     v.rdHold.rresp                             := ibRdM.rresp;
+                     v.rdHold.rlast                             := ibRdM.rlast;
+                     v.rdHold.rvalid                            := '1';
 
                      -- Queue slice 0 immediately while retaining the full
                      -- beat so the remaining narrow slices can drain from
                      -- rdHold without an extra bubble.
                      v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := ibRdM.rdata((SLV_BYTES_C*8)-1 downto 0);
-                     v.rdSlave.rid    := ibRdM.rid;
-                     v.rdSlave.rresp  := ibRdM.rresp;
-                     v.rdSlave.rvalid := '1';
-                     v.rdSlave.rlast  := '0';
-                     v.rdCount        := toSlv(1, v.rdCount'length);
+                     v.rdSlave.rid                               := ibRdM.rid;
+                     v.rdSlave.rresp                             := ibRdM.rresp;
+                     v.rdSlave.rvalid                            := '1';
+                     v.rdSlave.rlast                             := '0';
+                     v.rdCount                                   := toSlv(1, v.rdCount'length);
                   end if;
                else
                   v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := r.rdHold.rdata((SLV_BYTES_C*8*rdIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdIdx));
-                  v.rdSlave.rid   := r.rdHold.rid;
-                  v.rdSlave.rresp := r.rdHold.rresp;
-                  v.rdSlave.rvalid := '1';
+                  v.rdSlave.rid                               := r.rdHold.rid;
+                  v.rdSlave.rresp                             := r.rdHold.rresp;
+                  v.rdSlave.rvalid                            := '1';
 
                   if (r.rdCount = (COUNT_C-1)) then
-                     v.rdCount         := (others => '0');
-                     v.rdHold.rvalid   := '0';
-                     v.rdSlave.rlast   := r.rdHold.rlast;
+                     v.rdCount       := (others => '0');
+                     v.rdHold.rvalid := '0';
+                     v.rdSlave.rlast := r.rdHold.rlast;
                   else
-                     v.rdCount         := r.rdCount + 1;
-                     v.rdSlave.rlast   := '0';
+                     v.rdCount       := r.rdCount + 1;
+                     v.rdSlave.rlast := '0';
                   end if;
                end if;
 

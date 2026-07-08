@@ -17,6 +17,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.axi.utils import wait_sampled_ready
+
 
 @dataclass
 class SsiBeat:
@@ -81,12 +83,12 @@ class FlatSsiEndpoint:
             self._sig("Eofe").value = beat.eofe
 
     async def wait_ready(self, *, clk):
-        # A source keeps its beat stable until the sink raises `TREADY`.
-        while True:
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
-            if int(self._sig("TReady").value) == 1:
-                return
+        # A source keeps its beat stable until a sampled edge confirms that
+        # the sink raised `TREADY`.
+        await wait_sampled_ready(
+            self._sig("TReady"),
+            clk=clk,
+        )
 
     async def send(self, beat: SsiBeat, *, clk):
         # `send()` is the simplest source-side helper: drive one beat, wait for
@@ -148,6 +150,14 @@ def env_int(name: str, *, default: int) -> int:
 
 def keep_mask(data_bytes: int) -> int:
     return (1 << data_bytes) - 1
+
+
+def data_mask_from_keep(keep: int, *, max_bytes: int = 8) -> int:
+    mask = 0
+    for byte_index in range(max_bytes):
+        if keep & (1 << byte_index):
+            mask |= 0xFF << (8 * byte_index)
+    return mask
 
 
 def start_clock(signal, *, period_ns: float = 5.0) -> None:

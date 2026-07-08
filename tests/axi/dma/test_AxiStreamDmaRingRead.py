@@ -33,7 +33,7 @@ from cocotbext.axi import (
 )
 
 from tests.axi.utils import ring_buffer_axil_addr
-from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import parameter_case, run_surf_vhdl_test, start_lockstep_clocks
 
 
 class TB:
@@ -119,7 +119,15 @@ async def status_driven_ring_read_test(dut):
     assert frame.tdest == 0
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="buffer0_status_readout")])
+# The wide-address case elaborates the DUT with ADDR_WIDTH_C > 32 so CI catches
+# generic-dependent slice bounds that only fail for wide AXI address maps.
+PARAMETER_SWEEP = [
+    parameter_case("buffer0_status_readout"),
+    parameter_case("wide_addr_33bit", AXI_ADDR_WIDTH_G="33"),
+]
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_AxiStreamDmaRingRead(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
