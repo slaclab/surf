@@ -47,11 +47,147 @@ end RogueTcpStream;
 architecture RogueTcpStream of RogueTcpStream is
 
 ------------------------------------------------------------------------
--- VHPI not supported by GHDL yet
+-- GHDL lacks the AxiSim VHPI interface, so this fork binds the C model
+-- via VHPIDIRECT (below) instead. VHPI original:
+-- axi/simlink/vcs/RogueTcpStream.vhd
 ------------------------------------------------------------------------
---   attribute FOREIGN of RogueTcpStream : architecture is
---      "vhpi:AxiSim:VhpiGenericElab:RogueTcpStreamInit:RogueTcpStream";
+
+   -- GHDL foreign function return types must be a plain type mark, not an
+   -- inline-constrained subtype indication.
+   subtype Word32 is std_logic_vector(31 downto 0);
+   subtype Word8 is std_logic_vector(7 downto 0);
+
+   -- Per-edge update procedure: all "in" parameters, called every
+   -- rising_edge(clock). The C-side FSM (unchanged from RogueTcpStream.c)
+   -- decides internally whether to latch reset/port/ssi or move data.
+   procedure rogueTcpStreamUpdate (
+      clkRst     : std_logic;
+      portNum    : std_logic_vector(15 downto 0);
+      ssi        : std_logic;
+      obReady    : std_logic;
+      ibValid    : std_logic;
+      ibDataLow  : std_logic_vector(31 downto 0);
+      ibDataHigh : std_logic_vector(31 downto 0);
+      ibUserLow  : std_logic_vector(31 downto 0);
+      ibUserHigh : std_logic_vector(31 downto 0);
+      ibKeep     : std_logic_vector(7 downto 0);
+      ibLast     : std_logic);
+   attribute foreign of rogueTcpStreamUpdate : procedure is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamUpdate";
+
+   procedure rogueTcpStreamUpdate (
+      clkRst     : std_logic;
+      portNum    : std_logic_vector(15 downto 0);
+      ssi        : std_logic;
+      obReady    : std_logic;
+      ibValid    : std_logic;
+      ibDataLow  : std_logic_vector(31 downto 0);
+      ibDataHigh : std_logic_vector(31 downto 0);
+      ibUserLow  : std_logic_vector(31 downto 0);
+      ibUserHigh : std_logic_vector(31 downto 0);
+      ibKeep     : std_logic_vector(7 downto 0);
+      ibLast     : std_logic) is
+   begin
+      -- Body is never executed once the foreign symbol resolves.
+      assert false report "rogueTcpStreamUpdate: VHPIDIRECT stub body should never execute" severity failure;
+   end procedure rogueTcpStreamUpdate;
+
+   -- One zero-arg getter per output port.
+   impure function rogueTcpStreamGetObValid return std_logic;
+   attribute foreign of rogueTcpStreamGetObValid : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObValid";
+
+   impure function rogueTcpStreamGetObValid return std_logic is
+   begin
+      assert false report "rogueTcpStreamGetObValid: VHPIDIRECT stub body should never execute" severity failure;
+      return '0';
+   end function rogueTcpStreamGetObValid;
+
+   impure function rogueTcpStreamGetObDataLow return Word32;
+   attribute foreign of rogueTcpStreamGetObDataLow : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObDataLow";
+
+   impure function rogueTcpStreamGetObDataLow return Word32 is
+   begin
+      assert false report "rogueTcpStreamGetObDataLow: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueTcpStreamGetObDataLow;
+
+   impure function rogueTcpStreamGetObDataHigh return Word32;
+   attribute foreign of rogueTcpStreamGetObDataHigh : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObDataHigh";
+
+   impure function rogueTcpStreamGetObDataHigh return Word32 is
+   begin
+      assert false report "rogueTcpStreamGetObDataHigh: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueTcpStreamGetObDataHigh;
+
+   impure function rogueTcpStreamGetObUserLow return Word32;
+   attribute foreign of rogueTcpStreamGetObUserLow : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObUserLow";
+
+   impure function rogueTcpStreamGetObUserLow return Word32 is
+   begin
+      assert false report "rogueTcpStreamGetObUserLow: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueTcpStreamGetObUserLow;
+
+   impure function rogueTcpStreamGetObUserHigh return Word32;
+   attribute foreign of rogueTcpStreamGetObUserHigh : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObUserHigh";
+
+   impure function rogueTcpStreamGetObUserHigh return Word32 is
+   begin
+      assert false report "rogueTcpStreamGetObUserHigh: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueTcpStreamGetObUserHigh;
+
+   impure function rogueTcpStreamGetObKeep return Word8;
+   attribute foreign of rogueTcpStreamGetObKeep : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObKeep";
+
+   impure function rogueTcpStreamGetObKeep return Word8 is
+   begin
+      assert false report "rogueTcpStreamGetObKeep: VHPIDIRECT stub body should never execute" severity failure;
+      return (others => '0');
+   end function rogueTcpStreamGetObKeep;
+
+   impure function rogueTcpStreamGetObLast return std_logic;
+   attribute foreign of rogueTcpStreamGetObLast : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetObLast";
+
+   impure function rogueTcpStreamGetObLast return std_logic is
+   begin
+      assert false report "rogueTcpStreamGetObLast: VHPIDIRECT stub body should never execute" severity failure;
+      return '0';
+   end function rogueTcpStreamGetObLast;
+
+   impure function rogueTcpStreamGetIbReady return std_logic;
+   attribute foreign of rogueTcpStreamGetIbReady : function is
+      "VHPIDIRECT libRogueTcpStream.so rogueTcpStreamGetIbReady";
+
+   impure function rogueTcpStreamGetIbReady return std_logic is
+   begin
+      assert false report "rogueTcpStreamGetIbReady: VHPIDIRECT stub body should never execute" severity failure;
+      return '0';
+   end function rogueTcpStreamGetIbReady;
 
 begin
+
+   UpdateProc : process (clock) is
+   begin
+      if rising_edge(clock) then
+         rogueTcpStreamUpdate(reset, portNum, ssi, obReady, ibValid, ibDataLow, ibDataHigh, ibUserLow, ibUserHigh, ibKeep, ibLast);
+         obValid    <= rogueTcpStreamGetObValid;
+         obDataLow  <= rogueTcpStreamGetObDataLow;
+         obDataHigh <= rogueTcpStreamGetObDataHigh;
+         obUserLow  <= rogueTcpStreamGetObUserLow;
+         obUserHigh <= rogueTcpStreamGetObUserHigh;
+         obKeep     <= rogueTcpStreamGetObKeep;
+         obLast     <= rogueTcpStreamGetObLast;
+         ibReady    <= rogueTcpStreamGetIbReady;
+      end if;
+   end process UpdateProc;
 
 end RogueTcpStream;

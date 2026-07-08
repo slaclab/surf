@@ -1,0 +1,109 @@
+//////////////////////////////////////////////////////////////////////////////
+// This file is part of 'SLAC Firmware Standard Library'.
+// It is subject to the license terms in the LICENSE.txt file found in the
+// top-level directory of this distribution and at:
+//    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+// No part of 'SLAC Firmware Standard Library', including this file,
+// may be copied, modified, propagated, or distributed except according to
+// the terms contained in the LICENSE.txt file.
+//////////////////////////////////////////////////////////////////////////////
+//
+// GHDL VHPIDIRECT backend for the Rogue-TCP AXI-Stream model. The ZMQ
+// transport (RogueTcpStreamRestart/Send/Recv) and the data-movement FSM
+// (RogueTcpStreamStep) live in axi/simlink/shared/RogueTcpStreamCore.h,
+// included by both this backend and the VHPI backend. This file provides only
+// the GHDL-specific plumbing: a per-edge update procedure (rogueTcpStreamUpdate)
+// that decodes the VHPIDIRECT parameters into the input snapshot and runs one
+// FSM step, plus one zero-arg getter per output port. GHDL has no VHPI (no
+// vhpi_register_cb / value-change callbacks), so vhpi_printf and vhpi_assert
+// are shimmed to printf/abort in RogueTcpStream.h.
+//////////////////////////////////////////////////////////////////////////////
+
+#include <zmq.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include "RogueTcpStream.h"
+#include "RogueVhpiDirect.h"
+#include "RogueTcpStreamCore.h"
+
+// Single instance for this simulation; file-scope statics are zero-
+// initialized by C, replacing the src Init's malloc+memset.
+static RogueTcpStreamData streamData;
+
+// Per-edge update procedure, called from VHDL every rising_edge(clock).
+// Decodes each VHPIDIRECT parameter into the input snapshot (the getInt seam),
+// then runs one shared FSM step. inSnap[s_clock] is intentionally never
+// populated -- the FSM does not read it, since every call is already a rising
+// edge and needs no edge detection.
+void rogueTcpStreamUpdate(unsigned char clkRst, unsigned char *portNum, unsigned char ssi,
+                           unsigned char obReady, unsigned char ibValid,
+                           unsigned char *ibDataLow, unsigned char *ibDataHigh,
+                           unsigned char *ibUserLow, unsigned char *ibUserHigh,
+                           unsigned char *ibKeep, unsigned char ibLast) {
+    RogueTcpStreamData *data = &streamData;
+    unsigned int reqPort = rogueVhpiDirectDecodeVector(portNum, 16);
+
+    // VHPIDIRECT foreign subprograms carry no per-instance context, so this
+    // backend hosts a single global streamData and supports only one
+    // RogueTcpStream per simulation. A second instance (e.g. RogueTcpStreamWrap
+    // with CHAN_COUNT_G>1, one distinct port per channel) would otherwise
+    // silently share this state and bind only the first port. Fail fast once a
+    // different, already-latched port is observed rather than corrupt state.
+    if ( data->port != 0 && reqPort != 0 && reqPort != data->port ) {
+        vhpi_printf("RogueTcpStream: GHDL VHPIDIRECT backend supports only one instance per simulation; observed ports %u and %u\n", data->port, reqPort);
+        vhpi_assert("RogueTcpStream: multiple instances unsupported under GHDL VHPIDIRECT", vhpiFatal);
+        return;
+    }
+
+    data->inSnap[s_reset]      = rogueVhpiDirectDecodeBit(clkRst);
+    data->inSnap[s_port]       = reqPort;
+    data->inSnap[s_ssi]        = rogueVhpiDirectDecodeBit(ssi);
+    data->inSnap[s_obReady]    = rogueVhpiDirectDecodeBit(obReady);
+    data->inSnap[s_ibValid]    = rogueVhpiDirectDecodeBit(ibValid);
+    data->inSnap[s_ibDataLow]  = rogueVhpiDirectDecodeVector(ibDataLow, 32);
+    data->inSnap[s_ibDataHigh] = rogueVhpiDirectDecodeVector(ibDataHigh, 32);
+    data->inSnap[s_ibUserLow]  = rogueVhpiDirectDecodeVector(ibUserLow, 32);
+    data->inSnap[s_ibUserHigh] = rogueVhpiDirectDecodeVector(ibUserHigh, 32);
+    data->inSnap[s_ibKeep]     = rogueVhpiDirectDecodeVector(ibKeep, 8);
+    data->inSnap[s_ibLast]     = rogueVhpiDirectDecodeBit(ibLast);
+
+    RogueTcpStreamStep(data);
+}
+
+// Zero-argument getters, one per output port, reproducing
+// VhpiGenericConvertOut's enum-ordinal encoding.
+unsigned char rogueTcpStreamGetObValid(void) {
+    return rogueVhpiDirectEncodeBit(streamData.outState[s_obValid]);
+}
+
+unsigned char rogueTcpStreamGetObLast(void) {
+    return rogueVhpiDirectEncodeBit(streamData.outState[s_obLast]);
+}
+
+unsigned char rogueTcpStreamGetIbReady(void) {
+    return rogueVhpiDirectEncodeBit(streamData.outState[s_ibReady]);
+}
+
+void rogueTcpStreamGetObDataLow(unsigned char *ret) {
+    rogueVhpiDirectEncodeVector(streamData.outState[s_obDataLow], ret, 32);
+}
+
+void rogueTcpStreamGetObDataHigh(unsigned char *ret) {
+    rogueVhpiDirectEncodeVector(streamData.outState[s_obDataHigh], ret, 32);
+}
+
+void rogueTcpStreamGetObUserLow(unsigned char *ret) {
+    rogueVhpiDirectEncodeVector(streamData.outState[s_obUserLow], ret, 32);
+}
+
+void rogueTcpStreamGetObUserHigh(unsigned char *ret) {
+    rogueVhpiDirectEncodeVector(streamData.outState[s_obUserHigh], ret, 32);
+}
+
+void rogueTcpStreamGetObKeep(unsigned char *ret) {
+    rogueVhpiDirectEncodeVector(streamData.outState[s_obKeep], ret, 8);
+}
