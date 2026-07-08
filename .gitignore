@@ -18,7 +18,7 @@ ghdl-build/
 ruckus
 ruckus/
 build/
-sim_build/
+sim_build*
 .coverage*
 
 # Local editor/agent state

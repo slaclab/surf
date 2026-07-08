@@ -12,6 +12,7 @@ dependencies:
       - cocotb
       - cocotbext-axi
       - cocotb-test
+      - pyzmq
       - coverage
       - pytest
       - pytest-cov
