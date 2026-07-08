@@ -62,7 +62,7 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
 WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bRxWrapper.vhd")
 
 # ---------------------------------------------------------------------------
-# RX status bit constants (JesdRxLane.vhd:322 + :267 verified in 04-04-SUMMARY)
+# RX status bit constants
 # bit0=rstDone, bit1=dataValid, bit2=alignErr, bit3=nSync, bit4=bufUnf,
 # bit5=bufOvf, bit6=posErr, bit7=enable, bit8=sysRef, bit9=kDetect,
 # bits10-13=dispErr[0:3], bits14-17=decErr[0:3], bits18-25=latency, bit26=cdrStable

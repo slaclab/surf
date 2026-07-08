@@ -63,7 +63,7 @@ _K28P5_WORD   = (K_CHAR << 24) | (K_CHAR << 16) | (K_CHAR << 8) | K_CHAR
 
 # ---------------------------------------------------------------------------
 # Parameter sweep: L_G in {1,2} x SC1 primary + SC0 smoke
-# K=32/F=2 fixed per plan. L_G and F_G/K_G passed as _G-suffixed HDL generics.
+# K=32/F=2 fixed. L_G and F_G/K_G passed as _G-suffixed HDL generics.
 # SUBCLASS is Python-only env key (stripped by hdl_parameters_from).
 # ---------------------------------------------------------------------------
 PARAMETER_SWEEP = [

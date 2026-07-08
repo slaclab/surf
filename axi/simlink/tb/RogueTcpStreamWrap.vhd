@@ -133,7 +133,7 @@ begin
    end generate;
 
    -- Channels
-   U_ChanGen : for i in 0 to CHAN_COUNT_C-1 generate
+   GEN_CHAN : for i in 0 to CHAN_COUNT_C-1 generate
       ------------------
       -- Inbound Resizer
       ------------------

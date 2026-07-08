@@ -19,6 +19,7 @@ ruckus
 ruckus/
 build/
 sim_build*
+xsc.pb
 .coverage*
 
 # Local editor/agent state
