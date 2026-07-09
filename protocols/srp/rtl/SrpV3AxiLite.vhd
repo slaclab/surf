@@ -35,6 +35,7 @@ entity SrpV3AxiLite is
       TPD_G                 : time                    := 1 ns;
       INT_PIPE_STAGES_G     : natural range 0 to 16   := 1;
       PIPE_STAGES_G         : natural range 0 to 16   := 1;
+      CASCADE_SIZE_G        : positive                := 1;
       FIFO_PAUSE_THRESH_G   : positive range 1 to 511 := 256;
       FIFO_SYNTH_MODE_G     : string                  := "inferred";
       FIFO_MEMORY_TYPE_G    : string                  := "block";
@@ -237,6 +238,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,  -- 8kB/FIFO = 128-bits x 512 entries
          FIFO_FIXED_THRESH_G => true,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         CASCADE_SIZE_G      => CASCADE_SIZE_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_STREAM_CONFIG_G,
          MASTER_AXI_CONFIG_G => AXIS_CONFIG_C)

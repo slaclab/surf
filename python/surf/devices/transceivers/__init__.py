@@ -11,8 +11,47 @@ from surf.devices.transceivers._Sfp  import *
 from surf.devices.transceivers._QsfpUpperPage00h import *
 from surf.devices.transceivers._QsfpUpperPage03h import *
 from surf.devices.transceivers._Qsfp import *
+from surf.devices.transceivers._QsfpDd import *
 
 import math
+import rogue
+import pyrogue as pr
+
+# Retry constants for I2C read failures.
+_RETRY_MAX = 3
+_RETRY_SENTINEL = object()  # unique sentinel; compare with 'is', never '=='
+
+# Build exception tuple at import time so the except clause stays cheap.
+# pr.MemoryError is present in Rogue >= 6.x builds (confirmed v6.12.0).
+_RETRY_EXC_TYPES = (rogue.GeneralError, pr.MemoryError) if hasattr(pr, 'MemoryError') else (rogue.GeneralError,)
+
+
+def _retryGet(var, dep, read):
+    """Attempt dep.get(read=read) up to _RETRY_MAX times.
+
+    On success (any attempt), return the value immediately.
+    On _RETRY_EXC_TYPES exhaustion, log a single WARN, increment
+    ErrorCount on the parent device (best-effort, wrapped in try/except),
+    and return _RETRY_SENTINEL so the caller can substitute a safe default.
+    Any other exception type propagates out unchanged.
+    """
+    last_exc = None
+    for attempt in range(_RETRY_MAX):
+        try:
+            return dep.get(read=read)
+        except _RETRY_EXC_TYPES as exc:
+            last_exc = exc
+    # All retries exhausted.
+    var._log.warning('I2C read failed after %d retries for %s: %s', _RETRY_MAX, dep.path, last_exc)
+    try:
+        dev = var.parent
+        if not hasattr(dev, 'ErrorCount'):
+            dev = dev.parent
+        dev.ErrorCount.set(dev.ErrorCount.value() + 1, write=False)
+    except Exception:
+        pass
+    return _RETRY_SENTINEL
+
 
 # Can't use SparseString + bulk memory read if there is a AXI-Lite Proxy
 # So recoded using 4 byte transactions + this get function
@@ -20,65 +59,105 @@ def parseStrArrayByte(dev, var, read):
     with dev.root.updateGroup():
         retVar = ''
         for x in range(len(var.dependencies)):
-            retVar += var.dependencies[x].get(read=read)
+            val = _retryGet(var, var.dependencies[x], read)
+            if val is not _RETRY_SENTINEL:
+                retVar += val
     return retVar
 
 # Used to decode the "dateCode" variable
 def getDate(dev, var, read):
     with dev.root.updateGroup():
-        year  = '20' + var.dependencies[0].get(read=read) + var.dependencies[1].get(read=read)
-        month = var.dependencies[2].get(read=read) + var.dependencies[3].get(read=read)
-        day   = var.dependencies[4].get(read=read) + var.dependencies[5].get(read=read)
+        vals = [_retryGet(var, var.dependencies[i], read) for i in range(6)]
+        if any(v is _RETRY_SENTINEL for v in vals):
+            return None
+        year  = '20' + vals[0] + vals[1]
+        month = vals[2] + vals[3]
+        day   = vals[4] + vals[5]
         # Check if not empty or blank string
         if month.strip() and day.strip():
             return f'{month}/{day}/{year}'
 
 def getTemp(dev, var, read):
     with dev.root.updateGroup():
-        msb = var.dependencies[0].get(read=read)
-        lsb = var.dependencies[1].get(read=read)
+        try:
+            if var.parent.Data_Not_Ready.value():
+                return float('nan')
+        except Exception:
+            pass
+        msb = _retryGet(var, var.dependencies[0], read)
+        lsb = _retryGet(var, var.dependencies[1], read)
+        if msb is _RETRY_SENTINEL or lsb is _RETRY_SENTINEL:
+            return float('nan')
         raw = (msb << 8) | lsb
         # Return value in units of degC
         return float(raw)/256.0
 
 def getVolt(dev, var, read):
     with dev.root.updateGroup():
-        msb = var.dependencies[0].get(read=read)
-        lsb = var.dependencies[1].get(read=read)
+        try:
+            if var.parent.Data_Not_Ready.value():
+                return float('nan')
+        except Exception:
+            pass
+        msb = _retryGet(var, var.dependencies[0], read)
+        lsb = _retryGet(var, var.dependencies[1], read)
+        if msb is _RETRY_SENTINEL or lsb is _RETRY_SENTINEL:
+            return float('nan')
         raw = (msb << 8) | lsb
         # Return value in units of Volts
         return float(raw)*100.0E-6
 
 def getTxBias(dev, var, read):
     with dev.root.updateGroup():
-        msb = var.dependencies[0].get(read=read)
-        lsb = var.dependencies[1].get(read=read)
+        try:
+            if var.parent.Data_Not_Ready.value():
+                return float('nan')
+        except Exception:
+            pass
+        msb = _retryGet(var, var.dependencies[0], read)
+        lsb = _retryGet(var, var.dependencies[1], read)
+        if msb is _RETRY_SENTINEL or lsb is _RETRY_SENTINEL:
+            return float('nan')
         raw = (msb << 8) | lsb
         # Return value in units of mA
         return float(raw)*0.002
 
 def getOpticalPwr(dev, var, read):
     with dev.root.updateGroup():
-        msb = var.dependencies[0].get(read=read)
-        lsb = var.dependencies[1].get(read=read)
+        try:
+            if var.parent.Data_Not_Ready.value():
+                return float('nan')
+        except Exception:
+            pass
+        msb = _retryGet(var, var.dependencies[0], read)
+        lsb = _retryGet(var, var.dependencies[1], read)
+        if msb is _RETRY_SENTINEL or lsb is _RETRY_SENTINEL:
+            return float('nan')
         raw = (msb << 8) | lsb
         if raw == 0:
-            pwr = 0.0001 # Prevent log10(zero) case
+            pwrWatts = 0.1e-6 # Prevent log10(zero) case by forcing 0.1 µW if raw=0
         else:
-            pwr = float(raw)*0.0001 # units of mW
+            pwrWatts = float(raw) * 1e-7  # convert 0.1 µW to W
         # Return value in units of dBm
-        return 10.0*math.log10(pwr)
+        return 10.0*math.log10(pwrWatts / 1e-3)  # convert to dBm = 10*log10(Power_W/1mW)
 
 def getTec(dev, var, read):
     with dev.root.updateGroup():
-        msb = var.dependencies[0].get(read=read)
-        lsb = var.dependencies[1].get(read=read)
+        try:
+            if var.parent.Data_Not_Ready.value():
+                return float('nan')
+        except Exception:
+            pass
+        msb = _retryGet(var, var.dependencies[0], read)
+        lsb = _retryGet(var, var.dependencies[1], read)
+        if msb is _RETRY_SENTINEL or lsb is _RETRY_SENTINEL:
+            return float('nan')
         raw = (msb << 8) | lsb
         # Return value in units of mA
         return float(raw)*0.1
 
 ##############################################################################
-# Dictionaries based on SFF-8024 Rev 4.9 (24MAY2021)
+# Dictionaries based on SFF-8024 Rev 4.13 (11JULY2025)
 # https://members.snia.org/document/dl/26423
 ##############################################################################
 IdentifierDict = {
@@ -114,6 +193,12 @@ IdentifierDict = {
     0x1D: 'MiniLinkx8',
     0x1E: 'QSFP+',
     0x1F: 'SFP-DD',
+    0x20: 'SFP+',
+    0x21: 'OSFP-XD',
+    0x22: 'OIF-ELSFP',
+    0x23: 'CDFPx4',
+    0x24: 'CDFPx8',
+    0x25: 'CDFPx16',
 }
 
 # Fill 0x20 through 0xFF with 'Undefined'

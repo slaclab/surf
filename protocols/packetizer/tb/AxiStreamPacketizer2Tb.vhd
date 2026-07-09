@@ -105,15 +105,15 @@ begin
 
    U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
-         TPD_G                    => TPD_G,
-         NUM_SLAVES_G             => NUM_CHANNELS_C,
-         MODE_G                   => "INDEXED",
+         TPD_G                => TPD_G,
+         NUM_SLAVES_G         => NUM_CHANNELS_C,
+         MODE_G               => "INDEXED",
 --         TDEST_ROUTES_G           => TDEST_ROUTES_G,
 --         PIPE_STAGES_G            => PIPE_STAGES_G,
 --         TDEST_LOW_G              => TDEST_LOW_G,
-         INTERLEAVE_EN_G          => true,
-         INTERLEAVE_ON_NOTVALID_G => false,
-         INTERLEAVE_MAX_TXNS_G    => 256)
+         ILEAVE_EN_G          => true,
+         ILEAVE_ON_NOTVALID_G => false,
+         ILEAVE_REARB_G       => 256)
       port map (
          axisClk      => axisClk,            -- [in]
          axisRst      => axisRst,            -- [in]
@@ -128,9 +128,7 @@ begin
    U_AxiStreamPacketizer2 : entity surf.AxiStreamPacketizer2
       generic map (
          TPD_G                => TPD_G,
-         CRC_EN_G             => true,
          MAX_PACKET_BYTES_G   => 512*8,
-         OUTPUT_SSI_G         => true,
          INPUT_PIPE_STAGES_G  => 0,
          OUTPUT_PIPE_STAGES_G => 0)
       port map (
@@ -145,11 +143,11 @@ begin
    U_AxiStreamDepacketizer2_1 : entity surf.AxiStreamDepacketizer2
       generic map (
          TPD_G               => TPD_G,
-         CRC_EN_G            => true,
          INPUT_PIPE_STAGES_G => 0)
       port map (
          axisClk     => axisClk,                 -- [in]
          axisRst     => axisRst,                 -- [in]
+         linkGood    => '1',                     -- [in]
          sAxisMaster => packetizedAxisMaster,    -- [in]
          sAxisSlave  => packetizedAxisSlave,     -- [out]
          mAxisMaster => depacketizedAxisMaster,  -- [out]

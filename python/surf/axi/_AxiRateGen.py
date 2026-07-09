@@ -15,67 +15,70 @@ class AxiRateGen(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'WriteEnable',
-            offset       = 0x00,
-            bitSize      = 1,
-            base         = pr.Bool,
-            mode         = 'RW',
+            name        = 'WriteEnable',
+            description = 'Enable AXI write transactions',
+            offset      = 0x00,
+            bitSize     = 1,
+            base        = pr.Bool,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ReadEnable',
-            offset       = 0x04,
-            bitSize      = 1,
-            base         = pr.Bool,
-            mode         = 'RW',
+            name        = 'ReadEnable',
+            description = 'Enable AXI read transactions',
+            offset      = 0x04,
+            bitSize     = 1,
+            base        = pr.Bool,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'WriteSize',
-            description  = 'Number of bytes for transaction (zero inclusive)',
-            offset       = 0x10,
-            bitSize      = 12,
-            mode         = 'RW',
-            units        = 'Bytes',
-            disp         = '{:d}',
+            name        = 'WriteSize',
+            description = 'Number of bytes for transaction (zero inclusive)',
+            offset      = 0x10,
+            bitSize     = 12,
+            mode        = 'RW',
+            units       = 'Bytes',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ReadSize',
-            description  = 'Number of bytes for transaction (zero inclusive)',
-            offset       = 0x14,
-            bitSize      = 12,
-            mode         = 'RW',
-            units        = 'Bytes',
-            disp         = '{:d}',
+            name        = 'ReadSize',
+            description = 'Number of bytes for transaction (zero inclusive)',
+            offset      = 0x14,
+            bitSize     = 12,
+            mode        = 'RW',
+            units       = 'Bytes',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'WriteTimerConfig',
-            description  = 'Minimum number clock cycles between transaction (zero inclusive)',
-            offset       = 0x20,
-            bitSize      = 32,
-            mode         = 'RW',
-            units        = 'Clock Cycles',
-            disp         = '{:d}',
+            name        = 'WriteTimerConfig',
+            description = 'Minimum number clock cycles between transaction (zero inclusive)',
+            offset      = 0x20,
+            bitSize     = 32,
+            mode        = 'RW',
+            units       = 'Clock Cycles',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ReadTimerConfig',
-            description  = 'Minimum number clock cycles between transaction (zero inclusive)',
-            offset       = 0x24,
-            bitSize      = 32,
-            mode         = 'RW',
-            units        = 'Clock Cycles',
-            disp         = '{:d}',
+            name        = 'ReadTimerConfig',
+            description = 'Minimum number clock cycles between transaction (zero inclusive)',
+            offset      = 0x24,
+            bitSize     = 32,
+            mode        = 'RW',
+            units       = 'Clock Cycles',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'awburst',
-            offset       = 0x30,
-            bitSize      = 2,
-            mode         = 'RW',
-            enum         = {
+            name        = 'awburst',
+            description = 'AXI write burst type',
+            offset      = 0x30,
+            bitSize     = 2,
+            mode        = 'RW',
+            enum        = {
                 0 : "FIXED",
                 1 : "INCR",
                 2 : "WRAP",
@@ -84,11 +87,12 @@ class AxiRateGen(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'arburst',
-            offset       = 0x34,
-            bitSize      = 2,
-            mode         = 'RW',
-            enum         = {
+            name        = 'arburst',
+            description = 'AXI read burst type',
+            offset      = 0x34,
+            bitSize     = 2,
+            mode        = 'RW',
+            enum        = {
                 0 : "FIXED",
                 1 : "INCR",
                 2 : "WRAP",
@@ -97,11 +101,12 @@ class AxiRateGen(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'awcache',
-            offset       = 0x40,
-            bitSize      = 4,
-            mode         = 'RW',
-            enum         = {
+            name        = 'awcache',
+            description = 'AXI write cache attribute',
+            offset      = 0x40,
+            bitSize     = 4,
+            mode        = 'RW',
+            enum        = {
                 0b0000 : "Device_Non-bufferable",
                 0b0001 : "Device_Bufferable",
                 0b0010 : "Normal_Non-cacheable_Non-bufferable",
@@ -116,11 +121,12 @@ class AxiRateGen(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'arcache',
-            offset       = 0x44,
-            bitSize      = 4,
-            mode         = 'RW',
-            enum         = {
+            name        = 'arcache',
+            description = 'AXI read cache attribute',
+            offset      = 0x44,
+            bitSize     = 4,
+            mode        = 'RW',
+            enum        = {
                 0b0000 : "Device_Non-bufferable",
                 0b0001 : "Device_Bufferable",
                 0b0010 : "Normal_Non-cacheable_Non-bufferable",
@@ -135,41 +141,41 @@ class AxiRateGen(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ADDR_WIDTH_C',
-            description  = 'AXI_CONFIG_G.ADDR_WIDTH_C',
-            offset       = 0x80,
-            bitSize      = 8,
-            bitOffset    = 0,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        = 'ADDR_WIDTH_C',
+            description = 'AXI_CONFIG_G.ADDR_WIDTH_C',
+            offset      = 0x80,
+            bitSize     = 8,
+            bitOffset   = 0,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DATA_BYTES_C',
-            description  = 'AXI_CONFIG_G.DATA_BYTES_C',
-            offset       = 0x80,
-            bitSize      = 8,
-            bitOffset    = 8,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        = 'DATA_BYTES_C',
+            description = 'AXI_CONFIG_G.DATA_BYTES_C',
+            offset      = 0x80,
+            bitSize     = 8,
+            bitOffset   = 8,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'ID_BITS_C',
-            description  = 'AXI_CONFIG_G.ID_BITS_C',
-            offset       = 0x80,
-            bitSize      = 8,
-            bitOffset    = 16,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        = 'ID_BITS_C',
+            description = 'AXI_CONFIG_G.ID_BITS_C',
+            offset      = 0x80,
+            bitSize     = 8,
+            bitOffset   = 16,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LEN_BITS_C',
-            description  = 'AXI_CONFIG_G.LEN_BITS_C',
-            offset       = 0x80,
-            bitSize      = 8,
-            bitOffset    = 24,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        = 'LEN_BITS_C',
+            description = 'AXI_CONFIG_G.LEN_BITS_C',
+            offset      = 0x80,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            disp        = '{:d}',
         ))

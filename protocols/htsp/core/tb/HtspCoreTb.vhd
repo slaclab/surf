@@ -123,6 +123,10 @@ begin
          -- Rx PHY Interface
          phyRxRdy        => '1',
          phyRxMaster     => phyRxMaster,
+         -- Misc Debug Interfaces
+         localMacIn      => x"01_02_03_56_44_00",  -- 00:44:56:03:02:01
+         rxFecCorInc     => '0',
+         rxFecUnCorInc   => '0',
          -- AXI-Lite Register Interface (axilClk domain)
          axilClk         => clk,
          axilRst         => rst,

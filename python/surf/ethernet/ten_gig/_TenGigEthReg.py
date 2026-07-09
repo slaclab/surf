@@ -53,6 +53,7 @@ class TenGigEthReg(pr.Device):
 
             self.add(pr.RemoteVariable(
                 name         = statusName[i]+'Cnt',
+                description  = f'Count of {statusName[i]} events',
                 offset       = 4*i,
                 mode         = 'RO',
                 pollInterval = 1,
@@ -61,6 +62,7 @@ class TenGigEthReg(pr.Device):
         for i in range(19):
             self.add(pr.RemoteVariable(
                 name         = statusName[i],
+                description  = f'Current status of {statusName[i]}',
                 offset       = 0x100,
                 mode         = 'RO',
                 bitSize      = 1,
@@ -70,6 +72,7 @@ class TenGigEthReg(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PhyStatus',
+            description  = 'PHY status register bits',
             offset       =  0x108,
             bitSize      =  8,
             mode         = 'RO',
@@ -77,12 +80,12 @@ class TenGigEthReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MacAddress',
-            description  = 'MacAddress (big-Endian configuration)',
-            offset       = 0x200,
-            bitSize      = 48,
-            mode         = 'RO',
-            hidden       = True,
+            name        = 'MacAddress',
+            description = 'MacAddress (big-Endian configuration)',
+            offset      = 0x200,
+            bitSize     = 48,
+            mode        = 'RO',
+            hidden      = True,
         ))
 
         self.add(pr.LinkVariable(
@@ -94,99 +97,112 @@ class TenGigEthReg(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'PauseTime',
-            offset       = 0x21C,
-            bitSize      = 16,
-            mode         = allowAccess,
+            name        = 'PauseTime',
+            description = 'Pause frame quanta value',
+            offset      = 0x21C,
+            bitSize     = 16,
+            mode        = allowAccess,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'FilterEnable',
-            offset       = 0x228,
-            bitSize      = 1,
-            mode         = allowAccess,
+            name        = 'FilterEnable',
+            description = 'Enable MAC address filtering',
+            offset      = 0x228,
+            bitSize     = 1,
+            mode        = allowAccess,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'PauseEnable',
-            offset       = 0x22C,
-            bitSize      = 1,
-            mode         = allowAccess,
+            name        = 'PauseEnable',
+            description = 'Enable flow control pause frames',
+            offset      = 0x22C,
+            bitSize     = 1,
+            mode        = allowAccess,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'PauseFifoThreshold',
-            offset       = 0x800,
-            bitSize      = 16,
-            mode         = allowAccess,
+            name        = 'PauseFifoThreshold',
+            description = 'FIFO threshold level for triggering pause frames',
+            offset      = 0x800,
+            bitSize     = 16,
+            mode        = allowAccess,
         ))
 
         if writeEn:
 
             self.add(pr.RemoteVariable(
-                name         = 'pma_pmd_type',
-                offset       =  0x230,
-                bitSize      =  3,
-                mode         = 'RW',
+                name        = 'pma_pmd_type',
+                description = 'PMA/PMD type selection for 10GigE PHY',
+                offset      =  0x230,
+                bitSize     =  3,
+                mode        = 'RW',
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'pma_loopback',
-                offset       =  0x234,
-                bitSize      =  1,
-                mode         = 'RW',
+                name        = 'pma_loopback',
+                description = 'Enable PMA loopback mode',
+                offset      =  0x234,
+                bitSize     =  1,
+                mode        = 'RW',
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'pma_reset',
-                offset       =  0x238,
-                bitSize      =  1,
-                mode         = 'RW',
+                name        = 'pma_reset',
+                description = 'Issue a reset to the PMA layer',
+                offset      =  0x238,
+                bitSize     =  1,
+                mode        = 'RW',
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'pcs_loopback',
-                offset       =  0x23C,
-                bitSize      =  1,
-                mode         = 'RW',
+                name        = 'pcs_loopback',
+                description = 'Enable PCS loopback mode',
+                offset      =  0x23C,
+                bitSize     =  1,
+                mode        = 'RW',
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'pcs_reset',
-                offset       =  0x240,
-                bitSize      =  1,
-                mode         = 'RW',
+                name        = 'pcs_reset',
+                description = 'Issue a reset to the PCS layer',
+                offset      =  0x240,
+                bitSize     =  1,
+                mode        = 'RW',
             ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RollOverEn',
-            offset       =  0xF00,
-            bitSize      =  19,
-            mode         = 'RW',
+            name        = 'RollOverEn',
+            description = 'Enable counter rollover instead of saturation',
+            offset      =  0xF00,
+            bitSize     =  19,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'CounterReset',
-            offset       = 0xFF4,
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            name        = 'CounterReset',
+            description = 'Reset all status counters',
+            offset      = 0xFF4,
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
+            hidden      = False,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'SoftReset',
-            offset       = 0xFF8,
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            name        = 'SoftReset',
+            description = 'Issue a soft reset to the 10GigE MAC',
+            offset      = 0xFF8,
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
+            hidden      = False,
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'HardReset',
-            offset       = 0xFFC,
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            name        = 'HardReset',
+            description = 'Issue a hard reset to the 10GigE MAC',
+            offset      = 0xFFC,
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
+            hidden      = False,
         ))
 
     def hardReset(self):

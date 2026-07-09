@@ -29,6 +29,7 @@ use surf.AxiStreamPacketizer2Pkg.all;
 entity AxiStreamPacketizer2 is
    generic (
       TPD_G                : time                   := 1 ns;
+      RST_POLARITY_G       : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean                := false;
       MEMORY_TYPE_G        : string                 := "distributed";
       REG_EN_G             : boolean                := false;
@@ -180,9 +181,10 @@ begin
    -----------------
    U_Input : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
@@ -204,15 +206,16 @@ begin
    ramPacketSeqOut    <= ramDout(33+SEQ_CNT_SIZE_G-1 downto 33);
    U_DualPortRam_1 : entity surf.DualPortRam
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         MEMORY_TYPE_G => MEMORY_TYPE_G,
-         REG_EN_G      => REG_EN_G,
-         DOA_REG_G     => REG_EN_G,
-         DOB_REG_G     => REG_EN_G,
-         BYTE_WR_EN_G  => false,
-         DATA_WIDTH_G  => (32+1+SEQ_CNT_SIZE_G),
-         ADDR_WIDTH_G  => ADDR_WIDTH_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
+         REG_EN_G       => REG_EN_G,
+         DOA_REG_G      => REG_EN_G,
+         DOB_REG_G      => REG_EN_G,
+         BYTE_WR_EN_G   => false,
+         DATA_WIDTH_G   => (32+1+SEQ_CNT_SIZE_G),
+         ADDR_WIDTH_G   => ADDR_WIDTH_C)
       port map (
          clka  => axisClk,
          rsta  => axisRst,
@@ -232,6 +235,7 @@ begin
          U_Crc32 : entity surf.Crc32Parallel
             generic map (
                TPD_G            => TPD_G,
+               RST_POLARITY_G   => RST_POLARITY_G,
                RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
@@ -252,6 +256,7 @@ begin
          U_Crc32 : entity surf.Crc32
             generic map (
                TPD_G            => TPD_G,
+               RST_POLARITY_G   => RST_POLARITY_G,
                RST_ASYNC_G      => RST_ASYNC_G,
                INPUT_REGISTER_G => false,
                BYTE_WIDTH_G     => WORD_SIZE_C,
@@ -471,6 +476,9 @@ begin
                   end if;
                end if;
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to HEADER_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 
@@ -503,10 +511,10 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G and axisRst = '1') then
+      if (RST_ASYNC_G and axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false and axisRst = '1') then
+         if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -519,9 +527,10 @@ begin
    ------------------
    U_Output : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => OUTPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

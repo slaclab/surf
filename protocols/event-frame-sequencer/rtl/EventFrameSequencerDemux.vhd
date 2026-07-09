@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Event Frame Sequencer DEUX
+-- Description: Event Frame Sequencer DEMUX
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -340,7 +340,7 @@ begin
          v.frameCnt         := r.frameCnt + 1;
          v.dataCnt(r.index) := r.dataCnt(r.index) + 1;
 
-         -- Check if reseting frame counters
+         -- Check if resetting frame counters
          if (r.numFrames = r.frameCnt) then
 
             -- Increment counter
@@ -353,7 +353,7 @@ begin
 
       end if;
 
-      -- Check if reseting status counters
+      -- Check if resetting status counters
       if (r.cntRst = '1') then
          v.dataCnt := (others => (others => '0'));
          v.dropCnt := (others => '0');

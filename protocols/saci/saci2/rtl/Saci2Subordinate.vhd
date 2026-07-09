@@ -40,6 +40,7 @@ entity Saci2Subordinate is
       -- Detector (Parallel) Interface
       exec   : out sl;
       ack    : in  sl;
+      resp   : in  sl := '0';
       readL  : out sl;
       addr   : out slv(29 downto 0);
       wrData : out slv(31 downto 0);
@@ -97,7 +98,7 @@ begin
       end if;
    end process seq;
 
-   comb : process (ack, r, rdData, saciCmdFall) is
+   comb : process (ack, r, rdData, resp, saciCmdFall) is
       variable v : RegType;
    begin
       v := r;
@@ -134,8 +135,13 @@ begin
                else
                   v.shiftReg(32 downto 1) := rdData;           -- read
                end if;
-            end if;
 
+               -- Invert the returned OP bit if non-zero resp to communicate to coordinator about failure
+               if (resp = '1') then
+                  v.shiftReg(63) := not(r.shiftReg(63));
+               end if;
+
+            end if;
 
          when others =>
             v.shiftReg := (others => '0');

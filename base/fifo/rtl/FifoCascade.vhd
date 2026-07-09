@@ -63,6 +63,7 @@ entity FifoCascade is
       valid         : out sl;
       underflow     : out sl;
       prog_empty    : out sl;
+      progEmptyVec  : out slv(CASCADE_SIZE_G-1 downto 0);  -- Output stage = 0
       almost_empty  : out sl;
       empty         : out sl);
 end FifoCascade;
@@ -76,6 +77,7 @@ architecture mapping of FifoCascade is
    type FifoDataType is array (CASCADE_SIZE_C downto 0) of slv((DATA_WIDTH_G-1) downto 0);
 
    signal progFull   : sl;
+   signal progEmpty  : sl;
    signal cascadeClk : sl;
 
    signal readJump  : slv(CASCADE_SIZE_C downto 0);
@@ -96,6 +98,9 @@ begin
 
       prog_full      <= progFull;
       progFullVec(0) <= progFull;
+
+      prog_empty      <= progEmpty;
+      progEmptyVec(0) <= progEmpty;
 
       Fifo_1xStage : entity surf.Fifo
          generic map (
@@ -134,7 +139,7 @@ begin
             rd_data_count => rd_data_count,
             valid         => valid,
             underflow     => underflow,
-            prog_empty    => prog_empty,
+            prog_empty    => progEmpty,
             almost_empty  => almost_empty,
             empty         => empty);
 
@@ -181,6 +186,7 @@ begin
             not_full      => not_full,
             --Read Ports (rd_clk domain)
             rd_clk        => cascadeClk,
+            prog_empty    => progEmptyVec(CASCADE_SIZE_G-1),
             rd_en         => readJump(CASCADE_SIZE_G-2),
             dout          => dataJump(CASCADE_SIZE_G-2),
             valid         => validJump(CASCADE_SIZE_G-2));
@@ -218,6 +224,7 @@ begin
                   prog_full   => progFullVec(i),
                   --Read Ports (rd_clk domain)
                   rd_clk      => cascadeClk,
+                  prog_empty  => progEmptyVec(i),
                   rd_en       => readJump(i-1),
                   dout        => dataJump(i-1),
                   valid       => validJump(i-1));
@@ -258,9 +265,12 @@ begin
             rd_data_count => rd_data_count,
             valid         => valid,
             underflow     => underflow,
-            prog_empty    => prog_empty,
+            prog_empty    => progEmpty,
             almost_empty  => almost_empty,
             empty         => empty);
+
+      prog_empty      <= progEmpty;
+      progEmptyVec(0) <= progEmpty;
 
    end generate;
 

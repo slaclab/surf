@@ -108,7 +108,7 @@ begin
    rstCnt          <= sAxilWriteMaster.awvalid when(sAxilWriteMaster.awaddr(ADDR_WIDTH_C+1 downto 0) = 0) else '0';
    sAxilWriteSlave <= AXI_LITE_WRITE_SLAVE_EMPTY_OK_C;
 
-   localReset <= axisRst or rstCnt;
+   localReset <= axisRst or rstCnt when(RST_POLARITY_G = '1') else axisRst and not(rstCnt);
 
    U_RstSync : entity surf.RstSync
       generic map (

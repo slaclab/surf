@@ -25,10 +25,10 @@ class Si5345Lite(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name         = "CsvFilePath",
-            description  = "Used if command's argument is empty",
-            mode         = "RW",
-            value        = "",
+            name        = "CsvFilePath",
+            description = "Used if command's argument is empty",
+            mode        = "RW",
+            value       = "",
         ))
 
         ##############################
@@ -64,7 +64,7 @@ class Si5345Lite(pr.Device):
                             data   = int(row[1],16),
                         )
 
-            # Update local RemoteVariables and verify conflagration
+            # Update local RemoteVariables and verify configuration
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
 
@@ -110,11 +110,11 @@ class Si5345Lite(pr.Device):
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'ReloadFromRom',
-            description  = 'Reconfigure the PLL from the ROM in Si5345.vhd',
-            offset       = (0x1<<14),
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
+            name        = 'ReloadFromRom',
+            description = 'Reconfigure the PLL from the ROM in Si5345.vhd',
+            offset      = (0x1<<14),
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
         ))
 
     def _setValue(self,offset,data):

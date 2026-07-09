@@ -9,9 +9,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import rogue
-
-rogue.Version.minVersion('5.4.0')
 
 class Si5345PageBase(pr.Device):
     def __init__(self,
@@ -23,7 +20,7 @@ class Si5345PageBase(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "DataBlock",
-            description  = "",
+            description  = "Raw register block containing all Si5345 configuration registers for this page",
             offset       = 0,
             bitSize      = 32 * 0x100,
             bitOffset    = 0,
@@ -1054,7 +1051,7 @@ class Si5345Page0(Si5345PageBase):
 
         self.MyLinkVariable(
             name        = 'DEVICE_READY',
-            description = 'Ready Only byte to indicate device is ready. When read data is 0x0F one can safely read/write registers. This register is repeated on every page therefore a page write is not ever required to read the DEVICE_READY status.',
+            description = 'Read Only byte to indicate device is ready. When read data is 0x0F one can safely read/write registers. This register is repeated on every page therefore a page write is not ever required to read the DEVICE_READY status.',
             offset      = (0xFE << 2),
             bitSize     = 8,
             bitOffset   = 0,

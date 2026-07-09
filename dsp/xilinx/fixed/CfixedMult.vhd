@@ -37,7 +37,7 @@ use surf.ComplexFixedPkg.all;
 -- y(n) = p(n)     ( REG_OUT_G = false )
 -- y(n) = p(n-1)   ( REG_OUT_G = true )
 --
--- Defaults to wrap and trucnated output for size(y)
+-- Defaults to wrap and truncated output for size(y)
 
 entity cfixedMult is
    generic (

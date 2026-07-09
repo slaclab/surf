@@ -155,7 +155,7 @@ begin
    -- RoCEv2 Protocol iCRC Checking
    --------------------------------
    GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
-      U_RoCEv2 : entity surf.EthMacRxRoCEv2
+      U_RoCEv2 : entity surf.RoCEv2EthMacRx
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G)

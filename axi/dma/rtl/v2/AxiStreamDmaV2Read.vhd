@@ -332,9 +332,9 @@ begin
                   if (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_COUNT_C) then
                      v.sMaster.tKeep := resize(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0), AXI_STREAM_MAX_TKEEP_WIDTH_C);
                   else
-                     v.sMaster.tKeep := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
+                     v.sMaster.tKeep := genTKeep(r.size);
                   end if;
-                  v.sMaster.tStrb      := genTKeep(conv_integer(r.size(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0)));
+                  v.sMaster.tStrb      := genTKeep(r.size);
                   -- Set last user field
                   axiStreamSetUserField (AXIS_CONFIG_G, v.sMaster, r.dmaRdDescReq.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0));
                   -- Set the flags

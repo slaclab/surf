@@ -33,6 +33,7 @@ entity HtspCaui4Gty is
       TPD_G                 : time                        := 1 ns;
       SIM_SPEEDUP_G         : boolean                     := false;
       ROGUE_SIM_EN_G        : boolean                     := false;
+      ROGUE_SIM_SIDEBAND_G  : boolean                     := false;
       ROGUE_SIM_PORT_NUM_G  : natural range 1024 to 49151 := 9000;
       REFCLK_TYPE_G         : string                      := "161MHz";  -- or "156.25MHz"
       -- HTSP Settings
@@ -247,9 +248,10 @@ begin
 
       U_Rogue : entity surf.RogueHtspSim
          generic map(
-            TPD_G      => TPD_G,
-            PORT_NUM_G => ROGUE_SIM_PORT_NUM_G,
-            NUM_VC_G   => NUM_VC_G)
+            TPD_G         => TPD_G,
+            PORT_NUM_G    => ROGUE_SIM_PORT_NUM_G,
+            NUM_VC_G      => NUM_VC_G,
+            EN_SIDEBAND_G => ROGUE_SIM_SIDEBAND_G)
          port map(
             -- GT Ports
             htspRefClk      => htspRefClk,

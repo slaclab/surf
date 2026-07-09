@@ -7,4 +7,4 @@ loadSource -lib surf -dir "$::DIR_PATH/rtl/v1"
 loadSource -lib surf -dir "$::DIR_PATH/rtl/v2"
 
 # Load Simulation
-loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb" -fileType "VHDL 2008"

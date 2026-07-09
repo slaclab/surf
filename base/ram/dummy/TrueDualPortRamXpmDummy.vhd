@@ -30,6 +30,8 @@ entity TrueDualPortRamXpm is
       MEMORY_INIT_PARAM_G : string                     := "0";
       WRITE_MODE_G        : string                     := "no_change";
       READ_LATENCY_G      : natural range 0 to 100     := 1;
+      READ_LATENCY_A_G    : integer range -1 to 100    := -1;
+      READ_LATENCY_B_G    : integer range -1 to 100    := -1;
       DATA_WIDTH_G        : integer range 1 to (2**24) := 16;
       BYTE_WR_EN_G        : boolean                    := false;
       BYTE_WIDTH_G        : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9

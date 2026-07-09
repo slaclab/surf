@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-- Title      : AxiStream BatcherV2 Protocol: https://confluence.slac.stanford.edu/x/L2VlK
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -19,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -29,6 +29,9 @@ use surf.SsiPkg.all;
 entity AxiStreamBatcherEventBuilder is
    generic (
       TPD_G : time := 1 ns;
+
+      -- Version Number
+      VERSION_G : positive range 1 to 2 := 1;
 
       -- Number of Inbound AXIS stream SLAVES
       NUM_SLAVES_G : positive := 2;
@@ -78,6 +81,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
       MOVE_S);
 
    type RegType is record
+      enAlignCheck   : sl;
+      errorAlignDet  : slv(NUM_SLAVES_G-1 downto 0);
       softRst        : sl;
       hardRst        : sl;
       blowoffReg     : sl;
@@ -106,6 +111,8 @@ architecture rtl of AxiStreamBatcherEventBuilder is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
+      enAlignCheck   => '0',
+      errorAlignDet  => (others => '0'),
       softRst        => '0',
       hardRst        => '0',
       blowoffReg     => '0',
@@ -233,9 +240,10 @@ begin
          v := REG_INIT_C;
 
          -- Preserve the resister configurations
-         v.bypass     := r.bypass;
-         v.timeout    := r.timeout;
-         v.blowoffReg := r.blowoffReg;
+         v.bypass       := r.bypass;
+         v.timeout      := r.timeout;
+         v.blowoffReg   := r.blowoffReg;
+         v.enAlignCheck := r.enAlignCheck;
 
          -- Preserve the state of AXI-Lite
          v.axilWriteSlave := r.axilWriteSlave;
@@ -255,11 +263,14 @@ begin
       axiSlaveRegisterR(axilEp, x"FC0", 0, r.transCnt);
       axiSlaveRegisterR(axilEp, x"FC4", 0, TRANS_TDEST_G);
       axiSlaveRegister (axilEp, x"FD0", 0, v.bypass);
+      axiSlaveRegisterR(axilEp, X"FD4", 0, r.errorAlignDet);
       axiSlaveRegister (axilEp, x"FF0", 0, v.timeout);
       axiSlaveRegisterR(axilEp, x"FF4", 0, toSlv(NUM_SLAVES_G, 8));
       axiSlaveRegisterR(axilEp, x"FF4", 8, dbg);
       axiSlaveRegisterR(axilEp, X"FF4", 16, blowoffExt);
+      axiSlaveRegisterR(axilEp, x"FF4", 24, toSlv(VERSION_G, 4));
       axiSlaveRegister (axilEp, x"FF8", 0, v.blowoffReg);
+      axiSlaveRegister (axilEp, x"FF8", 1, v.enAlignCheck);
       axiSlaveRegister (axilEp, x"FFC", 0, v.cntRst);
       axiSlaveRegister (axilEp, x"FFC", 1, v.timerRst);
       axiSlaveRegister (axilEp, x"FFC", 2, v.hardRst);
@@ -339,6 +350,25 @@ begin
 
                   end if;
 
+                  -- Check for tUserFirst misalignment
+                  -- NOTE: rxMasters(0) is the reference channel for the alignment check.
+                  -- The comparison is only meaningful while the reference channel is
+                  -- actually presenting a word, so it is gated on rxMasters(0).tValid.
+                  -- This keeps EnableAlignCheck compatible with the timeout feature:
+                  -- when stream[0] is the missing source for an event, the reference is
+                  -- absent (tValid = '0'), so the check is skipped for that event instead
+                  -- of comparing against a stale reference, false-tripping every other
+                  -- present channel, and blocking the timeout recovery path forever.  When
+                  -- stream[0] is present it MUST carry the reference tUserFirst and can
+                  -- never be a NULL frame.  NULL frames are only expected on the data
+                  -- channels (i > 0), which is why they are excluded via not(v.nullDet(i)).
+                  if (rxMasters(0).tValid = '1') and (rxMasters(0).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) /= rxMasters(i).tUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0)) then
+                     -- Set the misaligned flag if the checking is enabled and the channel is not bypassed and not a NULL frame
+                     v.errorAlignDet(i) := r.enAlignCheck and not(r.bypass(i)) and not(v.nullDet(i));
+                  else
+                     v.errorAlignDet(i) := '0';
+                  end if;
+
                end if;
             end loop;
 
@@ -359,12 +389,15 @@ begin
 
             -- Check if transition detected
             if (v.transDet /= 0) then
-               -- Set the flag
-               v.ready := '1';
+               -- Set the flags
+               v.ready         := '1';
+               v.errorAlignDet := (others => '0');
             end if;
 
+            ----------------------------------------------------------------------
             -- Check if ready to move data and not blowing off the data
-            if (batcherIdle = '1') and (r.ready = '1') and (r.blowoff = '0') then
+            ----------------------------------------------------------------------
+            if (batcherIdle = '1') and (r.ready = '1') and (r.blowoff = '0') and (r.errorAlignDet = 0) then
 
                -- Check for transition
                if (r.transDet /= 0) then
@@ -491,7 +524,7 @@ begin
 
       end if;
 
-      -- Check if reseting counters
+      -- Check if resetting counters
       if (r.cntRst = '1') then
          v.dataCnt        := (others => (others => '0'));
          v.nullCnt        := (others => (others => '0'));
@@ -530,6 +563,7 @@ begin
    U_AxiStreamBatcher : entity surf.AxiStreamBatcher
       generic map (
          TPD_G                        => TPD_G,
+         VERSION_G                    => VERSION_G,
          MAX_NUMBER_SUB_FRAMES_G      => NUM_SLAVES_G,
          SUPER_FRAME_BYTE_THRESHOLD_G => 0,  -- 0 = bypass super threshold check
          MAX_CLK_GAP_G                => 0,  -- 0 = bypass MAX clock GAP

@@ -27,20 +27,28 @@ use surf.HtspPkg.all;
 entity HtspRxFifo is
    generic (
       TPD_G                 : time     := 1 ns;
+      CASCADE_SIZE_G        : positive := 1;
+      FIFO_ADDR_WIDTH_G     : positive := 12;
+      FIFO_PAUSE_THRESH_G   : positive := 256;
       TX_MAX_PAYLOAD_SIZE_G : positive := 8192;
-      NUM_VC_G              : positive);
+      ROGUE_SIM_EN_G        : boolean  := false;
+      GEN_SYNC_FIFO_G       : boolean  := false;  -- Set true only when appClks(i) equals htspClk
+      MEMORY_TYPE_G         : string   := "uram";
+      NUM_VC_G              : positive;
+      APP_AXI_CONFIG_G      : AxiStreamConfigType);
    port (
-      -- Application Interface (appClk domain)
-      appClks       : in  slv(NUM_VC_G-1 downto 0);
-      appRsts       : in  slv(NUM_VC_G-1 downto 0);
-      appRxMasters  : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      appRxSlaves   : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
       -- HTSP Interface (htspClk domain)
       htspClk       : in  sl;
       htspRst       : in  sl;
       rxlinkReady   : in  sl;
       htspRxMasters : in  AxiStreamMasterArray(NUM_VC_G-1 downto 0);
-      htspRxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0));
+      htspRxSlaves  : out AxiStreamSlaveArray(NUM_VC_G-1 downto 0);
+      htspRxCtrl    : out AxiStreamCtrlArray(NUM_VC_G-1 downto 0);
+      -- Application Interface (appClk domain)
+      appClks       : in  slv(NUM_VC_G-1 downto 0);
+      appRsts       : in  slv(NUM_VC_G-1 downto 0);
+      appRxMasters  : out AxiStreamMasterArray(NUM_VC_G-1 downto 0);
+      appRxSlaves   : in  AxiStreamSlaveArray(NUM_VC_G-1 downto 0));
 end HtspRxFifo;
 
 architecture mapping of HtspRxFifo is
@@ -92,22 +100,27 @@ begin
    GEN_VEC :
    for i in NUM_VC_G-1 downto 0 generate
 
+      -------------------------------------------------------------------------------------
+      -- Note: The reason why we don't combine the U_FIFO with GEN_ASYNC_FIFO.ASYNC_FIFO is
+      -- because "READY_EN_G must be true if slave width is great than master"
+      -- and common for APP_AXI_CONFIG_G to be less than HTSP_AXIS_CONFIG_C
+      -------------------------------------------------------------------------------------
       U_FIFO : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
             INT_PIPE_STAGES_G   => 1,
             PIPE_STAGES_G       => 1,
-            SLAVE_READY_EN_G    => false,
+            SLAVE_READY_EN_G    => ROGUE_SIM_EN_G,
             VALID_THOLD_G       => (TX_MAX_PAYLOAD_SIZE_G/64),  -- Hold until enough to burst into the interleaving MUX
             VALID_BURST_MODE_G  => true,
             -- FIFO configurations
             SYNTH_MODE_G        => "xpm",
-            MEMORY_TYPE_G       => "uram",
+            MEMORY_TYPE_G       => MEMORY_TYPE_G,
             GEN_SYNC_FIFO_G     => true,
-            FIFO_ADDR_WIDTH_G   => 12,  -- 4k URAM,
-            FIFO_FIXED_THRESH_G => true,
-            FIFO_PAUSE_THRESH_G => 1024,  -- 1/4 of buffer
+            FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
+            FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+            CASCADE_SIZE_G      => CASCADE_SIZE_G,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
             MASTER_AXI_CONFIG_G => HTSP_AXIS_CONFIG_C)
@@ -117,38 +130,61 @@ begin
             sAxisRst    => htspReset,
             sAxisMaster => htspMasters(i),
             sAxisCtrl   => htspRxCtrl(i),
+            sAxisSlave  => htspRxSlaves(i),
             -- Master Port
             mAxisClk    => htspClk,
             mAxisRst    => htspReset,
             mAxisMaster => rxMasters(i),
             mAxisSlave  => rxSlaves(i));
 
-      ASYNC_FIFO : entity surf.AxiStreamFifoV2
-         generic map (
-            -- General Configurations
-            TPD_G               => TPD_G,
-            INT_PIPE_STAGES_G   => 1,
-            PIPE_STAGES_G       => 1,
-            SLAVE_READY_EN_G    => true,
-            VALID_THOLD_G       => 1,
-            -- FIFO configurations
-            MEMORY_TYPE_G       => "block",
-            GEN_SYNC_FIFO_G     => false,
-            FIFO_ADDR_WIDTH_G   => 9,
-            -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
-            MASTER_AXI_CONFIG_G => HTSP_AXIS_CONFIG_C)
-         port map (
-            -- Slave Port
-            sAxisClk    => htspClk,
-            sAxisRst    => htspReset,
-            sAxisMaster => rxMasters(i),
-            sAxisSlave  => rxSlaves(i),
-            -- Master Port
-            mAxisClk    => appClks(i),
-            mAxisRst    => appRsts(i),
-            mAxisMaster => appRxMasters(i),
-            mAxisSlave  => appRxSlaves(i));
+      GEN_ASYNC_FIFO : if not GEN_SYNC_FIFO_G generate
+         ASYNC_FIFO : entity surf.AxiStreamFifoV2
+            generic map (
+               -- General Configurations
+               TPD_G               => TPD_G,
+               INT_PIPE_STAGES_G   => 1,
+               PIPE_STAGES_G       => 1,
+               SLAVE_READY_EN_G    => true,
+               VALID_THOLD_G       => 1,
+               -- FIFO configurations
+               MEMORY_TYPE_G       => "distributed",
+               GEN_SYNC_FIFO_G     => false,
+               FIFO_ADDR_WIDTH_G   => 4,
+               INT_WIDTH_SELECT_G  => "NARROW",
+               -- AXI Stream Port Configurations
+               SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
+               MASTER_AXI_CONFIG_G => APP_AXI_CONFIG_G)
+            port map (
+               -- Slave Port
+               sAxisClk    => htspClk,
+               sAxisRst    => htspReset,
+               sAxisMaster => rxMasters(i),
+               sAxisSlave  => rxSlaves(i),
+               -- Master Port
+               mAxisClk    => appClks(i),
+               mAxisRst    => appResets(i),
+               mAxisMaster => appRxMasters(i),
+               mAxisSlave  => appRxSlaves(i));
+      end generate;
+
+      -- When clocks are common, use gearbox directly instead of an async resize FIFO
+      GEN_SYNC_FIFO : if GEN_SYNC_FIFO_G generate
+         U_Gearbox : entity surf.AxiStreamGearbox
+            generic map (
+               TPD_G               => TPD_G,
+               SLAVE_AXI_CONFIG_G  => HTSP_AXIS_CONFIG_C,
+               MASTER_AXI_CONFIG_G => APP_AXI_CONFIG_G)
+            port map (
+               -- Clock and reset
+               axisClk     => htspClk,
+               axisRst     => htspReset,
+               -- Inbound Stream
+               sAxisMaster => rxMasters(i),
+               sAxisSlave  => rxSlaves(i),
+               -- Outbound Stream
+               mAxisMaster => appRxMasters(i),
+               mAxisSlave  => appRxSlaves(i));
+      end generate;
 
    end generate GEN_VEC;
 

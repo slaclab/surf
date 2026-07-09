@@ -38,8 +38,8 @@ entity Pgp2bRxPhy is
       pgpRxLinkReady : out sl;          -- Local side has link
 
       -- Error Flags, one pulse per event
-      pgpRxLinkDown  : out sl := '0';   -- A link down event has occured
-      pgpRxLinkError : out sl := '0';   -- A link error has occured
+      pgpRxLinkDown  : out sl := '0';   -- A link down event has occurred
+      pgpRxLinkError : out sl := '0';   -- A link error has occurred
 
       -- Opcode Receive Interface
       pgpRxOpCodeEn : out sl;               -- Opcode receive enable
@@ -49,7 +49,7 @@ entity Pgp2bRxPhy is
       pgpRemLinkReady : out sl              := '0';  -- Far end side has link
       pgpRemData      : out slv(7 downto 0) := (others => '0');  -- Far end side User Data
 
-      -- Cell Receive Interfac e
+      -- Cell Receive Interface
       cellRxPause : out sl;             -- Cell data pause
       cellRxSOC   : out sl;             -- Cell data start of cell
       cellRxSOF   : out sl;             -- Cell data start of frame
@@ -279,6 +279,15 @@ begin
                nxtRxPolarity <= (others => '0');
                nxtState      <= ST_RESET_C;
 
+            -- Terminal count without seeing a valid LTS
+            elsif stateCnt = x"FFFFF" then
+               stateCntRst   <= '1';
+               ltsCntEn      <= '0';
+               ltsCntRst     <= '1';
+               -- nxtRxPolarity <= intRxPolarity;
+               nxtRxPolarity <= (others => '0');
+               nxtState      <= ST_RESET_C;
+
             -- Decode or disparity error, clear lts count
             elsif phyRxReady = '0' or dly1RxDispErr /= 0 or dly1RxDecErr /= 0 then
                stateCntRst   <= '0';
@@ -325,15 +334,6 @@ begin
                -- nxtRxPolarity <= intRxPolarity;
                nxtRxPolarity <= (others => '0');
                nxtState      <= ST_READY_C;
-
-            -- Terminal count without seeing a valid LTS
-            elsif stateCnt = x"FFFFF" then
-               stateCntRst   <= '1';
-               ltsCntEn      <= '0';
-               ltsCntRst     <= '1';
-               -- nxtRxPolarity <= intRxPolarity;
-               nxtRxPolarity <= (others => '0');
-               nxtState      <= ST_RESET_C;
 
             -- Count cycles without LTS
             else

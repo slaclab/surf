@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Title      : AxiStream BatcherV1 Protocol: https://confluence.slac.stanford.edu/x/th1SDg
+-- Title      : AxiStream BatcherV2 Protocol: https://confluence.slac.stanford.edu/x/L2VlK
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
@@ -19,7 +20,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -27,13 +27,14 @@ use surf.SsiPkg.all;
 
 entity AxiStreamBatcher is
    generic (
-      TPD_G                        : time     := 1 ns;
-      MAX_NUMBER_SUB_FRAMES_G      : positive := 32;   -- Units of sub-frames
-      SUPER_FRAME_BYTE_THRESHOLD_G : natural  := 8192;  -- Units of bytes
-      MAX_CLK_GAP_G                : natural  := 256;  -- Units of clock cycles
+      TPD_G                        : time                  := 1 ns;
+      VERSION_G                    : positive range 1 to 2 := 1;
+      MAX_NUMBER_SUB_FRAMES_G      : positive              := 32;  -- Units of sub-frames
+      SUPER_FRAME_BYTE_THRESHOLD_G : natural               := 8192;  -- Units of bytes
+      MAX_CLK_GAP_G                : natural               := 256;  -- Units of clock cycles
       AXIS_CONFIG_G                : AxiStreamConfigType;
-      INPUT_PIPE_STAGES_G          : natural  := 0;
-      OUTPUT_PIPE_STAGES_G         : natural  := 1);
+      INPUT_PIPE_STAGES_G          : natural               := 0;
+      OUTPUT_PIPE_STAGES_G         : natural               := 1);
    port (
       -- Clock and Reset
       axisClk                 : in  sl;
@@ -103,7 +104,7 @@ architecture rtl of AxiStreamBatcher is
       tUserLast                  => (others => '0'),
       chunkCnt                   => 1,
       rxSlave                    => AXI_STREAM_SLAVE_INIT_C,
-      txMaster                   => AXI_STREAM_MASTER_INIT_C,
+      txMaster                   => axiStreamMasterInit(AXIS_CONFIG_G),
       state                      => HEADER_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -118,6 +119,12 @@ begin
 
    assert (AXIS_WORD_SIZE_C >= 2)
       report "AXIS_CONFIG_G.TDATA_BYTES_C must be >= 2" severity failure;
+
+   assert (VERSION_G = 2) or ((VERSION_G = 1) and isPowerOf2(AXIS_WORD_SIZE_C))
+      report "Batcher Version1: AXIS_CONFIG_G.TDATA_BYTES_C must be power of 2" severity failure;
+
+   assert (VERSION_G = 1) or ((VERSION_G = 2) and (AXIS_WORD_SIZE_C >= 8))
+      report "Batcher Version2: AXIS_CONFIG_G.TDATA_BYTES_C must be >= 8" severity failure;
 
    -----------------
    -- Input pipeline
@@ -169,9 +176,7 @@ begin
       -- Reset the strobes
       v.rxSlave.tReady := r.forceTerm;
       if (txSlave.tReady = '1') then
-         v.txMaster.tValid := '0';
-         v.txMaster.tLast  := '0';
-         v.txMaster.tUser  := (others => '0');
+         v.txMaster := axiStreamMasterInit(AXIS_CONFIG_G);
       end if;
 
       -- Check for max. super frame
@@ -217,15 +222,21 @@ begin
             if (rxMaster.tValid = '1') and (v.txMaster.tValid = '0') and (r.forceTerm = '0') then
                -- Send the super-frame header
                v.txMaster.tValid               := '1';
-               v.txMaster.tData(3 downto 0)    := x"1";  -- Version = 0x1
-               v.txMaster.tData(7 downto 4)    := WIDTH_C;
+               v.txMaster.tData(3 downto 0)    := toSlv(VERSION_G, 4);  -- Version = 0x1 or 0x2
+               v.txMaster.tData(7 downto 4)    := WIDTH_C;  -- Only used in Version 1
                v.txMaster.tData(15 downto 8)   := r.seqCnt;
                v.txMaster.tData(127 downto 16) := (others => '0');
                ssiSetUserSof(AXIS_CONFIG_G, v.txMaster, '1');
+               -- Check for Version 2
+               if (VERSION_G = 2) then
+                  -- No zero padding in Version 2
+                  v.txMaster.tKeep := genTKeep(2);  -- 2 byte super-frame header
+                  v.txMaster.tStrb := genTKeep(2);  -- 2 byte super-frame header
+               end if;
                -- Increment the sequence counter
-               v.seqCnt                        := r.seqCnt + 1;
+               v.seqCnt := r.seqCnt + 1;
                -- Next state
-               v.state                         := SUB_FRAME_S;
+               v.state  := SUB_FRAME_S;
             end if;
             -- Reset the sub-frame counter
             v.subFrameCnt  := (others => '0');
@@ -256,6 +267,12 @@ begin
                   v.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0)     := rxMaster.tDest(AXIS_CONFIG_G.TDEST_BITS_C-1 downto 0);
                   -- Next state
                   v.state                                            := TAIL_S;
+                  -- Check for Version 2
+                  if (VERSION_G = 2) then
+                     -- No zero padding in Version 2
+                     v.txMaster.tKeep := rxMaster.tKeep;
+                     v.txMaster.tStrb := rxMaster.tKeep;
+                  end if;
                else
                   -- Increment the sub-frame byte counter
                   v.subByteCnt := r.subByteCnt + AXIS_WORD_SIZE_C;
@@ -273,9 +290,15 @@ begin
                v.txMaster.tData(39 downto 32) := r.tDest;
                v.txMaster.tData(47 downto 40) := r.tUserFirst;
                v.txMaster.tData(55 downto 48) := r.tUserLast;
-               v.txMaster.tData(59 downto 56) := WIDTH_C;
+               v.txMaster.tData(59 downto 56) := WIDTH_C;  -- Only used in Version 1
+               -- Check for Version 2
+               if (VERSION_G = 2) then
+                  -- No zero padding in Version 2
+                  v.txMaster.tKeep := genTKeep(7);  -- 7 byte sub-frame tail
+                  v.txMaster.tStrb := genTKeep(7);  -- 7 byte sub-frame tail
+               end if;
                -- Reset the counter
-               v.subByteCnt                   := (others => '0');
+               v.subByteCnt := (others => '0');
                -- Check the AXIS width
                if (AXIS_WORD_SIZE_C = 2) then
                   -- Move the outbound data
@@ -369,10 +392,6 @@ begin
          doTail;
       end if;
 
-      -- Always the same outbound AXIS stream width
-      v.txMaster.tKeep := genTKeep(AXIS_WORD_SIZE_C);
-      v.txMaster.tStrb := genTKeep(AXIS_WORD_SIZE_C);
-
       -- Outputs
       rxSlave  <= v.rxSlave;
       txMaster <= r.txMaster;
@@ -385,6 +404,7 @@ begin
       -- Reset
       if (axisRst = '1') then
          v := REG_INIT_C;
+
       end if;
 
       -- Register the variable for next clock cycle
@@ -402,16 +422,38 @@ begin
    ------------------
    -- Output pipeline
    ------------------
-   U_Output : entity surf.AxiStreamPipeline
-      generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
-      port map (
-         axisClk     => axisClk,
-         axisRst     => axisRst,
-         sAxisMaster => txMaster,
-         sAxisSlave  => txSlave,
-         mAxisMaster => mAxisMaster,
-         mAxisSlave  => mAxisSlave);
+   GEN_VERSION1 : if (VERSION_G = 1) generate
+      U_Output : entity surf.AxiStreamPipeline
+         generic map (
+            TPD_G         => TPD_G,
+            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+         port map (
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            sAxisMaster => txMaster,
+            sAxisSlave  => txSlave,
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);
+   end generate;
+
+   ----------------------------------------------------------
+   -- Output pipeline + Byte Packing for no zero padding gaps
+   ----------------------------------------------------------
+   GEN_VERSION2 : if (VERSION_G = 2) generate
+      U_tKeepPacking : entity surf.AxiStreamGearbox
+         generic map (
+            TPD_G                => TPD_G,
+            PIPE_STAGES_G        => OUTPUT_PIPE_STAGES_G,
+            FORCE_GEARBOX_IMPL_G => true,
+            SLAVE_AXI_CONFIG_G   => AXIS_CONFIG_G,
+            MASTER_AXI_CONFIG_G  => AXIS_CONFIG_G)
+         port map (
+            axisClk     => axisClk,
+            axisRst     => axisRst,
+            sAxisMaster => txMaster,
+            sAxisSlave  => txSlave,
+            mAxisMaster => mAxisMaster,
+            mAxisSlave  => mAxisSlave);
+   end generate;
 
 end rtl;

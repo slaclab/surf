@@ -15,29 +15,30 @@ class Sy89297(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'DelayA',
-            description  = 'Delay Channel A',
-            offset       = 0x0,
-            bitSize      = 10,
-            mode         = 'RW',
-            units        = '5ps/step',
+            name        = 'DelayA',
+            description = 'Delay Channel A',
+            offset      = 0x0,
+            bitSize     = 10,
+            mode        = 'RW',
+            units       = '5ps/step',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'DelayB',
-            description  = 'Delay Channel B',
-            offset       = 0x4,
-            bitSize      = 10,
-            mode         = 'RW',
-            units        = '5ps/step',
+            name        = 'DelayB',
+            description = 'Delay Channel B',
+            offset      = 0x4,
+            bitSize     = 10,
+            mode        = 'RW',
+            units       = '5ps/step',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'SckHalfPeriod',
-            offset       = 0xC,
-            bitSize      = 8,
-            mode         = 'RW',
-            hidden       = True,
+            name        = 'SckHalfPeriod',
+            description = 'SPI clock half-period setting for serial interface timing',
+            offset      = 0xC,
+            bitSize     = 8,
+            mode        = 'RW',
+            hidden      = True,
         ))
 
     def setDelay(self, delayA=None, delayB=None):

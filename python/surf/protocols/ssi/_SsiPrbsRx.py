@@ -25,48 +25,48 @@ class SsiPrbsRx(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "MissedPacketCnt",
-            description  = "Number of missed packets",
-            offset       =  0x00,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "MissedPacketCnt",
+            description  =  "Number of missed packets",
+            offset       =   0x00,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "LengthErrCnt",
-            description  = "Number of packets that were the wrong length",
-            offset       =  0x04,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "LengthErrCnt",
+            description  =  "Number of packets that were the wrong length",
+            offset       =   0x04,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "EofeErrCnt",
-            description  = "Number of EOFE errors",
-            offset       =  0x08,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "EofeErrCnt",
+            description  =  "Number of EOFE errors",
+            offset       =   0x08,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "DataBusErrCnt",
-            description  = "Number of data bus errors",
-            offset       =  0x0C,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "DataBusErrCnt",
+            description  =  "Number of data bus errors",
+            offset       =   0x0C,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "WordStrbErrCnt",
-            description  = "Number of word errors",
-            offset       =  0x10,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "WordStrbErrCnt",
+            description  =  "Number of word errors",
+            offset       =   0x10,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -79,107 +79,111 @@ class SsiPrbsRx(pr.Device):
         # ))
 
         self.add(pr.RemoteVariable(
-            name         = "RxFifoOverflowCnt",
-            description  = "Number of times the RX FIFO has overflowed",
-            offset       =  0x18,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "RxFifoOverflowCnt",
+            description  =  "Number of times the RX FIFO has overflowed",
+            offset       =   0x18,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RxFifoPauseCnt",
-            description  = "Number of times the RX FIFO has paused",
-            offset       =  0x1C,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "RxFifoPauseCnt",
+            description  =  "Number of times the RX FIFO has paused",
+            offset       =   0x1C,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "TxFifoOverflowCnt",
-            description  = "Number of times the TX FIFO has overflowed",
-            offset       =  0x20,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "TxFifoOverflowCnt",
+            description  =  "Number of times the TX FIFO has overflowed",
+            offset       =   0x20,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "TxFifoPauseCnt",
-            description  = "Number of times the TX FIFO has paused",
-            offset       =  0x24,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "TxFifoPauseCnt",
+            description  =  "Number of times the TX FIFO has paused",
+            offset       =   0x24,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Dummy",
-            description  = "Writable register that does nothing",
-            offset       =  0x28,
-            bitSize      =  32,
-            mode         = "RW",
+            name        =  "Dummy",
+            description =  "Writable register that does nothing",
+            offset      =   0x28,
+            bitSize     =   32,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Status",
-            description  = "Current status of several internal values",
-            offset       =  0x70,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "Status",
+            description  =  "Current status of several internal values",
+            offset       =   0x70,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "PacketLength",
-            description  = "",
-            offset       =  0x74,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "PacketLength",
+            description  =  "Length of last received PRBS packet in words",
+            offset       =   0x74,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name = 'WordSize',
-            offset = 0xF8,
-            mode = 'RO',
-            disp = '{:d}',
-            hidden = False))
+            name        =  'WordSize',
+            description =  'PRBS data word size in bits',
+            offset      =  0xF8,
+            mode        =  'RO',
+            disp        =  '{:d}',
+            hidden      =  False))
 
         self.add(pr.RemoteVariable(
-            name         = "PacketRateRaw",
-            description  = "",
-            offset       =  0x78,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "PacketRateRaw",
+            description  =  "Raw packet interval counter value used to calculate received packet rate",
+            offset       =   0x78,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.LinkVariable(
-            name = 'PacketRate',
-            dependencies = [self.PacketRateRaw],
-            units = 'Frames/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: 1.0/((self.PacketRateRaw.get(read=read)+1) * rxClkPeriod)))
+            name         =  'PacketRate',
+            description  =  'Received packet rate derived from PacketRateRaw',
+            dependencies =  [self.PacketRateRaw],
+            units        =  'Frames/sec',
+            disp         =  '{:0.1f}',
+            linkedGet    =  lambda read: 1.0/((self.PacketRateRaw.get(read=read)+1) * rxClkPeriod)))
 
         self.add(pr.LinkVariable(
-            name = 'WordRate',
-            dependencies = [self.PacketRate, self.PacketLength],
-            units = 'Words/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
+            name         =  'WordRate',
+            description  =  'Received word rate derived from PacketRate and PacketLength',
+            dependencies =  [self.PacketRate, self.PacketLength],
+            units        =  'Words/sec',
+            disp         =  '{:0.1f}',
+            linkedGet    =  lambda read: self.PacketRate.get(read=read) * self.PacketLength.get(read=read)))
 
         self.add(pr.LinkVariable(
-            name = 'BitRate',
-            dependencies = [self.WordRate, self.WordSize],
-            units = 'MBits/sec',
-            disp = '{:0.1f}',
-            linkedGet = lambda read: self.WordRate.get(read=read) * self.WordSize.get(read=read) * 1e-6))
+            name         =  'BitRate',
+            description  =  'Received bit rate derived from WordRate and WordSize',
+            dependencies =  [self.WordRate, self.WordSize],
+            units        =  'MBits/sec',
+            disp         =  '{:0.1f}',
+            linkedGet    =  lambda read: self.WordRate.get(read=read) * self.WordSize.get(read=read) * 1e-6))
 
         # self.add(pr.RemoteVariable(
             # name         = "BitErrCnt",
-            # description  = "",
+            # description  = "Number of bit errors in received PRBS data",
             # offset       =  0x1CC,
             # bitSize      =  32,
             # mode         = "RO",
@@ -187,45 +191,45 @@ class SsiPrbsRx(pr.Device):
         # ))
 
         self.add(pr.RemoteVariable(
-            name         = "WordErrCnt",
-            description  = "",
-            offset       =  0x80,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "WordErrCnt",
+            description  =  "Number of PRBS word errors detected",
+            offset       =   0x80,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FrameCnt",
-            description  = "",
-            offset       =  0x84,
-            bitSize      =  32,
-            mode         = "RO",
-            pollInterval = 1,
+            name         =  "FrameCnt",
+            description  =  "Cumulative count of PRBS packets received",
+            offset       =   0x84,
+            bitSize      =   32,
+            mode         =  "RO",
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "RolloverEnable",
-            description  = "",
-            offset       =  0xF0,
-            bitSize      =  32,
-            mode         = "RW",
+            name        =  "RolloverEnable",
+            description =  "Bitmask enabling rollover for each status counter",
+            offset      =   0xF0,
+            bitSize     =   32,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "BypassErrorChecking",
-            description  = "Used to bypass the error checking",
-            offset       =  0xF4,
-            bitSize      =  1,
-            mode         = "RW",
+            name        =  "BypassErrorChecking",
+            description =  "Used to bypass the error checking",
+            offset      =   0xF4,
+            bitSize     =   1,
+            mode        =  "RW",
         ))
 
         self.add(pr.RemoteCommand(
-            name         = "CountReset",
-            description  = "Status counter reset",
-            offset       =  0xFC,
-            bitSize      =  1,
-            function     = pr.BaseCommand.touchOne
+            name        =  "CountReset",
+            description =  "Status counter reset",
+            offset      =   0xFC,
+            bitSize     =   1,
+            function    =  pr.BaseCommand.touchOne
         ))
 
     def countReset(self):

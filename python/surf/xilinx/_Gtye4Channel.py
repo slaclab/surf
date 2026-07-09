@@ -25,9 +25,9 @@ class Gtye4Channel(pr.Device):
         # Variables
         ##############################
 
-        def addVar(**kwargs):
+        def addVar(description='GTYE4 channel attribute register', **kwargs):
             kwargs['offset'] = kwargs['offset'] << 2
-            self.add(pr.RemoteVariable(**kwargs))
+            self.add(pr.RemoteVariable(description=description, **kwargs))
 
         addVar(
             name         = "CDR_SWAP_MODE_EN",
@@ -3970,11 +3970,12 @@ class Gtye4Channel(pr.Device):
             name = 'es_sdata_byte0')
 
         self.add(pr.RemoteVariable(
-            offset = [0x025E << 2, 0x025f << 2],
-            bitSize = [16, 16],
-            bitOffset = [0, 0],
-            mode = 'RO',
-            name = 'RX_PRBS_ERR_CNT'))
+            offset      = [0x025E << 2, 0x025f << 2],
+            bitSize     = [16, 16],
+            bitOffset   = [0, 0],
+            mode        = 'RO',
+            name        = 'RX_PRBS_ERR_CNT',
+            description = 'RX PRBS error count (32-bit spanning two 16-bit registers)'))
 
 
         addVar(

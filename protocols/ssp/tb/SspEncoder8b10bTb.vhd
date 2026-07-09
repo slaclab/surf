@@ -58,7 +58,7 @@ begin
       port map (
          clk     => clk,
          rst     => rst,
-         valid   => validIn,
+         validin => validIn,
          dataIn  => dataIn,
          dataOut => encData);
 
@@ -68,14 +68,14 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G)
       port map (
-         clk     => clk,
-         rst     => rst,
-         dataIn  => encData,
-         dataOut => dataOut,
-         valid   => validOut,
-         sof     => sof,
-         eof     => eof,
-         eofe    => eofe);
+         clk      => clk,
+         rst      => rst,
+         dataIn   => encData,
+         dataOut  => dataOut,
+         validout => validOut,
+         sof      => sof,
+         eof      => eof,
+         eofe     => eofe);
 
    -- clock generation
    clk <= not clk after 10 ns;

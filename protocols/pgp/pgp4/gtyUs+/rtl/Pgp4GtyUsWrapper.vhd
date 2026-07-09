@@ -43,6 +43,7 @@ entity Pgp4GtyUsWrapper is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
+      PGP_FEC_ENABLE_G            : boolean                     := false;
       PGP_RX_ENABLE_G             : boolean                     := true;
       RX_ALIGN_SLIP_WAIT_G        : integer                     := 32;
       PGP_TX_ENABLE_G             : boolean                     := true;
@@ -214,6 +215,7 @@ begin
                ----------------------------------------------------------------------------------------------
                -- PGP Settings
                ----------------------------------------------------------------------------------------------
+               PGP_FEC_ENABLE_G            => PGP_FEC_ENABLE_G,
                PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
                RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
                PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,

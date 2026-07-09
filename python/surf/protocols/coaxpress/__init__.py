@@ -7,8 +7,10 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
+from surf.protocols.coaxpress._WriteGuard    import *
 from surf.protocols.coaxpress._CoaXPressAxiL import *
 from surf.protocols.coaxpress._Bootstrap     import *
 
 from surf.protocols.coaxpress._PhantomS991   import *
 from surf.protocols.coaxpress._PhantomS641   import *
+from surf.protocols.coaxpress._PhantomS711   import *

@@ -77,14 +77,7 @@ class _Regs(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'CS',
-            description  = """
-                Peripheral chip select lines.
-                xxx0: slave 0 selected
-                xx01: slave 1 selected
-                x011: slave 2 selected
-                0111: reserved
-                1111: No slave selected
-                Change only when controller is not actively transmitting or receiving data. """,
+            description = 'Peripheral chip select lines (active-low encoded, 0xF=no slave selected)',
             offset      = 0x00,
             bitOffset   = 10,
             bitSize     = 4,
@@ -191,6 +184,7 @@ class _Regs(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'SR',
+            description = 'SPI Status Register (write 1 to clear sticky bits)',
             offset      = 0x04,
             bitSize     = 7,
             mode        = 'RW',
@@ -200,6 +194,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_underflow',
+            description  = 'TX FIFO underflow status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>6)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -207,6 +202,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'RX_FIFO_full',
+            description  = 'RX FIFO full status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>5)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -214,6 +210,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'RX_FIFO_not_empty',
+            description  = 'RX FIFO not-empty status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>4)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -221,6 +218,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_full',
+            description  = 'TX FIFO full status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>3)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -228,6 +226,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'TX_FIFO_not_full',
+            description  = 'TX FIFO not-full status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>2)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -235,6 +234,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'MODE_FAIL',
+            description  = 'Mode fault error status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>1)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -242,6 +242,7 @@ class _Regs(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'RX_OVERFLOW',
+            description  = 'RX FIFO overflow status bit from SR',
             linkedGet    = lambda read: 'True' if (self.SR.get(read=read)>>0)&0x1==1 else 'False',
             mode         = 'RO',
             dependencies = [self.SR],
@@ -251,6 +252,7 @@ class _Regs(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'IER',
+            description = 'SPI Interrupt Enable Register (write 1 to enable interrupt sources)',
             offset      = 0x08,
             bitSize     = 7,
             mode        = 'WO',
@@ -258,6 +260,7 @@ class _Regs(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'IDR',
+            description = 'SPI Interrupt Disable Register (write 1 to disable interrupt sources)',
             offset      = 0x0C,
             bitSize     = 7,
             mode        = 'WO',
@@ -266,6 +269,7 @@ class _Regs(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'IMR',
+            description = 'SPI Interrupt Mask Register (read current interrupt enable state)',
             offset      = 0x10,
             bitSize     = 7,
             mode        = 'RO',
@@ -513,7 +517,7 @@ class _Regs(pr.Device):
                 #print(f'Resp: {resp}')
                 if resp != 0:
                     self.ResetHw()
-                    transaction.error(f'AXIL tranaction failed with RESP: {resp}')
+                    transaction.error(f'AXIL transaction failed with RESP: {resp}')
 
                 # Finish the transaction
                 elif transaction.type() == rogue.interfaces.memory.Write:

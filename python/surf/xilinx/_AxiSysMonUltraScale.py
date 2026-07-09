@@ -13,7 +13,7 @@ import pyrogue as pr
 class AxiSysMonUltraScale(pr.Device):
     def __init__(
             self,
-            description    = "AXI-Lite System Managment for Xilinx Ultra Scale (Refer to PG185)",
+            description    = "AXI-Lite System Management for Xilinx Ultra Scale (Refer to PG185)",
             XIL_DEVICE_G   = "ULTRASCALE",
             simpleViewList = None,
             pollInterval   = 5,
@@ -37,6 +37,7 @@ class AxiSysMonUltraScale(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -58,77 +59,77 @@ class AxiSysMonUltraScale(pr.Device):
         ##############################
 
         self.add(pr.RemoteVariable(
-            name         = "SR",
-            description  = "Status Register",
-            offset       =  0x04,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "SR",
+            description = "Status Register",
+            offset      =  0x04,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "AOSR",
-            description  = "Alarm Output Status Register",
-            offset       =  0x08,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "AOSR",
+            description = "Alarm Output Status Register",
+            offset      =  0x08,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "CONVSTR",
-            description  = "CONVST Register",
-            offset       =  0x0C,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "WO",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "CONVSTR",
+            description = "CONVST Register",
+            offset      =  0x0C,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "WO",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SYSMONRR",
-            description  = "SYSMON Hard Macro Reset Register",
-            offset       =  0x10,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "WO",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "SYSMONRR",
+            description = "SYSMON Hard Macro Reset Register",
+            offset      =  0x10,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "WO",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "GIER",
-            description  = "Global Interrupt Enable Register",
-            offset       =  0x5C,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "GIER",
+            description = "Global Interrupt Enable Register",
+            offset      =  0x5C,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RW",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "IPISR",
-            description  = "IP Interrupt Status Register",
-            offset       =  0x60,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "IPISR",
+            description = "IP Interrupt Status Register",
+            offset      =  0x60,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "IPIER",
-            description  = "IP Interrupt Enable Register",
-            offset       =  0x68,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "IPIER",
+            description = "IP Interrupt Enable Register",
+            offset      =  0x68,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RW",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         ###############################################
@@ -344,23 +345,23 @@ class AxiSysMonUltraScale(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = "I2cAddress",
-            description  = "I2C Address",
-            offset       =  0x4E0,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "I2cAddress",
+            description = "I2C Address",
+            offset      =  0x4E0,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "FlagRegister",
-            description  = "Flag Register",
-            offset       =  0x4FC,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RO",
-            hidden       =  True,
+            name        = "FlagRegister",
+            description = "Flag Register",
+            offset      =  0x4FC,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RO",
+            hidden      =  True,
         ))
 
 #        self.addRemoteVariables(
@@ -376,25 +377,25 @@ class AxiSysMonUltraScale(pr.Device):
 #        )
 
         self.add(pr.RemoteVariable(
-            name         = "SequenceReg8",
-            description  = "Sequence Register 8",
-            offset       =  0x518,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "SequenceReg8",
+            description = "Sequence Register 8",
+            offset      =  0x518,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RW",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "SequenceReg9",
-            description  = "Sequence Register 9",
-            offset       =  0x51C,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "SequenceReg9",
+            description = "Sequence Register 9",
+            offset      =  0x51C,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RW",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.addRemoteVariables(
@@ -423,35 +424,36 @@ class AxiSysMonUltraScale(pr.Device):
 #       )
 
         self.add(pr.RemoteVariable(
-            name         = "OTThresholdDisable",
-            description  = "Set 1 to disable OT threshold",
-            offset       =  0x504,
-            bitSize      =  1,
-            bitOffset    =  0x0,
-            mode         = "RW",
+            name        = "OTThresholdDisable",
+            description = "Set 1 to disable OT threshold",
+            offset      =  0x504,
+            bitSize     =  1,
+            bitOffset   =  0x0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "OTAutomaticShutdown",
-            description  = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (defatul 125 degC)",
-            offset       =  0x54C,
-            bitSize      =  4,
-            bitOffset    =  0x0,
-            mode         = "RW",
+            name        = "OTAutomaticShutdown",
+            description = "OT_AUTOMATIC_SHUTDOWN, set to 0x3 to enable (default 125 degC)",
+            offset      =  0x54C,
+            bitSize     =  4,
+            bitOffset   =  0x0,
+            mode        = "RW",
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "OTUpperThresholdRaw",
-            description  = "UPPER_OT threshold",
-            offset       =  0x54C,
-            bitSize      =  12,
-            bitOffset    =  0x4,
-            mode         = "RW",
-            groups       = "NoConfig",
+            name        = "OTUpperThresholdRaw",
+            description = "UPPER_OT threshold",
+            offset      =  0x54C,
+            bitSize     =  12,
+            bitOffset   =  0x4,
+            mode        = "RW",
+            groups      = "NoConfig",
         ))
 
         self.add(pr.LinkVariable(
             name         = "OTUpperThreshold",
+            description  = "Over-temperature upper threshold in degrees C",
             mode         = 'RW',
             units        = 'degC',
             linkedGet    = self.convTemp,
@@ -461,17 +463,18 @@ class AxiSysMonUltraScale(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "OTLowerThresholdRaw",
-            description  = "LOWER_OT threshold",
-            offset       =  0x55C,
-            bitSize      =  12,
-            bitOffset    =  0x4,
-            mode         = "RW",
-            groups       = "NoConfig",
+            name        = "OTLowerThresholdRaw",
+            description = "LOWER_OT threshold",
+            offset      =  0x55C,
+            bitSize     =  12,
+            bitOffset   =  0x4,
+            mode        = "RW",
+            groups      = "NoConfig",
         ))
 
         self.add(pr.LinkVariable(
             name         = "OTLowerThreshold",
+            description  = "Over-temperature lower threshold in degrees C",
             mode         = 'RW',
             units        = 'degC',
             linkedGet    = self.convTemp,
@@ -481,14 +484,14 @@ class AxiSysMonUltraScale(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "AlarmThresholdReg12",
-            description  = "Alarm Threshold Register 12",
-            offset       =  0x570,
-            bitSize      =  32,
-            bitOffset    =  0x00,
-            mode         = "RW",
-            hidden       =  True,
-            groups       = "NoConfig",
+            name        = "AlarmThresholdReg12",
+            description = "Alarm Threshold Register 12",
+            offset      =  0x570,
+            bitSize     =  32,
+            bitOffset   =  0x00,
+            mode        = "RW",
+            hidden      =  True,
+            groups      = "NoConfig",
         ))
 
         self.addRemoteVariables(

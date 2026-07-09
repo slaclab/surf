@@ -141,7 +141,7 @@ begin
    end generate;
 
    -- Use synchronized remote status to disable channels from mux selection
-   -- All flow control overriden by pgpTxIn 'disable' and 'flowCntlDis'
+   -- All flow control overridden by pgpTxIn 'disable' and 'flowCntlDis'
    DISABLE_SEL : process (pgpTxIn, syncRemRxFifoCtrl) is
    begin
       for i in NUM_VC_G-1 downto 0 loop
@@ -155,7 +155,7 @@ begin
       end loop;
    end process;
 
-   -- Multiplex the incomming tx streams with interleaving
+   -- Multiplex the incoming tx streams with interleaving
    U_AxiStreamMux_1 : entity surf.AxiStreamMux
       generic map (
          TPD_G                => TPD_G,
@@ -199,7 +199,7 @@ begin
          mAxisSlave  => packetizedTxSlave);  -- [in]
 
    -- Feed packets into PGP TX Protocol engine
-   -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b charachters
+   -- Translates Packetizer2 frames, status, and opcodes into unscrambled 64b66b characters
    U_Pgp3TxProtocol_1 : entity surf.Pgp3TxProtocol
       generic map (
          TPD_G    => TPD_G,

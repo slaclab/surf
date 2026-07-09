@@ -47,13 +47,13 @@
 --                   bit(5) : Connection to peer timed out
 --                   bit(6) : Parameters from peer rejected (Client) or new proposed(Server)
 --                0x11 (R)- Number of valid segments [31:0]:
---                   The value rests to 0 when new connection open is requested.
+--                   The value resets to 0 when new connection open is requested.
 --                0x12 (R)- Number of dropped segments [31:0]:
---                   The value rests to 0 when new connection open is requested.
+--                   The value resets to 0 when new connection open is requested.
 --                0x13 (R)- Counts all retransmission requests within the active connection [31:0]:
---                   The value rests to 0 when new connection open is requested.
+--                   The value resets to 0 when new connection open is requested.
 --                0x14 (R)- Counts all reconnections from reset [31:0]:
---                   The value rests to 0 when module is reset.
+--                   The value resets to 0 when module is reset.
 ------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

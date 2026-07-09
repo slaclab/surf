@@ -380,7 +380,9 @@ package body AxiPkg is
       max := 4096 - conv_integer(unsigned(address(11 downto 0)));
 
       if (totalBytes < burstBytes) then
-         req := conv_integer(totalBytes);
+         -- Bound the conversion to the burst-size window to avoid wide-slv
+         -- CONV_INTEGER failures under GHDL/std_logic_arith.
+         req := conv_integer(totalBytes(bitSize(burstBytes) - 1 downto 0));
       else
          req := burstBytes;
       end if;
@@ -419,7 +421,9 @@ package body AxiPkg is
       v.max := 4096 - conv_integer(unsigned(address(11 downto 0)));
 
       if (totalBytes < burstBytes) then
-         v.req := conv_integer(totalBytes);
+         -- Bound the conversion to the burst-size window to avoid wide-slv
+         -- CONV_INTEGER failures under GHDL/std_logic_arith.
+         v.req := conv_integer(totalBytes(bitSize(burstBytes) - 1 downto 0));
       else
          v.req := burstBytes;
       end if;
@@ -465,4 +469,3 @@ package body AxiPkg is
    end function getAxiReadBytes;
 
 end package body AxiPkg;
-

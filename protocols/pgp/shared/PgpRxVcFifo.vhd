@@ -35,6 +35,9 @@ entity PgpRxVcFifo is
       GEN_SYNC_FIFO_G     : boolean  := false;
       FIFO_ADDR_WIDTH_G   : positive := 9;
       FIFO_PAUSE_THRESH_G : positive := 256;
+      CASCADE_SIZE_G      : positive := 1;
+      INT_WIDTH_SELECT_G  : string   := "WIDE";
+      INT_DATA_WIDTH_G    : positive := 16;
       PHY_AXI_CONFIG_G    : AxiStreamConfigType;
       APP_AXI_CONFIG_G    : AxiStreamConfigType);
    port (
@@ -103,6 +106,9 @@ begin
          GEN_SYNC_FIFO_G     => GEN_SYNC_FIFO_G,
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_G,
+         CASCADE_SIZE_G      => CASCADE_SIZE_G,
+         INT_WIDTH_SELECT_G  => INT_WIDTH_SELECT_G,
+         INT_DATA_WIDTH_G    => INT_DATA_WIDTH_G,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => PHY_AXI_CONFIG_G,
          MASTER_AXI_CONFIG_G => APP_AXI_CONFIG_G)

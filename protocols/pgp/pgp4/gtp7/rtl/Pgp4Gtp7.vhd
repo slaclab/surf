@@ -170,8 +170,8 @@ architecture rtl of Pgp4Gtp7 is
    -- attribute dont_touch of phyTxValid   : signal is "TRUE";
    -- attribute dont_touch of phyTxDataRdy : signal is "TRUE";
 
-   signal txPolarity   : sl;
-   signal rxPolarity   : sl;
+   signal txPolarity : sl;
+   signal rxPolarity : sl;
 
 begin
 

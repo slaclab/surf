@@ -15,7 +15,7 @@ if { ${family} eq {kintexu} ||
 if { ${family} eq {kintexuplus} ||
      ${family} eq {zynquplus} ||
      ${family} eq {zynquplusRFSOC} } {
-   # loadRuckusTcl "$::DIR_PATH/gthUs+"
+   loadRuckusTcl "$::DIR_PATH/gthUs+"
    loadRuckusTcl "$::DIR_PATH/gtyUs+"
 }
 

@@ -59,12 +59,12 @@ class SspLowSpeedDecoderReg(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = 'Locked',
-            description  = 'auto aligner locked status',
-            offset       = 0x400,
-            bitSize      = numberLanes,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'Locked',
+            description  =  'auto aligner locked status',
+            offset       =  0x400,
+            bitSize      =  numberLanes,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.addRemoteVariables(
@@ -89,31 +89,31 @@ class SspLowSpeedDecoderReg(pr.Device):
         )
 
         self.add(pr.RemoteVariable(
-            name         = 'DATA_WIDTH_G',
-            description  = 'DATA_WIDTH_G VHDL genenic value',
-            offset       = 0x7FC,
-            bitSize      = 8,
-            bitOffset    = 0,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        =  'DATA_WIDTH_G',
+            description =  'DATA_WIDTH_G VHDL generic value',
+            offset      =  0x7FC,
+            bitSize     =  8,
+            bitOffset   =  0,
+            mode        =  'RO',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'NUM_LANE_G',
-            description  = 'NUM_LANE_G VHDL genenic value',
-            offset       = 0x7FC,
-            bitSize      = 8,
-            bitOffset    = 8,
-            mode         = 'RO',
-            disp         = '{:d}',
+            name        =  'NUM_LANE_G',
+            description =  'NUM_LANE_G VHDL generic value',
+            offset      =  0x7FC,
+            bitSize     =  8,
+            bitOffset   =  8,
+            mode        =  'RO',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'EnUsrDlyCfg',
-            description  = 'Enables User delay config (UsrDlyCfg)',
-            offset       = 0x800,
-            bitSize      = 1,
-            mode         = 'RW',
+            name        =  'EnUsrDlyCfg',
+            description =  'Enables User delay config (UsrDlyCfg)',
+            offset      =  0x800,
+            bitSize     =  1,
+            mode        =  'RW',
         ))
 
 #####################################
@@ -128,114 +128,114 @@ class SspLowSpeedDecoderReg(pr.Device):
 #        ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MinEyeWidth',
-            description  = 'Sets the minimum eye width required for locking (units of IDELAY step)',
-            offset       = 0x808,
-            bitSize      = 8,
-            mode         = 'RW',
+            name        =  'MinEyeWidth',
+            description =  'Sets the minimum eye width required for locking (units of IDELAY step)',
+            offset      =  0x808,
+            bitSize     =  8,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LockingCntCfg',
-            description  = 'Number of error-free event before state=LOCKED_S',
-            offset       = 0x80C,
-            bitSize      = 24,
-            mode         = 'RW',
+            name        =  'LockingCntCfg',
+            description =  'Number of error-free event before state=LOCKED_S',
+            offset      =  0x80C,
+            bitSize     =  24,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'BypFirstBerDet',
-            description  = 'Set to 0x1 if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns (1Gb/s) )',
-            offset       = 0x810,
-            bitSize      = 1,
-            mode         = 'RW',
+            name        =  'BypFirstBerDet',
+            description =  'Set to 0x1 if IDELAY full scale range > 2 Unit Intervals (UI) of serial rate (example: IDELAY range 2.5ns  > 1 ns (1Gb/s) )',
+            offset      =  0x810,
+            bitSize     =  1,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'Polarity',
-            description  = '1: Invert diff pair, 0: Non-inverted diff pair',
-            offset       = 0x814,
-            bitSize      = numberLanes,
-            mode         = 'RW',
+            name        =  'Polarity',
+            description =  '1: Invert diff pair, 0: Non-inverted diff pair',
+            offset      =  0x814,
+            bitSize     =  numberLanes,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'GearboxSlaveBitOrder',
-            description  = '1: reverse gearbox input bit ordering, 0: normal bit ordering',
-            offset       = 0x818,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RW',
+            name        =  'GearboxSlaveBitOrder',
+            description =  '1: reverse gearbox input bit ordering, 0: normal bit ordering',
+            offset      =  0x818,
+            bitSize     =  1,
+            bitOffset   =  0,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'GearboxMasterBitOrder',
-            description  = '1: reverse gearbox output bit ordering, 0: normal',
-            offset       = 0x818,
-            bitSize      = 1,
-            bitOffset    = 1,
-            mode         = 'RW',
+            name        =  'GearboxMasterBitOrder',
+            description =  '1: reverse gearbox output bit ordering, 0: normal',
+            offset      =  0x818,
+            bitSize     =  1,
+            bitOffset   =  1,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MaskOffCodeErr',
-            description  = '1: Mask off codeErr (debug only) , 0: normal operation',
-            offset       = 0x81C,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RW',
+            name        =  'MaskOffCodeErr',
+            description =  '1: Mask off codeErr (debug only) , 0: normal operation',
+            offset      =  0x81C,
+            bitSize     =  1,
+            bitOffset   =  0,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MaskOffDispErr',
-            description  = '1: Mask off dsispErr (debug only) , 0: normal operation',
-            offset       = 0x81C,
-            bitSize      = 1,
-            bitOffset    = 1,
-            mode         = 'RW',
+            name        =  'MaskOffDispErr',
+            description =  '1: Mask off dispErr (debug only) , 0: normal operation',
+            offset      =  0x81C,
+            bitSize     =  1,
+            bitOffset   =  1,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'MaskOffOutOfSync',
-            description  = '1: Mask off OutOfSync (debug only) , 0: normal operation',
-            offset       = 0x81C,
-            bitSize      = 1,
-            bitOffset    = 2,
-            mode         = 'RW',
+            name        =  'MaskOffOutOfSync',
+            description =  '1: Mask off OutOfSync (debug only) , 0: normal operation',
+            offset      =  0x81C,
+            bitSize     =  1,
+            bitOffset   =  2,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'IdleCode',
-            description  = 'IDLE code detected (1 bit per lane)',
-            offset       = 0x900,
-            bitSize      = numberLanes,
-            mode         = 'RO',
-            pollInterval = 1,
+            name         =  'IdleCode',
+            description  =  'IDLE code detected (1 bit per lane)',
+            offset       =  0x900,
+            bitSize      =  numberLanes,
+            mode         =  'RO',
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LockOnIdleOnly',
-            description  = '1: requires only IDLE code during the lock up procedure then any any code link is locked , 0: any code for locking',
-            offset       = 0x904,
-            bitSize      = 1,
-            mode         = 'RW',
+            name        =  'LockOnIdleOnly',
+            description =  '1: requires only IDLE code during the lock up procedure then any any code link is locked , 0: any code for locking',
+            offset      =  0x904,
+            bitSize     =  1,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RollOverEn',
-            description  = 'Rollover enable for status counters',
-            offset       = 0xFF8,
-            bitSize      = 7,
-            mode         = 'RW',
+            name        =  'RollOverEn',
+            description =  'Rollover enable for status counters',
+            offset      =  0xFF8,
+            bitSize     =  7,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteCommand(
-            name         = 'CntRst',
-            description  = 'Status counter reset',
-            offset       = 0xFFC,
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
-            hidden       = False,
+            name        =  'CntRst',
+            description =  'Status counter reset',
+            offset      =  0xFFC,
+            bitSize     =  1,
+            function    =  lambda cmd: cmd.post(1),
+            hidden      =  False,
         ))
 
     def hardReset(self):

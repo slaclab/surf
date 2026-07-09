@@ -362,7 +362,7 @@ begin
                   v.o.nack := '1';
                end if;
             end if;
-            -- Risinge edge
+            -- Rising edge
             if (not r.scl and v.scl) = '1' then
                if r.addr then
                   v.slvstate := movebyte;

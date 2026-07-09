@@ -4,7 +4,7 @@
 -- Description: Firmware module that AxiStreamConcat multiple AXI stream frames
 --              together.  It will ignore TKEEP and the format of the frame.
 -------------------------------------------------------------------------------
--- Note: This module is similiar to "AxiStreamBatcher.vhd" but does NOT
+-- Note: This module is similar to "AxiStreamBatcher.vhd" but does NOT
 --       have the following features
 --          1) No super header
 --          2) No tail footer
@@ -124,6 +124,12 @@ architecture rtl of AxiStreamConcat is
    signal txSlave  : AxiStreamSlaveType;
 
 begin
+
+   -- AxiStreamConcat only supports TKEEP_FIXED_C (see header note).
+   -- Use AxiStreamBatcher for TKEEP_NORMAL_C, TKEEP_COMP_C, or TKEEP_COUNT_C.
+   assert (AXIS_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C)
+      report "AxiStreamConcat: AXIS_CONFIG_G.TKEEP_MODE_C must be TKEEP_FIXED_C. Use AxiStreamBatcher for other TKEEP modes."
+      severity failure;
 
    -----------------
    -- Input pipeline

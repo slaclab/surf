@@ -26,15 +26,16 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamGearbox is
    generic (
       -- General Configurations
-      TPD_G               : time     := 1 ns;
-      RST_POLARITY_G      : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G         : boolean  := false;
-      READY_EN_G          : boolean  := true;
-      PIPE_STAGES_G       : natural  := 0;
-      SIDE_BAND_WIDTH_G   : positive := 1;    -- General purpose sideband
+      TPD_G                : time     := 1 ns;
+      RST_POLARITY_G       : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G          : boolean  := false;
+      READY_EN_G           : boolean  := true;
+      PIPE_STAGES_G        : natural  := 0;
+      SIDE_BAND_WIDTH_G    : positive := 1;    -- General purpose sideband
+      FORCE_GEARBOX_IMPL_G : boolean  := false;  -- Set TRUE if you are using the gearbox to do the tKeep packing because not supported in surf.AxiStreamResize
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
+      SLAVE_AXI_CONFIG_G   : AxiStreamConfigType;
+      MASTER_AXI_CONFIG_G  : AxiStreamConfigType);
    port (
       -- Clock and reset
       axisClk     : in  sl;
@@ -117,7 +118,7 @@ begin
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
-   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   -- Can't use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamGearbox: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
@@ -126,7 +127,7 @@ begin
    ---------------------------------------------------------
    -- Use AxiStreamResize if word multiple because less LUTs
    ---------------------------------------------------------
-   GEN_RESIZE : if (WORD_MULTIPLE_C = true) generate
+   GEN_RESIZE : if (WORD_MULTIPLE_C) and (not FORCE_GEARBOX_IMPL_G) generate
 
       U_Resize : entity surf.AxiStreamResize
          generic map (
@@ -155,7 +156,7 @@ begin
 
    end generate;
 
-   GEN_GEARBOX : if (WORD_MULTIPLE_C = false) generate
+   GEN_GEARBOX : if (not WORD_MULTIPLE_C) or (FORCE_GEARBOX_IMPL_G) generate
 
       comb : process (axisRst, pipeAxisSlave, r, sAxisMaster, sSideBand) is
 

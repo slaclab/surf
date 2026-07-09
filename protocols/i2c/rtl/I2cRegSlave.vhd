@@ -127,7 +127,7 @@ begin
       -- Enable the i2cSlave after reset
       v.i2cSlaveIn.enable := '1';
 
-      -- Read and Write enables are pulsed, defualt to 0
+      -- Read and Write enables are pulsed, default to 0
       v.wrEn := '0';
       v.rdEn := '0';
 

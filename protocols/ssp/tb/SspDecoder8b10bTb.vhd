@@ -61,7 +61,7 @@ begin
       port map (
          clk     => clkDiv2,
          rst     => rst,
-         valid   => dataValidEnc,
+         validIn => dataValidEnc,
          dataIn  => dataInEnc,
          dataOut => dataOutEnc);
 

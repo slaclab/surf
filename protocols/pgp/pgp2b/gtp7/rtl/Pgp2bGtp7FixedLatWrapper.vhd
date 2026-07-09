@@ -425,7 +425,7 @@ begin
          pgpRxReset       => pgpRxReset,   --extRst,
          pgpRxRecClk      => pgpRxRecClk,
          pgpRxRecClkRst   => pgpRxRecClkRst,
-         pgpRxClk         => pgpRxClkLoc,  -- RecClk fed back, optionally though MMCM
+         pgpRxClk         => pgpRxClkLoc,  -- RecClk fed back, optionally through MMCM
          pgpRxMmcmReset   => pgpRxMmcmReset,
          pgpRxMmcmLocked  => pgpRxMmcmLocked,
          -- Non VC Rx Signals

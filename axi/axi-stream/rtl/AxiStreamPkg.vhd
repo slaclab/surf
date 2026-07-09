@@ -185,6 +185,7 @@ package AxiStreamPkg is
    function ite(i : boolean; t : TKeepModeType; e : TKeepModeType) return TKeepModeType;
 
    function genTKeep (bytes           : natural range 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C) return slv;
+   function genTKeep (bytes           : slv) return slv;
    function genTKeep (constant config : AxiStreamConfigType) return slv;
 
    function getTKeep (tKeep : slv; axisConfig : AxiStreamConfigType) return natural;
@@ -302,13 +303,7 @@ package body AxiStreamPkg is
       lsb := axisConfig.TUSER_BITS_C*pos;
 
       if (axisConfig.TUSER_BITS_C > 0 and axisConfig.TUSER_MODE_C /= TUSER_NONE_C) then
-
-         for i in 0 to AXI_STREAM_MAX_TDATA_WIDTH_C-fieldValue'high-fieldValue'low-1 loop
-            if lsb = i then
-               axisMaster.tUser(fieldValue'high+i downto fieldValue'low+i) := fieldValue;
-            end if;
-         end loop;
-
+         axisMaster.tUser(fieldValue'high+lsb downto fieldValue'low+lsb) := fieldValue;
       else
          axisMaster.tUser := (others => '0');
       end if;
@@ -373,6 +368,20 @@ package body AxiStreamPkg is
       return retVar;
    end function genTKeep;
 
+   function genTKeep (bytes : slv) return slv is
+      variable retVar   : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      variable bytesExt : slv(bitSize(AXI_STREAM_MAX_TKEEP_WIDTH_C)-1 downto 0);
+   begin
+      retVar   := (others => '0');
+      bytesExt := resize(bytes, bytesExt'length);
+      for i in 0 to AXI_STREAM_MAX_TKEEP_WIDTH_C-1 loop
+         if (bytesExt >= toSlv(i+1, bytesExt'length)) then
+            retVar(i) := '1';
+         end if;
+      end loop;
+      return retVar;
+   end function genTKeep;
+
    function genTKeep (constant config : AxiStreamConfigType) return slv is
    begin
       -- Assumes TKEEP_MODE_C /= TKEEP_COUNT_C
@@ -389,6 +398,13 @@ package body AxiStreamPkg is
       -- Check if TKEEP_MODE_C = TKEEP_COUNT_C
       if (axisConfig.TKEEP_MODE_C = TKEEP_COUNT_C) then
          retVar := conv_integer(tKeep(bitSize(axisConfig.TDATA_BYTES_C)-1 downto 0));
+
+      -- Check if TKEEP_MODE_C = TKEEP_FIXED_C
+      elsif (axisConfig.TKEEP_MODE_C = TKEEP_FIXED_C) then
+         -- TKEEP not used and using a full word every TXN
+         retVar := axisConfig.TDATA_BYTES_C;
+
+      -- Else TKEEP_MODE_C is either TKEEP_NORMAL_C or TKEEP_COMP_C
       else
          for i in 0 to axisConfig.TDATA_BYTES_C-1 loop
             -- report "AxiStreamPkg::genTKeep( i:" & integer'image(i) & ")" severity warning;
@@ -761,4 +777,3 @@ package body AxiStreamPkg is
    end function;
 
 end package body AxiStreamPkg;
-

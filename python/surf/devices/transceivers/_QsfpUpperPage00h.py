@@ -28,22 +28,22 @@ class QsfpUpperPage00h(pr.Device):
         if advDebug:
 
             self.add(pr.RemoteVariable(
-                name         = 'UppperIdentifier',
-                description  = 'Type of serial transceiver',
-                offset       = (128 << 2),
-                bitSize      = 5,
-                mode         = 'RO',
-                enum         = transceivers.IdentifierDict,
+                name        = 'UppperIdentifier',
+                description = 'Type of serial transceiver',
+                offset      = (128 << 2),
+                bitSize     = 5,
+                mode        = 'RO',
+                enum        = transceivers.IdentifierDict,
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'LowPowerClass',
-                description  = 'Extended Identifier of free side device. Includes power classes, CLEI codes, CDR capability (See Table 6-16)',
-                offset       = (129 << 2),
-                bitSize      = 2,
-                bitOffset    = 6,
-                mode         = 'RO',
-                enum         = {
+                name        = 'LowPowerClass',
+                description = 'Extended Identifier of free side device. Includes power classes, CLEI codes, CDR capability (See Table 6-16)',
+                offset      = (129 << 2),
+                bitSize     = 2,
+                bitOffset   = 6,
+                mode        = 'RO',
+                enum        = {
                     0x0: 'Power Class 1 (1.5 W max.)',
                     0x1: 'Power Class 2 (2.0 W max.)',
                     0x2: 'Power Class 3 (2.5 W max.)',
@@ -52,54 +52,54 @@ class QsfpUpperPage00h(pr.Device):
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'PowerClass8Impl',
-                description  = 'Power Class 8 implemented (Max power declared in byte 107)',
-                offset       = (129 << 2),
-                bitSize      = 1,
-                bitOffset    = 5,
-                mode         = 'RO',
-                base         = pr.Bool,
+                name        = 'PowerClass8Impl',
+                description = 'Power Class 8 implemented (Max power declared in byte 107)',
+                offset      = (129 << 2),
+                bitSize     = 1,
+                bitOffset   = 5,
+                mode        = 'RO',
+                base        = pr.Bool,
             ))
 
             self.add(pr.RemoteVariable(
-                name         = 'CleiCodePresent',
-                description  = 'CLEI code present in Page 02h',
-                offset       = (129 << 2),
-                bitSize      = 1,
-                bitOffset    = 4,
-                mode         = 'RO',
-                base         = pr.Bool,
+                name        = 'CleiCodePresent',
+                description = 'CLEI code present in Page 02h',
+                offset      = (129 << 2),
+                bitSize     = 1,
+                bitOffset   = 4,
+                mode        = 'RO',
+                base        = pr.Bool,
             ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxCdrPresent',
-            description  = '0: No CDR in Tx, 1: CDR present in Tx',
-            offset       = (129 << 2),
-            bitSize      = 1,
-            bitOffset    = 3,
-            mode         = 'RO',
-            base         = pr.Bool,
+            name        = 'TxCdrPresent',
+            description = '0: No CDR in Tx, 1: CDR present in Tx',
+            offset      = (129 << 2),
+            bitSize     = 1,
+            bitOffset   = 3,
+            mode        = 'RO',
+            base        = pr.Bool,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'RxCdrPresent',
-            description  = '0: No CDR in Rx, 1: CDR present in Rx',
-            offset       = (129 << 2),
-            bitSize      = 1,
-            bitOffset    = 2,
-            mode         = 'RO',
-            base         = pr.Bool,
+            name        = 'RxCdrPresent',
+            description = '0: No CDR in Rx, 1: CDR present in Rx',
+            offset      = (129 << 2),
+            bitSize     = 1,
+            bitOffset   = 2,
+            mode        = 'RO',
+            base        = pr.Bool,
         ))
 
         if advDebug:
             self.add(pr.RemoteVariable(
-                name         = 'HighPowerClass',
-                description  = 'See Byte 93 bit 2 to enable.',
-                offset       = (129 << 2),
-                bitSize      = 2,
-                bitOffset    = 0,
-                mode         = 'RO',
-                enum         = {
+                name        = 'HighPowerClass',
+                description = 'See Byte 93 bit 2 to enable.',
+                offset      = (129 << 2),
+                bitSize     = 2,
+                bitOffset   = 0,
+                mode        = 'RO',
+                enum        = {
                     0x0: 'Power Classes 1 to 4',
                     0x1: 'Power Class 5 (4.0 W max.) See Byte 93 bit 2 to enable.',
                     0x2: 'Power Class 6 (4.5 W max.) See Byte 93 bit 2 to enable.',
@@ -195,15 +195,15 @@ class QsfpUpperPage00h(pr.Device):
             ))
 
         self.addRemoteVariables(
-            name         = 'VendorNameRaw',
-            description  = 'SFP vendor name (ASCII)',
-            offset       = (148 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16,  # BYTE148:BYTE163
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorNameRaw',
+            description = 'SFP vendor name (ASCII)',
+            offset      = (148 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16,  # BYTE148:BYTE163
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -218,15 +218,15 @@ class QsfpUpperPage00h(pr.Device):
         # TODO: 165-167 3 Vendor OUI Free side device vendor IEEE company ID
 
         self.addRemoteVariables(
-            name         = 'VendorPnRaw',
-            description  = 'Part number provided by SFP vendor (ASCII)',
-            offset       = (168 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16, # BYTE168:BYTE183
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorPnRaw',
+            description = 'Part number provided by SFP vendor (ASCII)',
+            offset      = (168 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16, # BYTE168:BYTE183
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -238,15 +238,15 @@ class QsfpUpperPage00h(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'VendorRevRaw',
-            description  = 'Revision level for part number provided by vendor (ASCII)',
-            offset       = (184 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 2, # BYTE184:BYTE185
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorRevRaw',
+            description = 'Revision level for part number provided by vendor (ASCII)',
+            offset      = (184 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 2, # BYTE184:BYTE185
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -265,15 +265,15 @@ class QsfpUpperPage00h(pr.Device):
         # TODO: 193-195 3 Options Optional features implemented. See Table 6-22.
 
         self.addRemoteVariables(
-            name         = 'VendorSnRaw',
-            description  = 'Serial number provided by vendor (ASCII)',
-            offset       = (196 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            base         = pr.String,
-            number       = 16, # BYTE196:BYTE211
-            stride       = 4,
-            hidden       = True,
+            name        = 'VendorSnRaw',
+            description = 'Serial number provided by vendor (ASCII)',
+            offset      = (196 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            base        = pr.String,
+            number      = 16, # BYTE196:BYTE211
+            stride      = 4,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
@@ -285,15 +285,15 @@ class QsfpUpperPage00h(pr.Device):
         ))
 
         self.addRemoteVariables(
-            name         = 'DateCode',
-            description  = 'Vendor\'s manufacturing date code (ASCII)',
-            offset       = (212 << 2),
-            bitSize      = 8,
-            mode         = 'RO',
-            number       = 6, # BYTE212:BYTE219
-            stride       = 4,
-            base         = pr.String,
-            hidden       = True,
+            name        = 'DateCode',
+            description = 'Vendor\'s manufacturing date code (ASCII)',
+            offset      = (212 << 2),
+            bitSize     = 8,
+            mode        = 'RO',
+            number      = 6, # BYTE212:BYTE219
+            stride      = 4,
+            base        = pr.String,
+            hidden      = True,
         )
 
         self.add(pr.LinkVariable(
