@@ -4,7 +4,7 @@
 -- Description:
 -- ADC Readout Controller
 -- Receives ADC Data from an AD9592 chip.
--- Designed specifically for Xilinx 7 series FPGAs
+-- Designed specifically for Xilinx UltraScale FPGAs
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -417,4 +417,3 @@ begin
 
 
 end rtl;
-
