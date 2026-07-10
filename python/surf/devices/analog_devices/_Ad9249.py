@@ -16,6 +16,8 @@
 import pyrogue as pr
 import rogue.interfaces.memory as rim
 import math
+import time
+from typing import Any
 
 class Ad9249ConfigGroup(pr.Device):
     def __init__(self,
@@ -735,7 +737,215 @@ class Ad9249ReadoutGroup3(pr.Device):
             if recurse:
                 for key,value in self.devices.items():
                     value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
-                    
+
+
+class Ad9249ReadoutGroup3Calibration(pr.Process):
+    def __init__(self, *,
+            config: Ad9249ConfigGroup,
+            readout: Ad9249ReadoutGroup3,
+            **kwargs: Any) -> None:
+        # The SPI configuration and FPGA readout devices are intentionally
+        # independent, so applications explicitly provide the matching pair.
+        self._config = config
+        self._readout = readout
+        self._channels = len(readout.ChannelDelay)
+
+        super().__init__(
+            function=self._calibrate,
+            description='Calibrate the FCO and per-channel IDELAY settings for an AD9249 readout group.',
+            **kwargs)
+
+        self.add(pr.LocalVariable(
+            name='DelayStart',
+            description='First IDELAY tap included in the scan',
+            value=0,
+            minimum=0,
+            maximum=511,
+            mode='RW'))
+
+        self.add(pr.LocalVariable(
+            name='DelayStop',
+            description='Last IDELAY tap included in the scan',
+            value=511,
+            minimum=0,
+            maximum=511,
+            mode='RW'))
+
+        self.add(pr.LocalVariable(
+            name='SampleCount',
+            description='Number of two-word debug captures checked at each tap',
+            value=2,
+            minimum=1,
+            mode='RW'))
+
+        self.add(pr.LocalVariable(
+            name='SettleTime',
+            description='Delay after changing an IDELAY or ADC test mode',
+            value=0.001,
+            minimum=0.0,
+            units='s',
+            mode='RW'))
+
+        self.add(pr.LocalVariable(
+            name='MinimumEyeWidth',
+            description='Minimum number of consecutive passing taps required for calibration',
+            value=8,
+            minimum=1,
+            mode='RW'))
+
+        self.add(pr.LocalVariable(
+            name='FrameScan',
+            description='FCO passing state indexed by scanned IDELAY tap',
+            value={},
+            mode='RO'))
+
+        self.add(pr.LocalVariable(
+            name='ChannelScan',
+            description='Per-channel passing state indexed by scanned IDELAY tap',
+            value={},
+            mode='RO'))
+
+        self.add(pr.LocalVariable(
+            name='SelectedDelays',
+            description='Selected FCO and channel IDELAY values from the last successful calibration',
+            value={},
+            mode='RO'))
+
+    @staticmethod
+    def _widestWindow(passing: dict[int, bool]) -> tuple[int, int] | None:
+        # Convert a tap-by-tap pass map into the widest contiguous data eye.
+        best = None
+        start = None
+
+        for tap, passed in passing.items():
+            if passed and start is None:
+                start = tap
+            if not passed and start is not None:
+                window = (start, tap-1)
+                if best is None or window[1]-window[0] > best[1]-best[0]:
+                    best = window
+                start = None
+
+        if start is not None:
+            window = (start, next(reversed(passing)))
+            if best is None or window[1]-window[0] > best[1]-best[0]:
+                best = window
+
+        return best
+
+    def _checkRun(self) -> None:
+        # Stop requests are checked once per tap so that hardware can be
+        # restored by the common cleanup path below.
+        if not self._runEn:
+            raise RuntimeError('Calibration stopped')
+
+    def _captureChannel(self, channel: int) -> bool:
+        # Freeze both debug words around the read so they form one coherent
+        # pair rather than samples from two different register transactions.
+        self._readout.FreezeDebug(1)
+        try:
+            value = self._readout.AdcChannel[channel].get(read=True)
+        finally:
+            self._readout.FreezeDebug(0)
+
+        samples = (value & 0x3FFF, (value >> 16) & 0x3FFF)
+        return set(samples) == {0x2AAA, 0x1555}
+
+    def _selectCenter(self, name: str, passing: dict[int, bool]) -> int:
+        # Centering in the widest window maximizes timing margin to either
+        # observed edge. Reject narrow windows rather than accepting a
+        # marginal calibration.
+        window = self._widestWindow(passing)
+        minimum = self.MinimumEyeWidth.value()
+
+        if window is None or window[1]-window[0]+1 < minimum:
+            raise RuntimeError(f'{name} has no passing window at least {minimum} taps wide')
+
+        return (window[0]+window[1])//2
+
+    def _calibrate(self, *, dev: pr.Process) -> dict[str | int, int]:
+        start = self.DelayStart.value()
+        stop = self.DelayStop.value()
+        samples = self.SampleCount.value()
+        settle = self.SettleTime.value()
+        taps = range(start, stop+1)
+
+        if start > stop:
+            raise ValueError('DelayStart must not be greater than DelayStop')
+
+        originalMode = self._config.OutputTestMode.get(read=True)
+        originalFrame = self._readout.FrameDelay.get(read=True)
+        originalChannels = [var.get(read=True) for var in self._readout.ChannelDelay]
+        selected = {}
+        success = False
+
+        self.FrameScan.set({})
+        self.ChannelScan.set({})
+        self.SelectedDelays.set({})
+        self.setStep(0)
+        self.setTotalSteps(len(taps)*(1+self._channels))
+
+        try:
+            # FCO mode: scan the frame input first. Relock resets the
+            # deserializer and reruns bitslip at every delay value.
+            self.Message.set('Scanning FCO delay')
+            frameScan = {}
+            for tap in taps:
+                self._checkRun()
+                self._readout.FrameDelay.set(tap, write=True)
+                self._readout.Relock()
+                time.sleep(settle)
+                frameScan[tap] = bool(self._readout.Locked.get(read=True))
+                self.incrementSteps()
+
+            self.FrameScan.set(frameScan)
+            selected['Frame'] = self._selectCenter('FCO', frameScan)
+            self._readout.FrameDelay.set(selected['Frame'], write=True)
+            self._readout.Relock()
+            time.sleep(settle)
+            if not self._readout.Locked.get(read=True):
+                raise RuntimeError('FCO did not lock at the selected delay')
+
+            # Data mode: checkerboard alternates 0x2AAA and 0x1555. The
+            # pattern is independent of the ADC output-format selection, so
+            # no format changes or user-pattern registers are required.
+            self._config.OutputTestMode.set(4, write=True)
+            time.sleep(settle)
+
+            channelScans = {}
+            for channel, delayVar in enumerate(self._readout.ChannelDelay):
+                self.Message.set(f'Scanning channel {channel} delay')
+                scan = {}
+                for tap in taps:
+                    self._checkRun()
+                    delayVar.set(tap, write=True)
+                    time.sleep(settle)
+                    scan[tap] = all(self._captureChannel(channel) for _ in range(samples))
+                    self.incrementSteps()
+
+                channelScans[channel] = scan
+                selected[channel] = self._selectCenter(f'Channel {channel}', scan)
+                delayVar.set(selected[channel], write=True)
+                self.ChannelScan.set(dict(channelScans))
+
+            # Successful calibration leaves the centered delay values loaded
+            # while returning the ADC to its original output mode.
+            self.SelectedDelays.set(selected)
+            self.Message.set('Calibration complete')
+            success = True
+
+        finally:
+            # Cleanup mode: always restore normal ADC output behavior. If the
+            # scan failed or was stopped, also roll every delay back so a
+            # partial calibration cannot escape into the running system.
+            self._config.OutputTestMode.set(originalMode, write=True)
+            if not success:
+                self._readout.FrameDelay.set(originalFrame, write=True)
+                for delayVar, delay in zip(self._readout.ChannelDelay, originalChannels):
+                    delayVar.set(delay, write=True)
+                self._readout.Relock()
+
+        return selected
 
 
 class AdcTester(pr.Device):
