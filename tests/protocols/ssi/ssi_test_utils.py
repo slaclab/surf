@@ -152,6 +152,14 @@ def keep_mask(data_bytes: int) -> int:
     return (1 << data_bytes) - 1
 
 
+def data_mask_from_keep(keep: int, *, max_bytes: int = 8) -> int:
+    mask = 0
+    for byte_index in range(max_bytes):
+        if keep & (1 << byte_index):
+            mask |= 0xFF << (8 * byte_index)
+    return mask
+
+
 def start_clock(signal, *, period_ns: float = 5.0) -> None:
     # cocotb clocks run in the background once started.
     cocotb.start_soon(Clock(signal, period_ns, unit="ns").start())
