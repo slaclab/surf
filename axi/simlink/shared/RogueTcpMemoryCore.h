@@ -183,6 +183,17 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data) {
         memcpy(&(data->type), zmq_msg_data(&(msg[MEM_TYPE_FRAME_C])),
                MEM_U32_BYTES_C);
 
+        // Validate the peer-declared size before it is trusted below. It must
+        // fit the fixed data[MAX_DATA] buffer, and it must be a whole number of
+        // 32-bit words: the AXI-Lite FSM advances curr four bytes per beat and
+        // finishes only when curr == size, so a non-word-sized request would
+        // overrun data[] (curr steps past size) and never terminate.
+        if ( (data->size > MAX_DATA) || ((data->size % MEM_U32_BYTES_C) != 0) ) {
+            vhpi_assert("RogueTcpMemory: Transaction size invalid (exceeds MAX_DATA or not 32-bit word aligned)", vhpiFatal);
+            RogueTcpMemoryCloseMsgs(msg, MEM_WRITE_REQ_FRAMES_C);
+            return 0;
+        }
+
         // Write data is expected
         if ( (data->type == T_WRITE) || (data->type == T_POST) ) {
             if ( (msgCnt != MEM_WRITE_REQ_FRAMES_C) ||
