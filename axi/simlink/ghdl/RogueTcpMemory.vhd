@@ -66,11 +66,22 @@ architecture RogueTcpMemory of RogueTcpMemory is
    subtype Word4 is std_logic_vector(3 downto 0);
    subtype Word3 is std_logic_vector(2 downto 0);
 
+   impure function rogueTcpMemoryCreate return integer;
+   attribute foreign of rogueTcpMemoryCreate : function is
+      "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryCreate";
+
+   impure function rogueTcpMemoryCreate return integer is
+   begin
+      assert false report "rogueTcpMemoryCreate: VHPIDIRECT stub body should never execute" severity failure;
+      return 0;
+   end function rogueTcpMemoryCreate;
+
    -- Per-edge update procedure: all "in" parameters, called every
    -- rising_edge(clock). The C-side FSM (unchanged from RogueTcpMemory.c)
    -- decides internally whether to latch reset/port or run the AXI-Lite
    -- transaction FSM.
    procedure rogueTcpMemoryUpdate (
+      handle  : integer;
       clkRst  : std_logic;
       portNum : std_logic_vector(15 downto 0);
       arready : std_logic;
@@ -85,6 +96,7 @@ architecture RogueTcpMemory of RogueTcpMemory is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryUpdate";
 
    procedure rogueTcpMemoryUpdate (
+      handle  : integer;
       clkRst  : std_logic;
       portNum : std_logic_vector(15 downto 0);
       arready : std_logic;
@@ -100,112 +112,112 @@ architecture RogueTcpMemory of RogueTcpMemory is
       assert false report "rogueTcpMemoryUpdate: VHPIDIRECT stub body should never execute" severity failure;
    end procedure rogueTcpMemoryUpdate;
 
-   -- One zero-arg getter per output port.
-   impure function rogueTcpMemoryGetAraddr return Word32;
+   -- One handle-based getter per output port.
+   impure function rogueTcpMemoryGetAraddr (handle : integer) return Word32;
    attribute foreign of rogueTcpMemoryGetAraddr : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetAraddr";
 
-   impure function rogueTcpMemoryGetAraddr return Word32 is
+   impure function rogueTcpMemoryGetAraddr (handle : integer) return Word32 is
    begin
       assert false report "rogueTcpMemoryGetAraddr: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetAraddr;
 
-   impure function rogueTcpMemoryGetArprot return Word3;
+   impure function rogueTcpMemoryGetArprot (handle : integer) return Word3;
    attribute foreign of rogueTcpMemoryGetArprot : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetArprot";
 
-   impure function rogueTcpMemoryGetArprot return Word3 is
+   impure function rogueTcpMemoryGetArprot (handle : integer) return Word3 is
    begin
       assert false report "rogueTcpMemoryGetArprot: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetArprot;
 
-   impure function rogueTcpMemoryGetArvalid return std_logic;
+   impure function rogueTcpMemoryGetArvalid (handle : integer) return std_logic;
    attribute foreign of rogueTcpMemoryGetArvalid : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetArvalid";
 
-   impure function rogueTcpMemoryGetArvalid return std_logic is
+   impure function rogueTcpMemoryGetArvalid (handle : integer) return std_logic is
    begin
       assert false report "rogueTcpMemoryGetArvalid: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
    end function rogueTcpMemoryGetArvalid;
 
-   impure function rogueTcpMemoryGetRready return std_logic;
+   impure function rogueTcpMemoryGetRready (handle : integer) return std_logic;
    attribute foreign of rogueTcpMemoryGetRready : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetRready";
 
-   impure function rogueTcpMemoryGetRready return std_logic is
+   impure function rogueTcpMemoryGetRready (handle : integer) return std_logic is
    begin
       assert false report "rogueTcpMemoryGetRready: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
    end function rogueTcpMemoryGetRready;
 
-   impure function rogueTcpMemoryGetAwaddr return Word32;
+   impure function rogueTcpMemoryGetAwaddr (handle : integer) return Word32;
    attribute foreign of rogueTcpMemoryGetAwaddr : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetAwaddr";
 
-   impure function rogueTcpMemoryGetAwaddr return Word32 is
+   impure function rogueTcpMemoryGetAwaddr (handle : integer) return Word32 is
    begin
       assert false report "rogueTcpMemoryGetAwaddr: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetAwaddr;
 
-   impure function rogueTcpMemoryGetAwprot return Word3;
+   impure function rogueTcpMemoryGetAwprot (handle : integer) return Word3;
    attribute foreign of rogueTcpMemoryGetAwprot : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetAwprot";
 
-   impure function rogueTcpMemoryGetAwprot return Word3 is
+   impure function rogueTcpMemoryGetAwprot (handle : integer) return Word3 is
    begin
       assert false report "rogueTcpMemoryGetAwprot: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetAwprot;
 
-   impure function rogueTcpMemoryGetAwvalid return std_logic;
+   impure function rogueTcpMemoryGetAwvalid (handle : integer) return std_logic;
    attribute foreign of rogueTcpMemoryGetAwvalid : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetAwvalid";
 
-   impure function rogueTcpMemoryGetAwvalid return std_logic is
+   impure function rogueTcpMemoryGetAwvalid (handle : integer) return std_logic is
    begin
       assert false report "rogueTcpMemoryGetAwvalid: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
    end function rogueTcpMemoryGetAwvalid;
 
-   impure function rogueTcpMemoryGetWdata return Word32;
+   impure function rogueTcpMemoryGetWdata (handle : integer) return Word32;
    attribute foreign of rogueTcpMemoryGetWdata : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetWdata";
 
-   impure function rogueTcpMemoryGetWdata return Word32 is
+   impure function rogueTcpMemoryGetWdata (handle : integer) return Word32 is
    begin
       assert false report "rogueTcpMemoryGetWdata: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetWdata;
 
-   impure function rogueTcpMemoryGetWstrb return Word4;
+   impure function rogueTcpMemoryGetWstrb (handle : integer) return Word4;
    attribute foreign of rogueTcpMemoryGetWstrb : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetWstrb";
 
-   impure function rogueTcpMemoryGetWstrb return Word4 is
+   impure function rogueTcpMemoryGetWstrb (handle : integer) return Word4 is
    begin
       assert false report "rogueTcpMemoryGetWstrb: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueTcpMemoryGetWstrb;
 
-   impure function rogueTcpMemoryGetWvalid return std_logic;
+   impure function rogueTcpMemoryGetWvalid (handle : integer) return std_logic;
    attribute foreign of rogueTcpMemoryGetWvalid : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetWvalid";
 
-   impure function rogueTcpMemoryGetWvalid return std_logic is
+   impure function rogueTcpMemoryGetWvalid (handle : integer) return std_logic is
    begin
       assert false report "rogueTcpMemoryGetWvalid: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
    end function rogueTcpMemoryGetWvalid;
 
-   impure function rogueTcpMemoryGetBready return std_logic;
+   impure function rogueTcpMemoryGetBready (handle : integer) return std_logic;
    attribute foreign of rogueTcpMemoryGetBready : function is
       "VHPIDIRECT libRogueTcpMemory.so rogueTcpMemoryGetBready";
 
-   impure function rogueTcpMemoryGetBready return std_logic is
+   impure function rogueTcpMemoryGetBready (handle : integer) return std_logic is
    begin
       assert false report "rogueTcpMemoryGetBready: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
@@ -214,20 +226,26 @@ architecture RogueTcpMemory of RogueTcpMemory is
 begin
 
    UpdateProc : process (clock) is
+      variable handle : integer := 0;
    begin
       if rising_edge(clock) then
-         rogueTcpMemoryUpdate(reset, portNum, arready, rdata, rresp, rvalid, awready, wready, bresp, bvalid);
-         araddr  <= rogueTcpMemoryGetAraddr;
-         arprot  <= rogueTcpMemoryGetArprot;
-         arvalid <= rogueTcpMemoryGetArvalid;
-         rready  <= rogueTcpMemoryGetRready;
-         awaddr  <= rogueTcpMemoryGetAwaddr;
-         awprot  <= rogueTcpMemoryGetAwprot;
-         awvalid <= rogueTcpMemoryGetAwvalid;
-         wdata   <= rogueTcpMemoryGetWdata;
-         wstrb   <= rogueTcpMemoryGetWstrb;
-         wvalid  <= rogueTcpMemoryGetWvalid;
-         bready  <= rogueTcpMemoryGetBready;
+         if handle = 0 then
+            handle := rogueTcpMemoryCreate;
+            assert handle > 0 report "rogueTcpMemoryCreate returned an invalid handle" severity failure;
+         end if;
+
+         rogueTcpMemoryUpdate(handle, reset, portNum, arready, rdata, rresp, rvalid, awready, wready, bresp, bvalid);
+         araddr  <= rogueTcpMemoryGetAraddr(handle);
+         arprot  <= rogueTcpMemoryGetArprot(handle);
+         arvalid <= rogueTcpMemoryGetArvalid(handle);
+         rready  <= rogueTcpMemoryGetRready(handle);
+         awaddr  <= rogueTcpMemoryGetAwaddr(handle);
+         awprot  <= rogueTcpMemoryGetAwprot(handle);
+         awvalid <= rogueTcpMemoryGetAwvalid(handle);
+         wdata   <= rogueTcpMemoryGetWdata(handle);
+         wstrb   <= rogueTcpMemoryGetWstrb(handle);
+         wvalid  <= rogueTcpMemoryGetWvalid(handle);
+         bready  <= rogueTcpMemoryGetBready(handle);
       end if;
    end process UpdateProc;
 

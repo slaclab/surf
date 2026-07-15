@@ -17,7 +17,7 @@
 #   GHDL-hosted C model calls RogueTcpStreamRestart (binds ZMQ PULL on
 #   port, PUSH on port+1). No external peer is spawned.
 # - Checks: The design must elaborate under GHDL, the VHPIDIRECT foreign
-#   symbols (rogueTcpStreamUpdate + the zero-arg getters) must resolve
+#   symbols (create, rogueTcpStreamUpdate, and the handle-based getters) resolve
 #   against the staged libRogueTcpStream.so, and the C's no-data Recv path
 #   must run for a bounded number of edges without raising/hanging. The
 #   getter-driven outputs (obValid, ibReady) must resolve to a driven 0/1

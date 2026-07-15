@@ -12,9 +12,10 @@
 // (RogueSideBandRestart/Send/Recv) and the opcode/remData FSM
 // (RogueSideBandStep) live in axi/simlink/shared/RogueSideBandCore.h, included
 // by both this backend and the VHPI backend. This file provides only the
-// GHDL-specific plumbing: a per-edge update procedure (rogueSideBandUpdate)
-// that decodes the VHPIDIRECT parameters into the input snapshot and runs one
-// FSM step, plus one zero-arg getter per output port. GHDL has no VHPI (no
+// GHDL-specific plumbing: an integer handle registry, a per-edge update
+// procedure (rogueSideBandUpdate) that decodes the VHPIDIRECT parameters into
+// the selected instance's input snapshot and runs one FSM step, plus one
+// handle-based getter per output port. GHDL has no VHPI (no
 // vhpi_register_cb / value-change callbacks), so vhpi_printf and vhpi_assert
 // are shimmed to printf/abort in RogueSideBand.h.
 //////////////////////////////////////////////////////////////////////////////
@@ -26,35 +27,44 @@
 
 #include "RogueSideBand.h"
 #include "RogueVhpiDirect.h"
+#include "RogueVhpiDirectRegistry.h"
 #include "RogueSideBandCore.h"
 
-// Single instance for this simulation; file-scope statics are zero-
-// initialized by C, replacing the src Init's malloc+memset.
-static RogueSideBandData sideBandData;
+static const char *ROGUE_SIDE_BAND_NAME = "RogueSideBand";
+
+static void rogueSideBandCleanup(void *opaque) {
+    RogueSideBandData *data = opaque;
+
+    if (data->zmqPush != NULL) zmq_close(data->zmqPush);
+    if (data->zmqPull != NULL) zmq_close(data->zmqPull);
+    if (data->zmqCtx  != NULL) zmq_ctx_term(data->zmqCtx);
+}
+
+int32_t rogueSideBandCreate(void) {
+    return rogueVhpiDirectCreate(sizeof(RogueSideBandData),
+                                 rogueSideBandCleanup,
+                                 ROGUE_SIDE_BAND_NAME);
+}
+
+void rogueSideBandDestroy(int32_t handle) {
+    rogueVhpiDirectDestroy(handle, ROGUE_SIDE_BAND_NAME);
+}
 
 // Per-edge update procedure, called from VHDL every rising_edge(clock).
 // Decodes each VHPIDIRECT parameter into the input snapshot (the getInt seam),
 // then runs one shared FSM step. inSnap[s_clock] is intentionally never
 // populated -- the FSM does not read it, since every call is already a rising
 // edge and needs no edge detection.
-void rogueSideBandUpdate(unsigned char clkRst, unsigned char *portNum,
+void rogueSideBandUpdate(int32_t handle, unsigned char clkRst, unsigned char *portNum,
                           unsigned char *txOpCode, unsigned char txOpCodeEn,
                           unsigned char *txRemData) {
-    RogueSideBandData *data = &sideBandData;
+    RogueSideBandData *data = rogueVhpiDirectGetData(handle, ROGUE_SIDE_BAND_NAME);
     unsigned int reqPort = rogueVhpiDirectDecodeVector(portNum, 16);
+    unsigned int reset = rogueVhpiDirectDecodeBit(clkRst);
 
-    // VHPIDIRECT foreign subprograms carry no per-instance context, so this
-    // backend hosts a single global sideBandData and supports only one
-    // RogueSideBand per simulation. A second instance would otherwise silently
-    // share this state and bind only the first port. Fail fast once a
-    // different, already-latched port is observed rather than corrupt state.
-    if ( data->port != 0 && reqPort != 0 && reqPort != data->port ) {
-        vhpi_printf("RogueSideBand: GHDL VHPIDIRECT backend supports only one instance per simulation; observed ports %u and %u\n", data->port, reqPort);
-        vhpi_assert("RogueSideBand: multiple instances unsupported under GHDL VHPIDIRECT", vhpiFatal);
-        return;
-    }
+    if (!reset) rogueVhpiDirectReservePort(handle, reqPort, ROGUE_SIDE_BAND_NAME);
 
-    data->inSnap[s_reset]      = rogueVhpiDirectDecodeBit(clkRst);
+    data->inSnap[s_reset]      = reset;
     data->inSnap[s_port]       = reqPort;
     data->inSnap[s_txOpCode]   = rogueVhpiDirectDecodeVector(txOpCode, 8);
     data->inSnap[s_txOpCodeEn] = rogueVhpiDirectDecodeBit(txOpCodeEn);
@@ -63,16 +73,19 @@ void rogueSideBandUpdate(unsigned char clkRst, unsigned char *portNum,
     RogueSideBandStep(data);
 }
 
-// Zero-argument getters, one per output port, reproducing
+// Handle-based getters, one per output port, reproducing
 // VhpiGenericConvertOut's enum-ordinal encoding.
-void rogueSideBandGetRxOpCode(unsigned char *ret) {
-    rogueVhpiDirectEncodeVector(sideBandData.outState[s_rxOpCode], ret, 8);
+void rogueSideBandGetRxOpCode(unsigned char *ret, int32_t handle) {
+    RogueSideBandData *data = rogueVhpiDirectGetData(handle, ROGUE_SIDE_BAND_NAME);
+    rogueVhpiDirectEncodeVector(data->outState[s_rxOpCode], ret, 8);
 }
 
-unsigned char rogueSideBandGetRxOpCodeEn(void) {
-    return rogueVhpiDirectEncodeBit(sideBandData.outState[s_rxOpCodeEn]);
+unsigned char rogueSideBandGetRxOpCodeEn(int32_t handle) {
+    RogueSideBandData *data = rogueVhpiDirectGetData(handle, ROGUE_SIDE_BAND_NAME);
+    return rogueVhpiDirectEncodeBit(data->outState[s_rxOpCodeEn]);
 }
 
-void rogueSideBandGetRxRemData(unsigned char *ret) {
-    rogueVhpiDirectEncodeVector(sideBandData.outState[s_rxRemData], ret, 8);
+void rogueSideBandGetRxRemData(unsigned char *ret, int32_t handle) {
+    RogueSideBandData *data = rogueVhpiDirectGetData(handle, ROGUE_SIDE_BAND_NAME);
+    rogueVhpiDirectEncodeVector(data->outState[s_rxRemData], ret, 8);
 }

@@ -17,7 +17,7 @@
 #   GHDL-hosted C model calls RogueSideBandRestart (binds ZMQ PULL on
 #   port+1, PUSH on port). No external peer is spawned.
 # - Checks: The design must elaborate under GHDL, the VHPIDIRECT foreign
-#   symbols (rogueSideBandUpdate + the zero-arg getters) must resolve
+#   symbols (create, rogueSideBandUpdate, and the handle-based getters) resolve
 #   against the staged libRogueSideBand.so, and the C's no-data Recv path
 #   must run for a bounded number of edges without raising/hanging. The
 #   getter-driven outputs (rxOpCode, rxOpCodeEn, rxRemData) must resolve to

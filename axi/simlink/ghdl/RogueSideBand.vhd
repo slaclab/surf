@@ -44,10 +44,21 @@ architecture RogueSideBand of RogueSideBand is
    -- inline-constrained subtype indication.
    subtype Word8 is std_logic_vector(7 downto 0);
 
+   impure function rogueSideBandCreate return integer;
+   attribute foreign of rogueSideBandCreate : function is
+      "VHPIDIRECT libRogueSideBand.so rogueSideBandCreate";
+
+   impure function rogueSideBandCreate return integer is
+   begin
+      assert false report "rogueSideBandCreate: VHPIDIRECT stub body should never execute" severity failure;
+      return 0;
+   end function rogueSideBandCreate;
+
    -- Per-edge update procedure: all "in" parameters, called every
    -- rising_edge(clock). The C-side FSM (unchanged from RogueSideBand.c)
    -- decides internally whether to latch reset/port or move data.
    procedure rogueSideBandUpdate (
+      handle     : integer;
       clkRst     : std_logic;
       portNum    : std_logic_vector(15 downto 0);
       txOpCode   : std_logic_vector(7 downto 0);
@@ -57,6 +68,7 @@ architecture RogueSideBand of RogueSideBand is
       "VHPIDIRECT libRogueSideBand.so rogueSideBandUpdate";
 
    procedure rogueSideBandUpdate (
+      handle     : integer;
       clkRst     : std_logic;
       portNum    : std_logic_vector(15 downto 0);
       txOpCode   : std_logic_vector(7 downto 0);
@@ -67,32 +79,32 @@ architecture RogueSideBand of RogueSideBand is
       assert false report "rogueSideBandUpdate: VHPIDIRECT stub body should never execute" severity failure;
    end procedure rogueSideBandUpdate;
 
-   -- One zero-arg getter per output port.
-   impure function rogueSideBandGetRxOpCode return Word8;
+   -- One handle-based getter per output port.
+   impure function rogueSideBandGetRxOpCode (handle : integer) return Word8;
    attribute foreign of rogueSideBandGetRxOpCode : function is
       "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxOpCode";
 
-   impure function rogueSideBandGetRxOpCode return Word8 is
+   impure function rogueSideBandGetRxOpCode (handle : integer) return Word8 is
    begin
       assert false report "rogueSideBandGetRxOpCode: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
    end function rogueSideBandGetRxOpCode;
 
-   impure function rogueSideBandGetRxOpCodeEn return std_logic;
+   impure function rogueSideBandGetRxOpCodeEn (handle : integer) return std_logic;
    attribute foreign of rogueSideBandGetRxOpCodeEn : function is
       "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxOpCodeEn";
 
-   impure function rogueSideBandGetRxOpCodeEn return std_logic is
+   impure function rogueSideBandGetRxOpCodeEn (handle : integer) return std_logic is
    begin
       assert false report "rogueSideBandGetRxOpCodeEn: VHPIDIRECT stub body should never execute" severity failure;
       return '0';
    end function rogueSideBandGetRxOpCodeEn;
 
-   impure function rogueSideBandGetRxRemData return Word8;
+   impure function rogueSideBandGetRxRemData (handle : integer) return Word8;
    attribute foreign of rogueSideBandGetRxRemData : function is
       "VHPIDIRECT libRogueSideBand.so rogueSideBandGetRxRemData";
 
-   impure function rogueSideBandGetRxRemData return Word8 is
+   impure function rogueSideBandGetRxRemData (handle : integer) return Word8 is
    begin
       assert false report "rogueSideBandGetRxRemData: VHPIDIRECT stub body should never execute" severity failure;
       return (others => '0');
@@ -101,12 +113,18 @@ architecture RogueSideBand of RogueSideBand is
 begin
 
    UpdateProc : process (clock) is
+      variable handle : integer := 0;
    begin
       if rising_edge(clock) then
-         rogueSideBandUpdate(reset, portNum, txOpCode, txOpCodeEn, txRemData);
-         rxOpCode   <= rogueSideBandGetRxOpCode;
-         rxOpCodeEn <= rogueSideBandGetRxOpCodeEn;
-         rxRemData  <= rogueSideBandGetRxRemData;
+         if handle = 0 then
+            handle := rogueSideBandCreate;
+            assert handle > 0 report "rogueSideBandCreate returned an invalid handle" severity failure;
+         end if;
+
+         rogueSideBandUpdate(handle, reset, portNum, txOpCode, txOpCodeEn, txRemData);
+         rxOpCode   <= rogueSideBandGetRxOpCode(handle);
+         rxOpCodeEn <= rogueSideBandGetRxOpCodeEn(handle);
+         rxRemData  <= rogueSideBandGetRxRemData(handle);
       end if;
    end process UpdateProc;
 

@@ -47,7 +47,55 @@ This plan does not cover:
   platform-gated Valgrind coverage are already present.
 - The inherited blocking-send behavior is accepted for pull request 1450 and
   recorded below as cross-backend follow-up work.
-- Implementation of the architectural merge blockers has not started.
+- The integer-handle ABI is validated with GHDL 6.0.0 using both scalar and
+  vector-return foreign functions.
+- Per-instance state, normal-process cleanup, explicit destroy, and port reuse
+  are implemented for Stream, Memory, and SideBand.
+- A mixed VHPIDIRECT regression now elaborates four Stream, two Memory, and two
+  SideBand instances concurrently on distinct endpoint pairs.
+- Remaining work is focused on reset/error-path coverage, full serial/xdist
+  validation, and final review rather than the original singleton architecture.
+
+## Implementation Progress
+
+Completed locally:
+
+- Added `axi/simlink/ghdl/RogueVhpiDirectRegistry.h`, which provides a
+  per-library positive integer handle registry, zero-initialized state
+  allocation, stable lookup, duplicate-port detection, explicit destroy, and
+  process-exit cleanup.
+- Converted every VHPIDIRECT update and getter in `RogueTcpStream`,
+  `RogueTcpMemory`, and `RogueSideBand` to take an instance handle.
+- Kept reset behavior compatible: a handle survives HDL reset, and port
+  validation/reservation occurs only after reset is deasserted.
+- Added a native lifecycle regression that creates, binds, destroys, and
+  recreates every model on the same endpoint pair.
+- Added a mixed-model GHDL regression with four Stream, two Memory, and two
+  SideBand instances in the same simulation.
+- Installed the already-declared `pyzmq` dependency in the local cocotb
+  virtual environment and generated this worktree's imported HDL source graph.
+
+Validation completed locally:
+
+- GHDL shared-library build passes with `-Wall` for all three models.
+- Existing raw VHPIDIRECT smoke tests pass for all three models.
+- Existing end-to-end wrapper regressions pass: 5 passed, 1 skipped.
+- Mixed multi-instance and destroy/rebind lifecycle regressions pass.
+- The three production VHPIDIRECT VHDL files pass VSG with zero violations.
+- The new mixed-model VHDL harness passes VSG with zero violations.
+- Full imported-source `make analysis` passes with the local virtual
+  environment's `vhdeps` on `PATH`.
+- The complete simlink suite passes serially and with CI work-stealing xdist:
+  the final macOS-safe runs report 10 passed, 3 skipped in both modes. Linux CI
+  retains the two intentional-abort checks (expected 12 passed, 1 skipped),
+  while macOS skips them to avoid system crash-reporter dialogs.
+
+Still required:
+
+- Confirm the Linux-only duplicate-port/invalid-handle abort checks in CI.
+- Review or compile the VCS/VHPI consumers to ensure no shared behavior
+  regressed; no shared transport-core behavior has changed so far.
+- Run GitHub CI and perform the final PR diff/review-thread audit.
 
 ## Existing Architecture
 
@@ -84,23 +132,21 @@ Each GHDL model architecture will:
 4. Treat handle zero as invalid and fail through a VHDL assertion if creation
    fails.
 
-The C side will map handles to dynamically allocated state objects. Handles
+The C side maps handles to dynamically allocated state objects. Handles
 must remain stable for the life of the elaborated VHDL instance. Creating a
 second live instance for the same model type and TCP port is an error because
 the sockets cannot bind the same port pair.
 
-Before applying this API to all three models, implement a focused Stream
-prototype to verify the exact GHDL ABI for an integer function return and an
-integer input argument on every supported GHDL backend used by CI. If that ABI
-probe fails, use the already-unique port number as the registry key and pass it
-to every update/getter call; do not return to a singleton global.
+The focused Stream prototype confirmed the exact GHDL ABI for an integer
+function return, integer input arguments, scalar returns, and composite vector
+returns before the API was applied to Memory and SideBand.
 
 ### State ownership
 
 Provide model-specific operations with equivalent behavior:
 
 ```text
-create(port) -> handle
+create() -> handle
 lookup(handle) -> state
 step(handle, inputs) -> outputs/status
 destroy(handle)
