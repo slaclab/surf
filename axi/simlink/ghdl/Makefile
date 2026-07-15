@@ -19,7 +19,13 @@ CC     := gcc
 # -I../shared resolves the shared RogueTcp*Core.h headers that both this GHDL
 # backend and the VHPI (vcs) backend include; gcc searches the including
 # file's own dir first, so the ghdl/ RogueTcp*.h still take precedence.
-CFLAGS := -Wall -fPIC -I../shared $(shell pkg-config --cflags libzmq)
+# -MMD -MP emits a per-module build/<name>.d listing every user header the .so
+# was compiled through (local RogueTcp*.h, RogueVhpiDirect.h, and the shared
+# ../shared/RogueTcp*Core.h). The -include below feeds those back as
+# prerequisites so editing any header forces a rebuild; without it the rule
+# tracks only the .c, a header-only edit leaves a stale .so in place, and
+# pytest picks up the old library (false-green local runs).
+CFLAGS := -Wall -fPIC -MMD -MP -I../shared $(shell pkg-config --cflags libzmq)
 LFLAGS := $(shell pkg-config --libs libzmq)
 
 BUILD_DIR := build
@@ -32,6 +38,10 @@ $(BUILD_DIR):
 
 $(BUILD_DIR)/lib%.so: %.c | $(BUILD_DIR)
 	$(CC) -shared -fPIC $(CFLAGS) $< -o $@ $(LFLAGS)
+
+# Pull in the auto-generated header dependency files (absent on the first
+# build, so the wildcard keeps -include a no-op until they exist).
+-include $(wildcard $(BUILD_DIR)/*.d)
 
 clean:
 	rm -rf $(BUILD_DIR)
