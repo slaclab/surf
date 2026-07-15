@@ -184,12 +184,13 @@ int RogueTcpMemoryRecv(RogueTcpMemoryData *data) {
                MEM_U32_BYTES_C);
 
         // Validate the peer-declared size before it is trusted below. It must
-        // fit the fixed data[MAX_DATA] buffer, and it must be a whole number of
-        // 32-bit words: the AXI-Lite FSM advances curr four bytes per beat and
-        // finishes only when curr == size, so a non-word-sized request would
-        // overrun data[] (curr steps past size) and never terminate.
-        if ( (data->size > MAX_DATA) || ((data->size % MEM_U32_BYTES_C) != 0) ) {
-            vhpi_assert("RogueTcpMemory: Transaction size invalid (exceeds MAX_DATA or not 32-bit word aligned)", vhpiFatal);
+        // fit the fixed data[MAX_DATA] buffer, and it must contain a nonzero
+        // whole number of 32-bit words: the AXI-Lite FSM advances curr four
+        // bytes per beat and finishes only when curr == size, so a zero or
+        // non-word-sized request would overrun data[] and never terminate.
+        if ( (data->size == 0) || (data->size > MAX_DATA) ||
+             ((data->size % MEM_U32_BYTES_C) != 0) ) {
+            vhpi_assert("RogueTcpMemory: Transaction size invalid (zero, exceeds MAX_DATA, or not 32-bit word aligned)", vhpiFatal);
             RogueTcpMemoryCloseMsgs(msg, MEM_WRITE_REQ_FRAMES_C);
             return 0;
         }

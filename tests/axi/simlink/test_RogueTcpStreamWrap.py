@@ -32,7 +32,9 @@
 #
 # Exercises the stream round trip in both directions, cocotbext.axi binding
 # the flat wrapper's S_AXIS/M_AXIS scalar buses, and the separate-process
-# Rogue-TCP peer protocol for RogueTcpStreamWrap.
+# Rogue-TCP peer protocol for RogueTcpStreamWrap. A standalone C harness also
+# checks the MAX_FRAME boundary with trailing unkept lanes without simulating
+# a 20 MB AXI Stream frame cycle by cycle.
 
 import json
 from pathlib import Path
@@ -50,7 +52,9 @@ from tests.common.regression_utils import run_surf_vhdl_test
 
 HERE = Path(__file__).resolve().parent
 GHDL_DIR = Path(__file__).resolve().parents[3] / "axi" / "simlink" / "ghdl"
+SHARED_DIR = Path(__file__).resolve().parents[3] / "axi" / "simlink" / "shared"
 SIM_BUILD = HERE / "sim_build_RogueTcpStreamWrap"
+STREAM_BOUNDARY_HARNESS = SIM_BUILD / "stream_max_frame_harness"
 
 CLK_PERIOD_NS = 10
 RST_EDGES = 2
@@ -210,3 +214,24 @@ def test_RogueTcpStreamWrap():
         },
         sim_build_key=str(SIM_BUILD),
     )
+
+
+def test_RogueTcpStream_max_frame_sparse_tail():
+    SIM_BUILD.mkdir(parents=True, exist_ok=True)
+
+    cflags = subprocess.run(
+        ["pkg-config", "--cflags", "libzmq"], check=True, capture_output=True, text=True
+    ).stdout.split()
+    libs = subprocess.run(
+        ["pkg-config", "--libs", "libzmq"], check=True, capture_output=True, text=True
+    ).stdout.split()
+
+    subprocess.run(
+        [
+            "gcc", "-Wall", "-g", f"-I{GHDL_DIR}", f"-I{SHARED_DIR}", *cflags,
+            str(HERE / "stream_max_frame_harness.c"),
+            "-o", str(STREAM_BOUNDARY_HARNESS), *libs,
+        ],
+        check=True,
+    )
+    subprocess.run([str(STREAM_BOUNDARY_HARNESS)], check=True)
