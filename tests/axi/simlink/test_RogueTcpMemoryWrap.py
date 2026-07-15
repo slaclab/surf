@@ -36,10 +36,12 @@
 
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
 import cocotb
+import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 from cocotbext.axi import AxiLiteBus, AxiLiteRam
@@ -155,6 +157,10 @@ def test_RogueTcpMemoryWrap():
     )
 
 
+@pytest.mark.skipif(
+    sys.platform != "linux" or shutil.which("valgrind") is None,
+    reason="uninitialized-read reproduction is Linux-only and needs valgrind on PATH",
+)
 def test_RogueTcpMemory_uninitialized_read():
     # Standalone (non-cocotb) reproduction of the bug: on a 4-frame memory
     # read request, RogueTcpMemoryRecv() never receives a 5th data frame, so
