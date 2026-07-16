@@ -29,16 +29,41 @@ established transport behavior.
   `989731d754e729d3866308e7529c0c2842a73695`; its current documentation head
   is `8d845e696`.
 
-Before implementation, rebase `cosim-xsim` onto the latest accepted pull
-request 1450 head or the descendant where pull request 1450 is merged. Retain
-the xsim backend-selection work while accepting the completed shared-core
-bounds fixes, tagged peer vectors, per-instance ownership precedent, and
-VHPIDIRECT lifecycle tests.
+Pull request 1452 is stacked because it depends on pull request 1450's early
+simlink backend split and shared C cores, but the xsim implementation does not
+depend on pull request 1450's later GHDL handle registry or lifecycle commits.
+Do not rebase onto the latest pull request 1450 head solely to implement this
+work. Keep the pull requests stacked while 1450 is open; after 1450 merges,
+retarget 1452 to `pre-release` and resolve only real integration conflicts.
 
 The current local environment does not expose `xsc`, `xvlog`, or `xsim`.
 The DPI ABI and end-to-end xsim milestones therefore require a Vivado-enabled
-environment. GHDL regressions and source/lint checks can run locally after the
-rebase.
+environment. Native C ownership tests and source/lint checks can run locally.
+
+## Implementation Status
+
+- Per-instance `chandle` ownership, model-tag validation, cross-model port-pair
+  reservation, explicit destroy, and process-exit cleanup are implemented for
+  Stream, Memory, and SideBand.
+- A native adapter regression creates four Stream, two Memory, and two
+  SideBand contexts concurrently and exchanges isolated tagged traffic through
+  real ZeroMQ peers. It also covers destroy/rebind, null and wrong-model
+  contexts, changed ports, and overlapping pairs.
+- A Vivado-gated mixed-language regression elaborates the same eight-instance
+  topology, pulses reset twice, checks duplicate-pair failure, and runs the
+  `xelab -dpiheader` ABI check. It skips explicitly when Vivado tools are not
+  available.
+- The public README now references only checked-in files and documents the
+  unique-pair and connected-and-draining peer requirements.
+- Local focused validation reports four native tests passed and two
+  Vivado-gated tests skipped. Warning-enabled C compilation, Python lint, VSG,
+  direct GHDL analysis of the xsim VHDL harness, and `git diff --check` pass.
+- The complete local simlink run reports four passed, two skipped, and seven
+  pre-existing macOS GHDL launch failures: `dyld` cannot resolve the staged
+  relative `build/libRogue*.so` install names. Those failures do not reach the
+  changed xsim path.
+- Actual `xsc`/`xelab`/`xsim` execution still must be recorded in a
+  Vivado-enabled environment before merge.
 
 ## Review Findings and Disposition
 
@@ -57,10 +82,11 @@ leaf calls the same exported function, so instances share protocol state,
 frame buffers, sockets, and the first bound port. The current different-port
 guards only turn that corruption into an intentional abort.
 
-Disposition: implement an explicit per-instance API for all three models and
-add active mixed-model xsim coverage. Although the first planning pass focused
-on Stream, resolving the posted review finding requires Memory and SideBand as
-well.
+Disposition: implement an explicit per-instance API for all three models, add
+an eight-instance mixed-language xsim regression, and exercise active isolated
+transport through the same C adapters in a host-native regression. Although
+the first planning pass focused on Stream, resolving the posted review finding
+requires Memory and SideBand as well.
 
 ### 2. Documented demos do not exist
 
@@ -124,8 +150,8 @@ This plan covers:
   for per-edge integer-handle dispatch.
 - Port reservation, invalid-context checks, normal shutdown, and process-exit
   cleanup.
-- Active mixed-model xsim coverage with at least four Stream instances and
-  two each of Memory and SideBand.
+- Mixed-language xsim coverage with at least four Stream instances and two
+  each of Memory and SideBand, plus active mixed-model adapter traffic.
 - Repeated reset, duplicate-port, wrong-model-context, and lifecycle tests.
 - Runnable xsim documentation based only on files checked into SURF.
 - Documentation of the existing connected-and-draining peer requirement.
@@ -334,19 +360,19 @@ Use the checked-in xsim regression harness as the runnable example. Document:
 
 ## Implementation Milestones
 
-### 1. Rebase and establish a green baseline
+### 1. Establish the dependency boundary and baseline
 
-- Rebase onto the completed pull request 1450 head or merged descendant.
-- Resolve `axi/simlink/ruckus.tcl` by retaining all three backend choices and
-  xsim stale-source cleanup.
-- Retain the xsim combined-library build and accept pull request 1450's
-  shared-core and test changes.
-- Run the complete GHDL simlink suite before new ownership work.
+- Keep the original pull request 1452 history based on the early shared-core
+  foundation.
+- Use pull request 1450's completed ownership/lifecycle work as design and test
+  reference material without importing its later commits.
+- Confirm the current single-instance xsim source and existing simlink tests
+  are the behavioral baseline.
 
 Exit criteria:
 
-- The branch contains both completed VHPIDIRECT support and the xsim backend.
-- Existing single-, multi-instance, bounds, and lifecycle GHDL tests pass.
+- The xsim change remains independently reviewable from later GHDL work.
+- The branch relationship and eventual post-1450 retargeting are documented.
 - Shared transport semantics remain unchanged.
 
 ### 2. Prove the xsim DPI `chandle` ABI
@@ -384,17 +410,19 @@ Exit criteria:
   changed ports fail clearly.
 - Existing one-instance xsim behavior remains compatible.
 
-### 4. Add mixed-model xsim regressions
+### 4. Add mixed-model regressions
 
-Port the active VHPIDIRECT mixed-model strategy to xsim:
+Split coverage at the simulator boundary so the transport behavior remains
+executable without a Vivado license while xsim-specific ABI/elaboration is
+still tested by xsim:
 
-- Four Stream instances exchange uniquely tagged frames in both directions.
-- Two Memory instances perform independent tagged write/read transactions.
-- Two SideBand instances exchange independent tagged events.
-- All eight instances run concurrently in one xsim process.
-- Repeated reset after socket initialization preserves contexts and port
-  ownership.
-- `RogueTcpStreamWrap(CHAN_COUNT_G => 4)` elaborates and advances.
+- The native adapter regression keeps four Stream, two Memory, and two
+  SideBand contexts live concurrently while exchanging uniquely tagged
+  bidirectional Stream frames, independent Memory write/read transactions,
+  and independent SideBand events.
+- The xsim regression elaborates all eight corresponding VHDL/SV leaves in one
+  process on distinct pairs, pulses reset again after socket initialization,
+  and finishes normally.
 - Native create/destroy/recreate proves same-port reuse.
 - Negative tests cover null/wrong-model contexts and overlapping live port
   pairs.
@@ -407,9 +435,11 @@ xsim coverage.
 
 Exit criteria:
 
-- The active test fails against the singleton baseline and passes with the
-  per-instance context design.
+- The active native test fails against the singleton baseline and passes with
+  the per-instance context design.
 - Every peer receives only its own tagged traffic.
+- The actual xsim topology proves per-leaf context retention, repeated reset,
+  unique socket ownership, and duplicate-port rejection.
 - Repeated and serial runs release ports and leave no simulator or peer
   processes behind.
 
@@ -465,7 +495,8 @@ Prepare responses for the unresolved threads:
 
 Exit criteria:
 
-- Focused xsim ownership, active traffic, reset, and lifecycle tests pass.
+- Focused native ownership/active-traffic/lifecycle tests and xsim
+  ABI/elaboration/reset tests pass.
 - The complete GHDL simlink suite passes serially and with CI xdist settings.
 - Every unresolved review finding has code/documentation evidence or a
   technically supported scope response ready for re-review.
@@ -495,8 +526,9 @@ interfaces should remain unchanged in this pull request.
 
 - **Vivado DPI differences:** Prove `chandle` returns, per-module storage,
   generated-header conformance, and `final` behavior before generalizing.
-- **Stacked-branch conflicts:** Rebase first and do not duplicate or revert
-  pull request 1450's completed fixes.
+- **Stacked-branch conflicts:** Keep the original stacked history while pull
+  request 1450 is open; retarget after it merges and resolve only real
+  integration conflicts.
 - **Large Stream allocations:** Four Stream states consume substantial memory
   because each has two fixed `MAX_FRAME` buffers. Record xsim memory use;
   dynamic payload allocation is separate work unless testing shows the current
@@ -540,19 +572,18 @@ and active connected-peer regressions.
 
 The work is complete when:
 
-1. Four xsim Stream, two Memory, and two SideBand instances exchange active,
-   isolated traffic in one simulation.
-2. `RogueTcpStreamWrap(CHAN_COUNT_G => 4)` elaborates and advances under
-   xsim.
-3. Contexts and reserved ports survive HDL reset; destroy permits same-port
+1. Four Stream, two Memory, and two SideBand adapters exchange active,
+   isolated traffic while the corresponding eight-instance mixed-language
+   topology elaborates and advances under xsim.
+2. Contexts and reserved ports survive HDL reset; destroy permits same-port
    reuse.
-4. Null/wrong-model contexts and overlapping live port pairs fail clearly.
-5. Every README command and referenced example file exists and runs in the
+3. Null/wrong-model contexts and overlapping live port pairs fail clearly.
+4. Every README command and referenced example file exists and runs in the
    documented environment.
-6. The README states the connected-and-draining peer contract and identifies
+5. The README states the connected-and-draining peer contract and identifies
    transport hardening as cross-backend follow-up work.
-7. Existing one-instance behavior, wire formats, shared transport semantics,
+6. Existing one-instance behavior, wire formats, shared transport semantics,
    public VHDL interfaces, and the complete GHDL simlink regression remain
    compatible.
-8. All three unresolved PR 1452 review threads have corresponding
+7. All three unresolved PR 1452 review threads have corresponding
    implementation evidence or a documented scope response ready for re-review.

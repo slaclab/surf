@@ -12,11 +12,12 @@
 // transport (RogueTcpMemoryRestart/Send/Recv) and the transaction FSM
 // (RogueTcpMemoryStep) live in axi/simlink/shared/RogueTcpMemoryCore.h,
 // included by every backend. This file provides only the DPI-specific
-// plumbing: a per-edge update function (rogueTcpMemoryUpdate) that copies the
-// DPI svBit/svBitVecVal parameters into the input snapshot, runs one FSM
-// step, and writes the outputs back through the DPI output pointers. Unlike
-// the GHDL VHPIDIRECT backend, every port here is <=32 bits, so each vector
-// argument is a single svBitVecVal word -- no encode/decode loop is needed.
+// plumbing: one C-owned state object per SystemVerilog DPI leaf, plus a
+// per-edge update function (rogueTcpMemoryUpdate) that copies the DPI
+// svBit/svBitVecVal parameters into the input snapshot, runs one FSM step, and
+// writes the outputs back through the DPI output pointers. Unlike the GHDL
+// VHPIDIRECT backend, every port here is <=32 bits, so each vector argument is
+// a single svBitVecVal word -- no encode/decode loop is needed.
 //////////////////////////////////////////////////////////////////////////////
 
 #include <zmq.h>
@@ -27,36 +28,43 @@
 #include <errno.h>
 
 #include "svdpi.h"
+#include "RogueDpiInstance.h"
 #include "RogueTcpMemory.h"
 #include "RogueTcpMemoryCore.h"
 
-// Single instance for this simulation; file-scope statics are zero-
-// initialized by C, replacing the src Init's malloc+memset.
-static RogueTcpMemoryData memoryData;
+static void rogueTcpMemoryCleanup(void *opaque) {
+    RogueTcpMemoryData *data = opaque;
+
+    if (data->zmqPush != NULL) zmq_close(data->zmqPush);
+    if (data->zmqPull != NULL) zmq_close(data->zmqPull);
+    if (data->zmqCtx  != NULL) zmq_ctx_term(data->zmqCtx);
+}
+
+void *rogueTcpMemoryCreate(void) {
+    return rogueDpiCreate(ROGUE_DPI_MEMORY_C,
+                          sizeof(RogueTcpMemoryData),
+                          rogueTcpMemoryCleanup);
+}
+
+void rogueTcpMemoryDestroy(void *context) {
+    (void)rogueDpiDestroy(context, ROGUE_DPI_MEMORY_C);
+}
 
 // Per-edge update function, called from the RogueTcpMemoryDpi SV leaf every
 // rising_edge(clock) via import "DPI-C". Copies each DPI parameter straight
 // into the input snapshot (the getInt seam), runs one shared FSM step, then
 // writes the outputs back through the DPI output pointers.
-void rogueTcpMemoryUpdate(unsigned char reset, const svBitVecVal *portNum,
-                           svBitVecVal *araddr, svBitVecVal *arprot, unsigned char *arvalid, unsigned char *rready,
-                           unsigned char arready, const svBitVecVal *rdata, const svBitVecVal *rresp, unsigned char rvalid,
-                           svBitVecVal *awaddr, svBitVecVal *awprot, unsigned char *awvalid,
-                           svBitVecVal *wdata, svBitVecVal *wstrb, unsigned char *wvalid, unsigned char *bready,
-                           unsigned char awready, unsigned char wready, const svBitVecVal *bresp, unsigned char bvalid) {
-    RogueTcpMemoryData *data = &memoryData;
+int rogueTcpMemoryUpdate(void *context, svBit reset, const svBitVecVal *portNum,
+                          svBitVecVal *araddr, svBitVecVal *arprot, svBit *arvalid, svBit *rready,
+                          svBit arready, const svBitVecVal *rdata, const svBitVecVal *rresp, svBit rvalid,
+                          svBitVecVal *awaddr, svBitVecVal *awprot, svBit *awvalid,
+                          svBitVecVal *wdata, svBitVecVal *wstrb, svBit *wvalid, svBit *bready,
+                          svBit awready, svBit wready, const svBitVecVal *bresp, svBit bvalid) {
+    RogueTcpMemoryData *data = rogueDpiGetData(context, ROGUE_DPI_MEMORY_C);
     unsigned int reqPort = portNum[0] & 0xFFFF;
 
-    // DPI-C imports carry no per-instance context, so this backend hosts a
-    // single global memoryData and supports only one RogueTcpMemory per
-    // simulation. A second instance would otherwise silently share this
-    // state and bind only the first port. Fail fast once a different,
-    // already-latched port is observed rather than corrupt state.
-    if ( data->port != 0 && reqPort != 0 && reqPort != data->port ) {
-        vhpi_printf("RogueTcpMemory: Vivado xsim DPI-C backend supports only one instance per simulation; observed ports %u and %u\n", data->port, reqPort);
-        vhpi_assert("RogueTcpMemory: multiple instances unsupported under Vivado xsim DPI-C", vhpiFatal);
-        return;
-    }
+    if (data == NULL) return 0;
+    if (!reset && !rogueDpiReservePort(context, ROGUE_DPI_MEMORY_C, reqPort)) return 0;
 
     data->inSnap[s_reset]   = reset ? 1 : 0;
     data->inSnap[s_port]    = reqPort;
@@ -69,9 +77,9 @@ void rogueTcpMemoryUpdate(unsigned char reset, const svBitVecVal *portNum,
     data->inSnap[s_bresp]   = bresp[0];
     data->inSnap[s_bvalid]  = bvalid ? 1 : 0;
 
-    // RogueTcpMemoryStep (shared FSM) calls RogueTcpMemoryRecv, which uses
-    // ZMQ_DONTWAIT -- never make this a blocking call, or it freezes the
-    // whole Vivado xsim process, not just a background thread.
+    // The shared step retains the established backend transport contract:
+    // receive polls with ZMQ_DONTWAIT, while responses are sent synchronously
+    // after the peer is connected and draining.
     RogueTcpMemoryStep(data);
 
     araddr[0]  = data->outState[s_araddr];
@@ -85,4 +93,5 @@ void rogueTcpMemoryUpdate(unsigned char reset, const svBitVecVal *portNum,
     wstrb[0]   = data->outState[s_wstrb];
     *wvalid    = data->outState[s_wvalid]  ? 1 : 0;
     *bready    = data->outState[s_bready]  ? 1 : 0;
+    return 1;
 }

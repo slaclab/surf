@@ -11,8 +11,9 @@
 // SV DPI leaf for the Rogue-TCP AXI-Stream model under Vivado xsim. Ports stay
 // logic-typed for clean VHDL interop; only the DPI import's formal arguments
 // are 2-state bit/bit-vector (SV auto-narrows 4-state logic to 2-state bit at
-// the call site). Drives the DPI-C adapter (RogueTcpStream.c) once per rising
-// clock edge, mirroring the GHDL backend's per-edge update process.
+// the call site). Each elaborated leaf retains its own DPI chandle and drives
+// the corresponding C-owned model once per rising clock edge, mirroring the
+// GHDL backend's per-instance update process.
 //////////////////////////////////////////////////////////////////////////////
 
 module RogueTcpStreamDpi (
@@ -40,8 +41,11 @@ module RogueTcpStreamDpi (
    input  logic        ibLast
 );
 
-   import "DPI-C" function void rogueTcpStreamUpdate
-     (input  bit        reset,
+   import "DPI-C" function chandle rogueTcpStreamCreate();
+   import "DPI-C" function void rogueTcpStreamDestroy(input chandle handle);
+   import "DPI-C" function int rogueTcpStreamUpdate
+     (input  chandle    handle,
+      input  bit        reset,
       input  bit [15:0] portNum,
       input  bit        ssi,
       input  bit        obReady,
@@ -61,10 +65,23 @@ module RogueTcpStreamDpi (
       input  bit [7:0]  ibKeep,
       input  bit        ibLast);
 
-   always_ff @(posedge clock) begin
-      rogueTcpStreamUpdate(reset, portNum, ssi, obReady,
-                            obValid, obDataLow, obDataHigh, obUserLow, obUserHigh, obKeep, obLast,
-                            ibValid, ibReady, ibDataLow, ibDataHigh, ibUserLow, ibUserHigh, ibKeep, ibLast);
+   chandle handle = null;
+
+   always @(posedge clock) begin
+      if (handle == null) begin
+         handle = rogueTcpStreamCreate();
+         if (handle == null) $fatal(1, "%m: rogueTcpStreamCreate failed");
+      end
+
+      if (!rogueTcpStreamUpdate(handle, reset, portNum, ssi, obReady,
+                                obValid, obDataLow, obDataHigh, obUserLow, obUserHigh, obKeep, obLast,
+                                ibValid, ibReady, ibDataLow, ibDataHigh, ibUserLow, ibUserHigh, ibKeep, ibLast)) begin
+         $fatal(1, "%m: rogueTcpStreamUpdate failed");
+      end
+   end
+
+   final begin
+      if (handle != null) rogueTcpStreamDestroy(handle);
    end
 
 endmodule

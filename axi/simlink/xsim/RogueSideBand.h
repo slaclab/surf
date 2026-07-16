@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "svdpi.h"
+
 // Signals
 #define s_clock        0
 #define s_reset        1
@@ -68,6 +70,14 @@ typedef struct {
     void *    zmqPull;
     void *    zmqPush;
 } RogueSideBandData;
+
+// Vivado xsim DPI-C instance lifecycle and per-edge update
+void *rogueSideBandCreate(void);
+void rogueSideBandDestroy(void *context);
+int rogueSideBandUpdate(void *context, svBit reset, const svBitVecVal *portNum,
+                        const svBitVecVal *txOpCode, svBit txOpCodeEn,
+                        const svBitVecVal *txRemData, svBitVecVal *rxOpCode,
+                        svBit *rxOpCodeEn, svBitVecVal *rxRemData);
 
 // Start/restart zeromq server
 void RogueSideBandRestart(RogueSideBandData *data);

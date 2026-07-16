@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "svdpi.h"
+
 // Signals
 #define s_clock        0
 #define s_reset        1
@@ -96,6 +98,16 @@ typedef struct {
     void *     zmqPull;
     void *     zmqPush;
 } RogueTcpMemoryData;
+
+// Vivado xsim DPI-C instance lifecycle and per-edge update
+void *rogueTcpMemoryCreate(void);
+void rogueTcpMemoryDestroy(void *context);
+int rogueTcpMemoryUpdate(void *context, svBit reset, const svBitVecVal *portNum,
+                         svBitVecVal *araddr, svBitVecVal *arprot, svBit *arvalid, svBit *rready,
+                         svBit arready, const svBitVecVal *rdata, const svBitVecVal *rresp, svBit rvalid,
+                         svBitVecVal *awaddr, svBitVecVal *awprot, svBit *awvalid,
+                         svBitVecVal *wdata, svBitVecVal *wstrb, svBit *wvalid, svBit *bready,
+                         svBit awready, svBit wready, const svBitVecVal *bresp, svBit bvalid);
 
 // Start/restart zeromq server
 void RogueTcpMemoryRestart(RogueTcpMemoryData *data);

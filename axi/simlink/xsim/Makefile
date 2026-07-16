@@ -10,17 +10,16 @@
 # xsc-based build (Vivado xsim DPI-C), re-targeted from ghdl/Makefile's
 # gcc -shared -fPIC + pkg-config libzmq pattern to the xsc two-step compile/
 # link flow. Builds the combined RogueTcpDpi.so from every module's DPI-C
-# adapter (RogueTcpStream.c, RogueTcpMemory.c, RogueSideBand.c); a single
-# "-sv_lib RogueTcpDpi" binds all of them. Each adapter keeps its own
-# file-scope static data and name-prefixed
-# functions, so linking them into one .so has no symbol collisions. The
-# file is named RogueTcpDpi.so (no "lib" prefix): xelab's "-sv_lib
+# adapter plus the shared per-instance ownership manager; a single
+# "-sv_lib RogueTcpDpi" binds all of them. The file is named RogueTcpDpi.so
+# (no "lib" prefix): xelab's "-sv_lib
 # RogueTcpDpi" resolves the DPI library as <name>.so, not lib<name>.so
 # (per UG900). xsc stages its compiled object under its own implicit
 # ./xsim.dir/work/xsc/ directory (no BUILD_DIR indirection like GHDL/VCS use).
 ##############################################################################
 
 CC     := xsc
+ELAB   := xelab
 # -I../shared resolves the shared RogueTcp*Core.h headers that every backend
 # includes; xsc's underlying gcc searches the including file's own dir
 # first, so the xsim/ RogueTcp*.h still take precedence. svdpi.h is
@@ -37,16 +36,32 @@ MULTIARCH_DIR := $(dir $(shell gcc -print-file-name=crti.o))
 LFLAGS := $(shell pkg-config --libs libzmq) -B$(MULTIARCH_DIR) -L$(MULTIARCH_DIR)
 
 LIB := RogueTcpDpi.so
+SOURCES := RogueDpiInstance.c RogueTcpStream.c RogueTcpMemory.c RogueSideBand.c
+HEADERS := RogueDpiInstance.h RogueTcpStream.h RogueTcpMemory.h RogueSideBand.h \
+           ../shared/RogueTcpStreamCore.h ../shared/RogueTcpMemoryCore.h \
+           ../shared/RogueSideBandCore.h
+SV_SOURCES := RogueTcpStreamDpi.sv RogueTcpMemoryDpi.sv RogueSideBandDpi.sv
+ABI_HEADER := xsim.dir/RogueTcpDpi.generated.h
 
 all: $(LIB)
 
-$(LIB): RogueTcpStream.c RogueTcpMemory.c RogueSideBand.c
+$(LIB): $(SOURCES) $(HEADERS)
+	$(CC) -c RogueDpiInstance.c -gcc_compile_options "$(CFLAGS)"
 	$(CC) -c RogueTcpStream.c -gcc_compile_options "$(CFLAGS)"
 	$(CC) -c RogueTcpMemory.c -gcc_compile_options "$(CFLAGS)"
 	$(CC) -c RogueSideBand.c -gcc_compile_options "$(CFLAGS)"
 	$(CC) --shared -o $(LIB) -gcc_link_options "$(LFLAGS)"
 
-clean:
-	rm -rf xsim.dir xsc.pb xsc.log $(LIB)
+$(ABI_HEADER): $(SV_SOURCES)
+	mkdir -p $(dir $@)
+	$(ELAB) -dpiheader $@ -svlog $(SV_SOURCES)
 
-.PHONY: all clean
+abi-check: $(ABI_HEADER) $(SOURCES) $(HEADERS)
+	$(CC) -c RogueTcpStream.c -gcc_compile_options "$(CFLAGS) -include $(abspath $(ABI_HEADER))"
+	$(CC) -c RogueTcpMemory.c -gcc_compile_options "$(CFLAGS) -include $(abspath $(ABI_HEADER))"
+	$(CC) -c RogueSideBand.c -gcc_compile_options "$(CFLAGS) -include $(abspath $(ABI_HEADER))"
+
+clean:
+	rm -rf xsim.dir xsc.pb xsc.log xelab.pb xelab.log xelab.jou $(LIB)
+
+.PHONY: all abi-check clean

@@ -5,24 +5,56 @@ This directory holds three interchangeable Rogue co-simulation backends -- GHDL/
 ## Prerequisites
 
 - `libzmq >= 4.1.0` -- check with `pkg-config --modversion libzmq`.
-- A Rogue-environment shell for the peer scripts (they `import pyrogue` / `import rogue`).
+- Vivado simulator tools (`xsc`, `xvlog`, `xvhdl`, `xelab`, and `xsim`) for
+  the xsim backend.
+- A compatible Rogue or ZeroMQ peer for the selected Stream, Memory, or
+  SideBand wire protocol.
 
 ## Running the Vivado xsim Co-Simulation
 
-1. Run `make gui` from the target directory. Ruckus auto-detects whichever of `RogueTcpStream.vhd`, `RogueTcpMemory.vhd`, or `RogueSideBand.vhd` is present in the sim sources, builds the combined `RogueTcpDpi.so` via `xsc`, and binds it with a single `-sv_lib RogueTcpDpi` -- no manual build step is required.
-2. Watch the Tcl/GUI console for the `xsc` build completing and, after `launch_simulation` / `run`, the module's `Listening on ports N & N+1` message -- that print is the ready-for-peer signal.
-3. In a separate terminal, start the matching Rogue-side driver script against that module's port.
-4. Watch the waveform -- data movement between the DPI adapter and the peer confirms the round trip.
+An external target must provide a simulation top containing one or more
+`RogueTcpStream`, `RogueTcpMemory`, `RogueSideBand`, or corresponding SURF
+wrapper instances. It must drive clock/reset, assign a distinct two-port pair
+to every live instance, and provide a peer that implements the matching wire
+protocol. The first instance uses `portNum` and `portNum+1`; a subsequent
+instance must therefore start at least two ports higher.
 
-| Module | Demo TB | Ports | Peer script |
-|--------|---------|-------|-------------|
-| RogueTcpStream | `RogueTcpStreamXsimDemoTb` | 9000 (push on 9001) | `prbsLoopbackDemo.py` |
-| RogueTcpMemory | `RogueTcpMemoryXsimDemoTb` | 9100 (push on 9101) | `axiVersionMemoryDemo.py` |
-| RogueSideBand | `RogueSideBandXsimDemoTb` | 9200 (push on 9201) | `sideBandDemo.py` |
+From a target using the standard ruckus simulation flow, run `make gui` or the
+target's xsim make target. `axi/simlink/ruckus.tcl` selects `xsim/`, the build
+creates the combined `RogueTcpDpi.so`, and elaboration binds it once with
+`-sv_lib RogueTcpDpi`. After reset is released, each instance prints its
+`Listening on ports N & N+1` message.
 
-## Selecting a Module
+The transport preserves the long-standing VCS/GHDL operating contract:
+connect the peer and keep it draining before HDL produces outbound messages.
+Simulator-thread receive is nonblocking, but send retains the existing
+synchronous ZeroMQ behavior across all three backends.
 
-Vivado elaborates one top per simulation fileset, so switching which module's demo runs is a single manual step: in the target's `ruckus.tcl`, comment/uncomment the desired `set_property top {...XsimDemoTb}` line, then run `make gui` again. This is the only manual step when switching between modules -- the DPI build and `-sv_lib` binding stay identical regardless of which module is selected.
+## Checked-In xsim Example
+
+The repository's runnable example is the focused multi-instance regression:
+
+- `tests/axi/simlink/RogueXsimMultiTb.vhd` instantiates four Stream, two
+  Memory, and two SideBand models concurrently.
+- `tests/axi/simlink/test_RogueXsimMulti.py` builds the DPI library, checks the
+  generated DPI-C prototypes, compiles the mixed-language design, runs xsim,
+  and verifies duplicate-port rejection.
+
+The standalone DPI library and ABI check can be built with:
+
+```bash
+make -C axi/simlink/xsim all abi-check
+```
+
+Run it from the repository root in a Vivado-enabled shell:
+
+```bash
+./.venv/bin/python -m pytest -q -n 0 tests/axi/simlink/test_RogueXsimMulti.py
+```
+
+The test skips with an explicit reason when Vivado simulator tools are not on
+`PATH`. The protocol codecs and deterministic ZeroMQ peer used by the broader
+simlink regressions are in `tests/axi/simlink/rogue_tcp_peer.py`.
 
 ## Troubleshooting
 
