@@ -16,7 +16,8 @@
 # - Checks: Both create calls return positive distinct handles and the second
 #   bind succeeds. Isolated child processes must abort on a duplicate live port
 #   and an invalid handle, proving those errors fail clearly without killing
-#   the pytest controller.
+#   the pytest controller. On Linux, a standalone lifecycle executable runs
+#   under Valgrind and fails on definite or indirect native leaks.
 # - Timing: No peer connects and all receive paths are nonblocking.
 
 import ctypes
@@ -25,6 +26,8 @@ import os
 from pathlib import Path
 import resource
 import signal
+import shutil
+import subprocess
 import sys
 
 import pytest
@@ -33,6 +36,8 @@ from tests.axi.simlink.simlink_test_utils import build_and_stage_so
 
 GHDL_DIR = Path(__file__).resolve().parents[3] / "axi" / "simlink" / "ghdl"
 SIM_BUILD = Path(__file__).resolve().parent / "sim_build_RogueVhpiDirectLifecycle"
+VALGRIND_HARNESS = SIM_BUILD / "vhpi_direct_lifecycle_harness"
+VALGRIND_HARNESS_SOURCE = Path(__file__).resolve().parent / "vhpi_direct_lifecycle_harness.c"
 
 STD_LOGIC_0 = 2
 PORTS = {
@@ -237,4 +242,40 @@ def test_vhpi_direct_rejects_invalid_handle(libraries):
     _assert_worker_aborts(
         _invalid_handle_worker,
         str(libraries["libRogueTcpStream.so"]),
+    )
+
+
+@pytest.mark.skipif(
+    sys.platform != "linux" or shutil.which("valgrind") is None,
+    reason="native lifecycle leak check is Linux-only and needs valgrind on PATH",
+)
+def test_vhpi_direct_lifecycle_valgrind(libraries):
+    subprocess.run(
+        [
+            "gcc",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            str(VALGRIND_HARNESS_SOURCE),
+            f"-L{SIM_BUILD}",
+            f"-Wl,-rpath,{SIM_BUILD}",
+            "-lRogueTcpStream",
+            "-lRogueTcpMemory",
+            "-lRogueSideBand",
+            "-o",
+            str(VALGRIND_HARNESS),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "valgrind",
+            "--tool=memcheck",
+            "--leak-check=full",
+            "--show-leak-kinds=definite,indirect",
+            "--errors-for-leak-kinds=definite,indirect",
+            "--error-exitcode=99",
+            str(VALGRIND_HARNESS),
+        ],
+        check=True,
     )

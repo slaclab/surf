@@ -74,7 +74,29 @@ STREAM_EXPECT_FRAMES = [
 ]
 
 
-def run_stream_peer(port, result_path):
+def stream_instance_vectors(tag):
+    return (
+        [{
+            "flags": 0,
+            "chan": 0,
+            "err": 0,
+            "data": bytes([0x10 + tag, 0x20 + tag, 0x30 + tag, 0x40 + tag]),
+        }],
+        [{
+            "flags": 0,
+            "chan": 0,
+            "err": 0,
+            "data": bytes([0x80 + tag, 0x90 + tag, 0xA0 + tag, 0xB0 + tag]),
+        }],
+    )
+
+
+def run_stream_peer(port, result_path, send_frames=None, expect_frames=None):
+    if send_frames is None:
+        send_frames = STREAM_SEND_FRAMES
+    if expect_frames is None:
+        expect_frames = STREAM_EXPECT_FRAMES
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -95,7 +117,7 @@ def run_stream_peer(port, result_path):
     reason = ""
 
     try:
-        for frame in STREAM_SEND_FRAMES:
+        for frame in send_frames:
             parts = encode_stream_frame(
                 frame["flags"], frame["chan"], frame["err"], frame["data"]
             )
@@ -109,7 +131,7 @@ def run_stream_peer(port, result_path):
                 }
             )
 
-        for expected in STREAM_EXPECT_FRAMES:
+        for expected in expect_frames:
             try:
                 parts = pull.recv_multipart()
             except zmq.error.Again:
@@ -275,7 +297,18 @@ MEM_TRANSACTIONS = [
 ]
 
 
-def run_memory_peer(port, result_path):
+def memory_instance_transactions(tag):
+    return [{
+        "addr": 0x00000100 + (tag * 0x10),
+        "size": 4,
+        "write_data": bytes([0x40 + tag, 0x50 + tag, 0x60 + tag, 0x70 + tag]),
+    }]
+
+
+def run_memory_peer(port, result_path, memory_transactions=None):
+    if memory_transactions is None:
+        memory_transactions = MEM_TRANSACTIONS
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -294,7 +327,7 @@ def run_memory_peer(port, result_path):
     txn_id = 0
 
     try:
-        for txn in MEM_TRANSACTIONS:
+        for txn in memory_transactions:
             # Write, then read back the same address/size and compare.
             for txn_type, write_data in (
                 (T_WRITE, txn["write_data"]),
@@ -398,7 +431,22 @@ SIDEBAND_TX_OPCODE = 0x5A
 SIDEBAND_TX_REMDATA = 0xC3
 
 
-def run_sideband_peer(port, result_path):
+def sideband_instance_vectors(tag):
+    peer_to_dut = [
+        {"opCodeEn": 1, "opCode": 0x20 + tag, "remDataChanged": 0, "remData": 0},
+        {"opCodeEn": 0, "opCode": 0, "remDataChanged": 1, "remData": 0x40 + tag},
+    ]
+    return peer_to_dut, 0x60 + tag, 0x70 + tag
+
+
+def run_sideband_peer(port, result_path, peer_to_dut=None, tx_opcode=None, tx_remdata=None):
+    if peer_to_dut is None:
+        peer_to_dut = SIDEBAND_PEER_TO_DUT
+    if tx_opcode is None:
+        tx_opcode = SIDEBAND_TX_OPCODE
+    if tx_remdata is None:
+        tx_remdata = SIDEBAND_TX_REMDATA
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -420,7 +468,7 @@ def run_sideband_peer(port, result_path):
 
     try:
         # Push the opcode + remData frames the DUT should surface on rx*.
-        for frame in SIDEBAND_PEER_TO_DUT:
+        for frame in peer_to_dut:
             push.send(
                 encode_sideband_frame(
                     frame["opCodeEn"], frame["opCode"], frame["remDataChanged"], frame["remData"]
@@ -453,10 +501,10 @@ def run_sideband_peer(port, result_path):
             if decoded["remDataChanged"] == 1 and got_remdata is None:
                 got_remdata = decoded["remData"]
 
-        if result == 0 and got_opcode != SIDEBAND_TX_OPCODE:
+        if result == 0 and got_opcode != tx_opcode:
             result = 1
             reason = f"peer: unexpected tx opcode, got {got_opcode!r}"
-        elif result == 0 and got_remdata != SIDEBAND_TX_REMDATA:
+        elif result == 0 and got_remdata != tx_remdata:
             result = 1
             reason = f"peer: unexpected tx remData, got {got_remdata!r}"
     finally:
@@ -474,7 +522,20 @@ def run_sideband_peer(port, result_path):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Rogue-TCP protocol peer")
-    parser.add_argument("--mode", choices=["stream", "stream-recv", "memory", "sideband"], required=True)
+    parser.add_argument(
+        "--mode",
+        choices=[
+            "stream",
+            "stream-recv",
+            "memory",
+            "sideband",
+            "stream-instance",
+            "memory-instance",
+            "sideband-instance",
+        ],
+        required=True,
+    )
+    parser.add_argument("--tag", type=int, default=0)
     parser.add_argument("port", type=int)
     parser.add_argument("result_path")
     args = parser.parse_args(argv)
@@ -487,6 +548,17 @@ def main(argv=None):
 
     if args.mode == "memory":
         return run_memory_peer(args.port, args.result_path)
+
+    if args.mode == "stream-instance":
+        send_frames, expect_frames = stream_instance_vectors(args.tag)
+        return run_stream_peer(args.port, args.result_path, send_frames, expect_frames)
+
+    if args.mode == "memory-instance":
+        return run_memory_peer(args.port, args.result_path, memory_instance_transactions(args.tag))
+
+    if args.mode == "sideband-instance":
+        peer_to_dut, tx_opcode, tx_remdata = sideband_instance_vectors(args.tag)
+        return run_sideband_peer(args.port, args.result_path, peer_to_dut, tx_opcode, tx_remdata)
 
     return run_sideband_peer(args.port, args.result_path)
 

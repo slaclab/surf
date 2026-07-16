@@ -53,8 +53,8 @@ This plan does not cover:
   are implemented for Stream, Memory, and SideBand.
 - A mixed VHPIDIRECT regression now elaborates four Stream, two Memory, and two
   SideBand instances concurrently on distinct endpoint pairs.
-- Remaining work is focused on reset/error-path coverage, full serial/xdist
-  validation, and final review rather than the original singleton architecture.
+- Multi-instance active-traffic and Linux Valgrind lifecycle coverage are now
+  implemented; final Linux CI confirmation and review remain.
 
 ## Implementation Progress
 
@@ -71,7 +71,12 @@ Completed locally:
 - Added a native lifecycle regression that creates, binds, destroys, and
   recreates every model on the same endpoint pair.
 - Added a mixed-model GHDL regression with four Stream, two Memory, and two
-  SideBand instances in the same simulation.
+  SideBand instances in the same simulation. Every instance now exchanges
+  uniquely tagged traffic with its own peer: bidirectional Stream frames,
+  independent Memory write/read transactions, and SideBand events.
+- Added a native lifecycle executable linked directly against all three model
+  libraries and a Linux-only Valgrind test that fails on definite or indirect
+  leaks while creating, binding, destroying, and recreating each model.
 - Installed the already-declared `pyzmq` dependency in the local cocotb
   virtual environment and generated this worktree's imported HDL source graph.
 
@@ -85,14 +90,19 @@ Validation completed locally:
 - The new mixed-model VHDL harness passes VSG with zero violations.
 - Full imported-source `make analysis` passes with the local virtual
   environment's `vhdeps` on `PATH`.
+- The native lifecycle executable compiles locally with
+  `-Wall -Wextra -Werror` and completes all bind/destroy/rebind cycles.
+- The active eight-instance traffic regression passes locally, and the focused
+  single-/multi-instance regression set reports 7 passed, 4 platform skips.
 - The complete simlink suite passes serially and with CI work-stealing xdist:
-  the final macOS-safe runs report 10 passed, 3 skipped in both modes. Linux CI
-  retains the two intentional-abort checks (expected 12 passed, 1 skipped),
-  while macOS skips them to avoid system crash-reporter dialogs.
+  the final macOS-safe runs report 10 passed, 4 platform skips in both modes.
+  Linux CI is expected to run all 14 tests, including the two intentional-abort
+  checks, the existing Memory Valgrind reproduction, and the new lifecycle
+  Valgrind check.
 
 Still required:
 
-- Confirm the Linux-only duplicate-port/invalid-handle abort checks in CI.
+- Confirm the new Linux-only Valgrind lifecycle check in CI.
 - Review or compile the VCS/VHPI consumers to ensure no shared behavior
   regressed; no shared transport-core behavior has changed so far.
 - Run GitHub CI and perform the final PR diff/review-thread audit.
@@ -106,10 +116,11 @@ The three simulator paths share the protocol and ZeroMQ state machines in:
 - `axi/simlink/shared/RogueSideBandCore.h`
 
 The VCS/VHPI backend allocates one model state object for every elaborated
-component and carries that pointer through VHPI callback user data. The GHDL
-VHPIDIRECT backend instead uses one file-scope static object per model type and
-zero-argument output getters. That makes multiple instances share state and
-bind only the first port.
+component and carries that pointer through VHPI callback user data. Before this
+work, the GHDL VHPIDIRECT backend instead used one file-scope static object per
+model type and zero-argument output getters, making multiple instances share
+state and bind only the first port. The implemented integer-handle registry now
+gives the GHDL path equivalent per-instance ownership.
 
 All backends currently execute the shared step function synchronously on the
 simulator thread. Receive operations are nonblocking, but send operations can
@@ -371,8 +382,18 @@ dependency or build rules.
   spanning VCS/VHPI, GHDL/VHPIDIRECT, and xsim/DPI.
 - No implementation or validation has been performed under this plan yet.
 
+### Multi-instance traffic and lifecycle leak coverage
+
+- Upgraded the mixed VHPIDIRECT harness from idle socket coexistence to tagged
+  active traffic on four Stream, two Memory, and two SideBand instances.
+- Retained repeated-reset coverage after all peer traffic completes.
+- Added a standalone native lifecycle harness so Valgrind measures the model
+  libraries without Python-interpreter allocations obscuring the result.
+- Kept intentional abort tests Linux-only to avoid macOS crash-reporter
+  dialogs; the Valgrind test is also Linux-only because Valgrind is unavailable
+  in the local macOS environment.
+
 ## Next Step
 
-Implement milestone 1 as a narrow Stream-only ABI prototype. Do not refactor
-Memory or SideBand until the integer-handle round trip works in a real GHDL
-VHPIDIRECT simulation with two Stream instances.
+Commit and push this follow-up so Linux CI executes the new Valgrind lifecycle
+check, then audit that result and the final PR diff.
