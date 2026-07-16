@@ -53,12 +53,14 @@ This plan does not cover:
   are implemented for Stream, Memory, and SideBand.
 - A mixed VHPIDIRECT regression now elaborates four Stream, two Memory, and two
   SideBand instances concurrently on distinct endpoint pairs.
-- Multi-instance active-traffic and Linux Valgrind lifecycle coverage are now
-  implemented; final Linux CI confirmation and review remain.
+- Multi-instance active-traffic and Linux Valgrind lifecycle coverage are
+  implemented and confirmed in GitHub CI.
+- Implementation status: complete. GitHub CI validated implementation head
+  `989731d754e729d3866308e7529c0c2842a73695`.
 
 ## Implementation Progress
 
-Completed locally:
+Implementation completed:
 
 - Added `axi/simlink/ghdl/RogueVhpiDirectRegistry.h`, which provides a
   per-library positive integer handle registry, zero-initialized state
@@ -96,16 +98,28 @@ Validation completed locally:
   single-/multi-instance regression set reports 7 passed, 4 platform skips.
 - The complete simlink suite passes serially and with CI work-stealing xdist:
   the final macOS-safe runs report 10 passed, 4 platform skips in both modes.
-  Linux CI is expected to run all 14 tests, including the two intentional-abort
+  Linux CI ran all 14 simlink tests, including the two intentional-abort
   checks, the existing Memory Valgrind reproduction, and the new lifecycle
   Valgrind check.
 
-Still required:
+Merge-readiness validation:
 
-- Confirm the new Linux-only Valgrind lifecycle check in CI.
-- Review or compile the VCS/VHPI consumers to ensure no shared behavior
-  regressed; no shared transport-core behavior has changed so far.
-- Run GitHub CI and perform the final PR diff/review-thread audit.
+- GitHub CI run
+  [29461564882](https://github.com/slaclab/surf/actions/runs/29461564882)
+  passed at head `989731d754e729d3866308e7529c0c2842a73695`: Linting,
+  Documentation, and Regression Tests all completed successfully.
+- The Linux regression reported 813 passed and 21 skipped. Both
+  `test_vhpi_direct_multi_instance_traffic` and
+  `test_vhpi_direct_lifecycle_valgrind` passed rather than being skipped.
+- The duplicate-live-port and invalid-handle abort-path tests also passed on
+  Linux.
+- The VCS/VHPI architecture and shared-core consumers were reviewed while
+  selecting the per-instance ownership design. VCS execution was not available
+  locally; this is an accepted validation limitation. The pull request
+  preserves the existing synchronous transport policy and wire formats.
+- The implementation diff and existing review threads have been audited. No
+  implementation work remains under this plan; normal branch-protection checks
+  and the repository's approving review remain as merge gates.
 
 ## Existing Architecture
 
@@ -393,7 +407,19 @@ dependency or build rules.
   dialogs; the Valgrind test is also Linux-only because Valgrind is unavailable
   in the local macOS environment.
 
-## Next Step
+### Final CI validation
 
-Commit and push this follow-up so Linux CI executes the new Valgrind lifecycle
-check, then audit that result and the final PR diff.
+- Confirmed the active eight-instance traffic test passes in Linux CI.
+- Confirmed the native Stream, Memory, and SideBand lifecycle harness passes
+  under Valgrind Memcheck without definite or indirect leaks.
+- Confirmed the complete regression, lint, and documentation jobs pass at the
+  tested implementation head.
+
+## Merge Handoff
+
+Pull request 1450 is implementation-complete and may merge after satisfying the
+normal branch-protection checks and required approving review. Do not fold
+transport hardening into this pull request. Carry the nonblocking/fail-fast
+characterization and implementation described above into a separate change
+spanning VCS/VHPI, GHDL/VHPIDIRECT, and xsim/DPI after pull request 1452
+converges on the shared cores.
