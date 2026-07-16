@@ -455,7 +455,9 @@ def test_dpi_instances_exchange_isolated_active_traffic(native_library):
         for tag, port, context, _, pull in stream_models:
             outbound = bytes([0x80 + tag] * 4)
             received = None
-            for cycle in range(10000):
+            cycle = 0
+            deadline = time.monotonic() + 5.0
+            while time.monotonic() < deadline:
                 result, valid, payload = _stream_cycle(
                     lib,
                     context,
@@ -463,9 +465,11 @@ def test_dpi_instances_exchange_isolated_active_traffic(native_library):
                     payload=outbound if cycle == 0 else b"",
                 )
                 assert result == 1
+                cycle += 1
                 if valid:
                     received = payload
                     break
+                time.sleep(0.001)
             assert received == bytes([0x10 + tag] * 4)
             assert decode_stream_frames(pull.recv_multipart())["data_hex"] == outbound.hex()
 

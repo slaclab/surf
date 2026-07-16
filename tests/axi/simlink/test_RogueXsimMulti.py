@@ -22,6 +22,7 @@
 #   simulator tools are not available on PATH.
 
 import fcntl
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -53,6 +54,37 @@ pytestmark = pytest.mark.skipif(
     any(shutil.which(tool) is None for tool in REQUIRED_TOOLS),
     reason="Vivado xsim multi-instance regression needs make/xsc/xvlog/xvhdl/xelab/xsim",
 )
+
+
+def _xsim_run_env():
+    """Return the environment for running xsim's DPI-linked snapshot.
+
+    Every Vivado release bundles its own (older) libstdc++ and puts it ahead of
+    the system libraries at run time. When the host libzmq was built against a
+    newer libstdc++ than Vivado's, xsimk fails to start with a "GLIBCXX_...
+    not found (required by libzmq.so.5)" loader error. Preloading the system
+    libstdc++ (located portably via gcc, matching the xsim Makefile's crti.o
+    lookup) resolves the newer symbols without affecting the build steps.
+    Harmless when Vivado's bundled libstdc++ is already new enough.
+    """
+    env = os.environ.copy()
+    try:
+        libstdcxx = subprocess.run(
+            ["gcc", "-print-file-name=libstdc++.so.6"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return env
+    # gcc prints the bare name back unchanged when it cannot resolve a path.
+    if not libstdcxx or not os.path.isfile(libstdcxx):
+        return env
+    preload = [libstdcxx]
+    if env.get("LD_PRELOAD"):
+        preload.append(env["LD_PRELOAD"])
+    env["LD_PRELOAD"] = os.pathsep.join(preload)
+    return env
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -107,6 +139,7 @@ def _run_top(top):
         capture_output=True,
         text=True,
         timeout=RUN_TIMEOUT_SECONDS,
+        env=_xsim_run_env(),
     )
 
 
@@ -119,5 +152,9 @@ def test_xsim_multi_instance_smoke():
 def test_xsim_rejects_duplicate_port_pair():
     result = _run_top("RogueXsimDuplicatePortTb")
     output = result.stdout + result.stderr
-    assert result.returncode != 0, output
-    assert "overlaps live RogueTcpStream port pair" in output
+    # xsim's $fatal exits 0 even in batch (-R) mode, so the return code cannot
+    # distinguish rejection from success. The port-pair guard must fire (the
+    # $fatal message is present) and the testbench's "not rejected" failure
+    # branch must never be reached.
+    assert "overlaps live RogueTcpStream port pair" in output, output
+    assert "Duplicate xsim port pair was not rejected" not in output, output

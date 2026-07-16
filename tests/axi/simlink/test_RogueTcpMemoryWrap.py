@@ -36,10 +36,12 @@
 
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
 import cocotb
+import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
 from cocotbext.axi import AxiLiteBus, AxiLiteRam
@@ -163,6 +165,8 @@ def test_RogueTcpMemory_uninitialized_read():
     # read overwrites the tainted bytes before any response is sent), so this
     # test links the unmodified C model into a narrow harness and watches it
     # under valgrind memcheck instead.
+    if shutil.which("valgrind") is None:
+        pytest.skip("uninitialised-read reproduction needs valgrind")
     SIM_BUILD.mkdir(parents=True, exist_ok=True)
 
     cflags = subprocess.run(

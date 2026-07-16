@@ -54,7 +54,7 @@ $(LIB): $(SOURCES) $(HEADERS)
 
 $(ABI_HEADER): $(SV_SOURCES)
 	mkdir -p $(dir $@)
-	$(ELAB) -dpiheader $@ -svlog $(SV_SOURCES)
+	$(ELAB) -dpiheader $@ $(foreach src,$(SV_SOURCES),-svlog $(src))
 
 abi-check: $(ABI_HEADER) $(SOURCES) $(HEADERS)
 	$(CC) -c RogueTcpStream.c -gcc_compile_options "$(CFLAGS) -include $(abspath $(ABI_HEADER))"
