@@ -73,6 +73,22 @@ def sideband_expect_for_tag(tag):
     return {"opCode": 0x60 + tag, "remData": 0x70 + tag}
 
 
+def stream_frame_is_foreign(decoded, tag):
+    """True if a decoded stream frame carries a Stream tag other than `tag`.
+
+    Foreign traffic reaching this peer means socket isolation between DPI
+    instances leaked. Only the four Stream tag families (0x80..0x83) are
+    considered; anything else is left to the normal payload check.
+    """
+    own = stream_dut_to_peer_payload(tag).hex()
+    if decoded.get("data_hex") == own:
+        return False
+    for other in range(4):
+        if other != tag and decoded.get("data_hex") == stream_dut_to_peer_payload(other).hex():
+            return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Stream protocol (RogueTcpStream.c RogueTcpStreamSend/Recv): 4-frame
 # message -- [flags (2B LE u16), chan (1B), err (1B), data (variable)].
@@ -118,7 +134,7 @@ STREAM_EXPECT_FRAMES = [
 ]
 
 
-def run_stream_peer(port, result_path):
+def run_stream_peer(port, result_path, tag=None):
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -133,13 +149,25 @@ def run_stream_peer(port, result_path):
     push.connect(f"tcp://127.0.0.1:{port}")
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
 
+    # Untagged: the fixed single-instance vectors. Tagged: the per-instance
+    # tag family, with foreign-tag rejection enabled on the receive side.
+    if tag is None:
+        send_frames = STREAM_SEND_FRAMES
+        expected_hex = [frame["data"].hex() for frame in STREAM_EXPECT_FRAMES]
+    else:
+        send_frames = [
+            {"flags": 0x0000, "chan": 0x00, "err": 0x00, "data": stream_peer_to_dut_payload(tag)}
+            for _ in range(STREAM_TAG_FRAME_COUNT)
+        ]
+        expected_hex = [stream_dut_to_peer_payload(tag).hex()] * STREAM_TAG_FRAME_COUNT
+
     sent = []
     received = []
     result = 0
     reason = ""
 
     try:
-        for frame in STREAM_SEND_FRAMES:
+        for frame in send_frames:
             parts = encode_stream_frame(
                 frame["flags"], frame["chan"], frame["err"], frame["data"]
             )
@@ -153,7 +181,7 @@ def run_stream_peer(port, result_path):
                 }
             )
 
-        for expected in STREAM_EXPECT_FRAMES:
+        for expected in expected_hex:
             try:
                 parts = pull.recv_multipart()
             except zmq.error.Again:
@@ -169,7 +197,11 @@ def run_stream_peer(port, result_path):
                 break
 
             received.append(decoded)
-            if decoded["data_hex"] != expected["data"].hex():
+            if tag is not None and stream_frame_is_foreign(decoded, tag):
+                result = 1
+                reason = f"peer: FOREIGN tag on stream instance {tag}: {decoded!r}"
+                break
+            if decoded["data_hex"] != expected:
                 result = 1
                 reason = f"peer: unexpected stream data, got {decoded!r}"
                 break
@@ -319,7 +351,7 @@ MEM_TRANSACTIONS = [
 ]
 
 
-def run_memory_peer(port, result_path):
+def run_memory_peer(port, result_path, tag=None):
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -332,13 +364,20 @@ def run_memory_peer(port, result_path):
     push.connect(f"tcp://127.0.0.1:{port}")
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
 
+    # Untagged: the fixed vector transactions. Tagged: a single per-instance
+    # transaction; the read-back compare already rejects foreign data.
+    if tag is None:
+        mem_transactions = MEM_TRANSACTIONS
+    else:
+        mem_transactions = [memory_txn_for_tag(tag)]
+
     transactions = []
     result = 0
     reason = ""
     txn_id = 0
 
     try:
-        for txn in MEM_TRANSACTIONS:
+        for txn in mem_transactions:
             # Write, then read back the same address/size and compare.
             for txn_type, write_data in (
                 (T_WRITE, txn["write_data"]),
@@ -442,7 +481,7 @@ SIDEBAND_TX_OPCODE = 0x5A
 SIDEBAND_TX_REMDATA = 0xC3
 
 
-def run_sideband_peer(port, result_path):
+def run_sideband_peer(port, result_path, tag=None):
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -457,6 +496,18 @@ def run_sideband_peer(port, result_path):
     push.connect(f"tcp://127.0.0.1:{port + 1}")
     pull.connect(f"tcp://127.0.0.1:{port}")
 
+    # Untagged: the fixed vectors. Tagged: the per-instance frames and the
+    # per-instance expected tx opcode/remData (0x60+tag / 0x70+tag).
+    if tag is None:
+        peer_to_dut = SIDEBAND_PEER_TO_DUT
+        expect_opcode = SIDEBAND_TX_OPCODE
+        expect_remdata = SIDEBAND_TX_REMDATA
+    else:
+        peer_to_dut = sideband_peer_to_dut(tag)
+        expected = sideband_expect_for_tag(tag)
+        expect_opcode = expected["opCode"]
+        expect_remdata = expected["remData"]
+
     sent = []
     received = []
     result = 0
@@ -464,7 +515,7 @@ def run_sideband_peer(port, result_path):
 
     try:
         # Push the opcode + remData frames the DUT should surface on rx*.
-        for frame in SIDEBAND_PEER_TO_DUT:
+        for frame in peer_to_dut:
             push.send(
                 encode_sideband_frame(
                     frame["opCodeEn"], frame["opCode"], frame["remDataChanged"], frame["remData"]
@@ -497,10 +548,10 @@ def run_sideband_peer(port, result_path):
             if decoded["remDataChanged"] == 1 and got_remdata is None:
                 got_remdata = decoded["remData"]
 
-        if result == 0 and got_opcode != SIDEBAND_TX_OPCODE:
+        if result == 0 and got_opcode != expect_opcode:
             result = 1
             reason = f"peer: unexpected tx opcode, got {got_opcode!r}"
-        elif result == 0 and got_remdata != SIDEBAND_TX_REMDATA:
+        elif result == 0 and got_remdata != expect_remdata:
             result = 1
             reason = f"peer: unexpected tx remData, got {got_remdata!r}"
     finally:
@@ -516,23 +567,30 @@ def run_sideband_peer(port, result_path):
     return result
 
 
-def main(argv=None):
+def build_arg_parser():
     parser = argparse.ArgumentParser(description="Rogue-TCP protocol peer")
     parser.add_argument("--mode", choices=["stream", "stream-recv", "memory", "sideband"], required=True)
+    parser.add_argument("--tag", type=int, default=None,
+                        help="per-instance tag family for the xsim multi-instance traffic top; "
+                             "when omitted, the fixed single-instance vectors are used")
     parser.add_argument("port", type=int)
     parser.add_argument("result_path")
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv=None):
+    args = build_arg_parser().parse_args(argv)
 
     if args.mode == "stream":
-        return run_stream_peer(args.port, args.result_path)
+        return run_stream_peer(args.port, args.result_path, tag=args.tag)
 
     if args.mode == "stream-recv":
         return run_stream_recv_peer(args.port, args.result_path)
 
     if args.mode == "memory":
-        return run_memory_peer(args.port, args.result_path)
+        return run_memory_peer(args.port, args.result_path, tag=args.tag)
 
-    return run_sideband_peer(args.port, args.result_path)
+    return run_sideband_peer(args.port, args.result_path, tag=args.tag)
 
 
 if __name__ == "__main__":

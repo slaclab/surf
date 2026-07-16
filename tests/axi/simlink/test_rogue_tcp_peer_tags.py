@@ -22,6 +22,7 @@ from tests.axi.simlink.rogue_tcp_peer import (
     memory_txn_for_tag,
     sideband_peer_to_dut,
     sideband_expect_for_tag,
+    stream_frame_is_foreign,
 )
 
 
@@ -51,3 +52,20 @@ def test_distinct_tags_do_not_collide():
     assert stream_dut_to_peer_payload(0) != stream_dut_to_peer_payload(1)
     assert memory_txn_for_tag(0)["addr"] != memory_txn_for_tag(1)["addr"]
     assert sideband_expect_for_tag(0) != sideband_expect_for_tag(1)
+
+
+def test_stream_frame_is_foreign_detects_cross_talk():
+    own = stream_dut_to_peer_payload(2).hex()
+    assert stream_frame_is_foreign({"data_hex": own}, tag=2) is False
+    other = stream_dut_to_peer_payload(3).hex()
+    assert stream_frame_is_foreign({"data_hex": other}, tag=2) is True
+
+
+def test_argparse_accepts_optional_tag():
+    from tests.axi.simlink import rogue_tcp_peer
+
+    parser = rogue_tcp_peer.build_arg_parser()
+    args = parser.parse_args(["--mode", "stream", "--tag", "2", "19740", "/tmp/x.json"])
+    assert args.tag == 2
+    args2 = parser.parse_args(["--mode", "stream", "19604", "/tmp/y.json"])
+    assert args2.tag is None
