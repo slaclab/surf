@@ -30,6 +30,50 @@ import zmq
 RCVTIMEO_MS = 10000
 
 # ---------------------------------------------------------------------------
+# Per-instance tag scheme (used by the xsim multi-instance live-traffic top,
+# RogueXsimTrafficTb.vhd). Each instance index i derives a distinct traffic
+# family so a peer receiving another instance's traffic is a detectable
+# isolation failure. Values mirror test_RogueDpiInstance.py's native traffic
+# test. These are pure functions -- no ZMQ, no simulator -- so they are unit
+# tested directly in test_rogue_tcp_peer_tags.py.
+# ---------------------------------------------------------------------------
+
+STREAM_TAG_FRAME_COUNT = 3  # single-beat frames each Stream instance exchanges
+
+
+def stream_peer_to_dut_payload(tag):
+    """Payload the peer pushes into Stream instance `tag` (DUT surfaces on ob)."""
+    return bytes([(0x10 + tag) & 0xFF] * 4)
+
+
+def stream_dut_to_peer_payload(tag):
+    """Payload the HDL drives on Stream instance `tag`'s ib (peer receives)."""
+    return bytes([(0x80 + tag) & 0xFF] * 4)
+
+
+def memory_txn_for_tag(tag):
+    """Write-then-read transaction Memory instance `tag` exchanges."""
+    return {
+        "addr": 0x100 + (0x10 * tag),
+        "size": 4,
+        "write_data": bytes([0x40 + tag, 0x50 + tag, 0x60 + tag, 0x70 + tag]),
+    }
+
+
+def sideband_peer_to_dut(tag):
+    """The two frames the peer pushes into SideBand instance `tag`."""
+    return [
+        {"opCodeEn": 1, "opCode": 0x20 + tag, "remDataChanged": 0, "remData": 0x00},
+        {"opCodeEn": 0, "opCode": 0x00, "remDataChanged": 1, "remData": 0x40 + tag},
+    ]
+
+
+def sideband_expect_for_tag(tag):
+    """The tx opcode/remData SideBand instance `tag` should transmit back."""
+    return {"opCode": 0x60 + tag, "remData": 0x70 + tag}
+
+
+# ---------------------------------------------------------------------------
 # Stream protocol (RogueTcpStream.c RogueTcpStreamSend/Recv): 4-frame
 # message -- [flags (2B LE u16), chan (1B), err (1B), data (variable)].
 # ---------------------------------------------------------------------------
