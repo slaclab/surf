@@ -32,6 +32,35 @@ MODEL_VHDL_SOURCES = [
     XSIM_DIR / "RogueTcpMemory.vhd",
     XSIM_DIR / "RogueSideBand.vhd",
 ]
+
+# Ordered (leaves-first) surf source list needed to compile surf.AxiDualPortRam
+# into a `surf` library. RogueXsimTrafficTb.vhd instantiates AxiDualPortRam as
+# the real AXI-Lite RAM slave for each Memory instance, so xelab must see this
+# library. AxiDualPortRam defaults to SYNTH_MODE_G="inferred", so the XPM/
+# AlteraMf dummies satisfy the entity references and no vendor libraries are
+# needed. This exact order compiles clean under `xvhdl -2008 -work surf`.
+SURF_AXI_RAM_SOURCES = [
+    REPO_ROOT / "base" / "general" / "rtl" / "StdRtlPkg.vhd",
+    REPO_ROOT / "base" / "general" / "rtl" / "TextUtilPkg.vhd",
+    REPO_ROOT / "base" / "sync" / "rtl" / "Synchronizer.vhd",
+    REPO_ROOT / "base" / "sync" / "rtl" / "RstSync.vhd",
+    REPO_ROOT / "base" / "sync" / "rtl" / "SynchronizerVector.vhd",
+    REPO_ROOT / "base" / "ram" / "inferred" / "LutRam.vhd",
+    REPO_ROOT / "base" / "ram" / "rtl" / "SimpleDualPortRam.vhd",
+    REPO_ROOT / "base" / "ram" / "inferred" / "TrueDualPortRamInferred.vhd",
+    REPO_ROOT / "base" / "ram" / "dummy" / "TrueDualPortRamXpmAlteraMfDummy.vhd",
+    REPO_ROOT / "base" / "ram" / "xilinx" / "TrueDualPortRamXpm.vhd",
+    REPO_ROOT / "base" / "ram" / "rtl" / "TrueDualPortRam.vhd",
+    REPO_ROOT / "base" / "ram" / "inferred" / "DualPortRam.vhd",
+    REPO_ROOT / "base" / "fifo" / "rtl" / "FifoOutputPipeline.vhd",
+    REPO_ROOT / "base" / "fifo" / "rtl" / "inferred" / "FifoWrFsm.vhd",
+    REPO_ROOT / "base" / "fifo" / "rtl" / "inferred" / "FifoRdFsm.vhd",
+    REPO_ROOT / "base" / "fifo" / "rtl" / "inferred" / "FifoAsync.vhd",
+    REPO_ROOT / "base" / "sync" / "rtl" / "SynchronizerFifo.vhd",
+    REPO_ROOT / "axi" / "axi-lite" / "rtl" / "AxiLitePkg.vhd",
+    REPO_ROOT / "axi" / "axi-lite" / "rtl" / "AxiDualPortRam.vhd",
+]
+
 REQUIRED_TOOLS = ("make", "xsc", "xvlog", "xvhdl", "xelab", "xsim")
 BUILD_TIMEOUT_SECONDS = 300
 RUN_TIMEOUT_SECONDS = 120
@@ -84,6 +113,19 @@ def build_dpi_library():
         )
 
 
+def compile_surf_library(build_dir):
+    """Compile the ordered surf source list into a `surf` library under
+    `build_dir` (its xsim.dir/surf), so xelab can resolve surf.AxiDualPortRam and
+    its dependencies. Must run in the same cwd/build_dir as the subsequent
+    `work` xvhdl/xelab steps so the shared xsim.dir holds both libraries. Cheap
+    (~19 inferred RTL files) and harmless for tops that do not use surf."""
+    subprocess.run(
+        ["xvhdl", "-2008", "-work", "surf",
+         *(str(s) for s in SURF_AXI_RAM_SOURCES)],
+        cwd=build_dir, check=True, timeout=BUILD_TIMEOUT_SECONDS,
+    )
+
+
 def compile_and_elaborate(top, vhdl_sources, sim_build_dir):
     """Compile the SV leaves + given VHDL sources and elaborate `top`, leaving a
     ready-to-run snapshot in `sim_build_dir / top`. Split out of run_top so a
@@ -92,6 +134,10 @@ def compile_and_elaborate(top, vhdl_sources, sim_build_dir):
     elaboration and the peer exits before the sim ever produces traffic."""
     build_dir = sim_build_dir / top
     build_dir.mkdir(parents=True, exist_ok=True)
+
+    # Compile the surf library first so xelab can link surf.AxiDualPortRam (used
+    # by RogueXsimTrafficTb). Harmless for tops that do not reference surf.
+    compile_surf_library(build_dir)
 
     subprocess.run(
         ["xvlog", "-sv", *(str(s) for s in SV_SOURCES)],

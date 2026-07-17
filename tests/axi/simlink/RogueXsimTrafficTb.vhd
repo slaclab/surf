@@ -21,11 +21,15 @@
 -- - Each Stream instance drives inbound beats tagged 0x80+i and checks the
 --   outbound byte equals its peer's 0x10+i.
 -- - Each Memory instance is an AXI-Lite MASTER (driven by its peer's
---   write-then-read transaction); the TB acts as a tiny per-instance AXI-Lite
---   SLAVE that completes the write handshake, then returns this instance's
---   tagged data on the read. The observed awaddr/araddr is asserted equal to
---   0x100+0x10*i and the observed wdata equals this instance's tagged vector,
---   so cross-instance address/data leakage is caught.
+--   write-then-read transaction); the TB wires it to its OWN instance of
+--   surf.AxiDualPortRam acting as a real AXI-Lite SLAVE (a block RAM). The
+--   peer writes this instance's tagged vector to 0x100+0x10*i, then reads it
+--   back -- a real RAM returns exactly what was written, so the peer's own
+--   read-back equality check still proves isolation, and because each instance
+--   owns a distinct RAM, cross-instance leakage is impossible by construction.
+--   A lightweight per-instance concurrent assertion additionally checks the
+--   observed awaddr/araddr equals 0x100+0x10*i so a wrong-address regression
+--   still $fatals inside the TB.
 -- - Each SideBand instance transmits its tagged opcode 0x60+i then remData
 --   0x70+i outbound to its peer, and receives its peer's inbound opcode 0x20+i
 --   and remData 0x40+i; the TB asserts the received tags match so a foreign
@@ -48,6 +52,10 @@ use ieee.numeric_std.all;
 
 library std;
 use std.env.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 
 entity RogueXsimTrafficTb is
 end entity RogueXsimTrafficTb;
@@ -111,24 +119,19 @@ architecture test of RogueXsimTrafficTb is
 
    signal streamDone : std_logic_vector(3 downto 0) := (others => '0');
 
-   -- Memory instances: the DUT drives the AXI-Lite master ports (m*), the TB
-   -- responds as a slave (arready/rdata/rresp/rvalid, awready/wready/bresp/
-   -- bvalid) via per-instance responder processes.
-   signal mArAddr  : slv32_array(1 downto 0);
-   signal mArValid : std_logic_vector(1 downto 0);
-   signal mRReady  : std_logic_vector(1 downto 0);
-   signal mArReady : std_logic_vector(1 downto 0) := (others => '0');
-   signal mRData   : slv32_array(1 downto 0)      := (others => (others => '0'));
-   signal mRValid  : std_logic_vector(1 downto 0) := (others => '0');
+   -- Memory instances: each Memory model is an AXI-Lite MASTER whose raw scalar
+   -- master/slave ports are wired directly to the record-typed AXI-Lite buses of
+   -- its OWN surf.AxiDualPortRam slave (a real block RAM). Record-typed buses per
+   -- instance -- the model drives the *Master fields, the RAM drives the *Slave
+   -- fields, and both the RAM and the TB assertion observe the same records.
+   signal memReadMaster  : AxiLiteReadMasterArray(1 downto 0)  := (others => AXI_LITE_READ_MASTER_INIT_C);
+   signal memReadSlave   : AxiLiteReadSlaveArray(1 downto 0);
+   signal memWriteMaster : AxiLiteWriteMasterArray(1 downto 0) := (others => AXI_LITE_WRITE_MASTER_INIT_C);
+   signal memWriteSlave  : AxiLiteWriteSlaveArray(1 downto 0);
 
-   signal mAwAddr  : slv32_array(1 downto 0);
-   signal mAwValid : std_logic_vector(1 downto 0);
-   signal mWData   : slv32_array(1 downto 0);
-   signal mWValid  : std_logic_vector(1 downto 0);
-   signal mBReady  : std_logic_vector(1 downto 0);
-   signal mAwReady : std_logic_vector(1 downto 0) := (others => '0');
-   signal mWReady  : std_logic_vector(1 downto 0) := (others => '0');
-   signal mBValid  : std_logic_vector(1 downto 0) := (others => '0');
+   -- RAM address width in WORDS (1024 words); the peer's byte addresses
+   -- 0x100+0x10*i are word-aligned and fit comfortably.
+   constant MEM_ADDR_WIDTH_C : positive := 10;
 
    signal memDone : std_logic_vector(1 downto 0) := "00";
 
@@ -242,139 +245,113 @@ begin
    end generate GEN_STREAM_DRV;
 
    GEN_MEMORY : for i in 0 to 1 generate
+      -- Expected AXI byte address the peer transacts against for this instance;
+      -- a foreign instance's address would differ (in-DUT cross-talk check).
+      constant EXP_ADDR_C : std_logic_vector(31 downto 0) :=
+         std_logic_vector(to_unsigned(16#100# + (16#10# * i), 32));
+   begin
+
+      -- The Memory model is the AXI-Lite MASTER: its raw scalar ports are
+      -- glued directly to this instance's record-typed AXI-Lite bus. The model
+      -- drives the *Master fields; the RAM below drives the *Slave fields.
       U_MEMORY : entity work.RogueTcpMemory
          port map (
             clock   => clock,
             reset   => reset,
             portNum => std_logic_vector(to_unsigned(19748 + (2*i), 16)),
-            -- axiReadMaster (DUT drives)
-            araddr  => mArAddr(i),
-            arprot  => open,
-            arvalid => mArValid(i),
-            rready  => mRReady(i),
-            -- axiReadSlave (TB drives)
-            arready => mArReady(i),
-            rdata   => mRData(i),
-            rresp   => "00",
-            rvalid  => mRValid(i),
-            -- axiWriteMaster (DUT drives)
-            awaddr  => mAwAddr(i),
-            awprot  => open,
-            awvalid => mAwValid(i),
-            wdata   => mWData(i),
-            wstrb   => open,
-            wvalid  => mWValid(i),
-            bready  => mBReady(i),
-            -- axiWriteSlave (TB drives)
-            awready => mAwReady(i),
-            wready  => mWReady(i),
-            bresp   => "00",
-            bvalid  => mBValid(i));
-   end generate GEN_MEMORY;
+            -- axiReadMaster (model drives -> record master fields)
+            araddr  => memReadMaster(i).araddr,
+            arprot  => memReadMaster(i).arprot,
+            arvalid => memReadMaster(i).arvalid,
+            rready  => memReadMaster(i).rready,
+            -- axiReadSlave (RAM drives -> model inputs)
+            arready => memReadSlave(i).arready,
+            rdata   => memReadSlave(i).rdata,
+            rresp   => memReadSlave(i).rresp,
+            rvalid  => memReadSlave(i).rvalid,
+            -- axiWriteMaster (model drives -> record master fields)
+            awaddr  => memWriteMaster(i).awaddr,
+            awprot  => memWriteMaster(i).awprot,
+            awvalid => memWriteMaster(i).awvalid,
+            wdata   => memWriteMaster(i).wdata,
+            wstrb   => memWriteMaster(i).wstrb,
+            wvalid  => memWriteMaster(i).wvalid,
+            bready  => memWriteMaster(i).bready,
+            -- axiWriteSlave (RAM drives -> model inputs)
+            awready => memWriteSlave(i).awready,
+            wready  => memWriteSlave(i).wready,
+            bresp   => memWriteSlave(i).bresp,
+            bvalid  => memWriteSlave(i).bvalid);
 
-   GEN_MEMORY_RSP : for i in 0 to 1 generate
-      -- Per-instance AXI-Lite slave responder. The Memory model is the master:
-      -- its peer sends a write-then-read transaction, so the model first
-      -- presents a write (awvalid & wvalid) and then a read (arvalid). We
-      -- complete each handshake by sampling the master outputs every edge in a
-      -- bounded loop, mirroring the native _memory_cycle timing -- the model
-      -- holds a request until its ready is seen, then drops it, so we must not
-      -- assume the request persists. Outbound is held off until the same
-      -- SETTLE_EDGES_C the Stream drivers use, so the memory peer is connected
-      -- and draining before the model tries its synchronous response send.
-      rsp : process is
-         constant expAddr : std_logic_vector(31 downto 0) :=
-            std_logic_vector(to_unsigned(16#100# + (16#10# * i), 32));
-         -- Tagged read data packed little-endian: bytes
-         -- [0x40+i,0x50+i,0x60+i,0x70+i] -> rdata(7:0)=0x40+i ... (31:24)=0x70+i.
-         constant rdataTag : std_logic_vector(31 downto 0) :=
-            std_logic_vector(to_unsigned(16#70# + i, 8)) &
-            std_logic_vector(to_unsigned(16#60# + i, 8)) &
-            std_logic_vector(to_unsigned(16#50# + i, 8)) &
-            std_logic_vector(to_unsigned(16#40# + i, 8));
-         variable waited : natural := 0;
-         variable phase  : natural := 0;
+      -- Real AXI-Lite slave: a per-instance block RAM. The peer writes this
+      -- instance's tagged vector then reads it back; a real RAM returns exactly
+      -- what was written, so the peer's own read-back equality check passes and
+      -- proves isolation (each instance owns a DISTINCT RAM, so cross-instance
+      -- leakage is impossible by construction). SYNTH_MODE_G="inferred" keeps
+      -- the closure free of XPM/vendor primitives.
+      U_MEMORY_RAM : entity surf.AxiDualPortRam
+         generic map (
+            SYNTH_MODE_G  => "inferred",
+            MEMORY_TYPE_G => "block",
+            READ_LATENCY_G => 2,
+            AXI_WR_EN_G   => true,
+            COMMON_CLK_G  => true,
+            ADDR_WIDTH_G  => MEM_ADDR_WIDTH_C,
+            DATA_WIDTH_G  => 32)
+         port map (
+            axiClk         => clock,
+            axiRst         => reset,
+            axiReadMaster  => memReadMaster(i),
+            axiReadSlave   => memReadSlave(i),
+            axiWriteMaster => memWriteMaster(i),
+            axiWriteSlave  => memWriteSlave(i));
+      -- Standard Port side (clk/en/we/addr/din/dout/...) left at defaults; only
+      -- the AXI side is exercised.
 
-         procedure tick is
-         begin
-            wait until rising_edge(clock);
-            waited := waited + 1;
-            assert waited < WAIT_EDGES_C
-               report "Memory " & integer'image(i) & ": timed out on handshake"
-               severity failure;
-         end procedure tick;
+      -- Preserved isolation safety net (option a): whenever the model asserts a
+      -- write/read address it must equal this instance's expected address, so a
+      -- wrong-address regression still $fatals inside the TB even though a plain
+      -- RAM would otherwise silently accept any in-range address.
+      assert (memWriteMaster(i).awvalid /= '1') or (memWriteMaster(i).awaddr = EXP_ADDR_C)
+         report "Memory " & integer'image(i) & ": wrong write address"
+         severity failure;
+      assert (memReadMaster(i).arvalid /= '1') or (memReadMaster(i).araddr = EXP_ADDR_C)
+         report "Memory " & integer'image(i) & ": wrong read address"
+         severity failure;
+
+      -- Completion detector. The model runs a write-then-read: it first drives
+      -- a write (completing when bvalid & bready handshake) and then a read
+      -- (completing when rvalid & rready handshake). memDone(i) asserts once
+      -- BOTH have been observed, so the banner cannot stop the sim before this
+      -- instance's full transaction has been serviced by its RAM.
+      done : process is
+         variable waited  : natural := 0;
+         variable wrote   : boolean := false;
+         variable readback : boolean := false;
       begin
          wait until reset = '0';
+         loop
+            wait until rising_edge(clock);
+            waited := waited + 1;
 
-         -- Settle: let the peer connect and start draining before the model
-         -- issues its first (synchronous-send) response.
-         while phase < SETTLE_EDGES_C loop
-            tick;
-            phase := phase + 1;
-         end loop;
+            if (memWriteSlave(i).bvalid = '1') and (memWriteMaster(i).bready = '1') then
+               wrote := true;
+            end if;
+            if (memReadSlave(i).rvalid = '1') and (memReadMaster(i).rready = '1') then
+               readback := true;
+            end if;
 
-         -- WRITE handshake: wait for the model (ST_START) to present awvalid &
-         -- wvalid; both are held until the model sees their ready in ST_WRESP.
-         while not (mAwValid(i) = '1' and mWValid(i) = '1') loop
-            tick;
-         end loop;
-         assert mAwAddr(i) = expAddr
-            report "Memory " & integer'image(i) & ": wrong write address"
-            severity failure;
-         -- The peer writes the same tagged vector it later expects to read
-         -- back (rdataTag); checking it here covers write-data isolation --
-         -- a foreign instance's payload would differ.
-         assert mWData(i) = rdataTag
-            report "Memory " & integer'image(i) & ": wrong write data"
-            severity failure;
+            exit when wrote and readback;
 
-         -- Accept address+data and complete the response in one step: the FSM's
-         -- ST_WRESP samples awready, wready and bvalid together, drops awvalid/
-         -- wvalid and sends the write response on the edge it sees them. Hold
-         -- all three until awvalid drops (the observable completion; bready is
-         -- pinned high by the model and never falls, so do not wait on it).
-         mAwReady(i) <= '1';
-         mWReady(i)  <= '1';
-         mBValid(i)  <= '1';
-         while mAwValid(i) = '1' loop
-            tick;
+            assert waited < WAIT_EDGES_C
+               report "Memory " & integer'image(i) & ": timed out on transaction"
+               severity failure;
          end loop;
-         mAwReady(i) <= '0';
-         mWReady(i)  <= '0';
-         mBValid(i)  <= '0';
-
-         -- READ handshake: wait for the model (ST_START) to present arvalid.
-         while mArValid(i) /= '1' loop
-            tick;
-         end loop;
-         assert mArAddr(i) = expAddr
-            report "Memory " & integer'image(i) & ": wrong read address"
-            severity failure;
-
-         -- Accept the read address; the model (ST_RADDR) drops arvalid and
-         -- advances to ST_RDATA on the edge it sees arready.
-         mArReady(i) <= '1';
-         while mArValid(i) = '1' loop
-            tick;
-         end loop;
-         mArReady(i) <= '0';
-
-         -- In ST_RDATA the model captures rdata/rresp on the edge it sees
-         -- rvalid, then sends the read response and returns to idle (rready is
-         -- pinned high, so there is no ready-fall to observe). Present the
-         -- tagged data and hold rvalid across a short guard so the single
-         -- capture edge cannot be missed to delta-ordering, then release.
-         mRData(i)  <= rdataTag;
-         mRValid(i) <= '1';
-         for e in 0 to 3 loop
-            tick;
-         end loop;
-         mRValid(i) <= '0';
 
          memDone(i) <= '1';
          wait;
-      end process rsp;
-   end generate GEN_MEMORY_RSP;
+      end process done;
+   end generate GEN_MEMORY;
 
    GEN_SIDEBAND : for i in 0 to 1 generate
       U_SIDEBAND : entity work.RogueSideBand
