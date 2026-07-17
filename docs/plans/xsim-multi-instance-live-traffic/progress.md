@@ -77,7 +77,7 @@ printed success banner plus each peer's JSON (own tag family present, zero forei
   **19 passed, 1 skipped** in ~20 s.
 - The single skip is `test_RogueTcpMemoryWrap.py::test_RogueTcpMemory_uninitialized_read`,
   which skips because `valgrind` is not installed on this host (expected).
-- `test_RogueXsimTraffic.py::test_xsim_stream_instances_exchange_isolated_traffic` and both
+- `test_RogueXsimTraffic.py::test_xsim_instances_exchange_isolated_traffic` and both
   `test_RogueXsimMulti.py` cases pass. No failures, no flakes observed.
 
 ## Lint results

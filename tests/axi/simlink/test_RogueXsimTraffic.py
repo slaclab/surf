@@ -79,7 +79,7 @@ def _reap(procs):
                 proc.kill()
 
 
-def test_xsim_stream_instances_exchange_isolated_traffic():
+def test_xsim_instances_exchange_isolated_traffic():
     result_dir = SIM_BUILD / "peers"
     # Elaborate first, then spawn peers just before the run: the peers'
     # RCVTIMEO budget must cover only the short simulation, not the

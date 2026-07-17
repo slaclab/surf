@@ -62,8 +62,10 @@ Rejected alternatives:
 ```
 pytest (test_RogueXsimTraffic.py)
   1. make -C axi/simlink/xsim all abi-check          # build RogueTcpDpi.so (reused fixture)
-  2. Popen 8 rogue_tcp_peer.py, one per instance      # each with --tag <i>, its own port pair
-  3. xvlog / xvhdl / xelab / xsim -R  RogueXsimTrafficTb   # env = _xsim_run_env() (LD_PRELOAD)
+  2. xvlog / xvhdl / xelab  RogueXsimTrafficTb        # compile + elaborate (env = _xsim_run_env(), LD_PRELOAD)
+  3. Popen 8 rogue_tcp_peer.py, one per instance      # each with --tag <i>, its own port pair; spawned
+                                                      # AFTER elaboration so their RCVTIMEO covers only the run
+  3b. xsim -R  RogueXsimTrafficTb                      # run the elaborated snapshot with peers already draining
         - VHDL top holds off outbound traffic for a fixed settle delay (peers connect/drain)
         - each of 8 instances exchanges a few tagged items with its own peer
         - top $fatal on any wrong/missing tag; prints banner on full success
