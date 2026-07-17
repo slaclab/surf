@@ -33,8 +33,15 @@ Port base 19740, each instance `i` gets a `(19740 + 2*i, +1)` pair:
 
 - **Stream** i (0..3): ports 19740..19747. Inbound beat tagged `0x80+i`; TB checks the
   outbound byte equals the peer's `0x10+i`.
-- **Memory** i (0..1): ports 19748..19751. Observed a/awaddr == `0x100 + 0x10*i`;
-  wdata == this instance's tagged vector (data bytes in the `0x40..0x70` family).
+- **Memory** i (0..1): ports 19748..19751. Each instance's AXI-Lite slave is a real
+  per-instance `surf.AxiDualPortRam` (block RAM), not a hand-rolled responder: the DUT
+  writes then reads back this instance's tagged vector (data bytes in the `0x40..0x70`
+  family). A preserved concurrent TB assertion still guards the address
+  (a/awaddr == `0x100 + 0x10*i`, `$fatal` on mismatch); write-data integrity is proven
+  by the peer's read-back compare (a real RAM returns exactly what was written, and each
+  instance owns a distinct RAM, so cross-instance leakage is impossible by construction).
+  The surf library is compiled for xsim from the ordered `SURF_AXI_RAM_SOURCES` list in
+  `xsim_test_utils.py` (`SYNTH_MODE_G="inferred"`, no XPM/vendor deps).
 - **SideBand** i (0..1): ports 19752..19755. TX opcode `0x60+i` then remData `0x70+i`;
   RX opcode `0x20+i` and remData `0x40+i`. TB asserts received tags match.
 
