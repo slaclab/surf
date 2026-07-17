@@ -103,6 +103,12 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
             assert rc == 0, f"{mode} peer tag {tag} exited {rc}"
             observed = json.loads(result_path.read_text())
             if mode == "stream":
+                # Explicit foreign-tag rejection: every received frame must
+                # carry this instance's own tag (0x80+tag)*4 and nothing else.
+                # The peer's stream_frame_is_foreign() already rejects any
+                # 0x80+j (j != tag) at the source (forcing rc != 0, caught by
+                # the rc == 0 assertion above); requiring == own here is the
+                # same isolation guarantee restated on the received data.
                 own = bytes([(0x80 + tag) & 0xFF] * 4).hex()
                 for frame in observed["received"]:
                     assert frame["data_hex"] == own, (tag, frame)
@@ -119,6 +125,17 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
                 assert reads, (tag, observed)
                 for txn in reads:
                     assert txn["data_hex"] == own, (tag, txn)
+                # Explicit foreign-tag rejection: no transaction may carry
+                # another memory instance's write vector. A write txn may have
+                # an empty data_hex, so allow "" or own; forbid any other
+                # instance's payload outright (the two memory tags are 0..1).
+                foreign_hex = {
+                    bytes([0x40 + j, 0x50 + j, 0x60 + j, 0x70 + j]).hex()
+                    for j in range(2) if j != tag
+                }
+                for txn in txns:
+                    assert txn["data_hex"] in ("", own), (tag, txn)
+                    assert txn["data_hex"] not in foreign_hex, (tag, txn)
             elif mode == "sideband":
                 # SideBand: the peer's received frames are the DUT's tx values
                 # echoed back -- an opcode 0x60+tag and a remData 0x70+tag. A
@@ -133,6 +150,21 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
                     f["remDataChanged"] == 1 and f["remData"] == 0x70 + tag
                     for f in received
                 ), (tag, observed)
+                # Explicit foreign-tag rejection: no received frame may carry
+                # another sideband instance's opcode or remData. The two
+                # sideband tags are 0..1, so a foreign frame would surface
+                # opCode 0x60+j or remData 0x70+j for j != tag.
+                for j in range(2):
+                    if j == tag:
+                        continue
+                    assert not any(
+                        f["opCodeEn"] == 1 and f["opCode"] == 0x60 + j
+                        for f in received
+                    ), (tag, j, observed)
+                    assert not any(
+                        f["remDataChanged"] == 1 and f["remData"] == 0x70 + j
+                        for f in received
+                    ), (tag, j, observed)
             else:
                 raise AssertionError(f"unknown peer mode {mode}")
     finally:

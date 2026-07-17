@@ -55,7 +55,23 @@ end entity RogueXsimTrafficTb;
 architecture test of RogueXsimTrafficTb is
 
    constant CLK_HALF_C     : time    := 5 ns;
-   constant SETTLE_EDGES_C : natural := 2000;   -- tuned later; generous margin
+   -- Fixed sim-time hold-off (Option B, see design.md "Readiness"): no
+   -- outbound HDL traffic is driven for this many clock edges after reset
+   -- deassert. Its purpose is to guarantee the DUT does not issue a
+   -- (synchronous, blocking) outbound ZMQ send before its peer is connected
+   -- and draining -- the accepted transport contract, since the ported Rogue-
+   -- TCP protocol has no readiness handshake. What actually establishes
+   -- connectedness is the SIM ORDERING enforced by the test: each peer is
+   -- Popen'd after xelab, just before the xsim run, so by the time reset
+   -- deasserts the peers have already imported and connected. This constant
+   -- is therefore defense-in-depth against startup jitter, not the primary
+   -- guarantee. At 5 ns half-period the clock period is 10 ns, and the settle
+   -- loop counts one rising_edge per period (10 ns/edge), so 2000 edges is
+   -- ~20 us of sim time -- microseconds of wall-clock -- a generous margin
+   -- that stress testing (10 clean + 6 under full-core load) showed zero
+   -- instability. Do NOT reduce below this value; increase (and note the new
+   -- margin) only if instability appears.
+   constant SETTLE_EDGES_C : natural := 2000;
    -- Bounded busy-poll watchdog, shared across the Stream, Memory and SideBand
    -- families. This is deliberately large: the models receive their peer's
    -- request via a non-blocking ZMQ poll and the TB busy-polls the model I/O
