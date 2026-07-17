@@ -27,7 +27,7 @@ import sys
 
 import zmq
 
-RCVTIMEO_MS = 10000
+RCVTIMEO_MS = 30000
 
 # ---------------------------------------------------------------------------
 # Per-instance tag scheme (used by the xsim multi-instance live-traffic top,

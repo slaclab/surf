@@ -84,9 +84,12 @@ def build_dpi_library():
         )
 
 
-def run_top(top, vhdl_sources, sim_build_dir):
-    """Compile the SV leaves + given VHDL sources, elaborate `top`, run it under
-    xsim -R with the libstdc++ preload, and return the CompletedProcess."""
+def compile_and_elaborate(top, vhdl_sources, sim_build_dir):
+    """Compile the SV leaves + given VHDL sources and elaborate `top`, leaving a
+    ready-to-run snapshot in `sim_build_dir / top`. Split out of run_top so a
+    caller can spawn its live ZMQ peers AFTER the (multi-second) elaboration and
+    just before the run -- otherwise a peer's RCVTIMEO budget is consumed by
+    elaboration and the peer exits before the sim ever produces traffic."""
     build_dir = sim_build_dir / top
     build_dir.mkdir(parents=True, exist_ok=True)
 
@@ -103,8 +106,21 @@ def run_top(top, vhdl_sources, sim_build_dir):
          "-sv_root", str(XSIM_DIR), "-sv_lib", "RogueTcpDpi", f"work.{top}"],
         cwd=build_dir, check=True, timeout=BUILD_TIMEOUT_SECONDS,
     )
+
+
+def run_elaborated(top, sim_build_dir):
+    """Run the already-elaborated `top` snapshot under xsim -R with the
+    libstdc++ preload, and return the CompletedProcess."""
+    build_dir = sim_build_dir / top
     return subprocess.run(
         ["xsim", top, "-R"],
         cwd=build_dir, capture_output=True, text=True,
         timeout=RUN_TIMEOUT_SECONDS, env=xsim_run_env(),
     )
+
+
+def run_top(top, vhdl_sources, sim_build_dir):
+    """Compile the SV leaves + given VHDL sources, elaborate `top`, run it under
+    xsim -R with the libstdc++ preload, and return the CompletedProcess."""
+    compile_and_elaborate(top, vhdl_sources, sim_build_dir)
+    return run_elaborated(top, sim_build_dir)

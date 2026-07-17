@@ -75,9 +75,14 @@ def _reap(procs):
 
 def test_xsim_stream_instances_exchange_isolated_traffic():
     result_dir = SIM_BUILD / "peers"
+    # Elaborate first, then spawn peers just before the run: the peers'
+    # RCVTIMEO budget must cover only the short simulation, not the
+    # multi-second xvlog/xvhdl/xelab flow (during which a peer would otherwise
+    # time out and exit, wedging the DUT's synchronous ZMQ send).
+    xu.compile_and_elaborate("RogueXsimTrafficTb", VHDL_SOURCES, SIM_BUILD)
     procs = _spawn_peers(STREAM_PEERS, result_dir)
     try:
-        result = xu.run_top("RogueXsimTrafficTb", VHDL_SOURCES, SIM_BUILD)
+        result = xu.run_elaborated("RogueXsimTrafficTb", SIM_BUILD)
         output = result.stdout + result.stderr
         assert "Rogue xsim traffic test passed" in output, output
 
