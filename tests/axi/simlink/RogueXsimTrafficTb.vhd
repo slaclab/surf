@@ -288,7 +288,10 @@ begin
       -- what was written, so the peer's own read-back equality check passes and
       -- proves isolation (each instance owns a DISTINCT RAM, so cross-instance
       -- leakage is impossible by construction). SYNTH_MODE_G="inferred" keeps
-      -- the closure free of XPM/vendor primitives.
+      -- the closure free of XPM/vendor primitives. Note: write-DATA integrity is
+      -- now validated by the peer's read-back compare (in rogue_tcp_peer.py),
+      -- not by an in-TB assert as the previous hand-rolled responder did; the
+      -- in-TB assertions below still guard the ADDRESS.
       U_MEMORY_RAM : entity surf.AxiDualPortRam
          generic map (
             SYNTH_MODE_G  => "inferred",

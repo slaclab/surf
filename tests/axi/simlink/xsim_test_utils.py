@@ -39,6 +39,10 @@ MODEL_VHDL_SOURCES = [
 # library. AxiDualPortRam defaults to SYNTH_MODE_G="inferred", so the XPM/
 # AlteraMf dummies satisfy the entity references and no vendor libraries are
 # needed. This exact order compiles clean under `xvhdl -2008 -work surf`.
+# The FIFO files are pulled in transitively via SynchronizerFifo (not because
+# the traffic top uses an async FIFO -- COMMON_CLK_G=true bypasses it at
+# runtime), so do not prune them. A moved/renamed surf file surfaces as a
+# hard xvhdl failure (paths are checked), not silent rot.
 SURF_AXI_RAM_SOURCES = [
     REPO_ROOT / "base" / "general" / "rtl" / "StdRtlPkg.vhd",
     REPO_ROOT / "base" / "general" / "rtl" / "TextUtilPkg.vhd",
