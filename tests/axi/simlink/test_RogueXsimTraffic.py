@@ -10,8 +10,7 @@
 
 # Test methodology:
 # - Sweep: One eight-instance top (4 Stream, 2 Memory, 2 SideBand) run under
-#   the real Vivado xsim mixed-language/DPI flow with live peers. (Stream +
-#   Memory for now; SideBand added in a later task.)
+#   the real Vivado xsim mixed-language/DPI flow with live peers.
 # - Stimulus: Launch one rogue_tcp_peer.py per instance (each --tag i) before
 #   xsim starts; the top holds off outbound traffic for a fixed settle delay
 #   so peers are connected and draining, then exchanges a tagged family per
@@ -41,10 +40,12 @@ PEER_WAIT_SECONDS = 30
 
 # Endpoint port map (single source of truth is shared with
 # RogueXsimTrafficTb.vhd -- keep both in sync):
-#   Stream i -> 19740 + 2*i  (19740..19747)
-#   Memory i -> 19748 + 2*i  (19748..19751)
+#   Stream   i -> 19740 + 2*i  (19740..19747)
+#   Memory   i -> 19748 + 2*i  (19748..19751)
+#   SideBand i -> 19752 + 2*i  (19752..19755)
 STREAM_PEERS = [("stream", i, 19740 + 2 * i) for i in range(4)]
 MEMORY_PEERS = [("memory", i, 19748 + 2 * i) for i in range(2)]
+SIDEBAND_PEERS = [("sideband", i, 19752 + 2 * i) for i in range(2)]
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -85,7 +86,7 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
     # multi-second xvlog/xvhdl/xelab flow (during which a peer would otherwise
     # time out and exit, wedging the DUT's synchronous ZMQ send).
     xu.compile_and_elaborate("RogueXsimTrafficTb", VHDL_SOURCES, SIM_BUILD)
-    procs = _spawn_peers(STREAM_PEERS + MEMORY_PEERS, result_dir)
+    procs = _spawn_peers(STREAM_PEERS + MEMORY_PEERS + SIDEBAND_PEERS, result_dir)
     try:
         result = xu.run_elaborated("RogueXsimTrafficTb", SIM_BUILD)
         output = result.stdout + result.stderr
@@ -105,7 +106,7 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
                 own = bytes([(0x80 + tag) & 0xFF] * 4).hex()
                 for frame in observed["received"]:
                     assert frame["data_hex"] == own, (tag, frame)
-            else:
+            elif mode == "memory":
                 # Memory: every txn OKAY, and the read-back data equals this
                 # tag's write vector -- itself the cross-instance isolation
                 # check, since a foreign instance's data would differ.
@@ -118,5 +119,21 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
                 assert reads, (tag, observed)
                 for txn in reads:
                     assert txn["data_hex"] == own, (tag, txn)
+            elif mode == "sideband":
+                # SideBand: the peer's received frames are the DUT's tx values
+                # echoed back -- an opcode 0x60+tag and a remData 0x70+tag. A
+                # foreign instance would surface a different tag, so requiring
+                # this instance's exact opcode/remData is the isolation check.
+                received = observed["received"]
+                assert any(
+                    f["opCodeEn"] == 1 and f["opCode"] == 0x60 + tag
+                    for f in received
+                ), (tag, observed)
+                assert any(
+                    f["remDataChanged"] == 1 and f["remData"] == 0x70 + tag
+                    for f in received
+                ), (tag, observed)
+            else:
+                raise AssertionError(f"unknown peer mode {mode}")
     finally:
         _reap(procs)

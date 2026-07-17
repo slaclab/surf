@@ -12,9 +12,9 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Test methodology:
--- - Instantiate four Stream and two Memory (and later two SideBand) xsim/DPI
---   models, each on its own endpoint pair, and exchange a per-instance tagged
---   traffic family with a dedicated external peer.
+-- - Instantiate the full eight-instance topology -- four Stream, two Memory and
+--   two SideBand xsim/DPI models -- each on its own endpoint pair, and exchange
+--   a per-instance tagged traffic family with a dedicated external peer.
 -- - Hold off all outbound traffic for a fixed settle delay after reset so the
 --   peers are connected and draining first (accepted transport contract; no
 --   readiness handshake).
@@ -24,7 +24,12 @@
 --   write-then-read transaction); the TB acts as a tiny per-instance AXI-Lite
 --   SLAVE that completes the write handshake, then returns this instance's
 --   tagged data on the read. The observed awaddr/araddr is asserted equal to
---   0x100+0x10*i so cross-instance address leakage is caught.
+--   0x100+0x10*i and the observed wdata equals this instance's tagged vector,
+--   so cross-instance address/data leakage is caught.
+-- - Each SideBand instance transmits its tagged opcode 0x60+i then remData
+--   0x70+i outbound to its peer, and receives its peer's inbound opcode 0x20+i
+--   and remData 0x40+i; the TB asserts the received tags match so a foreign
+--   instance's opcode/remData is caught.
 -- - Report the success banner only after all instances pass; $fatal on any
 --   wrong/missing tag or wrong address. $fatal exits 0 under xsim -R, so pytest
 --   judges success by the banner plus per-peer exit codes/JSON, not the xsim
@@ -32,8 +37,9 @@
 --
 -- Endpoint port map (single source of truth is shared with
 -- test_RogueXsimTraffic.py -- keep both in sync):
---   Stream i -> 19740 + 2*i  (19740..19747)
---   Memory i -> 19748 + 2*i  (19748..19751)
+--   Stream   i -> 19740 + 2*i  (19740..19747)
+--   Memory   i -> 19748 + 2*i  (19748..19751)
+--   SideBand i -> 19752 + 2*i  (19752..19755)
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -50,17 +56,17 @@ architecture test of RogueXsimTrafficTb is
 
    constant CLK_HALF_C     : time    := 5 ns;
    constant SETTLE_EDGES_C : natural := 2000;   -- tuned later; generous margin
-   -- Bounded busy-poll watchdog. This is deliberately large: the Memory model
-   -- receives its peer's request via a non-blocking ZMQ poll and the Memory
-   -- responder busy-polls the master valids every edge, so nothing paces the
-   -- (otherwise free-running) simulation to wall-clock while a peer process is
-   -- still starting up and connecting. A tight watchdog can therefore burn out
-   -- before a slow-to-start peer delivers its first request. The value spans
-   -- several seconds of wall-clock busy-poll -- comfortably covering peer
-   -- startup jitter -- while still bounding a genuine hang well under the
-   -- pytest run timeout. The Stream path exits this loop as soon as its traffic
-   -- is exchanged, so the larger bound only affects the wait, never the happy
-   -- path.
+   -- Bounded busy-poll watchdog, shared across the Stream, Memory and SideBand
+   -- families. This is deliberately large: the models receive their peer's
+   -- request via a non-blocking ZMQ poll and the TB busy-polls the model I/O
+   -- every edge, so nothing paces the (otherwise free-running) simulation to
+   -- wall-clock while a peer process is still starting up and connecting. A
+   -- tight watchdog can therefore burn out before a slow-to-start peer delivers
+   -- its first request. At this bound the worst-case genuine hang runs ~10 s of
+   -- wall-clock busy-poll before tripping -- comfortably covering peer startup
+   -- jitter, and still well under the 120 s pytest run timeout. Each family
+   -- exits this loop as soon as its traffic is exchanged, so the larger bound
+   -- only affects the wait, never the happy path.
    constant WAIT_EDGES_C   : natural := 1000000;
 
    -- Number of single-beat inbound frames each Stream instance drives, and the
@@ -68,6 +74,11 @@ architecture test of RogueXsimTrafficTb is
    -- STREAM_TAG_FRAME_COUNT in rogue_tcp_peer.py.
    constant STREAM_FRAMES_C : natural := 3;
    constant IB_GAP_EDGES_C  : natural := 5;
+
+   -- Edges to keep the SideBand tx* values driven after the remData change, so
+   -- the model's synchronous ZMQ send of the outbound remData frame is issued
+   -- (and the peer can drain it) before the banner can stop the sim.
+   constant SB_SEND_GUARD_C : natural := 8;
 
    signal clock : std_logic := '0';
    signal reset : std_logic := '1';
@@ -104,6 +115,17 @@ architecture test of RogueXsimTrafficTb is
    signal mBValid  : std_logic_vector(1 downto 0) := (others => '0');
 
    signal memDone : std_logic_vector(1 downto 0) := "00";
+
+   -- SideBand instances: the DUT (TB) drives tx* to transmit outbound to its
+   -- peer and observes rx* for the peer's inbound opcode/remData.
+   signal sbTxOpCode   : slv8_array(1 downto 0)      := (others => (others => '0'));
+   signal sbTxOpCodeEn : std_logic_vector(1 downto 0) := (others => '0');
+   signal sbTxRemData  : slv8_array(1 downto 0)      := (others => (others => '0'));
+   signal sbRxOpCode   : slv8_array(1 downto 0);
+   signal sbRxOpCodeEn : std_logic_vector(1 downto 0);
+   signal sbRxRemData  : slv8_array(1 downto 0);
+
+   signal sbDone : std_logic_vector(1 downto 0) := "00";
 
 begin
 
@@ -283,6 +305,12 @@ begin
          assert mAwAddr(i) = expAddr
             report "Memory " & integer'image(i) & ": wrong write address"
             severity failure;
+         -- The peer writes the same tagged vector it later expects to read
+         -- back (rdataTag); checking it here covers write-data isolation --
+         -- a foreign instance's payload would differ.
+         assert mWData(i) = rdataTag
+            report "Memory " & integer'image(i) & ": wrong write data"
+            severity failure;
 
          -- Accept address+data and complete the response in one step: the FSM's
          -- ST_WRESP samples awready, wready and bvalid together, drops awvalid/
@@ -332,13 +360,119 @@ begin
       end process rsp;
    end generate GEN_MEMORY_RSP;
 
+   GEN_SIDEBAND : for i in 0 to 1 generate
+      U_SIDEBAND : entity work.RogueSideBand
+         port map (
+            clock      => clock,
+            reset      => reset,
+            portNum    => std_logic_vector(to_unsigned(19752 + (2*i), 16)),
+            txOpCode   => sbTxOpCode(i),
+            txOpCodeEn => sbTxOpCodeEn(i),
+            txRemData  => sbTxRemData(i),
+            rxOpCode   => sbRxOpCode(i),
+            rxOpCodeEn => sbRxOpCodeEn(i),
+            rxRemData  => sbRxRemData(i));
+   end generate GEN_SIDEBAND;
+
+   GEN_SIDEBAND_DRV : for i in 0 to 1 generate
+      -- One process per instance handles both directions concurrently. The
+      -- peer pushes its inbound opcode/remData frames at startup, and the model
+      -- pulses rxOpCodeEn for a SINGLE clock the edge it drains the opcode (rx
+      -- opcode/remData then latch), so -- like the Stream outbound path -- rx*
+      -- must be sampled on EVERY edge from reset deassert; a checker that only
+      -- looked after the settle could miss the pulse. Outbound tx is held off
+      -- until the same SETTLE_EDGES_C the other families use, so the peer is
+      -- connected and draining before the model issues its synchronous sends:
+      -- txOpCodeEn is strobed high for one clock (model sends opcode 0x60+i),
+      -- then after a short gap txRemData is changed to 0x70+i (model forwards
+      -- the remData, carrying the opcode along). sbDone(i) is asserted only
+      -- once BOTH the inbound opcode+remData have been observed AND the
+      -- outbound frames have been driven and held past the send guard.
+      drv : process is
+         variable txOp    : std_logic_vector(7 downto 0);
+         variable txRem   : std_logic_vector(7 downto 0);
+         variable expOp   : std_logic_vector(7 downto 0);
+         variable expRem  : std_logic_vector(7 downto 0);
+         variable rxOpCap : std_logic_vector(7 downto 0) := (others => '0');
+         variable rxRemCap : std_logic_vector(7 downto 0) := (others => '0');
+         variable gotOp   : std_logic := '0';
+         variable gotRem  : std_logic := '0';
+         variable txDone  : boolean   := false;
+         variable waited  : natural   := 0;
+         variable phase   : natural   := 0;  -- edges elapsed during settle
+         variable step    : natural   := 0;  -- sub-step within the tx sequence
+      begin
+         wait until reset = '0';
+         txOp   := std_logic_vector(to_unsigned((16#60# + i), 8));
+         txRem  := std_logic_vector(to_unsigned((16#70# + i), 8));
+         expOp  := std_logic_vector(to_unsigned((16#20# + i), 8));
+         expRem := std_logic_vector(to_unsigned((16#40# + i), 8));
+
+         loop
+            wait until rising_edge(clock);
+            waited := waited + 1;
+
+            -- Inbound: capture the one-clock rxOpCodeEn pulse and the first
+            -- nonzero rxRemData (reset clears rxRemData to 0x00).
+            if gotOp = '0' and sbRxOpCodeEn(i) = '1' then
+               rxOpCap := sbRxOpCode(i);
+               gotOp   := '1';
+            end if;
+            if gotRem = '0' and sbRxRemData(i) /= x"00" then
+               rxRemCap := sbRxRemData(i);
+               gotRem   := '1';
+            end if;
+
+            -- Outbound: after the settle, strobe the opcode for one clock,
+            -- gap, then change remData; hold both past the send guard.
+            if phase < SETTLE_EDGES_C then
+               phase := phase + 1;
+            elsif not txDone then
+               if step = 0 then
+                  sbTxOpCode(i)   <= txOp;
+                  sbTxOpCodeEn(i) <= '1';
+                  step            := 1;
+               elsif step = 1 then
+                  sbTxOpCodeEn(i) <= '0';
+                  step            := 2;
+               elsif step < IB_GAP_EDGES_C then
+                  step := step + 1;
+               elsif step = IB_GAP_EDGES_C then
+                  sbTxRemData(i) <= txRem;
+                  step           := step + 1;
+               elsif step < IB_GAP_EDGES_C + SB_SEND_GUARD_C then
+                  step := step + 1;
+               else
+                  txDone := true;
+               end if;
+            end if;
+
+            exit when (gotOp = '1') and (gotRem = '1') and txDone;
+
+            assert waited < WAIT_EDGES_C
+               report "SideBand " & integer'image(i) & ": timed out exchanging traffic"
+               severity failure;
+         end loop;
+
+         assert rxOpCap = expOp
+            report "SideBand " & integer'image(i) & ": wrong inbound opcode"
+            severity failure;
+         assert rxRemCap = expRem
+            report "SideBand " & integer'image(i) & ": wrong inbound remData"
+            severity failure;
+
+         sbDone(i) <= '1';
+         wait;
+      end process drv;
+   end generate GEN_SIDEBAND_DRV;
+
    banner : process is
    begin
       for e in 0 to 2 loop
          wait until rising_edge(clock);
       end loop;
       reset <= '0';
-      wait until (streamDone = "1111") and (memDone = "11");
+      wait until (streamDone = "1111") and (memDone = "11") and (sbDone = "11");
       report "Rogue xsim traffic test passed" severity note;
       stop;
       wait;
