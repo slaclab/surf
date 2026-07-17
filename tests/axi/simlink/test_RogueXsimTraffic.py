@@ -10,8 +10,8 @@
 
 # Test methodology:
 # - Sweep: One eight-instance top (4 Stream, 2 Memory, 2 SideBand) run under
-#   the real Vivado xsim mixed-language/DPI flow with live peers. (Stream only
-#   for now; Memory/SideBand added in later tasks.)
+#   the real Vivado xsim mixed-language/DPI flow with live peers. (Stream +
+#   Memory for now; SideBand added in a later task.)
 # - Stimulus: Launch one rogue_tcp_peer.py per instance (each --tag i) before
 #   xsim starts; the top holds off outbound traffic for a fixed settle delay
 #   so peers are connected and draining, then exchanges a tagged family per
@@ -39,7 +39,12 @@ pytestmark = pytest.mark.skipif(not xu.tools_available(), reason=xu.SKIP_REASON)
 
 PEER_WAIT_SECONDS = 30
 
+# Endpoint port map (single source of truth is shared with
+# RogueXsimTrafficTb.vhd -- keep both in sync):
+#   Stream i -> 19740 + 2*i  (19740..19747)
+#   Memory i -> 19748 + 2*i  (19748..19751)
 STREAM_PEERS = [("stream", i, 19740 + 2 * i) for i in range(4)]
+MEMORY_PEERS = [("memory", i, 19748 + 2 * i) for i in range(2)]
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -80,18 +85,38 @@ def test_xsim_stream_instances_exchange_isolated_traffic():
     # multi-second xvlog/xvhdl/xelab flow (during which a peer would otherwise
     # time out and exit, wedging the DUT's synchronous ZMQ send).
     xu.compile_and_elaborate("RogueXsimTrafficTb", VHDL_SOURCES, SIM_BUILD)
-    procs = _spawn_peers(STREAM_PEERS, result_dir)
+    procs = _spawn_peers(STREAM_PEERS + MEMORY_PEERS, result_dir)
     try:
         result = xu.run_elaborated("RogueXsimTrafficTb", SIM_BUILD)
         output = result.stdout + result.stderr
-        assert "Rogue xsim traffic test passed" in output, output
+        if "Rogue xsim traffic test passed" not in output:
+            # Append every peer's JSON so a banner miss is diagnosable.
+            dumps = []
+            for _, _, _, result_path, _ in procs:
+                if result_path.exists():
+                    dumps.append(f"{result_path.name}:\n{result_path.read_text()}")
+            raise AssertionError(output + "\n\n" + "\n\n".join(dumps))
 
         for mode, tag, port, result_path, proc in procs:
             rc = proc.wait(timeout=PEER_WAIT_SECONDS)
             assert rc == 0, f"{mode} peer tag {tag} exited {rc}"
             observed = json.loads(result_path.read_text())
-            own = bytes([(0x80 + tag) & 0xFF] * 4).hex()
-            for frame in observed["received"]:
-                assert frame["data_hex"] == own, (tag, frame)
+            if mode == "stream":
+                own = bytes([(0x80 + tag) & 0xFF] * 4).hex()
+                for frame in observed["received"]:
+                    assert frame["data_hex"] == own, (tag, frame)
+            else:
+                # Memory: every txn OKAY, and the read-back data equals this
+                # tag's write vector -- itself the cross-instance isolation
+                # check, since a foreign instance's data would differ.
+                txns = observed["transactions"]
+                assert txns, (tag, observed)
+                for txn in txns:
+                    assert txn["resp"] == 0, (tag, txn)
+                own = bytes([0x40 + tag, 0x50 + tag, 0x60 + tag, 0x70 + tag]).hex()
+                reads = [t for t in txns if t["type"] == 0x1]
+                assert reads, (tag, observed)
+                for txn in reads:
+                    assert txn["data_hex"] == own, (tag, txn)
     finally:
         _reap(procs)

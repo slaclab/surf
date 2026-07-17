@@ -12,7 +12,7 @@
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
 -- Test methodology:
--- - Instantiate four Stream (and later two Memory, two SideBand) xsim/DPI
+-- - Instantiate four Stream and two Memory (and later two SideBand) xsim/DPI
 --   models, each on its own endpoint pair, and exchange a per-instance tagged
 --   traffic family with a dedicated external peer.
 -- - Hold off all outbound traffic for a fixed settle delay after reset so the
@@ -20,9 +20,20 @@
 --   readiness handshake).
 -- - Each Stream instance drives inbound beats tagged 0x80+i and checks the
 --   outbound byte equals its peer's 0x10+i.
+-- - Each Memory instance is an AXI-Lite MASTER (driven by its peer's
+--   write-then-read transaction); the TB acts as a tiny per-instance AXI-Lite
+--   SLAVE that completes the write handshake, then returns this instance's
+--   tagged data on the read. The observed awaddr/araddr is asserted equal to
+--   0x100+0x10*i so cross-instance address leakage is caught.
 -- - Report the success banner only after all instances pass; $fatal on any
---   wrong/missing tag. $fatal exits 0 under xsim -R, so pytest judges success
---   by the banner plus per-peer exit codes/JSON, not the xsim return code.
+--   wrong/missing tag or wrong address. $fatal exits 0 under xsim -R, so pytest
+--   judges success by the banner plus per-peer exit codes/JSON, not the xsim
+--   return code.
+--
+-- Endpoint port map (single source of truth is shared with
+-- test_RogueXsimTraffic.py -- keep both in sync):
+--   Stream i -> 19740 + 2*i  (19740..19747)
+--   Memory i -> 19748 + 2*i  (19748..19751)
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -39,7 +50,24 @@ architecture test of RogueXsimTrafficTb is
 
    constant CLK_HALF_C     : time    := 5 ns;
    constant SETTLE_EDGES_C : natural := 2000;   -- tuned later; generous margin
-   constant WAIT_EDGES_C   : natural := 20000;  -- bounded per-item inbound wait
+   -- Bounded busy-poll watchdog. This is deliberately large: the Memory model
+   -- receives its peer's request via a non-blocking ZMQ poll and the Memory
+   -- responder busy-polls the master valids every edge, so nothing paces the
+   -- (otherwise free-running) simulation to wall-clock while a peer process is
+   -- still starting up and connecting. A tight watchdog can therefore burn out
+   -- before a slow-to-start peer delivers its first request. The value spans
+   -- several seconds of wall-clock busy-poll -- comfortably covering peer
+   -- startup jitter -- while still bounding a genuine hang well under the
+   -- pytest run timeout. The Stream path exits this loop as soon as its traffic
+   -- is exchanged, so the larger bound only affects the wait, never the happy
+   -- path.
+   constant WAIT_EDGES_C   : natural := 1000000;
+
+   -- Number of single-beat inbound frames each Stream instance drives, and the
+   -- inter-frame gap (in clock edges) between them. STREAM_FRAMES_C must match
+   -- STREAM_TAG_FRAME_COUNT in rogue_tcp_peer.py.
+   constant STREAM_FRAMES_C : natural := 3;
+   constant IB_GAP_EDGES_C  : natural := 5;
 
    signal clock : std_logic := '0';
    signal reset : std_logic := '1';
@@ -55,6 +83,27 @@ architecture test of RogueXsimTrafficTb is
    signal sIbLast  : std_logic_vector(3 downto 0) := (others => '0');
 
    signal streamDone : std_logic_vector(3 downto 0) := (others => '0');
+
+   -- Memory instances: the DUT drives the AXI-Lite master ports (m*), the TB
+   -- responds as a slave (arready/rdata/rresp/rvalid, awready/wready/bresp/
+   -- bvalid) via per-instance responder processes.
+   signal mArAddr  : slv32_array(1 downto 0);
+   signal mArValid : std_logic_vector(1 downto 0);
+   signal mRReady  : std_logic_vector(1 downto 0);
+   signal mArReady : std_logic_vector(1 downto 0) := (others => '0');
+   signal mRData   : slv32_array(1 downto 0)      := (others => (others => '0'));
+   signal mRValid  : std_logic_vector(1 downto 0) := (others => '0');
+
+   signal mAwAddr  : slv32_array(1 downto 0);
+   signal mAwValid : std_logic_vector(1 downto 0);
+   signal mWData   : slv32_array(1 downto 0);
+   signal mWValid  : std_logic_vector(1 downto 0);
+   signal mBReady  : std_logic_vector(1 downto 0);
+   signal mAwReady : std_logic_vector(1 downto 0) := (others => '0');
+   signal mWReady  : std_logic_vector(1 downto 0) := (others => '0');
+   signal mBValid  : std_logic_vector(1 downto 0) := (others => '0');
+
+   signal memDone : std_logic_vector(1 downto 0) := "00";
 
 begin
 
@@ -124,7 +173,7 @@ begin
             -- edges, deasserting valid the edge after each single beat.
             if phase < SETTLE_EDGES_C then
                phase := phase + 1;
-            elsif frame < 3 then
+            elsif frame < STREAM_FRAMES_C then
                if step = 0 then
                   sIbData(i)  <= tagByte & tagByte & tagByte & tagByte;
                   sIbKeep(i)  <= x"0F";
@@ -135,7 +184,7 @@ begin
                   sIbValid(i) <= '0';
                   sIbLast(i)  <= '0';
                   step        := 2;
-               elsif step < 5 then
+               elsif step < IB_GAP_EDGES_C then
                   step := step + 1;
                else
                   step  := 0;
@@ -143,7 +192,7 @@ begin
                end if;
             end if;
 
-            exit when (frame = 3) and (rxCount >= 3);
+            exit when (frame = STREAM_FRAMES_C) and (rxCount >= STREAM_FRAMES_C);
 
             assert waited < WAIT_EDGES_C
                report "Stream " & integer'image(i) & ": timed out exchanging traffic" severity failure;
@@ -154,13 +203,142 @@ begin
       end process drv;
    end generate GEN_STREAM_DRV;
 
+   GEN_MEMORY : for i in 0 to 1 generate
+      U_MEMORY : entity work.RogueTcpMemory
+         port map (
+            clock   => clock,
+            reset   => reset,
+            portNum => std_logic_vector(to_unsigned(19748 + (2*i), 16)),
+            -- axiReadMaster (DUT drives)
+            araddr  => mArAddr(i),
+            arprot  => open,
+            arvalid => mArValid(i),
+            rready  => mRReady(i),
+            -- axiReadSlave (TB drives)
+            arready => mArReady(i),
+            rdata   => mRData(i),
+            rresp   => "00",
+            rvalid  => mRValid(i),
+            -- axiWriteMaster (DUT drives)
+            awaddr  => mAwAddr(i),
+            awprot  => open,
+            awvalid => mAwValid(i),
+            wdata   => mWData(i),
+            wstrb   => open,
+            wvalid  => mWValid(i),
+            bready  => mBReady(i),
+            -- axiWriteSlave (TB drives)
+            awready => mAwReady(i),
+            wready  => mWReady(i),
+            bresp   => "00",
+            bvalid  => mBValid(i));
+   end generate GEN_MEMORY;
+
+   GEN_MEMORY_RSP : for i in 0 to 1 generate
+      -- Per-instance AXI-Lite slave responder. The Memory model is the master:
+      -- its peer sends a write-then-read transaction, so the model first
+      -- presents a write (awvalid & wvalid) and then a read (arvalid). We
+      -- complete each handshake by sampling the master outputs every edge in a
+      -- bounded loop, mirroring the native _memory_cycle timing -- the model
+      -- holds a request until its ready is seen, then drops it, so we must not
+      -- assume the request persists. Outbound is held off until the same
+      -- SETTLE_EDGES_C the Stream drivers use, so the memory peer is connected
+      -- and draining before the model tries its synchronous response send.
+      rsp : process is
+         constant expAddr : std_logic_vector(31 downto 0) :=
+            std_logic_vector(to_unsigned(16#100# + (16#10# * i), 32));
+         -- Tagged read data packed little-endian: bytes
+         -- [0x40+i,0x50+i,0x60+i,0x70+i] -> rdata(7:0)=0x40+i ... (31:24)=0x70+i.
+         constant rdataTag : std_logic_vector(31 downto 0) :=
+            std_logic_vector(to_unsigned(16#70# + i, 8)) &
+            std_logic_vector(to_unsigned(16#60# + i, 8)) &
+            std_logic_vector(to_unsigned(16#50# + i, 8)) &
+            std_logic_vector(to_unsigned(16#40# + i, 8));
+         variable waited : natural := 0;
+         variable phase  : natural := 0;
+
+         procedure tick is
+         begin
+            wait until rising_edge(clock);
+            waited := waited + 1;
+            assert waited < WAIT_EDGES_C
+               report "Memory " & integer'image(i) & ": timed out on handshake"
+               severity failure;
+         end procedure tick;
+      begin
+         wait until reset = '0';
+
+         -- Settle: let the peer connect and start draining before the model
+         -- issues its first (synchronous-send) response.
+         while phase < SETTLE_EDGES_C loop
+            tick;
+            phase := phase + 1;
+         end loop;
+
+         -- WRITE handshake: wait for the model (ST_START) to present awvalid &
+         -- wvalid; both are held until the model sees their ready in ST_WRESP.
+         while not (mAwValid(i) = '1' and mWValid(i) = '1') loop
+            tick;
+         end loop;
+         assert mAwAddr(i) = expAddr
+            report "Memory " & integer'image(i) & ": wrong write address"
+            severity failure;
+
+         -- Accept address+data and complete the response in one step: the FSM's
+         -- ST_WRESP samples awready, wready and bvalid together, drops awvalid/
+         -- wvalid and sends the write response on the edge it sees them. Hold
+         -- all three until awvalid drops (the observable completion; bready is
+         -- pinned high by the model and never falls, so do not wait on it).
+         mAwReady(i) <= '1';
+         mWReady(i)  <= '1';
+         mBValid(i)  <= '1';
+         while mAwValid(i) = '1' loop
+            tick;
+         end loop;
+         mAwReady(i) <= '0';
+         mWReady(i)  <= '0';
+         mBValid(i)  <= '0';
+
+         -- READ handshake: wait for the model (ST_START) to present arvalid.
+         while mArValid(i) /= '1' loop
+            tick;
+         end loop;
+         assert mArAddr(i) = expAddr
+            report "Memory " & integer'image(i) & ": wrong read address"
+            severity failure;
+
+         -- Accept the read address; the model (ST_RADDR) drops arvalid and
+         -- advances to ST_RDATA on the edge it sees arready.
+         mArReady(i) <= '1';
+         while mArValid(i) = '1' loop
+            tick;
+         end loop;
+         mArReady(i) <= '0';
+
+         -- In ST_RDATA the model captures rdata/rresp on the edge it sees
+         -- rvalid, then sends the read response and returns to idle (rready is
+         -- pinned high, so there is no ready-fall to observe). Present the
+         -- tagged data and hold rvalid across a short guard so the single
+         -- capture edge cannot be missed to delta-ordering, then release.
+         mRData(i)  <= rdataTag;
+         mRValid(i) <= '1';
+         for e in 0 to 3 loop
+            tick;
+         end loop;
+         mRValid(i) <= '0';
+
+         memDone(i) <= '1';
+         wait;
+      end process rsp;
+   end generate GEN_MEMORY_RSP;
+
    banner : process is
    begin
       for e in 0 to 2 loop
          wait until rising_edge(clock);
       end loop;
       reset <= '0';
-      wait until streamDone = "1111";
+      wait until (streamDone = "1111") and (memDone = "11");
       report "Rogue xsim traffic test passed" severity note;
       stop;
       wait;
