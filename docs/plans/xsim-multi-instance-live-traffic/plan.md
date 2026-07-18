@@ -1,12 +1,23 @@
 # Xsim Multi-Instance Live Traffic — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Implementation reconciliation note (2026-07-17):** This is the historical
+> execution plan. After pull request 1450 converged, the final implementation
+> adopted its canonical `stream_instance_vectors`,
+> `memory_instance_transactions`, and `sideband_instance_vectors` helpers and
+> dedicated `*-instance` peer modes. Each Stream instance now exchanges one
+> four-byte frame: peer-to-DUT `[0x10+i, 0x20+i, 0x30+i, 0x40+i]` and
+> DUT-to-peer `[0x80+i, 0x90+i, 0xA0+i, 0xB0+i]`. The orchestrator also waits
+> for a test-only `--ready-file` from each peer before starting xsim, then keeps
+> a fixed settle delay for the asynchronous ZeroMQ handshake. See
+> [design.md](design.md) and [progress.md](progress.md) for the current design
+> and validation status. Embedded snippets and unchecked tasks below are
+> preserved as execution history and are superseded where they differ.
 
 **Goal:** Prove under real Vivado xsim that the eight-instance DPI topology (4 Stream, 2 Memory, 2 SideBand) exchanges isolated live ZeroMQ traffic through the actual DPI-C boundary, with each instance talking only to its own peer.
 
-**Architecture:** A self-contained VHDL testbench (`RogueXsimTrafficTb.vhd`) drives the eight model instances; eight independent `rogue_tcp_peer.py` subprocesses (one per instance, each with a per-instance `--tag`) provide connected-and-draining peers. pytest orchestrates the `make → xvlog → xvhdl → xelab → xsim -R` pipeline and makes final assertions. Isolation is proven positively (each peer sees only its own tag family) and by explicit foreign-tag rejection.
+**Architecture:** A self-contained VHDL testbench (`RogueXsimTrafficTb.vhd`) drives the eight model instances; eight independent `rogue_tcp_peer.py` subprocesses provide connected-and-draining peers using the canonical per-instance modes. pytest orchestrates the `make → xvlog → xvhdl → xelab → xsim -R` pipeline and makes final assertions. Isolation is proven positively (each peer sees only its own instance vectors) and by exact result comparison.
 
-**Tech Stack:** Vivado xsim 2024.1 (DPI-C via `-sv_lib`), VHDL-2008, Python 3.10 + pyzmq, pytest. libzmq via pkg-config. System libstdc++ preloaded at xsim run time (`_xsim_run_env()`).
+**Tech Stack:** Vivado xsim 2024.1 (DPI-C via `-sv_lib`), VHDL-2008, Python 3.10 + pyzmq, pytest. libzmq via pkg-config. System libstdc++ preloaded at xsim run time (`xsim_run_env()`).
 
 **Design spec:** [design.md](design.md)
 
@@ -20,11 +31,11 @@ Steps that do NOT need Vivado (pure-Python unit tests in Tasks 1–2) run withou
 
 | Model | i | Port pair (`port`,`port+1`) | Peer→DUT payload | DUT→Peer payload (HDL drives) |
 |---|---|---|---|---|
-| Stream | 0..3 | `19740+2i` | data bytes `0x10+i` (×4) | data bytes `0x80+i` (×4) |
+| Stream | 0..3 | `19740+2i` | `[0x10+i, 0x20+i, 0x30+i, 0x40+i]` | `[0x80+i, 0x90+i, 0xA0+i, 0xB0+i]` |
 | Memory | 0..1 | `19748+2i` | write then read @ `0x100+0x10*i`, data `[0x40+i,0x50+i,0x60+i,0x70+i]` | AXI-Lite slave responses |
 | SideBand | 0..1 | `19752+2i` | opcode `0x20+i` (opCodeEn), then remData `0x40+i` (remDataChanged) | tx opcode `0x60+i`, remData `0x70+i` |
 
-"A few items" = 3 single-beat frames per Stream instance; 1 write+read pair per Memory instance; 1 opcode + 1 remData per SideBand instance.
+The final implementation exchanges one four-byte frame per Stream instance, one write/read pair per Memory instance, and one opcode plus one remData event per SideBand instance.
 
 ---
 

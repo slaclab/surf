@@ -55,19 +55,25 @@ environment. Native C ownership tests and source/lint checks can run locally.
   available.
 - The public README now references only checked-in files and documents the
   unique-pair and connected-and-draining peer requirements.
-- Local focused validation reports four native tests passed and two
-  Vivado-gated tests skipped. Warning-enabled C compilation, Python lint, VSG,
-  direct GHDL analysis of the xsim VHDL harness, and `git diff --check` pass.
-- The complete local simlink run reports four passed, two skipped, and seven
-  pre-existing macOS GHDL launch failures: `dyld` cannot resolve the staged
-  relative `build/libRogue*.so` install names. Those failures do not reach the
-  changed xsim path.
-- Actual `xsc`/`xelab`/`xsim` execution still must be recorded in a
-  Vivado-enabled environment before merge.
+- The original live-traffic implementation passed the complete simlink suite
+  under Vivado 2024.1 both serially and in parallel: 19 passed and 1 expected
+  skip in each run.
+- The implementation has since been reconciled with pull request 1450's
+  canonical peer-vector API. Stream now exchanges one full four-byte frame per
+  instance, and the xsim orchestrator waits for a test-only ready file from
+  every peer before starting the simulator.
+- Focused peer/native tests, Python lint, VSG, and `git diff --check` pass for
+  the reconciled implementation. The current local environment still lacks
+  Vivado tools, so the reconciled vectors and readiness barrier require one
+  final xsim run on a Vivado-enabled host before merge.
+- The source-conflict reconciliation and readiness changes are local until
+  they are committed and pushed; GitHub will not recompute mergeability or CI
+  before that happens.
 
 ## Review Findings and Disposition
 
-Pull request 1452 currently has three unresolved review threads.
+The three original review threads are resolved on GitHub. The sections below
+retain the findings and their recorded dispositions for re-review and handoff.
 
 ### 1. Global DPI state breaks multiple instances
 
@@ -155,7 +161,7 @@ This plan covers:
 - Repeated reset, duplicate-port, wrong-model-context, and lifecycle tests.
 - Runnable xsim documentation based only on files checked into SURF.
 - Documentation of the existing connected-and-draining peer requirement.
-- A concise proposed response for each unresolved review thread.
+- A recorded disposition for each original review thread.
 - Regression checks for the completed GHDL/VHPIDIRECT work and shared VCS
   consumers.
 

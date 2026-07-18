@@ -30,15 +30,20 @@ connect the peer and keep it draining before HDL produces outbound messages.
 Simulator-thread receive is nonblocking, but send retains the existing
 synchronous ZeroMQ behavior across all three backends.
 
-## Checked-In xsim Example
+## Checked-In xsim Examples
 
-The repository's runnable example is the focused multi-instance regression:
+The repository includes two focused multi-instance regressions:
 
 - `tests/axi/simlink/RogueXsimMultiTb.vhd` instantiates four Stream, two
   Memory, and two SideBand models concurrently.
 - `tests/axi/simlink/test_RogueXsimMulti.py` builds the DPI library, checks the
   generated DPI-C prototypes, compiles the mixed-language design, runs xsim,
   and verifies duplicate-port rejection.
+- `tests/axi/simlink/RogueXsimTrafficTb.vhd` drives the same eight-instance
+  topology with isolated Stream, Memory, and SideBand traffic.
+- `tests/axi/simlink/test_RogueXsimTraffic.py` starts one deterministic
+  `rogue_tcp_peer.py` process per instance and verifies the xsim and peer-side
+  results.
 
 The standalone DPI library and ABI check can be built with:
 
@@ -49,12 +54,19 @@ make -C axi/simlink/xsim all abi-check
 Run it from the repository root in a Vivado-enabled shell:
 
 ```bash
-./.venv/bin/python -m pytest -q -n 0 tests/axi/simlink/test_RogueXsimMulti.py
+./.venv/bin/python -m pytest -q -n 0 \
+  tests/axi/simlink/test_RogueXsimMulti.py \
+  tests/axi/simlink/test_RogueXsimTraffic.py
 ```
 
 The test skips with an explicit reason when Vivado simulator tools are not on
 `PATH`. The protocol codecs and deterministic ZeroMQ peer used by the broader
-simlink regressions are in `tests/axi/simlink/rogue_tcp_peer.py`.
+simlink regressions are in `tests/axi/simlink/rogue_tcp_peer.py`. The active
+traffic regression uses test-only ready files to tell the parent process that
+each peer has configured its sockets and issued its ZeroMQ connect calls. It
+then retains a short fixed settle delay because the underlying ZeroMQ
+connection handshake is asynchronous. This coordination does not add a socket,
+message, or handshake to the production Rogue TCP wire protocol.
 
 ## Troubleshooting
 
