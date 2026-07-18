@@ -163,6 +163,14 @@ int RogueTcpStreamRecv(RogueTcpStreamData *data) {
         // Get message info
         size = zmq_msg_size(&(msg[3]));
 
+        // Reject the peer-controlled frame before it overruns the fixed
+        // obData[MAX_FRAME] buffer
+        if ( size > MAX_FRAME ) {
+            vhpi_assert("RogueTcpStream: Receive frame size exceeds MAX_FRAME", vhpiFatal);
+            for (x=0; x < 4; x++) zmq_msg_close(&(msg[x]));
+            return 0;
+        }
+
         // Set data
         memcpy(data->obData, zmq_msg_data(&(msg[3])), size);
         data->obSize  = size;
@@ -232,14 +240,23 @@ void RogueTcpStreamStep(RogueTcpStreamData *data) {
 
             // Get data
             for (x=0; x< 8; x++) {
-                if ( x < 4 ) {
-                    data->ibData[data->ibSize] = (dLow >> (x*8)) & 0xFF;
-                    if ( (keep >> x) & 1 ) data->ibLuser = (uLow >> (x*8)) & 0xFF;
-                } else {
-                    data->ibData[data->ibSize] = (dHigh >> ((x-4)*8)) & 0xFF;
-                    if ( (keep >> x) & 1 ) data->ibLuser = (uHigh >> ((x-4)*8)) & 0xFF;
+                if ( (keep >> x) & 1 ) {
+                    // Guard the fixed ibData[MAX_FRAME] buffer against a frame
+                    // that keeps streaming past capacity before asserting
+                    // tLast. Unkept lanes neither consume nor touch storage.
+                    if ( data->ibSize >= MAX_FRAME ) {
+                        vhpi_assert("RogueTcpStream: Inbound frame size exceeds MAX_FRAME", vhpiFatal);
+                        return;
+                    }
+                    if ( x < 4 ) {
+                        data->ibData[data->ibSize] = (dLow >> (x*8)) & 0xFF;
+                        data->ibLuser = (uLow >> (x*8)) & 0xFF;
+                    } else {
+                        data->ibData[data->ibSize] = (dHigh >> ((x-4)*8)) & 0xFF;
+                        data->ibLuser = (uHigh >> ((x-4)*8)) & 0xFF;
+                    }
+                    data->ibSize++;
                 }
-                if ( (keep >> x) & 1 ) data->ibSize++;
             }
 
             // Last

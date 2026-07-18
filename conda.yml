@@ -8,6 +8,8 @@ dependencies:
   - make
   - tcl
   - ghdl
+  - zeromq
+  - pkg-config
   - pip:
       - cocotb
       - cocotbext-axi

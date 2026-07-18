@@ -56,7 +56,7 @@
 
 // Macros for get/set ints, redefined for the per-edge update-procedure model:
 // getInt reads the input snapshot populated at update-procedure entry;
-// setInt writes the output state read back by the zero-arg getters.
+// setInt writes the output state read back by the handle-based getters.
 #define getInt(idx)      (data->inSnap[idx])
 #define setInt(idx, val) (data->outState[idx] = (val))
 
@@ -84,6 +84,10 @@ typedef struct {
     void *    zmqPush;
     void *    zmqPull;
 } RogueTcpStreamData;
+
+// GHDL VHPIDIRECT instance lifecycle
+int32_t rogueTcpStreamCreate(void);
+void rogueTcpStreamDestroy(int32_t handle);
 
 // Start/restart zeromq server
 void RogueTcpStreamRestart(RogueTcpStreamData *data);

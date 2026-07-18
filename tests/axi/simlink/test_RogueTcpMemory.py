@@ -17,7 +17,7 @@
 #   GHDL-hosted C model calls RogueTcpMemoryRestart (binds ZMQ PULL on
 #   port, PUSH on port+1). No external peer is spawned.
 # - Checks: The design must elaborate under GHDL, the VHPIDIRECT foreign
-#   symbols (rogueTcpMemoryUpdate + the zero-arg getters) must resolve
+#   symbols (create, rogueTcpMemoryUpdate, and the handle-based getters) resolve
 #   against the staged libRogueTcpMemory.so, and the C's ST_IDLE no-data
 #   Recv path must run for a bounded number of edges without raising/
 #   hanging. The getter-driven outputs (arvalid, rready) must resolve to a
