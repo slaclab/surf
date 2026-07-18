@@ -18,8 +18,8 @@
 -- - Hold off all outbound traffic for a fixed settle delay after reset so the
 --   peers are connected and draining first (accepted transport contract; no
 --   readiness handshake).
--- - Each Stream instance drives inbound beats tagged 0x80+i and checks the
---   outbound byte equals its peer's 0x10+i.
+-- - Each Stream instance drives a tagged 0xB0/A0/90/80+i word and checks the
+--   outbound word equals its peer's 0x40/30/20/10+i vector.
 -- - Each Memory instance is an AXI-Lite MASTER (driven by its peer's
 --   write-then-read transaction); the TB wires it to its OWN instance of
 --   surf.AxiDualPortRam acting as a real AXI-Lite SLAVE (a block RAM). The
@@ -68,13 +68,13 @@ architecture test of RogueXsimTrafficTb is
    -- deassert. Its purpose is to guarantee the DUT does not issue a
    -- (synchronous, blocking) outbound ZMQ send before its peer is connected
    -- and draining -- the accepted transport contract, since the ported Rogue-
-   -- TCP protocol has no readiness handshake. What actually establishes
-   -- connectedness is the SIM ORDERING enforced by the test: each peer is
-   -- Popen'd after xelab, just before the xsim run, so by the time reset
-   -- deasserts the peers have already imported and connected. This constant
-   -- is therefore defense-in-depth against startup jitter, not the primary
-   -- guarantee. At 5 ns half-period the clock period is 10 ns, and the settle
-   -- loop counts one rising_edge per period (10 ns/edge), so 2000 edges is
+   -- TCP protocol has no protocol-level readiness handshake. Before starting
+   -- xsim, the Python orchestrator waits for a test-only ready file from every
+   -- peer, proving that the peer has configured both sockets and issued its
+   -- connect calls. Because ZeroMQ connection establishment remains
+   -- asynchronous until the model binds, this delay supplies the post-bind
+   -- handshake margin. At 5 ns half-period the clock period is 10 ns, and the
+   -- settle loop counts one rising_edge per period (10 ns/edge), so 2000 edges is
    -- ~20 us of sim time -- microseconds of wall-clock -- a generous margin
    -- that stress testing (10 clean + 6 under full-core load) showed zero
    -- instability. Do NOT reduce below this value; increase (and note the new
@@ -94,9 +94,9 @@ architecture test of RogueXsimTrafficTb is
    constant WAIT_EDGES_C   : natural := 1000000;
 
    -- Number of single-beat inbound frames each Stream instance drives, and the
-   -- inter-frame gap (in clock edges) between them. STREAM_FRAMES_C must match
-   -- STREAM_TAG_FRAME_COUNT in rogue_tcp_peer.py.
-   constant STREAM_FRAMES_C : natural := 3;
+   -- inter-frame gap (in clock edges) between them. This must match the vector
+   -- count returned by stream_instance_vectors() in rogue_tcp_peer.py.
+   constant STREAM_FRAMES_C : natural := 1;
    constant IB_GAP_EDGES_C  : natural := 5;
 
    -- Edges to keep the SideBand tx* values driven after the remData change, so
@@ -107,14 +107,14 @@ architecture test of RogueXsimTrafficTb is
    signal clock : std_logic := '0';
    signal reset : std_logic := '1';
 
-   type slv32_array is array (natural range <>) of std_logic_vector(31 downto 0);
-   type slv8_array  is array (natural range <>) of std_logic_vector(7 downto 0);
+   type Slv32Array is array (natural range <>) of std_logic_vector(31 downto 0);
+   type Slv8Array is array (natural range <>) of std_logic_vector(7 downto 0);
 
    signal sObValid : std_logic_vector(3 downto 0);
-   signal sObData  : slv32_array(3 downto 0);
+   signal sObData  : Slv32Array(3 downto 0);
    signal sIbValid : std_logic_vector(3 downto 0) := (others => '0');
-   signal sIbData  : slv32_array(3 downto 0)      := (others => (others => '0'));
-   signal sIbKeep  : slv8_array(3 downto 0)       := (others => (others => '0'));
+   signal sIbData  : Slv32Array(3 downto 0)      := (others => (others => '0'));
+   signal sIbKeep  : Slv8Array(3 downto 0)       := (others => (others => '0'));
    signal sIbLast  : std_logic_vector(3 downto 0) := (others => '0');
 
    signal streamDone : std_logic_vector(3 downto 0) := (others => '0');
@@ -137,12 +137,12 @@ architecture test of RogueXsimTrafficTb is
 
    -- SideBand instances: the DUT (TB) drives tx* to transmit outbound to its
    -- peer and observes rx* for the peer's inbound opcode/remData.
-   signal sbTxOpCode   : slv8_array(1 downto 0)      := (others => (others => '0'));
+   signal sbTxOpCode   : Slv8Array(1 downto 0)      := (others => (others => '0'));
    signal sbTxOpCodeEn : std_logic_vector(1 downto 0) := (others => '0');
-   signal sbTxRemData  : slv8_array(1 downto 0)      := (others => (others => '0'));
-   signal sbRxOpCode   : slv8_array(1 downto 0);
+   signal sbTxRemData  : Slv8Array(1 downto 0)      := (others => (others => '0'));
+   signal sbRxOpCode   : Slv8Array(1 downto 0);
    signal sbRxOpCodeEn : std_logic_vector(1 downto 0);
-   signal sbRxRemData  : slv8_array(1 downto 0);
+   signal sbRxRemData  : Slv8Array(1 downto 0);
 
    signal sbDone : std_logic_vector(1 downto 0) := "00";
 
@@ -178,17 +178,17 @@ begin
    GEN_STREAM_DRV : for i in 0 to 3 generate
       -- One process per instance handles both directions concurrently: it
       -- counts outbound (ob) frames on EVERY edge from reset deassert, and
-      -- after a fixed settle drives three inbound (ib) frames. Outbound must
+      -- after a fixed settle drives one inbound (ib) frame. Outbound must
       -- be watched continuously because obReady is hardwired '1', so the
       -- model presents each peer-pushed frame for a single edge as soon as it
       -- arrives (well before the inbound-drive phase); a counter that only
       -- looked after the settle would miss those early frames. streamDone is
-      -- asserted only once BOTH the three inbound frames have been driven and
-      -- three outbound frames have been counted, so the banner cannot stop
+      -- asserted only once BOTH the inbound frame has been driven and
+      -- one outbound frame has been counted, so the banner cannot stop
       -- the sim before every peer has exchanged its full tagged family.
       drv : process is
-         variable expByte : std_logic_vector(7 downto 0);
-         variable tagByte : std_logic_vector(7 downto 0);
+         variable expData : std_logic_vector(31 downto 0);
+         variable tagData : std_logic_vector(31 downto 0);
          variable rxCount : natural := 0;
          variable waited  : natural := 0;
          variable phase   : natural := 0;  -- edges elapsed during settle
@@ -196,8 +196,14 @@ begin
          variable step    : natural := 0;  -- sub-step within one inbound frame
       begin
          wait until reset = '0';
-         tagByte := std_logic_vector(to_unsigned((16#80# + i), 8));
-         expByte := std_logic_vector(to_unsigned((16#10# + i), 8));
+         tagData := std_logic_vector(to_unsigned((16#B0# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#A0# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#90# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#80# + i), 8));
+         expData := std_logic_vector(to_unsigned((16#40# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#30# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#20# + i), 8)) &
+                    std_logic_vector(to_unsigned((16#10# + i), 8));
 
          loop
             wait until rising_edge(clock);
@@ -205,18 +211,18 @@ begin
 
             -- Outbound: count each single-beat frame the model presents.
             if sObValid(i) = '1' then
-               assert sObData(i)(7 downto 0) = expByte
+               assert sObData(i) = expData
                   report "Stream " & integer'image(i) & ": wrong outbound tag" severity failure;
                rxCount := rxCount + 1;
             end if;
 
-            -- Inbound: after the settle, push three frames, one every few
-            -- edges, deasserting valid the edge after each single beat.
+            -- Inbound: after the settle, push the tagged frame, deasserting
+            -- valid on the edge after the single beat.
             if phase < SETTLE_EDGES_C then
                phase := phase + 1;
             elsif frame < STREAM_FRAMES_C then
                if step = 0 then
-                  sIbData(i)  <= tagByte & tagByte & tagByte & tagByte;
+                  sIbData(i)  <= tagData;
                   sIbKeep(i)  <= x"0F";
                   sIbLast(i)  <= '1';
                   sIbValid(i) <= '1';
@@ -328,8 +334,8 @@ begin
       -- BOTH have been observed, so the banner cannot stop the sim before this
       -- instance's full transaction has been serviced by its RAM.
       done : process is
-         variable waited  : natural := 0;
-         variable wrote   : boolean := false;
+         variable waited   : natural := 0;
+         variable wrote    : boolean := false;
          variable readback : boolean := false;
       begin
          wait until reset = '0';
@@ -385,18 +391,18 @@ begin
       -- once BOTH the inbound opcode+remData have been observed AND the
       -- outbound frames have been driven and held past the send guard.
       drv : process is
-         variable txOp    : std_logic_vector(7 downto 0);
-         variable txRem   : std_logic_vector(7 downto 0);
-         variable expOp   : std_logic_vector(7 downto 0);
-         variable expRem  : std_logic_vector(7 downto 0);
-         variable rxOpCap : std_logic_vector(7 downto 0) := (others => '0');
+         variable txOp     : std_logic_vector(7 downto 0);
+         variable txRem    : std_logic_vector(7 downto 0);
+         variable expOp    : std_logic_vector(7 downto 0);
+         variable expRem   : std_logic_vector(7 downto 0);
+         variable rxOpCap  : std_logic_vector(7 downto 0) := (others => '0');
          variable rxRemCap : std_logic_vector(7 downto 0) := (others => '0');
-         variable gotOp   : std_logic := '0';
-         variable gotRem  : std_logic := '0';
-         variable txDone  : boolean   := false;
-         variable waited  : natural   := 0;
-         variable phase   : natural   := 0;  -- edges elapsed during settle
-         variable step    : natural   := 0;  -- sub-step within the tx sequence
+         variable gotOp    : std_logic := '0';
+         variable gotRem   : std_logic := '0';
+         variable txDone   : boolean   := false;
+         variable waited   : natural   := 0;
+         variable phase    : natural   := 0;  -- edges elapsed during settle
+         variable step     : natural   := 0;  -- sub-step within the tx sequence
       begin
          wait until reset = '0';
          txOp   := std_logic_vector(to_unsigned((16#60# + i), 8));

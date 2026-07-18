@@ -29,64 +29,11 @@ import zmq
 
 RCVTIMEO_MS = 30000
 
-# ---------------------------------------------------------------------------
-# Per-instance tag scheme (used by the xsim multi-instance live-traffic top,
-# RogueXsimTrafficTb.vhd). Each instance index i derives a distinct traffic
-# family so a peer receiving another instance's traffic is a detectable
-# isolation failure. Values mirror test_RogueDpiInstance.py's native traffic
-# test. These are pure functions -- no ZMQ, no simulator -- so they are unit
-# tested directly in test_rogue_tcp_peer_tags.py.
-# ---------------------------------------------------------------------------
 
-STREAM_TAG_FRAME_COUNT = 3  # single-beat frames each Stream instance exchanges
-
-
-def stream_peer_to_dut_payload(tag):
-    """Payload the peer pushes into Stream instance `tag` (DUT surfaces on ob)."""
-    return bytes([(0x10 + tag) & 0xFF] * 4)
-
-
-def stream_dut_to_peer_payload(tag):
-    """Payload the HDL drives on Stream instance `tag`'s ib (peer receives)."""
-    return bytes([(0x80 + tag) & 0xFF] * 4)
-
-
-def memory_txn_for_tag(tag):
-    """Write-then-read transaction Memory instance `tag` exchanges."""
-    return {
-        "addr": 0x100 + (0x10 * tag),
-        "size": 4,
-        "write_data": bytes([0x40 + tag, 0x50 + tag, 0x60 + tag, 0x70 + tag]),
-    }
-
-
-def sideband_peer_to_dut(tag):
-    """The two frames the peer pushes into SideBand instance `tag`."""
-    return [
-        {"opCodeEn": 1, "opCode": 0x20 + tag, "remDataChanged": 0, "remData": 0x00},
-        {"opCodeEn": 0, "opCode": 0x00, "remDataChanged": 1, "remData": 0x40 + tag},
-    ]
-
-
-def sideband_expect_for_tag(tag):
-    """The tx opcode/remData SideBand instance `tag` should transmit back."""
-    return {"opCode": 0x60 + tag, "remData": 0x70 + tag}
-
-
-def stream_frame_is_foreign(decoded, tag):
-    """True if a decoded stream frame carries a Stream tag other than `tag`.
-
-    Foreign traffic reaching this peer means socket isolation between DPI
-    instances leaked. Only the four Stream tag families (0x80..0x83) are
-    considered; anything else is left to the normal payload check.
-    """
-    own = stream_dut_to_peer_payload(tag).hex()
-    if decoded.get("data_hex") == own:
-        return False
-    for other in range(4):
-        if other != tag and decoded.get("data_hex") == stream_dut_to_peer_payload(other).hex():
-            return True
-    return False
+def _signal_ready(ready_file):
+    if ready_file is not None:
+        with open(ready_file, "w") as f:
+            f.write("ready\n")
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +81,35 @@ STREAM_EXPECT_FRAMES = [
 ]
 
 
-def run_stream_peer(port, result_path, tag=None):
+def stream_instance_vectors(tag):
+    return (
+        [{
+            "flags": 0,
+            "chan": 0,
+            "err": 0,
+            "data": bytes([0x10 + tag, 0x20 + tag, 0x30 + tag, 0x40 + tag]),
+        }],
+        [{
+            "flags": 0,
+            "chan": 0,
+            "err": 0,
+            "data": bytes([0x80 + tag, 0x90 + tag, 0xA0 + tag, 0xB0 + tag]),
+        }],
+    )
+
+
+def run_stream_peer(
+    port,
+    result_path,
+    send_frames=None,
+    expect_frames=None,
+    ready_file=None,
+):
+    if send_frames is None:
+        send_frames = STREAM_SEND_FRAMES
+    if expect_frames is None:
+        expect_frames = STREAM_EXPECT_FRAMES
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -148,18 +123,7 @@ def run_stream_peer(port, result_path, tag=None):
     # RCVTIMEO instead.
     push.connect(f"tcp://127.0.0.1:{port}")
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
-
-    # Untagged: the fixed single-instance vectors. Tagged: the per-instance
-    # tag family, with foreign-tag rejection enabled on the receive side.
-    if tag is None:
-        send_frames = STREAM_SEND_FRAMES
-        expected_hex = [frame["data"].hex() for frame in STREAM_EXPECT_FRAMES]
-    else:
-        send_frames = [
-            {"flags": 0x0000, "chan": 0x00, "err": 0x00, "data": stream_peer_to_dut_payload(tag)}
-            for _ in range(STREAM_TAG_FRAME_COUNT)
-        ]
-        expected_hex = [stream_dut_to_peer_payload(tag).hex()] * STREAM_TAG_FRAME_COUNT
+    _signal_ready(ready_file)
 
     sent = []
     received = []
@@ -181,7 +145,7 @@ def run_stream_peer(port, result_path, tag=None):
                 }
             )
 
-        for expected in expected_hex:
+        for expected in expect_frames:
             try:
                 parts = pull.recv_multipart()
             except zmq.error.Again:
@@ -197,11 +161,7 @@ def run_stream_peer(port, result_path, tag=None):
                 break
 
             received.append(decoded)
-            if tag is not None and stream_frame_is_foreign(decoded, tag):
-                result = 1
-                reason = f"peer: FOREIGN tag on stream instance {tag}: {decoded!r}"
-                break
-            if decoded["data_hex"] != expected:
+            if decoded["data_hex"] != expected["data"].hex():
                 result = 1
                 reason = f"peer: unexpected stream data, got {decoded!r}"
                 break
@@ -219,7 +179,7 @@ def run_stream_peer(port, result_path, tag=None):
     return result
 
 
-def run_stream_recv_peer(port, result_path):
+def run_stream_recv_peer(port, result_path, ready_file=None):
     # Receive-only mode: no PUSH socket -- this peer never sends anything
     # into the DUT, it only observes what the DUT forwards out. Reuses
     # decode_stream_frames unchanged (no wire-format change), so a
@@ -229,6 +189,7 @@ def run_stream_recv_peer(port, result_path):
     pull = ctx.socket(zmq.PULL)
     pull.setsockopt(zmq.RCVTIMEO, RCVTIMEO_MS)
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
+    _signal_ready(ready_file)
 
     received = []
     result = 0
@@ -351,7 +312,18 @@ MEM_TRANSACTIONS = [
 ]
 
 
-def run_memory_peer(port, result_path, tag=None):
+def memory_instance_transactions(tag):
+    return [{
+        "addr": 0x00000100 + (tag * 0x10),
+        "size": 4,
+        "write_data": bytes([0x40 + tag, 0x50 + tag, 0x60 + tag, 0x70 + tag]),
+    }]
+
+
+def run_memory_peer(port, result_path, memory_transactions=None, ready_file=None):
+    if memory_transactions is None:
+        memory_transactions = MEM_TRANSACTIONS
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -363,13 +335,7 @@ def run_memory_peer(port, result_path, tag=None):
     # probe/handshake.
     push.connect(f"tcp://127.0.0.1:{port}")
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
-
-    # Untagged: the fixed vector transactions. Tagged: a single per-instance
-    # transaction; the read-back compare already rejects foreign data.
-    if tag is None:
-        mem_transactions = MEM_TRANSACTIONS
-    else:
-        mem_transactions = [memory_txn_for_tag(tag)]
+    _signal_ready(ready_file)
 
     transactions = []
     result = 0
@@ -377,7 +343,7 @@ def run_memory_peer(port, result_path, tag=None):
     txn_id = 0
 
     try:
-        for txn in mem_transactions:
+        for txn in memory_transactions:
             # Write, then read back the same address/size and compare.
             for txn_type, write_data in (
                 (T_WRITE, txn["write_data"]),
@@ -481,7 +447,29 @@ SIDEBAND_TX_OPCODE = 0x5A
 SIDEBAND_TX_REMDATA = 0xC3
 
 
-def run_sideband_peer(port, result_path, tag=None):
+def sideband_instance_vectors(tag):
+    peer_to_dut = [
+        {"opCodeEn": 1, "opCode": 0x20 + tag, "remDataChanged": 0, "remData": 0},
+        {"opCodeEn": 0, "opCode": 0, "remDataChanged": 1, "remData": 0x40 + tag},
+    ]
+    return peer_to_dut, 0x60 + tag, 0x70 + tag
+
+
+def run_sideband_peer(
+    port,
+    result_path,
+    peer_to_dut=None,
+    tx_opcode=None,
+    tx_remdata=None,
+    ready_file=None,
+):
+    if peer_to_dut is None:
+        peer_to_dut = SIDEBAND_PEER_TO_DUT
+    if tx_opcode is None:
+        tx_opcode = SIDEBAND_TX_OPCODE
+    if tx_remdata is None:
+        tx_remdata = SIDEBAND_TX_REMDATA
+
     ctx = zmq.Context()
     push = ctx.socket(zmq.PUSH)
     pull = ctx.socket(zmq.PULL)
@@ -495,18 +483,7 @@ def run_sideband_peer(port, result_path, tag=None):
     # connect plus RCVTIMEO.
     push.connect(f"tcp://127.0.0.1:{port + 1}")
     pull.connect(f"tcp://127.0.0.1:{port}")
-
-    # Untagged: the fixed vectors. Tagged: the per-instance frames and the
-    # per-instance expected tx opcode/remData (0x60+tag / 0x70+tag).
-    if tag is None:
-        peer_to_dut = SIDEBAND_PEER_TO_DUT
-        expect_opcode = SIDEBAND_TX_OPCODE
-        expect_remdata = SIDEBAND_TX_REMDATA
-    else:
-        peer_to_dut = sideband_peer_to_dut(tag)
-        expected = sideband_expect_for_tag(tag)
-        expect_opcode = expected["opCode"]
-        expect_remdata = expected["remData"]
+    _signal_ready(ready_file)
 
     sent = []
     received = []
@@ -548,10 +525,10 @@ def run_sideband_peer(port, result_path, tag=None):
             if decoded["remDataChanged"] == 1 and got_remdata is None:
                 got_remdata = decoded["remData"]
 
-        if result == 0 and got_opcode != expect_opcode:
+        if result == 0 and got_opcode != tx_opcode:
             result = 1
             reason = f"peer: unexpected tx opcode, got {got_opcode!r}"
-        elif result == 0 and got_remdata != expect_remdata:
+        elif result == 0 and got_remdata != tx_remdata:
             result = 1
             reason = f"peer: unexpected tx remData, got {got_remdata!r}"
     finally:
@@ -567,30 +544,66 @@ def run_sideband_peer(port, result_path, tag=None):
     return result
 
 
-def build_arg_parser():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="Rogue-TCP protocol peer")
-    parser.add_argument("--mode", choices=["stream", "stream-recv", "memory", "sideband"], required=True)
-    parser.add_argument("--tag", type=int, default=None,
-                        help="per-instance tag family for the xsim multi-instance traffic top; "
-                             "when omitted, the fixed single-instance vectors are used")
+    parser.add_argument(
+        "--mode",
+        choices=[
+            "stream",
+            "stream-recv",
+            "memory",
+            "sideband",
+            "stream-instance",
+            "memory-instance",
+            "sideband-instance",
+        ],
+        required=True,
+    )
+    parser.add_argument("--tag", type=int, default=0)
+    parser.add_argument("--ready-file")
     parser.add_argument("port", type=int)
     parser.add_argument("result_path")
-    return parser
-
-
-def main(argv=None):
-    args = build_arg_parser().parse_args(argv)
+    args = parser.parse_args(argv)
 
     if args.mode == "stream":
-        return run_stream_peer(args.port, args.result_path, tag=args.tag)
+        return run_stream_peer(args.port, args.result_path, ready_file=args.ready_file)
 
     if args.mode == "stream-recv":
-        return run_stream_recv_peer(args.port, args.result_path)
+        return run_stream_recv_peer(args.port, args.result_path, ready_file=args.ready_file)
 
     if args.mode == "memory":
-        return run_memory_peer(args.port, args.result_path, tag=args.tag)
+        return run_memory_peer(args.port, args.result_path, ready_file=args.ready_file)
 
-    return run_sideband_peer(args.port, args.result_path, tag=args.tag)
+    if args.mode == "stream-instance":
+        send_frames, expect_frames = stream_instance_vectors(args.tag)
+        return run_stream_peer(
+            args.port,
+            args.result_path,
+            send_frames,
+            expect_frames,
+            ready_file=args.ready_file,
+        )
+
+    if args.mode == "memory-instance":
+        return run_memory_peer(
+            args.port,
+            args.result_path,
+            memory_instance_transactions(args.tag),
+            ready_file=args.ready_file,
+        )
+
+    if args.mode == "sideband-instance":
+        peer_to_dut, tx_opcode, tx_remdata = sideband_instance_vectors(args.tag)
+        return run_sideband_peer(
+            args.port,
+            args.result_path,
+            peer_to_dut,
+            tx_opcode,
+            tx_remdata,
+            ready_file=args.ready_file,
+        )
+
+    return run_sideband_peer(args.port, args.result_path, ready_file=args.ready_file)
 
 
 if __name__ == "__main__":

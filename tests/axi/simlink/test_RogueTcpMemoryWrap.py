@@ -9,8 +9,10 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: None -- a single fixed ZMQ port pair (9606/9607); this is a
-#   round-trip regression, not a swept parameter matrix.
+# - Sweep: None -- the cocotb round trip uses fixed ZMQ ports 9606/9607, while
+#   the standalone zero-size check selects an unused local pair to remain
+#   rerunnable after its intentionally aborting server. This is not a swept
+#   parameter matrix.
 # - Stimulus: Spawn rogue_tcp_peer.py (--mode memory) as a separate OS
 #   process before releasing reset, so the C model's first post-reset edge
 #   binds its ZMQ sockets while the peer is already connecting. The peer
@@ -31,12 +33,14 @@
 #
 # Exercises the memory round trip (read + write, varied addr/data),
 # cocotbext.axi binding the flat wrapper's M_AXI scalar master bus to
-# AxiLiteRam, and the separate-process Rogue-TCP peer memory protocol for
-# RogueTcpMemoryWrap.
+# AxiLiteRam, the separate-process Rogue-TCP peer memory protocol for
+# RogueTcpMemoryWrap, rejection of zero-length reads, and the historical
+# uninitialized-read regression under valgrind when available.
 
 import json
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import sys
 
@@ -56,6 +60,7 @@ GHDL_DIR = Path(__file__).resolve().parents[3] / "axi" / "simlink" / "ghdl"
 SHARED_DIR = Path(__file__).resolve().parents[3] / "axi" / "simlink" / "shared"
 SIM_BUILD = HERE / "sim_build_RogueTcpMemoryWrap"
 UNINIT_READ_HARNESS = SIM_BUILD / "uninit_read_recv_harness"
+ZERO_SIZE_READ_HARNESS = SIM_BUILD / "zero_size_read_harness"
 
 CLK_PERIOD_NS = 10
 RST_EDGES = 3
@@ -64,6 +69,41 @@ PORT_NUM = 9606
 # Fresh port pair, never used by another test function in this module (a
 # separate pytest function is its own xdist-schedulable unit).
 UNINIT_READ_PORT_NUM = 9608
+
+
+def _unused_tcp_port_pair() -> int:
+    while True:
+        with socket.socket() as first:
+            first.bind(("127.0.0.1", 0))
+            port = first.getsockname()[1]
+            if port == 65535:
+                continue
+            try:
+                with socket.socket() as second:
+                    second.bind(("127.0.0.1", port + 1))
+            except OSError:
+                continue
+            return port
+
+
+def _build_memory_recv_harness(output: Path) -> None:
+    SIM_BUILD.mkdir(parents=True, exist_ok=True)
+
+    cflags = subprocess.run(
+        ["pkg-config", "--cflags", "libzmq"], check=True, capture_output=True, text=True
+    ).stdout.split()
+    libs = subprocess.run(
+        ["pkg-config", "--libs", "libzmq"], check=True, capture_output=True, text=True
+    ).stdout.split()
+
+    subprocess.run(
+        [
+            "gcc", "-Wall", "-g", f"-I{GHDL_DIR}", f"-I{SHARED_DIR}", *cflags,
+            str(GHDL_DIR / "RogueTcpMemory.c"), str(HERE / "uninit_read_recv_harness.c"),
+            "-o", str(output), *libs,
+        ],
+        check=True,
+    )
 
 
 class TB:
@@ -157,6 +197,38 @@ def test_RogueTcpMemoryWrap():
     )
 
 
+def test_RogueTcpMemory_zero_size_read_rejected():
+    _build_memory_recv_harness(ZERO_SIZE_READ_HARNESS)
+    port = _unused_tcp_port_pair()
+
+    proc = subprocess.Popen(
+        [str(ZERO_SIZE_READ_HARNESS), str(port)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    ctx = zmq.Context()
+    push = ctx.socket(zmq.PUSH)
+    push.connect(f"tcp://127.0.0.1:{port}")
+
+    try:
+        push.send_multipart(encode_mem_request(1, 0x0, 0, T_READ))
+
+        _, stderr = proc.communicate(timeout=10)
+        assert proc.returncode != 0, "zero-length read was accepted"
+        assert "Transaction size invalid" in stderr
+    finally:
+        push.close(linger=0)
+        ctx.term()
+        if proc.poll() is None:
+            proc.terminate()
+            proc.wait(timeout=5)
+
+
+@pytest.mark.skipif(
+    sys.platform != "linux" or shutil.which("valgrind") is None,
+    reason="uninitialized-read reproduction is Linux-only and needs valgrind on PATH",
+)
 def test_RogueTcpMemory_uninitialized_read():
     # Standalone (non-cocotb) reproduction of the bug: on a 4-frame memory
     # read request, RogueTcpMemoryRecv() never receives a 5th data frame, so
@@ -165,25 +237,7 @@ def test_RogueTcpMemory_uninitialized_read():
     # read overwrites the tainted bytes before any response is sent), so this
     # test links the unmodified C model into a narrow harness and watches it
     # under valgrind memcheck instead.
-    if shutil.which("valgrind") is None:
-        pytest.skip("uninitialised-read reproduction needs valgrind")
-    SIM_BUILD.mkdir(parents=True, exist_ok=True)
-
-    cflags = subprocess.run(
-        ["pkg-config", "--cflags", "libzmq"], check=True, capture_output=True, text=True
-    ).stdout.split()
-    libs = subprocess.run(
-        ["pkg-config", "--libs", "libzmq"], check=True, capture_output=True, text=True
-    ).stdout.split()
-
-    subprocess.run(
-        [
-            "gcc", "-Wall", "-g", f"-I{GHDL_DIR}", f"-I{SHARED_DIR}", *cflags,
-            str(GHDL_DIR / "RogueTcpMemory.c"), str(HERE / "uninit_read_recv_harness.c"),
-            "-o", str(UNINIT_READ_HARNESS), *libs,
-        ],
-        check=True,
-    )
+    _build_memory_recv_harness(UNINIT_READ_HARNESS)
 
     proc = subprocess.Popen(
         [
