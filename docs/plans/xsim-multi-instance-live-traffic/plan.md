@@ -41,9 +41,9 @@ The final implementation exchanges one four-byte frame per Stream instance, one 
 
 ## File Structure
 
-- `tests/axi/simlink/rogue_tcp_peer.py` — **modify**: add pure per-tag vector helpers + `--tag` argument threaded into each `run_*_peer`. Backward compatible (no `--tag` → current fixed vectors).
-- `tests/axi/simlink/test_rogue_tcp_peer_tags.py` — **create**: pure-Python unit tests for the tag helpers (no Vivado).
-- `tests/axi/simlink/xsim_test_utils.py` — **create**: shared xsim helpers (`_xsim_run_env`, tool list + skip predicate, `build_dpi_library` fixture factory, compile/elaborate/run helper) factored out of `test_RogueXsimMulti.py`.
+- `tests/axi/simlink/rogue_tcp_peer.py` — **modify**: reuse the canonical per-instance vector helpers and `*-instance` modes; add a backward-compatible, test-only `--ready-file` argument.
+- `tests/axi/simlink/test_rogue_tcp_peer_tags.py` — **create**: pure-Python unit tests for the instance vectors, mode dispatch, and ready-file barrier (no Vivado).
+- `tests/axi/simlink/xsim_test_utils.py` — **create**: shared xsim helpers (`xsim_run_env`, tool list + skip predicate, `build_dpi_library` fixture factory, compile/elaborate/run helper) factored out of `test_RogueXsimMulti.py`.
 - `tests/axi/simlink/test_RogueXsimMulti.py` — **modify**: import shared helpers from `xsim_test_utils.py`; behavior unchanged.
 - `tests/axi/simlink/RogueXsimTrafficTb.vhd` — **create**: the 8-instance active-traffic top.
 - `tests/axi/simlink/test_RogueXsimTraffic.py` — **create**: orchestration + assertions.
@@ -956,4 +956,3 @@ git commit -m "docs(simlink): record xsim live-traffic validation progress notes
 - **Spec coverage:** goal (isolated live traffic through xsim) → Tasks 4–7; per-instance tagging → Tasks 1–2; shared-helper refactor → Task 3; Option B settle delay → TB `SETTLE_EDGES_C` + Task 7; positive + foreign-tag rejection → Task 2 (`stream_frame_is_foreign`) + Task 7; skip-without-Vivado → `pytestmark`; regression of existing tests → Task 3 Step 3, Task 8; docs under `docs/plans/<task-name>/` → Task 8. No changes to model C/SV/entity source (spec scope) — TB and tests only. Sparse-tKeep/uninit-read not ported (out of scope) — confirmed absent from tasks.
 - **Placeholder scan:** VHDL for Memory (Task 5) and SideBand (Task 6) driver processes is described precisely (signals, handshake, tag values) rather than shown line-for-line, because the exact AXI-Lite/sideband handshake timing must be confirmed against the live model under xsim (the run is the test); this is an explicit run-and-iterate loop, not a deferred decision. All Python is shown in full.
 - **Type/name consistency:** `xsim_test_utils` exports `tools_available`, `SKIP_REASON`, `xsim_run_env`, `build_dpi_library`, `run_top`, `REPO_ROOT`, `MODEL_VHDL_SOURCES`, `SV_SOURCES` — used consistently in both test modules. Peer helpers `stream_peer_to_dut_payload` / `stream_dut_to_peer_payload` / `memory_txn_for_tag` / `sideband_peer_to_dut` / `sideband_expect_for_tag` / `stream_frame_is_foreign` / `build_arg_parser` — names match across Tasks 1, 2, 4. TB signals `streamDone`/`memDone`/`sbDone` consistent across Tasks 4–6.
-```

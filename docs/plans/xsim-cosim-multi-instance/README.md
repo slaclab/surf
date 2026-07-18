@@ -490,7 +490,7 @@ compilation. Compile or analyze VCS shared-core consumers even if licensed VCS
 execution is unavailable. Record the Vivado version used for DPI and
 end-to-end validation.
 
-Prepare responses for the unresolved threads:
+Audit the recorded responses for the original threads:
 
 1. Link the per-instance context manager, mixed-model test, and wrapper elaboration
    evidence.
@@ -504,8 +504,8 @@ Exit criteria:
 - Focused native ownership/active-traffic/lifecycle tests and xsim
   ABI/elaboration/reset tests pass.
 - The complete GHDL simlink suite passes serially and with CI xdist settings.
-- Every unresolved review finding has code/documentation evidence or a
-  technically supported scope response ready for re-review.
+- Every original review finding has code/documentation evidence or a
+  technically supported scope response recorded for re-review.
 - No GitHub reply or thread resolution occurs until explicitly requested.
 
 ## Expected Files
@@ -552,7 +552,7 @@ interfaces should remain unchanged in this pull request.
   commands, explicit skips, and a recorded Vivado-enabled validation run before
   merge.
 
-## Proposed Blocking-Send Review Response
+## Recorded Blocking-Send Scope Decision
 
 The underlying concern is valid, but the blocking send behavior predates this
 xsim adapter and is shared by the VCS/VHPI and GHDL/VHPIDIRECT paths through
@@ -591,5 +591,5 @@ The work is complete when:
 6. Existing one-instance behavior, wire formats, shared transport semantics,
    public VHDL interfaces, and the complete GHDL simlink regression remain
    compatible.
-7. All three unresolved PR 1452 review threads have corresponding
-   implementation evidence or a documented scope response ready for re-review.
+7. All three original PR 1452 review threads are resolved and have corresponding
+   implementation evidence or a documented scope response for re-review.
