@@ -24,10 +24,10 @@ use surf.EthMacPkg.all;
 
 entity EthMacPrepareForICrc is
    generic (
-      TPD_G          : time    := 1 ns;   -- simulation propagation delay
-      RST_POLARITY_G : sl      := '1';    -- '1' = active-HIGH reset, '0' = active-LOW
-      RST_ASYNC_G    : boolean := false;  -- true = asynchronous reset
-      PIPE_STAGES_G  : natural := 0);     -- output AXI-Stream pipeline stages
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
+      PIPE_STAGES_G  : natural := 0);
    port (
       -- Clock and Reset
       ethClk      : in  sl;

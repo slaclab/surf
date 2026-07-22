@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: RoCEv2 Protocol Wrapper for TX path
+-- Description: RoCEv2 Protocol Wrapper for RX path
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -22,32 +22,35 @@ use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
 use surf.EthMacPkg.all;
 
-entity EthMacTxRoCEv2 is
+entity EthMacRxRoCEv2 is
    generic (
-      TPD_G          : time := 1 ns;
-      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      JUMBO_G        : boolean := true);
    port (
       -- Clock and Reset
-      ethClk        : in  sl;
-      ethRst        : in  sl;
+      ethClk         : in  sl;
+      ethRst         : in  sl;
       -- Checksum Interface
-      obCsumMaster  : in  AxiStreamMasterType;
-      obCsumSlave   : out AxiStreamSlaveType;
-      -- Pause Interface
-      ibPauseMaster : out AxiStreamMasterType;
-      ibPauseSlave  : in  AxiStreamSlaveType);
-end EthMacTxRoCEv2;
+      obCsumMaster   : in  AxiStreamMasterType;
+      -- Bypass Interface
+      ibBypassMaster : out AxiStreamMasterType);
+end EthMacRxRoCEv2;
 
-architecture mapping of EthMacTxRoCEv2 is
+architecture mapping of EthMacRxRoCEv2 is
 
-   constant ROCE_CRC32_AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => false,
-      TDATA_BYTES_C => 4,
-      TDEST_BITS_C  => 0,
-      TID_BITS_C    => 0,
-      TKEEP_MODE_C  => TKEEP_COMP_C,
-      TUSER_BITS_C  => 2,
-      TUSER_MODE_C  => TUSER_FIRST_LAST_C);
+   -- EthMacRxCheckICrc is store-and-forward: it releases no beat of a packet
+   -- until the CRC-result beat arrives, which the CRC engine only emits after
+   -- consuming the packet's LAST beat.  The delay FIFO must therefore hold a
+   -- full max-size frame; the upstream MAC RX path has no flow control (the
+   -- DeMux sAxisSlave is left open), so a full FIFO silently loses beats.
+   -- 16 bytes/beat: jumbo (9000B) needs ~564 beats, standard (1500B) ~95.
+   constant DLY_FIFO_ADDR_WIDTH_C : positive := ite(JUMBO_G, 10, 8);
+   -- The packetizer FIFO holds tValid until a frame completes (VALID_THOLD=0),
+   -- so its occupancy cannot drop while a frame is still streaming in.  If
+   -- pause asserts below one full frame, AxiStreamFlush stalls mid-frame and
+   -- the pipeline deadlocks: pause must stay above the max frame beat count.
+   constant PAUSE_THRESH_C : positive := ite(JUMBO_G, 896, 192);
 
    signal csumDmMasters : AxiStreamMasterArray(1 downto 0);
    signal csumDmSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -58,17 +61,20 @@ architecture mapping of EthMacTxRoCEv2 is
    signal csumMasterDly : AxiStreamMasterType;
    signal csumSlaveDly  : AxiStreamSlaveType;
 
+   signal axisMasterNoTrail : AxiStreamMasterType;
+   signal axisSlaveNoTrail  : AxiStreamSlaveType;
+
    signal csumiCrcMaster : AxiStreamMasterType;
    signal csumiCrcSlave  : AxiStreamSlaveType;
 
    signal crcStreamMaster : AxiStreamMasterType;
    signal crcStreamSlave  : AxiStreamSlaveType;
 
-   signal roceStreamMaster : AxiStreamMasterType;
-   signal roceStreamSlave  : AxiStreamSlaveType;
+   signal roceCheckedMaster : AxiStreamMasterType;
+   signal roceCheckedSlave  : AxiStreamSlaveType;
 
-   signal roceFixMaster : AxiStreamMasterType;
-   signal roceFixSlave  : AxiStreamSlaveType;
+   signal roceMaster : AxiStreamMasterType;
+   signal roceCtrl   : AxiStreamCtrlType;
 
    signal roceMasters : AxiStreamMasterArray(1 downto 0);
    signal roceSlaves  : AxiStreamSlaveArray(1 downto 0);
@@ -76,7 +82,7 @@ architecture mapping of EthMacTxRoCEv2 is
 begin
 
    ----------------------------------------------------------------------------
-   -- RoCE iCRC calculation
+   -- RoCE iCRC check
    ----------------------------------------------------------------------------
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
@@ -90,7 +96,7 @@ begin
          axisClk      => ethClk,
          axisRst      => ethRst,
          sAxisMaster  => obCsumMaster,
-         sAxisSlave   => obCsumSlave,
+         sAxisSlave   => open,
          mAxisMasters => csumDmMasters,
          mAxisSlaves  => csumDmSlaves);
 
@@ -108,12 +114,14 @@ begin
          mAxisMasters => csumMastersRoCE,
          mAxisSlaves  => csumSlavesRoCE);
 
+   -- FIFO the second stream to wait for iCrc (must hold a full frame, see
+   -- DLY_FIFO_ADDR_WIDTH_C above)
    U_FifoV2 : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
          RST_POLARITY_G      => RST_POLARITY_G,
          GEN_SYNC_FIFO_G     => true,
-         FIFO_ADDR_WIDTH_G   => 5,
+         FIFO_ADDR_WIDTH_G   => DLY_FIFO_ADDR_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
@@ -125,6 +133,19 @@ begin
          mAxisRst    => ethRst,
          mAxisMaster => csumMasterDly,
          mAxisSlave  => csumSlaveDly);
+
+   U_TrailerRemove : entity surf.AxiStreamTrailerRemove
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         AXI_CONFIG_G   => EMAC_AXIS_CONFIG_C)
+      port map (
+         axisClk     => ethClk,
+         axisRst     => ethRst,
+         sAxisMaster => csumMasterDly,
+         sAxisSlave  => csumSlaveDly,
+         mAxisMaster => axisMasterNoTrail,
+         mAxisSlave  => axisSlaveNoTrail);
 
    U_iCrc : entity surf.EthMacPrepareForICrc
       generic map (
@@ -138,11 +159,11 @@ begin
          mAxisMaster => csumiCrcMaster,
          mAxisSlave  => csumiCrcSlave);
 
-   U_Crc : entity surf.EthMacCrcAxiStream
+   U_iCrcIn : entity surf.EthMacCrcAxiStream
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         CRC_MODE_G     => "SEND")
+         CRC_MODE_G     => "RECV")
       port map (
          ethClk      => ethClk,
          ethRst      => ethRst,
@@ -151,35 +172,34 @@ begin
          mAxisMaster => crcStreamMaster,
          mAxisSlave  => crcStreamSlave);
 
-   U_TrailerAppend : entity surf.AxiStreamTrailerAppend
+   U_CheckICrc : entity surf.EthMacRxCheckICrc
       generic map (
-         TPD_G                     => TPD_G,
-         RST_POLARITY_G            => RST_POLARITY_G,
-         TRAILER_AXI_CONFIG_G      => ROCE_CRC32_AXI_CONFIG_C,
-         MASTER_SLAVE_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G)
       port map (
-         axisClk            => ethClk,
-         axisRst            => ethRst,
-         sAxisMaster        => csumMasterDly,
-         sAxisSlave         => csumSlaveDly,
-         sAxisTrailerMaster => crcStreamMaster,
-         sAxisTrailerSlave  => crcStreamSlave,
-         mAxisMaster        => roceStreamMaster,
-         mAxisSlave         => roceStreamSlave);
+         ethClk              => ethClk,
+         ethRst              => ethRst,
+         sAxisMaster         => axisMasterNoTrail,
+         sAxisSlave          => axisSlaveNoTrail,
+         sAxisCrcCheckMaster => crcStreamMaster,
+         sAxisCrcCheckSlave  => crcStreamSlave,
+         mAxisMaster         => roceCheckedMaster,
+         mAxisSlave          => roceCheckedSlave);
 
-   U_Compact_1 : entity surf.AxiStreamCompact
+   U_Flush : entity surf.AxiStreamFlush
       generic map (
-         TPD_G               => TPD_G,
-         RST_POLARITY_G      => RST_POLARITY_G,
-         SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+         SSI_EN_G       => true)
       port map (
          axisClk     => ethClk,
          axisRst     => ethRst,
-         sAxisMaster => roceStreamMaster,
-         sAxisSlave  => roceStreamSlave,
-         mAxisMaster => roceFixMaster,
-         mAxisSlave  => roceFixSlave);
+         flushEn     => roceCheckedMaster.tUser(2),
+         sAxisMaster => roceCheckedMaster,
+         sAxisSlave  => roceCheckedSlave,
+         mAxisMaster => roceMaster,
+         mAxisCtrl   => roceCtrl);
 
    --------------------
    -- Packetizer FIFOs
@@ -190,17 +210,19 @@ begin
          RST_POLARITY_G      => RST_POLARITY_G,
          VALID_THOLD_G       => 0,
          GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => DLY_FIFO_ADDR_WIDTH_C,
+         FIFO_PAUSE_THRESH_G => PAUSE_THRESH_C,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
          sAxisClk    => ethClk,
          sAxisRst    => ethRst,
-         sAxisMaster => RoceFixMaster,
-         sAxisSlave  => RoceFixSlave,
+         sAxisMaster => RoceMaster,
+         sAxisCtrl   => RoceCtrl,
          mAxisClk    => ethClk,
          mAxisRst    => ethRst,
-         mAxisMaster => roceMasters(1),
-         mAxisSlave  => roceSlaves(1));
+         mAxisMaster => RoceMasters(1),
+         mAxisSlave  => RoceSlaves(1));
 
    U_FifoPacketizer_Udp : entity surf.AxiStreamFifoV2
       generic map (
@@ -208,6 +230,7 @@ begin
          RST_POLARITY_G      => RST_POLARITY_G,
          VALID_THOLD_G       => 0,
          GEN_SYNC_FIFO_G     => true,
+         FIFO_ADDR_WIDTH_G   => DLY_FIFO_ADDR_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => EMAC_AXIS_CONFIG_C,
          MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
       port map (
@@ -237,7 +260,7 @@ begin
          axisRst      => ethRst,
          sAxisMasters => roceMasters,
          sAxisSlaves  => roceSlaves,
-         mAxisMaster  => ibPauseMaster,
-         mAxisSlave   => ibPauseSlave);
+         mAxisMaster  => ibBypassMaster,
+         mAxisSlave   => AXI_STREAM_SLAVE_FORCE_C);
 
 end mapping;

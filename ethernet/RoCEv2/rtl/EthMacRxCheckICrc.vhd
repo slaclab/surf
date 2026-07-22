@@ -25,9 +25,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxCheckICrc is
    generic (
-      TPD_G          : time    := 1 ns;   -- simulation propagation delay
-      RST_POLARITY_G : sl      := '1';    -- '1' = active-HIGH reset, '0' = active-LOW
-      RST_ASYNC_G    : boolean := false);  -- true = asynchronous reset
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false);
    port (
       -- Clock and Reset
       ethClk              : in  sl;
@@ -46,6 +46,7 @@ architecture rtl of EthMacRxCheckICrc is
 
    type RegType is record
       gotCrc     : sl;
+      flushBit   : sl;
       ibSlave    : AxiStreamSlaveType;
       ibCrcSlave : AxiStreamSlaveType;
       obMaster   : AxiStreamMasterType;
@@ -53,6 +54,7 @@ architecture rtl of EthMacRxCheckICrc is
 
    constant REG_INIT_C : RegType := (
       gotCrc     => '0',
+      flushBit   => '0',
       ibSlave    => AXI_STREAM_SLAVE_INIT_C,
       ibCrcSlave => AXI_STREAM_SLAVE_INIT_C,
       obMaster   => axiStreamMasterInit(EMAC_AXIS_CONFIG_C));
@@ -95,10 +97,20 @@ begin
                v.gotCrc := '0';
             end if;
             v.obMaster := ibM;
-            if or_reduce(ibCrcM.tData(31 downto 0)) = '0' then
-               v.obMaster.tUser(2) := '0';
+            -- Evaluate the CRC result ONLY on the beat where it is consumed
+            -- (first beat of the frame): the CRC stream master may queue
+            -- results (EthMacCrcAxiStream result FIFO), so after the pop its
+            -- tData can already show the NEXT packet's result. Latch the
+            -- verdict for the remaining beats of the frame.
+            if r.gotCrc = '0' then
+               if or_reduce(ibCrcM.tData(31 downto 0)) = '0' then
+                  v.flushBit := '0';
+               else
+                  v.flushBit := '1';
+               end if;
+               v.obMaster.tUser(2) := v.flushBit;
             else
-               v.obMaster.tUser(2) := '1';
+               v.obMaster.tUser(2) := r.flushBit;
             end if;
          end if;
       end if;

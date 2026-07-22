@@ -46,6 +46,7 @@ entity RssiCoreWrapper is
       BYP_RX_BUFFER_G       : boolean      := false;
       SYNTH_MODE_G          : string       := "inferred";
       MEMORY_TYPE_G         : string       := "block";
+      PACKETIZER_MEMORY_TYPE_G : string    := "block";  -- (De)Packetizer2 context RAM; "distributed" avoids Vivado 2021.1/2024.1 forced-BRAM crash (Synth 8-5797)
       ILEAVE_ON_NOTVALID_G  : boolean      := false;  -- Unused (legacy generic)
       -- AXIS Configurations
       APP_AXIS_CONFIG_G     : AxiStreamConfigArray;
@@ -222,7 +223,7 @@ begin
          U_Packetizer : entity surf.AxiStreamPacketizer2
             generic map (
                TPD_G                => TPD_G,
-               MEMORY_TYPE_G        => "block",
+               MEMORY_TYPE_G        => PACKETIZER_MEMORY_TYPE_G,
                REG_EN_G             => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",
@@ -326,7 +327,7 @@ begin
          U_Depacketizer : entity surf.AxiStreamDepacketizer2
             generic map (
                TPD_G                => TPD_G,
-               MEMORY_TYPE_G        => "block",
+               MEMORY_TYPE_G        => PACKETIZER_MEMORY_TYPE_G,
                REG_EN_G             => true,
                CRC_MODE_G           => "FULL",
                CRC_POLY_G           => x"04C11DB7",

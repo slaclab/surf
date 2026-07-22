@@ -46,26 +46,28 @@ architecture rtl of AxiStreamTrailerRemove is
 
    constant BYTES_C : positive := AXI_CONFIG_G.TDATA_BYTES_C;
 
+   -- The trailer can spill across a beat boundary, so the stream is delayed by
+   -- one beat in r.held: when the tLast beat arrives its tKeep count tells
+   -- whether the buffered beat must be shortened and become the new tLast.
+   -- Both the delay buffer and the output register are advanced by a single
+   -- ready/valid handshake (a beat is consumed from the slave port in exactly
+   -- the cycle sAxisSlave.tReady is asserted).
    type RegType is record
-      obMaster     : AxiStreamMasterType;
-      ibSlave      : AxiStreamSlaveType;
-      regularTLast : boolean;
+      obMaster : AxiStreamMasterType;
+      held     : AxiStreamMasterType;
+      ibSlave  : AxiStreamSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      obMaster     => axiStreamMasterInit(AXI_CONFIG_G),
-      ibSlave      => AXI_STREAM_SLAVE_INIT_C,
-      regularTLast => true);
+      obMaster => axiStreamMasterInit(AXI_CONFIG_G),
+      held     => axiStreamMasterInit(AXI_CONFIG_G),
+      ibSlave  => AXI_STREAM_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal pipeAxisMaster   : AxiStreamMasterType;
-   signal pipeAxisSlave    : AxiStreamSlaveType;
-   signal axisMasterToPipe : AxiStreamMasterType;
-   signal axisSlaveToPipe  : AxiStreamSlaveType;
-   signal axisMasterPipe   : AxiStreamMasterType;
-   signal axisSlavePipe    : AxiStreamSlaveType;
+   signal pipeAxisMaster : AxiStreamMasterType;
+   signal pipeAxisSlave  : AxiStreamSlaveType;
 
 begin
 
@@ -73,74 +75,76 @@ begin
    assert (BYTES_C >= BYTES_TO_RM_G)
       report "Axi-Stream data widths must be greater or equal than trailer" severity failure;
 
-   -- Connect Pipe
-   axisMasterToPipe <= sAxisMaster;
-
-   -- Generate a delayed copy of incoming stream
-   AxiStreamPipeline_2 : entity surf.AxiStreamPipeline
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         -- SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
-         PIPE_STAGES_G  => 1)
-      port map (
-         axisClk     => axisClk,
-         axisRst     => axisRst,
-         sAxisMaster => axisMasterToPipe,
-         -- sSideBand   => sSideBand,
-         sAxisSlave  => axisSlaveToPipe,
-         mAxisMaster => axisMasterPipe,
-         -- mSideBand   => mSideBand,
-         mAxisSlave  => axisSlavePipe);
-
-   comb : process (axisMasterPipe, axisRst, axisSlaveToPipe, pipeAxisSlave, r,
-                   sAxisMaster) is
-      variable v     : RegType;
-      variable ibM   : AxiStreamMasterType;
-      variable count : integer range 0 to AXI_CONFIG_G.TDATA_BYTES_C;
-      variable toRm  : integer range 0 to BYTES_TO_RM_G;
+   comb : process (axisRst, pipeAxisSlave, r, sAxisMaster) is
+      variable v       : RegType;
+      variable count   : integer range 0 to AXI_CONFIG_G.TDATA_BYTES_C;
+      variable heldCnt : integer range 0 to AXI_CONFIG_G.TDATA_BYTES_C;
+      variable toRm    : integer range 0 to BYTES_TO_RM_G;
    begin  -- process comb
       v := r;
 
       -- Init ready
       v.ibSlave.tReady := '0';
 
-      -- Choose ready source and clear valid
+      -- Clear valid once the output register has been consumed
       if (pipeAxisSlave.tReady = '1') then
          v.obMaster.tValid := '0';
       end if;
 
-      -- Accept input data
-      if v.obMaster.tValid = '0' and axisSlaveToPipe.tReady = '1' then
-         -- Get inbound data
-         ibM              := axisMasterPipe;
-         v.ibSlave.tReady := '1';
+      -- Move data when the output register is free
+      if v.obMaster.tValid = '0' then
 
-         if ibM.tValid = '1' and r.regularTLast then
-            v.obMaster := ibM;
-            if sAxisMaster.tLast = '1' then
-               count    := getTKeep(sAxisMaster.tKeep, AXI_CONFIG_G);
-               if count <= BYTES_TO_RM_G then
-                  v.regularTLast                              := false;
+         if sAxisMaster.tValid = '1' then
+            -- Accept the input beat
+            v.ibSlave.tReady := '1';
+            count            := getTKeep(sAxisMaster.tKeep, AXI_CONFIG_G);
+
+            if r.held.tValid = '1' then
+               -- Drain the delay buffer into the output register
+               v.obMaster := r.held;
+               if (sAxisMaster.tLast = '1') and (count <= BYTES_TO_RM_G) then
+                  -- Trailer spills into the buffered beat: shorten it,
+                  -- terminate the frame and drop the all-trailer input beat
                   toRm                                        := BYTES_TO_RM_G - count;
+                  heldCnt                                     := getTKeep(r.held.tKeep, AXI_CONFIG_G);
                   v.obMaster.tLast                            := '1';
-                  count                                       := getTKeep(ibM.tKeep, AXI_CONFIG_G);
                   v.obMaster.tKeep                            := (others => '0');
-                  v.obMaster.tKeep((count - toRm)-1 downto 0) := (others => '1');
+                  v.obMaster.tKeep((heldCnt-toRm)-1 downto 0) := (others => '1');
+                  v.held.tValid                               := '0';
+               else
+                  v.held := sAxisMaster;
+                  if sAxisMaster.tLast = '1' then
+                     -- Trailer fits inside the last beat: shorten it
+                     v.held.tKeep                                   := (others => '0');
+                     v.held.tKeep((count-BYTES_TO_RM_G)-1 downto 0) := (others => '1');
+                  end if;
+               end if;
+
+            else
+               -- Delay buffer empty (start of frame)
+               if (sAxisMaster.tLast = '1') and (count <= BYTES_TO_RM_G) then
+                  -- Degenerate frame no longer than the trailer: drop it
+                  null;
+               else
+                  v.held := sAxisMaster;
+                  if sAxisMaster.tLast = '1' then
+                     -- Single-beat frame: shorten it
+                     v.held.tKeep                                   := (others => '0');
+                     v.held.tKeep((count-BYTES_TO_RM_G)-1 downto 0) := (others => '1');
+                  end if;
                end if;
             end if;
-            if ibM.tLast = '1' then
-               count                                                := getTKeep(ibM.tKeep, AXI_CONFIG_G);
-               v.obMaster.tKeep                                     := (others => '0');
-               v.obMaster.tKeep((count - BYTES_TO_RM_G)-1 downto 0) := (others => '1');
-            end if;
+
+         elsif (r.held.tValid = '1') and (r.held.tLast = '1') then
+            -- Frame already terminated inside the delay buffer: drain it
+            v.obMaster    := r.held;
+            v.held.tValid := '0';
          end if;
+
       end if;
 
       -- Outputs
       sAxisSlave     <= v.ibSlave;
-      axisSlavePipe  <= pipeAxisSlave;
       pipeAxisMaster <= r.obMaster;
 
       -- Reset

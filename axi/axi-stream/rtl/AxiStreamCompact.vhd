@@ -28,19 +28,16 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamCompact is
    generic (
       TPD_G               : time    := 1 ns;
-      RST_POLARITY_G      : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G      : sl      := '1';
       RST_ASYNC_G         : boolean := false;
       PIPE_STAGES_G       : natural := 0;
       SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G : AxiStreamConfigType);
    port (
-      -- Clock and Reset
       axisClk     : in  sl;
       axisRst     : in  sl;
-      -- Slave Port
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
-      -- Master Port
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType);
 end entity AxiStreamCompact;
@@ -49,6 +46,18 @@ architecture rtl of AxiStreamCompact is
 
    constant SLV_BYTES_C : positive := SLAVE_AXI_CONFIG_G.TDATA_BYTES_C;
    constant MST_BYTES_C : positive := MASTER_AXI_CONFIG_G.TDATA_BYTES_C;
+
+   -- Return number of asserted bits in tKeep[nBytes-1:0]
+   function countKeepBytes (tKeep : slv; nBytes : positive) return natural is
+      variable n : natural := 0;
+   begin
+      for i in 0 to nBytes-1 loop
+         if tKeep(i) = '1' then
+            n := n + 1;
+         end if;
+      end loop;
+      return n;
+   end function;
 
    -- accData / accKeep are double-wide so we can always shift new bytes in
    -- at offset r.count without overflow (count < MST_BYTES_C, new bytes
@@ -78,37 +87,10 @@ architecture rtl of AxiStreamCompact is
    signal pipeAxisMaster : AxiStreamMasterType;
    signal pipeAxisSlave  : AxiStreamSlaveType;
 
-   -- True when the low SLV_BYTES_C of tKeep form a contiguous run of valid
-   -- bytes starting at bit 0 (e.g. 0x0F ok, 0xF0 / 0x0D not). This block only
-   -- supports that framing; feeding a non-contiguous/high-offset mask is a
-   -- design error and is flagged by the assertion below.
-   function tKeepContiguousFromZero (
-      tKeep : slv;
-      bytes : positive)
-      return boolean is
-      variable seenZero : boolean;
-   begin
-      seenZero := false;
-      for i in 0 to bytes-1 loop
-         if tKeep(i) = '0' then
-            seenZero := true;
-         elsif seenZero then
-            return false;
-         end if;
-      end loop;
-      return true;
-   end function tKeepContiguousFromZero;
-
 begin
 
    assert (MST_BYTES_C >= SLV_BYTES_C)
       report "Master data width must be >= slave data width" severity failure;
-
-   -- Enforce the contiguous-from-bit-0 tKeep contract at simulation time
-   assert (sAxisMaster.tValid = '0')
-      or tKeepContiguousFromZero(sAxisMaster.tKeep(SLV_BYTES_C-1 downto 0), SLV_BYTES_C)
-      report "AxiStreamCompact: tKeep must be a contiguous mask from bit 0 (e.g. 0x0F legal, 0xF0/0x0D not)"
-      severity failure;
 
    comb : process (axisRst, pipeAxisSlave, r, sAxisMaster) is
       variable v        : RegType;
@@ -153,13 +135,11 @@ begin
 
             if sAxisMaster.tValid = '1' then
 
-               newBytes := conv_integer(onesCount(sAxisMaster.tKeep(SLV_BYTES_C-1 downto 0)));
+               newBytes := countKeepBytes(sAxisMaster.tKeep, SLV_BYTES_C);
 
                -- Latch tUser from the first beat of each packet
                if not r.tUserSet then
                   v.obMaster.tUser := sAxisMaster.tUser;
-                  v.obMaster.tDest := sAxisMaster.tDest;
-                  v.obMaster.tId   := sAxisMaster.tId;
                   v.tUserSet       := true;
                end if;
 
@@ -268,10 +248,9 @@ begin
 
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         PIPE_STAGES_G  => PIPE_STAGES_G)
+         TPD_G         => TPD_G,
+         RST_ASYNC_G   => RST_ASYNC_G,
+         PIPE_STAGES_G => PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,

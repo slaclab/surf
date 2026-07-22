@@ -155,10 +155,11 @@ begin
    -- RoCEv2 Protocol iCRC Checking
    --------------------------------
    GEN_RoCEv2 : if (ROCEV2_EN_G = true) generate
-      U_RoCEv2 : entity surf.RoCEv2EthMacRx
+      U_RoCEv2 : entity surf.EthMacRxRoCEv2
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G)
+            RST_POLARITY_G => RST_POLARITY_G,
+            JUMBO_G        => JUMBO_G)
          port map (
             -- Clock and Reset
             ethClk         => ethClk,
