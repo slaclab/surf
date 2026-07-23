@@ -8,3 +8,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.ethernet.roce._RoceMetaDataAxil import *
+from surf.ethernet.roce._Dcqcn import *

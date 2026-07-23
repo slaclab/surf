@@ -123,7 +123,9 @@ entity RoceEngineWrapper is
       axilWriteMaster     : in  AxiLiteWriteMasterType;
       axilWriteSlave      : out AxiLiteWriteSlaveType;
       -- metadata completion interrupt (1-cycle pulse on DONE)
-      mdDoneIrq           : out sl);
+      mdDoneIrq           : out sl;
+      -- per-QP CNP pulses from TransportLayer (consumed by RoCEv2AxiStreamRdma/DCQCN)
+      cnp                 : out slv(MAX_QP_G-1 downto 0));
 end entity RoceEngineWrapper;
 
 architecture rtl of RoceEngineWrapper is
@@ -291,6 +293,7 @@ begin
          dmaWriteReqRd      => mDmaWriteReqSlave.ready,
          dmaWriteRespValid  => sDmaWriteRespMaster.valid,
          dmaWriteRespData   => DmaWriteRespToSlv(sDmaWriteRespMaster),
-         dmaWriteRespReady  => dmaWriteRespReady);
+         dmaWriteRespReady  => dmaWriteRespReady,
+         cnp                => cnp);
 
 end architecture rtl;

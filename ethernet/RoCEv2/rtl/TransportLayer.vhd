@@ -45,9 +45,9 @@
 --   (OQ-EMIT-QP-01) — identical to the BSV, where statusSQ.comm and
 --   statusRQ.comm read the same mkCntrlQP registers.
 --
---   CNP is unsupported upstream (BSV TODO, TransportLayer.bsv:146-151):
---   U_PktBuf.cnpRdEn is tied '0' and a translate_off assertion reproduces the
---   BSV genEmptyPipeOutRule simulation check.
+--   CNP (TransportLayer.bsv:146-151): U_PktBuf's per-QP CNP pipe is
+--   self-dequeued (cnpRdEn <= cnpValid) and exported on the cnp output as
+--   1-cycle pulses, one bit per QP, for an external DCQCN engine.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -146,7 +146,11 @@ entity TransportLayer is
       dmaWriteReqRd     : in  sl;
       dmaWriteRespValid : in  sl;
       dmaWriteRespData  : in  slv(52 downto 0);
-      dmaWriteRespReady : out sl);
+      dmaWriteRespReady : out sl;
+
+      -- cnpPipeOutVec (TransportLayer.bsv:146-151): one CNP pulse per QP (1 cycle
+      -- when that QP receives a congestion notification). One bit per supported QP.
+      cnp               : out slv(MAX_QP_G-1 downto 0));
 end entity TransportLayer;
 
 architecture rtl of TransportLayer is
@@ -171,8 +175,6 @@ architecture rtl of TransportLayer is
 
    -- isWorkCompFinished = constant True in BSV (TransportLayer.bsv:164-166)
    constant WC_FINISHED_C : slv(MAX_QP_G-1 downto 0) := (others => '1');
-   -- CNP unsupported: never dequeue (TransportLayer.bsv:146)
-   constant CNP_TIE_C     : slv(MAX_QP_G-1 downto 0) := (others => '0');
 
    -- G1: input FIFO faces (surf.Fifo x3)
    signal dataStreamQWrEn    : sl;
@@ -588,7 +590,7 @@ begin
          respPayloadRdEn       => respPktPayloadXfer,
          cnpValid              => cnpValid,
          cnpDout               => open,
-         cnpRdEn               => CNP_TIE_C);
+         cnpRdEn               => cnpValid);   -- self-dequeue -> 1-cycle pulse per CNP
 
    -----------------------------------------------------------------------------
    -- G5 — QP-status mux (replaces BSV getQueuePairByQPN, RESOLVED
@@ -1010,20 +1012,9 @@ begin
          outRespReady => dmaWriteRespReady);
 
    -----------------------------------------------------------------------------
-   -- CNP empty-pipe assertion (BSV genEmptyPipeOutRule, TransportLayer.bsv:
-   -- 147-151) — simulation-only reproduction of the BSV error rule.
+   -- CNP output (TransportLayer.bsv:146-151): forward the per-QP CNP pipe to the
+   -- DCQCN engine (in the RoCEv2AxiStreamRdma wrapper). Self-dequeued above.
    -----------------------------------------------------------------------------
-   -- pragma translate_off
-   cnpCheck : process (clk) is
-   begin
-      if rising_edge(clk) then
-         if (rst = '0') then
-            assert (cnpValid = CNP_TIE_C)
-               report "cnpPipeOutVec must be empty - TODO: support CNP (TransportLayer.bsv:147-151)"
-               severity failure;
-         end if;
-      end if;
-   end process cnpCheck;
-   -- pragma translate_on
+   cnp <= cnpValid;
 
 end architecture rtl;
