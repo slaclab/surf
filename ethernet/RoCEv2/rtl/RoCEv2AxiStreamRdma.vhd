@@ -75,7 +75,10 @@ entity RoCEv2AxiStreamRdma is
       axilWriteMaster     : in  AxiLiteWriteMasterType;
       axilWriteSlave      : out AxiLiteWriteSlaveType;
       -- metadata completion interrupt
-      mdDoneIrq           : out sl);
+      mdDoneIrq           : out sl;
+      -- per-QP CNP pulses from the engine (observation; also feeds the
+      -- internal Dcqcn when DCQCN_EN_G=true)
+      cnp                 : out slv(MAX_QP_G-1 downto 0));
 end entity RoCEv2AxiStreamRdma;
 
 architecture rtl of RoCEv2AxiStreamRdma is
@@ -97,6 +100,8 @@ architecture rtl of RoCEv2AxiStreamRdma is
    signal engineTxSlave  : AxiStreamSlaveType;
 
 begin
+
+   cnp <= cnpVec;
 
    ----------------------------------------------------------------------------
    -- DCQCN uses ONE shared reaction point: a single Dcqcn on the merged egress

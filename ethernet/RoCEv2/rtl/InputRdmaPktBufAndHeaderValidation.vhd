@@ -338,10 +338,19 @@ architecture rtl of InputRdmaPktBufAndHeaderValidation is
 
    -- checkZeroFields4BTH: tver, fecn, becn, resv6, resv7 all zero (migReq NOT checked)
    function checkZeroFields4BTH (bth : slv(95 downto 0)) return boolean is
+      variable ecnOk : boolean;
    begin
+      -- FECN/BECN must be clear except on a CNP ({trans,op} = ROCE_CNP 0x81),
+      -- which carries BECN=1 by definition (RoCEv2 Annex A17.9.3); requiring
+      -- becn=0 there would discard every CNP before the CNP fork in Rule 6.
+      if bth(95 downto 88) = ROCE_CNP_C then
+         ecnOk := true;
+      else
+         ecnOk := (bth(63) = '0')             -- fecn
+              and (bth(62) = '0');            -- becn
+      end if;
       return (bth(83 downto 80) = "0000")     -- tver
-         and (bth(63) = '0')                  -- fecn
-         and (bth(62) = '0')                  -- becn
+         and ecnOk
          and (bth(61 downto 56) = "000000")   -- resv6
          and (bth(30 downto 24) = "0000000"); -- resv7
    end function;
