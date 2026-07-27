@@ -84,30 +84,30 @@ entity DmaWriteCltArbiter is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      MAX_QP_G          : positive               := 4;    -- BSV MAX_QP; child PORT_COUNT = 2*MAX_QP
+      MAX_QP_G          : positive               := 4;  -- BSV MAX_QP; child PORT_COUNT = 2*MAX_QP
       REQ_WIDTH_G       : positive               := 419;  -- Bits#(DmaWriteReq)  (fixed by type; do not change)
-      RESP_WIDTH_G      : positive               := 53;   -- Bits#(DmaWriteResp) (fixed by type; do not change)
+      RESP_WIDTH_G      : positive               := 53;  -- Bits#(DmaWriteResp) (fixed by type; do not change)
       MEMORY_TYPE_G     : string                 := "distributed";  -- child FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);   -- child FIFO depth = 2**ADDR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- child FIFO depth = 2**ADDR
    port (
       clk          : in  sl;
       rst          : in  sl := not RST_POLARITY_G;
       -- Per-port upstream DmaWrite client faces (dmaWriteCltVec[k],
       -- k = 0 .. 2*MAX_QP_G-1; arbiter is master). Client k's payload slice is
       -- ((k+1)*WIDTH-1 downto k*WIDTH) of the flattened data buses.
-      cltReqValid  : in  slv(2*MAX_QP_G-1 downto 0);                 -- client k DmaWriteReq available (request.get implicit cond)
-      cltReqData   : in  slv(2*MAX_QP_G*REQ_WIDTH_G-1 downto 0);     -- client k DmaWriteReq payload, flattened
-      cltReqGet    : out slv(2*MAX_QP_G-1 downto 0);                 -- arbiter takes client k's request (request.get fired)
-      cltRespValid : out slv(2*MAX_QP_G-1 downto 0);                 -- arbiter drives a DmaWriteResp to client k (one-hot on grant)
-      cltRespData  : out slv(2*MAX_QP_G*RESP_WIDTH_G-1 downto 0);    -- DmaWriteResp payload (broadcast; cltRespValid selects the port)
-      cltRespReady : in  slv(2*MAX_QP_G-1 downto 0);                 -- client k can accept a response (response.put ready)
+      cltReqValid  : in  slv(2*MAX_QP_G-1 downto 0);  -- client k DmaWriteReq available (request.get implicit cond)
+      cltReqData   : in  slv(2*MAX_QP_G*REQ_WIDTH_G-1 downto 0);  -- client k DmaWriteReq payload, flattened
+      cltReqGet    : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter takes client k's request (request.get fired)
+      cltRespValid : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter drives a DmaWriteResp to client k (one-hot on grant)
+      cltRespData  : out slv(2*MAX_QP_G*RESP_WIDTH_G-1 downto 0);  -- DmaWriteResp payload (broadcast; cltRespValid selects the port)
+      cltRespReady : in  slv(2*MAX_QP_G-1 downto 0);  -- client k can accept a response (response.put ready)
       -- Downstream shared DmaWrite Client face (returned arbitratedClient)
-      outReqValid  : out sl;                             -- arbitrated DmaWriteReq valid to DMA
-      outReqData   : out slv(REQ_WIDTH_G-1 downto 0);    -- arbitrated DmaWriteReq
-      outReqRd     : in  sl;                             -- DMA dequeues the request (request.get)
-      outRespValid : in  sl;                             -- DMA presents a DmaWriteResp (response.put fired)
-      outRespData  : in  slv(RESP_WIDTH_G-1 downto 0);   -- DmaWriteResp payload from DMA
-      outRespReady : out sl);                            -- arbiter can accept a response (response.put ready)
+      outReqValid  : out sl;            -- arbitrated DmaWriteReq valid to DMA
+      outReqData   : out slv(REQ_WIDTH_G-1 downto 0);  -- arbitrated DmaWriteReq
+      outReqRd     : in  sl;  -- DMA dequeues the request (request.get)
+      outRespValid : in  sl;  -- DMA presents a DmaWriteResp (response.put fired)
+      outRespData  : in  slv(RESP_WIDTH_G-1 downto 0);  -- DmaWriteResp payload from DMA
+      outRespReady : out sl);  -- arbiter can accept a response (response.put ready)
 end entity DmaWriteCltArbiter;
 
 architecture rtl of DmaWriteCltArbiter is
@@ -121,7 +121,7 @@ architecture rtl of DmaWriteCltArbiter is
    -- Resolved OQ-FSM-17 response predicate: isDmaWriteRespLastFrag = True, so the
    -- child's downstream finish input is a constant '1' (every response is a
    -- single-fragment burst).
-   signal respFinished   : sl;
+   signal respFinished : sl;
 
 begin
 
@@ -156,7 +156,7 @@ begin
          -- Per-port upstream client faces (pass-through)
          cltReqValid     => cltReqValid,
          cltReqData      => cltReqData,
-         cltReqFinished  => reqFinishedAll,       -- OQ-FSM-17: isDmaWriteReqLastFrag = req.dataStream.isLast = REQ LSB per port
+         cltReqFinished  => reqFinishedAll,  -- OQ-FSM-17: isDmaWriteReqLastFrag = req.dataStream.isLast = REQ LSB per port
          cltReqGet       => cltReqGet,
          cltRespValid    => cltRespValid,
          cltRespData     => cltRespData,
@@ -167,7 +167,7 @@ begin
          outReqRd        => outReqRd,
          outRespValid    => outRespValid,
          outRespData     => outRespData,
-         outRespFinished => respFinished,         -- OQ-FSM-17: isDmaWriteRespLastFrag = True (tie '1')
+         outRespFinished => respFinished,  -- OQ-FSM-17: isDmaWriteRespLastFrag = True (tie '1')
          outRespReady    => outRespReady);
 
 end architecture rtl;

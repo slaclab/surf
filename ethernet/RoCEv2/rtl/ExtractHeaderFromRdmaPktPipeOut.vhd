@@ -107,24 +107,24 @@ entity ExtractHeaderFromRdmaPktPipeOut is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                    -- active-high synchronous reset
+      clk                   : in  sl;
+      rst                   : in  sl;   -- active-high synchronous reset
       -- Upstream: one RDMA packet DataStream pipe (module arg rdmaPktPipeIn)
-      rdmaPktPipeInValid   : in  sl;                  -- rdmaPktPipeIn.notEmpty
-      rdmaPktPipeInData    : in  slv(289 downto 0);   -- rdmaPktPipeIn.first (DataStream)
-      rdmaPktPipeInRdEn    : out sl;                  -- rdmaPktPipeIn.deq
+      rdmaPktPipeInValid    : in  sl;   -- rdmaPktPipeIn.notEmpty
+      rdmaPktPipeInData     : in  slv(289 downto 0);  -- rdmaPktPipeIn.first (DataStream)
+      rdmaPktPipeInRdEn     : out sl;   -- rdmaPktPipeIn.deq
       -- Downstream: header DataStream (headerAndMetaData.headerDataStream = child.header)
-      headerDataStreamValid : out sl;                 -- header.notEmpty
+      headerDataStreamValid : out sl;   -- header.notEmpty
       headerDataStreamData  : out slv(289 downto 0);  -- header.first (DataStream)
-      headerDataStreamRdEn  : in  sl;                 -- header.deq
+      headerDataStreamRdEn  : in  sl;   -- header.deq
       -- Downstream: header metadata token (headerAndMetaData.headerMetaData = buffer)
-      headerMetaDataValid   : out sl;                 -- headerMetaData.notEmpty
-      headerMetaDataData    : out slv(16 downto 0);   -- headerMetaData.first (HeaderMetaData)
-      headerMetaDataRdEn    : in  sl;                 -- headerMetaData.deq
+      headerMetaDataValid   : out sl;   -- headerMetaData.notEmpty
+      headerMetaDataData    : out slv(16 downto 0);  -- headerMetaData.first (HeaderMetaData)
+      headerMetaDataRdEn    : in  sl;   -- headerMetaData.deq
       -- Downstream: payload DataStream (payload = child.payload)
-      payloadValid          : out sl;                 -- payload.notEmpty
+      payloadValid          : out sl;   -- payload.notEmpty
       payloadData           : out slv(289 downto 0);  -- payload.first (DataStream)
-      payloadRdEn           : in  sl);                -- payload.deq
+      payloadRdEn           : in  sl);  -- payload.deq
 end entity ExtractHeaderFromRdmaPktPipeOut;
 
 architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
@@ -134,7 +134,7 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
    ---------------------------------------------------------------------------
    constant DS_WIDTH_C            : natural := 290;
    constant HMD_WIDTH_C           : natural := 17;
-   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;   -- DATA_BUS_WIDTH/8
+   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;  -- DATA_BUS_WIDTH/8
 
    subtype DsDataRange is natural range 289 downto 34;  -- 256 b
    constant DS_ISFIRST_C : natural := 1;
@@ -162,8 +162,8 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
       case opcode is
          when "00000" | "00001" | "00010" | "00011" | "00100" | "00101" |  -- SEND_FIRST..ONLY_WITH_IMMEDIATE
               "00110" | "00111" | "01000" | "01001" | "01010" | "01011" |  -- RDMA_WRITE_FIRST..ONLY_WITH_IMMEDIATE
-              "01101" | "01110" | "01111" | "10000" |                      -- RDMA_READ_RESPONSE_FIRST..ONLY
-              "10110" | "10111" =>                                          -- SEND_{LAST,ONLY}_WITH_INVALIDATE
+              "01101" | "01110" | "01111" | "10000" |  -- RDMA_READ_RESPONSE_FIRST..ONLY
+              "10110" | "10111" =>        -- SEND_{LAST,ONLY}_WITH_INVALIDATE
             return '1';
          when others =>
             return '0';
@@ -179,43 +179,43 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
       case key is
          -- RC requests / responses
          when x"00" | x"01" | x"02" | x"04" | x"07" | x"08" | x"0e" =>
-            n := BTH_BYTE_C;                                           -- 12
+            n := BTH_BYTE_C;            -- 12
          when x"03" | x"05" | x"09" | x"0d" | x"0f" | x"10" | x"11" | x"16" | x"17" =>
-            n := BTH_BYTE_C + AETH_BYTE_C;                            -- 16 (also =BTH+IMM_DT/IETH)
+            n := BTH_BYTE_C + AETH_BYTE_C;  -- 16 (also =BTH+IMM_DT/IETH)
          when x"06" | x"0a" | x"0c" =>
-            n := BTH_BYTE_C + RETH_BYTE_C;                            -- 28
+            n := BTH_BYTE_C + RETH_BYTE_C;  -- 28
          when x"0b" =>
-            n := BTH_BYTE_C + RETH_BYTE_C + IMM_DT_BYTE_C;            -- 32
+            n := BTH_BYTE_C + RETH_BYTE_C + IMM_DT_BYTE_C;    -- 32
          when x"12" =>
-            n := BTH_BYTE_C + AETH_BYTE_C + ATOMIC_ACK_ETH_BYTE_C;   -- 24
+            n := BTH_BYTE_C + AETH_BYTE_C + ATOMIC_ACK_ETH_BYTE_C;  -- 24
          when x"13" | x"14" =>
-            n := BTH_BYTE_C + ATOMIC_ETH_BYTE_C;                      -- 40
+            n := BTH_BYTE_C + ATOMIC_ETH_BYTE_C;              -- 40
          -- RC/XRC responses sharing AETH-based lengths
          when x"ad" | x"af" | x"b0" | x"b1" =>
-            n := BTH_BYTE_C + AETH_BYTE_C;                            -- 16
+            n := BTH_BYTE_C + AETH_BYTE_C;  -- 16
          when x"ae" =>
-            n := BTH_BYTE_C;                                          -- 12
+            n := BTH_BYTE_C;            -- 12
          when x"b2" =>
-            n := BTH_BYTE_C + AETH_BYTE_C + ATOMIC_ACK_ETH_BYTE_C;   -- 24
+            n := BTH_BYTE_C + AETH_BYTE_C + ATOMIC_ACK_ETH_BYTE_C;  -- 24
          -- XRC requests (BTH + XRCETH + ...)
          when x"a0" | x"a1" | x"a2" | x"a4" | x"a7" | x"a8" =>
-            n := BTH_BYTE_C + XRCETH_BYTE_C;                          -- 16
+            n := BTH_BYTE_C + XRCETH_BYTE_C;                  -- 16
          when x"a3" | x"a5" | x"a9" | x"b6" | x"b7" =>
-            n := BTH_BYTE_C + XRCETH_BYTE_C + IMM_DT_BYTE_C;          -- 20 (IMM_DT/IETH both 4)
+            n := BTH_BYTE_C + XRCETH_BYTE_C + IMM_DT_BYTE_C;  -- 20 (IMM_DT/IETH both 4)
          when x"a6" | x"aa" | x"ac" =>
-            n := BTH_BYTE_C + XRCETH_BYTE_C + RETH_BYTE_C;            -- 32
+            n := BTH_BYTE_C + XRCETH_BYTE_C + RETH_BYTE_C;    -- 32
          when x"ab" =>
             n := BTH_BYTE_C + XRCETH_BYTE_C + RETH_BYTE_C + IMM_DT_BYTE_C;  -- 36
          when x"b3" | x"b4" =>
-            n := BTH_BYTE_C + XRCETH_BYTE_C + ATOMIC_ETH_BYTE_C;     -- 44
+            n := BTH_BYTE_C + XRCETH_BYTE_C + ATOMIC_ETH_BYTE_C;    -- 44
          -- UD requests (BTH + DETH + ...)
          when x"64" =>
-            n := BTH_BYTE_C + DETH_BYTE_C;                            -- 20
+            n := BTH_BYTE_C + DETH_BYTE_C;  -- 20
          when x"65" =>
-            n := BTH_BYTE_C + DETH_BYTE_C + IMM_DT_BYTE_C;            -- 24
+            n := BTH_BYTE_C + DETH_BYTE_C + IMM_DT_BYTE_C;    -- 24
          -- CNP notification
          when x"81" =>
-            n := BTH_BYTE_C + CNP_PAYLOAD_BYTE_C;                     -- 28
+            n := BTH_BYTE_C + CNP_PAYLOAD_BYTE_C;             -- 28
          when others =>
             n := 0;
       end case;
@@ -238,7 +238,7 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
          fragNum := truncLen;
       end if;
       if (residue = 0) and (truncLen /= 0) then
-         lastVbn := to_unsigned(DATA_BUS_BYTE_WIDTH_C, 6);   -- 32
+         lastVbn := to_unsigned(DATA_BUS_BYTE_WIDTH_C, 6);  -- 32
       else
          lastVbn := resize(residue, 6);
       end if;
@@ -264,12 +264,12 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
    signal rdmaPktPipeInRdEn_i : sl;
 
    -- U_DataInQ (290 b)
-   signal dataInQWrEn   : sl;
-   signal dataInQDin    : slv(DS_WIDTH_C-1 downto 0);
-   signal dataInQNotFull: sl;
-   signal dataInQValid  : sl;
-   signal dataInQDout   : slv(DS_WIDTH_C-1 downto 0);
-   signal dataInQRdEn   : sl;                 -- owned by child U_ExtractDS
+   signal dataInQWrEn    : sl;
+   signal dataInQDin     : slv(DS_WIDTH_C-1 downto 0);
+   signal dataInQNotFull : sl;
+   signal dataInQValid   : sl;
+   signal dataInQDout    : slv(DS_WIDTH_C-1 downto 0);
+   signal dataInQRdEn    : sl;          -- owned by child U_ExtractDS
 
    -- U_HeaderMetaDataInQ (17 b) — fork source
    signal hmdInQWrEn    : sl;
@@ -277,15 +277,15 @@ architecture rtl of ExtractHeaderFromRdmaPktPipeOut is
    signal hmdInQNotFull : sl;
    signal hmdInQValid   : sl;
    signal hmdInQDout    : slv(HMD_WIDTH_C-1 downto 0);
-   signal hmdInQRdEn    : sl;                 -- driven by comb (fork join deq)
+   signal hmdInQRdEn    : sl;           -- driven by comb (fork join deq)
 
    -- U_Fork outputs
-   signal fork0Valid    : sl;                 -- comb → child.hdrMetaPipeInValid
-   signal childHdrMetaRdEn : sl;              -- child.hdrMetaPipeInRdEn → comb
+   signal fork0Valid       : sl;        -- comb → child.hdrMetaPipeInValid
+   signal childHdrMetaRdEn : sl;        -- child.hdrMetaPipeInRdEn → comb
 
    -- U_HeaderMetaDataBuf (17 b) — copy[1] buffer
-   signal bufWrEn       : sl;
-   signal bufNotFull    : sl;
+   signal bufWrEn    : sl;
+   signal bufNotFull : sl;
 
 begin
 
@@ -384,7 +384,7 @@ begin
          rst           => rst,
          wr_clk        => clk,
          wr_en         => bufWrEn,
-         din           => hmdInQDout,          -- fork copy[1] payload = source token
+         din           => hmdInQDout,   -- fork copy[1] payload = source token
          not_full      => bufNotFull,
          wr_ack        => open,
          overflow      => open,
@@ -418,7 +418,7 @@ begin
          dataPipeInData     => dataInQDout,
          dataPipeInRdEn     => dataInQRdEn,
          hdrMetaPipeInValid => fork0Valid,
-         hdrMetaPipeInData  => hmdInQDout,          -- fork copy[0] payload = source token
+         hdrMetaPipeInData  => hmdInQDout,  -- fork copy[0] payload = source token
          hdrMetaPipeInRdEn  => childHdrMetaRdEn,
          headerValid        => headerDataStreamValid,
          headerData         => headerDataStreamData,
@@ -445,10 +445,10 @@ begin
       variable hasPayload : sl;
       variable headerLen  : slv(6 downto 0);
       -- fork join
-      variable take0      : sl;
-      variable take1      : sl;
-      variable newTaken0  : sl;
-      variable newTaken1  : sl;
+      variable take0     : sl;
+      variable take1     : sl;
+      variable newTaken0 : sl;
+      variable newTaken1 : sl;
    begin
       v := r;
 
@@ -470,8 +470,8 @@ begin
                    and ((isFirst = '0') or (hmdInQNotFull = '1'));
 
       if ruleFires then
-         rdmaPktPipeInRdEn_i <= '1';          -- rdmaPktPipeIn.deq
-         dataInQWrEn         <= '1';          -- dataInQ.enq(frag)  (din wired above)
+         rdmaPktPipeInRdEn_i <= '1';    -- rdmaPktPipeIn.deq
+         dataInQWrEn         <= '1';    -- dataInQ.enq(frag)  (din wired above)
 
          if isFirst = '1' then
             data       := rdmaPktPipeInData(DsDataRange);
@@ -479,7 +479,7 @@ begin
             rdmaOpCode := data(252 downto 248);
             hasPayload := rdmaOpCodeHasPayload(rdmaOpCode);
             headerLen  := calcHeaderLen(transType & rdmaOpCode);
-            hmdInQWrEn <= '1';                -- headerMetaDataInQ.enq(token)
+            hmdInQWrEn <= '1';          -- headerMetaDataInQ.enq(token)
             hmdInQDin  <= genHeaderMetaData(headerLen, hasPayload);
          end if;
       end if;
@@ -499,8 +499,8 @@ begin
       newTaken1 := r.forkTaken(1) or take1;
 
       if (newTaken0 = '1') and (newTaken1 = '1') then
-         hmdInQRdEn   <= '1';                 -- both consumed → deq source
-         v.forkTaken  := (others => '0');
+         hmdInQRdEn  <= '1';            -- both consumed → deq source
+         v.forkTaken := (others => '0');
       else
          v.forkTaken(0) := newTaken0;
          v.forkTaken(1) := newTaken1;

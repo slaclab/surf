@@ -52,24 +52,24 @@ entity PipeOutMux is
       RST_POLARITY_G    : sl                     := '1';
       RST_ASYNC_G       : boolean                := false;
       DATA_WIDTH_G      : positive               := 679;  -- sizeof(PendingWorkReq)
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);   -- U_PipeMuxOutQ depth = 2**G
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- U_PipeMuxOutQ depth = 2**G
    port (
-      clk           : in  sl;
-      rst           : in  sl := not RST_POLARITY_G;
+      clk          : in  sl;
+      rst          : in  sl := not RST_POLARITY_G;
       -- Select: BSV module argument `sel` (Bool). '1' -> pipeIn1, '0' -> pipeIn2
-      sel           : in  sl;
+      sel          : in  sl;
       -- Upstream PipeOut #1 (pipeIn1)
-      pipeIn1Valid  : in  sl;                              -- pipeIn1.notEmpty
-      pipeIn1Dout   : in  slv(DATA_WIDTH_G-1 downto 0);    -- pipeIn1.first
-      pipeIn1RdEn   : out sl;                              -- pipeIn1.deq
+      pipeIn1Valid : in  sl;            -- pipeIn1.notEmpty
+      pipeIn1Dout  : in  slv(DATA_WIDTH_G-1 downto 0);   -- pipeIn1.first
+      pipeIn1RdEn  : out sl;            -- pipeIn1.deq
       -- Upstream PipeOut #2 (pipeIn2)
-      pipeIn2Valid  : in  sl;                              -- pipeIn2.notEmpty
-      pipeIn2Dout   : in  slv(DATA_WIDTH_G-1 downto 0);    -- pipeIn2.first
-      pipeIn2RdEn   : out sl;                              -- pipeIn2.deq
+      pipeIn2Valid : in  sl;            -- pipeIn2.notEmpty
+      pipeIn2Dout  : in  slv(DATA_WIDTH_G-1 downto 0);   -- pipeIn2.first
+      pipeIn2RdEn  : out sl;            -- pipeIn2.deq
       -- Output PipeOut (toPipeOut(pipeMuxOutQ) exposed via U_PipeMuxOutQ read side)
-      pipeOutValid  : out sl;                              -- pipeMuxOutQ.notEmpty
-      pipeOutDout   : out slv(DATA_WIDTH_G-1 downto 0);    -- pipeMuxOutQ.first
-      pipeOutRdEn   : in  sl);                             -- pipeMuxOutQ.deq (downstream)
+      pipeOutValid : out sl;            -- pipeMuxOutQ.notEmpty
+      pipeOutDout  : out slv(DATA_WIDTH_G-1 downto 0);   -- pipeMuxOutQ.first
+      pipeOutRdEn  : in  sl);           -- pipeMuxOutQ.deq (downstream)
 end PipeOutMux;
 
 architecture rtl of PipeOutMux is
@@ -134,11 +134,11 @@ begin
    --------------------------------------------------------------------------
    comb : process (r, rst, sel, pipeIn1Valid, pipeIn1Dout, pipeIn2Valid,
                    pipeIn2Dout, muxOutQNotFull) is
-      variable v         : RegType;
-      variable in1RdEnV  : sl;
-      variable in2RdEnV  : sl;
-      variable wrEnV      : sl;
-      variable dinV       : slv(DATA_WIDTH_G-1 downto 0);
+      variable v        : RegType;
+      variable in1RdEnV : sl;
+      variable in2RdEnV : sl;
+      variable wrEnV    : sl;
+      variable dinV     : slv(DATA_WIDTH_G-1 downto 0);
    begin
       v := r;
 

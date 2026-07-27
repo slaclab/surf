@@ -82,15 +82,14 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
-
 use work.RocePkg.all;
 
 entity RoceMetaDataAxil is
    generic (
-      TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' active HIGH reset, '0' active LOW
-      RST_ASYNC_G    : boolean  := false;
-      MAX_QP_G       : positive := 4;    -- reported in VERSION only
+      TPD_G          : time            := 1 ns;
+      RST_POLARITY_G : sl              := '1';  -- '1' active HIGH reset, '0' active LOW
+      RST_ASYNC_G    : boolean         := false;
+      MAX_QP_G       : positive        := 4;    -- reported in VERSION only
       VERSION_G      : slv(7 downto 0) := x"01");
    port (
       clk             : in  sl;

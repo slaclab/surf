@@ -383,7 +383,7 @@ begin
                    payloadConRespValid_i, reqValid_i, reqData_i,
                    dmaValid, dmaNotFull, dmaDout,
                    genValid, genNotFull, genDout, outNotFull, wcsNotFull) is
-      variable v             : RegType;
+      variable v : RegType;
       -- derived mode signals
       variable inNormalState : boolean;
       variable inErrorState  : boolean;
@@ -407,22 +407,22 @@ begin
       variable workCompBuilt : slv(221 downto 0);
       variable pendToken     : slv(427 downto 0);
       -- waitDmaDoneRQ guard helpers (from dmaDout : PendingWorkCompRQ)
-      variable dmaIsSuccess  : sl;
+      variable dmaIsSuccess   : sl;
       variable dmaNeedWaitDma : sl;
-      variable dmaIsLastOnly : sl;
-      variable dmaIsSend     : sl;
-      variable dmaIsWriteImm : sl;
-      variable waitGenEnq    : sl;   -- success path enqueues genWorkCompQ?
-      variable waitStatEnq   : sl;   -- error path enqueues wcStatusQ4SQ?
-      variable waitGetWanted : sl;   -- success path deqs payloadConResp?
-      variable waitFire      : sl;
+      variable dmaIsLastOnly  : sl;
+      variable dmaIsSend      : sl;
+      variable dmaIsWriteImm  : sl;
+      variable waitGenEnq     : sl;   -- success path enqueues genWorkCompQ?
+      variable waitStatEnq    : sl;   -- error path enqueues wcStatusQ4SQ?
+      variable waitGetWanted  : sl;   -- success path deqs payloadConResp?
+      variable waitFire       : sl;
       -- genWorkCompRQ / errFlushRQ helpers (from genDout : PendingWorkCompRQ)
-      variable genIsSuccess  : sl;
-      variable genMaybeTag   : sl;
-      variable genWorkComp   : slv(221 downto 0);
-      variable genEnqWanted  : sl;
-      variable errFlushWC    : slv(221 downto 0);
-      variable errEnqWanted  : sl;
+      variable genIsSuccess : sl;
+      variable genMaybeTag  : sl;
+      variable genWorkComp  : slv(221 downto 0);
+      variable genEnqWanted : sl;
+      variable errFlushWC   : slv(221 downto 0);
+      variable errEnqWanted : sl;
    begin
       v := r;
 

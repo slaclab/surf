@@ -83,54 +83,54 @@ entity MetaDataSrv is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                              -- active-high synchronous reset
+      clk              : in  sl;
+      rst              : in  sl;        -- active-high synchronous reset
       -----------------------------------------------------------------------
       -- srvPort : Server#(MetaDataReq(303b), MetaDataResp(276b))
       -- (request face: caller enq; ready = U_MetaDataReqQ not full)
       -----------------------------------------------------------------------
       srvReqValid      : in  sl;
-      srvReqData       : in  slv(302 downto 0); -- MetaDataReq
+      srvReqData       : in  slv(302 downto 0);  -- MetaDataReq
       srvReqReady      : out sl;
       -- (response face; FWFT: srvRespReady = caller deq strobe)
       srvRespValid     : out sl;
-      srvRespData      : out slv(275 downto 0); -- MetaDataResp
+      srvRespData      : out slv(275 downto 0);  -- MetaDataResp
       srvRespReady     : in  sl;
       -----------------------------------------------------------------------
       -- pdMetaData.srvPort client (-> MetaDataPDs.srvReq*/srvResp*)
       -----------------------------------------------------------------------
       pdReqValid       : out sl;
-      pdReqData        : out slv(63 downto 0);  -- ReqPD
+      pdReqData        : out slv(63 downto 0);   -- ReqPD
       pdReqReady       : in  sl;
       pdRespValid      : in  sl;
-      pdRespData       : in  slv(63 downto 0);  -- RespPD
+      pdRespData       : in  slv(63 downto 0);   -- RespPD
       pdRespReady      : out sl;
       -----------------------------------------------------------------------
       -- pdMetaData.isValidPD lookup (-> MetaDataPDs.isValidPdHandler/isValidPd)
       -- combinational; sampled in QP_REQ_S and QP_RESP_S
       -----------------------------------------------------------------------
-      isValidPdHandler : out slv(31 downto 0);  -- = qpReqReg.pdHandler
+      isValidPdHandler : out slv(31 downto 0);   -- = qpReqReg.pdHandler
       isValidPd        : in  sl;
       -----------------------------------------------------------------------
       -- pdMetaData.getMRs4PD interface-return, flattened MR sub-server client
       -- (-> MetaDataPDs.mrSrv* group, RESOLVED OQ-FSM-MDSRV-01 section 2.3/4.1)
       -----------------------------------------------------------------------
-      mrSrvPdHandler   : out slv(31 downto 0);  -- = mrReqReg.mr.pdHandler
-      mrSrvPdValid     : in  sl;                -- isValid(getMRs4PD(handler))
+      mrSrvPdHandler   : out slv(31 downto 0);   -- = mrReqReg.mr.pdHandler
+      mrSrvPdValid     : in  sl;        -- isValid(getMRs4PD(handler))
       mrSrvReqValid    : out sl;
-      mrSrvReqData     : out slv(251 downto 0); -- ReqMR
+      mrSrvReqData     : out slv(251 downto 0);  -- ReqMR
       mrSrvReqReady    : in  sl;
       mrSrvRespValid   : in  sl;
-      mrSrvRespData    : in  slv(250 downto 0); -- RespMR
+      mrSrvRespData    : in  slv(250 downto 0);  -- RespMR
       mrSrvRespReady   : out sl;
       -----------------------------------------------------------------------
       -- qpMetaData.srvPort client (-> MetaDataQPs.srvReq*/srvResp*)
       -----------------------------------------------------------------------
       qpReqValid       : out sl;
-      qpReqData        : out slv(300 downto 0); -- ReqQP
+      qpReqData        : out slv(300 downto 0);  -- ReqQP
       qpReqReady       : in  sl;
       qpRespValid      : in  sl;
-      qpRespData       : in  slv(273 downto 0); -- RespQP
+      qpRespData       : in  slv(273 downto 0);  -- RespQP
       qpRespReady      : out sl);
 end entity MetaDataSrv;
 
@@ -139,8 +139,8 @@ architecture rtl of MetaDataSrv is
    ---------------------------------------------------------------------------
    -- Widths (traced, see header packing table)
    ---------------------------------------------------------------------------
-   constant MD_REQ_W_C  : integer := 303;      -- MetaDataReq  = 2 + 301
-   constant MD_RESP_W_C : integer := 276;      -- MetaDataResp = 2 + 274
+   constant MD_REQ_W_C  : integer := 303;  -- MetaDataReq  = 2 + 301
+   constant MD_RESP_W_C : integer := 276;  -- MetaDataResp = 2 + 274
 
    -- MetaDataReq / MetaDataResp union tags (declaration order = encoding)
    constant TAG_PD_C : slv(1 downto 0) := "00";
@@ -151,23 +151,23 @@ architecture rtl of MetaDataSrv is
    -- Types and records
    ---------------------------------------------------------------------------
    type StateType is (
-      RECV_REQ_S,                      -- META_DATA_RECV_REQ (000)
-      MR_REQ_S,                        -- META_DATA_MR_REQ   (001)
-      PD_REQ_S,                        -- META_DATA_PD_REQ   (010)
-      QP_REQ_S,                        -- META_DATA_QP_REQ   (011)
-      MR_RESP_S,                       -- META_DATA_MR_RESP  (100)
-      PD_RESP_S,                       -- META_DATA_PD_RESP  (101)
-      QP_RESP_S);                      -- META_DATA_QP_RESP  (110)
+      RECV_REQ_S,                       -- META_DATA_RECV_REQ (000)
+      MR_REQ_S,                         -- META_DATA_MR_REQ   (001)
+      PD_REQ_S,                         -- META_DATA_PD_REQ   (010)
+      QP_REQ_S,                         -- META_DATA_QP_REQ   (011)
+      MR_RESP_S,                        -- META_DATA_MR_RESP  (100)
+      PD_RESP_S,                        -- META_DATA_PD_RESP  (101)
+      QP_RESP_S);                       -- META_DATA_QP_RESP  (110)
 
    type RegType is record
       state : StateType;
-      mrReq : slv(251 downto 0);       -- mrReqReg (BSV mkRegU — init is don't-care)
-      pdReq : slv(63 downto 0);        -- pdReqReg (BSV mkRegU — init is don't-care)
-      qpReq : slv(300 downto 0);       -- qpReqReg (BSV mkRegU — init is don't-care)
+      mrReq : slv(251 downto 0);  -- mrReqReg (BSV mkRegU — init is don't-care)
+      pdReq : slv(63 downto 0);   -- pdReqReg (BSV mkRegU — init is don't-care)
+      qpReq : slv(300 downto 0);  -- qpReqReg (BSV mkRegU — init is don't-care)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      state => RECV_REQ_S,             -- mkReg(META_DATA_RECV_REQ)
+      state => RECV_REQ_S,              -- mkReg(META_DATA_RECV_REQ)
       mrReq => (others => '0'),
       pdReq => (others => '0'),
       qpReq => (others => '0'));
@@ -285,18 +285,18 @@ begin
                    mrSrvRespValid, pdReqReady, pdRespData, pdRespValid,
                    qpReqReady, qpRespData, qpRespValid, r, reqQDout, reqQValid,
                    respQNotFull, rst) is
-      variable v            : RegType;
-      variable vReqQRdEn    : sl;
-      variable vRespQWrEn   : sl;
-      variable vRespQDin    : slv(MD_RESP_W_C-1 downto 0);
-      variable vPdReqValid  : sl;
-      variable vPdRespRdy   : sl;
-      variable vMrReqValid  : sl;
-      variable vMrRespRdy   : sl;
-      variable vQpReqValid  : sl;
-      variable vQpRespRdy   : sl;
-      variable vMrResp      : slv(250 downto 0);
-      variable vQpResp      : slv(273 downto 0);
+      variable v           : RegType;
+      variable vReqQRdEn   : sl;
+      variable vRespQWrEn  : sl;
+      variable vRespQDin   : slv(MD_RESP_W_C-1 downto 0);
+      variable vPdReqValid : sl;
+      variable vPdRespRdy  : sl;
+      variable vMrReqValid : sl;
+      variable vMrRespRdy  : sl;
+      variable vQpReqValid : sl;
+      variable vQpRespRdy  : sl;
+      variable vMrResp     : slv(250 downto 0);
+      variable vQpResp     : slv(273 downto 0);
    begin
       v := r;
 
@@ -317,7 +317,7 @@ begin
          ------------------------------------------------------------------
          when RECV_REQ_S =>
             if (reqQValid = '1') then
-               vReqQRdEn := '1';                      -- metaDataReqQ.deq
+               vReqQRdEn := '1';        -- metaDataReqQ.deq
                case reqQDout(302 downto 301) is
                   when TAG_MR_C =>
                      v.mrReq := reqQDout(251 downto 0);
@@ -329,7 +329,7 @@ begin
                      v.qpReq := reqQDout(300 downto 0);
                      v.state := QP_REQ_S;
                   when others =>
-                     null;             -- tag "11" unreachable; request dropped
+                     null;        -- tag "11" unreachable; request dropped
                end case;
             end if;
 
@@ -339,9 +339,9 @@ begin
          ------------------------------------------------------------------
          when MR_REQ_S =>
             if (mrSrvPdValid = '0') then
-               v.state := MR_RESP_S;                  -- no MR server touched
+               v.state := MR_RESP_S;    -- no MR server touched
             else
-               vMrReqValid := '1';                    -- srvPort.request.put
+               vMrReqValid := '1';      -- srvPort.request.put
                if (mrSrvReqReady = '1') then
                   v.state := MR_RESP_S;
                end if;
@@ -351,7 +351,7 @@ begin
          -- rule issueReq4PD (MetaData.bsv:723-727) — unconditional put
          ------------------------------------------------------------------
          when PD_REQ_S =>
-            vPdReqValid := '1';                       -- srvPort.request.put
+            vPdReqValid := '1';         -- srvPort.request.put
             if (pdReqReady = '1') then
                v.state := PD_RESP_S;
             end if;
@@ -362,9 +362,9 @@ begin
          ------------------------------------------------------------------
          when QP_REQ_S =>
             if (isValidPd = '0') then
-               v.state := QP_RESP_S;                  -- no QP request issued
+               v.state := QP_RESP_S;    -- no QP request issued
             else
-               vQpReqValid := '1';                    -- srvPort.request.put
+               vQpReqValid := '1';      -- srvPort.request.put
                if (qpReqReady = '1') then
                   v.state := QP_RESP_S;
                end if;
@@ -377,17 +377,17 @@ begin
          when MR_RESP_S =>
             vMrResp := '0' & r.mrReq(250 downto 65) & r.mrReq(63 downto 0);
             if (mrSrvPdValid = '1') then
-               vMrResp := mrSrvRespData;              -- srvPort.response.get
+               vMrResp := mrSrvRespData;          -- srvPort.response.get
             end if;
             if (respQNotFull = '1') and
                ((mrSrvPdValid = '0') or (mrSrvRespValid = '1')) then
                if (mrSrvPdValid = '1') then
-                  vMrRespRdy := '1';                  -- deq MR server response
+                  vMrRespRdy := '1';              -- deq MR server response
                end if;
-               vRespQWrEn := '1';                     -- metaDataRespQ.enq
+               vRespQWrEn                := '1';  -- metaDataRespQ.enq
                vRespQDin(275 downto 274) := TAG_MR_C;
                vRespQDin(250 downto 0)   := vMrResp;
-               v.state := RECV_REQ_S;
+               v.state                   := RECV_REQ_S;
             end if;
 
          ------------------------------------------------------------------
@@ -395,11 +395,11 @@ begin
          ------------------------------------------------------------------
          when PD_RESP_S =>
             if (pdRespValid = '1') and (respQNotFull = '1') then
-               vPdRespRdy := '1';                     -- srvPort.response.get
-               vRespQWrEn := '1';                     -- metaDataRespQ.enq
+               vPdRespRdy                := '1';  -- srvPort.response.get
+               vRespQWrEn                := '1';  -- metaDataRespQ.enq
                vRespQDin(275 downto 274) := TAG_PD_C;
                vRespQDin(63 downto 0)    := pdRespData;
-               v.state := RECV_REQ_S;
+               v.state                   := RECV_REQ_S;
             end if;
 
          ------------------------------------------------------------------
@@ -420,10 +420,10 @@ begin
                if (isValidPd = '1') then
                   vQpRespRdy := '1';                  -- deq QP server response
                end if;
-               vRespQWrEn := '1';                     -- metaDataRespQ.enq
+               vRespQWrEn                := '1';      -- metaDataRespQ.enq
                vRespQDin(275 downto 274) := TAG_QP_C;
                vRespQDin(273 downto 0)   := vQpResp;
-               v.state := RECV_REQ_S;
+               v.state                   := RECV_REQ_S;
             end if;
 
       end case;
@@ -449,9 +449,9 @@ begin
       -- Moore data outputs from held registers (stable across REQ->RESP pairs)
       pdReqData        <= r.pdReq;
       mrSrvReqData     <= r.mrReq;
-      mrSrvPdHandler   <= r.mrReq(146 downto 115);    -- mrReqReg.mr.pdHandler
+      mrSrvPdHandler   <= r.mrReq(146 downto 115);  -- mrReqReg.mr.pdHandler
       qpReqData        <= r.qpReq;
-      isValidPdHandler <= r.qpReq(298 downto 267);    -- qpReqReg.pdHandler
+      isValidPdHandler <= r.qpReq(298 downto 267);  -- qpReqReg.pdHandler
    end process comb;
 
    ---------------------------------------------------------------------------

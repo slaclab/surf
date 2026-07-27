@@ -412,8 +412,8 @@ begin
    hgrPsn           <= hprepDout(45 downto 22);         -- HeaderGenInfo.curPSN
    hgrPadCnt        <= hprepDout(8 downto 7);
    hgrRemoteAddr    <= hprepDout(141 downto 78);        -- HeaderGenInfo.remoteAddr
-   hgrDlen          <= hprepDout(77 downto 46) when hprepDout(3) = '1'  -- first: totalLen
-                       else (31 downto 13 => '0') & hprepDout(21 downto 9);  -- last: zeroExt(pktLen)
+   hgrDlen          <= hprepDout(77 downto 46) when hprepDout(3) = '1' else  -- first: totalLen
+                       (31 downto 13 => '0') & hprepDout(21 downto 9);  -- last: zeroExt(pktLen)
    hgrHasPayloadIn  <= hprepDout(6);
 
    U_HeaderGenRDMA : entity surf.HeaderGenRDMA
@@ -487,49 +487,49 @@ begin
       variable v : RegType;
 
       -- stage-local variables
-      variable notClear     : sl;
+      variable notClear : sl;
       -- recvWQE
-      variable rwOpcode     : slv(3 downto 0);
-      variable rwQpType     : slv(3 downto 0);
-      variable rwIsRaw      : sl;
-      variable rwAddPad     : sl;
-      variable rwIsSend     : sl;
-      variable rwNeedGen    : sl;
-      variable rwGenPl      : sl;
-      variable rwRemote     : slv(63 downto 0);
-      variable rwFire       : sl;
+      variable rwOpcode  : slv(3 downto 0);
+      variable rwQpType  : slv(3 downto 0);
+      variable rwIsRaw   : sl;
+      variable rwAddPad  : sl;
+      variable rwIsSend  : sl;
+      variable rwNeedGen : sl;
+      variable rwGenPl   : sl;
+      variable rwRemote  : slv(63 downto 0);
+      variable rwFire    : sl;
       -- recvTotalMetaData
-      variable rtGenPl      : sl;
-      variable rtIsRaw      : sl;
-      variable rtHasPl      : sl;
-      variable rtIsOnly     : sl;
-      variable rtTotPkt     : slv(24 downto 0);
-      variable rtFire       : sl;
+      variable rtGenPl  : sl;
+      variable rtIsRaw  : sl;
+      variable rtHasPl  : sl;
+      variable rtIsOnly : sl;
+      variable rtTotPkt : slv(24 downto 0);
+      variable rtFire   : sl;
       -- updatePSN
-      variable upWqe        : slv(WQE_W_C-1 downto 0);
-      variable upGenPl      : sl;
-      variable upHasPl      : sl;
-      variable upIsOnly     : sl;
-      variable upIsRaw      : sl;
-      variable upTotLen     : slv(31 downto 0);
-      variable upTotPkt     : slv(24 downto 0);
-      variable upCurPsn     : slv(23 downto 0);
-      variable upRemote     : slv(63 downto 0);
-      variable upPktLen     : slv(12 downto 0);
-      variable upPadCnt     : slv(1 downto 0);
-      variable upLastPkt    : sl;
-      variable upFirstPkt   : sl;
-      variable upIsLastPkt  : sl;
-      variable upAckReq     : sl;
-      variable upSolicited  : sl;
-      variable upHgi        : slv(141 downto 0);
-      variable upFire       : sl;
+      variable upWqe       : slv(WQE_W_C-1 downto 0);
+      variable upGenPl     : sl;
+      variable upHasPl     : sl;
+      variable upIsOnly    : sl;
+      variable upIsRaw     : sl;
+      variable upTotLen    : slv(31 downto 0);
+      variable upTotPkt    : slv(24 downto 0);
+      variable upCurPsn    : slv(23 downto 0);
+      variable upRemote    : slv(63 downto 0);
+      variable upPktLen    : slv(12 downto 0);
+      variable upPadCnt    : slv(1 downto 0);
+      variable upLastPkt   : sl;
+      variable upFirstPkt  : sl;
+      variable upIsLastPkt : sl;
+      variable upAckReq    : sl;
+      variable upSolicited : sl;
+      variable upHgi       : slv(141 downto 0);
+      variable upFire      : sl;
       -- prepareHeader
-      variable phRaw        : sl;
-      variable phHasPl      : sl;
-      variable phPktLenPad  : slv(12 downto 0);
-      variable phSendDone   : sl;
-      variable phFire       : sl;
+      variable phRaw       : sl;
+      variable phHasPl     : sl;
+      variable phPktLenPad : slv(12 downto 0);
+      variable phSendDone  : sl;
+      variable phFire      : sl;
       -- genPktHeader
       variable gpRaw        : sl;
       variable gpHasPl      : sl;
@@ -572,12 +572,12 @@ begin
       tmdDin   <= reqQDout & rwIsRaw & rwGenPl;          -- Tuple3(wqe,isRawPkt,shouldGenPayload)
       payloadGenReqValid <= rwFire and rwGenPl;
       -- PayloadGenReqSG: wrID & sqpn & sgl & totalLen & raddr & pmtu & addPadding
-      payloadGenReqData <= reqQDout(1720 downto 1657) &   -- wrID (=wqe.id)
-                           reqQDout(271 downto 248)   &   -- sqpn
-                           reqQDout(1439 downto 400)  &   -- sgl
-                           reqQDout(399 downto 368)   &   -- totalLen
-                           rwRemote                   &   -- raddr (remoteAddr)
-                           reqQDout(1619 downto 1617) &   -- pmtu
+      payloadGenReqData <= reqQDout(1720 downto 1657) & -- wrID (=wqe.id)
+                           reqQDout(271 downto 248) & -- sqpn
+                           reqQDout(1439 downto 400) & -- sgl
+                           reqQDout(399 downto 368) & -- totalLen
+                           rwRemote & -- raddr (remoteAddr)
+                           reqQDout(1619 downto 1617) & -- pmtu
                            rwAddPad;                      -- addPadding
 
       ----------------------------------------------------------------------
@@ -604,8 +604,8 @@ begin
       payloadTotalMetaRdEn <= rtFire and rtGenPl;
       psnWrEn <= rtFire;
       -- Tuple7(wqe, totalLen, totalPktNum, shouldGenPayload, hasPayload, isOnlyPkt, isRawPkt)
-      psnDin <= tmdDout(TMD_W_C-1 downto 2) &            -- wqe
-                tmdDout(399+2 downto 368+2)  &           -- wqe.totalLen (offset +2 in tmdDout)
+      psnDin <= tmdDout(TMD_W_C-1 downto 2) & -- wqe
+                tmdDout(399+2 downto 368+2) & -- wqe.totalLen (offset +2 in tmdDout)
                 rtTotPkt & rtGenPl & rtHasPl & rtIsOnly & rtIsRaw;
 
       ----------------------------------------------------------------------
@@ -678,8 +678,8 @@ begin
       pendWrEn  <= phFire;
       -- pendingHeaderQ: macAddr ipAddr pktLenWithPadCnt isRawPkt isSendDone
       --                 hasPayload headerValid pktHeaderRdma
-      pendDin <= hpWqe(1487 downto 1440) &               -- macAddr
-                 hpWqe(1616 downto 1488) &               -- dqpIP
+      pendDin <= hpWqe(1487 downto 1440) & -- macAddr
+                 hpWqe(1616 downto 1488) & -- dqpIP
                  phPktLenPad & phRaw & phSendDone & phHasPl &
                  hgrHeaderValid & hgrPktHeaderRdma;
 

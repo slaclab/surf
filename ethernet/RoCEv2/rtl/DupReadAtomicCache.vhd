@@ -67,20 +67,20 @@ use surf.StdRtlPkg.all;
 entity DupReadAtomicCache is
    generic (
       TPD_G             : time                   := 1 ns;
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4;   -- children + own FIFO depth = 2**N
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4;  -- children + own FIFO depth = 2**N
       MEM_TYPE_G        : string                 := "distributed");
    port (
       clk                   : in  sl;
-      rst                   : in  sl;                       -- active-high synchronous
-      pmtu                  : in  slv(2 downto 0);          -- PMTU enum (feeds read-cache compare)
+      rst                   : in  sl;   -- active-high synchronous
+      pmtu                  : in  slv(2 downto 0);  -- PMTU enum (feeds read-cache compare)
       -- insertRead method : push ReadCacheItem into readCacheQ
       insertReadEn          : in  sl;
       insertReadData        : in  slv(175 downto 0);
-      insertReadReady       : out sl;                       -- = U_ReadCacheQ.pushReady
+      insertReadReady       : out sl;   -- = U_ReadCacheQ.pushReady
       -- searchReadReq method : enq into readCacheQ.searchReq AND dupReadReqQ (atomic)
       searchReadReqEn       : in  sl;
       searchReadReqData     : in  slv(175 downto 0);
-      searchReadReqReady    : out sl;                       -- = readCacheQ.searchReqReady AND dupReadReqQ.not_full
+      searchReadReqReady    : out sl;  -- = readCacheQ.searchReqReady AND dupReadReqQ.not_full
       -- searchReadResp method : Maybe#(Tuple3(ReadCacheItem, ADDR, StartState))
       searchReadRespValid   : out sl;
       searchReadRespData    : out slv(241 downto 0);
@@ -88,11 +88,11 @@ entity DupReadAtomicCache is
       -- insertAtomic method : push AtomicCacheItem into atomicCacheQ
       insertAtomicEn        : in  sl;
       insertAtomicData      : in  slv(316 downto 0);
-      insertAtomicReady     : out sl;                       -- = U_AtomicCacheQ.pushReady
+      insertAtomicReady     : out sl;   -- = U_AtomicCacheQ.pushReady
       -- searchAtomicReq method : enq into atomicCacheQ.searchReq
       searchAtomicReqEn     : in  sl;
       searchAtomicReqData   : in  slv(316 downto 0);
-      searchAtomicReqReady  : out sl;                       -- = U_AtomicCacheQ.searchReqReady
+      searchAtomicReqReady  : out sl;   -- = U_AtomicCacheQ.searchReqReady
       -- searchAtomicResp method : Maybe#(AtomicCacheItem) (direct passthrough)
       searchAtomicRespValid : out sl;
       searchAtomicRespData  : out slv(317 downto 0);
@@ -103,25 +103,25 @@ end entity DupReadAtomicCache;
 
 architecture rtl of DupReadAtomicCache is
 
-   constant READ_ITEM_W_C        : positive := 176;   -- ReadCacheItem
-   constant ATOMIC_ITEM_W_C      : positive := 317;   -- AtomicCacheItem
-   constant READ_SEARCH_RESP_W_C : positive := 177;   -- Maybe#(ReadCacheItem)   (tag = bit 176)
-   constant READ_RESP_W_C        : positive := 242;   -- Maybe#(Tuple3)          (tag = bit 241)
-   constant SR_TAG_C             : natural  := 176;    -- Maybe-valid tag index in readCacheQ searchResp
+   constant READ_ITEM_W_C        : positive := 176;  -- ReadCacheItem
+   constant ATOMIC_ITEM_W_C      : positive := 317;  -- AtomicCacheItem
+   constant READ_SEARCH_RESP_W_C : positive := 177;  -- Maybe#(ReadCacheItem)   (tag = bit 176)
+   constant READ_RESP_W_C        : positive := 242;  -- Maybe#(Tuple3)          (tag = bit 241)
+   constant SR_TAG_C             : natural  := 176;  -- Maybe-valid tag index in readCacheQ searchResp
 
    -- compareDupReadAddr (DupReadAtomicCache.bsv:134-188) : compares the upper bits
    -- (above the PMTU shift) of the LOW 32-bit half of va. dupVaLow/origVaLow are
    -- reth.va[31:0]. Returns True when dAddrLowHalf[31:s] = oAddrLowHalf[31:s].
    function f_cmpDupReadAddr (dupVaLow, origVaLow : slv(31 downto 0);
-                              pmtuI : slv(2 downto 0)) return sl is
+                              pmtuI               : slv(2 downto 0)) return sl is
       variable s : integer range 8 to 12;
    begin
       case pmtuI is
-         when "001"  => s := 8;     -- IBV_MTU_256  : 8  = log2(256)
-         when "010"  => s := 9;     -- IBV_MTU_512  : 9  = log2(512)
-         when "011"  => s := 10;    -- IBV_MTU_1024 : 10 = log2(1024)
-         when "100"  => s := 11;    -- IBV_MTU_2048 : 11 = log2(2048)
-         when "101"  => s := 12;    -- IBV_MTU_4096 : 12 = log2(4096)
+         when "001"  => s := 8;         -- IBV_MTU_256  : 8  = log2(256)
+         when "010"  => s := 9;         -- IBV_MTU_512  : 9  = log2(512)
+         when "011"  => s := 10;        -- IBV_MTU_1024 : 10 = log2(1024)
+         when "100"  => s := 11;        -- IBV_MTU_2048 : 11 = log2(2048)
+         when "101"  => s := 12;        -- IBV_MTU_4096 : 12 = log2(4096)
          when others => s := 8;
       end case;
       return toSl(dupVaLow(31 downto s) = origVaLow(31 downto s));
@@ -139,7 +139,7 @@ architecture rtl of DupReadAtomicCache is
    signal atomicPushReady       : sl;
    signal atomicSearchReqReady  : sl;
    signal atomicSearchRespValid : sl;
-   signal atomicSearchRespData  : slv(ATOMIC_ITEM_W_C downto 0);   -- 318 b Maybe
+   signal atomicSearchRespData  : slv(ATOMIC_ITEM_W_C downto 0);  -- 318 b Maybe
 
    -- dupReadReqQ (own FIFO)
    signal dupReqWrEn    : sl;
@@ -171,8 +171,8 @@ begin
    searchReqCombReady <= readSearchReqReady and dupReqNotFull;
    searchReqDoEnq     <= searchReadReqEn and searchReqCombReady;
    searchReadReqReady <= searchReqCombReady;
-   readSearchReqEn    <= searchReqDoEnq;   -- to U_ReadCacheQ.searchReq
-   dupReqWrEn         <= searchReqDoEnq;   -- to U_DupReadReqQ.enq
+   readSearchReqEn    <= searchReqDoEnq;  -- to U_ReadCacheQ.searchReq
+   dupReqWrEn         <= searchReqDoEnq;  -- to U_DupReadReqQ.enq
 
    -- searchReadResp : FWFT output of dupReadRespQ
    searchReadRespValid <= dupRespValid;
@@ -205,7 +205,7 @@ begin
          pushEn          => insertReadEn,
          pushData        => insertReadData,
          pushReady       => readPushReady,
-         clearEn         => clearEn,                 -- DRAC-03: only children are cleared
+         clearEn         => clearEn,    -- DRAC-03: only children are cleared
          searchReqEn     => readSearchReqEn,
          searchReqData   => searchReadReqData,
          searchReqReady  => readSearchReqReady,
@@ -224,13 +224,13 @@ begin
          pushEn          => insertAtomicEn,
          pushData        => insertAtomicData,
          pushReady       => atomicPushReady,
-         clearEn         => clearEn,                 -- DRAC-03: only children are cleared
+         clearEn         => clearEn,    -- DRAC-03: only children are cleared
          searchReqEn     => searchAtomicReqEn,
          searchReqData   => searchAtomicReqData,
          searchReqReady  => atomicSearchReqReady,
          searchRespValid => atomicSearchRespValid,
          searchRespData  => atomicSearchRespData,
-         searchRespRdEn  => searchAtomicRespRdEn);   -- passthrough get
+         searchRespRdEn  => searchAtomicRespRdEn);  -- passthrough get
 
    ----------------------------------------------------------------------------
    -- Own FIFOs  (surf.Fifo ; FWFT sync ; NOT flushed by clear() - DRAC-03)
@@ -246,10 +246,10 @@ begin
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G,
          MEMORY_TYPE_G   => MEM_TYPE_G)
       port map (
-         rst      => rst,                            -- global rst only (not clearEn)
+         rst      => rst,               -- global rst only (not clearEn)
          wr_clk   => clk,
          wr_en    => dupReqWrEn,
-         din      => searchReadReqData,              -- same item enqueued to readCacheQ.searchReq
+         din      => searchReadReqData,  -- same item enqueued to readCacheQ.searchReq
          not_full => dupReqNotFull,
          rd_clk   => clk,
          rd_en    => dupReqRdEn,
@@ -267,13 +267,13 @@ begin
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G,
          MEMORY_TYPE_G   => MEM_TYPE_G)
       port map (
-         rst      => rst,                            -- global rst only (not clearEn)
+         rst      => rst,                 -- global rst only (not clearEn)
          wr_clk   => clk,
          wr_en    => dupRespWrEn,
          din      => dupRespDin,
          not_full => dupRespNotFull,
          rd_clk   => clk,
-         rd_en    => searchReadRespRdEn,             -- searchReadResp deq
+         rd_en    => searchReadRespRdEn,  -- searchReadResp deq
          dout     => dupRespDout,
          valid    => dupRespValid);
 
@@ -303,7 +303,7 @@ begin
       fire := dupReqValid and readSearchRespValid and dupRespNotFull;
 
       -- compute readResp (Mealy combinational; registered only by the enq below)
-      searchValid := readSearchRespData(SR_TAG_C);          -- Maybe tag (MSB)
+      searchValid := readSearchRespData(SR_TAG_C);  -- Maybe tag (MSB)
       orig        := readSearchRespData(READ_ITEM_W_C-1 downto 0);
 
       -- compareDupReadAddr(pmtu, dupReth, origReth) : low-half va, bits [95:64]
@@ -320,13 +320,13 @@ begin
          -- Maybe Valid : tag=1, Tuple3(origReadCacheItem, vaddr, startState)
          readResp := '1' & orig & vaddr & startState;
       else
-         readResp := (others => '0');                       -- tagged Invalid
+         readResp := (others => '0');   -- tagged Invalid
       end if;
 
       if (fire = '1') then
-         dupReqRdEn         <= '1';                          -- deq dupReadReqQ
-         readSearchRespRdEn <= '1';                          -- get readCacheQ.searchResp
-         dupRespWrEn        <= '1';                          -- enq dupReadRespQ
+         dupReqRdEn         <= '1';     -- deq dupReadReqQ
+         readSearchRespRdEn <= '1';     -- get readCacheQ.searchResp
+         dupRespWrEn        <= '1';     -- enq dupReadRespQ
          dupRespDin         <= readResp;
       end if;
    end process join_comb;

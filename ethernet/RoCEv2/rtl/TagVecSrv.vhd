@@ -208,25 +208,25 @@ begin
    -- Combinatorial process (two-process FSM): next state + outputs into v.
    -----------------------------------------------------------------------------
    comb : process (r, rst, clearEn, reqQValid, reqQDout, respQNotFull) is
-      variable v          : RegType;
+      variable v : RegType;
       -- Request tuple fields (peeked from reqQ head)
       variable insertOrRemove : sl;
       variable insertVal      : slv(T_SZ_G-1 downto 0);
       variable removeIdx      : slv(V_LOG_SZ_C-1 downto 0);
       variable removeIdxInt   : natural;
       -- Combinational helpers
-      variable almostFull     : sl;
-      variable almostEmpty     : sl;
-      variable freeIdx        : slv(V_LOG_SZ_C-1 downto 0);
-      variable freeValid      : sl;
-      variable removeTag      : sl;
-      variable insertIdx      : slv(V_LOG_SZ_C-1 downto 0);
-      variable removeVal      : slv(T_SZ_G-1 downto 0);
+      variable almostFull  : sl;
+      variable almostEmpty : sl;
+      variable freeIdx     : slv(V_LOG_SZ_C-1 downto 0);
+      variable freeValid   : sl;
+      variable removeTag   : sl;
+      variable insertIdx   : slv(V_LOG_SZ_C-1 downto 0);
+      variable removeVal   : slv(T_SZ_G-1 downto 0);
       -- Mealy strobes / datapath to the FIFOs
-      variable vReqDeq        : sl;
-      variable vRespEnq       : sl;
-      variable vClrFifos      : sl;
-      variable vRespDin       : slv(FIFO_WIDTH_C-1 downto 0);
+      variable vReqDeq   : sl;
+      variable vRespEnq  : sl;
+      variable vClrFifos : sl;
+      variable vRespDin  : slv(FIFO_WIDTH_C-1 downto 0);
    begin
       v := r;
 

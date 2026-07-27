@@ -89,27 +89,27 @@ use surf.StdRtlPkg.all;
 entity ConnectPipeOut2BramQGen is
    generic (
       TPD_G    : time     := 1 ns;
-      DATA_W_G : positive := 290);                       -- DataStream width (OQ-FSM-CPG-1 / OQ-FSM-H2DS-02)
+      DATA_W_G : positive := 290);  -- DataStream width (OQ-FSM-CPG-1 / OQ-FSM-H2DS-02)
    port (
       clk             : in  sl;
-      rst             : in  sl;                          -- active-high sync reset
+      rst             : in  sl;         -- active-high sync reset
       -- clear() method (Action): synchronous flush of the internal skid FIFO only
       clearEnI        : in  sl;
       -- pipeIn : PipeOut#(anytype) input arg (upstream PipeOut, no in-scope owner)
-      pipeInNotEmpty  : in  sl;                          -- pipeIn.notEmpty (first valid)
-      pipeInFirst     : in  slv(DATA_W_G-1 downto 0);    -- pipeIn.first
-      pipeInDeq       : out sl;                          -- dequeue upstream pipeIn
+      pipeInNotEmpty  : in  sl;         -- pipeIn.notEmpty (first valid)
+      pipeInFirst     : in  slv(DATA_W_G-1 downto 0);  -- pipeIn.first
+      pipeInDeq       : out sl;         -- dequeue upstream pipeIn
       -- bramQ : external BRAM buffer (put + get handshake; NOT instantiated, no in-scope owner)
-      bramQNotFull    : in  sl;                          -- bramQ.notFull (can enqueue)
-      bramQWrEn       : out sl;                          -- enqueue into bramQ
-      bramQDin        : out slv(DATA_W_G-1 downto 0);    -- bramQ enqueue data
-      bramQNotEmpty   : in  sl;                          -- bramQ.notEmpty (first valid)
-      bramQFirst      : in  slv(DATA_W_G-1 downto 0);    -- bramQ.first
-      bramQDeq        : out sl;                          -- dequeue bramQ
+      bramQNotFull    : in  sl;         -- bramQ.notFull (can enqueue)
+      bramQWrEn       : out sl;         -- enqueue into bramQ
+      bramQDin        : out slv(DATA_W_G-1 downto 0);  -- bramQ enqueue data
+      bramQNotEmpty   : in  sl;         -- bramQ.notEmpty (first valid)
+      bramQFirst      : in  slv(DATA_W_G-1 downto 0);  -- bramQ.first
+      bramQDeq        : out sl;         -- dequeue bramQ
       -- pipeOut : PipeOut#(anytype) (downstream consumer)
-      pipeOutDeq      : in  sl;                          -- consumer dequeues pipeOut
-      pipeOutFirst    : out slv(DATA_W_G-1 downto 0);    -- pipeOut.first
-      pipeOutNotEmpty : out sl;                          -- pipeOut.notEmpty
+      pipeOutDeq      : in  sl;         -- consumer dequeues pipeOut
+      pipeOutFirst    : out slv(DATA_W_G-1 downto 0);  -- pipeOut.first
+      pipeOutNotEmpty : out sl;         -- pipeOut.notEmpty
       -- notEmpty() method result (BramPipe)
       notEmpty        : out sl);
 end entity ConnectPipeOut2BramQGen;
@@ -118,14 +118,14 @@ architecture rtl of ConnectPipeOut2BramQGen is
 
    -- U_PostBramQ interface signals (DataStream, DATA_W_G bits)
    signal postBramQNotFull : sl;
-   signal postBramQValid   : sl;                         -- = postBramQ.notEmpty (FWFT)
+   signal postBramQValid   : sl;        -- = postBramQ.notEmpty (FWFT)
    signal postBramQDout    : slv(DATA_W_G-1 downto 0);
    signal postBramQWrEn    : sl;
    signal postBramQRdEn    : sl;
 
    -- Stage-1 (pipeIn -> bramQ) and stage-2 (bramQ -> postBramQ) fire conditions
-   signal fire1 : sl;                                    -- upstream enqueue (Mealy)
-   signal fire2 : sl;                                    -- skid enqueue (Mealy, gated)
+   signal fire1 : sl;                   -- upstream enqueue (Mealy)
+   signal fire2 : sl;                   -- skid enqueue (Mealy, gated)
 
    -- FIFO reset line: level = rst OR clearEnI (BSV postBramQ.clear)
    signal fifoRst : sl;
@@ -140,16 +140,16 @@ begin
    -- upstream has a fragment and the external bramQ can accept it. NOT suppressed
    -- by clear (clear flushes postBramQ, not bramQ).
    fire1     <= pipeInNotEmpty and bramQNotFull;
-   pipeInDeq <= fire1;                      -- dequeue upstream pipeIn (Get side)
-   bramQWrEn <= fire1;                      -- enqueue into external bramQ (Put side)
-   bramQDin  <= pipeInFirst;                -- pass-through of upstream head
+   pipeInDeq <= fire1;                  -- dequeue upstream pipeIn (Get side)
+   bramQWrEn <= fire1;        -- enqueue into external bramQ (Put side)
+   bramQDin  <= pipeInFirst;            -- pass-through of upstream head
 
    -- Stage 2: bramQ -> postBramQ skid enqueue (mkConnection rl_bram2skid). Fire
    -- when bramQ has a fragment and the skid FIFO can accept it. Suppressed during
    -- a clear flush so we do not dequeue bramQ into a FIFO being emptied.
    fire2         <= bramQNotEmpty and postBramQNotFull and (not clearEnI);
-   bramQDeq      <= fire2;                  -- dequeue external bramQ (Get side)
-   postBramQWrEn <= fire2;                  -- enqueue into skid FIFO
+   bramQDeq      <= fire2;              -- dequeue external bramQ (Get side)
+   postBramQWrEn <= fire2;              -- enqueue into skid FIFO
 
    -- Downstream dequeue handshake (toPipeOut): decoupled, every-cycle strobe.
    postBramQRdEn <= pipeOutDeq;
@@ -180,7 +180,7 @@ begin
          rst           => fifoRst,
          wr_clk        => clk,
          wr_en         => postBramQWrEn,
-         din           => bramQFirst,        -- pass-through of bramQ head
+         din           => bramQFirst,   -- pass-through of bramQ head
          full          => open,
          not_full      => postBramQNotFull,
          wr_ack        => open,

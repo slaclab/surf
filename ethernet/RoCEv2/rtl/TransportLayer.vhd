@@ -404,38 +404,38 @@ begin
    end generate GEN_NO_WORKREQ_Q;
 
    GEN_WORKREQ_Q : if EN_TX_G generate
-   workReqInReady <= workReqQNotFull;
-   workReqQWrEn   <= workReqInValid and workReqQNotFull;
+      workReqInReady <= workReqQNotFull;
+      workReqQWrEn   <= workReqInValid and workReqQNotFull;
 
-   U_InputWorkReqQ : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,
-         MEMORY_TYPE_G   => "distributed",
-         DATA_WIDTH_G    => WORK_REQ_W_C,
-         ADDR_WIDTH_G    => 4)
-      port map (
-         rst           => rst,
-         wr_clk        => clk,
-         wr_en         => workReqQWrEn,
-         din           => workReqInData,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => open,
-         not_full      => workReqQNotFull,
-         rd_clk        => clk,
-         rd_en         => workReqQRdEn,
-         dout          => workReqQDout,
-         rd_data_count => open,
-         valid         => workReqQValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open);
+      U_InputWorkReqQ : entity surf.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            GEN_SYNC_FIFO_G => true,
+            FWFT_EN_G       => true,
+            MEMORY_TYPE_G   => "distributed",
+            DATA_WIDTH_G    => WORK_REQ_W_C,
+            ADDR_WIDTH_G    => 4)
+         port map (
+            rst           => rst,
+            wr_clk        => clk,
+            wr_en         => workReqQWrEn,
+            din           => workReqInData,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => open,
+            not_full      => workReqQNotFull,
+            rd_clk        => clk,
+            rd_en         => workReqQRdEn,
+            dout          => workReqQDout,
+            rd_data_count => open,
+            valid         => workReqQValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open);
    end generate GEN_WORKREQ_Q;
 
    -- recvReq input path: pruned when EN_RX_G=false (input refused).
@@ -446,38 +446,38 @@ begin
    end generate GEN_NO_RECVREQ_Q;
 
    GEN_RECVREQ_Q : if EN_RX_G generate
-   recvReqInReady <= recvReqQNotFull;
-   recvReqQWrEn   <= recvReqInValid and recvReqQNotFull;
+      recvReqInReady <= recvReqQNotFull;
+      recvReqQWrEn   <= recvReqInValid and recvReqQNotFull;
 
-   U_InputRecvReqQ : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,
-         MEMORY_TYPE_G   => "distributed",
-         DATA_WIDTH_G    => RECV_REQ_W_C,
-         ADDR_WIDTH_G    => 4)
-      port map (
-         rst           => rst,
-         wr_clk        => clk,
-         wr_en         => recvReqQWrEn,
-         din           => recvReqInData,
-         wr_data_count => open,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => open,
-         not_full      => recvReqQNotFull,
-         rd_clk        => clk,
-         rd_en         => recvReqQRdEn,
-         dout          => recvReqQDout,
-         rd_data_count => open,
-         valid         => recvReqQValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open);
+      U_InputRecvReqQ : entity surf.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            GEN_SYNC_FIFO_G => true,
+            FWFT_EN_G       => true,
+            MEMORY_TYPE_G   => "distributed",
+            DATA_WIDTH_G    => RECV_REQ_W_C,
+            ADDR_WIDTH_G    => 4)
+         port map (
+            rst           => rst,
+            wr_clk        => clk,
+            wr_en         => recvReqQWrEn,
+            din           => recvReqInData,
+            wr_data_count => open,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => open,
+            not_full      => recvReqQNotFull,
+            rd_clk        => clk,
+            rd_en         => recvReqQRdEn,
+            dout          => recvReqQDout,
+            rd_data_count => open,
+            valid         => recvReqQValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open);
    end generate GEN_RECVREQ_Q;
 
    -----------------------------------------------------------------------------
@@ -777,22 +777,22 @@ begin
    end generate GEN_NO_RECV_WC;
 
    GEN_RECV_WC : if EN_RX_G generate
-   U_RecvWcArb : entity surf.PipeOutArbiter
-      generic map (
-         TPD_G        => TPD_G,
-         PORT_COUNT_G => MAX_QP_G,
-         DATA_WIDTH_G => WORK_COMP_W_C)
-      port map (
-         clk         => clk,
-         rst         => rst,
-         inValid     => recvWcArbInValid,
-         inDout      => recvWcArbInDout,
-         inFinished  => WC_FINISHED_C,
-         inRd        => recvWcArbInRd,
-         outNotEmpty => workCompRqValid,
-         outDout     => workCompRqData,
-         outFinished => open,
-         outDeq      => workCompRqRdEn);
+      U_RecvWcArb : entity surf.PipeOutArbiter
+         generic map (
+            TPD_G        => TPD_G,
+            PORT_COUNT_G => MAX_QP_G,
+            DATA_WIDTH_G => WORK_COMP_W_C)
+         port map (
+            clk         => clk,
+            rst         => rst,
+            inValid     => recvWcArbInValid,
+            inDout      => recvWcArbInDout,
+            inFinished  => WC_FINISHED_C,
+            inRd        => recvWcArbInRd,
+            outNotEmpty => workCompRqValid,
+            outDout     => workCompRqData,
+            outFinished => open,
+            outDeq      => workCompRqRdEn);
    end generate GEN_RECV_WC;
 
    -- SQ work-completion arbiter: pruned when EN_TX_G=false.
@@ -803,22 +803,22 @@ begin
    end generate GEN_NO_SEND_WC;
 
    GEN_SEND_WC : if EN_TX_G generate
-   U_SendWcArb : entity surf.PipeOutArbiter
-      generic map (
-         TPD_G        => TPD_G,
-         PORT_COUNT_G => MAX_QP_G,
-         DATA_WIDTH_G => WORK_COMP_W_C)
-      port map (
-         clk         => clk,
-         rst         => rst,
-         inValid     => sendWcArbInValid,
-         inDout      => sendWcArbInDout,
-         inFinished  => WC_FINISHED_C,
-         inRd        => sendWcArbInRd,
-         outNotEmpty => workCompSqValid,
-         outDout     => workCompSqData,
-         outFinished => open,
-         outDeq      => workCompSqRdEn);
+      U_SendWcArb : entity surf.PipeOutArbiter
+         generic map (
+            TPD_G        => TPD_G,
+            PORT_COUNT_G => MAX_QP_G,
+            DATA_WIDTH_G => WORK_COMP_W_C)
+         port map (
+            clk         => clk,
+            rst         => rst,
+            inValid     => sendWcArbInValid,
+            inDout      => sendWcArbInDout,
+            inFinished  => WC_FINISHED_C,
+            inRd        => sendWcArbInRd,
+            outNotEmpty => workCompSqValid,
+            outDout     => workCompSqData,
+            outFinished => open,
+            outDeq      => workCompSqRdEn);
    end generate GEN_SEND_WC;
 
    -----------------------------------------------------------------------------

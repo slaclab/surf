@@ -62,16 +62,16 @@ use surf.StdRtlPkg.all;
 
 entity MetaDataMRs is
    generic (
-      TPD_G          : time     := 1 ns;
-      MAX_MR_PER_PD_G : positive := 128);   -- TDiv#(MAX_MR=256, MAX_PD=2) (DataTypes.bsv)
+      TPD_G           : time     := 1 ns;
+      MAX_MR_PER_PD_G : positive := 128);  -- TDiv#(MAX_MR=256, MAX_PD=2) (DataTypes.bsv)
    port (
       clk : in sl;
-      rst : in sl;                          -- active-high synchronous reset
+      rst : in sl;                      -- active-high synchronous reset
 
       -- srvPort.request : Put#(ReqMR)   (ReqMR = 252 b)
-      reqValid_i : in  sl;                  -- request put enable
-      reqData_i  : in  slv(251 downto 0);   -- ReqMR packed
-      reqReady_o : out sl;                  -- child reqQ not_full (backpressure)
+      reqValid_i : in  sl;              -- request put enable
+      reqData_i  : in  slv(251 downto 0);  -- ReqMR packed
+      reqReady_o : out sl;              -- child reqQ not_full (backpressure)
 
       -- srvPort.response : Get#(RespMR)  (RespMR = 251 b)
       respValid_o : out sl;                 -- child respQ has a response
@@ -80,34 +80,34 @@ entity MetaDataMRs is
 
       -- getMemRegionByLKey / getMemRegionByRKey : shared combinational lookup
       --   (single child getItem port, multiplexed by getMrSel_i; see header note)
-      getMrLKey_i  : in  slv(31 downto 0);  -- getMemRegionByLKey arg
-      getMrRKey_i  : in  slv(31 downto 0);  -- getMemRegionByRKey arg
-      getMrSel_i   : in  sl;                -- '0' = LKey lookup, '1' = RKey lookup
-      getMrValid_o : out sl;                -- Maybe#(MemRegion) tag
-      getMrData_o  : out slv(185 downto 0); -- MemRegion (valid when getMrValid_o='1')
+      getMrLKey_i  : in  slv(31 downto 0);   -- getMemRegionByLKey arg
+      getMrRKey_i  : in  slv(31 downto 0);   -- getMemRegionByRKey arg
+      getMrSel_i   : in  sl;            -- '0' = LKey lookup, '1' = RKey lookup
+      getMrValid_o : out sl;            -- Maybe#(MemRegion) tag
+      getMrData_o  : out slv(185 downto 0);  -- MemRegion (valid when getMrValid_o='1')
 
       -- clear() method
-      clearEn_i : in sl;                    -- pulse child clear
+      clearEn_i : in sl;                -- pulse child clear
 
       -- status methods
-      notEmpty_o : out sl;                  -- child notEmpty
-      notFull_o  : out sl);                 -- child notFull
+      notEmpty_o : out sl;              -- child notEmpty
+      notFull_o  : out sl);             -- child notFull
 end entity MetaDataMRs;
 
 architecture rtl of MetaDataMRs is
 
    -- Widths (traced; see header)
    constant MEM_REGION_WIDTH_C : integer := 186;
-   constant MR_INDEX_WIDTH_C   : integer := log2(MAX_MR_PER_PD_G);   -- 7 for 128
+   constant MR_INDEX_WIDTH_C   : integer := log2(MAX_MR_PER_PD_G);  -- 7 for 128
    constant CHILD_WORD_WIDTH_C : integer := MEM_REGION_WIDTH_C + MR_INDEX_WIDTH_C;  -- 193 (=> slv 193:0, 194 b)
 
    -- MemRegion sub-field LSB positions within the 186-bit MemRegion word
-   constant MR_LKEY_PART_LOW_C : integer := 25;   -- lkeyPart = [49:25]
-   constant MR_RKEY_PART_LOW_C : integer := 0;    -- rkeyPart = [24:0]
+   constant MR_LKEY_PART_LOW_C : integer := 25;  -- lkeyPart = [49:25]
+   constant MR_RKEY_PART_LOW_C : integer := 0;   -- rkeyPart = [24:0]
 
    -- Request-path glue
-   signal reqMrKey   : slv(31 downto 0);                       -- lkeyOrNot ? lkey : rkey
-   signal reqMrIndex : slv(MR_INDEX_WIDTH_C-1 downto 0);       -- key2IndexMR = key[31:25]
+   signal reqMrKey   : slv(31 downto 0);  -- lkeyOrNot ? lkey : rkey
+   signal reqMrIndex : slv(MR_INDEX_WIDTH_C-1 downto 0);  -- key2IndexMR = key[31:25]
 
    -- Child TagVecSrv handshake nets
    signal childReqData    : slv(CHILD_WORD_WIDTH_C downto 0);  -- {allocOrNot, mr, mrIndex} (194 b)
@@ -136,7 +136,7 @@ begin
    --   mrReqKey = lkeyOrNot ? lkey : rkey ; mrIndex = key2IndexMR(mrReqKey)
    ---------------------------------------------------------------------------
    reqMrKey   <= reqData_i(63 downto 32) when (reqData_i(64) = '1') else reqData_i(31 downto 0);
-   reqMrIndex <= reqMrKey(31 downto 31 - MR_INDEX_WIDTH_C + 1);   -- key[31:25] (truncateLSB)
+   reqMrIndex <= reqMrKey(31 downto 31 - MR_INDEX_WIDTH_C + 1);  -- key[31:25] (truncateLSB)
 
    childReqData <= reqData_i(251) & reqData_i(250 downto 65) & reqMrIndex;  -- allocOrNot & mr & mrIndex
    reqReady_o   <= childReqReady;
@@ -147,14 +147,14 @@ begin
    --   lkey = {mrIndex, mr.lkeyPart} ; rkey = {mrIndex, mr.rkeyPart}
    --   RespMR = {success, mr, lkey, rkey}
    ---------------------------------------------------------------------------
-   respSuccess <= childRespData(CHILD_WORD_WIDTH_C);                                   -- bit 193
-   respMrIndex <= childRespData(CHILD_WORD_WIDTH_C-1 downto MEM_REGION_WIDTH_C);        -- bits 192:186
-   respMr      <= childRespData(MEM_REGION_WIDTH_C-1 downto 0);                         -- bits 185:0
+   respSuccess <= childRespData(CHILD_WORD_WIDTH_C);             -- bit 193
+   respMrIndex <= childRespData(CHILD_WORD_WIDTH_C-1 downto MEM_REGION_WIDTH_C);  -- bits 192:186
+   respMr      <= childRespData(MEM_REGION_WIDTH_C-1 downto 0);  -- bits 185:0
 
    lkeyOut <= respMrIndex & respMr(MR_LKEY_PART_LOW_C + 24 downto MR_LKEY_PART_LOW_C);  -- {idx, lkeyPart}
    rkeyOut <= respMrIndex & respMr(MR_RKEY_PART_LOW_C + 24 downto MR_RKEY_PART_LOW_C);  -- {idx, rkeyPart}
 
-   respData_o  <= respSuccess & respMr & lkeyOut & rkeyOut;   -- {success, mr, lkey, rkey} (251 b)
+   respData_o  <= respSuccess & respMr & lkeyOut & rkeyOut;  -- {success, mr, lkey, rkey} (251 b)
    respValid_o <= childRespValid;
 
    ---------------------------------------------------------------------------
@@ -162,10 +162,10 @@ begin
    --   idx = key2IndexMR(selected key) ; result = child.getItem(idx)
    ---------------------------------------------------------------------------
    lkupKey         <= getMrLKey_i when (getMrSel_i = '0') else getMrRKey_i;
-   childGetItemIdx <= lkupKey(31 downto 31 - MR_INDEX_WIDTH_C + 1);   -- key[31:25]
+   childGetItemIdx <= lkupKey(31 downto 31 - MR_INDEX_WIDTH_C + 1);  -- key[31:25]
 
-   getMrValid_o <= childGetItemOut(MEM_REGION_WIDTH_C);              -- valid tag (MSB)
-   getMrData_o  <= childGetItemOut(MEM_REGION_WIDTH_C-1 downto 0);   -- MemRegion data
+   getMrValid_o <= childGetItemOut(MEM_REGION_WIDTH_C);  -- valid tag (MSB)
+   getMrData_o  <= childGetItemOut(MEM_REGION_WIDTH_C-1 downto 0);  -- MemRegion data
 
    ---------------------------------------------------------------------------
    -- Status / clear pass-through
@@ -184,8 +184,8 @@ begin
          RST_POLARITY_G => '1',
          RST_ASYNC_G    => false,
          MEMORY_TYPE_G  => "distributed",
-         V_SZ_G         => MAX_MR_PER_PD_G,         -- 128 tag entries
-         T_SZ_G         => MEM_REGION_WIDTH_C)      -- 186-bit MemRegion per entry
+         V_SZ_G         => MAX_MR_PER_PD_G,     -- 128 tag entries
+         T_SZ_G         => MEM_REGION_WIDTH_C)  -- 186-bit MemRegion per entry
       port map (
          clk        => clk,
          rst        => rst,
@@ -197,7 +197,7 @@ begin
          respReady  => respReady_i,
          getItemIdx => childGetItemIdx,
          getItemOut => childGetItemOut,
-         tagValid   => open,                        -- not needed here (single reader)
+         tagValid   => open,            -- not needed here (single reader)
          notEmpty   => childNotEmpty,
          notFull    => childNotFull,
          clearEn    => clearEn_i);

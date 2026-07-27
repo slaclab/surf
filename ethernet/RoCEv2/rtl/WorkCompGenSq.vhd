@@ -378,7 +378,7 @@ begin
                    pendValid, pendNotFull, pendDout,
                    dmaValid, dmaNotFull, dmaDout,
                    genValid, genNotFull, genDout, outNotFull) is
-      variable v             : RegType;
+      variable v : RegType;
       -- derived mode signals
       variable inNormalState : boolean;
       variable inErrorState  : boolean;
@@ -399,9 +399,9 @@ begin
       variable errFlushWC    : slv(221 downto 0);
       variable genEnqWanted  : sl;
       -- waitDmaDoneSQ datapath temporaries (from dmaDout)
-      variable dmaIsSuccess  : sl;
-      variable dmaWaitResp   : sl;
-      variable waitDmaCond   : sl;
+      variable dmaIsSuccess : sl;
+      variable dmaWaitResp  : sl;
+      variable waitDmaCond  : sl;
    begin
       v := r;
 

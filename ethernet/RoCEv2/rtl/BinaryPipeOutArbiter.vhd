@@ -95,30 +95,30 @@ use surf.StdRtlPkg.all;
 
 entity BinaryPipeOutArbiter is
    generic (
-      TPD_G             : time                     := 1 ns;
-      RST_POLARITY_G    : sl                       := '1';  -- '1' active HIGH reset, '0' active LOW
-      RST_ASYNC_G       : boolean                  := false;
-      DATA_WIDTH_G      : positive                 := 8;    -- payload width = tSz of BSV anytype
-      MEMORY_TYPE_G     : string                   := "distributed";  -- output FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48   := 4);  -- output FIFO depth = 2**ADDR (BSV mkFIFOF depth 2; SURF min 4)
+      TPD_G             : time                   := 1 ns;
+      RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
+      RST_ASYNC_G       : boolean                := false;
+      DATA_WIDTH_G      : positive               := 8;  -- payload width = tSz of BSV anytype
+      MEMORY_TYPE_G     : string                 := "distributed";  -- output FIFO RAM style
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- output FIFO depth = 2**ADDR (BSV mkFIFOF depth 2; SURF min 4)
    port (
       clk             : in  sl;
       rst             : in  sl := not RST_POLARITY_G;
       -- pipeIn1 (PipeOut#) input, preferred at reset ("initial grant to LSB")
-      pipeIn1Valid    : in  sl;                              -- pipeIn1.notEmpty
-      pipeIn1Dout     : in  slv(DATA_WIDTH_G-1 downto 0);    -- pipeIn1.first
-      pipeIn1Finished : in  sl;                              -- isPipePayloadFinished(pipeIn1.first) (OQ-FSM-17)
-      pipeIn1Rd       : out sl;                              -- pipeIn1.deq strobe
+      pipeIn1Valid    : in  sl;         -- pipeIn1.notEmpty
+      pipeIn1Dout     : in  slv(DATA_WIDTH_G-1 downto 0);  -- pipeIn1.first
+      pipeIn1Finished : in  sl;  -- isPipePayloadFinished(pipeIn1.first) (OQ-FSM-17)
+      pipeIn1Rd       : out sl;         -- pipeIn1.deq strobe
       -- pipeIn2 (PipeOut#) input
-      pipeIn2Valid    : in  sl;                              -- pipeIn2.notEmpty
-      pipeIn2Dout     : in  slv(DATA_WIDTH_G-1 downto 0);    -- pipeIn2.first
-      pipeIn2Finished : in  sl;                              -- isPipePayloadFinished(pipeIn2.first) (OQ-FSM-17)
-      pipeIn2Rd       : out sl;                              -- pipeIn2.deq strobe
+      pipeIn2Valid    : in  sl;         -- pipeIn2.notEmpty
+      pipeIn2Dout     : in  slv(DATA_WIDTH_G-1 downto 0);  -- pipeIn2.first
+      pipeIn2Finished : in  sl;  -- isPipePayloadFinished(pipeIn2.first) (OQ-FSM-17)
+      pipeIn2Rd       : out sl;         -- pipeIn2.deq strobe
       -- PipeOut output interface (read side of U_OutQ; driven by downstream)
-      outNotEmpty     : out sl;                              -- PipeOut.notEmpty (U_OutQ.valid)
-      outDout         : out slv(DATA_WIDTH_G-1 downto 0);    -- PipeOut.first    (U_OutQ.dout payload)
-      outFinished     : out sl;                              -- isPipePayloadFinished(outDout), buffered head bit (OQ-FSM-ARBTREE-01)
-      outDeq          : in  sl);                             -- PipeOut.deq      (U_OutQ.rd_en)
+      outNotEmpty     : out sl;         -- PipeOut.notEmpty (U_OutQ.valid)
+      outDout         : out slv(DATA_WIDTH_G-1 downto 0);  -- PipeOut.first    (U_OutQ.dout payload)
+      outFinished     : out sl;  -- isPipePayloadFinished(outDout), buffered head bit (OQ-FSM-ARBTREE-01)
+      outDeq          : in  sl);        -- PipeOut.deq      (U_OutQ.rd_en)
 end BinaryPipeOutArbiter;
 
 architecture rtl of BinaryPipeOutArbiter is
@@ -127,15 +127,15 @@ architecture rtl of BinaryPipeOutArbiter is
    -- ARB_S/PASS_S are encoded by needArbitrationReg; grantReg/priorityReg are
    -- auxiliary registers persisting across arbitration decisions.
    type RegType is record
-      needArbitrationReg : sl;            -- '1'=ARB_S (re-arbitrate), '0'=PASS_S
-      priorityReg        : sl;            -- '0'=pipeIn1 preferred, '1'=pipeIn2
-      grantReg           : sl;            -- last grant: '0'=pipeIn1, '1'=pipeIn2
+      needArbitrationReg : sl;          -- '1'=ARB_S (re-arbitrate), '0'=PASS_S
+      priorityReg        : sl;          -- '0'=pipeIn1 preferred, '1'=pipeIn2
+      grantReg           : sl;          -- last grant: '0'=pipeIn1, '1'=pipeIn2
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      needArbitrationReg => '1',          -- BSV mkReg(True)  -> start in ARB_S
-      priorityReg        => '0',          -- BSV mkReg(False) -> pipeIn1 preferred
-      grantReg           => '0');         -- BSV mkReg(False) -> default to pipeIn1
+      needArbitrationReg => '1',        -- BSV mkReg(True)  -> start in ARB_S
+      priorityReg        => '0',   -- BSV mkReg(False) -> pipeIn1 preferred
+      grantReg           => '0');  -- BSV mkReg(False) -> default to pipeIn1
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -145,10 +145,10 @@ architecture rtl of BinaryPipeOutArbiter is
    constant FIFO_WIDTH_C : positive := DATA_WIDTH_G + 1;
 
    -- U_OutQ (surf.Fifo) handshake/status
-   signal outQNotFull : sl;               -- not_full  : back-pressure (room to enqueue)
-   signal outQValid   : sl;               -- valid     : head present  (= PipeOut.notEmpty)
+   signal outQNotFull : sl;  -- not_full  : back-pressure (room to enqueue)
+   signal outQValid   : sl;  -- valid     : head present  (= PipeOut.notEmpty)
    signal outQDout    : slv(FIFO_WIDTH_C-1 downto 0);  -- dout  {finished, payload}
-   signal outQWrEn    : sl;               -- wr_en     : enqueue strobe (Mealy, comb)
+   signal outQWrEn    : sl;  -- wr_en     : enqueue strobe (Mealy, comb)
    signal outQDin     : slv(FIFO_WIDTH_C-1 downto 0);  -- din   {selectedFinished, selectedData} (comb)
 
 begin
@@ -164,10 +164,10 @@ begin
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => RST_ASYNC_G,
-         GEN_SYNC_FIFO_G => true,         -- single clock (wr_clk = rd_clk)
-         FWFT_EN_G       => true,         -- valid = head present = BSV notEmpty
+         GEN_SYNC_FIFO_G => true,       -- single clock (wr_clk = rd_clk)
+         FWFT_EN_G       => true,       -- valid = head present = BSV notEmpty
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
-         DATA_WIDTH_G    => FIFO_WIDTH_C,     -- payload + finished companion bit
+         DATA_WIDTH_G    => FIFO_WIDTH_C,  -- payload + finished companion bit
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_G)
       port map (
          rst      => rst,
@@ -215,9 +215,9 @@ begin
                             ((not pipeIn1Valid) and pipeIn2Valid);
 
       -- Current grant index: re-arbitrated in ARB_S, held in PASS_S.
-      if (r.needArbitrationReg = '1') then    -- ARB_S
+      if (r.needArbitrationReg = '1') then  -- ARB_S
          curGrantIdx := shouldGrantPipeIn2;
-      else                                    -- PASS_S
+      else                                  -- PASS_S
          curGrantIdx := r.grantReg;
       end if;
 
@@ -253,8 +253,8 @@ begin
          -- FIFO head expose outFinished == predicate(outDout) (OQ-FSM-ARBTREE-01).
          outQWrEn  <= '1';
          outQDin   <= selectedFinished & selectedData;
-         pipeIn1Rd <= not curGrantIdx;        -- '1' when curGrantIdx = '0'
-         pipeIn2Rd <= curGrantIdx;            -- '1' when curGrantIdx = '1'
+         pipeIn1Rd <= not curGrantIdx;  -- '1' when curGrantIdx = '0'
+         pipeIn2Rd <= curGrantIdx;      -- '1' when curGrantIdx = '1'
       end if;
 
       -- Synchronous Reset

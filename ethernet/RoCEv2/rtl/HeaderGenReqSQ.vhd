@@ -57,22 +57,22 @@ use surf.StdRtlPkg.all;
 
 entity HeaderGenReqSQ is
    generic (
-      TPD_G : time := 1 ns);                 -- unused (no registers); kept for SURF consistency
+      TPD_G : time := 1 ns);  -- unused (no registers); kept for SURF consistency
    port (
       -- Per-packet control (from ReqPktHeaderInfo / countReqPkt)
-      isFirstOrOnly : in  sl;                -- '1' genFirstOrOnlyReqHeader, '0' genMiddleOrLastReqHeader
-      isOnlyOrLast  : in  sl;                -- isOnlyReqPkt (first) / isLastReqPkt (middle/last)
+      isFirstOrOnly : in  sl;  -- '1' genFirstOrOnlyReqHeader, '0' genMiddleOrLastReqHeader
+      isOnlyOrLast  : in  sl;  -- isOnlyReqPkt (first) / isLastReqPkt (middle/last)
       psn           : in  slv(23 downto 0);  -- BTH.psn (curPSN)
       -- cntrlStatus fields
       qpType        : in  slv(3 downto 0);   -- getTypeQP
       pkey          : in  slv(15 downto 0);  -- comm.getPKEY -> BTH.pkey
-      sigAll        : in  sl;                -- comm.getSigAll
+      sigAll        : in  sl;           -- comm.getSigAll
       commDqpn      : in  slv(23 downto 0);  -- comm.getDQPN (RC/UC/XRC dest QPN)
       sqpn          : in  slv(23 downto 0);  -- comm.getSQPN -> DETH.sqpn
       -- WorkReq-derived fields
       opcode        : in  slv(3 downto 0);   -- WorkReqOpCode
-      solicited     : in  sl;                -- wr.solicited (ungated)
-      sendSignaled  : in  sl;                -- wr.flags contains IBV_SEND_SIGNALED (workReqHasAckReq)
+      solicited     : in  sl;           -- wr.solicited (ungated)
+      sendSignaled  : in  sl;  -- wr.flags contains IBV_SEND_SIGNALED (workReqHasAckReq)
       len           : in  slv(31 downto 0);  -- wr.len (Length) -> RETH.dlen, calcPadCnt, hasPayload
       raddr         : in  slv(63 downto 0);  -- wr.raddr -> RETH.va / AtomicEth.va
       rkey          : in  slv(31 downto 0);  -- wr.rkey  -> RETH.rkey / AtomicEth.rkey
@@ -84,10 +84,10 @@ entity HeaderGenReqSQ is
       immDtData     : in  slv(31 downto 0);  -- wr.immDt unwrapped -> ImmDt.data
       invRkey       : in  slv(31 downto 0);  -- wr.rkey2Inv unwrapped -> IETH.rkey
       -- Outputs (the Maybe#(Tuple3#(HeaderData, HeaderByteNum, Bool)))
-      headerValid   : out sl;                -- Maybe tag
-      headerData    : out slv(511 downto 0); -- HeaderData (left-aligned)
+      headerValid   : out sl;           -- Maybe tag
+      headerData    : out slv(511 downto 0);  -- HeaderData (left-aligned)
       headerByteNum : out slv(6 downto 0);   -- HeaderByteNum (byte length)
-      hasPayload    : out sl);               -- the tuple's Bool
+      hasPayload    : out sl);          -- the tuple's Bool
 end entity HeaderGenReqSQ;
 
 architecture rtl of HeaderGenReqSQ is
@@ -136,7 +136,7 @@ architecture rtl of HeaderGenReqSQ is
 
    -- Extension-header slot selectors (request path: no LETH)
    type MiddleType is (MID_NONE, MID_RETH, MID_DETH, MID_ATOMIC);
-   type TailType   is (TAIL_NONE, TAIL_IMM, TAIL_IETH);
+   type TailType is (TAIL_NONE, TAIL_IMM, TAIL_IETH);
 
 begin
 
@@ -192,11 +192,11 @@ begin
       opcValid := '1';
       if (isFirstOrOnly = '1') then
          case opcode is
-            when WR_RDMA_WRITE_C          => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_ONLY_C,     OP_WRITE_FIRST_C);
+            when WR_RDMA_WRITE_C          => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_ONLY_C, OP_WRITE_FIRST_C);
             when WR_RDMA_WRITE_WITH_IMM_C => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_ONLY_IMM_C, OP_WRITE_FIRST_C);
-            when WR_SEND_C                => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_C,      OP_SEND_FIRST_C);
-            when WR_SEND_WITH_IMM_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_IMM_C,  OP_SEND_FIRST_C);
-            when WR_SEND_WITH_INV_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_INV_C,  OP_SEND_FIRST_C);
+            when WR_SEND_C                => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_C, OP_SEND_FIRST_C);
+            when WR_SEND_WITH_IMM_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_IMM_C, OP_SEND_FIRST_C);
+            when WR_SEND_WITH_INV_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_ONLY_INV_C, OP_SEND_FIRST_C);
             when WR_RDMA_READ_C           => opc5 := OP_READ_REQUEST_C;
             when WR_ATOMIC_CMP_AND_SWP_C  => opc5 := OP_COMPARE_SWAP_C;
             when WR_ATOMIC_FETCH_ADD_C    => opc5 := OP_FETCH_ADD_C;
@@ -204,11 +204,11 @@ begin
          end case;
       else
          case opcode is
-            when WR_RDMA_WRITE_C          => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_LAST_C,     OP_WRITE_MIDDLE_C);
+            when WR_RDMA_WRITE_C          => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_LAST_C, OP_WRITE_MIDDLE_C);
             when WR_RDMA_WRITE_WITH_IMM_C => opc5 := ite(isOnlyOrLast = '1', OP_WRITE_LAST_IMM_C, OP_WRITE_MIDDLE_C);
-            when WR_SEND_C                => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_C,      OP_SEND_MIDDLE_C);
-            when WR_SEND_WITH_IMM_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_IMM_C,  OP_SEND_MIDDLE_C);
-            when WR_SEND_WITH_INV_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_INV_C,  OP_SEND_MIDDLE_C);
+            when WR_SEND_C                => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_C, OP_SEND_MIDDLE_C);
+            when WR_SEND_WITH_IMM_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_IMM_C, OP_SEND_MIDDLE_C);
+            when WR_SEND_WITH_INV_C       => opc5 := ite(isOnlyOrLast = '1', OP_SEND_LAST_INV_C, OP_SEND_MIDDLE_C);
             when others                   => opc5 := (others => '0'); opcValid := '0';
          end case;
       end if;
@@ -249,30 +249,30 @@ begin
       -- 5. BTH assembly (first-field-at-MSB, 96 bits; Headers.bsv:153-168)
       --    solicited UNGATED; pkey is a real input.
       -----------------------------------------------------------------------
-      bthBits := trans              -- [95:93] trans
-                 & opc5             -- [92:88] opcode
-                 & solicited        -- [87]    solicited (ungated)
-                 & '0'              -- [86]    migReq
-                 & padEff           -- [85:84] padCnt
-                 & "0000"           -- [83:80] tver
-                 & pkey             -- [79:64] pkey
-                 & '0'              -- [63]    fecn
-                 & '0'              -- [62]    becn
-                 & "000000"         -- [61:56] resv6
-                 & dqpnSel          -- [55:32] dqpn
-                 & ackReq           -- [31]    ackReq
-                 & "0000000"        -- [30:24] resv7
-                 & psn;             -- [23:0]  psn
+      bthBits := trans                  -- [95:93] trans
+                 & opc5                 -- [92:88] opcode
+                 & solicited            -- [87]    solicited (ungated)
+                 & '0'                  -- [86]    migReq
+                 & padEff               -- [85:84] padCnt
+                 & "0000"               -- [83:80] tver
+                 & pkey                 -- [79:64] pkey
+                 & '0'                  -- [63]    fecn
+                 & '0'                  -- [62]    becn
+                 & "000000"             -- [61:56] resv6
+                 & dqpnSel              -- [55:32] dqpn
+                 & ackReq               -- [31]    ackReq
+                 & "0000000"            -- [30:24] resv7
+                 & psn;                 -- [23:0]  psn
 
       -----------------------------------------------------------------------
       -- 6. Extension sub-headers (first-field-at-MSB)
       -----------------------------------------------------------------------
-      rethBits   := raddr & rkey & len;                    -- RETH   128 (va,rkey,dlen)
-      atomicBits := raddr & rkey & swapData & compData;    -- Atomic 224 (va,rkey,swap,comp)
-      xrcethBits := x"00" & srqn;                          -- XRCETH  32 (rsvd,srqn)
-      dethBits   := qkey & x"00" & sqpn;                   -- DETH    64 (qkey,rsvd,sqpn)
-      immBits    := immDtData;                             -- ImmDt   32 (data)
-      iethBits   := invRkey;                               -- IETH    32 (rkey)
+      rethBits   := raddr & rkey & len;   -- RETH   128 (va,rkey,dlen)
+      atomicBits := raddr & rkey & swapData & compData;  -- Atomic 224 (va,rkey,swap,comp)
+      xrcethBits := x"00" & srqn;       -- XRCETH  32 (rsvd,srqn)
+      dethBits   := qkey & x"00" & sqpn;  -- DETH    64 (qkey,rsvd,sqpn)
+      immBits    := immDtData;          -- ImmDt   32 (data)
+      iethBits   := invRkey;            -- IETH    32 (rkey)
 
       -----------------------------------------------------------------------
       -- 7. Slot selection per (isFirstOrOnly, opcode, qpType) (ReqGenSQ.bsv:159-306 / 347-448)
@@ -287,7 +287,7 @@ begin
          case opcode is
             when WR_RDMA_WRITE_C =>
                case qpType is
-                  when QPT_RC_C | QPT_UC_C => midSel := MID_RETH; armValid := '1';
+                  when QPT_RC_C | QPT_UC_C => midSel    := MID_RETH; armValid := '1';
                   when QPT_XRC_SEND_C      => useXrceth := '1'; midSel := MID_RETH; armValid := '1';
                   when others              => null;
                end case;
@@ -295,20 +295,20 @@ begin
             when WR_RDMA_WRITE_WITH_IMM_C =>
                case qpType is
                   when QPT_RC_C | QPT_UC_C =>
-                     midSel := MID_RETH;
+                     midSel                          := MID_RETH;
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1'; midSel := MID_RETH;
+                     useXrceth                       := '1'; midSel := MID_RETH;
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
             when WR_SEND_C =>
                case qpType is
-                  when QPT_RC_C | QPT_UC_C => armValid := '1';                    -- bth only
-                  when QPT_UD_C            => midSel := MID_DETH; armValid := '1';
+                  when QPT_RC_C | QPT_UC_C => armValid  := '1';  -- bth only
+                  when QPT_UD_C            => midSel    := MID_DETH; armValid := '1';
                   when QPT_XRC_SEND_C      => useXrceth := '1'; armValid := '1';
                   when others              => null;
                end case;
@@ -317,13 +317,13 @@ begin
                case qpType is
                   when QPT_RC_C | QPT_UC_C =>
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_UD_C =>
-                     midSel := MID_DETH; tailSel := TAIL_IMM; armValid := '1';    -- UD always only
+                     midSel := MID_DETH; tailSel := TAIL_IMM; armValid := '1';  -- UD always only
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1';
+                     useXrceth                       := '1';
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
@@ -331,24 +331,24 @@ begin
                case qpType is
                   when QPT_RC_C =>
                      if (incTail = '1') then tailSel := TAIL_IETH; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1';
+                     useXrceth                       := '1';
                      if (incTail = '1') then tailSel := TAIL_IETH; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
             when WR_RDMA_READ_C =>
                case qpType is
-                  when QPT_RC_C       => midSel := MID_RETH; armValid := '1';
+                  when QPT_RC_C       => midSel    := MID_RETH; armValid := '1';
                   when QPT_XRC_SEND_C => useXrceth := '1'; midSel := MID_RETH; armValid := '1';
                   when others         => null;
                end case;
 
             when WR_ATOMIC_CMP_AND_SWP_C | WR_ATOMIC_FETCH_ADD_C =>
                case qpType is
-                  when QPT_RC_C       => midSel := MID_ATOMIC; armValid := '1';
+                  when QPT_RC_C       => midSel    := MID_ATOMIC; armValid := '1';
                   when QPT_XRC_SEND_C => useXrceth := '1'; midSel := MID_ATOMIC; armValid := '1';
                   when others         => null;
                end case;
@@ -361,7 +361,7 @@ begin
          case opcode is
             when WR_RDMA_WRITE_C =>
                case qpType is
-                  when QPT_RC_C       => armValid := '1';                          -- bth only
+                  when QPT_RC_C       => armValid  := '1';  -- bth only
                   when QPT_XRC_SEND_C => useXrceth := '1'; armValid := '1';
                   when others         => null;
                end case;
@@ -370,17 +370,17 @@ begin
                case qpType is
                   when QPT_RC_C =>
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1';
+                     useXrceth                       := '1';
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
             when WR_SEND_C =>
                case qpType is
-                  when QPT_RC_C       => armValid := '1';
+                  when QPT_RC_C       => armValid  := '1';
                   when QPT_XRC_SEND_C => useXrceth := '1'; armValid := '1';
                   when others         => null;
                end case;
@@ -389,11 +389,11 @@ begin
                case qpType is
                   when QPT_RC_C =>
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1';
+                     useXrceth                       := '1';
                      if (incTail = '1') then tailSel := TAIL_IMM; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
@@ -401,11 +401,11 @@ begin
                case qpType is
                   when QPT_RC_C =>
                      if (incTail = '1') then tailSel := TAIL_IETH; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when QPT_XRC_SEND_C =>
-                     useXrceth := '1';
+                     useXrceth                       := '1';
                      if (incTail = '1') then tailSel := TAIL_IETH; end if;
-                     armValid := '1';
+                     armValid                        := '1';
                   when others => null;
                end case;
 
@@ -426,29 +426,29 @@ begin
       -----------------------------------------------------------------------
       -- 9. Assemble headerData (left-aligned, zeroExtendLSB) + headerByteNum
       -----------------------------------------------------------------------
-      slvHeader := (others => '0');
+      slvHeader                 := (others => '0');
       slvHeader(511 downto 416) := bthBits;
-      hlen := 12;
-      pos  := 416;
+      hlen                      := 12;
+      pos                       := 416;
       if (useXrceth = '1') then
          slvHeader(pos-1 downto pos-32) := xrcethBits;
-         pos  := pos - 32;
-         hlen := hlen + 4;
+         pos                            := pos - 32;
+         hlen                           := hlen + 4;
       end if;
       case midSel is
          when MID_RETH =>
-            slvHeader(pos-1 downto pos-128) := rethBits;   pos := pos - 128; hlen := hlen + 16;
+            slvHeader(pos-1 downto pos-128) := rethBits; pos := pos - 128; hlen := hlen + 16;
          when MID_DETH =>
-            slvHeader(pos-1 downto pos-64)  := dethBits;   pos := pos - 64;  hlen := hlen + 8;
+            slvHeader(pos-1 downto pos-64) := dethBits; pos := pos - 64; hlen := hlen + 8;
          when MID_ATOMIC =>
             slvHeader(pos-1 downto pos-224) := atomicBits; pos := pos - 224; hlen := hlen + 28;
          when MID_NONE => null;
       end case;
       case tailSel is
          when TAIL_IMM =>
-            slvHeader(pos-1 downto pos-32) := immBits;   hlen := hlen + 4;
+            slvHeader(pos-1 downto pos-32) := immBits; hlen := hlen + 4;
          when TAIL_IETH =>
-            slvHeader(pos-1 downto pos-32) := iethBits;  hlen := hlen + 4;
+            slvHeader(pos-1 downto pos-32) := iethBits; hlen := hlen + 4;
          when TAIL_NONE => null;
       end case;
 

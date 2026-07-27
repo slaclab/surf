@@ -69,21 +69,21 @@ use surf.StdRtlPkg.all;
 
 entity ConnectBramQ2PipeOutConAndGen is
    generic (
-      TPD_G      : time    := 1 ns;
-      DATA_W_G   : positive := 290);            -- DataStream width (OQ-FSM-H2DS-02)
+      TPD_G    : time     := 1 ns;
+      DATA_W_G : positive := 290);      -- DataStream width (OQ-FSM-H2DS-02)
    port (
       clk             : in  sl;
-      rst             : in  sl;                          -- active-high sync reset
+      rst             : in  sl;         -- active-high sync reset
       -- clear() method (Action): synchronous flush of the internal skid FIFO
       clearEnI        : in  sl;
       -- Upstream bramQ : Get#(DataStream) handshake (bramQ is a module argument)
-      bramQNotEmpty   : in  sl;                          -- bramQ.notEmpty (first valid)
-      bramQDout       : in  slv(DATA_W_G-1 downto 0);    -- bramQ.first
-      bramQDeq        : out sl;                          -- dequeue upstream bramQ
+      bramQNotEmpty   : in  sl;         -- bramQ.notEmpty (first valid)
+      bramQDout       : in  slv(DATA_W_G-1 downto 0);  -- bramQ.first
+      bramQDeq        : out sl;         -- dequeue upstream bramQ
       -- pipeOut : PipeOut#(DataStream) (downstream consumer)
-      pipeOutDeq      : in  sl;                           -- consumer dequeues pipeOut
-      pipeOutFirst    : out slv(DATA_W_G-1 downto 0);    -- pipeOut.first
-      pipeOutNotEmpty : out sl;                           -- pipeOut.notEmpty
+      pipeOutDeq      : in  sl;         -- consumer dequeues pipeOut
+      pipeOutFirst    : out slv(DATA_W_G-1 downto 0);  -- pipeOut.first
+      pipeOutNotEmpty : out sl;         -- pipeOut.notEmpty
       -- notEmpty() method result (parent payloadNotEmpty)
       notEmpty        : out sl);
 end entity ConnectBramQ2PipeOutConAndGen;
@@ -92,7 +92,7 @@ architecture rtl of ConnectBramQ2PipeOutConAndGen is
 
    -- U_PostBramQ interface signals (DataStream, DATA_W_G bits)
    signal postBramQNotFull : sl;
-   signal postBramQValid   : sl;                          -- = postBramQ.notEmpty (FWFT)
+   signal postBramQValid   : sl;        -- = postBramQ.notEmpty (FWFT)
    signal postBramQDout    : slv(DATA_W_G-1 downto 0);
    signal postBramQWrEn    : sl;
    signal postBramQRdEn    : sl;
@@ -113,8 +113,8 @@ begin
    -- a clear flush so we do not dequeue bramQ into a FIFO being emptied.
    enqFire <= bramQNotEmpty and postBramQNotFull and (not clearEnI);
 
-   bramQDeq     <= enqFire;                 -- dequeue upstream bramQ (Get side)
-   postBramQWrEn <= enqFire;                -- enqueue into skid FIFO
+   bramQDeq      <= enqFire;            -- dequeue upstream bramQ (Get side)
+   postBramQWrEn <= enqFire;            -- enqueue into skid FIFO
 
    -- Downstream dequeue handshake (toPipeOut): decoupled, every-cycle strobe.
    postBramQRdEn <= pipeOutDeq;
@@ -145,7 +145,7 @@ begin
          rst           => fifoRst,
          wr_clk        => clk,
          wr_en         => postBramQWrEn,
-         din           => bramQDout,         -- pass-through of upstream head
+         din           => bramQDout,    -- pass-through of upstream head
          full          => open,
          not_full      => postBramQNotFull,
          wr_ack        => open,

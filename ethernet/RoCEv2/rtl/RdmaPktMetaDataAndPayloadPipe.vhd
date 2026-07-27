@@ -48,24 +48,24 @@ entity RdmaPktMetaDataAndPayloadPipe is
       RST_ASYNC_G       : boolean                := false;
       FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- depth = 2**G entries per FIFO
    port (
-      clk : in sl;
-      rst : in sl := not RST_POLARITY_G;
+      clk            : in  sl;
+      rst            : in  sl := not RST_POLARITY_G;
       -- clear() method: level-asserted for full duration of QP reset
-      clrEn_i       : in  sl := '0';
+      clrEn_i        : in  sl := '0';
       -- Metadata FIFO — write side (pktPipeIn.pktMetaData.put)
-      metaWrEn_i    : in  sl := '0';
-      metaDin_i     : in  slv(648 downto 0);  -- RdmaPktMetaData, 649 bits
-      metaRdy_o     : out sl;                 -- notFull (= write-side readiness)
+      metaWrEn_i     : in  sl := '0';
+      metaDin_i      : in  slv(648 downto 0);  -- RdmaPktMetaData, 649 bits
+      metaRdy_o      : out sl;          -- notFull (= write-side readiness)
       -- Metadata FIFO — read side (pktPipeOut.pktMetaData.first / .deq)
-      metaValid_o   : out sl;                 -- notEmpty
-      metaDout_o    : out slv(648 downto 0);
-      metaRdEn_i    : in  sl := '0';
+      metaValid_o    : out sl;          -- notEmpty
+      metaDout_o     : out slv(648 downto 0);
+      metaRdEn_i     : in  sl := '0';
       -- Payload FIFO — write side (pktPipeIn.payload.put)
-      payloadWrEn_i : in  sl := '0';
-      payloadDin_i  : in  slv(289 downto 0);  -- DataStream, 290 bits (resolved OQ-FSM-H2DS-02)
-      payloadRdy_o  : out sl;                 -- notFull
+      payloadWrEn_i  : in  sl := '0';
+      payloadDin_i   : in  slv(289 downto 0);  -- DataStream, 290 bits (resolved OQ-FSM-H2DS-02)
+      payloadRdy_o   : out sl;          -- notFull
       -- Payload FIFO — read side (pktPipeOut.payload.first / .deq)
-      payloadValid_o : out sl;               -- notEmpty
+      payloadValid_o : out sl;          -- notEmpty
       payloadDout_o  : out slv(289 downto 0);
       payloadRdEn_i  : in  sl := '0');
 end entity RdmaPktMetaDataAndPayloadPipe;

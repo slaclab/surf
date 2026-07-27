@@ -83,19 +83,19 @@ entity AddrChunkSrvConAndGen is
       TPD_G : time := 1 ns);
    port (
       clk          : in  sl;
-      rst          : in  sl;                       -- active-high synchronous reset
+      rst          : in  sl;            -- active-high synchronous reset
       -- Software clear (synchronous; LEVEL-asserted while high)
       clearAllI    : in  sl;
       -- srvPort.request : Put#(AddrChunkReq)  (caller -> entity)
-      reqPutValid  : in  sl;                        -- caller offers a request (wr_en)
-      reqPutData   : in  slv(98 downto 0);          -- AddrChunkReq packed
-      reqPutReady  : out sl;                         -- entity can accept (reqQ.notFull)
+      reqPutValid  : in  sl;            -- caller offers a request (wr_en)
+      reqPutData   : in  slv(98 downto 0);  -- AddrChunkReq packed
+      reqPutReady  : out sl;            -- entity can accept (reqQ.notFull)
       -- srvPort.response : Get#(AddrChunkResp) (entity -> caller)
-      respGetReady : in  sl;                         -- caller takes a response (rd_en)
-      respGetValid : out sl;                         -- response available (respQ.notEmpty)
-      respGetData  : out slv(78 downto 0);          -- AddrChunkResp packed
+      respGetReady : in  sl;            -- caller takes a response (rd_en)
+      respGetValid : out sl;            -- response available (respQ.notEmpty)
+      respGetData  : out slv(78 downto 0);  -- AddrChunkResp packed
       -- status method
-      isIdle       : out sl);                        -- !busyReg AND reqQ empty AND respQ empty
+      isIdle       : out sl);  -- !busyReg AND reqQ empty AND respQ empty
 end entity AddrChunkSrvConAndGen;
 
 architecture rtl of AddrChunkSrvConAndGen is
@@ -104,14 +104,14 @@ architecture rtl of AddrChunkSrvConAndGen is
    type StateType is (IDLE_S, BUSY_S);
 
    type RegType is record
-      state            : StateType;          -- busyReg
-      isFirstReg       : sl;                 -- mkReg(False)
-      fullPktLenReg    : slv(12 downto 0);   -- mkRegU — full (non-residue) chunk length
-      residueReg       : slv(11 downto 0);   -- mkRegU — leftover bytes of final chunk
-      isZeroResidueReg : sl;                 -- mkRegU — totalLen is exact PMTU multiple
-      pktNumReg        : slv(24 downto 0);   -- mkRegU — remaining chunk count (down-counter)
-      chunkAddrReg     : slv(63 downto 0);   -- mkRegU — address of next chunk
-      pmtuReg          : slv(2 downto 0);    -- mkRegU — latched PMTU
+      state            : StateType;     -- busyReg
+      isFirstReg       : sl;            -- mkReg(False)
+      fullPktLenReg    : slv(12 downto 0);  -- mkRegU — full (non-residue) chunk length
+      residueReg       : slv(11 downto 0);  -- mkRegU — leftover bytes of final chunk
+      isZeroResidueReg : sl;  -- mkRegU — totalLen is exact PMTU multiple
+      pktNumReg        : slv(24 downto 0);  -- mkRegU — remaining chunk count (down-counter)
+      chunkAddrReg     : slv(63 downto 0);  -- mkRegU — address of next chunk
+      pmtuReg          : slv(2 downto 0);   -- mkRegU — latched PMTU
    end record RegType;
 
    -- mkRegU fields set to '0' in REG_INIT_C: recvReq writes every one of them
@@ -151,12 +151,12 @@ begin
    fifoRst <= rst or clearAllI;
 
    -- srvPort.request boundary wiring (pass-through; not FSM-gated)
-   reqPutReady <= not reqQFull;            -- reqQ.notFull readiness to caller
+   reqPutReady <= not reqQFull;         -- reqQ.notFull readiness to caller
 
    -- isIdle() method (combinational / Mealy):
    --   !busyReg AND !reqQ.notEmpty AND !respQ.notEmpty
-   isIdle <= '1' when (r.state = IDLE_S and reqQValid = '0' and respQValid = '0')
-             else '0';
+   isIdle <= '1' when (r.state = IDLE_S and reqQValid = '0' and respQValid = '0') else
+             '0';
 
    ---------------------------------------------------------------------------
    -- U_ReqQ : surf.Fifo
@@ -176,8 +176,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => reqPutValid,      -- pass-through (caller drives)
-         din           => reqPutData,       -- pass-through (caller drives)
+         wr_en         => reqPutValid,  -- pass-through (caller drives)
+         din           => reqPutData,   -- pass-through (caller drives)
          full          => reqQFull,
          not_full      => open,
          wr_ack        => open,
@@ -186,7 +186,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => reqQRdEn,         -- FSM (recvReq)
+         rd_en         => reqQRdEn,     -- FSM (recvReq)
          dout          => reqQDout,
          valid         => reqQValid,
          underflow     => open,
@@ -213,8 +213,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => respQWrEn,        -- FSM (genResp)
-         din           => respQDin,         -- FSM (genResp)
+         wr_en         => respQWrEn,     -- FSM (genResp)
+         din           => respQDin,      -- FSM (genResp)
          full          => respQFull,
          not_full      => open,
          wr_ack        => open,
@@ -223,7 +223,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => respGetReady,     -- pass-through (caller drives)
+         rd_en         => respGetReady,  -- pass-through (caller drives)
          dout          => respGetData,
          valid         => respQValid,
          underflow     => open,
@@ -232,7 +232,7 @@ begin
          empty         => open,
          rd_data_count => open);
 
-   respGetValid <= respQValid;             -- pass-through to caller
+   respGetValid <= respQValid;          -- pass-through to caller
 
    ---------------------------------------------------------------------------
    -- Combinatorial process
@@ -274,27 +274,27 @@ begin
       pmtu      := reqQDout(2 downto 0);
 
       case pmtu is
-         when "001" =>                       -- IBV_MTU_256  (k=8)
+         when "001" =>                  -- IBV_MTU_256  (k=8)
             residue   := "0000" & totalLen(7 downto 0);
             tmpPktNum := "0" & totalLen(31 downto 8);
             pmtuLen   := slv(to_unsigned(256, 13));
-         when "010" =>                       -- IBV_MTU_512  (k=9)
+         when "010" =>                  -- IBV_MTU_512  (k=9)
             residue   := "000" & totalLen(8 downto 0);
             tmpPktNum := "00" & totalLen(31 downto 9);
             pmtuLen   := slv(to_unsigned(512, 13));
-         when "011" =>                       -- IBV_MTU_1024 (k=10)
+         when "011" =>                  -- IBV_MTU_1024 (k=10)
             residue   := "00" & totalLen(9 downto 0);
             tmpPktNum := "000" & totalLen(31 downto 10);
             pmtuLen   := slv(to_unsigned(1024, 13));
-         when "100" =>                       -- IBV_MTU_2048 (k=11)
+         when "100" =>                  -- IBV_MTU_2048 (k=11)
             residue   := "0" & totalLen(10 downto 0);
             tmpPktNum := "0000" & totalLen(31 downto 11);
             pmtuLen   := slv(to_unsigned(2048, 13));
-         when "101" =>                       -- IBV_MTU_4096 (k=12)
+         when "101" =>                  -- IBV_MTU_4096 (k=12)
             residue   := totalLen(11 downto 0);
             tmpPktNum := "00000" & totalLen(31 downto 12);
             pmtuLen   := slv(to_unsigned(4096, 13));
-         when others =>                      -- invalid PMTU (should not occur)
+         when others =>                 -- invalid PMTU (should not occur)
             residue   := (others => '0');
             tmpPktNum := (others => '0');
             pmtuLen   := (others => '0');
@@ -325,7 +325,7 @@ begin
                            resize(unsigned(r.fullPktLenReg), 64));
 
       if (isLast = '1' and r.isZeroResidueReg = '0') then
-         chunkLen := "0" & r.residueReg;     -- zeroExtend(residueReg) to 13b
+         chunkLen := "0" & r.residueReg;  -- zeroExtend(residueReg) to 13b
       else
          chunkLen := r.fullPktLenReg;
       end if;
@@ -347,7 +347,7 @@ begin
             -- ---------------------------------------------------------------
             when IDLE_S =>
                if reqQValid = '1' then
-                  reqQRdEn           <= '1';            -- reqQ.deq
+                  reqQRdEn           <= '1';  -- reqQ.deq
                   v.fullPktLenReg    := pmtuLen;
                   v.residueReg       := residue;
                   v.isZeroResidueReg := isZeroResidue;
@@ -365,12 +365,12 @@ begin
                -- AddrChunkResp = chunkAddr[63:0] & chunkLen[12:0] & isFirst & isLast
                respQDin <= r.chunkAddrReg & chunkLen & r.isFirstReg & isLast;
                if respQFull = '0' then
-                  respQWrEn       <= '1';               -- respQ.enq
-                  v.pktNumReg     := slv(unsigned(r.pktNumReg) - 1);
-                  v.chunkAddrReg  := nextChunkAddr;
-                  v.isFirstReg    := '0';
+                  respQWrEn      <= '1';  -- respQ.enq
+                  v.pktNumReg    := slv(unsigned(r.pktNumReg) - 1);
+                  v.chunkAddrReg := nextChunkAddr;
+                  v.isFirstReg   := '0';
                   if isLast = '1' then
-                     v.state := IDLE_S;                 -- busyReg <= False
+                     v.state := IDLE_S;   -- busyReg <= False
                   end if;
                end if;
                -- respQFull='1' -> whole rule stalls; all registers hold.

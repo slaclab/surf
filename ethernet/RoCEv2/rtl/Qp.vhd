@@ -84,9 +84,9 @@ use surf.StdRtlPkg.all;
 
 entity Qp is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';        -- '1' for active-HIGH reset
-      RST_ASYNC_G    : boolean := false;
+      TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';   -- '1' for active-HIGH reset
+      RST_ASYNC_G    : boolean  := false;
       -- Pruning generics (all true = full engine, identical to the verified
       -- netlist). EN_TX_G=false removes the requester (SQ) subtree; EN_RX_G=
       -- false removes the responder (RQ) subtree (ACK/NAK reception lives on
@@ -94,16 +94,16 @@ entity Qp is
       -- atomic support on both sides. Pruned-side ports are tied inert:
       -- user-facing inputs refuse (ready='0'), wire-side pipes drain
       -- (ready='1'), outputs quiesce (valid='0').
-      EN_TX_G        : boolean := true;
-      EN_RX_G        : boolean := true;
-      EN_READ_G      : boolean := true;
+      EN_TX_G        : boolean  := true;
+      EN_RX_G        : boolean  := true;
+      EN_READ_G      : boolean  := true;
       -- Settings.bsv MAX_QP_WR (BSV default 32): max pending work requests per
       -- QP (effective in-flight window is MAX_QP_WR_G-1, one slot reserved).
       -- Must be a power of 2 (sizes SqQueuePair's ScanFifoF).
       MAX_QP_WR_G    : positive := 4);
    port (
       clk : in sl;
-      rst : in sl := not RST_POLARITY_G;      -- FPGA async/sync reset
+      rst : in sl := not RST_POLARITY_G;  -- FPGA async/sync reset
 
       -----------------------------------------------------------------------
       -- srvPortQP = cntrl.srvPort : Server#(ReqQP(301b), RespQP(274b))
@@ -121,10 +121,10 @@ entity Qp is
       -----------------------------------------------------------------------
       recvReqInValid : in  sl;
       recvReqInData  : in  slv(215 downto 0);
-      recvReqInReady : out sl;                -- = recvReqQ.not_full
+      recvReqInReady : out sl;          -- = recvReqQ.not_full
       workReqInValid : in  sl;
       workReqInData  : in  slv(600 downto 0);
-      workReqInReady : out sl;                -- = workReqQ.not_full
+      workReqInReady : out sl;          -- = workReqQ.not_full
 
       -----------------------------------------------------------------------
       -- dmaReadClt4RQ / dmaReadClt4SQ  : Client#(DmaReadReq(176b), DmaReadResp(383b))
@@ -176,12 +176,12 @@ entity Qp is
       -- reqPktPipeIn / respPktPipeIn : RdmaPktMetaDataAndPayloadPipeIn
       --   .pktMetaData.put (RdmaPktMetaData 649b) + .payload.put (DataStream 290b)
       -----------------------------------------------------------------------
-      reqPktMetaWrEn     : in  sl;
-      reqPktMetaData     : in  slv(648 downto 0);
-      reqPktMetaReady    : out sl;
-      reqPktPayloadWrEn  : in  sl;
-      reqPktPayloadData  : in  slv(289 downto 0);
-      reqPktPayloadReady : out sl;
+      reqPktMetaWrEn      : in  sl;
+      reqPktMetaData      : in  slv(648 downto 0);
+      reqPktMetaReady     : out sl;
+      reqPktPayloadWrEn   : in  sl;
+      reqPktPayloadData   : in  slv(289 downto 0);
+      reqPktPayloadReady  : out sl;
       respPktMetaWrEn     : in  sl;
       respPktMetaData     : in  slv(648 downto 0);
       respPktMetaReady    : out sl;
@@ -193,36 +193,36 @@ entity Qp is
       -- statusSQ / statusRQ export : shared CntrlCommStatus bundle (comm*) plus
       -- per-context getTypeQP and the constant isSQ (OQ-EMIT-QP-01).
       -----------------------------------------------------------------------
-      commIsCreate                   : out sl;
-      commIsErr                      : out sl;
-      commIsInit                     : out sl;
-      commIsNonErr                   : out sl;
-      commIsReset                    : out sl;
-      commIsRTR                      : out sl;
-      commIsRTS                      : out sl;
-      commIsSQD                      : out sl;
-      commIsUnknown                  : out sl;
-      commIsRTR2RTS                  : out sl;
-      commIsStableRTS                : out sl;
-      commGetAccessFlags             : out slv(7 downto 0);
-      commGetMaxRnrCnt               : out slv(2 downto 0);
-      commGetMaxRetryCnt             : out slv(2 downto 0);
-      commGetMinRnrTimer             : out slv(4 downto 0);
-      commGetMaxTimeOut              : out slv(4 downto 0);
-      commGetPendingWorkReqNum       : out slv(7 downto 0);
-      commGetPendingRecvReqNum       : out slv(7 downto 0);
-      commGetPendingReadAtomicReqNum : out slv(7 downto 0);
+      commIsCreate                       : out sl;
+      commIsErr                          : out sl;
+      commIsInit                         : out sl;
+      commIsNonErr                       : out sl;
+      commIsReset                        : out sl;
+      commIsRTR                          : out sl;
+      commIsRTS                          : out sl;
+      commIsSQD                          : out sl;
+      commIsUnknown                      : out sl;
+      commIsRTR2RTS                      : out sl;
+      commIsStableRTS                    : out sl;
+      commGetAccessFlags                 : out slv(7 downto 0);
+      commGetMaxRnrCnt                   : out slv(2 downto 0);
+      commGetMaxRetryCnt                 : out slv(2 downto 0);
+      commGetMinRnrTimer                 : out slv(4 downto 0);
+      commGetMaxTimeOut                  : out slv(4 downto 0);
+      commGetPendingWorkReqNum           : out slv(7 downto 0);
+      commGetPendingRecvReqNum           : out slv(7 downto 0);
+      commGetPendingReadAtomicReqNum     : out slv(7 downto 0);
       commGetPendingDestReadAtomicReqNum : out slv(7 downto 0);
-      commGetSigAll                  : out sl;
-      commGetSQPN                    : out slv(23 downto 0);
-      commGetDQPN                    : out slv(23 downto 0);
-      commGetPKEY                    : out slv(15 downto 0);
-      commGetQKEY                    : out slv(31 downto 0);
-      commGetPMTU                    : out slv(2 downto 0);
-      statusGetTypeSq                : out slv(3 downto 0);
-      statusGetTypeRq                : out slv(3 downto 0);
-      statusSqIsSQ                   : out sl;
-      statusRqIsSQ                   : out sl;
+      commGetSigAll                      : out sl;
+      commGetSQPN                        : out slv(23 downto 0);
+      commGetDQPN                        : out slv(23 downto 0);
+      commGetPKEY                        : out slv(15 downto 0);
+      commGetQKEY                        : out slv(31 downto 0);
+      commGetPMTU                        : out slv(2 downto 0);
+      statusGetTypeSq                    : out slv(3 downto 0);
+      statusGetTypeRq                    : out slv(3 downto 0);
+      statusSqIsSQ                       : out sl;
+      statusRqIsSQ                       : out sl;
 
       -----------------------------------------------------------------------
       -- rdmaReqPipeOut  = sq.rdmaReqDataStreamPipeOut  (DataStream 290b)
@@ -230,12 +230,12 @@ entity Qp is
       -- workCompPipeOutRQ = rq.workCompRQ.workCompPipeOut (WorkComp 222b)
       -- workCompPipeOutSQ = sq.workCompSQ.workCompPipeOut (WorkComp 222b)
       -----------------------------------------------------------------------
-      rdmaReqValid   : out sl;
-      rdmaReqData    : out slv(289 downto 0);
-      rdmaReqRdEn    : in  sl;
-      rdmaRespValid  : out sl;
-      rdmaRespData   : out slv(289 downto 0);
-      rdmaRespRdEn   : in  sl;
+      rdmaReqValid    : out sl;
+      rdmaReqData     : out slv(289 downto 0);
+      rdmaReqRdEn     : in  sl;
+      rdmaRespValid   : out sl;
+      rdmaRespData    : out slv(289 downto 0);
+      rdmaRespRdEn    : in  sl;
       workCompRqValid : out sl;
       workCompRqData  : out slv(221 downto 0);
       workCompRqRdEn  : in  sl;
@@ -249,19 +249,19 @@ architecture rtl of Qp is
    -----------------------------------------------------------------------------
    -- Word widths (traced from already-emitted child ports)
    -----------------------------------------------------------------------------
-   constant RECV_REQ_C          : positive := 216;
-   constant WORK_REQ_C          : positive := 601;
-   constant DATA_STREAM_C       : positive := 290;
-   constant RDMA_META_C         : positive := 649;
-   constant DMA_READ_REQ_C      : positive := 176;
-   constant DMA_READ_RESP_C     : positive := 383;
-   constant DMA_WRITE_REQ_C     : positive := 419;
-   constant DMA_WRITE_RESP_C    : positive := 53;
-   constant PERM_CHECK_REQ_C    : positive := 267;
+   constant RECV_REQ_C       : positive := 216;
+   constant WORK_REQ_C       : positive := 601;
+   constant DATA_STREAM_C    : positive := 290;
+   constant RDMA_META_C      : positive := 649;
+   constant DMA_READ_REQ_C   : positive := 176;
+   constant DMA_READ_RESP_C  : positive := 383;
+   constant DMA_WRITE_REQ_C  : positive := 419;
+   constant DMA_WRITE_RESP_C : positive := 53;
+   constant PERM_CHECK_REQ_C : positive := 267;
    -- recvReqQ = mkSizedFIFOF(MAX_QP_WR); workReqQ = mkFIFOF -> min depth
    -- surf.Fifo needs ADDR_WIDTH_G >= 4, so depth is at least 16 (>= MAX_QP_WR ok)
-   constant RECV_REQ_AW_C : positive := maximum(log2(MAX_QP_WR_G), 4);
-   constant WORK_REQ_AW_C : positive := 4;   -- min surf.Fifo depth (BSV mkFIFOF)
+   constant RECV_REQ_AW_C    : positive := maximum(log2(MAX_QP_WR_G), 4);
+   constant WORK_REQ_AW_C    : positive := 4;  -- min surf.Fifo depth (BSV mkFIFOF)
 
    -----------------------------------------------------------------------------
    -- FSM state : the four DMA-cancel flags (mkReg(False))
@@ -283,179 +283,179 @@ architecture rtl of Qp is
    signal rin : RegType;
 
    -- Mealy method-strobes (combinational, driven by the comb process)
-   signal setStateErrStrobe  : sl;   -- errTrigger        -> cntrl.setStateErr
-   signal errFlushDoneStrobe : sl;   -- waitGracefulStop  -> cntrl.errFlushDone
-   signal cancelReadRq       : sl;   -- cancelDmaReadRQ   -> dmaReadCntrl4RQ.cancel
-   signal cancelReadSq       : sl;   -- cancelDmaReadSQ   -> dmaReadCntrl4SQ.cancel
-   signal cancelWriteRq      : sl;   -- cancelDmaWriteRQ  -> dmaWriteCntrl4RQ.cancel
-   signal cancelWriteSq      : sl;   -- cancelDmaWriteSQ  -> dmaWriteCntrl4SQ.cancel
-   signal reqPipeClr         : sl;   -- resetAndClear     -> reqPktPipe.clear
-   signal respPipeClr        : sl;   -- resetAndClear     -> respPktPipe.clear
-   signal fifoClr            : sl;   -- resetAndClear     -> recvReqQ/workReqQ clear
+   signal setStateErrStrobe  : sl;  -- errTrigger        -> cntrl.setStateErr
+   signal errFlushDoneStrobe : sl;  -- waitGracefulStop  -> cntrl.errFlushDone
+   signal cancelReadRq       : sl;  -- cancelDmaReadRQ   -> dmaReadCntrl4RQ.cancel
+   signal cancelReadSq       : sl;  -- cancelDmaReadSQ   -> dmaReadCntrl4SQ.cancel
+   signal cancelWriteRq      : sl;  -- cancelDmaWriteRQ  -> dmaWriteCntrl4RQ.cancel
+   signal cancelWriteSq      : sl;  -- cancelDmaWriteSQ  -> dmaWriteCntrl4SQ.cancel
+   signal reqPipeClr         : sl;  -- resetAndClear     -> reqPktPipe.clear
+   signal respPipeClr        : sl;  -- resetAndClear     -> respPktPipe.clear
+   signal fifoClr            : sl;  -- resetAndClear     -> recvReqQ/workReqQ clear
 
    -----------------------------------------------------------------------------
    -- Controller (U_CntrlQp) status/context outputs (shared, fanned to children
    -- and re-exported on statusSQ/statusRQ).
    -----------------------------------------------------------------------------
-   signal cIsCreate    : sl;
-   signal cIsErr       : sl;
-   signal cIsInit      : sl;
-   signal cIsNonErr    : sl;
-   signal cIsReset     : sl;
-   signal cIsRtr       : sl;
-   signal cIsRts       : sl;
-   signal cIsSqd       : sl;
-   signal cIsUnknown   : sl;
-   signal cIsRtr2Rts   : sl;
-   signal cIsStableRts : sl;
-   signal cAccessFlags : slv(7 downto 0);
-   signal cMaxRnrCnt   : slv(2 downto 0);
-   signal cMaxRetryCnt : slv(2 downto 0);
-   signal cMaxTimeOut  : slv(4 downto 0);
-   signal cMinRnrTimer : slv(4 downto 0);
+   signal cIsCreate                    : sl;
+   signal cIsErr                       : sl;
+   signal cIsInit                      : sl;
+   signal cIsNonErr                    : sl;
+   signal cIsReset                     : sl;
+   signal cIsRtr                       : sl;
+   signal cIsRts                       : sl;
+   signal cIsSqd                       : sl;
+   signal cIsUnknown                   : sl;
+   signal cIsRtr2Rts                   : sl;
+   signal cIsStableRts                 : sl;
+   signal cAccessFlags                 : slv(7 downto 0);
+   signal cMaxRnrCnt                   : slv(2 downto 0);
+   signal cMaxRetryCnt                 : slv(2 downto 0);
+   signal cMaxTimeOut                  : slv(4 downto 0);
+   signal cMinRnrTimer                 : slv(4 downto 0);
    signal cPendingWorkReqNum           : slv(7 downto 0);
    signal cPendingRecvReqNum           : slv(7 downto 0);
    signal cPendingReadAtomicReqNum     : slv(7 downto 0);
    signal cPendingDestReadAtomicReqNum : slv(7 downto 0);
-   signal cSigAll      : sl;
-   signal cSqpn        : slv(23 downto 0);
-   signal cDqpn        : slv(23 downto 0);
-   signal cPkey        : slv(15 downto 0);
-   signal cQkey        : slv(31 downto 0);
-   signal cPmtu        : slv(2 downto 0);
-   signal cTypeSq      : slv(3 downto 0);
-   signal cTypeRq      : slv(3 downto 0);
+   signal cSigAll                      : sl;
+   signal cSqpn                        : slv(23 downto 0);
+   signal cDqpn                        : slv(23 downto 0);
+   signal cPkey                        : slv(15 downto 0);
+   signal cQkey                        : slv(31 downto 0);
+   signal cPmtu                        : slv(2 downto 0);
+   signal cTypeSq                      : slv(3 downto 0);
+   signal cTypeRq                      : slv(3 downto 0);
    -- contextSQ shared next-PSN register
-   signal cGetNpsn     : slv(23 downto 0);
-   signal sqSetNpsnEn  : sl;
-   signal sqSetNpsn    : slv(23 downto 0);
+   signal cGetNpsn                     : slv(23 downto 0);
+   signal sqSetNpsnEn                  : sl;
+   signal sqSetNpsn                    : slv(23 downto 0);
    -- contextRQ RMW registers (cntrl get* out; rq set*/restore in)
-   signal cPermCheckReq        : slv(266 downto 0);
-   signal cTotalDmaWriteLen    : slv(31 downto 0);
-   signal cRemainingDmaWriteLen: slv(31 downto 0);
-   signal cNextDmaWriteAddr    : slv(63 downto 0);
-   signal cSendWriteReqPktNum  : slv(24 downto 0);
-   signal cPreReqOpCode        : slv(4 downto 0);
-   signal cEpoch               : sl;
-   signal cMsn                 : slv(23 downto 0);
-   signal cIsRespPktNumZero    : sl;
-   signal cRespPktNum          : slv(24 downto 0);
-   signal cCurRespPSN          : slv(23 downto 0);
-   signal cEpsn                : slv(23 downto 0);
+   signal cPermCheckReq                : slv(266 downto 0);
+   signal cTotalDmaWriteLen            : slv(31 downto 0);
+   signal cRemainingDmaWriteLen        : slv(31 downto 0);
+   signal cNextDmaWriteAddr            : slv(63 downto 0);
+   signal cSendWriteReqPktNum          : slv(24 downto 0);
+   signal cPreReqOpCode                : slv(4 downto 0);
+   signal cEpoch                       : sl;
+   signal cMsn                         : slv(23 downto 0);
+   signal cIsRespPktNumZero            : sl;
+   signal cRespPktNum                  : slv(24 downto 0);
+   signal cCurRespPSN                  : slv(23 downto 0);
+   signal cEpsn                        : slv(23 downto 0);
 
    -----------------------------------------------------------------------------
    -- U_Rq -> U_CntrlQp contextRQ write-backs / restore
    -----------------------------------------------------------------------------
-   signal rqIncEpoch                  : sl;
-   signal rqSetRespPktNumValid        : sl;
-   signal rqSetRespPktNumData         : slv(24 downto 0);
-   signal rqSetEPSNValid              : sl;
-   signal rqSetEPSNData               : slv(23 downto 0);
-   signal rqSetPreReqOpCodeValid      : sl;
-   signal rqSetPreReqOpCodeData       : slv(4 downto 0);
-   signal rqRestoreValid              : sl;
-   signal rqRestorePreOpCodeData      : slv(4 downto 0);
-   signal rqRestorePsnData            : slv(23 downto 0);
-   signal rqSetPermCheckReqValid      : sl;
-   signal rqSetPermCheckReqData       : slv(266 downto 0);
-   signal rqSetNextDmaWriteAddrValid  : sl;
-   signal rqSetNextDmaWriteAddrData   : slv(63 downto 0);
-   signal rqSetSendWriteReqPktNumValid: sl;
-   signal rqSetSendWriteReqPktNumData : slv(24 downto 0);
+   signal rqIncEpoch                     : sl;
+   signal rqSetRespPktNumValid           : sl;
+   signal rqSetRespPktNumData            : slv(24 downto 0);
+   signal rqSetEPSNValid                 : sl;
+   signal rqSetEPSNData                  : slv(23 downto 0);
+   signal rqSetPreReqOpCodeValid         : sl;
+   signal rqSetPreReqOpCodeData          : slv(4 downto 0);
+   signal rqRestoreValid                 : sl;
+   signal rqRestorePreOpCodeData         : slv(4 downto 0);
+   signal rqRestorePsnData               : slv(23 downto 0);
+   signal rqSetPermCheckReqValid         : sl;
+   signal rqSetPermCheckReqData          : slv(266 downto 0);
+   signal rqSetNextDmaWriteAddrValid     : sl;
+   signal rqSetNextDmaWriteAddrData      : slv(63 downto 0);
+   signal rqSetSendWriteReqPktNumValid   : sl;
+   signal rqSetSendWriteReqPktNumData    : slv(24 downto 0);
    signal rqSetRemainingDmaWriteLenValid : sl;
    signal rqSetRemainingDmaWriteLenData  : slv(31 downto 0);
-   signal rqSetTotalDmaWriteLenValid  : sl;
-   signal rqSetTotalDmaWriteLenData   : slv(31 downto 0);
-   signal rqSetCurRespPSNValid        : sl;
-   signal rqSetCurRespPSNData         : slv(23 downto 0);
-   signal rqSetMSNValid               : sl;
-   signal rqSetMSNData                : slv(23 downto 0);
+   signal rqSetTotalDmaWriteLenValid     : sl;
+   signal rqSetTotalDmaWriteLenData      : slv(31 downto 0);
+   signal rqSetCurRespPSNValid           : sl;
+   signal rqSetCurRespPSNData            : slv(23 downto 0);
+   signal rqSetMSNValid                  : sl;
+   signal rqSetMSNData                   : slv(23 downto 0);
 
    -----------------------------------------------------------------------------
    -- Payload generators (PayloadGeneratorConAndGen) <-> Rq / Sq / DmaReadCntrl
    -----------------------------------------------------------------------------
    -- payloadGenerator4RQ
-   signal pgRqReqValid    : sl;                        -- rq -> pg srvPort.request
-   signal pgRqReqData     : slv(198 downto 0);
-   signal pgRqReqReady    : sl;
-   signal pgRqRespValid   : sl;                        -- pg -> rq srvPort.response
-   signal pgRqRespData    : slv(1 downto 0);
-   signal pgRqRespReady   : sl;
-   signal pgRqDataValid   : sl;                        -- pg payloadDataStreamPipeOut -> rq
-   signal pgRqDataData    : slv(289 downto 0);
-   signal pgRqDataDeq     : sl;
-   signal pgRqNotEmpty    : sl;                        -- pg.payloadNotEmpty (-> FSM)
-   signal pgRqDmaReqValid : sl;                        -- pg -> dmaReadCntrl4RQ.request
-   signal pgRqDmaReqData  : slv(197 downto 0);
-   signal pgRqDmaReqReady : sl;
-   signal pgRqDmaRespValid: sl;                        -- dmaReadCntrl4RQ.response -> pg
-   signal pgRqDmaRespData : slv(384 downto 0);
-   signal pgRqDmaRespReady: sl;
+   signal pgRqReqValid     : sl;        -- rq -> pg srvPort.request
+   signal pgRqReqData      : slv(198 downto 0);
+   signal pgRqReqReady     : sl;
+   signal pgRqRespValid    : sl;        -- pg -> rq srvPort.response
+   signal pgRqRespData     : slv(1 downto 0);
+   signal pgRqRespReady    : sl;
+   signal pgRqDataValid    : sl;        -- pg payloadDataStreamPipeOut -> rq
+   signal pgRqDataData     : slv(289 downto 0);
+   signal pgRqDataDeq      : sl;
+   signal pgRqNotEmpty     : sl;        -- pg.payloadNotEmpty (-> FSM)
+   signal pgRqDmaReqValid  : sl;        -- pg -> dmaReadCntrl4RQ.request
+   signal pgRqDmaReqData   : slv(197 downto 0);
+   signal pgRqDmaReqReady  : sl;
+   signal pgRqDmaRespValid : sl;        -- dmaReadCntrl4RQ.response -> pg
+   signal pgRqDmaRespData  : slv(384 downto 0);
+   signal pgRqDmaRespReady : sl;
    -- payloadGenerator4SQ
-   signal pgSqReqValid    : sl;
-   signal pgSqReqData     : slv(198 downto 0);
-   signal pgSqReqReady    : sl;
-   signal pgSqRespValid   : sl;
-   signal pgSqRespData    : slv(1 downto 0);
-   signal pgSqRespReady   : sl;
-   signal pgSqDataValid   : sl;
-   signal pgSqDataData    : slv(289 downto 0);
-   signal pgSqDataDeq     : sl;
-   signal pgSqNotEmpty    : sl;
-   signal pgSqDmaReqValid : sl;
-   signal pgSqDmaReqData  : slv(197 downto 0);
-   signal pgSqDmaReqReady : sl;
-   signal pgSqDmaRespValid: sl;
-   signal pgSqDmaRespData : slv(384 downto 0);
-   signal pgSqDmaRespReady: sl;
+   signal pgSqReqValid     : sl;
+   signal pgSqReqData      : slv(198 downto 0);
+   signal pgSqReqReady     : sl;
+   signal pgSqRespValid    : sl;
+   signal pgSqRespData     : slv(1 downto 0);
+   signal pgSqRespReady    : sl;
+   signal pgSqDataValid    : sl;
+   signal pgSqDataData     : slv(289 downto 0);
+   signal pgSqDataDeq      : sl;
+   signal pgSqNotEmpty     : sl;
+   signal pgSqDmaReqValid  : sl;
+   signal pgSqDmaReqData   : slv(197 downto 0);
+   signal pgSqDmaReqReady  : sl;
+   signal pgSqDmaRespValid : sl;
+   signal pgSqDmaRespData  : slv(384 downto 0);
+   signal pgSqDmaRespReady : sl;
 
    -----------------------------------------------------------------------------
    -- DMA read/write controllers <-> server proxies (dmaReadSrv/dmaWriteSrv client)
    -----------------------------------------------------------------------------
    -- dmaReadCntrl4RQ dmaReadSrv client -> dmaReadProxy4RQ.srvPort
-   signal drRqDmaReqValid : sl;
-   signal drRqDmaReqData  : slv(DMA_READ_REQ_C-1 downto 0);
-   signal drRqDmaReqReady : sl;
-   signal drRqDmaRespValid: sl;
-   signal drRqDmaRespData : slv(DMA_READ_RESP_C-1 downto 0);
-   signal drRqDmaRespReady: sl;
-   signal drRqIsIdle      : sl;
+   signal drRqDmaReqValid  : sl;
+   signal drRqDmaReqData   : slv(DMA_READ_REQ_C-1 downto 0);
+   signal drRqDmaReqReady  : sl;
+   signal drRqDmaRespValid : sl;
+   signal drRqDmaRespData  : slv(DMA_READ_RESP_C-1 downto 0);
+   signal drRqDmaRespReady : sl;
+   signal drRqIsIdle       : sl;
    -- dmaReadCntrl4SQ
-   signal drSqDmaReqValid : sl;
-   signal drSqDmaReqData  : slv(DMA_READ_REQ_C-1 downto 0);
-   signal drSqDmaReqReady : sl;
-   signal drSqDmaRespValid: sl;
-   signal drSqDmaRespData : slv(DMA_READ_RESP_C-1 downto 0);
-   signal drSqDmaRespReady: sl;
-   signal drSqIsIdle      : sl;
+   signal drSqDmaReqValid  : sl;
+   signal drSqDmaReqData   : slv(DMA_READ_REQ_C-1 downto 0);
+   signal drSqDmaReqReady  : sl;
+   signal drSqDmaRespValid : sl;
+   signal drSqDmaRespData  : slv(DMA_READ_RESP_C-1 downto 0);
+   signal drSqDmaRespReady : sl;
+   signal drSqIsIdle       : sl;
    -- dmaWriteCntrl4RQ srvPort.request (from rq) + dmaWriteSrv client -> proxy
-   signal dwRqReqValid    : sl;                        -- rq -> dmaWriteCntrl4RQ.request
-   signal dwRqReqData     : slv(DMA_WRITE_REQ_C-1 downto 0);
-   signal dwRqReqReady    : sl;
-   signal dwRqRespValid   : sl;                        -- dmaWriteCntrl4RQ.response -> rq
-   signal dwRqRespData    : slv(DMA_WRITE_RESP_C-1 downto 0);
-   signal dwRqRespReady   : sl;
-   signal dwRqDmaReqValid : sl;                        -- dmaWriteCntrl4RQ -> proxy
-   signal dwRqDmaReqData  : slv(DMA_WRITE_REQ_C-1 downto 0);
-   signal dwRqDmaReqReady : sl;
-   signal dwRqDmaRespValid: sl;                        -- proxy -> dmaWriteCntrl4RQ
-   signal dwRqDmaRespData : slv(DMA_WRITE_RESP_C-1 downto 0);
-   signal dwRqDmaRespReady: sl;
-   signal dwRqIsIdle      : sl;
+   signal dwRqReqValid     : sl;        -- rq -> dmaWriteCntrl4RQ.request
+   signal dwRqReqData      : slv(DMA_WRITE_REQ_C-1 downto 0);
+   signal dwRqReqReady     : sl;
+   signal dwRqRespValid    : sl;        -- dmaWriteCntrl4RQ.response -> rq
+   signal dwRqRespData     : slv(DMA_WRITE_RESP_C-1 downto 0);
+   signal dwRqRespReady    : sl;
+   signal dwRqDmaReqValid  : sl;        -- dmaWriteCntrl4RQ -> proxy
+   signal dwRqDmaReqData   : slv(DMA_WRITE_REQ_C-1 downto 0);
+   signal dwRqDmaReqReady  : sl;
+   signal dwRqDmaRespValid : sl;        -- proxy -> dmaWriteCntrl4RQ
+   signal dwRqDmaRespData  : slv(DMA_WRITE_RESP_C-1 downto 0);
+   signal dwRqDmaRespReady : sl;
+   signal dwRqIsIdle       : sl;
    -- dmaWriteCntrl4SQ srvPort.request (from sq) + dmaWriteSrv client -> proxy
-   signal dwSqReqValid    : sl;                        -- sq -> dmaWriteCntrl4SQ.request
-   signal dwSqReqData     : slv(DMA_WRITE_REQ_C-1 downto 0);
-   signal dwSqReqReady    : sl;
-   signal dwSqRespValid   : sl;                        -- dmaWriteCntrl4SQ.response -> sq
-   signal dwSqRespData    : slv(DMA_WRITE_RESP_C-1 downto 0);
-   signal dwSqRespReady   : sl;
-   signal dwSqDmaReqValid : sl;
-   signal dwSqDmaReqData  : slv(DMA_WRITE_REQ_C-1 downto 0);
-   signal dwSqDmaReqReady : sl;
-   signal dwSqDmaRespValid: sl;
-   signal dwSqDmaRespData : slv(DMA_WRITE_RESP_C-1 downto 0);
-   signal dwSqDmaRespReady: sl;
-   signal dwSqIsIdle      : sl;
+   signal dwSqReqValid     : sl;        -- sq -> dmaWriteCntrl4SQ.request
+   signal dwSqReqData      : slv(DMA_WRITE_REQ_C-1 downto 0);
+   signal dwSqReqReady     : sl;
+   signal dwSqRespValid    : sl;        -- dmaWriteCntrl4SQ.response -> sq
+   signal dwSqRespData     : slv(DMA_WRITE_RESP_C-1 downto 0);
+   signal dwSqRespReady    : sl;
+   signal dwSqDmaReqValid  : sl;
+   signal dwSqDmaReqData   : slv(DMA_WRITE_REQ_C-1 downto 0);
+   signal dwSqDmaReqReady  : sl;
+   signal dwSqDmaRespValid : sl;
+   signal dwSqDmaRespData  : slv(DMA_WRITE_RESP_C-1 downto 0);
+   signal dwSqDmaRespReady : sl;
+   signal dwSqIsIdle       : sl;
 
    -----------------------------------------------------------------------------
    -- Perm-check server clients (rq / sq) -> perm proxies
@@ -476,12 +476,12 @@ architecture rtl of Qp is
    -----------------------------------------------------------------------------
    -- Packet pipes (reqPktPipe -> rq, respPktPipe -> sq) read side
    -----------------------------------------------------------------------------
-   signal reqPipeMetaValid    : sl;
-   signal reqPipeMetaData     : slv(RDMA_META_C-1 downto 0);
-   signal reqPipeMetaRdEn     : sl;
-   signal reqPipePayloadValid : sl;
-   signal reqPipePayloadData  : slv(DATA_STREAM_C-1 downto 0);
-   signal reqPipePayloadRdEn  : sl;
+   signal reqPipeMetaValid     : sl;
+   signal reqPipeMetaData      : slv(RDMA_META_C-1 downto 0);
+   signal reqPipeMetaRdEn      : sl;
+   signal reqPipePayloadValid  : sl;
+   signal reqPipePayloadData   : slv(DATA_STREAM_C-1 downto 0);
+   signal reqPipePayloadRdEn   : sl;
    signal respPipeMetaValid    : sl;
    signal respPipeMetaData     : slv(RDMA_META_C-1 downto 0);
    signal respPipeMetaRdEn     : sl;
@@ -492,23 +492,23 @@ architecture rtl of Qp is
    -----------------------------------------------------------------------------
    -- Input FIFOs (surf.Fifo) read side + reset
    -----------------------------------------------------------------------------
-   signal recvReqRst      : sl;
-   signal recvReqValid    : sl;                    -- = not empty (FWFT)
-   signal recvReqDout     : slv(RECV_REQ_C-1 downto 0);
-   signal recvReqRdEn     : sl;
-   signal workReqRst      : sl;
-   signal workReqValid    : sl;
-   signal workReqDout     : slv(WORK_REQ_C-1 downto 0);
-   signal workReqRdEn     : sl;
+   signal recvReqRst   : sl;
+   signal recvReqValid : sl;            -- = not empty (FWFT)
+   signal recvReqDout  : slv(RECV_REQ_C-1 downto 0);
+   signal recvReqRdEn  : sl;
+   signal workReqRst   : sl;
+   signal workReqValid : sl;
+   signal workReqDout  : slv(WORK_REQ_C-1 downto 0);
+   signal workReqRdEn  : sl;
 
    -----------------------------------------------------------------------------
    -- Sq / Rq status/method outputs consumed by the flush FSM
    -----------------------------------------------------------------------------
-   signal rqWorkCompHasErr    : sl;
-   signal sqWorkCompHasErr    : sl;
-   signal rqRespHeaderNotEmpty: sl;   -- rq.respHeaderOutNotEmpty
-   signal sqReqHeaderNotEmpty : sl;   -- sq.reqHeaderOutNotEmpty
-   signal sqPendingNotEmpty   : sl;   -- sq.pendingWorkReqNotEmpty
+   signal rqWorkCompHasErr     : sl;
+   signal sqWorkCompHasErr     : sl;
+   signal rqRespHeaderNotEmpty : sl;    -- rq.respHeaderOutNotEmpty
+   signal sqReqHeaderNotEmpty  : sl;    -- sq.reqHeaderOutNotEmpty
+   signal sqPendingNotEmpty    : sl;    -- sq.pendingWorkReqNotEmpty
 
 begin
 
@@ -543,8 +543,8 @@ begin
    commGetPMTU                        <= cPmtu;
    statusGetTypeSq                    <= cTypeSq;
    statusGetTypeRq                    <= cTypeRq;
-   statusSqIsSQ                       <= '1';       -- CntrlStatus.isSQ (statusSQ)
-   statusRqIsSQ                       <= '0';       -- CntrlStatus.isSQ (statusRQ)
+   statusSqIsSQ                       <= '1';  -- CntrlStatus.isSQ (statusSQ)
+   statusRqIsSQ                       <= '0';  -- CntrlStatus.isSQ (statusRQ)
 
    -----------------------------------------------------------------------------
    -- Input-FIFO clear() lowered to a synchronous flush (OQ-EMIT-QP-02): OR the
@@ -584,9 +584,9 @@ begin
       if (cIsReset = '1') then
          -- rule resetAndClear: flush both input FIFOs + both packet pipes and
          -- clear all four cancel flags every cycle isReset is held.
-         fifoClr             <= '1';
-         reqPipeClr          <= '1';
-         respPipeClr         <= '1';
+         fifoClr               <= '1';
+         reqPipeClr            <= '1';
+         respPipeClr           <= '1';
          v.rqDmaReadCancelReg  := '0';
          v.sqDmaReadCancelReg  := '0';
          v.rqDmaWriteCancelReg := '0';
@@ -655,73 +655,73 @@ begin
    -----------------------------------------------------------------------------
    GEN_NO_TX : if not EN_TX_G generate
       -- top ports
-      workReqInReady      <= '0';           -- refuse work requests
-      respPktMetaReady    <= '1';           -- drain resp pkt pipe write side
-      respPktPayloadReady <= '1';
-      rdmaReqValid        <= '0';           -- DataStreamArb slot 2i+1 idle
-      rdmaReqData         <= (others => '0');
-      workCompSqValid     <= '0';
-      workCompSqData      <= (others => '0');
+      workReqInReady         <= '0';    -- refuse work requests
+      respPktMetaReady       <= '1';    -- drain resp pkt pipe write side
+      respPktPayloadReady    <= '1';
+      rdmaReqValid           <= '0';    -- DataStreamArb slot 2i+1 idle
+      rdmaReqData            <= (others => '0');
+      workCompSqValid        <= '0';
+      workCompSqData         <= (others => '0');
       dmaReadClt4SqReqValid  <= '0';
       dmaReadClt4SqReqData   <= (others => '0');
       dmaReadClt4SqRespReady <= '1';
       -- into U_CntrlQp (only Sq-driven context write)
-      sqSetNpsnEn <= '0';
-      sqSetNpsn   <= (others => '0');
+      sqSetNpsnEn            <= '0';
+      sqSetNpsn              <= (others => '0');
       -- into flush FSM: SQ permanently drained/idle
-      sqWorkCompHasErr    <= '0';
-      sqReqHeaderNotEmpty <= '0';
-      sqPendingNotEmpty   <= '0';
-      pgSqNotEmpty        <= '0';
-      drSqIsIdle          <= '1';
-      workReqValid        <= '0';
+      sqWorkCompHasErr       <= '0';
+      sqReqHeaderNotEmpty    <= '0';
+      sqPendingNotEmpty      <= '0';
+      pgSqNotEmpty           <= '0';
+      drSqIsIdle             <= '1';
+      workReqValid           <= '0';
    end generate GEN_NO_TX;
 
    GEN_NO_RX : if not EN_RX_G generate
       -- top ports
-      recvReqInReady     <= '0';            -- refuse recv requests
-      reqPktMetaReady    <= '1';            -- drain req pkt pipe write side
-      reqPktPayloadReady <= '1';
-      rdmaRespValid      <= '0';            -- DataStreamArb slot 2i idle
-      rdmaRespData       <= (others => '0');
-      workCompRqValid    <= '0';
-      workCompRqData     <= (others => '0');
-      dmaWriteClt4RqReqValid  <= '0';
-      dmaWriteClt4RqReqData   <= (others => '0');
-      dmaWriteClt4RqRespReady <= '1';
-      permCheckClt4RqReqValid  <= '0';
-      permCheckClt4RqReqData   <= (others => '0');
-      permCheckClt4RqRespReady <= '1';
+      recvReqInReady                 <= '0';  -- refuse recv requests
+      reqPktMetaReady                <= '1';  -- drain req pkt pipe write side
+      reqPktPayloadReady             <= '1';
+      rdmaRespValid                  <= '0';  -- DataStreamArb slot 2i idle
+      rdmaRespData                   <= (others => '0');
+      workCompRqValid                <= '0';
+      workCompRqData                 <= (others => '0');
+      dmaWriteClt4RqReqValid         <= '0';
+      dmaWriteClt4RqReqData          <= (others => '0');
+      dmaWriteClt4RqRespReady        <= '1';
+      permCheckClt4RqReqValid        <= '0';
+      permCheckClt4RqReqData         <= (others => '0');
+      permCheckClt4RqRespReady       <= '1';
       -- into U_CntrlQp (all Rq-driven contextRQ RMW writes)
-      rqRestoreValid         <= '0';
-      rqRestorePreOpCodeData <= (others => '0');
-      rqRestorePsnData       <= (others => '0');
-      rqIncEpoch             <= '0';
-      rqSetPermCheckReqValid       <= '0';
-      rqSetPermCheckReqData        <= (others => '0');
-      rqSetTotalDmaWriteLenValid   <= '0';
-      rqSetTotalDmaWriteLenData    <= (others => '0');
+      rqRestoreValid                 <= '0';
+      rqRestorePreOpCodeData         <= (others => '0');
+      rqRestorePsnData               <= (others => '0');
+      rqIncEpoch                     <= '0';
+      rqSetPermCheckReqValid         <= '0';
+      rqSetPermCheckReqData          <= (others => '0');
+      rqSetTotalDmaWriteLenValid     <= '0';
+      rqSetTotalDmaWriteLenData      <= (others => '0');
       rqSetRemainingDmaWriteLenValid <= '0';
       rqSetRemainingDmaWriteLenData  <= (others => '0');
-      rqSetNextDmaWriteAddrValid   <= '0';
-      rqSetNextDmaWriteAddrData    <= (others => '0');
-      rqSetSendWriteReqPktNumValid <= '0';
-      rqSetSendWriteReqPktNumData  <= (others => '0');
-      rqSetPreReqOpCodeValid       <= '0';
-      rqSetPreReqOpCodeData        <= (others => '0');
-      rqSetMSNValid                <= '0';
-      rqSetMSNData                 <= (others => '0');
-      rqSetRespPktNumValid         <= '0';
-      rqSetRespPktNumData          <= (others => '0');
-      rqSetCurRespPSNValid         <= '0';
-      rqSetCurRespPSNData          <= (others => '0');
-      rqSetEPSNValid               <= '0';
-      rqSetEPSNData                <= (others => '0');
+      rqSetNextDmaWriteAddrValid     <= '0';
+      rqSetNextDmaWriteAddrData      <= (others => '0');
+      rqSetSendWriteReqPktNumValid   <= '0';
+      rqSetSendWriteReqPktNumData    <= (others => '0');
+      rqSetPreReqOpCodeValid         <= '0';
+      rqSetPreReqOpCodeData          <= (others => '0');
+      rqSetMSNValid                  <= '0';
+      rqSetMSNData                   <= (others => '0');
+      rqSetRespPktNumValid           <= '0';
+      rqSetRespPktNumData            <= (others => '0');
+      rqSetCurRespPSNValid           <= '0';
+      rqSetCurRespPSNData            <= (others => '0');
+      rqSetEPSNValid                 <= '0';
+      rqSetEPSNData                  <= (others => '0');
       -- into flush FSM: RQ permanently drained/idle
-      rqWorkCompHasErr     <= '0';
-      rqRespHeaderNotEmpty <= '0';
-      dwRqIsIdle           <= '1';
-      recvReqValid         <= '0';
+      rqWorkCompHasErr               <= '0';
+      rqRespHeaderNotEmpty           <= '0';
+      dwRqIsIdle                     <= '1';
+      recvReqValid                   <= '0';
    end generate GEN_NO_RX;
 
    -- READ-responder payload-fetch chain (U_DmaRdCntrlRq/U_PayGenRq/proxy)
@@ -731,34 +731,34 @@ begin
       dmaReadClt4RqRespReady <= '1';
       -- toward U_Rq (present when EN_RX_G; its forced classifiers guarantee
       -- pgRqReqValid never asserts)
-      pgRqReqReady  <= '1';
-      pgRqRespValid <= '0';
-      pgRqRespData  <= (others => '0');
-      pgRqDataValid <= '0';
-      pgRqDataData  <= (others => '0');
+      pgRqReqReady           <= '1';
+      pgRqRespValid          <= '0';
+      pgRqRespData           <= (others => '0');
+      pgRqDataValid          <= '0';
+      pgRqDataData           <= (others => '0');
       -- into flush FSM
-      pgRqNotEmpty <= '0';
-      drRqIsIdle   <= '1';
+      pgRqNotEmpty           <= '0';
+      drRqIsIdle             <= '1';
    end generate GEN_NO_RQ_READ;
 
    -- Requester read-response landing chain (U_DmaWrCntrlSq/U_DmaWrProxySq)
    -- plus the SQ perm check (only queried for read/atomic responses).
    GEN_NO_SQ_READ : if not (EN_TX_G and EN_READ_G) generate
-      dmaWriteClt4SqReqValid  <= '0';
-      dmaWriteClt4SqReqData   <= (others => '0');
-      dmaWriteClt4SqRespReady <= '1';
+      dmaWriteClt4SqReqValid   <= '0';
+      dmaWriteClt4SqReqData    <= (others => '0');
+      dmaWriteClt4SqRespReady  <= '1';
       permCheckClt4SqReqValid  <= '0';
       permCheckClt4SqReqData   <= (others => '0');
       permCheckClt4SqRespReady <= '1';
       -- toward U_Sq (present when EN_TX_G)
-      dwSqReqReady   <= '1';
-      dwSqRespValid  <= '0';
-      dwSqRespData   <= (others => '0');
-      sqPermReqReady  <= '1';
-      sqPermRespValid <= '0';
-      sqPermRespData  <= '0';
+      dwSqReqReady             <= '1';
+      dwSqRespValid            <= '0';
+      dwSqRespData             <= (others => '0');
+      sqPermReqReady           <= '1';
+      sqPermRespValid          <= '0';
+      sqPermRespData           <= '0';
       -- into flush FSM
-      dwSqIsIdle <= '1';
+      dwSqIsIdle               <= '1';
    end generate GEN_NO_SQ_READ;
 
    -----------------------------------------------------------------------------
@@ -769,129 +769,129 @@ begin
          TPD_G       => TPD_G,
          MAX_QP_WR_G => MAX_QP_WR_G)
       port map (
-         clk                       => clk,
-         rst                       => rst,
+         clk                            => clk,
+         rst                            => rst,
          -- srvPort = srvPortQP
-         srvReqValid               => srvPortReqValid,
-         srvReqData                => srvPortReqData,
-         srvReqReady               => srvPortReqReady,
-         srvRespValid              => srvPortRespValid,
-         srvRespData               => srvPortRespData,
-         srvRespReady              => srvPortRespReady,
+         srvReqValid                    => srvPortReqValid,
+         srvReqData                     => srvPortReqData,
+         srvReqReady                    => srvPortReqReady,
+         srvRespValid                   => srvPortRespValid,
+         srvRespData                    => srvPortRespData,
+         srvRespReady                   => srvPortRespReady,
          -- restorePort <- rq.restore
-         restoreValid              => rqRestoreValid,
-         restorePreOpCode          => rqRestorePreOpCodeData,
-         restoreEpsn               => rqRestorePsnData,
-         restoreReady              => open,          -- rq does not consume ready
+         restoreValid                   => rqRestoreValid,
+         restorePreOpCode               => rqRestorePreOpCodeData,
+         restoreEpsn                    => rqRestorePsnData,
+         restoreReady                   => open,  -- rq does not consume ready
          -- error control <- flush FSM
-         setStateErr               => setStateErrStrobe,
-         errFlushDoneIn            => errFlushDoneStrobe,
-         inited                    => open,
+         setStateErr                    => setStateErrStrobe,
+         errFlushDoneIn                 => errFlushDoneStrobe,
+         inited                         => open,
          -- comm status decodes
-         isCreate                  => cIsCreate,
-         isErr                     => cIsErr,
-         isInit                    => cIsInit,
-         isNonErr                  => cIsNonErr,
-         isReset                   => cIsReset,
-         isRTR                     => cIsRtr,
-         isRTS                     => cIsRts,
-         isSQD                     => cIsSqd,
-         isUnknown                 => cIsUnknown,
-         isRTR2RTS                 => cIsRtr2Rts,
-         isStableRTS               => cIsStableRts,
+         isCreate                       => cIsCreate,
+         isErr                          => cIsErr,
+         isInit                         => cIsInit,
+         isNonErr                       => cIsNonErr,
+         isReset                        => cIsReset,
+         isRTR                          => cIsRtr,
+         isRTS                          => cIsRts,
+         isSQD                          => cIsSqd,
+         isUnknown                      => cIsUnknown,
+         isRTR2RTS                      => cIsRtr2Rts,
+         isStableRTS                    => cIsStableRts,
          -- comm getters
-         getAccessFlags            => cAccessFlags,
-         getMaxRnrCnt              => cMaxRnrCnt,
-         getMaxRetryCnt            => cMaxRetryCnt,
-         getMaxTimeOut             => cMaxTimeOut,
-         getMinRnrTimer            => cMinRnrTimer,
-         getPendingWorkReqNum      => cPendingWorkReqNum,
-         getPendingRecvReqNum      => cPendingRecvReqNum,
+         getAccessFlags                 => cAccessFlags,
+         getMaxRnrCnt                   => cMaxRnrCnt,
+         getMaxRetryCnt                 => cMaxRetryCnt,
+         getMaxTimeOut                  => cMaxTimeOut,
+         getMinRnrTimer                 => cMinRnrTimer,
+         getPendingWorkReqNum           => cPendingWorkReqNum,
+         getPendingRecvReqNum           => cPendingRecvReqNum,
          getPendingReadAtomicReqNum     => cPendingReadAtomicReqNum,
          getPendingDestReadAtomicReqNum => cPendingDestReadAtomicReqNum,
-         getSigAll                 => cSigAll,
-         getSQPN                   => cSqpn,
-         getDQPN                   => cDqpn,
-         getPKEY                   => cPkey,
-         getQKEY                   => cQkey,
-         getPMTU                   => cPmtu,
-         getTypeSq                 => cTypeSq,
-         getTypeRq                 => cTypeRq,
+         getSigAll                      => cSigAll,
+         getSQPN                        => cSqpn,
+         getDQPN                        => cDqpn,
+         getPKEY                        => cPkey,
+         getQKEY                        => cQkey,
+         getPMTU                        => cPmtu,
+         getTypeSq                      => cTypeSq,
+         getTypeRq                      => cTypeRq,
          -- contextSQ next-PSN (rq/sq: only sq uses it)
-         getNPSN                   => cGetNpsn,
-         setNPSNen                 => sqSetNpsnEn,
-         setNPSN                   => sqSetNpsn,
+         getNPSN                        => cGetNpsn,
+         setNPSNen                      => sqSetNpsnEn,
+         setNPSN                        => sqSetNpsn,
          -- contextRQ RMW registers (<-> rq)
-         getPermCheckReq           => cPermCheckReq,
-         setPermCheckReqEn         => rqSetPermCheckReqValid,
-         setPermCheckReq           => rqSetPermCheckReqData,
-         getTotalDmaWriteLen       => cTotalDmaWriteLen,
-         setTotalDmaWriteLenEn     => rqSetTotalDmaWriteLenValid,
-         setTotalDmaWriteLen       => rqSetTotalDmaWriteLenData,
-         getRemainingDmaWriteLen   => cRemainingDmaWriteLen,
-         setRemainingDmaWriteLenEn => rqSetRemainingDmaWriteLenValid,
-         setRemainingDmaWriteLen   => rqSetRemainingDmaWriteLenData,
-         getNextDmaWriteAddr       => cNextDmaWriteAddr,
-         setNextDmaWriteAddrEn     => rqSetNextDmaWriteAddrValid,
-         setNextDmaWriteAddr       => rqSetNextDmaWriteAddrData,
-         getSendWriteReqPktNum     => cSendWriteReqPktNum,
-         setSendWriteReqPktNumEn   => rqSetSendWriteReqPktNumValid,
-         setSendWriteReqPktNum     => rqSetSendWriteReqPktNumData,
-         getPreReqOpCode           => cPreReqOpCode,
-         setPreReqOpCodeEn         => rqSetPreReqOpCodeValid,
-         setPreReqOpCode           => rqSetPreReqOpCodeData,
-         getEpoch                  => cEpoch,
-         incEpochEn                => rqIncEpoch,
-         getMSN                    => cMsn,
-         setMSNen                  => rqSetMSNValid,
-         setMSN                    => rqSetMSNData,
-         getIsRespPktNumZero       => cIsRespPktNumZero,
-         getRespPktNum             => cRespPktNum,
-         setRespPktNumEn           => rqSetRespPktNumValid,
-         setRespPktNum             => rqSetRespPktNumData,
-         getCurRespPSN             => cCurRespPSN,
-         setCurRespPSNen           => rqSetCurRespPSNValid,
-         setCurRespPSN             => rqSetCurRespPSNData,
-         getEPSN                   => cEpsn,
-         setEPSNen                 => rqSetEPSNValid,
-         setEPSN                   => rqSetEPSNData);
+         getPermCheckReq                => cPermCheckReq,
+         setPermCheckReqEn              => rqSetPermCheckReqValid,
+         setPermCheckReq                => rqSetPermCheckReqData,
+         getTotalDmaWriteLen            => cTotalDmaWriteLen,
+         setTotalDmaWriteLenEn          => rqSetTotalDmaWriteLenValid,
+         setTotalDmaWriteLen            => rqSetTotalDmaWriteLenData,
+         getRemainingDmaWriteLen        => cRemainingDmaWriteLen,
+         setRemainingDmaWriteLenEn      => rqSetRemainingDmaWriteLenValid,
+         setRemainingDmaWriteLen        => rqSetRemainingDmaWriteLenData,
+         getNextDmaWriteAddr            => cNextDmaWriteAddr,
+         setNextDmaWriteAddrEn          => rqSetNextDmaWriteAddrValid,
+         setNextDmaWriteAddr            => rqSetNextDmaWriteAddrData,
+         getSendWriteReqPktNum          => cSendWriteReqPktNum,
+         setSendWriteReqPktNumEn        => rqSetSendWriteReqPktNumValid,
+         setSendWriteReqPktNum          => rqSetSendWriteReqPktNumData,
+         getPreReqOpCode                => cPreReqOpCode,
+         setPreReqOpCodeEn              => rqSetPreReqOpCodeValid,
+         setPreReqOpCode                => rqSetPreReqOpCodeData,
+         getEpoch                       => cEpoch,
+         incEpochEn                     => rqIncEpoch,
+         getMSN                         => cMsn,
+         setMSNen                       => rqSetMSNValid,
+         setMSN                         => rqSetMSNData,
+         getIsRespPktNumZero            => cIsRespPktNumZero,
+         getRespPktNum                  => cRespPktNum,
+         setRespPktNumEn                => rqSetRespPktNumValid,
+         setRespPktNum                  => rqSetRespPktNumData,
+         getCurRespPSN                  => cCurRespPSN,
+         setCurRespPSNen                => rqSetCurRespPSNValid,
+         setCurRespPSN                  => rqSetCurRespPSNData,
+         getEPSN                        => cEpsn,
+         setEPSNen                      => rqSetEPSNValid,
+         setEPSN                        => rqSetEPSNData);
 
    -----------------------------------------------------------------------------
    -- U_RecvReqQ : recvReqQ (surf.Fifo, FWFT) — mkSizedFIFOF(MAX_QP_WR), RecvReq.
    -- Write side = recvReqIn (toPut); read side = recvReqBufPipeOut -> rq.
    -----------------------------------------------------------------------------
    GEN_RECVREQ_Q : if EN_RX_G generate
-   U_RecvReqQ : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,
-         MEMORY_TYPE_G   => "block",
-         DATA_WIDTH_G    => RECV_REQ_C,
-         ADDR_WIDTH_G    => RECV_REQ_AW_C)
-      port map (
-         rst           => recvReqRst,
-         wr_clk        => clk,
-         wr_en         => recvReqInValid,
-         din           => recvReqInData,
-         not_full      => recvReqInReady,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => open,
-         wr_data_count => open,
-         rd_clk        => clk,
-         rd_en         => recvReqRdEn,
-         dout          => recvReqDout,
-         valid         => recvReqValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open,
-         rd_data_count => open);
+      U_RecvReqQ : entity surf.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G => true,
+            FWFT_EN_G       => true,
+            MEMORY_TYPE_G   => "block",
+            DATA_WIDTH_G    => RECV_REQ_C,
+            ADDR_WIDTH_G    => RECV_REQ_AW_C)
+         port map (
+            rst           => recvReqRst,
+            wr_clk        => clk,
+            wr_en         => recvReqInValid,
+            din           => recvReqInData,
+            not_full      => recvReqInReady,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => open,
+            wr_data_count => open,
+            rd_clk        => clk,
+            rd_en         => recvReqRdEn,
+            dout          => recvReqDout,
+            valid         => recvReqValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open,
+            rd_data_count => open);
    end generate GEN_RECVREQ_Q;
 
    -----------------------------------------------------------------------------
@@ -899,37 +899,37 @@ begin
    -- Write side = workReqIn (toPut); read side = workReqBufPipeOut -> sq.
    -----------------------------------------------------------------------------
    GEN_WORKREQ_Q : if EN_TX_G generate
-   U_WorkReqQ : entity surf.Fifo
-      generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,
-         MEMORY_TYPE_G   => "distributed",
-         DATA_WIDTH_G    => WORK_REQ_C,
-         ADDR_WIDTH_G    => WORK_REQ_AW_C)
-      port map (
-         rst           => workReqRst,
-         wr_clk        => clk,
-         wr_en         => workReqInValid,
-         din           => workReqInData,
-         not_full      => workReqInReady,
-         wr_ack        => open,
-         overflow      => open,
-         prog_full     => open,
-         almost_full   => open,
-         full          => open,
-         wr_data_count => open,
-         rd_clk        => clk,
-         rd_en         => workReqRdEn,
-         dout          => workReqDout,
-         valid         => workReqValid,
-         underflow     => open,
-         prog_empty    => open,
-         almost_empty  => open,
-         empty         => open,
-         rd_data_count => open);
+      U_WorkReqQ : entity surf.Fifo
+         generic map (
+            TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
+            GEN_SYNC_FIFO_G => true,
+            FWFT_EN_G       => true,
+            MEMORY_TYPE_G   => "distributed",
+            DATA_WIDTH_G    => WORK_REQ_C,
+            ADDR_WIDTH_G    => WORK_REQ_AW_C)
+         port map (
+            rst           => workReqRst,
+            wr_clk        => clk,
+            wr_en         => workReqInValid,
+            din           => workReqInData,
+            not_full      => workReqInReady,
+            wr_ack        => open,
+            overflow      => open,
+            prog_full     => open,
+            almost_full   => open,
+            full          => open,
+            wr_data_count => open,
+            rd_clk        => clk,
+            rd_en         => workReqRdEn,
+            dout          => workReqDout,
+            valid         => workReqValid,
+            underflow     => open,
+            prog_empty    => open,
+            almost_empty  => open,
+            empty         => open,
+            rd_data_count => open);
    end generate GEN_WORKREQ_Q;
 
    -----------------------------------------------------------------------------
@@ -938,29 +938,29 @@ begin
    --   clear() = resetAndClear reqPktPipe.clear (level, isReset).
    -----------------------------------------------------------------------------
    GEN_REQPKT_PIPE : if EN_RX_G generate
-   U_ReqPktPipe : entity surf.RdmaPktMetaDataAndPayloadPipe
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
-      port map (
-         clk            => clk,
-         rst            => rst,
-         clrEn_i        => reqPipeClr,
-         -- write side <- reqPktPipeIn
-         metaWrEn_i     => reqPktMetaWrEn,
-         metaDin_i      => reqPktMetaData,
-         metaRdy_o      => reqPktMetaReady,
-         payloadWrEn_i  => reqPktPayloadWrEn,
-         payloadDin_i   => reqPktPayloadData,
-         payloadRdy_o   => reqPktPayloadReady,
-         -- read side -> rq
-         metaValid_o    => reqPipeMetaValid,
-         metaDout_o     => reqPipeMetaData,
-         metaRdEn_i     => reqPipeMetaRdEn,
-         payloadValid_o => reqPipePayloadValid,
-         payloadDout_o  => reqPipePayloadData,
-         payloadRdEn_i  => reqPipePayloadRdEn);
+      U_ReqPktPipe : entity surf.RdmaPktMetaDataAndPayloadPipe
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
+         port map (
+            clk            => clk,
+            rst            => rst,
+            clrEn_i        => reqPipeClr,
+            -- write side <- reqPktPipeIn
+            metaWrEn_i     => reqPktMetaWrEn,
+            metaDin_i      => reqPktMetaData,
+            metaRdy_o      => reqPktMetaReady,
+            payloadWrEn_i  => reqPktPayloadWrEn,
+            payloadDin_i   => reqPktPayloadData,
+            payloadRdy_o   => reqPktPayloadReady,
+            -- read side -> rq
+            metaValid_o    => reqPipeMetaValid,
+            metaDout_o     => reqPipeMetaData,
+            metaRdEn_i     => reqPipeMetaRdEn,
+            payloadValid_o => reqPipePayloadValid,
+            payloadDout_o  => reqPipePayloadData,
+            payloadRdEn_i  => reqPipePayloadRdEn);
    end generate GEN_REQPKT_PIPE;
 
    -----------------------------------------------------------------------------
@@ -968,27 +968,27 @@ begin
    --   write side = respPktPipeIn (top);  read side (pktPipeOut) -> sq.
    -----------------------------------------------------------------------------
    GEN_RESPPKT_PIPE : if EN_TX_G generate
-   U_RespPktPipe : entity surf.RdmaPktMetaDataAndPayloadPipe
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
-      port map (
-         clk            => clk,
-         rst            => rst,
-         clrEn_i        => respPipeClr,
-         metaWrEn_i     => respPktMetaWrEn,
-         metaDin_i      => respPktMetaData,
-         metaRdy_o      => respPktMetaReady,
-         payloadWrEn_i  => respPktPayloadWrEn,
-         payloadDin_i   => respPktPayloadData,
-         payloadRdy_o   => respPktPayloadReady,
-         metaValid_o    => respPipeMetaValid,
-         metaDout_o     => respPipeMetaData,
-         metaRdEn_i     => respPipeMetaRdEn,
-         payloadValid_o => respPipePayloadValid,
-         payloadDout_o  => respPipePayloadData,
-         payloadRdEn_i  => respPipePayloadRdEn);
+      U_RespPktPipe : entity surf.RdmaPktMetaDataAndPayloadPipe
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
+         port map (
+            clk            => clk,
+            rst            => rst,
+            clrEn_i        => respPipeClr,
+            metaWrEn_i     => respPktMetaWrEn,
+            metaDin_i      => respPktMetaData,
+            metaRdy_o      => respPktMetaReady,
+            payloadWrEn_i  => respPktPayloadWrEn,
+            payloadDin_i   => respPktPayloadData,
+            payloadRdy_o   => respPktPayloadReady,
+            metaValid_o    => respPipeMetaValid,
+            metaDout_o     => respPipeMetaData,
+            metaRdEn_i     => respPipeMetaRdEn,
+            payloadValid_o => respPipePayloadValid,
+            payloadDout_o  => respPipePayloadData,
+            payloadRdEn_i  => respPipePayloadRdEn);
    end generate GEN_RESPPKT_PIPE;
 
    -----------------------------------------------------------------------------
@@ -996,59 +996,59 @@ begin
    --   srvPort  <- payloadGenerator4RQ ; dmaReadSrv client -> dmaReadProxy4RQ.
    -----------------------------------------------------------------------------
    GEN_DMARD_CNTRL_RQ : if EN_RX_G and EN_READ_G generate
-   U_DmaRdCntrlRq : entity surf.DmaReadCntrlConAndGen
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         clearAll     => cIsReset,
-         isSQ         => '0',               -- statusRQ.isSQ = False (no internal sink)
-         cancelEn     => cancelReadRq,
-         -- srvPort.request <- payloadGenerator4RQ.dmaReadCntrl.request
-         reqInValid   => pgRqDmaReqValid,
-         reqInData    => pgRqDmaReqData,
-         reqInReady   => pgRqDmaReqReady,
-         -- srvPort.response -> payloadGenerator4RQ.dmaReadCntrl.response
-         respOutReady => pgRqDmaRespReady,
-         respOutValid => pgRqDmaRespValid,
-         respOutData  => pgRqDmaRespData,
-         -- dmaReadSrv client -> dmaReadProxy4RQ.srvPort
-         dmaReqValid  => drRqDmaReqValid,
-         dmaReqOut    => drRqDmaReqData,
-         dmaReqReady  => drRqDmaReqReady,
-         dmaRespValid => drRqDmaRespValid,
-         dmaRespIn    => drRqDmaRespData,
-         dmaRespReady => drRqDmaRespReady,
-         isIdle       => drRqIsIdle);
+      U_DmaRdCntrlRq : entity surf.DmaReadCntrlConAndGen
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            clearAll     => cIsReset,
+            isSQ         => '0',  -- statusRQ.isSQ = False (no internal sink)
+            cancelEn     => cancelReadRq,
+            -- srvPort.request <- payloadGenerator4RQ.dmaReadCntrl.request
+            reqInValid   => pgRqDmaReqValid,
+            reqInData    => pgRqDmaReqData,
+            reqInReady   => pgRqDmaReqReady,
+            -- srvPort.response -> payloadGenerator4RQ.dmaReadCntrl.response
+            respOutReady => pgRqDmaRespReady,
+            respOutValid => pgRqDmaRespValid,
+            respOutData  => pgRqDmaRespData,
+            -- dmaReadSrv client -> dmaReadProxy4RQ.srvPort
+            dmaReqValid  => drRqDmaReqValid,
+            dmaReqOut    => drRqDmaReqData,
+            dmaReqReady  => drRqDmaReqReady,
+            dmaRespValid => drRqDmaRespValid,
+            dmaRespIn    => drRqDmaRespData,
+            dmaRespReady => drRqDmaRespReady,
+            isIdle       => drRqIsIdle);
    end generate GEN_DMARD_CNTRL_RQ;
 
    -----------------------------------------------------------------------------
    -- U_DmaRdCntrlSq : dmaReadCntrl4SQ  (mkDmaReadCntrl(statusSQ, dmaReadProxy4SQ))
    -----------------------------------------------------------------------------
    GEN_DMARD_CNTRL_SQ : if EN_TX_G generate
-   U_DmaRdCntrlSq : entity surf.DmaReadCntrlConAndGen
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         clearAll     => cIsReset,
-         isSQ         => '1',               -- statusSQ.isSQ = True (no internal sink)
-         cancelEn     => cancelReadSq,
-         reqInValid   => pgSqDmaReqValid,
-         reqInData    => pgSqDmaReqData,
-         reqInReady   => pgSqDmaReqReady,
-         respOutReady => pgSqDmaRespReady,
-         respOutValid => pgSqDmaRespValid,
-         respOutData  => pgSqDmaRespData,
-         dmaReqValid  => drSqDmaReqValid,
-         dmaReqOut    => drSqDmaReqData,
-         dmaReqReady  => drSqDmaReqReady,
-         dmaRespValid => drSqDmaRespValid,
-         dmaRespIn    => drSqDmaRespData,
-         dmaRespReady => drSqDmaRespReady,
-         isIdle       => drSqIsIdle);
+      U_DmaRdCntrlSq : entity surf.DmaReadCntrlConAndGen
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            clearAll     => cIsReset,
+            isSQ         => '1',  -- statusSQ.isSQ = True (no internal sink)
+            cancelEn     => cancelReadSq,
+            reqInValid   => pgSqDmaReqValid,
+            reqInData    => pgSqDmaReqData,
+            reqInReady   => pgSqDmaReqReady,
+            respOutReady => pgSqDmaRespReady,
+            respOutValid => pgSqDmaRespValid,
+            respOutData  => pgSqDmaRespData,
+            dmaReqValid  => drSqDmaReqValid,
+            dmaReqOut    => drSqDmaReqData,
+            dmaReqReady  => drSqDmaReqReady,
+            dmaRespValid => drSqDmaRespValid,
+            dmaRespIn    => drSqDmaRespData,
+            dmaRespReady => drSqDmaRespReady,
+            isIdle       => drSqIsIdle);
    end generate GEN_DMARD_CNTRL_SQ;
 
    -----------------------------------------------------------------------------
@@ -1056,27 +1056,27 @@ begin
    --   srvPort <- rq (payloadConsumer) ; dmaWriteSrv client -> dmaWriteProxy4RQ.
    -----------------------------------------------------------------------------
    GEN_DMAWR_CNTRL_RQ : if EN_RX_G generate
-   U_DmaWrCntrlRq : entity surf.DmaWriteCntrl
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         clearAllI    => cIsReset,
-         cancelEn     => cancelWriteRq,
-         reqInValid   => dwRqReqValid,
-         reqInData    => dwRqReqData,
-         reqInReady   => dwRqReqReady,
-         respOutReady => dwRqRespReady,
-         respOutValid => dwRqRespValid,
-         respOutData  => dwRqRespData,
-         dmaReqValid  => dwRqDmaReqValid,
-         dmaReqOut    => dwRqDmaReqData,
-         dmaReqReady  => dwRqDmaReqReady,
-         dmaRespValid => dwRqDmaRespValid,
-         dmaRespIn    => dwRqDmaRespData,
-         dmaRespReady => dwRqDmaRespReady,
-         isIdle       => dwRqIsIdle);
+      U_DmaWrCntrlRq : entity surf.DmaWriteCntrl
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            clearAllI    => cIsReset,
+            cancelEn     => cancelWriteRq,
+            reqInValid   => dwRqReqValid,
+            reqInData    => dwRqReqData,
+            reqInReady   => dwRqReqReady,
+            respOutReady => dwRqRespReady,
+            respOutValid => dwRqRespValid,
+            respOutData  => dwRqRespData,
+            dmaReqValid  => dwRqDmaReqValid,
+            dmaReqOut    => dwRqDmaReqData,
+            dmaReqReady  => dwRqDmaReqReady,
+            dmaRespValid => dwRqDmaRespValid,
+            dmaRespIn    => dwRqDmaRespData,
+            dmaRespReady => dwRqDmaRespReady,
+            isIdle       => dwRqIsIdle);
    end generate GEN_DMAWR_CNTRL_RQ;
 
    -----------------------------------------------------------------------------
@@ -1084,27 +1084,27 @@ begin
    --   srvPort <- sq ; dmaWriteSrv client -> dmaWriteProxy4SQ.
    -----------------------------------------------------------------------------
    GEN_DMAWR_CNTRL_SQ : if EN_TX_G and EN_READ_G generate
-   U_DmaWrCntrlSq : entity surf.DmaWriteCntrl
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         clearAllI    => cIsReset,
-         cancelEn     => cancelWriteSq,
-         reqInValid   => dwSqReqValid,
-         reqInData    => dwSqReqData,
-         reqInReady   => dwSqReqReady,
-         respOutReady => dwSqRespReady,
-         respOutValid => dwSqRespValid,
-         respOutData  => dwSqRespData,
-         dmaReqValid  => dwSqDmaReqValid,
-         dmaReqOut    => dwSqDmaReqData,
-         dmaReqReady  => dwSqDmaReqReady,
-         dmaRespValid => dwSqDmaRespValid,
-         dmaRespIn    => dwSqDmaRespData,
-         dmaRespReady => dwSqDmaRespReady,
-         isIdle       => dwSqIsIdle);
+      U_DmaWrCntrlSq : entity surf.DmaWriteCntrl
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            clearAllI    => cIsReset,
+            cancelEn     => cancelWriteSq,
+            reqInValid   => dwSqReqValid,
+            reqInData    => dwSqReqData,
+            reqInReady   => dwSqReqReady,
+            respOutReady => dwSqRespReady,
+            respOutValid => dwSqRespValid,
+            respOutData  => dwSqRespData,
+            dmaReqValid  => dwSqDmaReqValid,
+            dmaReqOut    => dwSqDmaReqData,
+            dmaReqReady  => dwSqDmaReqReady,
+            dmaRespValid => dwSqDmaRespValid,
+            dmaRespIn    => dwSqDmaRespData,
+            dmaRespReady => dwSqDmaRespReady,
+            isIdle       => dwSqIsIdle);
    end generate GEN_DMAWR_CNTRL_SQ;
 
    -----------------------------------------------------------------------------
@@ -1112,65 +1112,65 @@ begin
    --   srvPort <-> rq ; dmaReadCntrl client -> U_DmaRdCntrlRq ; dataStream -> rq.
    -----------------------------------------------------------------------------
    GEN_PAYGEN_RQ : if EN_RX_G and EN_READ_G generate
-   U_PayGenRq : entity surf.PayloadGeneratorConAndGen
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk                   => clk,
-         rst                   => rst,
-         isReset               => cIsReset,
-         isNonErr              => cIsNonErr,
-         isERR                 => cIsErr,
-         -- srvPort <-> rq
-         reqInValid            => pgRqReqValid,
-         reqInData             => pgRqReqData,
-         reqInReady            => pgRqReqReady,
-         respOutReady          => pgRqRespReady,
-         respOutValid          => pgRqRespValid,
-         respOutData           => pgRqRespData,
-         -- dmaReadCntrl client -> U_DmaRdCntrlRq.srvPort
-         dmaReadCntrlReqValid  => pgRqDmaReqValid,
-         dmaReadCntrlReqData   => pgRqDmaReqData,
-         dmaReadCntrlReqReady  => pgRqDmaReqReady,
-         dmaReadCntrlRespValid => pgRqDmaRespValid,
-         dmaReadCntrlRespData  => pgRqDmaRespData,
-         dmaReadCntrlRespReady => pgRqDmaRespReady,
-         -- payloadDataStreamPipeOut -> rq
-         payloadDataStreamDeq      => pgRqDataDeq,
-         payloadDataStreamFirst    => pgRqDataData,
-         payloadDataStreamNotEmpty => pgRqDataValid,
-         payloadNotEmpty           => pgRqNotEmpty);
+      U_PayGenRq : entity surf.PayloadGeneratorConAndGen
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk                       => clk,
+            rst                       => rst,
+            isReset                   => cIsReset,
+            isNonErr                  => cIsNonErr,
+            isERR                     => cIsErr,
+            -- srvPort <-> rq
+            reqInValid                => pgRqReqValid,
+            reqInData                 => pgRqReqData,
+            reqInReady                => pgRqReqReady,
+            respOutReady              => pgRqRespReady,
+            respOutValid              => pgRqRespValid,
+            respOutData               => pgRqRespData,
+            -- dmaReadCntrl client -> U_DmaRdCntrlRq.srvPort
+            dmaReadCntrlReqValid      => pgRqDmaReqValid,
+            dmaReadCntrlReqData       => pgRqDmaReqData,
+            dmaReadCntrlReqReady      => pgRqDmaReqReady,
+            dmaReadCntrlRespValid     => pgRqDmaRespValid,
+            dmaReadCntrlRespData      => pgRqDmaRespData,
+            dmaReadCntrlRespReady     => pgRqDmaRespReady,
+            -- payloadDataStreamPipeOut -> rq
+            payloadDataStreamDeq      => pgRqDataDeq,
+            payloadDataStreamFirst    => pgRqDataData,
+            payloadDataStreamNotEmpty => pgRqDataValid,
+            payloadNotEmpty           => pgRqNotEmpty);
    end generate GEN_PAYGEN_RQ;
 
    -----------------------------------------------------------------------------
    -- U_PayGenSq : payloadGenerator4SQ (mkPayloadGenerator(statusSQ, dmaReadCntrl4SQ))
    -----------------------------------------------------------------------------
    GEN_PAYGEN_SQ : if EN_TX_G generate
-   U_PayGenSq : entity surf.PayloadGeneratorConAndGen
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk                   => clk,
-         rst                   => rst,
-         isReset               => cIsReset,
-         isNonErr              => cIsNonErr,
-         isERR                 => cIsErr,
-         reqInValid            => pgSqReqValid,
-         reqInData             => pgSqReqData,
-         reqInReady            => pgSqReqReady,
-         respOutReady          => pgSqRespReady,
-         respOutValid          => pgSqRespValid,
-         respOutData           => pgSqRespData,
-         dmaReadCntrlReqValid  => pgSqDmaReqValid,
-         dmaReadCntrlReqData   => pgSqDmaReqData,
-         dmaReadCntrlReqReady  => pgSqDmaReqReady,
-         dmaReadCntrlRespValid => pgSqDmaRespValid,
-         dmaReadCntrlRespData  => pgSqDmaRespData,
-         dmaReadCntrlRespReady => pgSqDmaRespReady,
-         payloadDataStreamDeq      => pgSqDataDeq,
-         payloadDataStreamFirst    => pgSqDataData,
-         payloadDataStreamNotEmpty => pgSqDataValid,
-         payloadNotEmpty           => pgSqNotEmpty);
+      U_PayGenSq : entity surf.PayloadGeneratorConAndGen
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk                       => clk,
+            rst                       => rst,
+            isReset                   => cIsReset,
+            isNonErr                  => cIsNonErr,
+            isERR                     => cIsErr,
+            reqInValid                => pgSqReqValid,
+            reqInData                 => pgSqReqData,
+            reqInReady                => pgSqReqReady,
+            respOutReady              => pgSqRespReady,
+            respOutValid              => pgSqRespValid,
+            respOutData               => pgSqRespData,
+            dmaReadCntrlReqValid      => pgSqDmaReqValid,
+            dmaReadCntrlReqData       => pgSqDmaReqData,
+            dmaReadCntrlReqReady      => pgSqDmaReqReady,
+            dmaReadCntrlRespValid     => pgSqDmaRespValid,
+            dmaReadCntrlRespData      => pgSqDmaRespData,
+            dmaReadCntrlRespReady     => pgSqDmaRespReady,
+            payloadDataStreamDeq      => pgSqDataDeq,
+            payloadDataStreamFirst    => pgSqDataData,
+            payloadDataStreamNotEmpty => pgSqDataValid,
+            payloadNotEmpty           => pgSqNotEmpty);
    end generate GEN_PAYGEN_SQ;
 
    -----------------------------------------------------------------------------
@@ -1178,106 +1178,106 @@ begin
    --   cltPort -> dmaReadClt4RQ (top).
    -----------------------------------------------------------------------------
    GEN_DMARD_PROXY_RQ : if EN_RX_G and EN_READ_G generate
-   U_DmaRdProxyRq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => DMA_READ_REQ_C,
-         RESP_WIDTH_G => DMA_READ_RESP_C)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         -- srvPort <- dmaReadCntrl4RQ client
-         srvReqValid  => drRqDmaReqValid,
-         srvReqData   => drRqDmaReqData,
-         srvReqReady  => drRqDmaReqReady,
-         srvRespValid => drRqDmaRespValid,
-         srvRespData  => drRqDmaRespData,
-         srvRespReady => drRqDmaRespReady,
-         -- cltPort -> top dmaReadClt4RQ
-         cltReqValid  => dmaReadClt4RqReqValid,
-         cltReqData   => dmaReadClt4RqReqData,
-         cltReqReady  => dmaReadClt4RqReqReady,
-         cltRespValid => dmaReadClt4RqRespValid,
-         cltRespData  => dmaReadClt4RqRespData,
-         cltRespReady => dmaReadClt4RqRespReady);
+      U_DmaRdProxyRq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => DMA_READ_REQ_C,
+            RESP_WIDTH_G => DMA_READ_RESP_C)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            -- srvPort <- dmaReadCntrl4RQ client
+            srvReqValid  => drRqDmaReqValid,
+            srvReqData   => drRqDmaReqData,
+            srvReqReady  => drRqDmaReqReady,
+            srvRespValid => drRqDmaRespValid,
+            srvRespData  => drRqDmaRespData,
+            srvRespReady => drRqDmaRespReady,
+            -- cltPort -> top dmaReadClt4RQ
+            cltReqValid  => dmaReadClt4RqReqValid,
+            cltReqData   => dmaReadClt4RqReqData,
+            cltReqReady  => dmaReadClt4RqReqReady,
+            cltRespValid => dmaReadClt4RqRespValid,
+            cltRespData  => dmaReadClt4RqRespData,
+            cltRespReady => dmaReadClt4RqRespReady);
    end generate GEN_DMARD_PROXY_RQ;
 
    -----------------------------------------------------------------------------
    -- U_DmaRdProxySq : dmaReadProxy4SQ
    -----------------------------------------------------------------------------
    GEN_DMARD_PROXY_SQ : if EN_TX_G generate
-   U_DmaRdProxySq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => DMA_READ_REQ_C,
-         RESP_WIDTH_G => DMA_READ_RESP_C)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         srvReqValid  => drSqDmaReqValid,
-         srvReqData   => drSqDmaReqData,
-         srvReqReady  => drSqDmaReqReady,
-         srvRespValid => drSqDmaRespValid,
-         srvRespData  => drSqDmaRespData,
-         srvRespReady => drSqDmaRespReady,
-         cltReqValid  => dmaReadClt4SqReqValid,
-         cltReqData   => dmaReadClt4SqReqData,
-         cltReqReady  => dmaReadClt4SqReqReady,
-         cltRespValid => dmaReadClt4SqRespValid,
-         cltRespData  => dmaReadClt4SqRespData,
-         cltRespReady => dmaReadClt4SqRespReady);
+      U_DmaRdProxySq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => DMA_READ_REQ_C,
+            RESP_WIDTH_G => DMA_READ_RESP_C)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            srvReqValid  => drSqDmaReqValid,
+            srvReqData   => drSqDmaReqData,
+            srvReqReady  => drSqDmaReqReady,
+            srvRespValid => drSqDmaRespValid,
+            srvRespData  => drSqDmaRespData,
+            srvRespReady => drSqDmaRespReady,
+            cltReqValid  => dmaReadClt4SqReqValid,
+            cltReqData   => dmaReadClt4SqReqData,
+            cltReqReady  => dmaReadClt4SqReqReady,
+            cltRespValid => dmaReadClt4SqRespValid,
+            cltRespData  => dmaReadClt4SqRespData,
+            cltRespReady => dmaReadClt4SqRespReady);
    end generate GEN_DMARD_PROXY_SQ;
 
    -----------------------------------------------------------------------------
    -- U_DmaWrProxyRq : dmaWriteProxy4RQ
    -----------------------------------------------------------------------------
    GEN_DMAWR_PROXY_RQ : if EN_RX_G generate
-   U_DmaWrProxyRq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => DMA_WRITE_REQ_C,
-         RESP_WIDTH_G => DMA_WRITE_RESP_C)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         srvReqValid  => dwRqDmaReqValid,
-         srvReqData   => dwRqDmaReqData,
-         srvReqReady  => dwRqDmaReqReady,
-         srvRespValid => dwRqDmaRespValid,
-         srvRespData  => dwRqDmaRespData,
-         srvRespReady => dwRqDmaRespReady,
-         cltReqValid  => dmaWriteClt4RqReqValid,
-         cltReqData   => dmaWriteClt4RqReqData,
-         cltReqReady  => dmaWriteClt4RqReqReady,
-         cltRespValid => dmaWriteClt4RqRespValid,
-         cltRespData  => dmaWriteClt4RqRespData,
-         cltRespReady => dmaWriteClt4RqRespReady);
+      U_DmaWrProxyRq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => DMA_WRITE_REQ_C,
+            RESP_WIDTH_G => DMA_WRITE_RESP_C)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            srvReqValid  => dwRqDmaReqValid,
+            srvReqData   => dwRqDmaReqData,
+            srvReqReady  => dwRqDmaReqReady,
+            srvRespValid => dwRqDmaRespValid,
+            srvRespData  => dwRqDmaRespData,
+            srvRespReady => dwRqDmaRespReady,
+            cltReqValid  => dmaWriteClt4RqReqValid,
+            cltReqData   => dmaWriteClt4RqReqData,
+            cltReqReady  => dmaWriteClt4RqReqReady,
+            cltRespValid => dmaWriteClt4RqRespValid,
+            cltRespData  => dmaWriteClt4RqRespData,
+            cltRespReady => dmaWriteClt4RqRespReady);
    end generate GEN_DMAWR_PROXY_RQ;
 
    -----------------------------------------------------------------------------
    -- U_DmaWrProxySq : dmaWriteProxy4SQ
    -----------------------------------------------------------------------------
    GEN_DMAWR_PROXY_SQ : if EN_TX_G and EN_READ_G generate
-   U_DmaWrProxySq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => DMA_WRITE_REQ_C,
-         RESP_WIDTH_G => DMA_WRITE_RESP_C)
-      port map (
-         clk          => clk,
-         rst          => rst,
-         srvReqValid  => dwSqDmaReqValid,
-         srvReqData   => dwSqDmaReqData,
-         srvReqReady  => dwSqDmaReqReady,
-         srvRespValid => dwSqDmaRespValid,
-         srvRespData  => dwSqDmaRespData,
-         srvRespReady => dwSqDmaRespReady,
-         cltReqValid  => dmaWriteClt4SqReqValid,
-         cltReqData   => dmaWriteClt4SqReqData,
-         cltReqReady  => dmaWriteClt4SqReqReady,
-         cltRespValid => dmaWriteClt4SqRespValid,
-         cltRespData  => dmaWriteClt4SqRespData,
-         cltRespReady => dmaWriteClt4SqRespReady);
+      U_DmaWrProxySq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => DMA_WRITE_REQ_C,
+            RESP_WIDTH_G => DMA_WRITE_RESP_C)
+         port map (
+            clk          => clk,
+            rst          => rst,
+            srvReqValid  => dwSqDmaReqValid,
+            srvReqData   => dwSqDmaReqData,
+            srvReqReady  => dwSqDmaReqReady,
+            srvRespValid => dwSqDmaRespValid,
+            srvRespData  => dwSqDmaRespData,
+            srvRespReady => dwSqDmaRespReady,
+            cltReqValid  => dmaWriteClt4SqReqValid,
+            cltReqData   => dmaWriteClt4SqReqData,
+            cltReqReady  => dmaWriteClt4SqReqReady,
+            cltRespValid => dmaWriteClt4SqRespValid,
+            cltRespData  => dmaWriteClt4SqRespData,
+            cltRespReady => dmaWriteClt4SqRespReady);
    end generate GEN_DMAWR_PROXY_SQ;
 
    -----------------------------------------------------------------------------
@@ -1285,52 +1285,52 @@ begin
    --   cltPort -> permCheckClt4RQ (top).
    -----------------------------------------------------------------------------
    GEN_PERM_PROXY_RQ : if EN_RX_G generate
-   U_PermProxyRq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => PERM_CHECK_REQ_C,
-         RESP_WIDTH_G => 1)
-      port map (
-         clk             => clk,
-         rst             => rst,
-         srvReqValid     => rqPermReqValid,
-         srvReqData      => rqPermReqData,
-         srvReqReady     => rqPermReqReady,
-         srvRespValid    => rqPermRespValid,
-         srvRespData(0)  => rqPermRespData,
-         srvRespReady    => rqPermRespReady,
-         cltReqValid     => permCheckClt4RqReqValid,
-         cltReqData      => permCheckClt4RqReqData,
-         cltReqReady     => permCheckClt4RqReqReady,
-         cltRespValid    => permCheckClt4RqRespValid,
-         cltRespData(0)  => permCheckClt4RqRespData,
-         cltRespReady    => permCheckClt4RqRespReady);
+      U_PermProxyRq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => PERM_CHECK_REQ_C,
+            RESP_WIDTH_G => 1)
+         port map (
+            clk            => clk,
+            rst            => rst,
+            srvReqValid    => rqPermReqValid,
+            srvReqData     => rqPermReqData,
+            srvReqReady    => rqPermReqReady,
+            srvRespValid   => rqPermRespValid,
+            srvRespData(0) => rqPermRespData,
+            srvRespReady   => rqPermRespReady,
+            cltReqValid    => permCheckClt4RqReqValid,
+            cltReqData     => permCheckClt4RqReqData,
+            cltReqReady    => permCheckClt4RqReqReady,
+            cltRespValid   => permCheckClt4RqRespValid,
+            cltRespData(0) => permCheckClt4RqRespData,
+            cltRespReady   => permCheckClt4RqRespReady);
    end generate GEN_PERM_PROXY_RQ;
 
    -----------------------------------------------------------------------------
    -- U_PermProxySq : permCheckProxy4SQ — srvPort <- sq, cltPort -> permCheckClt4SQ.
    -----------------------------------------------------------------------------
    GEN_PERM_PROXY_SQ : if EN_TX_G and EN_READ_G generate
-   U_PermProxySq : entity surf.ServerProxy
-      generic map (
-         TPD_G        => TPD_G,
-         REQ_WIDTH_G  => PERM_CHECK_REQ_C,
-         RESP_WIDTH_G => 1)
-      port map (
-         clk             => clk,
-         rst             => rst,
-         srvReqValid     => sqPermReqValid,
-         srvReqData      => sqPermReqData,
-         srvReqReady     => sqPermReqReady,
-         srvRespValid    => sqPermRespValid,
-         srvRespData(0)  => sqPermRespData,
-         srvRespReady    => sqPermRespReady,
-         cltReqValid     => permCheckClt4SqReqValid,
-         cltReqData      => permCheckClt4SqReqData,
-         cltReqReady     => permCheckClt4SqReqReady,
-         cltRespValid    => permCheckClt4SqRespValid,
-         cltRespData(0)  => permCheckClt4SqRespData,
-         cltRespReady    => permCheckClt4SqRespReady);
+      U_PermProxySq : entity surf.ServerProxy
+         generic map (
+            TPD_G        => TPD_G,
+            REQ_WIDTH_G  => PERM_CHECK_REQ_C,
+            RESP_WIDTH_G => 1)
+         port map (
+            clk            => clk,
+            rst            => rst,
+            srvReqValid    => sqPermReqValid,
+            srvReqData     => sqPermReqData,
+            srvReqReady    => sqPermReqReady,
+            srvRespValid   => sqPermRespValid,
+            srvRespData(0) => sqPermRespData,
+            srvRespReady   => sqPermRespReady,
+            cltReqValid    => permCheckClt4SqReqValid,
+            cltReqData     => permCheckClt4SqReqData,
+            cltReqReady    => permCheckClt4SqReqReady,
+            cltRespValid   => permCheckClt4SqRespValid,
+            cltRespData(0) => permCheckClt4SqRespData,
+            cltRespReady   => permCheckClt4SqRespReady);
    end generate GEN_PERM_PROXY_SQ;
 
    -----------------------------------------------------------------------------
@@ -1338,109 +1338,109 @@ begin
    --   permCheckProxy4RQ.srvPort, recvReqBufPipeOut, reqPktPipe.pktPipeOut))
    -----------------------------------------------------------------------------
    GEN_RQ : if EN_RX_G generate
-   U_Rq : entity surf.Rq
-      generic map (
-         TPD_G       => TPD_G,
-         EN_READ_G   => EN_READ_G,
-         MAX_QP_WR_G => MAX_QP_WR_G)
-      port map (
-         clk => clk,
-         rst => rst,
-         -- contextRQ.statusRQ.comm status
-         isReset                        => cIsReset,
-         isNonErr                       => cIsNonErr,
-         isERR                          => cIsErr,
-         getTypeQP                      => cTypeRq,
-         getPMTU                        => cPmtu,
-         getPKEY                        => cPkey,
-         getSQPN                        => cSqpn,
-         getDQPN                        => cDqpn,
-         getMinRnrTimer                 => cMinRnrTimer,
-         getAccessFlags                 => cAccessFlags,
-         getPendingWorkReqNum           => cPendingWorkReqNum,
-         getPendingDestReadAtomicReqNum => cPendingDestReadAtomicReqNum,
-         -- contextRQ shared registers (external RMW)
-         getEpoch             => cEpoch,
-         incEpoch             => rqIncEpoch,
-         getEPSN              => cEpsn,
-         getRespPktNum        => cRespPktNum,
-         setRespPktNumValid   => rqSetRespPktNumValid,
-         setRespPktNumData    => rqSetRespPktNumData,
-         getIsRespPktNumZero  => cIsRespPktNumZero,
-         setEPSNValid         => rqSetEPSNValid,
-         setEPSNData          => rqSetEPSNData,
-         getPreReqOpCode      => cPreReqOpCode,
-         setPreReqOpCodeValid => rqSetPreReqOpCodeValid,
-         setPreReqOpCodeData  => rqSetPreReqOpCodeData,
-         restoreValid         => rqRestoreValid,
-         restorePreOpCodeData => rqRestorePreOpCodeData,
-         restorePsnData       => rqRestorePsnData,
-         getPermCheckReq      => cPermCheckReq,
-         setPermCheckReqValid => rqSetPermCheckReqValid,
-         setPermCheckReqData  => rqSetPermCheckReqData,
-         getNextDmaWriteAddr        => cNextDmaWriteAddr,
-         setNextDmaWriteAddrValid   => rqSetNextDmaWriteAddrValid,
-         setNextDmaWriteAddrData    => rqSetNextDmaWriteAddrData,
-         getSendWriteReqPktNum      => cSendWriteReqPktNum,
-         setSendWriteReqPktNumValid => rqSetSendWriteReqPktNumValid,
-         setSendWriteReqPktNumData  => rqSetSendWriteReqPktNumData,
-         getRemainingDmaWriteLen      => cRemainingDmaWriteLen,
-         setRemainingDmaWriteLenValid => rqSetRemainingDmaWriteLenValid,
-         setRemainingDmaWriteLenData  => rqSetRemainingDmaWriteLenData,
-         getTotalDmaWriteLen        => cTotalDmaWriteLen,
-         setTotalDmaWriteLenValid   => rqSetTotalDmaWriteLenValid,
-         setTotalDmaWriteLenData    => rqSetTotalDmaWriteLenData,
-         getCurRespPSN        => cCurRespPSN,
-         setCurRespPSNValid   => rqSetCurRespPSNValid,
-         setCurRespPSNData    => rqSetCurRespPSNData,
-         getMSN               => cMsn,
-         setMSNValid          => rqSetMSNValid,
-         setMSNData           => rqSetMSNData,
-         -- payloadGenerator (payloadGenerator4RQ) server + data stream
-         payloadGenReqValid     => pgRqReqValid,
-         payloadGenReqData      => pgRqReqData,
-         payloadGenReqReady     => pgRqReqReady,
-         payloadGenRespValid    => pgRqRespValid,
-         payloadGenRespData     => pgRqRespData,
-         payloadGenRespGetEn    => pgRqRespReady,
-         payloadDataStreamValid => pgRqDataValid,
-         payloadDataStreamData  => pgRqDataData,
-         payloadDataStreamRdEn  => pgRqDataDeq,
-         -- permCheckSrv (permCheckProxy4RQ.srvPort)
-         permReqValid  => rqPermReqValid,
-         permReqData   => rqPermReqData,
-         permReqReady  => rqPermReqReady,
-         permRespValid => rqPermRespValid,
-         permRespData  => rqPermRespData,
-         permRespGetEn => rqPermRespReady,
-         -- recvReqBuf (recvReqQ pipe out)
-         recvReqValid => recvReqValid,
-         recvReqData  => recvReqDout,
-         recvReqDeq   => recvReqRdEn,
-         -- reqPktPipeIn.pktMetaData
-         pktMetaValid => reqPipeMetaValid,
-         pktMetaData  => reqPipeMetaData,
-         pktMetaDeq   => reqPipeMetaRdEn,
-         -- reqPktPipeIn.payload
-         payloadPipeInValid => reqPipePayloadValid,
-         payloadPipeInData  => reqPipePayloadData,
-         payloadPipeInReady => reqPipePayloadRdEn,
-         -- dmaWriteCntrl (dmaWriteCntrl4RQ) client
-         dmaWriteReqValid  => dwRqReqValid,
-         dmaWriteReqData   => dwRqReqData,
-         dmaWriteReqReady  => dwRqReqReady,
-         dmaWriteRespValid => dwRqRespValid,
-         dmaWriteRespData  => dwRqRespData,
-         dmaWriteRespReady => dwRqRespReady,
-         -- forwarded outputs
-         rdmaRespDataStreamValid => rdmaRespValid,
-         rdmaRespDataStreamData  => rdmaRespData,
-         rdmaRespDataStreamRdEn  => rdmaRespRdEn,
-         respHeaderOutNotEmpty   => rqRespHeaderNotEmpty,
-         workCompValid  => workCompRqValid,
-         workCompData   => workCompRqData,
-         workCompRdEn   => workCompRqRdEn,
-         workCompHasErr => rqWorkCompHasErr);
+      U_Rq : entity surf.Rq
+         generic map (
+            TPD_G       => TPD_G,
+            EN_READ_G   => EN_READ_G,
+            MAX_QP_WR_G => MAX_QP_WR_G)
+         port map (
+            clk                            => clk,
+            rst                            => rst,
+            -- contextRQ.statusRQ.comm status
+            isReset                        => cIsReset,
+            isNonErr                       => cIsNonErr,
+            isERR                          => cIsErr,
+            getTypeQP                      => cTypeRq,
+            getPMTU                        => cPmtu,
+            getPKEY                        => cPkey,
+            getSQPN                        => cSqpn,
+            getDQPN                        => cDqpn,
+            getMinRnrTimer                 => cMinRnrTimer,
+            getAccessFlags                 => cAccessFlags,
+            getPendingWorkReqNum           => cPendingWorkReqNum,
+            getPendingDestReadAtomicReqNum => cPendingDestReadAtomicReqNum,
+            -- contextRQ shared registers (external RMW)
+            getEpoch                       => cEpoch,
+            incEpoch                       => rqIncEpoch,
+            getEPSN                        => cEpsn,
+            getRespPktNum                  => cRespPktNum,
+            setRespPktNumValid             => rqSetRespPktNumValid,
+            setRespPktNumData              => rqSetRespPktNumData,
+            getIsRespPktNumZero            => cIsRespPktNumZero,
+            setEPSNValid                   => rqSetEPSNValid,
+            setEPSNData                    => rqSetEPSNData,
+            getPreReqOpCode                => cPreReqOpCode,
+            setPreReqOpCodeValid           => rqSetPreReqOpCodeValid,
+            setPreReqOpCodeData            => rqSetPreReqOpCodeData,
+            restoreValid                   => rqRestoreValid,
+            restorePreOpCodeData           => rqRestorePreOpCodeData,
+            restorePsnData                 => rqRestorePsnData,
+            getPermCheckReq                => cPermCheckReq,
+            setPermCheckReqValid           => rqSetPermCheckReqValid,
+            setPermCheckReqData            => rqSetPermCheckReqData,
+            getNextDmaWriteAddr            => cNextDmaWriteAddr,
+            setNextDmaWriteAddrValid       => rqSetNextDmaWriteAddrValid,
+            setNextDmaWriteAddrData        => rqSetNextDmaWriteAddrData,
+            getSendWriteReqPktNum          => cSendWriteReqPktNum,
+            setSendWriteReqPktNumValid     => rqSetSendWriteReqPktNumValid,
+            setSendWriteReqPktNumData      => rqSetSendWriteReqPktNumData,
+            getRemainingDmaWriteLen        => cRemainingDmaWriteLen,
+            setRemainingDmaWriteLenValid   => rqSetRemainingDmaWriteLenValid,
+            setRemainingDmaWriteLenData    => rqSetRemainingDmaWriteLenData,
+            getTotalDmaWriteLen            => cTotalDmaWriteLen,
+            setTotalDmaWriteLenValid       => rqSetTotalDmaWriteLenValid,
+            setTotalDmaWriteLenData        => rqSetTotalDmaWriteLenData,
+            getCurRespPSN                  => cCurRespPSN,
+            setCurRespPSNValid             => rqSetCurRespPSNValid,
+            setCurRespPSNData              => rqSetCurRespPSNData,
+            getMSN                         => cMsn,
+            setMSNValid                    => rqSetMSNValid,
+            setMSNData                     => rqSetMSNData,
+            -- payloadGenerator (payloadGenerator4RQ) server + data stream
+            payloadGenReqValid             => pgRqReqValid,
+            payloadGenReqData              => pgRqReqData,
+            payloadGenReqReady             => pgRqReqReady,
+            payloadGenRespValid            => pgRqRespValid,
+            payloadGenRespData             => pgRqRespData,
+            payloadGenRespGetEn            => pgRqRespReady,
+            payloadDataStreamValid         => pgRqDataValid,
+            payloadDataStreamData          => pgRqDataData,
+            payloadDataStreamRdEn          => pgRqDataDeq,
+            -- permCheckSrv (permCheckProxy4RQ.srvPort)
+            permReqValid                   => rqPermReqValid,
+            permReqData                    => rqPermReqData,
+            permReqReady                   => rqPermReqReady,
+            permRespValid                  => rqPermRespValid,
+            permRespData                   => rqPermRespData,
+            permRespGetEn                  => rqPermRespReady,
+            -- recvReqBuf (recvReqQ pipe out)
+            recvReqValid                   => recvReqValid,
+            recvReqData                    => recvReqDout,
+            recvReqDeq                     => recvReqRdEn,
+            -- reqPktPipeIn.pktMetaData
+            pktMetaValid                   => reqPipeMetaValid,
+            pktMetaData                    => reqPipeMetaData,
+            pktMetaDeq                     => reqPipeMetaRdEn,
+            -- reqPktPipeIn.payload
+            payloadPipeInValid             => reqPipePayloadValid,
+            payloadPipeInData              => reqPipePayloadData,
+            payloadPipeInReady             => reqPipePayloadRdEn,
+            -- dmaWriteCntrl (dmaWriteCntrl4RQ) client
+            dmaWriteReqValid               => dwRqReqValid,
+            dmaWriteReqData                => dwRqReqData,
+            dmaWriteReqReady               => dwRqReqReady,
+            dmaWriteRespValid              => dwRqRespValid,
+            dmaWriteRespData               => dwRqRespData,
+            dmaWriteRespReady              => dwRqRespReady,
+            -- forwarded outputs
+            rdmaRespDataStreamValid        => rdmaRespValid,
+            rdmaRespDataStreamData         => rdmaRespData,
+            rdmaRespDataStreamRdEn         => rdmaRespRdEn,
+            respHeaderOutNotEmpty          => rqRespHeaderNotEmpty,
+            workCompValid                  => workCompRqValid,
+            workCompData                   => workCompRqData,
+            workCompRdEn                   => workCompRqRdEn,
+            workCompHasErr                 => rqWorkCompHasErr);
    end generate GEN_RQ;
 
    -----------------------------------------------------------------------------
@@ -1448,84 +1448,84 @@ begin
    --   permCheckProxy4SQ.srvPort, workReqBufPipeOut, respPktPipe.pktPipeOut))
    -----------------------------------------------------------------------------
    GEN_SQ : if EN_TX_G generate
-   U_Sq : entity surf.SqQueuePair
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         EN_READ_G      => EN_READ_G,
-         MAX_QP_WR_G    => MAX_QP_WR_G)
-      port map (
-         clk => clk,
-         rst => rst,
-         -- contextSQ.statusSQ status bundle
-         isReset              => cIsReset,
-         isNonErr             => cIsNonErr,
-         isStableRTS          => cIsStableRts,
-         isRTS                => cIsRts,
-         isERR                => cIsErr,
-         isSQD                => cIsSqd,
-         isRTR2RTS            => cIsRtr2Rts,
-         qpType               => cTypeSq,
-         sqpn                 => cSqpn,
-         pmtu                 => cPmtu,
-         pkey                 => cPkey,
-         dqpn                 => cDqpn,
-         sigAll               => cSigAll,
-         getMaxRetryCnt       => cMaxRetryCnt,
-         getMaxRnrCnt         => cMaxRnrCnt,
-         getMaxTimeOut        => cMaxTimeOut,
-         getMinRnrTimer       => cMinRnrTimer,
-         getPendingWorkReqNum => cPendingWorkReqNum,
-         -- contextSQ next-PSN register (RMW -> cntrl)
-         npsnIn   => cGetNpsn,
-         npsnOut  => sqSetNpsn,
-         npsnWrEn => sqSetNpsnEn,
-         -- payloadGenerator (payloadGenerator4SQ) server + data stream
-         payloadGenReqValid  => pgSqReqValid,
-         payloadGenReqData   => pgSqReqData,
-         payloadGenReqReady  => pgSqReqReady,
-         payloadGenRespValid => pgSqRespValid,
-         payloadGenRespData  => pgSqRespData,
-         payloadGenRespReady => pgSqRespReady,
-         payloadGenDataValid => pgSqDataValid,
-         payloadGenDataData  => pgSqDataData,
-         payloadGenDataRdEn  => pgSqDataDeq,
-         -- dmaWriteCntrl (dmaWriteCntrl4SQ) client
-         dmaWriteReqValid  => dwSqReqValid,
-         dmaWriteReqData   => dwSqReqData,
-         dmaWriteReqReady  => dwSqReqReady,
-         dmaWriteRespValid => dwSqRespValid,
-         dmaWriteRespData  => dwSqRespData,
-         dmaWriteRespReady => dwSqRespReady,
-         -- permCheckSrv (permCheckProxy4SQ.srvPort)
-         permReqValid  => sqPermReqValid,
-         permReqData   => sqPermReqData,
-         permReqReady  => sqPermReqReady,
-         permRespValid => sqPermRespValid,
-         permRespData  => sqPermRespData,
-         permRespGetEn => sqPermRespReady,
-         -- workReqPipeIn (workReqQ pipe out)
-         workReqInValid => workReqValid,
-         workReqInData  => workReqDout,
-         workReqInRdEn  => workReqRdEn,
-         -- respPktPipeOut (respPktPipe.pktPipeOut)
-         respPayloadValid => respPipePayloadValid,
-         respPayloadData  => respPipePayloadData,
-         respPayloadRdEn  => respPipePayloadRdEn,
-         respPktMetaValid => respPipeMetaValid,
-         respPktMetaData  => respPipeMetaData,
-         respPktMetaRdEn  => respPipeMetaRdEn,
-         -- SQ interface outputs
-         rdmaReqDataValid       => rdmaReqValid,
-         rdmaReqDataData        => rdmaReqData,
-         rdmaReqDataRdEn        => rdmaReqRdEn,
-         workCompValid          => workCompSqValid,
-         workCompData           => workCompSqData,
-         workCompRdEn           => workCompSqRdEn,
-         workCompHasErr         => sqWorkCompHasErr,
-         reqHeaderOutNotEmpty   => sqReqHeaderNotEmpty,
-         pendingWorkReqNotEmpty => sqPendingNotEmpty);
+      U_Sq : entity surf.SqQueuePair
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            EN_READ_G      => EN_READ_G,
+            MAX_QP_WR_G    => MAX_QP_WR_G)
+         port map (
+            clk                    => clk,
+            rst                    => rst,
+            -- contextSQ.statusSQ status bundle
+            isReset                => cIsReset,
+            isNonErr               => cIsNonErr,
+            isStableRTS            => cIsStableRts,
+            isRTS                  => cIsRts,
+            isERR                  => cIsErr,
+            isSQD                  => cIsSqd,
+            isRTR2RTS              => cIsRtr2Rts,
+            qpType                 => cTypeSq,
+            sqpn                   => cSqpn,
+            pmtu                   => cPmtu,
+            pkey                   => cPkey,
+            dqpn                   => cDqpn,
+            sigAll                 => cSigAll,
+            getMaxRetryCnt         => cMaxRetryCnt,
+            getMaxRnrCnt           => cMaxRnrCnt,
+            getMaxTimeOut          => cMaxTimeOut,
+            getMinRnrTimer         => cMinRnrTimer,
+            getPendingWorkReqNum   => cPendingWorkReqNum,
+            -- contextSQ next-PSN register (RMW -> cntrl)
+            npsnIn                 => cGetNpsn,
+            npsnOut                => sqSetNpsn,
+            npsnWrEn               => sqSetNpsnEn,
+            -- payloadGenerator (payloadGenerator4SQ) server + data stream
+            payloadGenReqValid     => pgSqReqValid,
+            payloadGenReqData      => pgSqReqData,
+            payloadGenReqReady     => pgSqReqReady,
+            payloadGenRespValid    => pgSqRespValid,
+            payloadGenRespData     => pgSqRespData,
+            payloadGenRespReady    => pgSqRespReady,
+            payloadGenDataValid    => pgSqDataValid,
+            payloadGenDataData     => pgSqDataData,
+            payloadGenDataRdEn     => pgSqDataDeq,
+            -- dmaWriteCntrl (dmaWriteCntrl4SQ) client
+            dmaWriteReqValid       => dwSqReqValid,
+            dmaWriteReqData        => dwSqReqData,
+            dmaWriteReqReady       => dwSqReqReady,
+            dmaWriteRespValid      => dwSqRespValid,
+            dmaWriteRespData       => dwSqRespData,
+            dmaWriteRespReady      => dwSqRespReady,
+            -- permCheckSrv (permCheckProxy4SQ.srvPort)
+            permReqValid           => sqPermReqValid,
+            permReqData            => sqPermReqData,
+            permReqReady           => sqPermReqReady,
+            permRespValid          => sqPermRespValid,
+            permRespData           => sqPermRespData,
+            permRespGetEn          => sqPermRespReady,
+            -- workReqPipeIn (workReqQ pipe out)
+            workReqInValid         => workReqValid,
+            workReqInData          => workReqDout,
+            workReqInRdEn          => workReqRdEn,
+            -- respPktPipeOut (respPktPipe.pktPipeOut)
+            respPayloadValid       => respPipePayloadValid,
+            respPayloadData        => respPipePayloadData,
+            respPayloadRdEn        => respPipePayloadRdEn,
+            respPktMetaValid       => respPipeMetaValid,
+            respPktMetaData        => respPipeMetaData,
+            respPktMetaRdEn        => respPipeMetaRdEn,
+            -- SQ interface outputs
+            rdmaReqDataValid       => rdmaReqValid,
+            rdmaReqDataData        => rdmaReqData,
+            rdmaReqDataRdEn        => rdmaReqRdEn,
+            workCompValid          => workCompSqValid,
+            workCompData           => workCompSqData,
+            workCompRdEn           => workCompSqRdEn,
+            workCompHasErr         => sqWorkCompHasErr,
+            reqHeaderOutNotEmpty   => sqReqHeaderNotEmpty,
+            pendingWorkReqNotEmpty => sqPendingNotEmpty);
    end generate GEN_SQ;
 
 end architecture rtl;

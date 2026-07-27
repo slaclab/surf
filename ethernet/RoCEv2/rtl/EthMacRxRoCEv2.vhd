@@ -50,7 +50,7 @@ architecture mapping of EthMacRxRoCEv2 is
    -- so its occupancy cannot drop while a frame is still streaming in.  If
    -- pause asserts below one full frame, AxiStreamFlush stalls mid-frame and
    -- the pipeline deadlocks: pause must stay above the max frame beat count.
-   constant PAUSE_THRESH_C : positive := ite(JUMBO_G, 896, 192);
+   constant PAUSE_THRESH_C        : positive := ite(JUMBO_G, 896, 192);
 
    signal csumDmMasters : AxiStreamMasterArray(1 downto 0);
    signal csumDmSlaves  : AxiStreamSlaveArray(1 downto 0);

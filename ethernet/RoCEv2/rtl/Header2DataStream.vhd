@@ -78,22 +78,22 @@ entity Header2DataStream is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk  : in sl;
-      rst  : in sl;                       -- active-high synchronous reset
+      clk                : in  sl;
+      rst                : in  sl;      -- active-high synchronous reset
       -- Software clear (synchronous; fires every cycle while asserted)
       clearAllI          : in  sl;
       -- Upstream: packed HeaderRDMA pipe (headerPipeIn)
-      hdrPipeInValid     : in  sl;        -- headerPipeIn.notEmpty
+      hdrPipeInValid     : in  sl;      -- headerPipeIn.notEmpty
       hdrPipeInData      : in  slv(592 downto 0);  -- headerPipeIn.first
-      hdrPipeInRdEn      : out sl;        -- headerPipeIn.deq (asserted on isLast)
+      hdrPipeInRdEn      : out sl;  -- headerPipeIn.deq (asserted on isLast)
       -- Downstream: headerDataStream (DataStream, 290 b per beat)
-      hdrDataStreamValid : out sl;        -- headerDataStream.notEmpty
+      hdrDataStreamValid : out sl;      -- headerDataStream.notEmpty
       hdrDataStreamDout  : out slv(289 downto 0);  -- headerDataStream.first
-      hdrDataStreamRdEn  : in  sl;        -- headerDataStream.deq
+      hdrDataStreamRdEn  : in  sl;      -- headerDataStream.deq
       -- Downstream: headerMetaData (HeaderMetaData, 17 b, one per header)
-      hdrMetaDataValid   : out sl;        -- headerMetaData.notEmpty
+      hdrMetaDataValid   : out sl;      -- headerMetaData.notEmpty
       hdrMetaDataDout    : out slv(16 downto 0);   -- headerMetaData.first
-      hdrMetaDataRdEn    : in  sl);       -- headerMetaData.deq
+      hdrMetaDataRdEn    : in  sl);     -- headerMetaData.deq
 end entity Header2DataStream;
 
 architecture rtl of Header2DataStream is
@@ -104,7 +104,7 @@ architecture rtl of Header2DataStream is
    type RegType is record
       state       : StateType;
       rdmaHdrData : slv(511 downto 0);  -- mkRegU — left-aligned remaining header data
-      rdmaHdrByEn : slv(63 downto 0);   -- mkRegU — left-aligned remaining byte enables
+      rdmaHdrByEn : slv(63 downto 0);  -- mkRegU — left-aligned remaining byte enables
       fragCnt     : slv(1 downto 0);    -- mkRegU — remaining fragment count
    end record RegType;
 
@@ -268,40 +268,40 @@ begin
                   -- data[289:34]=hdrData_msb, byteEn[33:2]=hdrByEn_msb,
                   -- isFirst[1]='1', isLast[0]='0'
                   hdrDataStreamQDin  <= hdrPipeInData(592 downto 337)  -- 256 b
-                                      & hdrPipeInData(80 downto 49)    --  32 b
-                                      & '1' & '0';                     --   2 b
+                                       & hdrPipeInData(80 downto 49)   --  32 b
+                                       & '1' & '0';     --   2 b
                   -- Shift headerData/headerByteEn left by DATA_BUS_WIDTH (256 b)
                   -- using truncate: keep lower half, zero-pad the vacated upper half
                   v.rdmaHdrData := hdrPipeInData(336 downto 81) & ZERO_256_C;
-                  v.rdmaHdrByEn := hdrPipeInData(48 downto 17)  & ZERO_32_C;
-                  v.fragCnt     := "01";  -- fragNum(2) - 1 = 1
-                  v.state        := BUSY_S;
+                  v.rdmaHdrByEn := hdrPipeInData(48 downto 17) & ZERO_32_C;
+                  v.fragCnt     := "01";                -- fragNum(2) - 1 = 1
+                  v.state       := BUSY_S;
                   -- hdrPipeInRdEn stays '0'
 
                -- Sub-case B: 1-fragment header (fragNum=1), not empty
                --   → emit single DataStream flit (isFirst='1', isLast='1'),
                --     deq headerPipeIn, stay in IDLE_S.
                elsif hdrMetaDataQFull = '0' and hdrDataStreamQFull = '0'
-                     and hdrPipeInData(0) = '0'           -- isEmptyHeader=false
-                     and hdrPipeInData(9 downto 8) = "01" -- headerFragNum=1
+                  and hdrPipeInData(0) = '0'            -- isEmptyHeader=false
+                  and hdrPipeInData(9 downto 8) = "01"  -- headerFragNum=1
                then
                   hdrMetaDataQWrEn   <= '1';
                   hdrMetaDataQDin    <= hdrPipeInData(16 downto 0);
                   hdrDataStreamQWrEn <= '1';
                   hdrDataStreamQDin  <= hdrPipeInData(592 downto 337)
-                                      & hdrPipeInData(80 downto 49)
-                                      & '1' & '1';
-                  hdrPipeInRdEn_i    <= '1';
+                                       & hdrPipeInData(80 downto 49)
+                                       & '1' & '1';
+                  hdrPipeInRdEn_i <= '1';
 
                -- Sub-case C: empty header (isEmptyHeader=1)
                --   → push HeaderMetaData only; no DataStream flit;
                --     deq headerPipeIn, stay in IDLE_S.
                elsif hdrMetaDataQFull = '0'
-                     and hdrPipeInData(0) = '1'           -- isEmptyHeader=true
+                  and hdrPipeInData(0) = '1'  -- isEmptyHeader=true
                then
-                  hdrMetaDataQWrEn  <= '1';
-                  hdrMetaDataQDin   <= hdrPipeInData(16 downto 0);
-                  hdrPipeInRdEn_i   <= '1';
+                  hdrMetaDataQWrEn <= '1';
+                  hdrMetaDataQDin  <= hdrPipeInData(16 downto 0);
+                  hdrPipeInRdEn_i  <= '1';
                end if;
 
             -- ---------------------------------------------------------------
@@ -316,10 +316,10 @@ begin
                   -- byteEn[33:2]=MSB 32b of saved byteEn,
                   -- isFirst[1]='0', isLast[0]='1'
                   hdrDataStreamQDin  <= r.rdmaHdrData(511 downto 256)
-                                      & r.rdmaHdrByEn(63 downto 32)
-                                      & '0' & '1';
-                  hdrPipeInRdEn_i    <= '1';
-                  v.state             := IDLE_S;
+                                       & r.rdmaHdrByEn(63 downto 32)
+                                       & '0' & '1';
+                  hdrPipeInRdEn_i <= '1';
+                  v.state         := IDLE_S;
                end if;
 
          end case;

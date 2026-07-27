@@ -263,7 +263,7 @@ begin
                    scanStartEn, scanStopEn, preScanRestartEn, modifyHeadEn,
                    modifyHeadData, scanOutQValid, scanOutQNotFull,
                    scanOutReady) is
-      variable v             : RegType;
+      variable v : RegType;
       -- canonicalize helpers (decoded from the registered CReg pulses)
       variable hasPush       : sl;
       variable hasPop        : sl;
@@ -271,7 +271,7 @@ begin
       variable isAlmostFull  : sl;
       variable isAlmostEmpty : sl;
       -- scanNext datapath
-      variable scanOutElem   : slv(T_SZ_G-1 downto 0);
+      variable scanOutElem : slv(T_SZ_G-1 downto 0);
       -- Mealy outputs to U_ScanOutQ
       variable vScanOutQWrEn : sl;
       variable vScanOutQDin  : slv(T_SZ_G-1 downto 0);

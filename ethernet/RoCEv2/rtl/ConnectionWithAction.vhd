@@ -54,20 +54,20 @@ use surf.StdRtlPkg.all;
 
 entity ConnectionWithAction is
    generic (
-      TPD_G       : time     := 1 ns;
+      TPD_G    : time     := 1 ns;
       -- Width of the streamed datum (DataStream = 290 bits at the in-scope site).
-      DATA_W_G    : positive := 290);
+      DATA_W_G : positive := 290);
    port (
       -- Upstream source (BSV getIn : Get#(anytype))
-      dataIn         : in  slv(DATA_W_G-1 downto 0);  -- getIn.first
-      upstreamValid  : in  sl;                        -- getIn.notEmpty
-      deqUpstream    : out sl;                         -- getIn.get (dequeue ack)
+      dataIn          : in  slv(DATA_W_G-1 downto 0);  -- getIn.first
+      upstreamValid   : in  sl;         -- getIn.notEmpty
+      deqUpstream     : out sl;         -- getIn.get (dequeue ack)
       -- Downstream sink (BSV putOut : Put#(anytype))
-      dataOut        : out slv(DATA_W_G-1 downto 0);   -- putOut.put data
-      dataOutValid   : out sl;                         -- putOut.put enable
-      downstreamReady : in sl;                         -- putOut.notFull
+      dataOut         : out slv(DATA_W_G-1 downto 0);  -- putOut.put data
+      dataOutValid    : out sl;         -- putOut.put enable
+      downstreamReady : in  sl;         -- putOut.notFull
       -- Hardwired connectAction strobe (OQ-FSM-16): psnPipeIn.deq when isLast
-      psnDeqEn       : out sl);
+      psnDeqEn        : out sl);
 end entity ConnectionWithAction;
 
 architecture rtl of ConnectionWithAction is
@@ -84,14 +84,14 @@ begin
    fire <= upstreamValid and downstreamReady;
 
    -- putOut.put(data): forward the datum; zeroed when idle (matches spec row 2).
-   dataOut      <= dataIn after TPD_G when fire = '1' else
-                   (others => '0') after TPD_G;
+   dataOut <= dataIn after TPD_G when fire = '1' else
+              (others => '0') after TPD_G;
    dataOutValid <= fire after TPD_G;
 
    -- getIn.get: dequeue upstream on the same cycle the datum is forwarded.
-   deqUpstream  <= fire after TPD_G;
+   deqUpstream <= fire after TPD_G;
 
    -- connectAction(data): psnPipeIn.deq when forwarded datum's isLast is set.
-   psnDeqEn     <= (fire and dataIn(ISLAST_BIT_C)) after TPD_G;
+   psnDeqEn <= (fire and dataIn(ISLAST_BIT_C)) after TPD_G;
 
 end architecture rtl;

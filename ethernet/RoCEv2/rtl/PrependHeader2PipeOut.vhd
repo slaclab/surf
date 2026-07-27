@@ -78,26 +78,26 @@ entity PrependHeader2PipeOut is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                          -- active-high synchronous reset
+      clk                   : in  sl;
+      rst                   : in  sl;   -- active-high synchronous reset
       -- Software clear (BSV constructor parameter clearAll : Bool)
-      clearAllI                  : in  sl;
+      clearAllI             : in  sl;
       -- Upstream: HeaderMetaData pipe (headerMetaDataPipeIn argument)
-      headerMetaPipeInValid      : in  sl;                  -- .notEmpty
-      headerMetaPipeInData       : in  slv(16 downto 0);    -- .first  (HeaderMetaData)
-      headerMetaPipeInRdEn       : out sl;                  -- .deq
+      headerMetaPipeInValid : in  sl;   -- .notEmpty
+      headerMetaPipeInData  : in  slv(16 downto 0);  -- .first  (HeaderMetaData)
+      headerMetaPipeInRdEn  : out sl;   -- .deq
       -- Upstream: header DataStream pipe (headerPipeIn argument)
-      headerPipeInValid          : in  sl;                  -- .notEmpty
-      headerPipeInData           : in  slv(289 downto 0);   -- .first  (DataStream)
-      headerPipeInRdEn           : out sl;                  -- .deq
+      headerPipeInValid     : in  sl;   -- .notEmpty
+      headerPipeInData      : in  slv(289 downto 0);  -- .first  (DataStream)
+      headerPipeInRdEn      : out sl;   -- .deq
       -- Upstream: payload DataStream pipe (dataPipeIn argument)
-      dataPipeInValid            : in  sl;                  -- .notEmpty
-      dataPipeInData             : in  slv(289 downto 0);   -- .first  (DataStream)
-      dataPipeInRdEn             : out sl;                  -- .deq
+      dataPipeInValid       : in  sl;   -- .notEmpty
+      dataPipeInData        : in  slv(289 downto 0);  -- .first  (DataStream)
+      dataPipeInRdEn        : out sl;   -- .deq
       -- Downstream: returned PipeOut#(DataStream) (read side of U_DataStreamOutQ)
-      dataStreamOutValid         : out sl;                  -- PipeOut.notEmpty
-      dataStreamOutData          : out slv(289 downto 0);   -- PipeOut.first
-      dataStreamOutRdEn          : in  sl);                 -- PipeOut.deq
+      dataStreamOutValid    : out sl;   -- PipeOut.notEmpty
+      dataStreamOutData     : out slv(289 downto 0);  -- PipeOut.first
+      dataStreamOutRdEn     : in  sl);  -- PipeOut.deq
 end entity PrependHeader2PipeOut;
 
 architecture rtl of PrependHeader2PipeOut is
@@ -114,15 +114,15 @@ architecture rtl of PrependHeader2PipeOut is
       EXTRA_LAST_FRAG_OUTPUT_S);
 
    type RegType is record
-      stageReg                       : StateType;        -- mkReg(HEADER_META_DATA_POP)
-      preDataStreamReg               : slv(289 downto 0); -- mkRegU (DataStream, right-aligned)
-      headerFragCntReg               : slv(1 downto 0);   -- mkRegU (HeaderFragNum)
-      headerLastFragInvalidBitNumReg : slv(8 downto 0);   -- mkRegU (BusBitNum)
-      headerLastFragInvalidByteNumReg: slv(5 downto 0);   -- mkRegU (ByteEnBitNum)
-      headerLastFragValidBitNumReg   : slv(8 downto 0);   -- mkRegU (BusBitNum)
-      headerLastFragValidByteNumReg  : slv(5 downto 0);   -- mkRegU (ByteEnBitNum)
-      headerHasPayloadReg            : sl;                -- mkRegU
-      isFirstReg                     : sl;                -- mkRegU
+      stageReg                        : StateType;  -- mkReg(HEADER_META_DATA_POP)
+      preDataStreamReg                : slv(289 downto 0);  -- mkRegU (DataStream, right-aligned)
+      headerFragCntReg                : slv(1 downto 0);  -- mkRegU (HeaderFragNum)
+      headerLastFragInvalidBitNumReg  : slv(8 downto 0);  -- mkRegU (BusBitNum)
+      headerLastFragInvalidByteNumReg : slv(5 downto 0);  -- mkRegU (ByteEnBitNum)
+      headerLastFragValidBitNumReg    : slv(8 downto 0);  -- mkRegU (BusBitNum)
+      headerLastFragValidByteNumReg   : slv(5 downto 0);  -- mkRegU (ByteEnBitNum)
+      headerHasPayloadReg             : sl;         -- mkRegU
+      isFirstReg                      : sl;         -- mkRegU
    end record RegType;
 
    -- mkRegU fields set to '0' in REG_INIT_C (OQ-FSM-04 precedent): every field
@@ -140,7 +140,7 @@ architecture rtl of PrependHeader2PipeOut is
       headerHasPayloadReg             => '0',
       isFirstReg                      => '0');
 
-   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;     -- DATA_BUS_BYTE_WIDTH
+   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;  -- DATA_BUS_BYTE_WIDTH
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -208,35 +208,35 @@ begin
       variable v : RegType;
 
       -- popHeaderMetaData locals
-      variable hmdFragNum     : slv(1 downto 0);
-      variable hmdValidByteN  : slv(5 downto 0);
-      variable hmdValidBitN   : slv(8 downto 0);
-      variable hmdInvalidByteN: slv(5 downto 0);
-      variable hmdInvalidBitN : slv(8 downto 0);
-      variable hmdHasPayload  : sl;
-      variable hmdIsEmpty     : sl;
+      variable hmdFragNum      : slv(1 downto 0);
+      variable hmdValidByteN   : slv(5 downto 0);
+      variable hmdValidBitN    : slv(8 downto 0);
+      variable hmdInvalidByteN : slv(5 downto 0);
+      variable hmdInvalidBitN  : slv(8 downto 0);
+      variable hmdHasPayload   : sl;
+      variable hmdIsEmpty      : sl;
 
       -- outputHeader locals
-      variable hFragIsLast : sl;
-      variable hFragIsFirst: sl;
-      variable hRsData     : slv(255 downto 0);
-      variable hRsByteEn   : slv(31 downto 0);
-      variable hFire       : sl;
+      variable hFragIsLast  : sl;
+      variable hFragIsFirst : sl;
+      variable hRsData      : slv(255 downto 0);
+      variable hRsByteEn    : slv(31 downto 0);
+      variable hFire        : sl;
 
       -- outputData locals
-      variable dFragIsLast    : sl;
-      variable dLastFragByteEn: slv(31 downto 0);
-      variable dNoExtraLast   : sl;
-      variable dDataCat       : slv(511 downto 0);
-      variable dByteEnCat     : slv(63 downto 0);
-      variable dTmpData       : slv(511 downto 0);
-      variable dTmpByteEn     : slv(63 downto 0);
-      variable dOutDS         : slv(289 downto 0);
+      variable dFragIsLast     : sl;
+      variable dLastFragByteEn : slv(31 downto 0);
+      variable dNoExtraLast    : sl;
+      variable dDataCat        : slv(511 downto 0);
+      variable dByteEnCat      : slv(63 downto 0);
+      variable dTmpData        : slv(511 downto 0);
+      variable dTmpByteEn      : slv(63 downto 0);
+      variable dOutDS          : slv(289 downto 0);
 
       -- extraLastFrag locals
-      variable eLeftData  : slv(255 downto 0);
-      variable eLeftByteEn: slv(31 downto 0);
-      variable eExtraDS   : slv(289 downto 0);
+      variable eLeftData   : slv(255 downto 0);
+      variable eLeftByteEn : slv(31 downto 0);
+      variable eExtraDS    : slv(289 downto 0);
    begin
       v := r;
 
@@ -273,10 +273,10 @@ begin
                   --   validBitNum   = zeroExtend(validByteNum) << 3
                   --   invalidByteNum= DATA_BUS_BYTE_WIDTH - validByteNum
                   --   invalidBitNum = zeroExtend(invalidByteNum) << 3
-                  hmdValidBitN    := hmdValidByteN & "000";
+                  hmdValidBitN := hmdValidByteN & "000";
                   hmdInvalidByteN := std_logic_vector(
                      to_unsigned(DATA_BUS_BYTE_WIDTH_C, 6) - unsigned(hmdValidByteN));
-                  hmdInvalidBitN  := hmdInvalidByteN & "000";
+                  hmdInvalidBitN := hmdInvalidByteN & "000";
 
                   headerMetaPipeInRdEn <= '1';
 
@@ -314,9 +314,9 @@ begin
                hFire := '0';
                if headerPipeInValid = '1' then
                   if hFragIsLast = '1' and r.headerHasPayloadReg = '1' then
-                     hFire := '1';                       -- row 4: no enq
+                     hFire := '1';      -- row 4: no enq
                   elsif dsOutQFull = '0' then
-                     hFire := '1';                       -- rows 3 / 5: enq
+                     hFire := '1';      -- rows 3 / 5: enq
                   end if;
                end if;
 
@@ -328,7 +328,7 @@ begin
                      v.isFirstReg       := '0';
                      v.headerFragCntReg := std_logic_vector(unsigned(r.headerFragCntReg) - 1);
                      dsOutQWrEn         <= '1';
-                     dsOutQDin          <= headerPipeInData;   -- raw frag
+                     dsOutQDin          <= headerPipeInData;  -- raw frag
                   else
                      -- rows 4 / 5: last header fragment.  Stash a right-shifted
                      -- residue into preDataStreamReg; isLast := !headerHasPayloadReg.
@@ -339,10 +339,10 @@ begin
                         unsigned(headerPipeInData(33 downto 2)),
                         to_integer(unsigned(r.headerLastFragInvalidByteNumReg))));
 
-                     v.preDataStreamReg := hRsData                       -- data
-                                         & hRsByteEn                     -- byteEn
-                                         & hFragIsFirst                  -- isFirst
-                                         & (not r.headerHasPayloadReg);  -- isLast
+                     v.preDataStreamReg := hRsData         -- data
+                                           & hRsByteEn     -- byteEn
+                                           & hFragIsFirst  -- isFirst
+                                           & (not r.headerHasPayloadReg);  -- isLast
 
                      if r.headerHasPayloadReg = '1' then
                         -- row 4: header has payload -> go merge it, no enq
@@ -351,7 +351,7 @@ begin
                         -- row 5: header has no payload -> emit raw last frag, done
                         v.stageReg := HEADER_META_DATA_POP_S;
                         dsOutQWrEn <= '1';
-                        dsOutQDin  <= headerPipeInData;   -- raw frag (NOT shifted)
+                        dsOutQDin  <= headerPipeInData;  -- raw frag (NOT shifted)
                      end if;
                   end if;
                end if;
@@ -381,18 +381,18 @@ begin
                   -- tmpByteEn = ({preDataStreamReg.byteEn,frag.byteEn}>> validByteNum)
                   -- BSV {MSB-operand, LSB-operand}: pre = high half, frag = low half
                   dDataCat   := r.preDataStreamReg(289 downto 34) & dataPipeInData(289 downto 34);
-                  dByteEnCat := r.preDataStreamReg(33 downto 2)    & dataPipeInData(33 downto 2);
-                  dTmpData   := std_logic_vector(shift_right(unsigned(dDataCat),
-                                   to_integer(unsigned(r.headerLastFragValidBitNumReg))));
+                  dByteEnCat := r.preDataStreamReg(33 downto 2) & dataPipeInData(33 downto 2);
+                  dTmpData := std_logic_vector(shift_right(unsigned(dDataCat),
+                                                           to_integer(unsigned(r.headerLastFragValidBitNumReg))));
                   dTmpByteEn := std_logic_vector(shift_right(unsigned(dByteEnCat),
-                                   to_integer(unsigned(r.headerLastFragValidByteNumReg))));
+                                                             to_integer(unsigned(r.headerLastFragValidByteNumReg))));
 
                   -- outDS: data/byteEn = truncate (low bits); isFirst = OLD
                   -- r.isFirstReg; isLast = frag.isLast AND noExtraLastFrag
-                  dOutDS := dTmpData(255 downto 0)          -- data   [289:34]
-                          & dTmpByteEn(31 downto 0)         -- byteEn  [33:2]
-                          & r.isFirstReg                    -- isFirst [1]
-                          & (dFragIsLast and dNoExtraLast); -- isLast  [0]
+                  dOutDS := dTmpData(255 downto 0)     -- data   [289:34]
+                            & dTmpByteEn(31 downto 0)  -- byteEn  [33:2]
+                            & r.isFirstReg             -- isFirst [1]
+                            & (dFragIsLast and dNoExtraLast);  -- isLast  [0]
 
                   dataPipeInRdEn <= '1';
                   dsOutQWrEn     <= '1';
@@ -426,10 +426,10 @@ begin
                      unsigned(r.preDataStreamReg(33 downto 2)),
                      to_integer(unsigned(r.headerLastFragInvalidByteNumReg))));
 
-                  eExtraDS := eLeftData     -- data   [289:34]
-                            & eLeftByteEn   -- byteEn  [33:2]
-                            & '0'           -- isFirst [1]
-                            & '1';          -- isLast  [0]
+                  eExtraDS := eLeftData      -- data   [289:34]
+                              & eLeftByteEn  -- byteEn  [33:2]
+                              & '0'          -- isFirst [1]
+                              & '1';         -- isLast  [0]
 
                   dsOutQWrEn <= '1';
                   dsOutQDin  <= eExtraDS;
@@ -470,23 +470,23 @@ begin
       if rising_edge(clk) then
          if rst = '0' and clearAllI = '0' then
             if (r.stageReg = HEADER_META_DATA_POP_S and headerMetaPipeInValid = '1') then
-               if headerMetaPipeInData(0) = '1' then    -- isEmptyHeader
+               if headerMetaPipeInData(0) = '1' then  -- isEmptyHeader
                   assert unsigned(headerMetaPipeInData(7 downto 2)) = 0
                      report "PrependHeader2PipeOut: lastFragValidByteNum must be 0 "
-                          & "when isEmptyHeader"
+                     & "when isEmptyHeader"
                      severity error;
                else
                   assert unsigned(headerMetaPipeInData(16 downto 10)) /= 0
                      report "PrependHeader2PipeOut: headerLen must be non-zero "
-                          & "when not isEmptyHeader"
+                     & "when not isEmptyHeader"
                      severity error;
                end if;
             end if;
             if (r.stageReg = HEADER_OUTPUT_S and headerPipeInValid = '1'
-                and headerPipeInData(0) = '1') then     -- last header fragment
+                and headerPipeInData(0) = '1') then   -- last header fragment
                assert unsigned(r.headerFragCntReg) = 0
                   report "PrependHeader2PipeOut: headerFragCntReg must be 0 on the "
-                       & "last header fragment"
+                  & "last header fragment"
                   severity error;
             end if;
          end if;

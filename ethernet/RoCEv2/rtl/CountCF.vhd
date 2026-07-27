@@ -52,11 +52,11 @@ use surf.StdRtlPkg.all;
 
 entity CountCF is
    generic (
-      TPD_G          : time     := 1 ns;
-      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      RST_ASYNC_G    : boolean  := false;
-      WIDTH_G        : positive := 8;    -- count width = tSz of BSV anytype
-      RESET_VAL_G    : slv      := "00000000";  -- BSV mkCountCF 'resetVal' parameter (length must = WIDTH_G)
+      TPD_G             : time                   := 1 ns;
+      RST_POLARITY_G    : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean                := false;
+      WIDTH_G           : positive               := 8;  -- count width = tSz of BSV anytype
+      RESET_VAL_G       : slv                    := "00000000";  -- BSV mkCountCF 'resetVal' parameter (length must = WIDTH_G)
       FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- UNUSED (legacy, kept for instantiation compatibility)
    port (
       clk        : in  sl;
@@ -124,13 +124,13 @@ begin
       -- +1/-1/0 delta of the ticks captured on the previous cycle.
       if (writeEn = '1') then
          v.cntReg   := writeVal;
-         v.incrPend := '0';             -- same-cycle enq discarded (clear after enq)
+         v.incrPend := '0';  -- same-cycle enq discarded (clear after enq)
          v.decrPend := '0';
       elsif (r.incrPend = '1') and (r.decrPend = '0') then
          v.cntReg := slv(unsigned(r.cntReg) + 1);
       elsif (r.incrPend = '0') and (r.decrPend = '1') then
          v.cntReg := slv(unsigned(r.cntReg) - 1);
-      end if;                           -- both ticks (net 0) or neither: hold
+      end if;  -- both ticks (net 0) or neither: hold
 
       -- Synchronous Reset
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then

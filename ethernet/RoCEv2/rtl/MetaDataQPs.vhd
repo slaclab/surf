@@ -80,18 +80,18 @@ use surf.StdRtlPkg.all;
 entity MetaDataQPs is
    generic (
       TPD_G             : time     := 1 ns;
-      RST_POLARITY_G    : sl       := '1';    -- '1' for active HIGH reset
+      RST_POLARITY_G    : sl       := '1';  -- '1' for active HIGH reset
       RST_ASYNC_G       : boolean  := false;
-      MEMORY_TYPE_G     : string   := "distributed";  -- small FIFOs
-      MAX_QP_G          : positive := 4;      -- MAX_QP (Settings.bsv), power of 2
-      PD_HANDLE_WIDTH_G : positive := 32);    -- PD_HANDLE_WIDTH (DataTypes.bsv)
+      MEMORY_TYPE_G     : string   := "distributed";   -- small FIFOs
+      MAX_QP_G          : positive := 4;  -- MAX_QP (Settings.bsv), power of 2
+      PD_HANDLE_WIDTH_G : positive := 32);  -- PD_HANDLE_WIDTH (DataTypes.bsv)
    port (
       clk             : in  sl;
       rst             : in  sl := not RST_POLARITY_G;
       -- srvPort : Server#(ReqQP(301b), RespQP(274b)) (request face)
       srvReqValid     : in  sl;
       srvReqData      : in  slv(300 downto 0);
-      srvReqReady     : out sl;               -- CAN_PUT (type-dependent, see A)
+      srvReqReady     : out sl;         -- CAN_PUT (type-dependent, see A)
       -- srvPort (response face; FWFT: srvRespReady = deq strobe)
       srvRespValid    : out sl;
       srvRespData     : out slv(273 downto 0);
@@ -105,7 +105,7 @@ entity MetaDataQPs is
       qpRespReady     : out slv(MAX_QP_G-1 downto 0);  -- one-hot response deq
       -- getPD(qpn) / isValidQP(qpn) combinational lookup
       getPdQpn        : in  slv(23 downto 0);
-      getPdMaybeValid : out sl;               -- Maybe tag (= isValidQP result)
+      getPdMaybeValid : out sl;         -- Maybe tag (= isValidQP result)
       getPdHandler    : out slv(PD_HANDLE_WIDTH_G-1 downto 0);
       -- Status methods (forwarded TagVecSrv status)
       notEmpty        : out sl;
@@ -117,14 +117,14 @@ architecture rtl of MetaDataQPs is
    -----------------------------------------------------------------------------
    -- Constants (widths traced from BSV types via CntrlQp.vhd / Qp.vhd)
    -----------------------------------------------------------------------------
-   constant QPN_W_C      : integer := 24;                 -- QPN (IB spec)
-   constant PD_W_C       : integer := PD_HANDLE_WIDTH_G;  -- HandlerPD = 32
-   constant QP_IDX_W_C   : integer := log2(MAX_QP_G);     -- IndexQP = 2
-   constant REQ_QP_W_C   : integer := 301;                -- ReqQP packed
-   constant RESP_QP_W_C  : integer := 274;                -- RespQP packed
-   constant RESP_FIFO_W_C : integer := 1 + REQ_QP_W_C;    -- {flag, ReqQP} = 302
-   constant TAG_MSG_W_C  : integer := 1 + PD_W_C + QP_IDX_W_C;  -- TagVecSrv 35
-   constant FIFO_ADDR_WIDTH_C : integer := 4;             -- surf.Fifo minimum
+   constant QPN_W_C           : integer := 24;              -- QPN (IB spec)
+   constant PD_W_C            : integer := PD_HANDLE_WIDTH_G;  -- HandlerPD = 32
+   constant QP_IDX_W_C        : integer := log2(MAX_QP_G);  -- IndexQP = 2
+   constant REQ_QP_W_C        : integer := 301;             -- ReqQP packed
+   constant RESP_QP_W_C       : integer := 274;             -- RespQP packed
+   constant RESP_FIFO_W_C     : integer := 1 + REQ_QP_W_C;  -- {flag, ReqQP} = 302
+   constant TAG_MSG_W_C       : integer := 1 + PD_W_C + QP_IDX_W_C;  -- TagVecSrv 35
+   constant FIFO_ADDR_WIDTH_C : integer := 4;  -- surf.Fifo minimum
 
    -- ReqQP field offsets (LSB index of each field)
    constant REQ_TYPE_LSB_C : integer := 299;  -- qpReqType[300:299]
@@ -153,28 +153,28 @@ architecture rtl of MetaDataQPs is
    signal rin : RegType;
 
    -- U_QpReqQ4Cntrl (ReqQP) interface signals
-   signal cntrlWrEn    : sl;                              -- enq (locus A)
+   signal cntrlWrEn    : sl;            -- enq (locus A)
    signal cntrlNotFull : sl;
-   signal cntrlRdEn    : sl;                              -- deq (locus B)
+   signal cntrlRdEn    : sl;            -- deq (locus B)
    signal cntrlDout    : slv(REQ_QP_W_C-1 downto 0);
-   signal cntrlValid   : sl;                              -- notEmpty (FWFT)
+   signal cntrlValid   : sl;            -- notEmpty (FWFT)
 
    -- U_QpReqQ4Resp ({flag, ReqQP}) interface signals
-   signal respWrEn     : sl;                              -- enq (locus B)
-   signal respDin      : slv(RESP_FIFO_W_C-1 downto 0);
-   signal respNotFull  : sl;
-   signal respRdEn     : sl;                              -- deq (locus C)
-   signal respDout     : slv(RESP_FIFO_W_C-1 downto 0);
-   signal respValid    : sl;                              -- notEmpty (FWFT)
+   signal respWrEn    : sl;             -- enq (locus B)
+   signal respDin     : slv(RESP_FIFO_W_C-1 downto 0);
+   signal respNotFull : sl;
+   signal respRdEn    : sl;             -- deq (locus C)
+   signal respDout    : slv(RESP_FIFO_W_C-1 downto 0);
+   signal respValid   : sl;             -- notEmpty (FWFT)
 
    -- U_QpTagVec interface signals
-   signal tagReqValid  : sl;                              -- put (locus A)
-   signal tagReqData   : slv(TAG_MSG_W_C-1 downto 0);     -- {create, pd, idx}
+   signal tagReqValid  : sl;                           -- put (locus A)
+   signal tagReqData   : slv(TAG_MSG_W_C-1 downto 0);  -- {create, pd, idx}
    signal tagReqReady  : sl;
    signal tagRespValid : sl;
-   signal tagRespData  : slv(TAG_MSG_W_C-1 downto 0);     -- {success, idx, pd}
-   signal tagRespReady : sl;                              -- get (locus B)
-   signal tagGetOut    : slv(PD_W_C downto 0);            -- {valid, pdHandler}
+   signal tagRespData  : slv(TAG_MSG_W_C-1 downto 0);  -- {success, idx, pd}
+   signal tagRespReady : sl;                           -- get (locus B)
+   signal tagGetOut    : slv(PD_W_C downto 0);         -- {valid, pdHandler}
    -- getIndexQP(getPdQpn): forced to 0 at MAX_QP_G=1 (0-bit BSV index,
    -- MetaData.bsv:349); intermediate signal because the ite sits in a port map
    signal tagGetIdx    : slv(QP_IDX_W_C-1 downto 0);
@@ -197,7 +197,7 @@ begin
          RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => RST_ASYNC_G,
          GEN_SYNC_FIFO_G => true,
-         FWFT_EN_G       => true,            -- BSV first/deq peek semantics
+         FWFT_EN_G       => true,       -- BSV first/deq peek semantics
          MEMORY_TYPE_G   => MEMORY_TYPE_G,
          DATA_WIDTH_G    => REQ_QP_W_C,
          ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_C)
@@ -267,7 +267,7 @@ begin
          respReady  => tagRespReady,
          getItemIdx => tagGetIdx,
          getItemOut => tagGetOut,
-         tagValid   => open,                 -- not needed here (single reader)
+         tagValid   => open,            -- not needed here (single reader)
          notEmpty   => notEmpty,
          notFull    => notFull,
          clearEn    => '0');
@@ -284,22 +284,22 @@ begin
                    qpRespValid, qpRespData) is
       variable v : RegType;
       -- Locus A (srvPort.request.put)
-      variable aType   : slv(1 downto 0);
-      variable aIsCd   : sl;                              -- CREATE or DESTROY
-      variable aReady  : sl;
-      variable aFire   : sl;
+      variable aType  : slv(1 downto 0);
+      variable aIsCd  : sl;       -- CREATE or DESTROY
+      variable aReady : sl;
+      variable aFire  : sl;
       -- Locus B (rule handleReqQP)
       variable bType   : slv(1 downto 0);
       variable bIsCd   : sl;
-      variable bTagOk  : sl;                              -- tag-vec success
+      variable bTagOk  : sl;       -- tag-vec success
       variable bTagIdx : slv(QP_IDX_W_C-1 downto 0);
       variable bTagPd  : slv(PD_W_C-1 downto 0);
-      variable bFlag   : sl;                              -- tagVecRespSuccess
-      variable bIdx    : slv(QP_IDX_W_C-1 downto 0);      -- target QP index
+      variable bFlag   : sl;       -- tagVecRespSuccess
+      variable bIdx    : slv(QP_IDX_W_C-1 downto 0);  -- target QP index
       variable bIdxInt : natural;
-      variable bDoPut  : sl;                              -- put to QP[bIdx]?
-      variable bReq    : slv(REQ_QP_W_C-1 downto 0);      -- qpReq' (maybe rewritten)
-      variable bChild  : sl;                              -- type-dependent guard
+      variable bDoPut  : sl;       -- put to QP[bIdx]?
+      variable bReq    : slv(REQ_QP_W_C-1 downto 0);  -- qpReq' (maybe rewritten)
+      variable bChild  : sl;       -- type-dependent guard
       variable bFire   : sl;
       -- Locus C (srvPort.response.get)
       variable cFlag   : sl;
@@ -324,9 +324,9 @@ begin
       --   Guard: cntrl notFull AND (MODIFY/QUERY OR tag-vec CAN_PUT). The
       --   tag-vec term applies ONLY to CREATE/DESTROY (do not over-gate).
       -----------------------------------------------------------------------
-      aType  := srvReqData(300 downto REQ_TYPE_LSB_C);
-      aIsCd  := ite((aType = REQ_QP_CREATE_C) or (aType = REQ_QP_DESTROY_C),
-                    '1', '0');
+      aType := srvReqData(300 downto REQ_TYPE_LSB_C);
+      aIsCd := ite((aType = REQ_QP_CREATE_C) or (aType = REQ_QP_DESTROY_C),
+                   '1', '0');
       aReady := cntrlNotFull and (not aIsCd or tagReqReady);
       aFire  := srvReqValid and aReady;
 
@@ -334,20 +334,20 @@ begin
       -- (index term forced to 0 at MAX_QP_G=1: 0-bit BSV index, MetaData.bsv:349)
       tagReqValid <= aFire and aIsCd;
       tagReqData  <= ite(aType = REQ_QP_CREATE_C, '1', '0') &
-                     srvReqData(REQ_PD_LSB_C+PD_W_C-1 downto REQ_PD_LSB_C) &
-                     ite(MAX_QP_G > 1,
-                         srvReqData(REQ_QPN_LSB_C+QPN_W_C-1 downto
-                                    REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
-                         "0");
+                    srvReqData(REQ_PD_LSB_C+PD_W_C-1 downto REQ_PD_LSB_C) &
+                    ite(MAX_QP_G > 1,
+                        srvReqData(REQ_QPN_LSB_C+QPN_W_C-1 downto
+                                   REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
+                        "0");
       cntrlWrEn   <= aFire;
       srvReqReady <= aReady;
 
       -----------------------------------------------------------------------
       -- Locus B — rule handleReqQP (MetaData.bsv:361-395)
       -----------------------------------------------------------------------
-      bType   := cntrlDout(REQ_QP_W_C-1 downto REQ_TYPE_LSB_C);
-      bIsCd   := ite((bType = REQ_QP_CREATE_C) or (bType = REQ_QP_DESTROY_C),
-                     '1', '0');
+      bType := cntrlDout(REQ_QP_W_C-1 downto REQ_TYPE_LSB_C);
+      bIsCd := ite((bType = REQ_QP_CREATE_C) or (bType = REQ_QP_DESTROY_C),
+                   '1', '0');
       bTagOk  := tagRespData(TAG_MSG_W_C-1);
       bTagIdx := tagRespData(PD_W_C+QP_IDX_W_C-1 downto PD_W_C);
       bTagPd  := tagRespData(PD_W_C-1 downto 0);
@@ -368,11 +368,11 @@ begin
       else
          -- MODIFY / QUERY: no tag-vec touch, initial True flag
          -- (host-facing qpn index: forced 0 at MAX_QP_G=1, MetaData.bsv:349)
-         bFlag  := '1';
-         bIdx   := ite(MAX_QP_G > 1,
-                       cntrlDout(REQ_QPN_LSB_C+QPN_W_C-1 downto
-                                 REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
-                       "0");
+         bFlag := '1';
+         bIdx := ite(MAX_QP_G > 1,
+                     cntrlDout(REQ_QPN_LSB_C+QPN_W_C-1 downto
+                               REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
+                     "0");
          bDoPut := '1';
          bChild := qpReqReady(to_integer(unsigned(bIdx)));
       end if;
@@ -393,23 +393,23 @@ begin
       -- Locus C — srvPort.response.get (MetaData.bsv:423-475)
       --   FWFT face: srvRespValid = CAN_GET; srvRespReady = caller deq strobe.
       -----------------------------------------------------------------------
-      cFlag   := respDout(RESP_FIFO_W_C-1);
-      cReq    := respDout(REQ_QP_W_C-1 downto 0);
+      cFlag := respDout(RESP_FIFO_W_C-1);
+      cReq  := respDout(REQ_QP_W_C-1 downto 0);
       -- response-demux qpn index: forced 0 at MAX_QP_G=1 (MetaData.bsv:349)
-      cIdx    := ite(MAX_QP_G > 1,
-                     cReq(REQ_QPN_LSB_C+QPN_W_C-1 downto
-                          REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
-                     "0");
+      cIdx := ite(MAX_QP_G > 1,
+                  cReq(REQ_QPN_LSB_C+QPN_W_C-1 downto
+                       REQ_QPN_LSB_C+QPN_W_C-QP_IDX_W_C),
+                  "0");
       cIdxInt := to_integer(unsigned(cIdx));
 
       -- Default failure RespQP: successOrNot='0', fields echoed from qpReq'
-      cResp                                                 := (others => '0');
+      cResp := (others => '0');
       cResp(RESP_QPN_LSB_C+QPN_W_C-1 downto RESP_QPN_LSB_C) :=
          cReq(REQ_QPN_LSB_C+QPN_W_C-1 downto REQ_QPN_LSB_C);
-      cResp(RESP_PD_LSB_C+PD_W_C-1 downto RESP_PD_LSB_C)    :=
+      cResp(RESP_PD_LSB_C+PD_W_C-1 downto RESP_PD_LSB_C) :=
          cReq(REQ_PD_LSB_C+PD_W_C-1 downto REQ_PD_LSB_C);
-      cResp(RESP_PD_LSB_C-1 downto 0)                       :=
-         cReq(RESP_PD_LSB_C-1 downto 0);   -- qpAttr[216:5] + qpInitAttr[4:0]
+      cResp(RESP_PD_LSB_C-1 downto 0) :=
+         cReq(RESP_PD_LSB_C-1 downto 0);  -- qpAttr[216:5] + qpInitAttr[4:0]
       if (cFlag = '1') then
          -- successful descriptor: pass the addressed QP's RespQP through
          cResp := qpRespData(cIdxInt*RESP_QP_W_C+RESP_QP_W_C-1 downto

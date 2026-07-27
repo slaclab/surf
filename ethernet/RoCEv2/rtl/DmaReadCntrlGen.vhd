@@ -173,38 +173,38 @@ entity DmaReadCntrlGen is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk          : in  sl;
-      rst          : in  sl;                       -- active-high synchronous reset
+      clk             : in  sl;
+      rst             : in  sl;         -- active-high synchronous reset
       -- Software clear (module parameter clearAll; synchronous, LEVEL-asserted)
-      clearAll     : in  sl;
+      clearAll        : in  sl;
       -- dmaCntrl.cancel() method (Action pulse): request graceful cancel
-      cancelEn     : in  sl;
+      cancelEn        : in  sl;
       -- srvPort.request : Put#(DmaReadCntrlReq)  (caller -> entity, enq to reqQ)
-      reqInValid   : in  sl;                        -- caller offers a request (wr_en)
-      reqInData    : in  slv(1162 downto 0);        -- DmaReadCntrlReq packed
-      reqInReady   : out sl;                        -- entity can accept (reqQ.notFull)
+      reqInValid      : in  sl;         -- caller offers a request (wr_en)
+      reqInData       : in  slv(1162 downto 0);  -- DmaReadCntrlReq packed
+      reqInReady      : out sl;         -- entity can accept (reqQ.notFull)
       -- srvPort.response : Get#(DmaReadCntrlResp) (entity -> caller, deq from respQ)
-      respOutReady : in  sl;                        -- caller takes a response (rd_en)
-      respOutValid : out sl;                        -- response available (respQ.notEmpty)
-      respOutData  : out slv(384 downto 0);         -- DmaReadCntrlResp packed
+      respOutReady    : in  sl;         -- caller takes a response (rd_en)
+      respOutValid    : out sl;         -- response available (respQ.notEmpty)
+      respOutData     : out slv(384 downto 0);   -- DmaReadCntrlResp packed
       -- sgeMergedMetaDataPipeOut : PipeOut#(MergedMetaDataSGE) (entity -> caller)
-      sgeMergedRdEn  : in  sl;                       -- caller deq
-      sgeMergedValid : out sl;                       -- data available (notEmpty)
-      sgeMergedData  : out slv(7 downto 0);          -- MergedMetaDataSGE packed
+      sgeMergedRdEn   : in  sl;         -- caller deq
+      sgeMergedValid  : out sl;         -- data available (notEmpty)
+      sgeMergedData   : out slv(7 downto 0);   -- MergedMetaDataSGE packed
       -- sgePktMetaDataPipeOut : PipeOut#(PktMetaDataSGE) (re-exported from child)
-      sgePktMetaRdEn  : in  sl;                       -- caller deq -> child
-      sgePktMetaValid : out sl;                       -- child respQ.notEmpty
-      sgePktMetaData  : out slv(53 downto 0);         -- PktMetaDataSGE packed (child)
+      sgePktMetaRdEn  : in  sl;         -- caller deq -> child
+      sgePktMetaValid : out sl;         -- child respQ.notEmpty
+      sgePktMetaData  : out slv(53 downto 0);  -- PktMetaDataSGE packed (child)
       -- dmaReadSrv.request : Put#(DmaReadReq)   (entity -> external server, CLIENT)
-      dmaReqValid  : out sl;                         -- entity offers a request (Mealy)
-      dmaReqOut    : out slv(175 downto 0);          -- DmaReadReq packed (Mealy)
-      dmaReqReady  : in  sl;                          -- external server can accept
+      dmaReqValid     : out sl;         -- entity offers a request (Mealy)
+      dmaReqOut       : out slv(175 downto 0);   -- DmaReadReq packed (Mealy)
+      dmaReqReady     : in  sl;         -- external server can accept
       -- dmaReadSrv.response : Get#(DmaReadResp) (external server -> entity, CLIENT)
-      dmaRespValid : in  sl;                          -- external server offers a response
-      dmaRespIn    : in  slv(382 downto 0);          -- DmaReadResp packed
-      dmaRespReady : out sl;                          -- entity takes the response (get/pop)
+      dmaRespValid    : in  sl;         -- external server offers a response
+      dmaRespIn       : in  slv(382 downto 0);   -- DmaReadResp packed
+      dmaRespReady    : out sl;         -- entity takes the response (get/pop)
       -- dmaCntrl.isIdle() method result (Moore, registered)
-      isIdle       : out sl);
+      isIdle          : out sl);
 end entity DmaReadCntrlGen;
 
 architecture rtl of DmaReadCntrlGen is
@@ -215,11 +215,11 @@ architecture rtl of DmaReadCntrlGen is
    -- Control sub-FSM state: two CReg booleans + the SGL-walk index.  The two
    -- accumulators are dead for synthesis (OQ-FSM-DRCG-04) but kept for fidelity.
    type RegType is record
-      cancel       : sl;                    -- cancelReg[2] <- mkCReg(2,False)
-      gracefulStop : sl;                    -- gracefulStopReg[2] <- mkCReg(2,False)
-      sglIdxReg    : slv(2 downto 0);       -- mkReg(0) : IdxSGL, SGL-walk index
-      totalLenReg  : slv(31 downto 0);      -- mkRegU : Length accumulator (dead)
-      sgeNumReg    : slv(3 downto 0);       -- mkRegU : NumSGE accumulator (dead)
+      cancel       : sl;                -- cancelReg[2] <- mkCReg(2,False)
+      gracefulStop : sl;  -- gracefulStopReg[2] <- mkCReg(2,False)
+      sglIdxReg    : slv(2 downto 0);   -- mkReg(0) : IdxSGL, SGL-walk index
+      totalLenReg  : slv(31 downto 0);  -- mkRegU : Length accumulator (dead)
+      sgeNumReg    : slv(3 downto 0);   -- mkRegU : NumSGE accumulator (dead)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -233,13 +233,13 @@ architecture rtl of DmaReadCntrlGen is
    signal rin : RegType;
 
    -- U_ReqQ (DmaReadCntrlReq, 1163b)
-   signal reqQValid : sl;                   -- = reqQ.notEmpty (FWFT data valid)
+   signal reqQValid : sl;               -- = reqQ.notEmpty (FWFT data valid)
    signal reqQDout  : slv(1162 downto 0);
    signal reqQRdEn  : sl;
 
    -- U_RespQ (DmaReadCntrlResp, 385b)
    signal respQNotFull : sl;
-   signal respQValid   : sl;                -- = respQ.notEmpty (R5 quiescence guard)
+   signal respQValid   : sl;  -- = respQ.notEmpty (R5 quiescence guard)
    signal respQWrEn    : sl;
    signal respQDin     : slv(384 downto 0);
 
@@ -250,7 +250,7 @@ architecture rtl of DmaReadCntrlGen is
 
    -- U_PendingScatterGatherElemQ (Tuple2#(SGE,PMTU), 133b)
    signal pscElemNotFull : sl;
-   signal pscElemValid   : sl;              -- = notEmpty
+   signal pscElemValid   : sl;          -- = notEmpty
    signal pscElemWrEn    : sl;
    signal pscElemDin     : slv(132 downto 0);
    signal pscElemRdEn    : sl;
@@ -258,7 +258,7 @@ architecture rtl of DmaReadCntrlGen is
 
    -- U_PendingLKeyQ (LKEY, 32b)
    signal lkeyNotFull : sl;
-   signal lkeyValid   : sl;                 -- = notEmpty
+   signal lkeyValid   : sl;             -- = notEmpty
    signal lkeyWrEn    : sl;
    signal lkeyDin     : slv(31 downto 0);
    signal lkeyRdEn    : sl;
@@ -266,7 +266,7 @@ architecture rtl of DmaReadCntrlGen is
 
    -- U_PendingDmaCntrlReqQ (Tuple2#(QPN,WorkReqID), 88b)
    signal pendCntrlNotFull : sl;
-   signal pendCntrlValid   : sl;            -- = notEmpty
+   signal pendCntrlValid   : sl;        -- = notEmpty
    signal pendCntrlWrEn    : sl;
    signal pendCntrlDin     : slv(87 downto 0);
    signal pendCntrlRdEn    : sl;
@@ -274,18 +274,18 @@ architecture rtl of DmaReadCntrlGen is
 
    -- U_PendingDmaReadReqQ (Tuple2#(Bool,Bool), 2b)
    signal pendReadNotFull : sl;
-   signal pendReadValid   : sl;             -- = notEmpty (R5 quiescence guard)
+   signal pendReadValid   : sl;         -- = notEmpty (R5 quiescence guard)
    signal pendReadWrEn    : sl;
    signal pendReadDin     : slv(1 downto 0);
    signal pendReadRdEn    : sl;
    signal pendReadDout    : slv(1 downto 0);
 
    -- U_AddrChunkSrv child interface
-   signal childReqPutWrEn  : sl;            -- FSM (issueChunkReq) -> child request.put
+   signal childReqPutWrEn  : sl;  -- FSM (issueChunkReq) -> child request.put
    signal childReqPutDin   : slv(100 downto 0);
-   signal childReqPutReady : sl;            -- child reqQ.notFull (R2 implicit cond)
-   signal childRespGetRdEn : sl;            -- FSM (issueDmaReq) -> child response.get
-   signal childRespQValid  : sl;            -- child respQ.notEmpty (R3 implicit cond)
+   signal childReqPutReady : sl;  -- child reqQ.notFull (R2 implicit cond)
+   signal childRespGetRdEn : sl;  -- FSM (issueDmaReq) -> child response.get
+   signal childRespQValid  : sl;  -- child respQ.notEmpty (R3 implicit cond)
    signal childRespQDout   : slv(80 downto 0);
 
    -- FIFO reset line: level = rst OR clearAll (atomic 7-FIFO clear)
@@ -322,11 +322,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => reqInValid,             -- pass-through (caller drives)
-         din      => reqInData,              -- pass-through (caller drives)
-         not_full => reqInReady,             -- pass-through to caller
+         wr_en    => reqInValid,        -- pass-through (caller drives)
+         din      => reqInData,         -- pass-through (caller drives)
+         not_full => reqInReady,        -- pass-through to caller
          rd_clk   => clk,
-         rd_en    => reqQRdEn,               -- FSM (recvReq, on sge.isLast)
+         rd_en    => reqQRdEn,          -- FSM (recvReq, on sge.isLast)
          dout     => reqQDout,
          valid    => reqQValid);
 
@@ -348,11 +348,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => respQWrEn,              -- FSM (recvDmaResp)
-         din      => respQDin,               -- FSM (recvDmaResp)
+         wr_en    => respQWrEn,         -- FSM (recvDmaResp)
+         din      => respQDin,          -- FSM (recvDmaResp)
          not_full => respQNotFull,
          rd_clk   => clk,
-         rd_en    => respOutReady,           -- pass-through (caller drives)
+         rd_en    => respOutReady,      -- pass-through (caller drives)
          dout     => respOutData,
          valid    => respQValid);
 
@@ -375,11 +375,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => sgeMergedWrEn,          -- FSM (recvReq)
-         din      => sgeMergedDin,           -- FSM (recvReq)
+         wr_en    => sgeMergedWrEn,     -- FSM (recvReq)
+         din      => sgeMergedDin,      -- FSM (recvReq)
          not_full => sgeMergedNotFull,
          rd_clk   => clk,
-         rd_en    => sgeMergedRdEn,          -- pass-through (caller drives)
+         rd_en    => sgeMergedRdEn,     -- pass-through (caller drives)
          dout     => sgeMergedData,
          valid    => sgeMergedValid);
 
@@ -402,11 +402,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => pscElemWrEn,            -- FSM (recvReq)
-         din      => pscElemDin,             -- FSM (recvReq)
+         wr_en    => pscElemWrEn,       -- FSM (recvReq)
+         din      => pscElemDin,        -- FSM (recvReq)
          not_full => pscElemNotFull,
          rd_clk   => clk,
-         rd_en    => pscElemRdEn,            -- FSM (issueChunkReq)
+         rd_en    => pscElemRdEn,       -- FSM (issueChunkReq)
          dout     => pscElemDout,
          valid    => pscElemValid);
 
@@ -428,11 +428,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => lkeyWrEn,               -- FSM (issueChunkReq)
-         din      => lkeyDin,                -- FSM (issueChunkReq)
+         wr_en    => lkeyWrEn,          -- FSM (issueChunkReq)
+         din      => lkeyDin,           -- FSM (issueChunkReq)
          not_full => lkeyNotFull,
          rd_clk   => clk,
-         rd_en    => lkeyRdEn,               -- FSM (issueDmaReq, on chunk.isLast)
+         rd_en    => lkeyRdEn,          -- FSM (issueDmaReq, on chunk.isLast)
          dout     => lkeyDout,
          valid    => lkeyValid);
 
@@ -454,11 +454,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => pendCntrlWrEn,          -- FSM (recvReq, on sge.isFirst)
-         din      => pendCntrlDin,           -- FSM (recvReq)
+         wr_en    => pendCntrlWrEn,     -- FSM (recvReq, on sge.isFirst)
+         din      => pendCntrlDin,      -- FSM (recvReq)
          not_full => pendCntrlNotFull,
          rd_clk   => clk,
-         rd_en    => pendCntrlRdEn,          -- FSM (issueDmaReq, on isLastDmaReqChunk)
+         rd_en    => pendCntrlRdEn,  -- FSM (issueDmaReq, on isLastDmaReqChunk)
          dout     => pendCntrlDout,
          valid    => pendCntrlValid);
 
@@ -483,11 +483,11 @@ begin
       port map (
          rst      => fifoRst,
          wr_clk   => clk,
-         wr_en    => pendReadWrEn,           -- FSM (issueDmaReq)
-         din      => pendReadDin,            -- FSM (issueDmaReq)
+         wr_en    => pendReadWrEn,      -- FSM (issueDmaReq)
+         din      => pendReadDin,       -- FSM (issueDmaReq)
          not_full => pendReadNotFull,
          rd_clk   => clk,
-         rd_en    => pendReadRdEn,           -- FSM (recvDmaResp, on dataStream.isLast)
+         rd_en    => pendReadRdEn,  -- FSM (recvDmaResp, on dataStream.isLast)
          dout     => pendReadDout,
          valid    => pendReadValid);
 
@@ -514,7 +514,7 @@ begin
          sgePktMetaRdEn  => sgePktMetaRdEn,   -- re-export: caller deq -> child
          sgePktMetaValid => sgePktMetaValid,  -- re-export: child -> caller
          sgePktMetaData  => sgePktMetaData,   -- re-export: child -> caller
-         isIdle          => open);            -- parent does not read child isIdle
+         isIdle          => open);      -- parent does not read child isIdle
 
    ---------------------------------------------------------------------------
    -- Combinatorial process
@@ -536,16 +536,16 @@ begin
                    dmaReqReady, dmaRespValid, dmaRespIn) is
       variable v : RegType;
       -- recvReq (R1) datapath off U_ReqQ front (DmaReadCntrlReq layout)
-      variable sglIdxInt    : integer range 0 to 7;
-      variable sgeHi        : integer range 252 to 1162;
-      variable sge          : slv(129 downto 0);   -- selected sgl[sglIdx]
-      variable sgeLen       : slv(31 downto 0);
-      variable mergedByte   : slv(5 downto 0);      -- calcLastFragValidByteNum
-      variable sqpnR1       : slv(23 downto 0);
-      variable wrIDR1       : slv(63 downto 0);
+      variable sglIdxInt  : integer range 0 to 7;
+      variable sgeHi      : integer range 252 to 1162;
+      variable sge        : slv(129 downto 0);  -- selected sgl[sglIdx]
+      variable sgeLen     : slv(31 downto 0);
+      variable mergedByte : slv(5 downto 0);    -- calcLastFragValidByteNum
+      variable sqpnR1     : slv(23 downto 0);
+      variable wrIdR1     : slv(63 downto 0);
       -- issueChunkReq (R2) datapath off U_PendingScatterGatherElemQ front
-      variable sge2         : slv(129 downto 0);
-      variable pmtu2        : slv(2 downto 0);
+      variable sge2  : slv(129 downto 0);
+      variable pmtu2 : slv(2 downto 0);
       -- issueDmaReq (R3) datapath off child resp / lkey / pending-cntrl fronts
       variable chunkAddr    : slv(63 downto 0);
       variable chunkLen     : slv(12 downto 0);
@@ -553,11 +553,11 @@ begin
       variable curSqpn      : slv(23 downto 0);
       variable curWrID      : slv(63 downto 0);
       variable dmaReadReqV  : slv(175 downto 0);
-      variable isFirstChunk : sl;                   -- isFirstDmaReqChunk
-      variable isLastChunk  : sl;                   -- isLastDmaReqChunk
+      variable isFirstChunk : sl;                 -- isFirstDmaReqChunk
+      variable isLastChunk  : sl;                 -- isLastDmaReqChunk
       -- recvDmaResp (R4) datapath
-      variable isFirstFrag  : sl;                   -- isFirstFragInSGL
-      variable isLastFrag   : sl;                   -- isLastFragInSGL
+      variable isFirstFrag : sl;                 -- isFirstFragInSGL
+      variable isLastFrag  : sl;                 -- isLastFragInSGL
    begin
       v := r;
 
@@ -574,23 +574,23 @@ begin
       -- calcLastFragValidByteNum(sge.len): residue=len(4:0);
       --   (residue=0 AND len(31:5)/=0) ? 32 : ('0' & residue)
       if (sgeLen(4 downto 0) = "00000") and (unsigned(sgeLen(31 downto 5)) /= 0) then
-         mergedByte := "100000";            -- 32
+         mergedByte := "100000";        -- 32
       else
          mergedByte := '0' & sgeLen(4 downto 0);
       end if;
       sqpnR1 := reqQDout(90 downto 67);
-      wrIDR1 := reqQDout(66 downto 3);
+      wrIdR1 := reqQDout(66 downto 3);
 
       -- R2: {sge,pmtu} off the pending-SGE front (133b = sge(132:3) & pmtu(2:0))
       sge2  := pscElemDout(132 downto 3);
       pmtu2 := pscElemDout(2 downto 0);
 
       -- R3: compose DmaReadReq from child resp / lkey / pending-cntrl fronts.
-      chunkAddr := childRespQDout(80 downto 17);
-      chunkLen  := childRespQDout(16 downto 4);
-      mrIdx     := lkeyDout(31 downto 25);  -- key2IndexMR (truncateLSB)
-      curSqpn   := pendCntrlDout(87 downto 64);
-      curWrID   := pendCntrlDout(63 downto 0);
+      chunkAddr    := childRespQDout(80 downto 17);
+      chunkLen     := childRespQDout(16 downto 4);
+      mrIdx        := lkeyDout(31 downto 25);  -- key2IndexMR (truncateLSB)
+      curSqpn      := pendCntrlDout(87 downto 64);
+      curWrID      := pendCntrlDout(63 downto 0);
       -- DmaReadReq = initiator & sqpn & wrID & startAddr(=chunkAddr) & len(=chunkLen) & mrIdx
       dmaReadReqV  := DMA_SRC_SQ_RD_C & curSqpn & curWrID & chunkAddr & chunkLen & mrIdx;
       -- isFirstDmaReqChunk = chunk.isFirst AND chunk.isOrigFirst
@@ -606,30 +606,30 @@ begin
       -- Default Mealy outputs / SURF & child drives (deasserted; din/out carry
       -- the combinational front so the Mealy paths are correct when enabled).
       ----------------------------------------------------------------------
-      reqQRdEn         <= '0';
-      respQWrEn        <= '0';
-      respQDin         <= dmaRespIn & isFirstFrag & isLastFrag;  -- 383+1+1=385
-      sgeMergedWrEn    <= '0';
-      sgeMergedDin     <= mergedByte & sge(1) & sge(0);          -- 6+1+1=8
-      pscElemWrEn      <= '0';
-      pscElemDin       <= sge & reqQDout(2 downto 0);            -- sge(130) & pmtu(3) (R1 front)
-      pscElemRdEn      <= '0';
-      lkeyWrEn         <= '0';
-      lkeyDin          <= sge2(33 downto 2);    -- sge.lkey (R2 front)
-      lkeyRdEn         <= '0';
-      pendCntrlWrEn    <= '0';
-      pendCntrlDin     <= sqpnR1 & wrIDR1;      -- {sqpn,wrID} (R1 front)
-      pendCntrlRdEn    <= '0';
-      pendReadWrEn     <= '0';
-      pendReadDin      <= isFirstChunk & isLastChunk;            -- 2b (R3 front)
-      pendReadRdEn     <= '0';
-      dmaReqValid      <= '0';
-      dmaReqOut        <= dmaReadReqV;          -- Mealy front; gated by dmaReqValid
-      dmaRespReady     <= '0';
-      childReqPutWrEn  <= '0';
+      reqQRdEn        <= '0';
+      respQWrEn       <= '0';
+      respQDin        <= dmaRespIn & isFirstFrag & isLastFrag;  -- 383+1+1=385
+      sgeMergedWrEn   <= '0';
+      sgeMergedDin    <= mergedByte & sge(1) & sge(0);          -- 6+1+1=8
+      pscElemWrEn     <= '0';
+      pscElemDin      <= sge & reqQDout(2 downto 0);  -- sge(130) & pmtu(3) (R1 front)
+      pscElemRdEn     <= '0';
+      lkeyWrEn        <= '0';
+      lkeyDin         <= sge2(33 downto 2);           -- sge.lkey (R2 front)
+      lkeyRdEn        <= '0';
+      pendCntrlWrEn   <= '0';
+      pendCntrlDin    <= sqpnR1 & wrIdR1;             -- {sqpn,wrID} (R1 front)
+      pendCntrlRdEn   <= '0';
+      pendReadWrEn    <= '0';
+      pendReadDin     <= isFirstChunk & isLastChunk;  -- 2b (R3 front)
+      pendReadRdEn    <= '0';
+      dmaReqValid     <= '0';
+      dmaReqOut       <= dmaReadReqV;   -- Mealy front; gated by dmaReqValid
+      dmaRespReady    <= '0';
+      childReqPutWrEn <= '0';
       -- AddrChunkReq = laddr(64) & len(32) & pmtu(3) & isFirst(1) & isLast(1) (R2 front)
-      childReqPutDin   <= sge2(129 downto 66) & sge2(65 downto 34) & pmtu2 &
-                          sge2(1) & sge2(0);
+      childReqPutDin  <= sge2(129 downto 66) & sge2(65 downto 34) & pmtu2 &
+                        sge2(1) & sge2(0);
       childRespGetRdEn <= '0';
 
       ----------------------------------------------------------------------
@@ -650,10 +650,10 @@ begin
       ----------------------------------------------------------------------
       if (clearAll = '0' and dmaRespValid = '1' and pendReadValid = '1' and
           respQNotFull = '1') then
-         dmaRespReady <= '1';               -- get external server response
-         respQWrEn    <= '1';               -- enq U_RespQ (respQDin set above)
-         if dmaRespIn(0) = '1' then         -- dataStream.isLast -> retire token
-            pendReadRdEn <= '1';            -- deq U_PendingDmaReadReqQ (per fragment)
+         dmaRespReady <= '1';           -- get external server response
+         respQWrEn    <= '1';           -- enq U_RespQ (respQDin set above)
+         if dmaRespIn(0) = '1' then     -- dataStream.isLast -> retire token
+            pendReadRdEn <= '1';     -- deq U_PendingDmaReadReqQ (per fragment)
          end if;
       end if;
 
@@ -672,21 +672,21 @@ begin
             --   sge.isFirst) the pending-cntrl queue has room.
             if (reqQValid = '1' and sgeMergedNotFull = '1' and pscElemNotFull = '1' and
                 (sge(1) = '0' or pendCntrlNotFull = '1')) then
-               sgeMergedWrEn <= '1';        -- enq MergedMetaDataSGE (din set above)
-               pscElemWrEn   <= '1';        -- enq {sge,pmtu} (din set below)
-               if sge(1) = '1' then         -- sge.isFirst
+               sgeMergedWrEn <= '1';  -- enq MergedMetaDataSGE (din set above)
+               pscElemWrEn   <= '1';    -- enq {sge,pmtu} (din set below)
+               if sge(1) = '1' then     -- sge.isFirst
                   v.totalLenReg := sgeLen;
                   v.sgeNumReg   := "0001";
-                  pendCntrlWrEn <= '1';     -- enq {sqpn,wrID} (din set above)
+                  pendCntrlWrEn <= '1';  -- enq {sqpn,wrID} (din set above)
                else
                   v.totalLenReg := slv(unsigned(r.totalLenReg) + unsigned(sgeLen));
                   v.sgeNumReg   := slv(unsigned(r.sgeNumReg) + 1);
                end if;
-               if sge(0) = '1' then         -- sge.isLast -> SGL complete
-                  reqQRdEn      <= '1';      -- deq U_ReqQ
-                  v.sglIdxReg   := "000";
+               if sge(0) = '1' then     -- sge.isLast -> SGL complete
+                  reqQRdEn    <= '1';   -- deq U_ReqQ
+                  v.sglIdxReg := "000";
                else
-                  v.sglIdxReg   := slv(unsigned(r.sglIdxReg) + 1);
+                  v.sglIdxReg := slv(unsigned(r.sglIdxReg) + 1);
                end if;
             end if;
 
@@ -694,9 +694,9 @@ begin
             --   stash its lkey.  Implicit conds: pending-SGE has data, child can
             --   accept, lkey queue has room.
             if (pscElemValid = '1' and childReqPutReady = '1' and lkeyNotFull = '1') then
-               pscElemRdEn     <= '1';      -- deq U_PendingScatterGatherElemQ
-               childReqPutWrEn <= '1';      -- child request.put (din set above)
-               lkeyWrEn        <= '1';      -- enq U_PendingLKeyQ (din set above)
+               pscElemRdEn     <= '1';  -- deq U_PendingScatterGatherElemQ
+               childReqPutWrEn <= '1';  -- child request.put (din set above)
+               lkeyWrEn        <= '1';  -- enq U_PendingLKeyQ (din set above)
             end if;
 
             -- R3 issueDmaReq: pop one AddrChunkResp, Put one DmaReadReq to
@@ -706,14 +706,14 @@ begin
             --   pending-cntrl have heads, server ready, pending-read has room.
             if (childRespQValid = '1' and lkeyValid = '1' and pendCntrlValid = '1' and
                 dmaReqReady = '1' and pendReadNotFull = '1') then
-               childRespGetRdEn <= '1';     -- get child response
-               dmaReqValid      <= '1';     -- Put external request (dmaReqOut set above)
-               pendReadWrEn     <= '1';     -- enq U_PendingDmaReadReqQ (din set above)
+               childRespGetRdEn <= '1';  -- get child response
+               dmaReqValid      <= '1';  -- Put external request (dmaReqOut set above)
+               pendReadWrEn     <= '1';  -- enq U_PendingDmaReadReqQ (din set above)
                if childRespQDout(2) = '1' then  -- addrChunkResp.isLast (chunk-last)
-                  lkeyRdEn <= '1';          -- deq U_PendingLKeyQ
+                  lkeyRdEn <= '1';      -- deq U_PendingLKeyQ
                end if;
-               if isLastChunk = '1' then    -- isLastDmaReqChunk (original-last)
-                  pendCntrlRdEn <= '1';     -- deq U_PendingDmaCntrlReqQ
+               if isLastChunk = '1' then  -- isLastDmaReqChunk (original-last)
+                  pendCntrlRdEn <= '1';  -- deq U_PendingDmaCntrlReqQ
                end if;
             end if;
 

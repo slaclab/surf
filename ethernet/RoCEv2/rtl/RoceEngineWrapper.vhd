@@ -52,7 +52,6 @@ use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.AxiLitePkg.all;
 use surf.EthMacPkg.all;
-
 use surf.RocePkg.all;
 
 entity RoceEngineWrapper is

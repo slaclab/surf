@@ -131,13 +131,13 @@ entity ServerArbiter is
       resp1Data     : out slv(RESP_WIDTH_G-1 downto 0);    -- response 1 first (U_RespQ1 dout)
       resp1Rd       : in  sl;                              -- client 1 response.get (U_RespQ1 deq)
       -- Downstream shared Server (srv, module argument)
-      srvReqValid   : out sl;                              -- srv.request.put fired
-      srvReqData    : out slv(REQ_WIDTH_G-1 downto 0);     -- request payload to srv (= inputReq)
-      srvReqReady   : in  sl;                              -- srv.request can accept (CAN_PUT)
-      srvRespValid  : in  sl;                              -- srv.response available (Get ready)
-      srvRespData   : in  slv(RESP_WIDTH_G-1 downto 0);    -- srv.response payload
+      srvReqValid     : out sl;                              -- srv.request.put fired
+      srvReqData      : out slv(REQ_WIDTH_G-1 downto 0);     -- request payload to srv (= inputReq)
+      srvReqReady     : in  sl;                              -- srv.request can accept (CAN_PUT)
+      srvRespValid    : in  sl;                              -- srv.response available (Get ready)
+      srvRespData     : in  slv(RESP_WIDTH_G-1 downto 0);    -- srv.response payload
       srvRespFinished : in sl;                             -- isRespFinished(srvRespData) (OQ-FSM-17)
-      srvRespRd     : out sl);                             -- srv.response.get fired
+      srvRespRd       : out sl);                             -- srv.response.get fired
 end entity ServerArbiter;
 
 architecture rtl of ServerArbiter is

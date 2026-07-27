@@ -240,38 +240,71 @@ architecture rtl of RetryHandleSq is
    -- FIFO interface signals (one bundle per surf.Fifo)
    ---------------------------------------------------------------------------
    -- resetReqQ (1b)
-   signal rrqWrEn, rrqRdEn, rrqValid, rrqNotFull : sl;
+   signal rrqWrEn : sl;
+   signal rrqRdEn : sl;
+   signal rrqValid : sl;
+   signal rrqNotFull : sl;
    signal rrqDin, rrqDout                        : slv(0 downto 0);
    -- timeOutNotificationQ (1b)
-   signal tnqWrEn, tnqRdEn, tnqValid, tnqNotFull : sl;
+   signal tnqWrEn : sl;
+   signal tnqRdEn : sl;
+   signal tnqValid : sl;
+   signal tnqNotFull : sl;
    signal tnqDin, tnqDout                        : slv(0 downto 0);
    signal tnqClr                                 : sl;
    -- retryReqQ (97b)
-   signal xrqWrEn, xrqRdEn, xrqValid, xrqNotFull : sl;
+   signal xrqWrEn : sl;
+   signal xrqRdEn : sl;
+   signal xrqValid : sl;
+   signal xrqNotFull : sl;
    signal xrqDin, xrqDout                        : slv(96 downto 0);
    -- retryRespQ (1b)
-   signal rsqWrEn, rsqRdEn, rsqValid, rsqNotFull : sl;
+   signal rsqWrEn : sl;
+   signal rsqRdEn : sl;
+   signal rsqValid : sl;
+   signal rsqNotFull : sl;
    signal rsqDin, rsqDout                        : slv(1 downto 0);
    -- resetTimeOutQ (1b)
-   signal rtqWrEn, rtqRdEn, rtqValid, rtqNotFull : sl;
+   signal rtqWrEn : sl;
+   signal rtqRdEn : sl;
+   signal rtqValid : sl;
+   signal rtqNotFull : sl;
    signal rtqDin, rtqDout                        : slv(0 downto 0);
    -- resetRetryCntQ (1b)
-   signal rcqWrEn, rcqRdEn, rcqValid, rcqNotFull : sl;
+   signal rcqWrEn : sl;
+   signal rcqRdEn : sl;
+   signal rcqValid : sl;
+   signal rcqNotFull : sl;
    signal rcqDin, rcqDout                        : slv(0 downto 0);
    -- timeOutTriggerQ (1b)
-   signal ttqWrEn, ttqRdEn, ttqValid, ttqNotFull : sl;
+   signal ttqWrEn : sl;
+   signal ttqRdEn : sl;
+   signal ttqValid : sl;
+   signal ttqNotFull : sl;
    signal ttqDin, ttqDout                        : slv(0 downto 0);
    -- retryNotificationQ (98b)
-   signal rnqWrEn, rnqRdEn, rnqValid, rnqNotFull : sl;
+   signal rnqWrEn : sl;
+   signal rnqRdEn : sl;
+   signal rnqValid : sl;
+   signal rnqNotFull : sl;
    signal rnqDin, rnqDout                        : slv(97 downto 0);
    -- retryActionQ (98b)
-   signal raqWrEn, raqRdEn, raqValid, raqNotFull : sl;
+   signal raqWrEn : sl;
+   signal raqRdEn : sl;
+   signal raqValid : sl;
+   signal raqNotFull : sl;
    signal raqDin, raqDout                        : slv(97 downto 0);
    -- updateRetryCntQ (4b)
-   signal urqWrEn, urqRdEn, urqValid, urqNotFull : sl;
+   signal urqWrEn : sl;
+   signal urqRdEn : sl;
+   signal urqValid : sl;
+   signal urqNotFull : sl;
    signal urqDin, urqDout                        : slv(3 downto 0);
    -- prepareRetryRespQ (4b)
-   signal prqWrEn, prqRdEn, prqValid, prqNotFull : sl;
+   signal prqWrEn : sl;
+   signal prqRdEn : sl;
+   signal prqValid : sl;
+   signal prqNotFull : sl;
    signal prqDin, prqDout                        : slv(3 downto 0);
 
    signal fifoClr : sl;
@@ -412,12 +445,26 @@ begin
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => rrqWrEn, din => rrqDin,
-         not_full => rrqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => rrqRdEn, dout => rrqDout, valid => rrqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rrqWrEn,
+         din => rrqDin,
+         not_full => rrqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => rrqRdEn,
+         dout => rrqDout,
+         valid => rrqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_TimeOutNotificationQ : entity surf.Fifo
       generic map (
@@ -430,12 +477,26 @@ begin
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => tnqClr, wr_clk => clk, wr_en => tnqWrEn, din => tnqDin,
-         not_full => tnqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => tnqRdEn, dout => tnqDout, valid => tnqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => tnqClr,
+         wr_clk => clk,
+         wr_en => tnqWrEn,
+         din => tnqDin,
+         not_full => tnqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => tnqRdEn,
+         dout => tnqDout,
+         valid => tnqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_RetryReqQ : entity surf.Fifo
       generic map (
@@ -448,12 +509,26 @@ begin
          DATA_WIDTH_G    => 97,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => xrqWrEn, din => xrqDin,
-         not_full => xrqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => xrqRdEn, dout => xrqDout, valid => xrqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => xrqWrEn,
+         din => xrqDin,
+         not_full => xrqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => xrqRdEn,
+         dout => xrqDout,
+         valid => xrqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_RetryRespQ : entity surf.Fifo
       generic map (
@@ -466,12 +541,26 @@ begin
          DATA_WIDTH_G    => 2,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => rsqWrEn, din => rsqDin,
-         not_full => rsqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => rsqRdEn, dout => rsqDout, valid => rsqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rsqWrEn,
+         din => rsqDin,
+         not_full => rsqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => rsqRdEn,
+         dout => rsqDout,
+         valid => rsqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_ResetTimeOutQ : entity surf.Fifo
       generic map (
@@ -484,12 +573,26 @@ begin
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => rtqWrEn, din => rtqDin,
-         not_full => rtqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => rtqRdEn, dout => rtqDout, valid => rtqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rtqWrEn,
+         din => rtqDin,
+         not_full => rtqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => rtqRdEn,
+         dout => rtqDout,
+         valid => rtqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_ResetRetryCntQ : entity surf.Fifo
       generic map (
@@ -502,12 +605,26 @@ begin
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => rcqWrEn, din => rcqDin,
-         not_full => rcqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => rcqRdEn, dout => rcqDout, valid => rcqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rcqWrEn,
+         din => rcqDin,
+         not_full => rcqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => rcqRdEn,
+         dout => rcqDout,
+         valid => rcqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_TimeOutTriggerQ : entity surf.Fifo
       generic map (
@@ -520,12 +637,26 @@ begin
          DATA_WIDTH_G    => 1,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => ttqWrEn, din => ttqDin,
-         not_full => ttqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => ttqRdEn, dout => ttqDout, valid => ttqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => ttqWrEn,
+         din => ttqDin,
+         not_full => ttqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => ttqRdEn,
+         dout => ttqDout,
+         valid => ttqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_RetryNotificationQ : entity surf.Fifo
       generic map (
@@ -538,12 +669,26 @@ begin
          DATA_WIDTH_G    => 98,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => rnqWrEn, din => rnqDin,
-         not_full => rnqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => rnqRdEn, dout => rnqDout, valid => rnqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rnqWrEn,
+         din => rnqDin,
+         not_full => rnqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => rnqRdEn,
+         dout => rnqDout,
+         valid => rnqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_RetryActionQ : entity surf.Fifo
       generic map (
@@ -556,12 +701,26 @@ begin
          DATA_WIDTH_G    => 98,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => raqWrEn, din => raqDin,
-         not_full => raqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => raqRdEn, dout => raqDout, valid => raqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => raqWrEn,
+         din => raqDin,
+         not_full => raqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => raqRdEn,
+         dout => raqDout,
+         valid => raqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_UpdateRetryCntQ : entity surf.Fifo
       generic map (
@@ -574,12 +733,26 @@ begin
          DATA_WIDTH_G    => 4,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => urqWrEn, din => urqDin,
-         not_full => urqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => urqRdEn, dout => urqDout, valid => urqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => urqWrEn,
+         din => urqDin,
+         not_full => urqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => urqRdEn,
+         dout => urqDout,
+         valid => urqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_PrepareRetryRespQ : entity surf.Fifo
       generic map (
@@ -592,12 +765,26 @@ begin
          DATA_WIDTH_G    => 4,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoClr, wr_clk => clk, wr_en => prqWrEn, din => prqDin,
-         not_full => prqNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => prqRdEn, dout => prqDout, valid => prqValid,
-         underflow => open, prog_empty => open, almost_empty => open,
-         empty => open, rd_data_count => open);
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => prqWrEn,
+         din => prqDin,
+         not_full => prqNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk => clk,
+         rd_en => prqRdEn,
+         dout => prqDout,
+         valid => prqValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    ---------------------------------------------------------------------------
    -- Combinatorial process
@@ -611,25 +798,25 @@ begin
                    rnqValid, rnqDout, rnqNotFull, raqValid, raqDout, raqNotFull,
                    urqValid, urqDout, urqNotFull, prqValid, prqDout, prqNotFull,
                    tnqNotFull, rsqNotFull) is
-      variable v          : RegType;
+      variable v : RegType;
       -- recvRetryReq
-      variable enqNotif   : boolean;
+      variable enqNotif : boolean;
       -- handleNotified
-      variable hasTimeOut : boolean;
-      variable hasRetry   : boolean;
+      variable hasTimeOut   : boolean;
+      variable hasRetry     : boolean;
       variable timeoutMaybe : slv(97 downto 0);
       -- handleRetryAction
-      variable reason     : slv(2 downto 0);
-      variable updCntDin  : slv(3 downto 0);
+      variable reason    : slv(2 downto 0);
+      variable updCntDin : slv(3 downto 0);
       -- handleRetryCntUpdate
-      variable hRetryErr  : sl;
-      variable exceed     : boolean;
-      variable nextCtrl   : RetryCntrlStateType;
+      variable hRetryErr : sl;
+      variable exceed    : boolean;
+      variable nextCtrl  : RetryCntrlStateType;
       -- handle FSM
-      variable rnrTimerV    : slv(4 downto 0);
-      variable startPsnV    : slv(23 downto 0);
-      variable retryStartV  : slv(23 downto 0);
-      variable modHead      : slv(678 downto 0);
+      variable rnrTimerV   : slv(4 downto 0);
+      variable startPsnV   : slv(23 downto 0);
+      variable retryStartV : slv(23 downto 0);
+      variable modHead     : slv(678 downto 0);
    begin
       v := r;
 

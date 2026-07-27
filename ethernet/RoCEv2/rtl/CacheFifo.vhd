@@ -66,18 +66,18 @@ entity CacheFifoRead is
       MEM_TYPE_G        : string                 := "distributed");
    port (
       clk             : in  sl;
-      rst             : in  sl;                      -- active-high synchronous
-      pmtu            : in  slv(2 downto 0);         -- PMTU enum (1..5); feeds firstStageFunc
+      rst             : in  sl;         -- active-high synchronous
+      pmtu            : in  slv(2 downto 0);  -- PMTU enum (1..5); feeds firstStageFunc
       -- push (insert) method : enq ReadCacheItem
       pushEn          : in  sl;
       pushData        : in  slv(175 downto 0);
-      pushReady       : out sl;                      -- = insertQ.not_full
+      pushReady       : out sl;         -- = insertQ.not_full
       -- clear method
       clearEn         : in  sl;
       -- searchReq method : enq ReadCacheItem to search for
       searchReqEn     : in  sl;
       searchReqData   : in  slv(175 downto 0);
-      searchReqReady  : out sl;                      -- = searchReqQ.not_full
+      searchReqReady  : out sl;         -- = searchReqQ.not_full
       -- searchResp method : Maybe#(ReadCacheItem) result (valid tag = MSB)
       searchRespValid : out sl;
       searchRespData  : out slv(176 downto 0);
@@ -86,21 +86,21 @@ end entity CacheFifoRead;
 
 architecture rtl of CacheFifoRead is
 
-   constant QSZ_C      : positive := 16;            -- MAX_QP_RD_ATOM
-   constant CNT_W_C    : positive := 4;             -- TLog(QSZ)
-   constant ITEM_W_C   : positive := 176;           -- ReadCacheItem
-   constant SEARCH_W_C : positive := 358;           -- Tuple6 searchType
-   constant CMP_W_C    : positive := 234;           -- Tuple4 cmpResultType
+   constant QSZ_C      : positive := 16;           -- MAX_QP_RD_ATOM
+   constant CNT_W_C    : positive := 4;            -- TLog(QSZ)
+   constant ITEM_W_C   : positive := 176;          -- ReadCacheItem
+   constant SEARCH_W_C : positive := 358;          -- Tuple6 searchType
+   constant CMP_W_C    : positive := 234;          -- Tuple4 cmpResultType
    constant SD_W_C     : positive := 1 + SEARCH_W_C;  -- 359 : Tuple2(Bool, searchType)
-   constant CR_W_C     : positive := 1 + CMP_W_C;     -- 235 : Maybe(cmpResultType)
+   constant CR_W_C     : positive := 1 + CMP_W_C;  -- 235 : Maybe(cmpResultType)
    constant SR_W_C     : positive := 1 + ITEM_W_C;    -- 177 : Maybe(anytype)
 
    -- Array signal types (one element per lane)
    type SlVecType is array (0 to QSZ_C-1) of sl;
    type ItemArray is array (0 to QSZ_C-1) of slv(ITEM_W_C-1 downto 0);
-   type SdArray   is array (0 to QSZ_C-1) of slv(SD_W_C-1 downto 0);
-   type CrArray   is array (0 to QSZ_C-1) of slv(CR_W_C-1 downto 0);
-   type SrArray   is array (0 to QSZ_C-1) of slv(SR_W_C-1 downto 0);
+   type SdArray is array (0 to QSZ_C-1) of slv(SD_W_C-1 downto 0);
+   type CrArray is array (0 to QSZ_C-1) of slv(CR_W_C-1 downto 0);
+   type SrArray is array (0 to QSZ_C-1) of slv(SR_W_C-1 downto 0);
 
    -- psnInRangeExclusive (Utils.bsv:386) ; PSN width 24, msb = bit 23
    function f_psnInRange (psn, psnStart, psnEnd : slv(23 downto 0)) return sl is
@@ -109,10 +109,10 @@ architecture rtl of CacheFifoRead is
       psnGtStart := toSl(unsigned(psnStart) < unsigned(psn));
       psnLtEnd   := toSl(unsigned(psn) < unsigned(psnEnd));
       if (psnStart(23) = psnEnd(23)) then
-         result := psnGtStart and psnLtEnd;                       -- no wrap
+         result := psnGtStart and psnLtEnd;                    -- no wrap
       else
          result := (psnGtStart and toSl(psnStart(23) = psn(23))) or
-                   (psnLtEnd   and toSl(psn(23) = psnEnd(23)));   -- wrapped
+                   (psnLtEnd and toSl(psn(23) = psnEnd(23)));  -- wrapped
       end if;
       return result;
    end function;
@@ -122,7 +122,7 @@ architecture rtl of CacheFifoRead is
    --   ReadCacheItem layout: startPSN[175:152] endPSN[151:128] reth[127:0]
    --                         reth: va[127:64] rkey[63:32] dlen[31:0]
    function f_firstRead (item4Search, itemInQ : slv(ITEM_W_C-1 downto 0);
-                         pmtuI : slv(2 downto 0)) return slv is
+                         pmtuI                : slv(2 downto 0)) return slv is
       variable psnStartExact, psnEndExact, keyMatch : sl;
    begin
       psnStartExact := toSl(item4Search(175 downto 152) = itemInQ(175 downto 152));
@@ -135,18 +135,18 @@ architecture rtl of CacheFifoRead is
    -- secondStageFunc = compareReadCacheItem  (DupReadAtomicCache.bsv:576)
    --   incl. computeReadEndAddrAndCompare (bsv:17-122) specialised by pmtu shift
    function f_secondRead (searchData : slv(SEARCH_W_C-1 downto 0)) return slv is
-      variable pmtuV                                   : slv(2 downto 0);
-      variable psnStartExact, psnEndExact, keyMatch    : sl;
-      variable dup, orig                               : slv(ITEM_W_C-1 downto 0);
-      variable dupStartPSN, dupEndPSN                  : slv(23 downto 0);
-      variable origStartPSN, origEndPSN                : slv(23 downto 0);
-      variable dupVaHigh, oVaHigh, dupVaLow, oVaLow    : slv(31 downto 0);
-      variable dupDlen, origDlen                       : slv(31 downto 0);
-      variable addrHighHalfMatch, addrLowHalfMatch     : sl;
-      variable readLenMatch, psnStartRange, psnEndRange: sl;
-      variable dupLastPkt, origLastPkt                 : slv(24 downto 0);
-      variable s                                       : integer range 8 to 12;
-      variable cmpParts                                : slv(7 downto 0);
+      variable pmtuV                                    : slv(2 downto 0);
+      variable psnStartExact, psnEndExact, keyMatch     : sl;
+      variable dup, orig                                : slv(ITEM_W_C-1 downto 0);
+      variable dupStartPsn, dupEndPsn                   : slv(23 downto 0);
+      variable origStartPsn, origEndPsn                 : slv(23 downto 0);
+      variable dupVaHigh, oVaHigh, dupVaLow, oVaLow     : slv(31 downto 0);
+      variable dupDlen, origDlen                        : slv(31 downto 0);
+      variable addrHighHalfMatch, addrLowHalfMatch      : sl;
+      variable readLenMatch, psnStartRange, psnEndRange : sl;
+      variable dupLastPkt, origLastPkt                  : slv(24 downto 0);
+      variable s                                        : integer range 8 to 12;
+      variable cmpParts                                 : slv(7 downto 0);
    begin
       pmtuV         := searchData(357 downto 355);
       psnStartExact := searchData(354);
@@ -155,10 +155,10 @@ architecture rtl of CacheFifoRead is
       dup           := searchData(351 downto 176);
       orig          := searchData(175 downto 0);
 
-      dupStartPSN  := dup(175 downto 152);  dupEndPSN  := dup(151 downto 128);
-      origStartPSN := orig(175 downto 152); origEndPSN := orig(151 downto 128);
-      dupVaHigh := dup(127 downto 96);  dupVaLow := dup(95 downto 64);  dupDlen  := dup(31 downto 0);
-      oVaHigh   := orig(127 downto 96); oVaLow   := orig(95 downto 64); origDlen := orig(31 downto 0);
+      dupStartPsn  := dup(175 downto 152); dupEndPsn := dup(151 downto 128);
+      origStartPsn := orig(175 downto 152); origEndPsn := orig(151 downto 128);
+      dupVaHigh    := dup(127 downto 96); dupVaLow := dup(95 downto 64); dupDlen := dup(31 downto 0);
+      oVaHigh      := orig(127 downto 96); oVaLow := orig(95 downto 64); origDlen := orig(31 downto 0);
 
       addrHighHalfMatch := toSl(dupVaHigh = oVaHigh);
 
@@ -173,13 +173,13 @@ architecture rtl of CacheFifoRead is
       end case;
 
       addrLowHalfMatch := toSl(dupVaLow(s-1 downto 0) = oVaLow(s-1 downto 0)) and
-                          toSl(dupDlen(s-1 downto 0)  = origDlen(s-1 downto 0));
-      readLenMatch     := toSl(unsigned(origDlen(31 downto s)) >= unsigned(dupDlen(31 downto s)));
-      dupLastPkt  := slv(resize(unsigned(dupVaLow(31 downto s)) + unsigned(dupDlen(31 downto s)), 25));
-      origLastPkt := slv(resize(unsigned(oVaLow(31 downto s)) + unsigned(origDlen(31 downto s)), 25));
+                          toSl(dupDlen(s-1 downto 0) = origDlen(s-1 downto 0));
+      readLenMatch := toSl(unsigned(origDlen(31 downto s)) >= unsigned(dupDlen(31 downto s)));
+      dupLastPkt   := slv(resize(unsigned(dupVaLow(31 downto s)) + unsigned(dupDlen(31 downto s)), 25));
+      origLastPkt  := slv(resize(unsigned(oVaLow(31 downto s)) + unsigned(origDlen(31 downto s)), 25));
 
-      psnStartRange := f_psnInRange(dupStartPSN, origStartPSN, origEndPSN);
-      psnEndRange   := f_psnInRange(dupEndPSN,   origStartPSN, origEndPSN);
+      psnStartRange := f_psnInRange(dupStartPsn, origStartPsn, origEndPsn);
+      psnEndRange   := f_psnInRange(dupEndPsn, origStartPsn, origEndPsn);
 
       -- DupReadCmpParts (8 Bools, first-field-at-MSB)
       cmpParts := addrHighHalfMatch & addrLowHalfMatch & keyMatch &
@@ -190,18 +190,18 @@ architecture rtl of CacheFifoRead is
 
    -- thirdStageFunc = checkReadCacheItemCmpResult  (DupReadAtomicCache.bsv:617)
    function f_thirdRead (cmpResult : slv(CMP_W_C-1 downto 0)) return slv is
-      variable cmpParts             : slv(7 downto 0);
-      variable dupLastPkt, origLast : slv(24 downto 0);
-      variable orig                 : slv(ITEM_W_C-1 downto 0);
+      variable cmpParts                         : slv(7 downto 0);
+      variable dupLastPkt, origLast             : slv(24 downto 0);
+      variable orig                             : slv(ITEM_W_C-1 downto 0);
       variable addrLenMatch, psnMatch, matchAll : sl;
    begin
-      cmpParts   := cmpResult(233 downto 226);
-      dupLastPkt := cmpResult(225 downto 201);
-      origLast   := cmpResult(200 downto 176);
-      orig       := cmpResult(175 downto 0);
+      cmpParts     := cmpResult(233 downto 226);
+      dupLastPkt   := cmpResult(225 downto 201);
+      origLast     := cmpResult(200 downto 176);
+      orig         := cmpResult(175 downto 0);
       addrLenMatch := cmpParts(7) and cmpParts(6) and cmpParts(0) and toSl(dupLastPkt = origLast);
       psnMatch     := (cmpParts(4) or cmpParts(3)) and (cmpParts(2) or cmpParts(1));
-      matchAll     := addrLenMatch and cmpParts(5) and psnMatch;   -- cmpParts(5)=keyMatch
+      matchAll     := addrLenMatch and cmpParts(5) and psnMatch;  -- cmpParts(5)=keyMatch
       -- Maybe(ReadCacheItem): valid tag = MSB
       return matchAll & orig;
    end function;
@@ -213,7 +213,7 @@ architecture rtl of CacheFifoRead is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dataVec   => (others => (others => '0')),   -- mkRegU; init 0 (don't-care, gated by tagVec)
+      dataVec   => (others => (others => '0')),  -- mkRegU; init 0 (don't-care, gated by tagVec)
       tagVec    => (others => '0'),
       enqPtrReg => (others => '0'));
 
@@ -224,29 +224,42 @@ architecture rtl of CacheFifoRead is
    signal fifosRst    : sl;
 
    -- insertQ
-   signal insertNotFull, insertValid, insertRdEn : sl;
-   signal insertDout                             : slv(ITEM_W_C-1 downto 0);
+   signal insertNotFull           : sl;
+   signal insertValid           : sl;
+   signal insertRdEn           : sl;
+   signal insertDout                                       : slv(ITEM_W_C-1 downto 0);
    -- searchReqQ
-   signal searchReqNotFull, searchReqValid, forkPipeInRdEn : sl;
+   signal searchReqNotFull : sl;
+   signal searchReqValid : sl;
+   signal forkPipeInRdEn : sl;
    signal searchReqDout                                    : slv(ITEM_W_C-1 downto 0);
    -- BinaryTreeFork outputs (per lane)
-   signal forkValid : SlVecType;
-   signal forkDout  : ItemArray;
-   signal forkRdEn  : SlVecType;
+   signal forkValid                                        : SlVecType;
+   signal forkDout                                         : ItemArray;
+   signal forkRdEn                                         : SlVecType;
    -- searchDataVec FIFOs
-   signal sdWrEn, sdNotFull, sdRdEn, sdValid : SlVecType;
-   signal sdDin, sdDout                      : SdArray;
+   signal sdWrEn               : SlVecType;
+   signal sdNotFull               : SlVecType;
+   signal sdRdEn               : SlVecType;
+   signal sdValid               : SlVecType;
+   signal sdDin, sdDout                                    : SdArray;
    -- cmpResultVec FIFOs
-   signal crWrEn, crNotFull, crRdEn, crValid : SlVecType;
-   signal crDin, crDout                      : CrArray;
+   signal crWrEn               : SlVecType;
+   signal crNotFull               : SlVecType;
+   signal crRdEn               : SlVecType;
+   signal crValid               : SlVecType;
+   signal crDin, crDout                                    : CrArray;
    -- searchResultVec FIFOs
-   signal srWrEn, srNotFull, srRdEn, srValid : SlVecType;
-   signal srDin, srDout                      : SrArray;
+   signal srWrEn               : SlVecType;
+   signal srNotFull               : SlVecType;
+   signal srRdEn               : SlVecType;
+   signal srValid               : SlVecType;
+   signal srDin, srDout                                    : SrArray;
 
 begin
 
-   clearActive    <= clearEn;                 -- CReg pulse reduces to combinational clear
-   fifosRst       <= rst or clearActive;      -- BSV FIFOF.clear modelled as level rst
+   clearActive    <= clearEn;  -- CReg pulse reduces to combinational clear
+   fifosRst       <= rst or clearActive;  -- BSV FIFOF.clear modelled as level rst
    pushReady      <= insertNotFull;
    searchReqReady <= searchReqNotFull;
 
@@ -311,22 +324,54 @@ begin
          pipeInValid    => searchReqValid,
          pipeInDout     => searchReqDout,
          pipeInRdEn     => forkPipeInRdEn,
-         pipeOut0Valid  => forkValid(0),  pipeOut0Dout  => forkDout(0),  pipeOut0RdEn  => forkRdEn(0),
-         pipeOut1Valid  => forkValid(1),  pipeOut1Dout  => forkDout(1),  pipeOut1RdEn  => forkRdEn(1),
-         pipeOut2Valid  => forkValid(2),  pipeOut2Dout  => forkDout(2),  pipeOut2RdEn  => forkRdEn(2),
-         pipeOut3Valid  => forkValid(3),  pipeOut3Dout  => forkDout(3),  pipeOut3RdEn  => forkRdEn(3),
-         pipeOut4Valid  => forkValid(4),  pipeOut4Dout  => forkDout(4),  pipeOut4RdEn  => forkRdEn(4),
-         pipeOut5Valid  => forkValid(5),  pipeOut5Dout  => forkDout(5),  pipeOut5RdEn  => forkRdEn(5),
-         pipeOut6Valid  => forkValid(6),  pipeOut6Dout  => forkDout(6),  pipeOut6RdEn  => forkRdEn(6),
-         pipeOut7Valid  => forkValid(7),  pipeOut7Dout  => forkDout(7),  pipeOut7RdEn  => forkRdEn(7),
-         pipeOut8Valid  => forkValid(8),  pipeOut8Dout  => forkDout(8),  pipeOut8RdEn  => forkRdEn(8),
-         pipeOut9Valid  => forkValid(9),  pipeOut9Dout  => forkDout(9),  pipeOut9RdEn  => forkRdEn(9),
-         pipeOut10Valid => forkValid(10), pipeOut10Dout => forkDout(10), pipeOut10RdEn => forkRdEn(10),
-         pipeOut11Valid => forkValid(11), pipeOut11Dout => forkDout(11), pipeOut11RdEn => forkRdEn(11),
-         pipeOut12Valid => forkValid(12), pipeOut12Dout => forkDout(12), pipeOut12RdEn => forkRdEn(12),
-         pipeOut13Valid => forkValid(13), pipeOut13Dout => forkDout(13), pipeOut13RdEn => forkRdEn(13),
-         pipeOut14Valid => forkValid(14), pipeOut14Dout => forkDout(14), pipeOut14RdEn => forkRdEn(14),
-         pipeOut15Valid => forkValid(15), pipeOut15Dout => forkDout(15), pipeOut15RdEn => forkRdEn(15));
+         pipeOut0Valid  => forkValid(0),
+         pipeOut0Dout => forkDout(0),
+         pipeOut0RdEn => forkRdEn(0),
+         pipeOut1Valid  => forkValid(1),
+         pipeOut1Dout => forkDout(1),
+         pipeOut1RdEn => forkRdEn(1),
+         pipeOut2Valid  => forkValid(2),
+         pipeOut2Dout => forkDout(2),
+         pipeOut2RdEn => forkRdEn(2),
+         pipeOut3Valid  => forkValid(3),
+         pipeOut3Dout => forkDout(3),
+         pipeOut3RdEn => forkRdEn(3),
+         pipeOut4Valid  => forkValid(4),
+         pipeOut4Dout => forkDout(4),
+         pipeOut4RdEn => forkRdEn(4),
+         pipeOut5Valid  => forkValid(5),
+         pipeOut5Dout => forkDout(5),
+         pipeOut5RdEn => forkRdEn(5),
+         pipeOut6Valid  => forkValid(6),
+         pipeOut6Dout => forkDout(6),
+         pipeOut6RdEn => forkRdEn(6),
+         pipeOut7Valid  => forkValid(7),
+         pipeOut7Dout => forkDout(7),
+         pipeOut7RdEn => forkRdEn(7),
+         pipeOut8Valid  => forkValid(8),
+         pipeOut8Dout => forkDout(8),
+         pipeOut8RdEn => forkRdEn(8),
+         pipeOut9Valid  => forkValid(9),
+         pipeOut9Dout => forkDout(9),
+         pipeOut9RdEn => forkRdEn(9),
+         pipeOut10Valid => forkValid(10),
+         pipeOut10Dout => forkDout(10),
+         pipeOut10RdEn => forkRdEn(10),
+         pipeOut11Valid => forkValid(11),
+         pipeOut11Dout => forkDout(11),
+         pipeOut11RdEn => forkRdEn(11),
+         pipeOut12Valid => forkValid(12),
+         pipeOut12Dout => forkDout(12),
+         pipeOut12RdEn => forkRdEn(12),
+         pipeOut13Valid => forkValid(13),
+         pipeOut13Dout => forkDout(13),
+         pipeOut13RdEn => forkRdEn(13),
+         pipeOut14Valid => forkValid(14),
+         pipeOut14Dout => forkDout(14),
+         pipeOut14RdEn => forkRdEn(14),
+         pipeOut15Valid => forkValid(15),
+         pipeOut15Dout => forkDout(15),
+         pipeOut15RdEn => forkRdEn(15));
 
    ----------------------------------------------------------------------------
    -- Per-lane pipeline FIFOs (searchData / cmpResult / searchResult)
@@ -411,22 +456,54 @@ begin
          clk               => clk,
          rst               => rst,
          clearAll          => clearActive,
-         inputVec_0_valid  => srValid(0),  inputVec_0_dout  => srDout(0),  inputVec_0_rdEn  => srRdEn(0),
-         inputVec_1_valid  => srValid(1),  inputVec_1_dout  => srDout(1),  inputVec_1_rdEn  => srRdEn(1),
-         inputVec_2_valid  => srValid(2),  inputVec_2_dout  => srDout(2),  inputVec_2_rdEn  => srRdEn(2),
-         inputVec_3_valid  => srValid(3),  inputVec_3_dout  => srDout(3),  inputVec_3_rdEn  => srRdEn(3),
-         inputVec_4_valid  => srValid(4),  inputVec_4_dout  => srDout(4),  inputVec_4_rdEn  => srRdEn(4),
-         inputVec_5_valid  => srValid(5),  inputVec_5_dout  => srDout(5),  inputVec_5_rdEn  => srRdEn(5),
-         inputVec_6_valid  => srValid(6),  inputVec_6_dout  => srDout(6),  inputVec_6_rdEn  => srRdEn(6),
-         inputVec_7_valid  => srValid(7),  inputVec_7_dout  => srDout(7),  inputVec_7_rdEn  => srRdEn(7),
-         inputVec_8_valid  => srValid(8),  inputVec_8_dout  => srDout(8),  inputVec_8_rdEn  => srRdEn(8),
-         inputVec_9_valid  => srValid(9),  inputVec_9_dout  => srDout(9),  inputVec_9_rdEn  => srRdEn(9),
-         inputVec_10_valid => srValid(10), inputVec_10_dout => srDout(10), inputVec_10_rdEn => srRdEn(10),
-         inputVec_11_valid => srValid(11), inputVec_11_dout => srDout(11), inputVec_11_rdEn => srRdEn(11),
-         inputVec_12_valid => srValid(12), inputVec_12_dout => srDout(12), inputVec_12_rdEn => srRdEn(12),
-         inputVec_13_valid => srValid(13), inputVec_13_dout => srDout(13), inputVec_13_rdEn => srRdEn(13),
-         inputVec_14_valid => srValid(14), inputVec_14_dout => srDout(14), inputVec_14_rdEn => srRdEn(14),
-         inputVec_15_valid => srValid(15), inputVec_15_dout => srDout(15), inputVec_15_rdEn => srRdEn(15),
+         inputVec_0_valid  => srValid(0),
+         inputVec_0_dout => srDout(0),
+         inputVec_0_rdEn => srRdEn(0),
+         inputVec_1_valid  => srValid(1),
+         inputVec_1_dout => srDout(1),
+         inputVec_1_rdEn => srRdEn(1),
+         inputVec_2_valid  => srValid(2),
+         inputVec_2_dout => srDout(2),
+         inputVec_2_rdEn => srRdEn(2),
+         inputVec_3_valid  => srValid(3),
+         inputVec_3_dout => srDout(3),
+         inputVec_3_rdEn => srRdEn(3),
+         inputVec_4_valid  => srValid(4),
+         inputVec_4_dout => srDout(4),
+         inputVec_4_rdEn => srRdEn(4),
+         inputVec_5_valid  => srValid(5),
+         inputVec_5_dout => srDout(5),
+         inputVec_5_rdEn => srRdEn(5),
+         inputVec_6_valid  => srValid(6),
+         inputVec_6_dout => srDout(6),
+         inputVec_6_rdEn => srRdEn(6),
+         inputVec_7_valid  => srValid(7),
+         inputVec_7_dout => srDout(7),
+         inputVec_7_rdEn => srRdEn(7),
+         inputVec_8_valid  => srValid(8),
+         inputVec_8_dout => srDout(8),
+         inputVec_8_rdEn => srRdEn(8),
+         inputVec_9_valid  => srValid(9),
+         inputVec_9_dout => srDout(9),
+         inputVec_9_rdEn => srRdEn(9),
+         inputVec_10_valid => srValid(10),
+         inputVec_10_dout => srDout(10),
+         inputVec_10_rdEn => srRdEn(10),
+         inputVec_11_valid => srValid(11),
+         inputVec_11_dout => srDout(11),
+         inputVec_11_rdEn => srRdEn(11),
+         inputVec_12_valid => srValid(12),
+         inputVec_12_dout => srDout(12),
+         inputVec_12_rdEn => srRdEn(12),
+         inputVec_13_valid => srValid(13),
+         inputVec_13_dout => srDout(13),
+         inputVec_13_rdEn => srRdEn(13),
+         inputVec_14_valid => srValid(14),
+         inputVec_14_dout => srDout(14),
+         inputVec_14_rdEn => srRdEn(14),
+         inputVec_15_valid => srValid(15),
+         inputVec_15_dout => srDout(15),
+         inputVec_15_rdEn => srRdEn(15),
          resultValid       => searchRespValid,
          resultDout        => searchRespData,
          resultRdEn        => searchRespRdEn);
@@ -450,8 +527,8 @@ begin
       forkRdEn   <= (others => '0');
       sdWrEn     <= (others => '0'); sdRdEn <= (others => '0');
       crWrEn     <= (others => '0'); crRdEn <= (others => '0');
-      srWrEn     <= (others => '0');   -- srRdEn is driven by U_SearchResult (RecursiveSearch);
-                                       -- the comb must NOT also drive it (would be a 2nd driver -> 'X').
+      srWrEn     <= (others => '0');  -- srRdEn is driven by U_SearchResult (RecursiveSearch);
+      -- the comb must NOT also drive it (would be a 2nd driver -> 'X').
       sdDin      <= (others => (others => '0'));
       crDin      <= (others => (others => '0'));
       srDin      <= (others => (others => '0'));
@@ -461,15 +538,15 @@ begin
          for i in 0 to QSZ_C-1 loop
             -- firstSearchStage[i]
             if (forkValid(i) = '1') and (sdNotFull(i) = '1') then
-               sdDin(i)  <= r.tagVec(i) & f_firstRead(forkDout(i), r.dataVec(i), pmtu);
-               sdWrEn(i) <= '1';
+               sdDin(i)    <= r.tagVec(i) & f_firstRead(forkDout(i), r.dataVec(i), pmtu);
+               sdWrEn(i)   <= '1';
                forkRdEn(i) <= '1';
             end if;
             -- secondSearchStage[i]
             if (sdValid(i) = '1') and (crNotFull(i) = '1') then
-               tagV   := sdDout(i)(SD_W_C-1);
-               sDataV := sdDout(i)(SD_W_C-2 downto 0);
-               crDin(i)  <= tagV & f_secondRead(sDataV);    -- Maybe: valid = tag
+               tagV      := sdDout(i)(SD_W_C-1);
+               sDataV    := sdDout(i)(SD_W_C-2 downto 0);
+               crDin(i)  <= tagV & f_secondRead(sDataV);  -- Maybe: valid = tag
                crWrEn(i) <= '1';
                sdRdEn(i) <= '1';
             end if;
@@ -479,7 +556,7 @@ begin
                if (validBit = '1') then
                   srDin(i) <= f_thirdRead(crDout(i)(CR_W_C-2 downto 0));
                else
-                  srDin(i) <= (others => '0');             -- Invalid
+                  srDin(i) <= (others => '0');            -- Invalid
                end if;
                srWrEn(i) <= '1';
                crRdEn(i) <= '1';
@@ -488,7 +565,7 @@ begin
 
          -- insert : circular overwrite ring (no full check)
          if (insertValid = '1') then
-            enqIdx := to_integer(unsigned(r.enqPtrReg));
+            enqIdx            := to_integer(unsigned(r.enqPtrReg));
             v.dataVec(enqIdx) := insertDout;
             v.tagVec(enqIdx)  := '1';
             v.enqPtrReg       := slv(unsigned(r.enqPtrReg) + 1);
@@ -499,7 +576,7 @@ begin
          -- clearAll : clear tags + ptr ; all FIFOs cleared via fifosRst (level)
          v.tagVec    := (others => '0');
          v.enqPtrReg := (others => '0');
-         -- dataVec left unchanged (only tags cleared)
+      -- dataVec left unchanged (only tags cleared)
       end if;
 
       if (rst = '1') then
@@ -535,7 +612,7 @@ entity CacheFifoAtomic is
       MEM_TYPE_G        : string                 := "distributed");
    port (
       clk             : in  sl;
-      rst             : in  sl;                      -- active-high synchronous
+      rst             : in  sl;         -- active-high synchronous
       -- push (insert) method : enq AtomicCacheItem
       pushEn          : in  sl;
       pushData        : in  slv(316 downto 0);
@@ -556,9 +633,9 @@ architecture rtl of CacheFifoAtomic is
 
    constant QSZ_C      : positive := 16;
    constant CNT_W_C    : positive := 4;
-   constant ITEM_W_C   : positive := 317;           -- AtomicCacheItem
-   constant SEARCH_W_C : positive := 637;           -- Tuple5 searchType
-   constant CMP_W_C    : positive := 324;           -- Tuple2 cmpResultType
+   constant ITEM_W_C   : positive := 317;             -- AtomicCacheItem
+   constant SEARCH_W_C : positive := 637;             -- Tuple5 searchType
+   constant CMP_W_C    : positive := 324;             -- Tuple2 cmpResultType
    constant SD_W_C     : positive := 1 + SEARCH_W_C;  -- 638
    constant CR_W_C     : positive := 1 + CMP_W_C;     -- 325
    constant SR_W_C     : positive := 1 + ITEM_W_C;    -- 318
@@ -567,9 +644,9 @@ architecture rtl of CacheFifoAtomic is
 
    type SlVecType is array (0 to QSZ_C-1) of sl;
    type ItemArray is array (0 to QSZ_C-1) of slv(ITEM_W_C-1 downto 0);
-   type SdArray   is array (0 to QSZ_C-1) of slv(SD_W_C-1 downto 0);
-   type CrArray   is array (0 to QSZ_C-1) of slv(CR_W_C-1 downto 0);
-   type SrArray   is array (0 to QSZ_C-1) of slv(SR_W_C-1 downto 0);
+   type SdArray is array (0 to QSZ_C-1) of slv(SD_W_C-1 downto 0);
+   type CrArray is array (0 to QSZ_C-1) of slv(CR_W_C-1 downto 0);
+   type SrArray is array (0 to QSZ_C-1) of slv(SR_W_C-1 downto 0);
 
    -- AtomicCacheItem layout: atomicPSN[316:293] atomicOpCode[292:288]
    --   atomicEth[287:64] (va[287:224] rkey[223:192] swap[191:128] comp[127:64])
@@ -588,12 +665,12 @@ architecture rtl of CacheFifoAtomic is
 
    -- secondStageFunc = compareAtomicCacheItem  (DupReadAtomicCache.bsv:662)
    function f_secondAtomic (searchData : slv(SEARCH_W_C-1 downto 0)) return slv is
-      variable keyMatch, opCodeMatch, psnMatch         : sl;
-      variable dup, orig                               : slv(ITEM_W_C-1 downto 0);
-      variable dupVa, origVa                           : slv(63 downto 0);
-      variable addrHighPartMatch, addrLowPartMatch     : sl;
-      variable swapMatch, compMatch                    : sl;
-      variable cmpParts                                : slv(6 downto 0);
+      variable keyMatch, opCodeMatch, psnMatch     : sl;
+      variable dup, orig                           : slv(ITEM_W_C-1 downto 0);
+      variable dupVa, origVa                       : slv(63 downto 0);
+      variable addrHighPartMatch, addrLowPartMatch : sl;
+      variable swapMatch, compMatch                : sl;
+      variable cmpParts                            : slv(6 downto 0);
    begin
       keyMatch    := searchData(636);
       opCodeMatch := searchData(635);
@@ -601,7 +678,7 @@ architecture rtl of CacheFifoAtomic is
       dup         := searchData(633 downto 317);
       orig        := searchData(316 downto 0);
 
-      dupVa  := dup(287 downto 224);     -- atomicEth.va
+      dupVa  := dup(287 downto 224);    -- atomicEth.va
       origVa := orig(287 downto 224);
 
       -- cmpHalfAddr(dupVa, origVa) : HALF_ADDR_WIDTH=32
@@ -609,8 +686,8 @@ architecture rtl of CacheFifoAtomic is
       -- FIDELITY: BSV cmpHalfAddr reads addrB for both low halves -> always True
       addrLowPartMatch  := '1';
 
-      swapMatch := toSl(dup(191 downto 128) = orig(191 downto 128));   -- atomicEth.swap
-      compMatch := toSl(dup(127 downto 64)  = orig(127 downto 64));    -- atomicEth.comp
+      swapMatch := toSl(dup(191 downto 128) = orig(191 downto 128));  -- atomicEth.swap
+      compMatch := toSl(dup(127 downto 64) = orig(127 downto 64));  -- atomicEth.comp
 
       -- DupAtomicCmpParts (7 Bools, first-field-at-MSB)
       cmpParts := addrHighPartMatch & addrLowPartMatch & compMatch &
@@ -621,9 +698,9 @@ architecture rtl of CacheFifoAtomic is
 
    -- thirdStageFunc = checkAtomicCacheItemCmpResult  (DupReadAtomicCache.bsv:697)
    function f_thirdAtomic (cmpResult : slv(CMP_W_C-1 downto 0)) return slv is
-      variable cmpParts     : slv(6 downto 0);
-      variable orig         : slv(ITEM_W_C-1 downto 0);
-      variable origOpCode   : slv(4 downto 0);
+      variable cmpParts               : slv(6 downto 0);
+      variable orig                   : slv(ITEM_W_C-1 downto 0);
+      variable origOpCode             : slv(4 downto 0);
       variable payloadMatch, allMatch : sl;
    begin
       cmpParts   := cmpResult(323 downto 317);
@@ -632,8 +709,8 @@ architecture rtl of CacheFifoAtomic is
       -- cmpParts: addrHighPartMatch(6) addrLowPartMatch(5) compMatch(4)
       --           keyMatch(3) opCodeMatch(2) psnMatch(1) swapMatch(0)
       payloadMatch := ite(origOpCode = COMPARE_SWAP_C,
-                          cmpParts(0) and cmpParts(4),   -- swap && comp
-                          cmpParts(0));                  -- swap
+                          cmpParts(0) and cmpParts(4),  -- swap && comp
+                          cmpParts(0));                 -- swap
       allMatch := cmpParts(6) and cmpParts(5) and cmpParts(3) and
                   payloadMatch and cmpParts(2) and cmpParts(1);
       -- Maybe(AtomicCacheItem): valid tag = MSB
@@ -647,7 +724,7 @@ architecture rtl of CacheFifoAtomic is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      dataVec   => (others => (others => '0')),   -- mkRegU; init 0 (don't-care, gated by tagVec)
+      dataVec   => (others => (others => '0')),  -- mkRegU; init 0 (don't-care, gated by tagVec)
       tagVec    => (others => '0'),
       enqPtrReg => (others => '0'));
 
@@ -657,19 +734,32 @@ architecture rtl of CacheFifoAtomic is
    signal clearActive : sl;
    signal fifosRst    : sl;
 
-   signal insertNotFull, insertValid, insertRdEn : sl;
-   signal insertDout                             : slv(ITEM_W_C-1 downto 0);
-   signal searchReqNotFull, searchReqValid, forkPipeInRdEn : sl;
+   signal insertNotFull           : sl;
+   signal insertValid           : sl;
+   signal insertRdEn           : sl;
+   signal insertDout                                       : slv(ITEM_W_C-1 downto 0);
+   signal searchReqNotFull : sl;
+   signal searchReqValid : sl;
+   signal forkPipeInRdEn : sl;
    signal searchReqDout                                    : slv(ITEM_W_C-1 downto 0);
-   signal forkValid : SlVecType;
-   signal forkDout  : ItemArray;
-   signal forkRdEn  : SlVecType;
-   signal sdWrEn, sdNotFull, sdRdEn, sdValid : SlVecType;
-   signal sdDin, sdDout                      : SdArray;
-   signal crWrEn, crNotFull, crRdEn, crValid : SlVecType;
-   signal crDin, crDout                      : CrArray;
-   signal srWrEn, srNotFull, srRdEn, srValid : SlVecType;
-   signal srDin, srDout                      : SrArray;
+   signal forkValid                                        : SlVecType;
+   signal forkDout                                         : ItemArray;
+   signal forkRdEn                                         : SlVecType;
+   signal sdWrEn               : SlVecType;
+   signal sdNotFull               : SlVecType;
+   signal sdRdEn               : SlVecType;
+   signal sdValid               : SlVecType;
+   signal sdDin, sdDout                                    : SdArray;
+   signal crWrEn               : SlVecType;
+   signal crNotFull               : SlVecType;
+   signal crRdEn               : SlVecType;
+   signal crValid               : SlVecType;
+   signal crDin, crDout                                    : CrArray;
+   signal srWrEn               : SlVecType;
+   signal srNotFull               : SlVecType;
+   signal srRdEn               : SlVecType;
+   signal srValid               : SlVecType;
+   signal srDin, srDout                                    : SrArray;
 
 begin
 
@@ -733,22 +823,54 @@ begin
          pipeInValid    => searchReqValid,
          pipeInDout     => searchReqDout,
          pipeInRdEn     => forkPipeInRdEn,
-         pipeOut0Valid  => forkValid(0),  pipeOut0Dout  => forkDout(0),  pipeOut0RdEn  => forkRdEn(0),
-         pipeOut1Valid  => forkValid(1),  pipeOut1Dout  => forkDout(1),  pipeOut1RdEn  => forkRdEn(1),
-         pipeOut2Valid  => forkValid(2),  pipeOut2Dout  => forkDout(2),  pipeOut2RdEn  => forkRdEn(2),
-         pipeOut3Valid  => forkValid(3),  pipeOut3Dout  => forkDout(3),  pipeOut3RdEn  => forkRdEn(3),
-         pipeOut4Valid  => forkValid(4),  pipeOut4Dout  => forkDout(4),  pipeOut4RdEn  => forkRdEn(4),
-         pipeOut5Valid  => forkValid(5),  pipeOut5Dout  => forkDout(5),  pipeOut5RdEn  => forkRdEn(5),
-         pipeOut6Valid  => forkValid(6),  pipeOut6Dout  => forkDout(6),  pipeOut6RdEn  => forkRdEn(6),
-         pipeOut7Valid  => forkValid(7),  pipeOut7Dout  => forkDout(7),  pipeOut7RdEn  => forkRdEn(7),
-         pipeOut8Valid  => forkValid(8),  pipeOut8Dout  => forkDout(8),  pipeOut8RdEn  => forkRdEn(8),
-         pipeOut9Valid  => forkValid(9),  pipeOut9Dout  => forkDout(9),  pipeOut9RdEn  => forkRdEn(9),
-         pipeOut10Valid => forkValid(10), pipeOut10Dout => forkDout(10), pipeOut10RdEn => forkRdEn(10),
-         pipeOut11Valid => forkValid(11), pipeOut11Dout => forkDout(11), pipeOut11RdEn => forkRdEn(11),
-         pipeOut12Valid => forkValid(12), pipeOut12Dout => forkDout(12), pipeOut12RdEn => forkRdEn(12),
-         pipeOut13Valid => forkValid(13), pipeOut13Dout => forkDout(13), pipeOut13RdEn => forkRdEn(13),
-         pipeOut14Valid => forkValid(14), pipeOut14Dout => forkDout(14), pipeOut14RdEn => forkRdEn(14),
-         pipeOut15Valid => forkValid(15), pipeOut15Dout => forkDout(15), pipeOut15RdEn => forkRdEn(15));
+         pipeOut0Valid  => forkValid(0),
+         pipeOut0Dout => forkDout(0),
+         pipeOut0RdEn => forkRdEn(0),
+         pipeOut1Valid  => forkValid(1),
+         pipeOut1Dout => forkDout(1),
+         pipeOut1RdEn => forkRdEn(1),
+         pipeOut2Valid  => forkValid(2),
+         pipeOut2Dout => forkDout(2),
+         pipeOut2RdEn => forkRdEn(2),
+         pipeOut3Valid  => forkValid(3),
+         pipeOut3Dout => forkDout(3),
+         pipeOut3RdEn => forkRdEn(3),
+         pipeOut4Valid  => forkValid(4),
+         pipeOut4Dout => forkDout(4),
+         pipeOut4RdEn => forkRdEn(4),
+         pipeOut5Valid  => forkValid(5),
+         pipeOut5Dout => forkDout(5),
+         pipeOut5RdEn => forkRdEn(5),
+         pipeOut6Valid  => forkValid(6),
+         pipeOut6Dout => forkDout(6),
+         pipeOut6RdEn => forkRdEn(6),
+         pipeOut7Valid  => forkValid(7),
+         pipeOut7Dout => forkDout(7),
+         pipeOut7RdEn => forkRdEn(7),
+         pipeOut8Valid  => forkValid(8),
+         pipeOut8Dout => forkDout(8),
+         pipeOut8RdEn => forkRdEn(8),
+         pipeOut9Valid  => forkValid(9),
+         pipeOut9Dout => forkDout(9),
+         pipeOut9RdEn => forkRdEn(9),
+         pipeOut10Valid => forkValid(10),
+         pipeOut10Dout => forkDout(10),
+         pipeOut10RdEn => forkRdEn(10),
+         pipeOut11Valid => forkValid(11),
+         pipeOut11Dout => forkDout(11),
+         pipeOut11RdEn => forkRdEn(11),
+         pipeOut12Valid => forkValid(12),
+         pipeOut12Dout => forkDout(12),
+         pipeOut12RdEn => forkRdEn(12),
+         pipeOut13Valid => forkValid(13),
+         pipeOut13Dout => forkDout(13),
+         pipeOut13RdEn => forkRdEn(13),
+         pipeOut14Valid => forkValid(14),
+         pipeOut14Dout => forkDout(14),
+         pipeOut14RdEn => forkRdEn(14),
+         pipeOut15Valid => forkValid(15),
+         pipeOut15Dout => forkDout(15),
+         pipeOut15RdEn => forkRdEn(15));
 
    GEN_LANE : for i in 0 to QSZ_C-1 generate
 
@@ -827,22 +949,54 @@ begin
          clk               => clk,
          rst               => rst,
          clearAll          => clearActive,
-         inputVec_0_valid  => srValid(0),  inputVec_0_dout  => srDout(0),  inputVec_0_rdEn  => srRdEn(0),
-         inputVec_1_valid  => srValid(1),  inputVec_1_dout  => srDout(1),  inputVec_1_rdEn  => srRdEn(1),
-         inputVec_2_valid  => srValid(2),  inputVec_2_dout  => srDout(2),  inputVec_2_rdEn  => srRdEn(2),
-         inputVec_3_valid  => srValid(3),  inputVec_3_dout  => srDout(3),  inputVec_3_rdEn  => srRdEn(3),
-         inputVec_4_valid  => srValid(4),  inputVec_4_dout  => srDout(4),  inputVec_4_rdEn  => srRdEn(4),
-         inputVec_5_valid  => srValid(5),  inputVec_5_dout  => srDout(5),  inputVec_5_rdEn  => srRdEn(5),
-         inputVec_6_valid  => srValid(6),  inputVec_6_dout  => srDout(6),  inputVec_6_rdEn  => srRdEn(6),
-         inputVec_7_valid  => srValid(7),  inputVec_7_dout  => srDout(7),  inputVec_7_rdEn  => srRdEn(7),
-         inputVec_8_valid  => srValid(8),  inputVec_8_dout  => srDout(8),  inputVec_8_rdEn  => srRdEn(8),
-         inputVec_9_valid  => srValid(9),  inputVec_9_dout  => srDout(9),  inputVec_9_rdEn  => srRdEn(9),
-         inputVec_10_valid => srValid(10), inputVec_10_dout => srDout(10), inputVec_10_rdEn => srRdEn(10),
-         inputVec_11_valid => srValid(11), inputVec_11_dout => srDout(11), inputVec_11_rdEn => srRdEn(11),
-         inputVec_12_valid => srValid(12), inputVec_12_dout => srDout(12), inputVec_12_rdEn => srRdEn(12),
-         inputVec_13_valid => srValid(13), inputVec_13_dout => srDout(13), inputVec_13_rdEn => srRdEn(13),
-         inputVec_14_valid => srValid(14), inputVec_14_dout => srDout(14), inputVec_14_rdEn => srRdEn(14),
-         inputVec_15_valid => srValid(15), inputVec_15_dout => srDout(15), inputVec_15_rdEn => srRdEn(15),
+         inputVec_0_valid  => srValid(0),
+         inputVec_0_dout => srDout(0),
+         inputVec_0_rdEn => srRdEn(0),
+         inputVec_1_valid  => srValid(1),
+         inputVec_1_dout => srDout(1),
+         inputVec_1_rdEn => srRdEn(1),
+         inputVec_2_valid  => srValid(2),
+         inputVec_2_dout => srDout(2),
+         inputVec_2_rdEn => srRdEn(2),
+         inputVec_3_valid  => srValid(3),
+         inputVec_3_dout => srDout(3),
+         inputVec_3_rdEn => srRdEn(3),
+         inputVec_4_valid  => srValid(4),
+         inputVec_4_dout => srDout(4),
+         inputVec_4_rdEn => srRdEn(4),
+         inputVec_5_valid  => srValid(5),
+         inputVec_5_dout => srDout(5),
+         inputVec_5_rdEn => srRdEn(5),
+         inputVec_6_valid  => srValid(6),
+         inputVec_6_dout => srDout(6),
+         inputVec_6_rdEn => srRdEn(6),
+         inputVec_7_valid  => srValid(7),
+         inputVec_7_dout => srDout(7),
+         inputVec_7_rdEn => srRdEn(7),
+         inputVec_8_valid  => srValid(8),
+         inputVec_8_dout => srDout(8),
+         inputVec_8_rdEn => srRdEn(8),
+         inputVec_9_valid  => srValid(9),
+         inputVec_9_dout => srDout(9),
+         inputVec_9_rdEn => srRdEn(9),
+         inputVec_10_valid => srValid(10),
+         inputVec_10_dout => srDout(10),
+         inputVec_10_rdEn => srRdEn(10),
+         inputVec_11_valid => srValid(11),
+         inputVec_11_dout => srDout(11),
+         inputVec_11_rdEn => srRdEn(11),
+         inputVec_12_valid => srValid(12),
+         inputVec_12_dout => srDout(12),
+         inputVec_12_rdEn => srRdEn(12),
+         inputVec_13_valid => srValid(13),
+         inputVec_13_dout => srDout(13),
+         inputVec_13_rdEn => srRdEn(13),
+         inputVec_14_valid => srValid(14),
+         inputVec_14_dout => srDout(14),
+         inputVec_14_rdEn => srRdEn(14),
+         inputVec_15_valid => srValid(15),
+         inputVec_15_dout => srDout(15),
+         inputVec_15_rdEn => srRdEn(15),
          resultValid       => searchRespValid,
          resultDout        => searchRespData,
          resultRdEn        => searchRespRdEn);
@@ -862,8 +1016,8 @@ begin
       forkRdEn   <= (others => '0');
       sdWrEn     <= (others => '0'); sdRdEn <= (others => '0');
       crWrEn     <= (others => '0'); crRdEn <= (others => '0');
-      srWrEn     <= (others => '0');   -- srRdEn is driven by U_SearchResult (RecursiveSearch);
-                                       -- the comb must NOT also drive it (would be a 2nd driver -> 'X').
+      srWrEn     <= (others => '0');  -- srRdEn is driven by U_SearchResult (RecursiveSearch);
+      -- the comb must NOT also drive it (would be a 2nd driver -> 'X').
       sdDin      <= (others => (others => '0'));
       crDin      <= (others => (others => '0'));
       srDin      <= (others => (others => '0'));
@@ -895,7 +1049,7 @@ begin
          end loop;
 
          if (insertValid = '1') then
-            enqIdx := to_integer(unsigned(r.enqPtrReg));
+            enqIdx            := to_integer(unsigned(r.enqPtrReg));
             v.dataVec(enqIdx) := insertDout;
             v.tagVec(enqIdx)  := '1';
             v.enqPtrReg       := slv(unsigned(r.enqPtrReg) + 1);

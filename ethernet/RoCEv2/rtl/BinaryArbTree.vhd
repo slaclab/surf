@@ -66,31 +66,31 @@ entity BinaryArbTree is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      PORT_COUNT_G      : positive               := 8;    -- number of tree inputs; any power of 2, >= 2 (OQ-FSM-PERMARB-01)
-      DATA_WIDTH_G      : positive               := 8;    -- payload width = tSz of BSV anytype
+      PORT_COUNT_G      : positive               := 8;  -- number of tree inputs; any power of 2, >= 2 (OQ-FSM-PERMARB-01)
+      DATA_WIDTH_G      : positive               := 8;  -- payload width = tSz of BSV anytype
       MEMORY_TYPE_G     : string                 := "distributed";  -- child output FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);    -- child output FIFO depth = 2**ADDR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- child output FIFO depth = 2**ADDR
    port (
       clk         : in  sl;
       rst         : in  sl := not RST_POLARITY_G;
       -- PORT_COUNT_G upstream PipeOut inputs (tree leaves, bit-reverse paired);
       -- input k's payload is inDout((k+1)*DATA_WIDTH_G-1 downto k*DATA_WIDTH_G)
-      inValid     : in  slv(PORT_COUNT_G-1 downto 0);               -- in(k).notEmpty
+      inValid     : in  slv(PORT_COUNT_G-1 downto 0);  -- in(k).notEmpty
       inDout      : in  slv(PORT_COUNT_G*DATA_WIDTH_G-1 downto 0);  -- in(k).first, flattened
-      inFinished  : in  slv(PORT_COUNT_G-1 downto 0);               -- isPipePayloadFinished(in(k).first), OQ-FSM-17
-      inRd        : out slv(PORT_COUNT_G-1 downto 0);               -- in(k).deq strobe
+      inFinished  : in  slv(PORT_COUNT_G-1 downto 0);  -- isPipePayloadFinished(in(k).first), OQ-FSM-17
+      inRd        : out slv(PORT_COUNT_G-1 downto 0);  -- in(k).deq strobe
       -- tree PipeOut output
-      outNotEmpty : out sl;                                         -- tree PipeOut.notEmpty (apex outNotEmpty)
-      outDout     : out slv(DATA_WIDTH_G-1 downto 0);               -- tree PipeOut.first    (apex outDout)
-      outFinished : out sl;                                         -- tree head finish predicate (apex outFinished)
-      outDeq      : in  sl);                                        -- external dequeue of the tree output
+      outNotEmpty : out sl;   -- tree PipeOut.notEmpty (apex outNotEmpty)
+      outDout     : out slv(DATA_WIDTH_G-1 downto 0);  -- tree PipeOut.first    (apex outDout)
+      outFinished : out sl;   -- tree head finish predicate (apex outFinished)
+      outDeq      : in  sl);            -- external dequeue of the tree output
 end entity BinaryArbTree;
 
 architecture struct of BinaryArbTree is
 
    constant DEPTH_C      : natural := log2(PORT_COUNT_G);  -- tree levels
-   constant NODE_COUNT_C : natural := PORT_COUNT_G-1;      -- total arbiters
-   constant APEX_C       : natural := NODE_COUNT_C-1;      -- global index of the root node
+   constant NODE_COUNT_C : natural := PORT_COUNT_G-1;  -- total arbiters
+   constant APEX_C       : natural := NODE_COUNT_C-1;  -- global index of the root node
 
    -- Global node numbering, level-major: level 0 (leaves) has PORT_COUNT_G/2
    -- nodes at indices 0..PORT_COUNT_G/2-1, level L has PORT_COUNT_G/2**(L+1)
@@ -130,7 +130,7 @@ begin
    -- (BSV proviso Add#(TLog#(portSz), 1, TLog#(TAdd#(1, portSz)))).
    assert isPowerOf2(PORT_COUNT_G) and (PORT_COUNT_G >= 2)
       report "BinaryArbTree: PORT_COUNT_G must be a power of 2 and >= 2 " &
-             "(BSV power-of-2 proviso; OQ-FSM-PERMARB-01)"
+      "(BSV power-of-2 proviso; OQ-FSM-PERMARB-01)"
       severity failure;
 
    --------------------------------------------------------------------------
@@ -209,9 +209,9 @@ begin
    --------------------------------------------------------------------------
    -- Tree apex — the last node's PipeOut is the tree output.
    --------------------------------------------------------------------------
-   outNotEmpty       <= nodeNotEmpty(APEX_C);
-   outDout           <= nodeDout(APEX_C);
-   outFinished       <= nodeFinished(APEX_C);
-   nodeDeq(APEX_C)   <= outDeq;
+   outNotEmpty     <= nodeNotEmpty(APEX_C);
+   outDout         <= nodeDout(APEX_C);
+   outFinished     <= nodeFinished(APEX_C);
+   nodeDeq(APEX_C) <= outDeq;
 
 end architecture struct;

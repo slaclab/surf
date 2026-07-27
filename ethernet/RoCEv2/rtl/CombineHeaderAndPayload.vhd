@@ -63,68 +63,68 @@ use surf.StdRtlPkg.all;
 entity CombineHeaderAndPayload is
    generic (
       TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';      -- '1' for active HIGH reset
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset
       RST_ASYNC_G    : boolean := false);
    port (
       clk : in sl;
       rst : in sl := not RST_POLARITY_G;
 
       -- Soft clear (cntrlStatus.comm.isReset); fanned to both children + outputQ
-      clearAllI          : in  sl;
+      clearAllI : in sl;
 
       -- headerPipeIn : PipeOut#(HeaderRDMA) (593 b) -> U_Header2DataStream
-      headerPipeInValid  : in  sl;                   -- .notEmpty
-      headerPipeInData   : in  slv(592 downto 0);    -- .first  (HeaderRDMA)
-      headerPipeInRdEn   : out sl;                   -- .deq
+      headerPipeInValid : in  sl;                 -- .notEmpty
+      headerPipeInData  : in  slv(592 downto 0);  -- .first  (HeaderRDMA)
+      headerPipeInRdEn  : out sl;                 -- .deq
 
       -- payloadPipeIn : DataStreamPipeOut (290 b) -> U_PrependHeader2PipeOut
-      payloadPipeInValid : in  sl;                   -- .notEmpty
-      payloadPipeInData  : in  slv(289 downto 0);    -- .first  (DataStream)
-      payloadPipeInRdEn  : out sl;                   -- .deq
+      payloadPipeInValid : in  sl;                 -- .notEmpty
+      payloadPipeInData  : in  slv(289 downto 0);  -- .first  (DataStream)
+      payloadPipeInRdEn  : out sl;                 -- .deq
 
       -- psnPipeIn : PipeOut#(PSN) (24 b). VALUE UNUSED (OQ-FSM-CHP-02); only the
       -- notEmpty/deq handshake is used — one pop per completed (isLast) packet.
-      psnPipeInValid     : in  sl;                   -- .notEmpty
-      psnPipeInData      : in  slv(23 downto 0);     -- .first (PSN) — unused
-      psnPipeInRdEn      : out sl;                   -- .deq (only on isLast)
+      psnPipeInValid : in  sl;                -- .notEmpty
+      psnPipeInData  : in  slv(23 downto 0);  -- .first (PSN) — unused
+      psnPipeInRdEn  : out sl;                -- .deq (only on isLast)
 
       -- Output : toPipeOut(outputQ) : DataStreamPipeOut (290 b)
-      dataStreamOutValid : out sl;                   -- PipeOut.notEmpty
-      dataStreamOutData  : out slv(289 downto 0);    -- PipeOut.first
-      dataStreamOutRdEn  : in  sl);                  -- PipeOut.deq
+      dataStreamOutValid : out sl;                 -- PipeOut.notEmpty
+      dataStreamOutData  : out slv(289 downto 0);  -- PipeOut.first
+      dataStreamOutRdEn  : in  sl);                -- PipeOut.deq
 end entity CombineHeaderAndPayload;
 
 architecture rtl of CombineHeaderAndPayload is
 
    -- DataStream layout
    constant DS_WIDTH_C  : integer := 290;
-   constant DS_ISLAST_C : integer := 0;             -- DataStream.isLast bit index
+   constant DS_ISLAST_C : integer := 0;  -- DataStream.isLast bit index
 
    -- Reset / clear plumbing
    signal rstActiveHigh : sl;
-   signal outputQRst    : sl;                       -- rst OR clearAllI (soft clear)
+   signal outputQRst    : sl;           -- rst OR clearAllI (soft clear)
 
    -- U_Header2DataStream -> U_PrependHeader2PipeOut interconnect
-   signal hdrDsValid    : sl;                        -- headerDataStream.notEmpty
-   signal hdrDsData     : slv(DS_WIDTH_C-1 downto 0);-- headerDataStream.first
-   signal hdrDsRdEn     : sl;                        -- headerDataStream.deq
-   signal hdrMetaValid  : sl;                        -- headerMetaData.notEmpty
-   signal hdrMetaData   : slv(16 downto 0);          -- headerMetaData.first
-   signal hdrMetaRdEn   : sl;                        -- headerMetaData.deq
+   signal hdrDsValid   : sl;            -- headerDataStream.notEmpty
+   signal hdrDsData    : slv(DS_WIDTH_C-1 downto 0);  -- headerDataStream.first
+   signal hdrDsRdEn    : sl;            -- headerDataStream.deq
+   signal hdrMetaValid : sl;            -- headerMetaData.notEmpty
+   signal hdrMetaData  : slv(16 downto 0);            -- headerMetaData.first
+   signal hdrMetaRdEn  : sl;            -- headerMetaData.deq
 
    -- U_PrependHeader2PipeOut output (rdmaDataStreamPipeOut)
-   signal rdmaOutValid  : sl;                        -- .notEmpty
-   signal rdmaOutData   : slv(DS_WIDTH_C-1 downto 0);-- .first
-   signal rdmaOutRdEn   : sl;                        -- .deq (connect-rule pop)
+   signal rdmaOutValid : sl;            -- .notEmpty
+   signal rdmaOutData  : slv(DS_WIDTH_C-1 downto 0);  -- .first
+   signal rdmaOutRdEn  : sl;            -- .deq (connect-rule pop)
 
    -- U_OutputQ (surf.Fifo) write side
-   signal outputQFull   : sl;
-   signal outputQWrEn   : sl;
-   signal outputQDin    : slv(DS_WIDTH_C-1 downto 0);
+   signal outputQFull : sl;
+   signal outputQWrEn : sl;
+   signal outputQDin  : slv(DS_WIDTH_C-1 downto 0);
 
    -- connect-rule combinational signals
-   signal isLast        : sl;
-   signal transferFire  : sl;
+   signal isLast       : sl;
+   signal transferFire : sl;
 
 begin
 
@@ -195,7 +195,7 @@ begin
    U_OutputQ : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',                -- outputQRst is active-high
+         RST_POLARITY_G  => '1',               -- outputQRst is active-high
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
          FWFT_EN_G       => true,
@@ -215,9 +215,9 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => dataStreamOutRdEn,    -- downstream deq (output port)
-         dout          => dataStreamOutData,    -- output port
-         valid         => dataStreamOutValid,   -- output port
+         rd_en         => dataStreamOutRdEn,   -- downstream deq (output port)
+         dout          => dataStreamOutData,   -- output port
+         valid         => dataStreamOutValid,  -- output port
          underflow     => open,
          rd_data_count => open,
          prog_empty    => open,
@@ -236,9 +236,9 @@ begin
    transferFire <= rdmaOutValid and (not outputQFull) and
                    ((not isLast) or psnPipeInValid);
 
-   outputQWrEn  <= transferFire;
-   outputQDin   <= rdmaOutData;
-   rdmaOutRdEn  <= transferFire;                 -- pop the merged RDMA stream
-   psnPipeInRdEn <= transferFire and isLast;     -- one pop per completed packet
+   outputQWrEn   <= transferFire;
+   outputQDin    <= rdmaOutData;
+   rdmaOutRdEn   <= transferFire;             -- pop the merged RDMA stream
+   psnPipeInRdEn <= transferFire and isLast;  -- one pop per completed packet
 
 end architecture rtl;

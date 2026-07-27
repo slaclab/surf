@@ -60,9 +60,9 @@ entity NewPendingWorkReqPipeOut is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';
       RST_ASYNC_G       : boolean                := false;
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4;   -- U_OutQ depth = 2**G entries
-      CNT_ADDR_WIDTH_G  : positive range 4 to 48 := 4;   -- U_PendingCnt tick-FIFO depth
-      MAX_QP_WR_G       : positive               := 32); -- Settings.bsv MAX_QP_WR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4;  -- U_OutQ depth = 2**G entries
+      CNT_ADDR_WIDTH_G  : positive range 4 to 48 := 4;  -- U_PendingCnt tick-FIFO depth
+      MAX_QP_WR_G       : positive               := 32);  -- Settings.bsv MAX_QP_WR
    port (
       clk                      : in  sl;
       rst                      : in  sl := not RST_POLARITY_G;
@@ -76,11 +76,11 @@ entity NewPendingWorkReqPipeOut is
       decrPendingReqCntPulse_i : in  sl;
       -- Upstream WorkReq PipeIn (workReqPipeIn)
       workReqValid_i           : in  sl;
-      workReqData_i            : in  slv(600 downto 0);   -- WorkReq, 601 bits
+      workReqData_i            : in  slv(600 downto 0);  -- WorkReq, 601 bits
       workReqRdy_o             : out sl;
       -- Output PipeOut (newPendingWorkReqOutQ exposed via U_OutQ)
       outQValid_o              : out sl;
-      outQDout_o               : out slv(678 downto 0);   -- PendingWorkReq, 679 bits
+      outQDout_o               : out slv(678 downto 0);  -- PendingWorkReq, 679 bits
       outQRdEn_i               : in  sl);
 end NewPendingWorkReqPipeOut;
 

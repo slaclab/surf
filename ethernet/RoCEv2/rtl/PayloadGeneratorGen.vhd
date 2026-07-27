@@ -92,44 +92,44 @@ entity PayloadGeneratorGen is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                          -- active-high sync reset
+      clk                       : in  sl;
+      rst                       : in  sl;  -- active-high sync reset
       -- Software clear (BSV module Bool parameter clearAll)
-      clearAllI : in sl;
+      clearAllI                 : in  sl;
       -- srvPort.request : Put#(PayloadGenReqSG)  (caller -> entity)
-      reqInValid : in  sl;                                  -- caller offers a request (wr_en)
-      reqInData  : in  slv(1227 downto 0);                  -- PayloadGenReqSG packed (1228b)
-      reqInReady : out sl;                                  -- entity can accept (notFull)
+      reqInValid                : in  sl;  -- caller offers a request (wr_en)
+      reqInData                 : in  slv(1227 downto 0);  -- PayloadGenReqSG packed (1228b)
+      reqInReady                : out sl;  -- entity can accept (notFull)
       -- srvPort.response : Get#(PayloadGenRespSG)  (entity -> caller)
-      respOutReady : in  sl;                                -- caller takes a response (rd_en)
-      respOutValid : out sl;                                -- response available (notEmpty)
-      respOutData  : out slv(80 downto 0);                  -- PayloadGenRespSG packed (81b)
+      respOutReady              : in  sl;  -- caller takes a response (rd_en)
+      respOutValid              : out sl;  -- response available (notEmpty)
+      respOutData               : out slv(80 downto 0);  -- PayloadGenRespSG packed (81b)
       -- totalMetaDataPipeOut : PipeOut#(PayloadGenTotalMetaData)
-      totalMetaDataDeq      : in  sl;                        -- consumer dequeues
-      totalMetaDataFirst    : out slv(26 downto 0);          -- .first (27b)
-      totalMetaDataNotEmpty : out sl;                        -- .notEmpty
+      totalMetaDataDeq          : in  sl;  -- consumer dequeues
+      totalMetaDataFirst        : out slv(26 downto 0);  -- .first (27b)
+      totalMetaDataNotEmpty     : out sl;  -- .notEmpty
       -- payloadDataStreamPipeOut : PipeOut#(DataStream)  (via child U_BramQ2PipeOut)
-      payloadDataStreamDeq      : in  sl;                    -- consumer dequeues
-      payloadDataStreamFirst    : out slv(289 downto 0);     -- .first (DataStream 290b)
-      payloadDataStreamNotEmpty : out sl;                    -- .notEmpty
+      payloadDataStreamDeq      : in  sl;  -- consumer dequeues
+      payloadDataStreamFirst    : out slv(289 downto 0);  -- .first (DataStream 290b)
+      payloadDataStreamNotEmpty : out sl;  -- .notEmpty
       -- payloadNotEmpty() method result (Moore passthrough of the child)
-      payloadNotEmpty : out sl;
+      payloadNotEmpty           : out sl;
       -- dmaReadCntrl.srvPort.request : Put#(DmaReadCntrlReq)  (entity -> module param, CLIENT)
-      dmaReadCntrlReqValid : out sl;                         -- entity offers a request (Mealy)
-      dmaReadCntrlReqData  : out slv(1162 downto 0);         -- DmaReadCntrlReq packed (1163b)
-      dmaReadCntrlReqReady : in  sl;                         -- module param can accept
+      dmaReadCntrlReqValid      : out sl;  -- entity offers a request (Mealy)
+      dmaReadCntrlReqData       : out slv(1162 downto 0);  -- DmaReadCntrlReq packed (1163b)
+      dmaReadCntrlReqReady      : in  sl;  -- module param can accept
       -- dmaReadCntrl.srvPort.response : Get#(DmaReadCntrlResp)  (module param -> entity, CLIENT)
-      dmaReadCntrlRespValid : in  sl;                        -- module param offers a response
-      dmaReadCntrlRespData  : in  slv(384 downto 0);         -- DmaReadCntrlResp packed (385b)
-      dmaReadCntrlRespReady : out sl;                        -- entity takes the response (get)
+      dmaReadCntrlRespValid     : in  sl;  -- module param offers a response
+      dmaReadCntrlRespData      : in  slv(384 downto 0);  -- DmaReadCntrlResp packed (385b)
+      dmaReadCntrlRespReady     : out sl;  -- entity takes the response (get)
       -- dmaReadCntrl.sgePktMetaDataPipeOut : PipeOut#(PktMetaDataSGE)  (-> U_SgeMergedPayload)
-      sgePktMetaValid : in  sl;                              -- .notEmpty
-      sgePktMetaData  : in  slv(53 downto 0);                -- .first (PktMetaDataSGE 54b)
-      sgePktMetaRdEn  : out sl;                              -- .deq
+      sgePktMetaValid           : in  sl;  -- .notEmpty
+      sgePktMetaData            : in  slv(53 downto 0);  -- .first (PktMetaDataSGE 54b)
+      sgePktMetaRdEn            : out sl;  -- .deq
       -- dmaReadCntrl.sgeMergedMetaDataPipeOut : PipeOut#(MergedMetaDataSGE)  (-> U_SglMergedPayload)
-      sgeMergedMetaValid : in  sl;                           -- .notEmpty
-      sgeMergedMetaData  : in  slv(7 downto 0);              -- .first (MergedMetaDataSGE 8b)
-      sgeMergedMetaRdEn  : out sl);                          -- .deq
+      sgeMergedMetaValid        : in  sl;  -- .notEmpty
+      sgeMergedMetaData         : in  slv(7 downto 0);  -- .first (MergedMetaDataSGE 8b)
+      sgeMergedMetaRdEn         : out sl);              -- .deq
 end entity PayloadGeneratorGen;
 
 architecture rtl of PayloadGeneratorGen is
@@ -137,21 +137,21 @@ architecture rtl of PayloadGeneratorGen is
    -----------------------------------------------------------------------------
    -- Width constants (traced from BSV; see header)
    -----------------------------------------------------------------------------
-   constant ADDR_W_C        : positive := 64;
-   constant LEN_W_C         : positive := 32;
-   constant PKTLEN_W_C      : positive := 13;
-   constant PKTNUM_W_C      : positive := 25;
-   constant PMTU_W_C        : positive := 3;
-   constant PAD_W_C         : positive := 2;
-   constant ADDON_W_C       : positive := 2;   -- PktNumAddOn
-   constant BEBN_W_C        : positive := 6;   -- ByteEnBitNum
-   constant BYTEEN_W_C      : positive := 32;
-   constant FRAGNUM_W_C     : positive := 8;   -- PktFragNum
-   constant DS_W_C          : positive := 290; -- DataStream (OQ-FSM-H2DS-02)
-   constant SGL_W_C         : positive := 1040;
-   constant QPN_W_C         : positive := 24;
-   constant WRID_W_C        : positive := 64;
-   constant DMA_BYTE_WIDTH_C : natural := 32;  -- DATA_BUS_BYTE_WIDTH
+   constant ADDR_W_C         : positive := 64;
+   constant LEN_W_C          : positive := 32;
+   constant PKTLEN_W_C       : positive := 13;
+   constant PKTNUM_W_C       : positive := 25;
+   constant PMTU_W_C         : positive := 3;
+   constant PAD_W_C          : positive := 2;
+   constant ADDON_W_C        : positive := 2;    -- PktNumAddOn
+   constant BEBN_W_C         : positive := 6;    -- ByteEnBitNum
+   constant BYTEEN_W_C       : positive := 32;
+   constant FRAGNUM_W_C      : positive := 8;    -- PktFragNum
+   constant DS_W_C           : positive := 290;  -- DataStream (OQ-FSM-H2DS-02)
+   constant SGL_W_C          : positive := 1040;
+   constant QPN_W_C          : positive := 24;
+   constant WRID_W_C         : positive := 64;
+   constant DMA_BYTE_WIDTH_C : natural  := 32;   -- DATA_BUS_BYTE_WIDTH
 
    constant PAYLOAD_GEN_REQ_W_C  : positive := 1228;
    constant PAYLOAD_GEN_RESP_W_C : positive := 81;
@@ -159,16 +159,16 @@ architecture rtl of PayloadGeneratorGen is
    constant DMA_REQ_W_C          : positive := 1163;
    constant DMA_RESP_W_C         : positive := 385;
 
-   constant TMP_META_W_C     : positive := 155;  -- TmpPayloadGenMetaData
-   constant ADJ_REQ_Q_W_C    : positive := PAYLOAD_GEN_REQ_W_C + TMP_META_W_C;  -- 1383
-   constant TMP_FL_W_C       : positive := 247;  -- TmpAdjustFirstAndLastPktLen
-   constant TMP_TOTAL_W_C    : positive := 229;  -- TmpAdjustTotalPayloadMetaData
-   constant ADJ_TOTAL_W_C    : positive := 61;   -- AdjustedTotalPayloadMetaData
-   constant TMP_RESP_W_C     : positive := 214;  -- TmpPayloadGenRespData
-   constant TMP_PAD_W_C      : positive := 66;   -- TmpPaddingData
-   constant ADD_PAD_Q_W_C    : positive := PAYLOAD_GEN_RESP_W_C + TMP_PAD_W_C;  -- 147
+   constant TMP_META_W_C  : positive := 155;  -- TmpPayloadGenMetaData
+   constant ADJ_REQ_Q_W_C : positive := PAYLOAD_GEN_REQ_W_C + TMP_META_W_C;  -- 1383
+   constant TMP_FL_W_C    : positive := 247;  -- TmpAdjustFirstAndLastPktLen
+   constant TMP_TOTAL_W_C : positive := 229;  -- TmpAdjustTotalPayloadMetaData
+   constant ADJ_TOTAL_W_C : positive := 61;   -- AdjustedTotalPayloadMetaData
+   constant TMP_RESP_W_C  : positive := 214;  -- TmpPayloadGenRespData
+   constant TMP_PAD_W_C   : positive := 66;   -- TmpPaddingData
+   constant ADD_PAD_Q_W_C : positive := PAYLOAD_GEN_RESP_W_C + TMP_PAD_W_C;  -- 147
 
-   constant BUF_ADDR_WIDTH_C : positive := 8;    -- DATA_STREAM_FRAG_BUF_SIZE = 256
+   constant BUF_ADDR_WIDTH_C : positive := 8;  -- DATA_STREAM_FRAG_BUF_SIZE = 256
 
    -- PMTU enum encodings (PMTU deriving(Bits): IBV_MTU_256=1 .. IBV_MTU_4096=5)
    constant IBV_MTU_256_C  : slv(2 downto 0) := "001";
@@ -184,8 +184,8 @@ architecture rtl of PayloadGeneratorGen is
    function calcPmtuLen (pmtu : slv(2 downto 0)) return slv is
    begin
       case pmtu is
-         when IBV_MTU_256_C  => return std_logic_vector(to_unsigned(256,  PKTLEN_W_C));
-         when IBV_MTU_512_C  => return std_logic_vector(to_unsigned(512,  PKTLEN_W_C));
+         when IBV_MTU_256_C  => return std_logic_vector(to_unsigned(256, PKTLEN_W_C));
+         when IBV_MTU_512_C  => return std_logic_vector(to_unsigned(512, PKTLEN_W_C));
          when IBV_MTU_1024_C => return std_logic_vector(to_unsigned(1024, PKTLEN_W_C));
          when IBV_MTU_2048_C => return std_logic_vector(to_unsigned(2048, PKTLEN_W_C));
          when IBV_MTU_4096_C => return std_logic_vector(to_unsigned(4096, PKTLEN_W_C));
@@ -199,9 +199,9 @@ architecture rtl of PayloadGeneratorGen is
    begin
       res := addr(ADDR_W_C-1 downto 0);
       case pmtu is
-         when IBV_MTU_256_C  => res(7  downto 0) := (others => '0');
-         when IBV_MTU_512_C  => res(8  downto 0) := (others => '0');
-         when IBV_MTU_1024_C => res(9  downto 0) := (others => '0');
+         when IBV_MTU_256_C  => res(7 downto 0)  := (others => '0');
+         when IBV_MTU_512_C  => res(8 downto 0)  := (others => '0');
+         when IBV_MTU_1024_C => res(9 downto 0)  := (others => '0');
          when IBV_MTU_2048_C => res(10 downto 0) := (others => '0');
          when IBV_MTU_4096_C => res(11 downto 0) := (others => '0');
          when others         => null;
@@ -217,9 +217,9 @@ architecture rtl of PayloadGeneratorGen is
       a   := addr(ADDR_W_C-1 downto 0);
       res := a;
       case pmtu is
-         when IBV_MTU_256_C  => res := slv(unsigned(a(63 downto 8))  + 1) & a(7  downto 0);
-         when IBV_MTU_512_C  => res := slv(unsigned(a(63 downto 9))  + 1) & a(8  downto 0);
-         when IBV_MTU_1024_C => res := slv(unsigned(a(63 downto 10)) + 1) & a(9  downto 0);
+         when IBV_MTU_256_C  => res := slv(unsigned(a(63 downto 8)) + 1) & a(7 downto 0);
+         when IBV_MTU_512_C  => res := slv(unsigned(a(63 downto 9)) + 1) & a(8 downto 0);
+         when IBV_MTU_1024_C => res := slv(unsigned(a(63 downto 10)) + 1) & a(9 downto 0);
          when IBV_MTU_2048_C => res := slv(unsigned(a(63 downto 11)) + 1) & a(10 downto 0);
          when IBV_MTU_4096_C => res := slv(unsigned(a(63 downto 12)) + 1) & a(11 downto 0);
          when others         => null;
@@ -233,9 +233,9 @@ architecture rtl of PayloadGeneratorGen is
    begin
       res := (others => '0');
       case pmtu is
-         when IBV_MTU_256_C  => res(7  downto 0) := bits(7  downto 0);
-         when IBV_MTU_512_C  => res(8  downto 0) := bits(8  downto 0);
-         when IBV_MTU_1024_C => res(9  downto 0) := bits(9  downto 0);
+         when IBV_MTU_256_C  => res(7 downto 0)  := bits(7 downto 0);
+         when IBV_MTU_512_C  => res(8 downto 0)  := bits(8 downto 0);
+         when IBV_MTU_1024_C => res(9 downto 0)  := bits(9 downto 0);
          when IBV_MTU_2048_C => res(10 downto 0) := bits(10 downto 0);
          when IBV_MTU_4096_C => res(11 downto 0) := bits(11 downto 0);
          when others         => null;
@@ -250,9 +250,9 @@ architecture rtl of PayloadGeneratorGen is
    begin
       res := (others => '0');
       case pmtu is
-         when IBV_MTU_256_C  => res(7  downto 0) := (others => '1');
-         when IBV_MTU_512_C  => res(8  downto 0) := (others => '1');
-         when IBV_MTU_1024_C => res(9  downto 0) := (others => '1');
+         when IBV_MTU_256_C  => res(7 downto 0)  := (others => '1');
+         when IBV_MTU_512_C  => res(8 downto 0)  := (others => '1');
+         when IBV_MTU_1024_C => res(9 downto 0)  := (others => '1');
          when IBV_MTU_2048_C => res(10 downto 0) := (others => '1');
          when IBV_MTU_4096_C => res(11 downto 0) := (others => '1');
          when others         => null;
@@ -266,9 +266,9 @@ architecture rtl of PayloadGeneratorGen is
    begin
       res := (others => '0');
       case pmtu is
-         when IBV_MTU_256_C  => res(7  downto 0) := addr(7  downto 0);
-         when IBV_MTU_512_C  => res(8  downto 0) := addr(8  downto 0);
-         when IBV_MTU_1024_C => res(9  downto 0) := addr(9  downto 0);
+         when IBV_MTU_256_C  => res(7 downto 0)  := addr(7 downto 0);
+         when IBV_MTU_512_C  => res(8 downto 0)  := addr(8 downto 0);
+         when IBV_MTU_1024_C => res(9 downto 0)  := addr(9 downto 0);
          when IBV_MTU_2048_C => res(10 downto 0) := addr(10 downto 0);
          when IBV_MTU_4096_C => res(11 downto 0) := addr(11 downto 0);
          when others         => null;
@@ -282,9 +282,9 @@ architecture rtl of PayloadGeneratorGen is
    begin
       res := (others => '0');
       case pmtu is
-         when IBV_MTU_256_C  => res(7  downto 0) := len(7  downto 0);
-         when IBV_MTU_512_C  => res(8  downto 0) := len(8  downto 0);
-         when IBV_MTU_1024_C => res(9  downto 0) := len(9  downto 0);
+         when IBV_MTU_256_C  => res(7 downto 0)  := len(7 downto 0);
+         when IBV_MTU_512_C  => res(8 downto 0)  := len(8 downto 0);
+         when IBV_MTU_1024_C => res(9 downto 0)  := len(9 downto 0);
          when IBV_MTU_2048_C => res(10 downto 0) := len(10 downto 0);
          when IBV_MTU_4096_C => res(11 downto 0) := len(11 downto 0);
          when others         => null;
@@ -316,7 +316,7 @@ architecture rtl of PayloadGeneratorGen is
    begin
       residue      := len(4 downto 0);
       truncatedLen := len(len'length-1 downto 5);
-      res          := '0' & residue;                       -- zeroExtend(residue) to 6b
+      res          := '0' & residue;    -- zeroExtend(residue) to 6b
       if (unsigned(residue) = 0) and (unsigned(truncatedLen) /= 0) then
          res := std_logic_vector(to_unsigned(DMA_BYTE_WIDTH_C, BEBN_W_C));  -- 32
       end if;
@@ -362,15 +362,15 @@ architecture rtl of PayloadGeneratorGen is
    -- Register record (iterator state only — genPayloadGenResp)
    -----------------------------------------------------------------------------
    type RegType is record
-      isFirstPktReg      : sl;                              -- mkReg(True); reset '1'
-      pktRemoteAddrReg   : slv(ADDR_W_C-1 downto 0);        -- mkRegU (no reset)
-      remainingPktNumReg : slv(PKTNUM_W_C-1 downto 0);      -- mkRegU (no reset)
+      isFirstPktReg      : sl;          -- mkReg(True); reset '1'
+      pktRemoteAddrReg   : slv(ADDR_W_C-1 downto 0);    -- mkRegU (no reset)
+      remainingPktNumReg : slv(PKTNUM_W_C-1 downto 0);  -- mkRegU (no reset)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       isFirstPktReg      => '1',
-      pktRemoteAddrReg   => (others => '0'),                -- mkRegU; placeholder, not reset
-      remainingPktNumReg => (others => '0'));               -- mkRegU; placeholder, not reset
+      pktRemoteAddrReg   => (others => '0'),  -- mkRegU; placeholder, not reset
+      remainingPktNumReg => (others => '0'));  -- mkRegU; placeholder, not reset
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -480,7 +480,7 @@ begin
    -----------------------------------------------------------------------------
    -- Static wiring
    -----------------------------------------------------------------------------
-   fifoRst <= rst or clearAllI;                             -- shared FIFO soft clear
+   fifoRst <= rst or clearAllI;         -- shared FIFO soft clear
 
    -- srvPort handshake passthroughs (BSV toGPServer implicit conditions)
    reqInReady   <= payloadGenReqQNotFull;
@@ -568,65 +568,65 @@ begin
       variable aLastPktLen   : slv(PKTLEN_W_C-1 downto 0);
 
       -- calcAdjustedTotalPayloadMetaData temporaries
-      variable cFirstAddr    : slv(ADDR_W_C-1 downto 0);
-      variable cSecondAddr   : slv(ADDR_W_C-1 downto 0);
-      variable cTotalLen     : slv(LEN_W_C-1 downto 0);
-      variable cTotalPktNum  : slv(PKTNUM_W_C-1 downto 0);
-      variable cFirstPktLen  : slv(PKTLEN_W_C-1 downto 0);
-      variable cLastPktLen   : slv(PKTLEN_W_C-1 downto 0);
-      variable cPmtuLen      : slv(PKTLEN_W_C-1 downto 0);
-      variable cPmtu         : slv(PMTU_W_C-1 downto 0);
-      variable cZeroLen      : sl;
-      variable cAddPadding   : sl;
-      variable cOrigLastVBN  : slv(BEBN_W_C-1 downto 0);
-      variable cFirstLastVBN : slv(BEBN_W_C-1 downto 0);
-      variable cLastLastVBN  : slv(BEBN_W_C-1 downto 0);
-      variable cFirstFragNum : slv(FRAGNUM_W_C-1 downto 0);
-      variable cFirstPad     : slv(PAD_W_C-1 downto 0);
-      variable cLastPad      : slv(PAD_W_C-1 downto 0);
-      variable cIsOnlyPkt    : sl;
-      variable cFirstLastVBNwp : slv(BEBN_W_C-1 downto 0);
-      variable cLastLastVBNwp  : slv(BEBN_W_C-1 downto 0);
+      variable cFirstAddr      : slv(ADDR_W_C-1 downto 0);
+      variable cSecondAddr     : slv(ADDR_W_C-1 downto 0);
+      variable cTotalLen       : slv(LEN_W_C-1 downto 0);
+      variable cTotalPktNum    : slv(PKTNUM_W_C-1 downto 0);
+      variable cFirstPktLen    : slv(PKTLEN_W_C-1 downto 0);
+      variable cLastPktLen     : slv(PKTLEN_W_C-1 downto 0);
+      variable cPmtuLen        : slv(PKTLEN_W_C-1 downto 0);
+      variable cPmtu           : slv(PMTU_W_C-1 downto 0);
+      variable cZeroLen        : sl;
+      variable cAddPadding     : sl;
+      variable cOrigLastVbn    : slv(BEBN_W_C-1 downto 0);
+      variable cFirstLastVbn   : slv(BEBN_W_C-1 downto 0);
+      variable cLastLastVbn    : slv(BEBN_W_C-1 downto 0);
+      variable cFirstFragNum   : slv(FRAGNUM_W_C-1 downto 0);
+      variable cFirstPad       : slv(PAD_W_C-1 downto 0);
+      variable cLastPad        : slv(PAD_W_C-1 downto 0);
+      variable cIsOnlyPkt      : sl;
+      variable cFirstLastVbnWp : slv(BEBN_W_C-1 downto 0);
+      variable cLastLastVbnWp  : slv(BEBN_W_C-1 downto 0);
 
       -- genPayloadGenResp temporaries
-      variable gFirstAddr    : slv(ADDR_W_C-1 downto 0);
-      variable gSecondAddr   : slv(ADDR_W_C-1 downto 0);
-      variable gFirstPktLen  : slv(PKTLEN_W_C-1 downto 0);
-      variable gLastPktLen   : slv(PKTLEN_W_C-1 downto 0);
-      variable gPmtuLen      : slv(PKTLEN_W_C-1 downto 0);
-      variable gFirstLastVBNwp : slv(BEBN_W_C-1 downto 0);
-      variable gLastLastVBNwp  : slv(BEBN_W_C-1 downto 0);
-      variable gFirstPad     : slv(PAD_W_C-1 downto 0);
-      variable gLastPad      : slv(PAD_W_C-1 downto 0);
-      variable gTotalPktNum  : slv(PKTNUM_W_C-1 downto 0);
-      variable gPmtu         : slv(PMTU_W_C-1 downto 0);
-      variable gIsOnlyPkt    : sl;
-      variable gZeroLen      : sl;
-      variable gAddPadding   : sl;
-      variable gRemoteAddr   : slv(ADDR_W_C-1 downto 0);
-      variable gNextAddr     : slv(ADDR_W_C-1 downto 0);
-      variable gRemainPktNum : slv(PKTNUM_W_C-1 downto 0);
-      variable gIsFirstPkt   : sl;
-      variable gIsLastPkt    : sl;
-      variable gPktLen       : slv(PKTLEN_W_C-1 downto 0);
-      variable gPadCnt       : slv(PAD_W_C-1 downto 0);
-      variable gFirstByteEn  : slv(BYTEEN_W_C-1 downto 0);
-      variable gLastByteEn   : slv(BYTEEN_W_C-1 downto 0);
-      variable gResp         : slv(PAYLOAD_GEN_RESP_W_C-1 downto 0);
-      variable gPad          : slv(TMP_PAD_W_C-1 downto 0);
+      variable gFirstAddr      : slv(ADDR_W_C-1 downto 0);
+      variable gSecondAddr     : slv(ADDR_W_C-1 downto 0);
+      variable gFirstPktLen    : slv(PKTLEN_W_C-1 downto 0);
+      variable gLastPktLen     : slv(PKTLEN_W_C-1 downto 0);
+      variable gPmtuLen        : slv(PKTLEN_W_C-1 downto 0);
+      variable gFirstLastVbnWp : slv(BEBN_W_C-1 downto 0);
+      variable gLastLastVbnWp  : slv(BEBN_W_C-1 downto 0);
+      variable gFirstPad       : slv(PAD_W_C-1 downto 0);
+      variable gLastPad        : slv(PAD_W_C-1 downto 0);
+      variable gTotalPktNum    : slv(PKTNUM_W_C-1 downto 0);
+      variable gPmtu           : slv(PMTU_W_C-1 downto 0);
+      variable gIsOnlyPkt      : sl;
+      variable gZeroLen        : sl;
+      variable gAddPadding     : sl;
+      variable gRemoteAddr     : slv(ADDR_W_C-1 downto 0);
+      variable gNextAddr       : slv(ADDR_W_C-1 downto 0);
+      variable gRemainPktNum   : slv(PKTNUM_W_C-1 downto 0);
+      variable gIsFirstPkt     : sl;
+      variable gIsLastPkt      : sl;
+      variable gPktLen         : slv(PKTLEN_W_C-1 downto 0);
+      variable gPadCnt         : slv(PAD_W_C-1 downto 0);
+      variable gFirstByteEn    : slv(BYTEEN_W_C-1 downto 0);
+      variable gLastByteEn     : slv(BYTEEN_W_C-1 downto 0);
+      variable gResp           : slv(PAYLOAD_GEN_RESP_W_C-1 downto 0);
+      variable gPad            : slv(TMP_PAD_W_C-1 downto 0);
 
       -- outputAndAddPadding temporaries
-      variable oResp         : slv(PAYLOAD_GEN_RESP_W_C-1 downto 0);
-      variable oPad          : slv(TMP_PAD_W_C-1 downto 0);
-      variable oRespIsFirst  : sl;
-      variable oRespIsLast   : sl;
-      variable oZeroLen      : sl;
-      variable oAddPadding   : sl;
-      variable oFirstByteEn  : slv(BYTEEN_W_C-1 downto 0);
-      variable oLastByteEn   : slv(BYTEEN_W_C-1 downto 0);
-      variable oFrag         : slv(DS_W_C-1 downto 0);
-      variable oFragIsLast   : sl;
-      variable oByteEn       : slv(BYTEEN_W_C-1 downto 0);
+      variable oResp        : slv(PAYLOAD_GEN_RESP_W_C-1 downto 0);
+      variable oPad         : slv(TMP_PAD_W_C-1 downto 0);
+      variable oRespIsFirst : sl;
+      variable oRespIsLast  : sl;
+      variable oZeroLen     : sl;
+      variable oAddPadding  : sl;
+      variable oFirstByteEn : slv(BYTEEN_W_C-1 downto 0);
+      variable oLastByteEn  : slv(BYTEEN_W_C-1 downto 0);
+      variable oFrag        : slv(DS_W_C-1 downto 0);
+      variable oFragIsLast  : sl;
+      variable oByteEn      : slv(BYTEEN_W_C-1 downto 0);
    begin
       v := r;
 
@@ -665,9 +665,9 @@ begin
       -------------------------------------------------------------------------
       -- recvReq (stepOne): split PayloadGenReqSG head, enq adjustReqPktLenQ
       -------------------------------------------------------------------------
-      reqRaddr    := payloadGenReqQDout(67 downto 4);
-      reqTotalLen := payloadGenReqQDout(99 downto 68);
-      reqPmtu     := payloadGenReqQDout(3 downto 1);
+      reqRaddr                                       := payloadGenReqQDout(67 downto 4);
+      reqTotalLen                                    := payloadGenReqQDout(99 downto 68);
+      reqPmtu                                        := payloadGenReqQDout(3 downto 1);
       if (unsigned(reqTotalLen) = 0) then reqZeroLen := '1'; else reqZeroLen := '0'; end if;
 
       soAlignAddr   := alignAddrByPMTU(reqRaddr, reqPmtu);
@@ -687,7 +687,7 @@ begin
       if (clearAllI = '0') and (payloadGenReqQValid = '1') and (adjustReqPktLenQNotFull = '1') then
          payloadGenReqQRdEn   <= '1';
          adjustReqPktLenQWrEn <= '1';
-         adjustReqPktLenQDin  <= payloadGenReqQDout & metaVec;   -- Tuple2 (req at MSB)
+         adjustReqPktLenQDin  <= payloadGenReqQDout & metaVec;  -- Tuple2 (req at MSB)
       end if;
 
       -------------------------------------------------------------------------
@@ -703,7 +703,7 @@ begin
       -- issueDmaReadCntrlReq (stepTwo): optional DMA request + enq adjustFirstAndLastPktLenQ
       -------------------------------------------------------------------------
       reqV  := adjustReqPktLenQDout(ADJ_REQ_Q_W_C-1 downto TMP_META_W_C);  -- PayloadGenReqSG (1228)
-      metaV := adjustReqPktLenQDout(TMP_META_W_C-1 downto 0);              -- TmpPayloadGenMetaData (155)
+      metaV := adjustReqPktLenQDout(TMP_META_W_C-1 downto 0);  -- TmpPayloadGenMetaData (155)
 
       stPmtuMask    := metaV(154 downto 142);
       stAddrLenSum  := metaV(141 downto 129);
@@ -717,15 +717,15 @@ begin
       stPmtu        := reqV(3 downto 1);
       stAddPadding  := reqV(0);
 
-      secondAddr    := addrAddOnePMTU(stAlignAddr, stPmtu);
-      tmpLastPktLen := '0' & truncateByPMTU(stAddrLenSum, stPmtu);        -- zeroExtend 12b->13b
-      pmtuInvMask   := not stPmtuMask;
-      if (unsigned(stPmtuMask and stAddrLenSum) = 0) then hasResidue := '0'; else hasResidue := '1'; end if;
+      secondAddr                                                       := addrAddOnePMTU(stAlignAddr, stPmtu);
+      tmpLastPktLen                                                    := '0' & truncateByPMTU(stAddrLenSum, stPmtu);  -- zeroExtend 12b->13b
+      pmtuInvMask                                                      := not stPmtuMask;
+      if (unsigned(stPmtuMask and stAddrLenSum) = 0) then hasResidue   := '0'; else hasResidue := '1'; end if;
       if (unsigned(pmtuInvMask and stAddrLenSum) = 0) then hasExtraPkt := '0'; else hasExtraPkt := '1'; end if;
-      if (unsigned(stTruncPktNum) = 0) then notFullPkt := '1'; else notFullPkt := '0'; end if;
-      resBit := '0' & hasResidue;
-      extBit := '0' & hasExtraPkt;
-      pktNumAddOne := slv(unsigned(resBit) + unsigned(extBit));
+      if (unsigned(stTruncPktNum) = 0) then notFullPkt                 := '1'; else notFullPkt := '0'; end if;
+      resBit                                                           := '0' & hasResidue;
+      extBit                                                           := '0' & hasExtraPkt;
+      pktNumAddOne                                                     := slv(unsigned(resBit) + unsigned(extBit));
 
       -- TmpAdjustFirstAndLastPktLen (247b): origRemoteAddr, secondChunkStartAddr,
       -- totalLen, truncatedPktNum, pktNumAddOne, lenLowPart, maxFirstPktLen,
@@ -742,11 +742,11 @@ begin
          if (stZeroLen = '0') then
             dmaReadCntrlReqValid <= '1';
             -- DmaReadCntrlReq (1163b): sgl, totalLen, sqpn, wrID, pmtu
-            dmaReadCntrlReqData <= reqV(1139 downto 100) &     -- sgl (1040)
-                                   reqV(99 downto 68) &        -- totalLen (32)
-                                   reqV(1163 downto 1140) &    -- sqpn (24)
-                                   reqV(1227 downto 1164) &    -- wrID (64)
-                                   reqV(3 downto 1);           -- pmtu (3)
+            dmaReadCntrlReqData  <= reqV(1139 downto 100) & -- sgl (1040)
+                                   reqV(99 downto 68) & -- totalLen (32)
+                                   reqV(1163 downto 1140) & -- sqpn (24)
+                                   reqV(1227 downto 1164) & -- wrID (64)
+                                   reqV(3 downto 1);         -- pmtu (3)
          end if;
       end if;
 
@@ -808,27 +808,27 @@ begin
       cZeroLen     := adjustTotalQDout(1);
       cAddPadding  := adjustTotalQDout(0);
 
-      cOrigLastVBN  := calcLastFragValidByteNum(cTotalLen);
-      cFirstLastVBN := calcLastFragValidByteNum(cFirstPktLen);
-      cLastLastVBN  := calcLastFragValidByteNum(cLastPktLen);
-      cFirstFragNum := calcFragNumByPktLen(cFirstPktLen);
-      cFirstPad     := calcPadCnt(cFirstPktLen);
-      cLastPad      := calcPadCnt(cLastPktLen);
+      cOrigLastVbn                                                           := calcLastFragValidByteNum(cTotalLen);
+      cFirstLastVbn                                                          := calcLastFragValidByteNum(cFirstPktLen);
+      cLastLastVbn                                                           := calcLastFragValidByteNum(cLastPktLen);
+      cFirstFragNum                                                          := calcFragNumByPktLen(cFirstPktLen);
+      cFirstPad                                                              := calcPadCnt(cFirstPktLen);
+      cLastPad                                                               := calcPadCnt(cLastPktLen);
       if (unsigned(cTotalPktNum(PKTNUM_W_C-1 downto 1)) = 0) then cIsOnlyPkt := '1'; else cIsOnlyPkt := '0'; end if;
-      cFirstLastVBNwp := slv(unsigned(cFirstLastVBN) + resize(unsigned(cFirstPad), BEBN_W_C));
-      cLastLastVBNwp  := slv(unsigned(cLastLastVBN)  + resize(unsigned(cLastPad),  BEBN_W_C));
+      cFirstLastVbnWp                                                        := slv(unsigned(cFirstLastVbn) + resize(unsigned(cFirstPad), BEBN_W_C));
+      cLastLastVbnWp                                                         := slv(unsigned(cLastLastVbn) + resize(unsigned(cLastPad), BEBN_W_C));
 
       -- AdjustedTotalPayloadMetaData (61b): firstPktLen, firstPktFragNum,
       -- firstPktLastFragValidByteNum, origLastFragValidByteNum, adjustedPktNum, pmtu
-      adjustedTotalQDin <= cFirstPktLen & cFirstFragNum & cFirstLastVBN &
-                           cOrigLastVBN & cTotalPktNum & cPmtu;
+      adjustedTotalQDin <= cFirstPktLen & cFirstFragNum & cFirstLastVbn &
+                           cOrigLastVbn & cTotalPktNum & cPmtu;
 
       -- TmpPayloadGenRespData (214b): firstRemoteAddr, secondRemoteAddr, firstPktLen,
       -- lastPktLen, pmtuLen, firstPktLastFragValidByteNumWithPadding,
       -- lastPktLastFragValidByteNumWithPadding, firstPktPadCnt, lastPktPadCnt,
       -- totalPktNum, pmtu, isOnlyPkt, isZeroPayloadLen, shouldAddPadding
       genPayloadRespQDin <= cFirstAddr & cSecondAddr & cFirstPktLen & cLastPktLen & cPmtuLen &
-                            cFirstLastVBNwp & cLastLastVBNwp & cFirstPad & cLastPad &
+                            cFirstLastVbnWp & cLastLastVbnWp & cFirstPad & cLastPad &
                             cTotalPktNum & cPmtu & cIsOnlyPkt & cZeroLen & cAddPadding;
 
       -- PayloadGenTotalMetaData (27b): totalPktNum, isOnlyPkt, isZeroPayloadLen
@@ -853,8 +853,8 @@ begin
       gFirstPktLen    := genPayloadRespQDout(85 downto 73);
       gLastPktLen     := genPayloadRespQDout(72 downto 60);
       gPmtuLen        := genPayloadRespQDout(59 downto 47);
-      gFirstLastVBNwp := genPayloadRespQDout(46 downto 41);
-      gLastLastVBNwp  := genPayloadRespQDout(40 downto 35);
+      gFirstLastVbnWp := genPayloadRespQDout(46 downto 41);
+      gLastLastVbnWp  := genPayloadRespQDout(40 downto 35);
       gFirstPad       := genPayloadRespQDout(34 downto 33);
       gLastPad        := genPayloadRespQDout(32 downto 31);
       gTotalPktNum    := genPayloadRespQDout(30 downto 6);
@@ -879,11 +879,11 @@ begin
 
       gIsFirstPkt := r.isFirstPktReg;
       -- isLastPkt = isOnlyPkt or (!isFirstPktReg and isOne(remainingPktNumReg))
-      gIsLastPkt := '0';
+      gIsLastPkt  := '0';
       if (gIsOnlyPkt = '1') then
          gIsLastPkt := '1';
       elsif (r.isFirstPktReg = '0') and (unsigned(r.remainingPktNumReg(PKTNUM_W_C-1 downto 1)) = 0)
-            and (r.remainingPktNumReg(0) = '1') then
+         and (r.remainingPktNumReg(0) = '1') then
          gIsLastPkt := '1';
       end if;
 
@@ -898,20 +898,20 @@ begin
          gPadCnt := (others => '0');
       end if;
 
-      gFirstByteEn := genByteEn(gFirstLastVBNwp);
-      gLastByteEn  := genByteEn(gLastLastVBNwp);
+      gFirstByteEn := genByteEn(gFirstLastVbnWp);
+      gLastByteEn  := genByteEn(gLastLastVbnWp);
 
       -- PayloadGenRespSG (81b): raddr, pktLen, padCnt, isFirst, isLast
       gResp := gRemoteAddr & gPktLen & gPadCnt & gIsFirstPkt & gIsLastPkt;
       -- TmpPaddingData (66b): firstPktLastFragByteEnWithPadding,
       -- lastPktLastFragByteEnWithPadding, isZeroPayloadLen, shouldAddPadding
-      gPad := gFirstByteEn & gLastByteEn & gZeroLen & gAddPadding;
+      gPad  := gFirstByteEn & gLastByteEn & gZeroLen & gAddPadding;
 
       -- Tuple2(PayloadGenRespSG, TmpPaddingData) (147b, resp at MSB)
       addPaddingDataQDin <= gResp & gPad;
 
       if (clearAllI = '0') and (genPayloadRespQValid = '1') and (addPaddingDataQNotFull = '1') then
-         addPaddingDataQWrEn <= '1';
+         addPaddingDataQWrEn  <= '1';
          v.isFirstPktReg      := gIsLastPkt;
          v.pktRemoteAddrReg   := gNextAddr;
          v.remainingPktNumReg := gRemainPktNum;
@@ -924,7 +924,7 @@ begin
       -- outputAndAddPadding: zero-payload / data(non-last frag) / data(last frag)
       -------------------------------------------------------------------------
       oResp        := addPaddingDataQDout(ADD_PAD_Q_W_C-1 downto TMP_PAD_W_C);  -- PayloadGenRespSG (81)
-      oPad         := addPaddingDataQDout(TMP_PAD_W_C-1 downto 0);              -- TmpPaddingData (66)
+      oPad         := addPaddingDataQDout(TMP_PAD_W_C-1 downto 0);  -- TmpPaddingData (66)
       oRespIsFirst := oResp(1);
       oRespIsLast  := oResp(0);
       oFirstByteEn := oPad(65 downto 34);
@@ -933,7 +933,7 @@ begin
       oAddPadding  := oPad(0);
 
       oFrag       := adjustedPayloadData;
-      oFragIsLast := adjustedPayloadData(0);            -- DataStream.isLast
+      oFragIsLast := adjustedPayloadData(0);  -- DataStream.isLast
 
       -- last-fragment byteEn override (only when shouldAddPadding on the orig last frag)
       oByteEn := oFrag(33 downto 2);
@@ -978,8 +978,8 @@ begin
       -- resetAndClear (top priority): force isFirstPktReg; mkRegU regs unreset
       -------------------------------------------------------------------------
       if (rst = '1') or (clearAllI = '1') then
-         v.isFirstPktReg := '1';                          -- BSV: isFirstPktReg <= True
-         -- pktRemoteAddrReg / remainingPktNumReg are mkRegU: NOT reset
+         v.isFirstPktReg := '1';        -- BSV: isFirstPktReg <= True
+      -- pktRemoteAddrReg / remainingPktNumReg are mkRegU: NOT reset
       end if;
 
       rin <= v;
@@ -995,7 +995,7 @@ begin
    -----------------------------------------------------------------------------
    -- SURF FIFOs (source: surf/base/fifo/rtl/Fifo.vhd)
    -----------------------------------------------------------------------------
-   U_PayloadGenReqQ : entity surf.Fifo         -- payloadGenReqQ <- mkFIFOF
+   U_PayloadGenReqQ : entity surf.Fifo  -- payloadGenReqQ <- mkFIFOF
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1006,14 +1006,28 @@ begin
          DATA_WIDTH_G    => PAYLOAD_GEN_REQ_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => reqInValid, din => reqInData,
-         not_full => payloadGenReqQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => payloadGenReqQRdEn, dout => payloadGenReqQDout,
-         valid => payloadGenReqQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => reqInValid,
+         din => reqInData,
+         not_full     => payloadGenReqQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => payloadGenReqQRdEn,
+         dout => payloadGenReqQDout,
+         valid        => payloadGenReqQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_AdjustReqPktLenQ : entity surf.Fifo       -- adjustReqPktLenQ <- mkFIFOF (Tuple2)
+   U_AdjustReqPktLenQ : entity surf.Fifo  -- adjustReqPktLenQ <- mkFIFOF (Tuple2)
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1024,12 +1038,26 @@ begin
          DATA_WIDTH_G    => ADJ_REQ_Q_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => adjustReqPktLenQWrEn, din => adjustReqPktLenQDin,
-         not_full => adjustReqPktLenQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => adjustReqPktLenQRdEn, dout => adjustReqPktLenQDout,
-         valid => adjustReqPktLenQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => adjustReqPktLenQWrEn,
+         din => adjustReqPktLenQDin,
+         not_full     => adjustReqPktLenQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => adjustReqPktLenQRdEn,
+         dout => adjustReqPktLenQDout,
+         valid        => adjustReqPktLenQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_AdjustFirstAndLastPktLenQ : entity surf.Fifo  -- adjustFirstAndLastPktLenQ <- mkFIFOF
       generic map (
@@ -1042,12 +1070,26 @@ begin
          DATA_WIDTH_G    => TMP_FL_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => adjustFirstLastQWrEn, din => adjustFirstLastQDin,
-         not_full => adjustFirstLastQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => adjustFirstLastQRdEn, dout => adjustFirstLastQDout,
-         valid => adjustFirstLastQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => adjustFirstLastQWrEn,
+         din => adjustFirstLastQDin,
+         not_full     => adjustFirstLastQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => adjustFirstLastQRdEn,
+         dout => adjustFirstLastQDout,
+         valid        => adjustFirstLastQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_AdjustTotalPayloadMetaDataQ : entity surf.Fifo  -- adjustTotalPayloadMetaDataQ <- mkFIFOF
       generic map (
@@ -1060,12 +1102,26 @@ begin
          DATA_WIDTH_G    => TMP_TOTAL_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => adjustTotalQWrEn, din => adjustTotalQDin,
-         not_full => adjustTotalQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => adjustTotalQRdEn, dout => adjustTotalQDout,
-         valid => adjustTotalQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => adjustTotalQWrEn,
+         din => adjustTotalQDin,
+         not_full     => adjustTotalQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => adjustTotalQRdEn,
+         dout => adjustTotalQDout,
+         valid        => adjustTotalQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    U_AdjustedTotalPayloadMetaDataQ : entity surf.Fifo  -- adjustedTotalPayloadMetaDataQ <- mkFIFOF
       generic map (
@@ -1078,14 +1134,28 @@ begin
          DATA_WIDTH_G    => ADJ_TOTAL_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => adjustedTotalQWrEn, din => adjustedTotalQDin,
-         not_full => adjustedTotalQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => adjustedTotalQRdEn, dout => adjustedTotalQDout,
-         valid => adjustedTotalQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => adjustedTotalQWrEn,
+         din => adjustedTotalQDin,
+         not_full     => adjustedTotalQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => adjustedTotalQRdEn,
+         dout => adjustedTotalQDout,
+         valid        => adjustedTotalQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_GenPayloadRespQ : entity surf.Fifo        -- genPayloadRespQ <- mkFIFOF
+   U_GenPayloadRespQ : entity surf.Fifo  -- genPayloadRespQ <- mkFIFOF
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1096,14 +1166,28 @@ begin
          DATA_WIDTH_G    => TMP_RESP_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => genPayloadRespQWrEn, din => genPayloadRespQDin,
-         not_full => genPayloadRespQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => genPayloadRespQRdEn, dout => genPayloadRespQDout,
-         valid => genPayloadRespQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => genPayloadRespQWrEn,
+         din => genPayloadRespQDin,
+         not_full     => genPayloadRespQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => genPayloadRespQRdEn,
+         dout => genPayloadRespQDout,
+         valid        => genPayloadRespQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_TotalMetaDataOutQ : entity surf.Fifo      -- totalMetaDataOutQ <- mkFIFOF
+   U_TotalMetaDataOutQ : entity surf.Fifo  -- totalMetaDataOutQ <- mkFIFOF
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1114,14 +1198,28 @@ begin
          DATA_WIDTH_G    => TOTAL_META_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => totalMetaDataOutQWrEn, din => totalMetaDataOutQDin,
-         not_full => totalMetaDataOutQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => totalMetaDataDeq, dout => totalMetaDataOutQDout,
-         valid => totalMetaDataOutQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => totalMetaDataOutQWrEn,
+         din => totalMetaDataOutQDin,
+         not_full     => totalMetaDataOutQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => totalMetaDataDeq,
+         dout => totalMetaDataOutQDout,
+         valid        => totalMetaDataOutQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_AddPaddingDataQ : entity surf.Fifo        -- addPaddingDataQ <- mkFIFOF (Tuple2)
+   U_AddPaddingDataQ : entity surf.Fifo  -- addPaddingDataQ <- mkFIFOF (Tuple2)
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1132,14 +1230,28 @@ begin
          DATA_WIDTH_G    => ADD_PAD_Q_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => addPaddingDataQWrEn, din => addPaddingDataQDin,
-         not_full => addPaddingDataQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => addPaddingDataQRdEn, dout => addPaddingDataQDout,
-         valid => addPaddingDataQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => addPaddingDataQWrEn,
+         din => addPaddingDataQDin,
+         not_full     => addPaddingDataQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => addPaddingDataQRdEn,
+         dout => addPaddingDataQDout,
+         valid        => addPaddingDataQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_PayloadGenRespQ : entity surf.Fifo        -- payloadGenRespQ <- mkFIFOF
+   U_PayloadGenRespQ : entity surf.Fifo  -- payloadGenRespQ <- mkFIFOF
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1150,14 +1262,28 @@ begin
          DATA_WIDTH_G    => PAYLOAD_GEN_RESP_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => payloadGenRespQWrEn, din => payloadGenRespQDin,
-         not_full => payloadGenRespQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => respOutReady, dout => payloadGenRespQDout,
-         valid => payloadGenRespQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => payloadGenRespQWrEn,
+         din => payloadGenRespQDin,
+         not_full     => payloadGenRespQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => respOutReady,
+         dout => payloadGenRespQDout,
+         valid        => payloadGenRespQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_SgePayloadOutQ : entity surf.Fifo         -- sgePayloadOutQ <- mkFIFOF (pipeline)
+   U_SgePayloadOutQ : entity surf.Fifo  -- sgePayloadOutQ <- mkFIFOF (pipeline)
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1168,14 +1294,28 @@ begin
          DATA_WIDTH_G    => DS_W_C,
          ADDR_WIDTH_G    => 4)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => sgePayloadOutQWrEn, din => sgePayloadOutQDin,
-         not_full => sgePayloadOutQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => sgePayloadOutQRdEn, dout => sgePayloadOutQDout,
-         valid => sgePayloadOutQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => sgePayloadOutQWrEn,
+         din => sgePayloadOutQDin,
+         not_full     => sgePayloadOutQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => sgePayloadOutQRdEn,
+         dout => sgePayloadOutQDout,
+         valid        => sgePayloadOutQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
-   U_PayloadBufQ : entity surf.Fifo            -- payloadBufQ <- mkSizedBRAMFIFOF (depth 256)
+   U_PayloadBufQ : entity surf.Fifo  -- payloadBufQ <- mkSizedBRAMFIFOF (depth 256)
       generic map (
          TPD_G           => TPD_G,
          RST_POLARITY_G  => '1',
@@ -1186,12 +1326,26 @@ begin
          DATA_WIDTH_G    => DS_W_C,
          ADDR_WIDTH_G    => BUF_ADDR_WIDTH_C)
       port map (
-         rst => fifoRst, wr_clk => clk, wr_en => payloadBufQWrEn, din => payloadBufQDin,
-         not_full => payloadBufQNotFull, full => open, wr_ack => open, overflow => open,
-         prog_full => open, almost_full => open, wr_data_count => open,
-         rd_clk => clk, rd_en => payloadBufQRdEn, dout => payloadBufQDout,
-         valid => payloadBufQValid, underflow => open, prog_empty => open,
-         almost_empty => open, empty => open, rd_data_count => open);
+         rst          => fifoRst,
+         wr_clk => clk,
+         wr_en => payloadBufQWrEn,
+         din => payloadBufQDin,
+         not_full     => payloadBufQNotFull,
+         full => open,
+         wr_ack => open,
+         overflow => open,
+         prog_full    => open,
+         almost_full => open,
+         wr_data_count => open,
+         rd_clk       => clk,
+         rd_en => payloadBufQRdEn,
+         dout => payloadBufQDout,
+         valid        => payloadBufQValid,
+         underflow => open,
+         prog_empty => open,
+         almost_empty => open,
+         empty => open,
+         rd_data_count => open);
 
    -----------------------------------------------------------------------------
    -- Child entities
@@ -1202,7 +1356,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => clk, rst => rst, clearAllI => clearAllI,
+         clk                       => clk,
+         rst => rst,
+         clearAllI => clearAllI,
          sgePktMetaDataPipeInValid => sgePktMetaValid,
          sgePktMetaDataPipeInData  => sgePktMetaData,
          sgePktMetaDataPipeInRdEn  => sgePktMetaRdEn,
@@ -1219,7 +1375,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => clk, rst => rst, clearAllI => clearAllI,
+         clk                          => clk,
+         rst => rst,
+         clearAllI => clearAllI,
          sgeMergedMetaDataPipeInValid => sgeMergedMetaValid,
          sgeMergedMetaDataPipeInData  => sgeMergedMetaData,
          sgeMergedMetaDataPipeInRdEn  => sgeMergedMetaRdEn,
@@ -1236,7 +1394,9 @@ begin
       generic map (
          TPD_G => TPD_G)
       port map (
-         clk => clk, rst => rst, clearAllI => clearAllI,
+         clk                      => clk,
+         rst => rst,
+         clearAllI => clearAllI,
          adjustedMetaPipeInValid  => adjustedTotalQValid,
          adjustedMetaPipeInData   => adjustedTotalQDout,
          adjustedMetaPipeInRdEn   => adjustedTotalQRdEn,
@@ -1253,7 +1413,9 @@ begin
          TPD_G    => TPD_G,
          DATA_W_G => DS_W_C)
       port map (
-         clk => clk, rst => rst, clearEnI => clearAllI,
+         clk             => clk,
+         rst => rst,
+         clearEnI => clearAllI,
          bramQNotEmpty   => payloadBufQValid,
          bramQDout       => payloadBufQDout,
          bramQDeq        => payloadBufQRdEn,

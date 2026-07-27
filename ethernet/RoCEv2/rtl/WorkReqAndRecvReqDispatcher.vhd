@@ -165,39 +165,39 @@ begin
    end generate GEN_NO_WORK_FIFO;
 
    GEN_WORK_FIFO : if EN_TX_G generate
-   GEN_WORK_FIFO_VEC : for i in 0 to MAX_QP_G-1 generate
-      U_WorkReqOutVec : entity surf.Fifo
-         generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => '1',
-            RST_ASYNC_G     => false,
-            GEN_SYNC_FIFO_G => true,
-            FWFT_EN_G       => true,
-            MEMORY_TYPE_G   => "distributed",
-            DATA_WIDTH_G    => WORK_REQ_WIDTH_C,
-            ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_C)
-         port map (
-            rst           => rst,
-            wr_clk        => clk,
-            wr_en         => workReqWrEn(i),
-            din           => workReqData_i,
-            not_full      => workReqNotFull(i),
-            full          => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            wr_data_count => open,
-            rd_clk        => clk,
-            rd_en         => workReqOutRdEn_i(i),
-            dout          => workReqOutData_o((i+1)*WORK_REQ_WIDTH_C-1 downto i*WORK_REQ_WIDTH_C),
-            valid         => workReqOutValid_o(i),
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open,
-            rd_data_count => open);
-   end generate GEN_WORK_FIFO_VEC;
+      GEN_WORK_FIFO_VEC : for i in 0 to MAX_QP_G-1 generate
+         U_WorkReqOutVec : entity surf.Fifo
+            generic map (
+               TPD_G           => TPD_G,
+               RST_POLARITY_G  => '1',
+               RST_ASYNC_G     => false,
+               GEN_SYNC_FIFO_G => true,
+               FWFT_EN_G       => true,
+               MEMORY_TYPE_G   => "distributed",
+               DATA_WIDTH_G    => WORK_REQ_WIDTH_C,
+               ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_C)
+            port map (
+               rst           => rst,
+               wr_clk        => clk,
+               wr_en         => workReqWrEn(i),
+               din           => workReqData_i,
+               not_full      => workReqNotFull(i),
+               full          => open,
+               wr_ack        => open,
+               overflow      => open,
+               prog_full     => open,
+               almost_full   => open,
+               wr_data_count => open,
+               rd_clk        => clk,
+               rd_en         => workReqOutRdEn_i(i),
+               dout          => workReqOutData_o((i+1)*WORK_REQ_WIDTH_C-1 downto i*WORK_REQ_WIDTH_C),
+               valid         => workReqOutValid_o(i),
+               underflow     => open,
+               prog_empty    => open,
+               almost_empty  => open,
+               empty         => open,
+               rd_data_count => open);
+      end generate GEN_WORK_FIFO_VEC;
    end generate GEN_WORK_FIFO;
 
    ---------------------------------------------------------------------------
@@ -213,39 +213,39 @@ begin
    end generate GEN_NO_RECV_FIFO;
 
    GEN_RECV_FIFO : if EN_RX_G generate
-   GEN_RECV_FIFO_VEC : for i in 0 to MAX_QP_G-1 generate
-      U_RecvReqOutVec : entity surf.Fifo
-         generic map (
-            TPD_G           => TPD_G,
-            RST_POLARITY_G  => '1',
-            RST_ASYNC_G     => false,
-            GEN_SYNC_FIFO_G => true,
-            FWFT_EN_G       => true,
-            MEMORY_TYPE_G   => "distributed",
-            DATA_WIDTH_G    => RECV_REQ_WIDTH_C,
-            ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_C)
-         port map (
-            rst           => rst,
-            wr_clk        => clk,
-            wr_en         => recvReqWrEn(i),
-            din           => recvReqData_i,
-            not_full      => recvReqNotFull(i),
-            full          => open,
-            wr_ack        => open,
-            overflow      => open,
-            prog_full     => open,
-            almost_full   => open,
-            wr_data_count => open,
-            rd_clk        => clk,
-            rd_en         => recvReqOutRdEn_i(i),
-            dout          => recvReqOutData_o((i+1)*RECV_REQ_WIDTH_C-1 downto i*RECV_REQ_WIDTH_C),
-            valid         => recvReqOutValid_o(i),
-            underflow     => open,
-            prog_empty    => open,
-            almost_empty  => open,
-            empty         => open,
-            rd_data_count => open);
-   end generate GEN_RECV_FIFO_VEC;
+      GEN_RECV_FIFO_VEC : for i in 0 to MAX_QP_G-1 generate
+         U_RecvReqOutVec : entity surf.Fifo
+            generic map (
+               TPD_G           => TPD_G,
+               RST_POLARITY_G  => '1',
+               RST_ASYNC_G     => false,
+               GEN_SYNC_FIFO_G => true,
+               FWFT_EN_G       => true,
+               MEMORY_TYPE_G   => "distributed",
+               DATA_WIDTH_G    => RECV_REQ_WIDTH_C,
+               ADDR_WIDTH_G    => FIFO_ADDR_WIDTH_C)
+            port map (
+               rst           => rst,
+               wr_clk        => clk,
+               wr_en         => recvReqWrEn(i),
+               din           => recvReqData_i,
+               not_full      => recvReqNotFull(i),
+               full          => open,
+               wr_ack        => open,
+               overflow      => open,
+               prog_full     => open,
+               almost_full   => open,
+               wr_data_count => open,
+               rd_clk        => clk,
+               rd_en         => recvReqOutRdEn_i(i),
+               dout          => recvReqOutData_o((i+1)*RECV_REQ_WIDTH_C-1 downto i*RECV_REQ_WIDTH_C),
+               valid         => recvReqOutValid_o(i),
+               underflow     => open,
+               prog_empty    => open,
+               almost_empty  => open,
+               empty         => open,
+               rd_data_count => open);
+      end generate GEN_RECV_FIFO_VEC;
    end generate GEN_RECV_FIFO;
 
 end architecture rtl;

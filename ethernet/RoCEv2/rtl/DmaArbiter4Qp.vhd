@@ -86,74 +86,74 @@ use surf.StdRtlPkg.all;
 entity DmaArbiter4Qp is
    generic (
       TPD_G                  : time     := 1 ns;
-      RST_POLARITY_G         : sl       := '1';    -- '1' for active-HIGH reset
+      RST_POLARITY_G         : sl       := '1';  -- '1' for active-HIGH reset
       RST_ASYNC_G            : boolean  := false;
-      DMA_READ_REQ_WIDTH_G   : positive := 176;    -- Bits#(DmaReadReq)
-      DMA_READ_RESP_WIDTH_G  : positive := 383;    -- Bits#(DmaReadResp)
-      DMA_WRITE_REQ_WIDTH_G  : positive := 419;    -- Bits#(DmaWriteReq)
-      DMA_WRITE_RESP_WIDTH_G : positive := 53);    -- Bits#(DmaWriteResp)
+      DMA_READ_REQ_WIDTH_G   : positive := 176;  -- Bits#(DmaReadReq)
+      DMA_READ_RESP_WIDTH_G  : positive := 383;  -- Bits#(DmaReadResp)
+      DMA_WRITE_REQ_WIDTH_G  : positive := 419;  -- Bits#(DmaWriteReq)
+      DMA_WRITE_RESP_WIDTH_G : positive := 53);  -- Bits#(DmaWriteResp)
    port (
       clk : in sl;
-      rst : in sl := not RST_POLARITY_G;           -- FPGA async/sync reset
+      rst : in sl := not RST_POLARITY_G;         -- FPGA async/sync reset
 
       -----------------------------------------------------------------------
       -- dmaReadClt : aggregated Client toward external DMA (= dmaReadProxy.cltPort)
       -----------------------------------------------------------------------
-      dmaReadCltReqValid   : out sl;                                        -- request (put)
-      dmaReadCltReqData    : out slv(DMA_READ_REQ_WIDTH_G-1 downto 0);      -- DmaReadReq
-      dmaReadCltReqReady   : in  sl;
-      dmaReadCltRespValid  : in  sl;                                        -- response (get)
-      dmaReadCltRespData   : in  slv(DMA_READ_RESP_WIDTH_G-1 downto 0);     -- DmaReadResp
-      dmaReadCltRespReady  : out sl;
+      dmaReadCltReqValid  : out sl;     -- request (put)
+      dmaReadCltReqData   : out slv(DMA_READ_REQ_WIDTH_G-1 downto 0);  -- DmaReadReq
+      dmaReadCltReqReady  : in  sl;
+      dmaReadCltRespValid : in  sl;     -- response (get)
+      dmaReadCltRespData  : in  slv(DMA_READ_RESP_WIDTH_G-1 downto 0);  -- DmaReadResp
+      dmaReadCltRespReady : out sl;
 
       -----------------------------------------------------------------------
       -- dmaWriteClt : aggregated Client toward external DMA (= dmaWriteProxy.cltPort)
       -----------------------------------------------------------------------
-      dmaWriteCltReqValid  : out sl;                                        -- request (put)
-      dmaWriteCltReqData   : out slv(DMA_WRITE_REQ_WIDTH_G-1 downto 0);     -- DmaWriteReq
-      dmaWriteCltReqReady   : in  sl;
-      dmaWriteCltRespValid : in  sl;                                        -- response (get)
-      dmaWriteCltRespData  : in  slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0);    -- DmaWriteResp
+      dmaWriteCltReqValid  : out sl;    -- request (put)
+      dmaWriteCltReqData   : out slv(DMA_WRITE_REQ_WIDTH_G-1 downto 0);  -- DmaWriteReq
+      dmaWriteCltReqReady  : in  sl;
+      dmaWriteCltRespValid : in  sl;    -- response (get)
+      dmaWriteCltRespData  : in  slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0);  -- DmaWriteResp
       dmaWriteCltRespReady : out sl;
 
       -----------------------------------------------------------------------
       -- dmaReadSrv4RQ : Server for the RQ engine  (U_DmaReadArb port 0)
       -----------------------------------------------------------------------
-      dmaReadSrv4RqReqValid   : in  sl;                                     -- request (put)
-      dmaReadSrv4RqReqData    : in  slv(DMA_READ_REQ_WIDTH_G-1 downto 0);   -- DmaReadReq
-      dmaReadSrv4RqReqReady   : out sl;
-      dmaReadSrv4RqRespValid  : out sl;                                     -- response (get)
-      dmaReadSrv4RqRespData   : out slv(DMA_READ_RESP_WIDTH_G-1 downto 0);  -- DmaReadResp
-      dmaReadSrv4RqRespReady  : in  sl;
+      dmaReadSrv4RqReqValid  : in  sl;  -- request (put)
+      dmaReadSrv4RqReqData   : in  slv(DMA_READ_REQ_WIDTH_G-1 downto 0);  -- DmaReadReq
+      dmaReadSrv4RqReqReady  : out sl;
+      dmaReadSrv4RqRespValid : out sl;  -- response (get)
+      dmaReadSrv4RqRespData  : out slv(DMA_READ_RESP_WIDTH_G-1 downto 0);  -- DmaReadResp
+      dmaReadSrv4RqRespReady : in  sl;
 
       -----------------------------------------------------------------------
       -- dmaWriteSrv4RQ : Server for the RQ engine (U_DmaWriteArb port 0)
       -----------------------------------------------------------------------
-      dmaWriteSrv4RqReqValid  : in  sl;                                     -- request (put)
+      dmaWriteSrv4RqReqValid  : in  sl;  -- request (put)
       dmaWriteSrv4RqReqData   : in  slv(DMA_WRITE_REQ_WIDTH_G-1 downto 0);  -- DmaWriteReq
       dmaWriteSrv4RqReqReady  : out sl;
-      dmaWriteSrv4RqRespValid : out sl;                                     -- response (get)
-      dmaWriteSrv4RqRespData  : out slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0); -- DmaWriteResp
+      dmaWriteSrv4RqRespValid : out sl;  -- response (get)
+      dmaWriteSrv4RqRespData  : out slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0);  -- DmaWriteResp
       dmaWriteSrv4RqRespReady : in  sl;
 
       -----------------------------------------------------------------------
       -- dmaReadSrv4SQ : Server for the SQ engine  (U_DmaReadArb port 1)
       -----------------------------------------------------------------------
-      dmaReadSrv4SqReqValid   : in  sl;                                     -- request (put)
-      dmaReadSrv4SqReqData    : in  slv(DMA_READ_REQ_WIDTH_G-1 downto 0);   -- DmaReadReq
-      dmaReadSrv4SqReqReady   : out sl;
-      dmaReadSrv4SqRespValid  : out sl;                                     -- response (get)
-      dmaReadSrv4SqRespData   : out slv(DMA_READ_RESP_WIDTH_G-1 downto 0);  -- DmaReadResp
-      dmaReadSrv4SqRespReady  : in  sl;
+      dmaReadSrv4SqReqValid  : in  sl;  -- request (put)
+      dmaReadSrv4SqReqData   : in  slv(DMA_READ_REQ_WIDTH_G-1 downto 0);  -- DmaReadReq
+      dmaReadSrv4SqReqReady  : out sl;
+      dmaReadSrv4SqRespValid : out sl;  -- response (get)
+      dmaReadSrv4SqRespData  : out slv(DMA_READ_RESP_WIDTH_G-1 downto 0);  -- DmaReadResp
+      dmaReadSrv4SqRespReady : in  sl;
 
       -----------------------------------------------------------------------
       -- dmaWriteSrv4SQ : Server for the SQ engine (U_DmaWriteArb port 1)
       -----------------------------------------------------------------------
-      dmaWriteSrv4SqReqValid  : in  sl;                                     -- request (put)
+      dmaWriteSrv4SqReqValid  : in  sl;  -- request (put)
       dmaWriteSrv4SqReqData   : in  slv(DMA_WRITE_REQ_WIDTH_G-1 downto 0);  -- DmaWriteReq
       dmaWriteSrv4SqReqReady  : out sl;
-      dmaWriteSrv4SqRespValid : out sl;                                     -- response (get)
-      dmaWriteSrv4SqRespData  : out slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0); -- DmaWriteResp
+      dmaWriteSrv4SqRespValid : out sl;  -- response (get)
+      dmaWriteSrv4SqRespData  : out slv(DMA_WRITE_RESP_WIDTH_G-1 downto 0);  -- DmaWriteResp
       dmaWriteSrv4SqRespReady : in  sl);
 end entity DmaArbiter4Qp;
 
@@ -162,13 +162,13 @@ architecture rtl of DmaArbiter4Qp is
    -----------------------------------------------------------------------------
    -- Downstream srv <-> proxy srvPort nets (read direction)
    -----------------------------------------------------------------------------
-   signal rdArbReqValid    : sl;                                    -- arb.srvReq -> proxy.srvReq
-   signal rdArbReqData     : slv(DMA_READ_REQ_WIDTH_G-1 downto 0);
-   signal rdProxyReqReady  : sl;                                    -- proxy.srvReqReady -> arb
-   signal rdProxyRespValid : sl;                                    -- proxy.srvResp -> arb.srvResp
-   signal rdProxyRespData  : slv(DMA_READ_RESP_WIDTH_G-1 downto 0);
-   signal rdArbRespRd      : sl;                                    -- arb.srvRespRd -> proxy.srvRespReady
-   signal rdSrvRespFinished : sl;                                   -- isDmaReadRespLastFrag = resp.dataStream.isLast
+   signal rdArbReqValid     : sl;       -- arb.srvReq -> proxy.srvReq
+   signal rdArbReqData      : slv(DMA_READ_REQ_WIDTH_G-1 downto 0);
+   signal rdProxyReqReady   : sl;       -- proxy.srvReqReady -> arb
+   signal rdProxyRespValid  : sl;       -- proxy.srvResp -> arb.srvResp
+   signal rdProxyRespData   : slv(DMA_READ_RESP_WIDTH_G-1 downto 0);
+   signal rdArbRespRd       : sl;       -- arb.srvRespRd -> proxy.srvRespReady
+   signal rdSrvRespFinished : sl;  -- isDmaReadRespLastFrag = resp.dataStream.isLast
 
    -----------------------------------------------------------------------------
    -- Downstream srv <-> proxy srvPort nets (write direction)
@@ -186,7 +186,7 @@ begin
    -- Non-constant "finished" predicates (OQ-FSM-17).  isLast = bit 0 of the
    -- struct-packed payload (dataStream is the low field; isLast its low bit).
    -----------------------------------------------------------------------------
-   rdSrvRespFinished <= rdProxyRespData(0);   -- DmaReadResp.dataStream.isLast
+   rdSrvRespFinished <= rdProxyRespData(0);  -- DmaReadResp.dataStream.isLast
 
    -----------------------------------------------------------------------------
    -- READ direction
@@ -211,7 +211,7 @@ begin
          -- port 0 = RQ
          req0Valid       => dmaReadSrv4RqReqValid,
          req0Data        => dmaReadSrv4RqReqData,
-         req0Finished    => '1',                     -- isDmaReadReqLastFrag = True
+         req0Finished    => '1',        -- isDmaReadReqLastFrag = True
          req0Ready       => dmaReadSrv4RqReqReady,
          resp0Valid      => dmaReadSrv4RqRespValid,
          resp0Data       => dmaReadSrv4RqRespData,
@@ -219,7 +219,7 @@ begin
          -- port 1 = SQ
          req1Valid       => dmaReadSrv4SqReqValid,
          req1Data        => dmaReadSrv4SqReqData,
-         req1Finished    => '1',                     -- isDmaReadReqLastFrag = True
+         req1Finished    => '1',        -- isDmaReadReqLastFrag = True
          req1Ready       => dmaReadSrv4SqReqReady,
          resp1Valid      => dmaReadSrv4SqRespValid,
          resp1Data       => dmaReadSrv4SqRespData,
@@ -299,7 +299,7 @@ begin
          srvReqReady     => wrProxyReqReady,
          srvRespValid    => wrProxyRespValid,
          srvRespData     => wrProxyRespData,
-         srvRespFinished => '1',                       -- isDmaWriteRespLastFrag = True
+         srvRespFinished => '1',        -- isDmaWriteRespLastFrag = True
          srvRespRd       => wrArbRespRd);
 
    -- U_DmaWriteProxy : dmaWriteProxy <- mkServerProxy

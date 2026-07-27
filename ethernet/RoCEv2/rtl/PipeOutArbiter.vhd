@@ -56,24 +56,24 @@ entity PipeOutArbiter is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      PORT_COUNT_G      : positive               := 8;    -- number of PipeOut inputs; any power of 2, >= 1 (1 = passthrough, Arbitration.bsv:317) (OQ-FSM-PERMARB-01)
-      DATA_WIDTH_G      : positive               := 8;    -- payload width = tSz of BSV anytype
+      PORT_COUNT_G      : positive               := 8;  -- number of PipeOut inputs; any power of 2, >= 1 (1 = passthrough, Arbitration.bsv:317) (OQ-FSM-PERMARB-01)
+      DATA_WIDTH_G      : positive               := 8;  -- payload width = tSz of BSV anytype
       MEMORY_TYPE_G     : string                 := "distributed";  -- child output FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);    -- child output FIFO depth = 2**ADDR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- child output FIFO depth = 2**ADDR
    port (
       clk         : in  sl;
       rst         : in  sl := not RST_POLARITY_G;
       -- PORT_COUNT_G upstream PipeOut inputs, forwarded 1:1 to U_Tree;
       -- input k's payload is inDout((k+1)*DATA_WIDTH_G-1 downto k*DATA_WIDTH_G)
-      inValid     : in  slv(PORT_COUNT_G-1 downto 0);               -- in(k).notEmpty
+      inValid     : in  slv(PORT_COUNT_G-1 downto 0);  -- in(k).notEmpty
       inDout      : in  slv(PORT_COUNT_G*DATA_WIDTH_G-1 downto 0);  -- in(k).first, flattened
-      inFinished  : in  slv(PORT_COUNT_G-1 downto 0);               -- isPipePayloadFinished(in(k).first)
-      inRd        : out slv(PORT_COUNT_G-1 downto 0);               -- in(k).deq strobe
+      inFinished  : in  slv(PORT_COUNT_G-1 downto 0);  -- isPipePayloadFinished(in(k).first)
+      inRd        : out slv(PORT_COUNT_G-1 downto 0);  -- in(k).deq strobe
       -- tree PipeOut output, forwarded 1:1 from U_Tree
-      outNotEmpty : out sl;                                         -- tree PipeOut.notEmpty
-      outDout     : out slv(DATA_WIDTH_G-1 downto 0);               -- tree PipeOut.first
-      outFinished : out sl;                                         -- tree head finish predicate (see note above)
-      outDeq      : in  sl);                                        -- external dequeue of the tree output
+      outNotEmpty : out sl;             -- tree PipeOut.notEmpty
+      outDout     : out slv(DATA_WIDTH_G-1 downto 0);  -- tree PipeOut.first
+      outFinished : out sl;   -- tree head finish predicate (see note above)
+      outDeq      : in  sl);            -- external dequeue of the tree output
 end entity PipeOutArbiter;
 
 architecture struct of PipeOutArbiter is
@@ -87,7 +87,7 @@ begin
    --------------------------------------------------------------------------
    GEN_BYPASS : if PORT_COUNT_G = 1 generate
       outNotEmpty <= inValid(0);
-      outDout     <= inDout;          -- widths identical at PORT_COUNT_G=1
+      outDout     <= inDout;            -- widths identical at PORT_COUNT_G=1
       outFinished <= inFinished(0);
       inRd(0)     <= outDeq;
    end generate GEN_BYPASS;

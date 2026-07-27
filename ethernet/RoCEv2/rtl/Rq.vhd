@@ -70,42 +70,42 @@ entity Rq is
       -----------------------------------------------------------------------
       -- contextRQ shared registers (external RMW; -> U_ReqHandleRq only)
       -----------------------------------------------------------------------
-      getEpoch           : in  sl;
-      incEpoch           : out sl;
-      getEPSN            : in  slv(23 downto 0);
-      getRespPktNum      : in  slv(24 downto 0);
-      setRespPktNumValid : out sl;
-      setRespPktNumData  : out slv(24 downto 0);
-      getIsRespPktNumZero : in sl;
-      setEPSNValid       : out sl;
-      setEPSNData        : out slv(23 downto 0);
-      getPreReqOpCode      : in  slv(4 downto 0);
-      setPreReqOpCodeValid : out sl;
-      setPreReqOpCodeData  : out slv(4 downto 0);
-      restoreValid         : out sl;
-      restorePreOpCodeData : out slv(4 downto 0);
-      restorePsnData       : out slv(23 downto 0);
-      getPermCheckReq      : in  slv(266 downto 0);
-      setPermCheckReqValid : out sl;
-      setPermCheckReqData  : out slv(266 downto 0);
-      getNextDmaWriteAddr        : in  slv(63 downto 0);
-      setNextDmaWriteAddrValid   : out sl;
-      setNextDmaWriteAddrData    : out slv(63 downto 0);
-      getSendWriteReqPktNum      : in  slv(24 downto 0);
-      setSendWriteReqPktNumValid : out sl;
-      setSendWriteReqPktNumData  : out slv(24 downto 0);
+      getEpoch                     : in  sl;
+      incEpoch                     : out sl;
+      getEPSN                      : in  slv(23 downto 0);
+      getRespPktNum                : in  slv(24 downto 0);
+      setRespPktNumValid           : out sl;
+      setRespPktNumData            : out slv(24 downto 0);
+      getIsRespPktNumZero          : in sl;
+      setEPSNValid                 : out sl;
+      setEPSNData                  : out slv(23 downto 0);
+      getPreReqOpCode              : in  slv(4 downto 0);
+      setPreReqOpCodeValid         : out sl;
+      setPreReqOpCodeData          : out slv(4 downto 0);
+      restoreValid                 : out sl;
+      restorePreOpCodeData         : out slv(4 downto 0);
+      restorePsnData               : out slv(23 downto 0);
+      getPermCheckReq              : in  slv(266 downto 0);
+      setPermCheckReqValid         : out sl;
+      setPermCheckReqData          : out slv(266 downto 0);
+      getNextDmaWriteAddr          : in  slv(63 downto 0);
+      setNextDmaWriteAddrValid     : out sl;
+      setNextDmaWriteAddrData      : out slv(63 downto 0);
+      getSendWriteReqPktNum        : in  slv(24 downto 0);
+      setSendWriteReqPktNumValid   : out sl;
+      setSendWriteReqPktNumData    : out slv(24 downto 0);
       getRemainingDmaWriteLen      : in  slv(31 downto 0);
       setRemainingDmaWriteLenValid : out sl;
       setRemainingDmaWriteLenData  : out slv(31 downto 0);
-      getTotalDmaWriteLen        : in  slv(31 downto 0);
-      setTotalDmaWriteLenValid   : out sl;
-      setTotalDmaWriteLenData    : out slv(31 downto 0);
-      getCurRespPSN        : in  slv(23 downto 0);
-      setCurRespPSNValid   : out sl;
-      setCurRespPSNData    : out slv(23 downto 0);
-      getMSN               : in  slv(23 downto 0);
-      setMSNValid          : out sl;
-      setMSNData           : out slv(23 downto 0);
+      getTotalDmaWriteLen          : in  slv(31 downto 0);
+      setTotalDmaWriteLenValid     : out sl;
+      setTotalDmaWriteLenData      : out slv(31 downto 0);
+      getCurRespPSN                : in  slv(23 downto 0);
+      setCurRespPSNValid           : out sl;
+      setCurRespPSNData            : out slv(23 downto 0);
+      getMSN                       : in  slv(23 downto 0);
+      setMSNValid                  : out sl;
+      setMSNData                   : out slv(23 downto 0);
       -----------------------------------------------------------------------
       -- payloadGenerator : Server + DataStream (module arg -> U_ReqHandleRq)
       -----------------------------------------------------------------------
@@ -252,32 +252,32 @@ begin
    end generate GEN_NO_DUP_CACHE;
 
    GEN_DUP_CACHE : if EN_READ_G generate
-   U_DupReadAtomicCache : entity surf.DupReadAtomicCache
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk                   => clk,
-         rst                   => rst,
-         pmtu                  => getPMTU,               -- construct arg getPMTU
-         insertReadEn          => insertReadValid,
-         insertReadData        => insertReadData,
-         insertReadReady       => insertReadReady,
-         searchReadReqEn       => searchReadReqValid,
-         searchReadReqData     => searchReadReqData,
-         searchReadReqReady    => searchReadReqReady,
-         searchReadRespValid   => searchReadRespValid,
-         searchReadRespData    => searchReadRespData,
-         searchReadRespRdEn    => searchReadRespGetEn,
-         insertAtomicEn        => insertAtomicValid,
-         insertAtomicData      => insertAtomicData,
-         insertAtomicReady     => insertAtomicReady,
-         searchAtomicReqEn     => searchAtomicReqValid,
-         searchAtomicReqData   => searchAtomicReqData,
-         searchAtomicReqReady  => searchAtomicReqReady,
-         searchAtomicRespValid => searchAtomicRespValid,
-         searchAtomicRespData  => searchAtomicRespData,
-         searchAtomicRespRdEn  => searchAtomicRespGetEn,
-         clearEn               => dupCacheClearAll);
+      U_DupReadAtomicCache : entity surf.DupReadAtomicCache
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk                   => clk,
+            rst                   => rst,
+            pmtu                  => getPMTU,               -- construct arg getPMTU
+            insertReadEn          => insertReadValid,
+            insertReadData        => insertReadData,
+            insertReadReady       => insertReadReady,
+            searchReadReqEn       => searchReadReqValid,
+            searchReadReqData     => searchReadReqData,
+            searchReadReqReady    => searchReadReqReady,
+            searchReadRespValid   => searchReadRespValid,
+            searchReadRespData    => searchReadRespData,
+            searchReadRespRdEn    => searchReadRespGetEn,
+            insertAtomicEn        => insertAtomicValid,
+            insertAtomicData      => insertAtomicData,
+            insertAtomicReady     => insertAtomicReady,
+            searchAtomicReqEn     => searchAtomicReqValid,
+            searchAtomicReqData   => searchAtomicReqData,
+            searchAtomicReqReady  => searchAtomicReqReady,
+            searchAtomicRespValid => searchAtomicRespValid,
+            searchAtomicRespData  => searchAtomicRespData,
+            searchAtomicRespRdEn  => searchAtomicRespGetEn,
+            clearEn               => dupCacheClearAll);
    end generate GEN_DUP_CACHE;
 
    ------------------------------------------------------------------------------

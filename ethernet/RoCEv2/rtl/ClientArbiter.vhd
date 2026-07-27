@@ -133,32 +133,32 @@ entity ClientArbiter is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      PORT_COUNT_G      : positive               := 8;    -- upstream client ports; any power of 2, >= 2 (OQ-FSM-PERMARB-01); concrete BSV use = 2*MAX_QP = 8
-      REQ_WIDTH_G       : positive               := 8;    -- Bits#(reqType)
-      RESP_WIDTH_G      : positive               := 8;    -- Bits#(respType)
+      PORT_COUNT_G      : positive               := 8;  -- upstream client ports; any power of 2, >= 2 (OQ-FSM-PERMARB-01); concrete BSV use = 2*MAX_QP = 8
+      REQ_WIDTH_G       : positive               := 8;  -- Bits#(reqType)
+      RESP_WIDTH_G      : positive               := 8;  -- Bits#(respType)
       MEMORY_TYPE_G     : string                 := "distributed";  -- FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);   -- FIFO depth = 2**ADDR (BSV mkFIFOF depth 2; SURF min 4)
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- FIFO depth = 2**ADDR (BSV mkFIFOF depth 2; SURF min 4)
    port (
       clk             : in  sl;
       rst             : in  sl := not RST_POLARITY_G;
       -- Per-port upstream client faces (clientVec[k], k = 0..PORT_COUNT_G-1;
       -- arbiter is master). Client k's payload slice is
       -- ((k+1)*WIDTH-1 downto k*WIDTH) of the flattened data buses.
-      cltReqValid     : in  slv(PORT_COUNT_G-1 downto 0);               -- client k request available (request.get implicit cond)
-      cltReqData      : in  slv(PORT_COUNT_G*REQ_WIDTH_G-1 downto 0);   -- client k request payload, flattened
-      cltReqFinished  : in  slv(PORT_COUNT_G-1 downto 0);               -- isReqFinished(cltReqData slice k) (OQ-FSM-17), sampled at enqueue
-      cltReqGet       : out slv(PORT_COUNT_G-1 downto 0);               -- ClientArbiter takes client k's request (request.get fired)
-      cltRespValid    : out slv(PORT_COUNT_G-1 downto 0);               -- ClientArbiter drives a response to client k (response.put fired; one-hot on preGrantIdx)
+      cltReqValid     : in  slv(PORT_COUNT_G-1 downto 0);  -- client k request available (request.get implicit cond)
+      cltReqData      : in  slv(PORT_COUNT_G*REQ_WIDTH_G-1 downto 0);  -- client k request payload, flattened
+      cltReqFinished  : in  slv(PORT_COUNT_G-1 downto 0);  -- isReqFinished(cltReqData slice k) (OQ-FSM-17), sampled at enqueue
+      cltReqGet       : out slv(PORT_COUNT_G-1 downto 0);  -- ClientArbiter takes client k's request (request.get fired)
+      cltRespValid    : out slv(PORT_COUNT_G-1 downto 0);  -- ClientArbiter drives a response to client k (response.put fired; one-hot on preGrantIdx)
       cltRespData     : out slv(PORT_COUNT_G*RESP_WIDTH_G-1 downto 0);  -- response payload (respQ.first broadcast to every slice; cltRespValid selects the port)
-      cltRespReady    : in  slv(PORT_COUNT_G-1 downto 0);               -- client k can accept a response (response.put ready)
+      cltRespReady    : in  slv(PORT_COUNT_G-1 downto 0);  -- client k can accept a response (response.put ready)
       -- Downstream shared Client face (toGPClient(reqQ, respQ))
-      outReqValid     : out sl;                            -- request.first valid (U_ReqQ notEmpty)
-      outReqData      : out slv(REQ_WIDTH_G-1 downto 0);   -- request.first (U_ReqQ dout)
-      outReqRd        : in  sl;                            -- downstream request.get (U_ReqQ deq)
-      outRespValid    : in  sl;                            -- downstream response.put fired
+      outReqValid     : out sl;  -- request.first valid (U_ReqQ notEmpty)
+      outReqData      : out slv(REQ_WIDTH_G-1 downto 0);  -- request.first (U_ReqQ dout)
+      outReqRd        : in  sl;         -- downstream request.get (U_ReqQ deq)
+      outRespValid    : in  sl;         -- downstream response.put fired
       outRespData     : in  slv(RESP_WIDTH_G-1 downto 0);  -- response payload from downstream
-      outRespFinished : in  sl;                            -- isRespFinished(outRespData) (OQ-FSM-17), sampled at enqueue
-      outRespReady    : out sl);                           -- response can accept a put (U_RespQ notFull)
+      outRespFinished : in  sl;  -- isRespFinished(outRespData) (OQ-FSM-17), sampled at enqueue
+      outRespReady    : out sl);  -- response can accept a put (U_RespQ notFull)
 end entity ClientArbiter;
 
 architecture rtl of ClientArbiter is
@@ -181,7 +181,7 @@ architecture rtl of ClientArbiter is
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      shouldSaveGrantIdxReg => '1');       -- BSV mkReg(True)
+      shouldSaveGrantIdxReg => '1');    -- BSV mkReg(True)
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -201,7 +201,7 @@ architecture rtl of ClientArbiter is
    signal arbInFinished : slv(PORT_COUNT_G-1 downto 0);
    signal arbNotEmpty   : sl;
    signal arbDout       : slv(REQIDX_WIDTH_C-1 downto 0);  -- {reqIdx, inputReq}
-   signal arbFinished   : sl;                              -- isReqFinished(inputReq), buffered head bit
+   signal arbFinished   : sl;  -- isReqFinished(inputReq), buffered head bit
    signal arbDeq        : sl;
 
    -- U_ReqQ (surf.Fifo, element reqType) — downstream request queue.
@@ -235,7 +235,7 @@ begin
    -- names the offending entity when a wrapper mis-parameterizes.
    assert isPowerOf2(PORT_COUNT_G) and (PORT_COUNT_G >= 2)
       report "ClientArbiter: PORT_COUNT_G must be a power of 2 and >= 2 " &
-             "(BSV arbitration-tree proviso; OQ-FSM-PERMARB-01)"
+      "(BSV arbitration-tree proviso; OQ-FSM-PERMARB-01)"
       severity failure;
 
    --------------------------------------------------------------------------
@@ -274,7 +274,7 @@ begin
       cltReqGet(k)  <= cltReqValid(k) and inReqQNotFull(k);
       inReqQWrEn(k) <= cltReqValid(k) and inReqQNotFull(k);
       inReqQDin(k)  <= cltReqFinished(k) & toSlv(k, IDX_WIDTH_C) &
-                       cltReqData((k+1)*REQ_WIDTH_G-1 downto k*REQ_WIDTH_G);
+                      cltReqData((k+1)*REQ_WIDTH_G-1 downto k*REQ_WIDTH_G);
 
       -- Arbiter input channel k <- U_InReqQ(k) head; the stored finished
       -- companion (top element bit) is the per-channel finish predicate
@@ -303,7 +303,7 @@ begin
          RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          PORT_COUNT_G      => PORT_COUNT_G,
-         DATA_WIDTH_G      => REQIDX_WIDTH_C,   -- payload = {idx, req}
+         DATA_WIDTH_G      => REQIDX_WIDTH_C,  -- payload = {idx, req}
          MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
@@ -450,13 +450,13 @@ begin
                       ((not r.shouldSaveGrantIdxReg) or preGrantNotFull);
 
       if (issueFiresEn = '1') then
-         arbDeq       <= '1';                          -- dequeue arbitrated request
-         reqQWrEn     <= '1';                          -- reqQ.enq(inputReq) (downstream)
-         reqQDin      <= inputReq;
-         preGrantWrEn <= r.shouldSaveGrantIdxReg;      -- conditional preGrantIdxQ.enq
-         preGrantDin  <= reqIdx;
+         arbDeq                  <= '1';  -- dequeue arbitrated request
+         reqQWrEn                <= '1';  -- reqQ.enq(inputReq) (downstream)
+         reqQDin                 <= inputReq;
+         preGrantWrEn            <= r.shouldSaveGrantIdxReg;  -- conditional preGrantIdxQ.enq
+         preGrantDin             <= reqIdx;
          -- next burst-start = this request was the last of its burst
-         v.shouldSaveGrantIdxReg := arbFinished;       -- = isReqFinished(inputReq)
+         v.shouldSaveGrantIdxReg := arbFinished;  -- = isReqFinished(inputReq)
       end if;
 
       ----------------------------------------------------------------------
@@ -467,16 +467,16 @@ begin
       --   (Response DATA is broadcast to every port slice inside GEN_PORT;
       --   cltRespValid selects the port.)
       ----------------------------------------------------------------------
-      respFinished := respQDout(RESP_WIDTH_G);         -- stored finished companion
+      respFinished := respQDout(RESP_WIDTH_G);    -- stored finished companion
       preGrantIdx  := to_integer(unsigned(preGrantDout));
-      selRespReady := cltRespReady(preGrantIdx);       -- cltRespReady(preGrantIdx)
+      selRespReady := cltRespReady(preGrantIdx);  -- cltRespReady(preGrantIdx)
 
       dispatchFiresEn := preGrantNotEmpty and respQNotEmpty and selRespReady;
 
       if (dispatchFiresEn = '1') then
-         respQRd      <= '1';                          -- deq respQ
-         preGrantRdEn <= respFinished;                 -- deq preGrantIdxQ at burst end
-         cltRespValid(preGrantIdx) <= '1';             -- response.put to selected client
+         respQRd                   <= '1';  -- deq respQ
+         preGrantRdEn              <= respFinished;  -- deq preGrantIdxQ at burst end
+         cltRespValid(preGrantIdx) <= '1';  -- response.put to selected client
       end if;
 
       -- Synchronous reset

@@ -73,26 +73,26 @@ use surf.StdRtlPkg.all;
 
 entity MetaDataPDs is
    generic (
-      TPD_G              : time     := 1 ns;
-      RST_POLARITY_G     : sl       := '1';     -- '1' for active HIGH reset
-      RST_ASYNC_G        : boolean  := false;
-      MAX_PD_G           : positive := 2;       -- MAX_PD (Settings.bsv:20)
-      PD_HANDLE_WIDTH_G  : positive := 32;      -- PD_HANDLE_WIDTH (DataTypes.bsv:28)
-      MR_REGION_WIDTH_G  : positive := 186);    -- SizeOf#(MemRegion)
+      TPD_G             : time     := 1 ns;
+      RST_POLARITY_G    : sl       := '1';   -- '1' for active HIGH reset
+      RST_ASYNC_G       : boolean  := false;
+      MAX_PD_G          : positive := 2;   -- MAX_PD (Settings.bsv:20)
+      PD_HANDLE_WIDTH_G : positive := 32;  -- PD_HANDLE_WIDTH (DataTypes.bsv:28)
+      MR_REGION_WIDTH_G : positive := 186);  -- SizeOf#(MemRegion)
    port (
-      clk            : in  sl;
-      rst            : in  sl := not RST_POLARITY_G;
+      clk : in sl;
+      rst : in sl := not RST_POLARITY_G;
 
       -- srvPort.request : Put#(ReqPD)  (ReqPD = 1 + PD_KEY + PD_HANDLE = 64 b)
       --   high index = 2*PD_HANDLE_WIDTH_G - PD_INDEX_WIDTH = 2*32 - 1 = 63
-      srvReqValid    : in  sl;
-      srvReqData     : in  slv(2*PD_HANDLE_WIDTH_G - log2(MAX_PD_G) downto 0);  -- 64 b
-      srvReqReady    : out sl;
+      srvReqValid : in  sl;
+      srvReqData  : in  slv(2*PD_HANDLE_WIDTH_G - log2(MAX_PD_G) downto 0);  -- 64 b
+      srvReqReady : out sl;
 
       -- srvPort.response : Get#(RespPD)  (RespPD = 1 + PD_HANDLE + PD_KEY = 64 b)
-      srvRespValid   : out sl;
-      srvRespData    : out slv(2*PD_HANDLE_WIDTH_G - log2(MAX_PD_G) downto 0); -- 64 b
-      srvRespReady   : in  sl;
+      srvRespValid : out sl;
+      srvRespData  : out slv(2*PD_HANDLE_WIDTH_G - log2(MAX_PD_G) downto 0);  -- 64 b
+      srvRespReady : in  sl;
 
       -- isValidPD(pdHandler) : Bool  (LIVE — called by MetaDataSrv,
       -- MetaData.bsv:731/775; served from the TagVecSrv tag-valid vector)
@@ -102,30 +102,30 @@ entity MetaDataPDs is
       -- getMRs4PD(pdHandler), consumer 1: MR-lookup group (-> PermCheckSrv,
       -- OQ-FSM-MDPD-01 / PCS-01)
       mrLkupPdHandler : in  slv(PD_HANDLE_WIDTH_G-1 downto 0);
-      mrLkupKey       : in  slv(31 downto 0);   -- LKEY/RKEY (KEY_WIDTH = 32)
-      mrLkupByLocal   : in  sl;                 -- '1' = LKey lookup, '0' = RKey
-      mrLkupReqValid  : in  sl;                 -- unused since sec.4.2 fix (kept)
-      mrLkupValid     : out sl;                 -- Maybe#(MemRegion) tag
+      mrLkupKey       : in  slv(31 downto 0);  -- LKEY/RKEY (KEY_WIDTH = 32)
+      mrLkupByLocal   : in  sl;         -- '1' = LKey lookup, '0' = RKey
+      mrLkupReqValid  : in  sl;         -- unused since sec.4.2 fix (kept)
+      mrLkupValid     : out sl;         -- Maybe#(MemRegion) tag
       mrLkupData      : out slv(MR_REGION_WIDTH_G-1 downto 0);
 
       -- getMRs4PD(pdHandler), consumer 2: selected child's registration srvPort
       -- (-> MetaDataSrv.mrSrv*, RESOLVED OQ-FSM-MDSRV-01 sec.2.3/4.1).
       -- Widths fixed by MetaDataMRs.vhd: ReqMR = 252 b, RespMR = 251 b.
       mrSrvPdHandler : in  slv(PD_HANDLE_WIDTH_G-1 downto 0);
-      mrSrvPdValid   : out sl;                  -- tag-valid(getIndexPD(handler))
+      mrSrvPdValid   : out sl;          -- tag-valid(getIndexPD(handler))
       mrSrvReqValid  : in  sl;
-      mrSrvReqData   : in  slv(251 downto 0);   -- ReqMR
+      mrSrvReqData   : in  slv(251 downto 0);  -- ReqMR
       mrSrvReqReady  : out sl;
       mrSrvRespValid : out sl;
-      mrSrvRespData  : out slv(250 downto 0);   -- RespMR
+      mrSrvRespData  : out slv(250 downto 0);  -- RespMR
       mrSrvRespReady : in  sl;
 
       -- clear() method
-      clearEn        : in  sl;
+      clearEn : in sl;
 
       -- status methods (passthrough from U_PdTagVec)
-      notEmpty       : out sl;
-      notFull        : out sl);
+      notEmpty : out sl;
+      notFull  : out sl);
 end entity MetaDataPDs;
 
 architecture rtl of MetaDataPDs is
@@ -138,31 +138,31 @@ architecture rtl of MetaDataPDs is
    --   RespPD = 1 + PD_HANDLE_WIDTH + PD_KEY_WIDTH
    --   TagVecSrv tuple3 word = 1 + T_SZ + vLogSz  (T_SZ = KeyPD = PD_KEY_WIDTH)
    -----------------------------------------------------------------------------
-   constant PD_IDX_W_C  : integer := log2(MAX_PD_G);                 -- = 1
-   constant PD_KEY_W_C  : integer := PD_HANDLE_WIDTH_G - PD_IDX_W_C; -- = 31
-   constant TAG_W_C     : integer := 1 + PD_KEY_W_C + PD_IDX_W_C;    -- = 33
+   constant PD_IDX_W_C  : integer := log2(MAX_PD_G);                    -- = 1
+   constant PD_KEY_W_C  : integer := PD_HANDLE_WIDTH_G - PD_IDX_W_C;    -- = 31
+   constant TAG_W_C     : integer := 1 + PD_KEY_W_C + PD_IDX_W_C;       -- = 33
    -- MSB index of the packed ReqPD/RespPD ports (width-1)
-   constant REQ_MSB_C   : integer := 2*PD_HANDLE_WIDTH_G - PD_IDX_W_C; -- = 63
+   constant REQ_MSB_C   : integer := 2*PD_HANDLE_WIDTH_G - PD_IDX_W_C;  -- = 63
    -- MetaDataMRs srvPort word widths (fixed by that entity's port list)
    constant REQ_MR_W_C  : integer := 252;
    constant RESP_MR_W_C : integer := 251;
 
    -- Per-child lookup / response arrays
-   type MrDataArray  is array (0 to MAX_PD_G-1) of slv(MR_REGION_WIDTH_G-1 downto 0);
-   type MrRespArray  is array (0 to MAX_PD_G-1) of slv(RESP_MR_W_C-1 downto 0);
+   type MrDataArray is array (0 to MAX_PD_G-1) of slv(MR_REGION_WIDTH_G-1 downto 0);
+   type MrRespArray is array (0 to MAX_PD_G-1) of slv(RESP_MR_W_C-1 downto 0);
 
    -- TagVecSrv interface signals
    signal tagReqData   : slv(TAG_W_C-1 downto 0);
    signal tagRespData  : slv(TAG_W_C-1 downto 0);
    signal tagGetIdx    : slv(PD_IDX_W_C-1 downto 0);
-   signal tagGetItem   : slv(PD_KEY_W_C downto 0);   -- {valid, dataVec(idx)} = 32 b
-   signal tagValidVec  : slv(MAX_PD_G-1 downto 0);   -- full tag-valid vector
+   signal tagGetItem   : slv(PD_KEY_W_C downto 0);  -- {valid, dataVec(idx)} = 32 b
+   signal tagValidVec  : slv(MAX_PD_G-1 downto 0);  -- full tag-valid vector
    signal getItemValid : sl;
 
    -- MetaDataMRs combinational lookup interface (per instance)
-   signal mrGetSel     : sl;
-   signal mrValidVec   : slv(MAX_PD_G-1 downto 0);
-   signal mrDataVec    : MrDataArray;
+   signal mrGetSel   : sl;
+   signal mrValidVec : slv(MAX_PD_G-1 downto 0);
+   signal mrDataVec  : MrDataArray;
 
    -- MetaDataMRs registration srvPort demux/mux (per instance)
    signal mrReqValidVec  : slv(MAX_PD_G-1 downto 0);
@@ -173,9 +173,9 @@ architecture rtl of MetaDataPDs is
    signal mrSrvIdx       : slv(PD_IDX_W_C-1 downto 0);
 
    -- Selected (idx-routed) MR lookup result
-   signal selMrIdx     : slv(PD_IDX_W_C-1 downto 0);
-   signal selMrValid   : sl;
-   signal selMrData    : slv(MR_REGION_WIDTH_G-1 downto 0);
+   signal selMrIdx   : slv(PD_IDX_W_C-1 downto 0);
+   signal selMrValid : sl;
+   signal selMrData  : slv(MR_REGION_WIDTH_G-1 downto 0);
 
 begin
 
@@ -222,7 +222,7 @@ begin
    --   The combinational getMemRegionBy{L,R}Key lookup fans out to all children;
    --   the selected result is routed upward via mrLkup*.
    -----------------------------------------------------------------------------
-   mrGetSel <= not mrLkupByLocal;   -- MetaDataMRs getMrSel_i: '0'=LKey, '1'=RKey
+   mrGetSel <= not mrLkupByLocal;  -- MetaDataMRs getMrSel_i: '0'=LKey, '1'=RKey
    -- getIndexPD: at MAX_PD_G=1 the BSV index is 0 bits, i.e. the constant 0 -
    -- force 0 instead of reading a live handle bit (same idiom as getIndexQP)
    mrSrvIdx <= ite(MAX_PD_G > 1,
@@ -232,7 +232,7 @@ begin
    GEN_MR : for i in 0 to MAX_PD_G-1 generate
 
       -- getIndexPD demux: only the addressed child sees the put/get strobes
-      mrReqValidVec(i)  <= mrSrvReqValid  and toSl(to_integer(unsigned(mrSrvIdx)) = i);
+      mrReqValidVec(i)  <= mrSrvReqValid and toSl(to_integer(unsigned(mrSrvIdx)) = i);
       mrRespReadyVec(i) <= mrSrvRespReady and toSl(to_integer(unsigned(mrSrvIdx)) = i);
 
       U_PdMr : entity surf.MetaDataMRs
@@ -272,8 +272,8 @@ begin
    --     pdKey      = srvReqData(62 downto 32)
    --     pdHandler  = srvReqData(31 downto 0) ; index = pdHandler(31) = MSB
    --   tuple3 word = {allocOrNot(1), pdKey(31), pdIndex(1)} (TagVecSrv reqData)
-   tagReqData <= srvReqData(REQ_MSB_C) &                                            -- allocOrNot (MSB)
-                 srvReqData(REQ_MSB_C - 1 downto PD_HANDLE_WIDTH_G) &               -- pdKey (PD_KEY_W_C b)
+   tagReqData <= srvReqData(REQ_MSB_C) & -- allocOrNot (MSB)
+                 srvReqData(REQ_MSB_C - 1 downto PD_HANDLE_WIDTH_G) & -- pdKey (PD_KEY_W_C b)
                  ite(MAX_PD_G > 1,
                      srvReqData(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C),
                      "0");  -- pdIndex = top of handler; constant 0 at MAX_PD_G=1
@@ -285,9 +285,9 @@ begin
    --     successOrNot = respData(32)
    --     pdHandler    = respData(31 downto 0)        (62 downto 31)
    --     pdKey        = respData(30 downto 0)        (30 downto 0)
-   srvRespData <= tagRespData(TAG_W_C-1) &                       -- successOrNot
-                  tagRespData(TAG_W_C-2 downto 0) &              -- pdHandler = {idx, key}
-                  tagRespData(PD_KEY_W_C-1 downto 0);            -- pdKey
+   srvRespData <= tagRespData(TAG_W_C-1) & -- successOrNot
+                  tagRespData(TAG_W_C-2 downto 0) & -- pdHandler = {idx, key}
+                  tagRespData(PD_KEY_W_C-1 downto 0);  -- pdKey
 
    -- getItem() data port: DEDICATED to the mrLkup* consumer (sec.4.2 fix — no
    -- arbitration; mrLkupReqValid no longer gates anything).
@@ -295,14 +295,14 @@ begin
                     mrLkupPdHandler(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C),
                     "0");
 
-   getItemValid <= tagGetItem(PD_KEY_W_C);   -- {valid, data} : valid is the MSB
+   getItemValid <= tagGetItem(PD_KEY_W_C);  -- {valid, data} : valid is the MSB
 
    -- isValidPD(pdHandler) = tag-valid(getIndexPD(handler)) — conflict-free read
    -- of the exported vector (LIVE consumer: MetaDataSrv QP states).
    isValidPd <= tagValidVec(ite(MAX_PD_G > 1,
-                   to_integer(unsigned(
-                      isValidPdHandler(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C))),
-                   0));
+                                to_integer(unsigned(
+                                   isValidPdHandler(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C))),
+                                0));
 
    -- getMRs4PD validity for the registration client (MetaDataSrv MR states)
    mrSrvPdValid <= tagValidVec(to_integer(unsigned(mrSrvIdx)));
@@ -314,9 +314,9 @@ begin
 
    -- getMRs4PD lookup consumer: route the selected MetaDataMRs instance's
    -- result, qualified by tag-valid(idx) (= isValid(getItem(idx)) in BSV).
-   selMrIdx   <= ite(MAX_PD_G > 1,
-                     mrLkupPdHandler(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C),
-                     "0");
+   selMrIdx <= ite(MAX_PD_G > 1,
+                   mrLkupPdHandler(PD_HANDLE_WIDTH_G-1 downto PD_HANDLE_WIDTH_G - PD_IDX_W_C),
+                   "0");
    selMrValid <= mrValidVec(to_integer(unsigned(selMrIdx)));
    selMrData  <= mrDataVec(to_integer(unsigned(selMrIdx)));
 

@@ -122,12 +122,12 @@ entity ReqHandleRq is
       -----------------------------------------------------------------------
       -- contextRQ shared registers (OQ-FSM-RHR-01; external RMW, NOT local state)
       -----------------------------------------------------------------------
-      getEpoch           : in  sl;                        -- Epoch (1b)
-      incEpoch           : out sl;                        -- pulse: contextRQ.incEpoch
-      getEPSN            : in  slv(23 downto 0);           -- expected PSN
-      getRespPktNum      : in  slv(24 downto 0);           -- PktNum
-      setRespPktNumValid : out sl;                         -- setRespPktNum write-enable
-      setRespPktNumData  : out slv(24 downto 0);
+      getEpoch            : in  sl;                        -- Epoch (1b)
+      incEpoch            : out sl;                        -- pulse: contextRQ.incEpoch
+      getEPSN             : in  slv(23 downto 0);           -- expected PSN
+      getRespPktNum       : in  slv(24 downto 0);           -- PktNum
+      setRespPktNumValid  : out sl;                         -- setRespPktNum write-enable
+      setRespPktNumData   : out slv(24 downto 0);
       getIsRespPktNumZero : in sl;
       -- expected-PSN write-back (contextRQ.setEPSN; checkEPSN advances ePSN)
       setEPSNValid       : out sl;                         -- setEPSN write-enable
@@ -145,18 +145,18 @@ entity ReqHandleRq is
       setPermCheckReqValid : out sl;                       -- setPermCheckReq write-enable
       setPermCheckReqData  : out slv(266 downto 0);
       -- DMA-write context registers (Phase 4; contextRQ get/set per multi-packet send/write)
-      getNextDmaWriteAddr        : in  slv(63 downto 0);   -- ADDR
-      setNextDmaWriteAddrValid   : out sl;                 -- setNextDmaWriteAddr write-enable
-      setNextDmaWriteAddrData    : out slv(63 downto 0);
-      getSendWriteReqPktNum      : in  slv(24 downto 0);   -- PktNum
-      setSendWriteReqPktNumValid : out sl;                 -- setSendWriteReqPktNum write-enable
-      setSendWriteReqPktNumData  : out slv(24 downto 0);
+      getNextDmaWriteAddr          : in  slv(63 downto 0);   -- ADDR
+      setNextDmaWriteAddrValid     : out sl;                 -- setNextDmaWriteAddr write-enable
+      setNextDmaWriteAddrData      : out slv(63 downto 0);
+      getSendWriteReqPktNum        : in  slv(24 downto 0);   -- PktNum
+      setSendWriteReqPktNumValid   : out sl;                 -- setSendWriteReqPktNum write-enable
+      setSendWriteReqPktNumData    : out slv(24 downto 0);
       getRemainingDmaWriteLen      : in  slv(31 downto 0); -- Length
       setRemainingDmaWriteLenValid : out sl;               -- setRemainingDmaWriteLen write-enable
       setRemainingDmaWriteLenData  : out slv(31 downto 0);
-      getTotalDmaWriteLen        : in  slv(31 downto 0);   -- Length
-      setTotalDmaWriteLenValid   : out sl;                 -- setTotalDmaWriteLen write-enable
-      setTotalDmaWriteLenData    : out slv(31 downto 0);
+      getTotalDmaWriteLen          : in  slv(31 downto 0);   -- Length
+      setTotalDmaWriteLenValid     : out sl;                 -- setTotalDmaWriteLen write-enable
+      setTotalDmaWriteLenData      : out slv(31 downto 0);
       -- response PSN/MSN context registers (Phase 7; stage 23 updateRespPsnAndMsn)
       getCurRespPSN        : in  slv(23 downto 0);         -- PSN (current response PSN)
       setCurRespPSNValid   : out sl;                       -- setCurRespPSN write-enable
@@ -207,21 +207,21 @@ entity ReqHandleRq is
       -----------------------------------------------------------------------
       -- dupReadAtomicCache : DupReadAtomicCache
       -----------------------------------------------------------------------
-      insertReadValid      : out sl;                      -- insertRead(ReadCacheItem 176b)
-      insertReadData       : out slv(175 downto 0);
-      insertReadReady      : in  sl;
-      searchReadReqValid   : out sl;                      -- searchReadReq(ReadCacheItem 176b)
-      searchReadReqData    : out slv(175 downto 0);
-      searchReadReqReady   : in  sl;
-      searchReadRespValid  : in  sl;                      -- searchReadResp Maybe#Tuple3 (242b)
-      searchReadRespData   : in  slv(241 downto 0);
-      searchReadRespGetEn  : out sl;
-      insertAtomicValid    : out sl;                      -- insertAtomic(AtomicCacheItem 317b)
-      insertAtomicData     : out slv(316 downto 0);
-      insertAtomicReady    : in  sl;
-      searchAtomicReqValid : out sl;                      -- searchAtomicReq(AtomicCacheItem 317b)
-      searchAtomicReqData  : out slv(316 downto 0);
-      searchAtomicReqReady : in  sl;
+      insertReadValid       : out sl;                      -- insertRead(ReadCacheItem 176b)
+      insertReadData        : out slv(175 downto 0);
+      insertReadReady       : in  sl;
+      searchReadReqValid    : out sl;                      -- searchReadReq(ReadCacheItem 176b)
+      searchReadReqData     : out slv(175 downto 0);
+      searchReadReqReady    : in  sl;
+      searchReadRespValid   : in  sl;                      -- searchReadResp Maybe#Tuple3 (242b)
+      searchReadRespData    : in  slv(241 downto 0);
+      searchReadRespGetEn   : out sl;
+      insertAtomicValid     : out sl;                      -- insertAtomic(AtomicCacheItem 317b)
+      insertAtomicData      : out slv(316 downto 0);
+      insertAtomicReady     : in  sl;
+      searchAtomicReqValid  : out sl;                      -- searchAtomicReq(AtomicCacheItem 317b)
+      searchAtomicReqData   : out slv(316 downto 0);
+      searchAtomicReqReady  : in  sl;
       searchAtomicRespValid : in sl;                      -- searchAtomicResp Maybe#AtomicCacheItem (318b)
       searchAtomicRespData  : in slv(317 downto 0);
       searchAtomicRespGetEn : out sl;
@@ -398,16 +398,19 @@ architecture rtl of ReqHandleRq is
    begin
       return (u=0) or (u=1) or (u=2) or (u=3) or (u=4) or (u=5) or (u=22) or (u=23);
    end function;
+
    function isWriteReqOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=6) or (u=7) or (u=8) or (u=9) or (u=10) or (u=11);
    end function;
+
    function isWriteImmReqOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=9) or (u=11);
    end function;
+
    -- EN_READ_G=false forces both classifiers false: isSupportedReqOp then
    -- rejects READ/atomics (stage 1 -> ST_INV_REQ_C -> NAK INV_REQ), and every
    -- downstream read/atomic arm (dup-read cache, atomicSrv, payloadGen issue)
@@ -416,36 +419,43 @@ architecture rtl of ReqHandleRq is
    begin
       return EN_READ_G and (opInt(op) = 12);
    end function;
+
    function isAtomicReqOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return EN_READ_G and ((u=19) or (u=20));
    end function;
+
    function isFirstOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=0) or (u=6) or (u=13);
    end function;
+
    function isMiddleOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=1) or (u=7) or (u=14);
    end function;
+
    function isLastOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=2) or (u=3) or (u=22) or (u=8) or (u=9) or (u=15);
    end function;
+
    function isOnlyOp (op : slv(4 downto 0)) return boolean is
       variable u : integer := opInt(op);
    begin
       return (u=4) or (u=5) or (u=23) or (u=10) or (u=11) or (u=12) or
              (u=19) or (u=20) or (u=16) or (u=17) or (u=18);
    end function;
+
    function isFirstOrOnlyOp (op : slv(4 downto 0)) return boolean is
    begin
       return isFirstOp(op) or isOnlyOp(op);
    end function;
+
    function isLastOrOnlyOp (op : slv(4 downto 0)) return boolean is
    begin
       return isLastOp(op) or isOnlyOp(op);
@@ -508,7 +518,7 @@ architecture rtl of ReqHandleRq is
    function psnInRangeExcl (psn : slv(23 downto 0); psnStart : slv(23 downto 0);
                             psnEnd : slv(23 downto 0)) return boolean is
       variable psnGtStart : boolean := unsigned(psnStart) < unsigned(psn);
-      variable psnLtEnd    : boolean := unsigned(psn) < unsigned(psnEnd);
+      variable psnLtEnd   : boolean := unsigned(psn) < unsigned(psnEnd);
    begin
       if (psnStart(23) = psnEnd(23)) then
          return psnGtStart and psnLtEnd;
@@ -531,6 +541,7 @@ architecture rtl of ReqHandleRq is
       end case;
       return slv(resize(shift_right(unsigned(len), sh), 25));
    end function;
+
    -- isZero(pmtuResidue): low log2(pmtuBytes) bits of len are all zero
    function pmtuResidueZero (len : slv(31 downto 0); pmtu : slv(2 downto 0)) return boolean is
       variable sh : integer;
@@ -566,26 +577,31 @@ architecture rtl of ReqHandleRq is
          when others => return 12;   -- IBV_MTU_4096 (=5)
       end case;
    end function;
+
    -- addrAddPsnMultiplyPMTU(addr, 1, pmtu) = addr + 2^log
    function addrAddOnePmtu (addr : slv(63 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(unsigned(addr) + to_unsigned(2**pmtuLog(pmtu), 64));
    end function;
+
    -- lenSubtractPsnMultiplyPMTU(len, 1, pmtu) = len - 2^log
    function lenSubOnePmtu (len : slv(31 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(unsigned(len) - to_unsigned(2**pmtuLog(pmtu), 32));
    end function;
+
    -- lenAddPsnMultiplyPMTU(len, 1, pmtu) = len + 2^log
    function lenAddOnePmtu (len : slv(31 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(unsigned(len) + to_unsigned(2**pmtuLog(pmtu), 32));
    end function;
+
    -- calcPmtuLen(pmtu) = 2^log (PktLen 13b)
    function calcPmtuLen (pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(to_unsigned(2**pmtuLog(pmtu), 13));
    end function;
+
    -- pktLenEqPMTU(pktLen, pmtu): pktLen with bit[log] cleared is zero (i.e. == PMTU)
    function pktLenEqPmtu (pktLen : slv(12 downto 0); pmtu : slv(2 downto 0)) return boolean is
       variable t : slv(12 downto 0);
@@ -594,18 +610,20 @@ architecture rtl of ReqHandleRq is
       t(pmtuLog(pmtu)) := '0';
       return unsigned(t) = 0;
    end function;
+
    -- lenSubtractPktLen: low (log+1) bits subtract, no borrow into high part
    function lenSubPktLen (len : slv(31 downto 0); pktLen : slv(12 downto 0);
                           pmtu : slv(2 downto 0)) return slv is
    begin
       case to_integer(unsigned(pmtu)) is
-         when 1      => return len(31 downto 9)  & slv(unsigned(len(8  downto 0)) - unsigned(pktLen(8  downto 0)));
+         when 1      => return len(31 downto 9) & slv(unsigned(len(8  downto 0)) - unsigned(pktLen(8  downto 0)));
          when 2      => return len(31 downto 10) & slv(unsigned(len(9  downto 0)) - unsigned(pktLen(9  downto 0)));
          when 3      => return len(31 downto 11) & slv(unsigned(len(10 downto 0)) - unsigned(pktLen(10 downto 0)));
          when 4      => return len(31 downto 12) & slv(unsigned(len(11 downto 0)) - unsigned(pktLen(11 downto 0)));
          when others => return len(31 downto 13) & slv(unsigned(len(12 downto 0)) - unsigned(pktLen(12 downto 0)));
       end case;
    end function;
+
    -- lenAddPktLen: if pktLen==PMTU add one PMTU, else replace low log bits with pktLen
    function lenAddPktLen (len : slv(31 downto 0); pktLen : slv(12 downto 0);
                           pmtu : slv(2 downto 0)) return slv is
@@ -614,14 +632,15 @@ architecture rtl of ReqHandleRq is
          return lenAddOnePmtu(len, pmtu);
       else
          case to_integer(unsigned(pmtu)) is
-            when 1      => return len(31 downto 8)  & pktLen(7  downto 0);
-            when 2      => return len(31 downto 9)  & pktLen(8  downto 0);
+            when 1      => return len(31 downto 8) & pktLen(7  downto 0);
+            when 2      => return len(31 downto 9) & pktLen(8  downto 0);
             when 3      => return len(31 downto 10) & pktLen(9  downto 0);
             when 4      => return len(31 downto 11) & pktLen(10 downto 0);
             when others => return len(31 downto 12) & pktLen(11 downto 0);
          end case;
       end if;
    end function;
+
    -- lenGtEqPktLen: high part (above log) nonzero, or low (log+1) bits >= pktLen
    function lenGtEqPktLen (len : slv(31 downto 0); pktLen : slv(12 downto 0);
                            pmtu : slv(2 downto 0)) return boolean is
@@ -634,6 +653,7 @@ architecture rtl of ReqHandleRq is
          when others => return (unsigned(len(31 downto 13)) /= 0) or (unsigned(len(12 downto 0)) >= unsigned(pktLen(12 downto 0)));
       end case;
    end function;
+
    -- lenGtEqPMTU: bits above (log-1) nonzero, i.e. len >= 2^log
    function lenGtEqPmtu (len : slv(31 downto 0); pmtu : slv(2 downto 0)) return boolean is
    begin
@@ -692,7 +712,7 @@ architecture rtl of ReqHandleRq is
    begin
       case st is
          when ST_NORMAL_C | ST_DUP_C | ST_RNR_C | ST_SEQ_ERR_C
-            | ST_INV_REQ_C | ST_INV_RD_C | ST_RMT_ACC_C | ST_RMT_OP_C => return true;
+              | ST_INV_REQ_C | ST_INV_RD_C | ST_RMT_ACC_C | ST_RMT_OP_C => return true;
          when others => return false;
       end case;
    end function;
@@ -878,6 +898,7 @@ architecture rtl of ReqHandleRq is
    begin
       return slv(to_unsigned(n, 29));
    end function;
+
    constant RNR_TIMEOUT_C : Slv29Array := (
       0  => rnrTo(327680000),  1  => rnrTo(5000),      2  => rnrTo(10000),
       3  => rnrTo(15000),      4  => rnrTo(20000),     5  => rnrTo(30000),
@@ -973,42 +994,147 @@ architecture rtl of ReqHandleRq is
    constant PSW_C : integer := 24;    -- psnRespOutQ
 
    -- per-FIFO handshake bundles
-   signal f01WrEn, f01RdEn, f01Valid, f01NotFull : sl; signal f01Din, f01Dout : slv(W01_C-1 downto 0);
-   signal f02WrEn, f02RdEn, f02Valid, f02NotFull : sl; signal f02Din, f02Dout : slv(W02_C-1 downto 0);
-   signal f03WrEn, f03RdEn, f03Valid, f03NotFull : sl; signal f03Din, f03Dout : slv(W03_C-1 downto 0);
-   signal f04WrEn, f04RdEn, f04Valid, f04NotFull : sl; signal f04Din, f04Dout : slv(W04_C-1 downto 0);
-   signal f05WrEn, f05RdEn, f05Valid, f05NotFull : sl; signal f05Din, f05Dout : slv(W05_C-1 downto 0);
-   signal f06WrEn, f06RdEn, f06Valid, f06NotFull : sl; signal f06Din, f06Dout : slv(W06_C-1 downto 0);
-   signal f07WrEn, f07RdEn, f07Valid, f07NotFull : sl; signal f07Din, f07Dout : slv(W07_C-1 downto 0);
-   signal f08WrEn, f08RdEn, f08Valid, f08NotFull : sl; signal f08Din, f08Dout : slv(W08_C-1 downto 0);
-   signal f09WrEn, f09RdEn, f09Valid, f09NotFull : sl; signal f09Din, f09Dout : slv(W09_C-1 downto 0);
-   signal f10WrEn, f10RdEn, f10Valid, f10NotFull : sl; signal f10Din, f10Dout : slv(W10_C-1 downto 0);
-   signal f11WrEn, f11RdEn, f11Valid, f11NotFull : sl; signal f11Din, f11Dout : slv(W11_C-1 downto 0);
-   signal f12WrEn, f12RdEn, f12Valid, f12NotFull : sl; signal f12Din, f12Dout : slv(W12_C-1 downto 0);
-   signal f13WrEn, f13RdEn, f13Valid, f13NotFull : sl; signal f13Din, f13Dout : slv(W13_C-1 downto 0);
-   signal f14WrEn, f14RdEn, f14Valid, f14NotFull : sl; signal f14Din, f14Dout : slv(W14_C-1 downto 0);
-   signal f15WrEn, f15RdEn, f15Valid, f15NotFull : sl; signal f15Din, f15Dout : slv(W15_C-1 downto 0);
-   signal f16WrEn, f16RdEn, f16Valid, f16NotFull : sl; signal f16Din, f16Dout : slv(W16_C-1 downto 0);
-   signal f17WrEn, f17RdEn, f17Valid, f17NotFull : sl; signal f17Din, f17Dout : slv(W17_C-1 downto 0);
-   signal f18WrEn, f18RdEn, f18Valid, f18NotFull : sl; signal f18Din, f18Dout : slv(W18_C-1 downto 0);
-   signal f19WrEn, f19RdEn, f19Valid, f19NotFull : sl; signal f19Din, f19Dout : slv(W19_C-1 downto 0);
-   signal f20WrEn, f20RdEn, f20Valid, f20NotFull : sl; signal f20Din, f20Dout : slv(W20_C-1 downto 0);
-   signal f21WrEn, f21RdEn, f21Valid, f21NotFull : sl; signal f21Din, f21Dout : slv(W21_C-1 downto 0);
-   signal f22WrEn, f22RdEn, f22Valid, f22NotFull : sl; signal f22Din, f22Dout : slv(W22_C-1 downto 0);
-   signal f23WrEn, f23RdEn, f23Valid, f23NotFull : sl; signal f23Din, f23Dout : slv(W23_C-1 downto 0);
-   signal f24WrEn, f24RdEn, f24Valid, f24NotFull : sl; signal f24Din, f24Dout : slv(W24_C-1 downto 0);
-   signal f25WrEn, f25RdEn, f25Valid, f25NotFull : sl; signal f25Din, f25Dout : slv(W25_C-1 downto 0);
-   signal f26WrEn, f26RdEn, f26Valid, f26NotFull : sl; signal f26Din, f26Dout : slv(W26_C-1 downto 0);
-   signal f27WrEn, f27RdEn, f27Valid, f27NotFull : sl; signal f27Din, f27Dout : slv(W27_C-1 downto 0);
-   signal f28WrEn, f28RdEn, f28Valid, f28NotFull : sl; signal f28Din, f28Dout : slv(W28_C-1 downto 0);
-   signal f29WrEn, f29RdEn, f29Valid, f29NotFull : sl; signal f29Din, f29Dout : slv(W29_C-1 downto 0);
-   signal f30WrEn, f30RdEn, f30Valid, f30NotFull : sl; signal f30Din, f30Dout : slv(W30_C-1 downto 0);
-   signal f31WrEn, f31RdEn, f31Valid, f31NotFull : sl; signal f31Din, f31Dout : slv(W31_C-1 downto 0);
-   signal f32WrEn, f32RdEn, f32Valid, f32NotFull : sl; signal f32Din, f32Dout : slv(W32_C-1 downto 0);
+   signal f01WrEn : sl;
+   signal f01RdEn : sl;
+   signal f01Valid : sl;
+   signal f01NotFull : sl; signal f01Din,       f01Dout : slv(W01_C-1 downto 0);
+   signal f02WrEn : sl;
+   signal f02RdEn : sl;
+   signal f02Valid : sl;
+   signal f02NotFull : sl; signal f02Din,       f02Dout : slv(W02_C-1 downto 0);
+   signal f03WrEn : sl;
+   signal f03RdEn : sl;
+   signal f03Valid : sl;
+   signal f03NotFull : sl; signal f03Din,       f03Dout : slv(W03_C-1 downto 0);
+   signal f04WrEn : sl;
+   signal f04RdEn : sl;
+   signal f04Valid : sl;
+   signal f04NotFull : sl; signal f04Din,       f04Dout : slv(W04_C-1 downto 0);
+   signal f05WrEn : sl;
+   signal f05RdEn : sl;
+   signal f05Valid : sl;
+   signal f05NotFull : sl; signal f05Din,       f05Dout : slv(W05_C-1 downto 0);
+   signal f06WrEn : sl;
+   signal f06RdEn : sl;
+   signal f06Valid : sl;
+   signal f06NotFull : sl; signal f06Din,       f06Dout : slv(W06_C-1 downto 0);
+   signal f07WrEn : sl;
+   signal f07RdEn : sl;
+   signal f07Valid : sl;
+   signal f07NotFull : sl; signal f07Din,       f07Dout : slv(W07_C-1 downto 0);
+   signal f08WrEn : sl;
+   signal f08RdEn : sl;
+   signal f08Valid : sl;
+   signal f08NotFull : sl; signal f08Din,       f08Dout : slv(W08_C-1 downto 0);
+   signal f09WrEn : sl;
+   signal f09RdEn : sl;
+   signal f09Valid : sl;
+   signal f09NotFull : sl; signal f09Din,       f09Dout : slv(W09_C-1 downto 0);
+   signal f10WrEn : sl;
+   signal f10RdEn : sl;
+   signal f10Valid : sl;
+   signal f10NotFull : sl; signal f10Din,       f10Dout : slv(W10_C-1 downto 0);
+   signal f11WrEn : sl;
+   signal f11RdEn : sl;
+   signal f11Valid : sl;
+   signal f11NotFull : sl; signal f11Din,       f11Dout : slv(W11_C-1 downto 0);
+   signal f12WrEn : sl;
+   signal f12RdEn : sl;
+   signal f12Valid : sl;
+   signal f12NotFull : sl; signal f12Din,       f12Dout : slv(W12_C-1 downto 0);
+   signal f13WrEn : sl;
+   signal f13RdEn : sl;
+   signal f13Valid : sl;
+   signal f13NotFull : sl; signal f13Din,       f13Dout : slv(W13_C-1 downto 0);
+   signal f14WrEn : sl;
+   signal f14RdEn : sl;
+   signal f14Valid : sl;
+   signal f14NotFull : sl; signal f14Din,       f14Dout : slv(W14_C-1 downto 0);
+   signal f15WrEn : sl;
+   signal f15RdEn : sl;
+   signal f15Valid : sl;
+   signal f15NotFull : sl; signal f15Din,       f15Dout : slv(W15_C-1 downto 0);
+   signal f16WrEn : sl;
+   signal f16RdEn : sl;
+   signal f16Valid : sl;
+   signal f16NotFull : sl; signal f16Din,       f16Dout : slv(W16_C-1 downto 0);
+   signal f17WrEn : sl;
+   signal f17RdEn : sl;
+   signal f17Valid : sl;
+   signal f17NotFull : sl; signal f17Din,       f17Dout : slv(W17_C-1 downto 0);
+   signal f18WrEn : sl;
+   signal f18RdEn : sl;
+   signal f18Valid : sl;
+   signal f18NotFull : sl; signal f18Din,       f18Dout : slv(W18_C-1 downto 0);
+   signal f19WrEn : sl;
+   signal f19RdEn : sl;
+   signal f19Valid : sl;
+   signal f19NotFull : sl; signal f19Din,       f19Dout : slv(W19_C-1 downto 0);
+   signal f20WrEn : sl;
+   signal f20RdEn : sl;
+   signal f20Valid : sl;
+   signal f20NotFull : sl; signal f20Din,       f20Dout : slv(W20_C-1 downto 0);
+   signal f21WrEn : sl;
+   signal f21RdEn : sl;
+   signal f21Valid : sl;
+   signal f21NotFull : sl; signal f21Din,       f21Dout : slv(W21_C-1 downto 0);
+   signal f22WrEn : sl;
+   signal f22RdEn : sl;
+   signal f22Valid : sl;
+   signal f22NotFull : sl; signal f22Din,       f22Dout : slv(W22_C-1 downto 0);
+   signal f23WrEn : sl;
+   signal f23RdEn : sl;
+   signal f23Valid : sl;
+   signal f23NotFull : sl; signal f23Din,       f23Dout : slv(W23_C-1 downto 0);
+   signal f24WrEn : sl;
+   signal f24RdEn : sl;
+   signal f24Valid : sl;
+   signal f24NotFull : sl; signal f24Din,       f24Dout : slv(W24_C-1 downto 0);
+   signal f25WrEn : sl;
+   signal f25RdEn : sl;
+   signal f25Valid : sl;
+   signal f25NotFull : sl; signal f25Din,       f25Dout : slv(W25_C-1 downto 0);
+   signal f26WrEn : sl;
+   signal f26RdEn : sl;
+   signal f26Valid : sl;
+   signal f26NotFull : sl; signal f26Din,       f26Dout : slv(W26_C-1 downto 0);
+   signal f27WrEn : sl;
+   signal f27RdEn : sl;
+   signal f27Valid : sl;
+   signal f27NotFull : sl; signal f27Din,       f27Dout : slv(W27_C-1 downto 0);
+   signal f28WrEn : sl;
+   signal f28RdEn : sl;
+   signal f28Valid : sl;
+   signal f28NotFull : sl; signal f28Din,       f28Dout : slv(W28_C-1 downto 0);
+   signal f29WrEn : sl;
+   signal f29RdEn : sl;
+   signal f29Valid : sl;
+   signal f29NotFull : sl; signal f29Din,       f29Dout : slv(W29_C-1 downto 0);
+   signal f30WrEn : sl;
+   signal f30RdEn : sl;
+   signal f30Valid : sl;
+   signal f30NotFull : sl; signal f30Din,       f30Dout : slv(W30_C-1 downto 0);
+   signal f31WrEn : sl;
+   signal f31RdEn : sl;
+   signal f31Valid : sl;
+   signal f31NotFull : sl; signal f31Din,       f31Dout : slv(W31_C-1 downto 0);
+   signal f32WrEn : sl;
+   signal f32RdEn : sl;
+   signal f32Valid : sl;
+   signal f32NotFull : sl; signal f32Din,       f32Dout : slv(W32_C-1 downto 0);
    -- output FIFOs
-   signal wcOutWrEn, wcOutRdEn, wcOutValid, wcOutNotFull : sl; signal wcOutDin, wcOutDout : slv(WCW_C-1 downto 0);
-   signal rhOutWrEn, rhOutRdEn, rhOutValid, rhOutNotFull : sl; signal rhOutDin, rhOutDout : slv(RHW_C-1 downto 0);
-   signal psnOutWrEn, psnOutRdEn, psnOutValid, psnOutNotFull : sl; signal psnOutDin, psnOutDout : slv(PSW_C-1 downto 0);
+   signal wcOutWrEn : sl;
+   signal wcOutRdEn : sl;
+   signal wcOutValid : sl;
+   signal wcOutNotFull : sl; signal wcOutDin,   wcOutDout : slv(WCW_C-1 downto 0);
+   signal rhOutWrEn : sl;
+   signal rhOutRdEn : sl;
+   signal rhOutValid : sl;
+   signal rhOutNotFull : sl; signal rhOutDin,   rhOutDout : slv(RHW_C-1 downto 0);
+   signal psnOutWrEn : sl;
+   signal psnOutRdEn : sl;
+   signal psnOutValid : sl;
+   signal psnOutNotFull : sl; signal psnOutDin, psnOutDout : slv(PSW_C-1 downto 0);
 
    signal fifoClr : sl;
 
@@ -1049,251 +1175,531 @@ begin
    -- same instantiation style as the emitted CountCF/RespHandleSq children).
    ---------------------------------------------------------------------------
    U_SupportedReqOpCodeCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W01_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f01WrEn, din => f01Din,
-                not_full => f01NotFull, rd_clk => clk, rd_en => f01RdEn,
-                dout => f01Dout, valid => f01Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W01_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f01WrEn,
+         din => f01Din,
+         not_full => f01NotFull,
+         rd_clk => clk,
+         rd_en => f01RdEn,
+         dout => f01Dout,
+         valid => f01Valid);
    U_ReqOpCodeSeqCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W02_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f02WrEn, din => f02Din,
-                not_full => f02NotFull, rd_clk => clk, rd_en => f02RdEn,
-                dout => f02Dout, valid => f02Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W02_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f02WrEn,
+         din => f02Din,
+         not_full => f02NotFull,
+         rd_clk => clk,
+         rd_en => f02RdEn,
+         dout => f02Dout,
+         valid => f02Valid);
    U_RnrCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W03_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f03WrEn, din => f03Din,
-                not_full => f03NotFull, rd_clk => clk, rd_en => f03RdEn,
-                dout => f03Dout, valid => f03Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W03_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f03WrEn,
+         din => f03Din,
+         not_full => f03NotFull,
+         rd_clk => clk,
+         rd_en => f03RdEn,
+         dout => f03Dout,
+         valid => f03Valid);
    U_RnrTriggerQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W04_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f04WrEn, din => f04Din,
-                not_full => f04NotFull, rd_clk => clk, rd_en => f04RdEn,
-                dout => f04Dout, valid => f04Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W04_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f04WrEn,
+         din => f04Din,
+         not_full => f04NotFull,
+         rd_clk => clk,
+         rd_en => f04RdEn,
+         dout => f04Dout,
+         valid => f04Valid);
    U_QpAccPermCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W05_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f05WrEn, din => f05Din,
-                not_full => f05NotFull, rd_clk => clk, rd_en => f05RdEn,
-                dout => f05Dout, valid => f05Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W05_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f05WrEn,
+         din => f05Din,
+         not_full => f05NotFull,
+         rd_clk => clk,
+         rd_en => f05RdEn,
+         dout => f05Dout,
+         valid => f05Valid);
    U_ReqPermInfoBuildQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W06_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f06WrEn, din => f06Din,
-                not_full => f06NotFull, rd_clk => clk, rd_en => f06RdEn,
-                dout => f06Dout, valid => f06Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W06_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f06WrEn,
+         din => f06Din,
+         not_full => f06NotFull,
+         rd_clk => clk,
+         rd_en => f06RdEn,
+         dout => f06Dout,
+         valid => f06Valid);
    U_ReqPermQueryTmpQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W07_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f07WrEn, din => f07Din,
-                not_full => f07NotFull, rd_clk => clk, rd_en => f07RdEn,
-                dout => f07Dout, valid => f07Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W07_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f07WrEn,
+         din => f07Din,
+         not_full => f07NotFull,
+         rd_clk => clk,
+         rd_en => f07RdEn,
+         dout => f07Dout,
+         valid => f07Valid);
    U_ReqPermQueryQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W08_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f08WrEn, din => f08Din,
-                not_full => f08NotFull, rd_clk => clk, rd_en => f08RdEn,
-                dout => f08Dout, valid => f08Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W08_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f08WrEn,
+         din => f08Din,
+         not_full => f08NotFull,
+         rd_clk => clk,
+         rd_en => f08RdEn,
+         dout => f08Dout,
+         valid => f08Valid);
    U_ReqPermCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W09_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f09WrEn, din => f09Din,
-                not_full => f09NotFull, rd_clk => clk, rd_en => f09RdEn,
-                dout => f09Dout, valid => f09Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W09_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f09WrEn,
+         din => f09Din,
+         not_full => f09NotFull,
+         rd_clk => clk,
+         rd_en => f09RdEn,
+         dout => f09Dout,
+         valid => f09Valid);
    U_ReadCacheInsertQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W10_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f10WrEn, din => f10Din,
-                not_full => f10NotFull, rd_clk => clk, rd_en => f10RdEn,
-                dout => f10Dout, valid => f10Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W10_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f10WrEn,
+         din => f10Din,
+         not_full => f10NotFull,
+         rd_clk => clk,
+         rd_en => f10RdEn,
+         dout => f10Dout,
+         valid => f10Valid);
    U_DupReadReqPermQueryQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W11_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f11WrEn, din => f11Din,
-                not_full => f11NotFull, rd_clk => clk, rd_en => f11RdEn,
-                dout => f11Dout, valid => f11Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W11_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f11WrEn,
+         din => f11Din,
+         not_full => f11NotFull,
+         rd_clk => clk,
+         rd_en => f11RdEn,
+         dout => f11Dout,
+         valid => f11Valid);
    U_DupReadReqPermCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W12_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f12WrEn, din => f12Din,
-                not_full => f12NotFull, rd_clk => clk, rd_en => f12RdEn,
-                dout => f12Dout, valid => f12Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W12_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f12WrEn,
+         din => f12Din,
+         not_full => f12NotFull,
+         rd_clk => clk,
+         rd_en => f12RdEn,
+         dout => f12Dout,
+         valid => f12Valid);
    U_ReqAddrCalcQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W13_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f13WrEn, din => f13Din,
-                not_full => f13NotFull, rd_clk => clk, rd_en => f13RdEn,
-                dout => f13Dout, valid => f13Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W13_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f13WrEn,
+         din => f13Din,
+         not_full => f13NotFull,
+         rd_clk => clk,
+         rd_en => f13RdEn,
+         dout => f13Dout,
+         valid => f13Valid);
    U_ReqRemainingLenCalcQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W14_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f14WrEn, din => f14Din,
-                not_full => f14NotFull, rd_clk => clk, rd_en => f14RdEn,
-                dout => f14Dout, valid => f14Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W14_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f14WrEn,
+         din => f14Din,
+         not_full => f14NotFull,
+         rd_clk => clk,
+         rd_en => f14RdEn,
+         dout => f14Dout,
+         valid => f14Valid);
    U_ReqEnoughDmaSpaceQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W15_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f15WrEn, din => f15Din,
-                not_full => f15NotFull, rd_clk => clk, rd_en => f15RdEn,
-                dout => f15Dout, valid => f15Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W15_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f15WrEn,
+         din => f15Din,
+         not_full => f15NotFull,
+         rd_clk => clk,
+         rd_en => f15RdEn,
+         dout => f15Dout,
+         valid => f15Valid);
    U_ReqTotalLenCalcQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W16_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f16WrEn, din => f16Din,
-                not_full => f16NotFull, rd_clk => clk, rd_en => f16RdEn,
-                dout => f16Dout, valid => f16Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W16_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f16WrEn,
+         din => f16Din,
+         not_full => f16NotFull,
+         rd_clk => clk,
+         rd_en => f16RdEn,
+         dout => f16Dout,
+         valid => f16Valid);
    U_ReqLenCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W17_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f17WrEn, din => f17Din,
-                not_full => f17NotFull, rd_clk => clk, rd_en => f17RdEn,
-                dout => f17Dout, valid => f17Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W17_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f17WrEn,
+         din => f17Din,
+         not_full => f17NotFull,
+         rd_clk => clk,
+         rd_en => f17RdEn,
+         dout => f17Dout,
+         valid => f17Valid);
    U_IssuePayloadConReqQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W18_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f18WrEn, din => f18Din,
-                not_full => f18NotFull, rd_clk => clk, rd_en => f18RdEn,
-                dout => f18Dout, valid => f18Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W18_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f18WrEn,
+         din => f18Din,
+         not_full => f18NotFull,
+         rd_clk => clk,
+         rd_en => f18RdEn,
+         dout => f18Dout,
+         valid => f18Valid);
    U_IssuePayloadGenReqQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W19_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f19WrEn, din => f19Din,
-                not_full => f19NotFull, rd_clk => clk, rd_en => f19RdEn,
-                dout => f19Dout, valid => f19Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W19_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f19WrEn,
+         din => f19Din,
+         not_full => f19NotFull,
+         rd_clk => clk,
+         rd_en => f19RdEn,
+         dout => f19Dout,
+         valid => f19Valid);
    U_IssueAtomicReqQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W20_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f20WrEn, din => f20Din,
-                not_full => f20NotFull, rd_clk => clk, rd_en => f20RdEn,
-                dout => f20Dout, valid => f20Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W20_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f20WrEn,
+         din => f20Din,
+         not_full => f20NotFull,
+         rd_clk => clk,
+         rd_en => f20RdEn,
+         dout => f20Dout,
+         valid => f20Valid);
    U_RespGenCheck4NormalCaseQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W21_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f21WrEn, din => f21Din,
-                not_full => f21NotFull, rd_clk => clk, rd_en => f21RdEn,
-                dout => f21Dout, valid => f21Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W21_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f21WrEn,
+         din => f21Din,
+         not_full => f21NotFull,
+         rd_clk => clk,
+         rd_en => f21RdEn,
+         dout => f21Dout,
+         valid => f21Valid);
    U_RespGenCheck4OtherCasesQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W22_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f22WrEn, din => f22Din,
-                not_full => f22NotFull, rd_clk => clk, rd_en => f22RdEn,
-                dout => f22Dout, valid => f22Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W22_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f22WrEn,
+         din => f22Din,
+         not_full => f22NotFull,
+         rd_clk => clk,
+         rd_en => f22RdEn,
+         dout => f22Dout,
+         valid => f22Valid);
    U_RespCountQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W23_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f23WrEn, din => f23Din,
-                not_full => f23NotFull, rd_clk => clk, rd_en => f23RdEn,
-                dout => f23Dout, valid => f23Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W23_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f23WrEn,
+         din => f23Din,
+         not_full => f23NotFull,
+         rd_clk => clk,
+         rd_en => f23RdEn,
+         dout => f23Dout,
+         valid => f23Valid);
    U_RespPsnAndMsnQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W24_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f24WrEn, din => f24Din,
-                not_full => f24NotFull, rd_clk => clk, rd_en => f24RdEn,
-                dout => f24Dout, valid => f24Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W24_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f24WrEn,
+         din => f24Din,
+         not_full => f24NotFull,
+         rd_clk => clk,
+         rd_en => f24RdEn,
+         dout => f24Dout,
+         valid => f24Valid);
    U_WaitAtomicRespQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W25_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f25WrEn, din => f25Din,
-                not_full => f25NotFull, rd_clk => clk, rd_en => f25RdEn,
-                dout => f25Dout, valid => f25Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W25_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f25WrEn,
+         din => f25Din,
+         not_full => f25NotFull,
+         rd_clk => clk,
+         rd_en => f25RdEn,
+         dout => f25Dout,
+         valid => f25Valid);
    U_AtomicCacheInsertQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W26_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f26WrEn, din => f26Din,
-                not_full => f26NotFull, rd_clk => clk, rd_en => f26RdEn,
-                dout => f26Dout, valid => f26Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W26_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f26WrEn,
+         din => f26Din,
+         not_full => f26NotFull,
+         rd_clk => clk,
+         rd_en => f26RdEn,
+         dout => f26Dout,
+         valid => f26Valid);
    U_RespCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W27_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f27WrEn, din => f27Din,
-                not_full => f27NotFull, rd_clk => clk, rd_en => f27RdEn,
-                dout => f27Dout, valid => f27Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W27_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f27WrEn,
+         din => f27Din,
+         not_full => f27NotFull,
+         rd_clk => clk,
+         rd_en => f27RdEn,
+         dout => f27Dout,
+         valid => f27Valid);
    U_DupAtomicReqPermQueryQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W28_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f28WrEn, din => f28Din,
-                not_full => f28NotFull, rd_clk => clk, rd_en => f28RdEn,
-                dout => f28Dout, valid => f28Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W28_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f28WrEn,
+         din => f28Din,
+         not_full => f28NotFull,
+         rd_clk => clk,
+         rd_en => f28RdEn,
+         dout => f28Dout,
+         valid => f28Valid);
    U_DupAtomicReqPermCheckQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W29_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f29WrEn, din => f29Din,
-                not_full => f29NotFull, rd_clk => clk, rd_en => f29RdEn,
-                dout => f29Dout, valid => f29Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W29_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f29WrEn,
+         din => f29Din,
+         not_full => f29NotFull,
+         rd_clk => clk,
+         rd_en => f29RdEn,
+         dout => f29Dout,
+         valid => f29Valid);
    U_RespHeaderGenQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W30_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f30WrEn, din => f30Din,
-                not_full => f30NotFull, rd_clk => clk, rd_en => f30RdEn,
-                dout => f30Dout, valid => f30Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W30_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f30WrEn,
+         din => f30Din,
+         not_full => f30NotFull,
+         rd_clk => clk,
+         rd_en => f30RdEn,
+         dout => f30Dout,
+         valid => f30Valid);
    U_PendingRespQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W31_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f31WrEn, din => f31Din,
-                not_full => f31NotFull, rd_clk => clk, rd_en => f31RdEn,
-                dout => f31Dout, valid => f31Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W31_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f31WrEn,
+         din => f31Din,
+         not_full => f31NotFull,
+         rd_clk => clk,
+         rd_en => f31RdEn,
+         dout => f31Dout,
+         valid => f31Valid);
    U_WorkCompReqQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => W32_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => f32WrEn, din => f32Din,
-                not_full => f32NotFull, rd_clk => clk, rd_en => f32RdEn,
-                dout => f32Dout, valid => f32Valid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => W32_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => f32WrEn,
+         din => f32Din,
+         not_full => f32NotFull,
+         rd_clk => clk,
+         rd_en => f32RdEn,
+         dout => f32Dout,
+         valid => f32Valid);
    -- output FIFOs
    U_WorkCompGenReqOutQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => WCW_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => wcOutWrEn, din => wcOutDin,
-                not_full => wcOutNotFull, rd_clk => clk, rd_en => wcOutRdEn,
-                dout => wcOutDout, valid => wcOutValid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => WCW_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => wcOutWrEn,
+         din => wcOutDin,
+         not_full => wcOutNotFull,
+         rd_clk => clk,
+         rd_en => wcOutRdEn,
+         dout => wcOutDout,
+         valid => wcOutValid);
    U_RespHeaderOutQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => RHW_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => rhOutWrEn, din => rhOutDin,
-                not_full => rhOutNotFull, rd_clk => clk, rd_en => rhOutRdEn,
-                dout => rhOutDout, valid => rhOutValid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => RHW_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => rhOutWrEn,
+         din => rhOutDin,
+         not_full => rhOutNotFull,
+         rd_clk => clk,
+         rd_en => rhOutRdEn,
+         dout => rhOutDout,
+         valid => rhOutValid);
    U_PsnRespOutQ : entity surf.Fifo
-      generic map (TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
-                   GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
-                   DATA_WIDTH_G => PSW_C, ADDR_WIDTH_G => 4)
-      port map (rst => fifoClr, wr_clk => clk, wr_en => psnOutWrEn, din => psnOutDin,
-                not_full => psnOutNotFull, rd_clk => clk, rd_en => psnOutRdEn,
-                dout => psnOutDout, valid => psnOutValid);
+      generic map (
+         TPD_G => TPD_G, RST_POLARITY_G => '1', RST_ASYNC_G => false,
+         GEN_SYNC_FIFO_G => true, FWFT_EN_G => true, MEMORY_TYPE_G => "distributed",
+         DATA_WIDTH_G => PSW_C, ADDR_WIDTH_G => 4)
+      port map (
+         rst => fifoClr,
+         wr_clk => clk,
+         wr_en => psnOutWrEn,
+         din => psnOutDin,
+         not_full => psnOutNotFull,
+         rd_clk => clk,
+         rd_en => psnOutRdEn,
+         dout => psnOutDout,
+         valid => psnOutValid);
 
    ---------------------------------------------------------------------------
    -- Child entity instances
@@ -1371,76 +1777,76 @@ begin
       variable hasErrHappened : sl;
       variable inErrorState   : sl;
       -- convenience: pipeline worker enable (BSV workers fire on isNonErr||isERR)
-      variable workerEnable   : boolean;
+      variable workerEnable : boolean;
       -- Pre-stage / pipeline datapath temporaries (Phase 1)
-      variable bthV        : slv(95 downto 0);
-      variable opcodeV     : slv(4 downto 0);
-      variable transV      : slv(2 downto 0);
-      variable psnV        : slv(23 downto 0);
-      variable dlenV       : slv(31 downto 0);
-      variable reqPktInfoV : slv(160 downto 0);
-      variable reqStatusV  : slv(3 downto 0);
-      variable isReadReqV  : boolean;
-      variable isAccPassV  : boolean;
-      variable respPktNumV : slv(24 downto 0);   -- PktNum
+      variable bthV           : slv(95 downto 0);
+      variable opcodeV        : slv(4 downto 0);
+      variable transV         : slv(2 downto 0);
+      variable psnV           : slv(23 downto 0);
+      variable dlenV          : slv(31 downto 0);
+      variable reqPktInfoV    : slv(160 downto 0);
+      variable reqStatusV     : slv(3 downto 0);
+      variable isReadReqV     : boolean;
+      variable isAccPassV     : boolean;
+      variable respPktNumV    : slv(24 downto 0);   -- PktNum
       variable totRespPktNumV : slv(24 downto 0);
       variable isOnlyRespPktV : boolean;
-      variable curEPSNv    : slv(23 downto 0);
-      variable nextEPSNv   : slv(23 downto 0);
-      variable nextPsnV    : slv(23 downto 0);
-      variable endPsnV     : slv(23 downto 0);
-      variable epochV      : sl;
-      variable preOpCodeV  : slv(4 downto 0);
-      variable maybeRecvReqV : slv(216 downto 0);   -- Maybe#RecvReq (tag @216)
+      variable curEpsnV       : slv(23 downto 0);
+      variable nextEpsnV      : slv(23 downto 0);
+      variable nextPsnV       : slv(23 downto 0);
+      variable endPsnV        : slv(23 downto 0);
+      variable epochV         : sl;
+      variable preOpCodeV     : slv(4 downto 0);
+      variable maybeRecvReqV  : slv(216 downto 0);   -- Maybe#RecvReq (tag @216)
       -- Phase 2 (perm-check build/query)
-      variable permCheckReqV : slv(266 downto 0);   -- PermCheckReq
-      variable rethV         : slv(127 downto 0);    -- RETH
+      variable permCheckReqV  : slv(266 downto 0);   -- PermCheckReq
+      variable rethV          : slv(127 downto 0);    -- RETH
       variable pdHandlerV     : slv(31 downto 0);    -- HandlerPD
-      variable recvReqV      : slv(215 downto 0);    -- RecvReq
-      variable atomicVaV     : slv(63 downto 0);      -- AtomicEth.va
+      variable recvReqV       : slv(215 downto 0);    -- RecvReq
+      variable atomicVaV      : slv(63 downto 0);      -- AtomicEth.va
       variable isZeroPayloadV : sl;
-      variable doPermReqV    : boolean;
-      variable expectPermV   : sl;
-      variable doDupCacheV   : boolean;   -- Phase 3: gate insertRead / searchReadReq
-      variable expectDupV    : sl;        -- Phase 3: expectDupReadCheckResp carry
-      variable dupStartV     : sl;        -- Phase 3: DupReadReqStartState (0=FROM_FIRST)
+      variable doPermReqV     : boolean;
+      variable expectPermV    : sl;
+      variable doDupCacheV    : boolean;   -- Phase 3: gate insertRead / searchReadReq
+      variable expectDupV     : sl;        -- Phase 3: expectDupReadCheckResp carry
+      variable dupStartV      : sl;        -- Phase 3: DupReadReqStartState (0=FROM_FIRST)
       -- Phase 4: DMA addr/len arithmetic (stages 12-16)
-      variable isSendWrV     : boolean;   -- isSendReq or isWriteReq
-      variable curDmaAddrV   : slv(63 downto 0);
-      variable nextDmaAddrV  : slv(63 downto 0);
-      variable sendPktNumV   : slv(24 downto 0);
-      variable remLenV       : slv(31 downto 0);
-      variable totLenV       : slv(31 downto 0);
-      variable pktPayLenV    : slv(12 downto 0);   -- PktLen
-      variable enoughChkV    : slv(3 downto 0);    -- EnoughDmaSpaceCheck (only/first/mid/last)
-      variable lastOnlyEnV   : sl;                 -- lastOrOnlyPktHasEnoughDmaSpace
-      variable firstMidEnV   : sl;                 -- firstOrMidPktHasEnoughDmaSpace
-      variable enoughSpaceV  : sl;
-      variable isLastZeroV   : sl;                 -- isLastPayloadLenZero
-      variable reqLenResV    : slv(129 downto 0);  -- ReqLenCheckResult
-      variable writeMatchV   : boolean;
+      variable isSendWrV    : boolean;   -- isSendReq or isWriteReq
+      variable curDmaAddrV  : slv(63 downto 0);
+      variable nextDmaAddrV : slv(63 downto 0);
+      variable sendPktNumV  : slv(24 downto 0);
+      variable remLenV      : slv(31 downto 0);
+      variable totLenV      : slv(31 downto 0);
+      variable pktPayLenV   : slv(12 downto 0);   -- PktLen
+      variable enoughChkV   : slv(3 downto 0);    -- EnoughDmaSpaceCheck (only/first/mid/last)
+      variable lastOnlyEnV  : sl;                 -- lastOrOnlyPktHasEnoughDmaSpace
+      variable firstMidEnV  : sl;                 -- firstOrMidPktHasEnoughDmaSpace
+      variable enoughSpaceV : sl;
+      variable isLastZeroV  : sl;                 -- isLastPayloadLenZero
+      variable reqLenResV   : slv(129 downto 0);  -- ReqLenCheckResult
+      variable writeMatchV  : boolean;
       -- Phase 5: PayloadConReq / PayloadGenReq / AtomicOpReq build (stages 17-19)
-      variable dmaWrMetaV    : slv(128 downto 0);   -- DmaWriteMetaData
-      variable dmaRdMetaV    : slv(194 downto 0);   -- DmaReadMetaData
-      variable respGenV      : slv(72 downto 0);    -- RespPktGenInfo
-      variable hasReqStErrV  : sl;
-      variable doConPutV     : boolean;             -- stage 17 payloadConReqPort.put fired
-      variable doGenReqV     : boolean;             -- stage 18 payloadGenerator.request.put fired
-      variable doAtomicReqV  : boolean;             -- stage 19 atomicSrv.request.put fired
-      variable expRdPayV     : sl;                  -- expectReadRespPayload
-      variable expAtomicV    : sl;                  -- expectAtomicRespOrig
+      variable dmaWrMetaV   : slv(128 downto 0);   -- DmaWriteMetaData
+      variable dmaRdMetaV   : slv(194 downto 0);   -- DmaReadMetaData
+      variable respGenV     : slv(72 downto 0);    -- RespPktGenInfo
+      variable hasReqStErrV : sl;
+      variable doConPutV    : boolean;             -- stage 17 payloadConReqPort.put fired
+      variable doGenReqV    : boolean;             -- stage 18 payloadGenerator.request.put fired
+      variable doAtomicReqV : boolean;             -- stage 19 atomicSrv.request.put fired
+      variable expRdPayV    : sl;                  -- expectReadRespPayload
+      variable expAtomicV   : sl;                  -- expectAtomicRespOrig
       -- Phase 6: response-gen decision + response-packet loop (stages 20-22)
-      variable qpHasRespV    : boolean;             -- qpNeedGenResp(bth.trans)
+      variable qpHasRespV     : boolean;             -- qpNeedGenResp(bth.trans)
       variable shouldGenRespV : sl;
-      variable reloadCntV    : boolean;             -- reloadPendingWorkReqCnt
-      variable decrCntV      : boolean;             -- decrPendingWorkReqCnt
-      variable genEvenNoAckV : boolean;             -- shouldGenRespEvenNoAckReq
-      variable isFirstRespV  : boolean;             -- isFirstOrOnlyRespPkt (this cycle)
-      variable isLastRespV   : boolean;             -- isLastOrOnlyRespPkt (this cycle)
-      variable remRespPktV   : slv(24 downto 0);    -- remainingRespPktNum
-      variable deqRespV      : boolean;             -- respCountQ.deq this cycle
+      variable reloadCntV     : boolean;             -- reloadPendingWorkReqCnt
+      variable decrCntV       : boolean;             -- decrPendingWorkReqCnt
+      variable genEvenNoAckV  : boolean;             -- shouldGenRespEvenNoAckReq
+      variable isFirstRespV   : boolean;             -- isFirstOrOnlyRespPkt (this cycle)
+      variable isLastRespV    : boolean;             -- isLastOrOnlyRespPkt (this cycle)
+      variable remRespPktV    : slv(24 downto 0);    -- remainingRespPktNum
+      variable deqRespV       : boolean;             -- respCountQ.deq this cycle
       -- Phase 7: resp PSN/MSN update + atomic resp / atomic-cache insert / read-resp err (stages 23-26)
-      variable respPSNv           : slv(23 downto 0);   -- respPSN (stage 23)
+      variable respPsnV           : slv(23 downto 0);   -- respPSN (stage 23)
       variable msnV               : slv(23 downto 0);   -- MSN (stage 23)
       variable isFirstOrOnlyRespV : sl;                 -- isFirstOrOnlyRespPkt (stage 23, may clear)
       variable respPktHdrV        : slv(49 downto 0);   -- RespPktHeaderInfo
@@ -1453,30 +1859,30 @@ begin
       variable hasDmaRdErrV       : sl;                 -- hasDmaReadRespErr (stage 26)
       variable expectReadV        : sl;                 -- expectReadRespPayload (stage 26)
       -- Phase 8: dup-atomic query/check + response-header gen + resp-pkt emit (stages 27-30)
-      variable doSearchAtomicV    : boolean;            -- stage 27 searchAtomicReq fired
-      variable reqStatus28V       : slv(3 downto 0);    -- stage 28 reqStatus (may -> DISCARD)
-      variable shouldGen28V       : sl;                 -- stage 28 shouldGenResp
-      variable atomicAck28V       : slv(64 downto 0);   -- stage 28 atomicAckOrig (Maybe#Long)
-      variable reqStatus29V       : slv(3 downto 0);    -- stage 29 reqStatus (may -> RMT_OP/DISCARD)
-      variable shouldGen29V       : sl;                 -- stage 29 shouldGenResp
-      variable hasErrRespGenV     : sl;                 -- stage 29 hasErrRespGen (Block C sticky)
-      variable maybeHeaderV       : slv(593 downto 0);  -- stage 29 Maybe#HeaderRDMA
-      variable isOnlyReadResp29V  : boolean;            -- stage 29 isOnlyRespPkt & isReadReq
-      variable doHeaderEnqV       : boolean;            -- stage 30 header/psn enq
+      variable doSearchAtomicV   : boolean;            -- stage 27 searchAtomicReq fired
+      variable reqStatus28V      : slv(3 downto 0);    -- stage 28 reqStatus (may -> DISCARD)
+      variable shouldGen28V      : sl;                 -- stage 28 shouldGenResp
+      variable atomicAck28V      : slv(64 downto 0);   -- stage 28 atomicAckOrig (Maybe#Long)
+      variable reqStatus29V      : slv(3 downto 0);    -- stage 29 reqStatus (may -> RMT_OP/DISCARD)
+      variable shouldGen29V      : sl;                 -- stage 29 shouldGenResp
+      variable hasErrRespGenV    : sl;                 -- stage 29 hasErrRespGen (Block C sticky)
+      variable maybeHeaderV      : slv(593 downto 0);  -- stage 29 Maybe#HeaderRDMA
+      variable isOnlyReadResp29V : boolean;            -- stage 29 isOnlyRespPkt & isReadReq
+      variable doHeaderEnqV      : boolean;            -- stage 30 header/psn enq
       -- Phase 9 (stage 31 genWorkCompRQ)
-      variable reqStatus31V       : slv(3 downto 0);    -- workCompReqQ reqStatus
-      variable reqOp31V           : slv(4 downto 0);    -- bth.opcode
-      variable trans31V           : slv(2 downto 0);    -- bth.trans
-      variable wcStatus31V        : slv(5 downto 0);    -- [5]=valid,[4:0]=WorkCompStatus
-      variable immDt31V           : slv(31 downto 0);   -- extractImmDt
-      variable ieth31V            : slv(31 downto 0);   -- extractIETH (rkey)
-      variable immM31V            : slv(32 downto 0);   -- Maybe#IMM
-      variable rkeyM31V           : slv(32 downto 0);   -- Maybe#RKEY
-      variable doDecr31V          : boolean;            -- pendingDestReadAtomicReqCnt.decrOne
-      variable doWcEnq31V         : boolean;            -- workCompGenReqOutQ.enq
+      variable reqStatus31V : slv(3 downto 0);    -- workCompReqQ reqStatus
+      variable reqOp31V     : slv(4 downto 0);    -- bth.opcode
+      variable trans31V     : slv(2 downto 0);    -- bth.trans
+      variable wcStatus31V  : slv(5 downto 0);    -- [5]=valid,[4:0]=WorkCompStatus
+      variable immDt31V     : slv(31 downto 0);   -- extractImmDt
+      variable ieth31V      : slv(31 downto 0);   -- extractIETH (rkey)
+      variable immM31V      : slv(32 downto 0);   -- Maybe#IMM
+      variable rkeyM31V     : slv(32 downto 0);   -- Maybe#RKEY
+      variable doDecr31V    : boolean;            -- pendingDestReadAtomicReqCnt.decrOne
+      variable doWcEnq31V   : boolean;            -- workCompGenReqOutQ.enq
       -- Phase err (SUB-FSM C errFlushRecvReq): synthetic flush-RR token fields
-      variable flushPmdV          : slv(648 downto 0);  -- synthetic RdmaPktMetaData
-      variable flushPktInfoV      : slv(160 downto 0);  -- synthetic RdmaReqPktInfo
+      variable flushPmdV     : slv(648 downto 0);  -- synthetic RdmaPktMetaData
+      variable flushPktInfoV : slv(160 downto 0);  -- synthetic RdmaReqPktInfo
    begin
       v := r;
 
@@ -1568,11 +1974,11 @@ begin
          opcodeV     := reqPktInfoV(157 downto 153);
          transV      := reqPktInfoV(160 downto 158);
          epochV      := reqPktInfoV(64);
-         curEPSNv    := f01Dout(23 downto 0);
+         curEpsnV    := f01Dout(23 downto 0);
          if (epochV = getEpoch) then
             if (hasErrHappened = '0') then
                if (reqStatusV = ST_SEQ_ERR_C) then
-                  reqPktInfoV(88 downto 65) := curEPSNv;                 -- bth.psn = curEPSN
+                  reqPktInfoV(88 downto 65) := curEpsnV;                 -- bth.psn = curEPSN
                elsif (not isSupportedReqOp(getTypeQP, opcodeV)) then
                   if (reqStatusV = ST_NORMAL_C) then
                      reqStatusV := invReqStatus(transV);
@@ -2315,14 +2721,14 @@ begin
          f24RdEn <= '1'; f25WrEn <= '1';
          isFirstOrOnlyRespV := f24Dout(1);
          if (isFirstOrOnlyRespV = '1') then
-            respPSNv := f24Dout(163 downto 140);    -- bth.psn
+            respPsnV := f24Dout(163 downto 140);    -- bth.psn
          else
-            respPSNv := getCurRespPSN;
+            respPsnV := getCurRespPSN;
          end if;
          msnV := getMSN;
          if (r.hasErrRespGen = '0') then
             setCurRespPSNValid <= '1';
-            setCurRespPSNData  <= slv(unsigned(respPSNv) + 1);
+            setCurRespPSNData  <= slv(unsigned(respPsnV) + 1);
             if ((f24Dout(506 downto 503) = ST_NORMAL_C) and (f24Dout(79) = '1') and (f24Dout(0) = '1')) then
                msnV := slv(unsigned(msnV) + 1);     -- isLastOrOnlyReqPkt & isLastOrOnlyRespPkt
                setMSNValid <= '1';
@@ -2333,7 +2739,7 @@ begin
                isFirstOrOnlyRespV := '0';
             end if;
          end if;
-         respPktHdrV := respPSNv & msnV & isFirstOrOnlyRespV & f24Dout(0);
+         respPktHdrV := respPsnV & msnV & isFirstOrOnlyRespV & f24Dout(0);
          f25Din <= f24Dout(1155 downto 2) & respPktHdrV;
       end if;
       -- Stage 24 : waitAtomicResp (f25 -> f26) + atomicSrv.response.get (BSV @2780)
@@ -2642,17 +3048,17 @@ begin
                   isReadReqV  := reqPktInfoV(11) = '1';
                   respPktNumV := reqPktInfoV(63 downto 39);
                   isOnlyRespPktV := reqPktInfoV(3) = '1';
-                  curEPSNv    := getEPSN;
+                  curEpsnV    := getEPSN;
                   -- calcNextAndEndPSN(psn, respPktNum, isOnlyPkt=isOnlyRespPkt, pmtu[unused])
                   nextPsnV := ite(isOnlyRespPktV, slv(unsigned(psnV) + 1),
                                   slv(resize(unsigned(psnV) + unsigned(respPktNumV), 24)));
                   endPsnV  := ite(isOnlyRespPktV, psnV, slv(unsigned(nextPsnV) - 1));
-                  nextEPSNv := curEPSNv;
+                  nextEpsnV := curEpsnV;
                   if (epochV = getEpoch) then
                      if (reqStatusV = ST_NORMAL_C and transV /= TRANS_UD_C) then
                         case slv'(reqPktInfoV(2) & reqPktInfoV(1)) is   -- {isExpected, isDuplicated}
                            when "10" =>
-                              nextEPSNv  := ite(isReadReqV, nextPsnV, slv(unsigned(psnV) + 1));
+                              nextEpsnV  := ite(isReadReqV, nextPsnV, slv(unsigned(psnV) + 1));
                               reqStatusV := ST_NORMAL_C;
                            when "01" =>
                               reqStatusV := ST_DUP_C;
@@ -2665,10 +3071,10 @@ begin
                   end if;
                   reqPktInfoV(38 downto 15) := endPsnV;                 -- reqPktInfo.endPSN
                   setEPSNValid <= '1';
-                  setEPSNData  <= nextEPSNv;
+                  setEPSNData  <= nextEpsnV;
                   pktMetaDeq   <= '1';
                   f01WrEn      <= '1';
-                  f01Din <= r.preStagePktMetaData & reqStatusV & reqPktInfoV & curEPSNv;
+                  f01Din <= r.preStagePktMetaData & reqStatusV & reqPktInfoV & curEpsnV;
                   v.preStageState := RQ_PRE_BUILD_STAGE_S;
                end if;
             when others =>
@@ -2678,10 +3084,10 @@ begin
          -- retryFlush (3655): DONE stage while a retry is in progress -> discard-enq f01
          if (r.preStageState = RQ_PRE_STAGE_DONE_S and r.retryState /= RQ_NOT_RETRY_S
              and f01NotFull = '1') then
-            curEPSNv := getEPSN;
+            curEpsnV := getEPSN;
             pktMetaDeq <= '1';
             f01WrEn    <= '1';
-            f01Din <= r.preStagePktMetaData & ST_DISCARD_C & r.preStageReqPktInfo & curEPSNv;
+            f01Din <= r.preStagePktMetaData & ST_DISCARD_C & r.preStageReqPktInfo & curEpsnV;
             v.preStageState := RQ_PRE_BUILD_STAGE_S;
          end if;
       end if;

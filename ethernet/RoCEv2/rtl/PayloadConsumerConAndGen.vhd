@@ -158,32 +158,32 @@ entity PayloadConsumerConAndGen is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk          : in  sl;
-      rst          : in  sl;                       -- active-high synchronous reset
+      clk                : in  sl;
+      rst                : in  sl;      -- active-high synchronous reset
       -- cntrlStatus.comm mode inputs (one-hot; NOT state)
-      isReset      : in  sl;                        -- comm.isReset  (guards R0 clear)
-      isNonErr     : in  sl;                        -- comm.isNonErr (guards R1-R5)
-      isErr        : in  sl;                        -- comm.isERR    (guards R1-R3,R6-R8)
+      isReset            : in  sl;      -- comm.isReset  (guards R0 clear)
+      isNonErr           : in  sl;      -- comm.isNonErr (guards R1-R5)
+      isErr              : in  sl;      -- comm.isERR    (guards R1-R3,R6-R8)
       -- srvPort.request : Put#(PayloadConReq)  (caller -> entity, enq payloadConReqQ)
-      reqInValid   : in  sl;                        -- caller offers a request (wr_en)
-      reqInData    : in  slv(202 downto 0);         -- PayloadConReq packed
-      reqInReady   : out sl;                        -- entity can accept (notFull)
+      reqInValid         : in  sl;      -- caller offers a request (wr_en)
+      reqInData          : in  slv(202 downto 0);  -- PayloadConReq packed
+      reqInReady         : out sl;      -- entity can accept (notFull)
       -- srvPort.response : Get#(PayloadConResp) (entity -> caller, deq payloadConRespQ)
-      respOutReady : in  sl;                        -- caller takes a response (rd_en)
-      respOutValid : out sl;                        -- response available (notEmpty)
-      respOutData  : out slv(52 downto 0);          -- PayloadConResp packed
+      respOutReady       : in  sl;      -- caller takes a response (rd_en)
+      respOutValid       : out sl;      -- response available (notEmpty)
+      respOutData        : out slv(52 downto 0);   -- PayloadConResp packed
       -- payloadPipeIn : DataStreamPipeOut (caller -> entity; consumed by child)
-      payloadPipeInValid : in  sl;                  -- pipeIn.notEmpty
-      payloadPipeInData  : in  slv(289 downto 0);   -- pipeIn.first (DataStream)
-      payloadPipeInReady : out sl;                  -- pipeIn deq (back to caller)
+      payloadPipeInValid : in  sl;      -- pipeIn.notEmpty
+      payloadPipeInData  : in  slv(289 downto 0);  -- pipeIn.first (DataStream)
+      payloadPipeInReady : out sl;      -- pipeIn deq (back to caller)
       -- dmaWriteSrv.request : Put#(DmaWriteReq)  (entity -> external server, CLIENT)
-      dmaWriteReqValid : out sl;                     -- entity offers a request (Mealy)
-      dmaWriteReqData  : out slv(418 downto 0);      -- DmaWriteReq packed (Mealy)
-      dmaWriteReqReady : in  sl;                      -- external server can accept
+      dmaWriteReqValid   : out sl;      -- entity offers a request (Mealy)
+      dmaWriteReqData    : out slv(418 downto 0);  -- DmaWriteReq packed (Mealy)
+      dmaWriteReqReady   : in  sl;      -- external server can accept
       -- dmaWriteSrv.response : Get#(DmaWriteResp) (external server -> entity, CLIENT)
-      dmaWriteRespValid : in  sl;                     -- external server offers a response
-      dmaWriteRespData  : in  slv(52 downto 0);      -- DmaWriteResp packed
-      dmaWriteRespReady : out sl);                    -- entity takes the response (get)
+      dmaWriteRespValid  : in  sl;      -- external server offers a response
+      dmaWriteRespData   : in  slv(52 downto 0);   -- DmaWriteResp packed
+      dmaWriteRespReady  : out sl);     -- entity takes the response (get)
 end entity PayloadConsumerConAndGen;
 
 architecture rtl of PayloadConsumerConAndGen is
@@ -194,15 +194,15 @@ architecture rtl of PayloadConsumerConAndGen is
 
    -- Sub-FSM A counter state (the only sequential control state).
    type RegType is record
-      isFirstOrOnlyFragReg      : sl;             -- mkReg(True)  -> '1'
-      isRemainingFragNumZeroReg : sl;             -- mkReg(False) -> '0'
-      remainingFragNumReg       : slv(7 downto 0);-- mkRegU (NO RESET; written-before-read)
+      isFirstOrOnlyFragReg      : sl;   -- mkReg(True)  -> '1'
+      isRemainingFragNumZeroReg : sl;   -- mkReg(False) -> '0'
+      remainingFragNumReg       : slv(7 downto 0);  -- mkRegU (NO RESET; written-before-read)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       isFirstOrOnlyFragReg      => '1',
       isRemainingFragNumZeroReg => '0',
-      remainingFragNumReg       => (others => '0'));   -- don't-care init (mkRegU)
+      remainingFragNumReg       => (others => '0'));  -- don't-care init (mkRegU)
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -281,12 +281,12 @@ begin
    -- Per-FIFO synchronous clear lines (resetAndClear R0 + error flush R7/R8).
    ---------------------------------------------------------------------------
    payReqRst  <= rst or isReset;
-   payRespRst <= rst or isReset or isErr;             -- + R8
+   payRespRst <= rst or isReset or isErr;  -- + R8
    countRst   <= rst or isReset;
-   pendConRst <= rst or isReset or isErr;             -- + R7
+   pendConRst <= rst or isReset or isErr;  -- + R7
    genRespRst <= rst or isReset;
-   pendDmaRst <= rst or isReset or isErr;             -- + R7
-   bufRst     <= rst or isReset or isErr;             -- + R7
+   pendDmaRst <= rst or isReset or isErr;  -- + R7
+   bufRst     <= rst or isReset or isErr;  -- + R7
 
    ---------------------------------------------------------------------------
    -- R9 errDrainPayload (BUGFIX 2026-07-16, no BSV counterpart): while isErr,
@@ -307,7 +307,7 @@ begin
    ---------------------------------------------------------------------------
    childPipeInNotEmpty <= payloadPipeInValid and (not isErr);
    payloadPipeInReady  <= (payloadPipeInValid and isErr) or
-                          (childPipeInDeq and (not isErr));
+                         (childPipeInDeq and (not isErr));
 
    -- srvPort response valid/data are driven directly by U_PayloadConRespQ
    -- (valid => respOutValid, dout => respOutData below); request ready by
@@ -331,11 +331,11 @@ begin
       port map (
          rst      => payReqRst,
          wr_clk   => clk,
-         wr_en    => reqInValid,             -- pass-through (caller drives)
-         din      => reqInData,              -- pass-through (caller drives)
-         not_full => reqInReady,             -- pass-through to caller
+         wr_en    => reqInValid,        -- pass-through (caller drives)
+         din      => reqInData,         -- pass-through (caller drives)
+         not_full => reqInReady,        -- pass-through to caller
          rd_clk   => clk,
-         rd_en    => payReqRdEn,             -- FSM (recvReq)
+         rd_en    => payReqRdEn,        -- FSM (recvReq)
          dout     => payReqDout,
          valid    => payReqValid);
 
@@ -357,11 +357,11 @@ begin
       port map (
          rst      => payRespRst,
          wr_clk   => clk,
-         wr_en    => payRespWrEn,            -- FSM (genConResp)
-         din      => payRespDin,             -- FSM (genConResp)
+         wr_en    => payRespWrEn,       -- FSM (genConResp)
+         din      => payRespDin,        -- FSM (genConResp)
          not_full => payRespNotFull,
          rd_clk   => clk,
-         rd_en    => respOutReady,           -- pass-through (caller drives)
+         rd_en    => respOutReady,      -- pass-through (caller drives)
          dout     => respOutData,
          valid    => respOutValid);
 
@@ -383,11 +383,11 @@ begin
       port map (
          rst      => countRst,
          wr_clk   => clk,
-         wr_en    => countWrEn,              -- FSM (recvReq)
-         din      => countDin,               -- FSM (recvReq)
+         wr_en    => countWrEn,         -- FSM (recvReq)
+         din      => countDin,          -- FSM (recvReq)
          not_full => countNotFull,
          rd_clk   => clk,
-         rd_en    => countRdEn,              -- FSM (countReqFrag)
+         rd_en    => countRdEn,         -- FSM (countReqFrag)
          dout     => countDout,
          valid    => countValid);
 
@@ -409,11 +409,11 @@ begin
       port map (
          rst      => pendConRst,
          wr_clk   => clk,
-         wr_en    => pendConWrEn,            -- FSM (countReqFrag)
-         din      => pendConDin,             -- FSM (countReqFrag)
+         wr_en    => pendConWrEn,       -- FSM (countReqFrag)
+         din      => pendConDin,        -- FSM (countReqFrag)
          not_full => pendConNotFull,
          rd_clk   => clk,
-         rd_en    => pendConRdEn,            -- FSM (consumePayload)
+         rd_en    => pendConRdEn,       -- FSM (consumePayload)
          dout     => pendConDout,
          valid    => pendConValid);
 
@@ -435,11 +435,11 @@ begin
       port map (
          rst      => genRespRst,
          wr_clk   => clk,
-         wr_en    => genRespWrEn,            -- FSM (consumePayload)
-         din      => genRespDin,             -- FSM (consumePayload)
+         wr_en    => genRespWrEn,       -- FSM (consumePayload)
+         din      => genRespDin,        -- FSM (consumePayload)
          not_full => genRespNotFull,
          rd_clk   => clk,
-         rd_en    => genRespRdEn,            -- FSM (genConResp)
+         rd_en    => genRespRdEn,       -- FSM (genConResp)
          dout     => genRespDout,
          valid    => genRespValid);
 
@@ -461,11 +461,11 @@ begin
       port map (
          rst      => pendDmaRst,
          wr_clk   => clk,
-         wr_en    => pendDmaWrEn,            -- FSM (consumePayload)
-         din      => pendDmaDin,             -- FSM (consumePayload)
+         wr_en    => pendDmaWrEn,       -- FSM (consumePayload)
+         din      => pendDmaDin,        -- FSM (consumePayload)
          not_full => pendDmaNotFull,
          rd_clk   => clk,
-         rd_en    => pendDmaRdEn,            -- FSM (issueDmaReq)
+         rd_en    => pendDmaRdEn,       -- FSM (issueDmaReq)
          dout     => pendDmaDout,
          valid    => pendDmaValid);
 
@@ -488,12 +488,12 @@ begin
       port map (
          rst      => bufRst,
          clk      => clk,
-         wr_en    => bufWrEn,                -- child bramQ.enq
-         rd_en    => bufRdEn,                -- child bramQ.deq
-         din      => bufDin,                 -- child bramQ data
-         dout     => bufDout,                -- -> child bramQFirst
-         valid    => bufValid,               -- -> child bramQNotEmpty
-         not_full => bufNotFull);            -- -> child bramQNotFull
+         wr_en    => bufWrEn,           -- child bramQ.enq
+         rd_en    => bufRdEn,           -- child bramQ.deq
+         din      => bufDin,            -- child bramQ data
+         dout     => bufDout,           -- -> child bramQFirst
+         valid    => bufValid,          -- -> child bramQNotEmpty
+         not_full => bufNotFull);       -- -> child bramQNotFull
 
    ---------------------------------------------------------------------------
    -- U_PipeOut2Bram : ConnectPipeOut2BramQConAndGen (child entity, not SURF)
@@ -508,7 +508,7 @@ begin
       port map (
          clk             => clk,
          rst             => rst,
-         clearEnI        => isReset,         -- R0 child clear
+         clearEnI        => isReset,    -- R0 child clear
          -- pipeIn (entity input pipe; masked off + free-drained during isErr,
          -- see R9 errDrainPayload above)
          pipeInNotEmpty  => childPipeInNotEmpty,
@@ -525,7 +525,7 @@ begin
          pipeOutDeq      => bufPipeDeq,
          pipeOutFirst    => bufPipeFirst,
          pipeOutNotEmpty => bufPipeNotEmpty,
-         notEmpty        => open);           -- parent does not use the aggregate method
+         notEmpty        => open);  -- parent does not use the aggregate method
 
    ---------------------------------------------------------------------------
    -- Combinatorial process (fsm.md §Conflicts §Suggested comb order)
@@ -546,27 +546,27 @@ begin
       variable isDiscardR1 : sl;
       variable isLeqOneR1  : sl;
       -- R2 countReqFrag datapath (off U_CountReqFragQ front)
-      variable consumeR2     : slv(202 downto 0);
-      variable fragNumR2     : slv(7 downto 0);
-      variable isLeqOneR2    : sl;
-      variable isDiscardR2   : sl;
-      variable isLastFragR2  : sl;
+      variable consumeR2    : slv(202 downto 0);
+      variable fragNumR2    : slv(7 downto 0);
+      variable isLeqOneR2   : sl;
+      variable isDiscardR2  : sl;
+      variable isLastFragR2 : sl;
       -- R3 consumePayload datapath (off U_PendingConReqQ front + child pipeOut)
       variable consumeR3     : slv(202 downto 0);
       variable tagR3         : slv(1 downto 0);
       variable isLastFragR3  : sl;
       variable payloadLastR3 : sl;
       -- R4 issueDmaReq datapath (off U_PendingDmaReqQ front)
-      variable consumeR4     : slv(202 downto 0);
-      variable payloadR4     : slv(289 downto 0);
-      variable tagR4         : slv(1 downto 0);
-      variable metaR4        : slv(128 downto 0);
-      variable atomicPayR4   : slv(63 downto 0);
-      variable atomicDsR4    : slv(289 downto 0);
-      variable dmaReqDataV   : slv(418 downto 0);
+      variable consumeR4   : slv(202 downto 0);
+      variable payloadR4   : slv(289 downto 0);
+      variable tagR4       : slv(1 downto 0);
+      variable metaR4      : slv(128 downto 0);
+      variable atomicPayR4 : slv(63 downto 0);
+      variable atomicDsR4  : slv(289 downto 0);
+      variable dmaReqDataV : slv(418 downto 0);
       -- R5 genConResp datapath (off U_GenConRespQ front + dmaWriteResp)
-      variable tagR5         : slv(1 downto 0);
-      variable metaR5        : slv(128 downto 0);
+      variable tagR5  : slv(1 downto 0);
+      variable metaR5 : slv(128 downto 0);
    begin
       v := r;
 
@@ -574,9 +574,9 @@ begin
       -- Combinational datapath extraction (harmless every cycle).
       ----------------------------------------------------------------------
       -- R1
-      tagR1     := payReqDout(194 downto 193);
-      fragNumR1 := payReqDout(202 downto 195);
-      if tagR1 = "00" then isDiscardR1 := '1'; else isDiscardR1 := '0'; end if;
+      tagR1                                                := payReqDout(194 downto 193);
+      fragNumR1                                            := payReqDout(202 downto 195);
+      if tagR1 = "00" then isDiscardR1                     := '1'; else isDiscardR1 := '0'; end if;
       if fragNumR1(7 downto 1) = "0000000" then isLeqOneR1 := '1'; else isLeqOneR1 := '0'; end if;
 
       -- R2
@@ -597,67 +597,67 @@ begin
       payloadLastR3 := bufPipeFirst(0);
 
       -- R4
-      consumeR4   := pendDmaDout(492 downto 290);
-      payloadR4   := pendDmaDout(289 downto 0);
-      tagR4       := consumeR4(194 downto 193);
+      consumeR4 := pendDmaDout(492 downto 290);
+      payloadR4 := pendDmaDout(289 downto 0);
+      tagR4     := consumeR4(194 downto 193);
       -- DmaWriteMetaData slice is TAG-DEPENDENT (DEVIATION-PCCAG-01): only the
       -- 193b Atomic struct member is metadata-MSB-aligned; the 129b members
       -- (SendWrite/Discard) are LSB-justified per BSV deriving(Bits).
-      if tagR4 = "01" then                              -- Atomic struct member
+      if tagR4 = "01" then              -- Atomic struct member
          metaR4 := consumeR4(192 downto 64);
-      else                                              -- SendWrite/Discard 129b member
+      else                              -- SendWrite/Discard 129b member
          metaR4 := consumeR4(128 downto 0);
       end if;
       atomicPayR4 := consumeR4(63 downto 0);
       -- atomic DataStream: data = zeroExtendLSB(payload64) -> payload at MSB;
       -- byteEn = genByteEn(8) = 0xFF000000; isFirst='1'; isLast='1'
       atomicDsR4  := atomicPayR4 & ZERO_192_C & ATOMIC_BYTE_EN_C & '1' & '1';
-      if tagR4 = "01" then                 -- Atomic
+      if tagR4 = "01" then              -- Atomic
          dmaReqDataV := metaR4 & atomicDsR4;
-      else                                 -- SendWrite (Discard: unused)
+      else                              -- SendWrite (Discard: unused)
          dmaReqDataV := metaR4 & payloadR4;
       end if;
 
       -- R5 (same tag-dependent metaData slice as R4; genRespDout carries the
       -- 203b PayloadConReq layout, tag at [194:193])
       tagR5 := genRespDout(194 downto 193);
-      if tagR5 = "01" then                              -- Atomic struct member
+      if tagR5 = "01" then              -- Atomic struct member
          metaR5 := genRespDout(192 downto 64);
-      else                                              -- SendWrite/Discard 129b member
+      else                              -- SendWrite/Discard 129b member
          metaR5 := genRespDout(128 downto 0);
       end if;
 
       ----------------------------------------------------------------------
       -- Default outputs / SURF & child drives (deasserted; din/data = fronts).
       ----------------------------------------------------------------------
-      payReqRdEn        <= '0';
-      countWrEn         <= '0';
-      countDin          <= payReqDout & isLeqOneR1 & isDiscardR1;       -- 203+1+1=205
-      countRdEn         <= '0';
-      pendConWrEn       <= '0';
-      pendConDin        <= consumeR2 & isLeqOneR2 & r.isFirstOrOnlyFragReg & isLastFragR2; -- 203+1+1+1=206
-      pendConRdEn       <= '0';
-      genRespWrEn       <= '0';
-      genRespDin        <= consumeR3;                                   -- PayloadConReq (203)
-      genRespRdEn       <= '0';
-      pendDmaWrEn       <= '0';
-      pendDmaDin        <= consumeR3 & bufPipeFirst;                    -- 203+290=493 (SendWrite)
-      pendDmaRdEn       <= '0';
-      payRespWrEn       <= '0';
+      payReqRdEn  <= '0';
+      countWrEn   <= '0';
+      countDin    <= payReqDout & isLeqOneR1 & isDiscardR1;     -- 203+1+1=205
+      countRdEn   <= '0';
+      pendConWrEn <= '0';
+      pendConDin  <= consumeR2 & isLeqOneR2 & r.isFirstOrOnlyFragReg & isLastFragR2;  -- 203+1+1+1=206
+      pendConRdEn <= '0';
+      genRespWrEn <= '0';
+      genRespDin  <= consumeR3;         -- PayloadConReq (203)
+      genRespRdEn <= '0';
+      pendDmaWrEn <= '0';
+      pendDmaDin  <= consumeR3 & bufPipeFirst;  -- 203+290=493 (SendWrite)
+      pendDmaRdEn <= '0';
+      payRespWrEn <= '0';
       -- PayloadConResp = DmaWriteResp{initiator,sqpn,psn from meta; isRespErr from resp}
-      payRespDin        <= metaR5(128 downto 125) & metaR5(124 downto 101) &
-                           metaR5(23 downto 0) & dmaWriteRespData(0);   -- 4+24+24+1=53
+      payRespDin  <= metaR5(128 downto 125) & metaR5(124 downto 101) &
+                    metaR5(23 downto 0) & dmaWriteRespData(0);  -- 4+24+24+1=53
       bufPipeDeq        <= '0';
       dmaWriteReqValid  <= '0';
-      dmaWriteReqData   <= dmaReqDataV;                                 -- Mealy front (R4)
+      dmaWriteReqData   <= dmaReqDataV;         -- Mealy front (R4)
       dmaWriteRespReady <= '0';
 
       ----------------------------------------------------------------------
       -- R1 recvReq : (isNonErr||isErr) && payReqQ.notEmpty && countReqFragQ.notFull
       ----------------------------------------------------------------------
       if ((isNonErr = '1' or isErr = '1') and payReqValid = '1' and countNotFull = '1') then
-         payReqRdEn <= '1';                -- deq U_PayloadConReqQ
-         countWrEn  <= '1';                -- enq U_CountReqFragQ (din set above)
+         payReqRdEn <= '1';             -- deq U_PayloadConReqQ
+         countWrEn  <= '1';             -- enq U_CountReqFragQ (din set above)
       end if;
 
       ----------------------------------------------------------------------
@@ -665,18 +665,18 @@ begin
       --   isFirstOrOnlyFragReg; deq U_CountReqFragQ only on discard or last frag.
       ----------------------------------------------------------------------
       if ((isNonErr = '1' or isErr = '1') and countValid = '1' and pendConNotFull = '1') then
-         pendConWrEn <= '1';              -- enq U_PendingConReqQ (din set above)
+         pendConWrEn <= '1';            -- enq U_PendingConReqQ (din set above)
          if isDiscardR2 = '1' then
-            countRdEn <= '1';             -- deq (no counter update)
+            countRdEn <= '1';           -- deq (no counter update)
          elsif isLastFragR2 = '1' then
-            countRdEn                     <= '1';
-            v.isFirstOrOnlyFragReg        := '1';
-            v.isRemainingFragNumZeroReg   := '0';
+            countRdEn                   <= '1';
+            v.isFirstOrOnlyFragReg      := '1';
+            v.isRemainingFragNumZeroReg := '0';
          else
             -- hold the U_CountReqFragQ head (no deq); advance the down-counter
             if r.isFirstOrOnlyFragReg = '1' then
-               v.remainingFragNumReg      := slv(unsigned(fragNumR2) - 2);
-               v.isFirstOrOnlyFragReg     := '0';
+               v.remainingFragNumReg  := slv(unsigned(fragNumR2) - 2);
+               v.isFirstOrOnlyFragReg := '0';
                -- isRemainingFragNumZeroReg := isTwo(fragNum)
                if (fragNumR2(7 downto 2) = "000000" and fragNumR2(1) = '1' and
                    fragNumR2(0) = '0') then
@@ -685,7 +685,7 @@ begin
                   v.isRemainingFragNumZeroReg := '0';
                end if;
             else
-               v.remainingFragNumReg      := slv(unsigned(r.remainingFragNumReg) - 1);
+               v.remainingFragNumReg := slv(unsigned(r.remainingFragNumReg) - 1);
                -- isRemainingFragNumZeroReg := isOne(remainingFragNumReg)
                if (r.remainingFragNumReg(7 downto 1) = "0000000" and
                    r.remainingFragNumReg(0) = '1') then
@@ -704,28 +704,28 @@ begin
       ----------------------------------------------------------------------
       if ((isNonErr = '1' or isErr = '1') and pendConValid = '1') then
          case tagR3 is
-            when "00" =>                  -- Discard: drain one payload fragment
+            when "00" =>                -- Discard: drain one payload fragment
                if bufPipeNotEmpty = '1' then
                   bufPipeDeq <= '1';
-                  if payloadLastR3 = '1' then   -- shouldDeqConReq = payload.isLast
+                  if payloadLastR3 = '1' then  -- shouldDeqConReq = payload.isLast
                      pendConRdEn <= '1';
                   end if;
                end if;
-            when "01" =>                  -- Atomic: dummy resp + dma token, no payload
+            when "01" =>  -- Atomic: dummy resp + dma token, no payload
                if (genRespNotFull = '1' and pendDmaNotFull = '1') then
                   genRespWrEn <= '1';
                   pendDmaWrEn <= '1';
                   pendDmaDin  <= consumeR3 & (289 downto 0 => '0');  -- payload dontCare
                   pendConRdEn <= '1';
                end if;
-            when "10" =>                  -- SendWrite: payload + dma token (+resp on last)
+            when "10" =>  -- SendWrite: payload + dma token (+resp on last)
                if (bufPipeNotEmpty = '1' and pendDmaNotFull = '1' and
                    (isLastFragR3 = '0' or genRespNotFull = '1')) then
-                  bufPipeDeq  <= '1';
+                  bufPipeDeq <= '1';
                   if isLastFragR3 = '1' then
                      genRespWrEn <= '1';
                   end if;
-                  pendDmaWrEn <= '1';     -- pendDmaDin default = consumeR3 & payload
+                  pendDmaWrEn <= '1';  -- pendDmaDin default = consumeR3 & payload
                   pendConRdEn <= '1';
                end if;
             when others =>
@@ -747,12 +747,12 @@ begin
       ----------------------------------------------------------------------
       if (isNonErr = '1' and pendDmaValid = '1') then
          case tagR4 is
-            when "00" =>                  -- Discard: deq, no DMA put
+            when "00" =>                -- Discard: deq, no DMA put
                pendDmaRdEn <= '1';
-            when others =>                -- SendWrite / Atomic: Put
-               dmaWriteReqValid <= '1';   -- valid independent of ready (data = dmaReqDataV)
+            when others =>              -- SendWrite / Atomic: Put
+               dmaWriteReqValid <= '1';  -- valid independent of ready (data = dmaReqDataV)
                if dmaWriteReqReady = '1' then
-                  pendDmaRdEn <= '1';      -- dequeue only on accept (valid AND ready)
+                  pendDmaRdEn <= '1';  -- dequeue only on accept (valid AND ready)
                end if;
          end case;
       end if;
@@ -762,16 +762,16 @@ begin
       ----------------------------------------------------------------------
       if (isNonErr = '1' and dmaWriteRespValid = '1' and genRespValid = '1' and
           payRespNotFull = '1') then
-         dmaWriteRespReady <= '1';        -- get external response
-         genRespRdEn       <= '1';        -- deq U_GenConRespQ
-         payRespWrEn       <= '1';        -- enq U_PayloadConRespQ (din set above)
+         dmaWriteRespReady <= '1';      -- get external response
+         genRespRdEn       <= '1';      -- deq U_GenConRespQ
+         payRespWrEn       <= '1';  -- enq U_PayloadConRespQ (din set above)
       end if;
 
       ----------------------------------------------------------------------
       -- R6 flushDmaWriteResp : isErr.  Drop the DMA write response.
       ----------------------------------------------------------------------
       if (isErr = '1' and dmaWriteRespValid = '1') then
-         dmaWriteRespReady <= '1';        -- get and discard
+         dmaWriteRespReady <= '1';      -- get and discard
       end if;
 
       ----------------------------------------------------------------------

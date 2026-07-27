@@ -73,30 +73,30 @@ entity DmaReadCltArbiter is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      MAX_QP_G          : positive               := 4;    -- BSV MAX_QP; child PORT_COUNT = 2*MAX_QP
+      MAX_QP_G          : positive               := 4;  -- BSV MAX_QP; child PORT_COUNT = 2*MAX_QP
       REQ_WIDTH_G       : positive               := 176;  -- Bits#(DmaReadReq)  (fixed by type; do not change)
       RESP_WIDTH_G      : positive               := 383;  -- Bits#(DmaReadResp) (fixed by type; do not change)
       MEMORY_TYPE_G     : string                 := "distributed";  -- child FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);   -- child FIFO depth = 2**ADDR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- child FIFO depth = 2**ADDR
    port (
       clk          : in  sl;
       rst          : in  sl := not RST_POLARITY_G;
       -- Per-port upstream DmaRead client faces (dmaReadCltVec[k],
       -- k = 0 .. 2*MAX_QP_G-1; arbiter is master). Client k's payload slice is
       -- ((k+1)*WIDTH-1 downto k*WIDTH) of the flattened data buses.
-      cltReqValid  : in  slv(2*MAX_QP_G-1 downto 0);                 -- client k DmaReadReq available (request.get implicit cond)
-      cltReqData   : in  slv(2*MAX_QP_G*REQ_WIDTH_G-1 downto 0);     -- client k DmaReadReq payload, flattened
-      cltReqGet    : out slv(2*MAX_QP_G-1 downto 0);                 -- arbiter takes client k's request (request.get fired)
-      cltRespValid : out slv(2*MAX_QP_G-1 downto 0);                 -- arbiter drives a DmaReadResp to client k (one-hot on grant)
-      cltRespData  : out slv(2*MAX_QP_G*RESP_WIDTH_G-1 downto 0);    -- DmaReadResp payload (broadcast; cltRespValid selects the port)
-      cltRespReady : in  slv(2*MAX_QP_G-1 downto 0);                 -- client k can accept a response (response.put ready)
+      cltReqValid  : in  slv(2*MAX_QP_G-1 downto 0);  -- client k DmaReadReq available (request.get implicit cond)
+      cltReqData   : in  slv(2*MAX_QP_G*REQ_WIDTH_G-1 downto 0);  -- client k DmaReadReq payload, flattened
+      cltReqGet    : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter takes client k's request (request.get fired)
+      cltRespValid : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter drives a DmaReadResp to client k (one-hot on grant)
+      cltRespData  : out slv(2*MAX_QP_G*RESP_WIDTH_G-1 downto 0);  -- DmaReadResp payload (broadcast; cltRespValid selects the port)
+      cltRespReady : in  slv(2*MAX_QP_G-1 downto 0);  -- client k can accept a response (response.put ready)
       -- Downstream shared DmaRead Client face (returned arbitratedClient)
-      outReqValid  : out sl;                             -- arbitrated DmaReadReq valid to DMA
-      outReqData   : out slv(REQ_WIDTH_G-1 downto 0);    -- arbitrated DmaReadReq
-      outReqRd     : in  sl;                             -- DMA dequeues the request (request.get)
-      outRespValid : in  sl;                             -- DMA presents a DmaReadResp (response.put fired)
-      outRespData  : in  slv(RESP_WIDTH_G-1 downto 0);   -- DmaReadResp payload from DMA
-      outRespReady : out sl);                            -- arbiter can accept a response (response.put ready)
+      outReqValid  : out sl;            -- arbitrated DmaReadReq valid to DMA
+      outReqData   : out slv(REQ_WIDTH_G-1 downto 0);  -- arbitrated DmaReadReq
+      outReqRd     : in  sl;  -- DMA dequeues the request (request.get)
+      outRespValid : in  sl;  -- DMA presents a DmaReadResp (response.put fired)
+      outRespData  : in  slv(RESP_WIDTH_G-1 downto 0);  -- DmaReadResp payload from DMA
+      outRespReady : out sl);  -- arbiter can accept a response (response.put ready)
 end entity DmaReadCltArbiter;
 
 architecture rtl of DmaReadCltArbiter is
@@ -132,7 +132,7 @@ begin
          -- Per-port upstream client faces (pass-through)
          cltReqValid     => cltReqValid,
          cltReqData      => cltReqData,
-         cltReqFinished  => reqFinishedAll,       -- OQ-FSM-17: isDmaReadReqLastFrag = True
+         cltReqFinished  => reqFinishedAll,  -- OQ-FSM-17: isDmaReadReqLastFrag = True
          cltReqGet       => cltReqGet,
          cltRespValid    => cltRespValid,
          cltRespData     => cltRespData,
@@ -143,7 +143,7 @@ begin
          outReqRd        => outReqRd,
          outRespValid    => outRespValid,
          outRespData     => outRespData,
-         outRespFinished => outRespData(0),       -- OQ-FSM-17: resp.dataStream.isLast = RESP LSB
+         outRespFinished => outRespData(0),  -- OQ-FSM-17: resp.dataStream.isLast = RESP LSB
          outRespReady    => outRespReady);
 
 end architecture rtl;

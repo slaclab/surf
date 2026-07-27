@@ -77,24 +77,24 @@ use surf.StdRtlPkg.all;
 
 entity AtomicSrvConAndGen is
    generic (
-      TPD_G            : time     := 1 ns;
+      TPD_G        : time     := 1 ns;
       -- Widths are fixed by the BSV struct layout (see header bit-layout trace);
       -- the field slicing below assumes these exact values.
-      REQ_WIDTH_G      : positive := 245;     -- AtomicOpReq  packed width
-      RESP_WIDTH_G     : positive := 116);    -- AtomicOpResp packed width
+      REQ_WIDTH_G  : positive := 245;   -- AtomicOpReq  packed width
+      RESP_WIDTH_G : positive := 116);  -- AtomicOpResp packed width
    port (
-      clk        : in  sl;
-      rst        : in  sl;                                 -- active-high sync reset
+      clk       : in  sl;
+      rst       : in  sl;               -- active-high sync reset
       -- Server.request.put(AtomicOpReq) — caller enqueues a request.
       --   reqValid drives the request FIFO write enable; reqRdy = FIFO not-full.
-      reqValid   : in  sl;
-      reqData    : in  slv(REQ_WIDTH_G-1 downto 0);        -- AtomicOpReq packed
-      reqRdy     : out sl;                                 -- = atomicOpReqQ.notFull
+      reqValid  : in  sl;
+      reqData   : in  slv(REQ_WIDTH_G-1 downto 0);   -- AtomicOpReq packed
+      reqRdy    : out sl;               -- = atomicOpReqQ.notFull
       -- Server.response.get(AtomicOpResp) — caller dequeues a response.
       --   respValid = FIFO not-empty; respRdy drives the response FIFO read enable.
-      respValid  : out sl;                                 -- = atomicOpRespQ.notEmpty
-      respData   : out slv(RESP_WIDTH_G-1 downto 0);       -- AtomicOpResp packed
-      respRdy    : in  sl);                                -- caller get() enable
+      respValid : out sl;               -- = atomicOpRespQ.notEmpty
+      respData  : out slv(RESP_WIDTH_G-1 downto 0);  -- AtomicOpResp packed
+      respRdy   : in  sl);              -- caller get() enable
 end entity AtomicSrvConAndGen;
 
 architecture rtl of AtomicSrvConAndGen is
@@ -103,22 +103,22 @@ architecture rtl of AtomicSrvConAndGen is
    subtype INITIATOR_REQ_F is natural range 244 downto 241;
    --   240            casOrFetchAdd  -- read but UNUSED (stub)
    --   239 downto 176 startAddr      -- read but UNUSED (stub)
-   subtype COMPDATA_F      is natural range 175 downto 112;
+   subtype COMPDATA_F is natural range 175 downto 112;
    --   111 downto  48 swapData       -- read but UNUSED (stub)
-   subtype SQPN_REQ_F      is natural range  47 downto  24;
-   subtype PSN_REQ_F       is natural range  23 downto   0;
+   subtype SQPN_REQ_F is natural range 47 downto 24;
+   subtype PSN_REQ_F is natural range 23 downto 0;
 
    -- U_AtomicOpReqQ interface signals (request FIFO, REQ_WIDTH_G bits)
    signal reqQNotFull : sl;
-   signal reqQValid   : sl;                                -- = atomicOpReqQ.notEmpty
+   signal reqQValid   : sl;             -- = atomicOpReqQ.notEmpty
    signal reqQDout    : slv(REQ_WIDTH_G-1 downto 0);
-   signal reqQRdEn    : sl;                                -- atomicOpReqQ.deq
+   signal reqQRdEn    : sl;             -- atomicOpReqQ.deq
 
    -- U_AtomicOpRespQ interface signals (response FIFO, RESP_WIDTH_G bits)
    signal respQNotFull : sl;
-   signal respQValid   : sl;                               -- = atomicOpRespQ.notEmpty
+   signal respQValid   : sl;            -- = atomicOpRespQ.notEmpty
    signal respQDout    : slv(RESP_WIDTH_G-1 downto 0);
-   signal respQWrEn    : sl;                               -- atomicOpRespQ.enq
+   signal respQWrEn    : sl;            -- atomicOpRespQ.enq
    signal respQDin     : slv(RESP_WIDTH_G-1 downto 0);
 
    -- genResp fire condition (Mealy): reqQ has a request AND respQ can accept.
@@ -129,7 +129,7 @@ begin
    -- generic sanity: the field slicing is hardwired to these struct widths.
    assert (REQ_WIDTH_G = 245 and RESP_WIDTH_G = 116)
       report "AtomicSrvConAndGen: field slicing assumes REQ_WIDTH_G=245, " &
-             "RESP_WIDTH_G=116 (BSV AtomicOpReq/AtomicOpResp layout)."
+      "RESP_WIDTH_G=116 (BSV AtomicOpReq/AtomicOpResp layout)."
       severity failure;
 
    ---------------------------------------------------------------------------
@@ -147,14 +147,14 @@ begin
    ---------------------------------------------------------------------------
    genFire <= reqQValid and respQNotFull;
 
-   reqQRdEn <= genFire after TPD_G;                        -- atomicOpReqQ.deq
-   respQWrEn <= genFire after TPD_G;                       -- atomicOpRespQ.enq
+   reqQRdEn  <= genFire after TPD_G;    -- atomicOpReqQ.deq
+   respQWrEn <= genFire after TPD_G;    -- atomicOpRespQ.enq
 
    -- AtomicOpResp packing (first-field-at-MSB):
    --   { initiator(4) | original(64) | sqpn(24) | psn(24) }
    -- STUB: original := compData (NOT a real CAS/FA result — see header).
    respQDin <= reqQDout(INITIATOR_REQ_F) &
-               reqQDout(COMPDATA_F) &          -- original <= compData (stub)
+reqQDout(COMPDATA_F) & -- original <= compData (stub)
                reqQDout(SQPN_REQ_F) &
                reqQDout(PSN_REQ_F) after TPD_G;
 
@@ -163,7 +163,7 @@ begin
    -- FIFO front directly; respRdy drives the read enable.
    ---------------------------------------------------------------------------
    respValid <= respQValid after TPD_G;
-   respData  <= respQDout after TPD_G;
+   respData  <= respQDout  after TPD_G;
 
    ---------------------------------------------------------------------------
    -- U_AtomicOpReqQ : surf.Fifo
@@ -183,8 +183,8 @@ begin
       port map (
          rst           => rst,
          wr_clk        => clk,
-         wr_en         => reqValid,            -- request.put enable (pass-through)
-         din           => reqData,             -- AtomicOpReq packed (pass-through)
+         wr_en         => reqValid,     -- request.put enable (pass-through)
+         din           => reqData,      -- AtomicOpReq packed (pass-through)
          full          => open,
          not_full      => reqQNotFull,
          wr_ack        => open,
@@ -193,9 +193,9 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => reqQRdEn,            -- genResp deq
+         rd_en         => reqQRdEn,     -- genResp deq
          dout          => reqQDout,
-         valid         => reqQValid,           -- atomicOpReqQ.notEmpty
+         valid         => reqQValid,    -- atomicOpReqQ.notEmpty
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,
@@ -220,19 +220,19 @@ begin
       port map (
          rst           => rst,
          wr_clk        => clk,
-         wr_en         => respQWrEn,           -- genResp enq
-         din           => respQDin,            -- AtomicOpResp packed (stub)
+         wr_en         => respQWrEn,     -- genResp enq
+         din           => respQDin,      -- AtomicOpResp packed (stub)
          full          => open,
-         not_full      => respQNotFull,        -- genResp implicit condition
+         not_full      => respQNotFull,  -- genResp implicit condition
          wr_ack        => open,
          overflow      => open,
          prog_full     => open,
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => respRdy,             -- response.get enable (pass-through)
+         rd_en         => respRdy,       -- response.get enable (pass-through)
          dout          => respQDout,
-         valid         => respQValid,          -- atomicOpRespQ.notEmpty
+         valid         => respQValid,    -- atomicOpRespQ.notEmpty
          underflow     => open,
          prog_empty    => open,
          almost_empty  => open,

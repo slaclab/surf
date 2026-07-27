@@ -666,34 +666,34 @@ begin
    end generate GEN_NO_PAYLOAD_CON;
 
    GEN_PAYLOAD_CON : if EN_READ_G generate
-   U_PayloadCon : entity surf.PayloadConsumerConAndGen
-      generic map (
-         TPD_G => TPD_G)
-      port map (
-         clk                => clk,
-         rst                => rst,
-         isReset            => isReset,
-         isNonErr           => isNonErr,
-         isErr              => isERR,
+      U_PayloadCon : entity surf.PayloadConsumerConAndGen
+         generic map (
+            TPD_G => TPD_G)
+         port map (
+            clk                => clk,
+            rst                => rst,
+            isReset            => isReset,
+            isNonErr           => isNonErr,
+            isErr              => isERR,
          -- srvPort.request (from respHandleSQ.payloadConReqPort)
-         reqInValid         => respPayloadConReqValid,
-         reqInData          => respPayloadConReqData,
-         reqInReady         => respPayloadConReqReady,
+            reqInValid         => respPayloadConReqValid,
+            reqInData          => respPayloadConReqData,
+            reqInReady         => respPayloadConReqReady,
          -- srvPort.response (to workCompGenSQ)
-         respOutReady       => pcRespOutReady,
-         respOutValid       => pcRespOutValid,
-         respOutData        => pcRespOutData,
+            respOutReady       => pcRespOutReady,
+            respOutValid       => pcRespOutValid,
+            respOutData        => pcRespOutData,
          -- payloadPipeIn = respPktPipeOut.payload
-         payloadPipeInValid => respPayloadValid,
-         payloadPipeInData  => respPayloadData,
-         payloadPipeInReady => respPayloadRdEn,
+            payloadPipeInValid => respPayloadValid,
+            payloadPipeInData  => respPayloadData,
+            payloadPipeInReady => respPayloadRdEn,
          -- dmaWriteSrv client -> dmaWriteCntrl ports
-         dmaWriteReqValid   => dmaWriteReqValid,
-         dmaWriteReqData    => dmaWriteReqData,
-         dmaWriteReqReady   => dmaWriteReqReady,
-         dmaWriteRespValid  => dmaWriteRespValid,
-         dmaWriteRespData   => dmaWriteRespData,
-         dmaWriteRespReady  => dmaWriteRespReady);
+            dmaWriteReqValid   => dmaWriteReqValid,
+            dmaWriteReqData    => dmaWriteReqData,
+            dmaWriteReqReady   => dmaWriteReqReady,
+            dmaWriteRespValid  => dmaWriteRespValid,
+            dmaWriteRespData   => dmaWriteRespData,
+            dmaWriteRespReady  => dmaWriteRespReady);
    end generate GEN_PAYLOAD_CON;
 
    -----------------------------------------------------------------------------

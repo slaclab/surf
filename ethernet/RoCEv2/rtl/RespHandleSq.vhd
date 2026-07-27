@@ -331,29 +331,64 @@ architecture rtl of RespHandleSq is
    ---------------------------------------------------------------------------
    -- FIFO interface signals (one bundle per surf.Fifo)
    ---------------------------------------------------------------------------
-   signal incWrEn, incRdEn, incValid, incNotFull : sl;
+   signal incWrEn : sl;
+   signal incRdEn : sl;
+   signal incValid : sl;
+   signal incNotFull : sl;
    signal incDin, incDout                        : slv(1469 downto 0);
-   signal prsWrEn, prsRdEn, prsValid, prsNotFull : sl;
+   signal prsWrEn : sl;
+   signal prsRdEn : sl;
+   signal prsValid : sl;
+   signal prsNotFull : sl;
    signal prsDin, prsDout                        : slv(1472 downto 0);
-   signal pqWrEn, pqRdEn, pqValid, pqNotFull     : sl;
-   signal pqDin, pqDout                          : slv(1468 downto 0);
-   signal prcWrEn, prcRdEn, prcValid, prcNotFull : sl;
+   signal pqWrEn     : sl;
+   signal pqRdEn     : sl;
+   signal pqValid     : sl;
+   signal pqNotFull     : sl;
+   signal pqDin,  pqDout                          : slv(1468 downto 0);
+   signal prcWrEn : sl;
+   signal prcRdEn : sl;
+   signal prcValid : sl;
+   signal prcNotFull : sl;
    signal prcDin, prcDout                        : slv(1469 downto 0);
-   signal ppcWrEn, ppcRdEn, ppcValid, ppcNotFull : sl;
+   signal ppcWrEn : sl;
+   signal ppcRdEn : sl;
+   signal ppcValid : sl;
+   signal ppcNotFull : sl;
    signal ppcDin, ppcDout                        : slv(1475 downto 0);
-   signal pacWrEn, pacRdEn, pacValid, pacNotFull : sl;
+   signal pacWrEn : sl;
+   signal pacRdEn : sl;
+   signal pacValid : sl;
+   signal pacNotFull : sl;
    signal pacDin, pacDout                        : slv(1474 downto 0);
-   signal plcWrEn, plcRdEn, plcValid, plcNotFull : sl;
+   signal plcWrEn : sl;
+   signal plcRdEn : sl;
+   signal plcValid : sl;
+   signal plcNotFull : sl;
    signal plcDin, plcDout                        : slv(1538 downto 0);
-   signal pscWrEn, pscRdEn, pscValid, pscNotFull : sl;
+   signal pscWrEn : sl;
+   signal pscRdEn : sl;
+   signal pscValid : sl;
+   signal pscNotFull : sl;
    signal pscDin, pscDout                        : slv(1604 downto 0);
-   signal plkWrEn, plkRdEn, plkValid, plkNotFull : sl;
+   signal plkWrEn : sl;
+   signal plkRdEn : sl;
+   signal plkValid : sl;
+   signal plkNotFull : sl;
    signal plkDin, plkDout                        : slv(1572 downto 0);
-   signal pdrWrEn, pdrRdEn, pdrValid, pdrNotFull : sl;
+   signal pdrWrEn : sl;
+   signal pdrRdEn : sl;
+   signal pdrValid : sl;
+   signal pdrNotFull : sl;
    signal pdrDin, pdrDout                        : slv(1538 downto 0);
-   signal pwcWrEn, pwcRdEn, pwcValid, pwcNotFull : sl;
+   signal pwcWrEn : sl;
+   signal pwcRdEn : sl;
+   signal pwcValid : sl;
+   signal pwcNotFull : sl;
    signal pwcDin, pwcDout                        : slv(767 downto 0);
-   signal outWrEn, outValid, outNotFull          : sl;
+   signal outWrEn          : sl;
+   signal outValid          : sl;
+   signal outNotFull          : sl;
    signal outDin, outDout                        : slv(632 downto 0);
 
    signal fifoClr : sl;
@@ -366,16 +401,19 @@ architecture rtl of RespHandleSq is
    begin
       return op = "00000" or op = "00110" or op = "01101";  -- SEND_FIRST/WRITE_FIRST/READ_RESP_FIRST
    end function;
+
    function isMidOp(op : slv(4 downto 0)) return boolean is
    begin
       return op = "00001" or op = "00111" or op = "01110";  -- SEND_MIDDLE/WRITE_MIDDLE/READ_RESP_MIDDLE
    end function;
+
    function isLastOp(op : slv(4 downto 0)) return boolean is
    begin
       return op = "00010" or op = "00011" or op = "10110" or  -- SEND_LAST/_IMM/_INV
              op = "01000" or op = "01001" or                  -- WRITE_LAST/_IMM
              op = "01111";                                    -- READ_RESP_LAST
    end function;
+
    function isOnlyOp(op : slv(4 downto 0)) return boolean is
    begin
       return op = "00100" or op = "00101" or op = "10111" or  -- SEND_ONLY/_IMM/_INV
@@ -383,6 +421,7 @@ architecture rtl of RespHandleSq is
              op = "01100" or op = "10011" or op = "10100" or  -- READ_REQUEST/COMPARE_SWAP/FETCH_ADD
              op = "10000" or op = "10001" or op = "10010";    -- READ_RESP_ONLY/ACK/ATOMIC_ACK
    end function;
+
    -- EN_READ_G=false forces both classifiers false: rpi isReadResp/isAtomicResp
    -- bits become constant '0' and synthesis prunes the read-response datapath
    -- (calcReadRespAddr/calcReadRespLen/checkReadRespLen, DMA-write issue, perm
@@ -392,23 +431,28 @@ architecture rtl of RespHandleSq is
       return EN_READ_G and
              (op = "01101" or op = "01110" or op = "01111" or op = "10000");
    end function;
+
    function isAtomicRespOp(op : slv(4 downto 0)) return boolean is
    begin
       return EN_READ_G and (op = "10010");  -- ATOMIC_ACKNOWLEDGE
    end function;
+
    function isFirstOrOnlyOp(op : slv(4 downto 0)) return boolean is
    begin
       return isFirstOp(op) or isOnlyOp(op);
    end function;
+
    function isLastOrOnlyOp(op : slv(4 downto 0)) return boolean is
    begin
       return isLastOp(op) or isOnlyOp(op);
    end function;
+
    -- WorkReqOpCode classifiers (4b)
    function isReadOrAtomicWR(op : slv(3 downto 0)) return boolean is
    begin
       return op = x"4" or op = x"5" or op = x"6";  -- RDMA_READ/CMP_SWP/FETCH_ADD
    end function;
+
    function rdmaRespMatchWR(rop : slv(4 downto 0); wop : slv(3 downto 0)) return boolean is
    begin
       if rop = "01101" or rop = "01110" or rop = "01111" or rop = "10000" then  -- READ_RESP_*
@@ -421,6 +465,7 @@ architecture rtl of RespHandleSq is
          return false;
       end if;
    end function;
+
    function checkRespOpSeq(preOp, curOp : slv(4 downto 0)) return boolean is
    begin
       if preOp = "01101" or preOp = "01110" then          -- READ_RESP_FIRST/MIDDLE
@@ -431,6 +476,7 @@ architecture rtl of RespHandleSq is
          return false;
       end if;
    end function;
+
    -- calcPmtuLen -> PktLen(13)
    function calcPmtuLen(pmtu : slv(2 downto 0)) return unsigned is
       variable v : unsigned(12 downto 0);
@@ -444,6 +490,7 @@ architecture rtl of RespHandleSq is
       end case;
       return v;
    end function;
+
    -- pmtu log2 (shift split point): 256->8 .. 4096->12
    function pmtuLog(pmtu : slv(2 downto 0)) return integer is
    begin
@@ -455,27 +502,31 @@ architecture rtl of RespHandleSq is
          when others => return 12;
       end case;
    end function;
+
    -- addrAddPsnMultiplyPMTU = addr + (psn << log2(PMTU))  (high-part add; BSV form)
    function addrAddPsn(addr : slv(63 downto 0); psn : slv(23 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(unsigned(addr) + shift_left(resize(unsigned(psn), 64), pmtuLog(pmtu)));
    end function;
+
    -- lenSubtractPsnMultiplyPMTU = len - (psn << log2(PMTU))
    function lenSubPsn(len : slv(31 downto 0); psn : slv(23 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       return slv(unsigned(len) - shift_left(resize(unsigned(psn), 32), pmtuLog(pmtu)));
    end function;
+
    -- lenSubtractPktLen: { len[31:k+1], len[k:0]-pktLen } (low-part subtract, no borrow up)
    function lenSubPktLen(len : slv(31 downto 0); pktLen : slv(12 downto 0); pmtu : slv(2 downto 0)) return slv is
    begin
       case pmtu is
-         when "001"  => return len(31 downto 9)  & slv(unsigned(len(8 downto 0))  - resize(unsigned(pktLen), 9));
+         when "001"  => return len(31 downto 9) & slv(unsigned(len(8 downto 0))  - resize(unsigned(pktLen), 9));
          when "010"  => return len(31 downto 10) & slv(unsigned(len(9 downto 0))  - resize(unsigned(pktLen), 10));
          when "011"  => return len(31 downto 11) & slv(unsigned(len(10 downto 0)) - resize(unsigned(pktLen), 11));
          when "100"  => return len(31 downto 12) & slv(unsigned(len(11 downto 0)) - resize(unsigned(pktLen), 12));
          when others => return len(31 downto 13) & slv(unsigned(len(12 downto 0)) - unsigned(pktLen));
       end case;
    end function;
+
    -- lenGtEqPktLen: (len >= 2^(k+1)) or (len[k:0] >= pktLen[k:0])
    function lenGtEqPktLen(len : slv(31 downto 0); pktLen : slv(12 downto 0); pmtu : slv(2 downto 0)) return boolean is
    begin
@@ -487,11 +538,13 @@ architecture rtl of RespHandleSq is
          when others => return (unsigned(len(31 downto 13)) /= 0) or (unsigned(len(12 downto 0)) >= unsigned(pktLen));
       end case;
    end function;
+
    -- lenGtEqPMTU: len >= 2^log2(PMTU)
    function lenGtEqPMTU(len : slv(31 downto 0); pmtu : slv(2 downto 0)) return boolean is
    begin
       return unsigned(len) >= shift_left(to_unsigned(1, 40), pmtuLog(pmtu));
    end function;
+
    -- getRetryReasonFromAETH / IMPLICIT -> RetryReason(3b)
    function getRetryReason(respAct, aCode, aVal : slv) return slv is
    begin
@@ -505,6 +558,7 @@ architecture rtl of RespHandleSq is
          return "000";                  -- RETRY_REASON_NOT_RETRY
       end if;
    end function;
+
    -- Maybe#(RnrTimer) (tag|5b): Valid aeth.value iff reason==RNR (explicit retry, RNR code)
    function getRnrTimer(respAct, aCode, aVal : slv) return slv is
    begin
@@ -514,6 +568,7 @@ architecture rtl of RespHandleSq is
          return "000000";
       end if;
    end function;
+
    -- genErrWorkCompStatusFromAethSQ -> Maybe#(WorkCompStatus) (tag|5b)
    function genErrWcStatusFromAeth(aCode : slv(1 downto 0); aVal : slv(4 downto 0)) return slv is
    begin
@@ -529,6 +584,7 @@ architecture rtl of RespHandleSq is
          return "000000";
       end if;
    end function;
+
    -- psnInRangeExclusive(psn, start, end) — 24b PSN wrap-aware
    function psnInRange(psn, ps, pe : slv(23 downto 0)) return boolean is
       variable gtStart, ltEnd : boolean;
@@ -957,38 +1013,38 @@ begin
       -- mode signals (from r)
       variable inNormalState, inRetryState, inErrState, inErrStateAlt : boolean;
       -- generic working vars
-      variable pwr   : slv(678 downto 0);
-      variable pmd   : slv(648 downto 0);
-      variable rpi   : slv(134 downto 0);
-      variable opc   : slv(4 downto 0);
-      variable wop   : slv(3 downto 0);
-      variable aCode : slv(1 downto 0);
-      variable aVal  : slv(4 downto 0);
-      variable bpsn  : slv(23 downto 0);
-      variable respAct  : slv(3 downto 0);
-      variable wcReq    : slv(1 downto 0);
-      variable wcStat   : slv(5 downto 0);   -- Maybe#WorkCompStatus (tag|5)
-      variable mWcStat  : slv(5 downto 0);
-      variable rlcr     : slv(97 downto 0);
-      variable nAddr    : slv(63 downto 0);
-      variable remLen   : slv(31 downto 0);
-      variable preRem   : slv(31 downto 0);
-      variable expectPerm : sl;
-      variable wcWaitDma  : sl;
-      variable doPut      : sl;
-      variable enqOut     : sl;
-      variable fire       : boolean;
-      variable wcGenReq   : slv(632 downto 0);
-      variable rdmaRespType : slv(1 downto 0);
-      variable rel        : slv(4 downto 0);
-      variable wrAck      : slv(3 downto 0);
-      variable deqPmd, deqPwr : sl;
-      variable needPerm   : boolean;
-      variable pcInfo     : slv(194 downto 0);  -- PayloadConInfo
-      variable retryStartPsn : slv(23 downto 0);
+      variable pwr             : slv(678 downto 0);
+      variable pmd             : slv(648 downto 0);
+      variable rpi             : slv(134 downto 0);
+      variable opc             : slv(4 downto 0);
+      variable wop             : slv(3 downto 0);
+      variable aCode           : slv(1 downto 0);
+      variable aVal            : slv(4 downto 0);
+      variable bpsn            : slv(23 downto 0);
+      variable respAct         : slv(3 downto 0);
+      variable wcReq           : slv(1 downto 0);
+      variable wcStat          : slv(5 downto 0);   -- Maybe#WorkCompStatus (tag|5)
+      variable mWcStat         : slv(5 downto 0);
+      variable rlcr            : slv(97 downto 0);
+      variable nAddr           : slv(63 downto 0);
+      variable remLen          : slv(31 downto 0);
+      variable preRem          : slv(31 downto 0);
+      variable expectPerm      : sl;
+      variable wcWaitDma       : sl;
+      variable doPut           : sl;
+      variable enqOut          : sl;
+      variable fire            : boolean;
+      variable wcGenReq        : slv(632 downto 0);
+      variable rdmaRespType    : slv(1 downto 0);
+      variable rel             : slv(4 downto 0);
+      variable wrAck           : slv(3 downto 0);
+      variable deqPmd, deqPwr  : sl;
+      variable needPerm        : boolean;
+      variable pcInfo          : slv(194 downto 0);  -- PayloadConInfo
+      variable retryStartPsn   : slv(23 downto 0);
       variable readExpectedPsn : slv(23 downto 0);
-      variable readPsnGap    : boolean;
-      variable preReadPsnGap : boolean;
+      variable readPsnGap      : boolean;
+      variable preReadPsnGap   : boolean;
       variable readReplayStart : boolean;
       variable replayHeadStart : boolean;
       variable staleReplayResp : boolean;
@@ -1067,7 +1123,7 @@ begin
                -- read pktMetaDataPipeIn.first header
                opc  := pktMetaData(623 downto 619);          -- bth.opcode
                bpsn := pktMetaData(554 downto 531);          -- bth.psn
-               aCode:= pktMetaData(529 downto 528);
+               aCode := pktMetaData(529 downto 528);
                aVal := pktMetaData(527 downto 523);
                wop  := pendingWrData(614 downto 611);        -- wr.opcode
                -- relation (5 Bools): isReadAtomicWR[4] isMatchEndPSN[3] isCoalesce[2]
@@ -1342,7 +1398,7 @@ begin
             respAct := prsDout(9 downto 6);
             wcReq := prsDout(5 downto 4);
             opc := rpi(131 downto 127);            -- bth.opcode within rpi
-            bpsn:= rpi(62 downto 39);              -- bth.psn
+            bpsn := rpi(62 downto 39);              -- bth.psn
             aCode := rpi(37 downto 36);
             aVal  := rpi(35 downto 31);
             wop := pwr(614 downto 611);
@@ -1429,7 +1485,7 @@ begin
                   -- tag [77] deliberately ignored) or a fragmented WR restarts
                   -- mid-WR after an RNR NAK.
                   retryReqValid <= '1';
-                  retryReqData  <= pwr(678 downto 615) &           -- wr.id
+                  retryReqData  <= pwr(678 downto 615) & -- wr.id
                                      ite(isReadOrAtomicWR(wop), retryStartPsn, pwr(76 downto 53)) &
                                      getRetryReason(respAct, aCode, aVal) &
                                      getRnrTimer(respAct, aCode, aVal);
@@ -1457,14 +1513,14 @@ begin
                   -- PermCheckReq(267): wrID Maybe(65) | lkey(32) | rkey(32) | localOrRmtKey(1) |
                   --   reqAddr ADDR(64) | totalLen Length(32) | pdHandler(32) | isZeroDmaLen(1) | accFlags(8)
                   permReqValid <= '1';
-                  permReqData  <= '1' & pwr(678 downto 615) &         -- wrID = Valid wr.id
-                                    pwr(413 downto 382) &               -- lkey
-                                    ZERO32_C &              -- rkey = dontCare
-                                    '1' &                               -- localOrRmtKey = True
-                                    pwr(477 downto 414) &               -- reqAddr = wr.laddr
-                                    pwr(509 downto 478) &               -- totalLen = wr.len
-                                    pmd(33 downto 2) &                  -- pdHandler
-                                    (pmd(627) and not rpi(3)) &         -- isZeroDmaLen = atomic?False:isZeroPayloadLen
+                  permReqData  <= '1' & pwr(678 downto 615) & -- wrID = Valid wr.id
+                                    pwr(413 downto 382) & -- lkey
+                                    ZERO32_C & -- rkey = dontCare
+                                    '1' & -- localOrRmtKey = True
+                                    pwr(477 downto 414) & -- reqAddr = wr.laddr
+                                    pwr(509 downto 478) & -- totalLen = wr.len
+                                    pmd(33 downto 2) & -- pdHandler
+                                    (pmd(627) and not rpi(3)) & -- isZeroDmaLen = atomic?False:isZeroPayloadLen
                                     ACC_LOCAL_WRITE_C;                  -- accFlags
                end if;
                -- pendingRetryCheck din: pwr | pmd | rpi | respAct | wcReq | expectPerm
@@ -1719,19 +1775,19 @@ begin
                      -- (only the 193b Atomic member is metadata-MSB-aligned).
                      -- OQ-RHSQ-03 RESOLVED — was MSB-aligned, same emit bug as
                      -- DEVIATION-PCCAG-01's consumer side.
-                     pcInfo := "10" & ZERO64_C &                     -- tag=2, pad [192:129]
+                     pcInfo := "10" & ZERO64_C & -- tag=2, pad [192:129]
                                DMA_SQ_WR_C & getSQPN & nAddr & pmd(648 downto 636) & bpsn;
                      doPut := '1'; wcWaitDma := '1';
                   elsif rpi(3) = '1' then                            -- atomic
-                     pcInfo := "01" &                                -- tag=1 (AtomicRespInfoAndPayload)
+                     pcInfo := "01" & -- tag=1 (AtomicRespInfoAndPayload)
                                DMA_SQ_ATOM_C & getSQPN & pwr(477 downto 414) &
-                               pwr(490 downto 478) & bpsn &          -- len = truncate(wr.len) to 13b
+                               pwr(490 downto 478) & bpsn & -- len = truncate(wr.len) to 13b
                                pmd(498 downto 435);                  -- atomicRespPayload = atomicAckEth.orig(64)
                      doPut := '1'; wcWaitDma := '1';
                   end if;
                end if;
             elsif ((rpi(1) = '1') or inErrState) and (pmd(627) = '0') then  -- discard & !zeroPayload
-               pcInfo := "00" & ZERO64_C &                           -- tag=0, LSB-justified (OQ-RHSQ-03)
+               pcInfo := "00" & ZERO64_C & -- tag=0, LSB-justified (OQ-RHSQ-03)
                          DMA_SQ_DISC_C & getSQPN & nAddr & pmd(648 downto 636) & bpsn;
                doPut := '1';
             end if;

@@ -77,9 +77,9 @@ entity SqSendQ is
       clearAllReady : out sl;                          -- = not clearReg (implicit condition)
 
       -- sendQ.srvPort : Server#(WorkQueueElem, SendResp)  (re-exported from U_SendQ)
-      wqeReqValid  : in  sl;
-      wqeReqData   : in  slv(1720 downto 0);           -- WorkQueueElem packed
-      wqeReqReady  : out sl;
+      wqeReqValid   : in  sl;
+      wqeReqData    : in  slv(1720 downto 0);           -- WorkQueueElem packed
+      wqeReqReady   : out sl;
       sendRespValid : out sl;
       sendRespData  : out slv(0 downto 0);             -- SendResp (0-width -> 1-bit token)
       sendRespReady : in  sl;

@@ -116,27 +116,27 @@ entity DmaWriteCntrl is
       TPD_G : time := 1 ns);
    port (
       clk          : in  sl;
-      rst          : in  sl;                       -- active-high synchronous reset
+      rst          : in  sl;            -- active-high synchronous reset
       -- Software clear (cntrlStatus.comm.isReset; synchronous, LEVEL-asserted)
       clearAllI    : in  sl;
       -- dmaCntrl.cancel() method (Action pulse): request graceful cancel
       cancelEn     : in  sl;
       -- srvPort.request : Put#(DmaWriteReq)  (caller -> entity, enq to reqQ)
-      reqInValid   : in  sl;                        -- caller offers a request (wr_en)
-      reqInData    : in  slv(418 downto 0);         -- DmaWriteReq packed
-      reqInReady   : out sl;                        -- entity can accept (reqQ.notFull)
+      reqInValid   : in  sl;            -- caller offers a request (wr_en)
+      reqInData    : in  slv(418 downto 0);  -- DmaWriteReq packed
+      reqInReady   : out sl;            -- entity can accept (reqQ.notFull)
       -- srvPort.response : Get#(DmaWriteResp) (entity -> caller, deq from respQ)
-      respOutReady : in  sl;                        -- caller takes a response (rd_en)
-      respOutValid : out sl;                        -- response available (respQ.notEmpty)
-      respOutData  : out slv(52 downto 0);          -- DmaWriteResp packed
+      respOutReady : in  sl;            -- caller takes a response (rd_en)
+      respOutValid : out sl;            -- response available (respQ.notEmpty)
+      respOutData  : out slv(52 downto 0);   -- DmaWriteResp packed
       -- dmaWriteSrv.request : Put#(DmaWriteReq)   (entity -> external server)
-      dmaReqValid  : out sl;                        -- entity offers a request (Mealy)
-      dmaReqOut    : out slv(418 downto 0);         -- DmaWriteReq packed = reqQ.dout
-      dmaReqReady  : in  sl;                         -- external server can accept
+      dmaReqValid  : out sl;            -- entity offers a request (Mealy)
+      dmaReqOut    : out slv(418 downto 0);  -- DmaWriteReq packed = reqQ.dout
+      dmaReqReady  : in  sl;            -- external server can accept
       -- dmaWriteSrv.response : Get#(DmaWriteResp) (external server -> entity)
-      dmaRespValid : in  sl;                         -- external server offers a response
-      dmaRespIn    : in  slv(52 downto 0);          -- DmaWriteResp packed
-      dmaRespReady : out sl;                         -- entity takes the response (get/pop)
+      dmaRespValid : in  sl;            -- external server offers a response
+      dmaRespIn    : in  slv(52 downto 0);   -- DmaWriteResp packed
+      dmaRespReady : out sl;            -- entity takes the response (get/pop)
       -- dmaCntrl.isIdle() method result (Moore, registered)
       isIdle       : out sl);
 end entity DmaWriteCntrl;
@@ -146,8 +146,8 @@ architecture rtl of DmaWriteCntrl is
    -- Control sub-FSM state lives in two boolean fields (mkCReg(2,False) each).
    -- Documented implied states: RUN_S/CANCELLING_S/STOPPED_S (fsm.md §State).
    type RegType is record
-      cancel       : sl;                     -- cancelReg[2] <- mkCReg(2,False)
-      gracefulStop : sl;                     -- gracefulStopReg[2] <- mkCReg(2,False)
+      cancel       : sl;                -- cancelReg[2] <- mkCReg(2,False)
+      gracefulStop : sl;  -- gracefulStopReg[2] <- mkCReg(2,False)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -159,7 +159,7 @@ architecture rtl of DmaWriteCntrl is
 
    -- U_ReqQ interface signals (DmaWriteReq, 419b)
    signal reqQNotFull : sl;
-   signal reqQValid   : sl;                  -- = reqQ.notEmpty (FWFT data valid)
+   signal reqQValid   : sl;             -- = reqQ.notEmpty (FWFT data valid)
    signal reqQDout    : slv(418 downto 0);
    signal reqQRdEn    : sl;
 
@@ -171,7 +171,7 @@ architecture rtl of DmaWriteCntrl is
 
    -- U_HasPendQ interface signals (Bool token, 1b)
    signal hasPendNotFull : sl;
-   signal hasPendValid   : sl;               -- = hasPendingReqQ.notEmpty
+   signal hasPendValid   : sl;          -- = hasPendingReqQ.notEmpty
    signal hasPendWrEn    : sl;
    signal hasPendDin     : slv(0 downto 0);
    signal hasPendRdEn    : sl;
@@ -185,8 +185,8 @@ begin
    fifoRst <= rst or clearAllI;
 
    -- srvPort boundary wiring (pass-through; not FSM-gated)
-   reqInReady   <= reqQNotFull;             -- reqQ.notFull readiness to caller
-   respOutValid <= respQValid;              -- respQ.notEmpty to caller
+   reqInReady   <= reqQNotFull;         -- reqQ.notFull readiness to caller
+   respOutValid <= respQValid;          -- respQ.notEmpty to caller
 
    -- isIdle() method (Moore): registered gracefulStop (CReg port0 read, no port0
    -- writer => the pre-update value).  Drive from r, NOT v.
@@ -211,8 +211,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => reqInValid,        -- pass-through (caller drives)
-         din           => reqInData,         -- pass-through (caller drives)
+         wr_en         => reqInValid,   -- pass-through (caller drives)
+         din           => reqInData,    -- pass-through (caller drives)
          full          => open,
          not_full      => reqQNotFull,
          wr_ack        => open,
@@ -221,7 +221,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => reqQRdEn,          -- FSM (issueReq / gracefulStopReq)
+         rd_en         => reqQRdEn,     -- FSM (issueReq / gracefulStopReq)
          dout          => reqQDout,
          valid         => reqQValid,
          underflow     => open,
@@ -248,8 +248,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => respQWrEn,         -- FSM (recvResp)
-         din           => respQDin,          -- FSM (recvResp)
+         wr_en         => respQWrEn,     -- FSM (recvResp)
+         din           => respQDin,      -- FSM (recvResp)
          full          => open,
          not_full      => respQNotFull,
          wr_ack        => open,
@@ -258,7 +258,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => respOutReady,      -- pass-through (caller drives)
+         rd_en         => respOutReady,  -- pass-through (caller drives)
          dout          => respOutData,
          valid         => respQValid,
          underflow     => open,
@@ -287,8 +287,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => hasPendWrEn,       -- FSM (issueReq, first-fragment)
-         din           => hasPendDin,        -- FSM (constant "1")
+         wr_en         => hasPendWrEn,  -- FSM (issueReq, first-fragment)
+         din           => hasPendDin,   -- FSM (constant "1")
          full          => open,
          not_full      => hasPendNotFull,
          wr_ack        => open,
@@ -297,8 +297,8 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => hasPendRdEn,       -- FSM (recvResp)
-         dout          => open,              -- value never read (only notEmpty)
+         rd_en         => hasPendRdEn,  -- FSM (recvResp)
+         dout          => open,         -- value never read (only notEmpty)
          valid         => hasPendValid,
          underflow     => open,
          prog_empty    => open,
@@ -330,7 +330,7 @@ begin
       hasPendDin   <= (others => '0');
       hasPendRdEn  <= '0';
       dmaReqValid  <= '0';
-      dmaReqOut    <= reqQDout;             -- Mealy front: reqQ.dout, gated by dmaReqValid
+      dmaReqOut    <= reqQDout;  -- Mealy front: reqQ.dout, gated by dmaReqValid
       dmaRespReady <= '0';
 
       -- reqQ.first.dataStream.isFirst (DmaWriteReq bit 1)
@@ -350,10 +350,10 @@ begin
       ----------------------------------------------------------------------
       if (clearAllI = '0' and dmaRespValid = '1' and respQNotFull = '1' and
           hasPendValid = '1') then
-         dmaRespReady <= '1';               -- get/pop external server response
-         respQWrEn    <= '1';               -- enq respQ
+         dmaRespReady <= '1';           -- get/pop external server response
+         respQWrEn    <= '1';           -- enq respQ
          respQDin     <= dmaRespIn;
-         hasPendRdEn  <= '1';               -- deq hasPendingReqQ token
+         hasPendRdEn  <= '1';           -- deq hasPendingReqQ token
       end if;
 
       ----------------------------------------------------------------------
@@ -367,11 +367,11 @@ begin
             --   hasPendingReqQ token (rule blocks if that token cannot enq).
             if (reqQValid = '1' and dmaReqReady = '1' and
                 (reqFirst = '0' or hasPendNotFull = '1')) then
-               reqQRdEn    <= '1';          -- deq reqQ
-               dmaReqValid <= '1';          -- Put (dmaReqOut already = reqQDout)
+               reqQRdEn    <= '1';      -- deq reqQ
+               dmaReqValid <= '1';      -- Put (dmaReqOut already = reqQDout)
                if reqFirst = '1' then
                   hasPendWrEn <= '1';
-                  hasPendDin  <= "1";       -- enq token
+                  hasPendDin  <= "1";   -- enq token
                end if;
             end if;
 
@@ -382,8 +382,8 @@ begin
                --   fragment is a no-op spin (reads reqQ.first only) -> emit
                --   nothing; hold until R4 latches gracefulStop.
                if (reqQValid = '1' and reqFirst = '0' and dmaReqReady = '1') then
-                  reqQRdEn    <= '1';       -- deq reqQ
-                  dmaReqValid <= '1';       -- Put (dmaReqOut already = reqQDout)
+                  reqQRdEn    <= '1';   -- deq reqQ
+                  dmaReqValid <= '1';   -- Put (dmaReqOut already = reqQDout)
                end if;
 
                -- R4 setGracefulStop: latch once hasPendingReqQ is empty.

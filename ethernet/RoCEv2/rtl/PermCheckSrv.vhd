@@ -96,29 +96,29 @@ entity PermCheckSrv is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                    -- active-high synchronous reset
+      clk             : in  sl;
+      rst             : in  sl;         -- active-high synchronous reset
       -----------------------------------------------------------------------
       -- Server request : request.put -> reqInQ.enq   (PermCheckReq, 267 b)
       -----------------------------------------------------------------------
-      reqPutValid     : in  sl;                       -- upstream has a request
-      reqPutData      : in  slv(266 downto 0);        -- PermCheckReq
-      reqPutReady     : out sl;                       -- = reqInQ.notFull
+      reqPutValid     : in  sl;         -- upstream has a request
+      reqPutData      : in  slv(266 downto 0);   -- PermCheckReq
+      reqPutReady     : out sl;         -- = reqInQ.notFull
       -----------------------------------------------------------------------
       -- Server response : respOutQ -> response.get   (Bool)
       -----------------------------------------------------------------------
-      respGetValid    : out sl;                       -- = respOutQ.notEmpty
-      respGetData     : out sl;                        -- granted(1)/denied(0)
-      respGetRdEn     : in  sl;                        -- response.get (deq respOutQ)
+      respGetValid    : out sl;         -- = respOutQ.notEmpty
+      respGetData     : out sl;         -- granted(1)/denied(0)
+      respGetRdEn     : in  sl;         -- response.get (deq respOutQ)
       -----------------------------------------------------------------------
       -- External pdMetaData MR lookup (module arg; combinational) — OQ-FSM-PCS-01
       -----------------------------------------------------------------------
-      mrLkupPdHandler : out slv(31 downto 0);         -- req.pdHandler
-      mrLkupKey       : out slv(31 downto 0);         -- localOrRmtKey ? lkey : rkey
-      mrLkupByLocal   : out sl;                        -- localOrRmtKey (LKEY vs RKEY)
-      mrLkupReqValid  : out sl;                        -- recvReq fire (head is live)
-      mrLkupValid     : in  sl;                        -- returned Maybe tag
-      mrLkupData      : in  slv(185 downto 0));       -- returned MemRegion (186 b)
+      mrLkupPdHandler : out slv(31 downto 0);    -- req.pdHandler
+      mrLkupKey       : out slv(31 downto 0);    -- localOrRmtKey ? lkey : rkey
+      mrLkupByLocal   : out sl;         -- localOrRmtKey (LKEY vs RKEY)
+      mrLkupReqValid  : out sl;         -- recvReq fire (head is live)
+      mrLkupValid     : in  sl;         -- returned Maybe tag
+      mrLkupData      : in  slv(185 downto 0));  -- returned MemRegion (186 b)
 end entity PermCheckSrv;
 
 architecture rtl of PermCheckSrv is
@@ -126,10 +126,10 @@ architecture rtl of PermCheckSrv is
    ---------------------------------------------------------------------------
    -- Element widths
    ---------------------------------------------------------------------------
-   constant REQ_WIDTH_C      : natural := 267;   -- PermCheckReq
-   constant MR_WIDTH_C       : natural := 186;   -- MemRegion
-   constant MAYBE_MR_WIDTH_C : natural := 187;   -- Maybe#(MemRegion)
-   constant STEP_WIDTH_C     : natural := 455;   -- checkStepOne/TwoQ element
+   constant REQ_WIDTH_C      : natural := 267;  -- PermCheckReq
+   constant MR_WIDTH_C       : natural := 186;  -- MemRegion
+   constant MAYBE_MR_WIDTH_C : natural := 187;  -- Maybe#(MemRegion)
+   constant STEP_WIDTH_C     : natural := 455;  -- checkStepOne/TwoQ element
 
    ---------------------------------------------------------------------------
    -- U_ReqInQ (267 b) : request.put write side / recvReq read side
@@ -338,27 +338,27 @@ begin
                    stepTwoQValid, stepTwoQDout, respOutQNotFull,
                    mrLkupValid, mrLkupData) is
       -- fire conditions
-      variable recvFire  : sl;
-      variable s1Fire    : sl;
-      variable s2Fire    : sl;
+      variable recvFire : sl;
+      variable s1Fire   : sl;
+      variable s2Fire   : sl;
       -- recvReq
       variable req0      : slv(REQ_WIDTH_C-1 downto 0);
       variable localKey0 : sl;
       variable zeroLen0  : sl;
       variable maybeMR0  : slv(MAYBE_MR_WIDTH_C-1 downto 0);
       -- checkReqStepOne
-      variable req1      : slv(REQ_WIDTH_C-1 downto 0);
-      variable zeroLen1  : sl;
-      variable mrValid1  : sl;
-      variable mr1       : slv(MR_WIDTH_C-1 downto 0);
-      variable local1    : sl;
-      variable keyLow1   : slv(24 downto 0);
-      variable keyPart1  : slv(24 downto 0);
-      variable accReq1   : slv(7 downto 0);
-      variable accMr1    : slv(7 downto 0);
-      variable keyMatch  : sl;
-      variable accMatch  : sl;
-      variable s1Result  : sl;
+      variable req1     : slv(REQ_WIDTH_C-1 downto 0);
+      variable zeroLen1 : sl;
+      variable mrValid1 : sl;
+      variable mr1      : slv(MR_WIDTH_C-1 downto 0);
+      variable local1   : sl;
+      variable keyLow1  : slv(24 downto 0);
+      variable keyPart1 : slv(24 downto 0);
+      variable accReq1  : slv(7 downto 0);
+      variable accMr1   : slv(7 downto 0);
+      variable keyMatch : sl;
+      variable accMatch : sl;
+      variable s1Result : sl;
       -- checkReqStepTwo
       variable req2      : slv(REQ_WIDTH_C-1 downto 0);
       variable mrValid2  : sl;
@@ -397,22 +397,22 @@ begin
       -----------------------------------------------------------------------
       recvFire  := reqInQValid and stepOneQNotFull;
       req0      := reqInQDout;
-      localKey0 := req0(137);                                   -- localOrRmtKey
-      zeroLen0  := toSl(unsigned(req0(72 downto 41)) = 0);      -- isZero(totalLen)
+      localKey0 := req0(137);                               -- localOrRmtKey
+      zeroLen0  := toSl(unsigned(req0(72 downto 41)) = 0);  -- isZero(totalLen)
 
       -- Present the lookup address from the U_ReqInQ head (combinational)
-      mrLkupPdHandler <= req0(40 downto 9);                     -- pdHandler
+      mrLkupPdHandler <= req0(40 downto 9);  -- pdHandler
       mrLkupKey       <= ite(localKey0 = '1', req0(201 downto 170), req0(169 downto 138));
       mrLkupByLocal   <= localKey0;
       mrLkupReqValid  <= recvFire;
 
       -- Capture the returned Maybe#(MemRegion) this same cycle
-      maybeMR0 := mrLkupValid & mrLkupData;                     -- [186]=tag [185:0]=MR
+      maybeMR0 := mrLkupValid & mrLkupData;  -- [186]=tag [185:0]=MR
 
       if recvFire = '1' then
-         reqInQRdEn   <= '1';                                   -- reqInQ.deq
-         stepOneQWrEn <= '1';                                   -- checkStepOneQ.enq
-         stepOneQDin  <= req0 & zeroLen0 & maybeMR0;            -- 267+1+187 = 455
+         reqInQRdEn   <= '1';                         -- reqInQ.deq
+         stepOneQWrEn <= '1';                         -- checkStepOneQ.enq
+         stepOneQDin  <= req0 & zeroLen0 & maybeMR0;  -- 267+1+187 = 455
       end if;
 
       -----------------------------------------------------------------------
@@ -422,26 +422,26 @@ begin
       s1Fire   := stepOneQValid and stepTwoQNotFull;
       req1     := stepOneQDout(454 downto 188);
       zeroLen1 := stepOneQDout(187);
-      mrValid1 := stepOneQDout(186);                            -- Maybe tag
-      mr1      := stepOneQDout(185 downto 0);                   -- MemRegion
+      mrValid1 := stepOneQDout(186);                     -- Maybe tag
+      mr1      := stepOneQDout(185 downto 0);            -- MemRegion
       local1   := req1(137);
-      accReq1  := req1(7 downto 0);                             -- req.accFlags
-      accMr1   := mr1(89 downto 82);                            -- mr.accFlags
+      accReq1  := req1(7 downto 0);                      -- req.accFlags
+      accMr1   := mr1(89 downto 82);                     -- mr.accFlags
       -- truncate(key) keeps low 25 bits (KeyPartMR); keyPart per local/remote
       keyLow1  := ite(local1 = '1', req1(194 downto 170), req1(162 downto 138));
       keyPart1 := ite(local1 = '1', mr1(49 downto 25), mr1(24 downto 0));
       keyMatch := toSl(keyLow1 = keyPart1);
-      accMatch := toSl((accMr1 and accReq1) = accReq1);         -- containFlags
+      accMatch := toSl((accMr1 and accReq1) = accReq1);  -- containFlags
 
-      s1Result := zeroLen1;                                     -- default
+      s1Result := zeroLen1;             -- default
       if (zeroLen1 = '0') and (mrValid1 = '1') then
          s1Result := keyMatch and accMatch;
       end if;
 
       if s1Fire = '1' then
-         stepOneQRdEn <= '1';                                   -- checkStepOneQ.deq
-         stepTwoQWrEn <= '1';                                   -- checkStepTwoQ.enq
-         stepTwoQDin  <= req1 & (mrValid1 & mr1) & s1Result;    -- 267+187+1 = 455
+         stepOneQRdEn <= '1';           -- checkStepOneQ.deq
+         stepTwoQWrEn <= '1';           -- checkStepTwoQ.enq
+         stepTwoQDin  <= req1 & (mrValid1 & mr1) & s1Result;  -- 267+187+1 = 455
       end if;
 
       -----------------------------------------------------------------------
@@ -450,31 +450,31 @@ begin
       -----------------------------------------------------------------------
       s2Fire    := stepTwoQValid and respOutQNotFull;
       req2      := stepTwoQDout(454 downto 188);
-      mrValid2  := stepTwoQDout(187);                           -- Maybe tag
-      mr2       := stepTwoQDout(186 downto 1);                  -- MemRegion
-      s1In2     := stepTwoQDout(0);                             -- stepOneResult
-      reqAddr2  := req2(136 downto 73);                         -- req.reqAddr
-      totalLen2 := req2(72 downto 41);                          -- req.totalLen  (dlen)
-      mrLaddr2  := mr2(185 downto 122);                         -- mr.laddr
-      mrLen2    := mr2(121 downto 90);                          -- mr.len        (rlen)
+      mrValid2  := stepTwoQDout(187);           -- Maybe tag
+      mr2       := stepTwoQDout(186 downto 1);  -- MemRegion
+      s1In2     := stepTwoQDout(0);             -- stepOneResult
+      reqAddr2  := req2(136 downto 73);         -- req.reqAddr
+      totalLen2 := req2(72 downto 41);          -- req.totalLen  (dlen)
+      mrLaddr2  := mr2(185 downto 122);         -- mr.laddr
+      mrLen2    := mr2(121 downto 90);          -- mr.len        (rlen)
 
       -- checkAddrAndLenWithinRange (l=request, r=MR)
-      hiEq  := toSl(reqAddr2(63 downto 32) = mrLaddr2(63 downto 32));
-      loGe  := toSl(unsigned(reqAddr2(31 downto 0)) >= unsigned(mrLaddr2(31 downto 0)));
-      lSum  := ('0' & unsigned(reqAddr2(31 downto 0))) + ('0' & unsigned(totalLen2));
-      rSum  := ('0' & unsigned(mrLaddr2(31 downto 0))) + ('0' & unsigned(mrLen2));
-      lenOk := toSl(rSum >= lSum);
+      hiEq    := toSl(reqAddr2(63 downto 32) = mrLaddr2(63 downto 32));
+      loGe    := toSl(unsigned(reqAddr2(31 downto 0)) >= unsigned(mrLaddr2(31 downto 0)));
+      lSum    := ('0' & unsigned(reqAddr2(31 downto 0))) + ('0' & unsigned(totalLen2));
+      rSum    := ('0' & unsigned(mrLaddr2(31 downto 0))) + ('0' & unsigned(mrLen2));
+      lenOk   := toSl(rSum >= lSum);
       rangeOk := hiEq and loGe and lenOk;
 
-      s2Result := s1In2;                                        -- default
+      s2Result := s1In2;                -- default
       if (s1In2 = '1') and (mrValid2 = '1') then
          s2Result := rangeOk;
       end if;
 
       if s2Fire = '1' then
-         stepTwoQRdEn <= '1';                                   -- checkStepTwoQ.deq
-         respOutQWrEn <= '1';                                   -- respOutQ.enq
-         respOutQDin  <= (others => s2Result);                  -- Bool (1 b)
+         stepTwoQRdEn <= '1';                   -- checkStepTwoQ.deq
+         respOutQWrEn <= '1';                   -- respOutQ.enq
+         respOutQDin  <= (others => s2Result);  -- Bool (1 b)
       end if;
 
    end process comb;

@@ -94,112 +94,112 @@ entity ReqGenSq is
       TPD_G : time := 1 ns);
    port (
       clk : in sl;
-      rst : in sl;                                         -- active-high synchronous reset (FPGA)
+      rst : in sl;                      -- active-high synchronous reset (FPGA)
 
       -----------------------------------------------------------------------
       -- contextSQ.statusSQ bundle (cntrlStatus)
       -----------------------------------------------------------------------
-      isReset                 : in  sl;                    -- comm.isReset (soft clear)
-      isStableRTS             : in  sl;                    -- comm.isStableRTS
-      isRTS                   : in  sl;                    -- comm.isRTS
-      isERR                   : in  sl;                    -- comm.isERR
-      isSQD                   : in  sl;                    -- comm.isSQD
-      qpType                  : in  slv(3 downto 0);       -- getTypeQP
-      sqpn                    : in  slv(23 downto 0);      -- comm.getSQPN
-      pmtu                    : in  slv(2 downto 0);       -- comm.getPMTU
-      pkey                    : in  slv(15 downto 0);      -- comm.getPKEY
-      dqpn                    : in  slv(23 downto 0);      -- comm.getDQPN
-      sigAll                  : in  sl;                    -- comm.getSigAll
+      isReset     : in  sl;                -- comm.isReset (soft clear)
+      isStableRTS : in  sl;                -- comm.isStableRTS
+      isRTS       : in  sl;                -- comm.isRTS
+      isERR       : in  sl;                -- comm.isERR
+      isSQD       : in  sl;                -- comm.isSQD
+      qpType      : in  slv(3 downto 0);   -- getTypeQP
+      sqpn        : in  slv(23 downto 0);  -- comm.getSQPN
+      pmtu        : in  slv(2 downto 0);   -- comm.getPMTU
+      pkey        : in  slv(15 downto 0);  -- comm.getPKEY
+      dqpn        : in  slv(23 downto 0);  -- comm.getDQPN
+      sigAll      : in  sl;                -- comm.getSigAll
       -- contextSQ next-PSN shared register (read+write same cycle in R4)
-      npsnIn                  : in  slv(23 downto 0);      -- contextSQ.getNPSN
-      npsnOut                 : out slv(23 downto 0);      -- contextSQ.setNPSN value
-      npsnWrEn                : out sl;                     -- contextSQ.setNPSN write-enable
+      npsnIn      : in  slv(23 downto 0);  -- contextSQ.getNPSN
+      npsnOut     : out slv(23 downto 0);  -- contextSQ.setNPSN value
+      npsnWrEn    : out sl;                -- contextSQ.setNPSN write-enable
 
       -----------------------------------------------------------------------
       -- pendingWorkReqPipeIn : PipeOut#(PendingWorkReq) (input)
       -----------------------------------------------------------------------
-      pendingWorkReqInValid   : in  sl;                    -- .notEmpty
-      pendingWorkReqInData    : in  slv(678 downto 0);     -- .first (PendingWorkReq)
-      pendingWorkReqInRdEn    : out sl;                    -- .deq
-      pendingWorkReqBufNotEmpty : in sl;                   -- fence fence-drain fence flag
+      pendingWorkReqInValid     : in  sl;  -- .notEmpty
+      pendingWorkReqInData      : in  slv(678 downto 0);  -- .first (PendingWorkReq)
+      pendingWorkReqInRdEn      : out sl;  -- .deq
+      pendingWorkReqBufNotEmpty : in  sl;  -- fence fence-drain fence flag
 
       -----------------------------------------------------------------------
       -- payloadGenerator external Server + PipeOut
       -----------------------------------------------------------------------
       -- srvPort.request : PayloadGenReq (out / put)
-      payloadGenReqValid      : out sl;
-      payloadGenReqData       : out slv(198 downto 0);
-      payloadGenReqReady      : in  sl;
+      payloadGenReqValid     : out sl;
+      payloadGenReqData      : out slv(198 downto 0);
+      payloadGenReqReady     : in  sl;
       -- srvPort.response : PayloadGenResp (in / get)
-      payloadGenRespValid     : in  sl;
-      payloadGenRespData      : in  slv(1 downto 0);
-      payloadGenRespReady     : out sl;
+      payloadGenRespValid    : in  sl;
+      payloadGenRespData     : in  slv(1 downto 0);
+      payloadGenRespReady    : out sl;
       -- payloadDataStreamPipeOut : DataStream (in) — consumed by the child only
-      payloadDataStreamValid  : in  sl;
-      payloadDataStreamData   : in  slv(289 downto 0);
-      payloadDataStreamRdEn   : out sl;
+      payloadDataStreamValid : in  sl;
+      payloadDataStreamData  : in  slv(289 downto 0);
+      payloadDataStreamRdEn  : out sl;
 
       -----------------------------------------------------------------------
       -- Outputs
       -----------------------------------------------------------------------
       -- pendingWorkReqPipeOut : PipeOut#(PendingWorkReq)
-      pendingWorkReqOutValid  : out sl;
-      pendingWorkReqOutData   : out slv(678 downto 0);
-      pendingWorkReqOutRdEn   : in  sl;
+      pendingWorkReqOutValid : out sl;
+      pendingWorkReqOutData  : out slv(678 downto 0);
+      pendingWorkReqOutRdEn  : in  sl;
       -- workCompGenReqPipeOut : PipeOut#(WorkCompGenReqSQ)
-      workCompGenReqValid     : out sl;
-      workCompGenReqData      : out slv(632 downto 0);
-      workCompGenReqRdEn      : in  sl;
+      workCompGenReqValid    : out sl;
+      workCompGenReqData     : out slv(632 downto 0);
+      workCompGenReqRdEn     : in  sl;
       -- rdmaReqDataStreamPipeOut : DataStreamPipeOut (from child)
-      rdmaReqDataValid        : out sl;
-      rdmaReqDataData         : out slv(289 downto 0);
-      rdmaReqDataRdEn         : in  sl;
+      rdmaReqDataValid       : out sl;
+      rdmaReqDataData        : out slv(289 downto 0);
+      rdmaReqDataRdEn        : in  sl;
       -- method Bool reqHeaderOutNotEmpty() (combinational)
-      reqHeaderOutNotEmpty    : out sl);
+      reqHeaderOutNotEmpty   : out sl);
 end entity ReqGenSq;
 
 architecture rtl of ReqGenSq is
 
    -- TypeQP encodings (4 bits)
-   constant QPT_RC_C        : slv(3 downto 0) := x"2";
-   constant QPT_UD_C        : slv(3 downto 0) := x"4";
-   constant QPT_XRC_SEND_C  : slv(3 downto 0) := x"9";
+   constant QPT_RC_C             : slv(3 downto 0) := x"2";
+   constant QPT_UD_C             : slv(3 downto 0) := x"4";
+   constant QPT_XRC_SEND_C       : slv(3 downto 0) := x"9";
    -- PMTU encodings (3 bits)
-   constant PMTU_256_C      : slv(2 downto 0) := "001";
-   constant PMTU_512_C      : slv(2 downto 0) := "010";
-   constant PMTU_1024_C     : slv(2 downto 0) := "011";
-   constant PMTU_2048_C     : slv(2 downto 0) := "100";
-   constant PMTU_4096_C     : slv(2 downto 0) := "101";
+   constant PMTU_256_C           : slv(2 downto 0) := "001";
+   constant PMTU_512_C           : slv(2 downto 0) := "010";
+   constant PMTU_1024_C          : slv(2 downto 0) := "011";
+   constant PMTU_2048_C          : slv(2 downto 0) := "100";
+   constant PMTU_4096_C          : slv(2 downto 0) := "101";
    -- WorkReqOpCode encodings (4 bits) — DMA-read opcodes + read
-   constant WR_RDMA_WRITE_C : slv(3 downto 0) := x"0";
-   constant WR_WRITE_IMM_C  : slv(3 downto 0) := x"1";
-   constant WR_SEND_C       : slv(3 downto 0) := x"2";
-   constant WR_SEND_IMM_C   : slv(3 downto 0) := x"3";
-   constant WR_RDMA_READ_C  : slv(3 downto 0) := x"4";
-   constant WR_SEND_INV_C   : slv(3 downto 0) := x"9";
+   constant WR_RDMA_WRITE_C      : slv(3 downto 0) := x"0";
+   constant WR_WRITE_IMM_C       : slv(3 downto 0) := x"1";
+   constant WR_SEND_C            : slv(3 downto 0) := x"2";
+   constant WR_SEND_IMM_C        : slv(3 downto 0) := x"3";
+   constant WR_RDMA_READ_C       : slv(3 downto 0) := x"4";
+   constant WR_SEND_INV_C        : slv(3 downto 0) := x"9";
    -- DmaReqSrcType.DMA_SRC_SQ_RD (4 bits)
-   constant DMA_SRC_SQ_RD_C : slv(3 downto 0) := x"5";
+   constant DMA_SRC_SQ_RD_C      : slv(3 downto 0) := x"5";
    -- WorkCompReqType.WC_REQ_TYPE_PARTIAL_ACK (2 bits) / WorkCompStatus.IBV_WC_LOC_QP_OP_ERR (5 bits)
    constant WC_REQ_PARTIAL_ACK_C : slv(1 downto 0) := "01";
    constant WC_LOC_QP_OP_ERR_C   : slv(4 downto 0) := "00010";
 
    -- Element / FIFO widths
-   constant PWR_W_C         : integer := 679;   -- PendingWorkReq
-   constant WCREQ_W_C       : integer := 633;   -- WorkCompGenReqSQ
-   constant WRPG_W_C        : integer := 720;   -- Tuple7(PWR,PktNum,ResiduePMTU,4xBool)
-   constant WRPKTNUM_W_C    : integer := 709;   -- Tuple3(PWR,PktNum,WorkReqInfo)
-   constant TUP2_W_C        : integer := 684;   -- Tuple2(PWR,WorkReqInfo)
-   constant REQHDRPREP_W_C  : integer := 710;   -- Tuple2(ReqPktHeaderInfo,WorkReqInfo)
-   constant PENDREQHDR_W_C  : integer := 1229;  -- Tuple4(PWR,WRInfo,Maybe(Tup3),PSN)
-   constant REQHDRGEN_W_C   : integer := 1300;  -- Tuple4(PWR,Maybe(HRDMA),Maybe(PGResp),PSN)
-   constant HRDMA_W_C       : integer := 593;   -- HeaderRDMA
-   constant PSN_W_C         : integer := 24;    -- PSN
+   constant PWR_W_C        : integer := 679;  -- PendingWorkReq
+   constant WCREQ_W_C      : integer := 633;  -- WorkCompGenReqSQ
+   constant WRPG_W_C       : integer := 720;  -- Tuple7(PWR,PktNum,ResiduePMTU,4xBool)
+   constant WRPKTNUM_W_C   : integer := 709;  -- Tuple3(PWR,PktNum,WorkReqInfo)
+   constant TUP2_W_C       : integer := 684;  -- Tuple2(PWR,WorkReqInfo)
+   constant REQHDRPREP_W_C : integer := 710;  -- Tuple2(ReqPktHeaderInfo,WorkReqInfo)
+   constant PENDREQHDR_W_C : integer := 1229;  -- Tuple4(PWR,WRInfo,Maybe(Tup3),PSN)
+   constant REQHDRGEN_W_C  : integer := 1300;  -- Tuple4(PWR,Maybe(HRDMA),Maybe(PGResp),PSN)
+   constant HRDMA_W_C      : integer := 593;  -- HeaderRDMA
+   constant PSN_W_C        : integer := 24;   -- PSN
 
    type RegType is record
-      isNormalStateReg       : sl;                 -- mkReg(True)
-      isFirstOrOnlyReqPktReg : sl;                 -- mkReg(True)
-      remainingPktNumReg     : slv(24 downto 0);   -- mkRegU (loaded before use)
-      curPsnReg              : slv(23 downto 0);   -- mkRegU (loaded from startPSN)
+      isNormalStateReg       : sl;      -- mkReg(True)
+      isFirstOrOnlyReqPktReg : sl;      -- mkReg(True)
+      remainingPktNumReg     : slv(24 downto 0);  -- mkRegU (loaded before use)
+      curPsnReg              : slv(23 downto 0);  -- mkRegU (loaded from startPSN)
    end record RegType;
 
    -- remainingPktNumReg / curPsnReg are mkRegU (written before read); given '0'
@@ -216,55 +216,55 @@ architecture rtl of ReqGenSq is
    signal fifoRst : sl;
 
    -- FIFO interconnect
-   signal pwrOutDin      : slv(PWR_W_C-1 downto 0);
-   signal pwrOutWrEn     : sl;
-   signal pwrOutNotFull  : sl;
+   signal pwrOutDin     : slv(PWR_W_C-1 downto 0);
+   signal pwrOutWrEn    : sl;
+   signal pwrOutNotFull : sl;
 
-   signal wcOutDin       : slv(WCREQ_W_C-1 downto 0);
-   signal wcOutWrEn      : sl;
-   signal wcOutNotFull   : sl;
+   signal wcOutDin     : slv(WCREQ_W_C-1 downto 0);
+   signal wcOutWrEn    : sl;
+   signal wcOutNotFull : sl;
 
-   signal wrPgDin        : slv(WRPG_W_C-1 downto 0);
-   signal wrPgWrEn       : sl;
-   signal wrPgDout       : slv(WRPG_W_C-1 downto 0);
-   signal wrPgValid      : sl;
-   signal wrPgNotFull    : sl;
-   signal wrPgRdEn       : sl;
+   signal wrPgDin     : slv(WRPG_W_C-1 downto 0);
+   signal wrPgWrEn    : sl;
+   signal wrPgDout    : slv(WRPG_W_C-1 downto 0);
+   signal wrPgValid   : sl;
+   signal wrPgNotFull : sl;
+   signal wrPgRdEn    : sl;
 
-   signal wrPktNumDin    : slv(WRPKTNUM_W_C-1 downto 0);
-   signal wrPktNumWrEn   : sl;
-   signal wrPktNumDout   : slv(WRPKTNUM_W_C-1 downto 0);
-   signal wrPktNumValid  : sl;
-   signal wrPktNumNotFull: sl;
-   signal wrPktNumRdEn   : sl;
+   signal wrPktNumDin     : slv(WRPKTNUM_W_C-1 downto 0);
+   signal wrPktNumWrEn    : sl;
+   signal wrPktNumDout    : slv(WRPKTNUM_W_C-1 downto 0);
+   signal wrPktNumValid   : sl;
+   signal wrPktNumNotFull : sl;
+   signal wrPktNumRdEn    : sl;
 
-   signal wrPsnDin       : slv(TUP2_W_C-1 downto 0);
-   signal wrPsnWrEn      : sl;
-   signal wrPsnDout      : slv(TUP2_W_C-1 downto 0);
-   signal wrPsnValid     : sl;
-   signal wrPsnNotFull   : sl;
-   signal wrPsnRdEn      : sl;
+   signal wrPsnDin     : slv(TUP2_W_C-1 downto 0);
+   signal wrPsnWrEn    : sl;
+   signal wrPsnDout    : slv(TUP2_W_C-1 downto 0);
+   signal wrPsnValid   : sl;
+   signal wrPsnNotFull : sl;
+   signal wrPsnRdEn    : sl;
 
-   signal wrOutDin       : slv(TUP2_W_C-1 downto 0);
-   signal wrOutWrEn      : sl;
-   signal wrOutDout      : slv(TUP2_W_C-1 downto 0);
-   signal wrOutValid     : sl;
-   signal wrOutNotFull   : sl;
-   signal wrOutRdEn      : sl;
+   signal wrOutDin     : slv(TUP2_W_C-1 downto 0);
+   signal wrOutWrEn    : sl;
+   signal wrOutDout    : slv(TUP2_W_C-1 downto 0);
+   signal wrOutValid   : sl;
+   signal wrOutNotFull : sl;
+   signal wrOutRdEn    : sl;
 
-   signal wrChkDin       : slv(TUP2_W_C-1 downto 0);
-   signal wrChkWrEn      : sl;
-   signal wrChkDout      : slv(TUP2_W_C-1 downto 0);
-   signal wrChkValid     : sl;
-   signal wrChkNotFull   : sl;
-   signal wrChkRdEn      : sl;
+   signal wrChkDin     : slv(TUP2_W_C-1 downto 0);
+   signal wrChkWrEn    : sl;
+   signal wrChkDout    : slv(TUP2_W_C-1 downto 0);
+   signal wrChkValid   : sl;
+   signal wrChkNotFull : sl;
+   signal wrChkRdEn    : sl;
 
-   signal reqCntDin      : slv(TUP2_W_C-1 downto 0);
-   signal reqCntWrEn     : sl;
-   signal reqCntDout     : slv(TUP2_W_C-1 downto 0);
-   signal reqCntValid    : sl;
-   signal reqCntNotFull  : sl;
-   signal reqCntRdEn     : sl;
+   signal reqCntDin     : slv(TUP2_W_C-1 downto 0);
+   signal reqCntWrEn    : sl;
+   signal reqCntDout    : slv(TUP2_W_C-1 downto 0);
+   signal reqCntValid   : sl;
+   signal reqCntNotFull : sl;
+   signal reqCntRdEn    : sl;
 
    signal reqPrepDin     : slv(REQHDRPREP_W_C-1 downto 0);
    signal reqPrepWrEn    : sl;
@@ -280,29 +280,29 @@ architecture rtl of ReqGenSq is
    signal pendHdrNotFull : sl;
    signal pendHdrRdEn    : sl;
 
-   signal hdrGenDin      : slv(REQHDRGEN_W_C-1 downto 0);
-   signal hdrGenWrEn     : sl;
-   signal hdrGenDout     : slv(REQHDRGEN_W_C-1 downto 0);
-   signal hdrGenValid    : sl;
-   signal hdrGenNotFull  : sl;
-   signal hdrGenRdEn     : sl;
+   signal hdrGenDin     : slv(REQHDRGEN_W_C-1 downto 0);
+   signal hdrGenWrEn    : sl;
+   signal hdrGenDout    : slv(REQHDRGEN_W_C-1 downto 0);
+   signal hdrGenValid   : sl;
+   signal hdrGenNotFull : sl;
+   signal hdrGenRdEn    : sl;
 
-   signal reqHdrOutDin   : slv(HRDMA_W_C-1 downto 0);
-   signal reqHdrOutWrEn  : sl;
-   signal reqHdrOutDout  : slv(HRDMA_W_C-1 downto 0);
-   signal reqHdrOutValid : sl;
+   signal reqHdrOutDin     : slv(HRDMA_W_C-1 downto 0);
+   signal reqHdrOutWrEn    : sl;
+   signal reqHdrOutDout    : slv(HRDMA_W_C-1 downto 0);
+   signal reqHdrOutValid   : sl;
    signal reqHdrOutNotFull : sl;
-   signal reqHdrOutRdEn  : sl;
+   signal reqHdrOutRdEn    : sl;
 
-   signal psnOutDin      : slv(PSN_W_C-1 downto 0);
-   signal psnOutWrEn     : sl;
-   signal psnOutDout     : slv(PSN_W_C-1 downto 0);
-   signal psnOutValid    : sl;
-   signal psnOutNotFull  : sl;
-   signal psnOutRdEn     : sl;
+   signal psnOutDin     : slv(PSN_W_C-1 downto 0);
+   signal psnOutWrEn    : sl;
+   signal psnOutDout    : slv(PSN_W_C-1 downto 0);
+   signal psnOutValid   : sl;
+   signal psnOutNotFull : sl;
+   signal psnOutRdEn    : sl;
 
    -- U_HeaderGenReqSQ interconnect (driven from reqHeaderPrepareQ.dout)
-   signal hpPwr           : slv(678 downto 0);   -- ReqPktHeaderInfo.pendingWR
+   signal hpPwr           : slv(678 downto 0);  -- ReqPktHeaderInfo.pendingWR
    signal hgIsFirstOrOnly : sl;
    signal hgIsOnlyOrLast  : sl;
    signal hgHeaderValid   : sl;
@@ -582,8 +582,8 @@ begin
    ---------------------------------------------------------------------------
    -- HeaderGenReqSQ is combinational; its inputs are the reqHeaderPrepareQ head
    -- (ReqPktHeaderInfo + cntrlStatus bundle).  Driven concurrently below.
-   hpPwr           <= reqPrepDout(685 downto 7);                 -- ReqPktHeaderInfo.pendingWR
-   hgIsFirstOrOnly <= reqPrepDout(6);                            -- isFirstReqPkt
+   hpPwr           <= reqPrepDout(685 downto 7);  -- ReqPktHeaderInfo.pendingWR
+   hgIsFirstOrOnly <= reqPrepDout(6);             -- isFirstReqPkt
    -- isOnlyOrLast = isFirstReqPkt ? isOnlyReqPkt(pendingWR val) : isLastReqPkt
    hgIsOnlyOrLast  <= reqPrepDout(7) when reqPrepDout(6) = '1' else reqPrepDout(5);
 
@@ -593,7 +593,7 @@ begin
       port map (
          isFirstOrOnly => hgIsFirstOrOnly,
          isOnlyOrLast  => hgIsOnlyOrLast,
-         psn           => reqPrepDout(709 downto 686),          -- ReqPktHeaderInfo.curPSN
+         psn           => reqPrepDout(709 downto 686),  -- ReqPktHeaderInfo.curPSN
          qpType        => qpType,
          pkey          => pkey,
          sigAll        => sigAll,
@@ -601,17 +601,17 @@ begin
          sqpn          => sqpn,
          opcode        => hpPwr(614 downto 611),
          solicited     => hpPwr(357),
-         sendSignaled  => hpPwr(607),                           -- flags(1)=IBV_SEND_SIGNALED
+         sendSignaled  => hpPwr(607),   -- flags(1)=IBV_SEND_SIGNALED
          len           => hpPwr(509 downto 478),
          raddr         => hpPwr(605 downto 542),
          rkey          => hpPwr(541 downto 510),
-         wrDqpn        => hpPwr(134 downto 111),                -- Maybe#(QPN) value (tag dropped)
-         srqn          => hpPwr(159 downto 136),                -- Maybe#(QPN) value
-         qkey          => hpPwr(109 downto 78),                 -- Maybe#(QKEY) value
-         swapData      => hpPwr(290 downto 227),                -- Maybe#(Long) value
-         compData      => hpPwr(355 downto 292),                -- Maybe#(Long) value
-         immDtData     => hpPwr(225 downto 194),                -- Maybe#(IMM) value
-         invRkey       => hpPwr(192 downto 161),                -- Maybe#(RKEY) value
+         wrDqpn        => hpPwr(134 downto 111),  -- Maybe#(QPN) value (tag dropped)
+         srqn          => hpPwr(159 downto 136),  -- Maybe#(QPN) value
+         qkey          => hpPwr(109 downto 78),   -- Maybe#(QKEY) value
+         swapData      => hpPwr(290 downto 227),  -- Maybe#(Long) value
+         compData      => hpPwr(355 downto 292),  -- Maybe#(Long) value
+         immDtData     => hpPwr(225 downto 194),  -- Maybe#(IMM) value
+         invRkey       => hpPwr(192 downto 161),  -- Maybe#(RKEY) value
          headerValid   => hgHeaderValid,
          headerData    => hgHeaderData,
          headerByteNum => hgHeaderByteNum,
@@ -652,19 +652,19 @@ begin
       variable notReset : sl;
 
       -- R1 recvWorkReq
-      variable r1Opcode  : slv(3 downto 0);
-      variable r1Len     : slv(31 downto 0);
-      variable r1IsRC    : sl;
-      variable r1IsUD    : sl;
-      variable r1NeedDma : sl;
-      variable r1IsNew   : sl;
-      variable r1Fence   : sl;
+      variable r1Opcode    : slv(3 downto 0);
+      variable r1Len       : slv(31 downto 0);
+      variable r1IsRC      : sl;
+      variable r1IsUD      : sl;
+      variable r1NeedDma   : sl;
+      variable r1IsNew     : sl;
+      variable r1Fence     : sl;
       variable r1ShouldDeq : sl;
-      variable r1TmpPkt  : slv(24 downto 0);
-      variable r1Residue : slv(11 downto 0);
-      variable r1Guard   : sl;
-      variable r1Fire    : sl;
-      variable r1Do      : sl;
+      variable r1TmpPkt    : slv(24 downto 0);
+      variable r1Residue   : slv(11 downto 0);
+      variable r1Guard     : sl;
+      variable r1Fire      : sl;
+      variable r1Do        : sl;
 
       -- R2 issuePayloadGenReq
       variable r2Pwr     : slv(678 downto 0);
@@ -685,33 +685,33 @@ begin
       variable r3Fire    : sl;
 
       -- R4 calcPktSeqNum4NewWorkReq
-      variable r4Pwr      : slv(678 downto 0);
-      variable r4Wi       : slv(4 downto 0);
-      variable r4IsNew    : sl;
-      variable r4TotPkt   : slv(24 downto 0);
-      variable r4IsOnly   : sl;
-      variable r4Opcode   : slv(3 downto 0);
-      variable r4StartPsn : slv(23 downto 0);
+      variable r4Pwr       : slv(678 downto 0);
+      variable r4Wi        : slv(4 downto 0);
+      variable r4IsNew     : sl;
+      variable r4TotPkt    : slv(24 downto 0);
+      variable r4IsOnly    : sl;
+      variable r4Opcode    : slv(3 downto 0);
+      variable r4StartPsn  : slv(23 downto 0);
       variable r4NextPsn25 : slv(24 downto 0);
-      variable r4NextPsn  : slv(23 downto 0);
-      variable r4EndPsn   : slv(23 downto 0);
-      variable r4HasOnly  : sl;
-      variable r4Fire     : sl;
+      variable r4NextPsn   : slv(23 downto 0);
+      variable r4EndPsn    : slv(23 downto 0);
+      variable r4HasOnly   : sl;
+      variable r4Fire      : sl;
 
       -- R5 checkPendingWorkReq
-      variable r5Pwr     : slv(678 downto 0);
-      variable r5Wi      : slv(4 downto 0);
-      variable r5IsOnly  : sl;
-      variable r5IsUD    : sl;
-      variable r5Valid   : sl;
-      variable r5Fire    : sl;
+      variable r5Pwr    : slv(678 downto 0);
+      variable r5Wi     : slv(4 downto 0);
+      variable r5IsOnly : sl;
+      variable r5IsUD   : sl;
+      variable r5Valid  : sl;
+      variable r5Fire   : sl;
 
       -- R6 outputNewPendingWorkReq
-      variable r6Pwr     : slv(678 downto 0);
-      variable r6Wi      : slv(4 downto 0);
-      variable r6Enq     : sl;
-      variable r6Fire    : sl;
-      variable r6DoEnq   : sl;
+      variable r6Pwr   : slv(678 downto 0);
+      variable r6Wi    : slv(4 downto 0);
+      variable r6Enq   : sl;
+      variable r6Fire  : sl;
+      variable r6DoEnq : sl;
 
       -- R7 countReqPkt (packet loop)
       variable r7Pwr        : slv(678 downto 0);
@@ -728,22 +728,22 @@ begin
       variable r7Fire       : sl;
 
       -- R8 prepareReqHeaderGen
-      variable r8Fire    : sl;
+      variable r8Fire : sl;
 
       -- R9 genReqHeader
-      variable r9Valid   : sl;
-      variable r9NeedDma : sl;
-      variable r9GetResp : sl;
-      variable r9Hlen    : slv(6 downto 0);
-      variable r9HlenInt : integer range 0 to 127;
-      variable r9ByteEn  : slv(63 downto 0);
-      variable r9Frag    : slv(1 downto 0);
-      variable r9Last    : slv(5 downto 0);
-      variable r9Res5    : slv(4 downto 0);
-      variable r9Hdr     : slv(592 downto 0);
+      variable r9Valid     : sl;
+      variable r9NeedDma   : sl;
+      variable r9GetResp   : sl;
+      variable r9Hlen      : slv(6 downto 0);
+      variable r9HlenInt   : integer range 0 to 127;
+      variable r9ByteEn    : slv(63 downto 0);
+      variable r9Frag      : slv(1 downto 0);
+      variable r9Last      : slv(5 downto 0);
+      variable r9Res5      : slv(4 downto 0);
+      variable r9Hdr       : slv(592 downto 0);
       variable r9MaybeHdr  : slv(593 downto 0);
       variable r9MaybeResp : slv(2 downto 0);
-      variable r9Fire    : sl;
+      variable r9Fire      : sl;
 
       -- R10 recvPayloadGenRespAndGenErrWorkComp
       variable r10HasHdr  : sl;
@@ -754,21 +754,21 @@ begin
       variable r10Fire    : sl;
 
       -- R11 errFlushWR
-      variable r11Pwr    : slv(678 downto 0);
-      variable r11Enq    : sl;
-      variable r11Guard  : sl;
-      variable r11Fire   : sl;
-      variable r11DoEnq  : sl;
+      variable r11Pwr   : slv(678 downto 0);
+      variable r11Enq   : sl;
+      variable r11Guard : sl;
+      variable r11Fire  : sl;
+      variable r11DoEnq : sl;
       -- R11a-d errFlushStrandedWR (BUGFIX 2026-07-16): error-drain of the
       -- stage-2..6 intermediate FIFOs (see Stage 11 comment)
-      variable errFlushMode : sl;
-      variable r11aPwr, r11bPwr, r11cPwr, r11dPwr : slv(678 downto 0);
-      variable r11aEnq, r11bEnq, r11cEnq, r11dEnq : sl;
-      variable r11aFire, r11bFire, r11cFire, r11dFire : sl;
+      variable errFlushMode                               : sl;
+      variable r11aPwr, r11bPwr, r11cPwr, r11dPwr         : slv(678 downto 0);
+      variable r11aEnq, r11bEnq, r11cEnq, r11dEnq         : sl;
+      variable r11aFire, r11bFire, r11cFire, r11dFire     : sl;
       variable r11aDoEnq, r11bDoEnq, r11cDoEnq, r11dDoEnq : sl;
 
    begin
-      v := r;
+      v        := r;
       notReset := not isReset;
 
       ----------------------------------------------------------------------
@@ -781,13 +781,13 @@ begin
       r1NeedDma := ite((r1Opcode = WR_RDMA_WRITE_C or r1Opcode = WR_WRITE_IMM_C or
                         r1Opcode = WR_SEND_C or r1Opcode = WR_SEND_IMM_C or
                         r1Opcode = WR_SEND_INV_C) and r1Len /= x"00000000", '1', '0');
-      r1IsNew  := not pendingWorkReqInData(1);              -- !isValid(isOnlyReqPkt)
-      r1Fence  := pendingWorkReqInData(606);                -- wr.flags(0)=IBV_SEND_FENCE
+      r1IsNew := not pendingWorkReqInData(1);  -- !isValid(isOnlyReqPkt)
+      r1Fence := pendingWorkReqInData(606);    -- wr.flags(0)=IBV_SEND_FENCE
 
       if (isRTS = '1' and r1Fence = '1') then
-         r1ShouldDeq := not pendingWorkReqBufNotEmpty;      -- fence: wait for buffer drain
+         r1ShouldDeq := not pendingWorkReqBufNotEmpty;  -- fence: wait for buffer drain
       else
-         r1ShouldDeq := not isSQD;                          -- SQ-drain stall
+         r1ShouldDeq := not isSQD;      -- SQ-drain stall
       end if;
 
       -- truncateLenByPMTU(len, pmtu) -> (tmpReqPktNum:25, pmtuResidue:12)
@@ -804,10 +804,10 @@ begin
             r1TmpPkt(21 downto 0) := r1Len(31 downto 10);
             r1Residue(9 downto 0) := r1Len(9 downto 0);
          when PMTU_2048_C =>
-            r1TmpPkt(20 downto 0) := r1Len(31 downto 11);
+            r1TmpPkt(20 downto 0)  := r1Len(31 downto 11);
             r1Residue(10 downto 0) := r1Len(10 downto 0);
-         when others =>              -- PMTU_4096_C
-            r1TmpPkt(19 downto 0) := r1Len(31 downto 12);
+         when others =>                 -- PMTU_4096_C
+            r1TmpPkt(19 downto 0)  := r1Len(31 downto 12);
             r1Residue(11 downto 0) := r1Len(11 downto 0);
       end case;
 
@@ -819,7 +819,7 @@ begin
       wrPgWrEn             <= r1Do;
       -- Tuple7(pendingWR, tmpReqPktNum, pmtuResidue, needDmaRead, isNewWorkReq,
       --        isReliableConnection, isUnreliableDatagram)
-      wrPgDin <= pendingWorkReqInData & r1TmpPkt & r1Residue &
+      wrPgDin              <= pendingWorkReqInData & r1TmpPkt & r1Residue &
                  r1NeedDma & r1IsNew & r1IsRC & r1IsUD;
 
       ----------------------------------------------------------------------
@@ -829,22 +829,22 @@ begin
       r2NeedDma := wrPgDout(3);
       r2ZeroRes := ite(wrPgDout(15 downto 4) = "000000000000", '1', '0');
       -- WorkReqInfo = isNew & isZeroResidue & isRC & isUD & needDma
-      r2Wi := wrPgDout(2) & r2ZeroRes & wrPgDout(1) & wrPgDout(0) & wrPgDout(3);
+      r2Wi      := wrPgDout(2) & r2ZeroRes & wrPgDout(1) & wrPgDout(0) & wrPgDout(3);
 
       r2Guard := notReset and isStableRTS and r.isNormalStateReg and
                  wrPgValid and wrPktNumNotFull;
-      r2Fire  := r2Guard and (not r2NeedDma or payloadGenReqReady);
+      r2Fire := r2Guard and (not r2NeedDma or payloadGenReqReady);
 
       payloadGenReqValid <= r2Fire and r2NeedDma;
       -- PayloadGenReq: {initiator,sqpn,wrID,startAddr,len,mrIdx}, addPadding, pmtu
-      payloadGenReqData <= DMA_SRC_SQ_RD_C &          -- initiator = DMA_SRC_SQ_RD
-                           sqpn &                     -- cntrlStatus.comm.getSQPN
-                           r2Pwr(678 downto 615) &    -- wr.id (WorkReqID)
-                           r2Pwr(477 downto 414) &    -- wr.laddr (startAddr)
-                           r2Pwr(509 downto 478) &    -- wr.len
-                           r2Pwr(413 downto 407) &    -- key2IndexMR(wr.lkey)=lkey[31:25]
-                           '1' &                      -- addPadding = True
-                           pmtu;                      -- cntrlStatus.comm.getPMTU
+      payloadGenReqData  <= DMA_SRC_SQ_RD_C & -- initiator = DMA_SRC_SQ_RD
+                           sqpn & -- cntrlStatus.comm.getSQPN
+                           r2Pwr(678 downto 615) & -- wr.id (WorkReqID)
+                           r2Pwr(477 downto 414) & -- wr.laddr (startAddr)
+                           r2Pwr(509 downto 478) & -- wr.len
+                           r2Pwr(413 downto 407) & -- key2IndexMR(wr.lkey)=lkey[31:25]
+                           '1' & -- addPadding = True
+                           pmtu;        -- cntrlStatus.comm.getPMTU
 
       wrPktNumWrEn <= r2Fire;
       -- Tuple3(pendingWR, tmpReqPktNum, workReqInfo)
@@ -853,10 +853,10 @@ begin
       ----------------------------------------------------------------------
       -- Stage 3 : calcPktNum4NewWorkReq   (guard isStableRTS && isNormalStateReg)
       ----------------------------------------------------------------------
-      r3Pwr    := wrPktNumDout(708 downto 30);
-      r3TmpPkt := wrPktNumDout(29 downto 5);
-      r3Wi     := wrPktNumDout(4 downto 0);
-      r3IsNew  := r3Wi(4);
+      r3Pwr     := wrPktNumDout(708 downto 30);
+      r3TmpPkt  := wrPktNumDout(29 downto 5);
+      r3Wi      := wrPktNumDout(4 downto 0);
+      r3IsNew   := r3Wi(4);
       r3ZeroRes := r3Wi(3);
 
       if (r3ZeroRes = '1') then
@@ -864,32 +864,32 @@ begin
       else
          r3TotPkt := slv(unsigned(r3TmpPkt) + 1);
       end if;
-      r3IsOnly := ite(unsigned(r3TotPkt) <= 1, '1', '0');   -- isLessOrEqOneR
+      r3IsOnly := ite(unsigned(r3TotPkt) <= 1, '1', '0');  -- isLessOrEqOneR
 
       if (r3IsNew = '1') then
-         r3Pwr(27) := '1';                 -- pktNum := Valid totalPktNum
+         r3Pwr(27)          := '1';     -- pktNum := Valid totalPktNum
          r3Pwr(26 downto 2) := r3TotPkt;
-         r3Pwr(1) := '1';                  -- isOnlyReqPkt := Valid isOnlyPkt
-         r3Pwr(0) := r3IsOnly;
+         r3Pwr(1)           := '1';     -- isOnlyReqPkt := Valid isOnlyPkt
+         r3Pwr(0)           := r3IsOnly;
       end if;
 
       r3Fire := notReset and isStableRTS and r.isNormalStateReg and
                 wrPktNumValid and wrPsnNotFull;
 
       -- wrPktNumRdEn driven after Stage 11 (r3Fire or errFlush R11a)
-      wrPsnWrEn    <= r3Fire;
-      wrPsnDin     <= r3Pwr & r3Wi;         -- Tuple2(pendingWR, workReqInfo)
+      wrPsnWrEn <= r3Fire;
+      wrPsnDin  <= r3Pwr & r3Wi;        -- Tuple2(pendingWR, workReqInfo)
 
       ----------------------------------------------------------------------
       -- Stage 4 : calcPktSeqNum4NewWorkReq (guard isStableRTS && isNormalStateReg)
       ----------------------------------------------------------------------
-      r4Pwr    := wrPsnDout(683 downto 5);
-      r4Wi     := wrPsnDout(4 downto 0);
-      r4IsNew  := r4Wi(4);
-      r4TotPkt := r4Pwr(26 downto 2);       -- unwrap pktNum
-      r4IsOnly := r4Pwr(0);                 -- unwrap isOnlyReqPkt
-      r4Opcode := r4Pwr(614 downto 611);
-      r4StartPsn := npsnIn;                 -- contextSQ.getNPSN
+      r4Pwr      := wrPsnDout(683 downto 5);
+      r4Wi       := wrPsnDout(4 downto 0);
+      r4IsNew    := r4Wi(4);
+      r4TotPkt   := r4Pwr(26 downto 2);  -- unwrap pktNum
+      r4IsOnly   := r4Pwr(0);            -- unwrap isOnlyReqPkt
+      r4Opcode   := r4Pwr(614 downto 611);
+      r4StartPsn := npsnIn;              -- contextSQ.getNPSN
 
       -- calcNextAndEndPSN(startPSN, pktNum, isOnlyPkt, pmtu)
       if (r4IsOnly = '1') then
@@ -897,29 +897,29 @@ begin
          r4EndPsn  := r4StartPsn;
       else
          r4NextPsn25 := slv(resize(unsigned(r4StartPsn), 25) + unsigned(r4TotPkt));
-         r4NextPsn := r4NextPsn25(23 downto 0);
-         r4EndPsn  := slv(unsigned(r4NextPsn) - 1);
+         r4NextPsn   := r4NextPsn25(23 downto 0);
+         r4EndPsn    := slv(unsigned(r4NextPsn) - 1);
       end if;
       r4HasOnly := r4IsOnly or ite(r4Opcode = WR_RDMA_READ_C, '1', '0');
 
       if (r4IsNew = '1') then
-         r4Pwr(77) := '1';                  -- startPSN := Valid startPSN
+         r4Pwr(77)           := '1';    -- startPSN := Valid startPSN
          r4Pwr(76 downto 53) := r4StartPsn;
-         r4Pwr(52) := '1';                  -- endPSN := Valid endPSN
+         r4Pwr(52)           := '1';    -- endPSN := Valid endPSN
          r4Pwr(51 downto 28) := r4EndPsn;
-         r4Pwr(1) := '1';                   -- isOnlyReqPkt := Valid hasOnlyReqPkt
-         r4Pwr(0) := r4HasOnly;
+         r4Pwr(1)            := '1';    -- isOnlyReqPkt := Valid hasOnlyReqPkt
+         r4Pwr(0)            := r4HasOnly;
       end if;
 
       r4Fire := notReset and isStableRTS and r.isNormalStateReg and
                 wrPsnValid and wrChkNotFull;
 
-      npsnWrEn <= r4Fire and r4IsNew;       -- contextSQ.setNPSN
+      npsnWrEn <= r4Fire and r4IsNew;   -- contextSQ.setNPSN
       npsnOut  <= r4NextPsn;
 
       -- wrPsnRdEn driven after Stage 11 (r4Fire or errFlush R11b)
       wrChkWrEn <= r4Fire;
-      wrChkDin  <= r4Pwr & r4Wi;            -- Tuple2(pendingWR, workReqInfo)
+      wrChkDin  <= r4Pwr & r4Wi;        -- Tuple2(pendingWR, workReqInfo)
 
       ----------------------------------------------------------------------
       -- Stage 5 : checkPendingWorkReq   (guard isStableRTS && isNormalStateReg)
@@ -928,7 +928,7 @@ begin
       r5Wi     := wrChkDout(4 downto 0);
       r5IsOnly := r5Pwr(0);
       r5IsUD   := r5Wi(1);
-      r5Valid  := (not r5IsUD) or r5IsOnly; -- isValidWorkReq
+      r5Valid  := (not r5IsUD) or r5IsOnly;  -- isValidWorkReq
 
       r5Fire := notReset and isStableRTS and r.isNormalStateReg and
                 wrChkValid and wrOutNotFull and (not r5Valid or reqCntNotFull);
@@ -944,21 +944,21 @@ begin
       ----------------------------------------------------------------------
       r6Pwr := wrOutDout(683 downto 5);
       r6Wi  := wrOutDout(4 downto 0);
-      r6Enq := r6Wi(4) and r6Wi(2);         -- isNewWorkReq && isReliableConnection
+      r6Enq := r6Wi(4) and r6Wi(2);     -- isNewWorkReq && isReliableConnection
 
       r6Fire := notReset and isStableRTS and r.isNormalStateReg and
                 wrOutValid and (not r6Enq or pwrOutNotFull);
       -- wrOutRdEn driven after Stage 11 (r6Fire or errFlush R11d)
-      r6DoEnq   := r6Fire and r6Enq;
+      r6DoEnq := r6Fire and r6Enq;
 
       ----------------------------------------------------------------------
       -- Stage 7 : countReqPkt (packet loop) (guard isStableRTS && isNormalStateReg)
       ----------------------------------------------------------------------
       r7Pwr      := reqCntDout(683 downto 5);
       r7Wi       := reqCntDout(4 downto 0);
-      r7StartPsn := r7Pwr(76 downto 53);    -- unwrap startPSN
-      r7TotPkt   := r7Pwr(26 downto 2);     -- unwrap pktNum
-      r7IsOnly   := r7Pwr(0);               -- unwrap isOnlyReqPkt
+      r7StartPsn := r7Pwr(76 downto 53);  -- unwrap startPSN
+      r7TotPkt   := r7Pwr(26 downto 2);   -- unwrap pktNum
+      r7IsOnly   := r7Pwr(0);             -- unwrap isOnlyReqPkt
 
       r7LastOrOnly := r7IsOnly or
                       ((not r.isFirstOrOnlyReqPktReg) and
@@ -982,12 +982,12 @@ begin
       r7Fire := notReset and isStableRTS and r.isNormalStateReg and
                 reqCntValid and reqPrepNotFull;
 
-      reqCntRdEn <= r7Fire and r7LastOrOnly;     -- deq only on last/only packet
+      reqCntRdEn <= r7Fire and r7LastOrOnly;  -- deq only on last/only packet
 
       -- ReqPktHeaderInfo(curPSN, pendingWR, isFirstReqPkt, isLastReqPkt)
-      r7Rphi := r7CurPsn & r7Pwr & r7FirstPkt & r7LastPkt;
+      r7Rphi      := r7CurPsn & r7Pwr & r7FirstPkt & r7LastPkt;
       reqPrepWrEn <= r7Fire;
-      reqPrepDin  <= r7Rphi & r7Wi;              -- Tuple2(ReqPktHeaderInfo, workReqInfo)
+      reqPrepDin  <= r7Rphi & r7Wi;  -- Tuple2(ReqPktHeaderInfo, workReqInfo)
 
       if (r7Fire = '1') then
          if (r7LastOrOnly = '1') then
@@ -1009,7 +1009,7 @@ begin
       reqPrepRdEn <= r8Fire;
       pendHdrWrEn <= r8Fire;
       -- Tuple4(pendingWR, workReqInfo, Maybe(Tuple3(headerData,headerByteNum,hasPayload)), curPSN)
-      pendHdrDin <= hpPwr & reqPrepDout(4 downto 0) &
+      pendHdrDin  <= hpPwr & reqPrepDout(4 downto 0) &
                     hgHeaderValid & hgHeaderData & hgHeaderByteNum & hgHasPayload &
                     reqPrepDout(709 downto 686);
 
@@ -1017,7 +1017,7 @@ begin
       -- Stage 9 : genReqHeader   (guard isStableRTS && isNormalStateReg)
       ----------------------------------------------------------------------
       r9Valid   := pendHdrDout(544);
-      r9NeedDma := pendHdrDout(545);       -- workReqInfo.needDmaRead
+      r9NeedDma := pendHdrDout(545);    -- workReqInfo.needDmaRead
       r9GetResp := r9Valid and r9NeedDma;
       r9Hlen    := pendHdrDout(31 downto 25);
       r9HlenInt := to_integer(unsigned(r9Hlen));
@@ -1046,17 +1046,17 @@ begin
       -- HeaderRDMA = headerData & byteEn & headerLen & fragNum & lastValid & hasPayload & isEmptyHeader
       r9Hdr := pendHdrDout(543 downto 32) & r9ByteEn & r9Hlen & r9Frag & r9Last &
                pendHdrDout(24) & '0';
-      r9MaybeHdr  := r9Valid & r9Hdr;                      -- Maybe#(HeaderRDMA)
-      r9MaybeResp := r9GetResp & payloadGenRespData;       -- Maybe#(PayloadGenResp)
+      r9MaybeHdr  := r9Valid & r9Hdr;                 -- Maybe#(HeaderRDMA)
+      r9MaybeResp := r9GetResp & payloadGenRespData;  -- Maybe#(PayloadGenResp)
 
       r9Fire := notReset and isStableRTS and r.isNormalStateReg and
                 pendHdrValid and hdrGenNotFull and (not r9GetResp or payloadGenRespValid);
 
       pendHdrRdEn         <= r9Fire;
-      payloadGenRespReady <= r9Fire and r9GetResp;         -- response.get
+      payloadGenRespReady <= r9Fire and r9GetResp;  -- response.get
       hdrGenWrEn          <= r9Fire;
       -- Tuple4(pendingWR, maybeReqHeader, maybePayloadGenResp, triggerPSN)
-      hdrGenDin <= pendHdrDout(1228 downto 550) & r9MaybeHdr & r9MaybeResp &
+      hdrGenDin           <= pendHdrDout(1228 downto 550) & r9MaybeHdr & r9MaybeResp &
                    pendHdrDout(23 downto 0);
 
       ----------------------------------------------------------------------
@@ -1074,16 +1074,16 @@ begin
       r10Fire := notReset and isStableRTS and r.isNormalStateReg and
                  hdrGenValid and r10Cond;
 
-      hdrGenRdEn <= r10Fire;
+      hdrGenRdEn    <= r10Fire;
       -- success -> reqHeaderOutQ + psnReqOutQ
       reqHdrOutWrEn <= r10Fire and r10Success;
-      reqHdrOutDin  <= hdrGenDout(619 downto 27);          -- HeaderRDMA
+      reqHdrOutDin  <= hdrGenDout(619 downto 27);     -- HeaderRDMA
       psnOutWrEn    <= r10Fire and r10Success;
-      psnOutDin     <= hdrGenDout(23 downto 0);            -- triggerPSN
+      psnOutDin     <= hdrGenDout(23 downto 0);       -- triggerPSN
       -- error -> workCompGenReqOutQ + isNormalStateReg := False
-      wcOutWrEn <= r10Fire and (not r10Success);
+      wcOutWrEn     <= r10Fire and (not r10Success);
       -- WorkCompGenReqSQ(wr, wcWaitDmaResp=False, WC_REQ_TYPE_PARTIAL_ACK, triggerPSN, IBV_WC_LOC_QP_OP_ERR)
-      wcOutDin <= hdrGenDout(1299 downto 699) &            -- pendingWR.wr
+      wcOutDin      <= hdrGenDout(1299 downto 699) & -- pendingWR.wr
                   '0' & WC_REQ_PARTIAL_ACK_C &
                   hdrGenDout(23 downto 0) & WC_LOC_QP_OP_ERR_C;
       if (r10Fire = '1' and r10Success = '0') then
@@ -1114,9 +1114,9 @@ begin
       errFlushMode := notReset and (isERR or (isRTS and not r.isNormalStateReg));
 
       -- R11d : wrOutQ (stage-6 input; oldest)
-      r11dPwr  := wrOutDout(683 downto 5);
-      r11dEnq  := wrOutDout(4) and wrOutDout(2);   -- wi: isNewWorkReq && isRC
-      r11dFire := errFlushMode and wrOutValid and (not r11dEnq or pwrOutNotFull);
+      r11dPwr   := wrOutDout(683 downto 5);
+      r11dEnq   := wrOutDout(4) and wrOutDout(2);  -- wi: isNewWorkReq && isRC
+      r11dFire  := errFlushMode and wrOutValid and (not r11dEnq or pwrOutNotFull);
       r11dDoEnq := r11dFire and r11dEnq;
 
       -- R11c : wrChkQ (stage-5 input)
@@ -1142,8 +1142,8 @@ begin
       r11aDoEnq := r11aFire and r11aEnq;
 
       -- R11 : wrPg (stage-2 input; youngest)
-      r11Pwr := wrPgDout(719 downto 41);
-      r11Enq := wrPgDout(2) and wrPgDout(1);     -- isNewWorkReq && isReliableConnection
+      r11Pwr   := wrPgDout(719 downto 41);
+      r11Enq   := wrPgDout(2) and wrPgDout(1);  -- isNewWorkReq && isReliableConnection
       r11Guard := errFlushMode and (not wrOutValid) and (not wrChkValid) and
                   (not wrPsnValid) and (not wrPktNumValid) and wrPgValid;
       r11Fire  := r11Guard and (not r11Enq or pwrOutNotFull);
@@ -1201,7 +1201,7 @@ begin
       ----------------------------------------------------------------------
       -- Combinational method output
       ----------------------------------------------------------------------
-      reqHeaderOutNotEmpty <= psnOutValid;                 -- psnReqOutQ.notEmpty
+      reqHeaderOutNotEmpty <= psnOutValid;  -- psnReqOutQ.notEmpty
 
    end process comb;
 

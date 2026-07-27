@@ -168,7 +168,7 @@ entity DmaReadCntrlConAndGen is
       TPD_G : time := 1 ns);
    port (
       clk          : in  sl;
-      rst          : in  sl;                       -- active-high synchronous reset
+      rst          : in  sl;            -- active-high synchronous reset
       -- Software clear (cntrlStatus.comm.isReset; synchronous, LEVEL-asserted)
       clearAll     : in  sl;
       -- cntrlStatus.isSQ : forwarded to the child only in BSV, but the child
@@ -179,21 +179,21 @@ entity DmaReadCntrlConAndGen is
       -- dmaCntrl.cancel() method (Action pulse): request graceful cancel
       cancelEn     : in  sl;
       -- srvPort.request : Put#(DmaReadCntrlReq)  (caller -> entity, enq to reqQ)
-      reqInValid   : in  sl;                        -- caller offers a request (wr_en)
-      reqInData    : in  slv(197 downto 0);         -- DmaReadCntrlReq packed
-      reqInReady   : out sl;                        -- entity can accept (reqQ.notFull)
+      reqInValid   : in  sl;            -- caller offers a request (wr_en)
+      reqInData    : in  slv(197 downto 0);  -- DmaReadCntrlReq packed
+      reqInReady   : out sl;            -- entity can accept (reqQ.notFull)
       -- srvPort.response : Get#(DmaReadCntrlResp) (entity -> caller, deq from respQ)
-      respOutReady : in  sl;                        -- caller takes a response (rd_en)
-      respOutValid : out sl;                        -- response available (respQ.notEmpty)
-      respOutData  : out slv(384 downto 0);         -- DmaReadCntrlResp packed
+      respOutReady : in  sl;            -- caller takes a response (rd_en)
+      respOutValid : out sl;            -- response available (respQ.notEmpty)
+      respOutData  : out slv(384 downto 0);  -- DmaReadCntrlResp packed
       -- dmaReadSrv.request : Put#(DmaReadReq)   (entity -> external server, CLIENT)
-      dmaReqValid  : out sl;                        -- entity offers a request (Mealy)
-      dmaReqOut    : out slv(175 downto 0);         -- DmaReadReq packed (Mealy)
-      dmaReqReady  : in  sl;                         -- external server can accept
+      dmaReqValid  : out sl;            -- entity offers a request (Mealy)
+      dmaReqOut    : out slv(175 downto 0);  -- DmaReadReq packed (Mealy)
+      dmaReqReady  : in  sl;            -- external server can accept
       -- dmaReadSrv.response : Get#(DmaReadResp) (external server -> entity, CLIENT)
-      dmaRespValid : in  sl;                         -- external server offers a response
-      dmaRespIn    : in  slv(382 downto 0);         -- DmaReadResp packed
-      dmaRespReady : out sl;                         -- entity takes the response (get/pop)
+      dmaRespValid : in  sl;            -- external server offers a response
+      dmaRespIn    : in  slv(382 downto 0);  -- DmaReadResp packed
+      dmaRespReady : out sl;            -- entity takes the response (get/pop)
       -- dmaCntrl.isIdle() method result (Moore, registered)
       isIdle       : out sl);
 end entity DmaReadCntrlConAndGen;
@@ -203,8 +203,8 @@ architecture rtl of DmaReadCntrlConAndGen is
    -- Control sub-FSM state lives in two boolean fields (mkCReg(2,False) each).
    -- Documented implied states: RUN_S/CANCELLING_S/STOPPED_S (fsm.md §State).
    type RegType is record
-      cancel       : sl;                     -- cancelReg[2] <- mkCReg(2,False)
-      gracefulStop : sl;                     -- gracefulStopReg[2] <- mkCReg(2,False)
+      cancel       : sl;                -- cancelReg[2] <- mkCReg(2,False)
+      gracefulStop : sl;  -- gracefulStopReg[2] <- mkCReg(2,False)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -216,20 +216,20 @@ architecture rtl of DmaReadCntrlConAndGen is
 
    -- U_ReqQ interface signals (DmaReadCntrlReq, 198b)
    signal reqQNotFull : sl;
-   signal reqQValid   : sl;                  -- = reqQ.notEmpty (FWFT data valid)
+   signal reqQValid   : sl;             -- = reqQ.notEmpty (FWFT data valid)
    signal reqQDout    : slv(197 downto 0);
    signal reqQRdEn    : sl;
 
    -- U_RespQ interface signals (DmaReadCntrlResp, 385b)
    signal respQNotFull : sl;
-   signal respQValid   : sl;                 -- = respQ.notEmpty
+   signal respQValid   : sl;            -- = respQ.notEmpty
    signal respQWrEn    : sl;
    signal respQDin     : slv(384 downto 0);
-   signal respQRdEn    : sl;                 -- caller pop OR cancel drain (DEVIATION-DRC-01)
+   signal respQRdEn    : sl;  -- caller pop OR cancel drain (DEVIATION-DRC-01)
 
    -- U_PendingDmaCntrlReqQ interface signals (DmaReadCntrlReq, 198b)
    signal pendCntrlNotFull : sl;
-   signal pendCntrlValid   : sl;             -- = notEmpty
+   signal pendCntrlValid   : sl;        -- = notEmpty
    signal pendCntrlWrEn    : sl;
    signal pendCntrlDin     : slv(197 downto 0);
    signal pendCntrlRdEn    : sl;
@@ -237,18 +237,18 @@ architecture rtl of DmaReadCntrlConAndGen is
 
    -- U_PendingDmaReadReqQ interface signals (Tuple3, 178b)
    signal pendReadNotFull : sl;
-   signal pendReadValid   : sl;              -- = notEmpty (R4 quiescence guard)
+   signal pendReadValid   : sl;         -- = notEmpty (R4 quiescence guard)
    signal pendReadWrEn    : sl;
    signal pendReadDin     : slv(177 downto 0);
    signal pendReadRdEn    : sl;
    signal pendReadDout    : slv(177 downto 0);
 
    -- U_AddrChunkSrv child interface signals
-   signal childReqPutWrEn  : sl;             -- FSM (recvReq) -> child request.put
+   signal childReqPutWrEn  : sl;        -- FSM (recvReq) -> child request.put
    signal childReqPutDin   : slv(98 downto 0);
-   signal childReqPutReady : sl;             -- child reqQ.notFull (R1 implicit cond)
-   signal childRespGetRdEn : sl;             -- FSM (issueDmaReq) -> child response.get
-   signal childRespQValid  : sl;             -- child respQ.notEmpty (R2 implicit cond)
+   signal childReqPutReady : sl;  -- child reqQ.notFull (R1 implicit cond)
+   signal childRespGetRdEn : sl;  -- FSM (issueDmaReq) -> child response.get
+   signal childRespQValid  : sl;  -- child respQ.notEmpty (R2 implicit cond)
    signal childRespQDout   : slv(78 downto 0);
 
    -- FIFO reset line: level = rst OR clearAll (atomic 4-FIFO clear)
@@ -260,7 +260,7 @@ begin
    fifoRst <= rst or clearAll;
 
    -- srvPort boundary wiring (pass-through; not FSM-gated)
-   reqInReady   <= reqQNotFull;             -- reqQ.notFull readiness to caller
+   reqInReady   <= reqQNotFull;         -- reqQ.notFull readiness to caller
    -- DEVIATION-DRC-01: responses are withheld from the caller while cancelling
    -- (registered cancel, Moore) — the R5 drain owns the respQ read side from
    -- the cycle after cancelEn; the caller only asserts respOutReady when it
@@ -289,8 +289,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => reqInValid,        -- pass-through (caller drives)
-         din           => reqInData,         -- pass-through (caller drives)
+         wr_en         => reqInValid,   -- pass-through (caller drives)
+         din           => reqInData,    -- pass-through (caller drives)
          full          => open,
          not_full      => reqQNotFull,
          wr_ack        => open,
@@ -299,7 +299,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => reqQRdEn,          -- FSM (recvReq)
+         rd_en         => reqQRdEn,     -- FSM (recvReq)
          dout          => reqQDout,
          valid         => reqQValid,
          underflow     => open,
@@ -326,8 +326,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => respQWrEn,         -- FSM (recvDmaResp)
-         din           => respQDin,          -- FSM (recvDmaResp)
+         wr_en         => respQWrEn,    -- FSM (recvDmaResp)
+         din           => respQDin,     -- FSM (recvDmaResp)
          full          => open,
          not_full      => respQNotFull,
          wr_ack        => open,
@@ -336,7 +336,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => respQRdEn,         -- FSM: caller pop / cancel drain (DEVIATION-DRC-01)
+         rd_en         => respQRdEn,  -- FSM: caller pop / cancel drain (DEVIATION-DRC-01)
          dout          => respOutData,
          valid         => respQValid,
          underflow     => open,
@@ -364,8 +364,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => pendCntrlWrEn,     -- FSM (recvReq)
-         din           => pendCntrlDin,      -- FSM (recvReq) = reqQDout
+         wr_en         => pendCntrlWrEn,  -- FSM (recvReq)
+         din           => pendCntrlDin,   -- FSM (recvReq) = reqQDout
          full          => open,
          not_full      => pendCntrlNotFull,
          wr_ack        => open,
@@ -374,7 +374,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => pendCntrlRdEn,     -- FSM (issueDmaReq, per original req)
+         rd_en         => pendCntrlRdEn,  -- FSM (issueDmaReq, per original req)
          dout          => pendCntrlDout,
          valid         => pendCntrlValid,
          underflow     => open,
@@ -404,8 +404,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => pendReadWrEn,      -- FSM (issueDmaReq)
-         din           => pendReadDin,       -- FSM (issueDmaReq)
+         wr_en         => pendReadWrEn,  -- FSM (issueDmaReq)
+         din           => pendReadDin,   -- FSM (issueDmaReq)
          full          => open,
          not_full      => pendReadNotFull,
          wr_ack        => open,
@@ -414,7 +414,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => pendReadRdEn,      -- FSM (recvDmaResp, per DMA fragment)
+         rd_en         => pendReadRdEn,  -- FSM (recvDmaResp, per DMA fragment)
          dout          => pendReadDout,
          valid         => pendReadValid,
          underflow     => open,
@@ -443,7 +443,7 @@ begin
          respGetReady => childRespGetRdEn,
          respGetValid => childRespQValid,
          respGetData  => childRespQDout,
-         isIdle       => open);             -- parent does not read child isIdle
+         isIdle       => open);         -- parent does not read child isIdle
 
    ---------------------------------------------------------------------------
    -- Combinatorial process
@@ -477,8 +477,8 @@ begin
       variable chunkIsLast  : sl;
       variable dmaReadReq   : slv(175 downto 0);  -- DmaReadReq to dmaReadSrv
       -- recvDmaResp (R3) datapath
-      variable isOrigFirst  : sl;
-      variable isOrigLast   : sl;
+      variable isOrigFirst : sl;
+      variable isOrigLast  : sl;
    begin
       v := r;
 
@@ -518,18 +518,18 @@ begin
       reqQRdEn         <= '0';
       respQWrEn        <= '0';
       respQDin         <= dmaRespIn & isOrigFirst & isOrigLast;  -- 383+1+1=385
-      respQRdEn        <= respOutReady;      -- srvPort.response.get pass-through (RUN_S)
+      respQRdEn        <= respOutReady;  -- srvPort.response.get pass-through (RUN_S)
       pendCntrlWrEn    <= '0';
-      pendCntrlDin     <= reqQDout;          -- enq whole 198-bit request (R1)
+      pendCntrlDin     <= reqQDout;     -- enq whole 198-bit request (R1)
       pendCntrlRdEn    <= '0';
       pendReadWrEn     <= '0';
       pendReadDin      <= dmaReadReq & chunkIsFirst & chunkIsLast;  -- 176+1+1=178
       pendReadRdEn     <= '0';
       dmaReqValid      <= '0';
-      dmaReqOut        <= dmaReadReq;        -- Mealy front; gated by dmaReqValid
+      dmaReqOut        <= dmaReadReq;   -- Mealy front; gated by dmaReqValid
       dmaRespReady     <= '0';
       childReqPutWrEn  <= '0';
-      childReqPutDin   <= chunkReqData;      -- Mealy front; gated by childReqPutWrEn
+      childReqPutDin   <= chunkReqData;  -- Mealy front; gated by childReqPutWrEn
       childRespGetRdEn <= '0';
 
       ----------------------------------------------------------------------
@@ -550,10 +550,10 @@ begin
       ----------------------------------------------------------------------
       if (clearAll = '0' and dmaRespValid = '1' and pendReadValid = '1' and
           respQNotFull = '1') then
-         dmaRespReady <= '1';               -- get external server response
-         respQWrEn    <= '1';               -- enq U_RespQ (respQDin set above)
-         if dmaRespIn(0) = '1' then         -- dataStream.isLast -> retire token
-            pendReadRdEn <= '1';            -- deq U_PendingDmaReadReqQ (per fragment)
+         dmaRespReady <= '1';           -- get external server response
+         respQWrEn    <= '1';           -- enq U_RespQ (respQDin set above)
+         if dmaRespIn(0) = '1' then     -- dataStream.isLast -> retire token
+            pendReadRdEn <= '1';     -- deq U_PendingDmaReadReqQ (per fragment)
          end if;
       end if;
 
@@ -569,9 +569,9 @@ begin
             --   conds: reqQ has data, pending-cntrl has room, child can accept.
             if (reqQValid = '1' and pendCntrlNotFull = '1' and
                 childReqPutReady = '1') then
-               reqQRdEn        <= '1';      -- deq U_ReqQ
-               pendCntrlWrEn   <= '1';      -- enq U_PendingDmaCntrlReqQ (din=reqQDout)
-               childReqPutWrEn <= '1';      -- child request.put (din=chunkReqData)
+               reqQRdEn        <= '1';  -- deq U_ReqQ
+               pendCntrlWrEn   <= '1';  -- enq U_PendingDmaCntrlReqQ (din=reqQDout)
+               childReqPutWrEn <= '1';  -- child request.put (din=chunkReqData)
             end if;
 
             -- R2 issueDmaReq: get one AddrChunkResp from the child, Put one
@@ -581,11 +581,11 @@ begin
             --   pending-read has room.
             if (childRespQValid = '1' and pendCntrlValid = '1' and
                 dmaReqReady = '1' and pendReadNotFull = '1') then
-               childRespGetRdEn <= '1';     -- get child response
-               dmaReqValid      <= '1';     -- Put external request (dmaReqOut set above)
-               pendReadWrEn     <= '1';     -- enq U_PendingDmaReadReqQ (din set above)
-               if chunkIsLast = '1' then    -- addrChunkResp.isLast -> request done
-                  pendCntrlRdEn <= '1';     -- deq U_PendingDmaCntrlReqQ (per original req)
+               childRespGetRdEn <= '1';  -- get child response
+               dmaReqValid      <= '1';  -- Put external request (dmaReqOut set above)
+               pendReadWrEn     <= '1';  -- enq U_PendingDmaReadReqQ (din set above)
+               if chunkIsLast = '1' then  -- addrChunkResp.isLast -> request done
+                  pendCntrlRdEn <= '1';  -- deq U_PendingDmaCntrlReqQ (per original req)
                end if;
             end if;
 

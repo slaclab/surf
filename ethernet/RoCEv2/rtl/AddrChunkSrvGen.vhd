@@ -108,23 +108,23 @@ entity AddrChunkSrvGen is
       TPD_G : time := 1 ns);
    port (
       clk             : in  sl;
-      rst             : in  sl;                       -- active-high synchronous reset
+      rst             : in  sl;         -- active-high synchronous reset
       -- Software clear (synchronous; LEVEL-asserted while high)
       clearAllI       : in  sl;
       -- srvPort.request : Put#(AddrChunkReq)  (caller -> entity)
-      reqPutValid     : in  sl;                        -- caller offers a request (wr_en)
-      reqPutData      : in  slv(100 downto 0);         -- AddrChunkReq packed
-      reqPutReady     : out sl;                         -- entity can accept (reqQ.notFull)
+      reqPutValid     : in  sl;         -- caller offers a request (wr_en)
+      reqPutData      : in  slv(100 downto 0);  -- AddrChunkReq packed
+      reqPutReady     : out sl;         -- entity can accept (reqQ.notFull)
       -- srvPort.response : Get#(AddrChunkResp)  (entity -> caller)
-      respGetReady    : in  sl;                         -- caller takes a response (rd_en)
-      respGetValid    : out sl;                         -- response available (respQ.notEmpty)
-      respGetData     : out slv(80 downto 0);          -- AddrChunkResp packed
+      respGetReady    : in  sl;         -- caller takes a response (rd_en)
+      respGetValid    : out sl;         -- response available (respQ.notEmpty)
+      respGetData     : out slv(80 downto 0);   -- AddrChunkResp packed
       -- sgePktMetaDataPipeOut : PipeOut#(PktMetaDataSGE)  (entity -> caller)
-      sgePktMetaRdEn  : in  sl;                         -- caller deq
-      sgePktMetaValid : out sl;                         -- data available
-      sgePktMetaData  : out slv(53 downto 0);          -- PktMetaDataSGE packed
+      sgePktMetaRdEn  : in  sl;         -- caller deq
+      sgePktMetaValid : out sl;         -- data available
+      sgePktMetaData  : out slv(53 downto 0);   -- PktMetaDataSGE packed
       -- status method
-      isIdle          : out sl);                        -- all six FIFOs empty
+      isIdle          : out sl);        -- all six FIFOs empty
 end entity AddrChunkSrvGen;
 
 architecture rtl of AddrChunkSrvGen is
@@ -135,9 +135,9 @@ architecture rtl of AddrChunkSrvGen is
    type StateType is (NEWCHUNK_S, CONTCHUNK_S);
 
    type RegType is record
-      state              : StateType;          -- isFirstChunkReg (mkReg(True))
-      remainingPktNumReg : slv(24 downto 0);   -- mkRegU — chunks left for in-flight entry
-      nextChunkAddrReg   : slv(63 downto 0);   -- mkRegU — address of chunk about to emit
+      state              : StateType;   -- isFirstChunkReg (mkReg(True))
+      remainingPktNumReg : slv(24 downto 0);  -- mkRegU — chunks left for in-flight entry
+      nextChunkAddrReg   : slv(63 downto 0);  -- mkRegU — address of chunk about to emit
    end record RegType;
 
    -- isFirstChunkReg resets to '1' (NEWCHUNK_S), matching BSV mkReg(True).
@@ -204,14 +204,14 @@ begin
    fifoRst <= rst or clearAllI;
 
    -- Boundary pass-throughs (not FSM-gated)
-   reqPutReady     <= not reqQFull;        -- reqQ.notFull readiness to caller
-   respGetValid    <= respQValid;          -- respQ.notEmpty
-   sgePktMetaValid <= sgeQValid;           -- sgePktMetaDataOutQ.notEmpty
+   reqPutReady     <= not reqQFull;     -- reqQ.notFull readiness to caller
+   respGetValid    <= respQValid;       -- respQ.notEmpty
+   sgePktMetaValid <= sgeQValid;        -- sgePktMetaDataOutQ.notEmpty
 
    -- isIdle() method: !(any of the six FIFOs notEmpty)  (PayloadGen.bsv:652-659)
    isIdle <= '1' when (reqQValid = '0' and respQValid = '0' and ccmdQValid = '0' and
-                       cpmdQValid = '0' and cacrQValid = '0' and sgeQValid = '0')
-             else '0';
+                       cpmdQValid = '0' and cacrQValid = '0' and sgeQValid = '0') else
+             '0';
 
    ---------------------------------------------------------------------------
    -- U_ReqQ : surf.Fifo  (AddrChunkReq inbound; depth MAX_SGE=8 -> ADDR_WIDTH 4)
@@ -230,8 +230,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => reqPutValid,      -- pass-through (caller drives)
-         din           => reqPutData,       -- pass-through (caller drives)
+         wr_en         => reqPutValid,  -- pass-through (caller drives)
+         din           => reqPutData,   -- pass-through (caller drives)
          full          => reqQFull,
          not_full      => open,
          wr_ack        => open,
@@ -240,7 +240,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => reqQRdEn,         -- Stage A (recvReq)
+         rd_en         => reqQRdEn,     -- Stage A (recvReq)
          dout          => reqQDout,
          valid         => reqQValid,
          underflow     => open,
@@ -265,8 +265,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => ccmdQWrEn,        -- Stage A
-         din           => ccmdQDin,         -- Stage A
+         wr_en         => ccmdQWrEn,    -- Stage A
+         din           => ccmdQDin,     -- Stage A
          full          => ccmdQFull,
          not_full      => open,
          wr_ack        => open,
@@ -275,7 +275,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => ccmdQRdEn,        -- Stage B
+         rd_en         => ccmdQRdEn,    -- Stage B
          dout          => ccmdQDout,
          valid         => ccmdQValid,
          underflow     => open,
@@ -300,8 +300,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => cpmdQWrEn,        -- Stage B
-         din           => cpmdQDin,         -- Stage B
+         wr_en         => cpmdQWrEn,    -- Stage B
+         din           => cpmdQDin,     -- Stage B
          full          => cpmdQFull,
          not_full      => open,
          wr_ack        => open,
@@ -310,7 +310,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => cpmdQRdEn,        -- Stage C
+         rd_en         => cpmdQRdEn,    -- Stage C
          dout          => cpmdQDout,
          valid         => cpmdQValid,
          underflow     => open,
@@ -336,8 +336,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => cacrQWrEn,        -- Stage C
-         din           => cacrQDin,         -- Stage C
+         wr_en         => cacrQWrEn,    -- Stage C
+         din           => cacrQDin,     -- Stage C
          full          => cacrQFull,
          not_full      => open,
          wr_ack        => open,
@@ -346,7 +346,7 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => cacrQRdEn,        -- Stage D (only on isLastChunk)
+         rd_en         => cacrQRdEn,    -- Stage D (only on isLastChunk)
          dout          => cacrQDout,
          valid         => cacrQValid,
          underflow     => open,
@@ -372,8 +372,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => sgeQWrEn,         -- Stage C
-         din           => sgeQDin,          -- Stage C
+         wr_en         => sgeQWrEn,        -- Stage C
+         din           => sgeQDin,         -- Stage C
          full          => sgeQFull,
          not_full      => open,
          wr_ack        => open,
@@ -382,8 +382,8 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => sgePktMetaRdEn,   -- pass-through (caller drives)
-         dout          => sgePktMetaData,   -- pass-through to caller
+         rd_en         => sgePktMetaRdEn,  -- pass-through (caller drives)
+         dout          => sgePktMetaData,  -- pass-through to caller
          valid         => sgeQValid,
          underflow     => open,
          prog_empty    => open,
@@ -408,8 +408,8 @@ begin
       port map (
          rst           => fifoRst,
          wr_clk        => clk,
-         wr_en         => respQWrEn,        -- Stage D
-         din           => respQDin,         -- Stage D
+         wr_en         => respQWrEn,     -- Stage D
+         din           => respQDin,      -- Stage D
          full          => respQFull,
          not_full      => open,
          wr_ack        => open,
@@ -418,8 +418,8 @@ begin
          almost_full   => open,
          wr_data_count => open,
          rd_clk        => clk,
-         rd_en         => respGetReady,     -- pass-through (caller drives)
-         dout          => respGetData,      -- pass-through to caller
+         rd_en         => respGetReady,  -- pass-through (caller drives)
+         dout          => respGetData,   -- pass-through to caller
          valid         => respQValid,
          underflow     => open,
          prog_empty    => open,
@@ -545,42 +545,42 @@ begin
             aPmtu      := reqQDout(4 downto 2);
 
             case aPmtu is
-               when "001" =>                 -- IBV_MTU_256  (k=8)
+               when "001" =>            -- IBV_MTU_256  (k=8)
                   aPmtuMask := slv(to_unsigned(255, 13));
                   aAddrLow  := "00000" & aStartAddr(7 downto 0);
                   aLenLow   := "00000" & aLen(7 downto 0);
                   aTruncPN  := "0" & aLen(31 downto 8);
                   aAligned  := aStartAddr(63 downto 8) & "00000000";
                   aPmtuLen  := slv(to_unsigned(256, 13));
-               when "010" =>                 -- IBV_MTU_512  (k=9)
+               when "010" =>            -- IBV_MTU_512  (k=9)
                   aPmtuMask := slv(to_unsigned(511, 13));
                   aAddrLow  := "0000" & aStartAddr(8 downto 0);
                   aLenLow   := "0000" & aLen(8 downto 0);
                   aTruncPN  := "00" & aLen(31 downto 9);
                   aAligned  := aStartAddr(63 downto 9) & "000000000";
                   aPmtuLen  := slv(to_unsigned(512, 13));
-               when "011" =>                 -- IBV_MTU_1024 (k=10)
+               when "011" =>            -- IBV_MTU_1024 (k=10)
                   aPmtuMask := slv(to_unsigned(1023, 13));
                   aAddrLow  := "000" & aStartAddr(9 downto 0);
                   aLenLow   := "000" & aLen(9 downto 0);
                   aTruncPN  := "000" & aLen(31 downto 10);
                   aAligned  := aStartAddr(63 downto 10) & "0000000000";
                   aPmtuLen  := slv(to_unsigned(1024, 13));
-               when "100" =>                 -- IBV_MTU_2048 (k=11)
+               when "100" =>            -- IBV_MTU_2048 (k=11)
                   aPmtuMask := slv(to_unsigned(2047, 13));
                   aAddrLow  := "00" & aStartAddr(10 downto 0);
                   aLenLow   := "00" & aLen(10 downto 0);
                   aTruncPN  := "0000" & aLen(31 downto 11);
                   aAligned  := aStartAddr(63 downto 11) & "00000000000";
                   aPmtuLen  := slv(to_unsigned(2048, 13));
-               when "101" =>                 -- IBV_MTU_4096 (k=12)
+               when "101" =>            -- IBV_MTU_4096 (k=12)
                   aPmtuMask := slv(to_unsigned(4095, 13));
                   aAddrLow  := "0" & aStartAddr(11 downto 0);
                   aLenLow   := "0" & aLen(11 downto 0);
                   aTruncPN  := "00000" & aLen(31 downto 12);
                   aAligned  := aStartAddr(63 downto 12) & "000000000000";
                   aPmtuLen  := slv(to_unsigned(4096, 13));
-               when others =>                -- invalid PMTU (should not occur)
+               when others =>           -- invalid PMTU (should not occur)
                   aPmtuMask := (others => '0');
                   aAddrLow  := (others => '0');
                   aLenLow   := (others => '0');
@@ -592,10 +592,10 @@ begin
             aMaxFirst := slv(unsigned(aPmtuLen) - unsigned(aAddrLow));
             aSum      := slv(unsigned(aAddrLow) + unsigned(aLenLow));
 
-            reqQRdEn  <= '1';                 -- reqQ.deq
-            ccmdQWrEn <= '1';                 -- calcChunkMetaDataQ.enq
+            reqQRdEn  <= '1';           -- reqQ.deq
+            ccmdQWrEn <= '1';           -- calcChunkMetaDataQ.enq
             ccmdQDin  <= aPmtuMask & aSum & aPmtuLen & aLenLow & aMaxFirst &
-                         aTruncPN & aAligned & reqQDout;
+                        aTruncPN & aAligned & reqQDout;
          end if;
 
          -------------------------------------------------------------------
@@ -610,14 +610,14 @@ begin
             bMaxFirst  := ccmdQDout(202 downto 190);
             bTruncPN   := ccmdQDout(189 downto 165);
             bAligned   := ccmdQDout(164 downto 101);
-            bStartAddr := ccmdQDout(100 downto 37);   -- addrChunkReq.startAddr
-            bPmtu      := ccmdQDout(4 downto 2);       -- addrChunkReq.pmtu
-            bIsFirst   := ccmdQDout(1);                -- addrChunkReq.isFirst
-            bIsLast    := ccmdQDout(0);                -- addrChunkReq.isLast
+            bStartAddr := ccmdQDout(100 downto 37);  -- addrChunkReq.startAddr
+            bPmtu      := ccmdQDout(4 downto 2);     -- addrChunkReq.pmtu
+            bIsFirst   := ccmdQDout(1);              -- addrChunkReq.isFirst
+            bIsLast    := ccmdQDout(0);              -- addrChunkReq.isLast
 
             -- secondChunkStartAddr = addrAddPsnMultiplyPMTU(aligned,1,pmtu)
             --                      = pmtuAlignedStartAddr + pmtuLen
-            bSecond    := slv(unsigned(bAligned) + resize(unsigned(bPmtuLen), 64));
+            bSecond := slv(unsigned(bAligned) + resize(unsigned(bPmtuLen), 64));
 
             -- residue = low-k bits of addrAndLenLowPartSum (= mask AND sum);
             -- tmpLastPktLen = zeroExtend(residue) (already 13-bit)
@@ -625,18 +625,18 @@ begin
             bTmpLast   := bResMasked;
             bInvMask   := not bPmtuMask;
 
-            if (unsigned(bResMasked) = 0) then bHasRes := '0'; else bHasRes := '1'; end if;
+            if (unsigned(bResMasked) = 0) then bHasRes          := '0'; else bHasRes := '1'; end if;
             if (unsigned(bInvMask and bSum) = 0) then bHasExtra := '0'; else bHasExtra := '1'; end if;
-            if (unsigned(bTruncPN) = 0) then bNotFull := '1'; else bNotFull := '0'; end if;
+            if (unsigned(bTruncPN) = 0) then bNotFull           := '1'; else bNotFull := '0'; end if;
 
             -- pktNumAddOne = zeroExtend(hasResidue) + zeroExtend(hasExtraPkt) (0..2)
             bAddOne := slv(unsigned'("0" & bHasRes) + unsigned'("0" & bHasExtra));
 
-            ccmdQRdEn <= '1';                 -- calcChunkMetaDataQ.deq
-            cpmdQWrEn <= '1';                 -- calcPktMetaDataQ4SGE.enq
+            ccmdQRdEn <= '1';           -- calcChunkMetaDataQ.deq
+            cpmdQWrEn <= '1';           -- calcPktMetaDataQ4SGE.enq
             cpmdQDin  <= bAddOne & bTruncPN & bLenLow & bMaxFirst & bTmpLast &
-                         bPmtuLen & bPmtu & bStartAddr & bSecond &
-                         bNotFull & bHasExtra & bHasRes & bIsFirst & bIsLast;
+                        bPmtuLen & bPmtu & bStartAddr & bSecond &
+                        bNotFull & bHasExtra & bHasRes & bIsFirst & bIsLast;
          end if;
 
          -------------------------------------------------------------------
@@ -677,14 +677,14 @@ begin
                cLast := cPmtuLen;
             end if;
 
-            cpmdQRdEn <= '1';                 -- calcPktMetaDataQ4SGE.deq
+            cpmdQRdEn <= '1';           -- calcPktMetaDataQ4SGE.deq
             -- PktMetaDataSGE = firstPktLen & lastPktLen & sgePktNum & pmtu
             sgeQWrEn  <= '1';
             sgeQDin   <= cFirst & cLast & cTotalPN & cPmtu;
             -- TmpChunkRespData
             cacrQWrEn <= '1';
             cacrQDin  <= cTotalPN & cFirst & cPmtuLen & cLast & cPmtu &
-                         cStartAddr & cNextAddr & cOrigFirst & cOrigLast;
+                        cStartAddr & cNextAddr & cOrigFirst & cOrigLast;
          end if;
 
          -------------------------------------------------------------------
@@ -705,7 +705,7 @@ begin
 
             -- next-chunk address & remaining-count candidates
             if (r.state = NEWCHUNK_S) then
-               dNextChunk := dNextAddr;                -- precomputed 2nd-chunk addr
+               dNextChunk := dNextAddr;  -- precomputed 2nd-chunk addr
                dRemaining := dSgePktNum;
             else
                -- addrAddPsnMultiplyPMTU(nextChunkAddrReg,1,pmtu) = +pmtuLen
@@ -736,15 +736,15 @@ begin
 
             -- register / FIFO updates
             if (dIsLast = '1') then
-               cacrQRdEn <= '1';                       -- deq (done with entry)
+               cacrQRdEn <= '1';        -- deq (done with entry)
             else
                v.remainingPktNumReg := slv(unsigned(dRemaining) - 1);
             end if;
             v.nextChunkAddrReg := dNextChunk;
             if (dIsLast = '1') then
-               v.state := NEWCHUNK_S;                  -- isFirstChunkReg <= True
+               v.state := NEWCHUNK_S;   -- isFirstChunkReg <= True
             else
-               v.state := CONTCHUNK_S;                 -- isFirstChunkReg <= False
+               v.state := CONTCHUNK_S;  -- isFirstChunkReg <= False
             end if;
          end if;
       end if;

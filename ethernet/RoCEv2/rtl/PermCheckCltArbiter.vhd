@@ -83,13 +83,13 @@ use surf.StdRtlPkg.all;
 entity PermCheckCltArbiter is
    generic (
       TPD_G             : time                   := 1 ns;
-      RST_POLARITY_G    : sl                     := '1';   -- '1' active HIGH reset, '0' active LOW
+      RST_POLARITY_G    : sl                     := '1';  -- '1' active HIGH reset, '0' active LOW
       RST_ASYNC_G       : boolean                := false;
-      MAX_QP_G          : positive               := 4;     -- queue-pair count; power of 2, >= 2 (Settings.bsv:14)
-      PERM_REQ_WIDTH_G  : positive               := 267;   -- Bits#(PermCheckReq)  (DataTypes.bsv:244-254)
-      PERM_RESP_WIDTH_G : positive               := 1;     -- Bits#(Bool)          (PermCheckClt resp type)
+      MAX_QP_G          : positive               := 4;  -- queue-pair count; power of 2, >= 2 (Settings.bsv:14)
+      PERM_REQ_WIDTH_G  : positive               := 267;  -- Bits#(PermCheckReq)  (DataTypes.bsv:244-254)
+      PERM_RESP_WIDTH_G : positive               := 1;  -- Bits#(Bool)          (PermCheckClt resp type)
       MEMORY_TYPE_G     : string                 := "distributed";  -- child FIFO RAM style
-      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);    -- child FIFO depth = 2**ADDR
+      FIFO_ADDR_WIDTH_G : positive range 4 to 48 := 4);  -- child FIFO depth = 2**ADDR
    port (
       clk : in sl;
       rst : in sl := not RST_POLARITY_G;
@@ -100,22 +100,22 @@ entity PermCheckCltArbiter is
       -- is ((k+1)*PERM_REQ_WIDTH_G-1 downto k*PERM_REQ_WIDTH_G); RESP likewise.
       -- Even k = QP RQ perm-check client, odd k = QP SQ perm-check client.
       -----------------------------------------------------------------------
-      permSrvReqValid  : in  slv(2*MAX_QP_G-1 downto 0);                    -- client k request available
-      permSrvReqData   : in  slv(2*MAX_QP_G*PERM_REQ_WIDTH_G-1 downto 0);   -- client k request payload, flattened
-      permSrvReqGet    : out slv(2*MAX_QP_G-1 downto 0);                    -- arbiter takes client k's request
-      permSrvRespValid : out slv(2*MAX_QP_G-1 downto 0);                    -- arbiter drives a response to client k
+      permSrvReqValid  : in  slv(2*MAX_QP_G-1 downto 0);  -- client k request available
+      permSrvReqData   : in  slv(2*MAX_QP_G*PERM_REQ_WIDTH_G-1 downto 0);  -- client k request payload, flattened
+      permSrvReqGet    : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter takes client k's request
+      permSrvRespValid : out slv(2*MAX_QP_G-1 downto 0);  -- arbiter drives a response to client k
       permSrvRespData  : out slv(2*MAX_QP_G*PERM_RESP_WIDTH_G-1 downto 0);  -- response payload, flattened (selected port valid)
-      permSrvRespReady : in  slv(2*MAX_QP_G-1 downto 0);                    -- client k can accept a response
+      permSrvRespReady : in  slv(2*MAX_QP_G-1 downto 0);  -- client k can accept a response
 
       -----------------------------------------------------------------------
       -- Downstream aggregated PermCheck client face (toward mkPermCheckSrv)
       -----------------------------------------------------------------------
-      permCltReqValid  : out sl;                            -- aggregated request valid
+      permCltReqValid  : out sl;        -- aggregated request valid
       permCltReqData   : out slv(PERM_REQ_WIDTH_G-1 downto 0);  -- PermCheckReq
-      permCltReqRd     : in  sl;                            -- downstream request.get
-      permCltRespValid : in  sl;                            -- downstream response.put fired
-      permCltRespData  : in  slv(PERM_RESP_WIDTH_G-1 downto 0); -- Bool response payload
-      permCltRespReady : out sl);                           -- can accept a response put
+      permCltReqRd     : in  sl;        -- downstream request.get
+      permCltRespValid : in  sl;        -- downstream response.put fired
+      permCltRespData  : in  slv(PERM_RESP_WIDTH_G-1 downto 0);  -- Bool response payload
+      permCltRespReady : out sl);       -- can accept a response put
 end entity PermCheckCltArbiter;
 
 architecture rtl of PermCheckCltArbiter is
@@ -135,7 +135,7 @@ begin
    -- entity if a parent mis-parameterizes MAX_QP_G.
    assert isPowerOf2(MAX_QP_G)
       report "PermCheckCltArbiter: MAX_QP_G must be a power of 2, >= 1 " &
-             "(child gets PORT_COUNT_G = 2*MAX_QP_G >= 2; OQ-FSM-PERMARB-01)"
+      "(child gets PORT_COUNT_G = 2*MAX_QP_G >= 2; OQ-FSM-PERMARB-01)"
       severity failure;
 
    --------------------------------------------------------------------------
@@ -147,9 +147,9 @@ begin
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
-         PORT_COUNT_G      => PORT_COUNT_C,        -- 2*MAX_QP (OQ-FSM-PERMARB-01)
-         REQ_WIDTH_G       => PERM_REQ_WIDTH_G,    -- 267 (PermCheckReq)
-         RESP_WIDTH_G      => PERM_RESP_WIDTH_G,   -- 1   (Bool)
+         PORT_COUNT_G      => PORT_COUNT_C,  -- 2*MAX_QP (OQ-FSM-PERMARB-01)
+         REQ_WIDTH_G       => PERM_REQ_WIDTH_G,  -- 267 (PermCheckReq)
+         RESP_WIDTH_G      => PERM_RESP_WIDTH_G,  -- 1   (Bool)
          MEMORY_TYPE_G     => MEMORY_TYPE_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G)
       port map (
@@ -158,7 +158,7 @@ begin
          -- Upstream per-QP client faces (1:1 forward)
          cltReqValid     => permSrvReqValid,
          cltReqData      => permSrvReqData,
-         cltReqFinished  => ALL_REQ_FINISHED_C,    -- isPermCheckReqFinished = True (OQ-FSM-17)
+         cltReqFinished  => ALL_REQ_FINISHED_C,  -- isPermCheckReqFinished = True (OQ-FSM-17)
          cltReqGet       => permSrvReqGet,
          cltRespValid    => permSrvRespValid,
          cltRespData     => permSrvRespData,
@@ -169,7 +169,7 @@ begin
          outReqRd        => permCltReqRd,
          outRespValid    => permCltRespValid,
          outRespData     => permCltRespData,
-         outRespFinished => '1',                   -- isPermCheckRespFinished = True (OQ-FSM-17)
+         outRespFinished => '1',  -- isPermCheckRespFinished = True (OQ-FSM-17)
          outRespReady    => permCltRespReady);
 
 end architecture rtl;

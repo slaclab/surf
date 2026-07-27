@@ -99,22 +99,22 @@ entity AdjustPayloadSegment is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                          -- active-high synchronous reset
+      clk                      : in  sl;
+      rst                      : in  sl;  -- active-high synchronous reset
       -- Software clear (BSV constructor parameter clearAll : Bool)
-      clearAllI                  : in  sl;
+      clearAllI                : in  sl;
       -- Upstream: AdjustedTotalPayloadMetaData pipe (adjustedTotalPayloadMetaDataPipeIn)
-      adjustedMetaPipeInValid    : in  sl;                  -- .notEmpty
-      adjustedMetaPipeInData     : in  slv(60 downto 0);    -- .first
-      adjustedMetaPipeInRdEn     : out sl;                  -- .deq
+      adjustedMetaPipeInValid  : in  sl;  -- .notEmpty
+      adjustedMetaPipeInData   : in  slv(60 downto 0);   -- .first
+      adjustedMetaPipeInRdEn   : out sl;  -- .deq
       -- Upstream: DataStream payload pipe (sglAllPayloadPipeIn argument)
-      sglAllPayloadPipeInValid   : in  sl;                  -- .notEmpty
-      sglAllPayloadPipeInData    : in  slv(289 downto 0);   -- .first
-      sglAllPayloadPipeInRdEn    : out sl;                  -- .deq
+      sglAllPayloadPipeInValid : in  sl;  -- .notEmpty
+      sglAllPayloadPipeInData  : in  slv(289 downto 0);  -- .first
+      sglAllPayloadPipeInRdEn  : out sl;  -- .deq
       -- Downstream: returned PipeOut#(DataStream) (read side of U_PktPayloadOutQ)
-      pktPayloadOutValid         : out sl;                  -- PipeOut.notEmpty
-      pktPayloadOutData          : out slv(289 downto 0);   -- PipeOut.first
-      pktPayloadOutRdEn          : in  sl);                 -- PipeOut.deq
+      pktPayloadOutValid       : out sl;  -- PipeOut.notEmpty
+      pktPayloadOutData        : out slv(289 downto 0);  -- PipeOut.first
+      pktPayloadOutRdEn        : in  sl);                -- PipeOut.deq
 end entity AdjustPayloadSegment;
 
 architecture rtl of AdjustPayloadSegment is
@@ -126,21 +126,21 @@ architecture rtl of AdjustPayloadSegment is
    type StateType is (INIT_S, FIRST_OR_MID_PKT_S, LAST_OR_ONLY_PKT_S);
 
    type RegType is record
-      state                        : StateType;         -- mkReg(ADJUST_PAYLOAD_SEGMENT_INIT)
+      state                        : StateType;  -- mkReg(ADJUST_PAYLOAD_SEGMENT_INIT)
       prePayloadFrag               : slv(289 downto 0);  -- mkRegU (DataStream)
       firstPktLastFragByteEn       : slv(31 downto 0);   -- mkRegU (ByteEn)
-      firstPktLastFragValidByteNum : slv(5 downto 0);    -- mkRegU (ByteEnBitNum)
-      firstPktLastFragValidBitNum  : slv(8 downto 0);    -- mkRegU (BusBitNum)
-      isFirstPkt                   : sl;                 -- mkRegU
-      hasExtraFrag                 : sl;                 -- mkRegU
-      sglHasOnlyPkt                : sl;                 -- mkRegU
-      noShiftFrag                  : sl;                 -- mkRegU
-      pmtuFragNum                  : slv(7 downto 0);    -- mkRegU (PktFragNum)
-      pktRemainingFragNum          : slv(7 downto 0);    -- mkRegU (PktFragNum)
+      firstPktLastFragValidByteNum : slv(5 downto 0);  -- mkRegU (ByteEnBitNum)
+      firstPktLastFragValidBitNum  : slv(8 downto 0);  -- mkRegU (BusBitNum)
+      isFirstPkt                   : sl;         -- mkRegU
+      hasExtraFrag                 : sl;         -- mkRegU
+      sglHasOnlyPkt                : sl;         -- mkRegU
+      noShiftFrag                  : sl;         -- mkRegU
+      pmtuFragNum                  : slv(7 downto 0);  -- mkRegU (PktFragNum)
+      pktRemainingFragNum          : slv(7 downto 0);  -- mkRegU (PktFragNum)
       sglRemainingPktNum           : slv(24 downto 0);   -- mkRegU (PktNum)
    end record RegType;
 
-   -- All mkRegU fields set to '0' in REG_INIT_C: each is written by prepareNextSGL
+   -- All mkRegU fields set to '0' in REG_INIT_C: each is written by prepareNextSgl
    -- (the only path out of INIT_S) before any state-dependent read, so the reset
    -- value is don't-care (no correctness risk).
    constant REG_INIT_C : RegType := (
@@ -157,7 +157,7 @@ architecture rtl of AdjustPayloadSegment is
       pktRemainingFragNum          => (others => '0'),
       sglRemainingPktNum           => (others => '0'));
 
-   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;       -- DATA_BUS_BYTE_WIDTH
+   constant DATA_BUS_BYTE_WIDTH_C : natural := 32;  -- DATA_BUS_BYTE_WIDTH
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -205,34 +205,34 @@ architecture rtl of AdjustPayloadSegment is
       variable res : slv(7 downto 0);
    begin
       case pmtu is
-         when "001"  => res := std_logic_vector(to_unsigned(8,   8));  -- IBV_MTU_256
-         when "010"  => res := std_logic_vector(to_unsigned(16,  8));  -- IBV_MTU_512
-         when "011"  => res := std_logic_vector(to_unsigned(32,  8));  -- IBV_MTU_1024
-         when "100"  => res := std_logic_vector(to_unsigned(64,  8));  -- IBV_MTU_2048
+         when "001"  => res := std_logic_vector(to_unsigned(8, 8));  -- IBV_MTU_256
+         when "010"  => res := std_logic_vector(to_unsigned(16, 8));  -- IBV_MTU_512
+         when "011"  => res := std_logic_vector(to_unsigned(32, 8));  -- IBV_MTU_1024
+         when "100"  => res := std_logic_vector(to_unsigned(64, 8));  -- IBV_MTU_2048
          when others => res := std_logic_vector(to_unsigned(128, 8));  -- IBV_MTU_4096 ("101")
       end case;
       return res;
    end function calcFragNumByPMTU;
 
-   -- prepareNextSGL (PayloadGen.bsv:1668): pops sglAdjustedPktMetaDataQ + the
+   -- prepareNextSgl (PayloadGen.bsv:1668): pops sglAdjustedPktMetaDataQ + the
    -- payload pipe and sets up the per-SGL context registers + next stateReg.
    -- Returns the next prePayloadFrag value through retFrag (the BSV function's
    -- ActionValue result); the caller writes prePayloadFragReg, mirroring the BSV
    -- (it does NOT write that register itself).  The pops (deq) are asserted by the
    -- caller, not here.
-   procedure prepareNextSGL (
-      variable v           : inout RegType;
-      signal   metaQDout   : in    slv(53 downto 0);
-      signal   payloadData : in    slv(289 downto 0);
-      variable retFrag     : out   slv(289 downto 0)) is
-      variable pmtuV       : slv(2 downto 0);
-      variable firstFragN  : slv(7 downto 0);
-      variable pktNumV     : slv(24 downto 0);
-      variable validByteN  : slv(5 downto 0);
-      variable validBitN   : slv(8 downto 0);
-      variable hasOnlyV    : sl;
-      variable hasExtraV   : sl;
-      variable noShiftV    : sl;
+   procedure prepareNextSgl (
+      variable v         : inout RegType;
+      signal metaQDout   : in    slv(53 downto 0);
+      signal payloadData : in    slv(289 downto 0);
+      variable retFrag   : out   slv(289 downto 0)) is
+      variable pmtuV      : slv(2 downto 0);
+      variable firstFragN : slv(7 downto 0);
+      variable pktNumV    : slv(24 downto 0);
+      variable validByteN : slv(5 downto 0);
+      variable validBitN  : slv(8 downto 0);
+      variable hasOnlyV   : sl;
+      variable hasExtraV  : sl;
+      variable noShiftV   : sl;
    begin
       pmtuV      := metaQDout(53 downto 51);
       firstFragN := metaQDout(50 downto 43);
@@ -260,8 +260,8 @@ architecture rtl of AdjustPayloadSegment is
          v.state := FIRST_OR_MID_PKT_S;
       end if;
 
-      retFrag := payloadData;                       -- curPayloadFrag (unmodified)
-   end procedure prepareNextSGL;
+      retFrag := payloadData;           -- curPayloadFrag (unmodified)
+   end procedure prepareNextSgl;
 
 begin
 
@@ -272,7 +272,7 @@ begin
    ---------------------------------------------------------------------------
    -- U_SglAdjustedPktMetaDataQ : surf.Fifo
    --   Internal pipeline FIFO; produced by handleMetaDataEachSGL, consumed by
-   --   prepareNextSGL.  DATA_WIDTH_G=54, FWFT, sync, distributed RAM.
+   --   prepareNextSgl.  DATA_WIDTH_G=54, FWFT, sync, distributed RAM.
    ---------------------------------------------------------------------------
    U_SglAdjustedPktMetaDataQ : entity surf.Fifo
       generic map (
@@ -404,32 +404,32 @@ begin
       variable mNoShift          : sl;
 
       -- main-FSM locals
-      variable preIsLast        : sl;
-      variable isAdjLastFrag    : sl;
+      variable preIsLast         : sl;
+      variable isAdjLastFrag     : sl;
       variable isFirstPktAdjLast : sl;
-      variable shouldShift      : sl;
-      variable shouldChgByteEn  : sl;
-      variable isLastFrag       : sl;
-      variable fire             : sl;
-      variable curFrag          : slv(289 downto 0);
-      variable nextFrag         : slv(289 downto 0);
-      variable preFragWLast     : slv(289 downto 0);
-      variable retFrag          : slv(289 downto 0);
-      variable lsByteNum        : slv(5 downto 0);
-      variable lsBitNum         : slv(8 downto 0);
+      variable shouldShift       : sl;
+      variable shouldChgByteEn   : sl;
+      variable isLastFrag        : sl;
+      variable fire              : sl;
+      variable curFrag           : slv(289 downto 0);
+      variable nextFrag          : slv(289 downto 0);
+      variable preFragWLast      : slv(289 downto 0);
+      variable retFrag           : slv(289 downto 0);
+      variable lsByteNum         : slv(5 downto 0);
+      variable lsBitNum          : slv(8 downto 0);
 
       -- shiftPayloadFrag (leftShiftAndMergeFragData) locals
-      variable sPreData    : slv(255 downto 0);
-      variable sCurData    : slv(255 downto 0);
-      variable sPreByteEn  : slv(31 downto 0);
-      variable sCurByteEn  : slv(31 downto 0);
-      variable sShByteNum  : slv(4 downto 0);   -- truncate(6->5) ShiftByteNum
-      variable sShBitNum   : slv(7 downto 0);   -- truncate(9->8) ShiftBitNum
-      variable byteEnCat   : slv(63 downto 0);
-      variable dataCat     : slv(511 downto 0);
-      variable shByteEn    : slv(63 downto 0);
-      variable shData      : slv(511 downto 0);
-      variable outFrag     : slv(289 downto 0);
+      variable sPreData   : slv(255 downto 0);
+      variable sCurData   : slv(255 downto 0);
+      variable sPreByteEn : slv(31 downto 0);
+      variable sCurByteEn : slv(31 downto 0);
+      variable sShByteNum : slv(4 downto 0);  -- truncate(6->5) ShiftByteNum
+      variable sShBitNum  : slv(7 downto 0);  -- truncate(9->8) ShiftBitNum
+      variable byteEnCat  : slv(63 downto 0);
+      variable dataCat    : slv(511 downto 0);
+      variable shByteEn   : slv(63 downto 0);
+      variable shData     : slv(511 downto 0);
+      variable outFrag    : slv(289 downto 0);
    begin
       v := r;
 
@@ -448,7 +448,7 @@ begin
       if clearAllI = '1' then
          -- resetAndClear: FIFOs flushed via fifoRst; stateReg forced to INIT_S.
          -- The 11 mkRegU context registers are deliberately untouched (matches
-         -- BSV; rewritten by the next prepareNextSGL before any read).
+         -- BSV; rewritten by the next prepareNextSgl before any read).
          v.state := INIT_S;
 
       else
@@ -468,20 +468,20 @@ begin
             -- calcFragBitNumAndByteNum: validBitNum = zeroExtend(validByteNum)<<3
             mValidBitNum := mValidByteNum & "000";
 
-            mHasOnly  := ite(unsigned(mPktNum) = 1, '1', '0');                 -- isOneR(adjustedPktNum)
+            mHasOnly  := ite(unsigned(mPktNum) = 1, '1', '0');  -- isOneR(adjustedPktNum)
             mHasExtra := ite(unsigned(mValidByteNum) < unsigned(mOrigValidByteNum), '1', '0');
             mNoShift  := ite(unsigned(mValidByteNum) = DATA_BUS_BYTE_WIDTH_C, '1', '0');
 
             adjustedMetaPipeInRdEn <= '1';
             sglMetaQWrEn           <= '1';
-            sglMetaQDin            <= mPmtu             -- [53:51]
-                                    & mFirstPktFragNum  -- [50:43]
-                                    & mPktNum           -- [42:18]
-                                    & mValidByteNum     -- [17:12]
-                                    & mValidBitNum      -- [11:3]
-                                    & mHasOnly          -- [2]
-                                    & mHasExtra         -- [1]
-                                    & mNoShift;         -- [0]
+            sglMetaQDin            <= mPmtu    -- [53:51]
+                           & mFirstPktFragNum  -- [50:43]
+                           & mPktNum           -- [42:18]
+                           & mValidByteNum     -- [17:12]
+                           & mValidBitNum      -- [11:3]
+                           & mHasOnly          -- [2]
+                           & mHasExtra         -- [1]
+                           & mNoShift;         -- [0]
          end if;
 
          -------------------------------------------------------------------
@@ -499,8 +499,8 @@ begin
                if sglMetaQValid = '1' and sglAllPayloadPipeInValid = '1' then
                   sglMetaQRdEn            <= '1';
                   sglAllPayloadPipeInRdEn <= '1';
-                  prepareNextSGL(v, sglMetaQDout, sglAllPayloadPipeInData, retFrag);
-                  v.prePayloadFrag := retFrag;
+                  prepareNextSgl(v, sglMetaQDout, sglAllPayloadPipeInData, retFrag);
+                  v.prePayloadFrag        := retFrag;
                end if;
 
             -- ============================================================
@@ -512,7 +512,7 @@ begin
                preIsLast       := r.prePayloadFrag(0);
                isAdjLastFrag   := ite(unsigned(r.pktRemainingFragNum) = 1, '1', '0');  -- isOneR
                shouldShift     := not (r.isFirstPkt or r.noShiftFrag);
-               curFrag         := (others => '0');                                     -- genEmptyDataStream
+               curFrag         := (others => '0');  -- genEmptyDataStream
                shouldChgByteEn := '0';
 
                fire := '0';
@@ -530,7 +530,7 @@ begin
                      isFirstPktAdjLast := r.isFirstPkt and isAdjLastFrag;
                      if (r.noShiftFrag = '1') or (isFirstPktAdjLast = '0') then
                         sglAllPayloadPipeInRdEn <= '1';
-                        nextFrag := curFrag;
+                        nextFrag                := curFrag;
                      else
                         -- last frag of first packet: keep it in prePayloadFragReg,
                         -- do NOT deq (queue head is next packet's first fragment)
@@ -547,7 +547,7 @@ begin
                         v.isFirstPkt    := '0';
                      end if;
                      v.sglRemainingPktNum := std_logic_vector(unsigned(r.sglRemainingPktNum) - 1);
-                     if unsigned(r.sglRemainingPktNum) = 2 then         -- isTwoR
+                     if unsigned(r.sglRemainingPktNum) = 2 then  -- isTwoR
                         v.state := LAST_OR_ONLY_PKT_S;
                      else
                         v.pktRemainingFragNum := r.pmtuFragNum;
@@ -568,12 +568,12 @@ begin
                      lsBitNum  := (others => '0');
                   end if;
                   fragShiftQWrEn <= '1';
-                  fragShiftQDin  <= preFragWLast              -- [627:338]
-                                  & curFrag                   -- [337:48]
-                                  & lsByteNum                 -- [47:42]
-                                  & lsBitNum                  -- [41:33]
-                                  & shouldChgByteEn           -- [32]
-                                  & r.firstPktLastFragByteEn; -- [31:0]
+                  fragShiftQDin  <= preFragWLast                -- [627:338]
+                                   & curFrag                    -- [337:48]
+                                   & lsByteNum                  -- [47:42]
+                                   & lsBitNum                   -- [41:33]
+                                   & shouldChgByteEn            -- [32]
+                                   & r.firstPktLastFragByteEn;  -- [31:0]
                end if;
 
             -- ============================================================
@@ -584,8 +584,8 @@ begin
             when LAST_OR_ONLY_PKT_S =>
                preIsLast       := r.prePayloadFrag(0);
                shouldShift     := not (r.sglHasOnlyPkt or r.noShiftFrag);
-               isLastFrag      := preIsLast;                          -- = prePayloadFragReg.isLast
-               nextFrag        := (others => '0');                   -- genEmptyDataStream
+               isLastFrag      := preIsLast;  -- = prePayloadFragReg.isLast
+               nextFrag        := (others => '0');  -- genEmptyDataStream
                shouldChgByteEn := '0';
 
                fire := '0';
@@ -603,8 +603,8 @@ begin
                         -- start the next SGL
                         sglMetaQRdEn            <= '1';
                         sglAllPayloadPipeInRdEn <= '1';
-                        prepareNextSGL(v, sglMetaQDout, sglAllPayloadPipeInData, retFrag);
-                        nextFrag := retFrag;
+                        prepareNextSgl(v, sglMetaQDout, sglAllPayloadPipeInData, retFrag);
+                        nextFrag                := retFrag;
                      else
                         -- no next SGL yet -> wait in INIT_S (empty frag)
                         v.state := INIT_S;
@@ -612,7 +612,7 @@ begin
                   else
                      sglAllPayloadPipeInRdEn <= '1';
                      -- nextPayloadFrag = payload, isFirst forced 0 (bit 1)
-                     nextFrag := sglAllPayloadPipeInData(289 downto 2) & '0' & sglAllPayloadPipeInData(0);
+                     nextFrag                := sglAllPayloadPipeInData(289 downto 2) & '0' & sglAllPayloadPipeInData(0);
                      if (shouldShift = '1') and (r.hasExtraFrag = '0') and (nextFrag(0) = '1') then
                         -- no extra fragment -> finish this SGL
                         v.state    := INIT_S;
@@ -634,12 +634,12 @@ begin
                      lsBitNum  := (others => '0');
                   end if;
                   fragShiftQWrEn <= '1';
-                  fragShiftQDin  <= preFragWLast        -- [627:338]
-                                  & nextFrag            -- [337:48]
-                                  & lsByteNum           -- [47:42]
-                                  & lsBitNum            -- [41:33]
-                                  & '0'                 -- [32] shouldChangeByteEn
-                                  & x"00000000";        -- [31:0] invalidByteEn (dontCare)
+                  fragShiftQDin  <= preFragWLast   -- [627:338]
+                                   & nextFrag      -- [337:48]
+                                   & lsByteNum     -- [47:42]
+                                   & lsBitNum      -- [41:33]
+                                   & '0'           -- [32] shouldChangeByteEn
+                                   & x"00000000";  -- [31:0] invalidByteEn (dontCare)
                end if;
 
          end case;
@@ -654,29 +654,29 @@ begin
             -- Slice the 628-bit element
             sPreData   := fragShiftQDout(627 downto 372);  -- prePayloadFrag.data
             sPreByteEn := fragShiftQDout(371 downto 340);  -- prePayloadFrag.byteEn
-            sCurData   := fragShiftQDout(337 downto  82);  -- curPayloadFrag.data
-            sCurByteEn := fragShiftQDout( 81 downto  50);  -- curPayloadFrag.byteEn
-            sShByteNum := fragShiftQDout( 46 downto  42);  -- truncate(leftShiftValidByteNum 6->5)
-            sShBitNum  := fragShiftQDout( 40 downto  33);  -- truncate(leftShiftValidBitNum 9->8)
+            sCurData   := fragShiftQDout(337 downto 82);  -- curPayloadFrag.data
+            sCurByteEn := fragShiftQDout(81 downto 50);  -- curPayloadFrag.byteEn
+            sShByteNum := fragShiftQDout(46 downto 42);  -- truncate(leftShiftValidByteNum 6->5)
+            sShBitNum  := fragShiftQDout(40 downto 33);  -- truncate(leftShiftValidBitNum 9->8)
 
             -- byteEn: truncateLSB({pre,cur} << shByteNum) -> top 32 of 64
             byteEnCat := sPreByteEn & sCurByteEn;
             shByteEn  := std_logic_vector(shift_left(unsigned(byteEnCat), to_integer(unsigned(sShByteNum))));
             -- data: truncateLSB({pre,cur} << shBitNum) -> top 256 of 512
-            dataCat := sPreData & sCurData;
-            shData  := std_logic_vector(shift_left(unsigned(dataCat), to_integer(unsigned(sShBitNum))));
+            dataCat   := sPreData & sCurData;
+            shData    := std_logic_vector(shift_left(unsigned(dataCat), to_integer(unsigned(sShBitNum))));
 
             -- isFirst/isLast kept from preFrag
-            outFrag := shData(511 downto 256)        -- data   [289:34]
-                     & shByteEn(63 downto 32)        -- byteEn  [33:2]
-                     & fragShiftQDout(339)           -- isFirst (prePayloadFrag.isFirst)
-                     & fragShiftQDout(338);          -- isLast  (prePayloadFrag.isLast)
+            outFrag := shData(511 downto 256)  -- data   [289:34]
+                       & shByteEn(63 downto 32)  -- byteEn  [33:2]
+                       & fragShiftQDout(339)  -- isFirst (prePayloadFrag.isFirst)
+                       & fragShiftQDout(338);  -- isLast  (prePayloadFrag.isLast)
 
             -- if shouldChangeByteEn: override byteEn with firstPktLastFragByteEn
             if fragShiftQDout(32) = '1' then
-               outFrag := outFrag(289 downto 34)     -- keep data
-                        & fragShiftQDout(31 downto 0) -- byteEn := firstPktLastFragByteEn
-                        & outFrag(1 downto 0);        -- keep isFirst/isLast
+               outFrag := outFrag(289 downto 34)  -- keep data
+& fragShiftQDout(31 downto 0)           -- byteEn := firstPktLastFragByteEn
+                          & outFrag(1 downto 0);  -- keep isFirst/isLast
             end if;
 
             fragShiftQRdEn     <= '1';
@@ -719,23 +719,23 @@ begin
             if (r.state = FIRST_OR_MID_PKT_S and r.prePayloadFrag(0) = '1'
                 and fragShiftQFull = '0') then
                assert (unsigned(r.pktRemainingFragNum) = 1)
-                      and (unsigned(r.sglRemainingPktNum) = 2)
+                  and (unsigned(r.sglRemainingPktNum) = 2)
                   report "AdjustPayloadSegment: pktRemainingFragNum must be 1 and "
-                       & "sglRemainingPktNum must be 2 when prePayloadFrag.isLast in "
-                       & "FIRST_OR_MID_PKT_S"
+                  & "sglRemainingPktNum must be 2 when prePayloadFrag.isLast in "
+                  & "FIRST_OR_MID_PKT_S"
                   severity error;
             end if;
             if (r.state = LAST_OR_ONLY_PKT_S and fragShiftQFull = '0'
                 and (r.prePayloadFrag(0) = '1' or sglAllPayloadPipeInValid = '1')) then
                assert unsigned(r.sglRemainingPktNum) = 1
                   report "AdjustPayloadSegment: sglRemainingPktNum must be 1 in "
-                       & "LAST_OR_ONLY_PKT_S"
+                  & "LAST_OR_ONLY_PKT_S"
                   severity error;
             end if;
             if (fragShiftQValid = '1' and pktPayloadOutQFull = '0') then
                assert not (fragShiftQDout(47) = '1' and fragShiftQDout(41) = '1')
                   report "AdjustPayloadSegment: leftShiftValidByteNum/BitNum MSBs "
-                       & "must not both be 1 (truncate 6->5 / 9->8 would lose a bit)"
+                  & "must not both be 1 (truncate 6->5 / 9->8 would lose a bit)"
                   severity error;
             end if;
          end if;

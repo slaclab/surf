@@ -119,32 +119,32 @@ entity PayloadGeneratorConAndGen is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk                  : in  sl;
-      rst                  : in  sl;                       -- active-high sync reset
+      clk                       : in  sl;
+      rst                       : in  sl;  -- active-high sync reset
       -- cntrlStatus (combinational status inputs from the controller)
-      isReset              : in  sl;                       -- comm.isReset: sync soft clear
-      isNonErr             : in  sl;                       -- comm.isNonErr
-      isERR                : in  sl;                       -- comm.isERR
+      isReset                   : in  sl;  -- comm.isReset: sync soft clear
+      isNonErr                  : in  sl;  -- comm.isNonErr
+      isERR                     : in  sl;  -- comm.isERR
       -- srvPort.request : Put#(PayloadGenReq)  (caller -> entity, enq to payloadGenReqQ)
-      reqInValid           : in  sl;                       -- caller offers a request (wr_en)
-      reqInData            : in  slv(198 downto 0);        -- PayloadGenReq packed (199b)
-      reqInReady           : out sl;                       -- entity can accept (notFull)
+      reqInValid                : in  sl;  -- caller offers a request (wr_en)
+      reqInData                 : in  slv(198 downto 0);  -- PayloadGenReq packed (199b)
+      reqInReady                : out sl;  -- entity can accept (notFull)
       -- srvPort.response : Get#(PayloadGenResp) (entity -> caller, deq from payloadGenRespQ)
-      respOutReady         : in  sl;                       -- caller takes a response (rd_en)
-      respOutValid         : out sl;                       -- response available (notEmpty)
-      respOutData          : out slv(1 downto 0);          -- PayloadGenResp packed (2b)
+      respOutReady              : in  sl;  -- caller takes a response (rd_en)
+      respOutValid              : out sl;  -- response available (notEmpty)
+      respOutData               : out slv(1 downto 0);  -- PayloadGenResp packed (2b)
       -- dmaReadCntrl.request : Put#(DmaReadCntrlReq)  (entity -> external server, CLIENT)
-      dmaReadCntrlReqValid : out sl;                       -- entity offers a request (Mealy)
-      dmaReadCntrlReqData  : out slv(197 downto 0);        -- DmaReadCntrlReq packed (198b)
-      dmaReadCntrlReqReady : in  sl;                       -- external server can accept
+      dmaReadCntrlReqValid      : out sl;  -- entity offers a request (Mealy)
+      dmaReadCntrlReqData       : out slv(197 downto 0);  -- DmaReadCntrlReq packed (198b)
+      dmaReadCntrlReqReady      : in  sl;  -- external server can accept
       -- dmaReadCntrl.response : Get#(DmaReadCntrlResp) (external server -> entity, CLIENT)
-      dmaReadCntrlRespValid : in  sl;                      -- external server offers a response
-      dmaReadCntrlRespData  : in  slv(384 downto 0);       -- DmaReadCntrlResp packed (385b)
-      dmaReadCntrlRespReady : out sl;                      -- entity takes the response (get)
+      dmaReadCntrlRespValid     : in  sl;  -- external server offers a response
+      dmaReadCntrlRespData      : in  slv(384 downto 0);  -- DmaReadCntrlResp packed (385b)
+      dmaReadCntrlRespReady     : out sl;  -- entity takes the response (get)
       -- payloadDataStreamPipeOut : PipeOut#(DataStream) (entity output, via child)
-      payloadDataStreamDeq      : in  sl;                  -- consumer dequeues
-      payloadDataStreamFirst    : out slv(289 downto 0);   -- pipeOut.first (DataStream 290b)
-      payloadDataStreamNotEmpty : out sl;                  -- pipeOut.notEmpty
+      payloadDataStreamDeq      : in  sl;  -- consumer dequeues
+      payloadDataStreamFirst    : out slv(289 downto 0);  -- pipeOut.first (DataStream 290b)
+      payloadDataStreamNotEmpty : out sl;  -- pipeOut.notEmpty
       -- payloadNotEmpty() method result (Moore passthrough of the child)
       payloadNotEmpty           : out sl);
 end entity PayloadGeneratorConAndGen;
@@ -154,12 +154,12 @@ architecture rtl of PayloadGeneratorConAndGen is
    -----------------------------------------------------------------------------
    -- Width constants (traced from BSV; see header bit layouts)
    -----------------------------------------------------------------------------
-   constant PAYLOAD_GEN_REQ_W_C  : positive := 199;        -- PayloadGenReq
-   constant PAYLOAD_GEN_RESP_W_C : positive := 2;          -- PayloadGenResp
-   constant PENDING_REQ_W_C      : positive := 239;        -- Tuple3 pipeline element
-   constant DATA_STREAM_W_C      : positive := 290;        -- DataStream (OQ-FSM-H2DS-02)
-   constant DMA_BYTE_WIDTH_C     : natural  := 32;         -- DATA_BUS_BYTE_WIDTH
-   constant BUF_ADDR_WIDTH_C     : positive := 8;          -- depth 256 = DATA_STREAM_FRAG_BUF_SIZE
+   constant PAYLOAD_GEN_REQ_W_C  : positive := 199;  -- PayloadGenReq
+   constant PAYLOAD_GEN_RESP_W_C : positive := 2;  -- PayloadGenResp
+   constant PENDING_REQ_W_C      : positive := 239;  -- Tuple3 pipeline element
+   constant DATA_STREAM_W_C      : positive := 290;  -- DataStream (OQ-FSM-H2DS-02)
+   constant DMA_BYTE_WIDTH_C     : natural  := 32;   -- DATA_BUS_BYTE_WIDTH
+   constant BUF_ADDR_WIDTH_C     : positive := 8;  -- depth 256 = DATA_STREAM_FRAG_BUF_SIZE
 
    -----------------------------------------------------------------------------
    -- Helper functions (Utils.bsv) — verified against source
@@ -178,7 +178,7 @@ architecture rtl of PayloadGeneratorConAndGen is
    begin
       residue      := len(4 downto 0);
       truncatedLen := len(len'length-1 downto 5);
-      res          := '0' & residue;                       -- zeroExtend(residue) to 6b
+      res          := '0' & residue;    -- zeroExtend(residue) to 6b
       if (unsigned(residue) = 0) and (unsigned(truncatedLen) /= 0) then
          res := std_logic_vector(to_unsigned(DMA_BYTE_WIDTH_C, 6));  -- 32
       end if;
@@ -204,10 +204,10 @@ architecture rtl of PayloadGeneratorConAndGen is
       variable res : slv(7 downto 0);
    begin
       case pmtu is
-         when "001"  => res := std_logic_vector(to_unsigned(8,   8));  -- IBV_MTU_256
-         when "010"  => res := std_logic_vector(to_unsigned(16,  8));  -- IBV_MTU_512
-         when "011"  => res := std_logic_vector(to_unsigned(32,  8));  -- IBV_MTU_1024
-         when "100"  => res := std_logic_vector(to_unsigned(64,  8));  -- IBV_MTU_2048
+         when "001"  => res := std_logic_vector(to_unsigned(8, 8));  -- IBV_MTU_256
+         when "010"  => res := std_logic_vector(to_unsigned(16, 8));  -- IBV_MTU_512
+         when "011"  => res := std_logic_vector(to_unsigned(32, 8));  -- IBV_MTU_1024
+         when "100"  => res := std_logic_vector(to_unsigned(64, 8));  -- IBV_MTU_2048
          when "101"  => res := std_logic_vector(to_unsigned(128, 8));  -- IBV_MTU_4096
          when others => res := (others => '0');
       end case;
@@ -218,18 +218,18 @@ architecture rtl of PayloadGeneratorConAndGen is
    -- Register record (live mode flag + dead-but-faithful regs)
    -----------------------------------------------------------------------------
    type RegType is record
-      isNormalStateReg  : sl;                              -- NORMAL_S('1')/ERR_S('0'); reset '1'
+      isNormalStateReg  : sl;           -- NORMAL_S('1')/ERR_S('0'); reset '1'
       -- dead: assigned only by BSV resetAndClear; never read/written live
-      shouldSetFirstReg : sl;                              -- mkReg(False)
-      isFragCntZeroReg  : sl;                              -- mkReg(False)
-      pmtuFragCntReg    : slv(7 downto 0);                 -- mkRegU (no reset; value irrelevant)
+      shouldSetFirstReg : sl;           -- mkReg(False)
+      isFragCntZeroReg  : sl;           -- mkReg(False)
+      pmtuFragCntReg    : slv(7 downto 0);  -- mkRegU (no reset; value irrelevant)
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       isNormalStateReg  => '1',
       shouldSetFirstReg => '0',
       isFragCntZeroReg  => '0',
-      pmtuFragCntReg    => (others => '0'));               -- mkRegU; '0' chosen, dead
+      pmtuFragCntReg    => (others => '0'));  -- mkRegU; '0' chosen, dead
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -239,7 +239,7 @@ architecture rtl of PayloadGeneratorConAndGen is
 
    -- U_PayloadGenReqQ (PayloadGenReq, 199b)
    signal payloadGenReqQNotFull : sl;
-   signal payloadGenReqQValid   : sl;                      -- = notEmpty (FWFT)
+   signal payloadGenReqQValid   : sl;   -- = notEmpty (FWFT)
    signal payloadGenReqQDout    : slv(PAYLOAD_GEN_REQ_W_C-1 downto 0);
    signal payloadGenReqQRdEn    : sl;
 
@@ -260,10 +260,10 @@ architecture rtl of PayloadGeneratorConAndGen is
 
    -- U_PayloadBufQ (DataStream, 290b) — read side owned by U_BramQ2PipeOut
    signal payloadBufQNotFull : sl;
-   signal payloadBufQValid   : sl;                         -- = notEmpty (FWFT)
+   signal payloadBufQValid   : sl;      -- = notEmpty (FWFT)
    signal payloadBufQDout    : slv(DATA_STREAM_W_C-1 downto 0);
    signal payloadBufQWrEn    : sl;
-   signal payloadBufQRdEn    : sl;                         -- driven by child bramQDeq
+   signal payloadBufQRdEn    : sl;      -- driven by child bramQDeq
    signal payloadBufQDin     : slv(DATA_STREAM_W_C-1 downto 0);
 
 begin
@@ -275,9 +275,9 @@ begin
    fifoRst <= rst or isReset;
 
    -- srvPort handshake passthroughs (BSV toGPServer implicit conditions)
-   reqInReady   <= payloadGenReqQNotFull;                  -- request.put ready
-   respOutValid <= payloadGenRespQValid;                   -- response.get valid
-   respOutData  <= payloadGenRespQDout;                    -- response.get data
+   reqInReady   <= payloadGenReqQNotFull;  -- request.put ready
+   respOutValid <= payloadGenRespQValid;   -- response.get valid
+   respOutData  <= payloadGenRespQDout;    -- response.get data
 
    -----------------------------------------------------------------------------
    -- Combinatorial FSM (two conflict-free pipeline rules + sync soft-clear)
@@ -289,25 +289,25 @@ begin
                    payloadBufQNotFull, payloadGenRespQNotFull) is
       variable v : RegType;
       -- recvPayloadGenReq temporaries
-      variable reqDmaMeta        : slv(194 downto 0);
-      variable reqPmtu           : slv(2 downto 0);
-      variable totalDmaLen       : slv(31 downto 0);
-      variable padCnt            : slv(1 downto 0);
-      variable lastFragVByteNum  : slv(5 downto 0);
-      variable lastFragVByteNumWP: slv(5 downto 0);
-      variable lastFragByteEnWP  : slv(31 downto 0);
-      variable pktFragNum        : slv(7 downto 0);
-      variable recvFire          : sl;
+      variable reqDmaMeta         : slv(194 downto 0);
+      variable reqPmtu            : slv(2 downto 0);
+      variable totalDmaLen        : slv(31 downto 0);
+      variable padCnt             : slv(1 downto 0);
+      variable lastFragVByteNum   : slv(5 downto 0);
+      variable lastFragVByteNumWP : slv(5 downto 0);
+      variable lastFragByteEnWP   : slv(31 downto 0);
+      variable pktFragNum         : slv(7 downto 0);
+      variable recvFire           : sl;
       -- lastFragAddPadding temporaries
-      variable pendAddPadding    : sl;
-      variable pendByteEnWP      : slv(31 downto 0);
-      variable hasDmaRespErr     : sl;
-      variable isOrigLast        : sl;
-      variable curIsLast         : sl;
-      variable curByteEn         : slv(31 downto 0);
-      variable curDataOut        : slv(DATA_STREAM_W_C-1 downto 0);
-      variable respEnq           : sl;
-      variable lastFire          : sl;
+      variable pendAddPadding : sl;
+      variable pendByteEnWP   : slv(31 downto 0);
+      variable hasDmaRespErr  : sl;
+      variable isOrigLast     : sl;
+      variable curIsLast      : sl;
+      variable curByteEn      : slv(31 downto 0);
+      variable curDataOut     : slv(DATA_STREAM_W_C-1 downto 0);
+      variable respEnq        : sl;
+      variable lastFire       : sl;
    begin
       v := r;
 
@@ -327,9 +327,9 @@ begin
       -------------------------------------------------------------------------
       -- R1: recvPayloadGenReq  (NORMAL issue) — no mode-flag write
       -------------------------------------------------------------------------
-      reqDmaMeta  := payloadGenReqQDout(198 downto 4);     -- dmaReadMetaData
-      reqPmtu     := payloadGenReqQDout(2 downto 0);       -- pmtu
-      totalDmaLen := payloadGenReqQDout(42 downto 11);     -- dmaReadMetaData.len
+      reqDmaMeta  := payloadGenReqQDout(198 downto 4);  -- dmaReadMetaData
+      reqPmtu     := payloadGenReqQDout(2 downto 0);    -- pmtu
+      totalDmaLen := payloadGenReqQDout(42 downto 11);  -- dmaReadMetaData.len
 
       padCnt             := calcPadCnt(totalDmaLen);
       lastFragVByteNum   := calcLastFragValidByteNum(totalDmaLen);
@@ -341,10 +341,10 @@ begin
                   and pendingGenReqQNotFull and dmaReadCntrlReqReady;
 
       if (recvFire = '1') then
-         payloadGenReqQRdEn <= '1';                        -- deq req
+         payloadGenReqQRdEn   <= '1';   -- deq req
          -- enq Tuple3(PayloadGenReq, lastFragByteEnWithPadding, pktFragNum)
-         pendingGenReqQWrEn <= '1';
-         pendingGenReqQDin  <= payloadGenReqQDout & lastFragByteEnWP & pktFragNum;
+         pendingGenReqQWrEn   <= '1';
+         pendingGenReqQDin    <= payloadGenReqQDout & lastFragByteEnWP & pktFragNum;
          -- PUT DmaReadCntrlReq{dmaReadMetaData, pmtu}
          dmaReadCntrlReqValid <= '1';
          dmaReadCntrlReqData  <= reqDmaMeta & reqPmtu;
@@ -355,23 +355,23 @@ begin
       -------------------------------------------------------------------------
       -- pendingGenReqQ.first = Tuple3; PayloadGenReq=[238:40], addPadding bit=[43]
       pendAddPadding := pendingGenReqQDout(43);
-      pendByteEnWP   := pendingGenReqQDout(39 downto 8);   -- lastFragByteEnWithPadding
+      pendByteEnWP   := pendingGenReqQDout(39 downto 8);  -- lastFragByteEnWithPadding
 
       -- DmaReadCntrlResp fields
-      hasDmaRespErr := dmaReadCntrlRespData(292);          -- dmaReadResp.isRespErr
-      isOrigLast    := dmaReadCntrlRespData(0);            -- isOrigLast
-      curIsLast     := dmaReadCntrlRespData(2);            -- dataStream.isLast
+      hasDmaRespErr := dmaReadCntrlRespData(292);  -- dmaReadResp.isRespErr
+      isOrigLast    := dmaReadCntrlRespData(0);    -- isOrigLast
+      curIsLast     := dmaReadCntrlRespData(2);    -- dataStream.isLast
 
       -- byteEn override on the original last fragment when padding requested
       if (isOrigLast = '1') and (pendAddPadding = '1') then
          curByteEn := pendByteEnWP;
       else
-         curByteEn := dmaReadCntrlRespData(35 downto 4);   -- dataStream.byteEn
+         curByteEn := dmaReadCntrlRespData(35 downto 4);  -- dataStream.byteEn
       end if;
       -- recompose curData: data | byteEn | isFirst | isLast
-      curDataOut := dmaReadCntrlRespData(291 downto 36)    -- data(256)
-                    & curByteEn                            -- byteEn(32)
-                    & dmaReadCntrlRespData(3 downto 2);    -- isFirst | isLast
+      curDataOut := dmaReadCntrlRespData(291 downto 36)   -- data(256)
+                    & curByteEn                           -- byteEn(32)
+                    & dmaReadCntrlRespData(3 downto 2);   -- isFirst | isLast
 
       respEnq := curIsLast or hasDmaRespErr;
 
@@ -380,11 +380,11 @@ begin
                   and payloadBufQNotFull and (payloadGenRespQNotFull or (not respEnq));
 
       if (lastFire = '1') then
-         dmaReadCntrlRespReady <= '1';                     -- GET response
+         dmaReadCntrlRespReady <= '1';             -- GET response
          if (isOrigLast = '1') then
-            pendingGenReqQRdEn <= '1';                     -- retire pending entry
+            pendingGenReqQRdEn <= '1';             -- retire pending entry
          end if;
-         v.isNormalStateReg := not hasDmaRespErr;          -- registered mode flag
+         v.isNormalStateReg := not hasDmaRespErr;  -- registered mode flag
          if (respEnq = '1') then
             payloadGenRespQWrEn <= '1';
             -- PayloadGenResp{addPadding, isRespErr}

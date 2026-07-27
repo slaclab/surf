@@ -31,15 +31,15 @@ use surf.RocePkg.all;
 
 entity RoCEv2AxiStreamRdma is
    generic (
-      TPD_G            : time     := 1 ns;
-      RST_POLARITY_G   : sl       := '1';
-      RST_ASYNC_G      : boolean  := false;
-      MAX_QP_G         : positive := 4;
-      MAX_QP_WR_G      : positive := 4;
-      EN_TX_G          : boolean  := true;
-      EN_RX_G          : boolean  := true;
-      EN_READ_G        : boolean  := true;
-      DCQCN_EN_G       : boolean  := true;                    -- gate the DCQCN block (ONLY valid with MAX_QP_G=1; see assertion below)
+      TPD_G            : time             := 1 ns;
+      RST_POLARITY_G   : sl               := '1';
+      RST_ASYNC_G      : boolean          := false;
+      MAX_QP_G         : positive         := 4;
+      MAX_QP_WR_G      : positive         := 4;
+      EN_TX_G          : boolean          := true;
+      EN_RX_G          : boolean          := true;
+      EN_READ_G        : boolean          := true;
+      DCQCN_EN_G       : boolean          := true;                    -- gate the DCQCN block (ONLY valid with MAX_QP_G=1; see assertion below)
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));  -- absolute AXI-Lite base of this window
    port (
       clk                 : in  sl;

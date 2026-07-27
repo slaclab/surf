@@ -97,20 +97,20 @@ entity DataStream2Header is
    generic (
       TPD_G : time := 1 ns);
    port (
-      clk : in sl;
-      rst : in sl;                                 -- active-high synchronous reset
+      clk                    : in  sl;
+      rst                    : in  sl;  -- active-high synchronous reset
       -- Upstream: DataStream pipe (dataPipeIn, 290 b per beat)
-      dataPipeInValid        : in  sl;             -- dataPipeIn.notEmpty
+      dataPipeInValid        : in  sl;  -- dataPipeIn.notEmpty
       dataPipeInData         : in  slv(289 downto 0);  -- dataPipeIn.first
-      dataPipeInRdEn         : out sl;             -- dataPipeIn.deq
+      dataPipeInRdEn         : out sl;  -- dataPipeIn.deq
       -- Upstream: HeaderMetaData pipe (headerMetaDataPipeIn, 17 b)
-      hdrMetaDataPipeInValid : in  sl;             -- headerMetaDataPipeIn.notEmpty
-      hdrMetaDataPipeInData  : in  slv(16 downto 0);   -- headerMetaDataPipeIn.first
-      hdrMetaDataPipeInRdEn  : out sl;             -- headerMetaDataPipeIn.deq
+      hdrMetaDataPipeInValid : in  sl;  -- headerMetaDataPipeIn.notEmpty
+      hdrMetaDataPipeInData  : in  slv(16 downto 0);  -- headerMetaDataPipeIn.first
+      hdrMetaDataPipeInRdEn  : out sl;  -- headerMetaDataPipeIn.deq
       -- Downstream: returned PipeOut#(HeaderRDMA) (read side of U_HeaderOutQ)
-      headerOutQValid        : out sl;             -- PipeOut.notEmpty
+      headerOutQValid        : out sl;  -- PipeOut.notEmpty
       headerOutQDout         : out slv(592 downto 0);  -- PipeOut.first
-      headerOutQRdEn         : in  sl);            -- PipeOut.deq
+      headerOutQRdEn         : in  sl);               -- PipeOut.deq
 end entity DataStream2Header;
 
 architecture rtl of DataStream2Header is
@@ -121,9 +121,9 @@ architecture rtl of DataStream2Header is
    type RegType is record
       state          : StateType;
       rdmaHdrData    : slv(511 downto 0);  -- mkRegU — accumulating headerData
-      rdmaHdrByteEn  : slv(63 downto 0);   -- mkRegU — accumulating headerByteEn
-      rdmaHdrFragNum : slv(1 downto 0);    -- mkRegU — running accumulated frag count
-      hdrMetaDataReg : slv(16 downto 0);   -- mkRegU — latched HeaderMetaData
+      rdmaHdrByteEn  : slv(63 downto 0);  -- mkRegU — accumulating headerByteEn
+      rdmaHdrFragNum : slv(1 downto 0);  -- mkRegU — running accumulated frag count
+      hdrMetaDataReg : slv(16 downto 0);  -- mkRegU — latched HeaderMetaData
    end record RegType;
 
    -- mkRegU fields set to '0' in REG_INIT_C: every one is written in IDLE_S /
@@ -251,11 +251,11 @@ begin
                elsif fragIsFirst = '1' and fragIsLast = '1' then
                   if headerOutQFull = '0' then
                      headerOutQWrEn <= '1';
-                     headerOutQDin  <= (fragData & ZERO_256_C)          -- headerData [592:81]
-                                     & (fragByteEn & ZERO_32_C)         -- headerByteEn [80:17]
-                                     & r.hdrMetaDataReg(16 downto 10)   -- headerLen [16:10]
-                                     & "01"                             -- headerFragNum [9:8] = running count
-                                     & r.hdrMetaDataReg(7 downto 0);    -- lastFragValidByteNum/hasPayload/isEmptyHeader [7:0]
+                     headerOutQDin  <= (fragData & ZERO_256_C)  -- headerData [592:81]
+                                      & (fragByteEn & ZERO_32_C)  -- headerByteEn [80:17]
+                                      & r.hdrMetaDataReg(16 downto 10)  -- headerLen [16:10]
+                                      & "01"  -- headerFragNum [9:8] = running count
+                                      & r.hdrMetaDataReg(7 downto 0);  -- lastFragValidByteNum/hasPayload/isEmptyHeader [7:0]
                      dataPipeInRdEn <= '1';
                      v.state        := IDLE_S;
                   end if;
@@ -267,11 +267,11 @@ begin
                elsif fragIsFirst = '0' and fragIsLast = '1' then
                   if headerOutQFull = '0' then
                      headerOutQWrEn <= '1';
-                     headerOutQDin  <= (r.rdmaHdrData(255 downto 0) & fragData)      -- headerData [592:81]
-                                     & (r.rdmaHdrByteEn(31 downto 0) & fragByteEn)   -- headerByteEn [80:17]
-                                     & r.hdrMetaDataReg(16 downto 10)                -- headerLen [16:10]
-                                     & slv(unsigned(r.rdmaHdrFragNum) + 1)           -- headerFragNum [9:8] = "10"
-                                     & r.hdrMetaDataReg(7 downto 0);                 -- [7:0]
+                     headerOutQDin  <= (r.rdmaHdrData(255 downto 0) & fragData)  -- headerData [592:81]
+                                      & (r.rdmaHdrByteEn(31 downto 0) & fragByteEn)  -- headerByteEn [80:17]
+                                      & r.hdrMetaDataReg(16 downto 10)  -- headerLen [16:10]
+                                      & slv(unsigned(r.rdmaHdrFragNum) + 1)  -- headerFragNum [9:8] = "10"
+                                      & r.hdrMetaDataReg(7 downto 0);  -- [7:0]
                      dataPipeInRdEn <= '1';
                      v.state        := IDLE_S;
                   end if;
@@ -332,11 +332,11 @@ begin
             -- assertion.  The fragNum-match check is asserted below.
             if (r.state = BUSY_S and dataPipeInValid = '1'
                 and dataPipeInData(0) = '1' and headerOutQFull = '0') then
-               if dataPipeInData(1) = '1' then          -- 1-frag header (row 3)
+               if dataPipeInData(1) = '1' then  -- 1-frag header (row 3)
                   assert r.hdrMetaDataReg(9 downto 8) = "01"
                      report "DataStream2Header: 1-frag header fragNum mismatch"
                      severity error;
-               else                                     -- 2-frag header (row 4)
+               else                             -- 2-frag header (row 4)
                   assert r.hdrMetaDataReg(9 downto 8) = slv(unsigned(r.rdmaHdrFragNum) + 1)
                      report "DataStream2Header: 2-frag header fragNum mismatch"
                      severity error;
