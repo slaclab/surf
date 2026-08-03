@@ -19,14 +19,15 @@ name: CI
 # run it in full.
 # A feature branch with an open PR into main therefore runs the regression
 # job twice per push -- once selective (push ref) and once full (PR merge
-# ref). The two use distinct concurrency groups (github.ref differs) so
-# neither cancels the other. This is intentional: the push run gives fast
-# per-commit feedback and the PR run is the full pre-merge release gate. In
-# this repo feature branches normally target pre-release, so the double run is
-# confined to release PRs. The post-merge push to pre-release is also full so
-# the integration branch is checked after every feature merge. Manual dispatch
-# can simulate a changed-path list to exercise selective execution on a runner;
-# it does not alter the path source used by push or pull-request events.
+# ref). Distinct event/ref concurrency groups prevent push, PR, and manual
+# validation runs from cancelling one another. This is intentional: the push
+# run gives fast per-commit feedback and the PR run is the full pre-merge
+# release gate. In this repo feature branches normally target pre-release, so
+# the double run is confined to release PRs. The post-merge push to pre-release
+# is also full so the integration branch is checked after every feature merge.
+# Manual dispatch can simulate a changed-path list to exercise selective
+# execution on a runner; it does not alter the path source used by push or
+# pull-request events.
 on:
   push:
   pull_request:
@@ -38,7 +39,7 @@ on:
         required: false
         type: string
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
