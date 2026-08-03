@@ -24,82 +24,133 @@ import pytest
 
 from tests.common import __main__ as selector_cli
 from tests.common import path_selector
-from tests.common.regression_utils import REPO_ROOT
+
+
+_PROTOCOL_AREA_CASES = (
+    ("packetizer", "packetizer"),
+    ("event-frame-sequencer", "event_frame_sequencer"),
+    ("hamming-ecc", "hamming_ecc"),
+    ("line-codes", "line_codes"),
+)
+
+_ETHERNET_SOURCE_CASES = (
+    ("EthMacCore", ("EthMacCore", "IpV4Engine", "RoCEv2", "UdpEngine")),
+    ("IpV4Engine", ("IpV4Engine", "UdpEngine")),
+    ("RawEthFramer", ("RawEthFramer",)),
+    ("RoCEv2", ("RoCEv2",)),
+    ("UdpEngine", ("UdpEngine",)),
+)
 
 
 def _change(path: str, status: str = "M") -> path_selector.ChangedFile:
     return path_selector.ChangedFile(path=path, status=status)
 
 
+def _ethernet_test_targets(areas: tuple[str, ...]) -> tuple[str, ...]:
+    return tuple(f"tests/ethernet/{area}" for area in areas)
+
+
+def _add_test_areas(repo_root: Path, tree: str, areas: tuple[str, ...]) -> None:
+    for area in areas:
+        (repo_root / "tests" / tree / area).mkdir(parents=True, exist_ok=True)
+
+
 @pytest.mark.parametrize(
-    ("path", "target"),
-    (
-        ("protocols/packetizer/rtl/AxiStreamPacketizer.vhd", "tests/protocols/packetizer"),
-        ("tests/protocols/packetizer/test_AxiStreamPacketizer.py", "tests/protocols/packetizer"),
-        ("protocols/event-frame-sequencer/rtl/EventFrameSequencer.vhd", "tests/protocols/event_frame_sequencer"),
-        ("protocols/hamming-ecc/rtl/HammingEccPkg.vhd", "tests/protocols/hamming_ecc"),
-        ("protocols/line-codes/rtl/Code8b10bPkg.vhd", "tests/protocols/line_codes"),
-        ("dsp/generic/rtl/FirFilter.vhd", "tests/dsp"),
-        ("tests/dsp/generic/test_FirFilter.py", "tests/dsp"),
-    ),
+    ("source_area", "test_area"),
+    _PROTOCOL_AREA_CASES,
 )
-def test_selects_owned_test_area(path, target):
-    selection = path_selector.select_targets([_change(path)], REPO_ROOT)
+@pytest.mark.parametrize("is_test_path", (False, True))
+def test_protocol_change_selects_owned_test_area(tmp_path, source_area, test_area, is_test_path):
+    _add_test_areas(tmp_path, "protocols", (test_area,))
+    if is_test_path:
+        path = f"tests/protocols/{test_area}/test_changed.py"
+    else:
+        path = f"protocols/{source_area}/rtl/Changed.vhd"
 
-    assert selection == path_selector.Selection((target,))
+    selection = path_selector.select_targets([_change(path)], tmp_path)
+
+    assert selection == path_selector.Selection((f"tests/protocols/{test_area}",))
 
 
-def test_protocol_without_owned_test_area_runs_all_protocol_tests():
+@pytest.mark.parametrize(
+    "path",
+    ("dsp/generic/rtl/Changed.vhd", "tests/dsp/generic/test_changed.py"),
+)
+def test_dsp_change_selects_dsp_tests(tmp_path, path):
+    selection = path_selector.select_targets([_change(path)], tmp_path)
+
+    assert selection == path_selector.Selection(("tests/dsp",))
+
+
+def test_protocol_without_owned_test_area_runs_all_protocol_tests(tmp_path):
     selection = path_selector.select_targets(
-        [_change("protocols/pmbus/rtl/PMBusCore.vhd")],
-        REPO_ROOT,
+        [_change("protocols/unowned/rtl/Changed.vhd")],
+        tmp_path,
     )
 
     assert selection.targets == ("tests/protocols",)
     assert selection.force_full is False
 
 
-def test_multiple_areas_are_sorted_and_deduplicated():
+def test_multiple_areas_are_sorted_and_deduplicated(tmp_path):
+    _add_test_areas(tmp_path, "protocols", ("ssi",))
     selection = path_selector.select_targets(
         [
-            _change("protocols/ssi/rtl/SsiFifo.vhd"),
-            _change("dsp/generic/rtl/FirFilter.vhd"),
-            _change("tests/protocols/ssi/test_SsiFifo.py"),
+            _change("protocols/ssi/rtl/Changed.vhd"),
+            _change("dsp/generic/rtl/Changed.vhd"),
+            _change("tests/protocols/ssi/test_changed.py"),
         ],
-        REPO_ROOT,
+        tmp_path,
     )
 
     assert selection.targets == ("tests/dsp", "tests/protocols/ssi")
 
 
 @pytest.mark.parametrize(
-    ("path", "targets"),
-    (
-        ("ethernet/RoCEv2/rtl/RoCEv2Engine.vhd", ("tests/ethernet/RoCEv2",)),
-        ("tests/ethernet/RoCEv2/test_RoCEv2Dcqcn.py", ("tests/ethernet/RoCEv2",)),
-        ("ethernet/UdpEngine/rtl/UdpEngine.vhd", ("tests/ethernet/UdpEngine",)),
-        ("tests/ethernet/UdpEngine/test_UdpEngine.py", ("tests/ethernet/UdpEngine",)),
-        ("ethernet/IpV4Engine/rtl/IpV4Engine.vhd", ("tests/ethernet/UdpEngine",)),
-        (
-            "ethernet/EthMacCore/rtl/EthMacPkg.vhd",
-            ("tests/ethernet/RoCEv2", "tests/ethernet/UdpEngine"),
-        ),
-    ),
+    ("area", "selected_areas"),
+    _ETHERNET_SOURCE_CASES,
 )
-def test_selects_enabled_ethernet_suites(path, targets):
-    selection = path_selector.select_targets([_change(path)], REPO_ROOT)
+def test_ethernet_source_change_selects_area_and_dependents(tmp_path, area, selected_areas):
+    _add_test_areas(tmp_path, "ethernet", selected_areas)
+    selection = path_selector.select_targets(
+        [_change(f"ethernet/{area}/rtl/Changed.vhd")],
+        tmp_path,
+    )
 
-    assert selection.targets == targets
+    assert selection.targets == _ethernet_test_targets(selected_areas)
     assert selection.force_full is False
 
 
-def test_combines_ethernet_and_protocol_targets():
+@pytest.mark.parametrize("area", tuple(area for area, _ in _ETHERNET_SOURCE_CASES))
+def test_ethernet_test_change_selects_only_its_area(tmp_path, area):
+    _add_test_areas(tmp_path, "ethernet", (area,))
+    selection = path_selector.select_targets(
+        [_change(f"tests/ethernet/{area}/test_changed.py")],
+        tmp_path,
+    )
+
+    assert selection == path_selector.Selection((f"tests/ethernet/{area}",))
+
+
+def test_new_ethernet_area_with_owned_tests_selects_its_area(tmp_path):
+    _add_test_areas(tmp_path, "ethernet", ("NewArea",))
+    selection = path_selector.select_targets(
+        [_change("ethernet/NewArea/rtl/Changed.vhd")],
+        tmp_path,
+    )
+
+    assert selection == path_selector.Selection(("tests/ethernet/NewArea",))
+
+
+def test_combines_ethernet_and_protocol_targets(tmp_path):
+    _add_test_areas(tmp_path, "ethernet", ("RoCEv2",))
+    _add_test_areas(tmp_path, "protocols", ("ssi",))
     selection = path_selector.select_targets(
         [
-            _change("ethernet/RoCEv2/rtl/RoCEv2Engine.vhd"),
-            _change("protocols/ssi/rtl/SsiFifo.vhd"),
+            _change("ethernet/RoCEv2/rtl/Changed.vhd"),
+            _change("protocols/ssi/rtl/Changed.vhd"),
         ],
-        REPO_ROOT,
+        tmp_path,
     )
 
     assert selection.targets == ("tests/ethernet/RoCEv2", "tests/protocols/ssi")
@@ -115,32 +166,31 @@ def test_combines_ethernet_and_protocol_targets():
         ("tests/common/path_selector.py", "foundational area"),
         (".github/workflows/surf_ci.yml", "CI configuration"),
         ("protocols/ssi/ruckus.tcl", "build control file"),
-        ("ethernet/RawEthFramer/rtl/RawEthFramer.vhd", "not enabled for selective CI"),
-        ("tests/ethernet/EthMacCore/test_EthMacTop.py", "not enabled for selective CI"),
+        ("ethernet/UnknownArea/rtl/Unknown.vhd", "no owned selective suite"),
         ("python/surf/__init__.py", "unmapped path"),
         ("README.md", "unmapped path"),
     ),
 )
-def test_force_full_paths(path, reason):
-    selection = path_selector.select_targets([_change(path)], REPO_ROOT)
+def test_force_full_paths(tmp_path, path, reason):
+    selection = path_selector.select_targets([_change(path)], tmp_path)
 
     assert selection.force_full is True
     assert reason in selection.reason
 
 
 @pytest.mark.parametrize("status", ("C", "D", "R", "T", "U"))
-def test_non_add_or_modify_status_forces_full(status):
+def test_non_add_or_modify_status_forces_full(tmp_path, status):
     selection = path_selector.select_targets(
-        [_change("protocols/ssi/rtl/SsiFifo.vhd", status)],
-        REPO_ROOT,
+        [_change("protocols/ssi/rtl/Changed.vhd", status)],
+        tmp_path,
     )
 
     assert selection.force_full is True
     assert selection.reason.startswith(f"{status} change")
 
 
-def test_no_changes_selects_no_area_targets():
-    assert path_selector.select_targets([], REPO_ROOT) == path_selector.Selection(())
+def test_no_changes_selects_no_area_targets(tmp_path):
+    assert path_selector.select_targets([], tmp_path) == path_selector.Selection(())
 
 
 def test_changed_files_parses_nul_delimited_git_output(monkeypatch, tmp_path):
@@ -162,6 +212,13 @@ def test_changed_files_parses_nul_delimited_git_output(monkeypatch, tmp_path):
     )
 
 
+@pytest.mark.parametrize("status", ("A", "C", "D", "M", "R", "T", "U", "X"))
+def test_changed_files_override_accepts_one_letter_git_status(status):
+    changes = selector_cli._parse_changed_files_override(f"protocols/ssi/rtl/Changed.vhd:{status}")
+
+    assert changes == (_change("protocols/ssi/rtl/Changed.vhd", status),)
+
+
 def test_merge_base_uses_pre_release_by_default(monkeypatch, tmp_path):
     calls = []
 
@@ -176,10 +233,11 @@ def test_merge_base_uses_pre_release_by_default(monkeypatch, tmp_path):
     assert calls[0][1]["cwd"] == tmp_path
 
 
-def test_cli_prints_directory_targets(capsys):
+def test_cli_prints_directory_targets(capsys, tmp_path):
+    _add_test_areas(tmp_path, "protocols", ("ssi",))
     result = selector_cli.main(
-        ["--changed-files-override", "protocols/ssi/rtl/SsiFifo.vhd,dsp/generic/rtl/FirFilter.vhd"],
-        REPO_ROOT,
+        ["--changed-files-override", "protocols/ssi/rtl/Changed.vhd,dsp/generic/rtl/Changed.vhd"],
+        tmp_path,
     )
 
     captured = capsys.readouterr()
@@ -188,10 +246,10 @@ def test_cli_prints_directory_targets(capsys):
     assert "2 changed file(s)" in captured.err
 
 
-def test_cli_force_full_is_a_successful_policy_result(capsys):
+def test_cli_force_full_is_a_successful_policy_result(capsys, tmp_path):
     result = selector_cli.main(
         ["--changed-files-override", "base/general/rtl/StdRtlPkg.vhd"],
-        REPO_ROOT,
+        tmp_path,
     )
 
     captured = capsys.readouterr()

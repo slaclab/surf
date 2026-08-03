@@ -148,13 +148,7 @@ jobs:
           # Define the full regression universe once so integration runs and
           # selective-mode fallbacks cannot drift apart as suites are added.
           full_targets=(
-            tests/common
-            tests/axi
-            tests/base
-            tests/dsp
-            tests/protocols
-            tests/ethernet/RoCEv2
-            tests/ethernet/UdpEngine
+            tests
           )
 
           # Full integration/release runs build and simulate on apt mcode GHDL

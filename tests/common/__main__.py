@@ -27,7 +27,7 @@ def _parse_changed_files_override(raw: str) -> tuple[path_selector.ChangedFile, 
         if not entry:
             continue
         path, separator, status = entry.rpartition(":")
-        if not separator or status not in {"A", "C", "D", "M", "R"}:
+        if not separator or len(status) != 1 or not status.isascii() or not status.isupper():
             path = entry
             status = "M"
         changes.append(path_selector.ChangedFile(path=path, status=status))
@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None, repo_root: Path = REPO_ROOT) -> int:
     parser.add_argument(
         "--changed-files-override",
         help="Comma-separated repo-relative paths used instead of git diff. "
-        "Append :A, :D, :R, or another status when needed by tests.",
+        "Append a one-letter Git status such as :A, :D, :R, :T, or :U when needed.",
     )
     args = parser.parse_args(argv)
 

@@ -28,19 +28,9 @@ _FOUNDATIONAL_TREES = (
     "tests/common",
 )
 
-_ROCE_TESTS = "tests/ethernet/RoCEv2"
-_UDP_TESTS = "tests/ethernet/UdpEngine"
-
-_ETHERNET_SOURCE_TARGETS = {
-    "EthMacCore": (_ROCE_TESTS, _UDP_TESTS),
-    "IpV4Engine": (_UDP_TESTS,),
-    "RoCEv2": (_ROCE_TESTS,),
-    "UdpEngine": (_UDP_TESTS,),
-}
-
-_ETHERNET_TEST_TARGETS = {
-    "RoCEv2": (_ROCE_TESTS,),
-    "UdpEngine": (_UDP_TESTS,),
+_ETHERNET_SOURCE_DEPENDENTS = {
+    "EthMacCore": ("IpV4Engine", "RoCEv2", "UdpEngine"),
+    "IpV4Engine": ("UdpEngine",),
 }
 
 _BUILD_CONTROL_NAMES = {
@@ -135,25 +125,37 @@ def _area_from_path(path: PurePosixPath, tree: str) -> tuple[str | None, bool]:
     return area, is_test_path
 
 
+def _owned_test_target(tree: str, area: str, repo_root: Path) -> str | None:
+    target = f"tests/{tree}/{area}"
+    return target if (repo_root / target).is_dir() else None
+
+
 def _protocol_target(path: PurePosixPath, repo_root: Path) -> str:
     area, _ = _area_from_path(path, "protocols")
 
     if area is None:
         return "tests/protocols"
 
-    target = f"tests/protocols/{area.replace('-', '_')}"
-    if (repo_root / target).is_dir():
-        return target
-    return "tests/protocols"
+    target = _owned_test_target("protocols", area.replace("-", "_"), repo_root)
+    return target or "tests/protocols"
 
 
-def _ethernet_targets(path: PurePosixPath) -> tuple[str, ...] | None:
+def _ethernet_targets(path: PurePosixPath, repo_root: Path) -> tuple[str, ...] | None:
     area, is_test_path = _area_from_path(path, "ethernet")
     if area is None:
         return None
-    if is_test_path:
-        return _ETHERNET_TEST_TARGETS.get(area)
-    return _ETHERNET_SOURCE_TARGETS.get(area)
+
+    selected_areas = (area,)
+    if not is_test_path:
+        selected_areas += _ETHERNET_SOURCE_DEPENDENTS.get(area, ())
+
+    targets: list[str] = []
+    for selected_area in sorted(selected_areas):
+        target = _owned_test_target("ethernet", selected_area, repo_root)
+        if target is None:
+            return None
+        targets.append(target)
+    return tuple(targets)
 
 
 def select_targets(
@@ -183,18 +185,14 @@ def select_targets(
             targets.add("tests/dsp")
             continue
 
-        if _in_tree(path, "protocols"):
-            targets.add(_protocol_target(pure_path, repo_root))
-            continue
-
-        if _in_tree(path, "tests/protocols"):
+        if _in_tree(path, "protocols") or _in_tree(path, "tests/protocols"):
             targets.add(_protocol_target(pure_path, repo_root))
             continue
 
         if _in_tree(path, "ethernet") or _in_tree(path, "tests/ethernet"):
-            ethernet_targets = _ethernet_targets(pure_path)
+            ethernet_targets = _ethernet_targets(pure_path, repo_root)
             if ethernet_targets is None:
-                return Selection((), True, f"Ethernet area is not enabled for selective CI: {path}")
+                return Selection((), True, f"Ethernet area has no owned selective suite: {path}")
             targets.update(ethernet_targets)
             continue
 
