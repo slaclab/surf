@@ -9,7 +9,7 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise localized protocol/DSP paths and every conservative full-run class.
+# - Sweep: Exercise localized protocol/DSP/Ethernet paths and each full-run class.
 # - Stimulus: Pass synthetic git change records to the pure path selector and CLI.
 # - Checks: Verify exact pytest targets, deduplication, and FORCE_FULL behavior.
 # - Timing: Pure-Python policy tests; no simulator timing behavior is involved.
@@ -73,6 +73,39 @@ def test_multiple_areas_are_sorted_and_deduplicated():
 
 
 @pytest.mark.parametrize(
+    ("path", "targets"),
+    (
+        ("ethernet/RoCEv2/rtl/RoCEv2Engine.vhd", ("tests/ethernet/RoCEv2",)),
+        ("tests/ethernet/RoCEv2/test_RoCEv2Dcqcn.py", ("tests/ethernet/RoCEv2",)),
+        ("ethernet/UdpEngine/rtl/UdpEngine.vhd", ("tests/ethernet/UdpEngine",)),
+        ("tests/ethernet/UdpEngine/test_UdpEngine.py", ("tests/ethernet/UdpEngine",)),
+        ("ethernet/IpV4Engine/rtl/IpV4Engine.vhd", ("tests/ethernet/UdpEngine",)),
+        (
+            "ethernet/EthMacCore/rtl/EthMacPkg.vhd",
+            ("tests/ethernet/RoCEv2", "tests/ethernet/UdpEngine"),
+        ),
+    ),
+)
+def test_selects_enabled_ethernet_suites(path, targets):
+    selection = path_selector.select_targets([_change(path)], REPO_ROOT)
+
+    assert selection.targets == targets
+    assert selection.force_full is False
+
+
+def test_combines_ethernet_and_protocol_targets():
+    selection = path_selector.select_targets(
+        [
+            _change("ethernet/RoCEv2/rtl/RoCEv2Engine.vhd"),
+            _change("protocols/ssi/rtl/SsiFifo.vhd"),
+        ],
+        REPO_ROOT,
+    )
+
+    assert selection.targets == ("tests/ethernet/RoCEv2", "tests/protocols/ssi")
+
+
+@pytest.mark.parametrize(
     ("path", "reason"),
     (
         ("base/general/rtl/StdRtlPkg.vhd", "foundational area"),
@@ -82,6 +115,8 @@ def test_multiple_areas_are_sorted_and_deduplicated():
         ("tests/common/path_selector.py", "foundational area"),
         (".github/workflows/surf_ci.yml", "CI configuration"),
         ("protocols/ssi/ruckus.tcl", "build control file"),
+        ("ethernet/RawEthFramer/rtl/RawEthFramer.vhd", "not enabled for selective CI"),
+        ("tests/ethernet/EthMacCore/test_EthMacTop.py", "not enabled for selective CI"),
         ("python/surf/__init__.py", "unmapped path"),
         ("README.md", "unmapped path"),
     ),

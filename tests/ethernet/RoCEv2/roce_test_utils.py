@@ -16,7 +16,7 @@ from tests.axi.utils import axil_read_u32, axil_write_u32
 
 
 ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
-ROCE_PKG_SOURCE = str(ROCE_RTL_ROOT / "RocePkg.vhd")
+ROCE_PKG_SOURCE = str(ROCE_RTL_ROOT / "RoCEv2Pkg.vhd")
 
 
 def roce_rtl_sources(*filenames: str) -> list[str]:
@@ -29,7 +29,7 @@ ROCE_RTL_SOURCES = roce_rtl_sources(
     *(
         path.name
         for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RocePkg.vhd"
+        if path.name != "RoCEv2Pkg.vhd"
     )
 )
 

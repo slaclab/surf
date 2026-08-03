@@ -20,13 +20,28 @@ from tests.common.regression_utils import REPO_ROOT
 BASE_REF = "origin/pre-release"
 FORCE_FULL = "FORCE_FULL"
 
-_FOUNDATIONAL_PREFIXES = (
-    "axi/",
-    "base/",
-    "tests/axi/",
-    "tests/base/",
-    "tests/common/",
+_FOUNDATIONAL_TREES = (
+    "axi",
+    "base",
+    "tests/axi",
+    "tests/base",
+    "tests/common",
 )
+
+_ROCE_TESTS = "tests/ethernet/RoCEv2"
+_UDP_TESTS = "tests/ethernet/UdpEngine"
+
+_ETHERNET_SOURCE_TARGETS = {
+    "EthMacCore": (_ROCE_TESTS, _UDP_TESTS),
+    "IpV4Engine": (_UDP_TESTS,),
+    "RoCEv2": (_ROCE_TESTS,),
+    "UdpEngine": (_UDP_TESTS,),
+}
+
+_ETHERNET_TEST_TARGETS = {
+    "RoCEv2": (_ROCE_TESTS,),
+    "UdpEngine": (_UDP_TESTS,),
+}
 
 _BUILD_CONTROL_NAMES = {
     "Makefile",
@@ -102,19 +117,43 @@ def changed_files(base: str, repo_root: Path = REPO_ROOT) -> tuple[ChangedFile, 
     return tuple(changes)
 
 
-def _protocol_target(path: PurePosixPath, repo_root: Path) -> str:
-    parts = path.parts
-    source_tree = parts[0] == "protocols"
-    area_index = 1 if source_tree else 2
+def _in_tree(path: str, tree: str) -> bool:
+    return path == tree or path.startswith(f"{tree}/")
 
-    if len(parts) <= area_index or not parts[area_index].replace("_", "").replace("-", "").isalnum():
+
+def _area_from_path(path: PurePosixPath, tree: str) -> tuple[str | None, bool]:
+    parts = path.parts
+    is_test_path = len(parts) >= 2 and parts[:2] == ("tests", tree)
+    area_index = 2 if is_test_path else 1
+
+    if not parts or (parts[0] != tree and not is_test_path) or len(parts) <= area_index:
+        return None, is_test_path
+
+    area = parts[area_index]
+    if not area.replace("_", "").replace("-", "").isalnum():
+        return None, is_test_path
+    return area, is_test_path
+
+
+def _protocol_target(path: PurePosixPath, repo_root: Path) -> str:
+    area, _ = _area_from_path(path, "protocols")
+
+    if area is None:
         return "tests/protocols"
 
-    area = parts[area_index].replace("-", "_")
-    target = f"tests/protocols/{area}"
+    target = f"tests/protocols/{area.replace('-', '_')}"
     if (repo_root / target).is_dir():
         return target
     return "tests/protocols"
+
+
+def _ethernet_targets(path: PurePosixPath) -> tuple[str, ...] | None:
+    area, is_test_path = _area_from_path(path, "ethernet")
+    if area is None:
+        return None
+    if is_test_path:
+        return _ETHERNET_TEST_TARGETS.get(area)
+    return _ETHERNET_SOURCE_TARGETS.get(area)
 
 
 def select_targets(
@@ -137,19 +176,26 @@ def select_targets(
         if pure_path.name in _BUILD_CONTROL_NAMES or pure_path.suffix in {".tcl", ".mk"}:
             return Selection((), True, f"build control file changed: {path}")
 
-        if any(path == prefix[:-1] or path.startswith(prefix) for prefix in _FOUNDATIONAL_PREFIXES):
+        if any(_in_tree(path, tree) for tree in _FOUNDATIONAL_TREES):
             return Selection((), True, f"foundational area changed: {path}")
 
-        if path == "dsp" or path.startswith("dsp/") or path == "tests/dsp" or path.startswith("tests/dsp/"):
+        if _in_tree(path, "dsp") or _in_tree(path, "tests/dsp"):
             targets.add("tests/dsp")
             continue
 
-        if path == "protocols" or path.startswith("protocols/"):
+        if _in_tree(path, "protocols"):
             targets.add(_protocol_target(pure_path, repo_root))
             continue
 
-        if path == "tests/protocols" or path.startswith("tests/protocols/"):
+        if _in_tree(path, "tests/protocols"):
             targets.add(_protocol_target(pure_path, repo_root))
+            continue
+
+        if _in_tree(path, "ethernet") or _in_tree(path, "tests/ethernet"):
+            ethernet_targets = _ethernet_targets(pure_path)
+            if ethernet_targets is None:
+                return Selection((), True, f"Ethernet area is not enabled for selective CI: {path}")
+            targets.update(ethernet_targets)
             continue
 
         return Selection((), True, f"unmapped path changed: {path}")

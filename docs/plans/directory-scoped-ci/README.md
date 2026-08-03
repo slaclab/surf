@@ -4,8 +4,9 @@
 
 Replace PR #1449's runtime VHDL dependency graph with a conservative,
 directory-owned test selector. Feature branches should get faster feedback for
-localized protocol and DSP changes without making `.cf` parsing, AST analysis,
-wrapper attribution, or a second GHDL installation part of the CI policy.
+localized protocol, DSP, and enabled Ethernet changes without making `.cf`
+parsing, AST analysis, wrapper attribution, or a second GHDL installation part
+of the CI policy.
 
 ## Policy
 
@@ -20,13 +21,23 @@ wrapper attribution, or a second GHDL installation part of the CI policy.
   underscore form used by the test tree. If an area has no matching test
   directory, all of `tests/protocols/` runs.
 - `dsp/` and `tests/dsp/` changes select `tests/dsp/`.
+- Enabled Ethernet routing accounts for the current source relationships:
+  - `RoCEv2` changes select `tests/ethernet/RoCEv2/`.
+  - `UdpEngine` and `IpV4Engine` changes select
+    `tests/ethernet/UdpEngine/`.
+  - `EthMacCore` changes select both enabled Ethernet suites because both use
+    `EthMacPkg`.
+  - Changes within either enabled Ethernet test directory select that directory
+    only. Other Ethernet areas force a full run until they join the full CI
+    universe.
 - `tests/common/` always runs on selective CI executions.
 - Any selector error fails open to the full suite.
 
 ## Implementation
 
 - `.github/workflows/surf_ci.yml` owns trigger classification and pytest
-  invocation.
+  invocation. Its full regression target array is defined once and reused by
+  integration runs and selective-mode fallbacks.
 - `tests/common/path_selector.py` owns changed-file parsing and pure path-to-test
   routing.
 - `python -m tests.common` prints pytest directory targets or `FORCE_FULL`.
@@ -40,7 +51,7 @@ ready for review.
 
 ## Validation
 
-- `./.venv/bin/python -m pytest -q tests/common`: `29 passed`.
+- `./.venv/bin/python -m pytest -q tests/common`: `38 passed`.
 - Focused flake8 for the three selector/CLI test files: passed.
 - `python -m compileall -q -f tests/common`: passed.
 - `git diff --check`: passed.
@@ -55,8 +66,10 @@ edits both `.github/workflows/surf_ci.yml` and `tests/common/`.
 
 ## Accepted Tradeoff
 
-The selector intentionally does not infer dependencies between different
-protocol areas. A localized feature push can therefore omit a downstream area
-that consumes the changed protocol. The full post-merge `pre-release` run and
-the full release PR run remain the authoritative integration gates. This is the
-maintenance-for-minimality tradeoff selected for this design.
+The selector intentionally does not infer arbitrary dependencies between
+different protocol areas. Ethernet cross-area routing is explicit only for the
+currently enabled suites and their known `IpV4Engine`/`EthMacPkg` relationships.
+A localized feature push can therefore omit another downstream area. The full
+post-merge `pre-release` run and the full release PR run remain the authoritative
+integration gates. This is the maintenance-for-minimality tradeoff selected for
+this design.

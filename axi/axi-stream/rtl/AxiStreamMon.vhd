@@ -38,6 +38,7 @@ entity AxiStreamMon is
       -- Status Interface
       statusClk    : in  sl;
       statusRst    : in  sl;
+      frameUpdate  : out sl := '0';  -- end-of-frame strobe (only valid when COMMON_CLK_G = true)
       frameCnt     : out slv(63 downto 0);     -- units of frames
       frameSize    : out slv(31 downto 0);     -- units of Byte
       frameSizeMax : out slv(31 downto 0);     -- units of Byte
@@ -56,33 +57,35 @@ architecture rtl of AxiStreamMon is
    constant TIMEOUT_C : natural := getTimeRatio(AXIS_CLK_FREQ_G, 1.0)-1;
 
    type RegType is record
-      frameSent  : sl;
-      sizeValid  : sl;
-      armed      : sl;
-      tValid     : sl;
-      tKeep      : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
-      updated    : sl;
-      timer      : natural range 0 to TIMEOUT_C;
-      accum      : slv(39 downto 0);
-      bandwidth  : slv(39 downto 0);
-      frameAccum : slv(31 downto 0);
-      frameSize  : slv(31 downto 0);
-      frameCnt   : slv(63 downto 0);
+      frameSent   : sl;
+      sizeValid   : sl;
+      armed       : sl;
+      tValid      : sl;
+      tKeep       : slv(AXI_STREAM_MAX_TKEEP_WIDTH_C-1 downto 0);
+      updated     : sl;
+      timer       : natural range 0 to TIMEOUT_C;
+      accum       : slv(39 downto 0);
+      frameUpdate : sl;
+      bandwidth   : slv(39 downto 0);
+      frameAccum  : slv(31 downto 0);
+      frameSize   : slv(31 downto 0);
+      frameCnt    : slv(63 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      frameSent  => '0',
-      sizeValid  => '0',
-      armed      => '0',
-      tValid     => '0',
-      tKeep      => (others => '0'),
-      updated    => '0',
-      timer      => 0,
-      accum      => (others => '0'),
-      bandwidth  => (others => '0'),
-      frameAccum => (others => '0'),
-      frameSize  => (others => '0'),
-      frameCnt   => (others => '0'));
+      frameSent   => '0',
+      sizeValid   => '0',
+      armed       => '0',
+      tValid      => '0',
+      tKeep       => (others => '0'),
+      updated     => '0',
+      timer       => 0,
+      accum       => (others => '0'),
+      frameUpdate => '0',
+      bandwidth   => (others => '0'),
+      frameAccum  => (others => '0'),
+      frameSize   => (others => '0'),
+      frameCnt    => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -192,6 +195,17 @@ begin
          rd_clk => statusClk,
          dout   => frameCnt);
 
+   GEN_FRAME_UPDATE : if COMMON_CLK_G generate
+      RegisterVector_1 : entity surf.RegisterVector
+         generic map (
+            TPD_G   => TPD_G,
+            WIDTH_G => 1)
+         port map (
+            clk      => statusClk,
+            sig_i(0) => r.frameUpdate,
+            reg_o(0) => frameUpdate);
+   end generate GEN_FRAME_UPDATE;
+
    comb : process (axisMaster, axisRst, axisSlave, r) is
       variable v : RegType;
    begin
@@ -199,9 +213,10 @@ begin
       v := r;
 
       -- Reset strobing signals
-      v.tValid    := '0';
-      v.updated   := '0';
-      v.sizeValid := '0';
+      v.tValid      := '0';
+      v.updated     := '0';
+      v.sizeValid   := '0';
+      v.frameUpdate := '0';
 
       -- Check for end of frame
       v.frameSent := axisMaster.tValid and axisMaster.tLast and axisSlave.tReady;
@@ -234,12 +249,13 @@ begin
          -- Check for end of frame
          if (r.frameSent = '1') then
             -- Set the flag
-            v.sizeValid  := r.armed;
-            v.frameSize  := v.frameAccum;
+            v.frameUpdate := r.armed;
+            v.sizeValid   := r.armed;
+            v.frameSize   := v.frameAccum;
             -- Reset the accumulator
-            v.frameAccum := (others => '0');
+            v.frameAccum  := (others => '0');
             -- Confirmed that not in the middle of a frame since reset
-            v.armed      := '1';
+            v.armed       := '1';
          end if;
 
       end if;
