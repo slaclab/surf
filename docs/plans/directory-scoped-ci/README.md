@@ -43,6 +43,10 @@ of the CI policy.
 - `python -m tests.common` prints pytest directory targets or `FORCE_FULL`.
 - `tests/common/test_path_selector.py` covers routing, conservative fallbacks,
   merge-base behavior, and the CLI contract.
+- A manually dispatched workflow may provide a comma-separated
+  `changed_files_override` to exercise the selective execution path on a real
+  GitHub runner. The override is ignored for push and pull-request events, and
+  the workflow writes its selection to the Actions job summary.
 
 ## Status
 
@@ -63,6 +67,11 @@ ready for review.
 No HDL behavior changed, so a full simulator regression was not run locally.
 The branch CI run is expected to take the force-full route because this change
 edits both `.github/workflows/surf_ci.yml` and `tests/common/`.
+
+After the workflow is pushed, a representative narrow validation can be
+dispatched with `protocols/ssi/rtl/SsiFifo.vhd`. Its regression summary should
+show `tests/common tests/protocols/ssi`, while the ordinary push run remains a
+full regression.
 
 ## Accepted Tradeoff
 
