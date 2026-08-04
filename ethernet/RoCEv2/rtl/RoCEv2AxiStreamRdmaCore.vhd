@@ -361,7 +361,7 @@ begin  -- architecture rtl
    sAxisSlave <= AXI_STREAM_SLAVE_FORCE_C when (r.dispatchEnable = '0') else fifoSAxisSlave;
 
    ----------------------------------------------------------------------------
-   -- AxiStreamMon: monitor the FIFO drain stream (fifoMaster/fifoSlave) — frame
+   -- AxiStreamMon: monitor the FIFO drain stream (fifoMaster/fifoSlave) - frame
    -- count/size/rate/bandwidth of the PRBS packets drained into the replay ring.
    -- Single clock (statusClk = axisClk = roceClk => COMMON_CLK_G=true); the status
    -- outputs are exposed read-only on the merged AXI-Lite map (regComb, 0x200+).
