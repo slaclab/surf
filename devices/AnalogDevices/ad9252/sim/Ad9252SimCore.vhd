@@ -40,6 +40,22 @@ architecture rtl of Ad9252SimCore is
    constant PN9_SEED_C  : slv(8 downto 0)  := "011011111";
    constant PN23_SEED_C : slv(22 downto 0) := "01001101110000000101000";
 
+   constant SPI_CONFIG_ADDR_C     : slv(7 downto 0) := X"00";
+   constant CHIP_ID_ADDR_C        : slv(7 downto 0) := X"01";
+   constant CHIP_GRADE_ADDR_C     : slv(7 downto 0) := X"02";
+   constant DEVICE_INDEX2_ADDR_C  : slv(7 downto 0) := X"04";
+   constant DEVICE_INDEX1_ADDR_C  : slv(7 downto 0) := X"05";
+   constant TEST_MODE_ADDR_C      : slv(7 downto 0) := X"0D";
+   constant OUTPUT_MODE_ADDR_C    : slv(7 downto 0) := X"14";
+   constant OUTPUT_PHASE_ADDR_C   : slv(7 downto 0) := X"16";
+   constant USER_PATTERN1_LSB_C   : slv(7 downto 0) := X"19";
+   constant USER_PATTERN1_MSB_C   : slv(7 downto 0) := X"1A";
+   constant USER_PATTERN2_LSB_C   : slv(7 downto 0) := X"1B";
+   constant USER_PATTERN2_MSB_C   : slv(7 downto 0) := X"1C";
+   constant SERIAL_OUTPUT_ADDR_C  : slv(7 downto 0) := X"21";
+   constant CHANNEL_STATUS_ADDR_C : slv(7 downto 0) := X"22";
+   constant TRANSFER_ADDR_C       : slv(7 downto 0) := X"FF";
+
    type ChannelType is record
       testMode     : slv(3 downto 0);
       userMode     : slv(1 downto 0);
@@ -124,41 +140,41 @@ begin
          -------------------------------------------------------------------------------------------
          if (cfgWrEn = '1') then
             case cfgAddr is
-               when X"00" =>
+               when SPI_CONFIG_ADDR_C =>
                   if (cfgWrData(5) = '1' or cfgWrData(2) = '1') then
                      v := REG_INIT_C;
                   end if;
-               when X"04" =>
+               when DEVICE_INDEX2_ADDR_C =>
                   v.selectMask(7 downto 4) := cfgWrData(3 downto 0);
-               when X"05" =>
+               when DEVICE_INDEX1_ADDR_C =>
                   v.selectMask(3 downto 0) := cfgWrData(3 downto 0);
                   v.selectMask(9 downto 8) := cfgWrData(5 downto 4);
-               when X"0D" =>
+               when TEST_MODE_ADDR_C =>
                   v.staged.userMode  := cfgWrData(7 downto 6);
                   v.staged.resetPn23 := cfgWrData(5);
                   v.staged.resetPn9  := cfgWrData(4);
                   v.staged.testMode  := cfgWrData(3 downto 0);
-               when X"14" =>
+               when OUTPUT_MODE_ADDR_C =>
                   v.stagedInvert := cfgWrData(2);
-               when X"16" =>
+               when OUTPUT_PHASE_ADDR_C =>
                   v.staged.outputPhase := cfgWrData(3 downto 0);
-               when X"19" =>
+               when USER_PATTERN1_LSB_C =>
                   v.staged.userPatternA(7 downto 0) := cfgWrData;
-               when X"1A" =>
+               when USER_PATTERN1_MSB_C =>
                   v.staged.userPatternA(13 downto 8) := cfgWrData(5 downto 0);
-               when X"1B" =>
+               when USER_PATTERN2_LSB_C =>
                   v.staged.userPatternB(7 downto 0) := cfgWrData;
-               when X"1C" =>
+               when USER_PATTERN2_MSB_C =>
                   v.staged.userPatternB(13 downto 8) := cfgWrData(5 downto 0);
-               when X"21" =>
+               when SERIAL_OUTPUT_ADDR_C =>
                   assert cfgWrData(2 downto 0) = "000"
                      report "Ad9252SimCore supports only 14-bit serial output"
                      severity failure;
                   v.stagedLsb := cfgWrData(7);
-               when X"22" =>
+               when CHANNEL_STATUS_ADDR_C =>
                   v.staged.outputReset := cfgWrData(1);
                   v.staged.powerDown   := cfgWrData(0);
-               when X"FF" =>
+               when TRANSFER_ADDR_C =>
                   -- Atomically publish global settings and the staged
                   -- channel image to every channel selected by 0x04/0x05.
                   if (cfgWrData(0) = '1') then
@@ -250,20 +266,20 @@ begin
       end loop;
       v.rdData := (others => '0');
       case cfgAddr is
-         when X"00" => v.rdData := "00011000";
-         when X"01" => v.rdData := X"09";
-         when X"02" => v.rdData := X"30";
-         when X"04" => v.rdData(3 downto 0) := r.selectMask(7 downto 4);
-         when X"05" => v.rdData(5 downto 0) := r.selectMask(9 downto 8) & r.selectMask(3 downto 0);
-         when X"0D" => v.rdData := active.userMode & active.resetPn23 & active.resetPn9 & active.testMode;
-         when X"14" => v.rdData(2) := r.outputInvert;
-         when X"16" => v.rdData(3 downto 0) := active.outputPhase;
-         when X"19" => v.rdData := active.userPatternA(7 downto 0);
-         when X"1A" => v.rdData(5 downto 0) := active.userPatternA(13 downto 8);
-         when X"1B" => v.rdData := active.userPatternB(7 downto 0);
-         when X"1C" => v.rdData(5 downto 0) := active.userPatternB(13 downto 8);
-         when X"21" => v.rdData(7) := r.lsbFirst;
-         when X"22" => v.rdData(1 downto 0) := active.outputReset & active.powerDown;
+         when SPI_CONFIG_ADDR_C => v.rdData := "00011000";
+         when CHIP_ID_ADDR_C => v.rdData := X"09";
+         when CHIP_GRADE_ADDR_C => v.rdData := X"30";
+         when DEVICE_INDEX2_ADDR_C => v.rdData(3 downto 0) := r.selectMask(7 downto 4);
+         when DEVICE_INDEX1_ADDR_C => v.rdData(5 downto 0) := r.selectMask(9 downto 8) & r.selectMask(3 downto 0);
+         when TEST_MODE_ADDR_C => v.rdData := active.userMode & active.resetPn23 & active.resetPn9 & active.testMode;
+         when OUTPUT_MODE_ADDR_C => v.rdData(2) := r.outputInvert;
+         when OUTPUT_PHASE_ADDR_C => v.rdData(3 downto 0) := active.outputPhase;
+         when USER_PATTERN1_LSB_C => v.rdData := active.userPatternA(7 downto 0);
+         when USER_PATTERN1_MSB_C => v.rdData(5 downto 0) := active.userPatternA(13 downto 8);
+         when USER_PATTERN2_LSB_C => v.rdData := active.userPatternB(7 downto 0);
+         when USER_PATTERN2_MSB_C => v.rdData(5 downto 0) := active.userPatternB(13 downto 8);
+         when SERIAL_OUTPUT_ADDR_C => v.rdData(7) := r.lsbFirst;
+         when CHANNEL_STATUS_ADDR_C => v.rdData(1 downto 0) := active.outputReset & active.powerDown;
          when others => v.rdData := (others => '1');
       end case;
       rin <= v;
