@@ -44,6 +44,11 @@ Protocol source and test changes similarly select the matching
 all of `tests/dsp/`. Selector errors, unknown paths, build-control changes,
 deletions, and renames fail open to the full regression.
 
+Source changes under `protocols/ssi/`, `protocols/rssi/`, or `protocols/srp/`
+also force a full run because those cores have consumers outside their owned
+protocol test directories. Changes confined to their matching test directories
+remain selectively scoped.
+
 ### Full Runs And Coverage
 
 Pushes to `pre-release` or `main`, tag pushes, and pull requests targeting

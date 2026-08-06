@@ -23,6 +23,9 @@ FORCE_FULL = "FORCE_FULL"
 _FOUNDATIONAL_TREES = (
     "axi",
     "base",
+    "protocols/rssi",
+    "protocols/srp",
+    "protocols/ssi",
     "tests/axi",
     "tests/base",
     "tests/common",

@@ -93,17 +93,17 @@ def test_protocol_without_owned_test_area_runs_all_protocol_tests(tmp_path):
 
 
 def test_multiple_areas_are_sorted_and_deduplicated(tmp_path):
-    _add_test_areas(tmp_path, "protocols", ("ssi",))
+    _add_test_areas(tmp_path, "protocols", ("packetizer",))
     selection = path_selector.select_targets(
         [
-            _change("protocols/ssi/rtl/Changed.vhd"),
+            _change("protocols/packetizer/rtl/Changed.vhd"),
             _change("dsp/generic/rtl/Changed.vhd"),
-            _change("tests/protocols/ssi/test_changed.py"),
+            _change("tests/protocols/packetizer/test_changed.py"),
         ],
         tmp_path,
     )
 
-    assert selection.targets == ("tests/dsp", "tests/protocols/ssi")
+    assert selection.targets == ("tests/dsp", "tests/protocols/packetizer")
 
 
 @pytest.mark.parametrize(
@@ -144,16 +144,38 @@ def test_new_ethernet_area_with_owned_tests_selects_its_area(tmp_path):
 
 def test_combines_ethernet_and_protocol_targets(tmp_path):
     _add_test_areas(tmp_path, "ethernet", ("RoCEv2",))
-    _add_test_areas(tmp_path, "protocols", ("ssi",))
+    _add_test_areas(tmp_path, "protocols", ("packetizer",))
     selection = path_selector.select_targets(
         [
             _change("ethernet/RoCEv2/rtl/Changed.vhd"),
-            _change("protocols/ssi/rtl/Changed.vhd"),
+            _change("protocols/packetizer/rtl/Changed.vhd"),
         ],
         tmp_path,
     )
 
-    assert selection.targets == ("tests/ethernet/RoCEv2", "tests/protocols/ssi")
+    assert selection.targets == ("tests/ethernet/RoCEv2", "tests/protocols/packetizer")
+
+
+@pytest.mark.parametrize("area", ("rssi", "srp", "ssi"))
+def test_cross_area_protocol_source_change_forces_full(tmp_path, area):
+    selection = path_selector.select_targets(
+        [_change(f"protocols/{area}/rtl/Changed.vhd")],
+        tmp_path,
+    )
+
+    assert selection.force_full is True
+    assert selection.reason == f"foundational area changed: protocols/{area}/rtl/Changed.vhd"
+
+
+@pytest.mark.parametrize("area", ("rssi", "srp", "ssi"))
+def test_cross_area_protocol_test_change_selects_owned_suite(tmp_path, area):
+    _add_test_areas(tmp_path, "protocols", (area,))
+    selection = path_selector.select_targets(
+        [_change(f"tests/protocols/{area}/test_changed.py")],
+        tmp_path,
+    )
+
+    assert selection == path_selector.Selection((f"tests/protocols/{area}",))
 
 
 @pytest.mark.parametrize(
@@ -234,15 +256,15 @@ def test_merge_base_uses_pre_release_by_default(monkeypatch, tmp_path):
 
 
 def test_cli_prints_directory_targets(capsys, tmp_path):
-    _add_test_areas(tmp_path, "protocols", ("ssi",))
+    _add_test_areas(tmp_path, "protocols", ("packetizer",))
     result = selector_cli.main(
-        ["--changed-files-override", "protocols/ssi/rtl/Changed.vhd,dsp/generic/rtl/Changed.vhd"],
+        ["--changed-files-override", "protocols/packetizer/rtl/Changed.vhd,dsp/generic/rtl/Changed.vhd"],
         tmp_path,
     )
 
     captured = capsys.readouterr()
     assert result == 0
-    assert captured.out.splitlines() == ["tests/dsp", "tests/protocols/ssi"]
+    assert captured.out.splitlines() == ["tests/dsp", "tests/protocols/packetizer"]
     assert "2 changed file(s)" in captured.err
 
 
