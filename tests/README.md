@@ -44,6 +44,19 @@ Protocol source and test changes similarly select the matching
 all of `tests/dsp/`. Selector errors, unknown paths, build-control changes,
 deletions, and renames fail open to the full regression.
 
+### Full Runs And Coverage
+
+Pushes to `pre-release` or `main`, tag pushes, and pull requests targeting
+`main` run `pytest tests/`. This makes every current test directory a blocking
+integration gate, including `tests/common/` and the `EthMacCore`,
+`IpV4Engine`, and `RawEthFramer` Ethernet suites that were not named in the
+previous explicit target list.
+
+Those integration and release-triggered full runs collect Python coverage and
+upload it to Codecov. Feature-branch runs prioritize fast test feedback and do
+not collect or upload coverage, including when the path selector conservatively
+falls back to running the complete `tests/` tree.
+
 ## Python Test Files
 
 Every checked-in cocotb test file should start with the standard SLAC/SURF
