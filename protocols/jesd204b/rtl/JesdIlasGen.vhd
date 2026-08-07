@@ -6,7 +6,7 @@
 --              Second ILAS multiframe (mfCnt=1) carries /Q/ (0x9C) at octet 1
 --              followed by 14 link-configuration octets (incl. FCHK).
 --
--- Spec: JESD204B §8.2 Figure 50 rules 3/4; §8.3 Table 20/21
+-- Spec: JESD204B 8.2 Figure 50 rules 3/4; 8.3 Table 20/21
 -- Observed: JesdIlasGen previously emitted only /R/ and /A/; second multiframe
 --           lacked /Q/ and link-config octets entirely.
 -- Root cause: No mfCnt tracking; config-octet emission logic absent.
@@ -15,8 +15,8 @@
 --      (DID_G..CF_G) and runtime ports (lid_i, scrEnable_i, subClass_i) are
 --      all defaulted so existing instantiations compile unchanged.
 -- JESDV=001 (JESD204B, Table 20). ADJCNT/ADJDIR/PHADJ left 0 (Subclass-2 only).
--- RES1/RES2 set to 0x00 (Table 21 "set to all X" — transmit as 0).
--- FCHK = Sigma(config[0..12]) mod 256 per §8.3 Table 20 CHKSUM.
+-- RES1/RES2 set to 0x00 (Table 21 "set to all X" - transmit as 0).
+-- FCHK = Sigma(config[0..12]) mod 256 per 8.3 Table 20 CHKSUM.
 -- Interop: SURF RX ILA state counts multiframes, does not parse config octets
 --          (JesdSyncFsmRx ILA_S state); config-octet content cannot break
 --          SURF<->SURF loopback.
@@ -131,7 +131,7 @@ begin
          v.wordCnt := (others => '0');
       end if;
 
-      -- Build 14 config octets per JESD204B §8.3 Table 21
+      -- Build 14 config octets per JESD204B 8.3 Table 21
       -- octet 0: DID[7:0]
       cfg(0)  := DID_G;
       -- octet 1: ADJCNT[7:4]=0 (Subclass-2 only), BID[3:0]

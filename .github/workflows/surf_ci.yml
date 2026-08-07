@@ -83,6 +83,13 @@ jobs:
             exit 1
           fi
 
+      - name: Check for non-ASCII characters in VHDL
+        run: |
+          if LC_ALL=C grep -rnP '[^\x00-\x7F]' --include=\*.vhd .; then
+            echo "Error: Non-ASCII characters found in VHDL source! Some tools (e.g. Cadence Genus) read VHDL with an ASCII codec and will fail. Please use plain ASCII (e.g. '-' instead of en/em dashes)."
+            exit 1
+          fi
+
       - name: Python Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/
