@@ -93,9 +93,19 @@ def _peer_socket(context, socket_type):
     return make_socket(context, socket_type)
 
 
+# Bounded flush budget for peer teardown. `send` only queues into the outbound
+# pipe; the I/O thread writes it afterwards. Closing with LINGER=0 in between
+# discards the frame outright, and nothing in the Stream or SideBand protocol
+# would ever retransmit it. Flush instead, bounded so teardown still cannot
+# hang on an endpoint that never drains.
+CLOSE_LINGER_MS = int(os.environ.get("SIMLINK_PEER_CLOSE_LINGER_MS", "5000"))
+
+
 def _close_peer(context, *sockets):
+    # Linger only delays close while a socket still holds unsent outbound
+    # messages, so the receive-only sockets close immediately regardless.
     for socket in sockets:
-        socket.close(linger=0)
+        socket.close(linger=CLOSE_LINGER_MS)
     context.destroy(linger=0)
 
 
@@ -106,13 +116,21 @@ def _signal_ready(ready_file):
 
 
 def _await_push_connected(push, timeout_ms=CONNECT_TIMEOUT_MS):
-    """Block (bounded) until `push` reports ZMQ_EVENT_CONNECTED, so the first
-    send is not dropped by ZMQ's slow-joiner behavior. MUST be called AFTER
-    _signal_ready(): the model binds only once the orchestrator starts the sim,
-    which waits on the ready file, so the connection can form only after this
-    peer has signaled. Returns True on CONNECTED; raises TimeoutError on
-    timeout (callers treat it as a hard failure)."""
-    monitor = push.get_monitor_socket(zmq.EVENT_CONNECTED)
+    """Block (bounded) until `push` reports ZMQ_EVENT_HANDSHAKE_SUCCEEDED, so
+    the first send is not dropped by ZMQ's slow-joiner behavior. MUST be called
+    AFTER _signal_ready(): the model binds only once the orchestrator starts the
+    sim, which waits on the ready file, so the connection can form only after
+    this peer has signaled. Returns True once the handshake succeeds; raises
+    TimeoutError on timeout (callers treat it as a hard failure).
+
+    ZMQ_EVENT_CONNECTED is deliberately NOT the trigger. It fires when the TCP
+    connection completes, which is before the ZMTP handshake attaches the pipe
+    to the socket, so a send issued on it still lands on a pipe that may be
+    discarded rather than written. Measured over 200 connect-before-bind trials
+    (the ordering this suite uses, where the peer connects while the model has
+    not bound yet), waiting on CONNECTED lost 4 of 400 frames while waiting on
+    HANDSHAKE_SUCCEEDED lost none."""
+    monitor = push.get_monitor_socket(zmq.EVENT_HANDSHAKE_SUCCEEDED)
     try:
         deadline = time.monotonic() + timeout_ms / 1000.0
         while time.monotonic() < deadline:
@@ -122,7 +140,10 @@ def _await_push_connected(push, timeout_ms=CONNECT_TIMEOUT_MS):
             if monitor.poll(timeout=min(remaining_ms, 200)):
                 recv_monitor_message(monitor)
                 return True
-        raise TimeoutError(f"peer PUSH did not connect within {timeout_ms} ms")
+        raise TimeoutError(
+            f"peer PUSH did not connect and complete its ZMTP handshake "
+            f"within {timeout_ms} ms"
+        )
     finally:
         push.disable_monitor()
         monitor.close(linger=0)
