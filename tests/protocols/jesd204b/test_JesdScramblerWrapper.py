@@ -34,9 +34,13 @@ from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.protocols.jesd204b.jesd204b_test_utils import (
     KNOWN_ANSWER_VECTORS,
     JesdTB,
+    jesd_wrapper_sources,
     lfsr_descramble_rx,
     lfsr_scramble_tx,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("JesdScramblerWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # Test bench helper
@@ -281,4 +285,5 @@ def test_JesdScramblerWrapper(parameters):
         toplevel="surf.jesdscramblerwrapper",
         parameters=parameters,
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )

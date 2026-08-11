@@ -41,7 +41,11 @@ from tests.common.regression_utils import (
 from tests.protocols.jesd204b.jesd204b_test_utils import (
     K_CHAR,
     endian_swap_32,
+    jesd_wrapper_sources,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bTxWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # StatusLane bit positions (JesdTxReg.vhd TX_STAT_WIDTH_C=6, JesdTxLane status_o)
@@ -59,7 +63,7 @@ _K28P5_WORD   = (K_CHAR << 24) | (K_CHAR << 16) | (K_CHAR << 8) | K_CHAR
 
 # ---------------------------------------------------------------------------
 # Parameter sweep: L_G in {1,2} x SC1 primary + SC0 smoke
-# K=32/F=2 fixed per plan. L_G and F_G/K_G passed as _G-suffixed HDL generics.
+# K=32/F=2 fixed. L_G and F_G/K_G passed as _G-suffixed HDL generics.
 # SUBCLASS is Python-only env key (stripped by hdl_parameters_from).
 # ---------------------------------------------------------------------------
 PARAMETER_SWEEP = [
@@ -665,4 +669,5 @@ def test_JesdTxReg(parameters):
         toplevel="surf.jesd204btxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
