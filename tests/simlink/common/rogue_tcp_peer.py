@@ -49,7 +49,12 @@ try:
     )
     from tests.simlink.common.zmq_sockets import make_socket
 except ModuleNotFoundError as exc:
-    if exc.name != "tests":
+    # Fall back to the sibling modules whenever anything under the `tests`
+    # package is unreachable, not only the top-level name. A site-packages
+    # directory that ships its own top-level `tests` package (envyaml does)
+    # shadows this repo's, so the failure surfaces as `tests.simlink` rather
+    # than `tests` and the narrower check re-raised instead of falling back.
+    if (exc.name or "").split(".")[0] != "tests":
         raise
     from zmq_sockets import make_socket  # noqa: E402
     from simlink_protocol import (  # noqa: E402

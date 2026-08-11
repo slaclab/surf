@@ -18,6 +18,7 @@
 #   readiness, and teardown through the shared VCS/peer helpers.
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -103,6 +104,10 @@ def test_vcs_persistent_peer_survives_rebuild_and_relaunch():
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
+        env={
+            **os.environ,
+            "SIMLINK_PEER_WAIT_SECONDS": str(vu.PEER_WAIT_SECONDS),
+        },
     )
 
     try:

@@ -48,10 +48,19 @@ def build_and_stage_so(ghdl_dir: Path, sim_build: Path) -> None:
         # into its own cwd (sim_build) in addition to LD_LIBRARY_PATH for the
         # runtime loader (an mcode+llvm loader superset confirmed during
         # bring-up).
-        shutil.copy(
-            build_dir / "libRogueSimLinkVhpiDirect.so",
-            sim_build / "libRogueSimLinkVhpiDirect.so",
-        )
+        #
+        # Stage through a temporary name and rename into place. A plain copy
+        # truncates and rewrites the destination, which corrupts the mapping
+        # any process already holds on it: the ctypes lifecycle tests dlopen
+        # the staged library, and under `--dist=worksteal` a worker can leave
+        # that module and come back, re-running this module-scoped staging
+        # while its earlier handle is still resident. The rewrite then
+        # segfaults the next dlsym. os.replace() installs a new inode instead,
+        # so live mappings of the old one stay valid.
+        staged = sim_build / "libRogueSimLinkVhpiDirect.so"
+        pending = staged.with_name(f".{staged.name}.{os.getpid()}.tmp")
+        shutil.copy(build_dir / "libRogueSimLinkVhpiDirect.so", pending)
+        os.replace(pending, staged)
 
     # Export the build dir on LD_LIBRARY_PATH through os.environ, not only via
     # cocotb-test's `extra_env=`: cocotb-test copies the whole os.environ over

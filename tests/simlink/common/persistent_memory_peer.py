@@ -13,6 +13,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import time
 
@@ -27,14 +28,28 @@ try:
     )
     from tests.simlink.common.zmq_sockets import make_socket
 except ModuleNotFoundError as exc:
-    if exc.name != "tests":
+    # Fall back to the sibling modules whenever anything under the `tests`
+    # package is unreachable, not only the top-level name. A site-packages
+    # directory that ships its own top-level `tests` package (envyaml does)
+    # shadows this repo's, so the failure surfaces as `tests.simlink` rather
+    # than `tests` and the narrower check re-raised instead of falling back.
+    if (exc.name or "").split(".")[0] != "tests":
         raise
     from simlink_protocol import decode_mem_response, encode_mem_request, T_WRITE
     from zmq_sockets import make_socket
 
 
+# Wall-clock budget for every peer wait, including the receive timeout. This
+# peer outlives the simulator by design, so each wait spans a full analyze,
+# elaborate, and run cycle of the process that is about to bind the endpoint.
+# GHDL gets there in seconds; a VCS elaboration of the same leaf takes minutes,
+# so the VCS relaunch test raises this rather than letting the peer die before
+# `simv` binds.
+WAIT_SECONDS = float(os.environ.get("SIMLINK_PEER_WAIT_SECONDS", "60"))
+
+
 def _wait_for_event(monitor, expected, description):
-    deadline = time.monotonic() + 30.0
+    deadline = time.monotonic() + WAIT_SECONDS
     while time.monotonic() < deadline:
         if monitor.poll(timeout=100):
             event = recv_monitor_message(monitor)["event"]
@@ -44,7 +59,7 @@ def _wait_for_event(monitor, expected, description):
 
 
 def _wait_for_file(path, description):
-    deadline = time.monotonic() + 30.0
+    deadline = time.monotonic() + WAIT_SECONDS
     while time.monotonic() < deadline:
         if path.exists():
             return
@@ -74,7 +89,7 @@ def run(port, ready_path, continue_path, result_paths, values):
     context = zmq.Context()
     push = make_socket(context, zmq.PUSH)
     monitor = push.get_monitor_socket(zmq.EVENT_CONNECTED | zmq.EVENT_DISCONNECTED)
-    pull = make_socket(context, zmq.PULL, rcvtimeo_ms=60_000)
+    pull = make_socket(context, zmq.PULL, rcvtimeo_ms=int(WAIT_SECONDS * 1000))
     push.connect(f"tcp://127.0.0.1:{port}")
     pull.connect(f"tcp://127.0.0.1:{port + 1}")
     ready_path.write_text("ready\n")

@@ -30,3 +30,7 @@
 # Raise the multi-instance peer-completion budget, in seconds, on a loaded host
 # (default 60):
 # export SIMLINK_MULTI_MAX_TRAFFIC_SECONDS=120
+# Raise the persistent relaunch peer's wait budget, in seconds, when a
+# simulator takes longer to analyze and elaborate than the peer will wait for
+# it to bind (default 60; the VCS relaunch test sets its own value):
+# export SIMLINK_PEER_WAIT_SECONDS=720

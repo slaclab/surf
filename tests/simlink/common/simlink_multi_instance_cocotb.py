@@ -229,22 +229,47 @@ async def rogue_simlink_multi_instance_traffic_test(dut):
         dut.streamIbLast.value = 0
         dut.sideBandTxEn.value = 0
 
+        # A peer exits as soon as it has pushed its last frame, so peer exit
+        # alone does not mean the DUT has ingested that frame -- the model
+        # only presents it on a later clock edge. Waiting on peer exit by
+        # itself left the inbound checks below racing the transport, which
+        # sampled `None` for whichever lane had not landed yet. Keep clocking
+        # until every inbound observation has arrived as well.
+        def pending_inbound():
+            missing = [
+                f"stream[{tag}]"
+                for tag in range(4)
+                if stream_received[tag] is None
+            ]
+            missing += [
+                f"sideBandOpCode[{tag}]"
+                for tag in range(2)
+                if sideband_opcodes[tag] is None
+            ]
+            # rxRemData is a held level with no arrival strobe of its own, so
+            # its expected value is what marks the frame as delivered.
+            missing += [
+                f"sideBandRemData[{tag}]={sideband_remdata[tag]}"
+                for tag in range(2)
+                if sideband_remdata[tag] != sideband_vectors[tag][0][1]["remData"]
+            ]
+            return missing
+
         deadline = time.monotonic() + MAX_TRAFFIC_SECONDS
         while True:
             await RisingEdge(dut.clock)
             await ReadOnly()
 
-            if all(peer.poll() is not None for peer in peers):
+            running = [peer for peer in peers if peer.poll() is None]
+            inbound = pending_inbound()
+            if not running and not inbound:
                 break
             if time.monotonic() >= deadline:
-                pending = [
-                    (peer.mode, peer.tag, peer.port)
-                    for peer in peers
-                    if peer.poll() is None
-                ]
                 raise TimeoutError(
-                    f"multi-instance peers did not finish within "
-                    f"{MAX_TRAFFIC_SECONDS}s: {pending}"
+                    f"multi-instance traffic did not finish within "
+                    f"{MAX_TRAFFIC_SECONDS}s: peers still running "
+                    f"{[(peer.mode, peer.tag, peer.port) for peer in running]}, "
+                    f"DUT still missing {inbound}"
                 )
 
         for peer in peers:

@@ -30,6 +30,13 @@ MODEL_VHDL_SOURCES = [
 REQUIRED_TOOLS = ("gcc", "make", "pkg-config", "vcs", "vhdlan", "vlogan")
 BUILD_TIMEOUT_SECONDS = 300
 RUN_TIMEOUT_SECONDS = 120
+# Budget for an external peer that must stay alive across one complete phase of
+# a VCS run. run_cocotb() spends up to BUILD_TIMEOUT_SECONDS in vlogan and again
+# in vcs elaboration before `simv` binds the endpoint, then up to
+# RUN_TIMEOUT_SECONDS in the run itself. A peer spawned ahead of that sequence
+# has to outlast all three, so a 30-60 s default leaves it dead long before the
+# model listens.
+PEER_WAIT_SECONDS = (2 * BUILD_TIMEOUT_SECONDS) + RUN_TIMEOUT_SECONDS
 SKIP_REASON = (
     "VCS regression requires Linux, SIMLINK_RUN_VCS=1, VCS_HOME "
     "(version auto-derived; override with VCS_VERSION=<year>), "
