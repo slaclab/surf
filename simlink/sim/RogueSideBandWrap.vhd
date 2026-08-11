@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper for Rogue Sideband Simulation Module
+-- Description: Reusable Rogue SideBand simulation interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -44,14 +44,14 @@ begin
    -- Sim Core
    U_RogueSideBand : entity surf.RogueSideBand
       port map(
-         clock      => sysClk,
-         reset      => sysRst,
-         portNum    => toSlv(PORT_NUM_G, 16),
-         txOpCode   => txOpCode,
-         txOpCodeEn => txOpCodeEn,
-         txRemData  => txRemData,
-         rxOpCode   => rxOpCode,
-         rxOpCodeEn => rxOpCodeEn,
-         rxRemData  => rxRemData);
+         clock      => sysClk,                -- [in]
+         reset      => sysRst,                -- [in]
+         portNum    => toSlv(PORT_NUM_G, 16),  -- [in]
+         txOpCode   => txOpCode,              -- [in]
+         txOpCodeEn => txOpCodeEn,            -- [in]
+         txRemData  => txRemData,             -- [in]
+         rxOpCode   => rxOpCode,              -- [out]
+         rxOpCodeEn => rxOpCodeEn,            -- [out]
+         rxRemData  => rxRemData);            -- [out]
 
 end RogueSideBandWrap;

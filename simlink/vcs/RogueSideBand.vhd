@@ -14,8 +14,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 
 entity RogueSideBand is
    port (
@@ -35,7 +33,7 @@ end RogueSideBand;
 architecture RogueSideBand of RogueSideBand is
 
    attribute FOREIGN of RogueSideBand : architecture is
-      "vhpi:AxiSim:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
+      "vhpi:RogueSimLinkVhpi:VhpiGenericElab:RogueSideBandInit:RogueSideBand";
 
 begin
 

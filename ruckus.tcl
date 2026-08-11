@@ -14,6 +14,7 @@ if { [info exists ::env(OVERRIDE_SUBMODULE_LOCKS)] != 1 || $::env(OVERRIDE_SUBMO
 # Load ruckus files
 loadRuckusTcl "$::DIR_PATH/axi"
 loadRuckusTcl "$::DIR_PATH/base"
+loadRuckusTcl "$::DIR_PATH/simlink"
 loadRuckusTcl "$::DIR_PATH/dsp"
 loadRuckusTcl "$::DIR_PATH/devices"
 loadRuckusTcl "$::DIR_PATH/ethernet"

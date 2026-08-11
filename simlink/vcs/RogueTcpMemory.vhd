@@ -14,8 +14,6 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
 
 entity RogueTcpMemory is
    port (
@@ -55,7 +53,7 @@ end RogueTcpMemory;
 architecture RogueTcpMemory of RogueTcpMemory is
 
    attribute FOREIGN of RogueTcpMemory : architecture is
-      "vhpi:AxiSim:VhpiGenericElab:RogueTcpMemoryInit:RogueTcpMemory";
+      "vhpi:RogueSimLinkVhpi:VhpiGenericElab:RogueTcpMemoryInit:RogueTcpMemory";
 
 begin
 

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Rogue Stream Module Wrapper
+-- Description: Reusable Rogue TCP Memory simulation interface
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -42,27 +42,27 @@ begin
    -- Sim Core
    U_RogueTcpMemory : entity surf.RogueTcpMemory
       port map (
-         clock   => axilClk,
-         reset   => axilRst,
-         portNum => toSlv(PORT_NUM_G, 16),
-         araddr  => axilReadMaster.araddr,
-         arprot  => axilReadMaster.arprot,
-         arvalid => axilReadMaster.arvalid,
-         rready  => axilReadMaster.rready,
-         arready => axilReadSlave.arready,
-         rdata   => axilReadSlave.rdata,
-         rresp   => axilReadSlave.rresp,
-         rvalid  => axilReadSlave.rvalid,
-         awaddr  => axilWriteMaster.awaddr,
-         awprot  => axilWriteMaster.awprot,
-         awvalid => axilWriteMaster.awvalid,
-         wdata   => axilWriteMaster.wdata,
-         wstrb   => axilWriteMaster.wstrb,
-         wvalid  => axilWriteMaster.wvalid,
-         bready  => axilWriteMaster.bready,
-         awready => axilWriteSlave.awready,
-         wready  => axilWriteSlave.wready,
-         bresp   => axilWriteSlave.bresp,
-         bvalid  => axilWriteSlave.bvalid);
+         clock   => axilClk,                 -- [in]
+         reset   => axilRst,                 -- [in]
+         portNum => toSlv(PORT_NUM_G, 16),    -- [in]
+         araddr  => axilReadMaster.araddr,   -- [out]
+         arprot  => axilReadMaster.arprot,   -- [out]
+         arvalid => axilReadMaster.arvalid,  -- [out]
+         rready  => axilReadMaster.rready,   -- [out]
+         arready => axilReadSlave.arready,   -- [in]
+         rdata   => axilReadSlave.rdata,     -- [in]
+         rresp   => axilReadSlave.rresp,     -- [in]
+         rvalid  => axilReadSlave.rvalid,    -- [in]
+         awaddr  => axilWriteMaster.awaddr,  -- [out]
+         awprot  => axilWriteMaster.awprot,  -- [out]
+         awvalid => axilWriteMaster.awvalid, -- [out]
+         wdata   => axilWriteMaster.wdata,   -- [out]
+         wstrb   => axilWriteMaster.wstrb,   -- [out]
+         wvalid  => axilWriteMaster.wvalid,  -- [out]
+         bready  => axilWriteMaster.bready,  -- [out]
+         awready => axilWriteSlave.awready,  -- [in]
+         wready  => axilWriteSlave.wready,   -- [in]
+         bresp   => axilWriteSlave.bresp,    -- [in]
+         bvalid  => axilWriteSlave.bvalid);  -- [in]
 
 end RogueTcpMemoryWrap;
