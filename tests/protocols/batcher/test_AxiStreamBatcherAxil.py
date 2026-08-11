@@ -10,8 +10,7 @@
 
 # Test methodology:
 # - Sweep: Use the `AxiStreamBatcherAxil` wrapper in V2 mode with common and
-#   independent AXI-Lite/stream clocks, matching the control-surface targets
-#   from the batcher regression plan.
+#   independent AXI-Lite/stream clocks, matching the control-surface targets.
 # - Stimulus: Program the runtime threshold, max-subframe, max-clock-gap,
 #   `softRst`, and `blowoff` registers through a cocotb AXI-Lite master while
 #   driving flat AXI Stream subframes through the wrapped batcher.

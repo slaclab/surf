@@ -7,7 +7,7 @@ used for thin wrappers, shims, or required simulation models.
 ## Layout
 
 - Keep executable tests under subsystem packages, such as `tests/base/fifo/`,
-  `tests/axi/axi_stream/`, `tests/protocols/srp/`, or
+  `tests/axi/axi_stream/`, `tests/simlink/`, `tests/protocols/srp/`, or
   `tests/ethernet/UdpEngine/`.
 - Do not add new flat `tests/test_*.py` files.
 - Move superseded flat tests to `tests/legacy/` when they are replaced by
@@ -56,6 +56,13 @@ Pushes to `pre-release` or `main`, tag pushes, and pull requests targeting
 integration gate, including `tests/common/` and the `EthMacCore`,
 `IpV4Engine`, and `RawEthFramer` Ethernet suites that were not named in the
 previous explicit target list.
+
+`tests/simlink/` is the one exception: it is excluded from that invocation and
+run by its own workflow step, on every push, with a bounded worker count. Its
+native ctypes libraries and multi-instance ZeroMQ traffic test are timing
+sensitive, and an unbounded `-n auto` starves the peer handshake. Because no
+changed path maps to `tests/simlink/`, the selector never selects it and the
+dedicated step is what keeps it a blocking gate on feature branches.
 
 Those integration and release-triggered full runs collect Python coverage and
 upload it to Codecov. Feature-branch runs prioritize fast test feedback and do
