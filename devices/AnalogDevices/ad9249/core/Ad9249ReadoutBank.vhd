@@ -84,7 +84,9 @@ begin
          SERIALIZATION_FACTOR_G => 14,
          IODELAY_GROUP_G        => IODELAY_GROUP_G,
          IDELAYCTRL_FREQ_G      => IDELAYCTRL_FREQ_G,
-         DATA_FCO_MAP_G         => (others => 0))
+         -- Ranged-choice (not "others =>") avoids a VCS elaborator segfault when
+         -- driving a generic-sized NaturalArray generic (DATA_LANES_G-1 downto 0).
+         DATA_FCO_MAP_G         => (NUM_CHANNELS_G-1 downto 0 => 0))
       port map (
          adcClkRst     => adcClkRst, -- [in]
          idelayCtrlRdy => idelayCtrlRdy, -- [in]
