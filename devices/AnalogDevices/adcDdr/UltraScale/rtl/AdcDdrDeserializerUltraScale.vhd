@@ -51,9 +51,6 @@ architecture rtl of AdcDdrDeserializerUltraScale is
    signal rawData      : slv(7 downto 0);
    signal gearboxData  : slv(SERIALIZATION_FACTOR_G-1 downto 0);
 
-   attribute IODELAY_GROUP            : string;
-   attribute IODELAY_GROUP of U_Delay : label is IODELAY_GROUP_G;
-
 begin
 
    assert SERIALIZATION_FACTOR_G = 4 or SERIALIZATION_FACTOR_G = 6 or
