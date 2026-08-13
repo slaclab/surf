@@ -399,6 +399,7 @@ class Ad9681Config(pr.Device):
             bitSize     = 2,
             bitOffset   = 4,
             enum        = {
+                0b00: 'Default (14 bits)',  # power-up/reset value; effective 14-bit
                 0b01: '14 bits',
                 0b10: '12 bits',
             },

@@ -310,6 +310,7 @@ class Ad9249ConfigGroup(pr.Device):
             bitSize     = 2,
             bitOffset   = 4,
             enum        = {
+                0b00: 'Default (14 bits)',  # power-up/reset value; effective 14-bit
                 0b01: '14 bits',
                 0b10: '12 bits',
             },
@@ -427,15 +428,21 @@ class Ad9249ReadoutBank(analog_devices.AdcDdr):
             self,
             *,
             deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
+            numChannels: int = 8,
             **kwargs: Any) -> None:
-        """Create one normalized AD9249 bank readout."""
+        """Create one normalized AD9249 bank readout.
+
+        ``numChannels`` must match the RTL ``NUM_CHANNELS_G`` generic; the
+        firmware only implements delay/data registers for the instantiated
+        lanes, so reading a wider map returns an AXI decode error.
+        """
 
         delayBits = analog_devices.adcDdrDelayBits(deviceFamily)
-        kwargs.setdefault('description', 'One normalized eight-channel AD9249 output bank')
+        kwargs.setdefault('description', 'One normalized AD9249 output bank')
         super().__init__(
-            dataLanes           = 8,
+            dataLanes           = numChannels,
             fcoLanes            = 1,
-            channels            = 8,
+            channels            = numChannels,
             sampleBits          = 14,
             serializationFactor = 14,
             delayBits           = delayBits,
@@ -470,7 +477,7 @@ class Ad9249ReadoutBankCalibration(analog_devices.AdcDdrCalibration):
         super().__init__(
             config            = config,
             readout           = readout,
-            dataLaneToChannel = tuple(range(8)),
+            dataLaneToChannel = tuple(range(readout._dataLanes)),
             pn23Reset         = config.ResetPNLong,
             **kwargs)
 
