@@ -14,9 +14,32 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-on: [push]
+# Triggers: every push runs the workflow (directory-scoped regression on
+# feature branches, full on pre-release/main/tags); PRs into main additionally
+# run it in full.
+# A feature branch with an open PR into main therefore runs the regression
+# job twice per push -- once selective (push ref) and once full (PR merge
+# ref). Distinct event/ref concurrency groups prevent push, PR, and manual
+# validation runs from cancelling one another. This is intentional: the push
+# run gives fast per-commit feedback and the PR run is the full pre-merge
+# release gate. In this repo feature branches normally target pre-release, so
+# the double run is confined to release PRs. The post-merge push to pre-release
+# is also full so the integration branch is checked after every feature merge.
+# Manual dispatch can simulate a changed-path list to exercise selective
+# execution on a runner; it does not alter the path source used by push or
+# pull-request events.
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      changed_files_override:
+        description: Comma-separated paths used to exercise selective CI without changing push/PR policy
+        required: false
+        type: string
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -91,6 +114,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
@@ -111,12 +136,88 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: Parallel Regression Tests
+      - name: Determine run mode
+        id: mode
         run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/main" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/pre-release" ]] \
+             || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=selective" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Parallel Regression Tests
+        env:
+          CHANGED_FILES_OVERRIDE: ${{ inputs.changed_files_override }}
+        run: |
+          # Define the full regression universe once so integration runs and
+          # selective-mode fallbacks cannot drift apart as suites are added.
+          full_targets=(
+            tests
+          )
+
+          # Full integration/release runs build and simulate on apt mcode GHDL
+          # and collect the coverage consumed by Codecov.
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            make MODULES=$PWD import
+            python -m pytest --cov -v -n auto --dist=worksteal "${full_targets[@]}"
+            exit 0
+          fi
+
+          # Feature-branch pushes compare with origin/pre-release and map
+          # localized protocol/DSP/Ethernet paths to matching pytest
+          # directories. Any foundational, build-control, deleted/renamed,
+          # unknown, or otherwise indeterminate change emits FORCE_FULL.
+          selector_args=()
+          selection_source="git diff against origin/pre-release"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] \
+             && [[ -n "${CHANGED_FILES_OVERRIDE}" ]]; then
+            selector_args+=(--changed-files-override "${CHANGED_FILES_OVERRIDE}")
+            selection_source="manual changed-path simulation"
+          fi
+
+          if selector_output="$(python -m tests.common "${selector_args[@]}")"; then
+            selector_rc=0
+          else
+            selector_rc=$?
+          fi
+
+          echo "${selector_output}"
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols tests/ethernet/RoCEv2 tests/ethernet/UdpEngine
+
+          if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
+            echo "Directory selector forced a full run (rc=${selector_rc})"
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: full regression"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${full_targets[@]}"
+          else
+            # tests/common contains the selector's policy tests and always runs
+            # alongside any directory-owned cocotb targets.
+            targets=(tests/common)
+            if [[ -n "${selector_output}" ]]; then
+              mapfile -t selected < <(printf '%s\n' "${selector_output}")
+              targets+=("${selected[@]}")
+            else
+              echo "No directory-owned cocotb tests for this change set -- running tests/common only."
+            fi
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: selective regression"
+              echo "- Pytest targets: \`${targets[*]}\`"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
+          fi
 
       - name: Code Coverage
+        if: steps.mode.outputs.value == 'full'
         run: |
           codecov
           coverage report -m
@@ -150,6 +251,7 @@ jobs:
 
   gen_release:
     needs: [lint, test, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
@@ -160,6 +262,7 @@ jobs:
 
   conda_build_lib:
     needs: [lint, test, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:
       version: '1.0.0'
