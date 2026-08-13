@@ -17,7 +17,10 @@ make -C "$ROOT/simlink/vcs" clean >/dev/null 2>&1 || true
 
 echo "== VCS VHPI layer"
 echo "   VCS_HOME=${VCS_HOME:-<unset>}  (version year auto-derived; override VCS_VERSION=<year>)"
-echo "   tests: 4 Stream / 2 Memory / 2 SideBand instances, tagged traffic + post-traffic reset"
+echo "   tests: multi-instance (4 Stream / 2 Memory / 2 SideBand tagged traffic +"
+echo "          post-traffic reset) and persistent-peer simulator relaunch"
 echo "   sim_build: tests/sim_build/simlink/vcs (cleaned each run)"
 
-layer_run_sim tests/simlink/vcs/test_RogueVcsMultiInstance.py
+# Run the whole vcs/ directory so every VCS test is covered (multi-instance and
+# relaunch today, plus any added later) rather than a single hardcoded file.
+layer_run_sim tests/simlink/vcs
