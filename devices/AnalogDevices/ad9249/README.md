@@ -163,10 +163,13 @@ adcStreamRst  => adcStreamRst,     -- [in]
 For 7-Series, instantiate or reuse a target-owned `IDELAYCTRL`, match its
 `IODELAY_GROUP` to `IODELAY_GROUP_G`, constrain its reference clock at
 `IDELAYCTRL_FREQ_G`, and connect `RDY` to `idelayCtrlRdy`. Do not tie readiness
-high merely to bypass startup sequencing in hardware.
+high merely to bypass startup sequencing in hardware. The input defaults low,
+and any later loss of `RDY` holds the readout PHY in reset until readiness
+returns. The target must reset `IDELAYCTRL` after its reference clock is stable;
+the readout does not generate that target-owned reset.
 
 UltraScale/UltraScale+ uses `IDELAYE3` count mode and does not use
-`IDELAYCTRL`; tie `idelayCtrlRdy` high explicitly or accept its default.
+`IDELAYCTRL`; the selected PHY ignores the low `idelayCtrlRdy` default.
 
 `adcStreamRst` resets the coherent stream-domain FIFO/output state and must be
 valid in the `adcStreamClk` domain.

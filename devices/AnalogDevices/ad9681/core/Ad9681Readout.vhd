@@ -46,7 +46,7 @@ entity Ad9681Readout is
       axilReadSlave   : out AxiLiteReadSlaveType;
 
       adcClkRst     : in sl;
-      idelayCtrlRdy : in sl := '1';
+      idelayCtrlRdy : in sl := '0';
       adcSerial     : in Ad9681SerialType;
 
       adcStreamClk : in  sl;

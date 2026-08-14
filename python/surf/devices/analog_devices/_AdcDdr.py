@@ -304,7 +304,7 @@ class AdcDdr(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DelayReady',
-            description = 'Input-delay controller is ready',
+            description = 'Input-delay controller is ready; low holds the capture PHY in reset',
             offset      = 0x01C,
             bitSize     = 1,
             bitOffset   = 1,

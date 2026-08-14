@@ -44,7 +44,7 @@ entity Ad9249Readout is
       axilReadSlave   : out AxiLiteReadSlaveType;
 
       adcClkRst     : in sl;
-      idelayCtrlRdy : in slv(1 downto 0) := (others => '1');
+      idelayCtrlRdy : in slv(1 downto 0) := (others => '0');
       adcSerial     : in Ad9249SerialGroupArray(1 downto 0);
 
       adcStreamClk : in  sl;

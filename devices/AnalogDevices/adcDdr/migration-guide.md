@@ -31,9 +31,9 @@ old `0x100`-byte AXI-Lite slot or place the next endpoint inside this window.
 
 AdcDdr-based wrappers add two target-facing inputs:
 
-- `idelayCtrlRdy` reports that the target-owned input-delay controller is ready.
-  Drive the real ready indication in hardware. A constant `'1'` is appropriate
-  only when readiness is guaranteed externally or in focused simulation.
+- `idelayCtrlRdy` reports that the target-owned input-delay controller is ready
+  and defaults low. Drive the real ready indication in 7-Series hardware. The
+  UltraScale/UltraScale+ PHY ignores this input.
 - `adcStreamRst` resets the coherent stream-domain FIFO and output state. Drive
   the reset synchronous to `adcStreamClk` according to the target reset plan.
 
@@ -42,6 +42,12 @@ The target must also provide an `IDELAYCTRL` with an `IODELAY_GROUP` matching
 pin and timing constraints remain target-owned; update the project's top-level
 XDC for its actual pinout, ADC mode, DCO frequency, datasheet timing, PCB skew,
 and clocking hierarchy.
+
+If `IDELAYCTRL.RDY` deasserts after startup, the readout holds its PHY in reset,
+clears alignment, stops sample writes, aborts an outstanding snapshot with
+`SLVERR`, and waits for readiness to return before reloading every retained
+delay. The target must reset `IDELAYCTRL` after its reference clock is stable;
+the readout intentionally does not generate the target-owned controller reset.
 
 The normalized stream contract is:
 

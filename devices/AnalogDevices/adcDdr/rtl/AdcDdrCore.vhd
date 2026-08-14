@@ -276,7 +276,8 @@ begin
       -- the saturating lost-lock counter.
       ----------------------------------------------------------------------------------------------
       for i in FCO_LANES_G-1 downto 0 loop
-         if (r.relock = '1' or r.phyReset = '1' or r.startupPending = '1') then
+         if (r.relock = '1' or r.phyReset = '1' or r.startupPending = '1' or
+             delayReady = '0') then
             v.locked(i)     := '0';
             v.matchCount(i) := 0;
             v.errorCount(i) := 0;
@@ -371,7 +372,7 @@ begin
       -- after the fourth group prevents AXI software from observing a snapshot
       -- assembled from different requests.
       ----------------------------------------------------------------------------------------------
-      if (r.debugBusy = '1' and sampleValid = '1') then
+      if (r.debugBusy = '1' and sampleValid = '1' and delayReady = '1') then
          for i in CHANNELS_G-1 downto 0 loop
             v.debugWorking((r.debugIndex*CHANNELS_G)+i) :=
                resize(sampleIn(i)(SAMPLE_WIDTH_G-1 downto 0), 16);
@@ -402,7 +403,11 @@ begin
       snapshotTxn := r.debugBusy;
       if (r.debugBusy = '1') then
          ep.axiStatus.writeEnable := '0';
-         if (sampleValid = '1' and r.debugIndex = 3) then
+         if (delayReady = '0') then
+            v.debugBusy  := '0';
+            v.debugIndex := 0;
+            axiSlaveWriteResponse(ep.axiWriteSlave, AXI_RESP_SLVERR_C);
+         elsif (sampleValid = '1' and r.debugIndex = 3) then
             axiSlaveWriteResponse(ep.axiWriteSlave);
          end if;
       elsif (ep.axiStatus.writeEnable = '1' and
@@ -411,7 +416,7 @@ begin
              ep.axiWriteMaster.wdata(0) = '1') then
          snapshotTxn := '1';
          ep.axiStatus.writeEnable := '0';
-         if (r.phyReset = '1' or r.startupPending = '1') then
+         if (r.phyReset = '1' or r.startupPending = '1' or delayReady = '0') then
             axiSlaveWriteResponse(ep.axiWriteSlave, AXI_RESP_SLVERR_C);
          else
             v.debugBusy  := '1';
@@ -471,12 +476,12 @@ begin
                       AXI_RESP_DECERR_C, snapshotTxn);
 
       ----------------------------------------------------------------------------------------------
-      -- Hold the PHY after capture reset until its delay resources are ready,
-      -- then apply every configured delay and release alignment automatically.
-      -- A manual reset rearms the same sequence, so releasing it also waits for
-      -- delay readiness and reapplies all retained values.
+      -- Hold the PHY whenever its delay resources are not ready, then apply
+      -- every retained delay and release alignment automatically. A manual
+      -- reset rearms the same sequence. The target owns IDELAYCTRL reset and
+      -- must restore delayReady after any loss of readiness.
       ----------------------------------------------------------------------------------------------
-      if (v.phyReset = '1') then
+      if (delayReady = '0' or v.phyReset = '1') then
          v.startupPending := '1';
       elsif (r.startupPending = '1' and delayReady = '1') then
          v.startupPending := '0';
@@ -568,7 +573,7 @@ begin
       port map (
          rst           => captureRst or streamRst, -- [in]
          wr_clk        => captureClk,              -- [in]
-         wr_en         => r.sampleValid and not r.phyReset and not r.startupPending, -- [in]
+         wr_en         => r.sampleValid and delayReady and not r.phyReset and not r.startupPending, -- [in]
          din           => fifoIn,                  -- [in]
          wr_data_count => open,                    -- [out]
          wr_ack        => open,                    -- [out]

@@ -26,6 +26,25 @@ device-neutral software calibration process is
 Device adapters in `_Ad9249.py`, `_Ad9252.py`, and `_Ad9681.py` supply the
 physical-lane mapping and ADC configuration behavior.
 
+## Delay Controller Readiness
+
+The `idelayCtrlRdy` input defaults low so an omitted 7-Series connection holds
+the capture PHY safely in reset. A 7-Series target must instantiate or reuse an
+`IDELAYCTRL`, match its `IODELAY_GROUP`, and connect the controller's `RDY`
+output. UltraScale and UltraScale+ use `IDELAYE3` count mode; their selected PHY
+does not use `idelayCtrlRdy`.
+
+If readiness drops after startup, the common core clears frame alignment,
+resets the deserializers, stops sample writes, and aborts an outstanding debug
+snapshot with `SLVERR`. Programmed data and FCO delays remain retained. When
+readiness returns, the core reloads every retained delay before releasing the
+PHY and reacquiring alignment.
+
+The target owns `IDELAYCTRL` reset generation because it also owns the reference
+clock and knows when that clock is stable. If `RDY` deasserts, the target must
+reset the controller according to the AMD primitive requirements; the common
+readout does not generate that reset request.
+
 ## Calibration Model
 
 Calibration finds a stable sampling point for every FCO and physical data lane.

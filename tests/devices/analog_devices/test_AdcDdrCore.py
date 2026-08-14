@@ -13,14 +13,15 @@
 #   optional pattern engine both enabled and disabled.
 # - Stimulus: Access the relocatable block at a nonzero absolute AXI address,
 #   verify hardware-owned startup waits for delay readiness and loads every
-#   configured delay, exercise the manual reset/reload path and required DDR
-#   bitslip quiet interval, acquire lock, stream samples, load every delay
-#   class, and snapshot sample history.
+#   configured delay, exercise manual and readiness-loss reset/reload paths and
+#   the required DDR bitslip quiet interval, acquire lock, stream samples, load
+#   every delay class, and snapshot sample history.
 # - Checks: AXI status follows alignment, streams preserve both channels and
-#   sidebands, delay requests are width-limited and read back, snapshot writes
-#   reject reset state and block until publication, and AXI transactions
-#   execute coherently in the capture domain; the pattern window is
-#   capability-gated and reports its shared-phase result through AXI-Lite.
+#   sidebands, delay requests are width-limited and retained across readiness
+#   loss, an in-flight snapshot aborts with SLVERR, snapshot writes reject reset
+#   state and otherwise block until publication, and AXI transactions execute
+#   coherently in the capture domain; the pattern window is capability-gated
+#   and reports its shared-phase result through AXI-Lite.
 # - Timing: AXI-Lite is crossed as a complete bus into the capture clock domain;
 #   one wide FIFO crosses coherent channel samples to the stream clock.
 
@@ -232,6 +233,63 @@ async def core_integration_test(dut):
     await load
     await axil_poll(axil, 0x104, lambda value: value == 0x13)
     await axil_poll(axil, 0x200, lambda value: value == 0x14)
+
+    # Loss of delay readiness is a hardware-owned reset request. Abort an
+    # outstanding snapshot, clear alignment, suppress samples, and retain the
+    # programmed delays for automatic reload when readiness returns.
+    snapshot = cocotb.start_soon(
+        axil.write(AXIL_BASE_ADDR + 0x014, (0x01).to_bytes(4, 'little')))
+    await Timer(500, unit="ns")
+    assert not snapshot.done()
+    for index in range(3):
+        await FallingEdge(dut.captureClk)
+        dut.sampleIn.value = ((0x0300 + index) << 16) | (0x0200 + index)
+        dut.sampleValid.value = 1
+        await RisingEdge(dut.captureClk)
+        await Timer(2, unit="ns")
+        dut.sampleValid.value = 0
+        assert not snapshot.done()
+
+    # Drop readiness with what would otherwise be the publishing fourth sample.
+    # Readiness loss takes priority, so the snapshot sequence must not advance.
+    await FallingEdge(dut.captureClk)
+    dut.delayReady.value = 0
+    dut.sampleValid.value = 1
+    await RisingEdge(dut.captureClk)
+    await Timer(2, unit="ns")
+    dut.sampleValid.value = 0
+    response = await snapshot
+    assert response.resp == AxiResp.SLVERR
+    assert int(dut.phyReset.value) == 1
+    assert await axil_read_u32(axil, 0x01C) & 0x07 == 0
+    assert await axil_read_u32(axil, 0x024) == 0
+    assert await axil_read_u32(axil, 0x100) == 0x1F
+    assert await axil_read_u32(axil, 0x104) == 0x13
+    assert await axil_read_u32(axil, 0x200) == 0x14
+
+    await FallingEdge(dut.captureClk)
+    dut.sampleIn.value = 0x0123_0234
+    dut.sampleValid.value = 1
+    for _ in range(4):
+        await RisingEdge(dut.captureClk)
+    dut.sampleValid.value = 0
+    for _ in range(20):
+        await RisingEdge(dut.streamClk)
+        await Timer(1, unit="ns")
+        assert int(dut.streamValid.value) == 0
+
+    data_load = cocotb.start_soon(wait_load(dut.captureClk, dut.dataDelayLoad, 0x3))
+    fco_load = cocotb.start_soon(wait_load(dut.captureClk, dut.fcoDelayLoad, 0x1))
+    await FallingEdge(dut.captureClk)
+    dut.delayReady.value = 1
+    await data_load
+    await fco_load
+    assert int(dut.dataDelayValue.value) == 0x0013_001F
+    assert int(dut.fcoDelayValue.value) == 0x0014
+    await RisingEdge(dut.captureClk)
+    await Timer(2, unit="ns")
+    assert int(dut.phyReset.value) == 0
+    await axil_poll(axil, 0x01C, lambda value: (value & 0x07) == 0x06)
 
     dut.sampleIn.value = 0x2000_1000
     snapshot = cocotb.start_soon(axil_write_u32(axil, 0x014, 0x01))

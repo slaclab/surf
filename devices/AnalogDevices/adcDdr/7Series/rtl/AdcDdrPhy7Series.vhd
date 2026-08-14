@@ -33,7 +33,7 @@ entity AdcDdrPhy7Series is
       DATA_FCO_MAP_G         : NaturalArray(DATA_LANES_G-1 downto 0)   := (others => 0));
    port (
       adcClkRst     : in sl;
-      idelayCtrlRdy : in sl := '1';
+      idelayCtrlRdy : in sl := '0';
       phyReset      : in sl;
       dClkP         : in sl;
       dClkN         : in sl;
