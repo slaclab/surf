@@ -44,8 +44,12 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
     wait_data_valid_all,
     forward_gt_loopback,
     inject_disparity_err,
+    jesd_wrapper_sources,
     lfsr_scramble_tx,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bLoopbackWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # RX status bit constants (JesdRxLane.vhd:322 confirmed)
@@ -1197,6 +1201,7 @@ def test_Jesd204bLoopback(parameters):
         toplevel="surf.jesd204bloopbackwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
 
 
@@ -1211,6 +1216,7 @@ def test_Jesd204bLoopbackDlat(parameters):
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_dlat_sweep",
         ),
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
 
 
@@ -1229,6 +1235,7 @@ def test_Jesd204bLoopbackResync(parameters):
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_resync_matrix",
         ),
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
 
 
@@ -1243,4 +1250,5 @@ def test_Jesd204bLoopbackRst02(parameters):
             parameters,
             COCOTB_TEST_FILTER="test_jesd204b_rst02",
         ),
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
