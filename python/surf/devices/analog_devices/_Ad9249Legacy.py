@@ -30,7 +30,7 @@ class Ad9249ReadoutGroup(pr.Device):
             fpga        = '7series',
             channels    = 8,
             **kwargs):
-        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
+        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 1 and 8'
         super().__init__(name=name, description=description, **kwargs)
 
         if fpga == '7series':
