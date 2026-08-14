@@ -21,11 +21,18 @@
 #   snapshot, and settling behavior is covered by the calibration mock test.
 
 import pytest
-import pyrogue as pr
-import rogue
-import rogue.interfaces.memory as rim
 
-from surf.devices.analog_devices import (
+pr = pytest.importorskip(
+    'pyrogue',
+    reason='ADC DDR model tests require Rogue/PyRogue')
+rogue = pytest.importorskip(
+    'rogue',
+    reason='ADC DDR model tests require Rogue/PyRogue')
+rim = pytest.importorskip(
+    'rogue.interfaces.memory',
+    reason='ADC DDR model tests require Rogue/PyRogue')
+
+from surf.devices.analog_devices import (  # noqa: E402
     Ad9249Config,
     Ad9249ConfigGroup,
     Ad9249ChipConfig,

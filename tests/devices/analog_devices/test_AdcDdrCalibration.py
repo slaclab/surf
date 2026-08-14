@@ -26,9 +26,12 @@ import threading
 import time
 
 import pytest
-import pyrogue as pr
 
-from surf.devices.analog_devices import (
+pr = pytest.importorskip(
+    'pyrogue',
+    reason='ADC DDR calibration tests require Rogue/PyRogue')
+
+from surf.devices.analog_devices import (  # noqa: E402
     AdcDdrCalibration,
     checkAdcDdrPn23,
     findAdcDdrEye,
