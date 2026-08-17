@@ -34,11 +34,10 @@ from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
-from tests.ethernet.RoCEv2.roce_test_utils import expected_resize_and_swap_bytes, roce_rtl_sources
+from tests.ethernet.RoCEv2.roce_test_utils import expected_resize_and_swap_bytes
 
 
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/RoceResizeAndSwapIpIntegrator.vhd"
-RTL_SOURCES = roce_rtl_sources("RoceResizeAndSwap.vhd")
 
 
 class TB:
@@ -164,5 +163,5 @@ def test_RoceResizeAndSwap(parameters):
         toplevel="surf.roceresizeandswapipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": RTL_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": [WRAPPER_PATH]},
     )
