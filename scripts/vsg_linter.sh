@@ -26,6 +26,13 @@ while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/i2c/rtl/I2cSlave.vhd" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../xilinx/xvc-udp/dcp" -type f -name "*.vhd")
 while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../protocols/rssi" -type f -name "*.vhd") # Preventing merge conflict with https://github.com/slaclab/surf/pull/1252 for now
+# Machine-generated blue-rdma VHDL, never hand-edited: it is regenerated from
+# its Bluespec-generated Verilog source rather than modified in place, so style
+# findings here cannot be acted on. mkQP.vhd is 11796 lines and trips length_002
+# (file over 10000 lines); both files also trip length_001 (lines over 1000
+# characters). Nothing else under blue-rdma reports a finding today.
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../ethernet/RoCEv2/blue-rdma/mkQP.vhd" -type f -name "*.vhd")
+while IFS= read -r file; do EXCLUDE_FILES+=("$file"); done < <(find "$SCRIPT_DIR/../ethernet/RoCEv2/blue-rdma/mkTransportLayer.vhd" -type f -name "*.vhd")
 
 # Build a lookup table using associative array
 declare -A EXCLUDE_MAP
