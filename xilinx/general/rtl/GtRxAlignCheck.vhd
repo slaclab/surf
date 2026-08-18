@@ -317,8 +317,8 @@ begin
       if (r.rstRetryCnt = '1') then
          -- Reset clause first
          v.retryCnt := (others => '0');
-      elsif (v.rst = '1' and r.rst = '0' and resetInSync = '0' and resetErrValidSync = '0') then
-         -- Edge-triggered
+      elsif (v.rst = '1' and r.rst = '0' and resetInSync = '0' and resetErrValidSync = '0' and r.retryCnt /= x"FFFF") then
+         -- Edge-triggered and saturates instead of rolling over
          v.retryCnt := r.retryCnt + 1;
       end if;
 
