@@ -272,10 +272,12 @@ begin
                v.req.request := '0';
                -- Get the index pointer
                i             := conv_integer(ack.rdData(6 downto 0));
-               -- Increment the counter
-               v.sample(i)   := r.sample(i) + 1;
+               -- Increment the counter (7-bit DRP field can exceed the sample array)
+               if (i < r.sample'length) then
+                  v.sample(i) := r.sample(i) + 1;
+               end if;
                -- Save the last byte alignment check
-               v.last        := ack.rdData(15 downto 0);
+               v.last := ack.rdData(15 downto 0);
                -- Check the byte alignment
                if ((((ack.rdData(6 downto 0) xor r.tgt) and r.mask) = toSlv(0, 7))
                    or v.override = '1') then
