@@ -36,11 +36,11 @@ entity GtRxAlignCheck is
       rxClk            : in  sl;
       refClk           : in  sl;
       -- GTH Status/Control Interface
-      resetIn          : in  sl;
-      resetOut         : out sl;
-      resetDone        : in  sl;
-      resetErr         : in  sl;
-      locked           : out sl;
+      resetIn          : in  sl;            -- ASYNC to axilClk
+      resetOut         : out sl;            -- SYNC to axilClk
+      resetDone        : in  sl;            -- ASYNC to axilClk
+      resetErr         : in  sl;            -- ASYNC to axilClk
+      locked           : out sl;            -- SYNC to axilClk
       -- Clock and Reset
       axilClk          : in  sl;
       axilRst          : in  sl;
@@ -112,6 +112,10 @@ architecture rtl of GtRxAlignCheck is
 
    signal ack : AxiLiteAckType;
 
+   signal resetInSync       : sl;
+   signal resetDoneSync     : sl;
+   signal resetErrValid     : sl;
+   signal resetErrValidSync : sl;
 
    signal txClkFreq  : slv(31 downto 0);
    signal rxClkFreq  : slv(31 downto 0);
@@ -161,8 +165,36 @@ begin
          locClk  => axilClk,
          refClk  => axilClk);
 
-   comb : process (ack, axilRst, r, refClkFreq, resetDone, resetErr, resetIn,
-                   rxClkFreq, sAxilReadMaster, sAxilWriteMaster, txClkFreq) is
+   U_resetInSync : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => resetIn,
+         dataOut => resetInSync);
+
+   U_resetDoneSync : entity surf.Synchronizer
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => resetDone,
+         dataOut => resetDoneSync);
+
+   -- Qualify the error with done in the GT's RX clock domain, before the CDC.
+   resetErrValid <= resetDone and resetErr;
+
+   U_resetErrValidSync : entity surf.SynchronizerOneShot
+      generic map (
+         TPD_G => TPD_G)
+      port map (
+         clk     => axilClk,
+         dataIn  => resetErrValid,
+         dataOut => resetErrValidSync);
+
+   comb : process (ack, axilRst, r, refClkFreq, resetDoneSync,
+                   resetErrValidSync, resetInSync, rxClkFreq, sAxilReadMaster,
+                   sAxilWriteMaster, txClkFreq) is
       variable v      : RegType;
       variable axilEp : AxiLiteEndpointType;
       variable i      : natural;
@@ -211,7 +243,7 @@ begin
             -- Check the counter
             if (r.rstcnt = r.rstlen) then
                -- Wait for the reset transition
-               if (resetDone = '0') then
+               if (resetDoneSync = '0') then
                   -- Reset the counter
                   v.rstcnt := (others => '0');
                   -- Next state
@@ -224,7 +256,7 @@ begin
          ----------------------------------------------------------------------
          when READ_S =>
             -- Wait for the reset transition and check state of master AXI-Lite
-            if (resetDone = '1') and (ack.done = '0') then
+            if (resetDoneSync = '1') and (ack.done = '0') then
                -- Start the master AXI-Lite transaction
                v.req.request := '1';
                v.req.rnw     := '1';    -- read operation
@@ -269,7 +301,7 @@ begin
       end if;
 
       -- Check for user reset
-      if (resetIn = '1') or (resetErr = '1' and resetDone = '1') then
+      if (resetInSync = '1') or (resetErrValidSync = '1') then
          -- Setup flags for reset state
          v.rst         := '1';
          v.req.request := '0';
@@ -283,7 +315,7 @@ begin
       if (r.rstRetryCnt = '1') then
          -- Reset clause first
          v.retryCnt := (others => '0');
-      elsif (v.rst = '1' and r.rst = '0' and resetIn = '0' and resetErr = '0') then
+      elsif (v.rst = '1' and r.rst = '0' and resetInSync = '0' and resetErrValidSync = '0') then
          -- Edge-triggered
          v.retryCnt := r.retryCnt + 1;
       end if;
