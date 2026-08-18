@@ -298,6 +298,9 @@ begin
       end case;
 
       -- Check for software controlled sampler reset
+      -- Note: tgt/mask/rstlen share offset 0x100, so a write that only updates
+      --       those fields also clears the samples. The fields themselves keep
+      --       their newly written values; only r.sample is cleared here.
       if (axilEp.axiStatus.writeEnable = '1') and (sAxilWriteMaster.awaddr(8 downto 0) = toSlv(256, 9)) then
          v.sample := (others => (others => '0'));
       end if;
