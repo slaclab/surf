@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1140" role="img" aria-labelledby="title description">
+  <title id="title">PtpCore RTL composition and signal flow</title>
+  <desc id="description">Four separate lanes show module composition, packet and timestamp flow, PHC control, and register access without crossing signal lines.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <style>
+      text {
+        fill: #172033;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #475569; }
+      .panel-title { font-size: 20px; font-weight: 700; }
+      .group-title { font-size: 16px; font-weight: 700; fill: #3730a3; }
+      .box-label { font-size: 17px; font-weight: 650; text-anchor: middle; }
+      .small-label { font-size: 14px; fill: #475569; text-anchor: middle; }
+      .edge-label { font-size: 14px; font-weight: 600; fill: #334155; text-anchor: middle; }
+      .note { font-size: 14px; fill: #475569; }
+      .panel { fill: #ffffff; stroke: #94a3b8; stroke-width: 1.5; rx: 12; }
+      .group { fill: #eef2ff; stroke: #6366f1; stroke-width: 2; rx: 10; }
+      .box { fill: #f8fafc; stroke: #334155; stroke-width: 2; rx: 8; }
+      .tap { fill: #ecfeff; stroke: #0891b2; stroke-width: 2; rx: 8; }
+      .selector { fill: #fff7ed; stroke: #ea580c; stroke-width: 2; rx: 8; }
+      .wire { fill: none; stroke: #334155; stroke-width: 2.5; marker-end: url(#arrow); }
+      .observe { fill: none; stroke: #0891b2; stroke-width: 2.5; stroke-dasharray: 8 6; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1140" fill="#f1f5f9"/>
+  <text class="title" x="40" y="45">PtpCore RTL composition and signal flow</text>
+  <text class="subtitle" x="40" y="70">Each lane answers one question; repeated boxes denote the same RTL entity.</text>
+
+  <!-- Composition lane -->
+  <rect class="panel" x="40" y="90" width="1520" height="225"/>
+  <text class="panel-title" x="65" y="122">1. Composition</text>
+  <rect class="group" x="70" y="140" width="1460" height="145"/>
+  <text class="group-title" x="90" y="165">EthMacPtpEndpoint</text>
+
+  <rect class="box" x="105" y="190" width="235" height="65"/>
+  <text class="box-label" x="222" y="229">EthMacTop</text>
+
+  <rect class="tap" x="380" y="190" width="350" height="65"/>
+  <text class="box-label" x="555" y="216">Ptp[Gmii|Xgmii]</text>
+  <text class="box-label" x="555" y="239">TimestampTap</text>
+
+  <rect class="group" x="770" y="165" width="725" height="100"/>
+  <text class="group-title" x="790" y="188">PtpEndpoint</text>
+
+  <rect class="box" x="800" y="202" width="110" height="46"/>
+  <text class="box-label" x="855" y="231">PtpPort</text>
+  <rect class="box" x="925" y="202" width="120" height="46"/>
+  <text class="box-label" x="985" y="231">PtpServo</text>
+  <rect class="box" x="1060" y="202" width="105" height="46"/>
+  <text class="box-label" x="1112" y="231">PtpReg</text>
+  <rect class="box" x="1180" y="202" width="105" height="46"/>
+  <text class="box-label" x="1232" y="231">PtpPhc</text>
+  <rect class="selector" x="1300" y="195" width="175" height="60"/>
+  <text class="box-label" x="1387" y="219">PHC command</text>
+  <text class="small-label" x="1387" y="239">selector logic</text>
+
+  <text class="note" x="90" y="302">PtpPkg is a compile-time package imported by the PTP entities; it is not a hardware instance.</text>
+
+  <!-- Packet and timestamp lane -->
+  <rect class="panel" x="40" y="335" width="1520" height="305"/>
+  <text class="panel-title" x="65" y="370">2. Packet and timestamp paths</text>
+
+  <rect class="box" x="105" y="405" width="230" height="75"/>
+  <text class="box-label" x="220" y="450">PtpPort</text>
+  <rect class="box" x="610" y="405" width="230" height="75"/>
+  <text class="box-label" x="725" y="450">EthMacTop</text>
+  <rect class="box" x="1110" y="405" width="230" height="75"/>
+  <text class="box-label" x="1225" y="450">PCS/PMA</text>
+
+  <path class="wire" d="M 335 425 L 610 425"/>
+  <text class="edge-label" x="472" y="415">raw PTP TX AXI Stream</text>
+  <path class="wire" d="M 610 462 L 335 462"/>
+  <text class="edge-label" x="472" y="455">raw PTP RX AXI Stream</text>
+  <path class="wire" d="M 840 425 L 1110 425"/>
+  <text class="edge-label" x="975" y="415">TX GMII/XGMII</text>
+  <path class="wire" d="M 1110 462 L 840 462"/>
+  <text class="edge-label" x="975" y="455">RX GMII/XGMII</text>
+
+  <rect class="box" x="105" y="525" width="230" height="65"/>
+  <text class="box-label" x="220" y="565">GMII/XGMII bus</text>
+  <rect class="tap" x="505" y="515" width="360" height="85"/>
+  <text class="box-label" x="685" y="549">Ptp[Gmii|Xgmii]</text>
+  <text class="box-label" x="685" y="573">TimestampTap</text>
+  <rect class="box" x="1125" y="525" width="230" height="65"/>
+  <text class="box-label" x="1240" y="565">PtpPort</text>
+
+  <path class="observe" d="M 335 557 L 505 557"/>
+  <text class="edge-label" x="420" y="545">observe</text>
+  <path class="wire" d="M 865 557 L 1125 557"/>
+  <text class="edge-label" x="995" y="545">keyed SFD event</text>
+
+  <rect class="box" x="105" y="602" width="230" height="28"/>
+  <text class="small-label" x="220" y="621">PtpPhc current time</text>
+  <path class="wire" d="M 335 616 L 685 616 L 685 600"/>
+  <text class="edge-label" x="480" y="610">PHC time</text>
+
+  <!-- PHC control lane -->
+  <rect class="panel" x="40" y="660" width="1520" height="245"/>
+  <text class="panel-title" x="65" y="695">3. PHC control</text>
+
+  <rect class="box" x="90" y="735" width="205" height="70"/>
+  <text class="box-label" x="192" y="777">PtpPort</text>
+  <rect class="box" x="390" y="735" width="205" height="70"/>
+  <text class="box-label" x="492" y="777">PtpServo</text>
+  <rect class="selector" x="790" y="725" width="275" height="90"/>
+  <text class="box-label" x="927" y="759">Command selector</text>
+  <text class="small-label" x="927" y="783">logic inside PtpEndpoint</text>
+  <rect class="box" x="1190" y="735" width="205" height="70"/>
+  <text class="box-label" x="1292" y="777">PtpPhc</text>
+
+  <path class="wire" d="M 295 770 L 390 770"/>
+  <text class="edge-label" x="342" y="724">measurement</text>
+  <path class="wire" d="M 595 770 L 790 770"/>
+  <text class="edge-label" x="692" y="724">automatic command</text>
+  <path class="wire" d="M 1065 770 L 1190 770"/>
+  <text class="edge-label" x="1127" y="724">selected command</text>
+
+  <rect class="box" x="515" y="835" width="205" height="55"/>
+  <text class="box-label" x="617" y="869">PtpReg</text>
+  <path class="wire" d="M 720 862 L 927 862 L 927 815"/>
+  <text class="edge-label" x="813" y="853">manual command</text>
+
+  <!-- Register lane -->
+  <rect class="panel" x="40" y="925" width="1520" height="185"/>
+  <text class="panel-title" x="65" y="960">4. Configuration, status, and application outputs</text>
+
+  <rect class="box" x="85" y="985" width="210" height="55"/>
+  <text class="box-label" x="190" y="1019">AXI-Lite / Rogue</text>
+  <rect class="box" x="400" y="985" width="180" height="55"/>
+  <text class="box-label" x="490" y="1019">PtpReg</text>
+  <rect class="box" x="720" y="980" width="330" height="65"/>
+  <text class="box-label" x="885" y="1007">PtpPort and PtpServo</text>
+  <text class="small-label" x="885" y="1028">configuration</text>
+  <rect class="box" x="1190" y="980" width="270" height="65"/>
+  <text class="box-label" x="1325" y="1007">Application logic</text>
+  <text class="small-label" x="1325" y="1028">time / PPS / validity</text>
+
+  <path class="wire" d="M 295 1012 L 400 1012"/>
+  <path class="wire" d="M 580 1012 L 720 1012"/>
+  <text class="edge-label" x="650" y="1000">configuration</text>
+
+  <rect class="box" x="720" y="1060" width="330" height="38"/>
+  <text class="small-label" x="885" y="1084">PtpPort / PtpServo / PtpPhc status</text>
+  <path class="wire" d="M 720 1079 L 490 1079 L 490 1040"/>
+  <text class="edge-label" x="620" y="1070">status</text>
+
+  <rect class="box" x="1080" y="1060" width="110" height="38"/>
+  <text class="small-label" x="1135" y="1084">PtpPhc</text>
+  <path class="wire" d="M 1190 1079 L 1325 1079 L 1325 1045"/>
+</svg>
