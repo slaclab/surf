@@ -40,9 +40,14 @@ That behavior is ambiguous in shells containing both Vivado and VCS settings.
 The current order is:
 
 1. explicit `RUCKUS_SIM_BACKEND`;
-2. GHDL when `GHDLFLAGS` exists;
-3. VCS when `VCS_VERSION` exists; or
-4. xsim otherwise.
+2. GHDL when `GHDLFLAGS` exists; or
+3. xsim otherwise.
+
+`VCS_VERSION` is deliberately not used to select a backend. Setup scripts
+commonly source Vivado and VCS in the same shell, so it is set even for a pure
+Vivado user, which made `make bit` persist the vcs backend while `make gui`
+persisted xsim into the same project. `make vcs` asks for vcs through
+`RUCKUS_SIM_BACKEND` instead.
 
 Set the value explicitly in shared setup scripts:
 

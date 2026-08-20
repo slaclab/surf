@@ -29,9 +29,10 @@ your shell contains more than one simulator environment:
 export RUCKUS_SIM_BACKEND=ghdl  # or vcs or xsim
 ```
 
-If it is not set, `simlink/ruckus.tcl` selects GHDL when `GHDLFLAGS` exists,
-then VCS when `VCS_VERSION` exists, and otherwise xsim. It loads exactly one
-backend so the three implementations of each leaf entity do not collide.
+If it is not set, `simlink/ruckus.tcl` selects GHDL when `GHDLFLAGS` exists, and
+otherwise xsim. It loads exactly one backend so the three implementations of
+each leaf entity do not collide, and in a persistent Vivado project it removes a
+sibling backend left behind by an earlier make target.
 
 ## 2. Check the common prerequisites
 
@@ -246,7 +247,7 @@ for the checked mixed-language examples and loader troubleshooting.
 | --- | --- | --- |
 | `RUCKUS_SIM_BACKEND` | ruckus source selection | Explicitly selects `ghdl`, `vcs`, or `xsim` |
 | `SURF_SIMLINK_TRANSPORT_TIMEOUT_MS` | All SimLink instances in the simulator process | Positive decimal timeout for stalled/missing-peer transport; default is 30000 ms |
-| `VCS_HOME`, `VCS_VERSION` | VCS build and selection | Locate the VCS headers/tools and identify the compatibility version |
+| `VCS_HOME`, `VCS_VERSION` | VCS build only | Locate the VCS headers/tools and identify the compatibility version; neither selects a backend |
 | `SIMLINK_ROGUE_PYTHON` | Tests only | Select a Python interpreter that imports Rogue and PyRogue |
 | `SIMLINK_RUN_VCS` | Tests only | Explicitly permits the licensed VCS regression to run |
 

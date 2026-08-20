@@ -187,7 +187,7 @@ Rate shaping applies only to `RogueTcpStream`.
 
 `simlink/ruckus.tcl` loads the public simulation interfaces and exactly one
 backend. It first
-honors `RUCKUS_SIM_BACKEND`, then detects GHDL or VCS environments, and
+honors `RUCKUS_SIM_BACKEND`, then detects a GHDL analysis run, and
 otherwise selects xsim. In a persistent Vivado project it removes stale
 sibling-backend sources to avoid duplicate entity definitions.
 
