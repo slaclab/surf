@@ -69,13 +69,16 @@ The release-gating behavior is:
   physical Ethernet and application clocks are not frequency-locked by plain
   PTP.
 
-Announce is decoded for `grandmasterIdentity`, `currentUtcOffset`, time-source,
-traceability, and leap status. It is not used to choose between masters.
-Loss of Announce degrades time-properties validity but does not stop an
-otherwise valid configured Sync source. Full BMCA, peer delay, UDP/IPv4,
-UDP/IPv6, VLAN tags, unicast negotiation, management/signaling messages,
-authentication TLVs, transparent clocks, and TimeTransmitter operation remain
-later scope.
+Announce is decoded for `grandmasterIdentity`, priorities, clock quality,
+`stepsRemoved`, `currentUtcOffset`, time-source, traceability, PTP-timescale,
+and leap status. It is not used to choose between masters. Only Announce from
+the configured source/domain updates these fields. Loss of Announce degrades
+time-properties validity but does not stop an otherwise valid configured Sync
+source. Contradictory leap flags or other malformed time properties are counted
+and marked invalid rather than changing the PHC. Full BMCA, peer delay,
+UDP/IPv4, UDP/IPv6, VLAN tags, unicast negotiation, management/signaling
+messages, authentication TLVs, transparent clocks, and TimeTransmitter
+operation remain later scope.
 
 Receiving one-step Sync is a useful low-cost extension because it only changes
 which origin timestamp is selected. It should be designed into the parser but
@@ -86,13 +89,30 @@ Default interoperability values should follow the common default-profile
 behavior used by linuxptp: Sync every `2^0` seconds, mean Delay_Req interval of
 `2^0` seconds, Announce every `2^1` seconds, and Announce receipt timeout of
 three intervals. The endpoint must derive observed Sync timeout from the signed
-`logMessageInterval` field rather than assume one second. Delay_Req scheduling
-should include configurable pseudo-random variation so many endpoints do not
-transmit simultaneously.
+`logMessageInterval` field rather than assume one second. Accept ordinary Sync
+and Announce exponents only within a configurable bounded range, initially
+`-10` through `+22`; a special value such as `0x7F` means unspecified rather
+than `2^127` seconds and uses the configured fallback timeout. Conversions to
+hardware timer ticks saturate and report an invalid-interval counter rather
+than wrap. A valid multicast Delay_Resp may advertise a new minimum
+Delay_Req interval. The endpoint should accept it within the same configured
+bounds and use the slower of that request and the local configured rate until
+the source changes or the port restarts. Delay_Req scheduling should include
+configurable pseudo-random variation so many endpoints do not transmit
+simultaneously.
 
-The local port number defaults to 1. Unless overridden, derive its 64-bit
-clock identity from the 48-bit MAC address by inserting `FFFE` in EUI-64 form;
-the resulting identity still must be unique in the PTP domain. A transmitted
+The local port number defaults to 1. The PTP endpoint does not own an
+independent source MAC address. Its `localMac` input is the same value supplied
+to the enclosing Ethernet core and used in `EthMacConfigType.macAddress`. The
+enclosing project supplies that port from its assigned board/endpoint identity,
+normally as a top-level constant or configuration value. SURF's
+`MAC_ADDR_INIT_C` is only a convenience default and must not be treated as a
+globally unique deployed address. Unless explicitly overridden, derive the
+64-bit PTP clock identity from this 48-bit MAC address by inserting `FFFE` in
+EUI-64 form; the resulting identity still must be unique in the PTP domain.
+The derived clock identity may be overridden, but the Ethernet source MAC
+remains the wrapper's `localMac` so the MAC, receive filter, PTP frame builder,
+and software-visible identity do not silently disagree. A transmitted
 Delay_Req uses message type `0x1`, message length 44, the configured domain and
 minor version, zero correction and origin timestamp, local port identity, the
 allocated sequence ID, control field 1, and `logMessageInterval = 0x7F`.
@@ -165,11 +185,11 @@ The exact responsibility of each synthesizable block is:
 | `PtpPkg` | n/a | Wire constants, message types, port identity, time and event records, init constants, array types, byte-order helpers, timestamp normalization, signed time difference, and correction-field conversion. |
 | `PtpPhc` | `phcClk` plus optional read clock | Free-running 48-bit-seconds/32-bit-nanoseconds/32-bit-fraction PHC, nominal and signed rate addends, atomic set/phase operation, PPS, validity, discontinuity status, local coherent snapshot, and one optional clock-domain-safe snapshot/read interface. |
 | `Ptp[Gmii\|Xgmii]TimestampTap` | `ethClk` | The selected physical-interface variant observes RX and TX, detects SFD, records the PHC value, parses an untagged PTP header, and emits a keyed event after end-of-frame with physical error status. The XGMII variant also applies the correct sub-cycle byte offset for legal start-lane alignment. |
-| `PtpPort` | `ethClk` | Owns one fixed-role IEEE 1588 port: raw AXI Stream parsing and Delay_Req generation, keyed RX/TX timestamp association, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, E2E correction arithmetic, source checks, and port counters. |
-| `PtpServo` | `ethClk` | Filters path-delay and offset samples, performs acquisition and PI rate control, produces bounded automatic phase/rate commands, and owns lock, holdover, and fault qualification. It remains separate because it is a replaceable control algorithm, not packet-port behavior. |
+| `PtpPort` | `ethClk` | Owns one fixed-role IEEE 1588 port: raw AXI Stream parsing and Delay_Req generation, keyed RX/TX timestamp association, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, corrected forward/reverse-delay arithmetic, source checks, and port counters. |
+| `PtpServo` | `ethClk` | Filters raw path-delay updates, combines later forward-delay observations with the fresh filtered delay to form offset samples, performs acquisition and PI rate control, produces bounded automatic phase/rate commands, and owns lock, holdover, and fault qualification. It remains separate because it is a replaceable control algorithm, not packet-port behavior. |
 | `PtpReg` | `ethClk` | Stable AXI-Lite register map for identity, profile, manual PHC commands, servo parameters, latency calibration, snapshots, counters, and interrupts. This follows the existing SURF `*Reg` naming pattern. Timing-control ports are direct RTL signals rather than AXI transactions. |
-| `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector; and exposes raw bypass streams, timestamp-tap events, AXI-Lite, time/PPS, and summarized state. |
-| `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around the unchanged `EthMacTop`: enables the `0x88F7` bypass, instantiates the proper tap for `PHY_TYPE_G`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
+| `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes raw bypass streams, timestamp-tap events, AXI-Lite, time/PPS, and summarized state. |
+| `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around `EthMacTop`: enables the `0x88F7` bypass, instantiates the proper tap for `PHY_TYPE_G`, supplies the shared `localMac`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
 
 ### PtpCore RTL composition and signal flow
 
@@ -194,13 +214,19 @@ For completeness, the point-to-point interfaces are:
 | GMII/XGMII bus | Passive RX/TX observation | Selected timestamp tap |
 | `PtpPhc` | Current PHC time | Selected timestamp tap |
 | Selected timestamp tap | Keyed RX/TX SFD timestamp event | `PtpPort` |
-| `PtpPort` | Offset and path-delay sample | `PtpServo` |
+| `PtpPort` | Forward-delay observations and raw path-delay updates | `PtpServo` |
 | `PtpServo` | Automatic PHC command | Selector inside `PtpEndpoint` |
 | `PtpReg` | Manual PHC command | Selector inside `PtpEndpoint` |
 | Selector inside `PtpEndpoint` | Selected PHC command | `PtpPhc` |
+| Enclosing Ethernet wrapper | Shared `localMac` | Ethernet configuration and `PtpPort` TX builder |
+| `EthMacPtpEndpoint` | `phcRst`, `portRst`, `regRst`, `linkReady` | Reset partition inside `PtpEndpoint` |
 | `PtpReg` | Port and servo configuration | `PtpPort`, `PtpServo` |
 | `PtpPort`, `PtpServo`, `PtpPhc` | Status, counters, and snapshots | `PtpReg` |
 | `PtpPhc` | Time, PPS, validity, and coherent readback | Application logic |
+
+The drawing omits repeated `ethClk` and reset nets to keep its signal lanes
+readable. The table above and the reset section below are normative for those
+connections.
 
 The manual-versus-servo selection is intentionally not a separate module.
 `PtpReg` forms manual commands, `PtpServo` forms automatic commands,
@@ -251,16 +277,26 @@ classes mirror hardware registers and do not implement the servo.
   `sourcePortIdentity`, and 16-bit sequence ID;
 - `PtpMacTimestampType`: key, timestamp, lane/reference-plane information,
   and valid/error flags;
-- decoded Sync, Follow_Up, Delay_Resp, and Announce records; and
+- decoded Sync, Follow_Up, Delay_Resp, and Announce records;
+- a measurement-kind record that distinguishes a forward-delay observation
+  from a raw path-delay update and carries both association ages; and
 - direct `PtpPhcControlType`, `PtpPhcStatusType`, servo configuration, and
   servo status records with initialization constants.
 
 Use a valid/ready interface around timestamp-tap events and completed
 measurement records. Internal decoded-message queues follow the same
-handshake discipline. A four-entry timestamp-event FIFO, four Sync/Follow_Up
+handshake discipline. The GMII/XGMII buses themselves are not backpressurable,
+so each tap owns independent RX and TX event FIFOs between physical capture and
+its valid/ready outputs. Four entries per direction, four Sync/Follow_Up
 association entries, and four outstanding Delay_Req entries are sufficient
-initial defaults and must be generics. PTP message rates are low, but overflow
-behavior still has to be deterministic and counted.
+initial defaults and must be generics. When a tap FIFO is full, discard the
+newest event, set a sticky overflow bit, increment a saturating counter, and
+emit a direct same-clock overflow pulse. `PtpPort` responds by flushing all
+live associations for that direction; never overwrite an older timestamp
+silently or guess which key was affected. The initial endpoint needs RX Sync
+and TX Delay_Req timestamps. Other PTP event-message types may be counted or
+optionally queued for diagnostics, but general messages such as Follow_Up,
+Delay_Resp, and Announce do not consume timestamp FIFO entries.
 
 Inside `PtpPort`, organize the single-clock state as named subrecords for RX
 decode, TX generation, Sync association, delay association, timers, and
@@ -296,32 +332,49 @@ TLVs. The RX codec inside `PtpPort` must use `messageLength`, ignore legal
 Ethernet padding, reject truncation, and skip unknown TLVs without trying to
 interpret them.
 
+The event key is normally unique while its bounded association is live, but a
+network duplicate can repeat every key field. For each key, match the oldest
+event to the oldest decoded frame only while exactly one unambiguous pair
+exists. If multiple live events or frames with the same key could make a MAC
+FIFO drop select the wrong SFD timestamp, mark that key generation ambiguous,
+discard every member, increment a duplicate-ambiguity counter, and wait for
+the entries to expire before reusing it. Correctness takes priority over
+extracting a measurement from an indistinguishable duplicate. Do not use
+global FIFO position as a substitute for the key.
+
 ### Receive and transmit behavior
 
 The receive sequence is:
 
 1. The RX tap captures the local time at SFD and later emits a key for a valid
    PTP event frame. For the initial E2E endpoint, only Sync needs its RX
-   timestamp; capturing all PTP event message types keeps the tap reusable.
-2. `EthMacTop` checks CRC and frame shape, routes outer EtherType `0x88F7` to
-   its bypass, and crosses no clock because the bypass uses `ethClk`.
-3. The RX codec in `PtpPort` validates the completed frame. A bad-CRC/EOFE
-   frame never becomes a protocol message even if a tap event was already
-   created.
+   timestamp; recognizing all PTP event message types while making their
+   diagnostic queueing configurable keeps the tap reusable.
+2. `EthMacTop` checks CRC and frame shape and routes outer EtherType `0x88F7`
+   to its bypass. The bypass source and destination clocks are both `ethClk`;
+   the receive-FIFO implementation detail is addressed in the integration
+   section below.
+3. The RX codec in `PtpPort` validates the completed frame, including primary
+   multicast destination MAC, EtherType, version/minor version,
+   `transportSpecific`, domain, configured source identity, message length,
+   relevant flag fields, and message-specific identity. A bad-CRC/EOFE frame
+   never becomes a protocol message even if a tap event was already created.
 4. The port's association table joins the Sync frame with its timestamp. A
-   dropped bypass frame produces an orphan tap event that expires and
-   increments a counter; it cannot be associated with a later frame by FIFO
-   order alone.
+   dropped bypass frame normally produces an orphan tap event that expires and
+   increments a counter. A repeated live key invokes the fail-closed ambiguity
+   rule above rather than claiming the key alone can identify which duplicate
+   survived.
 5. The same port state accepts Sync and Follow_Up in either order and emits a
-   master-to-receiver measurement only after source, domain, and sequence all
-   match.
+   forward-delay observation only after source, domain, and sequence all match.
 
 The transmit sequence is:
 
 1. After a valid source and Sync have been observed, the `PtpPort` transmit
    state builds Delay_Req with the next sequence ID.
-2. The raw frame enters the high-priority MAC bypass. A request is outstanding
-   only after the first AXI beat is accepted; an abort or reset cancels it.
+2. The raw frame enters the high-priority MAC bypass. A request is allocated
+   when the first AXI beat handshakes and becomes timestamp-valid only after
+   the matching TX tap event supplies `t3`; an abort or protocol reset cancels
+   it.
 3. The TX tap observes the actual GMII/XGMII frame, captures `t3` at SFD, and
    parses the transmitted source identity and sequence ID.
 4. `PtpPort` records `t3` only when the tap key matches an outstanding local
@@ -330,6 +383,23 @@ The transmit sequence is:
 5. A Delay_Resp is accepted only when its `requestingPortIdentity` equals the
    local port identity, its source equals the configured upstream port, and
    its sequence ID identifies an outstanding request.
+
+The complete Delay_Req Ethernet frame contract is:
+
+- destination MAC `01:1B:19:00:00:00`, source MAC from the wrapper's shared
+  `localMac`, and EtherType `0x88F7`;
+- 44 meaningful PTP bytes after the 14-byte Ethernet header, for 58 meaningful
+  frame bytes at the bypass input;
+- `TKEEP`, `TLAST`, first-beat SOF set, and final-beat EOFE clear according to
+  `EMAC_AXIS_CONFIG_C`, with all output fields stable while `TVALID = 1` and
+  `TREADY = 0`; and
+- no preamble, SFD, padding, or FCS from `PtpPort`. `EthMacTop` adds the two
+  minimum-frame padding bytes, preamble/SFD, and FCS.
+
+The PTP register block exposes the shared MAC address as read-only status. It
+does not provide another writable source-MAC register. A future integration
+that permits the Ethernet MAC address itself to change must update the MAC and
+PTP builder atomically and restart the PTP port.
 
 The independent key-based event path is the recommended first implementation.
 A generic per-frame request/tag metadata plane may still be useful for
@@ -415,18 +485,52 @@ Clock operations have direct command/acknowledge handshakes:
 - PPS enable and optional pulse-width control.
 
 At reset the PHC free-runs from zero at its nominal addend but `timeValid` is
-false. Link loss resets packet association and protocol state, not the PHC or
-its last rate command. An explicit PTP/system reset may clear the PHC.
+false. The absolute-set operation is defined at the PHC commit edge, not at the
+time when the triggering packet was received. For automatic epoch acquisition,
+`PtpEndpoint` forms the set target from the current PHC value and the measured
+offset:
+
+```text
+phaseCorrection = -correctedOffset
+setTargetAtCommit = currentPhcAtCommit - correctedOffset
+```
+
+An equivalent implementation may advance the master estimate from `t2` to the
+commit edge, but it must include packet-processing and command-handshake
+latency. Loading the old `t1` value directly is incorrect. The endpoint holds
+the command stable until acknowledge and qualifies `timeValid` only after the
+set/step has completed.
+
+Link loss resets packet association and protocol state, not the PHC or its last
+rate command. An explicit PTP/system reset may clear the PHC. This requires
+separate control inputs even when all logic uses one clock:
+
+| Input | Effect |
+| --- | --- |
+| `phcRst` | Explicitly resets PHC time, rate, validity, PPS state, and command state. It is driven only by the selected system/PTP timebase-reset policy. |
+| `portRst` | Clears RX/TX packet state, timestamp associations, timers, and Delay_Req transactions; it does not alter PHC time or the last acknowledged rate. |
+| `linkReady` | Qualifies new protocol work and moves the port/servo into listening or holdover behavior. A deassertion is not wired as `phcRst`. |
+| `regRst` | Resets AXI-Lite transaction state. Whether an explicit register command also requests `phcRst` is a documented software-visible action, not an incidental consequence of AXI reset. |
+
+`phcClk` must continue running during link loss, PCS reset, and ordinary
+reacquisition. Each family wrapper must document which reset or clock-manager
+events can actually stop it. If a target cannot guarantee clock continuity,
+it must clear `timeValid` and report a clock-stopped/discontinuity cause after
+restart rather than label the interval as holdover.
 
 Normal rollover emits one PPS pulse. An absolute set or a large phase step
 suppresses PPS for that update cycle and raises `timeDiscontinuity`, avoiding
 an ambiguous extra pulse. In acquisition the servo may step once if allowed.
-In tracking/locked states it must slew and preserve monotonic time; a negative
-step is rejected while monotonic mode is enabled.
+The step threshold is applied to `abs(correctedOffset)`, and the step command
+is `-correctedOffset`. If that delta is outside the signed Q16 phase-step range
+while time is invalid, the servo uses the absolute-set path above. In
+tracking/locked states it must slew and preserve monotonic time; absolute sets
+are prohibited and a negative step is rejected while monotonic mode is
+enabled.
 
-### E2E arithmetic
+### E2E arithmetic and measurement lifecycle
 
-For a completed two-step exchange:
+An E2E solution combines two independently sequenced associations:
 
 - `t1` is `preciseOriginTimestamp` in Follow_Up;
 - `t2` is the calibrated local ingress timestamp of Sync;
@@ -455,72 +559,161 @@ offset even though that offset cancels when the two paths are added. Do not
 apply a small network-delay bound to `forwardDelay` or `reverseDelay`
 individually. Reject a transaction if an intermediate overflows, the resulting
 mean path delay is negative or exceeds `maxPathDelay`, the final offset cannot
-be represented by the selected actuator, or the source/domain/identity
-relation is invalid. Do not saturate a bad measurement into a plausible value.
+be represented by an actuator legal in the current servo state, or the
+source/domain/identity relation is invalid. A multi-epoch acquisition offset
+is not rejected merely because it exceeds the tracking phase-step width: while
+time is invalid, the absolute-set path is the selected actuator. Do not
+saturate a bad measurement into a plausible value.
 
 `delayAsymmetry` is separate from ingress/egress hardware latency. Define it as
 `(forward physical delay - reverse physical delay) / 2`; compute
 `correctedOffset = rawOffset - delayAsymmetry`, and report both values so the
 calibration remains auditable.
 
+`PtpPort` owns two different completed records:
+
+| Record | Contents |
+| --- | --- |
+| Sync sample | Source/domain, Sync sequence, `t1`, `t2`, `cSync`, completion time, and validity/error flags. |
+| Delay sample | Source/domain, Delay_Req sequence, `t3`, `t4`, `cDelay`, completion time, and validity/error flags. |
+
+A Delay_Resp combines its delay sample with the newest completed Sync sample
+from the same source/domain, provided their completion times differ by no more
+than `maxExchangeSeparation`. `PtpPort` emits a raw mean-path-delay update;
+`PtpServo` applies the median/IIR filter and records its age. Every later
+completed Sync causes `PtpPort` to emit a forward-delay observation at the Sync
+rate. `PtpServo` forms `rawOffset = forwardDelay - filteredMeanPathDelay` only
+while the filtered delay is no older than `maxDelayAge`. If no fresh delay
+exists, Sync is counted and retained for source/timeout state but does not
+drive the controller. Delay freshness, sample age, both sequence IDs, and the
+age between the two exchange halves are carried in the measurement records.
+The unfiltered `offsetFromMaster` from a just-completed four-timestamp solution
+remains diagnostic; servo control and the reported current `rawOffset` use the
+fresh filtered mean path delay.
+
+During acquisition, schedule the first Delay_Req promptly after a completed
+Sync rather than waiting a full randomized steady-state interval. Local
+frequency error accumulated between the Sync and Delay exchanges otherwise
+appears as path-delay error. After the first solution, return to the configured
+randomized schedule. A new source/domain, link transition, or
+latency/asymmetry commit invalidates both completed records and the filtered
+delay estimate.
+
 ### Protocol and servo state machines
 
-`PtpEndpoint` uses these port states:
+Protocol availability and clock quality are orthogonal. `PtpPort` owns:
 
-| State | Behavior and transition |
+| Port state | Behavior and transition |
 | --- | --- |
-| `DISABLED` | Parser may count traffic, but no Delay_Req or clock update occurs. Enable moves to `LISTENING`. |
-| `LISTENING` | Waits for the configured domain/source and a valid Sync pair. PHC continues at nominal or last rate. |
-| `ACQUIRING` | Builds a valid delay estimate, permits one bounded initial phase step, estimates oscillator frequency, and rejects outliers. |
-| `TRACKING` | Runs the PI controller and bounded slew. Moves to `LOCKED` after offset/delay thresholds are met for a configured count. |
-| `LOCKED` | Continues PI updates with a tighter step prohibition. Excess error for a configured count returns to `TRACKING`. |
-| `HOLDOVER` | On link or Sync timeout, freezes the last good rate command, ages time quality, and stops new Delay_Req. Valid traffic returns to `ACQUIRING`; holdover expiry clears `timeValid`. |
-| `FAULT` | Entered on PHC/math overflow, persistent timestamp overflow, or an explicitly fatal configuration error. Clock updates stop until clear/reset. |
+| `PORT_DISABLED` | Parser may count traffic, but no associations or Delay_Req transmissions occur. |
+| `PORT_LINK_DOWN` | `linkReady` is false. Clear packet/association state and wait without resetting the PHC. |
+| `PORT_LISTENING` | Link is ready; wait for the configured source/domain and a valid Sync pair. |
+| `PORT_ACTIVE` | Source is established, message timers run, and Delay_Req may be transmitted. Sync timeout returns to `PORT_LISTENING`; link loss enters `PORT_LINK_DOWN`. |
 
-Announce age, Sync age, Follow_Up age, Delay_Resp age, and timestamp-association
-age are independent timers. Follow_Up may legally arrive before the Sync is
-delivered through a software or hardware stack, so the matching table must
-support either order. A new mismatched sequence must not overwrite a still
-valid pair unless table replacement policy and a counter make that loss
-visible.
+`PtpServo` owns:
 
-Delay_Req should start only after a valid Sync source is established. A
-16-bit LFSR may vary the configured mean request interval between 0.5 and 1.5
-times its nominal value. No new request is launched when the outstanding table
-is full. Timeout retires an entry and increments a missing-response counter.
+| Servo state | Behavior and transition |
+| --- | --- |
+| `SERVO_DISABLED` | No automatic clock update occurs. Manual PHC commands may be selected. |
+| `SERVO_ACQUIRING` | Waits for a complete fresh delay/Sync solution, permits the configured initial set/step policy while time is invalid, estimates frequency, and rejects outliers. |
+| `SERVO_TRACKING` | Runs bounded frequency and phase-slew control. Moves to locked after offset/delay/freshness thresholds pass for a configured count. |
+| `SERVO_LOCKED` | Continues control with absolute set and negative phase steps prohibited. Excess error or stale delay for a configured count returns to tracking. |
+| `SERVO_HOLDOVER` | On link or Sync timeout, freezes the last good frequency command, ages time quality, and performs no phase updates. Valid traffic returns to acquiring; holdover expiry clears `timeValid`. |
+| `SERVO_FAULT` | Entered on PHC/math overflow, persistent timestamp overflow, stopped PHC clock indication, or explicitly fatal configuration. Updates stop until clear/reset. |
 
-The first servo should be pure RTL and use fixed-point arithmetic:
+`PtpEndpoint` reports both state fields and derives a compact summary for
+applications. Port timeout controls message availability; servo state controls
+PHC commands and time quality. Neither module silently owns the other's state.
+
+Announce age, Sync age, Follow_Up age, Delay_Resp age, timestamp-association
+age, and delay-estimate age are independent timers. Follow_Up may legally
+arrive before the Sync is delivered through a software or hardware stack, so
+the matching table must support either order. A new mismatched sequence must
+not overwrite a still valid pair unless table replacement policy and a counter
+make that loss visible.
+
+Delay_Req should start only after a valid Sync source is established. A 16-bit
+LFSR may vary the configured mean request interval between 0.5 and 1.5 times
+its nominal value. The reset seed is configurable and forced to a documented
+nonzero value if software writes zero, avoiding the all-zero lockup state. Test
+mode can use a fixed seed for deterministic schedules. No new request is
+launched when the outstanding table is full. Timeout retires an entry and
+increments a missing-response counter. A valid multicast Delay_Resp may
+increase the effective minimum interval as described in the initial contract;
+it cannot force a faster rate than local configuration permits.
+
+The first servo should be pure RTL and use fixed-point arithmetic. The
+reference model and VHDL use the same units:
+
+- offset, delay, asymmetry, and phase values are signed Q16 nanoseconds;
+- servo sample interval is unsigned seconds with at least 16 fractional bits,
+  accepted only within configured `minSampleInterval` and
+  `maxSampleInterval` bounds;
+- frequency estimate, slew contribution, and final rate command are signed
+  ppb with at least 16 fractional bits and enough integer range for all
+  configured clamps; and
+- `Kp` has units ppb/ns while `Ki` has units ppb/(ns*s). Initial register
+  encoding uses unsigned 32-bit values with 30 fractional bits, with 128-bit
+  intermediates for products.
+
+Every narrowing operation rounds to nearest with ties away from zero. Overflow
+before a configured clamp rejects the sample; ordinary clamp operation is
+status, not arithmetic overflow. Rate conversion is:
+
+```text
+rateAddendQ32 = round(nominalAddendQ32 * rateCommandPpb / 1_000_000_000)
+```
+
+The control sequence is:
 
 1. Reject an offset/path-delay sample outside configured absolute and slew-rate
-   bounds.
+   bounds, with non-monotonic or out-of-range `sampleInterval`, or with stale
+   delay. A missing or excessively late sample advances timeout/holdover state
+   but does not update the controller.
 2. Apply a median-of-five path-delay filter, followed optionally by a
    configurable first-order IIR. Five entries are cheap enough for RTL and
    reject isolated switched-network queue spikes.
 3. On the first good samples, estimate the required correction as the negative
-   offset change over elapsed local time. Clamp it to `maxFrequencyPpb`.
+   offset change over elapsed local time, excluding samples that span a phase
+   step or absolute set. Clamp it to `maxFrequencyPpb`.
 4. Define a positive rate addend as making the PHC faster. For tracking, use
-   `I = clamp(I - Ki*offset*sampleInterval)` and
-   `rateAddend = clamp(I - Kp*offset)`. Positive offset therefore produces a
-   negative rate correction and slows the PHC.
-5. Convert rate command in ppb to the signed Q32 addend. Freeze the last
-   integral term in holdover and prevent integrator wind-up at either clamp.
+   `frequencyEstimate = clamp(frequencyEstimate - Ki*offset*sampleInterval)`,
+   `phaseSlew = clamp(-Kp*offset, maxSlewPpb)`, and
+   `rateCommand = clamp(frequencyEstimate + phaseSlew, maxRatePpb)`. Positive
+   offset therefore produces a negative slew contribution and slows the PHC.
+5. Apply conditional-integration anti-windup: while a frequency or final-rate
+   clamp is active, freeze an update that would drive farther into saturation
+   but allow an update that moves back toward the linear region.
+6. On entry to tracking, initialize `frequencyEstimate` so the first computed
+   `rateCommand` equals the currently applied PHC rate after accounting for
+   `phaseSlew`. This makes acquisition-to-tracking and holdover-to-tracking
+   transitions bumpless. Holdover freezes the last good frequency command and
+   clears the phase-slew contribution.
 
-Use configurable fixed-point `Kp` and `Ki`, not hard-coded real-number gains.
 Provisional safe limits are `maxFrequencyPpb = 100000` and
-`maxSlewPpb = 50000`; actual defaults must be selected from closed-loop
-simulation. Similarly, a 20 us first-step threshold, 100 ns lock threshold for
-eight samples, and 1 us unlock threshold for three samples are starting test
-values, not accuracy claims. On the first complete E2E measurement, an allowed
-offset above the first-step threshold is corrected directly. If it is too large
-for the signed Q16 phase-step port, the servo uses the PHC absolute-set port
-while `timeValid` is false. `timeValid` is asserted only after a complete,
-valid Sync/delay solution has established both epoch and path delay.
+`maxSlewPpb = 50000`; add a distinct `maxRatePpb`, initially no greater than
+the PHC's safe addend range and normally at least the sum of those two limits.
+Actual defaults must be selected from closed-loop simulation. Similarly, a
+20 us first-step threshold, 100 ns lock threshold for eight samples, and 1 us
+unlock threshold for three samples are starting test values, not accuracy
+claims. On the first complete E2E measurement, an allowed
+`abs(correctedOffset)` above the threshold commands `-correctedOffset`. If it
+is too large for the signed Q16 phase-step port, the servo uses
+`setTargetAtCommit` while `timeValid` is false. `timeValid` is asserted only
+after that command is acknowledged and a complete, fresh Sync/delay solution
+has established both epoch and path delay. Manual changes to gains, filters,
+or clamps while the servo is enabled are shadowed until an atomic commit; the
+commit restarts acquisition unless a future explicitly verified live-update
+mode is added.
 
 ### Clock-domain crossing and application use
 
 For the first GMII and XGMII endpoints, put `PtpPhc`, both taps, `PtpPort`, and
 `PtpServo` in the common `ethClk` domain. That is the only domain in which the
-exported running timestamp is cycle-accurate.
+exported running timestamp is cycle-accurate. Common clock does not mean common
+reset: `PtpEndpoint` fans out `phcRst`, `portRst`, `regRst`, and `linkReady`
+according to the reset contract above. Every crossing from an external reset
+source deasserts synchronously to `ethClk` using existing SURF reset helpers.
 
 Do not synchronize the bits of a multiword timestamp independently. `PtpPhc`
 should own one optional coherent read interface in addition to its direct
@@ -547,21 +740,36 @@ silently provide that physical clock synchronization.
 
 ### `EthMacTop` integration strategy
 
-Keep the public `EthMacTop` entity and all current submodules unchanged for the
-first implementation. `EthMacPtpEndpoint` instantiates it with:
+Keep the public `EthMacTop` entity unchanged for the first implementation.
+`EthMacPtpEndpoint` instantiates it with:
 
 ```text
 BYP_EN_G         = true
 BYP_ETH_TYPE_G   = x"88F7"
 BYP_COMMON_CLK_G = true
-bypClk/bypRst    = ethClk/ethRst
+bypClk           = ethClk
+bypRst           = portRst
 ```
 
 It connects the private bypass streams directly to `PtpEndpoint`, taps the
 external GMII/XGMII ports in parallel, and leaves the public primary stream
-contract untouched. This approach avoids new ports on `EthMacTop`, changes to
-`EthMacTxFifo`, tag propagation through `EthMacTxBypass`, or timestamp metadata
-through `EthMacRxFifo`.
+contract untouched. The composition takes one `localMac` input and supplies it
+to both the Ethernet configuration path and `PtpEndpoint`. Before passing the
+configuration record to `EthMacTop`, it forces the local copy of
+`ethConfig.macAddress` to this input, making the same value authoritative even
+if a caller supplies a stale configuration record. The PTP TX builder does not
+retain a second copy that software can configure differently. This approach
+avoids new ports on `EthMacTop`, changes to `EthMacTxFifo`, tag propagation
+through `EthMacTxBypass`, or timestamp metadata through `EthMacRxFifo`.
+
+One narrow existing-submodule correction is required before claiming a common-
+clock receive bypass. `EthMacRxFifo` currently declares `BYP_COMMON_CLK_G`, but
+its bypass `SsiFifo` maps `GEN_SYNC_FIFO_G` from `PRIM_COMMON_CLK_G`. Change
+that one mapping to `BYP_COMMON_CLK_G` and add a focused regression covering
+independent primary and bypass common-clock selections. Without the correction,
+the source and destination clocks are physically the same but the bypass still
+selects the asynchronous FIFO implementation; this is functional but does not
+match the generic's stated intent.
 
 The compatibility price is that timestamps are PTP-header keyed rather than a
 generic user-supplied tag. That is an appropriate first boundary for an FPGA
@@ -579,6 +787,14 @@ changes are SURF composition around existing cores:
 | 10 Gb/s Kintex-7 GTX | After the 1 Gb/s path, add `ethernet/TenGigEthCore/gtx7/rtl/TenGigEthGtx7Ptp.vhd`. Tap internal XGMII, run the PHC at `phyClk`, and add a two-slot AXI-Lite crossbar with Ethernet at base + `0x0000` and PTP at base + `0x1000`. The sibling may add `AXIL_BASE_ADDR_G` because it is a new public entity. | None. Reuse `ip/TenGigEthGtx7Core.dcp` and `.xci` unchanged. Keep `rxrecclk_out` open for plain PTP. |
 | Other GMII/XGMII GT families | Add family-specific PTP siblings only when a concrete user needs them. They reuse `EthMacPtpEndpoint` and the common tap/endpoint tests. | None expected for ordinary PTP; verify the family wrapper's MAC clock continuity and latency. |
 | 100 Gb/s `Caui4Core` | Separate future integration using the vendor CMAC timestamp interface or an AXI-side contract. | Vendor-core-specific investigation required. |
+
+For each sibling wrapper, the existing `localMac` port is the authoritative
+Ethernet source address. The 1 Gb/s and 10 Gb/s register blocks already drive
+their MAC configuration from that input; the PTP sibling fans the same value
+into `EthMacPtpEndpoint`. Wrapper reset mapping must also identify a continuous
+PHC clock and keep link/PCS recovery out of `phcRst`. If the chosen `sysClk125`
+or `phyClk` can stop during a reset sequence, the wrapper clears time validity
+and reports the discontinuity after restart.
 
 The new 1 Gb/s wrapper initially duplicates a small amount of composition from
 `GigEthGtx7`. Do not refactor every family wrapper merely to remove that
@@ -600,10 +816,10 @@ prevents later register churn:
 
 | Range | Contents |
 | --- | --- |
-| `0x000-0x0FF` | Version/capabilities, enable, servo enable, monotonic/initial-step policy, clear-fault/counter pulses, domain/minor version, local clock identity/port/MAC, configured source identity, IRQ status/mask, and summarized state. |
+| `0x000-0x0FF` | Version/capabilities, enable, servo enable, monotonic/initial-step policy, clear-fault/counter pulses, domain/minor version, writable PTP clock-identity override and port number, read-only shared local MAC, configured source identity, IRQ status/mask, and separate port/servo summarized state. |
 | `0x100-0x1FF` | PHC coherent snapshot, set-time shadow words and commit, signed phase-step shadow and commit, nominal/rate addends, time validity, discontinuity, PPS configuration, and command busy/ack/error. |
-| `0x200-0x2FF` | Signed log intervals, Sync/Follow_Up/Delay_Resp/Announce/association timeouts, Delay_Req LFSR seed/variability, accepted minor versions, and source-check policy. |
-| `0x300-0x3FF` | Servo `Kp`/`Ki` formats and values, initial-step threshold, lock/unlock thresholds and counts, frequency/slew clamps, filter enable/length, and holdover expiry. |
+| `0x200-0x2FF` | Signed log intervals and accepted bounds, unspecified-interval fallback, Sync/Follow_Up/Delay_Resp/Announce/association/delay-age timeouts, Delay_Req LFSR seed/variability, accepted minor versions, and source-check policy. |
+| `0x300-0x3FF` | Servo `Kp`/`Ki` formats and values, sample-interval bounds, initial-step threshold, lock/unlock thresholds and counts, frequency/slew/final-rate clamps, filter enable/length, and holdover expiry. |
 | `0x400-0x4FF` | Signed Q16 ingress latency, egress latency, delay asymmetry, maximum path delay, outlier limits, and calibration-valid/provenance fields. |
 | `0x500-0x5FF` | Atomic measurement snapshot: raw/corrected offset, raw/filtered mean path delay, frequency command, last `t1`-`t4`, source/grandmaster identity, time properties, sequence IDs, and message ages. |
 | `0x600-0x7FF` | 32-bit counters by message type plus bad version/domain/source/length, bad CRC/EOFE, duplicate, timeout, orphan timestamp/frame, FIFO overflow, rejected measurement, servo transition, holdover, and fault cause. |
@@ -612,7 +828,29 @@ prevents later register churn:
 Multiword time, identity, offset, path-delay, and counter reads use an explicit
 snapshot command. Multiword writes use shadow registers and a commit strobe.
 Unmapped accesses return `AXI_RESP_DECERR_C`. Pulse and clear-on-write behavior
-must be called out in both RTL descriptions and PyRogue.
+must be called out in both RTL descriptions and PyRogue. Event counters
+saturate at all ones and set a common counter-saturated summary; they do not
+wrap into a plausible low error count.
+
+Configuration commits have explicit side effects:
+
+- changing enable, domain, accepted version, PTP clock identity/port, configured
+  source, or interval policy clears live associations, invalidates delay, and
+  restarts listening/acquisition;
+- changing ingress/egress latency or delay asymmetry clears live associations,
+  delay filter, and lock qualification before the new calibration becomes
+  active;
+- gain, filter, threshold, or clamp writes are shadowed and committed as one
+  servo configuration. A commit while automatic control is enabled restarts
+  acquisition and applies the bumpless initialization rule; and
+- a shared `localMac` change is not a PTP-register operation. If a future
+  wrapper makes that Ethernet property writable, it must update MAC and PTP
+  views atomically and invoke the same port restart.
+
+Writes to static profile fields may optionally return `SLVERR` while the
+endpoint is enabled instead of performing the documented restart, but this
+choice must be frozen with the exact register map and modeled identically in
+PyRogue.
 
 ## White Rabbit and Synchronous Ethernet follow-on
 
@@ -938,10 +1176,13 @@ without changing protocol logic.
 
 - Review `PtpPkg` record widths, sign conventions, SFD reference plane, Q32/Q16
   conversions, and valid/ready semantics.
+- Freeze forward-delay versus raw-path-delay measurement kinds, freshness and
+  exchange-separation fields, servo units, rounding, and clamp semantics.
 - Freeze the untagged L2, fixed-source, E2E subset and explicitly record
   accepted PTP minor versions.
-- Freeze reset behavior: protocol/link reset clears associations and lock but
-  must not reset a valid PHC; system/PTP reset may clear it.
+- Freeze separate `phcRst`, `portRst`, `regRst`, and `linkReady` behavior:
+  protocol/link reset clears associations and lock but must not reset a valid
+  PHC; an explicit system/PTP reset may clear it.
 - Freeze the 4 KiB AXI-Lite block allocation and multiword snapshot/commit
   rules, without yet promising every individual register offset.
 
@@ -957,6 +1198,8 @@ offset sign.
   nominal/rate increments at 125 and 156.25 MHz, atomic set/step, monotonic
   rejection, local and crossed snapshot coherence, PPS, and discontinuity
   handling.
+- Verify large-epoch `setTargetAtCommit`, command-handshake latency, sign of
+  `-correctedOffset`, and acknowledgement-before-valid behavior.
 - Implement pure E2E arithmetic helpers in `PtpPkg` early enough to verify bit
   widths and overflow policy before message parsing exists. They need not be a
   separate entity.
@@ -970,6 +1213,9 @@ long randomized runs and every clock command corner case.
   not change an existing MAC entity.
 - Decode untagged destination/EtherType and the 34-byte PTP common header,
   capture SFD, apply ingress/egress latency, and emit the full key.
+- Put independent, non-backpressurable RX/TX event FIFOs in each tap and verify
+  drop-newest, sticky status, saturating counters, and direction-wide
+  association flush on overflow.
 - Exercise back-to-back frames, runt/oversize/truncated frames, physical error,
   reset mid-frame, all PTP event types, sequence wrap, and event FIFO full.
 - For XGMII, cover every legal `/S/` alignment and prove fractional byte-time
@@ -989,9 +1235,17 @@ GMII/XGMII data being observed is not modified.
   TLV skipping.
 - Join tap events and decoded frames with randomized relative delay so either
   arrives first. Test duplicates, dropped frames, orphan events, replacement,
-  timeout, and sequence wrap.
-- Verify that Delay_Req content is correct and remains stable under AXI
-  backpressure; the MAC, not the builder, owns preamble/FCS/padding.
+  duplicate-key ambiguity, timeout, and sequence wrap. An ambiguous duplicate
+  must fail closed rather than select a plausible timestamp.
+- Verify the complete 58-byte Delay_Req Ethernet content, shared `localMac`,
+  SOF/EOFE, `TKEEP`, and `TLAST`, and prove stability under AXI backpressure;
+  the MAC, not the builder, owns preamble/FCS/padding.
+- Verify bounded `logMessageInterval` decoding, `0x7F` fallback, saturating
+  timer conversion, Delay_Resp minimum-interval updates, and deterministic
+  nonzero-LFSR behavior.
+- Exercise the two measurement kinds: Delay_Resp produces raw path-delay
+  updates and later Sync pairs produce forward-delay observations with explicit
+  age and sequence provenance.
 
 Exit criterion: `PtpPort` completes and retires keyed transactions without a
 FIFO-order assumption or silent overwrite, and its internal sections do not
@@ -1009,6 +1263,9 @@ need public interfaces solely for unit-test access.
   anti-windup, path-delay outlier rejection, source/domain changes, Sync and
   Announce timeout, holdover aging, link reset, reacquisition, and fatal math
   faults.
+- Compare every fixed-point operation with the reference model, including gain
+  units, rounding, variable sample interval, conditional integration,
+  frequency/slew/final clamps, bumpless transitions, and stale-delay rejection.
 - Establish stable default gains only from a sweep over oscillator error,
   Sync intervals, and jitter; record settling time and overshoot.
 
@@ -1017,7 +1274,10 @@ and never updates the PHC from an incomplete, invalid, or mismatched exchange.
 
 ### Phase 5: `EthMacTop` composition and compatibility
 
-- Implement `EthMacPtpEndpoint` around the unchanged `EthMacTop` with raw
+- Correct the bypass `GEN_SYNC_FIFO_G` selection in `EthMacRxFifo` to use
+  `BYP_COMMON_CLK_G`, with focused tests proving primary and bypass generics are
+  independent. Keep the public `EthMacTop` interface unchanged.
+- Implement `EthMacPtpEndpoint` around `EthMacTop` with raw
   bypass on EtherType `0x88F7` and taps on the physical interface.
 - Extend the current EthMac loopback test with PTP traffic mixed with random
   primary traffic, bypass/primary contention, pause, receive backpressure,
@@ -1036,6 +1296,9 @@ observable in a counter.
 - Add `GigEthGtx7Ptp.vhd` without changing `GigEthGtx7` or its DCP.
 - Add PTP at AXI-Lite base + `0x2000`, expose direct PHC time, PPS, lock,
   holdover, and time-valid outputs, and keep the existing Ethernet/DRP maps.
+- Fan the existing wrapper `localMac` into both Ethernet configuration and the
+  PTP builder. Document `sysClk125` continuity and map link/watchdog recovery
+  to `portRst`/holdover rather than `phcRst`.
 - Add the PyRogue package after register offsets are frozen and test a focused
   import plus register-description consistency.
 - Calibrate GMII-to-connector ingress/egress latency against a hardware PTP
@@ -1052,7 +1315,8 @@ constants have recorded provenance.
 
 - Add `TenGigEthGtx7Ptp.vhd` using the same endpoint and the XGMII tap.
 - Verify 0.8 ns lane correction, 156.25 MHz PHC increment, PCS/PMA latency and
-  reset variation, and the new sibling's AXI-Lite map.
+  reset variation, `phyClk` continuity, separate PHC/port reset behavior, the
+  shared `localMac`, and the new sibling's AXI-Lite map.
 - Do not modify or regenerate the 10GBASE-R IP unless hardware measurements
   show the existing core has an unmanageable latency mode.
 
@@ -1121,17 +1385,23 @@ link guarantee.
 At minimum, focused tests should cover:
 
 - PHC: second rollover, nanosecond normalization, set/step/trim corner cases,
-  coherent reads, PPS, and CDC under unrelated clocks.
+  coherent reads, PPS, large-epoch target-at-commit, command acknowledgement,
+  independent resets, clock-stop indication, and CDC under unrelated clocks.
 - Capture: GMII and both XGMII start lanes, exact SFD edge, fractional offset,
-  and timestamp behavior when `phyReady` changes.
+  timestamp behavior when `phyReady` changes, independent RX/TX event FIFO
+  pressure, and deterministic drop-newest overflow.
 - Association: timestamp/message arrival in either order, multiple outstanding
-  sequence IDs, duplicates, sequence wrap, primary/bypass arbitration,
-  backpressure, pause, underflow, filtered or CRC-bad RX frames, tap/event FIFO
-  full, orphan expiry, and counter wrap.
+  sequence IDs, unambiguous and ambiguous duplicates, sequence wrap,
+  primary/bypass arbitration, backpressure, pause, underflow, filtered or
+  CRC-bad RX frames, tap/event FIFO full, orphan expiry, and counter saturation.
 - Endpoint: message parsing, sequence/domain/identity rejection, two-step
-  timestamp matching, correction-field arithmetic, offset/path-delay solution,
-  Announce time properties, acquisition, bounded servo response, packet loss,
-  holdover, and reacquisition.
+  timestamp matching, correction-field arithmetic, independent Sync/delay
+  measurement cadence and freshness, offset/path-delay solution, interval
+  special values and Delay_Resp rate changes, Announce time properties,
+  acquisition, fixed-point rounding and clamps, bounded servo response, packet
+  loss, holdover, and reacquisition.
+- Configuration: atomic commits, documented restart/flush effects, read-only
+  shared `localMac`, static-write error policy, and MAC/PTP identity coherence.
 - White Rabbit follow-on: recovered-clock loss, SyncE frequency lock, phase
   detector wrap, deterministic PHY latency, calibration/asymmetry application,
   and link-role transitions.
@@ -1166,12 +1436,18 @@ make MODULES="$PWD" import
    PPS/event pulses, or a separately specified destination-domain replica.
 7. Keep the future generic tagged timestamp API independent unless a second
    non-PTP user establishes concrete metadata requirements.
+8. Select initial `maxExchangeSeparation`, `maxDelayAge`, sample-interval
+   bounds, and `maxRatePpb` from the closed-loop sweep.
+9. Decide whether static profile writes while enabled return `SLVERR` or commit
+   with the documented port/servo restart.
 
 ## Risks
 
 - The keyed wire tap avoids invasive MAC metadata plumbing, but it duplicates
   partial header parsing and must remain aligned with the completed AXI frame.
-  Dropped frames and orphan events must never be matched by arrival order.
+  Dropped frames and orphan events must never be matched by arrival order. An
+  identical duplicate defeats uniqueness of the header key, so ambiguous live
+  duplicates are deliberately discarded rather than guessed.
 - A tap event is created before the MAC has delivered final CRC/EOFE status.
   Protocol state must wait for both sides of the match and discard a bad frame.
 - A precise MAC timestamp can still be inaccurate at the wire if PCS/PMA or
@@ -1181,6 +1457,13 @@ make MODULES="$PWD" import
 - A fixed-point PI loop can oscillate, wind up, or converge too slowly if gains
   are selected without a sweep over Sync rate, oscillator error, loss, and
   packet-delay variation.
+- Sync and Delay_Req exchanges are independently sequenced and occur at
+  different times. Excessive separation lets local frequency error contaminate
+  the initial path-delay estimate, so freshness limits and prompt acquisition
+  Delay_Req scheduling are part of correctness.
+- Preserving PHC registers is insufficient if the selected `phcClk` stops. A
+  wrapper that cannot guarantee clock continuity must invalidate time and
+  report a discontinuity after restart.
 - One-step support affects packet data, correction fields, checksums, and FCS
   and should not be mixed into the initial two-step implementation.
 - Hardware timestamps alone do not make an autonomous synchronized endpoint;
