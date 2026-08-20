@@ -659,6 +659,160 @@ are:
    initial ordinary-PTP endpoint but is not a complete SyncE/White Rabbit
    implementation.
 
+### Xilinx clock-actuator options by family
+
+"Light Rabbit" should refer specifically to the no-external-VCXO White Rabbit
+work integrated with `wr-cores`, rather than becoming a generic name for every
+on-chip clock actuator. That work presently demonstrates two approaches:
+repeated fabric-MMCM phase shifts on 7-series and transceiver-QPLL fractional
+control on UltraScale+. AMD's per-channel transmit phase interpolator, called
+PICXO in its application notes, is a third relevant all-digital VCXO
+replacement, but no complete PICXO-based White Rabbit reference design was
+identified during this review.
+
+The conventional external actuator remains available for every family. It may
+be a DAC-controlled VCXO, a digitally controlled oscillator, or a clock
+DPLL/synthesizer with a digital frequency/phase control interface. It has the
+highest board cost but the lowest integration risk and best-established clock
+quality. The family table below therefore focuses on the alternatives that
+remove the external controllable oscillator. "Available" means that the
+primitive and a plausible control path exist; it does not mean that a complete
+White Rabbit endpoint has been validated.
+
+| Xilinx family | Fabric phase walk | PICXO: per-lane TX PI | FRACXO: shared GT PLL | Open WR evidence |
+| --- | --- | --- | --- | --- |
+| Spartan-6/Virtex-6 | Not evaluated | Not in current AMD matrix | No | Conventional external VCXO/DAC |
+| 7-series/Zynq-7000 | `MMCME2_ADV`, 1/56 VCO | XAPP589: GTP/GTX/GTH | No | ZC706 MMCM Light Rabbit |
+| UltraScale | `MMCME3_ADV`, 1/56 VCO | XAPP1241: GTH/GTY | XAPP1276: Virtex GTY only | No complete reference identified |
+| UltraScale+ | `MMCME4_ADV`, 1/56 VCO | GT-dependent; no dedicated XAPP1241 reference | XAPP1276: GTH/GTM/GTY | ZCU102/ZCU106 QPLL Light Rabbit |
+| Versal | `MMCME5_ADV`, 1/32 VCO; fabric DPLL is research | XAPP1383: GTY/GTYP | XAPP1383: GTY/GTYP/GTM LCPLL | No complete reference identified |
+
+The compact entries need several qualifications:
+
+- On 7-series, the QPLL itself has no fractional-SDM interface. XAPP589
+  instead controls the TX phase interpolator independently in each lane. The
+  current upstream `wr-cores` ZC706 reference uses MMCM phase walking, not
+  PICXO. An MMCM can generate the main, helper, and application clocks without
+  consuming a GT, whereas PICXO may need a spare lane to export a helper clock.
+- On first-generation UltraScale, XAPP1241 covers Kintex GTH and Virtex
+  GTH/GTY PICXO, while XAPP1276 FRACXO is restricted to Virtex GTY. Prefer
+  FRACXO where that exact topology exists; otherwise PICXO is the documented
+  GT path. A fabric-MMCM port is technically direct but lacks equivalent WR
+  validation.
+- On UltraScale+, XAPP1276 FRACXO is the best-documented internal actuator.
+  Applicable channels also expose TX phase-interpolator control, but the
+  XAPP1241 reference design targets first-generation UltraScale. The
+  ZCU102/ZCU106 Light Rabbit designs use separate fractional-QPLL resources for
+  the Ethernet and DDMTD functions.
+- On Versal, XAPP1383 supports PICXO on GTY/GTYP and fractional-LCPLL FRACXO on
+  GTY/GTYP/GTM; GTM has no PICXO. Versal's fabric MMCM phase step changes to
+  1/32 of the VCO period, and its internal-DCO fabric DPLL is a promising but
+  unvalidated WR actuator.
+
+Practical selection order for new work is:
+
+1. Use an external DPLL/VCXO/DCO when clock quality, standards compliance, and
+   schedule risk dominate board cost.
+2. Use fractional QPLL/LCPLL FRACXO when the selected GT family supports it and
+   the required QPLL, channel, and fixed reference-clock topology are
+   available. It is the lowest-jitter documented on-chip approach.
+3. Use per-channel PICXO when FRACXO is unavailable or independent lane
+   frequency control is more important than shared-clock jitter performance.
+4. Use fabric-MMCM phase walking when no suitable GT actuator exists or a
+   fabric-visible clock must be generated without a spare transceiver. Treat
+   it as an explicitly characterized clock, not as a drop-in VCXO equivalent.
+5. Treat Versal fabric-DPLL control as research until its phase noise,
+   external-servo interface, holdover, and WR phase-setpoint behavior have been
+   demonstrated.
+
+Directly forwarding `RXRECCLK` through a buffer or ordinary MMCM is not a
+separate complete solution: it transfers frequency, but does not by itself
+provide reference selection, clock cleaning, holdover, controlled phase,
+deterministic restart, or the WR helper clock. Likewise, a fabric NCO or clock
+enable disciplines numerical time but is not a physical low-jitter clock.
+
+Every internal GT approach also needs a resource/topology audit. A QPLL or
+LCPLL is shared by multiple lanes, and changing its SDM word moves every lane
+using it. Making the tuned clock visible in fabric normally requires a clocked
+GT channel and its `TXOUTCLK`. A complete WR implementation needs both the
+Ethernet/main clock and a slightly offset DDMTD helper clock; the published
+ZCU102/ZCU106 Light Rabbit design therefore uses separate GT/QPLL resources
+for those functions, plus an independent free-running system clock.
+
+### Experimental FPGA-generated frequency output
+
+After the ordinary-PTP endpoint is working, investigate an optional physical
+10 MHz output whose average frequency is steered by the PTP servo without a
+controllable board oscillator. This is future experimental work, not a
+dependency of the plain-PTP PHC and not, by itself, a SyncE or White Rabbit
+implementation.
+
+The candidate fabric implementation is an integer MMCM configuration that
+produces the nominal output frequency, with repeated dynamic fine-phase steps
+used to create a small average frequency offset. A phase accumulator converts
+the signed servo-rate request into `PSEN` events, `PSINCDEC` selects the
+direction, and the controller waits for `PSDONE` before issuing another event.
+Each event moves the selected output by 1/56 of the MMCM VCO period. Therefore,
+for a fractional frequency correction magnitude `|y|`, the required event rate
+is approximately `|y| * 56 * fVCO`; at a 1 GHz VCO, a 10 ppm correction needs
+about 560,000 phase steps per second and each step is about 17.86 ps. A second
+MMCM or PLL may be evaluated as a cleanup stage, but it cannot remove all
+deterministic phase-step modulation and spurs.
+
+Keep this actuator outside `PtpPhc`. The generic PTP boundary should export a
+signed rate/phase request and status such as ready, saturated, locked, and
+fault. A family-specific wrapper should own `MMCME2_ADV`, `MMCME3_ADV`, or
+`MMCME4_ADV`, phase accumulation, `PSEN`/`PSDONE` sequencing, output buffering,
+and reset recovery. This preserves the same protocol and servo logic for a
+fabric MMCM, a transceiver fractional-QPLL, or an external DPLL/VCXO actuator.
+
+There is useful precedent, but not yet enough evidence to promise output-clock
+performance:
+
+- The Light Rabbit 7-series experiment uses this repeated-MMCM-phase-step
+  method on a ZC706 and follows the shifting MMCM with a cleanup PLL. Its
+  reported 10 MHz time-interval-error distribution had approximately 65.5 ps
+  standard deviation in that setup, while its UltraScale+ fractional-QPLL
+  implementation was better at approximately 23.4 ps. It also reports a phase
+  noise penalty relative to a conventional VCXO.
+- AMD UG572 confirms that UltraScale `MMCME3_ADV` and UltraScale+
+  `MMCME4_ADV` retain the same 1/56-VCO dynamic step, deterministic 12-`PSCLK`
+  transaction, gradual phase movement, and wrap-around with no accumulated
+  phase limit. At the documented 1.6 GHz upper VCO example, the nominal step is
+  about 11 ps. This makes a direct port feasible in principle, not equivalent
+  in measured phase noise.
+- The open-source Taxi `taxi_mmcm_frac` block is direct UltraScale
+  implementation evidence: it uses an accumulator to issue phase shifts on an
+  `MMCME3_ADV` and optionally feeds the result through a second MMCM. Its
+  offset is elaboration-time configurable and it is not a PTP servo or a
+  hardware performance report. It is CERN-OHL-S-2.0 code, so use it as an
+  architectural reference unless a separate license review approves reuse.
+- A 2026 UltraScale timing-measurement study generated 200 MHz test clocks
+  with the MMCM dynamic phase interface and measured roughly 2 to 3 ps standard
+  deviation at three fixed phase offsets. This characterizes individual phase
+  positions, not the phase noise or spurs of continuous stepping used as a
+  disciplined oscillator.
+- Published UltraScale/UltraScale+ frequency-steering work more commonly uses
+  the GT fractional-QPLL/SDM path described by XAPP1276. Light Rabbit uses that
+  path on ZCU102 rather than continuously walking a fabric MMCM. When the
+  required clock can be derived from an available GT topology, compare it
+  directly against the fabric-MMCM option instead of assuming the fabric path
+  is preferred.
+- Adjacent Kintex UltraScale work has closed a timing loop around each GTH
+  channel's phase interpolator and an FPGA TDC, reporting 3.8 ps RMS channel
+  alignment. That result validates the GT phase interpolator as a fine phase
+  actuator, but it is neither a frequency-steered fabric MMCM nor a 10 MHz
+  output-clock measurement.
+
+No directly equivalent published UltraScale PTP-disciplined 10 MHz fabric-MMCM
+implementation was identified during this planning pass. A SURF proof of
+concept must therefore measure phase-noise spectrum and deterministic spurs
+versus correction word, time-interval error, integrated jitter, Allan/modified
+Allan deviation, pull range, PVT behavior, reset repeatability, holdover, and
+output-buffer/cable effects. Do not describe the output as telecom-grade or as
+meeting a particular 10 MHz interface/timing mask until those measurements are
+made against an explicit standard and load.
+
 ### 7-series XAPP589 feasibility
 
 AMD XAPP589 is a credible on-chip SyncE actuator for a Kintex-7 GTX design. It
@@ -925,6 +1079,9 @@ Accuracy/White Rabbit target.
 
 - One-step Sync receive, followed separately by one-step Sync insertion and
   correction-field updates.
+- Experimental servo-steered 10 MHz and phase-aligned 1 PPS physical outputs,
+  using a family-specific MMCM, transceiver fractional-QPLL, or external clock
+  actuator behind the generic servo-actuator boundary described above.
 - One- and two-level VLAN parsing in `EthMacRxBypass` and the PTP frame builder.
 - Transparent- and boundary-clock assistance, including residence time.
 - UDP/IPv4 and UDP/IPv6 checksum-aware in-flight modification.
@@ -1064,11 +1221,40 @@ make MODULES="$PWD" import
   its generalization as the High Accuracy default profile in IEEE 1588-2019.
 - [Current `wr-cores`](https://gitlab.com/ohwr/project/wr-cores) is the primary
   public implementation reference for a White Rabbit endpoint, PHY adapters,
-  soft PLL, PPS generator, and associated embedded software boundary.
+  soft PLL, PPS generator, associated embedded software boundary, the
+  7-series MMCM phase shifter, and the Zynq UltraScale+ QPLL Light Rabbit work.
 - [AMD XAPP589](https://docs.amd.com/go/en-US/xapp589-VCXO) and
-  [XAPP1276](https://docs.amd.com/v/u/en-US/xapp1276-vcxo) describe all-digital
-  VCXO replacement techniques using 7-series phase interpolators and newer
-  transceiver fractional PLLs, respectively.
+  [XAPP1241](https://docs.amd.com/v/u/en-US/xapp1241-vcxo) describe per-channel
+  PICXO VCXO replacement using 7-series and UltraScale transmit phase
+  interpolators. [XAPP1276](https://docs.amd.com/v/u/en-US/xapp1276-vcxo)
+  describes fractional-QPLL FRACXO for Virtex UltraScale GTY and the covered
+  UltraScale+ transceivers.
+- [AMD XAPP1383](https://docs.amd.com/r/en-US/xapp1383-vcxo/Introduction)
+  describes Versal PICXO on GTY/GTYP and fractional-LCPLL FRACXO on
+  GTY/GTYP/GTM.
+- [AMD UG472](https://docs.amd.com/v/u/en-US/ug472_7Series_Clocking) defines
+  the 7-series MMCM dynamic phase interface used by the fabric phase-walk
+  approach.
+- [AMD UG572 dynamic MMCM phase shifting](https://docs.amd.com/r/en-US/ug572-ultrascale-clocking/Dynamic-Phase-Shift-Interface-in-the-MMCM)
+  defines the UltraScale/UltraScale+ `PSEN`, `PSINCDEC`, `PSCLK`, and `PSDONE`
+  behavior, including the 1/56-VCO step and 12-cycle transaction.
+- [AMD AM003](https://docs.amd.com/r/en-US/am003-versal-clocking-resources/Dynamic-Interpolated-Fine-Phase-Shift-in-MMCM-and-XPLL-variable-phase-shift)
+  defines the Versal 1/32-VCO dynamic phase mechanism and documents the newer
+  fabric MMCM/DPLL clock resources.
+- [Light Rabbit](https://www.missinglinkelectronics.com/wp-content/uploads/2024/03/MLE-Light-Rabbit-Presentation-at-13th-White-Rabbit-Workshop.pdf)
+  reports White Rabbit experiments using repeated MMCM phase steps on 7-series
+  and a transceiver fractional QPLL on UltraScale+.
+- [Taxi `taxi_mmcm_frac`](https://git.byronlathi.com/bslathi19/taxi-bsl/src/commit/a56939313af791ad3983313a5932607b42f80c4d/rtl/hip/us/taxi_mmcm_frac.sv)
+  is an open-source UltraScale accumulator-driven fractional-MMCM implementation
+  reference; its CERN-OHL-S-2.0 license requires a separate reuse decision.
+- [Huang et al., 2026](https://www.mdpi.com/1424-8220/26/3/1052)
+  characterizes UltraScale MMCM dynamic phase-shift outputs as test sources for
+  FPGA TDC and DDMTD measurements, but does not evaluate continuous phase
+  stepping as a disciplined 10 MHz oscillator.
+- [Xie et al., 2018](https://arxiv.org/abs/1806.03400) closes a loop around an
+  UltraScale GTH phase interpolator and FPGA TDC for precise channel alignment;
+  it is evidence for a related GT actuator, not the fabric-MMCM frequency-walk
+  scheme.
 - [verilog-ethernet](https://github.com/alexforencich/verilog-ethernet) and
   [Corundum](https://github.com/corundum/corundum) are public implementation
   references for fractional PHCs, coherent time CDC, timestamp metadata, and
