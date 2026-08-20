@@ -3,10 +3,11 @@
 ## Goal and status
 
 Explore and stage reusable IEEE 1588 Precision Time Protocol support for the
-SURF Ethernet stack. The first application is an autonomous FPGA endpoint that
-receives PTP, exchanges the required delay messages, and disciplines its local
-time without relying on Linux `ptp4l`. Rogue may configure and observe the
-endpoint, but it is not in the timing loop.
+SURF Ethernet stack across Xilinx 7-series, UltraScale, and UltraScale+
+families. The first application is an autonomous FPGA endpoint that receives
+PTP, exchanges the required delay messages, and disciplines its local time
+without relying on Linux `ptp4l`. Rogue may configure and observe the endpoint,
+but it is not in the timing loop.
 
 Status: detailed architecture planning. The recommended ordinary-PTP module
 boundaries, datapath integration, initial protocol subset, time arithmetic,
@@ -177,6 +178,13 @@ ethernet/PtpCore/
     PtpTimestampTapWrapper.vhd
     PtpEndpointLoopbackWrapper.vhd
 ```
+
+The family adapters do not belong in `PtpCore`. Each PTP lane sibling and
+matching multi-lane wrapper lives beside the legacy entity under
+`ethernet/GigEthCore/<gt-family>/rtl/` or
+`ethernet/TenGigEthCore/<gt-family>/rtl/`. That placement lets the existing
+architecture-selected ruckus manifest load only the applicable adapter and
+vendor checkpoint.
 
 The exact responsibility of each synthesizable block is:
 
@@ -776,37 +784,103 @@ generic user-supplied tag. That is an appropriate first boundary for an FPGA
 PTP endpoint. If a general NIC-style timestamp API is later required, add a
 separate metadata-plane RFC rather than weakening this key association.
 
-### Required 7-series wrapper work for plain PTP
+### Xilinx family coverage for plain PTP
 
-Plain PTP requires no change to a GT primitive or generated PCS/PMA core. The
-changes are SURF composition around existing cores:
+Plain PTP is deliberately split at the GMII/XGMII boundary. `PtpCore` and
+`EthMacPtpEndpoint` contain no Xilinx primitive or family-specific code. A
+family adapter supplies the existing MAC clock, reset/link status, internal
+GMII or XGMII, AXI-Lite routing, and calibrated fixed latency. This keeps the
+protocol, PHC, servo, CDC, and timestamp logic identical across all supported
+families.
 
-| Path | Plain-PTP work | Generated GT/IP change |
-| --- | --- | --- |
-| 1 Gb/s Kintex-7 GTX | Add `ethernet/GigEthCore/gtx7/rtl/GigEthGtx7Ptp.vhd`. It retains the existing core/config/DRP logic, replaces the local `EthMacTop` composition with `EthMacPtpEndpoint`, taps internal GMII, runs the PHC at `sysClk125`, and adds a PTP AXI-Lite window at base + `0x2000` after the existing Ethernet (`0x0000`) and DRP (`0x1000`) windows. The legacy `GigEthGtx7` remains unchanged. | None. Reuse `images/GigEthGtx7Core.dcp` unchanged. Do not expose or use `txoutclk`, `rxoutclk`, TX phase alignment, or PICXO for ordinary PTP. |
-| 10 Gb/s Kintex-7 GTX | After the 1 Gb/s path, add `ethernet/TenGigEthCore/gtx7/rtl/TenGigEthGtx7Ptp.vhd`. Tap internal XGMII, run the PHC at `phyClk`, and add a two-slot AXI-Lite crossbar with Ethernet at base + `0x0000` and PTP at base + `0x1000`. The sibling may add `AXIL_BASE_ADDR_G` because it is a new public entity. | None. Reuse `ip/TenGigEthGtx7Core.dcp` and `.xci` unchanged. Keep `rxrecclk_out` open for plain PTP. |
-| Other GMII/XGMII GT families | Add family-specific PTP siblings only when a concrete user needs them. They reuse `EthMacPtpEndpoint` and the common tap/endpoint tests. | None expected for ordinary PTP; verify the family wrapper's MAC clock continuity and latency. |
-| 100 Gb/s `Caui4Core` | Separate future integration using the vendor CMAC timestamp interface or an AXI-side contract. | Vendor-core-specific investigation required. |
+The planned coverage is:
 
-For each sibling wrapper, the existing `localMac` port is the authoritative
-Ethernet source address. The 1 Gb/s and 10 Gb/s register blocks already drive
-their MAC configuration from that input; the PTP sibling fans the same value
-into `EthMacPtpEndpoint`. Wrapper reset mapping must also identify a continuous
-PHC clock and keep link/PCS recovery out of `phcRst`. If the chosen `sysClk125`
-or `phyClk` can stop during a reset sequence, the wrapper clears time validity
-and reports the discontinuity after restart.
+| Generation | Existing 1 Gb/s paths | Existing 10 Gb/s paths | PHC clock used by the PTP sibling |
+| --- | --- | --- | --- |
+| 7-series/Zynq-7000 | GTP7, GTH7, and GTX7 GMII cores | GTH7 and GTX7 XGMII cores | 1G: shared `sysClk125`; 10G: wrapper-supplied 156.25 MHz `phyClk` |
+| UltraScale | GTH GMII and LVDS/SGMII | GTH XGMII | 1G: shared `sysClk125`; 10G: the lane's internally generated 156.25 MHz `phyClk` |
+| UltraScale+ | GTH and GTY GMII, plus LVDS/SGMII | GTH and GTY XGMII | 1G: shared `sysClk125`; 10G: the lane's internally generated 156.25 MHz `phyClk` |
 
-The new 1 Gb/s wrapper initially duplicates a small amount of composition from
-`GigEthGtx7`. Do not refactor every family wrapper merely to remove that
-duplication. If a second PTP wrapper makes the common PHY boundary clear, a
-later narrow refactor can extract it while keeping all legacy entity ports and
-address maps unchanged.
+The LVDS/SGMII entries cover 1 Gb/s operation only. Supporting their 10/100
+Mb/s `ethClkEn` behavior would require an enable-aware timestamp and PHC
+contract and is a later extension.
 
-The ordinary-PTP capture point is GMII/XGMII, so fixed PCS/PMA latency belongs
-in calibration. Exposing recovered clocks, changing `TXOUTCLKSEL`, taking DRP
-ownership, disabling buffers, or regenerating a transceiver checkpoint does
-not improve this plain-PTP architecture. Those are specifically SyncE/White
-Rabbit tasks described later.
+Add opt-in PTP siblings while leaving every legacy entity and public address
+map unchanged:
+
+| Path | PTP sibling work | PTP AXI-Lite placement | Generated GT/IP change |
+| --- | --- | --- | --- |
+| 7-series 1G GTP7/GTH7 | Add `GigEthGtp7Ptp` and `GigEthGth7Ptp` beside their existing lane cores. Replace only the local MAC composition with `EthMacPtpEndpoint` and tap GMII. | New sibling crossbar: Ethernet at base + `0x0000`, PTP at base + `0x1000`. | None; reuse the existing DCPs. |
+| 7-series 1G GTX7 | Add `GigEthGtx7Ptp`; retain the existing core/config/DRP composition and tap GMII. | Extend the sibling's existing map: Ethernet `0x0000`, DRP `0x1000`, PTP `0x2000`. | None; reuse `GigEthGtx7Core.dcp`. |
+| 7-series 10G GTH7/GTX7 | Add `TenGigEthGth7Ptp` and `TenGigEthGtx7Ptp`; tap XGMII and run the endpoint at the shared `phyClk`. | New sibling crossbar: Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the existing 10GBASE-R DCP/XCI products. |
+| UltraScale 1G GTH | Add `GigEthGthUltraScalePtp` under `gthUltraScale/rtl`; use the final `sysClk125` selected by the enclosing wrapper and tap GMII. | Ethernet at `0x0000`, PTP at `0x1000`. | None; keep `txoutclk` and `rxoutclk` unused as they are today. |
+| UltraScale 1G LVDS/SGMII | Add `GigEthLvdsUltraScalePtp` for 1 Gb/s mode after the GTH path; tap its internal GMII and use `sysClk125`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the existing SGMII IP unchanged. |
+| UltraScale 10G GTH | Add `TenGigEthGthUltraScalePtp` under `gthUltraScale/rtl`; tap XGMII and use the lane's `phyClock`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; keep `rxrecclkout` and existing QPLL/DRP wiring unchanged. |
+| UltraScale+ 1G GTH/GTY | Add `GigEthGthUltraScalePtp` and `GigEthGtyUltraScalePtp` in their architecture-selected directories; tap GMII and use the final `sysClk125`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the family DCPs and existing clock managers. |
+| UltraScale+ 10G GTH/GTY | Add `TenGigEthGthUltraScalePtp` and `TenGigEthGtyUltraScalePtp`; tap XGMII and use each lane's `phyClock`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; leave recovered-clock, QPLL, DRP, and buffer configuration unchanged. |
+| 100 Gb/s `Caui4Core` | Separate future integration using the vendor CMAC timestamp interface or an AXI-side contract. | To be defined. | Vendor-core-specific investigation required. |
+
+The GTH UltraScale and UltraScale+ source trees intentionally use the same
+legacy entity names because `GigEthCore/ruckus.tcl` and
+`TenGigEthCore/ruckus.tcl` select mutually exclusive architecture directories.
+The PTP siblings follow the same convention; they are not a single source file
+shared across generations. Each family `ruckus.tcl` continues loading its
+local `rtl/` directory and unchanged checkpoint.
+
+Where an existing multi-lane `*Wrapper` is part of the public integration, add
+a matching `*PtpWrapper` rather than adding ports to the legacy wrapper. The
+PTP wrapper instantiates one PTP lane sibling per Ethernet lane and exposes
+per-lane status, PPS, and time outputs. The current wrappers already provide a
+`localMac(i)` and independent AXI-Lite interface per lane. Keep one
+`PtpEndpoint` and one PHC per lane even when several 1G lanes share
+`sysClk125`; a common clock net does not make their PTP port identities,
+calibration, servo state, or time controls common. A shared PHC for a future
+boundary-clock or multi-port design needs a separate interface decision.
+
+For each sibling, the existing `localMac` port is the authoritative Ethernet
+source address. The Ethernet register block and PTP builder receive the same
+value. `EN_AXI_REG_G` retains its legacy meaning for the Ethernet registers;
+the new PTP window remains present because the configured autonomous endpoint
+needs a control plane. Every new sibling may add `AXIL_BASE_ADDR_G` without
+changing its legacy counterpart.
+
+Clock and reset mapping is part of each adapter's contract:
+
+- 7-series 1G uses `sysClk125`; 7-series 10G uses the shared wrapper
+  `phyClk`.
+- UltraScale/UltraScale+ 1G uses the final `sysClk125` after the wrapper's
+  internal `ClockManager` versus `EXT_PLL_G` selection. PTP does not depend on
+  which source was selected.
+- UltraScale/UltraScale+ 10G uses the lane-local `phyClock` already exported as
+  `phyClk(i)` by the multi-lane wrapper. Do not cross timestamps to a shared
+  reference clock before capture.
+- PCS/link reset contributes to `portRst` and loss-of-link state, not
+  `phcRst`. The sibling adds an explicit PTP timebase-reset input. If its PHC
+  clock stops or changes phase/rate while the clock manager or GT restarts, it
+  clears `timeValid`, records a discontinuity cause after clock recovery, and
+  reacquires instead of claiming continuous holdover.
+
+The new 1G/10G siblings may initially duplicate a small amount of composition
+from their legacy lane cores. Do not refactor all families merely to remove
+that duplication. Extract a common PHY adapter only after at least two sibling
+implementations demonstrate an identical, narrow boundary and the legacy
+entity ports remain unchanged.
+
+The ordinary-PTP capture point is GMII/XGMII, so PCS/PMA latency constants are
+specific to family, transceiver type, generated-IP version, line rate, and
+reset mode. Defaults remain marked uncalibrated. Hardware qualification must
+measure cold-start and link-reset distributions for every claimed wrapper and
+record provenance with the programmed ingress/egress constants. A constant
+measured for GTX7 must not silently become the default for GTH UltraScale or
+GTY UltraScale+.
+
+No generated PCS/PMA core needs updating for plain PTP. In particular, do not
+expose recovered clocks, change `TXOUTCLKSEL`, take new DRP ownership, bypass
+GT buffers, enable phase alignment, or regenerate a checkpoint merely to add
+ordinary PTP. If measurement finds an unobservable reset-dependent latency
+mode, first detect and calibrate each mode; regeneration for deterministic
+latency is a separately reviewed exception. Recovered clocks and phase/frequency
+actuators remain SyncE/White Rabbit work described later.
 
 ### Provisional AXI-Lite register map
 
@@ -1183,6 +1257,9 @@ without changing protocol logic.
 - Freeze separate `phcRst`, `portRst`, `regRst`, and `linkReady` behavior:
   protocol/link reset clears associations and lock but must not reset a valid
   PHC; an explicit system/PTP reset may clear it.
+- Freeze the family-adapter port template, per-lane ownership, and AXI-Lite
+  placements for 7-series, UltraScale, and UltraScale+ before writing a PHY
+  sibling. The generic PTP entities must not acquire a Xilinx-family generic.
 - Freeze the 4 KiB AXI-Lite block allocation and multiword snapshot/commit
   rules, without yet promising every individual register offset.
 
@@ -1198,6 +1275,10 @@ offset sign.
   nominal/rate increments at 125 and 156.25 MHz, atomic set/step, monotonic
   rejection, local and crossed snapshot coherence, PPS, and discontinuity
   handling.
+- Run the same family-neutral testbench with clock/reset profiles representing
+  shared-clock 7-series 10G, shared-clock 1G, and lane-local
+  UltraScale/UltraScale+ 10G integration. No vendor primitive is needed in
+  these tests.
 - Verify large-epoch `setTargetAtCommit`, command-handshake latency, sign of
   `-correctedOffset`, and acknowledgement-before-valid behavior.
 - Implement pure E2E arithmetic helpers in `PtpPkg` early enough to verify bit
@@ -1293,12 +1374,20 @@ observable in a counter.
 
 ### Phase 6: 7-series 1 Gb/s integration and control plane
 
-- Add `GigEthGtx7Ptp.vhd` without changing `GigEthGtx7` or its DCP.
-- Add PTP at AXI-Lite base + `0x2000`, expose direct PHC time, PPS, lock,
-  holdover, and time-valid outputs, and keep the existing Ethernet/DRP maps.
+- Add `GigEthGtx7Ptp.vhd` first, without changing `GigEthGtx7` or its DCP. Add
+  PTP at AXI-Lite base + `0x2000`, expose direct PHC time, PPS, lock, holdover,
+  and time-valid outputs, and keep the existing Ethernet/DRP maps.
+- Add `GigEthGtp7Ptp.vhd` and `GigEthGth7Ptp.vhd` using the same GMII endpoint,
+  with Ethernet/PTP windows at base + `0x0000`/`0x1000`. Add matching
+  multi-lane `*PtpWrapper` entities where the current public wrapper is needed;
+  keep one endpoint per lane even though `sysClk125` is shared.
 - Fan the existing wrapper `localMac` into both Ethernet configuration and the
   PTP builder. Document `sysClk125` continuity and map link/watchdog recovery
   to `portRst`/holdover rather than `phcRst`.
+- Run ruckus import and Vivado elaboration/synthesis for representative
+  Artix-7/Zynq GTP, Kintex-7/Zynq GTX, and Virtex-7 GTH part selections. Record
+  PTP resource use and timing slack rather than assuming one implementation
+  result covers all three transceiver paths.
 - Add the PyRogue package after register offsets are frozen and test a focused
   import plus register-description consistency.
 - Calibrate GMII-to-connector ingress/egress latency against a hardware PTP
@@ -1307,23 +1396,80 @@ observable in a counter.
 - Interoperate with a linuxptp or instrument TimeTransmitter. No `ptp4l` runs
   on or controls the FPGA endpoint.
 
-Exit criterion: repeatable hardware lock, holdover, and reacquisition results
-meet the selected MAC- and connector-plane error budgets, and all calibration
-constants have recorded provenance.
+Exit criterion: all three 7-series 1G siblings elaborate through the
+architecture-selected ruckus paths, the initial hardware path has repeatable
+lock/holdover/reacquisition results, and its calibration constants have
+recorded provenance. A sibling that has only been synthesized is labeled
+compile-supported, not hardware-calibrated.
 
 ### Phase 7: 7-series 10 Gb/s integration
 
-- Add `TenGigEthGtx7Ptp.vhd` using the same endpoint and the XGMII tap.
+- Add `TenGigEthGtx7Ptp.vhd` and `TenGigEthGth7Ptp.vhd` using the same endpoint
+  and XGMII tap. Add matching multi-lane PTP wrappers without changing the
+  legacy wrapper ports.
 - Verify 0.8 ns lane correction, 156.25 MHz PHC increment, PCS/PMA latency and
   reset variation, `phyClk` continuity, separate PHC/port reset behavior, the
   shared `localMac`, and the new sibling's AXI-Lite map.
+- Elaborate/synthesize both Kintex-7/Zynq GTX and Virtex-7 GTH selections and
+  report their timing/resource results separately.
 - Do not modify or regenerate the 10GBASE-R IP unless hardware measurements
   show the existing core has an unmanageable latency mode.
 
-Exit criterion: the common protocol/servo tests pass unchanged and hardware
-results isolate XGMII/PCS latency from endpoint algorithm error.
+Exit criterion: both 7-series 10G siblings elaborate, the common
+protocol/servo tests pass unchanged, and qualified hardware results isolate
+XGMII/PCS latency from endpoint algorithm error.
 
-### Phase 8: High Accuracy/White Rabbit feasibility and integration
+### Phase 8: UltraScale and UltraScale+ 1 Gb/s integration
+
+- Add the first-generation UltraScale GTH PTP lane sibling and matching
+  multi-lane wrapper under `GigEthCore/gthUltraScale`. Then add the
+  architecture-specific UltraScale+ GTH and GTY siblings under
+  `gthUltraScale+` and `gtyUltraScale+`; do not merge same-named entities across
+  the mutually exclusive ruckus source trees.
+- Reuse the common GMII tap and 125 MHz PHC. Verify both internal
+  `ClockManager` and `EXT_PLL_G` selections where offered, and document which
+  source/reset events stop or disturb `sysClk125`.
+- Keep an endpoint, AXI-Lite window, PTP port identity, calibration set, and
+  output-status set per lane even when the wrapper shares `sysClk125`.
+- Add the UltraScale LVDS/SGMII sibling in 1 Gb/s mode after the GT paths. Keep
+  10/100 Mb/s enable-aware timing outside this release unless its contract is
+  explicitly added to Phase 0.
+- Import, elaborate, and synthesize representative `kintexu`/`virtexu`,
+  `kintexuplus`/`zynquplus`, and `virtexuplus` selections. Check that each
+  selected directory loads its PTP RTL and the existing checkpoint exactly
+  once.
+- Hardware-qualify at least one first-generation UltraScale GTH path and one
+  UltraScale+ GTH or GTY path before making generation-wide calibrated-accuracy
+  claims. Measure latency modes independently from all 7-series results.
+
+Exit criterion: the common endpoint tests pass unchanged; first-generation
+UltraScale and UltraScale+ variants elaborate through their normal manifests;
+and every hardware-tested path has separate reset, clock-continuity, and
+latency-calibration evidence.
+
+### Phase 9: UltraScale and UltraScale+ 10 Gb/s integration
+
+- Add `TenGigEthGthUltraScalePtp` in the first-generation UltraScale tree and
+  GTH/GTY PTP siblings in the UltraScale+ trees, plus their matching multi-lane
+  wrappers.
+- Run each endpoint and tap in its lane-local `phyClock` domain. Carry PHC
+  reset, validity, PPS, lock, and time outputs per lane; do not move capture or
+  a shared PHC above the wrapper merely because AXI-Lite control is external.
+- Verify the XGMII start-lane correction and Q32 PHC arithmetic unchanged at
+  156.25 MHz. Separately characterize lane-to-lane and reset-to-reset PCS/PMA
+  latency for GTH UltraScale, GTH UltraScale+, and GTY UltraScale+.
+- Confirm generated IP, QPLL interfaces, DRP ownership, `rxrecclkout`, and GT
+  buffer/phase settings are bit-for-bit unchanged by the PTP composition.
+- Elaborate/synthesize the `kintexu`/`virtexu`,
+  `kintexuplus`/`zynquplus`, and `virtexuplus` manifest selections and record
+  per-family timing/resource results.
+
+Exit criterion: all listed UltraScale-generation 10G siblings elaborate, the
+family-neutral regressions pass without conditional protocol behavior, and
+each claimed hardware configuration has its own latency and clock-reset
+qualification.
+
+### Phase 10: High Accuracy/White Rabbit feasibility and integration
 
 - Select or implement a deterministic-latency 1000BASE-X PHY that exposes the
   recovered clock and all required latency/phase observability.
@@ -1366,7 +1512,7 @@ accuracy is a hardware measurement.
 | PHC arithmetic | Q32 nominal increment contributes less than 0.02 ppb representation error at 156.25 MHz. Rate-addend resolution is also below 0.1 ppb. |
 | GMII capture | SFD is synchronous to the 125 MHz GMII clock. The MAC-plane event is tied to a specified edge; connector error is dominated by PCS/PMA latency/calibration rather than an arbitrary software timestamp. |
 | XGMII capture | Start-lane/SFD position gives 0.8 ns byte resolution even though the PHC advances every 6.4 ns. |
-| Fixed PHY latency | Removed by measured ingress/egress calibration if it is stable. Reset-dependent modes become residual error unless detected and calibrated separately. |
+| Fixed PHY latency | Removed by measured ingress/egress calibration if it is stable. Constants are qualified per FPGA generation, GT type, PCS/PMA build, line rate, and reset mode; they are not portable defaults. Reset-dependent modes become residual error unless detected and calibrated separately. |
 | Path asymmetry | Ordinary E2E PTP assumes symmetric delay unless `delayAsymmetry` is configured. An unknown asymmetry appears directly as time error. |
 | Packet-delay variation | Median/filtering rejects isolated outliers but cannot remove persistent asymmetric queueing in ordinary switches. A direct link or timing-aware network will perform better. |
 | Holdover | Time error grows approximately with the uncompensated oscillator frequency error. A 10 ppm residual produces about 10 us of error per second; the last learned rate should reduce but cannot guarantee this without oscillator characterization. |
@@ -1402,13 +1548,28 @@ At minimum, focused tests should cover:
   loss, holdover, and reacquisition.
 - Configuration: atomic commits, documented restart/flush effects, read-only
   shared `localMac`, static-write error policy, and MAC/PTP identity coherence.
+- Family-neutral build: run the PHC, tap, port, endpoint, and MAC-composition
+  regressions at both 125 and 156.25 MHz without Xilinx-family conditionals.
+- Family integration: ruckus import plus Vivado elaboration/synthesis for the
+  architecture selections that load GTP7, GTH7, GTX7, GTH UltraScale, GTH
+  UltraScale+, and GTY UltraScale+ sources. Check public legacy entities and
+  address maps remain unchanged, PTP windows do not overlap, and timing/resource
+  reports are captured per generation.
+- Wrapper reset/clock behavior: link-only reset, PCS reset, external PTP reset,
+  clock-manager reset/relock, `EXT_PLL_G` selection where present, multi-lane
+  simultaneous reset, and lane-local 10G clock loss. Verify that only the
+  explicit PTP reset clears PHC state when the clock remains continuous and
+  that any real clock discontinuity invalidates time.
 - White Rabbit follow-on: recovered-clock loss, SyncE frequency lock, phase
   detector wrap, deterministic PHY latency, calibration/asymmetry application,
   and link-role transitions.
 - Compatibility: existing EthMacCore, IpV4Engine, UdpEngine, and RoCEv2 suites
   remain unchanged when PTP is disabled.
-- Hardware: reset-to-reset latency distribution, clock quality sensitivity,
-  link partner interoperability, and comparison with a calibrated reference.
+- Hardware: per-family and per-GT reset-to-reset latency distribution, clock
+  quality sensitivity, link partner interoperability, and comparison with a
+  calibrated reference. Publish a support state of compile-supported or
+  hardware-calibrated for each wrapper rather than extrapolating one board's
+  result.
 
 Likely local commands after implementation are:
 
@@ -1440,6 +1601,16 @@ make MODULES="$PWD" import
    bounds, and `maxRatePpb` from the closed-loop sweep.
 9. Decide whether static profile writes while enabled return `SLVERR` or commit
    with the documented port/servo restart.
+10. Select representative hardware for 7-series, first-generation UltraScale,
+    and UltraScale+ qualification; synthesis alone cannot establish connector-
+    plane accuracy or reset-repeatable latency.
+11. Decide whether 1 Gb/s UltraScale LVDS/SGMII is a first-release gate or a
+    compatibility follow-on after the GTH/GTY paths. Its 10/100 modes remain
+    out of scope unless `ethClkEn` timing is specified.
+12. Establish, for each wrapper, whether its proposed `phcClk` truly remains
+    continuous through link and PCS recovery. Where it does not, freeze the
+    clock-discontinuity detection and validity-clear mechanism before hardware
+    qualification.
 
 ## Risks
 
@@ -1464,6 +1635,20 @@ make MODULES="$PWD" import
 - Preserving PHC registers is insufficient if the selected `phcClk` stops. A
   wrapper that cannot guarantee clock continuity must invalidate time and
   report a discontinuity after restart.
+- The shared 1G clock structure and lane-local UltraScale 10G clock structure
+  have different failure boundaries. Reset aggregation that is harmless for a
+  shared 7-series clock could silently reset or strand one UltraScale lane if
+  copied without review.
+- UltraScale and UltraScale+ GTH directories intentionally compile same-named
+  entities under mutually exclusive architecture manifests. Loading both
+  directories, or putting a common PTP file in the wrong parent manifest,
+  creates duplicate design units or binds the wrong vendor component.
+- The common fixed-point RTL may infer different carry chains, RAMs, or DSPs on
+  7-series and UltraScale generations. Passing GHDL and one Vivado target does
+  not establish timing closure or acceptable resource use on every family.
+- PCS/PMA latency calibration is not portable between GTX7, GTH7, GTH
+  UltraScale, GTH UltraScale+, and GTY UltraScale+. Reusing a convenient
+  constant can produce a stable servo with a family-dependent absolute offset.
 - One-step support affects packet data, correction fields, checksums, and FCS
   and should not be mixed into the initial two-step implementation.
 - Hardware timestamps alone do not make an autonomous synchronized endpoint;
