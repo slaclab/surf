@@ -27,8 +27,9 @@ entity Gtx7Core is
       TPD_G : time := 1 ns;
 
       -- Sim Generics --
-      SIM_GTRESET_SPEEDUP_G : string := "FALSE";
-      SIM_VERSION_G         : string := "4.0";
+      SIM_GTRESET_SPEEDUP_G : string  := "FALSE";
+      SIM_VERSION_G         : string  := "4.0";
+      WAIT_TIME_CDRLOCK_G   : integer := -1;  -- -1: use the legacy SIM_GTRESET_SPEEDUP_G derivation; >=0: stable-clock cycle count used directly
 
       SIMULATION_G : boolean := false;
 
@@ -277,7 +278,7 @@ architecture rtl of Gtx7Core is
    constant RX_DATA_WIDTH_C : integer := getDataWidth(RX_8B10B_EN_G, RX_EXT_DATA_WIDTH_G);
    constant TX_DATA_WIDTH_C : integer := getDataWidth(TX_8B10B_EN_G, TX_EXT_DATA_WIDTH_G);
 
-   constant WAIT_TIME_CDRLOCK_C : integer := ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 65520);
+   constant WAIT_TIME_CDRLOCK_C : integer := ite(WAIT_TIME_CDRLOCK_G >= 0, WAIT_TIME_CDRLOCK_G, ite(SIM_GTRESET_SPEEDUP_G = "TRUE", 16, 65520));
 
    constant RX_INT_DATAWIDTH_C : integer := (RX_INT_DATA_WIDTH_G/32);
    constant TX_INT_DATAWIDTH_C : integer := (TX_INT_DATA_WIDTH_G/32);
