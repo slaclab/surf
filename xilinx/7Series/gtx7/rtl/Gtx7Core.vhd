@@ -157,8 +157,9 @@ entity Gtx7Core is
    port (
       stableClkIn : in sl;  -- Freerunning clock needed to drive reset logic
 
-      cPllRefClkIn : in  sl := '0';     -- Drives CPLL if used
-      cPllLockOut  : out sl;
+      cPllRefClkIn      : in  sl := '0';  -- Drives CPLL if used
+      cPllLockOut       : out sl;
+      cPllRefClkLostOut : out sl;         -- CPLLREFCLKLOST from the GTXE2_CHANNEL
 
       qPllRefClkIn     : in  sl := '0';  -- Signals from QPLL if used
       qPllClkIn        : in  sl := '0';
@@ -390,7 +391,8 @@ begin
 
    rxOutClkOut <= rxOutClkBufg;
 
-   cPllLockOut <= cPllLock;
+   cPllLockOut       <= cPllLock;
+   cPllRefClkLostOut <= cPllRefClkLost;
 
    --------------------------------------------------------------------------------------------------
    -- PLL Resets. Driven from TX Rst if both use same PLL
