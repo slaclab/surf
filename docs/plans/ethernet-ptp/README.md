@@ -11,8 +11,9 @@ but it is not in the timing loop.
 
 Status: detailed architecture planning. The recommended ordinary-PTP module
 boundaries, datapath integration, initial protocol subset, time arithmetic,
-servo behavior, and provisional register map are specified below. No RTL or
-public interface has been implemented.
+servo behavior, application coordination boundary, co-simulation model, and
+provisional register map are specified below. No RTL or public interface has
+been implemented.
 
 ## Current SURF architecture
 
@@ -69,6 +70,13 @@ The release-gating behavior is:
 - fixed local Ethernet clocks. The numerical PHC is disciplined, but the
   physical Ethernet and application clocks are not frequency-locked by plain
   PTP.
+
+PTP establishes a common time coordinate; it does not carry application
+commands or application-specific fiducials in this initial design. Software
+may arm generic actions for future PHC times through a separate control
+interface, and application RTL may derive recurring behavior from those
+actions. Do not encode such commands as proprietary PTP messages or TLVs in
+the ordinary-PTP endpoint.
 
 Announce is decoded for `grandmasterIdentity`, priorities, clock quality,
 `stepsRemoved`, `currentUtcOffset`, time-source, traceability, PTP-timescale,
@@ -172,12 +180,39 @@ ethernet/PtpCore/
     PtpServo.vhd
     PtpReg.vhd
     PtpEndpoint.vhd
+    PtpEventScheduler.vhd
     EthMacPtpEndpoint.vhd
+  sim/
+    PtpGrandmasterSim.vhd
+    PtpTimeTransmitterSim.vhd
+    PtpEndpointSim.vhd
   wrappers/
     PtpPhcWrapper.vhd
     PtpTimestampTapWrapper.vhd
     PtpEndpointLoopbackWrapper.vhd
 ```
+
+The portless simulation path also needs a narrow extension under the existing
+`simlink/` hierarchy. Working public/shared names are:
+
+```text
+simlink/
+  sim/
+    PtpSimTimingPublisher.vhd
+    PtpSimTimingSubscriber.vhd
+    RoguePtpTimingWrap.vhd       # optional external bridge
+  shared/
+    PtpSimTimingCore.h
+    PtpSimTimingCore.c
+```
+
+`PtpGrandmasterSim` instantiates the publisher;
+`PtpTimeTransmitterSim` and `PtpEndpointSim` instantiate subscribers. The
+shared core owns the process-local registry and anchor validation. The GHDL,
+VCS, and xsim directories provide their normal thin foreign-interface adapters
+without duplicating the timing model. `RoguePtpTimingWrap` and a companion
+Rogue client are only needed for the optional external Timing protocol. Exact
+backend filenames remain a Phase 5 interface decision.
 
 The family adapters do not belong in `PtpCore`. Each PTP lane sibling and
 matching multi-lane wrapper lives beside the legacy entity under
@@ -197,7 +232,16 @@ The exact responsibility of each synthesizable block is:
 | `PtpServo` | `ethClk` | Filters raw path-delay updates, combines later forward-delay observations with the fresh filtered delay to form offset samples, performs acquisition and PI rate control, produces bounded automatic phase/rate commands, and owns lock, holdover, and fault qualification. It remains separate because it is a replaceable control algorithm, not packet-port behavior. |
 | `PtpReg` | `ethClk` | Stable AXI-Lite register map for identity, profile, manual PHC commands, servo parameters, latency calibration, snapshots, counters, and interrupts. This follows the existing SURF `*Reg` naming pattern. Timing-control ports are direct RTL signals rather than AXI transactions. |
 | `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes raw bypass streams, timestamp-tap events, AXI-Lite, time/PPS, and summarized state. |
+| `PtpEventScheduler` | `phcClk` plus optional AXI-Lite clock | Optional, separately instantiated application service. It owns a bounded queue of generic one-shot events at absolute PHC times, atomic enqueue/cancel commands, late/time-invalid policy, execution timestamps, and a non-backpressurable one-cycle event output. It is not part of the PTP protocol or servo loop. |
 | `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around `EthMacTop`: enables the `0x88F7` bypass, instantiates the proper tap for `PHY_TYPE_G`, supplies the shared `localMac`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
+
+The simulation-only entities are:
+
+| Entity | Responsibility |
+| --- | --- |
+| `PtpGrandmasterSim` | Owns canonical simulated PTP time, grandmaster identity/quality, rate error, and scheduled time-source faults. It publishes time anchors rather than driving every simulated tick. |
+| `PtpTimeTransmitterSim` | Full-protocol per-link adapter. It consumes the shared grandmaster time model, generates PTP traffic and delay responses for one emulated link, and applies that link's propagation delay, asymmetry, jitter, loss, and reordering. Multiple instances may share one grandmaster. |
+| `PtpEndpointSim` | Fast application-simulation provider. It consumes the shared time model, instantiates the real `PtpPhc`, and applies explicit phase/rate commands from a simulation control model without instantiating Ethernet, `PtpPort`, or the real packet servo. It preserves the production PHC/application interface but does not replace full protocol verification through `PtpEndpoint`. |
 
 ### PtpCore RTL composition and signal flow
 
@@ -207,6 +251,12 @@ The drawing uses manually placed boxes and straight, orthogonal connections;
 there is no automatic graph routing. A block repeated in more than one lane is
 the same RTL entity, not a second instance. Only one timestamp-tap variant is
 instantiated, selected by `PHY_TYPE_G`.
+
+The drawing covers the mandatory Ethernet endpoint composition.
+`PtpEventScheduler` is deliberately outside `EthMacPtpEndpoint`: an
+application may instantiate zero, one, or several schedulers against the PHC
+output without changing the PTP port. The simulation-only providers are also
+not part of the synthesizable endpoint drawing.
 
 `PtpPkg.vhd` is not instantiated as a hardware block. It is the shared
 compile-time package imported by the PTP entities for records, constants,
@@ -231,6 +281,9 @@ For completeness, the point-to-point interfaces are:
 | `PtpReg` | Port and servo configuration | `PtpPort`, `PtpServo` |
 | `PtpPort`, `PtpServo`, `PtpPhc` | Status, counters, and snapshots | `PtpReg` |
 | `PtpPhc` | Time, PPS, validity, and coherent readback | Application logic |
+| `PtpPhc` | Current time and validity | Optional `PtpEventScheduler` |
+| AXI-Lite/Rogue | Event shadow words, enqueue, and cancel | Optional `PtpEventScheduler` |
+| Optional `PtpEventScheduler` | One-cycle executed-event pulse and record | Application logic |
 
 The drawing omits repeated `ethClk` and reset nets to keep its signal lanes
 readable. The table above and the reset section below are normative for those
@@ -269,8 +322,9 @@ cannot be managed through its parent.
 
 The corresponding PyRogue package should live under
 `python/surf/ethernet/ptp/`. Use private implementation files `_PtpPhc.py`,
-`_PtpServo.py`, and `_PtpEndpoint.py`, re-exported from `__init__.py`. These
-classes mirror hardware registers and do not implement the servo.
+`_PtpServo.py`, `_PtpEndpoint.py`, and `_PtpEventScheduler.py`, re-exported
+from `__init__.py`. These classes mirror hardware registers and do not
+implement the servo, event timing, or multi-endpoint coordination policy.
 
 ### Shared types and narrow interfaces
 
@@ -289,7 +343,12 @@ classes mirror hardware registers and do not implement the servo.
 - a measurement-kind record that distinguishes a forward-delay observation
   from a raw path-delay update and carries both association ages; and
 - direct `PtpPhcControlType`, `PtpPhcStatusType`, servo configuration, and
-  servo status records with initialization constants.
+  servo status records with initialization constants;
+- `PtpEventRequestType`: generation ID, event ID, application opcode, payload,
+  target PHC time, and execution policy; and
+- `PtpEventResultType`: the request identity and payload plus target and actual
+  PHC times, validity, and late/error flags. Opcodes and payloads are
+  intentionally generic; application meanings do not belong in `PtpPkg`.
 
 Use a valid/ready interface around timestamp-tap events and completed
 measurement records. Internal decoded-message queues follow the same
@@ -738,11 +797,160 @@ One read domain is enough for the initial endpoint. Do not add a standalone
 `PtpTimeSnapshotCdc` or a vector of read clocks until a concrete multi-domain
 consumer requires one.
 
-For precise application actions, initially keep the compare/event generator
-in `phcClk` and synchronize only its one-shot event into the destination
-domain. A later destination-clock replica requires an explicit frequency and
-phase-transfer design and must publish its uncertainty. Plain PTP does not
-silently provide that physical clock synchronization.
+For precise application actions, keep `PtpEventScheduler` in `phcClk` and
+synchronize only its one-shot event into the destination domain. A later
+destination-clock replica requires an explicit frequency and phase-transfer
+design and must publish its uncertainty. Plain PTP does not silently provide
+that physical clock synchronization.
+
+### Application coordination and timed-event interface
+
+Keep four ownership layers distinct:
+
+| Layer | Configuration cadence | Responsibility |
+| --- | --- | --- |
+| Grandmaster infrastructure | Deployment or test setup | Select a time source; configure the PTP profile, domain, transport, delay mechanism, message intervals, identity, BMCA priorities/quality, time scale, UTC offset, and holdover behavior. |
+| FPGA PTP endpoint | Deployment and exceptional recovery | Configure source/domain acceptance, latency calibration, servo policy, and PHC policy; report time validity, lock, holdover, source identity, and uncertainty-related status. |
+| Software application coordinator | Per operation | Program application configuration, select a sufficiently future PHC epoch, arm the same generation on all participating endpoints, verify acknowledgement, cancel on partial failure, and collect execution status. |
+| Application sequencer | At the armed epoch and thereafter | Convert the generic scheduled event into application behavior and derive any high-rate or recurring local fiducials. |
+
+A real grandmaster is therefore not normally programmed for each application
+operation. It continuously supplies the time coordinate. Application software
+must check that the selected source and endpoint time quality are acceptable,
+but it programs future actions into the endpoints rather than sending
+application commands to the grandmaster. IEEE 1588 provides formal extension
+and profile mechanisms, but using proprietary PTP TLVs for application
+control would couple application delivery, reliability, and deadline semantics
+to the clock protocol. That is outside this plan.
+
+The initial coordination path can use ordinary per-endpoint Rogue/AXI-Lite
+access. Sequential host writes do not create execution skew when each endpoint
+commits an absolute future time. A separate multicast application-event
+protocol is not required for the first implementation. The coordinator flow
+is:
+
+1. Write and validate the static application configuration on every endpoint.
+2. Allocate a new nonzero generation ID and select a target PHC time beyond a
+   documented minimum lead time.
+3. Write the event shadow record and enqueue/arm it on every endpoint.
+4. Wait until every endpoint reports the same generation and event ID as
+   armed. If any endpoint rejects it, cancel that generation everywhere before
+   the target time.
+5. Let each endpoint execute autonomously at the target time; do not send a
+   last-moment software commit.
+6. Read back actual execution time and error status from every endpoint.
+
+`PtpEventScheduler` is a generic one-shot deadline queue, not an application
+state machine. Its initial contract is:
+
+- a parameterized queue, initially four or eight entries, with software
+  enqueue order required to be strictly increasing by target time and adjacent
+  events separated by at least one `phcClk` period;
+- atomic shadow fields for generation ID, event ID, opcode, payload, target
+  PHC time, and policy, followed by an enqueue strobe;
+- rejection of a full queue, a target earlier than the current tail, a stale
+  generation, or a target inside the minimum lead-time guard;
+- cancellation by generation and a flush command; if cancellation reaches the
+  `phcClk` domain on the same edge as the head deadline, execution wins and the
+  cancellation reports too late;
+- safe-default inhibition when PHC time is invalid, with an explicit policy
+  deciding whether an armed event may execute during qualified holdover;
+- safe-default rejection of late events rather than silent immediate
+  execution;
+- a non-backpressurable one-cycle event pulse and result record at the target
+  clock edge, including target time, actual execution time, and a late/error
+  indication; and
+- sticky/counted queue-full, rejected, cancelled, late, time-invalid, and
+  execution conditions.
+
+The scheduler is allowed to compare the local PHC directly and its output edge
+is quantized to `phcClk`. If an application starts a free-running local counter
+once and never consults the PHC again, independent physical oscillators will
+drift even though their numerical PHCs remain synchronized. Applications that
+need recurring phase agreement must calculate successive absolute PHC
+deadlines, periodically re-anchor their local sequencer, or add a physical
+frequency/phase-transfer mechanism such as SyncE or White Rabbit. A stream of
+recurring network commands is not the default solution.
+
+### Simulation and software co-simulation
+
+Provide two complementary verification modes rather than making one model
+serve incompatible goals:
+
+| Mode | Time path | Purpose |
+| --- | --- | --- |
+| Full protocol simulation | `PtpGrandmasterSim` feeds one `PtpTimeTransmitterSim` per emulated link; each sends real PTP frames and timestamp conditions through `EthMacPtpEndpoint` and the real `PtpPort`/`PtpServo`. | Verify parsing, timestamps, exchange association, E2E arithmetic, servo behavior, MAC integration, and several independent link impairments against one time source. |
+| Fast application co-simulation | `PtpGrandmasterSim` publishes canonical time through a simulation timing bus; one or more `PtpEndpointSim` instances provide the normal PHC/application interface while Ethernet is replaced by SimLink. | Verify multi-endpoint application behavior without simulating the Ethernet and PTP packet loop. |
+
+The common fast-path case is one HDL simulator process. It must not require a
+software process to advance or distribute time. A single
+`PtpGrandmasterSim` publishes under a configured simulation-bus ID, and any
+number of `PtpEndpointSim` subscribers with the same ID receive the time model
+without point-to-point VHDL ports. Duplicate publishers for one active bus ID
+are fatal. Subscribers report absence, reset-generation mismatch, and stale
+time-model status rather than silently free-running.
+
+Current [SimLink](../../../simlink/README.md) Stream, Memory, and SideBand
+instances connect HDL to an external software peer; they do not route one HDL
+instance to another, and the current Stream wire carries no target simulation
+timestamp as documented in the
+[architecture reference](../../../simlink/docs/architecture.md#simulated-stream-bandwidth).
+Add a process-local publish/subscribe timing registry to the common
+foreign-model layer for this use. The registry is available without sockets.
+An optional new SimLink `Timing` protocol bridges the same model to software
+or another simulator process when external coordination is required. This is
+a new protocol alongside Stream, Memory, and SideBand, not an encoding hidden
+inside one of their existing wire contracts.
+
+Do not send one message per simulated PHC tick. A published time anchor
+contains at least:
+
+- simulation session/reset generation and monotonically increasing sequence;
+- simulation bus ID and PTP domain;
+- effective monotonic simulator time;
+- corresponding PTP seconds, nanoseconds, and fractional nanoseconds;
+- signed rate ratio or rate error;
+- grandmaster identity, clock quality, time-scale properties, and validity;
+  and
+- a discontinuity/fault reason when the anchor starts a new time segment.
+
+Between anchors, a subscriber evaluates the affine mapping
+
+```text
+PTP time = anchor PTP time
+         + (current simulator time - anchor simulator time) * rate ratio
+```
+
+Simulator time and PTP time must remain separate fields: simulator time is
+monotonic, while a test may deliberately step PTP time forward or backward.
+The session/reset generation prevents a relaunched simulator or stale queued
+message from being accepted as a continuation of an earlier session. Define anchor
+visibility on the first subscriber clock edge strictly after its effective
+simulator time so foreign-callback ordering at one delta cycle cannot change a
+test result.
+
+`PtpGrandmasterSim` should have useful static generic defaults and require no
+runtime software for ordinary application tests. Its configurable behavior is
+limited to the time service: initial PTP epoch, domain and identity, source
+quality, rate error, update cadence, and a schedule of time steps, rate
+changes, source changes, loss, and recovery. An optional software control API
+may alter or query this model for fault-injection tests. It must not contain
+application event names or operation plans.
+
+Application coordination in co-simulation should use the same
+`PtpEventScheduler` AXI-Lite interface used by hardware, normally reached
+through SimLink Memory and Rogue. This keeps the application test honest: the
+simulation timing bus distributes time, while the production control path
+prepares and arms future events. A later real application-event Ethernet
+protocol, if one is required, should be simulated as that protocol rather than
+introduced only as a simulator shortcut.
+
+When endpoints reside in multiple simulator processes, the external Timing
+bridge additionally needs a broker and a conservative time grant/rendezvous
+mechanism. Anchors alone cannot prevent one process from advancing past a
+future message that another process has not published yet. Multi-process
+lockstep is a later capability and is not a gate for the initial single-process
+co-simulation path.
 
 ## Integration into existing Ethernet and GT cores
 
@@ -925,6 +1133,29 @@ Writes to static profile fields may optionally return `SLVERR` while the
 endpoint is enabled instead of performing the documented restart, but this
 choice must be frozen with the exact register map and modeled identically in
 PyRogue.
+
+### Provisional timed-event software contract
+
+`PtpEventScheduler` owns a separate AXI-Lite window so the PTP endpoint map and
+application scheduling policy can evolve independently. The exact offsets are
+deferred, but the first map must provide:
+
+| Group | Contents |
+| --- | --- |
+| Capabilities and policy | Version, queue depth, minimum lead time, holdover permission, late policy, enable, clear status/counters, and current PHC validity summary. |
+| Enqueue shadow | Generation ID, event ID, opcode, payload, absolute target time, and an atomic enqueue strobe. |
+| Cancellation | Generation-selective cancel, flush, command busy/ack/error, and the last rejected command reason. |
+| Queue status | Fill level, head generation/event ID and target time, armed state, and time until the head deadline. |
+| Execution status | Last target and actual time, signed lateness, generation/event ID, opcode, result flags, and a monotonically increasing execution count. |
+| Diagnostics | Saturating accepted, rejected-by-cause, cancelled, late, time-invalid, queue-full, and executed counters plus IRQ status/mask. |
+
+All multiword fields use shadow-and-commit or snapshot semantics. A successful
+AXI write only means the register transaction completed; software must wait for
+the scheduler's enqueue acknowledgement and matching armed generation/event
+status before treating an endpoint as prepared. PyRogue may provide convenience
+methods for prepare, arm, cancel, and status collection, but multi-endpoint
+rollback and target-time selection belong in application software rather than
+the SURF device class.
 
 ## White Rabbit and Synchronous Ethernet follow-on
 
@@ -1336,10 +1567,11 @@ need public interfaces solely for unit-test access.
 
 - Implement `PtpServo`, complete `PtpReg`, and compose them with `PtpPort` and
   `PtpPhc` in `PtpEndpoint`.
-- Create a cocotb TimeTransmitter model that supplies independently controlled
-  clock offset, oscillator drift, forward/reverse delay, residence correction,
-  queue jitter, message rate, reordering, loss, duplicates, and malformed
-  traffic.
+- Implement `PtpTimeTransmitterSim` with an initially local reference-time
+  model and cocotb control. It supplies independently controlled clock offset,
+  oscillator drift, forward/reverse delay, residence correction, queue jitter,
+  message rate, reordering, loss, duplicates, and malformed traffic. Phase 5
+  replaces the local truth source with the shared grandmaster timing bus.
 - Test acquisition with/without initial step, PI convergence, clamp and
   anti-windup, path-delay outlier rejection, source/domain changes, Sync and
   Announce timeout, holdover aging, link reset, reacquisition, and fatal math
@@ -1353,7 +1585,36 @@ need public interfaces solely for unit-test access.
 Exit criterion: the endpoint meets a written simulation error/settling bound
 and never updates the PHC from an incomplete, invalid, or mismatched exchange.
 
-### Phase 5: `EthMacTop` composition and compatibility
+### Phase 5: application timing and co-simulation
+
+- Implement `PtpEventScheduler` and its PyRogue register model as a standalone
+  PHC consumer; do not add application opcodes or state machines to
+  `PtpEndpoint`.
+- Verify atomic enqueue, strict target order and spacing, queue full, generation
+  cancellation, stale commands, minimum lead time, PHC rollover, equality at
+  the deadline, late policy, PHC invalidation, qualified holdover, output
+  pulse behavior, actual-time capture, and destination-domain pulse transfer.
+- Implement `PtpGrandmasterSim`, `PtpEndpointSim`, and a process-local timing
+  registry keyed by simulation-bus ID; connect `PtpTimeTransmitterSim` to the
+  same registry. Publish time anchors and rate segments, not per-tick messages.
+- Prove one publisher can serve multiple subscribers without VHDL timing
+  ports or a software process. Cover duplicate publisher, subscriber before
+  publisher, reset-generation mismatch, stale anchor, time step, rate change,
+  source loss, and recovery.
+- Specify and test the optional external SimLink Timing wire contract without
+  changing Stream, Memory, or SideBand compatibility. Keep monotonic simulator
+  time separate from possibly discontinuous PTP time.
+- Run the same application-level scheduled-event tests through the fast
+  provider and through the full PTP endpoint model. The expected event-time
+  tolerance differs, but generation, cancellation, validity, and late-event
+  semantics must not.
+
+Exit criterion: multiple endpoints in one HDL simulator execute one armed
+generic event from a common simulated PHC epoch deterministically without a
+software timing loop, and the same event can be armed through Rogue/SimLink
+Memory using the production scheduler register contract.
+
+### Phase 6: `EthMacTop` composition and compatibility
 
 - Correct the bypass `GEN_SYNC_FIFO_G` selection in `EthMacRxFifo` to use
   `BYP_COMMON_CLK_G`, with focused tests proving primary and bypass generics are
@@ -1372,7 +1633,7 @@ Exit criterion: autonomous synchronization works through the real MAC
 pipeline, application traffic is unmodified, and every dropped PTP event is
 observable in a counter.
 
-### Phase 6: 7-series 1 Gb/s integration and control plane
+### Phase 7: 7-series 1 Gb/s integration and control plane
 
 - Add `GigEthGtx7Ptp.vhd` first, without changing `GigEthGtx7` or its DCP. Add
   PTP at AXI-Lite base + `0x2000`, expose direct PHC time, PPS, lock, holdover,
@@ -1402,7 +1663,7 @@ lock/holdover/reacquisition results, and its calibration constants have
 recorded provenance. A sibling that has only been synthesized is labeled
 compile-supported, not hardware-calibrated.
 
-### Phase 7: 7-series 10 Gb/s integration
+### Phase 8: 7-series 10 Gb/s integration
 
 - Add `TenGigEthGtx7Ptp.vhd` and `TenGigEthGth7Ptp.vhd` using the same endpoint
   and XGMII tap. Add matching multi-lane PTP wrappers without changing the
@@ -1419,7 +1680,7 @@ Exit criterion: both 7-series 10G siblings elaborate, the common
 protocol/servo tests pass unchanged, and qualified hardware results isolate
 XGMII/PCS latency from endpoint algorithm error.
 
-### Phase 8: UltraScale and UltraScale+ 1 Gb/s integration
+### Phase 9: UltraScale and UltraScale+ 1 Gb/s integration
 
 - Add the first-generation UltraScale GTH PTP lane sibling and matching
   multi-lane wrapper under `GigEthCore/gthUltraScale`. Then add the
@@ -1447,7 +1708,7 @@ UltraScale and UltraScale+ variants elaborate through their normal manifests;
 and every hardware-tested path has separate reset, clock-continuity, and
 latency-calibration evidence.
 
-### Phase 9: UltraScale and UltraScale+ 10 Gb/s integration
+### Phase 10: UltraScale and UltraScale+ 10 Gb/s integration
 
 - Add `TenGigEthGthUltraScalePtp` in the first-generation UltraScale tree and
   GTH/GTY PTP siblings in the UltraScale+ trees, plus their matching multi-lane
@@ -1469,7 +1730,7 @@ family-neutral regressions pass without conditional protocol behavior, and
 each claimed hardware configuration has its own latency and clock-reset
 qualification.
 
-### Phase 10: High Accuracy/White Rabbit feasibility and integration
+### Phase 11: High Accuracy/White Rabbit feasibility and integration
 
 - Select or implement a deterministic-latency 1000BASE-X PHY that exposes the
   recovered clock and all required latency/phase observability.
@@ -1496,6 +1757,13 @@ Accuracy/White Rabbit target.
 - Transparent- and boundary-clock assistance, including residence time.
 - UDP/IPv4 and UDP/IPv6 checksum-aware in-flight modification.
 - External timestamp inputs and programmable periodic outputs.
+- Recurring and calendar-style event tables beyond the initial ordered
+  one-shot queue.
+- A real multicast timed-event application protocol only when a deployment
+  requires it; keep its reliability and deadline semantics independent of PTP
+  messages and TLVs.
+- Multi-process simulation lockstep and an external Timing broker after the
+  single-process publish/subscribe path is deterministic.
 - Full BMCA, management, multi-domain, unicast, and security features beyond
   the configured-TimeTransmitter endpoint.
 - Vendor CMAC/100 GbE timestamp ports in `Caui4Core`.
@@ -1533,6 +1801,20 @@ At minimum, focused tests should cover:
 - PHC: second rollover, nanosecond normalization, set/step/trim corner cases,
   coherent reads, PPS, large-epoch target-at-commit, command acknowledgement,
   independent resets, clock-stop indication, and CDC under unrelated clocks.
+- Timed events: atomic shadow/enqueue, minimum lead time, ordered queue,
+  too-close deadline rejection, queue full, generation cancellation, stale
+  command, late policy, PHC invalidation, qualified holdover, exact one-cycle
+  output, actual-time capture, and one-shot CDC into an unrelated destination
+  clock.
+- Fast co-simulation: one simulated grandmaster with multiple endpoints,
+  portless process-local fanout, affine time extrapolation, callback-order
+  independence, reset/session generation, time and rate steps, source-quality
+  changes, stale anchors, duplicate publishers, and no required software
+  timing loop.
+- SimLink Timing: external wire encode/decode and lifecycle tests for every
+  supported simulator backend, while the existing Stream, Memory, and SideBand
+  protocol-oracle tests remain unchanged. Multi-process rendezvous is tested
+  only when that later capability is implemented.
 - Capture: GMII and both XGMII start lanes, exact SFD edge, fractional offset,
   timestamp behavior when `phyReady` changes, independent RX/TX event FIFO
   pressure, and deterministic drop-newest overflow.
@@ -1611,6 +1893,19 @@ make MODULES="$PWD" import
     continuous through link and PCS recovery. Where it does not, freeze the
     clock-discontinuity detection and validity-clear mechanism before hardware
     qualification.
+13. Freeze `PtpEventScheduler` queue depth, generation/event widths, payload
+    width, minimum lead-time units, and whether qualified holdover may execute
+    an already armed event by default.
+14. Decide whether cancellation by event ID is worth an associative queue
+    search or whether generation-wide cancellation and full flush are
+    sufficient for the first scheduler.
+15. Select the process-local timing-registry implementation shared by GHDL,
+    VCS, and xsim, and freeze effective-time visibility so callback ordering
+    cannot change results.
+16. Freeze the optional SimLink Timing message framing and determine whether
+    its first external use is software fault injection, multi-process time
+    distribution, or both. Multi-process use additionally requires a time-
+    grant protocol.
 
 ## Risks
 
@@ -1657,6 +1952,21 @@ make MODULES="$PWD" import
 - Ordinary PTP can discipline a numerical PHC while the physical Ethernet
   clocks remain local. White Rabbit additionally changes the PHY and board
   clock architecture through SyncE and fine phase control.
+- A one-time synchronized epoch does not keep a free-running application
+  counter aligned. Recurring actions that require phase agreement must compare
+  against successive PHC deadlines or explicitly re-anchor before oscillator
+  drift exceeds the application budget.
+- Treating application events as PTP messages would entangle unrelated source
+  selection, clock health, command reliability, replay, and deadline policy.
+  Keep their protocol and state machines separate even if one physical device
+  supplies both services.
+- A hidden process-local simulation bus can become simulator-order dependent
+  if publishers expose an anchor at the same delta cycle in which subscribers
+  consume it. Effective simulator timestamps and a strict next-edge visibility
+  rule are required.
+- Existing SimLink software traffic has no target simulator timestamp. An
+  external Timing bridge without a rendezvous/grant mechanism cannot by itself
+  make several independently advancing simulators deterministic.
 - Changing exported record types or entity ports can create broad downstream
   source incompatibility even when new generics default to disabled.
 - Duplicating an entire GT wrapper for PTP can drift from its legacy sibling.
@@ -1668,6 +1978,17 @@ make MODULES="$PWD" import
 - [IEEE 1588-2019](https://standards.ieee.org/ieee/1588/6825/) is the active
   base standard and defines the layer-2 mapping, message and correction-field
   semantics, time scales, and default profiles.
+- [IEEE 802.1AS timing and synchronization](https://www.ieee802.org/1/pages/802.1as.html)
+  is a useful architectural reference for synchronized time consumed by
+  time-sensitive applications.
+- [IEEE 802.1Qbv scheduled traffic](https://www.ieee802.org/1/pages/802.1bv.html)
+  is a standards precedent for keeping time synchronization distinct from
+  actions scheduled against that time.
+- [linuxptp `ptp4l` configuration](https://linuxptp.nwtime.org/documentation/ptp4l/)
+  catalogs the real deployment properties configured on PTP clocks, including
+  profile/domain behavior, clock quality and priorities, message intervals,
+  transport, delay mechanism, and time scale. It is a reference, not a runtime
+  dependency of the FPGA endpoint.
 - [linuxptp default configuration](https://github.com/richardcochran/linuxptp/blob/master/configs/default.cfg)
   is the interoperability reference for common default intervals, two-step,
   E2E, domain, timeout, and delay-filter defaults. It is a peer/reference
