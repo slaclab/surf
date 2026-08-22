@@ -9,17 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Keep the narrow common-clock wrapper case that proves the cocotb-facing
-#   bridge topology and stable pass-through behavior, and add one asynchronous
-#   active-high case so the remote-reset path is covered without pulling the
-#   less simulator-stable reset permutations into the regression batch.
+# - Sweep: Cover common-clock pass-through plus asynchronous active-high,
+#   active-low, asynchronous-reset, and pipelined FIFO configurations.
 # - Stimulus: Drive AXI-Lite writes and reads through the slave-side port into a
 #   cocotb RAM attached to the master-side port, then assert only the master
 #   reset while the slave side remains live in the asynchronous case.
 # - Checks: Successful transactions must round-trip through the bridge into the
 #   backing RAM, common-clock reset must restart the path cleanly, post-reset
-#   traffic must recover without stale responses, and a transaction rejected
-#   while the master domain is reset must never execute downstream afterwards.
+#   traffic must recover without stale responses, requests held while READY is
+#   low must not cross the bridge, and a transaction rejected while the master
+#   domain is reset must never execute downstream afterwards.
 # - Timing: The bench drives both bridge clocks from one lockstep coroutine so
 #   `COMMON_CLK_G=true` is exercised as a true shared-clock configuration. The
 #   asynchronous case drives mAxiClk from a gateable coroutine so the test can
@@ -908,6 +907,10 @@ async def single_outstanding_bound_test(dut):
         )
     dut.S_AXI_ARVALID.value = 0
     await tb.settle()
+    assert REJECTED_READ_ADDR not in tb.slave.addresses_seen("AR"), (
+        "read held while ARREADY was low crossed to the master side: "
+        f"{tb.slave.handshakes}"
+    )
 
     # Answer the first read, after which the next one is accepted normally.
     await tb.await_high(dut.S_AXI_RVALID, "first read response", limit=128)
@@ -935,6 +938,60 @@ async def single_outstanding_bound_test(dut):
     await tb.drive_handshake(dut.S_AXI_WVALID, dut.S_AXI_WREADY, "first W")
     await tb.await_high(dut.S_AXI_BVALID, "first write response", limit=128)
     await tb.consume(dut.S_AXI_BVALID, dut.S_AXI_BREADY, "first write response")
+
+    # Once the first response releases the downstream slave, none of the address
+    # beats held above while AWREADY was low may appear there.
+    await tb.m_cycle(16)
+    assert RECOVERY_ADDR not in tb.slave.addresses_seen("AW"), (
+        "write address held while AWREADY was low crossed to the master side: "
+        f"{tb.slave.handshakes}"
+    )
+
+    # Exercise the same rule on W independently. Queue one accepted data beat
+    # before its address, then hold a different beat while WREADY is low.
+    first_wdata = 0x11223344
+    blocked_wdata = 0x55667788
+    dut.S_AXI_WDATA.value = first_wdata
+    dut.S_AXI_WSTRB.value = 0xF
+    await tb.drive_handshake(dut.S_AXI_WVALID, dut.S_AXI_WREADY, "W before AW")
+
+    dut.S_AXI_WDATA.value = blocked_wdata
+    dut.S_AXI_WVALID.value = 1
+    for _ in range(16):
+        await tb.s_cycle()
+        assert int(dut.S_AXI_WREADY.value) == 0, (
+            "bridge accepted a second write data beat while one was still pending"
+        )
+    dut.S_AXI_WVALID.value = 0
+    await tb.settle()
+
+    # Complete the first W with its address and consume its response.
+    dut.S_AXI_AWADDR.value = RECOVERY_ADDR
+    await tb.drive_handshake(dut.S_AXI_AWVALID, dut.S_AXI_AWREADY, "AW after W")
+    await tb.await_high(dut.S_AXI_BVALID, "W-before-AW response", limit=128)
+    await tb.consume(dut.S_AXI_BVALID, dut.S_AXI_BREADY, "W-before-AW response")
+    assert tb.slave.mem[RECOVERY_ADDR] == first_wdata
+
+    # A fresh address must wait for a fresh W; an unaccepted data beat left in
+    # the FIFO would instead pair with this address and modify memory.
+    dut.S_AXI_AWADDR.value = REJECTED_WRITE_ADDR
+    await tb.drive_handshake(
+        dut.S_AXI_AWVALID, dut.S_AXI_AWREADY, "AW after blocked W"
+    )
+    await tb.m_cycle(32)
+    assert REJECTED_WRITE_ADDR not in tb.slave.mem, (
+        "write data held while WREADY was low crossed to the master side: "
+        f"{tb.slave.handshakes}"
+    )
+
+    # Finish the legitimate write so the following remote-reset scenario starts
+    # with no partial transaction in either interface.
+    dut.S_AXI_WDATA.value = 0x99AABBCC
+    await tb.drive_handshake(
+        dut.S_AXI_WVALID, dut.S_AXI_WREADY, "fresh W after blocked W"
+    )
+    await tb.await_high(dut.S_AXI_BVALID, "fresh write response", limit=128)
+    await tb.consume(dut.S_AXI_BVALID, dut.S_AXI_BREADY, "fresh write response")
 
     # Error mode: the same bound holds, and the accepted read is answered once.
     tb.m_clk.stop()

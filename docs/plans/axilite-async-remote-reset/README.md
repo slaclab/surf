@@ -34,11 +34,23 @@ All in the `GEN_ASYNC` branch.
 
 ## Design Decisions
 
-**One shared `fifoRst` for all five FIFOs**, asserted while either domain is in
-reset or while draining an abandoned transaction. Contract: the bridge is empty
-whenever either side is reset. Covers defects 2 and 3 and the mirror image, and
-collapses two reset nets into one. Works with `mAxiClk` stopped because
-`FifoAsync` treats `rst` as asynchronous and resynchronizes it into both domains.
+**One shared, registered, active-high `fifoRst` for all five FIFOs**, generated
+in the `sAxiClk` control domain by a one-bit `RegisterVector`. `sAxiClkRst`
+first passes through a local `RstSync`, then asynchronously asserts the
+reset-request register; `mAxiClkRst` is synchronized into `sAxiClk` before
+entering its synchronous data input. Release is synchronous and held until the
+local error responder drains the abandoned transaction. `FifoAsync` then
+resynchronizes the single registered request into both FIFO domains. The FIFO
+instances use active-high reset internally regardless of the bridge's external
+reset polarity, so the register directly drives every reset synchronizer
+without an intervening polarity-select LUT. This avoids both combinational
+logic and multi-clock fan-in ahead of the synchronizers.
+
+Clock/reset contract: if either AXI clock is unavailable, its corresponding
+reset must remain asserted. The clock must be stable before reset release, and
+traffic must remain inactive until synchronized release completes. A reset of
+the slave/source domain abandons its outstanding transactions, so they require
+no response.
 
 **One transaction in flight per channel, matching `AxiLiteCrossbar`** (maintainer
 decision). The bridge does not need the bound: measured on unmodified RTL it
@@ -49,7 +61,8 @@ one at a time, so no SURF topology exceeds one.
 Tracking must exist regardless, because `fifoRst` discards in-flight requests
 that still owe a response. Matching the crossbar makes that one flag per channel
 instead of a counter, which is the whole cost of the fix. The bound is therefore
-enforced by the ready outputs, in normal operation as well as during reset:
+enforced by the ready outputs and by making every FIFO write conditional on its
+source-side handshake, in normal operation as well as during reset:
 measured, a flag responder without the bound answers 1 of 4 abandoned reads and
 hangs the master. Consequence, a master that pipelines is throttled to one
 transaction, which matters because `AxiLiteAsyncIpIntegrator` exposes the slave
@@ -114,6 +127,10 @@ anyway: one LUT input, it states the invariant explicitly instead of depending o
 `FifoAsync` ignoring `wr_en` while reset, and it stays correct if `fifoRst` is
 ever narrowed.
 
+`single_outstanding_bound_test` also holds a second `AR`, `AW`, and `W` while
+the corresponding ready output is low and verifies that none of those
+unaccepted beats crosses to the downstream slave.
+
 ## Validation Run
 
 - Reproduced first: unmodified RTL replayed the rejected write and read
@@ -136,6 +153,12 @@ Do not run `pytest -n auto` while Vivado implementation is running. The
   throttled. Correctness unaffected, throughput not.
 - Synthesis numbers are out-of-context on one part; absolute slack will differ
   inside a real design.
+- The resource and timing table predates the registered reset-request review
+  revision and must be remeasured before using the exact numbers in release
+  notes.
+- Rerun Vivado `report_cdc -details -all_checks_per_endpoint` on the revised
+  reset topology and confirm that the former FIFO-reset CDC-10/CDC-12 paths are
+  gone. Vivado is not available in the current validation environment.
 - `NUM_ADDR_BITS_G` exercised only at 12 in simulation and 32 in synthesis.
 - With one transaction in flight the 16-deep FIFOs are oversized and their 96
   distributed-RAM LUTs now dominate the module. Shrinking `FIFO_ADDR_WIDTH_C` is

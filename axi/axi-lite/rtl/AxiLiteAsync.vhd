@@ -51,7 +51,7 @@ end AxiLiteAsync;
 
 architecture STRUCTURE of AxiLiteAsync is
 
-   signal s2mRst : sl;                  -- Slave rst sync'd to master clk
+   signal sRst   : sl;                  -- Slave rst sync'd to slave clk
    signal m2sRst : sl;                  -- Master rst sync'd to slave clk
 
    signal readSlaveToMastDin   : slv(NUM_ADDR_BITS_G+2 downto 0);
@@ -93,12 +93,12 @@ architecture STRUCTURE of AxiLiteAsync is
    constant FIFO_ADDR_WIDTH_C : positive := 4;
 
    -- Reset terms normalized to active HIGH, independent of RST_POLARITY_G
-   signal s2mRstActive  : sl;
    signal m2sRstActive  : sl;
    signal mAxiRstActive : sl;
 
-   -- Asserted while every FIFO in the bridge must be held empty
-   signal fifoRst : sl;
+   -- Registered active-HIGH reset request for every FIFO in the bridge
+   signal fifoRstReq : sl;
+   signal fifoRst    : sl;
 
    -- Slave side handshakes, kept local so the error responder can observe them
    signal sArReady : sl;
@@ -136,18 +136,18 @@ begin
 
    GEN_ASYNC : if (COMMON_CLK_G = false) generate
 
-      -- Synchronize each reset across to the other clock domain
-      LOC_S2M_RstSync : entity surf.RstSync
+      -- Synchronize the local reset release before it controls fifoRst
+      LOC_S_RstSync : entity surf.RstSync
          generic map (
             TPD_G          => TPD_G,
             IN_POLARITY_G  => RST_POLARITY_G,
-            OUT_POLARITY_G => RST_POLARITY_G,
-            OUT_REG_RST_G  => false)
+            OUT_POLARITY_G => RST_POLARITY_G)
          port map (
-            clk      => mAxiClk,
+            clk      => sAxiClk,
             asyncRst => sAxiClkRst,
-            syncRst  => s2mRst);
+            syncRst  => sRst);
 
+      -- Synchronize the remote reset into the slave/control clock domain
       LOC_M2S_RstSync : entity surf.RstSync
          generic map (
             TPD_G          => TPD_G,
@@ -159,20 +159,30 @@ begin
             asyncRst => mAxiClkRst,
             syncRst  => m2sRst);
 
-      -- Normalize both synchronized resets to active HIGH so everything below is
-      -- correct for either RST_POLARITY_G setting
-      s2mRstActive  <= '1' when (s2mRst = RST_POLARITY_G) else '0';
+      -- Normalize reset indications to active HIGH
       m2sRstActive  <= '1' when (m2sRst = RST_POLARITY_G) else '0';
       mAxiRstActive <= '1' when (mAxiClkRst = RST_POLARITY_G) else '0';
 
-      -- Hold every FIFO empty while either domain is in reset, and while the
-      -- bridge is still answering transactions it has abandoned. Without this a
-      -- request accepted before the remote reset stays queued and is replayed
-      -- downstream once the remote domain recovers, even though the slave side
-      -- was already told the access failed. FifoAsync resynchronizes this reset
-      -- into both of its clock domains, so one assertion clears the read and
-      -- write pointers even while mAxiClk is stopped.
-      fifoRst <= RST_POLARITY_G when (s2mRstActive = '1') or (m2sRstActive = '1') or (r.errMode = '1') else not RST_POLARITY_G;
+      -- Build one glitch-free FIFO reset request in the slave/control domain.
+      -- The local reset asserts it asynchronously, so the FIFOs are reset even
+      -- if sAxiClk is stopped.  The remote reset is synchronized above before it
+      -- sets this register.  Deassertion is synchronous and delayed until error
+      -- mode has drained every abandoned transaction.  FifoAsync then
+      -- resynchronizes this single registered request into both FIFO domains.
+      fifoRstReq <= m2sRstActive or r.errMode;
+
+      U_FifoRstReg : entity surf.RegisterVector
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => true,
+            WIDTH_G        => 1,
+            INIT_G         => "1")
+         port map (
+            clk      => sAxiClk,    -- [in]
+            rst      => sRst,       -- [in]
+            sig_i(0) => fifoRstReq, -- [in]
+            reg_o(0) => fifoRst);   -- [out]
 
       -- Transaction tracking and local error responder.
       --
@@ -263,7 +273,7 @@ begin
       U_ReadSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            RST_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
@@ -306,7 +316,7 @@ begin
       -- failed would still reach the master side.
       sArReady              <= (not r.rPend) when (r.errMode = '1') else ((not readSlaveToMastFull) and (not r.rPend));
       sAxiReadSlave.arready <= sArReady;
-      readSlaveToMastWrite  <= sAxiReadMaster.arvalid and (not readSlaveToMastFull) and (not r.errMode);
+      readSlaveToMastWrite  <= sAxiReadMaster.arvalid and sArReady and (not r.errMode);
 
       -- Data Out
       mAxiReadMaster.arprot <= readSlaveToMastDout(2 downto 0);
@@ -329,7 +339,7 @@ begin
       U_ReadMastToSlaveFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            RST_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
@@ -389,7 +399,7 @@ begin
       U_WriteAddrSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            RST_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
@@ -430,7 +440,7 @@ begin
       -- Write control and ready generation
       sAwReady                  <= (not r.awPend) when (r.errMode = '1') else ((not writeAddrSlaveToMastFull) and (not r.awPend));
       sAxiWriteSlave.awready    <= sAwReady;
-      writeAddrSlaveToMastWrite <= sAxiWriteMaster.awvalid and (not writeAddrSlaveToMastFull) and (not r.errMode);
+      writeAddrSlaveToMastWrite <= sAxiWriteMaster.awvalid and sAwReady and (not r.errMode);
 
       -- Data Out
       mAxiWriteMaster.awprot <= writeAddrSlaveToMastDout(2 downto 0);
@@ -453,7 +463,7 @@ begin
       U_WriteDataSlaveToMastFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            RST_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
@@ -494,7 +504,7 @@ begin
       -- Write control and ready generation
       sWReady                   <= (not r.wPend) when (r.errMode = '1') else ((not writeDataSlaveToMastFull) and (not r.wPend));
       sAxiWriteSlave.wready     <= sWReady;
-      writeDataSlaveToMastWrite <= sAxiWriteMaster.wvalid and (not writeDataSlaveToMastFull) and (not r.errMode);
+      writeDataSlaveToMastWrite <= sAxiWriteMaster.wvalid and sWReady and (not r.errMode);
 
       -- Data Out
       mAxiWriteMaster.wstrb <= writeDataSlaveToMastDout(3 downto 0);
@@ -512,7 +522,7 @@ begin
       U_WriteMastToSlaveFifo : entity surf.FifoASync
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
+            RST_POLARITY_G => '1',
             RST_ASYNC_G    => RST_ASYNC_G,
             MEMORY_TYPE_G  => "distributed",  -- Use Dist Ram
             FWFT_EN_G      => true,
