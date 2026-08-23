@@ -81,6 +81,19 @@ entity Gtx7Core is
 
       -- Configure RX comma alignment
       RX_ALIGN_MODE_G      : string     := "GT";   -- Or "FIXED_LAT" or "NONE"
+      RX_ODD_ALIGN_MODE_G  : string     := "RESET";  -- "RESET": legacy behavior, resets the RX on
+                                                      -- an odd comma landing; "BITSLIP": resolves
+                                                      -- the odd residue in fabric. Requires
+                                                      -- RX_ALIGN_MODE_G = "FIXED_LAT" and
+                                                      -- RX_BUF_EN_G = false. "BITSLIP" adds one
+                                                      -- rxUsrClk of latency versus "RESET" and
+                                                      -- never asserts the aligner's rxReset, so
+                                                      -- recovery from a LOST alignment rests
+                                                      -- entirely on Gtx7RxRst's DATA_VALID
+                                                      -- supervision. Drive rxDataValidIn from a
+                                                      -- decoder when selecting "BITSLIP"; its
+                                                      -- default of '1' leaves that loop
+                                                      -- permanently satisfied.
       ALIGN_COMMA_DOUBLE_G : string     := "FALSE";
       ALIGN_COMMA_ENABLE_G : bit_vector := "1111111111";
       ALIGN_COMMA_WORD_G   : integer    := 2;
@@ -340,11 +353,13 @@ architecture rtl of Gtx7Core is
    signal rxLpmHfHold  : sl;
 
    -- Rx Data
-   signal rxDataInt     : slv(RX_EXT_DATA_WIDTH_G-1 downto 0);
-   signal rxDataFull    : slv(63 downto 0);  -- GT RXDATA
-   signal rxCharIsKFull : slv(7 downto 0);   -- GT RXCHARISK
-   signal rxDispErrFull : slv(7 downto 0);   -- GT RXDISPERR
-   signal rxDecErrFull  : slv(7 downto 0);
+   signal rxDataInt        : slv(RX_EXT_DATA_WIDTH_G-1 downto 0);
+   signal rxDataAligned    : slv(RX_EXT_DATA_WIDTH_G-1 downto 0) := (others => '0');
+   signal rxDataAlignedSel : sl                                  := '0';
+   signal rxDataFull       : slv(63 downto 0);  -- GT RXDATA
+   signal rxCharIsKFull    : slv(7 downto 0);   -- GT RXCHARISK
+   signal rxDispErrFull    : slv(7 downto 0);   -- GT RXDISPERR
+   signal rxDecErrFull     : slv(7 downto 0);
 
 
    ----------------------------
@@ -390,6 +405,23 @@ architecture rtl of Gtx7Core is
 
 begin
 
+   -- RX_ODD_ALIGN_MODE_G is a string generic so it cannot carry a constrained range; this assert
+   -- enforces the two-member enumeration explicitly instead.
+   assert (RX_ODD_ALIGN_MODE_G = "RESET") or (RX_ODD_ALIGN_MODE_G = "BITSLIP")
+      report "Gtx7Core: RX_ODD_ALIGN_MODE_G must be RESET or BITSLIP"
+      severity failure;
+
+   -- rxDataAligned/rxDataAlignedSel are driven only inside RX_FIX_LAT_ALIGN_GEN, so this assert
+   -- must repeat that generate's FULL condition, RX_BUF_EN_G = false AND RX_ALIGN_MODE_G =
+   -- "FIXED_LAT". RX_BUF_EN_G defaults to true, so checking only the align mode would let the
+   -- likeliest caller mistake through: FIXED_LAT plus BITSLIP with RX_BUF_EN_G left at its
+   -- default elaborates RX_NO_ALIGN_GEN instead, which ties rxPhaseAlignmentDone high and leaves
+   -- rxDataAlignedSel at its declared '0', so RX_DATA_OUT_BITSLIP_GEN silently degenerates to the
+   -- raw rxDataInt path while reporting alignment done.
+   assert (RX_ODD_ALIGN_MODE_G /= "BITSLIP") or (RX_ALIGN_MODE_G = "FIXED_LAT" and RX_BUF_EN_G = false)
+      report "Gtx7Core: RX_ODD_ALIGN_MODE_G = BITSLIP requires RX_ALIGN_MODE_G = FIXED_LAT and RX_BUF_EN_G = false"
+      severity failure;
+
    rxOutClkOut <= rxOutClkBufg;
 
    cPllLockOut       <= cPllLock;
@@ -417,7 +449,18 @@ begin
    -- Rx Logic
    --------------------------------------------------------------------------------------------------
    -- Fit GTX port sizes to selected rx external interface size
-   rxDataOut <= rxDataInt;
+   -- rxDataAlignedSel asserts in both of the aligner's terminal states, so once alignment is
+   -- reached this path is taken regardless of where the comma landed. That is what keeps the
+   -- fiber-to-rxDataOut latency identical on every bring-up; selecting rxDataInt for the
+   -- even-landing case would reintroduce a landing-dependent parallel-clock period.
+   RX_DATA_OUT_BITSLIP_GEN : if (RX_ODD_ALIGN_MODE_G = "BITSLIP") generate
+      rxDataOut <= rxDataAligned when (rxDataAlignedSel = '1') else rxDataInt;
+   end generate;
+
+   RX_DATA_OUT_RESET_GEN : if (RX_ODD_ALIGN_MODE_G /= "BITSLIP") generate
+      rxDataOut <= rxDataInt;
+   end generate;
+
    RX_DATA_8B10B_GLUE : process (rxCharIsKFull, rxDataFull, rxDecErrFull,
                                  rxDispErrFull) is
    begin
@@ -584,20 +627,23 @@ begin
    RX_FIX_LAT_ALIGN_GEN : if (RX_BUF_EN_G = false and RX_ALIGN_MODE_G = "FIXED_LAT") generate
       Gtx7RxFixedLatPhaseAligner_Inst : entity surf.Gtx7RxFixedLatPhaseAligner
          generic map (
-            TPD_G       => TPD_G,
-            WORD_SIZE_G => RX_EXT_DATA_WIDTH_G,
-            COMMA_EN_G  => FIXED_COMMA_EN_G,
-            COMMA_0_G   => FIXED_ALIGN_COMMA_0_G,
-            COMMA_1_G   => FIXED_ALIGN_COMMA_1_G,
-            COMMA_2_G   => FIXED_ALIGN_COMMA_2_G,
-            COMMA_3_G   => FIXED_ALIGN_COMMA_3_G)
+            TPD_G               => TPD_G,
+            WORD_SIZE_G         => RX_EXT_DATA_WIDTH_G,
+            COMMA_EN_G          => FIXED_COMMA_EN_G,
+            COMMA_0_G           => FIXED_ALIGN_COMMA_0_G,
+            COMMA_1_G           => FIXED_ALIGN_COMMA_1_G,
+            COMMA_2_G           => FIXED_ALIGN_COMMA_2_G,
+            COMMA_3_G           => FIXED_ALIGN_COMMA_3_G,
+            RX_ODD_ALIGN_MODE_G => RX_ODD_ALIGN_MODE_G)
          port map (
             rxUsrClk             => rxUsrClkIn,
             rxRunPhAlignment     => rxRunPhAlignment,
             rxData               => rxDataInt,
             rxReset              => rxAlignReset,
             rxSlide              => rxSlide,
-            rxPhaseAlignmentDone => rxPhaseAlignmentDone);
+            rxPhaseAlignmentDone => rxPhaseAlignmentDone,
+            rxDataAligned        => rxDataAligned,
+            rxDataAlignedSel     => rxDataAlignedSel);
       rxDlySReset <= '0';
    end generate;
 
