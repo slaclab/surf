@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 681;
+var viewWidth = 748;
 var viewHeight = 302;
 var sectionId = 'dynsection-0';
 </script>
@@ -63,19 +63,19 @@ var sectionId = 'dynsection-0';
 </a>
 </g>
 </g>
-<!-- Node11 -->
-<g id="Node000011" class="node">
-<title>Node11</title>
-<g id="a_Node000011"><a xlink:href="classAxiAd9467Core.html" target="_top" xlink:title=" ">
+<!-- Node14 -->
+<g id="Node000014" class="node">
+<title>Node14</title>
+<g id="a_Node000014"><a xlink:href="classAxiAd9467Core.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="92,-19 0,-19 0,0 92,0 92,-19"/>
 <text text-anchor="middle" x="46" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">AxiAd9467Core</text>
 </a>
 </g>
 </g>
-<!-- Node1&#45;&gt;Node11 -->
-<g id="edge13_Node000001_Node000011" class="edge">
-<title>Node1&#45;&gt;Node11</title>
-<g id="a_edge13_Node000001_Node000011"><a xlink:title=" ">
+<!-- Node1&#45;&gt;Node14 -->
+<g id="edge16_Node000001_Node000014" class="edge">
+<title>Node1&#45;&gt;Node14</title>
+<g id="a_edge16_Node000001_Node000014"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M46,-44.66C46,-35.93 46,-25.99 46,-19.09"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="42.5,-44.75 46,-54.75 49.5,-44.75 42.5,-44.75"/>
 </a>
@@ -255,16 +255,70 @@ var sectionId = 'dynsection-0';
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="classFifoOutputPipeline.html" target="_top" xlink:title=" ">
+<g id="a_Node000010"><a xlink:href="classSimpleDualPortRamXpm.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="393.5,-294 256.5,-294 256.5,-275 393.5,-275 393.5,-294"/>
+<text text-anchor="middle" x="325" y="-282" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamXpm</text>
+</a>
+</g>
+</g>
+<!-- Node10&#45;&gt;Node9 -->
+<g id="edge12_Node000009_Node000010" class="edge">
+<title>Node10&#45;&gt;Node9</title>
+<g id="a_edge12_Node000009_Node000010"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M361.43,-271.8C392.22,-261.91 435.62,-247.97 463.28,-239.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="359.96,-268.59 351.51,-274.98 362.1,-275.26 359.96,-268.59"/>
+</a>
+</g>
+</g>
+<!-- Node11 -->
+<g id="Node000011" class="node">
+<title>Node11</title>
+<g id="a_Node000011"><a xlink:href="classSimpleDualPortRamAlteraMf.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="568.5,-294 411.5,-294 411.5,-275 568.5,-275 568.5,-294"/>
+<text text-anchor="middle" x="490" y="-282" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamAlteraMf</text>
+</a>
+</g>
+</g>
+<!-- Node11&#45;&gt;Node9 -->
+<g id="edge13_Node000009_Node000011" class="edge">
+<title>Node11&#45;&gt;Node9</title>
+<g id="a_edge13_Node000009_Node000011"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M490,-264.66C490,-255.93 490,-245.99 490,-239.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="486.5,-264.75 490,-274.75 493.5,-264.75 486.5,-264.75"/>
+</a>
+</g>
+</g>
+<!-- Node12 -->
+<g id="Node000012" class="node">
+<title>Node12</title>
+<g id="a_Node000012"><a xlink:href="classSimpleDualPortRamInferred.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="739.5,-294 586.5,-294 586.5,-275 739.5,-275 739.5,-294"/>
+<text text-anchor="middle" x="663" y="-282" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamInferred</text>
+</a>
+</g>
+</g>
+<!-- Node12&#45;&gt;Node9 -->
+<g id="edge14_Node000009_Node000012" class="edge">
+<title>Node12&#45;&gt;Node9</title>
+<g id="a_edge14_Node000009_Node000012"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M625.23,-271.93C592.91,-262.03 547.14,-248.01 518.01,-239.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="624.62,-275.4 635.2,-274.98 626.67,-268.71 624.62,-275.4"/>
+</a>
+</g>
+</g>
+<!-- Node13 -->
+<g id="Node000013" class="node">
+<title>Node13</title>
+<g id="a_Node000013"><a xlink:href="classFifoOutputPipeline.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="672.5,-239 565.5,-239 565.5,-220 672.5,-220 672.5,-239"/>
 <text text-anchor="middle" x="619" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">FifoOutputPipeline</text>
 </a>
 </g>
 </g>
-<!-- Node10&#45;&gt;Node5 -->
-<g id="edge12_Node000005_Node000010" class="edge">
-<title>Node10&#45;&gt;Node5</title>
-<g id="a_edge12_Node000005_Node000010"><a xlink:title=" ">
+<!-- Node13&#45;&gt;Node5 -->
+<g id="edge15_Node000005_Node000013" class="edge">
+<title>Node13&#45;&gt;Node5</title>
+<g id="a_edge15_Node000005_Node000013"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M555.41,-219.63C473.39,-208.19 333.85,-188.73 271.16,-179.99"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="554.97,-223.1 565.36,-221.02 555.94,-216.17 554.97,-223.1"/>
 </a>

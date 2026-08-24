@@ -1,9 +1,15 @@
 <map id="BoxcarIntegratorTb" name="BoxcarIntegratorTb">
-<area shape="rect" id="Node000001" title=" " alt="" coords="24,152,171,177"/>
-<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,79,69,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,113,90,150,86,154,54,116"/>
-<area shape="rect" id="Node000003" href="$classBoxcarIntegrator.html" title=" " alt="" coords="93,79,224,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="142,116,109,154,105,150,138,113"/>
-<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="82,5,235,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="161,44,161,79,156,79,156,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="182,225,329,251"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="163,152,227,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,186,248,223,244,227,212,190"/>
+<area shape="rect" id="Node000003" href="$classBoxcarIntegrator.html" title=" " alt="" coords="251,152,382,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="300,190,267,227,263,223,296,186"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="240,79,393,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="319,118,319,152,314,152,314,118"/>
+<area shape="rect" id="Node000005" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000006" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000007" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="445,5,649,31"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="498,37,355,81,353,76,496,32"/>
 </map>

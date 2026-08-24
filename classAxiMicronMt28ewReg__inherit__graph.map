@@ -1,7 +1,13 @@
 <map id="AxiMicronMt28ewReg" name="AxiMicronMt28ewReg">
-<area shape="rect" id="Node000001" title=" " alt="" coords="8,79,172,104"/>
-<area shape="rect" id="Node000003" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="5,152,175,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="93,118,93,152,87,152,87,118"/>
-<area shape="rect" id="Node000002" href="$classSimpleDualPortRam.html" title=" " alt="" coords="13,5,167,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,44,93,79,87,79,87,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="235,152,399,177"/>
+<area shape="rect" id="Node000006" href="$classAxiMicronMt28ewCore.html" title=" " alt="" coords="232,225,401,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="319,191,319,225,314,225,314,191"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRam.html" title=" " alt="" coords="240,79,393,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,118,319,152,314,152,314,118"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000005" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="445,5,649,31"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="498,37,355,81,353,76,496,32"/>
 </map>

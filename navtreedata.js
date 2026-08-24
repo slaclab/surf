@@ -37,13 +37,13 @@ var NAVTREEINDEX =
 [
 "annotated.html",
 "classAxiStreamBatcherEventBuilder.html",
-"classAxisToJtag.html",
-"classEthMacRxFilterWrapper.html",
-"classHammingEccEncoder.html",
-"classPgp2bRxCell_1_1Pgp2bRxCell.html",
-"classRawEthFramerFlatWrapper_1_1rtl.html",
-"classSrpV3Axi_1_1rtl.html",
-"classUdpEngineWrapperFlatWrapper_1_1rtl.html"
+"classAxiXcf128Core_1_1mapping.html",
+"classEthMacRxCsum_1_1rtl.html",
+"classGtyUltraScaleQuadPll.html",
+"classPgp2bGtx7MultiLane.html",
+"classPgpParallelSimModel.html",
+"classSgmiiDp83867LvdsUltraScale.html",
+"classTenGigEthGth7Clk.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

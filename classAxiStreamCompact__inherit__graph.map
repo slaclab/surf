@@ -2,19 +2,19 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="196,449,344,475"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamCompactIpIntegrator.html" title=" " alt="" coords="392,400,616,425"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="344,444,442,423,443,428,345,449"/>
-<area shape="rect" id="Node000004" href="$classEthMacRxRoCEv2.html" title=" " alt="" coords="435,449,573,475"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="358,459,435,459,435,465,358,465"/>
-<area shape="rect" id="Node000043" href="$classEthMacTxRoCEv2.html" title=" " alt="" coords="436,499,572,524"/>
+<area shape="rect" id="Node000004" href="$classEthMacTxRoCEv2.html" title=" " alt="" coords="436,449,572,475"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="358,459,436,459,436,465,358,465"/>
+<area shape="rect" id="Node000043" href="$classRoCEv2EthMacRx.html" title=" " alt="" coords="435,499,573,524"/>
 <area shape="poly" id="edge42_Node000001_Node000043" title=" " alt="" coords="345,475,443,496,442,501,344,480"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,449,148,475"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,459,196,459,196,465,162,465"/>
-<area shape="rect" id="Node000005" href="$classEthMacRx.html" title=" " alt="" coords="717,400,803,425"/>
+<area shape="rect" id="Node000005" href="$classEthMacTx.html" title=" " alt="" coords="717,400,803,425"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="583,444,716,418,717,424,584,449"/>
-<area shape="rect" id="Node000042" href="$classEthMacRxRoCEv2Wrapper.html" title=" " alt="" coords="664,449,856,475"/>
-<area shape="poly" id="edge41_Node000004_Node000042" title=" " alt="" coords="587,459,664,459,664,465,587,465"/>
+<area shape="rect" id="Node000042" href="$classEthMacTxRoCEv2Wrapper.html" title=" " alt="" coords="665,449,855,475"/>
+<area shape="poly" id="edge41_Node000004_Node000042" title=" " alt="" coords="586,459,664,459,664,465,586,465"/>
 <area shape="rect" id="Node000006" href="$classEthMacTop.html" title=" " alt="" coords="960,449,1052,475"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="818,421,960,450,959,456,817,427"/>
-<area shape="rect" id="Node000041" href="$classEthMacRxLoopbackWrapper.html" title=" " alt="" coords="904,400,1108,425"/>
+<area shape="rect" id="Node000041" href="$classEthMacTxLoopbackWrapper.html" title=" " alt="" coords="905,400,1107,425"/>
 <area shape="poly" id="edge40_Node000005_Node000041" title=" " alt="" coords="817,410,904,410,904,415,817,415"/>
 <area shape="rect" id="Node000007" href="$classEthMacFastTb.html" title=" " alt="" coords="1205,5,1317,31"/>
 <area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1065,457,1087,449,1106,435,1124,410,1136,386,1143,362,1146,338,1141,289,1129,240,1117,190,1112,140,1115,115,1122,90,1135,65,1154,40,1177,24,1203,16,1205,21,1179,29,1158,44,1140,68,1127,92,1120,116,1118,141,1122,189,1134,238,1146,288,1151,338,1148,363,1141,388,1129,413,1110,439,1090,454,1066,462"/>
@@ -84,11 +84,11 @@
 <area shape="poly" id="edge37_Node000037_Node000038" title=" " alt="" coords="1316,854,1460,854,1460,859,1316,859"/>
 <area shape="rect" id="Node000040" href="$classXauiGtyUltraScaleWrapper.html" title=" " alt="" coords="1431,893,1627,919"/>
 <area shape="poly" id="edge39_Node000039_Node000040" title=" " alt="" coords="1345,903,1431,903,1431,909,1345,909"/>
-<area shape="rect" id="Node000044" href="$classEthMacTx.html" title=" " alt="" coords="717,499,803,524"/>
-<area shape="poly" id="edge43_Node000043_Node000044" title=" " alt="" coords="586,509,717,509,717,514,586,514"/>
-<area shape="rect" id="Node000046" href="$classEthMacTxRoCEv2Wrapper.html" title=" " alt="" coords="665,548,855,573"/>
+<area shape="rect" id="Node000044" href="$classEthMacRx.html" title=" " alt="" coords="717,499,803,524"/>
+<area shape="poly" id="edge43_Node000043_Node000044" title=" " alt="" coords="587,509,716,509,716,514,587,514"/>
+<area shape="rect" id="Node000046" href="$classEthMacRxRoCEv2Wrapper.html" title=" " alt="" coords="664,548,856,573"/>
 <area shape="poly" id="edge46_Node000043_Node000046" title=" " alt="" coords="584,524,694,545,693,551,583,529"/>
 <area shape="poly" id="edge44_Node000044_Node000006" title=" " alt="" coords="817,497,959,468,960,474,818,503"/>
-<area shape="rect" id="Node000045" href="$classEthMacTxLoopbackWrapper.html" title=" " alt="" coords="905,499,1107,524"/>
+<area shape="rect" id="Node000045" href="$classEthMacRxLoopbackWrapper.html" title=" " alt="" coords="904,499,1108,524"/>
 <area shape="poly" id="edge45_Node000044_Node000045" title=" " alt="" coords="817,509,904,509,904,514,817,514"/>
 </map>

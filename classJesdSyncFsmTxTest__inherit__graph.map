@@ -1,9 +1,13 @@
 <map id="JesdSyncFsmTxTest" name="JesdSyncFsmTxTest">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,156,31"/>
-<area shape="rect" id="Node000002" href="$classJesdTxTest.html" title=" " alt="" coords="35,79,126,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,44,83,79,78,79,78,44"/>
-<area shape="rect" id="Node000003" href="$classJesd204bRx.html" title=" " alt="" coords="31,152,130,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="83,118,83,152,78,152,78,118"/>
-<area shape="rect" id="Node000004" href="$classJesd204bTb.html" title=" " alt="" coords="32,225,129,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="83,191,83,225,78,225,78,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="151,5,301,31"/>
+<area shape="rect" id="Node000002" href="$classJesdTxTest.html" title=" " alt="" coords="181,79,271,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,44,229,79,223,79,223,44"/>
+<area shape="rect" id="Node000003" href="$classJesd204bRx.html" title=" " alt="" coords="177,152,275,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="229,118,229,152,223,152,223,118"/>
+<area shape="rect" id="Node000004" href="$classJesd204bTb.html" title=" " alt="" coords="5,225,103,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="187,185,83,228,81,223,185,180"/>
+<area shape="rect" id="Node000005" href="$classJesd204bLoopbackWrapper.html" title=" " alt="" coords="127,225,325,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="229,191,229,225,223,225,223,191"/>
+<area shape="rect" id="Node000006" href="$classJesd204bRxWrapper.html" title=" " alt="" coords="349,225,503,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="272,179,394,223,392,228,270,184"/>
 </map>

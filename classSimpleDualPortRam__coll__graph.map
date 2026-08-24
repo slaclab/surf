@@ -1,0 +1,9 @@
+<map id="SimpleDualPortRam" name="SimpleDualPortRam">
+<area shape="rect" id="Node000001" title=" " alt="" coords="240,79,393,104"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="445,5,649,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="498,37,355,81,353,76,496,32"/>
+</map>

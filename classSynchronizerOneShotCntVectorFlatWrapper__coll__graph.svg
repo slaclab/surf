@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 761;
+var viewWidth = 852;
 var viewHeight = 368;
 var sectionId = 'dynsection-1';
 </script>
@@ -194,8 +194,8 @@ var sectionId = 'dynsection-1';
 <g id="edge13_Node000009_Node000005" class="edge">
 <title>Node5&#45;&gt;Node9</title>
 <g id="a_edge13_Node000009_Node000005"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M200.66,-349.58C338.26,-349.27 711.11,-344.74 748,-305 791.89,-257.72 527.74,-245.23 434.04,-242.31"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="200.39,-346.08 190.4,-349.6 200.4,-353.08 200.39,-346.08"/>
+<path fill="none" stroke="#63b8ff" d="M200.26,-346.51C290.01,-340.65 470.27,-326.35 489,-305 509.96,-281.1 464.72,-260.94 431.96,-250.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="199.79,-343.03 190.04,-347.17 200.24,-350.02 199.79,-343.03"/>
 </a>
 </g>
 </g>
@@ -302,8 +302,8 @@ var sectionId = 'dynsection-1';
 <g id="Node000013" class="node">
 <title>Node13</title>
 <g id="a_Node000013"><a xlink:href="classSimpleDualPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="613.5,-305 498.5,-305 498.5,-286 613.5,-286 613.5,-305"/>
-<text text-anchor="middle" x="556" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRam</text>
+<polygon fill="white" stroke="#bfbfbf" points="651.5,-305 536.5,-305 536.5,-286 651.5,-286 651.5,-305"/>
+<text text-anchor="middle" x="594" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRam</text>
 </a>
 </g>
 </g>
@@ -311,26 +311,80 @@ var sectionId = 'dynsection-1';
 <g id="edge16_Node000009_Node000013" class="edge">
 <title>Node13&#45;&gt;Node9</title>
 <g id="a_edge16_Node000009_Node000013"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M521.62,-282.67C492.91,-272.79 452.64,-258.93 426.94,-250.08"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="520.66,-286.04 531.26,-285.98 522.94,-279.42 520.66,-286.04"/>
+<path fill="none" stroke="#63b8ff" d="M553.47,-283.31C517.54,-273.39 465.84,-259.12 433.09,-250.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="552.58,-286.7 563.15,-285.98 554.44,-279.95 552.58,-286.7"/>
 </a>
 </g>
 </g>
 <!-- Node14 -->
 <g id="Node000014" class="node">
 <title>Node14</title>
-<g id="a_Node000014"><a xlink:href="classFifoOutputPipeline.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="738.5,-305 631.5,-305 631.5,-286 738.5,-286 738.5,-305"/>
-<text text-anchor="middle" x="685" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">FifoOutputPipeline</text>
+<g id="a_Node000014"><a xlink:href="classSimpleDualPortRamXpm.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="497.5,-360 360.5,-360 360.5,-341 497.5,-341 497.5,-360"/>
+<text text-anchor="middle" x="429" y="-348" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamXpm</text>
 </a>
 </g>
 </g>
-<!-- Node14&#45;&gt;Node9 -->
-<g id="edge17_Node000009_Node000014" class="edge">
-<title>Node14&#45;&gt;Node9</title>
-<g id="a_edge17_Node000009_Node000014"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M629.39,-284.09C571.13,-273.18 481.63,-256.41 434.15,-247.52"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="629.06,-287.58 639.53,-285.98 630.35,-280.7 629.06,-287.58"/>
+<!-- Node14&#45;&gt;Node13 -->
+<g id="edge17_Node000013_Node000014" class="edge">
+<title>Node14&#45;&gt;Node13</title>
+<g id="a_edge17_Node000013_Node000014"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M465.43,-337.8C496.22,-327.91 539.62,-313.97 567.28,-305.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="463.96,-334.59 455.51,-340.98 466.1,-341.26 463.96,-334.59"/>
+</a>
+</g>
+</g>
+<!-- Node15 -->
+<g id="Node000015" class="node">
+<title>Node15</title>
+<g id="a_Node000015"><a xlink:href="classSimpleDualPortRamAlteraMf.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="672.5,-360 515.5,-360 515.5,-341 672.5,-341 672.5,-360"/>
+<text text-anchor="middle" x="594" y="-348" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamAlteraMf</text>
+</a>
+</g>
+</g>
+<!-- Node15&#45;&gt;Node13 -->
+<g id="edge18_Node000013_Node000015" class="edge">
+<title>Node15&#45;&gt;Node13</title>
+<g id="a_edge18_Node000013_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M594,-330.66C594,-321.93 594,-311.99 594,-305.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="590.5,-330.75 594,-340.75 597.5,-330.75 590.5,-330.75"/>
+</a>
+</g>
+</g>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="classSimpleDualPortRamInferred.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="843.5,-360 690.5,-360 690.5,-341 843.5,-341 843.5,-360"/>
+<text text-anchor="middle" x="767" y="-348" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamInferred</text>
+</a>
+</g>
+</g>
+<!-- Node16&#45;&gt;Node13 -->
+<g id="edge19_Node000013_Node000016" class="edge">
+<title>Node16&#45;&gt;Node13</title>
+<g id="a_edge19_Node000013_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M729.23,-337.93C696.91,-328.03 651.14,-314.01 622.01,-305.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="728.62,-341.4 739.2,-340.98 730.67,-334.71 728.62,-341.4"/>
+</a>
+</g>
+</g>
+<!-- Node17 -->
+<g id="Node000017" class="node">
+<title>Node17</title>
+<g id="a_Node000017"><a xlink:href="classFifoOutputPipeline.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="776.5,-305 669.5,-305 669.5,-286 776.5,-286 776.5,-305"/>
+<text text-anchor="middle" x="723" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">FifoOutputPipeline</text>
+</a>
+</g>
+</g>
+<!-- Node17&#45;&gt;Node9 -->
+<g id="edge20_Node000009_Node000017" class="edge">
+<title>Node17&#45;&gt;Node9</title>
+<g id="a_edge20_Node000009_Node000017"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M661.31,-284.31C593.57,-273.13 487.39,-255.6 434.38,-246.85"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="660.99,-287.81 671.43,-285.98 662.13,-280.9 660.99,-287.81"/>
 </a>
 </g>
 </g>

@@ -1,19 +1,21 @@
 <map id="AxiRam" name="AxiRam">
-<area shape="rect" id="Node000001" title=" " alt="" coords="319,79,393,104"/>
-<area shape="rect" id="Node000005" href="$classAxiRamIpIntegrator.html" title=" " alt="" coords="5,152,155,177"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="306,108,125,155,124,149,305,103"/>
-<area shape="rect" id="Node000006" href="$classAxiRamTb.html" title=" " alt="" coords="179,152,269,177"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="324,113,247,154,244,149,322,108"/>
-<area shape="rect" id="Node000007" href="$classAxiRingBufferTb.html" title=" " alt="" coords="293,152,419,177"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="359,118,359,152,353,152,353,118"/>
-<area shape="rect" id="Node000008" href="$classSrpV3AxiTb.html" title=" " alt="" coords="443,152,541,177"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="391,108,471,149,469,154,388,113"/>
-<area shape="rect" id="Node000009" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="565,152,701,177"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="407,103,589,149,588,155,405,108"/>
-<area shape="rect" id="Node000002" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="45,5,227,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,32,321,76,320,81,184,37"/>
-<area shape="rect" id="Node000003" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="251,5,461,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="359,44,359,79,353,79,353,44"/>
-<area shape="rect" id="Node000004" href="$classSimpleDualPortRam.html" title=" " alt="" coords="485,5,638,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="516,38,390,81,388,76,515,33"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="319,152,393,177"/>
+<area shape="rect" id="Node000006" href="$classAxiRamIpIntegrator.html" title=" " alt="" coords="5,225,155,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="306,181,125,228,124,223,305,176"/>
+<area shape="rect" id="Node000007" href="$classAxiRamTb.html" title=" " alt="" coords="179,225,269,251"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="324,186,247,227,244,223,322,181"/>
+<area shape="rect" id="Node000008" href="$classAxiRingBufferTb.html" title=" " alt="" coords="293,225,419,251"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="359,191,359,225,353,225,353,191"/>
+<area shape="rect" id="Node000009" href="$classSrpV3AxiTb.html" title=" " alt="" coords="443,225,541,251"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="391,181,471,223,469,227,388,186"/>
+<area shape="rect" id="Node000010" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="565,225,701,251"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="407,176,589,223,588,228,405,181"/>
+<area shape="rect" id="Node000002" href="$classSimpleDualPortRam.html" title=" " alt="" coords="279,79,433,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="359,118,359,152,353,152,353,118"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="45,5,227,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="185,32,321,76,320,81,184,37"/>
+<area shape="rect" id="Node000004" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="251,5,461,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="359,44,359,79,353,79,353,44"/>
+<area shape="rect" id="Node000005" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="485,5,689,31"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="537,37,394,81,393,76,536,32"/>
 </map>

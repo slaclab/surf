@@ -1,6 +1,6 @@
 <map id="EthMacCrcAxiStreamWrapperRecv" name="EthMacCrcAxiStreamWrapperRecv">
 <area shape="rect" id="Node000001" title=" " alt="" coords="541,499,788,524"/>
-<area shape="rect" id="Node000006" href="$classEthMacRxRoCEv2.html" title=" " alt="" coords="836,499,973,524"/>
+<area shape="rect" id="Node000006" href="$classRoCEv2EthMacRx.html" title=" " alt="" coords="836,499,973,524"/>
 <area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="802,509,836,509,836,514,802,514"/>
 <area shape="rect" id="Node000002" href="$classMasterAxiStreamIpIntegrator.html" title=" " alt="" coords="283,473,493,499"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="507,494,541,497,541,503,507,500"/>

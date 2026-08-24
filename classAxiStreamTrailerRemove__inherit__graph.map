@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="196,471,380,496"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamTrailerRemoveIpIntegrator.html" title=" " alt="" coords="428,434,624,474"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="394,468,427,463,428,469,394,473"/>
-<area shape="rect" id="Node000004" href="$classEthMacRxRoCEv2.html" title=" " alt="" coords="457,499,595,524"/>
+<area shape="rect" id="Node000004" href="$classRoCEv2EthMacRx.html" title=" " alt="" coords="457,499,595,524"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="394,493,458,501,457,506,393,498"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,471,148,496"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,481,196,481,196,486,162,486"/>

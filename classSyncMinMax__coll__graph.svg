@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 785;
+var viewWidth = 852;
 var viewHeight = 247;
 var sectionId = 'dynsection-1';
 </script>
@@ -208,9 +208,9 @@ var sectionId = 'dynsection-1';
 </g>
 </g>
 <!-- Node7&#45;&gt;Node9 -->
-<g id="edge16_Node000009_Node000007" class="edge">
+<g id="edge19_Node000009_Node000007" class="edge">
 <title>Node7&#45;&gt;Node9</title>
-<g id="a_edge16_Node000009_Node000007"><a xlink:title=" ">
+<g id="a_edge19_Node000009_Node000007"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M660.75,-163.38C591.78,-152.17 483.22,-134.52 429.44,-125.77"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="660.19,-166.83 670.62,-164.98 661.31,-159.93 660.19,-166.83"/>
 </a>
@@ -312,6 +312,60 @@ var sectionId = 'dynsection-1';
 <g id="a_edge15_Node000009_Node000013"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M552.41,-162.31C515.55,-152.39 462.5,-138.12 428.9,-129.08"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="551.78,-165.77 562.35,-164.98 553.6,-159.01 551.78,-165.77"/>
+</a>
+</g>
+</g>
+<!-- Node14 -->
+<g id="Node000014" class="node">
+<title>Node14</title>
+<g id="a_Node000014"><a xlink:href="classSimpleDualPortRamXpm.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="497.5,-239 360.5,-239 360.5,-220 497.5,-220 497.5,-239"/>
+<text text-anchor="middle" x="429" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamXpm</text>
+</a>
+</g>
+</g>
+<!-- Node14&#45;&gt;Node13 -->
+<g id="edge16_Node000013_Node000014" class="edge">
+<title>Node14&#45;&gt;Node13</title>
+<g id="a_edge16_Node000013_Node000014"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M465.43,-216.8C496.22,-206.91 539.62,-192.97 567.28,-184.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="463.96,-213.59 455.51,-219.98 466.1,-220.26 463.96,-213.59"/>
+</a>
+</g>
+</g>
+<!-- Node15 -->
+<g id="Node000015" class="node">
+<title>Node15</title>
+<g id="a_Node000015"><a xlink:href="classSimpleDualPortRamAlteraMf.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="672.5,-239 515.5,-239 515.5,-220 672.5,-220 672.5,-239"/>
+<text text-anchor="middle" x="594" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamAlteraMf</text>
+</a>
+</g>
+</g>
+<!-- Node15&#45;&gt;Node13 -->
+<g id="edge17_Node000013_Node000015" class="edge">
+<title>Node15&#45;&gt;Node13</title>
+<g id="a_edge17_Node000013_Node000015"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M594,-209.66C594,-200.93 594,-190.99 594,-184.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="590.5,-209.75 594,-219.75 597.5,-209.75 590.5,-209.75"/>
+</a>
+</g>
+</g>
+<!-- Node16 -->
+<g id="Node000016" class="node">
+<title>Node16</title>
+<g id="a_Node000016"><a xlink:href="classSimpleDualPortRamInferred.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="843.5,-239 690.5,-239 690.5,-220 843.5,-220 843.5,-239"/>
+<text text-anchor="middle" x="767" y="-227" font-family="Helvetica,sans-Serif" font-size="10.00">SimpleDualPortRamInferred</text>
+</a>
+</g>
+</g>
+<!-- Node16&#45;&gt;Node13 -->
+<g id="edge18_Node000013_Node000016" class="edge">
+<title>Node16&#45;&gt;Node13</title>
+<g id="a_edge18_Node000013_Node000016"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M729.23,-216.93C696.91,-207.03 651.14,-193.01 622.01,-184.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="728.62,-220.4 739.2,-219.98 730.67,-213.71 728.62,-220.4"/>
 </a>
 </g>
 </g>

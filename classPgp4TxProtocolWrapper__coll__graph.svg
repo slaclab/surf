@@ -84,9 +84,9 @@
 <!-- Node5 -->
 <g id="Node000005" class="node">
 <title>Node5</title>
-<g id="a_Node000005"><a xlink:href="classTrueDualPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="168,-184 67,-184 67,-165 168,-165 168,-184"/>
-<text text-anchor="middle" x="117.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRam</text>
+<g id="a_Node000005"><a xlink:href="classTrueDualPortRamInferred.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="178.5,-184 38.5,-184 38.5,-165 178.5,-165 178.5,-184"/>
+<text text-anchor="middle" x="108.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamInferred</text>
 </a>
 </g>
 </g>
@@ -94,8 +94,8 @@
 <g id="edge4_Node000004_Node000005" class="edge">
 <title>Node5&#45;&gt;Node4</title>
 <g id="a_edge4_Node000004_Node000005"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M132.23,-157.24C140.64,-147.95 150.85,-136.68 157.72,-129.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="129.54,-154.99 125.43,-164.75 134.73,-159.69 129.54,-154.99"/>
+<path fill="none" stroke="#63b8ff" d="M125.12,-158.04C135.23,-148.64 147.78,-136.98 156.18,-129.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="122.6,-155.61 117.66,-164.98 127.36,-160.74 122.6,-155.61"/>
 </a>
 </g>
 </g>
@@ -103,8 +103,8 @@
 <g id="Node000006" class="node">
 <title>Node6</title>
 <g id="a_Node000006"><a xlink:href="classLutRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="240.5,-184 186.5,-184 186.5,-165 240.5,-165 240.5,-184"/>
-<text text-anchor="middle" x="213.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
+<polygon fill="white" stroke="#bfbfbf" points="250.5,-184 196.5,-184 196.5,-165 250.5,-165 250.5,-184"/>
+<text text-anchor="middle" x="223.5" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">LutRam</text>
 </a>
 </g>
 </g>
@@ -112,8 +112,8 @@
 <g id="edge5_Node000004_Node000006" class="edge">
 <title>Node6&#45;&gt;Node4</title>
 <g id="a_edge5_Node000004_Node000006"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M198.77,-157.24C190.36,-147.95 180.15,-136.68 173.28,-129.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="196.27,-159.69 205.57,-164.75 201.46,-154.99 196.27,-159.69"/>
+<path fill="none" stroke="#63b8ff" d="M206.59,-158.04C196.3,-148.64 183.53,-136.98 174.99,-129.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="204.44,-160.82 214.18,-164.98 209.16,-155.66 204.44,-160.82"/>
 </a>
 </g>
 </g>

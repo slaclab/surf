@@ -46,7 +46,7 @@
   </g>
 </defs>
 <script type="application/ecmascript">
-var viewWidth = 700;
+var viewWidth = 667;
 var viewHeight = 192;
 var sectionId = 'dynsection-0';
 </script>
@@ -85,8 +85,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000003" class="node">
 <title>Node3</title>
 <g id="a_Node000003"><a xlink:href="classRstSync.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="143,-129 87,-129 87,-110 143,-110 143,-129"/>
-<text text-anchor="middle" x="115" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">RstSync</text>
+<polygon fill="white" stroke="#bfbfbf" points="168,-129 112,-129 112,-110 168,-110 168,-129"/>
+<text text-anchor="middle" x="140" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">RstSync</text>
 </a>
 </g>
 </g>
@@ -94,8 +94,8 @@ var sectionId = 'dynsection-0';
 <g id="edge2_Node000002_Node000003" class="edge">
 <title>Node3&#45;&gt;Node2</title>
 <g id="a_edge2_Node000002_Node000003"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M100.27,-102.24C91.86,-92.95 81.65,-81.68 74.78,-74.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="97.77,-104.69 107.07,-109.75 102.96,-99.99 97.77,-104.69"/>
+<path fill="none" stroke="#63b8ff" d="M119.86,-103.88C106.72,-94.34 90.02,-82.21 78.94,-74.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="118.12,-106.94 128.27,-109.98 122.24,-101.28 118.12,-106.94"/>
 </a>
 </g>
 </g>
@@ -112,8 +112,8 @@ var sectionId = 'dynsection-0';
 <g id="edge5_Node000005_Node000003" class="edge">
 <title>Node3&#45;&gt;Node5</title>
 <g id="a_edge5_Node000005_Node000003"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M141.49,-105.5C161.36,-95.75 188,-82.68 205.33,-74.17"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="139.79,-102.44 132.35,-109.98 142.87,-108.72 139.79,-102.44"/>
+<path fill="none" stroke="#63b8ff" d="M162.04,-104.42C177.11,-94.81 196.59,-82.37 209.42,-74.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="159.88,-101.65 153.34,-109.98 163.65,-107.55 159.88,-101.65"/>
 </a>
 </g>
 </g>
@@ -121,8 +121,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000004" class="node">
 <title>Node4</title>
 <g id="a_Node000004"><a xlink:href="classSynchronizer.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="155,-184 75,-184 75,-165 155,-165 155,-184"/>
-<text text-anchor="middle" x="115" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">Synchronizer</text>
+<polygon fill="white" stroke="#bfbfbf" points="180,-184 100,-184 100,-165 180,-165 180,-184"/>
+<text text-anchor="middle" x="140" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">Synchronizer</text>
 </a>
 </g>
 </g>
@@ -130,8 +130,8 @@ var sectionId = 'dynsection-0';
 <g id="edge3_Node000003_Node000004" class="edge">
 <title>Node4&#45;&gt;Node3</title>
 <g id="a_edge3_Node000003_Node000004"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M115,-154.66C115,-145.93 115,-135.99 115,-129.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="111.5,-154.75 115,-164.75 118.5,-154.75 111.5,-154.75"/>
+<path fill="none" stroke="#63b8ff" d="M140,-154.66C140,-145.93 140,-135.99 140,-129.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="136.5,-154.75 140,-164.75 143.5,-154.75 136.5,-154.75"/>
 </a>
 </g>
 </g>
@@ -166,8 +166,8 @@ var sectionId = 'dynsection-0';
 <g id="Node000007" class="node">
 <title>Node7</title>
 <g id="a_Node000007"><a xlink:href="classAxiLiteMaster.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="269,-129 185,-129 185,-110 269,-110 269,-129"/>
-<text text-anchor="middle" x="227" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteMaster</text>
+<polygon fill="white" stroke="#bfbfbf" points="360,-129 276,-129 276,-110 360,-110 360,-129"/>
+<text text-anchor="middle" x="318" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">AxiLiteMaster</text>
 </a>
 </g>
 </g>
@@ -175,17 +175,17 @@ var sectionId = 'dynsection-0';
 <g id="edge7_Node000006_Node000007" class="edge">
 <title>Node7&#45;&gt;Node6</title>
 <g id="a_edge7_Node000006_Node000007"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M260.14,-106.55C287.44,-96.71 325.5,-82.98 349.95,-74.17"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="258.84,-103.3 250.62,-109.98 261.21,-109.89 258.84,-103.3"/>
+<path fill="none" stroke="#63b8ff" d="M334.33,-103.04C344.26,-93.64 356.59,-81.98 364.84,-74.17"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="331.85,-100.57 327,-109.98 336.67,-105.65 331.85,-100.57"/>
 </a>
 </g>
 </g>
 <!-- Node8 -->
 <g id="Node000008" class="node">
 <title>Node8</title>
-<g id="a_Node000008"><a xlink:href="classTrueDualPortRamXpm.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="411,-129 287,-129 287,-110 411,-110 411,-129"/>
-<text text-anchor="middle" x="349" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamXpm</text>
+<g id="a_Node000008"><a xlink:href="classTrueDualPortRam.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="479.5,-129 378.5,-129 378.5,-110 479.5,-110 479.5,-129"/>
+<text text-anchor="middle" x="429" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRam</text>
 </a>
 </g>
 </g>
@@ -193,44 +193,62 @@ var sectionId = 'dynsection-0';
 <g id="edge8_Node000006_Node000008" class="edge">
 <title>Node8&#45;&gt;Node6</title>
 <g id="a_edge8_Node000006_Node000008"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M357.48,-100.53C361.69,-91.6 366.59,-81.22 369.95,-74.09"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="354.23,-99.21 353.13,-109.75 360.56,-102.2 354.23,-99.21"/>
+<path fill="none" stroke="#63b8ff" d="M412.71,-102.8C402.96,-93.41 390.95,-81.83 382.91,-74.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="410.29,-105.33 419.92,-109.75 415.15,-100.29 410.29,-105.33"/>
 </a>
 </g>
 </g>
 <!-- Node9 -->
 <g id="Node000009" class="node">
 <title>Node9</title>
-<g id="a_Node000009"><a xlink:href="classTrueDualPortRamAlteraMf.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="572.5,-129 429.5,-129 429.5,-110 572.5,-110 572.5,-129"/>
-<text text-anchor="middle" x="501" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamAlteraMf</text>
+<g id="a_Node000009"><a xlink:href="classTrueDualPortRamXpm.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="339,-184 215,-184 215,-165 339,-165 339,-184"/>
+<text text-anchor="middle" x="277" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamXpm</text>
 </a>
 </g>
 </g>
-<!-- Node9&#45;&gt;Node6 -->
-<g id="edge9_Node000006_Node000009" class="edge">
-<title>Node9&#45;&gt;Node6</title>
-<g id="a_edge9_Node000006_Node000009"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M471.12,-106.03C447.63,-96.23 415.53,-82.83 394.78,-74.17"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="470.02,-109.36 480.6,-109.98 472.71,-102.9 470.02,-109.36"/>
+<!-- Node9&#45;&gt;Node8 -->
+<g id="edge9_Node000008_Node000009" class="edge">
+<title>Node9&#45;&gt;Node8</title>
+<g id="a_edge9_Node000008_Node000009"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M310.93,-161.67C339.27,-151.79 379.02,-137.93 404.39,-129.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="309.71,-158.39 301.42,-164.98 312.02,-165 309.71,-158.39"/>
 </a>
 </g>
 </g>
 <!-- Node10 -->
 <g id="Node000010" class="node">
 <title>Node10</title>
-<g id="a_Node000010"><a xlink:href="classTrueDualPortRam.html" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#bfbfbf" points="691.5,-129 590.5,-129 590.5,-110 691.5,-110 691.5,-129"/>
-<text text-anchor="middle" x="641" y="-117" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRam</text>
+<g id="a_Node000010"><a xlink:href="classTrueDualPortRamAlteraMf.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="500.5,-184 357.5,-184 357.5,-165 500.5,-165 500.5,-184"/>
+<text text-anchor="middle" x="429" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamAlteraMf</text>
 </a>
 </g>
 </g>
-<!-- Node10&#45;&gt;Node6 -->
-<g id="edge10_Node000006_Node000010" class="edge">
-<title>Node10&#45;&gt;Node6</title>
-<g id="a_edge10_Node000006_Node000010"><a xlink:title=" ">
-<path fill="none" stroke="#63b8ff" d="M588.12,-108C538.07,-98.07 463.84,-83.33 417.23,-74.08"/>
-<polygon fill="#63b8ff" stroke="#63b8ff" points="587.61,-111.47 598.1,-109.98 588.97,-104.6 587.61,-111.47"/>
+<!-- Node10&#45;&gt;Node8 -->
+<g id="edge10_Node000008_Node000010" class="edge">
+<title>Node10&#45;&gt;Node8</title>
+<g id="a_edge10_Node000008_Node000010"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M429,-154.66C429,-145.93 429,-135.99 429,-129.09"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="425.5,-154.75 429,-164.75 432.5,-154.75 425.5,-154.75"/>
+</a>
+</g>
+</g>
+<!-- Node11 -->
+<g id="Node000011" class="node">
+<title>Node11</title>
+<g id="a_Node000011"><a xlink:href="classTrueDualPortRamInferred.html" target="_top" xlink:title=" ">
+<polygon fill="white" stroke="#bfbfbf" points="659,-184 519,-184 519,-165 659,-165 659,-184"/>
+<text text-anchor="middle" x="589" y="-172" font-family="Helvetica,sans-Serif" font-size="10.00">TrueDualPortRamInferred</text>
+</a>
+</g>
+</g>
+<!-- Node11&#45;&gt;Node8 -->
+<g id="edge11_Node000008_Node000011" class="edge">
+<title>Node11&#45;&gt;Node8</title>
+<g id="a_edge11_Node000008_Node000011"><a xlink:title=" ">
+<path fill="none" stroke="#63b8ff" d="M553.67,-161.8C523.81,-151.91 481.73,-137.97 454.91,-129.08"/>
+<polygon fill="#63b8ff" stroke="#63b8ff" points="552.7,-165.16 563.29,-164.98 554.9,-158.52 552.7,-165.16"/>
 </a>
 </g>
 </g>

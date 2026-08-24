@@ -9,10 +9,10 @@
 <area shape="rect" id="Node000004" href="$classDualPortRam.html" title=" " alt="" coords="386,79,494,104"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="378,110,180,154,179,149,376,104"/>
 <area shape="poly" id="edge10_Node000009_Node000004" title=" " alt="" coords="411,114,347,154,344,150,408,109"/>
-<area shape="rect" id="Node000005" href="$classTrueDualPortRam.html" title=" " alt="" coords="309,5,443,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="398,39,432,77,428,80,394,43"/>
-<area shape="rect" id="Node000006" href="$classLutRam.html" title=" " alt="" coords="468,5,540,31"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="486,43,452,80,448,77,482,39"/>
+<area shape="rect" id="Node000005" href="$classTrueDualPortRamInferred.html" title=" " alt="" coords="269,5,456,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="387,38,429,76,426,80,383,42"/>
+<area shape="rect" id="Node000006" href="$classLutRam.html" title=" " alt="" coords="480,5,552,31"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="496,42,454,80,451,76,492,38"/>
 <area shape="rect" id="Node000007" href="$classCrc32Parallel.html" title=" " alt="" coords="5,79,112,104"/>
 <area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="82,112,120,150,116,154,78,116"/>
 <area shape="poly" id="edge11_Node000009_Node000007" title=" " alt="" coords="116,105,284,149,283,154,115,110"/>

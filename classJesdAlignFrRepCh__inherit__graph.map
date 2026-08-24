@@ -1,13 +1,21 @@
 <map id="JesdAlignFrRepCh" name="JesdAlignFrRepCh">
-<area shape="rect" id="Node000001" title=" " alt="" coords="119,5,255,31"/>
-<area shape="rect" id="Node000002" href="$classJesdRxLane.html" title=" " alt="" coords="138,79,235,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,44,189,79,184,79,184,44"/>
-<area shape="rect" id="Node000003" href="$classJesd204bRx.html" title=" " alt="" coords="5,152,104,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="155,113,78,154,75,149,152,108"/>
-<area shape="rect" id="Node000005" href="$classDescrambleTb.html" title=" " alt="" coords="129,152,245,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="189,118,189,152,184,152,184,118"/>
-<area shape="rect" id="Node000006" href="$classScramblerTb.html" title=" " alt="" coords="269,152,373,177"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="222,108,301,149,298,154,219,113"/>
-<area shape="rect" id="Node000004" href="$classJesd204bTb.html" title=" " alt="" coords="6,225,103,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="57,191,57,225,52,225,52,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="435,5,571,31"/>
+<area shape="rect" id="Node000002" href="$classJesdRxLane.html" title=" " alt="" coords="376,79,473,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="482,42,439,80,436,76,479,38"/>
+<area shape="rect" id="Node000010" href="$classJesdScramblerWrapper.html" title=" " alt="" coords="498,79,669,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="528,38,572,76,568,80,524,42"/>
+<area shape="rect" id="Node000003" href="$classJesd204bRx.html" title=" " alt="" coords="177,152,275,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,111,259,154,258,149,379,106"/>
+<area shape="rect" id="Node000007" href="$classDescrambleTb.html" title=" " alt="" coords="300,152,416,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="406,116,371,154,367,150,402,113"/>
+<area shape="rect" id="Node000008" href="$classScramblerTb.html" title=" " alt="" coords="441,152,545,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="447,112,484,150,480,154,443,116"/>
+<area shape="rect" id="Node000009" href="$classJesdRxLaneWrapper.html" title=" " alt="" coords="569,152,721,177"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="474,106,610,149,608,154,472,111"/>
+<area shape="rect" id="Node000004" href="$classJesd204bTb.html" title=" " alt="" coords="5,225,103,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="187,185,83,228,81,223,185,180"/>
+<area shape="rect" id="Node000005" href="$classJesd204bLoopbackWrapper.html" title=" " alt="" coords="127,225,325,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="229,191,229,225,223,225,223,191"/>
+<area shape="rect" id="Node000006" href="$classJesd204bRxWrapper.html" title=" " alt="" coords="349,225,503,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="272,179,394,223,392,228,270,184"/>
 </map>

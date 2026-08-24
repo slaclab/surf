@@ -10,18 +10,18 @@
 <area shape="rect" id="Node000004" href="$classSynchronizerOneShotCntVector.html" title=" " alt="" coords="417,372,641,397"/>
 <area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="461,403,240,448,239,443,460,397"/>
 <area shape="rect" id="Node000005" href="$classSynchronizerOneShot.html" title=" " alt="" coords="666,225,827,251"/>
-<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="723,261,635,326,553,374,550,370,632,322,720,257"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="723,261,633,326,552,374,549,370,631,322,720,257"/>
 <area shape="rect" id="Node000009" href="$classSynchronizerOneShotCnt.html" title=" " alt="" coords="438,299,621,324"/>
 <area shape="poly" id="edge11_Node000009_Node000005" title=" " alt="" coords="700,257,565,301,564,296,698,252"/>
-<area shape="rect" id="Node000006" href="$classRstSync.html" title=" " alt="" coords="804,79,879,104"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="828,117,756,227,752,224,824,114"/>
-<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="791,106,537,157,536,152,790,100"/>
-<area shape="rect" id="Node000007" href="$classSynchronizer.html" title=" " alt="" coords="788,5,895,31"/>
-<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="844,44,844,79,839,79,839,44"/>
-<area shape="rect" id="Node000008" href="$classSynchronizerEdge.html" title=" " alt="" coords="903,79,1041,104"/>
-<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="876,35,952,76,949,81,873,40"/>
-<area shape="poly" id="edge16_Node000011_Node000007" title=" " alt="" coords="824,43,788,76,743,106,689,129,633,145,537,162,536,157,632,139,687,124,740,102,785,72,820,39"/>
-<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="944,114,766,227,763,223,941,109"/>
+<area shape="rect" id="Node000006" href="$classRstSync.html" title=" " alt="" coords="805,79,880,104"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="829,117,757,227,752,224,825,114"/>
+<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="793,107,793,107,537,158,536,152,791,101,792,101"/>
+<area shape="rect" id="Node000007" href="$classSynchronizer.html" title=" " alt="" coords="816,5,923,31"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="863,45,849,79,844,78,858,43"/>
+<area shape="rect" id="Node000008" href="$classSynchronizerEdge.html" title=" " alt="" coords="904,79,1043,104"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="899,36,958,76,955,81,896,41"/>
+<area shape="poly" id="edge16_Node000011_Node000007" title=" " alt="" coords="803,36,704,58,626,81,559,118,509,154,506,150,556,114,624,76,702,53,802,30"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="945,114,766,227,763,223,942,109"/>
 <area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="532,338,532,372,527,372,527,338"/>
 <area shape="rect" id="Node000010" href="$classSynchronizerFifo.html" title=" " alt="" coords="444,225,575,251"/>
 <area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="519,263,529,298,524,299,514,265"/>
@@ -32,6 +32,12 @@
 <area shape="poly" id="edge18_Node000011_Node000013" title=" " alt="" coords="377,107,469,149,467,154,375,112"/>
 <area shape="rect" id="Node000014" href="$classSimpleDualPortRam.html" title=" " alt="" coords="409,79,562,104"/>
 <area shape="poly" id="edge19_Node000011_Node000014" title=" " alt="" coords="491,117,495,152,489,152,486,118"/>
-<area shape="rect" id="Node000015" href="$classFifoOutputPipeline.html" title=" " alt="" coords="586,79,729,104"/>
-<area shape="poly" id="edge20_Node000011_Node000015" title=" " alt="" coords="619,112,521,154,519,149,617,107"/>
+<area shape="rect" id="Node000015" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="147,5,330,31"/>
+<area shape="poly" id="edge20_Node000014_Node000015" title=" " alt="" coords="292,32,446,76,445,81,291,37"/>
+<area shape="rect" id="Node000016" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="354,5,563,31"/>
+<area shape="poly" id="edge21_Node000014_Node000016" title=" " alt="" coords="470,43,484,78,479,79,465,45"/>
+<area shape="rect" id="Node000017" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="587,5,791,31"/>
+<area shape="poly" id="edge22_Node000014_Node000017" title=" " alt="" coords="645,38,519,81,517,76,643,33"/>
+<area shape="rect" id="Node000018" href="$classFifoOutputPipeline.html" title=" " alt="" coords="638,79,781,104"/>
+<area shape="poly" id="edge23_Node000011_Node000018" title=" " alt="" coords="662,111,529,154,527,149,661,106"/>
 </map>

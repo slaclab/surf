@@ -20,9 +20,9 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="classEthMacRxRoCEv2.html" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="classRoCEv2EthMacRx.html" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#bfbfbf" points="279,-316 176,-316 176,-297 279,-297 279,-316"/>
-<text text-anchor="middle" x="227.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">EthMacRxRoCEv2</text>
+<text text-anchor="middle" x="227.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">RoCEv2EthMacRx</text>
 </a>
 </g>
 </g>

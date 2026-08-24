@@ -1,31 +1,15 @@
 <map id="SimpleDualPortRamAlteraMf" name="SimpleDualPortRamAlteraMf">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,203,215,228"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamRingBuffer.html" title=" " alt="" coords="263,55,421,80"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,193,319,78,322,83,145,197"/>
-<area shape="rect" id="Node000005" href="$classAxiRam.html" title=" " alt="" coords="305,203,379,228"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="229,213,305,213,305,218,229,218"/>
-<area shape="rect" id="Node000011" href="$classRssiCore.html" title=" " alt="" coords="303,301,381,327"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="155,231,312,299,310,304,152,236"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamRingBufferIpIntegrator.html" title=" " alt="" coords="469,5,704,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="419,49,522,28,523,33,420,55"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamRingBufferTb.html" title=" " alt="" coords="499,55,674,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="435,65,499,65,499,70,435,70"/>
-<area shape="rect" id="Node000006" href="$classAxiRamIpIntegrator.html" title=" " alt="" coords="512,104,661,129"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="370,192,415,164,468,138,511,125,513,131,470,143,418,169,373,197"/>
-<area shape="rect" id="Node000007" href="$classAxiRamTb.html" title=" " alt="" coords="542,153,631,179"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="392,203,541,172,542,178,393,208"/>
-<area shape="rect" id="Node000008" href="$classAxiRingBufferTb.html" title=" " alt="" coords="523,203,650,228"/>
-<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="393,213,523,213,523,218,393,218"/>
-<area shape="rect" id="Node000009" href="$classSrpV3AxiTb.html" title=" " alt="" coords="538,252,635,277"/>
-<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="393,223,538,252,537,258,392,228"/>
-<area shape="rect" id="Node000010" href="$classSrpV3AxiWrapper.html" title=" " alt="" coords="519,301,655,327"/>
-<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="374,233,418,261,470,286,519,301,518,306,468,291,416,266,371,238"/>
-<area shape="rect" id="Node000012" href="$classRssiCoreWrapper.html" title=" " alt="" coords="519,351,654,376"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="395,322,524,348,523,353,394,327"/>
-<area shape="rect" id="Node000013" href="$classRawEthFramerTb.html" title=" " alt="" coords="752,301,885,327"/>
-<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="660,345,758,324,759,329,661,350"/>
-<area shape="rect" id="Node000014" href="$classRssiCoreTb.html" title=" " alt="" coords="771,351,866,376"/>
-<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="668,361,771,361,771,366,668,366"/>
-<area shape="rect" id="Node000015" href="$classRssiInterleaveTb.html" title=" " alt="" coords="753,400,884,425"/>
-<area shape="poly" id="edge14_Node000012_Node000015" title=" " alt="" coords="661,376,759,397,758,403,660,381"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,215,105"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamFrameBuffer.html" title=" " alt="" coords="263,55,433,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,77,262,74,263,79,229,83"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamRingBuffer.html" title=" " alt="" coords="269,104,427,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="229,102,269,106,268,111,228,107"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamFrameBufferIpIntegrator.html" title=" " alt="" coords="481,5,728,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,49,537,28,538,33,428,55"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamFrameBufferTb.html" title=" " alt="" coords="511,55,698,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="447,65,511,65,511,70,447,70"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamRingBufferIpIntegrator.html" title=" " alt="" coords="487,104,722,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="441,114,487,114,487,119,441,119"/>
+<area shape="rect" id="Node000007" href="$classAxiStreamRingBufferTb.html" title=" " alt="" coords="517,153,692,179"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="428,129,538,151,537,156,427,135"/>
 </map>

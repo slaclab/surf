@@ -1,0 +1,37 @@
+<map id="RssiAxiLiteRegItfWrapper" name="RssiAxiLiteRegItfWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="257,372,445,397"/>
+<area shape="rect" id="Node000002" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="599,225,777,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="650,259,378,374,376,369,647,254"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="804,79,879,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="821,116,702,227,698,223,817,112"/>
+<area shape="rect" id="Node000008" href="$classFifoAsync.html" title=" " alt="" coords="383,152,468,177"/>
+<area shape="poly" id="edge8_Node000008_Node000003" title=" " alt="" coords="791,107,608,139,469,160,468,155,607,134,790,102"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="757,5,864,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="824,42,839,77,834,80,819,44"/>
+<area shape="poly" id="edge10_Node000008_Node000004" title=" " alt="" coords="744,30,613,52,553,66,511,81,487,97,465,117,435,154,431,150,462,113,483,93,508,76,551,61,612,47,743,25"/>
+<area shape="rect" id="Node000005" href="$classRssiAxiLiteRegItf.html" title=" " alt="" coords="232,299,365,324"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="317,334,344,370,340,373,313,337"/>
+<area shape="rect" id="Node000006" href="$classSynchronizerVector.html" title=" " alt="" coords="5,79,152,104"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="125,107,162,125,196,150,231,188,260,230,296,297,291,300,256,233,227,191,193,154,159,130,123,112"/>
+<area shape="poly" id="edge9_Node000008_Node000006" title=" " alt="" coords="148,104,383,152,382,157,147,109"/>
+<area shape="rect" id="Node000016" href="$classRssiParamSync.html" title=" " alt="" coords="62,152,183,177"/>
+<area shape="poly" id="edge19_Node000016_Node000006" title=" " alt="" coords="95,114,118,150,113,153,91,117"/>
+<area shape="rect" id="Node000007" href="$classSynchronizerFifo.html" title=" " alt="" coords="291,225,421,251"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="340,263,310,300,306,297,336,260"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="406,189,369,227,365,223,403,185"/>
+<area shape="rect" id="Node000009" href="$classFifoWrFsm.html" title=" " alt="" coords="687,79,779,104"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="675,109,469,156,468,151,674,104"/>
+<area shape="rect" id="Node000010" href="$classFifoRdFsm.html" title=" " alt="" coords="176,79,267,104"/>
+<area shape="poly" id="edge12_Node000008_Node000010" title=" " alt="" coords="268,106,393,149,391,154,266,111"/>
+<area shape="rect" id="Node000011" href="$classSimpleDualPortRam.html" title=" " alt="" coords="291,79,445,104"/>
+<area shape="poly" id="edge13_Node000008_Node000011" title=" " alt="" coords="388,113,418,150,414,154,384,116"/>
+<area shape="rect" id="Node000012" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="57,5,239,31"/>
+<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="197,32,333,76,332,81,196,37"/>
+<area shape="rect" id="Node000013" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="263,5,473,31"/>
+<area shape="poly" id="edge15_Node000011_Node000013" title=" " alt="" coords="371,44,371,79,365,79,365,44"/>
+<area shape="rect" id="Node000014" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="497,5,701,31"/>
+<area shape="poly" id="edge16_Node000011_Node000014" title=" " alt="" coords="549,37,406,81,405,76,548,32"/>
+<area shape="rect" id="Node000015" href="$classFifoOutputPipeline.html" title=" " alt="" coords="521,79,663,104"/>
+<area shape="poly" id="edge17_Node000008_Node000015" title=" " alt="" coords="554,112,454,154,452,149,552,107"/>
+<area shape="poly" id="edge18_Node000005_Node000016" title=" " alt="" coords="148,184,226,249,285,296,282,300,222,253,145,188"/>
+</map>

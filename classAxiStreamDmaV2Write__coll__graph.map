@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,111,141,150,137,154,97,115"/>
 <area shape="rect" id="Node000003" href="$classDualPortRam.html" title=" " alt="" coords="172,79,280,104"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,115,165,154,162,150,202,111"/>
-<area shape="rect" id="Node000004" href="$classTrueDualPortRam.html" title=" " alt="" coords="95,5,229,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="184,39,218,77,214,80,180,43"/>
-<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="254,5,326,31"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="272,43,238,80,234,77,268,39"/>
+<area shape="rect" id="Node000004" href="$classTrueDualPortRamInferred.html" title=" " alt="" coords="55,5,242,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="173,38,215,76,212,80,169,42"/>
+<area shape="rect" id="Node000005" href="$classLutRam.html" title=" " alt="" coords="266,5,338,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="282,42,240,80,237,76,278,38"/>
 </map>

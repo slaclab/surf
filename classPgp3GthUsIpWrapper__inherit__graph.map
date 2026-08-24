@@ -1,9 +1,9 @@
 <map id="Pgp3GthUsIpWrapper" name="Pgp3GthUsIpWrapper">
 <area shape="rect" id="Node000001" title=" " alt="" coords="85,372,246,397"/>
-<area shape="rect" id="Node000012" href="$classPgp3GthUs.html" title=" " alt="" coords="59,445,154,471"/>
-<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="149,410,118,447,114,444,145,406"/>
-<area shape="rect" id="Node000014" href="$classPgp4GthUs.html" title=" " alt="" coords="191,445,286,471"/>
-<area shape="poly" id="edge16_Node000001_Node000014" title=" " alt="" coords="189,405,229,443,225,447,185,409"/>
+<area shape="rect" id="Node000015" href="$classPgp3GthUs.html" title=" " alt="" coords="59,445,154,471"/>
+<area shape="poly" id="edge17_Node000001_Node000015" title=" " alt="" coords="149,410,118,447,114,444,145,406"/>
+<area shape="rect" id="Node000017" href="$classPgp4GthUs.html" title=" " alt="" coords="191,445,286,471"/>
+<area shape="poly" id="edge19_Node000001_Node000017" title=" " alt="" coords="189,405,229,443,225,447,185,409"/>
 <area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="84,79,159,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,118,132,209,149,323,163,371,158,372,144,325,127,210,120,118"/>
 <area shape="rect" id="Node000005" href="$classAxiLiteAsync.html" title=" " alt="" coords="159,225,265,251"/>
@@ -25,10 +25,16 @@
 <area shape="poly" id="edge11_Node000006_Node000009" title=" " alt="" coords="525,111,410,154,408,149,523,106"/>
 <area shape="rect" id="Node000010" href="$classSimpleDualPortRam.html" title=" " alt="" coords="637,79,790,104"/>
 <area shape="poly" id="edge12_Node000006_Node000010" title=" " alt="" coords="647,109,422,157,421,152,646,104"/>
-<area shape="rect" id="Node000011" href="$classFifoOutputPipeline.html" title=" " alt="" coords="814,79,957,104"/>
-<area shape="poly" id="edge13_Node000006_Node000011" title=" " alt="" coords="801,107,422,160,421,155,800,102"/>
-<area shape="rect" id="Node000013" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="5,519,155,544"/>
-<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="100,485,87,519,82,518,95,483"/>
-<area shape="rect" id="Node000015" href="$classPgp4GthUsWrapper.html" title=" " alt="" coords="179,519,328,544"/>
-<area shape="poly" id="edge17_Node000014_Node000015" title=" " alt="" coords="246,484,254,518,248,519,241,485"/>
+<area shape="rect" id="Node000011" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="402,5,585,31"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="543,32,679,76,677,81,541,37"/>
+<area shape="rect" id="Node000012" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="609,5,818,31"/>
+<area shape="poly" id="edge14_Node000010_Node000012" title=" " alt="" coords="716,44,716,79,711,79,711,44"/>
+<area shape="rect" id="Node000013" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="842,5,1046,31"/>
+<area shape="poly" id="edge15_Node000010_Node000013" title=" " alt="" coords="894,37,751,81,750,76,893,32"/>
+<area shape="rect" id="Node000014" href="$classFifoOutputPipeline.html" title=" " alt="" coords="814,79,957,104"/>
+<area shape="poly" id="edge16_Node000006_Node000014" title=" " alt="" coords="801,107,422,160,421,155,800,102"/>
+<area shape="rect" id="Node000016" href="$classPgp3GthUsWrapper.html" title=" " alt="" coords="5,519,155,544"/>
+<area shape="poly" id="edge18_Node000015_Node000016" title=" " alt="" coords="100,485,87,519,82,518,95,483"/>
+<area shape="rect" id="Node000018" href="$classPgp4GthUsWrapper.html" title=" " alt="" coords="179,519,328,544"/>
+<area shape="poly" id="edge20_Node000017_Node000018" title=" " alt="" coords="246,484,254,518,248,519,241,485"/>
 </map>

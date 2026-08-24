@@ -1,0 +1,9 @@
+<map id="TrueDualPortRam" name="TrueDualPortRam">
+<area shape="rect" id="Node000001" title=" " alt="" coords="223,79,358,104"/>
+<area shape="rect" id="Node000002" href="$classTrueDualPortRamXpm.html" title=" " alt="" coords="5,5,171,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,33,259,76,257,81,132,38"/>
+<area shape="rect" id="Node000003" href="$classTrueDualPortRamAlteraMf.html" title=" " alt="" coords="195,5,386,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="293,44,293,79,288,79,288,44"/>
+<area shape="rect" id="Node000004" href="$classTrueDualPortRamInferred.html" title=" " alt="" coords="411,5,597,31"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="458,37,326,81,324,76,456,32"/>
+</map>

@@ -4,7 +4,7 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,500,132,472,178,446,210,435,212,440,180,451,135,476,96,504"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamFlushTb.html" title=" " alt="" coords="209,461,350,487"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="136,505,223,484,225,489,137,510"/>
-<area shape="rect" id="Node000004" href="$classEthMacRxRoCEv2.html" title=" " alt="" coords="211,511,348,536"/>
+<area shape="rect" id="Node000004" href="$classRoCEv2EthMacRx.html" title=" " alt="" coords="211,511,348,536"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="145,521,210,521,210,526,145,526"/>
 <area shape="rect" id="Node000043" href="$classHtspTxFifo.html" title=" " alt="" coords="233,560,325,585"/>
 <area shape="poly" id="edge42_Node000001_Node000043" title=" " alt="" coords="137,537,234,559,233,565,136,542"/>

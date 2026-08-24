@@ -1,11 +1,17 @@
 <map id="BoxcarFilterTb" name="BoxcarFilterTb">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,225,149,251"/>
-<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,152,69,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,187,84,224,80,227,52,190"/>
-<area shape="rect" id="Node000003" href="$classBoxcarFilter.html" title=" " alt="" coords="94,152,194,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,190,101,227,97,224,125,187"/>
-<area shape="rect" id="Node000004" href="$classBoxcarIntegrator.html" title=" " alt="" coords="79,79,209,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="147,118,147,152,141,152,141,118"/>
-<area shape="rect" id="Node000005" href="$classSimpleDualPortRam.html" title=" " alt="" coords="67,5,221,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="147,44,147,79,141,79,141,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="205,299,321,324"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="178,225,242,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,260,257,297,253,300,225,263"/>
+<area shape="rect" id="Node000003" href="$classBoxcarFilter.html" title=" " alt="" coords="267,225,367,251"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="302,263,274,300,270,297,298,260"/>
+<area shape="rect" id="Node000004" href="$classBoxcarIntegrator.html" title=" " alt="" coords="251,152,382,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="319,191,319,225,314,225,314,191"/>
+<area shape="rect" id="Node000005" href="$classSimpleDualPortRam.html" title=" " alt="" coords="240,79,393,104"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="319,118,319,152,314,152,314,118"/>
+<area shape="rect" id="Node000006" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="146,32,282,76,280,81,144,37"/>
+<area shape="rect" id="Node000007" href="$classSimpleDualPortRamAlteraMf.html" title=" " alt="" coords="212,5,421,31"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="319,44,319,79,314,79,314,44"/>
+<area shape="rect" id="Node000008" href="$classSimpleDualPortRamInferred.html" title=" " alt="" coords="445,5,649,31"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="498,37,355,81,353,76,496,32"/>
 </map>
