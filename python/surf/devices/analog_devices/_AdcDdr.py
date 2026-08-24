@@ -104,6 +104,44 @@ class AdcDdr(pr.Device):
         Additional arguments forwarded to ``pyrogue.Device``.
     """
 
+    def checkGeometry(self) -> None:
+        """Verify the model's construction matches the RTL capability registers.
+
+        The register map's field widths and scan ranges are fixed at
+        construction from generics such as ``deviceFamily``. If those do not
+        match the geometry the RTL actually built, individual accesses fail far
+        from the cause -- a too-wide ``delayBits`` model, for example, lets a
+        scan program a tap the hardware register cannot hold, and only the
+        readback verify deep inside a calibration reports it. Reading the
+        normalized read-only capability registers here turns that into one
+        explicit, early error that names the mismatched field.
+
+        Raises
+        ------
+        RuntimeError
+            If any advertised geometry field disagrees with this model.
+        """
+
+        expected = {
+            'DataLanes':           self._dataLanes,
+            'FcoLanes':            self._fcoLanes,
+            'Channels':            self._channels,
+            'SampleBits':          self._sampleBits,
+            'SerializationFactor': self._serializationFactor,
+            'DelayBits':           self._delayBits,
+        }
+        mismatches = []
+        for name, modelValue in expected.items():
+            hwValue = int(self.node(name).get(read=True))
+            if hwValue != modelValue:
+                mismatches.append(f'{name}: model={modelValue}, hardware={hwValue}')
+        if mismatches:
+            raise RuntimeError(
+                f'{self.path}: AdcDdr register model does not match the RTL '
+                'capability registers; check the deviceFamily and other '
+                'construction generics against the firmware. Mismatches -- '
+                + '; '.join(mismatches))
+
     def _getDataDelays(self, read: bool) -> list[int]:
         """Return all data-lane delay values."""
 

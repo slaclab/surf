@@ -1197,6 +1197,12 @@ class AdcDdrCalibration(pr.Process):
     def _runCalibrationImpl(self, *, dev: Any) -> dict[str, Any]:
         """Validate controls, execute the selected operation, and restore state."""
 
+        # Fail early and clearly if the register model was constructed with a
+        # geometry that disagrees with the RTL (for example a deviceFamily that
+        # sets the wrong delay width). Otherwise a mismatch only surfaces as a
+        # cryptic readback verify error partway through the scan.
+        self._readout.checkGeometry()
+
         start = self.DelayStart.value()
         stop = self.DelayStop.value()
         settle = self.SettleTime.value()
