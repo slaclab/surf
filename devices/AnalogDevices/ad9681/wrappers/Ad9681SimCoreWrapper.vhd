@@ -24,7 +24,6 @@ entity Ad9681SimCoreWrapper is
       sampleRst    : in  sl;
       sampleEnable : in  sl;
       normalData   : in  slv(127 downto 0);
-      cfgBank      : in  sl;
       cfgWrEn      : in  sl;
       cfgAddr      : in  slv(8 downto 0);
       cfgWrData    : in  slv(7 downto 0);
@@ -51,7 +50,6 @@ begin
          sampleRst    => sampleRst, -- [in]
          sampleEnable => sampleEnable, -- [in]
          normalData   => normalArray, -- [in]
-         cfgBank      => cfgBank, -- [in]
          cfgWrEn      => cfgWrEn, -- [in]
          cfgAddr      => cfgAddr, -- [in]
          cfgWrData    => cfgWrData, -- [in]

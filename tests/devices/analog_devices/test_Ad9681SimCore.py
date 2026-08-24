@@ -9,16 +9,17 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Exercise default two-lane words, both four-channel configuration
-#   banks, the staged resolution/rate override, user and PN9 patterns,
-#   inversion, bit order, and power.
+# - Sweep: Exercise default two-lane words, the register 0x05 device index that
+#   selects data channels, the staged resolution/rate override, user and PN
+#   patterns, inversion, bit order, and power for all eight channels.
 # - Stimulus: Write the primitive-free byte-register interface while sampling
 #   independent normal codes for all eight channels.
 # - Checks: Padding placement, identity, immediate ordinary-register updates,
-#   0x100 transfer semantics, unsupported-format fallback, pattern values, PN reset
-#   hold/release, transforms, soft reset, and suppression are checked.
+#   device-index channel isolation, 0x100 transfer semantics, unsupported-format
+#   fallback, pattern values, PN reset hold/release, transforms, soft reset, and
+#   suppression are checked.
 # - Timing: Configuration and samples share one clock; only the resolution/rate
-#   override remains hidden until the Register 0xFF transfer write.
+#   override remains hidden until the register 0xFF transfer write.
 
 import cocotb
 from cocotb.clock import Clock
@@ -27,9 +28,8 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
-async def write(dut, bank, addr, data):
+async def write(dut, addr, data):
     await FallingEdge(dut.sampleClk)
-    dut.cfgBank.value = bank
     dut.cfgAddr.value = addr
     dut.cfgWrData.value = data
     dut.cfgWrEn.value = 1
@@ -38,8 +38,7 @@ async def write(dut, bank, addr, data):
     dut.cfgWrEn.value = 0
 
 
-async def read(dut, bank, addr):
-    dut.cfgBank.value = bank
+async def read(dut, addr):
     dut.cfgAddr.value = addr
     await Timer(1, unit="ns")
     return int(dut.cfgRdData.value)
@@ -79,11 +78,10 @@ def reverse_bytes(word):
 
 
 @cocotb.test()
-async def ad9681_register_bank_and_pattern_test(dut):
+async def ad9681_register_index_and_pattern_test(dut):
     normal = [0x200 + i for i in range(8)]
     dut.sampleRst.value = 1
     dut.sampleEnable.value = 0
-    dut.cfgBank.value = 0
     dut.cfgWrEn.value = 0
     dut.cfgAddr.value = 0
     dut.cfgWrData.value = 0
@@ -93,96 +91,115 @@ async def ad9681_register_bank_and_pattern_test(dut):
         await RisingEdge(dut.sampleClk)
     dut.sampleRst.value = 0
 
-    assert await read(dut, 0, 0x01) == 0x8F
-    assert await read(dut, 1, 0x02) == 0x60
-    assert await read(dut, 0, 0x05) == 0x0F
-    assert await read(dut, 1, 0x05) == 0x0F
-    assert await read(dut, 0, 0x100) == 0x00
+    # Identity and defaults. Register 0x05 powers up at 0x3F so every data and
+    # clock channel receives the next write.
+    assert await read(dut, 0x01) == 0x8F
+    assert await read(dut, 0x02) == 0x60
+    assert await read(dut, 0x05) == 0x3F
+    assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
     assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
     assert all((channel(data, i) & 0x3) == 0 for i in range(8))
 
     # Register 0x100 is staged until the transfer strobe at Register 0xFF.
-    await write(dut, 0, 0x100, 0x66)
-    assert await read(dut, 0, 0x100) == 0x00
-    await write(dut, 0, 0xFF, 0x00)
-    assert await read(dut, 0, 0x100) == 0x00
-    await write(dut, 0, 0xFF, 0x01)
-    assert await read(dut, 0, 0x100) == 0x66
+    await write(dut, 0x100, 0x66)
+    assert await read(dut, 0x100) == 0x00
+    await write(dut, 0xFF, 0x00)
+    assert await read(dut, 0x100) == 0x00
+    await write(dut, 0xFF, 0x01)
+    assert await read(dut, 0x100) == 0x66
 
     # Unsupported output formats warn immediately but retain register
     # readback and continue using the model's fixed two-lane bytewise format.
-    await write(dut, 0, 0x21, 0x00)
-    assert await read(dut, 0, 0x21) == 0x00
+    await write(dut, 0x21, 0x00)
+    assert await read(dut, 0x21) == 0x00
     data = await sample(dut)
     assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
-    await write(dut, 0, 0x21, 0x30)
+    await write(dut, 0x21, 0x30)
 
-    # Select physical configuration bank 1/channel 4. The new mode applies
-    # immediately and must not affect bank 0.
-    await write(dut, 1, 0x05, 0x01)
-    await write(dut, 1, 0x0D, 0x02)
+    # Device index bits[3:0] select data channels A..D, each a pair (channel ch
+    # is gated by bit ch/2). Selecting only channel B (bit 1) applies a test
+    # mode to channels 2 and 3 and leaves the others on normal data.
+    await write(dut, 0x05, 0x02)
+    await write(dut, 0x0D, 0x02)
     data = await sample(dut)
-    assert channel(data, 4) == 0xFFFC
+    assert channel(data, 2) == 0xFFFC
+    assert channel(data, 3) == 0xFFFC
     assert channel(data, 0) == normal[0] << 2
-    assert channel(data, 5) == normal[5] << 2
+    assert channel(data, 4) == normal[4] << 2
 
-    # Program a selected channel in bank 0 for alternating user words.
-    await write(dut, 0, 0x05, 0x01)
-    await write(dut, 0, 0x19, 0x23)
-    await write(dut, 0, 0x1A, 0x01)
-    await write(dut, 0, 0x1B, 0x56)
-    await write(dut, 0, 0x1C, 0x04)
-    await write(dut, 0, 0x0D, 0x48)
-    first = channel(await sample(dut), 0)
-    second = channel(await sample(dut), 0)
-    assert {first, second} == {0x0123, 0x0456}
+    # A local read with a single channel selected returns that channel's copy.
+    assert await read(dut, 0x0D) == 0x02
+    # Restore full selection; the datasheet returns Channel A1 for an all-set
+    # read, so 0x0D reads back channel 0's (still default) test mode.
+    await write(dut, 0x05, 0x3F)
+    await write(dut, 0x0D, 0x00)
+
+    # Program every channel for alternating user words in one broadcast write.
+    # A single snapshot holds one shared toggle phase, so all channels match;
+    # consecutive snapshots alternate. Capturing one sample and indexing every
+    # channel keeps the shared state at a single instant.
+    await write(dut, 0x19, 0x23)
+    await write(dut, 0x1A, 0x01)
+    await write(dut, 0x1B, 0x56)
+    await write(dut, 0x1C, 0x04)
+    await write(dut, 0x0D, 0x48)
+    first = await sample(dut)
+    second = await sample(dut)
+    assert all(channel(first, i) == channel(first, 0) for i in range(8))
+    assert all(channel(second, i) == channel(second, 0) for i in range(8))
+    assert {channel(first, 0), channel(second, 0)} == {0x0123, 0x0456}
 
     # PN23 reset is a retained level, not a self-clearing command. While it is
-    # asserted, the selected generator stays at its seed; clearing it releases
-    # a repeatable sequence from that seed.
+    # asserted, the selected generators stay at their seed; clearing it releases
+    # a repeatable sequence from that seed. Because one broadcast write reseeds
+    # all channels in the same cycle, every channel stays coherent.
     pn23_seed = 0b01001101110000000101000
     pn23_first = pn_word(pn23_seed, order=23, tap=18) << 2
     pn23_state_1 = pn_advance(pn23_seed, order=23, tap=18)
     pn23_state_2 = pn_advance(pn23_state_1, order=23, tap=18)
     pn23_second = pn_word(pn23_state_1, order=23, tap=18) << 2
     pn23_third = pn_word(pn23_state_2, order=23, tap=18) << 2
-    await write(dut, 0, 0x0D, 0x25)
-    assert await read(dut, 0, 0x0D) == 0x25
-    assert channel(await sample(dut), 0) == pn23_first
-    assert channel(await sample(dut), 0) == pn23_first
-    await write(dut, 0, 0x0D, 0x05)
-    assert await read(dut, 0, 0x0D) == 0x05
-    assert channel(await sample(dut), 0) == pn23_first
-    assert channel(await sample(dut), 0) == pn23_second
+    def all_channels(data):
+        return [channel(data, i) for i in range(8)]
+
+    await write(dut, 0x0D, 0x25)
+    assert await read(dut, 0x0D) == 0x25
+    assert all_channels(await sample(dut)) == [pn23_first] * 8
+    assert all_channels(await sample(dut)) == [pn23_first] * 8
+    await write(dut, 0x0D, 0x05)
+    assert await read(dut, 0x0D) == 0x05
+    assert all_channels(await sample(dut)) == [pn23_first] * 8
+    assert all_channels(await sample(dut)) == [pn23_second] * 8
     # Transferring unchanged resolution/rate configuration must not rewind the
     # live PN state maintained independently by each channel.
-    await write(dut, 0, 0xFF, 0x01)
-    assert channel(await sample(dut), 0) == pn23_third
+    await write(dut, 0xFF, 0x01)
+    assert all_channels(await sample(dut)) == [pn23_third] * 8
 
-    # Apply the same hold/release check to bank 1/channel 4's PN9 generator,
-    # together with global inversion and byte-local LSB-first ordering.
-    await write(dut, 1, 0x0D, 0x16)
-    await write(dut, 1, 0x14, 0x04)
-    await write(dut, 1, 0x21, 0xB0)
-    assert await read(dut, 1, 0x0D) == 0x16
+    # Apply the same hold/release check to the PN9 generator, together with
+    # global inversion and byte-local LSB-first ordering.
+    await write(dut, 0x0D, 0x16)
+    await write(dut, 0x14, 0x04)
+    await write(dut, 0x21, 0xB0)
+    assert await read(dut, 0x0D) == 0x16
     pn9_seed = 0b011011111
     pn9_first = reverse_bytes((pn_word(pn9_seed) << 2) ^ 0xFFFF)
     pn9_second = reverse_bytes(
         (pn_word(pn_advance(pn9_seed)) << 2) ^ 0xFFFF)
-    assert channel(await sample(dut), 4) == pn9_first
-    assert channel(await sample(dut), 4) == pn9_first
-    await write(dut, 1, 0x0D, 0x06)
-    assert await read(dut, 1, 0x0D) == 0x06
-    assert channel(await sample(dut), 4) == pn9_first
-    assert channel(await sample(dut), 4) == pn9_second
+    assert all_channels(await sample(dut)) == [pn9_first] * 8
+    assert all_channels(await sample(dut)) == [pn9_first] * 8
+    await write(dut, 0x0D, 0x06)
+    assert await read(dut, 0x0D) == 0x06
+    assert all_channels(await sample(dut)) == [pn9_first] * 8
+    assert all_channels(await sample(dut)) == [pn9_second] * 8
 
     # A power-mode write immediately suppresses all channels. Soft reset
     # immediately restores default two-lane normal output and override state.
-    await write(dut, 0, 0x08, 0x01)
+    await write(dut, 0x08, 0x01)
     assert await sample(dut) == 0
-    await write(dut, 0, 0x00, 0x04)
-    assert await read(dut, 0, 0x100) == 0x00
+    await write(dut, 0x00, 0x04)
+    assert await read(dut, 0x05) == 0x3F
+    assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
     assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
 

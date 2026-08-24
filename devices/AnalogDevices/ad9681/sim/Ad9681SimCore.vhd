@@ -27,7 +27,6 @@ entity Ad9681SimCore is
       sampleRst    : in  sl;
       sampleEnable : in  sl;
       normalData   : in  Slv16Array(7 downto 0);
-      cfgBank      : in  sl;
       cfgWrEn      : in  sl;
       cfgAddr      : in  slv(8 downto 0);
       cfgWrData    : in  slv(7 downto 0);
@@ -102,11 +101,10 @@ architecture rtl of Ad9681SimCore is
       pn23          => PN23_SEED_C);
 
    type ChannelArray is array (natural range <>) of ChannelType;
-   type SelectArray is array (natural range <>) of slv(3 downto 0);
 
    type RegType is record
       rdData        : slv(7 downto 0);
-      selectMask   : SelectArray(1 downto 0);
+      selectMask   : slv(5 downto 0);
       global       : GlobalType;
       channel      : ChannelArray(7 downto 0);
       resolution   : slv(6 downto 0);
@@ -116,9 +114,11 @@ architecture rtl of Ad9681SimCore is
       valid        : sl;
    end record RegType;
 
+   -- Register 0x05 (device index) powers up at 0x3F, selecting every data
+   -- channel so the first local-register write reaches all channels at once.
    constant REG_INIT_C : RegType := (
       rdData        => (others => '0'),
-      selectMask   => (others => (others => '1')),
+      selectMask   => (others => '1'),
       global       => GLOBAL_INIT_C,
       channel      => (others => CHANNEL_INIT_C),
       resolution   => (others => '0'),
@@ -133,21 +133,22 @@ architecture rtl of Ad9681SimCore is
 begin
 
    -------------------------------------------------------------------------------------------------
-   -- Each configuration bank owns four channels. AD9681 writes take effect
-   -- immediately except for the resolution/sample-rate override at 0x100.
+   -- One SPI register file addresses all eight channels. Register 0x05 (device
+   -- index) selects which data channels a subsequent local-register write
+   -- affects; its four select bits each cover a channel pair (A1/A2 .. D1/D2),
+   -- so channel ch is selected by selectMask(ch/2). A single write reaches
+   -- every selected channel in the same cycle, matching the real device. All
+   -- writes take effect immediately except the 0x100 override, which is staged
+   -- until the 0xFF transfer strobe.
    -------------------------------------------------------------------------------------------------
-   comb : process (cfgAddr, cfgBank, cfgWrData, cfgWrEn, normalData, r, sampleEnable, sampleRst) is
-      variable active    : ChannelType;
-      variable bankBase  : natural range 0 to 4;
-      variable bankIndex : natural range 0 to 1;
-      variable v         : RegType;
-      variable word      : slv(15 downto 0);
-      variable code      : slv(13 downto 0);
+   comb : process (cfgAddr, cfgWrData, cfgWrEn, normalData, r, sampleEnable, sampleRst) is
+      variable active : ChannelType;
+      variable v      : RegType;
+      variable word   : slv(15 downto 0);
+      variable code   : slv(13 downto 0);
    begin
       v         := r;
       v.valid   := '0';
-      bankBase  := ite(cfgBank = '1', 4, 0);
-      bankIndex := ite(cfgBank = '1', 1, 0);
 
       if (sampleRst = '1') then
          v := REG_INIT_C;
@@ -159,22 +160,25 @@ begin
                      v := REG_INIT_C;
                   end if;
                when DEVICE_INDEX_ADDR_C =>
-                  v.selectMask(bankIndex) := cfgWrData(3 downto 0);
+                  -- Bits[3:0] select data channels A..D (each a pair); bits[5:4]
+                  -- select the DCO/FCO clock channels and are retained only for
+                  -- readback since this model has no separately timed clocks.
+                  v.selectMask := cfgWrData(5 downto 0);
                when POWER_MODE_ADDR_C =>
                   v.global.powerMode(1 downto 0) := cfgWrData(1 downto 0);
                   v.global.powerMode(2)          := cfgWrData(5);
                when TEST_MODE_ADDR_C =>
-                  for i in 3 downto 0 loop
-                     if (r.selectMask(bankIndex)(i) = '1') then
-                        v.channel(bankBase+i).userMode  := cfgWrData(7 downto 6);
-                        v.channel(bankBase+i).resetPn23 := cfgWrData(5);
-                        v.channel(bankBase+i).resetPn9  := cfgWrData(4);
-                        v.channel(bankBase+i).testMode  := cfgWrData(3 downto 0);
+                  for i in 7 downto 0 loop
+                     if (r.selectMask(i/2) = '1') then
+                        v.channel(i).userMode  := cfgWrData(7 downto 6);
+                        v.channel(i).resetPn23 := cfgWrData(5);
+                        v.channel(i).resetPn9  := cfgWrData(4);
+                        v.channel(i).testMode  := cfgWrData(3 downto 0);
                         if (cfgWrData(4) = '1') then
-                           v.channel(bankBase+i).pn9 := PN9_SEED_C;
+                           v.channel(i).pn9 := PN9_SEED_C;
                         end if;
                         if (cfgWrData(5) = '1') then
-                           v.channel(bankBase+i).pn23 := PN23_SEED_C;
+                           v.channel(i).pn23 := PN23_SEED_C;
                         end if;
                      end if;
                   end loop;
@@ -183,13 +187,13 @@ begin
                   v.global.outputFormat := cfgWrData(0);
                when USER_PATTERN1_LSB_C | USER_PATTERN1_MSB_C |
                     USER_PATTERN2_LSB_C | USER_PATTERN2_MSB_C =>
-                  for i in 3 downto 0 loop
-                     if (r.selectMask(bankIndex)(i) = '1') then
+                  for i in 7 downto 0 loop
+                     if (r.selectMask(i/2) = '1') then
                         case cfgAddr is
-                           when USER_PATTERN1_LSB_C => v.channel(bankBase+i).userPatternA(7 downto 0) := cfgWrData;
-                           when USER_PATTERN1_MSB_C => v.channel(bankBase+i).userPatternA(15 downto 8) := cfgWrData;
-                           when USER_PATTERN2_LSB_C => v.channel(bankBase+i).userPatternB(7 downto 0) := cfgWrData;
-                           when others => v.channel(bankBase+i).userPatternB(15 downto 8) := cfgWrData;
+                           when USER_PATTERN1_LSB_C => v.channel(i).userPatternA(7 downto 0) := cfgWrData;
+                           when USER_PATTERN1_MSB_C => v.channel(i).userPatternA(15 downto 8) := cfgWrData;
+                           when USER_PATTERN2_LSB_C => v.channel(i).userPatternB(7 downto 0) := cfgWrData;
+                           when others => v.channel(i).userPatternB(15 downto 8) := cfgWrData;
                         end case;
                      end if;
                   end loop;
@@ -204,10 +208,10 @@ begin
                   v.global.select2x   := cfgWrData(2);
                   v.global.outputBits := cfgWrData(1 downto 0);
                when CHANNEL_STATUS_ADDR_C =>
-                  for i in 3 downto 0 loop
-                     if (r.selectMask(bankIndex)(i) = '1') then
-                        v.channel(bankBase+i).outputReset := cfgWrData(1);
-                        v.channel(bankBase+i).powerDown   := cfgWrData(0);
+                  for i in 7 downto 0 loop
+                     if (r.selectMask(i/2) = '1') then
+                        v.channel(i).outputReset := cfgWrData(1);
+                        v.channel(i).powerDown   := cfgWrData(0);
                      end if;
                   end loop;
                when TRANSFER_ADDR_C =>
@@ -274,12 +278,12 @@ begin
          end if;
       end if;
 
-      -- Local-register reads return the lowest-numbered selected channel. This
-      -- is Channel A when the default mask selects all four channels.
-      active := r.channel(bankBase);
-      for i in 3 downto 0 loop
-         if (r.selectMask(bankIndex)(i) = '1') then
-            active := r.channel(bankBase+i);
+      -- A local-register read returns the lowest-numbered selected channel; the
+      -- datasheet specifies Channel A1 when every device-index bit is set.
+      active := r.channel(0);
+      for i in 7 downto 0 loop
+         if (r.selectMask(i/2) = '1') then
+            active := r.channel(i);
          end if;
       end loop;
       v.rdData := (others => '0');
@@ -287,7 +291,7 @@ begin
          when SPI_CONFIG_ADDR_C => v.rdData := "00011000";
          when CHIP_ID_ADDR_C => v.rdData := X"8F";
          when CHIP_GRADE_ADDR_C => v.rdData(6 downto 4) := "110";
-         when DEVICE_INDEX_ADDR_C => v.rdData(3 downto 0) := r.selectMask(bankIndex);
+         when DEVICE_INDEX_ADDR_C => v.rdData(5 downto 0) := r.selectMask;
          when POWER_MODE_ADDR_C =>
             v.rdData(1 downto 0) := r.global.powerMode(1 downto 0);
             v.rdData(5)          := r.global.powerMode(2);

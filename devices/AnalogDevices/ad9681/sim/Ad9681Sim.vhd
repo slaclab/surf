@@ -62,9 +62,6 @@ architecture behavioral of Ad9681Sim is
    signal cfgByteValid : slv(3 downto 0);
    signal cfgRdByte    : slv(7 downto 0);
    signal cfgRdData    : slv(31 downto 0);
-   signal cfgPending   : sl := '0';
-   signal coreBank     : sl;
-   signal coreWrEn     : sl;
    signal normalData   : Slv16Array(7 downto 0) := (others => (others => '0'));
    signal normalDataPipeline : NormalDataPipelineType := (others => (others => (others => '0')));
    signal delayedNormalData  : Slv16Array(7 downto 0);
@@ -160,19 +157,11 @@ begin
          rdData    => cfgRdData); -- [in]
 
    ------------------------------------------------------------------------------------------------
-   -- The previous single-SPI model applies channel-index writes to both
-   -- four-channel halves. Replay each parsed write once per internal bank.
+   -- The physical AD9681 exposes a single SPI port that addresses both internal
+   -- four-channel banks. Applying each write to both banks in the same sample
+   -- clock keeps their per-channel PN generators reseeded coherently, matching
+   -- the real device; staggering the two banks would offset them by one sample.
    ------------------------------------------------------------------------------------------------
-   cfgReplay : process (clkP) is
-   begin
-      if rising_edge(clkP) then
-         cfgPending <= spiWrEn after TPD_G;
-      end if;
-   end process cfgReplay;
-
-   coreWrEn <= spiWrEn or cfgPending;
-   coreBank <= '0' when spiWrEn = '1' else '1';
-
    U_Core : entity surf.Ad9681SimCore
       generic map (
          TPD_G => TPD_G)
@@ -181,8 +170,7 @@ begin
          sampleRst    => '0', -- [in]
          sampleEnable => '1', -- [in]
          normalData   => delayedNormalData, -- [in]
-         cfgBank      => coreBank, -- [in]
-         cfgWrEn      => coreWrEn, -- [in]
+         cfgWrEn      => spiWrEn, -- [in]
          cfgAddr      => cfgAddr(8 downto 0), -- [in]
          cfgWrData    => cfgWrData(7 downto 0), -- [in]
          cfgRdData    => cfgRdByte, -- [out]

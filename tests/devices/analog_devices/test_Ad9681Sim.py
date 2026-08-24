@@ -106,16 +106,21 @@ async def ad9681_pin_level_device_sim_test(dut):
     assert int(dut.dcoN.value) == ((~int(dut.dcoP.value)) & 0x3)
     assert int(dut.fcoN.value) == ((~int(dut.fcoP.value)) & 0x3)
 
+    # Device index bit 0 selects data channel pair A (physical channels 0 and
+    # 1). The test mode applies to exactly that pair and leaves the rest on
+    # normal data, confirming per-channel selection through the actual SPI pins.
     await spi_write(dut, 0x05, 0x01)
     await spi_write(dut, 0x0D, 0x02)
     words, _ = await capture_frame(dut)
     assert words[0] == 0xFFFC
-    assert words[4] == 0xFFFC
-    assert words[1:4] == [value << 2 for value in normal[1:4]]
-    assert words[5:] == [value << 2 for value in normal[5:]]
+    assert words[1] == 0xFFFC
+    assert words[2:] == [value << 2 for value in normal[2:]]
 
-    # Alternating output words must be latched once per frame. Reading
-    # sampleData live for each serialized bit tears these two patterns together.
+    # Reselect every channel, then apply the alternating checkerboard. Words are
+    # latched once per frame; reading sampleData live for each serialized bit
+    # would tear the two patterns together. A single broadcast write keeps every
+    # channel coherent, so channels 0 and 4 must show the same phase each frame.
+    await spi_write(dut, 0x05, 0x3F)
     await spi_write(dut, 0x0D, 0x04)
     checkerboard = []
     for _ in range(4):

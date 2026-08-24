@@ -205,6 +205,11 @@ class FakeReadout:
     def Relock(self):
         self.relockCount += 1
 
+    def checkGeometry(self):
+        # These fakes are constructed consistent with their own geometry, so the
+        # model/RTL capability cross-check is vacuously satisfied here.
+        pass
+
 
 class CoupledFakeReadout(FakeReadout):
     def __init__(self):
