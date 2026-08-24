@@ -226,7 +226,8 @@ Suggested elaboration matrix:
 ## Recommended Cleanup Order
 
 1. Fix CDC-C01 first because its multi-bit address is consumed directly when
-   an independently synchronized completion flag arrives.
+   an independently synchronized completion flag arrives. Completed on
+   2026-08-24 as described below.
 2. Replace the custom Saci synchronizers in CDC-B01 and CDC-B02 with SURF
    primitives.  Decide separately whether the generated Xilinx monitors are
    wrapped, locally patched, or accepted with explicit constraints.
@@ -245,8 +246,187 @@ Suggested elaboration matrix:
    records reviewed informational/warning structures; this repository
    currently has no `report_cdc` automation or waivers.
 
+## Implementation Progress
+
+### XPM CDC Backend Exploration
+
+Reviewed on 2026-08-24 against the existing RAM/FIFO backend-selection
+pattern and the AMD XPM CDC interfaces.  The proposed public selector is:
+
+```vhdl
+SYNTH_MODE_G : string := "inferred";
+```
+
+The default must remain `"inferred"` so existing designs, non-Xilinx builds,
+and current simulation behavior do not change.  XPM implementations should
+live in a backend-specific wrapper directory, with unsupported dummy entities
+loaded by ruckus for non-Vivado and older-Vivado analysis.  Vivado projects
+that load the XPM wrappers also need the `XPM_CDC` library enabled, following
+the existing `XPM_MEMORY` handling in `base/ram` and `base/fifo`.
+
+The mapping is not uniformly drop-in:
+
+| SURF entity | XPM backend | Recommendation | Compatibility notes |
+| --- | --- | --- | --- |
+| `Synchronizer` | `xpm_cdc_single` | Add after reset semantics are explicit | XPM has no reset port, supports 2-10 destination stages, and cannot reproduce arbitrary per-stage `INIT_G`.  XPM mode must reject an asserted `rst` and unsupported initialization rather than silently changing behavior. |
+| `SynchronizerVector` | `xpm_cdc_array_single` | Add with the same restrictions as scalar | This remains an array of unrelated single-bit crossings; it does not make a correlated vector coherent.  XPM limits width to 1-1024 and stages to 2-10. |
+| `RstSync` | `xpm_cdc_async_rst` | Good first backend candidate | The default asynchronous-assert/synchronous-release behavior maps directly when `OUT_REG_RST_G = true` and `BYPASS_SYNC_G = false`.  XPM limits the release chain to 2-10 stages; other modes should remain inferred. |
+| `SynchronizerEdge` | composed from `Synchronizer` plus edge logic | Keep composed | It can eventually propagate backend selection to its level synchronizer, but reset/restart behavior must remain identical. |
+| `SynchronizerOneShot` and vector | no exact mapping with the current interface | Keep inferred/composed | `xpm_cdc_pulse` requires source and destination clocks and optionally both resets.  The SURF one-shot accepts an asynchronous trigger and only a destination clock, so substituting XPM would change its contract.  A separate two-clock pulse-transfer entity would be appropriate if needed. |
+| `SynchronizerFifo` | existing `FifoXpm`/XPM FIFO path | Add `SYNTH_MODE_G` and delegate | This follows the existing FIFO selector most closely.  XPM FIFO depth restrictions mean current `ADDR_WIDTH_G = 2` uses must remain inferred; the default width of four is suitable. |
+| proposed `SynchronizerHandshake` | historically `xpm_cdc_handshake` | Verify current tool support before promising an XPM backend | The AMD-style full handshake interface is a close match, but the macro has no reset ports.  The public contract must either be resetless or make XPM mode reject reset use.  The inferred backend needs a documented reset/abort contract and scoped bundled-data timing constraints; XPM reports its data path as CDC-15 by design.  AMD's 2026.1 architecture-library macro lists omit `xpm_cdc_handshake` even though current `xpm_cdc_array_single` text still recommends it, so availability must be checked in every supported Vivado release. |
+| proposed Gray synchronizer | `xpm_cdc_gray` | Do not add without a concrete use case | The macro only applies when a binary source increments or decrements by one.  SURF's asynchronous FIFOs already encode, synchronize, and consume Gray pointers as part of their full/empty protocol, so replacing that logic with a general-purpose synchronizer would not simplify the FIFO.  Most other correlated-vector use cases need a handshake because their values can jump arbitrarily. |
+
+Backend wrappers should set XPM simulation misuse checking on by default unless
+Vivado regression shows an incompatibility.  Vendor-specific knobs should not
+all become public SURF generics; expose only parameters needed to preserve the
+SURF contract, such as source/destination synchronization depth and external
+versus internal destination acknowledgment for the handshake.
+
+Recommended implementation order:
+
+1. Define and test the portable `SynchronizerHandshake` contract and inferred
+   backend, verify `xpm_cdc_handshake` availability in the supported Vivado
+   matrix, add an XPM backend only where available, then migrate CDC-C01 from
+   its provisional FIFO.
+2. Add `SYNTH_MODE_G` to `SynchronizerFifo` and route XPM-compatible depths
+   through the existing FIFO backend.
+3. Add the direct `RstSync` XPM backend.
+4. Add restricted scalar/vector XPM backends only after codifying how callers
+   declare that reset and nonzero initialization are unused.
+5. Keep `SynchronizerEdge` and the one-shot/count/status hierarchy composed;
+   propagate the selector only where it preserves behavior and provides a
+   concrete synthesis benefit.
+
+### Planned CDC Primitive Work
+
+#### 1. Create `SynchronizerHandshake`
+
+- [ ] Add a coherent vector-transfer primitive for applications that need one
+  in-flight value but do not need FIFO buffering.
+- [ ] Use an AMD-style full handshake: source data/send/receive and destination
+  data/request/acknowledge.  Support both immediate internal destination
+  acknowledgment and an external destination acknowledgment where practical.
+- [ ] Hold the source payload stable for the entire transfer and capture it in
+  the destination domain only when the synchronized request qualifies it.
+- [ ] Define startup, reset, mid-transfer reset, and abort behavior before
+  finalizing the ports.  Do not claim identical inferred/XPM behavior if the
+  selected XPM macro cannot implement the reset contract.
+- [ ] Include source and destination synchronization-depth generics, a
+  `COMMON_CLK_G` bypass option, and
+  `SYNTH_MODE_G : string := "inferred"`.
+- [ ] Implement the portable inferred backend first, including `ASYNC_REG`
+  attributes and the scoped bundled-data timing constraints required for the
+  held vector path.
+- [ ] Verify which supported Vivado versions and FPGA families actually provide
+  `xpm_cdc_handshake`; add the XPM backend and unsupported dummy wrapper only
+  for the verified matrix.
+- [ ] Replace the provisional `SynchronizerFifo` transfer in
+  `AxiStreamFrameBuffer` with `SynchronizerHandshake` after the primitive and
+  its tests are complete.
+
+#### 2. Add XPM Backend Selection To Existing Synchronizers
+
+- [ ] Add `SYNTH_MODE_G : string := "inferred"` without changing the default
+  implementation or existing public behavior.
+- [ ] Add backend-specific XPM wrappers and non-XPM dummy entities following
+  the `base/ram` and `base/fifo` ruckus pattern.  Enable `XPM_CDC` in Vivado
+  projects that load these wrappers.
+- [ ] Route `SynchronizerFifo` through the existing FIFO selector for supported
+  XPM depths; retain the inferred implementation when `ADDR_WIDTH_G < 4`,
+  which is used by existing shallow synchronization FIFOs but is below the
+  XPM FIFO minimum depth.
+- [ ] Add the direct `xpm_cdc_async_rst` backend for compatible `RstSync`
+  configurations.
+- [ ] Add restricted `xpm_cdc_single` and `xpm_cdc_array_single` backends for
+  `Synchronizer` and `SynchronizerVector`.  Reject unsupported reset,
+  initialization, stage-count, and width configurations explicitly rather
+  than silently changing their behavior.  The XPM vector backend must remain
+  documented as independent single-bit crossings, not an atomic bus transfer.
+- [ ] Keep `SynchronizerEdge`, `SynchronizerOneShot`, the vector wrappers, and
+  the counter/status hierarchy composed from lower-level SURF primitives.
+  Propagate `SYNTH_MODE_G` only where the selected backend preserves latency,
+  reset, and pulse semantics.
+- [ ] Keep `SynchronizerOneShot` off `xpm_cdc_pulse` because the interfaces are
+  not equivalent.  Add a separate source-clock-aware pulse-transfer primitive
+  only if a real application requires one.
+
+#### 3. Regression And Manual Vivado Validation
+
+- [ ] Add focused GHDL/cocotb regressions for every changed public primitive.
+  Existing inferred-mode tests must continue to cover default generics so the
+  backend refactor cannot change current users accidentally.
+- [ ] Cover scalar and vector level transfer, active-high and active-low reset,
+  synchronous and asynchronous reset, initialization, bypass/common-clock
+  operation, multiple synchronization depths, and edge/pulse behavior where
+  applicable.
+- [ ] For `SynchronizerHandshake`, cover unrelated clock ratios and phases,
+  backpressure through external destination acknowledgment, back-to-back
+  transfers, source-send protocol violations, reset/startup behavior, and data
+  stability for the complete handshake.
+- [ ] Add a manual Vivado regression configuration that runs the same stimulus
+  against `SYNTH_MODE_G = "inferred"` and `SYNTH_MODE_G = "xpm"`, compares the
+  externally visible transaction sequence and data, and allows only documented
+  latency differences.
+- [ ] Keep the Vivado/XPM comparison out of normal CI because the CI environment
+  does not provide Vivado.  Document the exact manual command and supported
+  Vivado version/family matrix so it can be rerun before release.
+- [ ] For each XPM-capable primitive, run elaboration/synthesis and
+  `report_cdc`; confirm that the XPM hierarchy is recognized and that no new
+  critical CDC findings are hidden by the backend wrapper.
+
+#### 4. Document The Synchronizer Library
+
+- [ ] Create `base/sync/README.md` and link it from `base/README.md`.
+- [ ] Describe every public synchronizer/reset/status primitive, its intended
+  source signal type, whether it preserves vector coherency, whether events can
+  be lost, whether it buffers transfers, reset assumptions, latency, and the
+  supported inferred/XPM modes.
+- [ ] Include a short selection guide covering unrelated status bits, coherent
+  vectors, pulses/events, resets, counters/rates, continuous streams, and
+  common-clock bypasses.
+- [ ] Call out unsafe or easily misunderstood uses explicitly, especially
+  changing binary words through `SynchronizerVector`, narrow pulses through a
+  level synchronizer, and unbounded event rates through a one-shot.
+
+#### Gray CDC Scope Decision
+
+No standalone Gray synchronizer is planned in this work.  `xpm_cdc_gray` is
+limited to binary values that move by exactly one count between source samples.
+The primary SURF use case is asynchronous FIFO pointer transfer, and
+`base/fifo/rtl/inferred/FifoAsync.vhd` already performs the Gray conversion,
+crossing, and pointer comparison as one protocol.  Reconsider a public Gray
+primitive only if a non-FIFO monotonic counter/address use case is identified;
+arbitrary addresses and configuration vectors belong on the handshake path.
+
+### CDC-C01: AxiStreamFrameBuffer Atomic Address Transfer
+
+Completed on 2026-08-24 in
+`axi/axi-stream/rtl/AxiStreamFrameBuffer.vhd`:
+
+- Replaced the independently synchronized final-address/setup-done vector with
+  a one-shot `SynchronizerFifo` transfer of the final address.
+- Kept `rdSetupDone` as a separately synchronized scalar level for the return
+  handshake only.  FIFO `valid` now exclusively qualifies the atomic address
+  payload, while the existing `rdMoveDone` handshake holds the source state
+  until readout completes.
+- Preserved the `COMMON_CLK_G` bypass path and the existing public interface.
+
+Validation:
+
+- `vsg` reported zero violations for `AxiStreamFrameBuffer.vhd`.
+- `tests/axi/axi_stream/test_AxiStreamFrameBuffer.py` passed all four
+  asynchronous/synchronous and safe/unsafe buffer configurations (4 passed).
+- Vivado `report_cdc` confirmation remains outstanding.
+
 ## Current Status
 
-Static CDC-2/5/6/8/10/12 source audits are complete. No RTL fixes have been
-made as part of these scans. Authoritative Vivado reports remain outstanding
-because Vivado is not available in the current environment.
+Static CDC-2/5/6/8/10/12 source audits and the initial SURF/XPM backend mapping
+are complete. CDC-C01 has a validated provisional FIFO fix pending the new
+handshake primitive; CDC-B01 and CDC-B02 remain the next maintained-source
+cleanup after the primitive direction is settled. Authoritative Vivado reports
+and the supported-version check for `xpm_cdc_handshake` remain outstanding
+because Vivado is not available in the current environment. The next planned
+implementation step is to finalize the `SynchronizerHandshake` interface and
+reset contract, then build its inferred regression before adding XPM backend
+selection to the existing primitives.
