@@ -67,11 +67,16 @@ DHCP_HTYPE_ETHERNET = 0x01
 DHCP_HLEN_ETHERNET = 0x06
 DHCP_FIXED_HEADER_BYTES = 240
 DHCP_MAGIC_COOKIE = bytes.fromhex("63825363")
+DHCP_OPT_PAD = 0
+DHCP_OPT_SUBNET_MASK = 1
+DHCP_OPT_DOMAIN_NAME = 15
 DHCP_OPT_MESSAGE_TYPE = 53
 DHCP_OPT_REQUESTED_IP = 50
 DHCP_OPT_LEASE_TIME = 51
 DHCP_OPT_SERVER_IDENTIFIER = 54
 DHCP_OPT_END = 255
+DHCP_BOOTP_FLAGS_OFFSET = 10
+DHCP_BOOTP_FLAG_BROADCAST = 0x8000
 
 
 @dataclass
@@ -208,6 +213,7 @@ def build_dhcp_reply_payload(
     yiaddr: str,
     siaddr: str,
     lease_time: int = 120,
+    raw_options: bytes | None = None,
 ) -> bytes:
     # DHCP options start after the 240-byte BOOTP fixed header.
     payload = bytearray(DHCP_FIXED_HEADER_BYTES)
@@ -220,6 +226,12 @@ def build_dhcp_reply_payload(
     payload[20:24] = ipv4_to_bytes(siaddr)
     payload[28:34] = client_mac.to_bytes(6, byteorder="big")
     payload[236:240] = DHCP_MAGIC_COOKIE
+    if raw_options is not None:
+        # Caller supplies the full TLV option block (including the end option) so
+        # tests can exercise arbitrary option ordering, padding, and unknown
+        # options without duplicating the fixed-header construction.
+        payload.extend(raw_options)
+        return bytes(payload)
     payload.extend(
         bytes(
             [
@@ -238,6 +250,14 @@ def build_dhcp_reply_payload(
 
 def extract_dhcp_xid(payload: bytes) -> int:
     return int.from_bytes(payload[4:8], byteorder="big")
+
+
+def extract_dhcp_bootp_flags(payload: bytes) -> int:
+    """Return the 16-bit big-endian BOOTP flags field (header bytes 10-11)."""
+    return int.from_bytes(
+        payload[DHCP_BOOTP_FLAGS_OFFSET : DHCP_BOOTP_FLAGS_OFFSET + 2],
+        byteorder="big",
+    )
 
 
 def extract_dhcp_message_type(payload: bytes) -> int | None:

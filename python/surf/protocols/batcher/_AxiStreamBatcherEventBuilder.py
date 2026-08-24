@@ -82,6 +82,15 @@ class AxiStreamBatcherEventBuilder(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name         =  "ErrorAlignDet",
+            description  =  "When EnableAlignCheck=1, this error alerts SW that the data flow has stopped due to a tUserFirst misalignment (the inbound streams' tUserFirst values are not all the same).  To prevent corrupted/misaligned data from propagating downstream, the module stops moving data.  Recovery requires a proper DAQ run transition where the triggers are stopped and the blowoff is used to clear out the pipeline.  When EnableAlignCheck=0, this status register is always zero (check bypassed)",
+            offset       =  0xFD4,
+            bitSize      =  numberSlaves,
+            mode         =  "RO",
+            pollInterval =  1,
+        ))
+
+        self.add(pr.RemoteVariable(
             name        =  'Timeout',
             description =  'Sets the timer\'s timeout duration.  Setting to 0x0 (default) bypasses the timeout feature',
             offset      =  0xFF0,
@@ -146,6 +155,16 @@ class AxiStreamBatcherEventBuilder(pr.Device):
             bitOffset   =   0,
             base        =  pr.Bool,
             mode        =  "RW",
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         =  "EnableAlignCheck",
+            description  =  "Used to enable a check that forces all the inbound streams to have the same tUserFirst before sending to the batcher",
+            offset       =  0xFF8,
+            bitSize      =  1,
+            bitOffset    =  1,
+            base         =  pr.Bool,
+            mode         =  "RW",
         ))
 
         self.add(pr.RemoteCommand(

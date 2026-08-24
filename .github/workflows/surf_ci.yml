@@ -14,9 +14,32 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-on: [push]
+# Triggers: every push runs the workflow (directory-scoped regression on
+# feature branches, full on pre-release/main/tags); PRs into main additionally
+# run it in full.
+# A feature branch with an open PR into main therefore runs the regression
+# job twice per push -- once selective (push ref) and once full (PR merge
+# ref). Distinct event/ref concurrency groups prevent push, PR, and manual
+# validation runs from cancelling one another. This is intentional: the push
+# run gives fast per-commit feedback and the PR run is the full pre-merge
+# release gate. In this repo feature branches normally target pre-release, so
+# the double run is confined to release PRs. The post-merge push to pre-release
+# is also full so the integration branch is checked after every feature merge.
+# Manual dispatch can simulate a changed-path list to exercise selective
+# execution on a runner; it does not alter the path source used by push or
+# pull-request events.
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      changed_files_override:
+        description: Comma-separated paths used to exercise selective CI without changing push/PR policy
+        required: false
+        type: string
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,9 +50,9 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: 3.12
 
@@ -60,6 +83,13 @@ jobs:
             exit 1
           fi
 
+      - name: Check for non-ASCII characters in VHDL
+        run: |
+          if LC_ALL=C grep -rnP '[^\x00-\x7F]' --include=\*.vhd .; then
+            echo "Error: Non-ASCII characters found in VHDL source! Some tools (e.g. Cadence Genus) read VHDL with an ASCII codec and will fail. Please use plain ASCII (e.g. '-' instead of en/em dashes)."
+            exit 1
+          fi
+
       - name: Python Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/
@@ -83,16 +113,18 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: 3.12
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make python3 python3-pip tclsh ghdl
+          sudo apt-get install -y make python3 python3-pip tclsh ghdl libzmq3-dev valgrind
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
@@ -104,15 +136,158 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: Parallel Regression Tests
+      - name: Determine run mode
+        id: mode
         run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/main" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/pre-release" ]] \
+             || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=selective" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Parallel Regression Tests
+        env:
+          CHANGED_FILES_OVERRIDE: ${{ inputs.changed_files_override }}
+        run: |
+          # Define the full regression universe once so integration runs and
+          # selective-mode fallbacks cannot drift apart as suites are added.
+          full_targets=(
+            tests
+          )
+          # tests/simlink is owned by the dedicated step below, which runs it
+          # on every push with a bounded worker count. Exclude it here so the
+          # unbounded -n auto never starves its multi-instance peer handshake
+          # and so the suite is not run twice.
+          full_ignores=(
+            --ignore=tests/simlink
+          )
+
+          # Full integration/release runs build and simulate on apt mcode GHDL
+          # and collect the coverage consumed by Codecov.
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            make MODULES=$PWD import
+            python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
+            exit 0
+          fi
+
+          # Feature-branch pushes compare with origin/pre-release and map
+          # localized protocol/DSP/Ethernet paths to matching pytest
+          # directories. Any foundational, build-control, deleted/renamed,
+          # unknown, or otherwise indeterminate change emits FORCE_FULL.
+          selector_args=()
+          selection_source="git diff against origin/pre-release"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] \
+             && [[ -n "${CHANGED_FILES_OVERRIDE}" ]]; then
+            selector_args+=(--changed-files-override "${CHANGED_FILES_OVERRIDE}")
+            selection_source="manual changed-path simulation"
+          fi
+
+          if selector_output="$(python -m tests.common "${selector_args[@]}")"; then
+            selector_rc=0
+          else
+            selector_rc=$?
+          fi
+
+          echo "${selector_output}"
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols
+
+          if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
+            echo "Directory selector forced a full run (rc=${selector_rc})"
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: full regression"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
+          else
+            # tests/common contains the selector's policy tests and always runs
+            # alongside any directory-owned cocotb targets.
+            targets=(tests/common)
+            if [[ -n "${selector_output}" ]]; then
+              mapfile -t selected < <(printf '%s\n' "${selector_output}")
+              targets+=("${selected[@]}")
+            else
+              echo "No directory-owned cocotb tests for this change set -- running tests/common only."
+            fi
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: selective regression"
+              echo "- Pytest targets: \`${targets[*]}\`"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
+          fi
+
+      - name: SimLink Regression Tests
+        # SimLink runs in its own step with a bounded worker count, and is
+        # excluded from the step above in both full and selective mode. Its
+        # native ctypes libraries and the multi-instance ZeroMQ traffic test are
+        # timing-sensitive, and an unbounded -n auto on a many-core runner
+        # over-subscribes badly enough to starve the multi-instance peer
+        # handshake. Cap workers at min(nproc, 8): still ~2x faster than serial
+        # on the hosted 4-core runner, without the high-concurrency starvation.
+        # Unconditional: the path selector maps no path to tests/simlink, so a
+        # selective feature-branch push would otherwise never exercise it.
+        run: |
+          python -m pytest --cov --cov-append -v \
+            -n "$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')" \
+            --dist=worksteal tests/simlink
 
       - name: Code Coverage
+        if: steps.mode.outputs.value == 'full'
         run: |
           codecov
           coverage report -m
+
+# ----------------------------------------------------------------------------
+
+  simlink_rogue:
+    name: SimLink Rogue Contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: surf-simlink-rogue
+          environment-file: tests/simlink/rogue/conda.yml
+          auto-activate: false
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
+
+      - name: Run production Rogue SimLink contract
+        run: |
+          python -c "import rogue, pyrogue; print(rogue.Version.current())"
+          make MODULES="$PWD" import
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
 
 # ----------------------------------------------------------------------------
 
@@ -121,7 +296,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install documentation tools
         run: |
@@ -134,7 +309,7 @@ jobs:
 
       - name: Deploy Documentation
         if: startsWith(github.ref, 'refs/tags/')
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GH_TOKEN }}
           publish_dir: doxygen/html
@@ -142,7 +317,8 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, docs]
+    needs: [lint, test, simlink_rogue, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
@@ -152,7 +328,8 @@ jobs:
 # ----------------------------------------------------------------------------
 
   conda_build_lib:
-    needs: [lint, test, docs]
+    needs: [lint, test, simlink_rogue, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:
       version: '1.0.0'

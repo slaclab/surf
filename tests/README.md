@@ -7,7 +7,7 @@ used for thin wrappers, shims, or required simulation models.
 ## Layout
 
 - Keep executable tests under subsystem packages, such as `tests/base/fifo/`,
-  `tests/axi/axi_stream/`, `tests/protocols/srp/`, or
+  `tests/axi/axi_stream/`, `tests/simlink/`, `tests/protocols/srp/`, or
   `tests/ethernet/UdpEngine/`.
 - Do not add new flat `tests/test_*.py` files.
 - Move superseded flat tests to `tests/legacy/` when they are replaced by
@@ -22,6 +22,52 @@ used for thin wrappers, shims, or required simulation models.
 - Keep checked-in cocotb-facing VHDL wrappers beside the RTL family they adapt,
   usually in a local `wrappers/` or `ip_integrator/` directory. Do not hide
   durable wrappers under `tests/`.
+
+## Directory-Scoped Feature CI
+
+Feature-branch pushes compare `HEAD` with its merge base against
+`origin/pre-release`. The changed paths are mapped to directory-owned pytest
+suites, with `tests/common/` included in every selective run.
+
+The Ethernet source routing follows the owned-suite relationships below:
+
+| Changed source area | Selected Ethernet suites |
+| --- | --- |
+| `ethernet/EthMacCore/` | `EthMacCore`, `IpV4Engine`, `RoCEv2`, and `UdpEngine` |
+| `ethernet/IpV4Engine/` | `IpV4Engine` and `UdpEngine` |
+| Any other area with `tests/ethernet/<area>/` | Its matching owned suite |
+| An area without an owned suite | Full regression |
+
+A change within `tests/ethernet/<area>/` selects only that test directory.
+Protocol source and test changes similarly select the matching
+`tests/protocols/<area>/` directory when it exists, while DSP changes select
+all of `tests/dsp/`. Selector errors, unknown paths, build-control changes,
+deletions, and renames fail open to the full regression.
+
+Source changes under `protocols/ssi/`, `protocols/rssi/`, or `protocols/srp/`
+also force a full run because those cores have consumers outside their owned
+protocol test directories. Changes confined to their matching test directories
+remain selectively scoped.
+
+### Full Runs And Coverage
+
+Pushes to `pre-release` or `main`, tag pushes, and pull requests targeting
+`main` run `pytest tests/`. This makes every current test directory a blocking
+integration gate, including `tests/common/` and the `EthMacCore`,
+`IpV4Engine`, and `RawEthFramer` Ethernet suites that were not named in the
+previous explicit target list.
+
+`tests/simlink/` is the one exception: it is excluded from that invocation and
+run by its own workflow step, on every push, with a bounded worker count. Its
+native ctypes libraries and multi-instance ZeroMQ traffic test are timing
+sensitive, and an unbounded `-n auto` starves the peer handshake. Because no
+changed path maps to `tests/simlink/`, the selector never selects it and the
+dedicated step is what keeps it a blocking gate on feature branches.
+
+Those integration and release-triggered full runs collect Python coverage and
+upload it to Codecov. Feature-branch runs prioritize fast test feedback and do
+not collect or upload coverage, including when the path selector conservatively
+falls back to running the complete `tests/` tree.
 
 ## Python Test Files
 
