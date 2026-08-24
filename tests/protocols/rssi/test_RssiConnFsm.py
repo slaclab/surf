@@ -37,7 +37,7 @@ import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import RssiParams
 from tests.protocols.ssi.ssi_test_utils import (
     cycle as ssi_cycle,
@@ -422,10 +422,7 @@ PARAMETER_SWEEP = [
     pytest.param({"SERVER_G": False}, id="client"),
 ]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiConnFsm(parameters):
     run_surf_vhdl_test(
