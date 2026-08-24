@@ -39,7 +39,7 @@ import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     build_ack_header,
@@ -815,10 +815,7 @@ async def rst_segment_emits_header_and_consumes_sequence_without_buffering_test(
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiTxFsm(parameters):
     run_surf_vhdl_test(
