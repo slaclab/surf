@@ -302,26 +302,26 @@ Recommended implementation order:
 
 #### 1. Create `SynchronizerHandshake`
 
-- [ ] Add a coherent vector-transfer primitive for applications that need one
+- [x] Add a coherent vector-transfer primitive for applications that need one
   in-flight value but do not need FIFO buffering.
-- [ ] Use an AMD-style full handshake: source data/send/receive and destination
+- [x] Use an AMD-style full handshake: source data/send/receive and destination
   data/request/acknowledge.  Support both immediate internal destination
   acknowledgment and an external destination acknowledgment where practical.
-- [ ] Hold the source payload stable for the entire transfer and capture it in
+- [x] Hold the source payload stable for the entire transfer and capture it in
   the destination domain only when the synchronized request qualifies it.
-- [ ] Define startup, reset, mid-transfer reset, and abort behavior before
+- [x] Define startup, reset, mid-transfer reset, and abort behavior before
   finalizing the ports.  Do not claim identical inferred/XPM behavior if the
   selected XPM macro cannot implement the reset contract.
-- [ ] Include source and destination synchronization-depth generics, a
+- [x] Include source and destination synchronization-depth generics, a
   `COMMON_CLK_G` bypass option, and
   `SYNTH_MODE_G : string := "inferred"`.
-- [ ] Implement the portable inferred backend first, including `ASYNC_REG`
+- [x] Implement the portable inferred backend first, including `ASYNC_REG`
   attributes and the scoped bundled-data timing constraints required for the
   held vector path.
 - [ ] Verify which supported Vivado versions and FPGA families actually provide
   `xpm_cdc_handshake`; add the XPM backend and unsupported dummy wrapper only
   for the verified matrix.
-- [ ] Replace the provisional `SynchronizerFifo` transfer in
+- [x] Replace the provisional `SynchronizerFifo` transfer in
   `AxiStreamFrameBuffer` with `SynchronizerHandshake` after the primitive and
   its tests are complete.
 
@@ -353,14 +353,14 @@ Recommended implementation order:
 
 #### 3. Regression And Manual Vivado Validation
 
-- [ ] Add focused GHDL/cocotb regressions for every changed public primitive.
+- [x] Add focused GHDL/cocotb regressions for every changed public primitive.
   Existing inferred-mode tests must continue to cover default generics so the
   backend refactor cannot change current users accidentally.
 - [ ] Cover scalar and vector level transfer, active-high and active-low reset,
   synchronous and asynchronous reset, initialization, bypass/common-clock
   operation, multiple synchronization depths, and edge/pulse behavior where
   applicable.
-- [ ] For `SynchronizerHandshake`, cover unrelated clock ratios and phases,
+- [x] For `SynchronizerHandshake`, cover unrelated clock ratios and phases,
   backpressure through external destination acknowledgment, back-to-back
   transfers, source-send protocol violations, reset/startup behavior, and data
   stability for the complete handshake.
@@ -404,29 +404,34 @@ arbitrary addresses and configuration vectors belong on the handshake path.
 Completed on 2026-08-24 in
 `axi/axi-stream/rtl/AxiStreamFrameBuffer.vhd`:
 
-- Replaced the independently synchronized final-address/setup-done vector with
-  a one-shot `SynchronizerFifo` transfer of the final address.
-- Kept `rdSetupDone` as a separately synchronized scalar level for the return
-  handshake only.  FIFO `valid` now exclusively qualifies the atomic address
-  payload, while the existing `rdMoveDone` handshake holds the source state
-  until readout completes.
+- Added `SynchronizerHandshake`, a one-word coherent vector transfer with
+  internal source holding, internal or external destination acknowledgment,
+  configurable synchronization depth, and a common-clock bypass.
+- Replaced the provisional `SynchronizerFifo` address transfer with an external
+  acknowledgment `SynchronizerHandshake`.  Its destination request exclusively
+  qualifies the final-address payload and remains active until frame readout
+  completes.
+- Removed the separate setup-done and move-done synchronizers; completion now
+  returns through the handshake acknowledgment path.
 - Preserved the `COMMON_CLK_G` bypass path and the existing public interface.
 
 Validation:
 
 - `vsg` reported zero violations for `AxiStreamFrameBuffer.vhd`.
+- `tests/base/sync/test_SynchronizerHandshake.py` passed asynchronous external,
+  asynchronous internal, and common-clock external configurations, including
+  both reset polarities and reset styles.
 - `tests/axi/axi_stream/test_AxiStreamFrameBuffer.py` passed all four
-  asynchronous/synchronous and safe/unsafe buffer configurations (4 passed).
+  asynchronous/synchronous and safe/unsafe buffer configurations.
 - Vivado `report_cdc` confirmation remains outstanding.
 
 ## Current Status
 
 Static CDC-2/5/6/8/10/12 source audits and the initial SURF/XPM backend mapping
-are complete. CDC-C01 has a validated provisional FIFO fix pending the new
-handshake primitive; CDC-B01 and CDC-B02 remain the next maintained-source
-cleanup after the primitive direction is settled. Authoritative Vivado reports
-and the supported-version check for `xpm_cdc_handshake` remain outstanding
-because Vivado is not available in the current environment. The next planned
-implementation step is to finalize the `SynchronizerHandshake` interface and
-reset contract, then build its inferred regression before adding XPM backend
-selection to the existing primitives.
+are complete. CDC-C01 now uses the validated inferred `SynchronizerHandshake`;
+CDC-B01 and CDC-B02 remain the next maintained-source cleanup. Authoritative
+Vivado reports and the supported-version check for `xpm_cdc_handshake` remain
+outstanding because Vivado is not available in the current environment. The
+next planned primitive step is XPM backend selection for existing synchronizers
+and manual Vivado validation of the handshake constraint and any supported XPM
+handshake backend.

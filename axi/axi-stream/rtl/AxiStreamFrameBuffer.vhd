@@ -212,13 +212,8 @@ architecture rtl of AxiStreamFrameBuffer is
    signal dataRstSync : sl;
 
    signal rdFinalAddrSync : slv(RAM_ADDR_WIDTH_G-1 downto 0);
-   signal rdSetupDoneSync : sl;
-   signal rdMoveDoneSync  : sl;
-
-   signal dataToAxilSyncIn  : slv(RAM_ADDR_WIDTH_G downto 0);
-   signal dataToAxilSyncOut : slv(RAM_ADDR_WIDTH_G downto 0);
-   signal axilToDataSyncIn  : slv(1 downto 0);
-   signal axilToDataSyncOut : slv(1 downto 0);
+   signal rdSetupValid    : sl;
+   signal rdSetupRcv      : sl;
 
    signal rdReqSync : sl;
 
@@ -332,7 +327,7 @@ begin
    -----------------------------
 
    dataComb : process (dataR, dataRst, axilRstSync, dataValid, dataValue, dataFrameTxLast,
-                       rdReqSync, dataRdTrig, rdMoveDoneSync) is
+                       rdReqSync, dataRdTrig, rdSetupRcv) is
       variable v : DataRegType;
    begin
       -- Latch the current value
@@ -405,18 +400,17 @@ begin
                v.rdFinalAddr := dataR.rdFinalAddrNext;
 
                -- Assert setup done signal
-               v.rdSetupDone   := '1';
+               v.rdSetupDone := '1';
                -- Wait until axil process done moving data
                v.dataTrigState := WAIT_S;
             end if;
          when WAIT_S =>
-            -- Wait until the axil process completes readout
-            if (rdMoveDoneSync = '1') then
+            -- Wait until the AXI-Lite process acknowledges the transfer
+            if (rdSetupRcv = '1') then
                v.rdSetupDone := '0';
             end if;
-            -- Only return to idle on once the move done signal is de-asserted
-            -- again to avoid immediately transitioning to wait state again.
-            if (v.rdSetupDone = '0') and (rdMoveDoneSync = '0') then
+            -- Only return to idle after the full handshake returns low
+            if (v.rdSetupDone = '0') and (rdSetupRcv = '0') then
                v.dataTrigState := IDLE_S;
             end if;
       end case;
@@ -456,46 +450,47 @@ begin
    -- Synchronization of signals between data/AXI-lite processes
    -------------------------------------------------------------
 
-   -- Synchronize from data to axil process
-   U_SyncVec_dataToAxil : entity surf.SynchronizerVector
+   -- Atomically transfer the final address from data to AXI-Lite.  External
+   -- destination acknowledgment holds the handshake until readout completes.
+   U_Handshake_dataToAxil : entity surf.SynchronizerHandshake
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         WIDTH_G        => RAM_ADDR_WIDTH_G + 1)
+         COMMON_CLK_G   => COMMON_CLK_G,
+         DEST_EXT_HSK_G => true,
+         DATA_WIDTH_G   => RAM_ADDR_WIDTH_G)
       port map (
-         clk     => axilClk,
-         dataIn  => dataToAxilSyncIn,
-         dataOut => dataToAxilSyncOut);
-
-   dataToAxilSyncIn(RAM_ADDR_WIDTH_G-1 downto 0) <= dataR.rdFinalAddr;
-   dataToAxilSyncIn(RAM_ADDR_WIDTH_G)            <= dataR.rdSetupDone;
-   rdFinalAddrSync                               <= dataToAxilSyncOut(RAM_ADDR_WIDTH_G-1 downto 0);
-   rdSetupDoneSync                               <= dataToAxilSyncOut(RAM_ADDR_WIDTH_G);
+         srcClk   => dataClk,           -- [in]
+         srcRst   => dataRst,           -- [in]
+         srcData  => dataR.rdFinalAddr, -- [in]
+         srcSend  => dataR.rdSetupDone, -- [in]
+         srcRcv   => rdSetupRcv,        -- [out]
+         destClk  => axilClk,           -- [in]
+         destRst  => axilRst,           -- [in]
+         destData => rdFinalAddrSync,   -- [out]
+         destReq  => rdSetupValid,      -- [out]
+         destAck  => axilR.rdMoveDone); -- [in]
 
    -- Synchronize from axil to data process
-   U_SyncVec_axilToData : entity surf.SynchronizerVector
+   U_Sync_rdReq : entity surf.Synchronizer
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         WIDTH_G        => 2)
+         BYPASS_SYNC_G  => COMMON_CLK_G)
       port map (
-         clk     => dataClk,
-         dataIn  => axilToDataSyncIn,
-         dataOut => axilToDataSyncOut);
-
-   axilToDataSyncIn(0) <= axilR.rdReq;
-   axilToDataSyncIn(1) <= axilR.rdMoveDone;
-   rdReqSync           <= axilToDataSyncOut(0);
-   rdMoveDoneSync      <= axilToDataSyncOut(1);
+         clk     => dataClk,     -- [in]
+         rst     => dataRst,     -- [in]
+         dataIn  => axilR.rdReq, -- [in]
+         dataOut => rdReqSync);  -- [out]
 
    -------------------------------
    -- Main AXI-Lite/Stream process
    -------------------------------
 
    axiComb : process (axilR, axilReadMaster, axilRst, dataRstSync, axilWriteMaster,
-                      ramRdData, rdFinalAddrSync, rdSetupDoneSync, txSlave, axilRdTrig) is
+                      ramRdData, rdFinalAddrSync, rdSetupValid, txSlave, axilRdTrig) is
       variable v      : AxilRegType;
       variable axilEp : AxiLiteEndpointType;
    begin
@@ -549,7 +544,7 @@ begin
                v.rdReq := '1';
             end if;
 
-            if (rdSetupDoneSync = '1') then
+            if (rdSetupValid = '1') then
                -- Latch read final address
                v.rdFinalAddr := rdFinalAddrSync;
                -- Reset read address
@@ -578,7 +573,7 @@ begin
             v.rdMoveDone   := '1';
             -- Wait until lowered, signaling that data process received move done
             -- and is ready for next trigger
-            if (rdSetupDoneSync = '0') then
+            if (rdSetupValid = '0') then
                -- Lower done signal and return to idle
                v.rdMoveDone := '0';
                v.axisState  := IDLE_S;
