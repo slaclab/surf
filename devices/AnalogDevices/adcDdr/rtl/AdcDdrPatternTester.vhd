@@ -79,6 +79,8 @@ architecture rtl of AdcDdrPatternTester is
       requestedSamples : slv(31 downto 0);
       noValidTimeout   : slv(31 downto 0);
       noValidCount     : slv(31 downto 0);
+      pnReferenceWord  : slv(SAMPLE_WIDTH_G-1 downto 0);
+      pnErrorBits      : slv(SAMPLE_WIDTH_G-1 downto 0);
       pnHistory        : slv(22 downto 0);
       pnHistoryCount   : natural range 0 to 23;
       completionSeq    : slv(31 downto 0);
@@ -126,6 +128,8 @@ architecture rtl of AdcDdrPatternTester is
       requestedSamples => (others => '0'),
       noValidTimeout   => (others => '0'),
       noValidCount     => (others => '0'),
+      pnReferenceWord  => (others => '0'),
+      pnErrorBits      => (others => '0'),
       pnHistory        => (others => '0'),
       pnHistoryCount   => 0,
       completionSeq    => (others => '0'),
@@ -155,12 +159,6 @@ begin
       variable actual          : slv(SAMPLE_WIDTH_G-1 downto 0);
       variable expected        : slv(SAMPLE_WIDTH_G-1 downto 0);
       variable errorBits       : slv(SAMPLE_WIDTH_G-1 downto 0);
-      variable referenceWord   : slv(SAMPLE_WIDTH_G-1 downto 0);
-      variable pnErrorBits     : slv(SAMPLE_WIDTH_G-1 downto 0);
-      variable pnHistory       : slv(22 downto 0);
-      variable pnHistoryCount  : natural range 0 to 23;
-      variable pnExpected      : sl;
-      variable referenceIndex  : natural range 0 to 255;
       variable selectedPhase   : sl;
       variable phaseValid      : sl;
       variable terminal        : sl;
@@ -169,10 +167,21 @@ begin
       variable fcoPassing      : sl;
    begin
       v := r;
+
+      -- Default all combinational scratch variables before conditional logic.
+      actual          := (others => '0');
+      expected        := (others => '0');
+      errorBits       := (others => '0');
+      selectedPhase   := '0';
+      phaseValid      := '0';
+      terminal        := '0';
+      invalidConfig   := '0';
+      channelsPassing := '0';
+      fcoPassing      := '0';
+
       v.start := '0';
       v.abort := '0';
       v.done  := '0';
-      terminal := '0';
 
       if (r.busy = '1') then
          for i in FCO_LANES_G-1 downto 0 loop
@@ -196,42 +205,38 @@ begin
             selectedPhase := '0';
 
             if (r.pn23 = '1') then
-               referenceIndex := to_integer(unsigned(r.referenceChannel));
-               referenceWord := (sampleIn(referenceIndex)(SAMPLE_WIDTH_G-1 downto 0) xor
-                                 r.patternA) and r.dataMask;
-               pnHistory      := r.pnHistory;
-               pnHistoryCount := r.pnHistoryCount;
-               pnErrorBits    := (others => '0');
+               v.pnReferenceWord :=
+                  (sampleIn(to_integer(unsigned(r.referenceChannel)))(SAMPLE_WIDTH_G-1 downto 0) xor
+                   r.patternA) and r.dataMask;
+               v.pnErrorBits := (others => '0');
                for bitindex in SAMPLE_WIDTH_G-1 downto 0 loop
-                  if (pnHistoryCount < 23) then
-                     pnHistory := pnHistory(21 downto 0) & referenceWord(bitindex);
-                     pnHistoryCount := pnHistoryCount + 1;
-                     if (pnHistoryCount = 23) then
-                        if uOr(pnHistory) = '1' then
+                  if (v.pnHistoryCount < 23) then
+                     v.pnHistory := v.pnHistory(21 downto 0) & v.pnReferenceWord(bitindex);
+                     v.pnHistoryCount := v.pnHistoryCount + 1;
+                     if (v.pnHistoryCount = 23) then
+                        if uOr(v.pnHistory) = '1' then
                            v.phaseAcquired := '1';
                         else
                            -- The all-zero state satisfies the recurrence but is
                            -- not part of the maximal-length PN23 sequence.
-                           pnErrorBits := (others => '1');
+                           v.pnErrorBits := (others => '1');
                         end if;
                      end if;
                   else
-                     pnExpected := pnHistory(22) xor pnHistory(17);
-                     if (referenceWord(bitindex) /= pnExpected) then
-                        pnErrorBits(bitindex) := '1';
+                     if (v.pnReferenceWord(bitindex) /=
+                         (v.pnHistory(22) xor v.pnHistory(17))) then
+                        v.pnErrorBits(bitindex) := '1';
                      end if;
-                     pnHistory := pnHistory(21 downto 0) & referenceWord(bitindex);
+                     v.pnHistory := v.pnHistory(21 downto 0) & v.pnReferenceWord(bitindex);
                   end if;
                end loop;
-               v.pnHistory      := pnHistory;
-               v.pnHistoryCount := pnHistoryCount;
 
             elsif (r.alternating = '1') then
                if (r.phaseAcquired = '1') then
                   selectedPhase := r.expectedPhase;
                else
-                  referenceIndex := to_integer(unsigned(r.referenceChannel));
-                  actual := sampleIn(referenceIndex)(SAMPLE_WIDTH_G-1 downto 0) and r.dataMask;
+                  actual := sampleIn(to_integer(unsigned(r.referenceChannel)))
+                            (SAMPLE_WIDTH_G-1 downto 0) and r.dataMask;
                   if (actual = (r.patternA and r.dataMask)) then
                      selectedPhase := '0';
                      v.phaseAcquired := '1';
@@ -249,12 +254,12 @@ begin
             for i in CHANNELS_G-1 downto 0 loop
                if (r.channelMask(i) = '1') then
                   if (r.pn23 = '1') then
-                     if (i = referenceIndex) then
-                        errorBits := pnErrorBits;
+                     if (i = to_integer(unsigned(r.referenceChannel))) then
+                        errorBits := v.pnErrorBits;
                      else
                         actual := (sampleIn(i)(SAMPLE_WIDTH_G-1 downto 0) xor
                                   r.patternA) and r.dataMask;
-                        errorBits := actual xor referenceWord;
+                        errorBits := actual xor v.pnReferenceWord;
                      end if;
                   elsif (phaseValid = '0') then
                      errorBits := r.dataMask;
@@ -346,6 +351,8 @@ begin
          v.requestedSamples := r.cfgSamples;
          v.noValidTimeout   := r.cfgTimeout;
          v.noValidCount     := (others => '0');
+         v.pnReferenceWord  := (others => '0');
+         v.pnErrorBits      := (others => '0');
          v.pnHistory        := (others => '0');
          v.pnHistoryCount   := 0;
          v.checkedSamples   := (others => '0');
@@ -364,10 +371,9 @@ begin
             invalidConfig := '1';
          end if;
          if (r.cfgAlternating = '1' or r.cfgPn23 = '1') then
-            referenceIndex := to_integer(unsigned(r.cfgReference));
-            if (referenceIndex >= CHANNELS_G) then
+            if (to_integer(unsigned(r.cfgReference)) >= CHANNELS_G) then
                invalidConfig := '1';
-            elsif (r.cfgChannelMask(referenceIndex) = '0') then
+            elsif (r.cfgChannelMask(to_integer(unsigned(r.cfgReference))) = '0') then
                invalidConfig := '1';
             end if;
             if (r.cfgAlternating = '1' and
