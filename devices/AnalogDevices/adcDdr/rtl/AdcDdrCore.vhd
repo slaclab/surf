@@ -107,6 +107,7 @@ architecture rtl of AdcDdrCore is
    type RegType is record
       phyReset        : sl;
       startupPending  : sl;
+      resetHold       : natural range 0 to ADC_DDR_RESET_HOLD_C;
       relock          : sl;
       clearCounters   : sl;
       bitSlip         : slv(FCO_LANES_G-1 downto 0);
@@ -135,6 +136,7 @@ architecture rtl of AdcDdrCore is
    constant REG_INIT_C : RegType := (
       phyReset        => '0',
       startupPending  => '1',
+      resetHold       => ADC_DDR_RESET_HOLD_C,
       relock          => '0',
       clearCounters   => '0',
       bitSlip         => (others => '0'),
@@ -476,18 +478,39 @@ begin
                       AXI_RESP_DECERR_C, snapshotTxn);
 
       ----------------------------------------------------------------------------------------------
-      -- Hold the PHY whenever its delay resources are not ready, then apply
-      -- every retained delay and release alignment automatically. A manual
-      -- reset rearms the same sequence. The target owns IDELAYCTRL reset and
-      -- must restore delayReady after any loss of readiness.
+      -- Deserializer reset and alignment restart
+      --
+      -- Every alignment attempt -- power-up, a lost delay controller, a manual
+      -- CaptureReset, or a Relock command -- runs the same sequence: hold the
+      -- PHY (deserializer) reset for a fixed number of captureClk/CLKDIV cycles
+      -- so a group's FCO and data deserializers all leave reset on the same
+      -- edge, then reload every retained delay and let alignment restart. A bare
+      -- Relock that only cleared the lock bits would re-run the bitslip search
+      -- from whatever independent phase each deserializer happened to hold,
+      -- aligning the FCO onto data lanes at an arbitrary relative offset.
+      --
+      -- The FCO FSM above already holds its counters cleared and issues no
+      -- BITSLIP while startupPending is set, and delayReady/startupPending force
+      -- sampleValid low, so FIFO writes and snapshots stay suppressed until the
+      -- reset is released. Alignment therefore starts naturally on release from
+      -- cleared counters; no separate relock strobe is asserted here (that would
+      -- re-arm this sequence and loop).
       ----------------------------------------------------------------------------------------------
-      if (delayReady = '0' or v.phyReset = '1') then
+      if (delayReady = '0' or v.phyReset = '1' or r.relock = '1') then
+         -- (Re)arm the sequence and keep the reset counter charged while any
+         -- trigger persists.
          v.startupPending := '1';
-      elsif (r.startupPending = '1' and delayReady = '1') then
-         v.startupPending := '0';
-         v.relock         := '1';
-         v.dataDelayLoad := (others => '1');
-         v.fcoDelayLoad  := (others => '1');
+         v.resetHold      := ADC_DDR_RESET_HOLD_C;
+      elsif (r.startupPending = '1') then
+         if (r.resetHold /= 0) then
+            v.resetHold := r.resetHold - 1;
+         else
+            -- Reset held long enough with delays ready: release the PHY and
+            -- reload every retained delay on the same edge.
+            v.startupPending := '0';
+            v.dataDelayLoad  := (others => '1');
+            v.fcoDelayLoad   := (others => '1');
+         end if;
       end if;
 
       ----------------------------------------------------------------------------------------------

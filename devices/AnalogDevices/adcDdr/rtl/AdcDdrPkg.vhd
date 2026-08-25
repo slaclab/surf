@@ -28,6 +28,10 @@ package AdcDdrPkg is
    -- ISERDESE2 DDR operation requires three quiet CLKDIV cycles after a
    -- one-cycle BITSLIP request before the shifted word is evaluated.
    constant ADC_DDR_BITSLIP_INTERVAL_C : positive         := 8;
+   -- captureClk (CLKDIV) cycles the deserializer reset is held on every relock
+   -- so that a group's FCO and data deserializers all leave reset on the same
+   -- edge. Comfortably exceeds the minimum ISERDES/IDELAY reset pulse width.
+   constant ADC_DDR_RESET_HOLD_C       : positive         := 8;
 
    -- Return the native programmable input-delay width for an FPGA family.
    function adcDdrDelayBits (deviceFamily : string) return positive;
