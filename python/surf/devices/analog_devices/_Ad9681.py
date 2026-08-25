@@ -383,44 +383,51 @@ class Ad9681Config(pr.Device):
             },
         ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'ResolutionSampleRateOverride',
-            description = 'Enables the resolution and maximum sample-rate override',
-            offset      = (0x100*4),
-            bitSize     = 1,
-            bitOffset   = 6,
-            base        = pr.Bool,
-        ))
+        # Register 0x100 (resolution/sample-rate override) is a transfer-staged
+        # register: the datasheet specifies it is not applied until the 0xFF
+        # transfer strobe, and a read returns the old value until then. That
+        # breaks pyrogue's immediate write-verify, and the override is not needed
+        # for normal full-rate operation, so these fields are disabled for now.
+        # Re-enable with verify=False (and route through DeviceUpdate) if the
+        # override is ever required.
+        # self.add(pr.RemoteVariable(
+        #     name        = 'ResolutionSampleRateOverride',
+        #     description = 'Enables the resolution and maximum sample-rate override',
+        #     offset      = (0x100*4),
+        #     bitSize     = 1,
+        #     bitOffset   = 6,
+        #     base        = pr.Bool,
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'Resolution',
-            description = 'Selects ADC resolution when the override is enabled',
-            offset      = (0x100*4),
-            bitSize     = 2,
-            bitOffset   = 4,
-            enum        = {
-                0b00: 'Default (14 bits)',  # power-up/reset value; effective 14-bit
-                0b01: '14 bits',
-                0b10: '12 bits',
-            },
-        ))
+        # self.add(pr.RemoteVariable(
+        #     name        = 'Resolution',
+        #     description = 'Selects ADC resolution when the override is enabled',
+        #     offset      = (0x100*4),
+        #     bitSize     = 2,
+        #     bitOffset   = 4,
+        #     enum        = {
+        #         0b00: 'Default (14 bits)',  # power-up/reset value; effective 14-bit
+        #         0b01: '14 bits',
+        #         0b10: '12 bits',
+        #     },
+        # ))
 
-        self.add(pr.RemoteVariable(
-            name        = 'SampleRate',
-            description = 'Selects maximum ADC sample rate when the override is enabled',
-            offset      = (0x100*4),
-            bitSize     = 3,
-            bitOffset   = 0,
-            enum        = {
-                0b000: '20 MSPS',
-                0b001: '40 MSPS',
-                0b010: '50 MSPS',
-                0b011: '65 MSPS',
-                0b100: '80 MSPS',
-                0b101: '105 MSPS',
-                0b110: '125 MSPS',
-            },
-        ))
+        # self.add(pr.RemoteVariable(
+        #     name        = 'SampleRate',
+        #     description = 'Selects maximum ADC sample rate when the override is enabled',
+        #     offset      = (0x100*4),
+        #     bitSize     = 3,
+        #     bitOffset   = 0,
+        #     enum        = {
+        #         0b000: '20 MSPS',
+        #         0b001: '40 MSPS',
+        #         0b010: '50 MSPS',
+        #         0b011: '65 MSPS',
+        #         0b100: '80 MSPS',
+        #         0b101: '105 MSPS',
+        #         0b110: '125 MSPS',
+        #     },
+        # ))
 
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
