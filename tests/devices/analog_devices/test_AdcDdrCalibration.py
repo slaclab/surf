@@ -16,9 +16,9 @@
 # - Checks: Verify selected taps, physical margins, boundary visibility,
 #   wraparound reporting, deterministic ties, invalid-input rejection, and
 #   topology-aware, overlap-safe parallel grouping plus restoration between
-#   guard checks for coupled physical lanes. Exercise snapshot and pattern-tester
-#   measurement backends plus verification progress, final qualification, and
-#   live run-time reporting.
+#   guard checks for coupled physical lanes. Exercise strict ordered snapshot
+#   scanning, deep hardware qualification, verification progress, final
+#   qualification, and live run-time reporting.
 # - Timing: Fake register access and zero settling keep process tests short; the
 #   live timer regression temporarily reduces its update interval.
 
@@ -68,6 +68,7 @@ class FakePatternTester:
     def __init__(self, readout):
         self._readout = readout
         self.Alternating = FakeVariable(False)
+        self.Pn23 = FakeVariable(False)
         self.ReferenceChannel = FakeVariable(0)
         self.ChannelMask = FakeVariable(0)
         self.FcoMask = FakeVariable(0)
@@ -75,10 +76,14 @@ class FakePatternTester:
         self.PatternA = FakeVariable(0)
         self.PatternB = FakeVariable(0)
         self.Samples = FakeVariable(0)
+        self.Timeout = FakeVariable(0)
         self.Sequence = FakeVariable(0)
         self.CheckedSamples = FakeVariable(0)
         self.ChannelPassed = FakeVariable(0)
         self.FcoPassed = FakeVariable(0)
+        self.WordErrorCount = {index: FakeVariable(0) for index in range(16)}
+        self.BitErrorMask = {index: FakeVariable(0) for index in range(16)}
+        self.FcoErrorCount = {index: FakeVariable(0) for index in range(16)}
         self.Busy = FakeVariable(False)
         self.TimedOut = FakeVariable(False)
         self.ConfigError = FakeVariable(False)
@@ -90,37 +95,84 @@ class FakePatternTester:
 
     def Start(self):
         alternating = bool(self.Alternating.value())
+        pn23 = bool(self.Pn23.value())
         mask = self.DataMask.value()
         patternA = self.PatternA.value() & mask
         patternB = self.PatternB.value() & mask
         sampleCount = self.Samples.value()
         channelMask = self.ChannelMask.value()
+        referenceChannel = self.ReferenceChannel.value()
+        rawReference = [
+            self._readout._debugSample(referenceChannel, index) & mask
+            for index in range(sampleCount)
+        ]
+        reference = [sample ^ patternA for sample in rawReference] if pn23 else rawReference
+        pnErrorBits = [0] * sampleCount
+        if pn23:
+            bits = [
+                (sample >> bitIndex) & 1
+                for sample in reference
+                for bitIndex in range(self._readout._sampleBits-1, -1, -1)
+            ]
+            phase = len(bits) >= 23 and any(bits[:23])
+            for index in range(23, len(bits)):
+                if bits[index] != (bits[index-23] ^ bits[index-18]):
+                    wordIndex = index // self._readout._sampleBits
+                    bitIndex = self._readout._sampleBits-1-(index % self._readout._sampleBits)
+                    pnErrorBits[wordIndex] |= 1 << bitIndex
+            if len(bits) >= 23 and not any(bits[:23]):
+                firstCompleteWord = 22 // self._readout._sampleBits
+                pnErrorBits[firstCompleteWord] = mask
+        elif not alternating:
+            phase = 0
+        elif reference and reference[0] == patternA:
+            phase = 0
+        elif reference and reference[0] == patternB:
+            phase = 1
+        else:
+            phase = None
         channelPassed = 0
         for channel in range(self._readout._channels):
+            self.WordErrorCount[channel].set(0)
+            self.BitErrorMask[channel].set(0)
             if not channelMask & (1 << channel):
                 continue
             samples = [
                 self._readout._debugSample(channel, index) & mask
                 for index in range(sampleCount)
             ]
-            if alternating and samples:
-                if samples[0] == patternA:
-                    phase = 0
-                elif samples[0] == patternB:
-                    phase = 1
+            if pn23:
+                if channel == referenceChannel:
+                    errorBits = pnErrorBits
                 else:
-                    phase = None
-                passed = phase is not None and all(
-                    sample == (patternA, patternB)[(phase+index) % 2]
-                    for index, sample in enumerate(samples)
-                )
+                    transformed = [sample ^ patternA for sample in samples]
+                    errorBits = [
+                        sample ^ wanted
+                        for sample, wanted in zip(transformed, reference)
+                    ]
             else:
-                passed = all(sample == patternA for sample in samples)
-            if passed:
+                expected = [
+                    patternA if not alternating else (patternA, patternB)[(phase+index) % 2]
+                    for index in range(sampleCount)
+                ] if phase is not None else [None] * sampleCount
+                errorBits = [
+                    mask if wanted is None else sample ^ wanted
+                    for sample, wanted in zip(samples, expected)
+                ]
+            wordErrors = sum(bool(bits) for bits in errorBits)
+            bitErrors = 0
+            for bits in errorBits:
+                bitErrors |= bits
+            self.WordErrorCount[channel].set(wordErrors)
+            self.BitErrorMask[channel].set(bitErrors)
+            if wordErrors == 0:
                 channelPassed |= 1 << channel
 
         fcoMask = self.FcoMask.value()
         fcoPassed = self._readout._lockedMask() & fcoMask
+        for lane in range(self._readout._fcoLanes):
+            self.FcoErrorCount[lane].set(
+                0 if fcoPassed & (1 << lane) else 1)
         self.ChannelPassed.set(channelPassed)
         self.FcoPassed.set(fcoPassed)
         self.CheckedSamples.set(sampleCount)
@@ -128,7 +180,7 @@ class FakePatternTester:
         self.TimedOut.set(False)
         self.ConfigError.set(False)
         self.Aborted.set(False)
-        self.PhaseAcquired.set(not alternating or bool(channelPassed))
+        self.PhaseAcquired.set(phase is not None)
         self.AllChannelsPass.set((channelPassed & channelMask) == channelMask)
         self.AllFcoPass.set((fcoPassed & fcoMask) == fcoMask)
         self.Sequence.set(self.Sequence.value()+1)
@@ -137,7 +189,9 @@ class FakePatternTester:
                 variable.value() for variable in self._readout.DataDelay.values()),
             'channelMask': channelMask,
             'dataMask': mask,
+            'pn23': pn23,
             'samples': sampleCount,
+            'timeout': self.Timeout.value(),
         })
 
     def Abort(self):
@@ -266,6 +320,14 @@ class PhaseMismatchedCoupledFakeReadout(MaskedCoupledFakeReadout):
         return sample
 
 
+class DeepPatternFaultReadout(FakeReadout):
+    def _debugSample(self, channel, index):
+        sample = super()._debugSample(channel, index)
+        if channel == 1 and index == 20:
+            sample ^= 0x4
+        return sample
+
+
 class MultiWindowFcoFakeReadout(MaskedCoupledFakeReadout):
     def __init__(self):
         super().__init__()
@@ -321,7 +383,7 @@ class Pn23FakeReadout(FakeReadout):
         super().__init__()
         self._config = config
         self._fault = fault
-        self._pn23 = _pn23Words(count=5)
+        self._pn23 = _pn23Words(count=5000)
 
     def _debugSample(self, channel, index):
         if self._config.OutputTestMode.value() != 5:
@@ -331,6 +393,8 @@ class Pn23FakeReadout(FakeReadout):
         sample = self._pn23[index]
         if self._fault == 'commonCorruption' and index == 2:
             sample ^= 0x1
+        if self._fault == 'deepCommonCorruption' and index == 20:
+            sample ^= 0x4
         return sample
 
 
@@ -338,7 +402,7 @@ class Pn23MultiWindowFcoFakeReadout(MultiWindowFcoFakeReadout):
     def __init__(self, config):
         super().__init__()
         self._config = config
-        self._pn23 = _pn23Words()
+        self._pn23 = _pn23Words(count=5000)
 
     def _fcoPhaseAligned(self):
         # Both preferred and alternate FCO combinations look valid under the
@@ -559,22 +623,83 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.DataDelay[1].value() == 5
 
 
-def test_full_calibration_can_use_pattern_tester(calibration_fixture):
+def test_full_calibration_can_add_deep_pattern_qualification(calibration_fixture):
     calibration, _, readout = calibration_fixture
     calibration.UsePatternTester.set(True)
+    calibration.PatternTesterSamples.set(32)
 
     results = calibration._runCalibration(dev=calibration)
 
     assert results['Data'][0]['eye']['selected'] == 2
     assert results['Data'][1]['eye']['selected'] == 5
     assert results['Final']['passed']
-    assert readout.snapshotDelays == []
-    assert len(readout.PatternTester.measurements) == 9
-    assert all(
-        measurement['samples'] == 4
-        for measurement in readout.PatternTester.measurements)
-    assert calibration.Diagnostics.value()['MeasurementBackend'] == 'PatternTester'
+    assert readout.snapshotDelays == [(tap, tap) for tap in range(8)] + [(2, 5)]
+    assert len(readout.PatternTester.measurements) == 1
+    assert readout.PatternTester.measurements[0] == {
+        'delays': (2, 5),
+        'channelMask': 0x3,
+        'dataMask': 0x3FFF,
+        'pn23': False,
+        'samples': 32,
+        'timeout': calibration.PATTERN_TESTER_TIMEOUT_C,
+    }
+    deep = results['Final']['patternTester']
+    assert deep['enabled'] and deep['performed'] and deep['passed']
+    assert deep['requestedSamples'] == 32
+    assert deep['checkedSamples'] == 32
+    assert deep['channels'][0]['wordErrorCount'] == 0
+    diagnostics = calibration.Diagnostics.value()
+    assert diagnostics['MeasurementBackend'] == 'Snapshot'
+    assert diagnostics['DeepPatternTester'] == {'enabled': True, 'samples': 32}
     assert calibration.RunTime.value() > 0.0
+
+
+def test_snapshot_data_scan_requires_ordered_shared_phase(calibration_fixture):
+    calibration, _, readout = calibration_fixture
+    sequence = (0x2AAA, 0x2AAA, 0x1555, 0x1555)
+    readout._debugSample = lambda channel, index: sequence[index]
+
+    details = calibration._captureGroupPasses((0, 1))
+
+    assert not details[0]['passed']
+    assert not details[1]['passed']
+    assert details[0]['captures'][0]['expectedSequence'] == [
+        0x2AAA, 0x1555, 0x2AAA, 0x1555]
+
+
+def test_deep_pattern_error_is_reported_and_fails_final_qualification():
+    config = FakeConfig()
+    readout = DeepPatternFaultReadout()
+    calibration = AdcDdrCalibration(
+        name='Calibration',
+        config=config,
+        readout=readout,
+        configUpdate=config.update)
+    root = pr.Root(name='Root', pollEn=False)
+    root.add(calibration)
+    root.start()
+    try:
+        calibration.DelayStop.set(7)
+        calibration.MinimumEyeWidth.set(3)
+        calibration.GuardBand.set(1)
+        calibration.SampleCount.set(1)
+        calibration.SettleTime.set(0.0)
+        calibration.UsePatternTester.set(True)
+        calibration.PatternTesterSamples.set(32)
+        calibration._runEn = True
+
+        with pytest.raises(RuntimeError, match='Final full-channel pattern qualification failed'):
+            calibration._runCalibration(dev=calibration)
+
+        deep = calibration.Results.value()['Final']['patternTester']
+        assert deep['performed'] and not deep['passed']
+        assert deep['channels'][0]['wordErrorCount'] == 0
+        assert deep['channels'][1]['wordErrorCount'] == 1
+        assert deep['channels'][1]['bitErrorMask'] == 0x4
+        assert deep['fco'][0] == {'passed': True, 'errorCount': 0}
+    finally:
+        calibration._runEn = False
+        root.stop()
 
 
 @pytest.mark.parametrize('usePatternTester', [False, True])
@@ -611,9 +736,54 @@ def test_full_calibration_adds_snapshot_pn23_qualification(usePatternTester):
         assert results['Final']['passed']
         assert config.OutputTestMode.value() == 0
         assert not config.ResetPNLong.value()
-        # PN23 always uses one atomic debug snapshot, independently of the data
-        # eye and checkerboard backend selected for the rest of calibration.
+        # PN23 always starts with one atomic snapshot. Deep qualification adds
+        # one checkerboard and one PN23 tester window after centering.
         assert readout.snapshotDelays[-1] == (2, 5)
+        assert len(readout.PatternTester.measurements) == 2*usePatternTester
+        if usePatternTester:
+            deep = results['Final']['pn23']['patternTester']
+            assert deep['mode'] == 'Pn23'
+            assert deep['checkedSamples'] == 4096
+            assert deep['status']['phaseAcquired']
+            assert readout.PatternTester.measurements[-1]['pn23']
+    finally:
+        calibration._runEn = False
+        root.stop()
+
+
+def test_deep_pn23_error_beyond_snapshot_is_reported():
+    config = FakeConfig()
+    readout = Pn23FakeReadout(config, fault='deepCommonCorruption')
+    calibration = AdcDdrCalibration(
+        name='Calibration',
+        config=config,
+        readout=readout,
+        configUpdate=config.update,
+        pn23Reset=config.ResetPNLong)
+    root = pr.Root(name='Root', pollEn=False)
+    root.add(calibration)
+    root.start()
+    try:
+        calibration.DelayStop.set(7)
+        calibration.MinimumEyeWidth.set(3)
+        calibration.GuardBand.set(1)
+        calibration.SampleCount.set(1)
+        calibration.SettleTime.set(0.0)
+        calibration.UsePatternTester.set(True)
+        calibration.PatternTesterSamples.set(32)
+        calibration._runEn = True
+
+        with pytest.raises(RuntimeError, match='Final full-channel pattern qualification failed'):
+            calibration._runCalibration(dev=calibration)
+
+        pn23 = calibration.Results.value()['Final']['pn23']
+        assert pn23['snapshotPassed']
+        deep = pn23['patternTester']
+        assert deep['performed'] and not deep['passed']
+        assert deep['status']['phaseAcquired']
+        assert deep['channels'][0]['wordErrorCount'] >= 1
+        assert deep['channels'][0]['bitErrorMask'] & 0x4
+        assert deep['channels'][1]['wordErrorCount'] == 0
     finally:
         calibration._runEn = False
         root.stop()
@@ -821,16 +991,12 @@ def test_full_calibration_masks_unaligned_partner_lane(usePatternTester):
         assert results['Data'][1]['eye']['selected'] == 5
         assert results['Final']['passed']
         if usePatternTester:
-            assert readout.snapshotDelays == []
-            assert [measurement['delays'] for measurement in readout.PatternTester.measurements] == (
-                [delays for tap in range(8) for delays in ((tap, tap), (tap, tap))] +
-                [(2, 5)])
-            assert [measurement['dataMask'] for measurement in
-                    readout.PatternTester.measurements[:-1]] == [0x003F, 0x3FC0]*8
-        else:
-            assert readout.snapshotDelays == (
-                [(tap, tap) for tap in range(8)] +
-                [(2, 5)])
+            assert [measurement['delays'] for measurement in
+                    readout.PatternTester.measurements] == [(2, 5)]
+            assert readout.PatternTester.measurements[0]['dataMask'] == 0x3FFF
+        assert readout.snapshotDelays == (
+            [(tap, tap) for tap in range(8)] +
+            [(2, 5)])
         assert readout.DataDelay[0].value() == 2
         assert readout.DataDelay[1].value() == 5
     finally:

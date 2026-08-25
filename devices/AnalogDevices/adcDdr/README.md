@@ -86,15 +86,24 @@ The `Full calibration` operation performs these phases:
    though each pair contributes to the same logical channel.
 6. **Scan each data group.** At a given tap, all lanes in the group are updated
    in one bulk transaction and then measured from the same settled sampling
-   point. A per-lane verdict uses only that lane's logical sample-bit mask.
+   point. Ordered four-sample snapshots acquire phase independently per lane so
+   one channel leaving its eye cannot truncate another channel's passing window.
+   A per-lane verdict uses only its logical sample-bit mask, so an unaligned
+   partner half does not contaminate it.
    Each lane gets its own passing map and centered eye even though compatible
    lanes are swept together.
 7. **Qualify the assembled checkerboard samples.** With every data lane centered, software
    checks the complete sample width. Channel zero establishes the checkerboard
    A/B phase, and every logical channel must match the same ordered sequence.
-   The FCO lanes must also pass. This catches half-word or sample-epoch errors
-   that individual masked lane tests and a repetitive FCO word cannot detect.
-8. **Qualify PN23 coherence and recurrence.** When `VerifyPn23` is enabled,
+   This catches half-word or sample-epoch errors that individual masked lane
+   tests and a repetitive FCO word cannot detect.
+8. **Run the optional deep checkerboard window.** When `UsePatternTester` is
+   enabled, the hardware pattern tester checks `PatternTesterSamples` complete
+   samples at line rate. Every channel must maintain one shared alternating
+   phase, and every selected FCO word observed during the window must match.
+   Per-channel word-error counts and accumulated bit-error masks, plus per-FCO
+   error counts, are retained in the final result.
+9. **Qualify PN23 coherence and recurrence.** When `VerifyPn23` is enabled,
    software switches the ADC to PN23, pulses the PN-long reset, and reads one
    atomic four-sample debug snapshot. All logical channels must contain the
    same four words. The reference channel's 56 captured bits must also satisfy
@@ -102,16 +111,20 @@ The `Full calibration` operation performs these phases:
    arbitrary phase. This second condition rejects a common malformed sequence
    that channel equality alone would accept. The checker considers the ADC's
    possible sample-MSB format conversion and full output inversion; it does not
-   require the snapshot to begin at the PN seed.
-9. **Try alternate FCO windows if necessary.** More than one FCO eye can appear
+   require the snapshot to begin at the PN seed. When `UsePatternTester` is
+   enabled, the selected transformation is then applied to a deep hardware
+   window. The tester acquires an arbitrary nonzero 23-bit history, checks all
+   subsequent reference bits against the recurrence, and verifies every other
+   channel remains word-for-word coherent with the reference.
+10. **Try alternate FCO windows if necessary.** More than one FCO eye can appear
    valid because the repetitive frame pattern may lock in equivalent-looking
-   unit intervals. If either checkerboard or PN23 qualification fails,
+   unit intervals. If the snapshot, deep checkerboard, or PN23 qualification fails,
    calibration tries the Cartesian product of the retained FCO eyes, relocking
    and restoring checkerboard mode before each attempt. Data delays are not
    rescanned because the FCO choice establishes frame/sample phase without
    changing the data-eye centers. The first combination that passes both final
    checks is retained.
-10. **Publish or restore.** A successful full calibration restores the normal
+11. **Publish or restore.** A successful full calibration restores the normal
    ADC output mode but leaves the qualified FCO and data delays installed. A
    stop, exception, or failed final qualification restores the original test
    mode and delays. `ApplyResults` can later reinstall only a complete result
@@ -121,28 +134,23 @@ This is an eye-centering algorithm, not a bit-error-rate characterization. A
 passing tap means every bounded measurement requested by `SampleCount` passed;
 it does not prove an arbitrarily low error rate.
 
-### Measurement backends
+### Snapshot and deep measurements
 
-`UsePatternTester` selects how data taps and final alignment are judged:
+Every data tap and the initial full-channel qualification use atomic debug
+snapshots. One `SampleCount` unit requests one four-sample snapshot, and the
+same coherent samples are reused for every lane mask in a sweep group. The
+checker enforces an ordered pattern independently per lane instead of merely
+requiring both checkerboard values to appear. The final assembled snapshot and
+deep hardware window then require one shared phase across all channels.
 
-- **Debug snapshots (`False`, default):** each `Snapshot` atomically publishes
-  four oldest-to-newest samples for every logical channel. One software
-  `SampleCount` unit requests one four-sample snapshot. The same coherent
-  snapshot is reused for every lane mask in a sweep group.
-- **Hardware pattern tester (`True`):** the bounded checker in
-  `AdcDdrPatternTester` evaluates the requested channels and sample-bit mask.
-  One software `SampleCount` unit requests four hardware samples. A group with
-  more than one distinct lane mask requires one hardware measurement window per
-  mask. Alternating mode uses a single reference channel so channels cannot
-  independently accept opposite checkerboard phases. Every selected FCO lane
-  must produce at least one valid frame word during the window and every
-  observed word must match the configured frame pattern.
-
-The pattern-tester backend requires `PatternCheck` to report that the RTL block
-is present. Both backends use the same eye extraction and final FCO-combination
-logic. PN23 final qualification always uses the atomic debug snapshot, even
-when the hardware pattern tester handles the checkerboard measurements; the
-current hardware tester implements only constant and alternating patterns.
+`UsePatternTester` adds deep full-channel measurements after the centered
+snapshots pass; it does not replace the tap-scan backend. The bounded checker
+in `AdcDdrPatternTester` evaluates `PatternTesterSamples` consecutive valid
+samples without transferring them to software. Alternating mode uses one
+reference channel for the complete channel group. PN23 mode checks the
+reference recurrence from an arbitrary stream phase and checks every other
+channel for coherence. Every selected FCO lane must also be observed and remain
+error-free. The deep checker requires the `PatternCheck` capability.
 
 ### Verification operations
 
@@ -165,9 +173,10 @@ verification operation ends.
 | `GuardBand` | `2` taps | Required passing margin on each side of the selected center. |
 | `CircularDelays` | `False` | Whether the first and last passing scan runs are one wrapped eye. |
 | `SampleCount` | `2` | Number of four-sample measurement groups checked at each data tap. |
-| `VerifyPn23` | Device dependent | Enable the four-sample PN23 coherence and recurrence check when the adapter provides a PN-long reset control. |
+| `UsePatternTester` | `False` | Add deep hardware checkerboard and, when enabled, PN23 qualification after centering. |
+| `PatternTesterSamples` | `4096` | Valid samples checked by each deep hardware window. |
+| `VerifyPn23` | Device dependent | Enable PN23 coherence and recurrence qualification when the adapter provides a PN-long reset control. |
 | `SettleTime` | `1 ms` | Wall-clock wait after delay, relock, or ADC test-mode changes. |
-| `UsePatternTester` | `False` | Select hardware checking instead of coherent debug snapshots. |
 | `Debug` | `True` | Publish detailed per-tap diagnostics while the operation runs. |
 
 The full delay range is the safest initial scan. Narrow `DelayStart` and
@@ -181,10 +190,13 @@ merges it with the opposite boundary.
 `Results` contains the selected eye, complete passing map, and margins for each
 FCO and data lane. FCO entries also contain every retained candidate eye. The
 `Final` entry contains full-channel qualification captures plus every attempted
-FCO-eye combination. When enabled, `Final.pn23` reports the four samples from
-every channel, channel-coherence results, each recurrence transformation tried,
-and the selected valid transformation. A failed scan may publish partial
-results for the lane that could not produce a qualifying eye.
+FCO-eye combination. `Final.patternTester` reports whether the optional deep
+window ran, its requested and checked sample counts, channel/FCO pass masks,
+and detailed error counts and masks. When enabled, `Final.pn23` reports the four
+samples from every channel, channel-coherence results, each recurrence
+transformation tried, the selected valid transformation, and the nested deep
+pattern-tester result. A failed scan may publish partial results for the lane
+that could not produce a qualifying eye.
 
 `Diagnostics` contains the measurement backend, expected patterns, raw and
 masked data captures, FCO words and lock masks, and the currently active scan

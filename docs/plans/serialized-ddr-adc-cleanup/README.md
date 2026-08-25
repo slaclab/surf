@@ -1,0 +1,53 @@
+# Serialized DDR ADC Cleanup Follow-Up
+
+## Goal
+
+Complete real-hardware validation of the normalized ADC DDR readout and keep
+the alignment/calibration path deterministic, fast, and diagnostically useful.
+
+## Current Status
+
+- AD9681 register `0x100` fields remain intentionally absent from the PyRogue
+  model because hardware readback did not support verified writes.
+- Relock now resets the deserializers for a bounded interval before reloading
+  retained delays and restarting FCO alignment.
+- Hardware AD9681 calibration produces bounded eyes for all sixteen physical
+  data lanes and completes successfully.
+- Calibration tap scans use coherent ordered snapshots. `UsePatternTester`
+  enables one deep final checkerboard window instead of replacing every tap
+  measurement with repeated hardware windows.
+
+## Deep Qualification Contract
+
+- `SampleCount` controls the shallow four-sample snapshot depth at each tap.
+- `PatternTesterSamples` controls the final hardware checkerboard depth and
+  defaults to 4096 valid samples per deep window.
+- The deep result retains per-channel word-error counts and accumulated
+  bit-error masks plus per-FCO error counts.
+- A deep-check failure participates in the existing alternate-FCO-eye retry.
+- PN23 first uses the four-sample snapshot to select the ADC output/format
+  transformation. The hardware tester then acquires an arbitrary nonzero
+  23-bit history and deeply checks reference-channel recurrence plus
+  word-for-word coherence across every other enabled channel.
+
+## Validation
+
+Focused PyRogue model and calibration regressions cover strict snapshot order,
+deep-check success and failure, detailed error reporting, capability rejection,
+alternate FCO-eye retries, shallow and deep PN23 qualification, and state
+restoration.
+
+- `test_AdcDdrCalibration.py` and `test_AdcDdrModel.py`: 69 passed.
+- `test_AdcDdrPatternTester.py`: 1 passed with GHDL/cocotb.
+- VSG: no violations in `AdcDdrPkg.vhd` or `AdcDdrPatternTester.vhd`.
+
+## Open Hardware Checks
+
+- Compare normal calibration run time with deep qualification disabled and
+  enabled.
+- Confirm a 4096-sample deep window reports all-zero channel and FCO errors on
+  the target board.
+- Confirm the 4096-sample PN23 window acquires phase and reports all-zero
+  reference recurrence and cross-channel coherence errors.
+- Increase `PatternTesterSamples` if a longer bounded checkerboard stress test
+  is useful; this remains qualification, not a claimed BER measurement.

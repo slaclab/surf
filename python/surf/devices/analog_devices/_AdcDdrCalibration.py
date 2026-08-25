@@ -337,6 +337,7 @@ class AdcDdrCalibration(pr.Process):
     VERIFY_CURRENT_C = 1
     VERIFY_GUARD_BAND_C = 2
     RUN_TIME_UPDATE_INTERVAL_C = 1.0
+    PATTERN_TESTER_TIMEOUT_C = 256
 
     def __init__(
             self,
@@ -416,7 +417,7 @@ class AdcDdrCalibration(pr.Process):
         self._pn23Reset = pn23Reset
         self._runDiagnostics = {}
         self._lastCaptureDiagnostics = {}
-        self._patternTesterActive = False
+        self._deepPatternTesterActive = False
 
         kwargs.setdefault(
             'description',
@@ -454,8 +455,18 @@ class AdcDdrCalibration(pr.Process):
 
         self.add(pr.LocalVariable(
             name        = 'UsePatternTester',
-            description = 'Use the hardware pattern tester instead of debug snapshots',
+            description = (
+                'Run deep hardware checkerboard and optional PN23 qualification '
+                'after centering'),
             value       = False,
+            mode        = 'RW'))
+
+        self.add(pr.LocalVariable(
+            name        = 'PatternTesterSamples',
+            description = 'Valid samples checked by each deep hardware qualification window',
+            value       = 4096,
+            minimum     = 1,
+            maximum     = 0xFFFFFFFF,
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -570,7 +581,14 @@ class AdcDdrCalibration(pr.Process):
         if publish or self.Debug.value():
             self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
 
-    def _configurePatternTester(self, channels: Sequence[int], mask: int) -> None:
+    def _configurePatternTester(
+            self,
+            channels: Sequence[int],
+            mask: int,
+            samples: int,
+            *,
+            pn23: bool = False,
+            xorMask: int = 0) -> None:
         """Program one hardware measurement window for a channel/mask set."""
 
         patterns = sorted(self._expectedPatterns)
@@ -578,16 +596,19 @@ class AdcDdrCalibration(pr.Process):
         # Alternating patterns share one phase reference across every enabled
         # channel. This prevents each logical channel from independently calling
         # an opposite checkerboard phase valid.
-        tester.Alternating.set(len(patterns) == 2, write=True)
+        tester.Alternating.set(not pn23 and len(patterns) == 2, write=True)
+        tester.Pn23.set(pn23, write=True)
         tester.ReferenceChannel.set(channels[0], write=True)
         tester.ChannelMask.set(sum(1 << channel for channel in channels), write=True)
         tester.FcoMask.set((1 << self._fcoLanes)-1, write=True)
         tester.DataMask.set(mask, write=True)
-        tester.PatternA.set(patterns[0], write=True)
-        tester.PatternB.set(patterns[-1], write=True)
-        # One software SampleCount unit represents the same four ADC samples as
-        # one atomic debug snapshot, keeping the two backends comparable.
-        tester.Samples.set(4*self.SampleCount.value(), write=True)
+        tester.PatternA.set(xorMask if pn23 else patterns[0], write=True)
+        tester.PatternB.set(0 if pn23 else patterns[-1], write=True)
+        tester.Samples.set(samples, write=True)
+        # Do not inherit mutable state from manual uses of the child device.
+        # This timeout detects a stopped producer without limiting a healthy
+        # continuous sample window.
+        tester.Timeout.set(self.PATTERN_TESTER_TIMEOUT_C, write=True)
 
     def _runPatternTester(self) -> dict[str, Any]:
         """Start one hardware window and return its stable retained results."""
@@ -624,62 +645,45 @@ class AdcDdrCalibration(pr.Process):
         if status['aborted']:
             raise RuntimeError('ADC pattern tester measurement was aborted')
 
+        channelPassed = int(tester.ChannelPassed.get(read=True))
+        fcoPassed = int(tester.FcoPassed.get(read=True))
+        channels = {
+            channel: {
+                'passed': bool(channelPassed & (1 << channel)),
+                'wordErrorCount': int(tester.WordErrorCount[channel].get(read=True)),
+                'bitErrorMask': int(tester.BitErrorMask[channel].get(read=True)),
+            }
+            for channel in range(self._channels)
+        }
+        fco = {
+            lane: {
+                'passed': bool(fcoPassed & (1 << lane)),
+                'errorCount': int(tester.FcoErrorCount[lane].get(read=True)),
+            }
+            for lane in range(self._fcoLanes)
+        }
         return {
             'sequence': current,
             'checkedSamples': int(tester.CheckedSamples.get(read=True)),
-            'channelPassed': int(tester.ChannelPassed.get(read=True)),
-            'fcoPassed': int(tester.FcoPassed.get(read=True)),
+            'channelPassed': channelPassed,
+            'fcoPassed': fcoPassed,
+            'channels': channels,
+            'fco': fco,
             'status': status,
         }
-
-    def _captureGroupPassesPattern(
-            self,
-            lanes: Sequence[int]) -> dict[int, dict[str, Any]]:
-        """Measure a parallel lane group with the hardware pattern tester."""
-
-        # The hardware checker has one DataMask per window. A mixed-mask group
-        # still shares one programmed delay tap, but requires one measurement
-        # for each distinct mask to preserve independent lane verdicts.
-        lanesByMask = {}
-        for lane in lanes:
-            lanesByMask.setdefault(self._dataLaneMasks[lane], []).append(lane)
-
-        details = {}
-        for mask, maskedLanes in lanesByMask.items():
-            channels = sorted({self._dataLaneToChannel[lane] for lane in maskedLanes})
-            self._configurePatternTester(channels, mask)
-            measurement = self._runPatternTester()
-            fcoMask = (1 << self._fcoLanes)-1
-            fcoPassed = (measurement['fcoPassed'] & fcoMask) == fcoMask
-            # ChannelPassed is reported per logical channel. Map that verdict
-            # back to every physical lane contributing the mask being measured.
-            for lane in maskedLanes:
-                details[lane] = {
-                    'channel': self._dataLaneToChannel[lane],
-                    'mask': mask,
-                    'expected': sorted({
-                        pattern & mask
-                        for pattern in self._expectedPatterns}),
-                    'captures': [copy.deepcopy(measurement)],
-                    'passed': (
-                        bool(measurement['channelPassed'] &
-                             (1 << self._dataLaneToChannel[lane])) and
-                        fcoPassed),
-                }
-        return details
 
     def _captureGroupPassesSnapshot(
             self,
             lanes: Sequence[int]) -> dict[int, dict[str, Any]]:
-        """Measure a parallel lane group from atomic four-sample snapshots."""
+        """Measure ordered per-lane patterns from atomic snapshots."""
 
+        patterns = sorted(self._expectedPatterns)
         details = {
             lane: {
                 'channel': self._dataLaneToChannel[lane],
                 'mask': self._dataLaneMasks[lane],
-                'expected': sorted({
-                    pattern & self._dataLaneMasks[lane]
-                    for pattern in self._expectedPatterns}),
+                'expected': sorted({pattern & self._dataLaneMasks[lane]
+                                    for pattern in patterns}),
                 'captures': [],
                 'passed': True,
             }
@@ -697,13 +701,30 @@ class AdcDdrCalibration(pr.Process):
                 for channel in channels
             }
             for lane, detail in details.items():
+                mask = detail['mask']
+                maskedPatterns = detail['expected']
                 raw = rawByChannel[detail['channel']]
-                masked = [sample & detail['mask'] for sample in raw]
-                # Eye discovery only needs both expected checkerboard values;
-                # strict temporal phase is deferred until all lanes are centered.
-                capturePassed = sorted(set(masked)) == detail['expected']
+                masked = [sample & mask for sample in raw]
+                try:
+                    phase = maskedPatterns.index(masked[0])
+                except ValueError:
+                    phase = None
+                    expected = []
+                else:
+                    expected = [
+                        maskedPatterns[(phase+index) % len(maskedPatterns)]
+                        for index in range(len(masked))
+                    ]
+
+                # Each physical lane acquires phase independently during the
+                # scan so one channel leaving its eye cannot truncate another
+                # channel's passing window. The assembled final checks impose
+                # one shared phase after every lane has been centered.
+                capturePassed = phase is not None and masked == expected
                 detail['captures'].append({
                     'sequence': snapshotSequence,
+                    'phase': phase,
+                    'expectedSequence': expected,
                     'raw': raw,
                     'masked': masked,
                     'passed': capturePassed,
@@ -714,11 +735,9 @@ class AdcDdrCalibration(pr.Process):
     def _captureGroupPasses(
             self,
             lanes: Sequence[int]) -> dict[int, dict[str, Any]]:
-        """Dispatch one grouped measurement to the selected backend."""
+        """Measure one grouped data tap using coherent debug snapshots."""
 
-        if not self._patternTesterActive:
-            return self._captureGroupPassesSnapshot(lanes)
-        return self._captureGroupPassesPattern(lanes)
+        return self._captureGroupPassesSnapshot(lanes)
 
     def _capturePasses(self, lane: int) -> bool:
         """Compatibility helper for verifying one physical data lane."""
@@ -732,27 +751,6 @@ class AdcDdrCalibration(pr.Process):
 
         mask = (1 << self._readout._sampleBits)-1
         patterns = sorted(self._expectedPatterns)
-        if self._patternTesterActive:
-            self._configurePatternTester(list(range(self._channels)), mask)
-            measurement = self._runPatternTester()
-            channels = {
-                channel: {
-                    'passed': bool(measurement['channelPassed'] & (1 << channel)),
-                }
-                for channel in range(self._channels)
-            }
-            capture = copy.deepcopy(measurement)
-            capture['channels'] = channels
-            return {
-                'mask': mask,
-                'expected': patterns,
-                'referenceChannel': 0,
-                'captures': [capture],
-                'passed': (
-                    all(channel['passed'] for channel in channels.values()) and
-                    measurement['status']['allFcoPass']),
-            }
-
         detail = {
             'mask': mask,
             'expected': patterns,
@@ -810,6 +808,49 @@ class AdcDdrCalibration(pr.Process):
             detail['passed'] &= capturePassed
 
         return detail
+
+    def _captureDeepPatternPasses(self) -> dict[str, Any]:
+        """Run one deep full-channel checkerboard measurement in hardware."""
+
+        mask = (1 << self._readout._sampleBits)-1
+        channels = list(range(self._channels))
+        samples = int(self.PatternTesterSamples.value())
+        self._configurePatternTester(channels, mask, samples)
+        measurement = self._runPatternTester()
+        measurement['enabled'] = True
+        measurement['performed'] = True
+        measurement['mode'] = 'Checkerboard'
+        measurement['requestedSamples'] = samples
+        measurement['passed'] = (
+            measurement['checkedSamples'] == samples and
+            measurement['status']['allChannelsPass'] and
+            measurement['status']['allFcoPass'])
+        return measurement
+
+    def _captureDeepPn23Passes(self, xorMask: int) -> dict[str, Any]:
+        """Run one arbitrary-phase PN23 recurrence/coherence window."""
+
+        mask = (1 << self._readout._sampleBits)-1
+        channels = list(range(self._channels))
+        samples = int(self.PatternTesterSamples.value())
+        self._configurePatternTester(
+            channels,
+            mask,
+            samples,
+            pn23=True,
+            xorMask=xorMask)
+        measurement = self._runPatternTester()
+        measurement['enabled'] = True
+        measurement['performed'] = True
+        measurement['mode'] = 'Pn23'
+        measurement['xorMask'] = xorMask
+        measurement['requestedSamples'] = samples
+        measurement['passed'] = (
+            measurement['checkedSamples'] == samples and
+            measurement['status']['phaseAcquired'] and
+            measurement['status']['allChannelsPass'] and
+            measurement['status']['allFcoPass'])
+        return measurement
 
     def _setPn23Mode(self) -> None:
         """Select PN23 and synchronously restart every selected generator."""
@@ -1054,23 +1095,52 @@ class AdcDdrCalibration(pr.Process):
 
             checkerboard = self._captureFinalPasses()
             candidate = copy.deepcopy(checkerboard)
-            candidate['checkerboardPassed'] = checkerboard['passed']
+            candidate['snapshotPassed'] = checkerboard['passed']
+            candidate['patternTester'] = {
+                'enabled': self._deepPatternTesterActive,
+                'performed': False,
+                'requestedSamples': (
+                    int(self.PatternTesterSamples.value())
+                    if self._deepPatternTesterActive else 0),
+                'passed': not self._deepPatternTesterActive,
+            }
+            if checkerboard['passed'] and self._deepPatternTesterActive:
+                self.Message.set('Running deep hardware checkerboard qualification')
+                candidate['patternTester'] = self._captureDeepPatternPasses()
+            candidate['checkerboardPassed'] = (
+                checkerboard['passed'] and candidate['patternTester']['passed'])
             candidate['pn23'] = {
                 'enabled': bool(self.VerifyPn23.value()),
                 'performed': False,
                 'passed': not bool(self.VerifyPn23.value()),
             }
-            if checkerboard['passed'] and self.VerifyPn23.value():
+            if candidate['checkerboardPassed'] and self.VerifyPn23.value():
                 self.Message.set('Checking final PN23 channel coherence and recurrence')
                 self._setPn23Mode()
                 time.sleep(settle)
                 pn23 = self._capturePn23Passes()
                 pn23['enabled'] = True
                 pn23['performed'] = True
+                pn23['snapshotPassed'] = pn23['passed']
+                pn23['patternTester'] = {
+                    'enabled': self._deepPatternTesterActive,
+                    'performed': False,
+                    'requestedSamples': (
+                        int(self.PatternTesterSamples.value())
+                        if self._deepPatternTesterActive else 0),
+                    'passed': not self._deepPatternTesterActive,
+                }
+                if pn23['snapshotPassed'] and self._deepPatternTesterActive:
+                    self.Message.set('Running deep hardware PN23 qualification')
+                    pn23['patternTester'] = self._captureDeepPn23Passes(
+                        int(pn23['recurrence']['selected']['xorMask']))
+                pn23['passed'] = (
+                    pn23['snapshotPassed'] and pn23['patternTester']['passed'])
                 candidate['pn23'] = pn23
                 candidate['passed'] = pn23['passed']
             else:
-                candidate['passed'] = checkerboard['passed'] and candidate['pn23']['passed']
+                candidate['passed'] = (
+                    candidate['checkerboardPassed'] and candidate['pn23']['passed'])
 
             # Retain every attempted combination and its raw qualification so a
             # failed calibration explains exactly which phase choices were tried.
@@ -1209,15 +1279,23 @@ class AdcDdrCalibration(pr.Process):
         if start > stop:
             raise ValueError('DelayStart must not be greater than DelayStop')
 
-        self._patternTesterActive = bool(self.UsePatternTester.value())
-        if self._patternTesterActive:
+        operation = self.Operation.value()
+        self._deepPatternTesterActive = (
+            bool(self.UsePatternTester.value()) and operation == self.FULL_C)
+        if self._deepPatternTesterActive:
             # Fail before changing ADC state if the selected readout cannot
-            # perform the requested hardware-backed measurement.
+            # perform the requested deep hardware qualification.
             if not bool(self._readout.PatternCheck.get(read=True)):
                 raise RuntimeError('ADC pattern tester is not present in this readout')
             if len(self._expectedPatterns) > 2:
                 raise RuntimeError(
                     'ADC pattern tester supports at most two expected patterns')
+            pn23Minimum = (23//self._readout._sampleBits)+1
+            if (self.VerifyPn23.value() and
+                    self.PatternTesterSamples.value() < pn23Minimum):
+                raise ValueError(
+                    f'PatternTesterSamples must be at least {pn23Minimum} '
+                    f'for {self._readout._sampleBits}-bit PN23 verification')
 
         # Snapshot every mutable hardware setting before the operation. Verify,
         # failure, and stop paths restore these values in the common finally
@@ -1225,14 +1303,18 @@ class AdcDdrCalibration(pr.Process):
         originalMode = self._config.OutputTestMode.get(read=True)
         originalFco = [variable.get(read=True) for variable in self._readout.FcoDelay.values()]
         originalData = self._readout._getDataDelays(read=True)
-        operation = self.Operation.value()
         results = {}
         retainResults = False
         self._runDiagnostics = {
             'TestMode': self._testMode,
             'ExpectedPatterns': sorted(self._expectedPatterns),
-            'MeasurementBackend': (
-                'PatternTester' if self._patternTesterActive else 'Snapshot'),
+            'MeasurementBackend': 'Snapshot',
+            'DeepPatternTester': {
+                'enabled': self._deepPatternTesterActive,
+                'samples': (
+                    int(self.PatternTesterSamples.value())
+                    if self._deepPatternTesterActive else 0),
+            },
             'VerifyPn23': bool(self.VerifyPn23.value()),
             'Fco': {},
             'Data': {},

@@ -84,6 +84,7 @@ package AdcDdrPkg is
 
    -- Pattern measurement command and status bit assignments.
    constant ADC_DDR_PATTERN_ALTERNATING_BIT_C    : natural := 0;
+   constant ADC_DDR_PATTERN_PN23_BIT_C            : natural := 1;
    constant ADC_DDR_PATTERN_REFERENCE_OFFSET_C   : natural := 8;
    constant ADC_DDR_PATTERN_BUSY_BIT_C           : natural := 0;
    constant ADC_DDR_PATTERN_TIMEOUT_BIT_C        : natural := 1;

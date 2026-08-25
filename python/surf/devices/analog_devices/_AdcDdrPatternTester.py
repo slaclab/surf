@@ -80,8 +80,17 @@ class AdcDdrPatternTester(pr.Device):
             base        = pr.Bool))
 
         self.add(pr.RemoteVariable(
+            name        = 'Pn23',
+            description = 'Check arbitrary-phase PN23 recurrence and cross-channel coherence',
+            offset      = 0x008,
+            bitSize     = 1,
+            bitOffset   = 1,
+            mode        = 'RW',
+            base        = pr.Bool))
+
+        self.add(pr.RemoteVariable(
             name        = 'ReferenceChannel',
-            description = 'Enabled logical channel used to acquire shared A/B phase',
+            description = 'Enabled channel used for shared A/B phase or PN23 recurrence',
             offset      = 0x008,
             bitSize     = 8,
             bitOffset   = 8,
@@ -120,7 +129,7 @@ class AdcDdrPatternTester(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'PatternA',
-            description = 'Constant pattern or first alternating pattern',
+            description = 'Constant/first alternating pattern, or PN23 sample XOR mask',
             offset      = 0x018,
             bitSize     = sampleBits,
             mode        = 'RW',

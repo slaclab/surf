@@ -132,6 +132,8 @@ def test_normalized_map_geometry_and_memory_readback(memory_backed_readout):
     assert pattern.Start.bitOffset == [0]
     assert pattern.Abort.bitOffset == [0]
     assert pattern.Alternating.address == 0x808
+    assert pattern.Pn23.address == 0x808
+    assert pattern.Pn23.bitOffset == [1]
     assert pattern.ReferenceChannel.bitOffset == [8]
     assert pattern.ChannelMask.bitSize == [2]
     assert pattern.FcoMask.bitSize == [2]
@@ -357,6 +359,8 @@ def test_device_specific_calibration_adapters():
     assert ad9681._configUpdate is None
     assert ad9681.UsePatternTester.value() is False
     assert ad9681.UsePatternTester.mode == 'RW'
+    assert ad9681.PatternTesterSamples.value() == 4096
+    assert ad9681.PatternTesterSamples.mode == 'RW'
     assert ad9681.RunTime.value() == 0.0
     assert ad9681.RunTime.mode == 'RO'
     assert ad9681.RunTime.units == 's'
@@ -393,19 +397,13 @@ def test_ad9249_resolution_sample_rate_override_register_fields():
     assert config.SampleRate.bitSize == [3]
 
 
-def test_ad9681_resolution_sample_rate_override_register_fields():
+def test_ad9681_resolution_sample_rate_override_register_is_disabled():
     config = Ad9681Config(name='Config')
 
     assert config.DeviceUpdate.offset == 0x3FC
-    assert config.ResolutionSampleRateOverride.offset == 0x400
-    assert config.ResolutionSampleRateOverride.bitOffset == [6]
-    assert config.ResolutionSampleRateOverride.bitSize == [1]
-    assert config.Resolution.offset == 0x400
-    assert config.Resolution.bitOffset == [4]
-    assert config.Resolution.bitSize == [2]
-    assert config.SampleRate.offset == 0x400
-    assert config.SampleRate.bitOffset == [0]
-    assert config.SampleRate.bitSize == [3]
+    assert 'ResolutionSampleRateOverride' not in config.nodes
+    assert 'Resolution' not in config.nodes
+    assert 'SampleRate' not in config.nodes
 
 
 @pytest.mark.parametrize('configType', (Ad9249ConfigGroup, Ad9252Config, Ad9681Config))

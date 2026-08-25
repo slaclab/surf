@@ -44,10 +44,13 @@ end entity AdcDdrPatternTester;
 
 architecture rtl of AdcDdrPatternTester is
 
+   constant PN23_MIN_SAMPLES_C : positive := (23/SAMPLE_WIDTH_G)+1;
+
    type RegType is record
       start            : sl;
       abort            : sl;
       cfgAlternating   : sl;
+      cfgPn23          : sl;
       cfgReference     : slv(7 downto 0);
       cfgChannelMask   : slv(CHANNELS_G-1 downto 0);
       cfgFcoMask       : slv(FCO_LANES_G-1 downto 0);
@@ -66,6 +69,7 @@ architecture rtl of AdcDdrPatternTester is
       allChannelsPass  : sl;
       allFcoPass       : sl;
       alternating      : sl;
+      pn23             : sl;
       referenceChannel : slv(7 downto 0);
       channelMask      : slv(CHANNELS_G-1 downto 0);
       fcoMask          : slv(FCO_LANES_G-1 downto 0);
@@ -75,6 +79,8 @@ architecture rtl of AdcDdrPatternTester is
       requestedSamples : slv(31 downto 0);
       noValidTimeout   : slv(31 downto 0);
       noValidCount     : slv(31 downto 0);
+      pnHistory        : slv(22 downto 0);
+      pnHistoryCount   : natural range 0 to 23;
       completionSeq    : slv(31 downto 0);
       checkedSamples   : slv(31 downto 0);
       channelPassed    : slv(CHANNELS_G-1 downto 0);
@@ -91,6 +97,7 @@ architecture rtl of AdcDdrPatternTester is
       start            => '0',
       abort            => '0',
       cfgAlternating   => '0',
+      cfgPn23          => '0',
       cfgReference     => (others => '0'),
       cfgChannelMask   => (others => '1'),
       cfgFcoMask       => (others => '1'),
@@ -109,6 +116,7 @@ architecture rtl of AdcDdrPatternTester is
       allChannelsPass  => '0',
       allFcoPass       => '0',
       alternating      => '0',
+      pn23             => '0',
       referenceChannel => (others => '0'),
       channelMask      => (others => '0'),
       fcoMask          => (others => '0'),
@@ -118,6 +126,8 @@ architecture rtl of AdcDdrPatternTester is
       requestedSamples => (others => '0'),
       noValidTimeout   => (others => '0'),
       noValidCount     => (others => '0'),
+      pnHistory        => (others => '0'),
+      pnHistoryCount   => 0,
       completionSeq    => (others => '0'),
       checkedSamples   => (others => '0'),
       channelPassed    => (others => '0'),
@@ -145,6 +155,11 @@ begin
       variable actual          : slv(SAMPLE_WIDTH_G-1 downto 0);
       variable expected        : slv(SAMPLE_WIDTH_G-1 downto 0);
       variable errorBits       : slv(SAMPLE_WIDTH_G-1 downto 0);
+      variable referenceWord   : slv(SAMPLE_WIDTH_G-1 downto 0);
+      variable pnErrorBits     : slv(SAMPLE_WIDTH_G-1 downto 0);
+      variable pnHistory       : slv(22 downto 0);
+      variable pnHistoryCount  : natural range 0 to 23;
+      variable pnExpected      : sl;
       variable referenceIndex  : natural range 0 to 255;
       variable selectedPhase   : sl;
       variable phaseValid      : sl;
@@ -180,7 +195,38 @@ begin
             phaseValid := '1';
             selectedPhase := '0';
 
-            if (r.alternating = '1') then
+            if (r.pn23 = '1') then
+               referenceIndex := to_integer(unsigned(r.referenceChannel));
+               referenceWord := (sampleIn(referenceIndex)(SAMPLE_WIDTH_G-1 downto 0) xor
+                                 r.patternA) and r.dataMask;
+               pnHistory      := r.pnHistory;
+               pnHistoryCount := r.pnHistoryCount;
+               pnErrorBits    := (others => '0');
+               for bitindex in SAMPLE_WIDTH_G-1 downto 0 loop
+                  if (pnHistoryCount < 23) then
+                     pnHistory := pnHistory(21 downto 0) & referenceWord(bitindex);
+                     pnHistoryCount := pnHistoryCount + 1;
+                     if (pnHistoryCount = 23) then
+                        if uOr(pnHistory) = '1' then
+                           v.phaseAcquired := '1';
+                        else
+                           -- The all-zero state satisfies the recurrence but is
+                           -- not part of the maximal-length PN23 sequence.
+                           pnErrorBits := (others => '1');
+                        end if;
+                     end if;
+                  else
+                     pnExpected := pnHistory(22) xor pnHistory(17);
+                     if (referenceWord(bitindex) /= pnExpected) then
+                        pnErrorBits(bitindex) := '1';
+                     end if;
+                     pnHistory := pnHistory(21 downto 0) & referenceWord(bitindex);
+                  end if;
+               end loop;
+               v.pnHistory      := pnHistory;
+               v.pnHistoryCount := pnHistoryCount;
+
+            elsif (r.alternating = '1') then
                if (r.phaseAcquired = '1') then
                   selectedPhase := r.expectedPhase;
                else
@@ -202,7 +248,15 @@ begin
 
             for i in CHANNELS_G-1 downto 0 loop
                if (r.channelMask(i) = '1') then
-                  if (phaseValid = '0') then
+                  if (r.pn23 = '1') then
+                     if (i = referenceIndex) then
+                        errorBits := pnErrorBits;
+                     else
+                        actual := (sampleIn(i)(SAMPLE_WIDTH_G-1 downto 0) xor
+                                  r.patternA) and r.dataMask;
+                        errorBits := actual xor referenceWord;
+                     end if;
+                  elsif (phaseValid = '0') then
                      errorBits := r.dataMask;
                   else
                      if (selectedPhase = '0') then
@@ -267,6 +321,9 @@ begin
             end loop;
             v.allChannelsPass := channelsPassing;
             v.allFcoPass      := fcoPassing;
+            if (r.pn23 = '1' and v.phaseAcquired = '0') then
+               v.allChannelsPass := '0';
+            end if;
          end if;
 
       elsif (r.start = '1') then
@@ -279,6 +336,7 @@ begin
          v.allChannelsPass  := '0';
          v.allFcoPass       := '0';
          v.alternating      := r.cfgAlternating;
+         v.pn23             := r.cfgPn23;
          v.referenceChannel := r.cfgReference;
          v.channelMask      := r.cfgChannelMask;
          v.fcoMask          := r.cfgFcoMask;
@@ -288,6 +346,8 @@ begin
          v.requestedSamples := r.cfgSamples;
          v.noValidTimeout   := r.cfgTimeout;
          v.noValidCount     := (others => '0');
+         v.pnHistory        := (others => '0');
+         v.pnHistoryCount   := 0;
          v.checkedSamples   := (others => '0');
          v.channelPassed    := (others => '0');
          v.fcoPassed        := (others => '0');
@@ -300,14 +360,24 @@ begin
              uOr(r.cfgDataMask) = '0') then
             invalidConfig := '1';
          end if;
-         if (r.cfgAlternating = '1') then
+         if (r.cfgAlternating = '1' and r.cfgPn23 = '1') then
+            invalidConfig := '1';
+         end if;
+         if (r.cfgAlternating = '1' or r.cfgPn23 = '1') then
             referenceIndex := to_integer(unsigned(r.cfgReference));
             if (referenceIndex >= CHANNELS_G) then
                invalidConfig := '1';
             elsif (r.cfgChannelMask(referenceIndex) = '0') then
                invalidConfig := '1';
             end if;
-            if ((r.cfgPatternA and r.cfgDataMask) = (r.cfgPatternB and r.cfgDataMask)) then
+            if (r.cfgAlternating = '1' and
+                (r.cfgPatternA and r.cfgDataMask) = (r.cfgPatternB and r.cfgDataMask)) then
+               invalidConfig := '1';
+            end if;
+         end if;
+         if (r.cfgPn23 = '1') then
+            if uAnd(r.cfgDataMask) = '0' or
+               unsigned(r.cfgSamples) < to_unsigned(PN23_MIN_SAMPLES_C, 32) then
                invalidConfig := '1';
             end if;
          end if;
@@ -316,7 +386,7 @@ begin
             v.configError := '1';
          else
             v.busy          := '1';
-            v.phaseAcquired := not r.cfgAlternating;
+            v.phaseAcquired := not r.cfgAlternating and not r.cfgPn23;
          end if;
       end if;
 
@@ -330,6 +400,8 @@ begin
       axiSlaveRegister(ep, ADC_DDR_PATTERN_ABORT_ADDR_C, 0, v.abort);
       axiSlaveRegister(ep, ADC_DDR_PATTERN_CONFIG_ADDR_C,
                        ADC_DDR_PATTERN_ALTERNATING_BIT_C, v.cfgAlternating);
+      axiSlaveRegister(ep, ADC_DDR_PATTERN_CONFIG_ADDR_C,
+                       ADC_DDR_PATTERN_PN23_BIT_C, v.cfgPn23);
       axiSlaveRegister(ep, ADC_DDR_PATTERN_CONFIG_ADDR_C,
                        ADC_DDR_PATTERN_REFERENCE_OFFSET_C, v.cfgReference);
       axiSlaveRegister(ep, ADC_DDR_PATTERN_CHANNEL_MASK_ADDR_C, 0, v.cfgChannelMask);
