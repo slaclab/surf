@@ -8,6 +8,7 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/xvc-udp"
 } else {
    loadSource -lib surf -path "$::DIR_PATH/general/rtl/SelectIoRxGearboxAligner.vhd"
+   loadSource -lib surf -path "$::DIR_PATH/general/rtl/GtRxAlignCheck.vhd"
    loadSource -lib surf -dir  "$::DIR_PATH/dummy"
 }
 

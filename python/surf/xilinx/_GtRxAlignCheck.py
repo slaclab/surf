@@ -28,7 +28,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "PhaseTarget",
-            description = "Timing frame phase lock target",
+            description = "Timing frame phase lock target. Side effect: any write to offset 0x100 clears all PhaseHist bins",
             offset      =  0x100,
             bitSize     =  7,
             bitOffset   =  0,
@@ -37,7 +37,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "Mask",
-            description = "Register Mask Value",
+            description = "Register Mask Value. Side effect: any write to offset 0x100 clears all PhaseHist bins",
             offset      =  0x100,
             bitSize     =  7,
             bitOffset   =  8,
@@ -46,7 +46,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "ResetLen",
-            description = "Reset length",
+            description = "Reset length. Side effect: any write to offset 0x100 clears all PhaseHist bins",
             offset      =  0x100,
             bitSize     =  4,
             bitOffset   =  16,
@@ -166,7 +166,7 @@ class GtRxAlignCheck(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = "PhaseHistRaw",
-            description = "Timing frame phase",
+            description = "Timing frame phase histogram. Cleared by a write to PhaseTarget, Mask or ResetLen (all share offset 0x100)",
             offset      =  0x00,
             valueBits   = 8,
             valueStride = 8,
@@ -178,7 +178,7 @@ class GtRxAlignCheck(pr.Device):
         for i in range(40):
             self.add(pr.LinkVariable(
                 name         = f'PhaseHist[{i}]',
-                description  = f'Timing frame phase histogram bin {i}',
+                description  = f'Timing frame phase histogram bin {i}. Cleared by a write to PhaseTarget, Mask or ResetLen',
                 guiGroup='Hist',
                 disp         = '{:d}',
                 mode         = 'RO',

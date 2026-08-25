@@ -407,7 +407,7 @@ def _default_phase1_queue_overrides() -> dict[str, object]:
         "deferred_paths": [],
         "deferred_path_substrings": [
             {
-                "pattern": "axi/simlink/",
+                "pattern": "simlink/",
                 "reason": "Simulation support models are not part of the synthesizable phase-1 queue.",
             },
             {

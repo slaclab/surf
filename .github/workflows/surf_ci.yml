@@ -124,7 +124,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make python3 python3-pip tclsh ghdl
+          sudo apt-get install -y make python3 python3-pip tclsh ghdl libzmq3-dev valgrind
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
@@ -157,12 +157,19 @@ jobs:
           full_targets=(
             tests
           )
+          # tests/simlink is owned by the dedicated step below, which runs it
+          # on every push with a bounded worker count. Exclude it here so the
+          # unbounded -n auto never starves its multi-instance peer handshake
+          # and so the suite is not run twice.
+          full_ignores=(
+            --ignore=tests/simlink
+          )
 
           # Full integration/release runs build and simulate on apt mcode GHDL
           # and collect the coverage consumed by Codecov.
           if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
             make MODULES=$PWD import
-            python -m pytest --cov -v -n auto --dist=worksteal "${full_targets[@]}"
+            python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
             exit 0
           fi
 
@@ -195,7 +202,7 @@ jobs:
               echo "- Source: ${selection_source}"
               echo "- Result: full regression"
             } >> "${GITHUB_STEP_SUMMARY}"
-            python -m pytest -v -n auto --dist=worksteal "${full_targets[@]}"
+            python -m pytest -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
           else
             # tests/common contains the selector's policy tests and always runs
             # alongside any directory-owned cocotb targets.
@@ -216,11 +223,71 @@ jobs:
             python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
           fi
 
+      - name: SimLink Regression Tests
+        # SimLink runs in its own step with a bounded worker count, and is
+        # excluded from the step above in both full and selective mode. Its
+        # native ctypes libraries and the multi-instance ZeroMQ traffic test are
+        # timing-sensitive, and an unbounded -n auto on a many-core runner
+        # over-subscribes badly enough to starve the multi-instance peer
+        # handshake. Cap workers at min(nproc, 8): still ~2x faster than serial
+        # on the hosted 4-core runner, without the high-concurrency starvation.
+        # Unconditional: the path selector maps no path to tests/simlink, so a
+        # selective feature-branch push would otherwise never exercise it.
+        run: |
+          python -m pytest --cov --cov-append -v \
+            -n "$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')" \
+            --dist=worksteal tests/simlink
+
       - name: Code Coverage
         if: steps.mode.outputs.value == 'full'
         run: |
           codecov
           coverage report -m
+
+# ----------------------------------------------------------------------------
+
+  simlink_rogue:
+    name: SimLink Rogue Contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: surf-simlink-rogue
+          environment-file: tests/simlink/rogue/conda.yml
+          auto-activate: false
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
+
+      - name: Run production Rogue SimLink contract
+        run: |
+          python -c "import rogue, pyrogue; print(rogue.Version.current())"
+          make MODULES="$PWD" import
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
 
 # ----------------------------------------------------------------------------
 
@@ -285,7 +352,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, adc_ddr_rogue, docs]
+    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
@@ -296,7 +363,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   conda_build_lib:
-    needs: [lint, test, adc_ddr_rogue, docs]
+    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:

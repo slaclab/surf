@@ -8,10 +8,13 @@ dependencies:
   - make
   - tcl
   - ghdl
+  - zeromq
+  - pkg-config
   - pip:
       - cocotb
       - cocotbext-axi
       - cocotb-test
+      - pyzmq
       - coverage
       - pytest
       - pytest-cov

@@ -36,12 +36,29 @@ forwarding coroutine.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from collections import deque
 
 from tests.common.regression_utils import run_surf_vhdl_test  # noqa: F401 – re-exported for bench files
+
+# ---------------------------------------------------------------------------
+# Cocotb wrapper sources
+# ---------------------------------------------------------------------------
+# The JESD204B cocotb wrappers live in protocols/jesd204b/wrappers/ and are
+# intentionally excluded from protocols/jesd204b/ruckus.tcl (simulation-only
+# flattening shims). Benches pull the wrapper they instantiate into the GHDL
+# compile via run_surf_vhdl_test(extra_vhdl_sources=...), layering it on top of
+# the already-imported surf RTL.
+JESD_WRAPPERS_ROOT = Path(__file__).resolve().parents[3] / "protocols" / "jesd204b" / "wrappers"
+
+
+def jesd_wrapper_sources(*filenames: str) -> list[str]:
+    """Absolute paths to the named JESD204B cocotb wrapper .vhd files."""
+    return [str(JESD_WRAPPERS_ROOT / filename) for filename in filenames]
 
 # ---------------------------------------------------------------------------
 # JESD204B control character constants (§4.1 / Jesd204bPkg.vhd lines 32-38)

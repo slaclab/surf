@@ -68,8 +68,12 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
     build_rx_link_timeline,
     endian_swap_32,
     inject_stable_k,
+    jesd_wrapper_sources,
     predict_char_restoration,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("JesdRxLaneWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # STATUS_* bit constants — verified trace of JesdRxLane.vhd:322 + :267
@@ -893,4 +897,5 @@ def test_JesdRxLane(parameters):
         toplevel="surf.jesdrxlanewrapper",
         parameters=hdl_parameters_from(parameters),   # strips SUBCLASS, SCR_ENABLE
         extra_env=parameters,                          # full dict -> unique sim_build path
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )
