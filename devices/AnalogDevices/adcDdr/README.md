@@ -177,13 +177,19 @@ verification operation ends.
 | `PatternTesterSamples` | `4096` | Valid samples checked by each deep hardware window. |
 | `VerifyPn23` | Device dependent | Enable PN23 coherence and recurrence qualification when the adapter provides a PN-long reset control. |
 | `SettleTime` | `1 ms` | Wall-clock wait after delay, relock, or ADC test-mode changes. |
-| `Debug` | `True` | Publish detailed per-tap diagnostics while the operation runs. |
+| `Debug` | `True` | Retain detailed per-tap diagnostics and publish one completed tree when the operation ends. |
 
 The full delay range is the safest initial scan. Narrow `DelayStart` and
 `DelayStop` only when the board has a characterized region and the entire
 expected eye, including failing boundary taps, remains visible. An eye touching
 a scan boundary is reported as unbounded on that side unless circular scanning
 merges it with the opposite boundary.
+
+Delay controls are reported in native `tap` units. A tap is not the same
+physical interval on every FPGA family. In particular, the UltraScale PHY uses
+`IDELAYE3` in uncalibrated `COUNT` mode, so software must not present those tap
+counts as a portable time value. ADC sample rate describes the unit interval
+but is not sufficient to convert an uncalibrated count into picoseconds.
 
 ## Results and Diagnostics
 
@@ -200,9 +206,16 @@ that could not produce a qualifying eye.
 
 `Diagnostics` contains the measurement backend, expected patterns, raw and
 masked data captures, FCO words and lock masks, and the currently active scan
-point. `RunTime`, process progress, and `Message` provide coarse operational
-monitoring. Detailed diagnostics can be large because they retain every tap and
-capture; disable `Debug` when live publication is unnecessary.
+point. The private working tree is not repeatedly copied into the public
+variable during a scan. A successful run publishes it once at termination when
+`Debug` is enabled; a failed or stopped run publishes it regardless of the
+debug setting so failure evidence is retained.
+
+`Outcome` reports `IDLE`, `RUNNING`, `PASSED`, `FAILED`, or `STOPPED`
+independently of PyRogue's generic process state. Successful GUI-driven runs
+also finish with `Message` set to `PASSED` rather than the ambiguous generic
+`Done`. `RunTime` and process progress provide the remaining operational
+monitoring.
 
 ## Device-Specific Behavior
 

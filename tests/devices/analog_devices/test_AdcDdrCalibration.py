@@ -18,10 +18,11 @@
 #   topology-aware, overlap-safe parallel grouping plus restoration between
 #   guard checks for coupled physical lanes. Exercise strict ordered snapshot
 #   scanning, deep hardware qualification, verification progress, final
-#   qualification, and live run-time reporting.
+#   qualification and live run-time reporting.
 # - Timing: Fake register access and zero settling keep process tests short; the
 #   live timer regression temporarily reduces its update interval.
 
+import copy
 import threading
 import time
 
@@ -594,6 +595,7 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
 
     assert calibration.Debug.value() is True
     assert calibration.UsePatternTester.value() is False
+    assert calibration.Outcome.value() == calibration.OUTCOME_IDLE_C
     results = calibration._runCalibration(dev=calibration)
 
     assert results['Fco'][0]['eye']['selected'] == 3
@@ -613,6 +615,8 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.dataDelayWrites[8] == {0: 2, 1: 5}
     assert readout.snapshotDelays == [(tap, tap) for tap in range(8)] + [(2, 5)]
     assert calibration.RunTime.value() > 0.0
+    assert calibration.Outcome.value() == calibration.OUTCOME_PASSED_C
+    assert calibration.Message.value() == 'PASSED'
 
     readout.FcoDelay[0].set(0)
     readout.DataDelay[0].set(0)
@@ -621,6 +625,35 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.FcoDelay[0].value() == 3
     assert readout.DataDelay[0].value() == 2
     assert readout.DataDelay[1].value() == 5
+
+
+def test_diagnostics_publish_only_at_process_boundaries(
+        calibration_fixture, monkeypatch):
+    calibration, _, _ = calibration_fixture
+    publications = []
+    originalSet = calibration.Diagnostics.set
+
+    def record(value, *args, **kwargs):
+        publications.append(copy.deepcopy(value))
+        return originalSet(value, *args, **kwargs)
+
+    monkeypatch.setattr(calibration.Diagnostics, 'set', record)
+
+    calibration._runCalibration(dev=calibration)
+
+    assert len(publications) == 2
+    assert publications[0] == {}
+    assert publications[1]['Current'] == {'kind': 'Final'}
+    assert publications[1]['Final']['passed']
+
+
+def test_process_gui_message_reports_passed(calibration_fixture):
+    calibration, _, _ = calibration_fixture
+
+    calibration._process()
+
+    assert calibration.Outcome.value() == calibration.OUTCOME_PASSED_C
+    assert calibration.Message.value() == 'PASSED'
 
 
 def test_full_calibration_can_add_deep_pattern_qualification(calibration_fixture):
@@ -886,6 +919,8 @@ def test_failed_calibration_restores_mode_and_all_delays(calibration_fixture):
     assert readout.DataDelay[0].value() == 2
     assert readout.DataDelay[1].value() == 4
     assert calibration.RunTime.value() > 0.0
+    assert calibration.Outcome.value() == calibration.OUTCOME_FAILED_C
+    assert calibration.Message.value().startswith('FAILED:')
 
 
 def test_failed_data_scan_reports_lane_and_retains_partial_results(calibration_fixture):
@@ -1141,6 +1176,7 @@ def test_cancellation_is_graceful_and_restores_hardware(calibration_fixture):
     calibration._process()
 
     assert calibration.Message.value() == 'Calibration stopped'
+    assert calibration.Outcome.value() == calibration.OUTCOME_STOPPED_C
     assert calibration.Step.value() == 2
     assert calibration.Progress.value() < 1.0
     assert config.OutputTestMode.value() == 0

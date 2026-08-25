@@ -336,6 +336,11 @@ class AdcDdrCalibration(pr.Process):
     FULL_C = 0
     VERIFY_CURRENT_C = 1
     VERIFY_GUARD_BAND_C = 2
+    OUTCOME_IDLE_C = 0
+    OUTCOME_RUNNING_C = 1
+    OUTCOME_PASSED_C = 2
+    OUTCOME_FAILED_C = 3
+    OUTCOME_STOPPED_C = 4
     RUN_TIME_UPDATE_INTERVAL_C = 1.0
     PATTERN_TESTER_TIMEOUT_C = 256
 
@@ -443,6 +448,7 @@ class AdcDdrCalibration(pr.Process):
             value       = 0,
             minimum     = 0,
             maximum     = (1 << readout._delayBits)-1,
+            units       = 'tap',
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -451,6 +457,7 @@ class AdcDdrCalibration(pr.Process):
             value       = (1 << readout._delayBits)-1,
             minimum     = 0,
             maximum     = (1 << readout._delayBits)-1,
+            units       = 'tap',
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -485,6 +492,19 @@ class AdcDdrCalibration(pr.Process):
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
+            name        = 'Outcome',
+            description = 'Explicit result of the current or most recent operation',
+            value       = self.OUTCOME_IDLE_C,
+            enum        = {
+                self.OUTCOME_IDLE_C: 'IDLE',
+                self.OUTCOME_RUNNING_C: 'RUNNING',
+                self.OUTCOME_PASSED_C: 'PASSED',
+                self.OUTCOME_FAILED_C: 'FAILED',
+                self.OUTCOME_STOPPED_C: 'STOPPED',
+            },
+            mode        = 'RO'))
+
+        self.add(pr.LocalVariable(
             name        = 'RunTime',
             description = 'Elapsed wall-clock duration of the current or last operation',
             value       = 0.0,
@@ -505,6 +525,7 @@ class AdcDdrCalibration(pr.Process):
             description = 'Minimum passing width accepted by a full scan',
             value       = 8,
             minimum     = 1,
+            units       = 'tap',
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -512,6 +533,7 @@ class AdcDdrCalibration(pr.Process):
             description = 'Passing taps required on both sides of a selected tap',
             value       = 2,
             minimum     = 0,
+            units       = 'tap',
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -522,7 +544,7 @@ class AdcDdrCalibration(pr.Process):
 
         self.add(pr.LocalVariable(
             name        = 'Debug',
-            description = 'Publish detailed per-tap calibration diagnostics',
+            description = 'Retain and publish detailed diagnostics when the operation ends',
             value       = True,
             mode        = 'RW'))
 
@@ -554,6 +576,12 @@ class AdcDdrCalibration(pr.Process):
             # in its finally block, so retain the partial progress without
             # reporting the stop as an execution error.
             self.Message.set('Calibration stopped')
+        else:
+            # PyRogue's generic Process implementation sets Message to "Done"
+            # after the callback returns. Replace that ambiguous terminal text
+            # with the explicit successful outcome used by this process.
+            if self.Outcome.value() == self.OUTCOME_PASSED_C:
+                self.Message.set('PASSED')
 
     def _checkRun(self) -> None:
         """Raise the private stop exception at cooperative cancellation points."""
@@ -566,20 +594,18 @@ class AdcDdrCalibration(pr.Process):
             kind: str,
             lane: int,
             tap: int,
-            detail: dict[str, Any],
-            publish: bool = False) -> None:
-        """Retain one per-tap diagnostic and optionally publish a deep copy."""
+            detail: dict[str, Any]) -> None:
+        """Retain one per-tap diagnostic in the private working tree."""
 
-        # The working dictionary is mutated throughout a run. Publish a copy so
-        # PyRogue readers never observe later mutations through a shared object.
+        # Publishing this growing tree at every tap makes a long scan
+        # increasingly expensive. The process wrapper publishes one immutable
+        # copy after success, failure, or cancellation instead.
         self._runDiagnostics[kind].setdefault(lane, {})[tap] = detail
         self._runDiagnostics['Current'] = {
             'kind': kind,
             'lane': lane,
             'tap': tap,
         }
-        if publish or self.Debug.value():
-            self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
 
     def _configurePatternTester(
             self,
@@ -968,7 +994,6 @@ class AdcDdrCalibration(pr.Process):
             if self.Debug.value():
                 passed = [lane for lane in lanes if details[lane]['passed']]
                 failed = [lane for lane in lanes if not details[lane]['passed']]
-                self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
                 self.Message.set(
                     f'Data lanes {list(lanes)}, tap {tap}: '
                     f'passing={passed}, failing={failed}')
@@ -1010,7 +1035,6 @@ class AdcDdrCalibration(pr.Process):
                     'passing': passing,
                     'diagnostics': copy.deepcopy(self._runDiagnostics['Fco'].get(lane, {})),
                 }
-                self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
                 self.Results.set(results)
                 raise RuntimeError(f'FCO lane {lane}: {exc}') from exc
             fcoEyes[lane] = eyes
@@ -1047,7 +1071,6 @@ class AdcDdrCalibration(pr.Process):
                         'diagnostics': copy.deepcopy(
                             self._runDiagnostics['Data'].get(lane, {})),
                     }
-                    self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
                     self.Results.set(results)
                     raise RuntimeError(f'Data lane {lane}: {exc}') from exc
                 groupEyes[lane] = eye
@@ -1166,7 +1189,6 @@ class AdcDdrCalibration(pr.Process):
         self._runDiagnostics['Current'] = {'kind': 'Final'}
         self.incrementSteps()
         if not final['passed']:
-            self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
             self.Results.set(results)
             raise RuntimeError('Final full-channel pattern qualification failed')
         return results
@@ -1250,19 +1272,38 @@ class AdcDdrCalibration(pr.Process):
 
         runStart = time.monotonic()
         timerStop = threading.Event()
+        publishDiagnostics = bool(self.Debug.value())
+        self._runDiagnostics = {}
+        self.Diagnostics.set({})
         timerThread = threading.Thread(
             target = self._updateRunTime,
             args   = (runStart, timerStop),
             daemon = True)
         self.RunTime.set(0.0)
+        self.Outcome.set(self.OUTCOME_RUNNING_C)
         timerThread.start()
         try:
-            return self._runCalibrationImpl(dev=dev)
+            results = self._runCalibrationImpl(dev=dev)
+        except _AdcDdrCalibrationStopped:
+            self.Outcome.set(self.OUTCOME_STOPPED_C)
+            publishDiagnostics = True
+            raise
+        except Exception as exc:
+            self.Outcome.set(self.OUTCOME_FAILED_C)
+            self.Message.set(f'FAILED: {exc}')
+            publishDiagnostics = True
+            raise
+        else:
+            self.Outcome.set(self.OUTCOME_PASSED_C)
+            self.Message.set('PASSED')
+            return results
         finally:
             runTime = time.monotonic()-runStart
             timerStop.set()
             timerThread.join()
             self.RunTime.set(runTime)
+            if publishDiagnostics:
+                self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
 
     def _runCalibrationImpl(self, *, dev: Any) -> dict[str, Any]:
         """Validate controls, execute the selected operation, and restore state."""
@@ -1321,7 +1362,6 @@ class AdcDdrCalibration(pr.Process):
             'Final': {},
             'Current': {},
         }
-        self.Diagnostics.set({})
         self.Results.set({})
 
         try:
@@ -1341,9 +1381,6 @@ class AdcDdrCalibration(pr.Process):
             else:
                 raise ValueError(f'Unsupported calibration operation {operation}')
             self.Results.set(results)
-            if self.Debug.value():
-                self.Diagnostics.set(copy.deepcopy(self._runDiagnostics))
-            self.Message.set('Calibration operation complete')
             retainResults = operation == self.FULL_C
             return results
         finally:

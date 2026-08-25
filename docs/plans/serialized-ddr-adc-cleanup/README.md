@@ -16,6 +16,22 @@ the alignment/calibration path deterministic, fast, and diagnostically useful.
 - Calibration tap scans use coherent ordered snapshots. `UsePatternTester`
   enables one deep final checkerboard window instead of replacing every tap
   measurement with repeated hardware windows.
+- AD9249 UltraScale hardware initially took about 60 seconds per bank with
+  debug diagnostics enabled, but was quick with debug disabled. Calibration
+  therefore retains the deterministic exhaustive scan and avoids repeatedly
+  publishing the growing diagnostics tree.
+
+## Calibration UI Contract
+
+- Delay thresholds and results explicitly use native `tap` units. UltraScale
+  uses `IDELAYE3` uncalibrated `COUNT` mode, so ADC sample rate alone cannot
+  turn those counts into a portable picosecond value.
+- `Debug=True` retains the per-tap diagnostics privately and publishes one
+  completed copy at process termination. Failed and stopped operations still
+  publish their evidence when debug is disabled.
+- Calibration exposes an explicit terminal `Outcome` (`PASSED`, `FAILED`, or
+  `STOPPED`) and replaces PyRogue's generic successful `Message=Done` with
+  `Message=PASSED`.
 
 ## Deep Qualification Contract
 
@@ -37,7 +53,7 @@ deep-check success and failure, detailed error reporting, capability rejection,
 alternate FCO-eye retries, shallow and deep PN23 qualification, and state
 restoration.
 
-- `test_AdcDdrCalibration.py` and `test_AdcDdrModel.py`: 69 passed.
+- `test_AdcDdrCalibration.py` and `test_AdcDdrModel.py`: 71 passed.
 - `test_AdcDdrPatternTester.py`: 1 passed with GHDL/cocotb.
 - VSG: no violations in `AdcDdrPkg.vhd` or `AdcDdrPatternTester.vhd`.
 

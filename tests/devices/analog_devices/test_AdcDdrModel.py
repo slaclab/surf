@@ -357,10 +357,23 @@ def test_device_specific_calibration_adapters():
         readout=ad9681Readout)
     assert ad9681._dataLaneToChannel == tuple(range(8))+tuple(range(8))
     assert ad9681._configUpdate is None
+    assert ad9681.DelayStart.units == 'tap'
+    assert ad9681.DelayStop.units == 'tap'
+    assert ad9681.MinimumEyeWidth.units == 'tap'
+    assert ad9681.GuardBand.units == 'tap'
     assert ad9681.UsePatternTester.value() is False
     assert ad9681.UsePatternTester.mode == 'RW'
     assert ad9681.PatternTesterSamples.value() == 4096
     assert ad9681.PatternTesterSamples.mode == 'RW'
+    assert ad9681.Outcome.value() == ad9681.OUTCOME_IDLE_C
+    assert ad9681.Outcome.enum == {
+        0: 'IDLE',
+        1: 'RUNNING',
+        2: 'PASSED',
+        3: 'FAILED',
+        4: 'STOPPED',
+    }
+    assert ad9681.Outcome.mode == 'RO'
     assert ad9681.RunTime.value() == 0.0
     assert ad9681.RunTime.mode == 'RO'
     assert ad9681.RunTime.units == 's'
