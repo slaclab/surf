@@ -30,6 +30,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ReadOnly, RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.simlink.common.peer_orchestration import (
     spawn_peer_group,
     terminate_peers,
@@ -225,8 +227,7 @@ async def rogue_simlink_multi_instance_traffic_test(dut):
         dut.sideBandTxData.value = _pack((vectors[2] for vectors in sideband_vectors), 8)
         dut.sideBandTxEn.value = 0x3
 
-        await RisingEdge(dut.clock)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clock)
         dut.streamIbValid.value = 0
         dut.streamIbLast.value = 0
         dut.sideBandTxEn.value = 0

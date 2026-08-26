@@ -30,7 +30,8 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
@@ -70,14 +71,12 @@ class TB:
 
     async def cycle(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
 
     async def _monitor_sideband(self):
         """Lifetime agent: collect RoCE sidebands until the test ends."""
         while True:
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
             if int(self.dut.M_AXIS_TVALID.value) == 1 and int(self.dut.M_AXIS_TREADY.value) == 1:
                 self.rx_sidebands.append(int(self.dut.M_SIDE_BAND.value))
 

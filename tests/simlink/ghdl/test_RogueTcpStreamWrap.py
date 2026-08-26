@@ -256,11 +256,11 @@ async def stream_wrapper_test(dut):
     tb = TB(dut)
     if CASE.get("chan_count", 1) != 1:
         await _run_elaboration_only(tb)
-        return
-    await _run_round_trip(tb)
-    await _run_sparse_tkeep(tb)
-    if CASE["paced"]:
-        await _run_pacing(tb)
+    else:
+        await _run_round_trip(tb)
+        await _run_sparse_tkeep(tb)
+        if CASE["paced"]:
+            await _run_pacing(tb)
 
 
 @pytest.mark.parametrize("case_name", CASES)

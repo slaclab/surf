@@ -34,9 +34,10 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     build_ack_header,
@@ -58,10 +59,9 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.clk_i)
             # Most RSSI RTL uses `after TPD_G`; wait past the default 1 ns
             # transport delay before sampling outputs.
-            await Timer(2, unit="ns")
+            await sample_after_tpd(self.dut.clk_i, propagation_time=2)
 
     async def reset(self) -> None:
         # Hold all data/control inputs in a benign state during reset so the

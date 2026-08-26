@@ -38,6 +38,7 @@ from tests.common.regression_utils import (
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
+    sample_after_tpd,
 )
 
 
@@ -87,14 +88,12 @@ class TB:
         self.dut.wr_en.value = 1
         await RisingEdge(self.dut.wr_clk)
         self.dut.wr_en.value = 0
-        await RisingEdge(self.dut.wr_clk)
         # Let FWFT outputs settle before the next operation samples status.
-        await Timer(2, unit="ns")
+        await sample_after_tpd(self.dut.wr_clk, propagation_time=2)
 
     async def cycle_rd(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.rd_clk)
-            await Timer(2, unit="ns")
+            await sample_after_tpd(self.dut.rd_clk, propagation_time=2)
 
     async def read_word(self) -> int:
         if self.fwft_enabled:

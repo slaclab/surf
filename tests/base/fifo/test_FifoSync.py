@@ -34,6 +34,7 @@ from tests.common.regression_utils import (
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
+    sample_after_tpd,
 )
 
 
@@ -79,8 +80,7 @@ class TB:
         self.dut.wr_en.value = 1
         await RisingEdge(self.dut.clk)
         self.dut.wr_en.value = 0
-        await RisingEdge(self.dut.clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(self.dut.clk, propagation_time=2)
 
     async def read_word(self) -> int:
         if self.fwft_enabled:
@@ -142,8 +142,7 @@ class TB:
         await RisingEdge(self.dut.clk)
         self.dut.wr_en.value = 0
         self.dut.rd_en.value = 0
-        await RisingEdge(self.dut.clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(self.dut.clk, propagation_time=2)
         return read_value
 
 

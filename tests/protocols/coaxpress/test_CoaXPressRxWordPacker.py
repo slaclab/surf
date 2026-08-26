@@ -76,51 +76,50 @@ async def coaxpress_rx_word_packer_repack_test(dut):
             {"mAxisTData": 0x11223344, "mAxisTKeep": 0xF, "mAxisTLast": 0},
             {"mAxisTData": 0x55667788, "mAxisTKeep": 0xF, "mAxisTLast": 1},
         ]
-        return
-
-    # The wider case intentionally starts on lane 1, fills one output beat,
-    # then spills into a short final beat on the next cycle.
-    await send_axis_beats_no_ready(
-        dut,
-        beats=[
-            AxisBeat(
-                data=pack_words([0x0, 0xAAA00001, 0xBBB00002, 0xCCC00003]),
-                keep=0xFFF0,
-                last=0,
-            ),
-            AxisBeat(
-                data=pack_words([0xDDD00004, 0xEEE00005, 0xFFF00006]),
-                keep=0x0FFF,
-                last=1,
-            ),
-        ],
-        clk=dut.rxClk,
-        capture=observed,
-        valid_name="mAxisTValid",
-        field_names=("mAxisTData", "mAxisTKeep", "mAxisTLast"),
-    )
-    observed.extend(
-        await collect_pulses(
+    else:
+        # The wider case intentionally starts on lane 1, fills one output beat,
+        # then spills into a short final beat on the next cycle.
+        await send_axis_beats_no_ready(
             dut,
+            beats=[
+                AxisBeat(
+                    data=pack_words([0x0, 0xAAA00001, 0xBBB00002, 0xCCC00003]),
+                    keep=0xFFF0,
+                    last=0,
+                ),
+                AxisBeat(
+                    data=pack_words([0xDDD00004, 0xEEE00005, 0xFFF00006]),
+                    keep=0x0FFF,
+                    last=1,
+                ),
+            ],
             clk=dut.rxClk,
-            cycles=6,
+            capture=observed,
             valid_name="mAxisTValid",
             field_names=("mAxisTData", "mAxisTKeep", "mAxisTLast"),
         )
-    )
+        observed.extend(
+            await collect_pulses(
+                dut,
+                clk=dut.rxClk,
+                cycles=6,
+                valid_name="mAxisTValid",
+                field_names=("mAxisTData", "mAxisTKeep", "mAxisTLast"),
+            )
+        )
 
-    assert observed == [
-        {
-            "mAxisTData": pack_words([0xAAA00001, 0xBBB00002, 0xCCC00003, 0xDDD00004]),
-            "mAxisTKeep": keep_for_words(4),
-            "mAxisTLast": 0,
-        },
-        {
-            "mAxisTData": pack_words([0xEEE00005, 0xFFF00006]),
-            "mAxisTKeep": keep_for_words(2),
-            "mAxisTLast": 1,
-        },
-    ]
+        assert observed == [
+            {
+                "mAxisTData": pack_words([0xAAA00001, 0xBBB00002, 0xCCC00003, 0xDDD00004]),
+                "mAxisTKeep": keep_for_words(4),
+                "mAxisTLast": 0,
+            },
+            {
+                "mAxisTData": pack_words([0xEEE00005, 0xFFF00006]),
+                "mAxisTKeep": keep_for_words(2),
+                "mAxisTLast": 1,
+            },
+        ]
 
 
 @cocotb.test(skip=env_int("NUM_LANES_G", default=1) == 1)

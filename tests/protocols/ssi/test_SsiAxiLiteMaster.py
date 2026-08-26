@@ -28,6 +28,7 @@ import pytest
 from cocotbext.axi import AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     recv_frame_and_check,
@@ -75,8 +76,7 @@ class SimpleAxiLiteSlave:
 
     async def cycle(self, count: int = 1):
         for _ in range(count):
-            await cocotb.triggers.RisingEdge(self.dut.axisClk)
-            await cocotb.triggers.Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
 
     async def _wait_while_reset(self):
         # While reset is active, keep every ready/valid output deasserted.

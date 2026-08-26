@@ -28,7 +28,9 @@ import random
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import Event, RisingEdge, Timer
+from cocotb.triggers import Event, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
@@ -142,14 +144,12 @@ class Jesd204bLoopbackTB:
     async def axi_cycle(self, n: int = 1) -> None:
         """Wait n AXI clock cycles with TPD settle."""
         for _ in range(n):
-            await RisingEdge(self.dut.S_AXI_TX_ACLK)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.S_AXI_TX_ACLK)
 
     async def dev_cycle(self, n: int = 1) -> None:
         """Wait n devClk cycles with TPD settle."""
         for _ in range(n):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, axi_cycles: int = 8, dev_cycles: int = 8) -> None:
         """Assert both AXI and dev resets, hold, then deassert."""

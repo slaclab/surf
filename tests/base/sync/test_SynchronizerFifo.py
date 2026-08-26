@@ -168,18 +168,17 @@ async def data_order_test(dut):
         # pass-through, so ordering reduces to immediate combinational delivery.
         for value in values:
             await tb.expect_common_clock_passthrough(value)
-        return
+    else:
+        # In dual-clock mode the DUT behaves like a tiny asynchronous FIFO.
+        # Write a known sequence, then verify reads emerge in the same order.
+        for value in values:
+            await tb.write(value)
 
-    # In dual-clock mode the DUT behaves like a tiny asynchronous FIFO. Write a
-    # known sequence, then verify reads emerge in the same order.
-    for value in values:
-        await tb.write(value)
+        observed = []
+        for _ in values:
+            observed.append(await tb.read())
 
-    observed = []
-    for _ in values:
-        observed.append(await tb.read())
-
-    assert observed == values
+        assert observed == values
 
 
 @cocotb.test(skip=not env_flag("COMMON_CLK_G", default=False))

@@ -8,8 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Test methodology
-# ----------------
+# Test methodology:
+# - Sweep: Cover single and high-occupancy traffic, response/work-request
+#   backpressure, engine stall/restart, partial and oversized frames, dynamic
+#   lengths, partial-byte enables, retry replay, ring wrap, and counter reset.
+# - Stimulus: Push deterministic 32-byte AXI Stream beats while a configurable
+#   in-order engine peer accepts work requests, issues DMA reads, drains their
+#   responses, and returns work completions.
+# - Checks: Scoreboard every replayed byte, first/last marker, byte enable,
+#   opcode/immediate field, error indication, work-request length, and relevant
+#   AXI-Lite success/error/oversize/frame counters.
+# - Timing: Engine latency and backpressure build FIFO occupancy deliberately;
+#   transaction progress has cycle limits and each liveness scenario has a
+#   simulated-time watchdog so a datapath wedge fails diagnostically.
+#
 # RoCEv2AxiStreamRdma buffers an inbound AXI-Stream payload in a store-and-forward
 # repack FIFO, issues one RDMA-SEND-with-immediate work request per complete packet,
 # serves the engine's DMA read by draining that packet into the 290-bit dmaReadResp, counts
@@ -30,7 +42,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -134,8 +148,7 @@ class TB:
         dut.S_WORKCOMP_ID.value = 0
 
     async def _edge(self):
-        await RisingEdge(self.dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.clk)
 
     async def _wait_asserted(self, signal, name: str) -> None:
         for _ in range(PROGRESS_TIMEOUT_CYCLES):

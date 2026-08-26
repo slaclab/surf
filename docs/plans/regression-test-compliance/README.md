@@ -198,6 +198,70 @@ their existing operation-level `with_timeout()` watchdogs and fixed-length
 CoaXPress capture loops remain directly cycle-bounded by their requested
 sample count. The RDMA-core pytest node passes serially in 35.55 seconds.
 
+Phase 4 now has explicit common primitives for its two sampling categories.
+`sample_after_delta_cycles()` enters `ReadOnly()` for delta-only observation;
+`sample_after_tpd()` advances real simulated time for registered outputs driven
+with `after TPD_G`. A reviewed propagation helper identifies itself with a
+`Propagation sampling:` docstring, allowing the advisory audit to suppress the
+classification at the helper boundary without path allowlists. AXI handshake,
+base synchronizer, DSP, CoaXPress, packetizer, batcher, PGP2, and Ethernet
+shared helpers now use the propagation primitive. The raw timing inventory fell
+from 302 to 295 sites, and 21 representative consumer nodes pass under the
+normal pytest configuration in 80.51 seconds.
+
+The final four legacy methodology exceptions are removed. The two RoCEv2 suites
+now summarize their complete traffic/congestion sweeps, independent checks,
+and watchdog ownership in the standard four-part block; the two real-Rogue
+SimLink contracts document their bidirectional stimulus, JSON/DUT checks,
+host/simulation bounds, and unconditional child cleanup. The blocking
+`missing-methodology` baseline is now zero.
+
+The seven post-activity bare-return findings are also resolved. Five branches
+now use explicit `if`/`else` or `for`/`else` structure. The two intentionally
+disconnected XLGMII placeholders keep a terminal branch only after completing
+their no-output and status assertions, with an immediate `Terminal scenario:`
+explanation of that complete parameter contract. The audit recognizes only
+that contiguous marker and now blocks every other post-activity bare return
+against a zero baseline. All 16 affected AXI, synchronizer, DSP, CoaXPress, and
+Ethernet nodes pass in 142.45 seconds; all six affected SimLink wrapper nodes
+pass serially in 4.32 seconds with localhost socket access.
+
+The AXI timing migration classifies all 93 raw edge-plus-one-nanosecond sites
+across AXI4, AXI-Lite, AXI Stream, bridge, and DMA benches as real propagation
+sampling through `sample_after_tpd()`. This is an exact scheduling-preserving
+replacement of the default SURF `TPD_G` wait, including handshake monitors and
+protocol responders; no delay was converted to delta-only `ReadOnly()`
+sampling. The AXI subtree now has zero advisory timing findings and is clean
+under flake8. Its full 117-node suite passes under pytest-xdist in 54.19 seconds,
+and a 17-node cross-subsystem serial matrix passes in 8.58 seconds.
+
+The DSP, Ethernet, Xilinx-general, and SimLink timing batch classifies the next
+24 sites. Default registered-output and handshake samples use
+`sample_after_tpd()`, including a deliberate two-nanosecond CRC margin. The GT
+alignment reset test instead uses `wait_after_edge_offset()` to identify a real
+mid-cycle asynchronous-stimulus offset without mislabeling it as `TPD_G`
+propagation. Those subtrees now have zero timing findings and are clean under
+flake8. The full affected helper-consumer run passes 81 nodes under pytest-xdist
+in 341.53 seconds, a 38-node representative serial matrix passes in 107.72
+seconds, and the localhost SimLink multi-instance node passes serially in 4.03
+seconds.
+
+Phase 4 is complete. The final base FIFO sites use the explicit two-nanosecond
+propagation contract, and all 25 base nodes pass in 133.43 seconds. The
+remaining 174 protocol sites now use `sample_after_tpd()` or a reviewed
+real-time timing contract: JESD204B alignment tests retain deliberate
+time-measurement and midpoint samples, while CoaXPress and RSSI monitors retain
+their explicit two-nanosecond propagation margins. The complete protocol suite
+passes with 464 passed and 17 existing gated skips in 2612.94 seconds. A
+before/after inventory of all 46 edited base/protocol Python files reports no
+changes to cocotb entrypoints, pytest functions, parameter IDs, environment
+controls, skips, or timeout decorators.
+
+The whole active test tree now reports zero compliance findings. The
+`edge-then-timer` rule has therefore joined the checked-in zero-entry blocking
+baseline: new raw edge-plus-delay sequences must use the appropriate sampling
+helper or carry a narrowly scoped reviewed timing contract.
+
 ## Non-Negotiable Preservation Rules
 
 - Do not remove an existing test, parameter case, opt-in gate, or behavioral
@@ -458,10 +522,10 @@ criteria.
 
 ## Immediate Next Steps
 
-1. Begin duplicate-source cleanup by subsystem, starting with the shared AXI
-   wrapper paths and a fresh ruckus import.
-2. Migrate `test_AxiStreamDmaV2Read.py` to the shared runner and add duplicate
-   source diagnostics after caller cleanup establishes the legitimate
-   exception set.
-3. Classify `force_compile=True` callers while touching their source lists,
-   retaining only cases with a documented cache or source-topology need.
+1. Review protocol oracle independence and assertion diagnostics, adding only
+   focused known-answer anchors or context that closes a demonstrated gap.
+2. Split the largest suites only where a coherent ownership boundary improves
+   maintainability without changing public pytest nodes, selectors, or gates.
+3. Correct stale commands in `scripts/setup_regression_env.sh`, ensure the
+   blocking compliance check runs in CI, and perform the final repository-wide
+   validation and preservation audit.

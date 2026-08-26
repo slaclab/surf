@@ -188,17 +188,16 @@ async def backpressure_and_reset_test(dut):
         tb.dut.M_AXIS_TREADY.value = 1
         await send_task
         await tb.wait_for_output_clear(timeout_cycles=4)
-        return
+    else:
+        await send_task
+        tb.dut.axisRst.value = tb.reset_active_value()
+        await tb.wait_for_output_clear(timeout_cycles=tb.pipe_stages + 8)
+        assert int(tb.dut.M_AXIS_TVALID.value) == 0
+        assert int(tb.dut.M_SIDE_BAND.value) == 0
 
-    await send_task
-    tb.dut.axisRst.value = tb.reset_active_value()
-    await tb.wait_for_output_clear(timeout_cycles=tb.pipe_stages + 8)
-    assert int(tb.dut.M_AXIS_TVALID.value) == 0
-    assert int(tb.dut.M_SIDE_BAND.value) == 0
-
-    tb.dut.axisRst.value = tb.reset_inactive_value()
-    tb.dut.M_AXIS_TREADY.value = 1
-    await tb.cycle(2)
+        tb.dut.axisRst.value = tb.reset_inactive_value()
+        tb.dut.M_AXIS_TREADY.value = 1
+        await tb.cycle(2)
 
 
 PARAMETER_SWEEP = [

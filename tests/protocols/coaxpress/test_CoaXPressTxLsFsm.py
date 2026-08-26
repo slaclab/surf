@@ -23,7 +23,8 @@
 #   so cadence and serialized ordering are checked on the real byte timeline.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -64,8 +65,7 @@ async def _drive_cfg_bytes(dut, beats: list[tuple[int, int]]) -> None:
 async def _collect_strobes(dut, *, count: int, timeout_cycles: int) -> list[tuple[int, int, int]]:
     observed: list[tuple[int, int, int]] = []
     for cycle_index in range(timeout_cycles):
-        await RisingEdge(dut.txClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.txClk)
         if int(dut.txStrobe.value) == 1:
             observed.append((cycle_index, int(dut.txData.value), int(dut.txDataK.value)))
             if len(observed) == count:
@@ -75,8 +75,7 @@ async def _collect_strobes(dut, *, count: int, timeout_cycles: int) -> list[tupl
 
 async def _pulse_trigger(dut) -> None:
     dut.txTrig.value = 1
-    await RisingEdge(dut.txClk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.txClk)
     dut.txTrig.value = 0
 
 
@@ -143,8 +142,7 @@ async def coaxpress_tx_ls_fsm_trigger_width_and_drop_test(dut):
     strobes: list[tuple[int, int, int]] = []
     tx_trig_drop_seen = False
     for cycle_index in range(1400):
-        await RisingEdge(dut.txClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.txClk)
         if int(dut.txTrigDrop.value) == 1:
             tx_trig_drop_seen = True
         if int(dut.txStrobe.value) == 1:
@@ -226,8 +224,7 @@ async def coaxpress_tx_ls_fsm_pulse_width_update_terminates_active_trigger_test(
     tx_trig_drop_seen = False
 
     for cycle_index in range(1800):
-        await RisingEdge(dut.txClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.txClk)
         if int(dut.txTrigDrop.value) == 1:
             tx_trig_drop_seen = True
         if int(dut.txStrobe.value) == 1:

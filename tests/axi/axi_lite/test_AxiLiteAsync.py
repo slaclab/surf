@@ -28,6 +28,8 @@ import cocotb
 import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import (
@@ -132,8 +134,7 @@ class SimpleAxiLiteSlave:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.mAxiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.mAxiClk)
 
     async def _wait_while_reset(self):
         while self.in_reset():

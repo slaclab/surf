@@ -26,8 +26,10 @@ SCHEMA_VERSION = 1
 DEFAULT_BASELINE = Path(__file__).with_name("compliance_baseline.json")
 
 ENFORCED_RULES = {
+    "bare-return",
     "direct-runner",
     "duplicate-imported-source",
+    "edge-then-timer",
     "early-bare-return",
     "missing-methodology",
     "open-ended-loop",
@@ -42,6 +44,9 @@ EXCLUDED_DIRECTORY_NAMES = {
 
 METHODOLOGY_MARKER = "Test methodology:"
 LIFETIME_AGENT_MARKER = "Lifetime agent:"
+PROPAGATION_SAMPLING_MARKER = "Propagation sampling:"
+REAL_TIME_TIMING_MARKER = "Real-time timing:"
+TERMINAL_SCENARIO_MARKER = "# Terminal scenario:"
 ENVIRONMENT_CONTROL_RE = re.compile(
     r"^(?:RUN_[A-Z0-9_]*_TESTS|COCOTB_TEST_FILTER|COCOTB_TESTCASE|[A-Z0-9_]*TESTCASE)$"
 )
@@ -122,6 +127,16 @@ def _nested_tuples_to_lists(
         }
         for path, categories in values.items()
     }
+
+
+def _has_terminal_scenario_marker(source_lines: list[str], return_line: int) -> bool:
+    for line in reversed(source_lines[max(0, return_line - 4) : return_line - 1]):
+        stripped = line.strip()
+        if not stripped.startswith("#"):
+            break
+        if stripped.startswith(TERMINAL_SCENARIO_MARKER):
+            return True
+    return False
 
 
 def _qualified_name(node: ast.AST) -> str:
@@ -408,6 +423,7 @@ def audit_source(
     imported_sources: frozenset[Path] | None = None,
 ) -> tuple[Finding, ...]:
     tree = ast.parse(source, filename=path)
+    source_lines = source.splitlines()
     findings = []
     functions = _top_level_functions(tree)
     cocotb_functions = tuple(function for function in functions if _is_cocotb_test(function))
@@ -436,6 +452,11 @@ def audit_source(
                     for prior in function_nodes
                 )
                 rule = "bare-return" if has_prior_test_activity else "early-bare-return"
+                if (
+                    rule == "bare-return"
+                    and _has_terminal_scenario_marker(source_lines, node.lineno)
+                ):
+                    continue
                 findings.append(
                     Finding(
                         rule,
@@ -449,6 +470,11 @@ def audit_source(
     for function in _all_functions(tree):
         parents = _parent_map(function)
         lifetime_agent = _is_lifetime_agent(function)
+        timing_docstring = ast.get_docstring(function) or ""
+        classified_real_time = any(
+            marker in timing_docstring
+            for marker in (PROPAGATION_SAMPLING_MARKER, REAL_TIME_TIMING_MARKER)
+        )
         for node in _walk_function(function):
             if isinstance(node, ast.While) and isinstance(node.test, ast.Constant):
                 if node.test.value is True and not lifetime_agent:
@@ -479,7 +505,11 @@ def audit_source(
 
         for statements in _statement_lists(function):
             for first, second in zip(statements, statements[1:]):
-                if _await_call_name(first).endswith("RisingEdge") and _await_call_name(second).endswith("Timer"):
+                if (
+                    _await_call_name(first).endswith("RisingEdge")
+                    and _await_call_name(second).endswith("Timer")
+                    and not classified_real_time
+                ):
                     findings.append(
                         Finding(
                             "edge-then-timer",

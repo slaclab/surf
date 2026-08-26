@@ -22,7 +22,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamRead, AxiReadBus
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -45,8 +46,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         # Hold reset long enough for the shim layers and the DUT state machine
@@ -63,8 +63,7 @@ class TB:
     async def _monitor_ar(self):
         """Lifetime agent: record accepted read addresses for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if int(self.dut.M_AXI_ARVALID.value) and int(self.dut.M_AXI_ARREADY.value):
                 self.ar_handshakes.append(
                     (
@@ -99,24 +98,20 @@ class SourcePort:
         getattr(self.dut, f"{self.prefix}_ARVALID").value = 1
 
         while not int(getattr(self.dut, f"{self.prefix}_ARREADY").value):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
-        await RisingEdge(self.dut.axiClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.axiClk)
         getattr(self.dut, f"{self.prefix}_ARVALID").value = 0
         getattr(self.dut, f"{self.prefix}_RREADY").value = 1
 
         while not logic_int(getattr(self.dut, f"{self.prefix}_RVALID").value):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
         data = int(getattr(self.dut, f"{self.prefix}_RDATA").value).to_bytes(4, "little")
         assert int(getattr(self.dut, f"{self.prefix}_RRESP").value) == 0
         assert int(getattr(self.dut, f"{self.prefix}_RLAST").value) == 1
 
-        await RisingEdge(self.dut.axiClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.axiClk)
         getattr(self.dut, f"{self.prefix}_RREADY").value = 0
         return data
 

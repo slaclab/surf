@@ -24,7 +24,9 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
 from tests.axi.axi_stream.gearbox_reference import unpack_words, words_to_bytes
@@ -44,8 +46,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
 
     async def reset(self):
         self.dut.axisRst.setimmediatevalue(1)

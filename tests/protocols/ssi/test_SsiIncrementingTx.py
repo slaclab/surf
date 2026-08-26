@@ -23,7 +23,7 @@
 import cocotb
 import pytest
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test, sample_after_tpd
 from tests.protocols.ssi.ssi_test_utils import (
     capture_accepted_beats,
     expect_no_output,
@@ -39,8 +39,7 @@ async def pulse_trigger(dut):
     # Pulse the packet trigger for one cycle, matching how software would kick
     # the generator in hardware.
     dut.trig.value = 1
-    await cocotb.triggers.RisingEdge(dut.axisClk)
-    await cocotb.triggers.Timer(1, unit="ns")
+    await sample_after_tpd(dut.axisClk)
     dut.trig.value = 0
 
 

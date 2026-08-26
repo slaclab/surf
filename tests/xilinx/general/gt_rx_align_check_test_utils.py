@@ -23,7 +23,9 @@ the checker to a GTHE3 core:
 from __future__ import annotations
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiResp
 
 
@@ -130,8 +132,7 @@ class DrpAxiLiteSlave:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def _wait_while_reset(self) -> None:
         while self.in_reset():
@@ -319,8 +320,7 @@ class ResetOutMonitor:
         """Lifetime agent: monitor reset pulses until cocotb ends the test."""
         previous = 0
         while True:
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
             try:
                 current = int(self.dut.resetOut.value)
             except ValueError:

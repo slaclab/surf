@@ -26,10 +26,11 @@
 import os
 
 import cocotb
-from cocotb.triggers import Event, RisingEdge, Timer
+from cocotb.triggers import Event
 import pytest
 
 from tests.common.regression_utils import env_flag, env_int, parameter_case, run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_IDLE,
@@ -380,8 +381,7 @@ async def _send_one_lane_frame(
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
     """Lifetime agent: count asserted cycles until the owner sets stop_event."""
     while True:
-        await RisingEdge(clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(clk, propagation_time=2)
         if stop_event.is_set():
             return
         counts[key] += int(signal.value)

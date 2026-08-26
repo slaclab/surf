@@ -315,6 +315,18 @@ a real nonzero `after TPD_G`, wait for that configured propagation delay and
 then sample the stable value. Keep this distinction visible in a shared helper;
 do not add an unexplained fixed delay merely to make a race disappear.
 
+The common helpers make that choice explicit. Use
+`sample_after_delta_cycles(clock)` only when the next action is a read-only
+observation of logic that settles without simulated time advancing; the
+coroutine returns in cocotb's read-only phase, so do not drive signals from that
+phase. Use `sample_after_tpd(clock, propagation_time=..., unit=...)` when the
+RTL has a real `after TPD_G` assignment. Its default is the common SURF
+one-nanosecond delay, but pass the elaborated value when a test changes `TPD_G`.
+For a deliberate nonzero stimulus phase offset, such as asserting an
+asynchronous input between clock edges, use
+`wait_after_edge_offset(clock, offset_time=..., unit=...)`. This advances real
+simulated time but does not claim that the delay models `TPD_G` propagation.
+
 Keep skip reasons and opt-in coverage explicit, and distinguish why a case is
 not in the default run:
 
@@ -408,6 +420,10 @@ Before considering a new regression ready:
   limitation and defect-catching assertion are documented.
 - Inapplicable scenarios are selected out or reported as skipped; no entrypoint
   silently returns before exercising its named behavior.
+- Parameter-specific terminal branches use ordinary structured control flow
+  when practical. A necessary early terminal branch has completed assertions
+  and an immediate `# Terminal scenario:` comment explaining why those checks
+  are its complete contract.
 - Every wait is bounded directly or by a helper with a cycle/time limit.
 - Reset, backpressure, sidebands, and error/boundary cases relevant to the DUT
   are covered or explicitly documented as out of scope.

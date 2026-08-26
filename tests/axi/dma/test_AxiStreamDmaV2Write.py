@@ -24,7 +24,8 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamWrite, AxiStreamBus, AxiStreamFrame, AxiStreamSource, AxiWriteBus
 
 from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test
@@ -58,8 +59,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)
@@ -78,8 +78,7 @@ class TB:
         max_size = int(os.environ.get("DESC_MAX_SIZE", "32"), 0)
         timeout = int(os.environ.get("DESC_TIMEOUT", "32"), 0)
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             self.dut.dmaWrDescAckValid.value = 0
             if int(self.dut.dmaWrDescReqValid.value):
                 self.dut.dmaWrDescAckAddress.value = int(os.environ.get("WRITE_ADDR", "0x40"), 0)
@@ -95,8 +94,7 @@ class TB:
     async def _monitor_aw(self):
         """Lifetime agent: record DMA write addresses until the test ends."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
                 self.aw_log.append(
                     (

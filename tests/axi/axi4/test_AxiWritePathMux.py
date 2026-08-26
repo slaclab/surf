@@ -22,7 +22,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamWrite, AxiResp, AxiWriteBus
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -52,8 +53,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         # Reset both the wrapper shims and the mux state machine before any
@@ -70,8 +70,7 @@ class TB:
     async def _monitor_aw(self):
         """Lifetime agent: record accepted write addresses for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
                 self.aw_handshakes.append(
                     (
@@ -119,8 +118,7 @@ class SourcePort:
         aw_done = False
         w_done = False
         while not (aw_done and w_done):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             aw_done = aw_done or (
                 int(getattr(self.dut, f"{self.prefix}_AWVALID").value)
                 and int(getattr(self.dut, f"{self.prefix}_AWREADY").value)
@@ -136,12 +134,10 @@ class SourcePort:
 
         getattr(self.dut, f"{self.prefix}_BREADY").value = 1
         while not logic_int(getattr(self.dut, f"{self.prefix}_BVALID").value):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
         resp = int(getattr(self.dut, f"{self.prefix}_BRESP").value)
-        await RisingEdge(self.dut.axiClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.axiClk)
         getattr(self.dut, f"{self.prefix}_BREADY").value = 0
         return resp
 

@@ -25,7 +25,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -54,8 +55,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
 
     async def reset(self):
         self.dut.axisRst.setimmediatevalue(1)
@@ -66,8 +66,7 @@ class TB:
     async def _monitor(self):
         """Lifetime agent: collect compacted output beats until the test ends."""
         while True:
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
             if int(self.dut.M_AXIS_TVALID.value) and int(self.dut.M_AXIS_TREADY.value):
                 self.rx_beats.append(
                     (

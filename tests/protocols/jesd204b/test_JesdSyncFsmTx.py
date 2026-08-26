@@ -22,7 +22,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_int,
@@ -52,8 +53,7 @@ PARAMETER_SWEEP = [
 async def wait_for_signal(signal, *, value, clk, timeout_cycles=32):
     """Wait up to timeout_cycles for signal to reach value (1ns settle after each edge)."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if signal.value == value:
             return
     raise AssertionError(

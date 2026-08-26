@@ -36,7 +36,8 @@ import random
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_int,
@@ -122,8 +123,7 @@ class TxLaneTB:
     async def cycle(self, count: int = 1) -> None:
         """Advance count clock cycles, settling 1 ns after each rising edge."""
         for _ in range(count):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, cycles: int = 4) -> None:
         """Assert devRst_i for `cycles` clock cycles, then deassert."""
@@ -141,8 +141,7 @@ class TxLaneTB:
 async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 64):
     """Wait up to timeout_cycles for signal to equal value (1 ns settle)."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(signal.value) == value:
             return
     raise AssertionError(
@@ -153,8 +152,7 @@ async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 64):
 async def wait_for_bit(status_signal, *, bit_mask: int, clk, timeout_cycles: int = 64):
     """Wait until (status_signal & bit_mask) != 0."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if (int(status_signal.value) & bit_mask) != 0:
             return
     raise AssertionError(
@@ -273,21 +271,18 @@ async def _capture_ilas_stream(
     for _mf in range(_NUM_MF_CAPTURE):
         # Fire LMFC (1-cycle pulse): advances to T_lmfc
         dut.lmfc_i.value = 1
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
         dut.lmfc_i.value = 0
 
         # Advance 1 extra clock to T+1 (lmfcD1 cycle), matching standalone bench.
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
 
         # Collect one multiframe (k*f/4 GT words) starting from T+1.
         for _ in range(k * f // 4):
             data = int(dut.gtTxData_o.value) & _GT_WORD_MASK
             datak = int(dut.gtTxDataK_o.value) & _K4_MASK
             raw_words.append((data, datak))
-            await RisingEdge(dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.devClk_i)
 
     # Fire the 4th LMFC to complete the ILA sequence (FSM exits ILA_S after this).
     # Collect 2 extra words AFTER firing LMFC4 so that the lmfcD1 cycle of LMFC4
@@ -296,21 +291,18 @@ async def _capture_ilas_stream(
     # After LMFC4, the FSM transitions to DATA_S; the 2 extra words use the DATA
     # path (not ILAS), but they are outside the aligned 3k-word window.
     dut.lmfc_i.value = 1
-    await RisingEdge(dut.devClk_i)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.devClk_i)
     dut.lmfc_i.value = 0
 
     # Advance 1 extra clock (lmfcD1 cycle of LMFC4 = /A/ of MF2)
-    await RisingEdge(dut.devClk_i)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.devClk_i)
 
     # Collect 2 extra words (includes lmfcD1 = /A/, and lmfcD2 = /R/ before DATA mux)
     for _ in range(2):
         data = int(dut.gtTxData_o.value) & _GT_WORD_MASK
         datak = int(dut.gtTxDataK_o.value) & _K4_MASK
         raw_words.append((data, datak))
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
 
     # Find the first /R/ to align with the golden model
     start_offset = None
@@ -656,8 +648,7 @@ async def test_char01_nonscrambled(dut):
     for cycle_i in range(total_cycles):
         dut.lmfc_i.value = 0
         dut.sampleData_i.value = stimulus[cycle_i] if cycle_i < n_words else 0
-        await RisingEdge(tb.dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(tb.dut.devClk_i)
 
         if cycle_i >= _LATENCY:
             got_data = int(dut.gtTxData_o.value) & _GT_WORD_MASK
@@ -754,8 +745,7 @@ async def test_char02_scrambled(dut):
     for cycle_i in range(total_cycles):
         dut.lmfc_i.value = 0
         dut.sampleData_i.value = stimulus[cycle_i] if cycle_i < n_words else 0
-        await RisingEdge(tb.dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(tb.dut.devClk_i)
 
         if cycle_i >= _LATENCY:
             got_data = int(dut.gtTxData_o.value) & _GT_WORD_MASK

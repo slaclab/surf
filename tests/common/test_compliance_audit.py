@@ -136,6 +136,23 @@ async def successful_terminal_path(dut):
     }
 
 
+def test_audit_accepts_an_explicit_post_check_terminal_scenario():
+    source = LICENSE_AND_METHODOLOGY + '''
+import cocotb
+
+@cocotb.test()
+async def parameter_terminal_path(dut):
+    await exercise_named_behavior(dut)
+    assert dut.done.value
+    # Terminal scenario: these checks are the complete contract for this parameter.
+    return
+'''
+
+    findings = compliance_audit.audit_source(source)
+
+    assert "bare-return" not in _rules(findings)
+
+
 def test_audit_ignores_retained_tasks_and_clock_tasks():
     source = LICENSE_AND_METHODOLOGY + """
 import cocotb
@@ -172,6 +189,33 @@ async def receive_transaction():
 
     assert [(finding.symbol, finding.line) for finding in loops] == [
         ("receive_transaction", 8),
+    ]
+
+
+def test_audit_distinguishes_classified_propagation_sampling_from_ambiguous_delay():
+    source = '''
+from cocotb.triggers import RisingEdge, Timer
+
+async def sample_after_tpd(clk):
+    """Propagation sampling: wait past the configured RTL output delay."""
+    await RisingEdge(clk)
+    await Timer(1, unit="ns")
+
+async def ambiguous_sample(clk):
+    await RisingEdge(clk)
+    await Timer(1, unit="ns")
+
+async def wait_after_edge_offset(clk):
+    """Real-time timing: place asynchronous stimulus between clock edges."""
+    await RisingEdge(clk)
+    await Timer(2, unit="ns")
+'''
+
+    findings = compliance_audit.audit_source(source)
+    delays = [finding for finding in findings if finding.rule == "edge-then-timer"]
+
+    assert [(finding.symbol, finding.line) for finding in delays] == [
+        ("ambiguous_sample", 11),
     ]
 
 
@@ -271,6 +315,7 @@ def test_compliance_baseline_allows_cleanup_but_rejects_new_findings():
     baseline = {
         "schema_version": compliance_audit.SCHEMA_VERSION,
         "rules": {
+            "bare-return": {},
             "direct-runner": {"tests/old.py": 1},
             "duplicate-imported-source": {"tests/sources.py": 2},
             "early-bare-return": {"tests/ambiguous.py": 1},
@@ -343,8 +388,10 @@ def test_compliance_baseline_counts_findings_by_rule_and_path():
     assert baseline == {
         "schema_version": compliance_audit.SCHEMA_VERSION,
         "rules": {
+            "bare-return": {},
             "direct-runner": {},
             "duplicate-imported-source": {"tests/source.py": 2},
+            "edge-then-timer": {"tests/timing.py": 1},
             "early-bare-return": {},
             "missing-methodology": {},
             "open-ended-loop": {},

@@ -208,9 +208,9 @@ async def output_hold_test(dut):
             int(dut.dout.value),
             int(dut.sbOut.value),
         )
-        return
-
-    raise AssertionError("Never reached a non-zero visible FIR output to hold")
+        break
+    else:
+        raise AssertionError("Never reached a non-zero visible FIR output to hold")
 
 
 PARAMETER_SWEEP = [

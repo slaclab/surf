@@ -8,8 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Test methodology
-# ----------------
+# Test methodology:
+# - Sweep: Compare the no-congestion baseline with one CNP event while holding
+#   rate recovery outside the observation window.
+# - Stimulus: Drive full-rate one-beat frames, compress the DCQCN update
+#   intervals through AXI-Lite, and inject one synchronized CNP pulse.
+# - Checks: Use both the AXI-Lite Rc/cnpCnt state and accepted M_AXIS beat rate;
+#   require the baseline token rate and the expected approximately 50-percent
+#   reduction after one CNP.
+# - Timing: Count accepted beats over fixed 4000-clock windows. Each scenario is
+#   enclosed by a simulated-time watchdog and cancels its lifetime source on
+#   both success and failure.
+#
 # DCQCN CNP rate-control bench for RoCEv2Dcqcn (via RoCEv2DcqcnWrapper). The bench
 # substitutes the RoCEv2Engine.cnp_received source with a TB-driven flat `cnp` port
 # and proves the congestion-control behavior with a DUAL PREDICATE:
@@ -38,7 +48,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -111,8 +123,7 @@ class TB:
         dut.M_AXIS_TREADY.value = 1
 
     async def _edge(self):
-        await RisingEdge(self.dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.clk)
 
     async def reset(self):
         self.dut.rst.value = 1
@@ -150,8 +161,7 @@ class TB:
         dut = self.dut
         n = 0
         for _ in range(window_clk):
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             if int(dut.M_AXIS_TVALID.value) and int(dut.M_AXIS_TREADY.value):
                 n += 1
         return n

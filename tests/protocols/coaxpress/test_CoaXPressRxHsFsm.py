@@ -25,7 +25,8 @@ import os
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
@@ -247,8 +248,7 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
             _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -316,8 +316,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -393,8 +392,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -481,8 +479,7 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(8):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [
@@ -612,8 +609,7 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     dut.sAxisTLast.value = 0
     shared_beat_cycles = 0
     for _ in range(1024):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         shared_beat_cycles += 1
         error_seen |= int(dut.rxFsmError.value) == 1
         trace.append(
@@ -641,8 +637,7 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(8):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         error_seen |= int(dut.rxFsmError.value) == 1
         trace.append(
             f"idle ready={int(dut.sAxisTReady.value)} err={int(dut.rxFsmError.value)} "

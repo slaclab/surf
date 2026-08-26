@@ -37,7 +37,9 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
@@ -81,8 +83,7 @@ async def _send_contiguous_frame_after_tpd(endpoint, beats: list[SsiBeat], *, cl
     for beat in beats:
         endpoint.drive(beat)
         for _ in range(1024):
-            await RisingEdge(clk)
-            await Timer(2, unit="ns")
+            await sample_after_tpd(clk, propagation_time=2)
             if int(endpoint._sig("TReady").value) == 1:
                 break
         else:
@@ -174,13 +175,11 @@ class TB:
                     for field in fields:
                         beat[field] = int(getattr(self.dut, field).value)
                     beats.append(beat)
-                    await RisingEdge(self.clk)
-                    await Timer(1, unit="ns")
+                    await sample_after_tpd(self.clk)
                     if beat.get("mAxisTLast", 0) == 1:
                         return beats
                 else:
-                    await RisingEdge(self.clk)
-                    await Timer(1, unit="ns")
+                    await sample_after_tpd(self.clk)
         finally:
             self.dut.mAxisTReady.value = 0
         raise AssertionError("Timed out waiting for selected mAxis frame fields")

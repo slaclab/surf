@@ -1,14 +1,11 @@
 {
   "rules": {
+    "bare-return": {},
     "direct-runner": {},
     "duplicate-imported-source": {},
+    "edge-then-timer": {},
     "early-bare-return": {},
-    "missing-methodology": {
-      "tests/ethernet/RoCEv2/test_RoCEv2AxiStreamRdmaCore.py": 1,
-      "tests/ethernet/RoCEv2/test_RoCEv2Dcqcn.py": 1,
-      "tests/simlink/rogue/test_RogueSideBandRogue.py": 1,
-      "tests/simlink/rogue/test_RogueStreamRogue.py": 1
-    },
+    "missing-methodology": {},
     "open-ended-loop": {},
     "unretained-start-soon": {}
   },

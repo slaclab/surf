@@ -25,7 +25,9 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiBus, AxiLiteBus, AxiLiteMaster, AxiRam
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -72,8 +74,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         # Hold both reset domains active together because this regression keeps
@@ -107,8 +108,7 @@ class TB:
     async def _monitor_aw(self):
         """Lifetime agent: record accepted write addresses for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
                 self.aw_handshakes.append(
                     (
@@ -123,8 +123,7 @@ class TB:
     async def _monitor_w(self):
         """Lifetime agent: record accepted write data for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_WVALID.value) and logic_int(self.dut.M_AXI_WREADY.value):
                 self.w_handshakes.append(
                     (
@@ -137,8 +136,7 @@ class TB:
     async def _monitor_ar(self):
         """Lifetime agent: record accepted read addresses for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_ARVALID.value) and logic_int(self.dut.M_AXI_ARREADY.value):
                 self.ar_handshakes.append(
                     (
@@ -153,8 +151,7 @@ class TB:
     async def _monitor_r(self):
         """Lifetime agent: record accepted read data for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_RVALID.value) and logic_int(self.dut.M_AXI_RREADY.value):
                 self.r_handshakes.append(
                     (

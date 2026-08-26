@@ -27,7 +27,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_flag,
@@ -70,13 +72,11 @@ class Pgp4RxEbTB:
 
     async def cycle_phy(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.phyClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.phyClk)
 
     async def cycle_pgp(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.pgpClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.pgpClk)
 
     async def sample_pgp_cycle(self):
         await FallingEdge(self.dut.pgpClk)

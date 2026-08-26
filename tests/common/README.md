@@ -136,6 +136,22 @@ Give an intentional open-ended agent a function docstring containing
 audit recognizes that explicit classification; do not use the marker on a
 finite handshake, receive loop, or transaction that needs a cycle/time limit.
 
+Prefer ordinary `if`/`else` structure when a parameter selects different test
+behavior. If a fully checked parameter-specific branch must terminate early,
+put a `# Terminal scenario:` comment immediately above its bare return and state
+why the assertions above are that parameter's complete contract. The blocking
+audit rejects every other post-activity bare return as ambiguous.
+
+Use `sample_after_delta_cycles()` and `sample_after_tpd()` from
+`regression_utils.py` to state why a test samples after a clock edge. The former
+enters cocotb's read-only phase for delta-settled observation; the latter waits
+real simulated time for a VHDL `after TPD_G` update. A reusable propagation
+helper carries a `Propagation sampling:` docstring so the audit can distinguish
+that reviewed timing contract from an unexplained edge-plus-timer sequence.
+Use `wait_after_edge_offset()` instead when real simulated time intentionally
+places stimulus between edges; its `Real-time timing:` contract is likewise
+recognized without pretending that the offset is output propagation.
+
 ## Compliance Audit And Preservation Reports
 
 `compliance_audit.py` provides a read-only structural audit and a reproducible
@@ -173,12 +189,12 @@ enough to enforce structurally: methodology presence, ordinary direct-runner
 exceptions, literal VHDL sources duplicated from the ruckus import, and a bare
 entrypoint return reached before any awaited simulator activity or assertion.
 It also rejects an unretained non-clock `cocotb.start_soon()` call and an
-unclassified `while True` loop. Intentional lifetime loops must carry the
-`Lifetime agent:` docstring contract described above; finite operations must
-use a direct cycle/time bound instead.
-Returns after test activity remain report-only because they can be intentional
-successful terminal paths and require semantic review. Run the check after
-importing the HDL tree:
+unclassified `while True` loop, an unexplained post-edge real-time delay, and
+an ambiguous post-activity bare return. Intentional lifetime loops must carry
+the `Lifetime agent:` docstring contract described above; finite operations
+must use a direct cycle/time bound instead. Reviewed propagation sampling and
+real-time offsets must use the named helpers or documentation contracts above.
+Run the check after importing the HDL tree:
 
 ```bash
 make MODULES="$PWD" import

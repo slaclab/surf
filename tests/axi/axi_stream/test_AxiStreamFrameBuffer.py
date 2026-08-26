@@ -31,7 +31,9 @@ import math
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiStreamBus, AxiStreamSink
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks, parameter_case
@@ -99,8 +101,7 @@ class TB:
 
     async def cycle(self, clk, count=1):
         for _ in range(count):
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
 
     # Wait for one cycle of the slowest clock
     async def cycleSlowest(self, count=1):
