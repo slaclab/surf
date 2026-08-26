@@ -261,7 +261,9 @@ deassert the source immediately.
 
 Use `start_lockstep_clocks()` for `COMMON_CLK_G` or similar wrappers that expect
 truly shared clock edges. Do not start two independent same-period clock
-coroutines when the DUT contract is common-clock behavior.
+coroutines when the DUT contract is common-clock behavior. Retain its returned
+task on the bench (for example, `self._clock_task = start_lockstep_clocks(...)`)
+so ownership remains explicit just like any other lifetime agent.
 
 ## Isolation And Coroutine Lifecycle
 

@@ -30,7 +30,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-from tests.axi.utils import axil_read_u32, axil_write_u32
+from tests.axi.utils import axil_read_u32, axil_write_u32, wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.RoCEv2.roce_test_utils import axil_read_wide, axil_write_wide, roce_rtl_sources
 
@@ -103,12 +103,8 @@ async def roce_configurator_axil_to_metadata_stream_test(dut):
     # read-only response register bank update as expected.
     dut.S_META_RESP_TDATA.value = first_response
     dut.S_META_RESP_TVALID.value = 1
-    while True:
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
-        if int(dut.S_META_RESP_TREADY.value) == 1:
-            dut.S_META_RESP_TVALID.value = 0
-            break
+    await wait_sampled_ready(dut.S_META_RESP_TREADY, clk=dut.clk)
+    dut.S_META_RESP_TVALID.value = 0
 
     await tb.cycle(2)
     assert (await axil_read_u32(tb.axil, 0xF00) >> 1) & 0x1 == 1

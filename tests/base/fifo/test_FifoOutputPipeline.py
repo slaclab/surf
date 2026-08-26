@@ -59,8 +59,10 @@ class TB:
         # Start the main DUT clock. For pipelined cases, also start the little
         # Python coroutine that emulates the upstream FWFT source.
         cocotb.start_soon(Clock(dut.clk, self.clk_period_ns, unit="ns").start())
+        self._source_task = None
         if self.pipe_stages > 0:
-            cocotb.start_soon(self._drive_source())
+            # Lifetime source model retained by the bench.
+            self._source_task = cocotb.start_soon(self._drive_source())
 
     def reset_active_value(self) -> int:
         return self.rst_polarity
@@ -98,6 +100,7 @@ class TB:
         self.source_words.extend(words)
 
     async def _drive_source(self) -> None:
+        """Lifetime agent: emulate the upstream FWFT source for this test."""
         # This coroutine emulates the upstream FIFO/source interface. It keeps
         # `sValid/sData` aligned to the DUT's `sRdEn` requests.
         next_valid = 0

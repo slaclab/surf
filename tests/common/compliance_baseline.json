@@ -8,7 +8,9 @@
       "tests/ethernet/RoCEv2/test_RoCEv2Dcqcn.py": 1,
       "tests/simlink/rogue/test_RogueSideBandRogue.py": 1,
       "tests/simlink/rogue/test_RogueStreamRogue.py": 1
-    }
+    },
+    "open-ended-loop": {},
+    "unretained-start-soon": {}
   },
   "schema_version": 1
 }

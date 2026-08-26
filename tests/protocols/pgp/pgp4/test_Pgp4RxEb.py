@@ -59,7 +59,11 @@ class Pgp4RxEbTB:
         self.phy_period_ns = env_float("PHY_CLK_PERIOD_NS", default=4.0)
         self.pgp_period_ns = env_float("PGP_CLK_PERIOD_NS", default=4.125)
         if env_flag("COMMON_CLK", default=False):
-            start_lockstep_clocks(dut.phyClk, dut.pgpClk, period_ns=self.phy_period_ns)
+            self._clock_task = start_lockstep_clocks(
+                dut.phyClk,
+                dut.pgpClk,
+                period_ns=self.phy_period_ns,
+            )
         else:
             cocotb.start_soon(Clock(dut.phyClk, self.phy_period_ns, unit="ns").start())
             cocotb.start_soon(Clock(dut.pgpClk, self.pgp_period_ns, unit="ns").start())
@@ -95,8 +99,11 @@ class PulseMonitor:
         self.signal_name = signal_name
         self.step = step
         self.seen = False
+        # Lifetime observer retained by its monitor owner.
+        self.task = cocotb.start_soon(self.run())
 
     async def run(self):
+        """Lifetime agent: observe pulses until cocotb ends the test."""
         while True:
             await self.step()
             if signal_int(self.dut, self.signal_name) == 1:
@@ -112,8 +119,11 @@ class ValidBeatCollector:
         self.valid_name = valid_name
         self.field_names = field_names
         self.beats: list[tuple[int, ...]] = []
+        # Lifetime observer retained by its collector owner.
+        self.task = cocotb.start_soon(self.run())
 
     async def run(self):
+        """Lifetime agent: collect valid beats until cocotb ends the test."""
         while True:
             await self.step()
             if signal_int(self.dut, self.valid_name) == 1:
@@ -224,7 +234,6 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
         valid_name="pgpRxValid",
         field_names=("pgpRxHeader", "pgpRxData"),
     )
-    cocotb.start_soon(collector.run())
 
     data_word_a = 0x0123456789ABCDEF
     idle_word = pgp4_idle_word(rem_link_ready=1, pause_mask=0x1234, overflow_mask=0x00A5)
@@ -286,7 +295,6 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     # regression realistic and only execute the deep fill test when the pytest
     # parameter sweep requests the explicit overflow-stress clock ratio.
     overflow_monitor = PulseMonitor(dut, "overflow", step=tb.cycle_pgp)
-    cocotb.start_soon(overflow_monitor.run())
 
     # The DUT uses a 512-entry async FIFO.  With the write clock much faster
     # than the read clock, a sustained burst should eventually overrun that
@@ -311,8 +319,6 @@ async def pgp4_rx_eb_skip_disabled_passes_stream_and_link_error(dut):
         field_names=("pgpRxHeader", "pgpRxData"),
     )
     link_error_monitor = PulseMonitor(dut, "linkError", step=tb.sample_pgp_cycle)
-    cocotb.start_soon(collector.run())
-    cocotb.start_soon(link_error_monitor.run())
 
     data_word = 0x123456789ABCDEF0
     await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word, link_error=1)

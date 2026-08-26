@@ -132,6 +132,7 @@ class TB:
 
     # --- ingress source: 32-byte beats full-rate, honoring S_AXIS_TREADY -----
     async def drive_beats(self):
+        """Lifetime agent: drive full-rate ingress until its test cancels it."""
         dut = self.dut
         ctr = 0
         while True:
@@ -179,7 +180,8 @@ async def baseline_no_cnp(dut):
     await tb.reset()
     await tb.configure_intervals(RATE_INC_INTERVAL_HOLD)
 
-    cocotb.start_soon(tb.drive_beats())
+    # The full-rate source is a lifetime agent for this measurement window.
+    source_task = cocotb.start_soon(tb.drive_beats())
 
     async def body():
         # Let the FIFO prime and the TokenBucket reach steady state.
@@ -194,7 +196,10 @@ async def baseline_no_cnp(dut):
         assert 0.20 <= rate <= 0.30, \
             f"baseline egress {rate:.4f} b/clk outside the ~0.25 token-bucket band ({beats}/{COUNT_WINDOW})"
 
-    await with_timeout(body(), 200_000, "ns")
+    try:
+        await with_timeout(body(), 200_000, "ns")
+    finally:
+        source_task.cancel()
 
 
 @cocotb.test()
@@ -211,7 +216,8 @@ async def single_cnp_halves(dut):
     # measurement window, isolating the single 50% cut from the slow recovery.
     await tb.configure_intervals(RATE_INC_INTERVAL_HOLD)
 
-    cocotb.start_soon(tb.drive_beats())
+    # The full-rate source is a lifetime agent for this measurement window.
+    source_task = cocotb.start_soon(tb.drive_beats())
 
     async def body():
         # Establish the LINE_RATE baseline.
@@ -243,7 +249,10 @@ async def single_cnp_halves(dut):
         assert after >= base * 0.35, \
             f"post-CNP egress {after} collapsed below the expected half-rate {base} (over-throttled)"
 
-    await with_timeout(body(), 300_000, "ns")
+    try:
+        await with_timeout(body(), 300_000, "ns")
+    finally:
+        source_task.cancel()
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="rocev2_dcqcn")])

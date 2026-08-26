@@ -60,7 +60,8 @@ class TB:
         dut.S_SIDE_BAND.setimmediatevalue(0)
         dut.M_AXIS_TREADY.setimmediatevalue(0)
 
-        cocotb.start_soon(self._monitor_sideband())
+        # Lifetime monitor retained by the bench until cocotb ends the test.
+        self._monitor_task = cocotb.start_soon(self._monitor_sideband())
 
     def reset_active_value(self) -> int:
         return self.reset_active
@@ -77,6 +78,7 @@ class TB:
             await self.settle()
 
     async def _monitor_sideband(self):
+        """Lifetime agent: collect resized sidebands until the test ends."""
         while True:
             await RisingEdge(self.dut.axisClk)
             await self.settle()

@@ -611,7 +611,7 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     dut.sAxisTKeep.value = lane_keep_mask([0, 1, 2, 3])
     dut.sAxisTLast.value = 0
     shared_beat_cycles = 0
-    while True:
+    for _ in range(1024):
         await RisingEdge(dut.rxClk)
         await Timer(1, unit="ns")
         shared_beat_cycles += 1
@@ -623,6 +623,11 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
         if int(dut.sAxisTReady.value) == 1:
             break
+    else:
+        raise AssertionError(
+            "Timed out waiting for shared tail/marker beat acceptance; "
+            f"trace tail={trace[-8:]}"
+        )
     dut.sAxisTValid.value = 0
     dut.sAxisTData.value = 0
     dut.sAxisTKeep.value = 0

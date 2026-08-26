@@ -213,7 +213,8 @@ async def drive_loopback_link_up(
                       the arrival-phase sweep). Default 0 for the data-integrity test.
 
     Returns:
-        (stop_event, golden_capture) so callers can stop coroutine and tap wire.
+        (stop_event, loopback_task, golden_capture) so callers can stop and
+        await the lifetime forwarding agent and tap the captured wire data.
     """
     dut = tb.dut
 
@@ -251,7 +252,7 @@ async def drive_loopback_link_up(
     if golden_capture is None:
         golden_capture = []
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(
             dut,
             l_g,
@@ -275,7 +276,15 @@ async def drive_loopback_link_up(
     # Step 6: wait for all lanes to reach DATA state
     await wait_data_valid_all(dut, l_g, clk=dut.devClk_i, timeout_cycles=4096)
 
-    return stop_event, golden_capture
+    return stop_event, loopback_task, golden_capture
+
+
+async def stop_loopback_agent(tb, stop_event, loopback_task) -> None:
+    """Stop and join a forwarding agent while preserving link settle time."""
+
+    stop_event.set()
+    await loopback_task
+    await tb.dev_cycle(1)
 
 
 # ---------------------------------------------------------------------------
@@ -314,7 +323,7 @@ async def test_jesd204b_loopback(dut):
     # Link-up phase
     # -----------------------------------------------------------------------
     golden_capture = []
-    stop_event, golden_capture = await drive_loopback_link_up(
+    stop_event, loopback_task, golden_capture = await drive_loopback_link_up(
         tb, l_g, subclass, scr_enable, golden_capture=golden_capture
     )
 
@@ -491,8 +500,7 @@ async def test_jesd204b_loopback(dut):
         )
 
     # Stop forwarding coroutine
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
 
 
 # ---------------------------------------------------------------------------
@@ -565,7 +573,7 @@ async def test_jesd204b_dlat_sweep(dut):
         # Each iteration starts from a clean elastic buffer (tb.reset() re-asserts
         # devRst_i which drives s_bufRst via JesdRxLane.vhd:165).
         # -----------------------------------------------------------------------
-        stop_event, _ = await drive_loopback_link_up(
+        stop_event, loopback_task, _ = await drive_loopback_link_up(
             tb, l_g, subclass, scr_enable, delay_cycles=d
         )
 
@@ -612,8 +620,7 @@ async def test_jesd204b_dlat_sweep(dut):
         # forwarding coroutine can cause premature SYNC_S → HOLD_S transitions
         # when the FSM restarts after devRst deasserts.
         # -----------------------------------------------------------------------
-        stop_event.set()
-        await tb.dev_cycle(2)
+        await stop_loopback_agent(tb, stop_event, loopback_task)
         # Drive K28.5 (CGS) to all RX GT inputs before reset. This prevents the RX
         # FSM from seeing stale non-K data during the next drive_loopback_link_up's
         # setup phase (before the new forwarding coroutine starts), which would
@@ -769,7 +776,12 @@ async def test_jesd204b_resync_matrix(dut):
     # -----------------------------------------------------------------------
     # Step 1: Initial link-up + baseline latency measurement
     # -----------------------------------------------------------------------
-    stop_event, _ = await drive_loopback_link_up(tb, l_g, subclass, scr_enable)
+    stop_event, loopback_task, _ = await drive_loopback_link_up(
+        tb,
+        l_g,
+        subclass,
+        scr_enable,
+    )
     baseline = await measure_marked_latency(tb, l_g)
 
     # -----------------------------------------------------------------------
@@ -778,22 +790,21 @@ async def test_jesd204b_resync_matrix(dut):
     # -----------------------------------------------------------------------
     k28_5_word = 0xBCBCBCBC
 
-    async def _restart_link(se):
+    async def _restart_link(se, task):
         """Stop coroutine se, drive K28.5 to RX GT inputs, restart coroutine, pulse sysRef."""
-        se.set()
-        await tb.dev_cycle(2)
+        await stop_loopback_agent(tb, se, task)
         for _ln in range(l_g):
             getattr(dut, f"gtRxData_{_ln}_i").value = k28_5_word
             getattr(dut, f"gtRxDataK_{_ln}_i").value = 0xF
         new_se = Event()
-        cocotb.start_soon(
+        new_task = cocotb.start_soon(
             forward_gt_loopback(dut, l_g, clk=dut.devClk_i, stop_event=new_se)
         )
         await tb.dev_cycle(2)
         dut.sysRef_i.value = 1
         await tb.dev_cycle(16)
         dut.sysRef_i.value = 0
-        return new_se
+        return new_se, new_task
 
     # -----------------------------------------------------------------------
     # Step 2: Four resync paths, each at a different LMFC offset
@@ -808,8 +819,7 @@ async def test_jesd204b_resync_matrix(dut):
     # devClk edge (forwarding loop writes nSync_TX_i each cycle from nSync_RX_o).
     await tb.dev_cycle(lmfc_offsets[0])
     # Step a1: stop coroutine and drive K28.5 (RX sees K28.5 -> exits DATA_S).
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
     for _ln in range(l_g):
         getattr(dut, f"gtRxData_{_ln}_i").value = k28_5_word
         getattr(dut, f"gtRxDataK_{_ln}_i").value = 0xF
@@ -819,7 +829,7 @@ async def test_jesd204b_resync_matrix(dut):
     await tb.dev_cycle(8)        # synchronizer latency (~3-4 cycles)
     # Step a3: restart forwarding coroutine + pulse sysRef to re-link.
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(dut, l_g, clk=dut.devClk_i, stop_event=stop_event)
     )
     await tb.dev_cycle(2)
@@ -842,7 +852,7 @@ async def test_jesd204b_resync_matrix(dut):
     await write_rx_cdc(tb, RX_ENABLE_ADDR, enable_mask)   # re-enable RX
     # Restart link: stop/restart coroutine + pulse sysRef (SC1 requires sysRef to advance
     # from IDLE_S; JesdSyncFsmRx.vhd:189-191).
-    stop_event = await _restart_link(stop_event)
+    stop_event, loopback_task = await _restart_link(stop_event, loopback_task)
     await wait_data_valid_all(dut, l_g, clk=dut.devClk_i, timeout_cycles=4096)
     latency_b = await measure_marked_latency(tb, l_g)
     assert latency_b == baseline, (
@@ -857,7 +867,7 @@ async def test_jesd204b_resync_matrix(dut):
     await _wait_data_valid_drop(tb, l_g)
     await write_tx_cdc(tb, TX_ENABLE_ADDR, enable_mask)   # re-enable TX
     # SC1 requires sysRef for IDLE_S -> SYSREF_S on both tops.
-    stop_event = await _restart_link(stop_event)
+    stop_event, loopback_task = await _restart_link(stop_event, loopback_task)
     await wait_data_valid_all(dut, l_g, clk=dut.devClk_i, timeout_cycles=4096)
     latency_c = await measure_marked_latency(tb, l_g)
     assert latency_c == baseline, (
@@ -875,8 +885,7 @@ async def test_jesd204b_resync_matrix(dut):
     # Step d1: write gtReset bit (CommonCtrl bit 2) to signal the GT reset intent.
     await write_rx_cdc(tb, RX_COMMON_ADDR, rx_ctrl | (1 << 2))
     # Step d2: stop forwarding coroutine so we can manually control rstDone.
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
     # Step d3: deassert rstDone on all RX GT inputs (simulate GT transceiver reset).
     # RX FSM DATA_S: gtReady_i=0 -> IDLE_S.
     for lane in range(l_g):
@@ -894,7 +903,7 @@ async def test_jesd204b_resync_matrix(dut):
     # to exit DATA_S and start emitting K28.5, then 4 more cycles for kStable to recover.
     # Wait 16 cycles before sysRef to ensure kStable=1 when sysRef fires.
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(dut, l_g, clk=dut.devClk_i, stop_event=stop_event)
     )
     await tb.dev_cycle(16)   # wait for TX to exit DATA_S and kStable to recover
@@ -909,8 +918,7 @@ async def test_jesd204b_resync_matrix(dut):
     )
 
     # Stop forwarding coroutine
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
 
 
 # ---------------------------------------------------------------------------
@@ -995,14 +1003,18 @@ async def test_jesd204b_rst02(dut):
     # drive_loopback_link_up starts a coroutine WITHOUT injection_fn; we stop
     # and restart it so the injection_fn is active for subsequent cycles.
     # Use the _restart_link helper pattern: stop → K28.5 → new coroutine → sysRef.
-    stop_event, _ = await drive_loopback_link_up(tb, l_g, subclass, scr_enable)
+    stop_event, loopback_task, _ = await drive_loopback_link_up(
+        tb,
+        l_g,
+        subclass,
+        scr_enable,
+    )
     # Stop the existing coroutine; restart with injection_fn (armed=False initially).
     k28_5_word = 0xBCBCBCBC
     # STOP coroutine first (so it cannot override the manual nSync_TX_i write).
     # Then set nSync_TX_i=0 so TX exits DATA_S. Then drive K28.5 so RX exits
     # DATA_S via kStable. This matches the pattern from the resync matrix path (a).
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
     for lane in range(l_g):
         getattr(dut, f"gtRxData_{lane}_i").value = k28_5_word
         getattr(dut, f"gtRxDataK_{lane}_i").value = 0xF
@@ -1010,7 +1022,7 @@ async def test_jesd204b_rst02(dut):
     dut.nSync_TX_i.value = 0    # TX DATA_S sees nSync=0 → exits to IDLE_S
     await tb.dev_cycle(8)       # synchronizer latency ~4 cycles, extra margin
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(
             dut, l_g, clk=dut.devClk_i,
             injection_fn=disp_err_injection_fn,
@@ -1076,13 +1088,12 @@ async def test_jesd204b_rst02(dut):
     # SC1 requires sysRef pulse: stop current coroutine, drive K28.5, restart, pulse sysRef.
     k28_5_word = 0xBCBCBCBC
     await write_rx_cdc(tb, RX_ENABLE_ADDR, enable_mask)
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
     for lane in range(l_g):
         getattr(dut, f"gtRxData_{lane}_i").value = k28_5_word
         getattr(dut, f"gtRxDataK_{lane}_i").value = 0xF
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(dut, l_g, clk=dut.devClk_i, stop_event=stop_event)
     )
     await tb.dev_cycle(2)
@@ -1127,13 +1138,12 @@ async def test_jesd204b_rst02(dut):
     await _wait_data_valid_drop(tb, l_g)
     # Re-enable and pulse sysRef for SC1 re-link.
     await write_rx_cdc(tb, RX_ENABLE_ADDR, enable_mask)
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
     for lane in range(l_g):
         getattr(dut, f"gtRxData_{lane}_i").value = k28_5_word
         getattr(dut, f"gtRxDataK_{lane}_i").value = 0xF
     stop_event = Event()
-    cocotb.start_soon(
+    loopback_task = cocotb.start_soon(
         forward_gt_loopback(dut, l_g, clk=dut.devClk_i, stop_event=stop_event)
     )
     await tb.dev_cycle(2)
@@ -1171,8 +1181,7 @@ async def test_jesd204b_rst02(dut):
     )
 
     # Stop forwarding coroutine
-    stop_event.set()
-    await tb.dev_cycle(2)
+    await stop_loopback_agent(tb, stop_event, loopback_task)
 
 
 # ---------------------------------------------------------------------------

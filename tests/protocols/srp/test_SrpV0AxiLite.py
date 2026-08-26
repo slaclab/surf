@@ -87,22 +87,28 @@ class TB:
         self.dut.M_AXIL_AWREADY.value = 1
         self.dut.M_AXIL_WREADY.value = 1
 
-        while "address" not in record or "data" not in record:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_AWVALID.value) and int(self.dut.M_AXIL_AWREADY.value):
                 record["address"] = int(self.dut.M_AXIL_AWADDR.value)
             if int(self.dut.M_AXIL_WVALID.value) and int(self.dut.M_AXIL_WREADY.value):
                 record["data"] = int(self.dut.M_AXIL_WDATA.value)
                 record["strobe"] = int(self.dut.M_AXIL_WSTRB.value)
+            if "address" in record and "data" in record:
+                break
+        else:
+            raise AssertionError(f"Timed out waiting for AXI-Lite write request: {record}")
 
         self.dut.M_AXIL_AWREADY.value = 0
         self.dut.M_AXIL_WREADY.value = 0
         self.dut.M_AXIL_BRESP.value = int(resp)
         self.dut.M_AXIL_BVALID.value = 1
-        while True:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_BREADY.value):
                 break
+        else:
+            raise AssertionError("Timed out waiting for AXI-Lite write response acceptance")
         self.dut.M_AXIL_BVALID.value = 0
         self.dut.M_AXIL_BRESP.value = 0
         return record
@@ -110,19 +116,24 @@ class TB:
     async def accept_one_read(self, *, data: int, resp: AxiResp = AxiResp.OKAY) -> dict[str, int]:
         record = {}
         self.dut.M_AXIL_ARREADY.value = 1
-        while "address" not in record:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_ARVALID.value) and int(self.dut.M_AXIL_ARREADY.value):
                 record["address"] = int(self.dut.M_AXIL_ARADDR.value)
+                break
+        else:
+            raise AssertionError("Timed out waiting for AXI-Lite read request")
 
         self.dut.M_AXIL_ARREADY.value = 0
         self.dut.M_AXIL_RDATA.value = data
         self.dut.M_AXIL_RRESP.value = int(resp)
         self.dut.M_AXIL_RVALID.value = 1
-        while True:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_RREADY.value):
                 break
+        else:
+            raise AssertionError("Timed out waiting for AXI-Lite read response acceptance")
         self.dut.M_AXIL_RVALID.value = 0
         self.dut.M_AXIL_RRESP.value = 0
         return record

@@ -30,6 +30,8 @@ ENFORCED_RULES = {
     "duplicate-imported-source",
     "early-bare-return",
     "missing-methodology",
+    "open-ended-loop",
+    "unretained-start-soon",
 }
 
 EXCLUDED_DIRECTORY_NAMES = {
@@ -39,6 +41,7 @@ EXCLUDED_DIRECTORY_NAMES = {
 }
 
 METHODOLOGY_MARKER = "Test methodology:"
+LIFETIME_AGENT_MARKER = "Lifetime agent:"
 ENVIRONMENT_CONTROL_RE = re.compile(
     r"^(?:RUN_[A-Z0-9_]*_TESTS|COCOTB_TEST_FILTER|COCOTB_TESTCASE|[A-Z0-9_]*TESTCASE)$"
 )
@@ -161,6 +164,11 @@ def _has_skip(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
         if isinstance(node, ast.Call) and _qualified_name(node.func) == "pytest.skip":
             return True
     return False
+
+
+def _is_lifetime_agent(function: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    docstring = ast.get_docstring(function, clean=False)
+    return docstring is not None and LIFETIME_AGENT_MARKER in docstring
 
 
 class _FunctionWalker(ast.NodeVisitor):
@@ -440,9 +448,10 @@ def audit_source(
 
     for function in _all_functions(tree):
         parents = _parent_map(function)
+        lifetime_agent = _is_lifetime_agent(function)
         for node in _walk_function(function):
             if isinstance(node, ast.While) and isinstance(node.test, ast.Constant):
-                if node.test.value is True:
+                if node.test.value is True and not lifetime_agent:
                     findings.append(
                         Finding(
                             "open-ended-loop",

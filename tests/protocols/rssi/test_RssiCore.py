@@ -321,6 +321,7 @@ class TB:
         *,
         side: str,
     ) -> None:
+        """Lifetime agent: relay RSSI traffic until cocotb ends the test."""
         dropping = False
         destination.set_idle()
         source_ready.value = 0

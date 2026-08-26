@@ -104,7 +104,8 @@ class DrpAxiLiteSlave:
         dut.M_AXI_RRESP.setimmediatevalue(0)
         dut.M_AXI_RDATA.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run_read())
+        # Lifetime DRP responder retained by its bus-model owner.
+        self._responder_task = cocotb.start_soon(self._run_read())
 
     def set_phases(self, phases) -> None:
         """Replace the scripted phase sequence and restart from its head."""
@@ -139,6 +140,7 @@ class DrpAxiLiteSlave:
             await self.cycle(1)
 
     async def _run_read(self) -> None:
+        """Lifetime agent: serve DRP reads until cocotb ends the test."""
         while True:
             await self._wait_while_reset()
 
@@ -214,7 +216,8 @@ class GtBuffBypassModel:
         dut.resetDone.setimmediatevalue(0)
         dut.resetErr.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run())
+        # Lifetime GT peer retained by its model owner.
+        self._model_task = cocotb.start_soon(self._run())
 
     def arm_error(self, *, lead_cycles: int = 0) -> None:
         """Make the next alignment attempt report an error."""
@@ -251,6 +254,7 @@ class GtBuffBypassModel:
             return False
 
     async def _run(self) -> None:
+        """Lifetime agent: model GT buffer bypass until cocotb ends the test."""
         while True:
             # Track the checker's reset request. resetOut is registered in the
             # axilClk domain, so sample it from the RX clock like real hardware.
@@ -303,7 +307,8 @@ class ResetOutMonitor:
         self.pulses = 0
         self.max_width = 0
         self._width = 0
-        cocotb.start_soon(self._run())
+        # Lifetime observer retained by its monitor owner.
+        self._monitor_task = cocotb.start_soon(self._run())
 
     def reset_counts(self) -> None:
         self.pulses = 0
@@ -311,6 +316,7 @@ class ResetOutMonitor:
         self._width = 0
 
     async def _run(self) -> None:
+        """Lifetime agent: monitor reset pulses until cocotb ends the test."""
         previous = 0
         while True:
             await RisingEdge(self.dut.axilClk)

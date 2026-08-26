@@ -115,6 +115,89 @@ VCS SimLink use is retained because that helper deliberately pre-analyzes its
 mixed-language topology before asking cocotb-test to elaborate without source
 arguments.
 
+Phase 3 has completed its first ownership batch. All 25 unretained non-clock
+task findings in `tests/axi/` were lifetime monitors or protocol responders;
+the owning benches now retain and name them, while the existing finite AXI
+transaction tasks remain awaited. `start_lockstep_clocks()` now returns its
+lifetime task so benches can retain that ownership as well. The common helper
+suite passes all 84 tests, a representative 14-node serial AXI run passes, and
+the full 117-node AXI suite passes under pytest-xdist. No pytest node, cocotb
+entrypoint, parameter ID, selector, or gate changed.
+
+The next Phase 3 batch removed 12 more unretained-task findings across the base
+FIFO, SSI, Xilinx GT alignment, CoaXPress low-speed TX, and PGP4 elastic-buffer
+suites. The two CoaXPress stimulus coroutines are finite and are now awaited;
+the remaining responders, source models, monitors, and collectors are named
+lifetime agents retained by their owning model. All 14 affected pytest nodes
+pass serially in 95.17 seconds and repeat under pytest-xdist in 6.22 seconds.
+
+The RoCEv2 lifecycle batch removed another 16 findings. Finite RDMA packet
+producers are awaited, long-running engine/source peers are retained and
+cancelled in `finally`, and the resize sideband monitor is bench-owned. This is
+especially important on RDMA watchdog failures, which now clean up both the
+engine and any incomplete producer before propagating the timeout. All five
+affected pytest nodes pass serially in 149.54 seconds and under pytest-xdist in
+96.92 seconds.
+
+The JESD204B loopback cleanup removed the final seven unretained-task findings.
+GT-forwarding agents now travel with both their stop event and task handle;
+every link restart signals and joins the old agent before a replacement starts,
+while preserving the original two-cycle handoff margin. All nine loopback
+pytest nodes pass serially in 156.58 seconds and under pytest-xdist in 21.40
+seconds. The repository unretained-task screening count is now zero. Phase 3
+continues with bounded-wait and external-resource review before that structural
+result is promoted to a blocking ratchet.
+
+The open-loop audit now recognizes only functions whose docstring explicitly
+contains `Lifetime agent:`. Forty-four monitor, responder, clock, source,
+transport, and protocol-peer loops have been reviewed and annotated with that
+ownership contract. This reduced the ambiguous open-loop report from 66 to 22
+finite operations, without allowlisting paths or function names. The remaining
+22 are being converted to direct cycle/time bounds; the marker is not permitted
+as a substitute for bounding a transaction.
+
+Eight AXI finite loops now use `wait_sampled_ready()` with its 1024-cycle limit
+or an equivalent explicit IPbus acknowledgement limit. This removes ad hoc
+ready/valid polling from the compact and FIFO integration benches while keeping
+the accepting edge semantics unchanged. All 15 affected nodes pass both
+serially and under pytest-xdist; 14 finite open-loop findings remain.
+
+Six more RoCEv2, CoaXPress, and PGP waits are bounded. DMA drains now fail with
+the number of beats received after a conservative 65,536-cycle deadline; the
+stream-facing cases use the shared 1024-cycle accepted-handshake primitive or
+an equivalent diagnostic limit. All eight affected nodes pass serially in
+94.57 seconds and under pytest-xdist in 37.05 seconds. Eight finite open-loop
+findings remain, confined to SRP, SSI, and SimLink.
+
+The SRP and SSI batch removes six more finite open-loop findings. SRP response
+collection remains protected by its existing 20-us `with_timeout()` and now
+uses condition-driven completion internally; its direct AXI-Lite responder
+waits also have 1024-cycle diagnostic limits. The SSI resize waiter retains its
+existing 1-ms operation timeout while making terminal-beat completion explicit.
+All 175 affected parameter cases pass serially in 1837.27 seconds and from the
+cache under pytest-xdist in 76.68 seconds.
+
+The final two finite `while True` findings were SimLink traffic operations.
+Multi-instance traffic now carries its existing wall-clock deadline directly
+in the loop, and the native receive probe has its own four-second diagnostic
+deadline in addition to the parent-process watchdog. Both retain unconditional
+task/process/native-context cleanup. The focused native and GHDL SimLink suite
+passes all nine nodes in 4.60 seconds with localhost socket access.
+
+The repository reports zero unretained non-clock `start_soon()` calls and zero
+unclassified `while True` loops. Both rules now participate in the checked-in
+zero-entry compliance baseline, so new implicit task ownership or open-ended
+transaction loops fail the blocking repository check. Conditional polling
+loops remain a distinct bounded-wait review and are not represented by this
+structural zero.
+
+The first conditional-wait batch covers the RoCEv2 RDMA core's ten direct
+ready/valid polls. They now use one bench-local 65,536-cycle helper that names
+the stalled interface in its failure, while scoreboard/liveness waits retain
+their existing operation-level `with_timeout()` watchdogs and fixed-length
+CoaXPress capture loops remain directly cycle-bounded by their requested
+sample count. The RDMA-core pytest node passes serially in 35.55 seconds.
+
 ## Non-Negotiable Preservation Rules
 
 - Do not remove an existing test, parameter case, opt-in gate, or behavioral

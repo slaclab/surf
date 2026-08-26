@@ -66,9 +66,10 @@ class TB:
 
         # Record the cycle where source and sink handshakes complete so the
         # tests can talk about pipeline latency in exact clock cycles.
-        cocotb.start_soon(self._monitor_handshakes())
+        self._monitor_task = cocotb.start_soon(self._monitor_handshakes())
 
     async def _monitor_handshakes(self):
+        """Lifetime agent: record pipeline handshakes until the test ends."""
         cycle = 0
         while True:
             await RisingEdge(self.dut.axisClk)

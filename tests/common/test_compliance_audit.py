@@ -153,6 +153,28 @@ async def task_case(dut):
     assert "unretained-start-soon" not in _rules(findings)
 
 
+def test_audit_distinguishes_documented_lifetime_agents_from_unbounded_operations():
+    source = '''
+async def monitor():
+    """Lifetime agent: observe accepted transfers until the test ends."""
+    while True:
+        await sample_transfer()
+
+async def receive_transaction():
+    while True:
+        await sample_transfer()
+        if complete():
+            break
+'''
+
+    findings = compliance_audit.audit_source(source)
+    loops = [finding for finding in findings if finding.rule == "open-ended-loop"]
+
+    assert [(finding.symbol, finding.line) for finding in loops] == [
+        ("receive_transaction", 8),
+    ]
+
+
 def test_audit_reports_direct_runner_except_documented_simlink_helper():
     source = """
 from cocotb_test.simulator import run
@@ -253,6 +275,8 @@ def test_compliance_baseline_allows_cleanup_but_rejects_new_findings():
             "duplicate-imported-source": {"tests/sources.py": 2},
             "early-bare-return": {"tests/ambiguous.py": 1},
             "missing-methodology": {},
+            "open-ended-loop": {},
+            "unretained-start-soon": {},
         },
     }
     findings = (
@@ -323,6 +347,8 @@ def test_compliance_baseline_counts_findings_by_rule_and_path():
             "duplicate-imported-source": {"tests/source.py": 2},
             "early-bare-return": {},
             "missing-methodology": {},
+            "open-ended-loop": {},
+            "unretained-start-soon": {},
         },
     }
 

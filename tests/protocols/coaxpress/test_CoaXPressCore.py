@@ -195,6 +195,7 @@ async def _send_image_frame(
 
 
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
+    """Lifetime agent: count asserted cycles until the owner sets stop_event."""
     while True:
         await RisingEdge(clk)
         await Timer(2, unit="ns")
@@ -204,6 +205,7 @@ async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict
 
 
 async def _trace_first_signal_high(signal, clk, stop_event: Event, trace: dict[str, object], capture) -> None:
+    """Lifetime agent: observe a signal until the owner sets stop_event."""
     while True:
         await RisingEdge(clk)
         await Timer(2, unit="ns")

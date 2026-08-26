@@ -79,11 +79,12 @@ COMMON_VHDL_COMPILE_ARGS = [
 ]
 
 
-def start_lockstep_clocks(*signals, period_ns: float) -> None:
+def start_lockstep_clocks(*signals, period_ns: float):
     import cocotb
     from cocotb.triggers import Timer
 
     async def drive() -> None:
+        """Lifetime agent: drive all requested clocks until the test ends."""
         half_period_ns = period_ns / 2
         for signal in signals:
             signal.value = 0
@@ -99,7 +100,7 @@ def start_lockstep_clocks(*signals, period_ns: float) -> None:
     # Drive logically-common clocks from one coroutine so COMMON_CLK_G tests
     # really exercise a shared clock, not two same-period oscillators that can
     # drift in phase relative to each other.
-    cocotb.start_soon(drive())
+    return cocotb.start_soon(drive())
 
 
 def env_flag(name: str, *, default: bool) -> bool:

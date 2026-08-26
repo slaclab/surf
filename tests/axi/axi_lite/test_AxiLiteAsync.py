@@ -47,7 +47,7 @@ class TB:
         self.reset_active = env_sl("RST_POLARITY_G", default=1)
 
         if self.common_clk:
-            start_lockstep_clocks(dut.sAxiClk, dut.mAxiClk, period_ns=6.0)
+            self._clock_task = start_lockstep_clocks(dut.sAxiClk, dut.mAxiClk, period_ns=6.0)
         else:
             cocotb.start_soon(Clock(dut.sAxiClk, 8.0, unit="ns").start())
             cocotb.start_soon(Clock(dut.mAxiClk, 5.0, unit="ns").start())
@@ -118,8 +118,11 @@ class SimpleAxiLiteSlave:
         dut.M_AXI_RRESP.setimmediatevalue(0)
         dut.M_AXI_RDATA.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run_write())
-        cocotb.start_soon(self._run_read())
+        # The read/write responders are lifetime protocol peers owned by TB.
+        self._responder_tasks = (
+            cocotb.start_soon(self._run_write()),
+            cocotb.start_soon(self._run_read()),
+        )
 
     def in_reset(self) -> bool:
         try:
@@ -142,6 +145,7 @@ class SimpleAxiLiteSlave:
             await self.cycle(1)
 
     async def _run_write(self):
+        """Lifetime agent: respond to AXI-Lite writes until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -184,6 +188,7 @@ class SimpleAxiLiteSlave:
             self.dut.M_AXI_BVALID.value = 0
 
     async def _run_read(self):
+        """Lifetime agent: respond to AXI-Lite reads until the test ends."""
         while True:
             await self._wait_while_reset()
 

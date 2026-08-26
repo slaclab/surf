@@ -48,7 +48,7 @@ class TB:
         self.ar_handshakes = []
         self.r_handshakes = []
 
-        start_lockstep_clocks(dut.axiClk, dut.axilClk, period_ns=5.0)
+        self._clock_task = start_lockstep_clocks(dut.axiClk, dut.axilClk, period_ns=5.0)
 
         dut.axiRst.setimmediatevalue(1)
         dut.axilRst.setimmediatevalue(1)
@@ -60,11 +60,15 @@ class TB:
         )
         self.axi_ram = AxiRam(AxiBus.from_prefix(dut, "M_AXI"), dut.axiClk, dut.axiRst, size=2**16)
 
-        cocotb.start_soon(self._track_cycles())
-        cocotb.start_soon(self._monitor_aw())
-        cocotb.start_soon(self._monitor_w())
-        cocotb.start_soon(self._monitor_ar())
-        cocotb.start_soon(self._monitor_r())
+        # These monitors are lifetime agents; cocotb cancels them when the
+        # entrypoint ends, and the bench retains them for explicit ownership.
+        self._monitor_tasks = (
+            cocotb.start_soon(self._track_cycles()),
+            cocotb.start_soon(self._monitor_aw()),
+            cocotb.start_soon(self._monitor_w()),
+            cocotb.start_soon(self._monitor_ar()),
+            cocotb.start_soon(self._monitor_r()),
+        )
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -95,11 +99,13 @@ class TB:
         raise AssertionError(f"Timed out waiting for {label}: expected {expected}, saw {len(store)}")
 
     async def _track_cycles(self):
+        """Lifetime agent: count AXI cycles until cocotb ends the test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             self.cycle_count += 1
 
     async def _monitor_aw(self):
+        """Lifetime agent: record accepted write addresses for this test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
@@ -115,6 +121,7 @@ class TB:
                 )
 
     async def _monitor_w(self):
+        """Lifetime agent: record accepted write data for this test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
@@ -128,6 +135,7 @@ class TB:
                 )
 
     async def _monitor_ar(self):
+        """Lifetime agent: record accepted read addresses for this test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
@@ -143,6 +151,7 @@ class TB:
                 )
 
     async def _monitor_r(self):
+        """Lifetime agent: record accepted read data for this test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")

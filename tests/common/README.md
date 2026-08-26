@@ -79,7 +79,8 @@ and build-isolation conventions where they apply.
   `cocotb_filtered_env()` build explicit scenario groups while preserving an
   externally requested focused selector in the simulation-build identity.
 - `start_lockstep_clocks()` drives multiple logically common clocks from one
-  coroutine so their edges cannot drift.
+  coroutine so their edges cannot drift. It returns the lifetime task; retain
+  that task on the bench that owns the clock domains.
 - `build_vhdl_sources()` and `merge_vhdl_sources()` are runner plumbing; tests
   should normally reach them only through `run_surf_vhdl_test()`.
 
@@ -130,6 +131,11 @@ protocol peers intended to run for the whole test on the bench, document them as
 lifetime agents, and provide cleanup when cancellation order matters or an
 agent owns a socket, process, file, or other external resource.
 
+Give an intentional open-ended agent a function docstring containing
+`Lifetime agent:` followed by its purpose and termination owner. The compliance
+audit recognizes that explicit classification; do not use the marker on a
+finite handshake, receive loop, or transaction that needs a cycle/time limit.
+
 ## Compliance Audit And Preservation Reports
 
 `compliance_audit.py` provides a read-only structural audit and a reproducible
@@ -166,6 +172,10 @@ The checked-in `compliance_baseline.json` ratchets the rules that are reliable
 enough to enforce structurally: methodology presence, ordinary direct-runner
 exceptions, literal VHDL sources duplicated from the ruckus import, and a bare
 entrypoint return reached before any awaited simulator activity or assertion.
+It also rejects an unretained non-clock `cocotb.start_soon()` call and an
+unclassified `while True` loop. Intentional lifetime loops must carry the
+`Lifetime agent:` docstring contract described above; finite operations must
+use a direct cycle/time bound instead.
 Returns after test activity remain report-only because they can be intentional
 successful terminal paths and require semantic review. Run the check after
 importing the HDL tree:

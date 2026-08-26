@@ -47,7 +47,8 @@ class TB:
         self.s1 = SourcePort(dut, "S1_AXI")
         self.ram = None
 
-        cocotb.start_soon(self._monitor_aw())
+        # Lifetime monitor retained by the bench until cocotb ends the test.
+        self._monitor_task = cocotb.start_soon(self._monitor_aw())
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -67,6 +68,7 @@ class TB:
             self.ram = AxiRamWrite(AxiWriteBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2**16)
 
     async def _monitor_aw(self):
+        """Lifetime agent: record accepted write addresses for this test."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")

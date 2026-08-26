@@ -62,8 +62,10 @@ class SimpleAxiLiteSlave:
 
         # Run independent write and read responders so the DUT sees a realistic
         # AXI-Lite target rather than zero-delay combinational acks.
-        cocotb.start_soon(self._run_write())
-        cocotb.start_soon(self._run_read())
+        self._responder_tasks = (
+            cocotb.start_soon(self._run_write()),
+            cocotb.start_soon(self._run_read()),
+        )
 
     def in_reset(self) -> bool:
         try:
@@ -87,6 +89,7 @@ class SimpleAxiLiteSlave:
             await self.cycle()
 
     async def _run_write(self):
+        """Lifetime agent: respond to AXI-Lite writes until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -143,6 +146,7 @@ class SimpleAxiLiteSlave:
             self.dut.M_AXIL_BVALID.value = 0
 
     async def _run_read(self):
+        """Lifetime agent: respond to AXI-Lite reads until the test ends."""
         while True:
             await self._wait_while_reset()
 

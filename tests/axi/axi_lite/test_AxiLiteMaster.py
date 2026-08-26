@@ -51,8 +51,11 @@ class SimpleAxiLiteSlave:
         dut.M_AXI_RRESP.setimmediatevalue(0)
         dut.M_AXI_RDATA.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run_write())
-        cocotb.start_soon(self._run_read())
+        # The read/write responders are lifetime protocol peers owned by TB.
+        self._responder_tasks = (
+            cocotb.start_soon(self._run_write()),
+            cocotb.start_soon(self._run_read()),
+        )
 
     def in_reset(self) -> bool:
         try:
@@ -75,6 +78,7 @@ class SimpleAxiLiteSlave:
             await self.cycle(1)
 
     async def _run_write(self):
+        """Lifetime agent: respond to AXI-Lite writes until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -124,6 +128,7 @@ class SimpleAxiLiteSlave:
             self.dut.M_AXI_BVALID.value = 0
 
     async def _run_read(self):
+        """Lifetime agent: respond to AXI-Lite reads until the test ends."""
         while True:
             await self._wait_while_reset()
 

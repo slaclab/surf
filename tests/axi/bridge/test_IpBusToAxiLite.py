@@ -59,11 +59,15 @@ class TB:
         self.dut.ipbWdata.value = data
         self.dut.ipbWrite.value = int(write)
         self.dut.ipbStrobe.value = 1
-        while True:
+        for _ in range(1024):
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
             if int(self.dut.ipbAck.value):
                 break
+        else:
+            raise AssertionError(
+                f"Timed out waiting for IPbus acknowledgement at address 0x{address:08x}"
+            )
         result = (int(self.dut.ipbRdata.value), int(self.dut.ipbErr.value))
         self.dut.ipbStrobe.value = 0
         self.dut.ipbWrite.value = 0

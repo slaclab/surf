@@ -378,6 +378,7 @@ async def _send_one_lane_frame(
 
 
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
+    """Lifetime agent: count asserted cycles until the owner sets stop_event."""
     while True:
         await RisingEdge(clk)
         await Timer(2, unit="ns")

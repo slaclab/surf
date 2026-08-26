@@ -65,7 +65,8 @@ class TB:
         dut.S_SIDE_BAND.setimmediatevalue(0)
         dut.M_AXIS_TREADY.setimmediatevalue(0)
 
-        cocotb.start_soon(self._monitor_sideband())
+        # Lifetime sideband monitor retained by the bench.
+        self._monitor_task = cocotb.start_soon(self._monitor_sideband())
 
     async def cycle(self, count: int = 1):
         for _ in range(count):
@@ -73,6 +74,7 @@ class TB:
             await Timer(1, unit="ns")
 
     async def _monitor_sideband(self):
+        """Lifetime agent: collect RoCE sidebands until the test ends."""
         while True:
             await RisingEdge(self.dut.axisClk)
             await Timer(1, unit="ns")

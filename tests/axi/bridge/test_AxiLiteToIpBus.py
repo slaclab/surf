@@ -37,7 +37,8 @@ class TB:
         dut.ipbRdata.setimmediatevalue(0)
         dut.ipbAck.setimmediatevalue(0)
         dut.ipbErr.setimmediatevalue(0)
-        cocotb.start_soon(self._ipb_model())
+        # Lifetime IPbus protocol peer retained by the bench.
+        self._ipb_task = cocotb.start_soon(self._ipb_model())
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -55,6 +56,7 @@ class TB:
             self.axi = AxiLiteMaster(AxiLiteBus.from_prefix(self.dut, "S_AXI"), self.dut.axiClk, self.dut.axiRst)
 
     async def _ipb_model(self):
+        """Lifetime agent: serve IPbus requests until the test ends."""
         pending = None
         delay = 0
         while True:

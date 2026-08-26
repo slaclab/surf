@@ -108,8 +108,9 @@ async def coaxpress_tx_ls_fsm_idle_and_config_cadence_test(dut):
     dut.txRate.setimmediatevalue(1)
     await reset_dut(dut, clk_name="txClk", reset_names=("txRst",))
 
-    cocotb.start_soon(_drive_cfg_bytes(dut, [(0x33, 0), (0xDC, 1)]))
+    cfg_task = cocotb.start_soon(_drive_cfg_bytes(dut, [(0x33, 0), (0xDC, 1)]))
     observed = await _collect_strobes(dut, count=6, timeout_cycles=600)
+    await cfg_task
 
     assert [(data, is_k) for _, data, is_k in observed[:4]] == IDLE_SEQUENCE
     assert [(data, is_k) for _, data, is_k in observed[4:]] == [(0x33, 0), (0xDC, 1)]
@@ -137,7 +138,7 @@ async def coaxpress_tx_ls_fsm_trigger_width_and_drop_test(dut):
         await cycle(dut.txClk, 200)
         await _pulse_trigger(dut)
 
-    cocotb.start_soon(pulse_again_mid_message())
+    retrigger_task = cocotb.start_soon(pulse_again_mid_message())
 
     strobes: list[tuple[int, int, int]] = []
     tx_trig_drop_seen = False
@@ -150,6 +151,8 @@ async def coaxpress_tx_ls_fsm_trigger_width_and_drop_test(dut):
             strobes.append((cycle_index, int(dut.txData.value), int(dut.txDataK.value)))
             if len(strobes) >= 14 and tx_trig_drop_seen:
                 break
+
+    await retrigger_task
 
     first_trigger = None
     second_trigger = None

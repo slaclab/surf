@@ -113,7 +113,8 @@ class TB:
         dut.axiRst.setimmediatevalue(1)
         dut.mAxiWriteCtrlPause.setimmediatevalue(0)
         dut.mAxiWriteCtrlOver.setimmediatevalue(0)
-        cocotb.start_soon(self._monitor_aw())
+        # Lifetime monitor retained by the bench until cocotb ends the test.
+        self._monitor_task = cocotb.start_soon(self._monitor_aw())
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -136,6 +137,7 @@ class TB:
             )
 
     async def _monitor_aw(self):
+        """Lifetime agent: record muxed write addresses until the test ends."""
         while True:
             await RisingEdge(self.dut.axiClk)
             await Timer(1, unit="ns")
