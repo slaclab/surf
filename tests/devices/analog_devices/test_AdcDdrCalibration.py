@@ -56,12 +56,14 @@ class FakeVariable:
 
 
 class FakeConfig:
-    def __init__(self):
+    def __init__(self, pn23=False):
         self.OutputTestMode = FakeVariable(0)
         self.ResetPNLongReg = FakeVariable(False)
         self.pn23ResetValues = []
         self.digitalResetValues = []
         self.updateCount = 0
+        if not pn23:
+            self.ResetPNLong = None
 
     def update(self):
         self.updateCount += 1
@@ -775,7 +777,7 @@ def test_deep_pattern_error_is_reported_and_fails_final_qualification():
 
 @pytest.mark.parametrize('usePatternTester', [False, True])
 def test_full_calibration_adds_snapshot_pn23_qualification(usePatternTester):
-    config = FakeConfig()
+    config = FakeConfig(pn23=True)
     readout = Pn23FakeReadout(config)
     calibration = AdcDdrCalibration(
         name='Calibration',
@@ -822,7 +824,7 @@ def test_full_calibration_adds_snapshot_pn23_qualification(usePatternTester):
 
 
 def test_deep_pn23_error_beyond_snapshot_is_reported():
-    config = FakeConfig()
+    config = FakeConfig(pn23=True)
     readout = Pn23FakeReadout(config, fault='deepCommonCorruption')
     calibration = AdcDdrCalibration(
         name='Calibration',
@@ -866,7 +868,7 @@ def test_deep_pn23_error_beyond_snapshot_is_reported():
     ])
 def test_pn23_qualification_rejects_relative_and_common_errors(
         fault, coherencePassed, recurrencePassed):
-    config = FakeConfig()
+    config = FakeConfig(pn23=True)
     readout = Pn23FakeReadout(config, fault=fault)
     calibration = AdcDdrCalibration(
         name='Calibration',
@@ -1158,7 +1160,7 @@ def test_final_qualification_retries_alternate_fco_eye_combinations(usePatternTe
 
 
 def test_pn23_failure_retries_alternate_fco_eye_combination_in_checkerboard_mode():
-    config = FakeConfig()
+    config = FakeConfig(pn23=True)
     readout = Pn23MultiWindowFcoFakeReadout(config)
     calibration = AdcDdrCalibration(
         name='Calibration',
