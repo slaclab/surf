@@ -119,3 +119,51 @@ consumers, and transactions before the entrypoint completes. Store monitors or
 protocol peers intended to run for the whole test on the bench, document them as
 lifetime agents, and provide cleanup when cancellation order matters or an
 agent owns a socket, process, file, or other external resource.
+
+## Compliance Audit And Preservation Reports
+
+`compliance_audit.py` provides a read-only structural audit and a reproducible
+inventory for cleanup work. The audit reports screening signals; ambiguous
+items such as lifetime tasks, open-ended agent loops, and post-edge delays still
+require review rather than mechanical replacement.
+
+Run an audit for the whole active test tree or one subsystem:
+
+```bash
+./.venv/bin/python -m tests.common.compliance_audit audit tests
+./.venv/bin/python -m tests.common.compliance_audit audit tests/protocols/batcher
+```
+
+Capture a preservation report before changing a subsystem, capture it again
+afterward, and compare the two:
+
+```bash
+./.venv/bin/python -m tests.common.compliance_audit \
+    inventory tests/protocols/batcher --output /tmp/batcher-before.json
+./.venv/bin/python -m tests.common.compliance_audit \
+    inventory tests/protocols/batcher --output /tmp/batcher-after.json
+./.venv/bin/python -m tests.common.compliance_audit \
+    compare /tmp/batcher-before.json /tmp/batcher-after.json
+```
+
+The comparison exits unsuccessfully when a pytest function, cocotb entrypoint,
+parameter ID, environment gate/selector, skip, or decorator timeout disappears.
+An intentional rename, move, split, or consolidation therefore remains visible
+and needs an explicit before/after mapping in the change description. Added
+coverage is reported but does not make the command fail.
+
+The checked-in `compliance_baseline.json` ratchets the rules that are reliable
+enough to enforce structurally: methodology presence, ordinary direct-runner
+exceptions, and literal VHDL sources duplicated from the ruckus import. Run the
+check after importing the HDL tree:
+
+```bash
+make MODULES="$PWD" import
+./.venv/bin/python -m tests.common.compliance_audit check tests
+```
+
+The check fails when a file introduces a new finding or exceeds its existing
+per-rule count. Removing a legacy finding is allowed and reported as a baseline
+reduction; update the baseline in the same cleanup change so the violation
+cannot return. Do not regenerate the whole baseline to accept an unrelated new
+finding.
