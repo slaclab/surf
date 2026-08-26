@@ -105,9 +105,9 @@ falls back to running the complete `tests/` tree.
 
 ## Python Test Files
 
-Every checked-in cocotb test file should start with the standard SLAC/SURF
-license header followed immediately by a module-specific `Test methodology`
-block:
+Every new or substantially edited cocotb test file should start with the
+standard SLAC/SURF license header followed immediately by a module-specific
+`Test methodology` block. The concise form is:
 
 ```python
 ##############################################################################
@@ -124,7 +124,12 @@ block:
 ```
 
 Do not use generic methodology text. The block should tell a reader what this
-specific bench proves and what it intentionally does not prove.
+specific bench proves and what it intentionally does not prove. Complex
+protocol or integration tests may expand the headings (`Purpose`, `DUT shape`,
+`Protocol checks`, `Parameter strategy`, and similar), but must still make the
+scope/configuration, DUT boundary, stimulus, checks, and timing assumptions
+easy to find. A prose methodology with the same information is acceptable in a
+legacy file; use the labeled form for new work.
 
 Use in-body comments at the major coroutine steps: clock startup, reset,
 stimulus phases, backpressure, trigger waits, and result checks. Keep comments
@@ -182,6 +187,9 @@ A focused regression normally covers the relevant subset of:
 Use deterministic directed cases for protocol rules and boundary conditions.
 Randomized cases are valuable after a trustworthy reference model exists, but
 they do not replace readable directed regressions for known contracts and bugs.
+Seed every randomized case explicitly. Keep the seed fixed or pass it through a
+named environment value, and include the effective seed in a failure message or
+log so the exact stimulus can be reproduced.
 
 ## Parameter Sweeps
 
@@ -198,6 +206,13 @@ fragile or overly long build paths.
 Pass only HDL generics as `parameters`. Put Python-only case metadata in
 `extra_env`, or use `hdl_parameters_from(parameters)` when a case dictionary
 contains both.
+
+Normally let cocotb run all entrypoints in the module for each pytest build.
+When separate pytest nodes intentionally select one cocotb scenario, pass a
+selector through `extra_env` (for example `COCOTB_TESTCASE` or a documented
+subsystem-specific variable), give the selector a deterministic default, and
+make sure it participates in the simulation-build identity. A focused pytest
+node should not silently rerun unrelated cocotb scenarios.
 
 ## Reuse And Helpers
 
@@ -231,6 +246,13 @@ Assert externally visible behavior, not implementation accidents. Good checks
 usually include payload bytes, `TKEEP`, `TLAST`, `TUSER`/SOF/EOFE bits, address
 or ID sidebands, response codes, counters, or accepted-handshake timing.
 
+Initialize reset and every testbench-driven control/data input before the first
+active clock edge, preferably with `setimmediatevalue()` during bench setup.
+Hold reset for an explicit number of clock edges, release it on the intended
+edge, and allow any documented pipeline settling time before sampling outputs.
+This prevents unresolved startup values from turning into simulator-dependent
+stimulus.
+
 Use bounded waits and explicit timeouts for protocol progress. Avoid
 open-ended `while True` loops unless they are wrapped by `with_timeout()` or a
 helper that has a cycle limit.
@@ -243,9 +265,19 @@ Account for `TPD_G`, registered outputs, and GHDL scheduling. Sampling exactly
 on a clock edge can create false failures; most helpers settle with a short
 `Timer` after `RisingEdge()`.
 
-Known RTL issues or intentionally open coverage should be explicit. If a bench
-is checked in skipped or opt-in, document the condition and gate it with a clear
-environment variable such as `RUN_KNOWN_ISSUE_TESTS`.
+Keep skip reasons and opt-in coverage explicit, and distinguish why a case is
+not in the default run:
+
+- Gate a regression for an unresolved RTL defect with a clear variable such as
+  `RUN_KNOWN_ISSUE_TESTS`, keep the issue visible in the methodology or local
+  README, and promote the case to default coverage with the fix.
+- Gate an unusually long soak or stress matrix with a separately named
+  `RUN_*_EXTENDED_TESTS` variable; do not label stable-but-slow coverage as a
+  known issue.
+- Use `pytest.skip()` or `pytest.mark.skipif()` for genuinely optional external
+  tools, licenses, platforms, or production libraries, and state the exact
+  missing prerequisite. A required CI job should provision that prerequisite
+  and treat an unexpected skip as a failure.
 
 ## Running Tests
 
@@ -258,6 +290,12 @@ make MODULES="$PWD" import
 
 Run `make ... import` when the imported HDL source cache is missing or stale.
 Use `-n 0` for focused debug runs when serial simulator logs matter.
+
+Assume the suite will run under pytest-xdist. Each case must have an isolated
+simulation build directory and must not compete for a fixed port, ready file,
+result file, or other process-global resource. Tests that launch peer processes
+must use bounded startup/shutdown waits and clean them up in a `finally` block
+or shared teardown helper, including after an assertion fails.
 
 After any command that launches pytest, cocotb, GHDL, or another simulator
 runner, check for stale simulator child processes before starting another run.
@@ -317,8 +355,14 @@ Before considering a new regression ready:
 - Reset, backpressure, sidebands, and error/boundary cases relevant to the DUT
   are covered or explicitly documented as out of scope.
 - Shared helpers were reused or extended instead of duplicated.
-- Any retained VHDL wrapper is thin, locally documented, present in the right
-  ruckus manifest, and clean under `vsg-linter.yml`.
+- Random stimulus is seeded and failures report enough information to replay
+  the case.
+- The case is safe under pytest-xdist: build artifacts and external resources
+  are isolated, and child processes are cleaned up on failure.
+- Any retained VHDL wrapper is thin, locally documented, clean under
+  `vsg-linter.yml`, and reachable through its intended source path: the nearest
+  ruckus manifest for build-facing HDL or `extra_vhdl_sources` for a
+  cocotb-only wrapper.
 - The focused test and the nearest practical subsystem suite pass.
 - `git diff --check` is clean and no stale simulator process remains.
 - The nearest README is updated if the test introduces a new layout, helper,

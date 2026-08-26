@@ -36,10 +36,27 @@ metadata. When one dictionary contains both, pass it through
 
 Use `extra_vhdl_sources` for a wrapper or simulation model that is intentionally
 outside the imported SURF source list. Production RTL belongs in the nearest
-`ruckus.tcl`; do not use this argument to hide a missing build-manifest entry.
+`ruckus.tcl`; do not use this argument to hide a missing build-manifest entry or
+repeat a unit already supplied by the import, which can produce a library
+redefinition error.
 
 Use `sim_build_key` only when normal parameter-derived names would be too long
-or when a subsystem requires a deliberately shared/stable build location.
+or when a subsystem requires a deliberately stable build location. The default
+path already includes `parameters` and `extra_env`, which isolates parallel
+cases. A custom key must preserve that isolation; never point concurrently
+runnable variants at the same build directory.
+
+Leave `force_compile=False` for normal regressions. Set it only when a
+documented source-topology or simulator-cache limitation makes reuse unsafe;
+it is not a substitute for a unique build identity.
+
+The shared runner is the default for VHDL/GHDL regressions. A direct
+`cocotb-test` or simulator-specific runner is justified only when the flow
+needs capabilities the shared path cannot express, such as a mixed-language
+top, a vendor simulator, precompiled libraries, or explicit external-process
+lifecycle control. Document the exception beside the custom runner or in the
+subsystem README, and retain the common source, compile-option, result-file,
+and build-isolation conventions where they apply.
 
 ## Shared Helpers
 
@@ -85,3 +102,7 @@ Use parallel execution for a stable subsystem suite:
 Do not call the runner directly from a cocotb coroutine. Pytest launches the
 simulator; cocotb code runs inside it. Keep every protocol-progress wait bounded
 so a broken handshake becomes a useful failure instead of a hung worker.
+
+When a pytest wrapper selects one of several cocotb entrypoints, pass the
+selector in `extra_env`. Because the shared runner includes `extra_env` in the
+default build path, selected scenarios remain isolated under pytest-xdist.
