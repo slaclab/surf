@@ -58,11 +58,19 @@ class FakeVariable:
 class FakeConfig:
     def __init__(self):
         self.OutputTestMode = FakeVariable(0)
-        self.ResetPNLong = FakeVariable(False)
+        self.ResetPNLongReg = FakeVariable(False)
+        self.pn23ResetValues = []
+        self.digitalResetValues = []
         self.updateCount = 0
 
     def update(self):
         self.updateCount += 1
+
+    def DigitalReset(self):
+        self.digitalResetValues.extend((3, 0))
+
+    def ResetPNLong(self):
+        self.pn23ResetValues.extend((True, False))
 
 
 class FakePatternTester:
@@ -628,6 +636,35 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.DataDelay[1].value() == 5
 
 
+def test_pattern_alignment_reset_runs_after_checkerboard_selection():
+    events = []
+    calibration, config, readout, root = make_calibration()
+    originalReset = config.DigitalReset
+
+    def record():
+        events.append({
+            'mode': config.OutputTestMode.value(),
+            'snapshots': len(readout.snapshotDelays),
+            'relocks': readout.relockCount,
+        })
+        return originalReset()
+
+    config.DigitalReset = record
+    try:
+        calibration._runCalibration(dev=calibration)
+
+        assert events == [
+            {'mode': 4, 'snapshots': 0, 'relocks': 9},
+        ]
+        assert config.digitalResetValues == [3, 0]
+        assert config.updateCount == 2
+        # The receiver restarts after the ADC digital reset has been released.
+        assert readout.relockCount >= events[0]['relocks']+1
+    finally:
+        calibration._runEn = False
+        root.stop()
+
+
 def test_diagnostics_publish_only_at_process_boundaries(
         calibration_fixture, monkeypatch):
     calibration, _, _ = calibration_fixture
@@ -744,8 +781,7 @@ def test_full_calibration_adds_snapshot_pn23_qualification(usePatternTester):
         name='Calibration',
         config=config,
         readout=readout,
-        configUpdate=config.update,
-        pn23Reset=config.ResetPNLong)
+        configUpdate=config.update)
     root = pr.Root(name='Root', pollEn=False)
     root.add(calibration)
     root.start()
@@ -769,7 +805,7 @@ def test_full_calibration_adds_snapshot_pn23_qualification(usePatternTester):
         assert results['Final']['pn23']['passed']
         assert results['Final']['passed']
         assert config.OutputTestMode.value() == 0
-        assert not config.ResetPNLong.value()
+        assert config.pn23ResetValues == [True, False]
         # PN23 always starts with one atomic snapshot. Deep qualification adds
         # one checkerboard and one PN23 tester window after centering.
         assert readout.snapshotDelays[-1] == (2, 5)
@@ -792,8 +828,7 @@ def test_deep_pn23_error_beyond_snapshot_is_reported():
         name='Calibration',
         config=config,
         readout=readout,
-        configUpdate=config.update,
-        pn23Reset=config.ResetPNLong)
+        configUpdate=config.update)
     root = pr.Root(name='Root', pollEn=False)
     root.add(calibration)
     root.start()
@@ -837,8 +872,7 @@ def test_pn23_qualification_rejects_relative_and_common_errors(
         name='Calibration',
         config=config,
         readout=readout,
-        configUpdate=config.update,
-        pn23Reset=config.ResetPNLong)
+        configUpdate=config.update)
     root = pr.Root(name='Root', pollEn=False)
     root.add(calibration)
     root.start()
@@ -1132,8 +1166,7 @@ def test_pn23_failure_retries_alternate_fco_eye_combination_in_checkerboard_mode
         readout=readout,
         dataLaneToChannel=(0, 0),
         dataLaneMasks=(0x003F, 0x3FC0),
-        configUpdate=config.update,
-        pn23Reset=config.ResetPNLong)
+        configUpdate=config.update)
     root = pr.Root(name='Root', pollEn=False)
     root.add(calibration)
     root.start()

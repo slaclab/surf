@@ -24,7 +24,9 @@ The PyRogue register model is
 device-neutral software calibration process is
 [`_AdcDdrCalibration.py`](../../../python/surf/devices/analog_devices/_AdcDdrCalibration.py).
 Device adapters in `_Ad9249.py`, `_Ad9252.py`, and `_Ad9681.py` supply the
-physical-lane mapping and ADC configuration behavior.
+physical-lane mapping and ADC configuration behavior. Their configuration
+devices expose the same `DigitalReset()` and `ResetPNLong()` commands for
+direct use from PyRogue and for the common calibration sequence.
 
 ## Delay Controller Readiness
 
@@ -75,9 +77,12 @@ The `Full calibration` operation performs these phases:
    enabled, passing runs at the two ends of the scan are merged. All qualifying
    FCO eyes are retained, ordered by widest eye and then lowest center tap; the
    first eye is the initial choice.
-4. **Enable the checkerboard pattern.** The ADC is placed in its device-specific
-   test mode after the initial FCO delays have been selected and frame lock has
-   been reacquired.
+4. **Enable and synchronize the checkerboard pattern.** The ADC is placed in
+   its device-specific test mode after the initial FCO delays have been selected
+   and frame lock has been reacquired. Calibration then calls the configuration
+   device's normalized `DigitalReset()` command, waits for the converter output
+   to settle, and relocks the FPGA receiver. This establishes one deterministic
+   sample epoch before any data eye is measured.
 5. **Build safe data-lane sweep groups.** Lanes on different logical channels
    can move together. Lanes on the same channel can also move together when
    their meaningful-bit masks do not overlap. Lanes with overlapping masks are
@@ -215,9 +220,8 @@ debug setting so failure evidence is retained.
 
 `Outcome` reports `IDLE`, `RUNNING`, `PASSED`, `FAILED`, or `STOPPED`
 independently of PyRogue's generic process state. Successful GUI-driven runs
-also finish with `Message` set to `PASSED` rather than the ambiguous generic
-`Done`. `RunTime` and process progress provide the remaining operational
-monitoring.
+finish with PyRogue's normal process message. `RunTime` and process progress
+provide the remaining operational monitoring.
 
 ## Device-Specific Behavior
 

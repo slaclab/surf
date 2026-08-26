@@ -20,6 +20,12 @@ the alignment/calibration path deterministic, fast, and diagnostically useful.
   debug diagnostics enabled, but was quick with debug disabled. Calibration
   therefore retains the deterministic exhaustive scan and avoids repeatedly
   publishing the growing diagnostics tree.
+- AD9249 hardware showed channel-dependent checkerboard epochs even though a
+  PN23 snapshot was coherent across every channel. Pulsing the ADC bank's
+  digital reset while checkerboard mode was selected restored coherence.
+  Each ADC configuration model now exposes a normalized `DigitalReset()`
+  command. Common calibration calls that command before data-eye measurement
+  and restarts the FPGA receiver afterward.
 
 ## Calibration UI Contract
 
@@ -67,5 +73,7 @@ restoration.
   the target board.
 - Confirm the 4096-sample PN23 window acquires phase and reports all-zero
   reference recurrence and cross-channel coherence errors.
+- Confirm repeated AD9249 calibrations retain shared checkerboard phase after
+  the automatic digital-datapath reset, including alternating between banks.
 - Increase `PatternTesterSamples` if a longer bounded checkerboard stress test
   is useful; this remains qualification, not a claimed BER measurement.

@@ -198,13 +198,14 @@ class Ad9681Config(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'ResetPNLong',
+            name        = 'ResetPNLongReg',
             description = 'Reset the PN23 test-pattern generator',
             offset      = (0x0D*4),
             bitSize     = 1,
             bitOffset   = 5,
             base        = pr.Bool,
             mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -436,6 +437,9 @@ class Ad9681Config(pr.Device):
             function=pr.BaseCommand.touchOne,
         ))
 
+        analog_devices.addAdcDdrResetCommands(
+            self, self.InternalPdwnMode, self.ResetPNLongReg)
+
     def writeBlocks(self, **kwargs: Any) -> None:
         """Write pending blocks and transfer them into the ADC."""
         super().writeBlocks(**kwargs)
@@ -506,5 +510,4 @@ class Ad9681ReadoutCalibration(analog_devices.AdcDdrCalibration):
             readout           = readout,
             dataLaneToChannel = tuple(range(8))+tuple(range(8)),
             dataLaneMasks     = (0x003F,)*8+(0x3FC0,)*8,
-            pn23Reset         = config.ResetPNLong,
             **kwargs)

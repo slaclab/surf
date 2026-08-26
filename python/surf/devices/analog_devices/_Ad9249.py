@@ -208,13 +208,14 @@ class Ad9249ConfigGroup(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'ResetPNLong',
+            name        = 'ResetPNLongReg',
             description = 'Reset the PN23 test-pattern generator',
             offset      = (0x0D*4),
             bitSize     = 1,
             bitOffset   = 5,
             base        = pr.Bool,
             mode        = 'RW',
+            hidden      = True,
         ))
 
         self.add(pr.RemoteVariable(
@@ -329,6 +330,9 @@ class Ad9249ConfigGroup(pr.Device):
                 0b011: '65 MSPS',
             },
         ))
+
+        analog_devices.addAdcDdrResetCommands(
+            self, self.InternalPdwnMode, self.ResetPNLongReg)
 
     def writeBlocks(self, **kwargs: Any) -> None:
         """Write pending blocks and transfer them into the ADC."""
@@ -482,7 +486,6 @@ class Ad9249ReadoutBankCalibration(analog_devices.AdcDdrCalibration):
             config            = config,
             readout           = readout,
             dataLaneToChannel = tuple(range(readout._dataLanes)),
-            pn23Reset         = config.ResetPNLong,
             **kwargs)
 
 

@@ -132,12 +132,13 @@ class Ad9252Config(pr.Device):
             base=pr.Bool))
 
         self.add(pr.RemoteVariable(
-            name='ResetPNLong',
+            name='ResetPNLongReg',
             description='Reset PN long gen test mode',
             offset=0x34,
             bitSize=1,
             bitOffset=5,
-            base=pr.Bool))
+            base=pr.Bool,
+            hidden=True))
 
 
         self.add(pr.RemoteVariable(
@@ -318,6 +319,9 @@ class Ad9252Config(pr.Device):
             function=pr.BaseCommand.touchOne,
         ))
 
+        analog_devices.addAdcDdrResetCommands(
+            self, self.PowerDownMode, self.ResetPNLongReg, self.DeviceUpdate)
+
     def writeBlocks(self, **kwargs: Any) -> None:
         """Write pending blocks and transfer them into the ADC."""
         super().writeBlocks(**kwargs)
@@ -393,5 +397,4 @@ class Ad9252ReadoutCalibration(analog_devices.AdcDdrCalibration):
             readout           = readout,
             dataLaneToChannel = tuple(range(readout._channels)),
             configUpdate      = config.DeviceUpdate,
-            pn23Reset         = config.ResetPNLong,
             **kwargs)

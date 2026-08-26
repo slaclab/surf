@@ -361,6 +361,8 @@ def test_device_specific_calibration_adapters():
         readout=ad9249Readout)
     assert ad9249._dataLaneToChannel == tuple(range(8))
     assert ad9249._configUpdate is None
+    assert ad9249Config.DigitalReset.name == 'DigitalReset'
+    assert ad9249Config.ResetPNLong.name == 'ResetPNLong'
 
     ad9249Full = Ad9249ReadoutCalibration(
         name='Ad9249FullCalibration',
@@ -378,6 +380,8 @@ def test_device_specific_calibration_adapters():
         readout=ad9252Readout)
     assert ad9252._dataLaneToChannel == tuple(range(8))
     assert ad9252._configUpdate == ad9252Config.DeviceUpdate
+    assert ad9252Config.DigitalReset.name == 'DigitalReset'
+    assert ad9252Config.ResetPNLong.name == 'ResetPNLong'
 
     ad9681Config = Ad9681Config(name='Ad9681Config')
     ad9681Readout = Ad9681Readout(name='Ad9681Readout')
@@ -387,6 +391,8 @@ def test_device_specific_calibration_adapters():
         readout=ad9681Readout)
     assert ad9681._dataLaneToChannel == tuple(range(8))+tuple(range(8))
     assert ad9681._configUpdate is None
+    assert ad9681Config.DigitalReset.name == 'DigitalReset'
+    assert ad9681Config.ResetPNLong.name == 'ResetPNLong'
     assert ad9681.DelayStart.units == 'tap'
     assert ad9681.DelayStop.units == 'tap'
     assert ad9681.MinimumEyeWidth.units == 'tap'

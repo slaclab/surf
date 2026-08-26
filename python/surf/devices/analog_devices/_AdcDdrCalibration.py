@@ -29,6 +29,47 @@ class _AdcDdrCalibrationStopped(Exception):
     """Internal control flow for a user-requested process stop."""
 
 
+def addAdcDdrResetCommands(
+        device: Any,
+        powerMode: Any,
+        pn23Reset: Any,
+        configUpdate: Callable[[], None] | None = None) -> None:
+    """Add normalized digital and PN23 reset commands to an ADC config device."""
+
+    def digitalReset() -> None:
+        powerMode.set(3, write=True)
+        try:
+            if configUpdate is not None:
+                configUpdate()
+            # Retain a small explicit hold in addition to the blocking SPI
+            # transactions that assert and release the reset state.
+            time.sleep(0.001)
+        finally:
+            powerMode.set(0, write=True)
+            if configUpdate is not None:
+                configUpdate()
+
+    def resetPnLong() -> None:
+        pn23Reset.set(True, write=True)
+        try:
+            if configUpdate is not None:
+                configUpdate()
+        finally:
+            pn23Reset.set(False, write=True)
+            if configUpdate is not None:
+                configUpdate()
+
+    device.add(pr.LocalCommand(
+        name        = 'DigitalReset',
+        description = 'Pulse the ADC digital datapath reset and return to normal operation',
+        function    = digitalReset))
+
+    device.add(pr.LocalCommand(
+        name        = 'ResetPNLong',
+        description = 'Synchronously restart the ADC PN23 test-pattern generator',
+        function    = resetPnLong))
+
+
 @dataclass(frozen=True)
 class AdcDdrEye:
     """One contiguous passing delay window and its chosen sampling tap.
@@ -327,8 +368,6 @@ class AdcDdrCalibration(pr.Process):
         Callback that transfers staged ADC configuration writes.
     pn23Mode : int, optional
         ADC PN23 test-mode value.
-    pn23Reset : Any, optional
-        PyRogue variable or command used to restart the PN23 generator.
     **kwargs : Any
         Additional arguments forwarded to ``pyrogue.Process``.
     """
@@ -355,7 +394,6 @@ class AdcDdrCalibration(pr.Process):
             expectedPatterns: Iterable[int] | None = None,
             configUpdate: Callable[[], None] | None = None,
             pn23Mode: int = 5,
-            pn23Reset: Any | None = None,
             **kwargs: Any) -> None:
         """Construct a calibration process for one normalized ADC readout."""
 
@@ -419,7 +457,6 @@ class AdcDdrCalibration(pr.Process):
         self._testMode = testMode
         self._configUpdate = configUpdate
         self._pn23Mode = pn23Mode
-        self._pn23Reset = pn23Reset
         self._runDiagnostics = {}
         self._lastCaptureDiagnostics = {}
         self._deepPatternTesterActive = False
@@ -488,7 +525,7 @@ class AdcDdrCalibration(pr.Process):
             description = (
                 'After checkerboard alignment, compare one four-sample PN23 '
                 'snapshot across channels and verify its recurrence'),
-            value       = pn23Reset is not None,
+            value       = callable(getattr(config, 'ResetPNLong', None)),
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -875,19 +912,12 @@ class AdcDdrCalibration(pr.Process):
     def _setPn23Mode(self) -> None:
         """Select PN23 and synchronously restart every selected generator."""
 
-        if self._pn23Reset is None:
-            raise RuntimeError('PN23 verification requires a PN-long reset control')
+        resetPnLong = getattr(self._config, 'ResetPNLong', None)
+        if not callable(resetPnLong):
+            raise RuntimeError('PN23 verification requires config.ResetPNLong()')
 
-        # Publish mode and asserted reset together, then explicitly clear reset.
-        # This avoids depending on whether a particular ADC implements the reset
-        # field as a pulse, a level, or a self-clearing staged register bit.
-        self._config.OutputTestMode.set(self._pn23Mode, write=True)
-        self._pn23Reset.set(True, write=True)
-        if self._configUpdate is not None:
-            self._configUpdate()
-        self._pn23Reset.set(False, write=True)
-        if self._configUpdate is not None:
-            self._configUpdate()
+        self._setTestMode(self._pn23Mode)
+        resetPnLong()
 
     def _capturePn23Passes(self) -> dict[str, Any]:
         """Check channel coherence and PN23 recurrence in one atomic snapshot."""
@@ -930,6 +960,24 @@ class AdcDdrCalibration(pr.Process):
             # Some ADC register interfaces shadow writes until a transfer/update
             # command is issued. Device adapters provide that command here.
             self._configUpdate()
+
+    def _enterAlignmentPattern(self, settle: float) -> None:
+        """Select checkerboard and establish a deterministic ADC sample epoch."""
+
+        self._setTestMode(self._testMode)
+        time.sleep(settle)
+        digitalReset = getattr(self._config, 'DigitalReset', None)
+        if not callable(digitalReset):
+            raise RuntimeError('ADC calibration requires config.DigitalReset()')
+        # Alternating patterns can originate in independent channel-local
+        # digital pipelines. Reset those pipelines only after the pattern is
+        # selected, then restart FPGA word alignment against the newly
+        # synchronized ADC output.
+        self.Message.set('Resetting ADC digital datapath for pattern alignment')
+        digitalReset()
+        time.sleep(settle)
+        self._readout.Relock()
+        time.sleep(settle)
 
     def _scanFco(
             self,
@@ -1045,8 +1093,7 @@ class AdcDdrCalibration(pr.Process):
         # Put the ADC into a known alternating pattern only after FCO lock is
         # established. Each overlap-safe lane group is swept once and centered
         # before the next group is measured.
-        self._setTestMode(self._testMode)
-        time.sleep(settle)
+        self._enterAlignmentPattern(settle)
         for lanes in self._dataLaneGroups:
             self.Message.set(f'Scanning data lanes {list(lanes)}')
             groupPassing = self._scanDataGroup(lanes, taps, settle)
@@ -1207,8 +1254,7 @@ class AdcDdrCalibration(pr.Process):
         self.setTotalSteps(candidatesPerLane*(len(originalFco)+len(originalData)))
         self.setStep(0)
 
-        self._setTestMode(self._testMode)
-        time.sleep(settle)
+        self._enterAlignmentPattern(settle)
         for kind, currentValues in (
                 ('Fco', originalFco),
                 ('Data', originalData)):
