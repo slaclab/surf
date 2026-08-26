@@ -615,7 +615,7 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert results['Data'][1]['eye']['selected'] == 5
     assert results['Final']['passed']
     assert config.OutputTestMode.value() == 0
-    assert config.updateCount == 2
+    assert config.updateCount == 3
     assert readout.FcoDelay[0].value() == 3
     assert readout.DataDelay[0].value() == 2
     assert readout.DataDelay[1].value() == 5
@@ -657,11 +657,12 @@ def test_pattern_alignment_reset_runs_after_checkerboard_selection():
 
         assert events == [
             {'mode': 4, 'snapshots': 0, 'relocks': 9},
+            {'mode': 4, 'snapshots': 8, 'relocks': 10},
         ]
-        assert config.digitalResetValues == [3, 0]
-        assert config.updateCount == 2
-        # The receiver restarts after the ADC digital reset has been released.
-        assert readout.relockCount >= events[0]['relocks']+1
+        assert config.digitalResetValues == [3, 0, 3, 0]
+        assert config.updateCount == 3
+        # The receiver restarts after each ADC digital reset has been released.
+        assert readout.relockCount >= events[-1]['relocks']+1
     finally:
         calibration._runEn = False
         root.stop()
@@ -1154,6 +1155,9 @@ def test_final_qualification_retries_alternate_fco_eye_combinations(usePatternTe
         assert readout.FcoDelay[1].value() == 1
         assert readout.DataDelay[0].value() == 2
         assert readout.DataDelay[1].value() == 5
+        # One reset precedes the data-eye scan and one immediately precedes
+        # each of the two final FCO-combination attempts.
+        assert config.digitalResetValues == [3, 0, 3, 0, 3, 0]
     finally:
         calibration._runEn = False
         root.stop()

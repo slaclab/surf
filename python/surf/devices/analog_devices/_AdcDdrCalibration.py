@@ -1139,7 +1139,8 @@ class AdcDdrCalibration(pr.Process):
             if index != 0:
                 # Data-eye locations are independent of which equivalent FCO
                 # window establishes frame phase, so retries only move FCO taps
-                # and relock; the expensive data sweeps do not need repeating.
+                # before repeating final qualification; the expensive data
+                # sweeps do not need repeating.
                 selected = {
                     lane: eye.selected
                     for lane, eye in enumerate(combination)
@@ -1149,13 +1150,13 @@ class AdcDdrCalibration(pr.Process):
                     f'{[selected[lane] for lane in range(self._fcoLanes)]}')
                 for lane, tap in selected.items():
                     self._readout.FcoDelay[lane].set(tap, write=True)
-                self._readout.Relock()
-                time.sleep(settle)
-                # A previous combination may have reached PN23 qualification.
-                # Restore checkerboard before judging this combination so every
-                # FCO candidate is subject to the same two-stage test.
-                self._setTestMode(self._testMode)
-                time.sleep(settle)
+
+            # Re-establish the ADC pattern epoch immediately before every final
+            # attempt. This closes the long window between the reset preceding
+            # data-eye scans and final qualification, during which another bank
+            # calibrating in parallel may disturb shared ADC digital state. It
+            # also restores checkerboard after a prior attempt reached PN23.
+            self._enterAlignmentPattern(settle)
 
             checkerboard = self._captureFinalPasses()
             candidate = copy.deepcopy(checkerboard)

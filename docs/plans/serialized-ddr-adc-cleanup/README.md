@@ -25,7 +25,11 @@ the alignment/calibration path deterministic, fast, and diagnostically useful.
   digital reset while checkerboard mode was selected restored coherence.
   Each ADC configuration model now exposes a normalized `DigitalReset()`
   command. Common calibration calls that command before data-eye measurement
-  and restarts the FPGA receiver afterward.
+  and restarts the FPGA receiver afterward. Because the failure was observed
+  primarily while eight banks calibrated in parallel, calibration now repeats
+  that checkerboard/reset/relock sequence immediately before every final
+  qualification attempt as well. This removes the long data-scan interval from
+  the ADC pattern-epoch assumption.
 
 ## Calibration UI Contract
 
@@ -74,6 +78,7 @@ restoration.
 - Confirm the 4096-sample PN23 window acquires phase and reports all-zero
   reference recurrence and cross-channel coherence errors.
 - Confirm repeated AD9249 calibrations retain shared checkerboard phase after
-  the automatic digital-datapath reset, including alternating between banks.
+  the automatic digital-datapath reset, including all eight banks running in
+  parallel and alternating between banks.
 - Increase `PatternTesterSamples` if a longer bounded checkerboard stress test
   is useful; this remains qualification, not a claimed BER measurement.

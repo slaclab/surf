@@ -97,11 +97,15 @@ The `Full calibration` operation performs these phases:
    partner half does not contaminate it.
    Each lane gets its own passing map and centered eye even though compatible
    lanes are swept together.
-7. **Qualify the assembled checkerboard samples.** With every data lane centered, software
-   checks the complete sample width. Channel zero establishes the checkerboard
-   A/B phase, and every logical channel must match the same ordered sequence.
-   This catches half-word or sample-epoch errors that individual masked lane
-   tests and a repetitive FCO word cannot detect.
+7. **Qualify the assembled checkerboard samples.** With every data lane
+   centered, software reselects checkerboard, issues another `DigitalReset()`,
+   waits for the ADC output to settle, and relocks the FPGA receiver immediately
+   before checking the complete sample width. This sequence is repeated for
+   every alternate FCO-eye attempt, closing the interval in which a parallel
+   bank calibration could disturb shared ADC digital state. Channel zero
+   establishes the checkerboard A/B phase, and every logical channel must match
+   the same ordered sequence. This catches half-word or sample-epoch errors that
+   individual masked lane tests and a repetitive FCO word cannot detect.
 8. **Run the optional deep checkerboard window.** When `UsePatternTester` is
    enabled, the hardware pattern tester checks `PatternTesterSamples` complete
    samples at line rate. Every channel must maintain one shared alternating
