@@ -88,8 +88,7 @@ entity RssiCore is
 
       -- Counters
       MAX_RETRANS_CNT_G : positive := 2;
-      MAX_CUM_ACK_CNT_G : positive := 3
-   );
+      MAX_CUM_ACK_CNT_G : positive := 3);
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -699,8 +698,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16
-      )
+         CSUM_WIDTH_G => 16)
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
@@ -787,8 +785,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16
-      )
+         CSUM_WIDTH_G => 16)
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
