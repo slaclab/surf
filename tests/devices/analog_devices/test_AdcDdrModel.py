@@ -512,6 +512,32 @@ def test_device_update_writes_transfer_strobe(configType):
         root.stop()
 
 
+@pytest.mark.parametrize(
+    ('configType', 'powerModeName'),
+    (
+        (Ad9249ConfigGroup, 'InternalPdwnMode'),
+        (Ad9252Config, 'PowerDownMode'),
+        (Ad9681Config, 'InternalPdwnMode'),
+    ))
+def test_digital_reset_uses_common_power_mode_enums(configType, powerModeName):
+    memory = CountingMemory()
+    root = pr.Root(name='Root', pollEn=False)
+    config = configType(name='Config', memBase=memory)
+    root.add(config)
+    root.start()
+    try:
+        powerMode = getattr(config, powerModeName)
+
+        assert powerMode.enum[3] == 'Digital Reset'
+        assert powerMode.enum[0] == 'Chip Run'
+
+        config.DigitalReset()
+
+        assert powerMode.getDisp(read=False) == 'Chip Run'
+    finally:
+        root.stop()
+
+
 def test_device_specific_readout_geometry():
     ad9249 = Ad9249Readout(name='Ad9249')
     assert len(ad9249.Bank) == 2

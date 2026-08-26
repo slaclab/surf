@@ -37,7 +37,7 @@ def addAdcDdrResetCommands(
     """Add normalized digital and PN23 reset commands to an ADC config device."""
 
     def digitalReset() -> None:
-        powerMode.set(3, write=True)
+        powerMode.setDisp('Digital Reset', write=True)
         try:
             if configUpdate is not None:
                 configUpdate()
@@ -45,7 +45,7 @@ def addAdcDdrResetCommands(
             # transactions that assert and release the reset state.
             time.sleep(0.001)
         finally:
-            powerMode.set(0, write=True)
+            powerMode.setDisp('Chip Run', write=True)
             if configUpdate is not None:
                 configUpdate()
 
