@@ -16,6 +16,7 @@ from tests.common.regression_utils import (
     cocotb_filtered_env,
     cocotb_test_filter,
     cocotb_test_filter_excluding,
+    merge_vhdl_sources,
 )
 
 
@@ -73,3 +74,59 @@ def test_cocotb_filtered_env_rejects_conflicting_external_selectors(monkeypatch)
 
     with pytest.raises(ValueError, match="Specify only one"):
         cocotb_filtered_env({}, "default_.*")
+
+
+def test_merge_vhdl_sources_rejects_same_resolved_file(tmp_path):
+    source = tmp_path / "Imported.vhd"
+    source.write_text("entity Imported is end entity;\n", encoding="utf-8")
+    alias = tmp_path / "Alias.vhd"
+    alias.symlink_to(source)
+
+    with pytest.raises(ValueError, match="duplicates.*already present"):
+        merge_vhdl_sources(
+            {"surf": [str(source)]},
+            {"surf": [str(alias)]},
+        )
+
+
+def test_merge_vhdl_sources_rejects_duplicate_primary_unit(tmp_path):
+    imported = tmp_path / "Imported.vhd"
+    imported.write_text("entity SharedUnit is end entity;\n", encoding="utf-8")
+    extra = tmp_path / "Extra.vhd"
+    extra.write_text(
+        "-- entity CommentOnly is end entity;\n"
+        "entity SharedUnit is end entity;\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="declares sharedunit, already declared"):
+        merge_vhdl_sources(
+            {"surf": [str(imported)]},
+            {"surf": [str(extra)]},
+        )
+
+
+def test_merge_vhdl_sources_keeps_unique_units_and_library_boundaries(tmp_path):
+    imported = tmp_path / "Imported.vhd"
+    imported.write_text(
+        "package SharedPkg is end package;\n"
+        "entity Imported is end entity;\n",
+        encoding="utf-8",
+    )
+    extra = tmp_path / "Extra.vhd"
+    extra.write_text("entity Extra is end entity;\n", encoding="utf-8")
+    other_library = tmp_path / "OtherLibrary.vhd"
+    other_library.write_text("entity Imported is end entity;\n", encoding="utf-8")
+
+    merged = merge_vhdl_sources(
+        {"surf": [str(imported)]},
+        {
+            "surf": [str(extra)],
+            "testlib": [str(other_library)],
+        },
+    )
+
+    assert merged == {
+        "surf": [str(imported), str(extra)],
+        "testlib": [str(other_library)],
+    }

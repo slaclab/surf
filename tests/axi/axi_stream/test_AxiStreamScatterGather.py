@@ -133,12 +133,4 @@ def test_AxiStreamScatterGather(parameters):
         toplevel="surf.axistreamscattergatheripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/AxiStreamScatterGatherIpIntegrator.vhd",
-            ],
-        },
     )

@@ -42,6 +42,13 @@ build-manifest entry or repeat an imported design unit. Compiling the same unit
 from both paths can redefine it, make compile order significant, or leave a
 cached build using a different source than the reviewer expects.
 
+The shared source merge rejects an extra path that resolves to a file already
+present in the same library. It also rejects a different extra file that
+redeclares an imported entity, package, or configuration in that library, so
+variable-generated lists cannot bypass the literal-source audit. There is no
+override: give a test-only unit a distinct name, or fix the ruckus/source-list
+boundary instead of relying on compile order.
+
 The default build path includes `parameters` and `extra_env`, and the shared
 runner hashes path components that would be unsafe or excessively long. Use
 `sim_build_key` only when a subsystem requires a deliberately stable or more

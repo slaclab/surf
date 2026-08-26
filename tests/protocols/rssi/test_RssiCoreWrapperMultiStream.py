@@ -48,7 +48,6 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
-    RSSI_CORE_WRAPPER_VHDL_SOURCES,
     format_transport_frame,
     parse_header,
     protocol_bytes_from_stream_word,
@@ -517,13 +516,6 @@ def test_RssiCoreWrapperMultiStream(parameters):
         toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
         parameters=parameters,
         extra_env=_default_extra_env(parameters),
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -542,13 +534,6 @@ def test_RssiCoreWrapperMultiStream_extended(parameters):
             **parameters,
             "RUN_RSSI_EXTENDED_TESTS": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -585,11 +570,4 @@ def test_RssiCoreWrapperMultiStream_bidirectional_packetizer2(request):
             **parameters,
             "COCOTB_TESTCASE": "multi_stream_bidirectional_payload_routes_test",
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

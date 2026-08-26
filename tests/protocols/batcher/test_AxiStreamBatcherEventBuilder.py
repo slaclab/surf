@@ -674,7 +674,6 @@ def test_AxiStreamBatcherEventBuilder(parameters):
         extra_env=extra_env,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "protocols/batcher/wrappers/AxiStreamBatcherEventBuilderWrapper.vhd",
             ],
         },

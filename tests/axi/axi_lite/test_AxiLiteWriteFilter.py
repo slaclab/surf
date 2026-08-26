@@ -193,7 +193,4 @@ def test_AxiLiteWriteFilter(parameters):
             "FILTER_ADDR_0_G": "416",
         },
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteWriteFilterIpIntegrator.vhd"],
-        },
     )

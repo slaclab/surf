@@ -37,6 +37,14 @@ BASE_GHDL_COMPILE_ARGS = [
 
 OPTIONAL_GHDL_WARNINGS = ("elaboration", "hide", "specs")
 
+PRIMARY_VHDL_UNIT_RE = re.compile(
+    r"(?im)^(?:"
+    r"entity\s+(?P<entity>[a-z][a-z0-9_]*)\s+is\b|"
+    r"package\s+(?!body\b)(?P<package>[a-z][a-z0-9_]*)\s+is\b|"
+    r"configuration\s+(?P<configuration>[a-z][a-z0-9_]*)\s+of\b"
+    r")"
+)
+
 
 @lru_cache(maxsize=1)
 def _supported_ghdl_warning_names() -> frozenset[str]:
@@ -207,6 +215,35 @@ def build_vhdl_sources() -> dict[str, list[str]]:
     }
 
 
+def _resolved_source_path(path: str | Path) -> Path:
+    source = Path(path)
+    if not source.is_absolute():
+        source = REPO_ROOT / source
+    return source.resolve()
+
+
+@lru_cache(maxsize=None)
+def _primary_vhdl_units(path: Path) -> frozenset[str]:
+    if path.suffix.lower() not in {".vhd", ".vhdl"}:
+        return frozenset()
+
+    try:
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return frozenset()
+
+    source_without_comments = "\n".join(
+        line.split("--", 1)[0]
+        for line in source.splitlines()
+    )
+    return frozenset(
+        name.lower()
+        for match in PRIMARY_VHDL_UNIT_RE.finditer(source_without_comments)
+        for name in match.groupdict().values()
+        if name is not None
+    )
+
+
 def merge_vhdl_sources(
     base_sources: dict[str, list[str]],
     extra_sources: dict[str, list[str]] | None,
@@ -215,11 +252,46 @@ def merge_vhdl_sources(
         return base_sources
 
     merged = {library: list(paths) for library, paths in base_sources.items()}
+    resolved_by_library = {
+        library: {_resolved_source_path(path) for path in paths}
+        for library, paths in base_sources.items()
+    }
+    units_by_library = {
+        library: {
+            unit: _resolved_source_path(path)
+            for path in paths
+            for unit in _primary_vhdl_units(_resolved_source_path(path))
+        }
+        for library, paths in base_sources.items()
+    }
+
     for library, paths in extra_sources.items():
         merged.setdefault(library, [])
+        resolved_by_library.setdefault(library, set())
+        units_by_library.setdefault(library, {})
         # Append test-local sources after the imported SURF library so wrappers
         # can instantiate the real RTL that was already compiled above.
-        merged[library].extend(str(Path(path)) for path in paths)
+        for path in paths:
+            resolved = _resolved_source_path(path)
+            if resolved in resolved_by_library[library]:
+                raise ValueError(
+                    f"Extra VHDL source {path} duplicates {resolved} "
+                    f"already present in library {library}"
+                )
+
+            units = _primary_vhdl_units(resolved)
+            duplicate_units = sorted(units & units_by_library[library].keys())
+            if duplicate_units:
+                unit = duplicate_units[0]
+                previous = units_by_library[library][unit]
+                raise ValueError(
+                    f"Extra VHDL source {path} declares {unit}, already declared "
+                    f"by {previous} in library {library}"
+                )
+
+            merged[library].append(str(Path(path)))
+            resolved_by_library[library].add(resolved)
+            units_by_library[library].update({unit: resolved for unit in units})
     return merged
 
 

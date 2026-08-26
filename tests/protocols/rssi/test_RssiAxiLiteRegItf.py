@@ -333,11 +333,4 @@ def test_RssiAxiLiteRegItf(parameters):
         test_file=__file__,
         toplevel="surf.rssiaxiliteregitfwrapper",
         parameters=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd",
-                "protocols/rssi/v1/wrappers/RssiAxiLiteRegItfWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

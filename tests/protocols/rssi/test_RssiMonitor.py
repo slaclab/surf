@@ -230,11 +230,4 @@ def test_RssiMonitor(parameters):
         toplevel="surf.rssimonitorwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-                "protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

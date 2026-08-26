@@ -80,7 +80,4 @@ def test_AxiStreamConcat(parameters):
         toplevel="surf.axistreamconcatipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamConcatIpIntegrator.vhd"],
-        },
     )

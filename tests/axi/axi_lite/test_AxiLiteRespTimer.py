@@ -121,7 +121,4 @@ def test_AxiLiteRespTimer(parameters):
         toplevel="surf.axiliteresptimeripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteRespTimerIpIntegrator.vhd"],
-        },
     )

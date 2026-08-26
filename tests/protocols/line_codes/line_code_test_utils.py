@@ -100,7 +100,6 @@ def run_line_code_integration_test(
     *,
     test_file: str,
     toplevel: str,
-    tb_source: str,
     parameters: dict[str, object],
 ) -> None:
     run_surf_vhdl_test(
@@ -108,7 +107,6 @@ def run_line_code_integration_test(
         toplevel=toplevel,
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [tb_source]},
     )
 
 

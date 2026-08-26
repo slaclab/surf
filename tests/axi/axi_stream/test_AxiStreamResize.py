@@ -237,7 +237,4 @@ def test_AxiStreamResize(parameters):
         toplevel="surf.axistreamresizeipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamResizeIpIntegrator.vhd"],
-        },
     )

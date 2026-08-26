@@ -94,10 +94,4 @@ def test_AxiLiteSequencerRam(parameters):
         toplevel="surf.axilitesequencerramipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/MasterAxiLiteIpIntegrator.vhd",
-                "axi/axi-lite/ip_integrator/AxiLiteSequencerRamIpIntegrator.vhd",
-            ],
-        },
     )

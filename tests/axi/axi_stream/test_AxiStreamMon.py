@@ -78,10 +78,4 @@ def test_AxiStreamMon(parameters):
         toplevel="surf.axistreammonipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/AxiStreamMonIpIntegrator.vhd",
-            ],
-        },
     )

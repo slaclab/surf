@@ -50,7 +50,6 @@ from tests.common.regression_utils import (
     env_flag,
     run_surf_vhdl_test,
 )
-from tests.protocols.rssi.rssi_test_utils import RSSI_CORE_WRAPPER_VHDL_SOURCES
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     SsiBeat,
@@ -296,13 +295,6 @@ def test_RssiCoreWrapper(parameters):
                 "wrapper_server_backpressure_advertises_busy_test"
             ),
         ),
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -323,11 +315,4 @@ def test_RssiCoreWrapper_backpressure():
             "COCOTB_TESTCASE": "wrapper_server_backpressure_advertises_busy_test",
             "RSSI_WRAPPER_BACKPRESSURE_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

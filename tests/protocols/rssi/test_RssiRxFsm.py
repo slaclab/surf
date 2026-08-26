@@ -588,13 +588,6 @@ def test_RssiRxFsm(parameters):
                 "checksum_disabled_accepts_data_when_checksum_status_is_bad_test"
             ),
         ),
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -610,11 +603,4 @@ def test_RssiRxFsm_checksum_disabled():
             "COCOTB_TESTCASE": "checksum_disabled_accepts_data_when_checksum_status_is_bad_test",
             "RSSI_CHECKSUM_DISABLED_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

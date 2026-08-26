@@ -823,11 +823,4 @@ def test_RssiTxFsm(parameters):
         toplevel="surf.rssitxfsmwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

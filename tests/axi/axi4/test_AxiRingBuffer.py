@@ -106,7 +106,6 @@ def test_AxiRingBuffer(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/AxiRingBufferIpIntegrator.vhd",
             ],

@@ -185,7 +185,4 @@ def test_AxiStreamCompact(parameters):
         toplevel="surf.axistreamcompactipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamCompactIpIntegrator.vhd"],
-        },
     )

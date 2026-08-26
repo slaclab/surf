@@ -84,7 +84,4 @@ def test_AxiStreamSplitter(parameters):
         toplevel="surf.axistreamsplitteripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamSplitterIpIntegrator.vhd"],
-        },
     )

@@ -87,9 +87,4 @@ def test_AxiLiteRamSyncStatusVector(parameters):
         toplevel="surf.axiliteramsyncstatusvectoripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/AxiLiteRamSyncStatusVectorIpIntegrator.vhd",
-            ],
-        },
     )

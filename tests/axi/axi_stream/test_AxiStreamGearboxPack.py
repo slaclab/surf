@@ -75,7 +75,4 @@ def test_AxiStreamGearboxPack(parameters):
         toplevel="surf.axistreamgearboxpackipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamGearboxPackIpIntegrator.vhd"],
-        },
     )

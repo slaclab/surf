@@ -267,5 +267,4 @@ def test_RssiHeaderReg(parameters):
         toplevel="surf.rssiheaderregwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["protocols/rssi/v1/wrappers/RssiHeaderRegWrapper.vhd"]},
     )

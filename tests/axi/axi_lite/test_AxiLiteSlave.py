@@ -140,7 +140,4 @@ def test_AxiLiteSlave(parameters):
         toplevel="surf.axiliteslaveipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteSlaveIpIntegrator.vhd"],
-        },
     )

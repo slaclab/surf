@@ -60,7 +60,6 @@ from tests.common.regression_utils import (
     run_surf_vhdl_test,
 )
 from tests.protocols.rssi.rssi_test_utils import (
-    RSSI_CORE_VHDL_SOURCES,
     RSSI_FLAG_ACK,
     RSSI_FLAG_NULL,
     RSSI_FLAG_RST,
@@ -1280,13 +1279,6 @@ def test_RssiCore(parameters):
         toplevel="surf.rssicoreintegrationwrapper",
         parameters=parameters,
         extra_env=_default_extra_env(parameters),
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -1313,13 +1305,6 @@ def test_RssiCore_sequence_wraparound():
             "COCOTB_TESTCASE": "client_sequence_wraparound_delivers_frame_test",
             "RSSI_SEQUENCE_WRAP_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -1345,13 +1330,6 @@ def test_RssiCore_repeated_data_loss():
             "COCOTB_TESTCASE": "bidirectional_data_losses_recover_without_duplicate_delivery_test",
             "RSSI_REPEATED_LOSS_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -1377,13 +1355,6 @@ def test_RssiCore_out_of_order_recovery():
             "COCOTB_TESTCASE": "lost_first_data_drops_later_data_until_retransmit_test",
             "RSSI_OUT_OF_ORDER_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -1409,13 +1380,6 @@ def test_RssiCore_axil_control_path():
             "COCOTB_TESTCASE": "client_axil_control_path_opens_injects_reads_and_closes_test",
             "RSSI_AXIL_CONTROL_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -1442,11 +1406,4 @@ def test_RssiCore_checksum_disabled():
             "COCOTB_TESTCASE": "checksum_disabled_connection_and_payload_test",
             "RSSI_CHECKSUM_DISABLED_CORE_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

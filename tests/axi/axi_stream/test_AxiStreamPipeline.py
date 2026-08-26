@@ -347,7 +347,4 @@ def test_AxiStreamPipeline(parameters):
         toplevel="surf.axistreampipelineipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd"],
-        },
     )

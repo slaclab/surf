@@ -111,7 +111,6 @@ def test_AxiStreamDmaV2Desc(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
                 "axi/dma/ip_integrator/AxiStreamDmaV2DescIpIntegrator.vhd",
             ],

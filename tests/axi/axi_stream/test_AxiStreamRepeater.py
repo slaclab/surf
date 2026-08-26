@@ -82,7 +82,4 @@ def test_AxiStreamRepeater(parameters):
         toplevel="surf.axistreamrepeateripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamRepeaterIpIntegrator.vhd"],
-        },
     )

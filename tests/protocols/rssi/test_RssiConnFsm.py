@@ -403,11 +403,4 @@ def test_RssiConnFsm(parameters):
         toplevel="surf.rssiconnfsmwrapper",
         parameters=parameters,
         extra_env=cocotb_filtered_env(parameters, rf"{role}_.*_test$"),
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

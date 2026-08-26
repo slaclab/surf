@@ -108,5 +108,4 @@ def test_AxiLiteFifoPop(parameters):
         toplevel="surf.axilitefifopopipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["axi/axi-lite/ip_integrator/AxiLiteFifoPopIpIntegrator.vhd"]},
     )

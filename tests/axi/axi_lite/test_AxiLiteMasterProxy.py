@@ -92,10 +92,4 @@ def test_AxiLiteMasterProxy(parameters):
         toplevel="surf.axilitemasterproxyipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/MasterAxiLiteIpIntegrator.vhd",
-                "axi/axi-lite/ip_integrator/AxiLiteMasterProxyIpIntegrator.vhd",
-            ],
-        },
     )

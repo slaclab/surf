@@ -81,7 +81,4 @@ def test_AxiStreamPrbsFlowCtrl(parameters):
         toplevel="surf.axistreamprbsflowctrlipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamPrbsFlowCtrlIpIntegrator.vhd"],
-        },
     )

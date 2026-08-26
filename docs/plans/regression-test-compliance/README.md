@@ -69,6 +69,52 @@ no removed pytest nodes or cocotb entrypoints. The 14 CoaXPress/PGP4/SRP
 parameter nodes pass both serially and under pytest-xdist; the JESD-specific
 24-node matrix also passes in both modes.
 
+Phase 2 has completed its AXI source-list pass. A fresh ruckus import confirmed
+76 literal AXI paths were exact duplicates of design units already supplied by
+`build/SRC_VHDL`; those entries were removed from 53 tests while the AXI4 and
+DMA wrappers absent from the import were retained in their mixed source lists.
+The AXI preservation report found no removed test identifiers. After deleting
+only the ignored AXI simulator cache, the complete 117-node AXI suite passed a
+fresh xdist build in 227.12 seconds and then passed again from cache in 17.74
+seconds. The checked-in duplicate-source baseline now contains no AXI entries.
+
+The remaining source-list pass removed 43 literal duplicate entries from DSP,
+batcher, and RSSI tests, plus the dynamically expanded RSSI core source bundles
+that the literal audit did not count. Test-only DSP and batcher wrappers absent
+from ruckus remain explicit; every RSSI integration wrapper is already imported
+and now uses that authoritative copy. The repository duplicate-source count and
+blocking baseline are both zero, with no preservation-report changes. From
+clean simulator caches, the combined suites pass with 37 passed and 17 gated
+skips in 53.42 seconds; the cached repeat reports the same result in 15.51
+seconds.
+
+`test_AxiStreamDmaV2Read.py` now uses `run_surf_vhdl_test()` and keeps only its
+two AXI4/DMA wrappers that are absent from the ruckus import; the production
+read engine is supplied by ruckus. Both public parameter IDs are preserved. A
+fresh serial build passes both cases in 16.95 seconds and the cached xdist
+repeat passes in 1.10 seconds. The ordinary direct-runner finding and its
+blocking baseline entry are now both zero.
+
+The shared source merge now rejects both an extra path resolving to an already
+imported file and a different extra file redeclaring an entity, package, or
+configuration in the same library. A dynamic-list sweep exercised 153 source
+expressions without finding an undisclosed collision, then identified four
+helper-mediated duplicates outside the literal audit: three line-code
+integration testbenches and `Pgp4TxLiteWrapper`. Those tests now use the ruckus
+copies. Their five focused cases pass from clean caches in serial mode and on a
+cached parallel repeat; a 16-case Ethernet suite with a legitimate dynamic
+source bundle also passes with the runtime guard enabled.
+
+Phase 2 is complete. The 17 RSSI `force_compile=True` arguments were blanket
+settings rather than documented exceptions; the shared GHDL runner already
+invalidates an elaborated image when any imported source is newer. After
+removing them, the full default RSSI suite passed from a deleted simulator
+cache with 6 passed and 17 gated skips in 33.68 seconds, then repeated from the
+cache under pytest-xdist with the same results in 1.75 seconds. The remaining
+VCS SimLink use is retained because that helper deliberately pre-analyzes its
+mixed-language topology before asking cocotb-test to elaborate without source
+arguments.
+
 ## Non-Negotiable Preservation Rules
 
 - Do not remove an existing test, parameter case, opt-in gate, or behavioral

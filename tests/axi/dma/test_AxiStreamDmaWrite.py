@@ -96,7 +96,6 @@ def test_AxiStreamDmaWrite(parameters):
         extra_vhdl_sources={
             "surf": [
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
                 "axi/dma/ip_integrator/AxiStreamDmaWriteIpIntegrator.vhd",
             ],
         },

@@ -261,9 +261,6 @@ def test_FirFilterSingleChannelTiming(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "dsp/generic/fixed/FirFilterTap.vhd",
-                "dsp/generic/fixed/FirFilterSingleChannel.vhd",
                 "dsp/generic/wrappers/FirFilterSingleChannelWrapper.vhd",
             ]
         },

@@ -72,7 +72,4 @@ def test_AxiStreamTrailerRemove(parameters):
         toplevel="surf.axistreamtrailerremoveipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamTrailerRemoveIpIntegrator.vhd"],
-        },
     )

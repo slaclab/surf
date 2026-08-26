@@ -84,7 +84,4 @@ def test_AxiStreamShift(parameters):
         toplevel="surf.axistreamshiftipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamShiftIpIntegrator.vhd"],
-        },
     )

@@ -159,7 +159,4 @@ def test_AxiLiteRegs(parameters):
         toplevel="surf.axiliteregsipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteRegsIpIntegrator.vhd"],
-        },
     )

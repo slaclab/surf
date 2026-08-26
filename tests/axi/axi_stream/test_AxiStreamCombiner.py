@@ -105,7 +105,4 @@ def test_AxiStreamCombiner(parameters):
         toplevel="surf.axistreamcombineripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamCombinerIpIntegrator.vhd"],
-        },
     )

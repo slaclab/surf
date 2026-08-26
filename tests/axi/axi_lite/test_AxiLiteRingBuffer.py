@@ -129,5 +129,4 @@ def test_AxiLiteRingBuffer(parameters):
         toplevel="surf.axiliteringbufferipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["axi/axi-lite/ip_integrator/AxiLiteRingBufferIpIntegrator.vhd"]},
     )

@@ -139,9 +139,6 @@ def test_AxiStreamDmaRingWrite(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
                 "axi/dma/ip_integrator/AxiStreamDmaRingWriteIpIntegrator.vhd",
             ],

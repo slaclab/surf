@@ -89,7 +89,6 @@ def test_AxiMonAxiL(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/AxiMonAxiLIpIntegrator.vhd",
             ],
         },

@@ -87,11 +87,4 @@ def test_AxiStreamMonAxiL(parameters):
         toplevel="surf.axistreammonaxilipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/AxiStreamMonAxiLIpIntegrator.vhd",
-            ],
-        },
     )

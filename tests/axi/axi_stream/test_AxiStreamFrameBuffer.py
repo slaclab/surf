@@ -298,11 +298,4 @@ def test_AxiStreamFrameBuffer(parameters):
         toplevel="surf.axistreamframebufferipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/AxiStreamFrameBufferIpIntegrator.vhd",
-            ],
-        },
     )
