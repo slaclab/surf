@@ -165,10 +165,15 @@ jobs:
             --ignore=tests/simlink
           )
 
+          # Import once before either run mode. The compliance check consumes
+          # the same ruckus source inventory as the cocotb runner and fails
+          # fast on new structural violations before expensive simulations.
+          make MODULES=$PWD import
+          python -m tests.common.compliance_audit check tests
+
           # Full integration/release runs build and simulate on apt mcode GHDL
           # and collect the coverage consumed by Codecov.
           if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
-            make MODULES=$PWD import
             python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
             exit 0
           fi
@@ -192,7 +197,6 @@ jobs:
           fi
 
           echo "${selector_output}"
-          make MODULES=$PWD import
 
           if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
             echo "Directory selector forced a full run (rc=${selector_rc})"

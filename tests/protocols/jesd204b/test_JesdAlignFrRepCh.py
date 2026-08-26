@@ -346,9 +346,9 @@ async def test_char03_random_soak(dut):
     await tb.reset()
 
     # Fixed seed for reproducibility
-    random.seed(0xC0C0_BABE)
+    rng = random.Random(0xC0C0_BABE)
     n_words = 64
-    stimulus = [random.randint(0, 0xFFFFFFFF) for _ in range(n_words)]
+    stimulus = [rng.randint(0, 0xFFFFFFFF) for _ in range(n_words)]
 
     golden = predict_char_restoration(stimulus, f=f, scr=bool(scr_enable), lfsr_init=0)
 

@@ -6,7 +6,7 @@ Bring the existing cocotb regression code into closer alignment with the
 authoritative [test guidance](../../../tests/README.md) without deleting
 coverage, hiding scenarios, or attempting a disruptive whole-tree rewrite.
 
-Status: implementation is in progress on `verification-2-test-compliance`.
+Status: implementation is complete on `verification-2-test-compliance`.
 Phase 0 delivered the structural audit, preservation-report comparison, and
 checked-in baseline ratchet under `tests/common/`. This branch was created from
 `verification-2` so the implementation can use the new guidance while it is
@@ -261,6 +261,37 @@ The whole active test tree now reports zero compliance findings. The
 `edge-then-timer` rule has therefore joined the checked-in zero-entry blocking
 baseline: new raw edge-plus-delay sequences must use the appropriate sampling
 helper or carry a narrowly scoped reviewed timing contract.
+
+The focused Phase 5 review adds an independent RSSI checksum anchor using the
+literal header word `0x4008_1234_0000_0000` and its hand-worked one's-complement
+result `0xADC3`; both the Python oracle and RTL must match it. RSSI multi-stream
+frame comparisons now identify the failing beat and payload or sideband, and a
+JESD204B soak uses a local seeded generator rather than mutating process-global
+random state. The default affected selection passes with 7 passed and 3
+existing gated skips, and the checksum/JESD nodes pass all 7 cases serially.
+
+The five large-suite candidates were reviewed for coherent boundaries. Each
+currently owns one expensive DUT topology and already separates behavior with
+named cocotb entrypoints and local helpers; splitting by line count would
+duplicate pytest wrappers and simulation launches without improving ownership.
+No file split is planned until a behavior can move with a stable node mapping
+and a genuinely independent simulation boundary.
+
+Phase 6 now exposes the structural check directly in CI after the ruckus import
+and before any expensive simulator run. `scripts/setup_regression_env.sh` no
+longer suggests the superseded flat `tests/test_*.py` layout; it points users to
+the blocking check, a focused subsystem command, and `tests/README.md`.
+
+Final validation is complete. A fresh ruckus import succeeds, full Python
+compile and flake8 checks are clean, and the blocking audit reports no baseline
+differences. The CI-equivalent non-SimLink run passes with 946 passed and 17
+existing gated skips in 1344.94 seconds; the dedicated bounded-worker SimLink
+run passes with 94 passed and 13 existing gated skips in 21.58 seconds. The
+preservation comparison from branch base `4005e7ffe3c6d21953e53441fe8d9efae2b43309`
+to the completed branch covers 430 versus 433 tracked Python test files and
+reports zero removed pytest functions, cocotb entrypoints, parameter IDs,
+environment controls, skips, or timeout decorators. The additions are the
+compliance tool's 26 unit tests and 13 explicit selector/control identifiers.
 
 ## Non-Negotiable Preservation Rules
 
@@ -522,10 +553,9 @@ criteria.
 
 ## Immediate Next Steps
 
-1. Review protocol oracle independence and assertion diagnostics, adding only
-   focused known-answer anchors or context that closes a demonstrated gap.
-2. Split the largest suites only where a coherent ownership boundary improves
-   maintainability without changing public pytest nodes, selectors, or gates.
-3. Correct stale commands in `scripts/setup_regression_env.sh`, ensure the
-   blocking compliance check runs in CI, and perform the final repository-wide
-   validation and preservation audit.
+1. Push `verification-2-test-compliance` and open its implementation PR against
+   `pre-release` when the documentation branch is available there.
+2. Include the branch-base preservation result and final validation totals in
+   the PR description.
+3. Do not merge these implementation commits back into the documentation-only
+   `verification-2` branch.

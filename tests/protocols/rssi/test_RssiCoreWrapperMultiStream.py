@@ -84,14 +84,28 @@ def _explicit_pytest_selection(request, test_name: str) -> bool:
 
 
 def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
-    assert len(actual) == len(expected)
-    for actual_beat, expected_beat in zip(actual, expected):
+    assert len(actual) == len(expected), (
+        f"frame beat count: expected {len(expected)}, got {len(actual)}"
+    )
+    for beat_index, (actual_beat, expected_beat) in enumerate(zip(actual, expected)):
         mask = data_mask_from_keep(expected_beat.keep)
-        assert actual_beat.data & mask == expected_beat.data & mask
-        assert actual_beat.keep == expected_beat.keep
-        assert actual_beat.last == expected_beat.last
-        assert actual_beat.sof == expected_beat.sof
-        assert actual_beat.eofe == expected_beat.eofe
+        assert actual_beat.data & mask == expected_beat.data & mask, (
+            f"beat {beat_index} payload: expected "
+            f"{expected_beat.data & mask:#x}, got {actual_beat.data & mask:#x}"
+        )
+        assert actual_beat.keep == expected_beat.keep, (
+            f"beat {beat_index} TKEEP: expected {expected_beat.keep:#x}, "
+            f"got {actual_beat.keep:#x}"
+        )
+        assert actual_beat.last == expected_beat.last, (
+            f"beat {beat_index} TLAST: expected {expected_beat.last}, got {actual_beat.last}"
+        )
+        assert actual_beat.sof == expected_beat.sof, (
+            f"beat {beat_index} SOF: expected {expected_beat.sof}, got {actual_beat.sof}"
+        )
+        assert actual_beat.eofe == expected_beat.eofe, (
+            f"beat {beat_index} EOFE: expected {expected_beat.eofe}, got {actual_beat.eofe}"
+        )
 
 
 class TB:
