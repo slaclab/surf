@@ -252,6 +252,7 @@ begin
                      if (r.wordErrorCount(i) /= x"FFFFFFFF") then
                         v.wordErrorCount(i) := std_logic_vector(unsigned(r.wordErrorCount(i)) + 1);
                      end if;
+                     v.channelPassed(i) := '0';
                      v.bitErrorMask(i)(SAMPLE_WIDTH_G-1 downto 0) :=
                         r.bitErrorMask(i)(SAMPLE_WIDTH_G-1 downto 0) or
                         v.sampleErrorBits(i)(SAMPLE_WIDTH_G-1 downto 0);
@@ -263,15 +264,12 @@ begin
             if (unsigned(r.checkedSamples) + 1 >= unsigned(r.requestedSamples)) then
                v.busy            := '0';
                v.done            := '1';
+               -- channelPassed is maintained per-sample above, so completion is
+               -- just an AND-reduce of the clean flags over the masked channels.
                v.allChannelsPass := '1';
                for i in CHANNELS_G-1 downto 0 loop
-                  if (r.channelMask(i) = '1') then
-                     if (v.wordErrorCount(i) = x"00000000") then
-                        v.channelPassed(i) := '1';
-                     else
-                        v.channelPassed(i)   := '0';
-                        v.allChannelsPass    := '0';
-                     end if;
+                  if (r.channelMask(i) = '1' and v.channelPassed(i) = '0') then
+                     v.allChannelsPass := '0';
                   end if;
                end loop;
                v.allFcoPass := '1';
@@ -325,7 +323,10 @@ begin
          v.pnHistory        := (others => '0');
          v.pnHistoryCount   := 0;
          v.checkedSamples   := (others => '0');
-         v.channelPassed    := (others => '0');
+         -- channelPassed is a running "clean" flag: masked-in channels start
+         -- passing and clear on the first word error, so the completion decision
+         -- is a cheap reduce instead of a wide compare of the 32-bit counters.
+         v.channelPassed    := r.cfgChannelMask;
          v.fcoPassed        := (others => '0');
          v.fcoSeen          := (others => '0');
          v.wordErrorCount   := (others => (others => '0'));
