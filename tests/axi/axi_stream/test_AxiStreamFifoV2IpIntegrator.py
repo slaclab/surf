@@ -333,12 +333,9 @@ async def stream_round_trip_test(dut):
     assert int(tb.dut.sAxisOverflow.value) == 0
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_METADATA_TRUNCATION", default=False))
 async def metadata_truncation_test(dut):
     tb = TB(dut)
-    if not tb.test_metadata_truncation:
-        return
-
     await tb.reset()
     tb.start_agents()
 
@@ -356,12 +353,9 @@ async def metadata_truncation_test(dut):
     assert scalar_tuser(rx_frame.tuser) == (scalar_tuser(frame.tuser) & mask(tb.m_user_width))
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_FRAME_READY", default=False))
 async def frame_ready_release_and_last_user_test(dut):
     tb = TB(dut)
-    if not tb.test_frame_ready:
-        return
-
     await tb.reset()
     tb.clear_samples()
     tb.dut.M_AXIS_TREADY.value = 1
@@ -397,12 +391,9 @@ async def frame_ready_release_and_last_user_test(dut):
     assert received["last_sideband"] == [beat_users[-1]] * len(payload)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_THRESHOLD_PREFILL", default=False))
 async def threshold_prefill_release_test(dut):
     tb = TB(dut)
-    if not tb.test_threshold_prefill:
-        return
-
     await tb.reset()
     tb.dut.M_AXIS_TREADY.value = 0
 
@@ -437,12 +428,9 @@ async def threshold_prefill_release_test(dut):
     await tb.cycle_sink(2)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_BURST_BEHAVIOR", default=False))
 async def burst_mode_release_test(dut):
     tb = TB(dut)
-    if not tb.test_burst_behavior:
-        return
-
     await tb.reset()
     tb.clear_samples()
     tb.dut.M_AXIS_TREADY.value = 1
@@ -468,12 +456,9 @@ async def burst_mode_release_test(dut):
     assert any(later > earlier + 1 for earlier, later in zip(tb.rx_cycles, tb.rx_cycles[1:]))
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_DYNAMIC_PAUSE", default=False))
 async def dynamic_pause_threshold_test(dut):
     tb = TB(dut)
-    if not tb.test_dynamic_pause:
-        return
-
     await tb.reset()
     tb.dut.fifoPauseThresh.value = 1
     tb.dut.M_AXIS_TREADY.value = 0

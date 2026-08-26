@@ -75,6 +75,7 @@
       "tests/protocols/rssi/test_RssiRxFsm.py": 4,
       "tests/protocols/rssi/test_RssiTxFsm.py": 2
     },
+    "early-bare-return": {},
     "missing-methodology": {
       "tests/ethernet/RoCEv2/test_RoCEv2AxiStreamRdmaCore.py": 1,
       "tests/ethernet/RoCEv2/test_RoCEv2Dcqcn.py": 1,

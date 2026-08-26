@@ -39,6 +39,7 @@ import pytest
 
 RUN = "RUN_SAMPLE_KNOWN_ISSUE_TESTS"
 SELECTOR = "COCOTB_TESTCASE"
+FILTER = "COCOTB_TEST_FILTER"
 
 @cocotb.test(timeout_time=2, timeout_unit="us")
 async def transfer_test(dut):
@@ -57,10 +58,22 @@ def test_wrapper(parameters):
     assert inventory.parameter_ids == ("default",)
     assert inventory.environment_controls == (
         "COCOTB_TESTCASE",
+        "COCOTB_TEST_FILTER",
         "RUN_SAMPLE_KNOWN_ISSUE_TESTS",
     )
     assert inventory.skipped_functions == ("test_wrapper",)
     assert inventory.timeout_entrypoints == ("transfer_test",)
+
+
+def test_inventory_recognizes_shared_filter_helper_as_selector_control():
+    source = """
+def test_wrapper(parameters):
+    run(extra_env=cocotb_filtered_env(parameters, "default_test$"))
+"""
+
+    inventory = compliance_audit.inventory_source(source)
+
+    assert inventory.environment_controls == ("COCOTB_TEST_FILTER",)
 
 
 def test_audit_reports_high_and_low_confidence_screening_signals():
@@ -89,6 +102,38 @@ async def routed_case(dut):
     }
     assert len(findings) == 5
     assert {finding.symbol for finding in findings} == {"<module>", "routed_case"}
+
+
+def test_audit_classifies_returns_by_prior_test_activity_not_line_distance():
+    source = LICENSE_AND_METHODOLOGY + '''
+import cocotb
+
+@cocotb.test()
+async def prestimulus_return(dut):
+    """A long description can move a no-op return far below the decorator.
+
+    The rule must still recognize that the function has performed no awaited
+    simulator operation and made no assertion before taking this branch.
+    """
+    mode = 1
+    if mode:
+        return
+
+@cocotb.test()
+async def successful_terminal_path(dut):
+    await exercise_named_behavior(dut)
+    assert dut.done.value
+    if dut.short_path.value:
+        return
+'''
+
+    findings = compliance_audit.audit_source(source)
+    returns = [finding for finding in findings if "bare-return" in finding.rule]
+
+    assert {(finding.rule, finding.symbol) for finding in returns} == {
+        ("early-bare-return", "prestimulus_return"),
+        ("bare-return", "successful_terminal_path"),
+    }
 
 
 def test_audit_ignores_retained_tasks_and_clock_tasks():
@@ -206,6 +251,7 @@ def test_compliance_baseline_allows_cleanup_but_rejects_new_findings():
         "rules": {
             "direct-runner": {"tests/old.py": 1},
             "duplicate-imported-source": {"tests/sources.py": 2},
+            "early-bare-return": {"tests/ambiguous.py": 1},
             "missing-methodology": {},
         },
     }
@@ -275,6 +321,7 @@ def test_compliance_baseline_counts_findings_by_rule_and_path():
         "rules": {
             "direct-runner": {},
             "duplicate-imported-source": {"tests/source.py": 2},
+            "early-bare-return": {},
             "missing-methodology": {},
         },
     }

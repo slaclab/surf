@@ -131,7 +131,7 @@ async def startup_sc0(dut, tb):
 # Test 1 (SC1): Subclass-1 startup and E3 exit
 # ---------------------------------------------------------------------------
 
-@cocotb.test()
+@cocotb.test(skip=env_int("SUBCLASS", default=1) != 1)
 async def test_cgs01_subclass1(dut):
     """Code-group-sync (SC1): IDLE->SYNC->ILA->DATA for Subclass 1 with SYSREF gate.
 
@@ -146,10 +146,6 @@ async def test_cgs01_subclass1(dut):
     checks use wait_for_signal or are done after bounded settling.
     """
     num_mf = env_int("NUM_ILAS_MF_G", default=4)
-    subclass = env_int("SUBCLASS", default=1)
-
-    if subclass != 1:
-        return
 
     dut.enable_i.setimmediatevalue(0)
     dut.nSync_i.setimmediatevalue(0)
@@ -203,7 +199,7 @@ async def test_cgs01_subclass1(dut):
 # Test 2 (SC0): Subclass-0 startup and E3 exit
 # ---------------------------------------------------------------------------
 
-@cocotb.test()
+@cocotb.test(skip=env_int("SUBCLASS", default=1) != 0)
 async def test_cgs01_subclass0(dut):
     """Code-group-sync (SC0): IDLE->SYNC->ILA->DATA for Subclass 0 (no SYSREF).
 
@@ -214,10 +210,6 @@ async def test_cgs01_subclass0(dut):
     - NUM_ILAS_MF_G-1 pulses leaves FSM in ILA_S (off-by-one guard).
     """
     num_mf = env_int("NUM_ILAS_MF_G", default=4)
-    subclass = env_int("SUBCLASS", default=1)
-
-    if subclass != 0:
-        return
 
     dut.enable_i.setimmediatevalue(0)
     dut.nSync_i.setimmediatevalue(0)

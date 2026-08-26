@@ -39,15 +39,13 @@
 #   generics so the full integration batch remains bounded.  Separate pytest
 #   entries enable narrower cocotb tests for sequence wrap, bidirectional DATA
 #   loss in one connection, and out-of-order recovery with longer retransmit
-#   spacing.  Environment flags keep those specialized cocotb tests inert
-#   during unrelated parameter runs.
+#   spacing.  The default pytest entry filters out those specialized cocotb
+#   scenarios before simulation; each focused entry selects its named scenario.
 # - Timing and scoreboarding: Transport monitors sample accepted RSSI frames at
 #   the source side before optional loopback drops.  Application scoreboards
 #   assert both absence of premature output and exact recovered frames.  Quiet
 #   output drains account for reset-release FIFO behavior so payload assertions
 #   are about RSSI DATA delivery rather than wrapper initialization.
-
-import os
 
 import cocotb
 import pytest
@@ -55,7 +53,12 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    cocotb_filtered_env,
+    cocotb_test_filter_excluding,
+    env_flag,
+    run_surf_vhdl_test,
+)
 from tests.protocols.rssi.rssi_test_utils import (
     RSSI_CORE_VHDL_SOURCES,
     RSSI_FLAG_ACK,
@@ -85,13 +88,6 @@ REG_MAX_SEG_SIZE = 0x10
 REG_STATUS = 0x40
 REG_VALID_CNT = 0x44
 REG_RESEND_CNT = 0x4C
-
-
-def _run_extended_case(case_name: str) -> bool:
-    return (
-        env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
-        or os.environ.get("COCOTB_TESTCASE") == case_name
-    )
 
 
 class TB:
@@ -258,6 +254,9 @@ class TB:
         endpoint.set_idle()
 
     def start_transport_loopbacks(self) -> None:
+        # These retained coroutines are lifetime agents for one cocotb
+        # entrypoint.  They own no external resources and cocotb cancels them
+        # when that entrypoint finishes.
         self.loopback_tasks = [
             cocotb.start_soon(
                 self.loopback_transport(
@@ -610,9 +609,6 @@ async def dropped_client_data_retransmits_and_recovers_payload_test(dut):
 
 @cocotb.test()
 async def bidirectional_data_losses_recover_without_duplicate_delivery_test(dut):
-    if not env_flag("RSSI_REPEATED_LOSS_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -676,9 +672,6 @@ async def bidirectional_data_losses_recover_without_duplicate_delivery_test(dut)
 
 @cocotb.test()
 async def lost_first_data_drops_later_data_until_retransmit_test(dut):
-    if not env_flag("RSSI_OUT_OF_ORDER_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -833,9 +826,6 @@ async def server_backpressure_advertises_busy_to_client_test(dut):
 
 @cocotb.test()
 async def server_backpressure_recovers_without_lost_or_duplicate_frames_test(dut):
-    if not _run_extended_case("server_backpressure_recovers_without_lost_or_duplicate_frames_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -1039,9 +1029,6 @@ async def close_then_reopen_clears_state_and_delivers_new_payload_test(dut):
 
 @cocotb.test()
 async def client_axil_control_path_opens_injects_reads_and_closes_test(dut):
-    if not env_flag("RSSI_AXIL_CONTROL_CASE", default=False):
-        return
-
     tb = await TB.create(dut, direct_client_open=0)
 
     await tb.axil_write(REG_CONTROL, 0x0C)
@@ -1099,9 +1086,6 @@ async def client_axil_control_path_opens_injects_reads_and_closes_test(dut):
 
 @cocotb.test()
 async def checksum_disabled_connection_and_payload_test(dut):
-    if not env_flag("RSSI_CHECKSUM_DISABLED_CORE_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -1222,9 +1206,6 @@ async def bidirectional_multi_frame_stress_test(dut):
 
 @cocotb.test()
 async def client_sequence_wraparound_delivers_frame_test(dut):
-    if not env_flag("RSSI_SEQUENCE_WRAP_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -1270,6 +1251,24 @@ PARAMETER_SWEEP = [
     )
 ]
 
+SPECIALIZED_TESTS = (
+    "bidirectional_data_losses_recover_without_duplicate_delivery_test",
+    "checksum_disabled_connection_and_payload_test",
+    "client_axil_control_path_opens_injects_reads_and_closes_test",
+    "client_sequence_wraparound_delivers_frame_test",
+    "lost_first_data_drops_later_data_until_retransmit_test",
+)
+
+
+def _default_extra_env(parameters: dict[str, object]) -> dict[str, object]:
+    excluded = list(SPECIALIZED_TESTS)
+    if not env_flag("RUN_RSSI_EXTENDED_TESTS", default=False):
+        excluded.append("server_backpressure_recovers_without_lost_or_duplicate_frames_test")
+    return cocotb_filtered_env(
+        parameters,
+        cocotb_test_filter_excluding(*excluded),
+    )
+
 KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
 
@@ -1280,7 +1279,7 @@ def test_RssiCore(parameters):
         test_file=__file__,
         toplevel="surf.rssicoreintegrationwrapper",
         parameters=parameters,
-        extra_env=parameters,
+        extra_env=_default_extra_env(parameters),
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_VHDL_SOURCES,

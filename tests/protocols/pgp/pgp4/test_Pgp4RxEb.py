@@ -204,12 +204,14 @@ async def assert_no_output_words(tb: Pgp4RxEbTB, *, cycles: int):
         assert signal_int(tb.dut, "pgpRxValid") == 0
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        env_flag("EXPECT_SKIP_DISABLED", default=False)
+        or env_flag("EXPECT_OVERFLOW", default=False)
+    ),
+)
 async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False) or env_flag("EXPECT_OVERFLOW", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -247,12 +249,9 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     ]
     await wait_for_signal_in_domain(tb, "remLinkData", value=skip_data, cycles=64)
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("EXPECT_SKIP_DISABLED", default=False))
 async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -272,21 +271,20 @@ async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     assert words == [(PGP4_D_HEADER, marker_word)]
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        env_flag("EXPECT_SKIP_DISABLED", default=False)
+        or not env_flag("EXPECT_OVERFLOW", default=False)
+    ),
+)
 async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
     # Overflow is not expected under the slight-drift case, so keep the normal
     # regression realistic and only execute the deep fill test when the pytest
     # parameter sweep requests the explicit overflow-stress clock ratio.
-    if not env_flag("EXPECT_OVERFLOW", default=False):
-        return
-
     overflow_monitor = PulseMonitor(dut, "overflow", step=tb.cycle_pgp)
     cocotb.start_soon(overflow_monitor.run())
 
@@ -300,12 +298,9 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     assert overflow_monitor.seen
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("EXPECT_SKIP_DISABLED", default=False))
 async def pgp4_rx_eb_skip_disabled_passes_stream_and_link_error(dut):
     tb = Pgp4RxEbTB(dut)
-    if not env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 

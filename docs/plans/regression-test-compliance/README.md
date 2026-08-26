@@ -18,6 +18,57 @@ This effort improves the structure and reliability of existing tests. It does
 not reinstate the historical module-coverage queue or require new functional
 tests for unrelated RTL.
 
+Phase 1 has completed its batcher pilot. The event-builder transition-frame
+scenario is now excluded explicitly from the INDEXED configuration with
+`COCOTB_TEST_FILTER` instead of returning a no-op pass. Preservation comparison
+kept all 13 cocotb names, the pytest wrapper, and all three parameter IDs; the
+INDEXED result reports one explicit skip while both ROUTED configurations run
+all 13 scenarios.
+
+The RSSI pilot removed 19 additional no-op entrypoint returns across the
+connection FSM, core, wrapper, multi-stream wrapper, and receive FSM suites.
+Pytest now selects client/server role groups, excludes focused checksum/BUSY/
+loss/AXI-Lite/sequence cases from unrelated simulations, and retains the
+existing known-issue and extended gates. The preservation comparison reports no
+removed identifiers and four newly explicit `COCOTB_TEST_FILTER` controls.
+Client/server FSM simulation passes in serial and xdist modes. Enabling the
+known-issue RxFSM nodes still exposes their pre-existing behavioral failures;
+their XUnit results confirm that the normal node skips only the disabled-
+checksum case and the focused node skips the other 13 scenarios.
+
+The base-library migration converted 45 configuration and opt-in guards across
+18 delay, FIFO, arbiter, RAM, and synchronizer modules into decorator-level
+cocotb skips. The only remaining base early return is the intentional
+common-clock terminal path in `SynchronizerFifo`: it first exercises and
+asserts every passthrough value, then avoids the inapplicable dual-clock FIFO
+path. All 171 base pytest nodes and all cocotb entrypoint names are preserved.
+A representative 33-node serial run and the complete 94-node edited subset
+under pytest-xdist both pass; the generated cocotb XUnit files report
+configuration-inapplicable entrypoints as skips rather than passes.
+
+The AXI migration removed the remaining seven early no-op returns from
+`AxiDualPortRam`, `AxiStreamPipeline`, and the AXI Stream FIFO integration
+matrix. System-write, registered-pipeline reset, metadata truncation,
+frame-ready, threshold, burst, and dynamic-pause scenarios now declare their
+applicability in the cocotb decorator. The later return in
+`AxiStreamResize.backpressure_and_reset_test` is retained because it follows a
+completed equal-width handshake/clear check and intentionally terminates before
+the inapplicable stateful-reset path. Preservation comparison reports no
+removed nodes or entrypoints; all 17 edited parameter cases pass both serially
+and under pytest-xdist.
+
+Phase 1 is complete. The protocol pass converted 36 remaining lane-, mode-,
+known-issue-, overflow-, address-width-, subclass-, and scrambling-specific
+no-op branches in CoaXPress, PGP4, SRPv0, and JESD204B into explicit cocotb
+applicability skips. The audit now defines an early return by semantics—a bare
+return before any awaited simulator activity or assertion—rather than by an
+arbitrary line-distance threshold, and that rule is blocking with a zero-entry
+baseline. Seven post-activity returns remain report-only and were reviewed as
+intentional successful terminal paths. Protocol preservation comparison found
+no removed pytest nodes or cocotb entrypoints. The 14 CoaXPress/PGP4/SRP
+parameter nodes pass both serially and under pytest-xdist; the JESD-specific
+24-node matrix also passes in both modes.
+
 ## Non-Negotiable Preservation Rules
 
 - Do not remove an existing test, parameter case, opt-in gate, or behavioral
@@ -278,10 +329,10 @@ criteria.
 
 ## Immediate Next Steps
 
-1. Use batcher as the first no-op-pass migration pilot and remove its reduced
-   baseline entries in the same change.
-2. Use RSSI as the first gated integration and coroutine-lifecycle pilot.
-3. Review the first two migrations before extending the blocking ratchet to an
-   additional structural rule.
-4. Begin duplicate-source cleanup by subsystem after the no-op-pass selection
-   pattern is established.
+1. Begin duplicate-source cleanup by subsystem, starting with the shared AXI
+   wrapper paths and a fresh ruckus import.
+2. Migrate `test_AxiStreamDmaV2Read.py` to the shared runner and add duplicate
+   source diagnostics after caller cleanup establishes the legitimate
+   exception set.
+3. Classify `force_compile=True` callers while touching their source lists,
+   retaining only cases with a documented cache or source-topology need.

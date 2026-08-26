@@ -42,8 +42,6 @@
 #   frames after a test arms the hook, leaving ACK/NULL control traffic free to
 #   maintain the connection.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
@@ -71,13 +69,6 @@ from tests.protocols.ssi.ssi_test_utils import (
 # RssiCoreWrapper uses TDEST_BITS_G=8 for AxiStreamDepacketizer2, which clears
 # per-route state after link-up before it can safely accept routed DATA.
 DEPACKETIZER2_INIT_WAIT_CYCLES = 1024
-
-
-def _run_extended_case(case_name: str) -> bool:
-    return (
-        env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
-        or os.environ.get("COCOTB_TESTCASE") == case_name
-    )
 
 
 def _default_extra_env(parameters: dict[str, object]) -> dict[str, object]:
@@ -200,6 +191,9 @@ class TB:
         endpoint.set_idle()
 
     def start_transport_loopbacks(self) -> None:
+        # These retained coroutines are lifetime agents for one cocotb
+        # entrypoint.  They own no external resources and cocotb cancels them
+        # when that entrypoint finishes.
         self.loopback_tasks = [
             cocotb.start_soon(
                 self.loopback_transport(
@@ -334,9 +328,6 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_bidirectional_payload_routes_test(dut):
-    if not _run_extended_case("multi_stream_bidirectional_payload_routes_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -413,9 +404,6 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_partial_keep_and_eofe_routes_test(dut):
-    if not _run_extended_case("multi_stream_partial_keep_and_eofe_routes_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -441,9 +429,6 @@ async def multi_stream_partial_keep_and_eofe_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
-    if not _run_extended_case("multi_stream_dropped_client_data_retransmits_to_route_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()

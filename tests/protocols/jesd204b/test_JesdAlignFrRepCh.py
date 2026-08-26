@@ -98,7 +98,7 @@ def _init_dut(dut, *, scr_enable: int) -> JesdTB:
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 0)
 async def test_char03_restore_nonscrambled(dut):
     """Non-scrambled: original data recovered, charisk cleared (§5.3.3.4.2).
 
@@ -110,11 +110,6 @@ async def test_char03_restore_nonscrambled(dut):
     Original data recovered, no residual control chars.
     """
     f = env_int("F_G", default=2)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # Non-scrambled path only for scr=0
-    if scr_enable != 0:
-        return
 
     tb = _init_dut(dut, scr_enable=0)
     await tb.reset()
@@ -177,7 +172,7 @@ async def test_char03_restore_nonscrambled(dut):
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 1)
 async def test_char03_restore_scrambled(dut):
     """Scrambled: original data recovered, charisk cleared (§5.3.3.4.3).
 
@@ -192,11 +187,6 @@ async def test_char03_restore_scrambled(dut):
     Original data recovered, no residual control chars.
     """
     f = env_int("F_G", default=2)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # Scrambled path only for scr=1
-    if scr_enable != 1:
-        return
 
     tb = _init_dut(dut, scr_enable=1)
     await tb.reset()

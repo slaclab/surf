@@ -32,7 +32,9 @@
 # - Parameter strategy: Sweep bypass-chunker and packetizer modes across
 #   multiple `WINDOW_ADDR_SIZE_G` and `MAX_SEG_SIZE_G` values.  This catches
 #   wrapper elaboration and derived RSSI FIFO/pause-threshold issues without
-#   requiring an exhaustive Cartesian product.
+#   requiring an exhaustive Cartesian product.  The default sweep filters out
+#   the focused BUSY/backpressure scenario; its dedicated pytest node selects
+#   it explicitly.
 # - Timing: Small timeout generics keep the wrapper checks bounded.  If a
 #   protocol-level failure appears here, reproduce it in `test_RssiCore.py`
 #   unless the failure is clearly caused by wrapper-only packetizer, chunker, or
@@ -42,7 +44,12 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    cocotb_filtered_env,
+    cocotb_test_filter_excluding,
+    env_flag,
+    run_surf_vhdl_test,
+)
 from tests.protocols.rssi.rssi_test_utils import RSSI_CORE_WRAPPER_VHDL_SOURCES
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
@@ -208,9 +215,6 @@ async def wrapper_partial_keep_and_eofe_payload_test(dut):
 
 @cocotb.test()
 async def wrapper_server_backpressure_advertises_busy_test(dut):
-    if not env_flag("RSSI_WRAPPER_BACKPRESSURE_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -286,7 +290,12 @@ def test_RssiCoreWrapper(parameters):
         test_file=__file__,
         toplevel="surf.rssicorewrapperintegrationwrapper",
         parameters=parameters,
-        extra_env=parameters,
+        extra_env=cocotb_filtered_env(
+            parameters,
+            cocotb_test_filter_excluding(
+                "wrapper_server_backpressure_advertises_busy_test"
+            ),
+        ),
         extra_vhdl_sources={
             "surf": [
                 *RSSI_CORE_WRAPPER_VHDL_SOURCES,

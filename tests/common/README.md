@@ -68,6 +68,9 @@ and build-isolation conventions where they apply.
   `_G`.
 - `env_flag()`, `env_sl()`, `env_int()`, `env_hex()`, and `env_float()` parse
   simulator environment values consistently inside cocotb coroutines.
+- `cocotb_test_filter()`, `cocotb_test_filter_excluding()`, and
+  `cocotb_filtered_env()` build explicit scenario groups while preserving an
+  externally requested focused selector in the simulation-build identity.
 - `start_lockstep_clocks()` drives multiple logically common clocks from one
   coroutine so their edges cannot drift.
 - `build_vhdl_sources()` and `merge_vhdl_sources()` are runner plumbing; tests
@@ -154,8 +157,11 @@ coverage is reported but does not make the command fail.
 
 The checked-in `compliance_baseline.json` ratchets the rules that are reliable
 enough to enforce structurally: methodology presence, ordinary direct-runner
-exceptions, and literal VHDL sources duplicated from the ruckus import. Run the
-check after importing the HDL tree:
+exceptions, literal VHDL sources duplicated from the ruckus import, and a bare
+entrypoint return reached before any awaited simulator activity or assertion.
+Returns after test activity remain report-only because they can be intentional
+successful terminal paths and require semantic review. Run the check after
+importing the HDL tree:
 
 ```bash
 make MODULES="$PWD" import

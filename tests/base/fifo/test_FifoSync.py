@@ -163,13 +163,10 @@ async def basic_ordering_test(dut):
     assert received == expected
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_FULL_EMPTY", default=True))
 async def full_empty_flag_test(dut):
     tb = TB(dut, clk_period_ns=float(os.environ["CLK_PERIOD_NS"]))
     await tb.reset()
-
-    if not env_flag("CHECK_FULL_EMPTY", default=True):
-        return
 
     # FifoSync uses the same user-visible capacity convention as FifoAsync:
     # standard mode exposes N-1 entries, FWFT mode exposes N entries.
@@ -185,11 +182,8 @@ async def full_empty_flag_test(dut):
     await with_timeout(tb._wait_empty(), 5, "us")
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_THRESHOLD_FLAGS", default=False))
 async def threshold_flag_test(dut):
-    if not env_flag("CHECK_THRESHOLD_FLAGS", default=False):
-        return
-
     tb = TB(dut, clk_period_ns=float(os.environ["CLK_PERIOD_NS"]))
     await tb.reset()
 
@@ -225,17 +219,15 @@ async def threshold_flag_test(dut):
         await with_timeout(tb._wait_prog_empty(1), 5, "us")
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        not env_flag("CHECK_SIMULTANEOUS_BOUNDARY", default=False)
+        or not env_flag("FWFT_EN_G", default=False)
+    ),
+)
 async def simultaneous_boundary_test(dut):
-    if not env_flag("CHECK_SIMULTANEOUS_BOUNDARY", default=False):
-        return
-
     tb = TB(dut, clk_period_ns=float(os.environ["CLK_PERIOD_NS"]))
     await tb.reset()
-
-    if not tb.fwft_enabled:
-        return
-
     capacity = 2 ** int(os.environ["ADDR_WIDTH_G"])
     seed_values = [0x30 + index for index in range(capacity - 1)]
     for value in seed_values:

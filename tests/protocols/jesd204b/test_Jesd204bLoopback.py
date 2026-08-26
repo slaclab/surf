@@ -524,7 +524,7 @@ async def check_latency_step(axil_rx, *, lane: int = 0) -> int:
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("SUBCLASS", default=1) != 1)
 async def test_jesd204b_dlat_sweep(dut):
     """Full-LMFC-wrap arrival-phase sweep.
 
@@ -553,10 +553,6 @@ async def test_jesd204b_dlat_sweep(dut):
     l_g = env_int("L_G", default=2)
     subclass = env_int("SUBCLASS", default=1)
     scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    if subclass != 1:
-        # Sweep requires Subclass 1 LMFC alignment; SC0 has no deterministic latency
-        return
 
     tb = Jesd204bLoopbackTB(dut, l_g)
     await tb.reset()
@@ -737,7 +733,7 @@ async def _wait_data_valid_drop(tb: Jesd204bLoopbackTB, l_g: int, timeout: int =
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("SUBCLASS", default=1) != 1)
 async def test_jesd204b_resync_matrix(dut):
     """Marked-sample latency invariant across all four resync paths.
 
@@ -759,9 +755,6 @@ async def test_jesd204b_resync_matrix(dut):
     l_g = env_int("L_G", default=2)
     subclass = env_int("SUBCLASS", default=1)
     scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    if subclass != 1:
-        return  # requires SC1 deterministic latency
 
     tb = Jesd204bLoopbackTB(dut, l_g)
     await tb.reset()
@@ -925,7 +918,7 @@ async def test_jesd204b_resync_matrix(dut):
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("SUBCLASS", default=1) != 1)
 async def test_jesd204b_rst02(dut):
     """Behavior contract: sticky error latches, counter resume, status tracking.
 
@@ -942,9 +935,6 @@ async def test_jesd204b_rst02(dut):
     l_g = env_int("L_G", default=2)
     subclass = env_int("SUBCLASS", default=1)
     scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    if subclass != 1:
-        return  # requires SC1 for deterministic behavior
 
     tb = Jesd204bLoopbackTB(dut, l_g)
     await tb.reset()

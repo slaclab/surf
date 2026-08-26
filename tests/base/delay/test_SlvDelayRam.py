@@ -149,11 +149,8 @@ async def enable_hold_test(dut):
     assert int(dut.dout.value) == held
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_DYNAMIC_DELAY_CHANGE", default=False))
 async def dynamic_delay_change_requires_reset_test(dut):
-    if not env_flag("CHECK_DYNAMIC_DELAY_CHANGE", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
 

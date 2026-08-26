@@ -14,6 +14,7 @@ from functools import lru_cache
 import hashlib
 import os
 from pathlib import Path
+import re
 import shlex
 import subprocess
 
@@ -156,6 +157,39 @@ def hdl_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
         for key, value in parameters.items()
         if key.endswith("_G")
     }
+
+
+def cocotb_test_filter(*test_names: str) -> str:
+    if not test_names:
+        raise ValueError("At least one cocotb test name is required")
+    alternatives = "|".join(re.escape(name) for name in test_names)
+    return rf"(?:{alternatives})$"
+
+
+def cocotb_test_filter_excluding(*test_names: str) -> str:
+    if not test_names:
+        raise ValueError("At least one cocotb test name is required")
+    alternatives = "|".join(re.escape(name) for name in test_names)
+    return rf"^(?!.*(?:{alternatives})$).*"
+
+
+def cocotb_filtered_env(
+    extra_env: dict[str, object],
+    test_filter: str,
+) -> dict[str, object]:
+    result = dict(extra_env)
+    external_selectors = {
+        name: os.environ[name]
+        for name in ("COCOTB_TESTCASE", "COCOTB_TEST_FILTER")
+        if name in os.environ
+    }
+    if len(external_selectors) > 1:
+        raise ValueError("Specify only one of COCOTB_TESTCASE or COCOTB_TEST_FILTER")
+    if external_selectors:
+        result.update(external_selectors)
+    else:
+        result["COCOTB_TEST_FILTER"] = test_filter
+    return result
 
 
 def build_vhdl_sources() -> dict[str, list[str]]:

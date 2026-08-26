@@ -123,9 +123,8 @@ async def coaxpress_rx_word_packer_repack_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) == 1)
 async def coaxpress_rx_word_packer_reset_flush_test(dut):
-    num_lanes = env_int("NUM_LANES_G", default=1)
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.sAxisTValid.setimmediatevalue(0)
@@ -133,9 +132,6 @@ async def coaxpress_rx_word_packer_reset_flush_test(dut):
     dut.sAxisTKeep.setimmediatevalue(0)
     dut.sAxisTLast.setimmediatevalue(0)
     await reset_dut(dut)
-
-    if num_lanes == 1:
-        return
 
     # Leave a half-full packed word buffered, then reset and confirm the next
     # frame starts cleanly rather than draining stale payload.
@@ -177,11 +173,8 @@ async def coaxpress_rx_word_packer_reset_flush_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 4)
 async def coaxpress_rx_word_packer_three_word_last_beat_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.sAxisTValid.setimmediatevalue(0)
@@ -224,11 +217,8 @@ async def coaxpress_rx_word_packer_three_word_last_beat_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 4)
 async def coaxpress_rx_word_packer_two_plus_one_last_beat_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.sAxisTValid.setimmediatevalue(0)
@@ -276,11 +266,8 @@ async def coaxpress_rx_word_packer_two_plus_one_last_beat_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 4)
 async def coaxpress_rx_word_packer_offset_two_plus_one_last_beat_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.sAxisTValid.setimmediatevalue(0)
@@ -328,11 +315,8 @@ async def coaxpress_rx_word_packer_offset_two_plus_one_last_beat_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 4)
 async def coaxpress_rx_word_packer_back_to_back_offset_short_frames_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.sAxisTValid.setimmediatevalue(0)

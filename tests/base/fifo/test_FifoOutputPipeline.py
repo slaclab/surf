@@ -143,12 +143,9 @@ class TB:
         raise AssertionError(f"Timed out collecting {expected_count} output words")
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) != 0)
 async def zero_latency_passthrough_test(dut):
     tb = TB(dut)
-    if tb.pipe_stages != 0:
-        return
-
     # With zero stages, this block is combinational: data and handshaking should
     # pass straight through without waiting for a clock edge.
     dut.rst.value = tb.reset_inactive_value()
@@ -162,12 +159,9 @@ async def zero_latency_passthrough_test(dut):
         assert int(dut.sRdEn.value) == 1
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) == 0)
 async def ordering_test(dut):
     tb = TB(dut)
-    if tb.pipe_stages == 0:
-        return
-
     await tb.reset()
 
     # Preload a short stream and then let the downstream consumer read
@@ -179,12 +173,9 @@ async def ordering_test(dut):
     assert await tb.collect_words(len(expected)) == expected
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) < 2)
 async def backpressure_test(dut):
     tb = TB(dut)
-    if tb.pipe_stages < 2:
-        return
-
     await tb.reset()
 
     # This test toggles downstream readiness to make sure the DUT can hold data
@@ -231,12 +222,9 @@ async def backpressure_test(dut):
     assert received == expected
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) == 0)
 async def reset_behavior_test(dut):
     tb = TB(dut)
-    if tb.pipe_stages == 0:
-        return
-
     await tb.reset()
 
     # Fill the pipeline with a few words and consume one so we know the DUT has

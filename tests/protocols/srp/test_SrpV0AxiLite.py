@@ -240,11 +240,8 @@ async def srpv0_axilite_downstream_error_status_test(dut):
     assert await read_task == {"address": read_address}
 
 
-@cocotb.test()
+@cocotb.test(skip=os.environ.get("EN_32BIT_ADDR_G", "false").lower() != "true")
 async def srpv0_axilite_32bit_address_decode_test(dut):
-    if os.environ.get("EN_32BIT_ADDR_G", "false").lower() != "true":
-        return
-
     tb = TB(dut, use_ram=False)
     await tb.reset()
 

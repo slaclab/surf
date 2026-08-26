@@ -588,7 +588,7 @@ async def _enter_data_phase(
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 0)
 async def test_char01_nonscrambled(dut):
     """Char replacement: /F/ and /A/ substitution for non-scrambled links.
 
@@ -607,11 +607,6 @@ async def test_char01_nonscrambled(dut):
     k = env_int("K_G", default=32)
     f = env_int("F_G", default=2)
     subclass = env_int("SUBCLASS", default=1)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # char replacement only meaningful for non-scrambled cases
-    if scr_enable != 0:
-        return
 
     tb = TxLaneTB(dut)
     await tb.reset()
@@ -699,7 +694,7 @@ async def test_char01_nonscrambled(dut):
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 1)
 async def test_char02_scrambled(dut):
     """Char replacement: /F/ and /A/ substitution for scrambled links.
 
@@ -715,11 +710,6 @@ async def test_char02_scrambled(dut):
     k = env_int("K_G", default=32)
     f = env_int("F_G", default=2)
     subclass = env_int("SUBCLASS", default=1)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # char replacement only meaningful for scrambled cases
-    if scr_enable != 1:
-        return
 
     tb = TxLaneTB(dut)
     await tb.reset()

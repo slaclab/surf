@@ -28,6 +28,7 @@ DEFAULT_BASELINE = Path(__file__).with_name("compliance_baseline.json")
 ENFORCED_RULES = {
     "direct-runner",
     "duplicate-imported-source",
+    "early-bare-return",
     "missing-methodology",
 }
 
@@ -39,7 +40,7 @@ EXCLUDED_DIRECTORY_NAMES = {
 
 METHODOLOGY_MARKER = "Test methodology:"
 ENVIRONMENT_CONTROL_RE = re.compile(
-    r"^(?:RUN_[A-Z0-9_]*_TESTS|COCOTB_TESTCASE|[A-Z0-9_]*TESTCASE)$"
+    r"^(?:RUN_[A-Z0-9_]*_TESTS|COCOTB_TEST_FILTER|COCOTB_TESTCASE|[A-Z0-9_]*TESTCASE)$"
 )
 
 DOCUMENTED_DIRECT_RUNNERS = {
@@ -247,6 +248,11 @@ def _environment_controls(tree: ast.Module) -> tuple[str, ...]:
         for value, _ in _string_constants(tree)
         if ENVIRONMENT_CONTROL_RE.fullmatch(value)
     }
+    if any(
+        isinstance(node, ast.Call) and _qualified_name(node.func).endswith("cocotb_filtered_env")
+        for node in ast.walk(tree)
+    ):
+        controls.add("COCOTB_TEST_FILTER")
     return tuple(sorted(controls))
 
 
@@ -413,9 +419,15 @@ def audit_source(
             )
 
     for function in cocotb_functions:
-        for node in _walk_function(function):
+        function_nodes = _walk_function(function)
+        for node in function_nodes:
             if isinstance(node, ast.Return) and node.value is None:
-                rule = "early-bare-return" if node.lineno - function.lineno <= 12 else "bare-return"
+                has_prior_test_activity = any(
+                    isinstance(prior, (ast.Assert, ast.Await))
+                    and prior.lineno < node.lineno
+                    for prior in function_nodes
+                )
+                rule = "bare-return" if has_prior_test_activity else "early-bare-return"
                 findings.append(
                     Finding(
                         rule,

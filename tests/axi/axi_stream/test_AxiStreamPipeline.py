@@ -273,16 +273,10 @@ async def latency_and_backpressure_test(dut):
     tb.drive_source_idle()
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) == 0)
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    # The zero-stage generate path is purely combinational, so reset should not
-    # be treated as a stateful flush path in this bench. Only the registered
-    # cases below are expected to clear buffered data on reset.
-    if tb.pipe_stages == 0:
-        return
 
     dut.M_AXIS_TREADY.value = 0
     tb.drive_source(
