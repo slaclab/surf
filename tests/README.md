@@ -4,6 +4,40 @@ This directory holds Python-authored regressions for synthesizable SURF RTL.
 The default stack is `pytest + cocotb + GHDL + ruckus`; VHDL should only be
 used for thin wrappers, shims, or required simulation models.
 
+This README is the authoritative guide for new SURF regression work. Historical
+task plans and module queues are not prerequisites and do not define the next
+module that must be tested. Add or deepen coverage when a subsystem is being
+changed, when a bug needs a permanent reproducer, or when a contributor chooses
+an uncovered module to improve.
+
+## Quick Start
+
+1. Read this README and the nearest subsystem README, if one exists.
+2. Search the surrounding tests and helper modules before writing new drivers
+   or protocol models.
+3. Identify the externally visible contract and the smallest useful DUT or
+   wrapper boundary.
+4. Write the module-specific `Test methodology` block before implementing the
+   test. It should make the intended sweep, stimulus, checks, and timing clear.
+5. Import the HDL sources and run the narrowest useful pytest target:
+
+   ```bash
+   make MODULES="$PWD" import
+   ./.venv/bin/python -m pytest -n 0 -q tests/<subsystem>/test_<Target>.py
+   ```
+
+6. Lint every edited VHDL file, run the relevant subsystem regression, and
+   check for stale simulator processes before handing the change off.
+
+Additional references:
+
+- [`tests/common/README.md`](common/README.md) documents the shared runner,
+  parameter cases, environment parsing, and clock helpers.
+- [`tests/protocols/README.md`](protocols/README.md) documents protocol-oracle,
+  layering, malformed-frame, and integration-test practices.
+- Subsystem READMEs may define protocol- or simulator-specific commands, but
+  they should extend rather than replace this guide.
+
 ## Layout
 
 - Keep executable tests under subsystem packages, such as `tests/base/fifo/`,
@@ -109,6 +143,45 @@ Common structure:
   or `parameter_case()`.
 - A final pytest wrapper named for the RTL target, calling
   `run_surf_vhdl_test(test_file=__file__, ...)`.
+
+Keep the cocotb entrypoints and the pytest wrapper in the same file unless a
+subsystem has a documented reason to separate them. Pytest owns build
+parameters and simulator launches; cocotb owns cycle-level stimulus and checks.
+
+## Designing The Test
+
+Start from the public contract, not the current implementation. Read the entity
+ports and generics, the nearest package and README, and any applicable protocol
+or register-map specification. Then choose the smallest boundary that can prove
+the behavior:
+
+- Test reusable leaves directly when their behavior is observable without a
+  large integration topology.
+- Use an integration test when arbitration, CDC, configuration propagation, or
+  interaction between already-tested leaves is the actual contract.
+- Do not replay a leaf's complete packet grammar or parameter matrix through
+  every higher-level wrapper. Higher-level tests should focus on what that layer
+  adds.
+- Treat compile/elaboration-only smoke coverage as useful but distinct from a
+  functional regression. A functional test needs meaningful stimulus and
+  assertions.
+- Treat package declarations as transitively covered unless an important
+  function or procedure needs a small wrapper and a direct behavioral test.
+
+A focused regression normally covers the relevant subset of:
+
+- reset assertion, release, and recovery;
+- nominal data or control flow;
+- backpressure and accepted-handshake timing;
+- frame, burst, or transaction boundaries;
+- payload ordering and byte enables such as `TKEEP`/`TSTRB`;
+- sidebands such as `TLAST`, `TDEST`, `TID`, SOF, and EOFE;
+- invalid inputs, error responses, overflow, timeout, or recovery behavior;
+- representative generic or clock-domain configurations.
+
+Use deterministic directed cases for protocol rules and boundary conditions.
+Randomized cases are valuable after a trustworthy reference model exists, but
+they do not replace readable directed regressions for known contracts and bugs.
 
 ## Parameter Sweeps
 
@@ -224,3 +297,29 @@ command to confirm the file is clean.
 VHDL packages are usually covered transitively through modules that use them.
 Add a dedicated package wrapper only when a behavioral function or procedure is
 important and not reached naturally through existing DUT coverage.
+
+There is no active repository-wide queue of modules that must be completed in a
+fixed order. When selecting new work, prefer high-reuse modules, code being
+modified, untested bug fixes, and simulator-friendly leaves that establish
+helpers useful to later integration tests. Vendor-heavy or mixed-language
+blocks may be deferred when the standard GHDL flow cannot exercise their real
+dependencies; document that limitation near the subsystem rather than adding a
+test double that changes the DUT boundary.
+
+## Completion Checklist
+
+Before considering a new regression ready:
+
+- The Python file has the standard license header, a specific methodology
+  block, and comments around non-obvious cocotb sequencing.
+- The test asserts behavior rather than merely reaching the end of simulation.
+- Every wait is bounded directly or by a helper with a cycle/time limit.
+- Reset, backpressure, sidebands, and error/boundary cases relevant to the DUT
+  are covered or explicitly documented as out of scope.
+- Shared helpers were reused or extended instead of duplicated.
+- Any retained VHDL wrapper is thin, locally documented, present in the right
+  ruckus manifest, and clean under `vsg-linter.yml`.
+- The focused test and the nearest practical subsystem suite pass.
+- `git diff --check` is clean and no stale simulator process remains.
+- The nearest README is updated if the test introduces a new layout, helper,
+  simulator requirement, deferred dependency, or non-obvious invocation.
