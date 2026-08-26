@@ -23,6 +23,12 @@ test; arbitration, routing, and cross-source policy belong in the event-builder
 test. Extend `batcher_test_utils.py` for reusable mechanics, but leave the
 policy being asserted visible in the individual test.
 
+Routed and unrouted configurations do not make every scenario applicable. Make
+that relationship explicit in the pytest parameter/selector matrix, or report
+the scenario as skipped with the configuration in the reason. Do not enter a
+cocotb test and return successfully before its named routing, remapping, or
+transition behavior has been exercised.
+
 Run the suite with:
 
 ```bash

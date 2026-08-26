@@ -24,7 +24,7 @@ PARAMETER_SWEEP = [
 def test_my_target(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
-        toplevel="MyTargetWrapper",
+        toplevel="surf.MyTargetWrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
     )
@@ -34,17 +34,20 @@ Use `parameters` only for VHDL generics. Use `extra_env` for Python-side case
 metadata. When one dictionary contains both, pass it through
 `hdl_parameters_from()` before giving it to the simulator.
 
-Use `extra_vhdl_sources` for a wrapper or simulation model that is intentionally
-outside the imported SURF source list. Production RTL belongs in the nearest
-`ruckus.tcl`; do not use this argument to hide a missing build-manifest entry or
-repeat a unit already supplied by the import, which can produce a library
-redefinition error.
+Use `extra_vhdl_sources` only for a cocotb-only wrapper or simulation model whose
+design unit is absent from the ruckus import. Check the imported source tree
+under `build/SRC_VHDL/` before adding a path. Production and reusable wrapper RTL
+belongs in the nearest `ruckus.tcl`; do not use this argument to hide a missing
+build-manifest entry or repeat an imported design unit. Compiling the same unit
+from both paths can redefine it, make compile order significant, or leave a
+cached build using a different source than the reviewer expects.
 
-Use `sim_build_key` only when normal parameter-derived names would be too long
-or when a subsystem requires a deliberately stable build location. The default
-path already includes `parameters` and `extra_env`, which isolates parallel
-cases. A custom key must preserve that isolation; never point concurrently
-runnable variants at the same build directory.
+The default build path includes `parameters` and `extra_env`, and the shared
+runner hashes path components that would be unsafe or excessively long. Use
+`sim_build_key` only when a subsystem requires a deliberately stable or more
+meaningful build identity. A custom key must still distinguish every
+concurrently runnable compile configuration and selected cocotb scenario; never
+point incompatible variants at the same build directory.
 
 Leave `force_compile=False` for normal regressions. Set it only when a
 documented source-topology or simulator-cache limitation makes reuse unsafe;
@@ -105,4 +108,14 @@ so a broken handshake becomes a useful failure instead of a hung worker.
 
 When a pytest wrapper selects one of several cocotb entrypoints, pass the
 selector in `extra_env`. Because the shared runner includes `extra_env` in the
-default build path, selected scenarios remain isolated under pytest-xdist.
+default build path, selected scenarios remain isolated under pytest-xdist. Give
+the selector a deterministic default and make each pytest node run only the
+scenario or coherent scenario group named by that node; do not use a bare return
+inside an otherwise selected cocotb test to turn an inapplicable case into a
+pass.
+
+Retain every task returned by `cocotb.start_soon()`. Await finite producers,
+consumers, and transactions before the entrypoint completes. Store monitors or
+protocol peers intended to run for the whole test on the bench, document them as
+lifetime agents, and provide cleanup when cancellation order matters or an
+agent owns a socket, process, file, or other external resource.

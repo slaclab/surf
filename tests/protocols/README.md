@@ -11,6 +11,12 @@ and mechanical source/sink helpers in the subsystem's `*_test_utils.py` module.
 Derive them from the normative protocol specification or the established SURF
 package definitions, not from copied literals in individual tests.
 
+Anchor the oracle with small published or hand-worked known-answer vectors
+before trusting it for randomized or integration traffic. Keep at least one
+vector independent of the DUT implementation and, where practical, independent
+of the helper's encoder path as well. A Python model that transliterates the RTL
+line by line can reproduce the same defect and is not an independent oracle.
+
 Keep policy assertions in the test that names the behavior. A helper may build
 a DATA frame or calculate its checksum; the test should still say that an
 out-of-order frame must be dropped, an EOFE marker must propagate, or a timeout
@@ -40,6 +46,12 @@ large integration scenarios:
 An integration test should focus on what the integrated layer adds. Reuse the
 same protocol oracle, but do not duplicate every leaf permutation at the top
 level.
+
+As a suite grows, split it by coherent behavior rather than by an arbitrary
+line limit: encoding, transmit, receive, flow control/recovery, register
+control, and integration are useful boundaries. Keep shared frames and
+mechanics in the oracle module, while each test module owns the assertions and
+methodology for the behavior named by that file.
 
 ## Required Protocol Cases
 

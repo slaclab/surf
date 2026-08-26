@@ -30,8 +30,17 @@ The suite progresses from leaves to integration:
 Default CI runs the currently stable RSSI cases. Focused cases that still expose
 unresolved RTL behavior are opt-in behind `RUN_RSSI_KNOWN_ISSUE_TESTS=1`, and a
 smaller group of long-running integration cases additionally uses
-`RUN_RSSI_EXTENDED_TESTS=1`. Keep the skip reason beside each gated pytest entry
-and promote the case to default coverage when its blocking RTL issue is fixed.
+`RUN_RSSI_EXTENDED_TESTS=1`. A `COCOTB_TESTCASE` selector chooses a named
+cocotb scenario; the `RUN_*` gates decide whether the corresponding pytest node
+is eligible to launch it. Keep these roles separate so an enabled node cannot
+silently run unrelated scenarios.
+
+Keep the skip reason beside each gated pytest entry. A known-issue case must
+identify a durable defect reference or documented local issue, state the
+expected failure, and say what change allows the gate to be removed. Promote the
+case to default coverage in the same change that fixes the blocking RTL. Keep
+stable-but-long coverage under the extended gate rather than calling it a known
+issue.
 
 ## RSSI-Specific Expectations
 
@@ -46,6 +55,13 @@ Directed negative cases should verify that illegal flag combinations, malformed
 headers, bad checksums, and out-of-order frames do not leak application payload.
 Recovery cases should then send valid traffic and prove that the endpoint makes
 forward progress without duplicate delivery.
+
+When one methodology block can no longer describe a coherent set of scenarios,
+split the integration suite by behavior while continuing to share the RSSI
+oracle. Useful boundaries are negotiation and close, data and retransmission,
+flow control and keepalive, connection lifecycle, AXI-Lite control, and
+multi-stream integration. Preserve the existing pytest case names and gate
+semantics during such a split so coverage does not disappear unnoticed.
 
 Run the default suite with:
 

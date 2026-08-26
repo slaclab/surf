@@ -223,6 +223,9 @@ module-specific `Test methodology` block described in
 - For edited VHDL, run `./.venv/bin/vsg -c vsg-linter.yml path/to/file.vhd` and the most focused relevant cocotb/pytest target when practical.
 - For Python/PyRogue changes, run a focused import or pytest that exercises the changed module. Avoid packaging commands unless the task specifically requires packaging validation.
 - For cocotb tests, prefer `./.venv/bin/python -m pytest -q tests/<subsystem-or-file>`. Use `-n 0` when serial simulator logs are needed.
+- Select or explicitly skip cocotb scenarios that do not apply to a parameter case; do not return early and record an unexercised scenario as a pass.
+- Use `extra_vhdl_sources` only for design units absent from the ruckus import, and keep finite cocotb tasks awaited or lifetime agents explicitly owned by the bench.
+- For bug regressions, demonstrate failure on the known-bad RTL when practical, or document the defect-catching assertion and why the comparison could not be run.
 - For protocol or bus behavior changes, include tests or a clear verification note covering sidebands, backpressure, reset behavior, and boundary/error cases relevant to the change.
 - Avoid hand-editing generated or cache directories such as `build/`, `tests/sim_build/`, `.pytest_cache/`, `docs/_build/`, and `docs/_generated/`.
 
