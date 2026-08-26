@@ -144,7 +144,9 @@ requiring both checkerboard values to appear. The final assembled snapshot and
 deep hardware window then require one shared phase across all channels.
 
 `UsePatternTester` adds deep full-channel measurements after the centered
-snapshots pass; it does not replace the tap-scan backend. The bounded checker
+snapshots pass; it does not replace the tap-scan backend. It defaults to the
+readout model's `patternCheck` construction parameter, which must match the RTL
+`PATTERN_CHECK_G` generic, and remains user-writable. The bounded checker
 in `AdcDdrPatternTester` evaluates `PatternTesterSamples` consecutive valid
 samples without transferring them to software. Alternating mode uses one
 reference channel for the complete channel group. PN23 mode checks the
@@ -173,7 +175,7 @@ verification operation ends.
 | `GuardBand` | `2` taps | Required passing margin on each side of the selected center. |
 | `CircularDelays` | `False` | Whether the first and last passing scan runs are one wrapped eye. |
 | `SampleCount` | `2` | Number of four-sample measurement groups checked at each data tap. |
-| `UsePatternTester` | `False` | Add deep hardware checkerboard and, when enabled, PN23 qualification after centering. |
+| `UsePatternTester` | `patternCheck` | Add deep hardware checkerboard and, when enabled, PN23 qualification after centering. |
 | `PatternTesterSamples` | `4096` | Valid samples checked by each deep hardware window. |
 | `VerifyPn23` | Device dependent | Enable PN23 coherence and recurrence qualification when the adapter provides a PN-long reset control. |
 | `SettleTime` | `1 ms` | Wall-clock wait after delay, relock, or ADC test-mode changes. |

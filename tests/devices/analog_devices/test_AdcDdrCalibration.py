@@ -208,6 +208,7 @@ class FakeReadout:
         self._channels = 2
         self._sampleBits = 14
         self._delayBits = 3
+        self._patternCheck = True
         self.FcoDelay = {0: FakeVariable(3)}
         self.FcoWord = {0: FakeVariable(0x3F00)}
         self.DataDelay = {0: FakeVariable(2), 1: FakeVariable(4)}
@@ -543,7 +544,7 @@ def test_rejects_invalid_scans(passing, kwargs, exception, message):
         findAdcDdrEye(passing, **kwargs)
 
 
-def make_calibration():
+def make_calibration(*, usePatternTester=False):
     config = FakeConfig()
     readout = FakeReadout()
     calibration = AdcDdrCalibration(
@@ -554,6 +555,7 @@ def make_calibration():
     root = pr.Root(name='Root', pollEn=False)
     root.add(calibration)
     root.start()
+    calibration.UsePatternTester.set(usePatternTester)
     calibration._testRoot = root
     calibration.DelayStop.set(7)
     calibration.MinimumEyeWidth.set(3)
@@ -616,7 +618,6 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.snapshotDelays == [(tap, tap) for tap in range(8)] + [(2, 5)]
     assert calibration.RunTime.value() > 0.0
     assert calibration.Outcome.value() == calibration.OUTCOME_PASSED_C
-    assert calibration.Message.value() == 'PASSED'
 
     readout.FcoDelay[0].set(0)
     readout.DataDelay[0].set(0)
@@ -647,13 +648,13 @@ def test_diagnostics_publish_only_at_process_boundaries(
     assert publications[1]['Final']['passed']
 
 
-def test_process_gui_message_reports_passed(calibration_fixture):
+def test_process_gui_message_keeps_framework_status(calibration_fixture):
     calibration, _, _ = calibration_fixture
 
     calibration._process()
 
     assert calibration.Outcome.value() == calibration.OUTCOME_PASSED_C
-    assert calibration.Message.value() == 'PASSED'
+    assert calibration.Message.value() == 'Done'
 
 
 def test_full_calibration_can_add_deep_pattern_qualification(calibration_fixture):

@@ -333,6 +333,8 @@ class Ad9252Readout(analog_devices.AdcDdr):
         Number of ADC channels exposed by the firmware.
     deviceFamily : {'7SERIES', 'ULTRASCALE', 'ULTRASCALE_PLUS'}, optional
         FPGA device family selected by RTL ``DEVICE_FAMILY_G``.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
     **kwargs : Any
         Additional arguments forwarded to ``AdcDdr``.
     """
@@ -342,6 +344,7 @@ class Ad9252Readout(analog_devices.AdcDdr):
             *,
             channels: int = 8,
             deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
+            patternCheck: bool = True,
             **kwargs: Any) -> None:
         """Create the normalized AD9252 readout."""
 
@@ -356,6 +359,7 @@ class Ad9252Readout(analog_devices.AdcDdr):
             sampleBits          = 14,
             serializationFactor = 14,
             delayBits           = delayBits,
+            patternCheck        = patternCheck,
             **kwargs)
 
 

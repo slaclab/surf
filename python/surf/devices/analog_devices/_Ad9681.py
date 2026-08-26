@@ -449,6 +449,8 @@ class Ad9681Readout(analog_devices.AdcDdr):
     ----------
     deviceFamily : {'7SERIES', 'ULTRASCALE', 'ULTRASCALE_PLUS'}, optional
         FPGA device family selected by RTL ``DEVICE_FAMILY_G``.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
     **kwargs : Any
         Additional arguments forwarded to ``AdcDdr``.
     """
@@ -457,6 +459,7 @@ class Ad9681Readout(analog_devices.AdcDdr):
             self,
             *,
             deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
+            patternCheck: bool = True,
             **kwargs: Any) -> None:
         """Create the normalized AD9681 readout."""
 
@@ -469,6 +472,7 @@ class Ad9681Readout(analog_devices.AdcDdr):
             sampleBits          = 14,
             serializationFactor = 8,
             delayBits           = delayBits,
+            patternCheck        = patternCheck,
             **kwargs)
 
 

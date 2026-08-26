@@ -420,6 +420,8 @@ class Ad9249ReadoutBank(analog_devices.AdcDdr):
     ----------
     deviceFamily : {'7SERIES', 'ULTRASCALE', 'ULTRASCALE_PLUS'}, optional
         FPGA device family selected by RTL ``DEVICE_FAMILY_G``.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
     **kwargs : Any
         Additional arguments forwarded to ``AdcDdr``.
     """
@@ -429,6 +431,7 @@ class Ad9249ReadoutBank(analog_devices.AdcDdr):
             *,
             deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
             numChannels: int = 8,
+            patternCheck: bool = True,
             **kwargs: Any) -> None:
         """Create one normalized AD9249 bank readout.
 
@@ -446,6 +449,7 @@ class Ad9249ReadoutBank(analog_devices.AdcDdr):
             sampleBits          = 14,
             serializationFactor = 14,
             delayBits           = delayBits,
+            patternCheck        = patternCheck,
             **kwargs)
 
 
@@ -489,6 +493,8 @@ class Ad9249Readout(pr.Device):
     ----------
     deviceFamily : {'7SERIES', 'ULTRASCALE', 'ULTRASCALE_PLUS'}, optional
         FPGA device family selected by RTL ``DEVICE_FAMILY_G``.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
     **kwargs : Any
         Additional arguments forwarded to ``pyrogue.Device``.
     """
@@ -497,6 +503,7 @@ class Ad9249Readout(pr.Device):
             self,
             *,
             deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
+            patternCheck: bool = True,
             **kwargs: Any) -> None:
         """Create the complete normalized AD9249 readout."""
 
@@ -508,7 +515,8 @@ class Ad9249Readout(pr.Device):
             self.add(Ad9249ReadoutBank(
                 name         = f'Bank[{i}]',
                 offset       = 0x1000*i,
-                deviceFamily = deviceFamily))
+                deviceFamily = deviceFamily,
+                patternCheck = patternCheck))
 
 
 class Ad9249ReadoutCalibration(pr.Device):

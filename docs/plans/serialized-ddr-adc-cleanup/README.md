@@ -30,14 +30,16 @@ the alignment/calibration path deterministic, fast, and diagnostically useful.
   completed copy at process termination. Failed and stopped operations still
   publish their evidence when debug is disabled.
 - Calibration exposes an explicit terminal `Outcome` (`PASSED`, `FAILED`, or
-  `STOPPED`) and replaces PyRogue's generic successful `Message=Done` with
-  `Message=PASSED`.
+  `STOPPED`). `Message` retains PyRogue's normal process status instead of
+  duplicating that outcome.
 
 ## Deep Qualification Contract
 
 - `SampleCount` controls the shallow four-sample snapshot depth at each tap.
 - `PatternTesterSamples` controls the final hardware checkerboard depth and
   defaults to 4096 valid samples per deep window.
+- `UsePatternTester` defaults to the readout model's `patternCheck` construction
+  parameter and remains user-writable.
 - The deep result retains per-channel word-error counts and accumulated
   bit-error masks plus per-FCO error counts.
 - A deep-check failure participates in the existing alternate-FCO-eye retry.
@@ -53,7 +55,7 @@ deep-check success and failure, detailed error reporting, capability rejection,
 alternate FCO-eye retries, shallow and deep PN23 qualification, and state
 restoration.
 
-- `test_AdcDdrCalibration.py` and `test_AdcDdrModel.py`: 71 passed.
+- `test_AdcDdrCalibration.py` and `test_AdcDdrModel.py`: 72 passed.
 - `test_AdcDdrPatternTester.py`: 1 passed with GHDL/cocotb.
 - VSG: no violations in `AdcDdrPkg.vhd` or `AdcDdrPatternTester.vhd`.
 

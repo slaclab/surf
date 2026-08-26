@@ -465,7 +465,7 @@ class AdcDdrCalibration(pr.Process):
             description = (
                 'Run deep hardware checkerboard and optional PN23 qualification '
                 'after centering'),
-            value       = False,
+            value       = readout._patternCheck,
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
@@ -576,12 +576,6 @@ class AdcDdrCalibration(pr.Process):
             # in its finally block, so retain the partial progress without
             # reporting the stop as an execution error.
             self.Message.set('Calibration stopped')
-        else:
-            # PyRogue's generic Process implementation sets Message to "Done"
-            # after the callback returns. Replace that ambiguous terminal text
-            # with the explicit successful outcome used by this process.
-            if self.Outcome.value() == self.OUTCOME_PASSED_C:
-                self.Message.set('PASSED')
 
     def _checkRun(self) -> None:
         """Raise the private stop exception at cooperative cancellation points."""
@@ -1295,7 +1289,6 @@ class AdcDdrCalibration(pr.Process):
             raise
         else:
             self.Outcome.set(self.OUTCOME_PASSED_C)
-            self.Message.set('PASSED')
             return results
         finally:
             runTime = time.monotonic()-runStart

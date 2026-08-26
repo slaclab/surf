@@ -199,6 +199,36 @@ def test_normalized_map_geometry_and_memory_readback(memory_backed_readout):
         readout.DataDelay[0].set(512)
 
 
+def test_capability_check_includes_pattern_tester():
+    memory = CountingMemory()
+    geometry = 3 | (2 << 8) | (2 << 16) | (14 << 24)
+    capabilities = 9 | (8 << 8) | (1 << 16)
+    memory._memory[0x004:0x008] = geometry.to_bytes(4, 'little')
+    memory._memory[0x008:0x00C] = capabilities.to_bytes(4, 'little')
+    root = pr.Root(name='Root', pollEn=False)
+    readout = AdcDdr(
+        name                = 'Readout',
+        memBase             = memory,
+        dataLanes           = 3,
+        fcoLanes            = 2,
+        channels            = 2,
+        sampleBits          = 14,
+        serializationFactor = 8,
+        delayBits           = 9,
+        patternCheck        = True)
+    root.add(readout)
+    root.start()
+    try:
+        readout.checkGeometry()
+        readout._patternCheck = False
+        with pytest.raises(
+                RuntimeError,
+                match='PatternCheck: model=False, hardware=1'):
+            readout.checkGeometry()
+    finally:
+        root.stop()
+
+
 def test_debug_sample_array_uses_one_bulk_transaction():
     memory = CountingMemory()
     expected = [0x100+index for index in range(32)]
@@ -361,7 +391,7 @@ def test_device_specific_calibration_adapters():
     assert ad9681.DelayStop.units == 'tap'
     assert ad9681.MinimumEyeWidth.units == 'tap'
     assert ad9681.GuardBand.units == 'tap'
-    assert ad9681.UsePatternTester.value() is False
+    assert ad9681.UsePatternTester.value() is True
     assert ad9681.UsePatternTester.mode == 'RW'
     assert ad9681.PatternTesterSamples.value() == 4096
     assert ad9681.PatternTesterSamples.mode == 'RW'
@@ -377,6 +407,14 @@ def test_device_specific_calibration_adapters():
     assert ad9681.RunTime.value() == 0.0
     assert ad9681.RunTime.mode == 'RO'
     assert ad9681.RunTime.units == 's'
+
+    ad9681WithoutPatternTester = Ad9681ReadoutCalibration(
+        name='Ad9681CalibrationWithoutPatternTester',
+        config=Ad9681Config(name='Ad9681ConfigWithoutPatternTester'),
+        readout=Ad9681Readout(
+            name='Ad9681ReadoutWithoutPatternTester',
+            patternCheck=False))
+    assert ad9681WithoutPatternTester.UsePatternTester.value() is False
 
 
 def test_ad9252_config_register_fields():
@@ -501,6 +539,21 @@ def test_device_specific_readout_geometry():
         ad9681._serializationFactor,
         ad9681._delayBits,
     ) == (16, 2, 8, 14, 8, 9)
+    assert ad9681._patternCheck is True
+
+    assert Ad9252Readout(
+        name='Ad9252WithoutPatternTester',
+        patternCheck=False)._patternCheck is False
+    assert Ad9681Readout(
+        name='Ad9681WithoutPatternTester',
+        patternCheck=False)._patternCheck is False
+
+    ad9249WithoutPatternTester = Ad9249Readout(
+        name='Ad9249WithoutPatternTester',
+        patternCheck=False)
+    assert all(
+        readout._patternCheck is False
+        for readout in ad9249WithoutPatternTester.Bank.values())
 
 
 @pytest.mark.parametrize(

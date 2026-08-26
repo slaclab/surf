@@ -100,6 +100,8 @@ class AdcDdr(pr.Device):
         Number of serialized bits captured per data lane.
     delayBits : int, optional
         Width of each programmable input-delay value.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
     **kwargs : Any
         Additional arguments forwarded to ``pyrogue.Device``.
     """
@@ -119,7 +121,7 @@ class AdcDdr(pr.Device):
         Raises
         ------
         RuntimeError
-            If any advertised geometry field disagrees with this model.
+            If any advertised capability disagrees with this model.
         """
 
         expected = {
@@ -129,6 +131,7 @@ class AdcDdr(pr.Device):
             'SampleBits':          self._sampleBits,
             'SerializationFactor': self._serializationFactor,
             'DelayBits':           self._delayBits,
+            'PatternCheck':        self._patternCheck,
         }
         mismatches = []
         for name, modelValue in expected.items():
@@ -138,8 +141,9 @@ class AdcDdr(pr.Device):
         if mismatches:
             raise RuntimeError(
                 f'{self.path}: AdcDdr register model does not match the RTL '
-                'capability registers; check the deviceFamily and other '
-                'construction generics against the firmware. Mismatches -- '
+                'capability registers; check the deviceFamily, patternCheck, '
+                'and other construction generics against the firmware. '
+                'Mismatches -- '
                 + '; '.join(mismatches))
 
     def _getDataDelays(self, read: bool) -> list[int]:
@@ -182,6 +186,7 @@ class AdcDdr(pr.Device):
             sampleBits: int          = 14,
             serializationFactor: int = 14,
             delayBits: int           = 5,
+            patternCheck: bool       = True,
             **kwargs: Any) -> None:
         """Create the normalized ADC readout model."""
 
@@ -204,6 +209,7 @@ class AdcDdr(pr.Device):
         self._sampleBits = sampleBits
         self._serializationFactor = serializationFactor
         self._delayBits = delayBits
+        self._patternCheck = patternCheck
 
         self.add(pr.RemoteVariable(
             name        = 'Version',
