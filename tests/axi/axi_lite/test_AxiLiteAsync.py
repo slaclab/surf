@@ -33,6 +33,7 @@ from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import (
+    cancel_and_join_tasks,
     env_flag,
     env_sl,
     parameter_case,
@@ -64,6 +65,9 @@ class TB:
             reset_active_level=bool(self.reset_active),
         )
         self.slave = SimpleAxiLiteSlave(dut, self.reset_active)
+
+    async def close(self) -> None:
+        await self.slave.close()
 
     def reset_active_value(self) -> int:
         return self.reset_active
@@ -125,6 +129,9 @@ class SimpleAxiLiteSlave:
             cocotb.start_soon(self._run_write()),
             cocotb.start_soon(self._run_read()),
         )
+
+    async def close(self) -> None:
+        await cancel_and_join_tasks(self._responder_tasks)
 
     def in_reset(self) -> bool:
         try:
@@ -217,56 +224,62 @@ class SimpleAxiLiteSlave:
 @cocotb.test()
 async def bridge_round_trip_test(dut):
     tb = TB(dut)
-    await tb.reset()
+    try:
+        await tb.reset()
 
-    transactions = [
-        (0x000, b"\x11\x22\x33\x44"),
-        (0x008, b"\xAA\xBB"),
-        (0x010, b"\x10\x20\x30\x40"),
-    ]
+        transactions = [
+            (0x000, b"\x11\x22\x33\x44"),
+            (0x008, b"\xAA\xBB"),
+            (0x010, b"\x10\x20\x30\x40"),
+        ]
 
-    # Sweep a few aligned accesses so the test proves the slave-side bus can
-    # drive data through the bridge into the master-side backing RAM.
-    for addr, payload in transactions:
-        wr_txn = await tb.axil.write(addr, payload)
-        assert wr_txn.resp == AxiResp.OKAY
-        assert tb.slave.mem[addr].to_bytes(4, "little")[: len(payload)] == payload
+        # Sweep a few aligned accesses so the test proves the slave-side bus
+        # can drive data through the bridge into the master-side backing RAM.
+        for addr, payload in transactions:
+            wr_txn = await tb.axil.write(addr, payload)
+            assert wr_txn.resp == AxiResp.OKAY
+            assert tb.slave.mem[addr].to_bytes(4, "little")[: len(payload)] == payload
 
-        rd_txn = await tb.axil.read(addr, len(payload))
-        assert rd_txn.resp == AxiResp.OKAY
-        assert rd_txn.data == payload
+            rd_txn = await tb.axil.read(addr, len(payload))
+            assert rd_txn.resp == AxiResp.OKAY
+            assert rd_txn.data == payload
+    finally:
+        await tb.close()
 
 
 @cocotb.test()
 async def reset_behavior_test(dut):
     tb = TB(dut)
-    await tb.reset()
+    try:
+        await tb.reset()
 
-    baseline = b"\x5A\xA5\xC3\x3C"
-    wr_txn = await tb.axil.write(0x020, baseline)
-    assert wr_txn.resp == AxiResp.OKAY
-    rd_txn = await tb.axil.read(0x020, len(baseline))
-    assert rd_txn.resp == AxiResp.OKAY
-    assert rd_txn.data == baseline
+        baseline = b"\x5A\xA5\xC3\x3C"
+        wr_txn = await tb.axil.write(0x020, baseline)
+        assert wr_txn.resp == AxiResp.OKAY
+        rd_txn = await tb.axil.read(0x020, len(baseline))
+        assert rd_txn.resp == AxiResp.OKAY
+        assert rd_txn.data == baseline
 
-    # In common-clock mode the DUT reduces to direct pass-through, so the
-    # reset coverage is restart-and-recover rather than remote-domain error
-    # shaping.
-    self_reset = tb.reset_active_value()
-    self_release = tb.reset_inactive_value()
-    tb.dut.sAxiClkRst.value = self_reset
-    tb.dut.mAxiClkRst.value = self_reset
-    await tb.s_cycle(3)
-    tb.dut.sAxiClkRst.value = self_release
-    tb.dut.mAxiClkRst.value = self_release
-    await tb.s_cycle(3)
+        # In common-clock mode the DUT reduces to direct pass-through, so the
+        # reset coverage is restart-and-recover rather than remote-domain
+        # error shaping.
+        self_reset = tb.reset_active_value()
+        self_release = tb.reset_inactive_value()
+        tb.dut.sAxiClkRst.value = self_reset
+        tb.dut.mAxiClkRst.value = self_reset
+        await tb.s_cycle(3)
+        tb.dut.sAxiClkRst.value = self_release
+        tb.dut.mAxiClkRst.value = self_release
+        await tb.s_cycle(3)
 
-    recovery = b"\x89\x67\x45\x23"
-    wr_txn = await tb.axil.write(0x024, recovery)
-    assert wr_txn.resp == AxiResp.OKAY
-    rd_txn = await tb.axil.read(0x024, len(recovery))
-    assert rd_txn.resp == AxiResp.OKAY
-    assert rd_txn.data == recovery
+        recovery = b"\x89\x67\x45\x23"
+        wr_txn = await tb.axil.write(0x024, recovery)
+        assert wr_txn.resp == AxiResp.OKAY
+        rd_txn = await tb.axil.read(0x024, len(recovery))
+        assert rd_txn.resp == AxiResp.OKAY
+        assert rd_txn.data == recovery
+    finally:
+        await tb.close()
 
 
 PARAMETER_SWEEP = [

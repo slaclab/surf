@@ -81,6 +81,9 @@ and build-isolation conventions where they apply.
 - `start_lockstep_clocks()` drives multiple logically common clocks from one
   coroutine so their edges cannot drift. It returns the lifetime task; retain
   that task on the bench that owns the clock domains.
+- `cancel_and_join_tasks()` cancels a bench's owned lifetime tasks, awaits all
+  of their termination paths, suppresses expected cancellation, and propagates
+  an unexpected task failure after every task has been joined.
 - `build_vhdl_sources()` and `merge_vhdl_sources()` are runner plumbing; tests
   should normally reach them only through `run_surf_vhdl_test()`.
 

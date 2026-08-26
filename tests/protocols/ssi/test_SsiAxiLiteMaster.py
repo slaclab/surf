@@ -27,8 +27,11 @@ import cocotb
 import pytest
 from cocotbext.axi import AxiResp
 
-from tests.common.regression_utils import run_surf_vhdl_test
-from tests.common.regression_utils import sample_after_tpd
+from tests.common.regression_utils import (
+    cancel_and_join_tasks,
+    run_surf_vhdl_test,
+    sample_after_tpd,
+)
 from tests.protocols.ssi.ssi_test_utils import (
     FlatSsiEndpoint,
     recv_frame_and_check,
@@ -67,6 +70,9 @@ class SimpleAxiLiteSlave:
             cocotb.start_soon(self._run_write()),
             cocotb.start_soon(self._run_read()),
         )
+
+    async def close(self) -> None:
+        await cancel_and_join_tasks(self._responder_tasks)
 
     def in_reset(self) -> bool:
         try:
@@ -192,6 +198,9 @@ class TB:
         self.source.set_idle()
         dut.mAxisTReady.setimmediatevalue(1)
 
+    async def close(self) -> None:
+        await self.axil.close()
+
     async def reset(self):
         await reset_dut(self.dut)
 
@@ -240,9 +249,7 @@ async def send_read_request(tb: TB, *, echo: int, address: int, count: int):
     )
 
 
-@cocotb.test()
-async def ssi_axi_lite_master_test(dut):
-    tb = TB(dut)
+async def _exercise_ssi_axi_lite_master(tb: TB) -> None:
     await tb.reset()
 
     # First prove a single-word write round-trip, including the echoed request
@@ -364,6 +371,15 @@ async def ssi_axi_lite_master_test(dut):
     )
     await send_read_request(tb, echo=0x5A5A0006, address=0x50, count=0)
     await recv_task
+
+
+@cocotb.test()
+async def ssi_axi_lite_master_test(dut):
+    tb = TB(dut)
+    try:
+        await _exercise_ssi_axi_lite_master(tb)
+    finally:
+        await tb.close()
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="same_clk_error_and_multiword")])

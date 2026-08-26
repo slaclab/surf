@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+from asyncio import CancelledError
 from functools import lru_cache
 import hashlib
 import os
@@ -135,6 +136,26 @@ def start_lockstep_clocks(*signals, period_ns: float):
     # really exercise a shared clock, not two same-period oscillators that can
     # drift in phase relative to each other.
     return cocotb.start_soon(drive())
+
+
+async def cancel_and_join_tasks(tasks) -> None:
+    """Cancel owned lifetime tasks, await termination, and surface failures."""
+    tasks = tuple(tasks)
+    for task in tasks:
+        task.cancel()
+
+    first_error = None
+    for task in tasks:
+        try:
+            await task
+        except CancelledError:
+            pass
+        except BaseException as error:
+            if first_error is None:
+                first_error = error
+
+    if first_error is not None:
+        raise first_error
 
 
 def env_flag(name: str, *, default: bool) -> bool:

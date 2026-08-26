@@ -8,16 +8,67 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+import asyncio
 import re
 
 import pytest
 
 from tests.common.regression_utils import (
+    cancel_and_join_tasks,
     cocotb_filtered_env,
     cocotb_test_filter,
     cocotb_test_filter_excluding,
     merge_vhdl_sources,
 )
+
+
+class FakeTask:
+    def __init__(self, name, events, *, error=None):
+        self.name = name
+        self.events = events
+        self.error = error
+        self.cancelled = False
+
+    def cancel(self):
+        self.events.append(("cancel", self.name))
+        self.cancelled = True
+
+    def __await__(self):
+        async def join():
+            self.events.append(("join", self.name))
+            if self.error is not None:
+                raise self.error
+            if self.cancelled:
+                raise asyncio.CancelledError
+
+        return join().__await__()
+
+
+def test_cancel_and_join_tasks_cancels_all_before_joining():
+    events = []
+    tasks = (FakeTask("write", events), FakeTask("read", events))
+
+    asyncio.run(cancel_and_join_tasks(tasks))
+
+    assert events == [
+        ("cancel", "write"),
+        ("cancel", "read"),
+        ("join", "write"),
+        ("join", "read"),
+    ]
+
+
+def test_cancel_and_join_tasks_joins_all_before_raising_failure():
+    events = []
+    tasks = (
+        FakeTask("write", events, error=RuntimeError("write responder failed")),
+        FakeTask("read", events),
+    )
+
+    with pytest.raises(RuntimeError, match="write responder failed"):
+        asyncio.run(cancel_and_join_tasks(tasks))
+
+    assert ("join", "read") in events
 
 
 def test_cocotb_test_filter_matches_only_named_entrypoints():
