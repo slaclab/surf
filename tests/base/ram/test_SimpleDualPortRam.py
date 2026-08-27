@@ -103,12 +103,9 @@ async def basic_read_write_test(dut):
     assert await tb.read_word(1) == 0x1234
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("BYTE_WR_EN_G", default=False))
 async def byte_write_enable_test(dut):
     tb = TB(dut)
-    if not tb.byte_write_enabled:
-        return
-
     # First write a full word, then overwrite only one byte at a time to prove
     # the byte-mask wiring is being honored.
     await tb.write_word(2, 0xABCD)
@@ -119,11 +116,8 @@ async def byte_write_enable_test(dut):
     assert await tb.read_word(2) == 0x12EF
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_READ_ENABLE_HOLD", default=False))
 async def read_enable_hold_test(dut):
-    if not env_flag("CHECK_READ_ENABLE_HOLD", default=False):
-        return
-
     tb = TB(dut)
     await tb.cycle_a(1)
     await tb.cycle_b(1)
@@ -143,11 +137,8 @@ async def read_enable_hold_test(dut):
     assert await tb.read_word(1) == 0x2222
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_REGISTERED_ENB_HOLD", default=False))
 async def registered_read_enable_hold_test(dut):
-    if not env_flag("CHECK_REGISTERED_ENB_HOLD", default=False):
-        return
-
     tb = TB(dut)
     await tb.cycle_a(1)
     await tb.cycle_b(1)
@@ -169,12 +160,14 @@ async def registered_read_enable_hold_test(dut):
     assert await tb.read_word(1) == 0x3333
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        not env_flag("DOB_REG_G", default=False)
+        and int(os.environ.get("READ_LATENCY_G", "1")) != 2
+    ),
+)
 async def registered_output_hold_test(dut):
     tb = TB(dut)
-    if not tb.dob_reg_enabled:
-        return
-
     # Seed two addresses so we can prove the output register can hold its old
     # value even after the read address changes.
     await tb.write_word(0, 0x1111)

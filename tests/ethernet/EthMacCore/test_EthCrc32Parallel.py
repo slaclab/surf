@@ -31,16 +31,20 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.base.crc.crc_test_utils import crc_out_from_remainder, crc_update, pack_active_bytes
-from tests.common.regression_utils import hdl_parameters_from, parameter_case, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    hdl_parameters_from,
+    parameter_case,
+    run_surf_vhdl_test,
+    sample_after_tpd,
+)
 from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
         # The CRC block registers state with `after TPD_G`, so leave a small
         # margin beyond that delay before sampling outputs in Python.
-        await Timer(2, unit="ns")
+        await sample_after_tpd(clk, propagation_time=2)
 
 
 async def apply_word(dut, *, clk, byte_width: int, payload: list[int]) -> int:
@@ -54,8 +58,7 @@ async def apply_word(dut, *, clk, byte_width: int, payload: list[int]) -> int:
     await Timer(2, unit="ns")
 
     # The resulting CRC is available on the following edge.
-    await RisingEdge(clk)
-    await Timer(2, unit="ns")
+    await sample_after_tpd(clk, propagation_time=2)
     return int(dut.crcOut.value)
 
 

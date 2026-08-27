@@ -30,6 +30,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ReadOnly, RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.simlink.common.peer_orchestration import (
     spawn_peer_group,
     terminate_peers,
@@ -79,6 +81,7 @@ def _pack(values, width):
 
 
 async def _memory_slaves(dut):
+    """Lifetime agent: serve memory requests until the owner cancels it."""
     stores = [{}, {}]
     read_countdown = [0, 0]
     read_data = [0, 0]
@@ -127,6 +130,7 @@ async def _memory_slaves(dut):
 
 
 async def _receive_monitor(dut, stream_received, sideband_opcodes, sideband_remdata):
+    """Lifetime agent: collect transport outputs until the owner cancels it."""
     while True:
         await RisingEdge(dut.clock)
         await ReadOnly()
@@ -223,8 +227,7 @@ async def rogue_simlink_multi_instance_traffic_test(dut):
         dut.sideBandTxData.value = _pack((vectors[2] for vectors in sideband_vectors), 8)
         dut.sideBandTxEn.value = 0x3
 
-        await RisingEdge(dut.clock)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clock)
         dut.streamIbValid.value = 0
         dut.streamIbLast.value = 0
         dut.sideBandTxEn.value = 0
@@ -256,7 +259,9 @@ async def rogue_simlink_multi_instance_traffic_test(dut):
             return missing
 
         deadline = time.monotonic() + MAX_TRAFFIC_SECONDS
-        while True:
+        running = list(peers)
+        inbound = pending_inbound()
+        while time.monotonic() < deadline:
             await RisingEdge(dut.clock)
             await ReadOnly()
 
@@ -264,13 +269,13 @@ async def rogue_simlink_multi_instance_traffic_test(dut):
             inbound = pending_inbound()
             if not running and not inbound:
                 break
-            if time.monotonic() >= deadline:
-                raise TimeoutError(
-                    f"multi-instance traffic did not finish within "
-                    f"{MAX_TRAFFIC_SECONDS}s: peers still running "
-                    f"{[(peer.mode, peer.tag, peer.port) for peer in running]}, "
-                    f"DUT still missing {inbound}"
-                )
+        else:
+            raise TimeoutError(
+                f"multi-instance traffic did not finish within "
+                f"{MAX_TRAFFIC_SECONDS}s: peers still running "
+                f"{[(peer.mode, peer.tag, peer.port) for peer in running]}, "
+                f"DUT still missing {inbound}"
+            )
 
         for peer in peers:
             assert peer.returncode == 0, f"peer exited with code {peer.returncode}"

@@ -29,6 +29,12 @@ the scenario as skipped with the configuration in the reason. Do not enter a
 cocotb test and return successfully before its named routing, remapping, or
 transition behavior has been exercised.
 
+The event-builder pytest wrapper uses `COCOTB_TEST_FILTER` to exclude the routed
+transition-frame scenario from the INDEXED configuration before simulation.
+All other event-builder scenarios apply to both modes. Add future mode-specific
+cases to that explicit selection policy instead of branching out of the cocotb
+entrypoint.
+
 Run the suite with:
 
 ```bash

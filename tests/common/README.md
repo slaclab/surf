@@ -42,6 +42,13 @@ build-manifest entry or repeat an imported design unit. Compiling the same unit
 from both paths can redefine it, make compile order significant, or leave a
 cached build using a different source than the reviewer expects.
 
+The shared source merge rejects an extra path that resolves to a file already
+present in the same library. It also rejects a different extra file that
+redeclares an imported entity, package, or configuration in that library, so
+variable-generated lists cannot bypass the literal-source audit. There is no
+override: give a test-only unit a distinct name, or fix the ruckus/source-list
+boundary instead of relying on compile order.
+
 The default build path includes `parameters` and `extra_env`, and the shared
 runner hashes path components that would be unsafe or excessively long. Use
 `sim_build_key` only when a subsystem requires a deliberately stable or more
@@ -68,8 +75,15 @@ and build-isolation conventions where they apply.
   `_G`.
 - `env_flag()`, `env_sl()`, `env_int()`, `env_hex()`, and `env_float()` parse
   simulator environment values consistently inside cocotb coroutines.
+- `cocotb_test_filter()`, `cocotb_test_filter_excluding()`, and
+  `cocotb_filtered_env()` build explicit scenario groups while preserving an
+  externally requested focused selector in the simulation-build identity.
 - `start_lockstep_clocks()` drives multiple logically common clocks from one
-  coroutine so their edges cannot drift.
+  coroutine so their edges cannot drift. It returns the lifetime task; retain
+  that task on the bench that owns the clock domains.
+- `cancel_and_join_tasks()` cancels a bench's owned lifetime tasks, awaits all
+  of their termination paths, suppresses expected cancellation, and propagates
+  an unexpected task failure after every task has been joined.
 - `build_vhdl_sources()` and `merge_vhdl_sources()` are runner plumbing; tests
   should normally reach them only through `run_surf_vhdl_test()`.
 
@@ -119,3 +133,79 @@ consumers, and transactions before the entrypoint completes. Store monitors or
 protocol peers intended to run for the whole test on the bench, document them as
 lifetime agents, and provide cleanup when cancellation order matters or an
 agent owns a socket, process, file, or other external resource.
+
+Give an intentional open-ended agent a function docstring containing
+`Lifetime agent:` followed by its purpose and termination owner. The compliance
+audit recognizes that explicit classification; do not use the marker on a
+finite handshake, receive loop, or transaction that needs a cycle/time limit.
+
+Prefer ordinary `if`/`else` structure when a parameter selects different test
+behavior. If a fully checked parameter-specific branch must terminate early,
+put a `# Terminal scenario:` comment immediately above its bare return and state
+why the assertions above are that parameter's complete contract. The blocking
+audit rejects every other post-activity bare return as ambiguous.
+
+Use `sample_after_delta_cycles()` and `sample_after_tpd()` from
+`regression_utils.py` to state why a test samples after a clock edge. The former
+enters cocotb's read-only phase for delta-settled observation; the latter waits
+real simulated time for a VHDL `after TPD_G` update. A reusable propagation
+helper carries a `Propagation sampling:` docstring so the audit can distinguish
+that reviewed timing contract from an unexplained edge-plus-timer sequence.
+Use `wait_after_edge_offset()` instead when real simulated time intentionally
+places stimulus between edges; its `Real-time timing:` contract is likewise
+recognized without pretending that the offset is output propagation.
+
+## Compliance Audit And Preservation Reports
+
+`compliance_audit.py` provides a read-only structural audit and a reproducible
+inventory for cleanup work. The audit reports screening signals; ambiguous
+items such as lifetime tasks, open-ended agent loops, and post-edge delays still
+require review rather than mechanical replacement.
+
+Run an audit for the whole active test tree or one subsystem:
+
+```bash
+./.venv/bin/python -m tests.common.compliance_audit audit tests
+./.venv/bin/python -m tests.common.compliance_audit audit tests/protocols/batcher
+```
+
+Capture a preservation report before changing a subsystem, capture it again
+afterward, and compare the two:
+
+```bash
+./.venv/bin/python -m tests.common.compliance_audit \
+    inventory tests/protocols/batcher --output /tmp/batcher-before.json
+./.venv/bin/python -m tests.common.compliance_audit \
+    inventory tests/protocols/batcher --output /tmp/batcher-after.json
+./.venv/bin/python -m tests.common.compliance_audit \
+    compare /tmp/batcher-before.json /tmp/batcher-after.json
+```
+
+The comparison exits unsuccessfully when a pytest function, cocotb entrypoint,
+parameter ID, environment gate/selector, skip, or decorator timeout disappears.
+An intentional rename, move, split, or consolidation therefore remains visible
+and needs an explicit before/after mapping in the change description. Added
+coverage is reported but does not make the command fail.
+
+The checked-in `compliance_baseline.json` ratchets the rules that are reliable
+enough to enforce structurally: methodology presence, ordinary direct-runner
+exceptions, literal VHDL sources duplicated from the ruckus import, and a bare
+entrypoint return reached before any awaited simulator activity or assertion.
+It also rejects an unretained non-clock `cocotb.start_soon()` call and an
+unclassified `while True` loop, an unexplained post-edge real-time delay, and
+an ambiguous post-activity bare return. Intentional lifetime loops must carry
+the `Lifetime agent:` docstring contract described above; finite operations
+must use a direct cycle/time bound instead. Reviewed propagation sampling and
+real-time offsets must use the named helpers or documentation contracts above.
+Run the check after importing the HDL tree:
+
+```bash
+make MODULES="$PWD" import
+./.venv/bin/python -m tests.common.compliance_audit check tests
+```
+
+The check fails when a file introduces a new finding or exceeds its existing
+per-rule count. Removing a legacy finding is allowed and reported as a baseline
+reduction; update the baseline in the same cleanup change so the violation
+cannot return. Do not regenerate the whole baseline to accept an unrelated new
+finding.

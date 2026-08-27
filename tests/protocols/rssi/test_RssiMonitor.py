@@ -32,9 +32,9 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
 
 
 class TB:
@@ -44,8 +44,7 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.axisClk)
-            await Timer(2, unit="ns")
+            await sample_after_tpd(self.dut.axisClk, propagation_time=2)
 
     def _set_flag_defaults(self) -> None:
         self.dut.rxFlagsSyn_i.value = 0
@@ -230,11 +229,4 @@ def test_RssiMonitor(parameters):
         toplevel="surf.rssimonitorwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-                "protocols/rssi/v1/wrappers/RssiMonitorWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

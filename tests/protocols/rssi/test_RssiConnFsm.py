@@ -29,15 +29,15 @@
 #   by close rather than counter overflow.
 # - Timing: Status checks wait past the default `TPD_G` output delay after each
 #   clock edge.  Timeout generics are kept small so retries and peer-timeout
-#   closure remain deterministic within a directed cocotb test.
-
-import os
+#   closure remain deterministic within a directed cocotb test.  The pytest
+#   wrapper selects only server-named scenarios for `SERVER_G=true` and only
+#   client-named scenarios for `SERVER_G=false`.
 
 import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cocotb_filtered_env, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import RssiParams
 from tests.protocols.ssi.ssi_test_utils import (
     cycle as ssi_cycle,
@@ -163,15 +163,8 @@ class TB:
         raise AssertionError(f"Timed out waiting for connState_o={expected:#x}")
 
 
-def server_mode() -> bool:
-    return os.environ.get("SERVER_G", "true").lower() == "true"
-
-
 @cocotb.test()
 async def server_accepts_syn_ack_and_opens_test(dut):
-    if not server_mode():
-        return
-
     tb = await TB.create(dut)
     tb.dut.connRq_i.value = 1
     await tb.cycle()
@@ -195,9 +188,6 @@ async def server_accepts_syn_ack_and_opens_test(dut):
 
 @cocotb.test()
 async def server_proposes_local_required_parameters_on_mismatch_test(dut):
-    if not server_mode():
-        return
-
     tb = await TB.create(dut)
     app_params = RssiParams(
         version=1,
@@ -233,9 +223,6 @@ async def server_proposes_local_required_parameters_on_mismatch_test(dut):
 
 @cocotb.test()
 async def server_rejects_out_of_range_syn_parameters_test(dut):
-    if not server_mode():
-        return
-
     tb = await TB.create(dut)
     app_params = RssiParams(
         version=1,
@@ -278,9 +265,6 @@ async def server_rejects_out_of_range_syn_parameters_test(dut):
 
 @cocotb.test()
 async def server_retries_syn_ack_then_times_out_waiting_for_ack_test(dut):
-    if not server_mode():
-        return
-
     tb = await TB.create(dut)
     tb.dut.connRq_i.value = 1
     await tb.cycle()
@@ -306,9 +290,6 @@ async def server_retries_syn_ack_then_times_out_waiting_for_ack_test(dut):
 
 @cocotb.test()
 async def client_accepts_syn_ack_clamps_and_opens_test(dut):
-    if server_mode():
-        return
-
     tb = await TB.create(dut)
     app_params = RssiParams(max_outs_seg=4, max_seg_size=64)
     peer_params = RssiParams(max_outs_seg=8, max_seg_size=128)
@@ -336,9 +317,6 @@ async def client_accepts_syn_ack_clamps_and_opens_test(dut):
 
 @cocotb.test()
 async def client_rejects_mismatched_syn_ack_with_rst_test(dut):
-    if server_mode():
-        return
-
     tb = await TB.create(dut)
     tb.set_app_params(RssiParams(version=1, chksum_en=1, timeout_unit=1))
     tb.set_rx_params(RssiParams(version=2, chksum_en=1, timeout_unit=1))
@@ -360,9 +338,6 @@ async def client_rejects_mismatched_syn_ack_with_rst_test(dut):
 
 @cocotb.test()
 async def client_rejects_out_of_range_syn_ack_with_rst_test(dut):
-    if server_mode():
-        return
-
     tb = await TB.create(dut)
     tb.set_app_params(RssiParams(version=1, chksum_en=1, timeout_unit=1))
     tb.set_rx_params(
@@ -394,9 +369,6 @@ async def client_rejects_out_of_range_syn_ack_with_rst_test(dut):
 
 @cocotb.test()
 async def client_retries_syn_then_times_out_waiting_for_syn_ack_test(dut):
-    if server_mode():
-        return
-
     tb = await TB.create(dut)
     tb.dut.connRq_i.value = 1
     await tb.wait_high("sndSyn_o")
@@ -425,16 +397,10 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiConnFsm(parameters):
+    role = "server" if parameters["SERVER_G"] else "client"
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.rssiconnfsmwrapper",
         parameters=parameters,
-        extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
+        extra_env=cocotb_filtered_env(parameters, rf"{role}_.*_test$"),
     )

@@ -30,10 +30,11 @@ The suite progresses from leaves to integration:
 Default CI runs the currently stable RSSI cases. Focused cases that still expose
 unresolved RTL behavior are opt-in behind `RUN_RSSI_KNOWN_ISSUE_TESTS=1`, and a
 smaller group of long-running integration cases additionally uses
-`RUN_RSSI_EXTENDED_TESTS=1`. A `COCOTB_TESTCASE` selector chooses a named
-cocotb scenario; the `RUN_*` gates decide whether the corresponding pytest node
-is eligible to launch it. Keep these roles separate so an enabled node cannot
-silently run unrelated scenarios.
+`RUN_RSSI_EXTENDED_TESTS=1`. `COCOTB_TESTCASE` selects one named scenario, while
+`COCOTB_TEST_FILTER` selects an applicable scenario group such as the client or
+server connection-FSM cases. The `RUN_*` gates decide whether the corresponding
+pytest node is eligible to launch a simulation. Keep these roles separate so an
+enabled node cannot silently run unrelated scenarios.
 
 Keep the skip reason beside each gated pytest entry. A known-issue case must
 identify a durable defect reference or documented local issue, state the
