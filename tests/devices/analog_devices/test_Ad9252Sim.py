@@ -19,12 +19,13 @@
 #   data and FCO otherwise use ideal centered timing in this test.
 
 import cocotb
-from cocotb.triggers import Edge, Timer
+from cocotb.triggers import Edge, Timer, with_timeout
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
 async def differential_clock(dut, period_ns=24):
+    """Lifetime agent: drive the encode clock until the owning test cancels it."""
     half = period_ns / 2
     while True:
         dut.clkP.value = 0
@@ -61,12 +62,14 @@ async def spi_write(dut, address, value):
 
 async def capture_frame(dut):
     previous = int(dut.fcoP.value)
-    while True:
-        await Edge(dut.fcoP)
+    for _ in range(3):
+        await with_timeout(Edge(dut.fcoP), 100, "ns")
         current = int(dut.fcoP.value)
         if previous == 0 and current == 1:
             break
         previous = current
+    else:
+        assert False, "FCO did not produce a rising edge"
     words = [0] * 8
     frame = 0
     for _ in range(14):
@@ -86,7 +89,7 @@ async def ad9252_pin_level_device_sim_test(dut):
     dut.sdioDrive.value = 0
     dut.sdioEnable.value = 0
     dut.csb.value = 1
-    cocotb.start_soon(differential_clock(dut))
+    clock_task = cocotb.start_soon(differential_clock(dut))
     # Allow the model's time-zero output initialization to settle before any
     # std_logic value is converted to an integer by the frame collector.
     await Timer(1, unit="ns")
@@ -125,6 +128,7 @@ async def ad9252_pin_level_device_sim_test(dut):
     assert checkerboard[0] == checkerboard[2]
     assert checkerboard[1] == checkerboard[3]
     assert checkerboard[0] != checkerboard[1]
+    await cancel_and_join_tasks((clock_task,))
 
 
 def test_Ad9252Sim():

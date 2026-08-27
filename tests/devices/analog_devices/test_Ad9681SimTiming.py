@@ -24,10 +24,11 @@ import cocotb
 from cocotb.triggers import Edge, Timer
 from cocotb.utils import get_sim_time
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
 async def differential_clock(dut, period_ns=8):
+    """Lifetime agent: drive the encode clock until the owning test cancels it."""
     half = period_ns / 2
     while True:
         dut.clkP.value = 0
@@ -71,7 +72,7 @@ async def ad9681_binary_skew_and_jitter_test(dut):
     dut.sdioDrive.value = 0
     dut.sdioEnable.value = 0
     dut.csb.value = 1
-    cocotb.start_soon(differential_clock(dut))
+    clock_task = cocotb.start_soon(differential_clock(dut))
 
     # Allow the modeled 16-sample ADC conversion pipeline to fill before
     # collecting data edges and their corresponding DCO sampling edges.
@@ -109,6 +110,7 @@ async def ad9681_binary_skew_and_jitter_test(dut):
     assert int(dut.dN.value) == ((~int(dut.dP.value)) & 0xFFFF)
     assert int(dut.dcoN.value) == ((~int(dut.dcoP.value)) & 0x3)
     assert int(dut.fcoN.value) == ((~int(dut.fcoP.value)) & 0x3)
+    await cancel_and_join_tasks((clock_task,))
 
 
 def test_Ad9681SimTiming():

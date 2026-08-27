@@ -20,12 +20,13 @@
 #   both byte groups share an ideal centered DCO/FCO waveform.
 
 import cocotb
-from cocotb.triggers import Edge, Timer
+from cocotb.triggers import Edge, Timer, with_timeout
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
 async def differential_clock(dut, period_ns=8):
+    """Lifetime agent: drive the encode clock until the owning test cancels it."""
     half = period_ns / 2
     while True:
         dut.clkP.value = 0
@@ -62,12 +63,14 @@ async def spi_write(dut, address, value):
 
 async def capture_frame(dut):
     previous = int(dut.fcoP.value) & 1
-    while True:
-        await Edge(dut.fcoP)
+    for _ in range(3):
+        await with_timeout(Edge(dut.fcoP), 100, "ns")
         current = int(dut.fcoP.value) & 1
         if previous == 0 and current == 1:
             break
         previous = current
+    else:
+        assert False, "FCO did not produce a rising edge"
     low = [0] * 8
     high = [0] * 8
     frame = 0
@@ -89,7 +92,7 @@ async def ad9681_pin_level_device_sim_test(dut):
     dut.sdioDrive.value = 0
     dut.sdioEnable.value = 0
     dut.csb.value = 1
-    cocotb.start_soon(differential_clock(dut))
+    clock_task = cocotb.start_soon(differential_clock(dut))
     await Timer(1, unit="ns")
 
     # A normal conversion captured with the first frame must remain absent for
@@ -131,6 +134,7 @@ async def ad9681_pin_level_device_sim_test(dut):
     assert checkerboard[0] == checkerboard[2]
     assert checkerboard[1] == checkerboard[3]
     assert checkerboard[0] != checkerboard[1]
+    await cancel_and_join_tasks((clock_task,))
 
 
 def test_Ad9681Sim():

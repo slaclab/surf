@@ -62,6 +62,7 @@ async def axil_poll(axil, address, predicate, limit=128):
 
 
 async def send_sample(dut, channel0, channel1):
+    """Propagation sampling: hold each sample through the registered TPD update."""
     await FallingEdge(dut.clk)
     dut.sampleIn.value = (channel1 << 16) | channel0
     dut.sampleValid.value = 1

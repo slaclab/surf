@@ -62,6 +62,7 @@ async def axil_poll(axil, address, predicate, limit=128):
 
 
 async def wait_load(clock, signal, mask, limit=80):
+    """Propagation sampling: observe registered delay-load pulses after TPD."""
     for _ in range(limit):
         await RisingEdge(clock)
         await Timer(2, unit="ns")
@@ -72,6 +73,7 @@ async def wait_load(clock, signal, mask, limit=80):
 
 @cocotb.test()
 async def core_integration_test(dut):
+    """Propagation sampling: check registered DUT outputs after their TPD updates."""
     dut.axilRst.value = 1
     dut.captureRst.value = 1
     dut.streamRst.value = 1
@@ -319,6 +321,7 @@ async def core_integration_test(dut):
     if not pattern_check:
         response = await axil.read(AXIL_BASE_ADDR + 0x800, 4)
         assert response.resp == AxiResp.DECERR
+        # Terminal scenario: absent pattern hardware and DECERR complete this case.
         return
 
     # Run one shared-phase alternating-pattern window through the integrated

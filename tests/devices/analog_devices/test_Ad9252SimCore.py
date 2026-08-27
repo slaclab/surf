@@ -26,6 +26,7 @@ from tests.common.regression_utils import run_surf_vhdl_test
 
 
 async def write(dut, addr, data):
+    """Propagation sampling: deassert writes after registered TPD updates."""
     await FallingEdge(dut.sampleClk)
     dut.cfgAddr.value = addr
     dut.cfgWrData.value = data
@@ -42,6 +43,7 @@ async def read(dut, addr):
 
 
 async def sample(dut):
+    """Propagation sampling: read each registered sample after its TPD update."""
     await FallingEdge(dut.sampleClk)
     dut.sampleEnable.value = 1
     await RisingEdge(dut.sampleClk)
