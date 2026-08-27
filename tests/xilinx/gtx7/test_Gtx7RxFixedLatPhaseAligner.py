@@ -11,6 +11,8 @@
 # Test methodology:
 # - Sweep: Two elaborations, one per RX_ODD_ALIGN_MODE_G value. The generic
 #   gates a constant and a generate, so it cannot be varied inside one build.
+#   The pytest wrapper selects each build's own entrypoint by name, so neither
+#   mode's checks can report a vacuous pass inside the other mode's build.
 # - Stimulus: A bit-accurate serial stream of tagged 20-bit frames feeds a GT
 #   model that presents word k as stream[20k + b - d] for a landing offset d and
 #   decrements d on every rxSlide pulse. Every one of the 20 possible comma
@@ -43,12 +45,15 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge
 
 from tests.common.regression_utils import (
+    cocotb_filtered_env,
+    cocotb_test_filter,
     env_int,
     parameter_case,
     run_surf_vhdl_test,
+    sample_after_tpd,
 )
 
 WORD_SIZE = 20
@@ -148,10 +153,13 @@ class Harness:
         self.dut.rxRunPhAlignment.value = 1
 
     async def step(self):
-        """Advance one cycle, presenting the GT word and consuming rxSlide."""
+        """Advance one cycle, presenting the GT word and consuming rxSlide.
+
+        Sampling waits past the aligner's ``after TPD_G`` output delay, which
+        the elaboration leaves at its 1 ns default.
+        """
         self.dut.rxData.value = gt_word(self.cycle, self.offset)
-        await RisingEdge(self.dut.rxUsrClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.rxUsrClk)
         self.cycle += 1
         if self.dut.rxReset.value == 1:
             self.saw_reset = True
@@ -185,9 +193,6 @@ async def run_landing(dut, landing):
 @cocotb.test()
 async def bitslip_landing_is_latency_invariant(dut):
     """Every landing must align with an even slide count and no RX reset."""
-    if ODD_ALIGN_MODE != "BITSLIP":
-        return
-
     tb = await run_landing(dut, LANDING)
 
     assert tb.aligned(), f"landing {LANDING}: never reached alignment"
@@ -238,9 +243,6 @@ async def bitslip_landing_is_latency_invariant(dut):
 @cocotb.test()
 async def reset_mode_rejects_odd_landings(dut):
     """RESET mode's legacy contract, pinned against regression."""
-    if ODD_ALIGN_MODE != "RESET":
-        return
-
     tb = await run_landing(dut, LANDING)
 
     if LANDING % 2 == 1:
@@ -279,6 +281,13 @@ async def reset_mode_rejects_odd_landings(dut):
         )
 
 
+# Each elaboration only carries one mode's contract, so only that mode's
+# entrypoint is allowed to run in it.
+MODE_ENTRYPOINT = {
+    "BITSLIP": "bitslip_landing_is_latency_invariant",
+    "RESET": "reset_mode_rejects_odd_landings",
+}
+
 PARAMETER_SWEEP = [
     parameter_case(f"{mode.lower()}_landing{landing:02d}",
                    RX_ODD_ALIGN_MODE_G=mode,
@@ -290,9 +299,13 @@ PARAMETER_SWEEP = [
 
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_Gtx7RxFixedLatPhaseAligner(parameters):
+    mode = parameters["RX_ODD_ALIGN_MODE_G"]
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.gtx7rxfixedlatphasealigner",
-        parameters={"RX_ODD_ALIGN_MODE_G": parameters["RX_ODD_ALIGN_MODE_G"]},
-        extra_env=parameters,
+        parameters={"RX_ODD_ALIGN_MODE_G": mode},
+        extra_env=cocotb_filtered_env(
+            parameters,
+            cocotb_test_filter(MODE_ENTRYPOINT[mode]),
+        ),
     )
