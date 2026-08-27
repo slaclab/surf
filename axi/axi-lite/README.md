@@ -38,6 +38,12 @@ domain resets. Reset handling follows these rules:
 - Transactions discarded by reset are not replayed when the master domain
   recovers, and stale responses do not survive a slave-domain reset.
 
+A slave/source-domain reset can flush only transactions still held by the
+bridge. It cannot retract a write-address or write-data beat that the
+downstream slave has already accepted. If a system must prevent a partially
+accepted downstream write from surviving reset, it must quiesce AXI-Lite
+traffic before resetting or coordinate reset of the destination domain.
+
 If a clock is unavailable, its corresponding reset must remain asserted. The
 clock must be stable before reset is released, and traffic must remain inactive
 until synchronized reset release completes.
