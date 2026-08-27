@@ -163,11 +163,8 @@ async def reset_behavior_test(dut):
         assert int(dut.valid.value) == 0
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_STARVATION_ROTATION", default=False))
 async def starvation_rotation_test(dut):
-    if not env_flag("CHECK_STARVATION_ROTATION", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
 

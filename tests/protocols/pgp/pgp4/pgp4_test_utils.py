@@ -12,7 +12,8 @@ from __future__ import annotations
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 
@@ -47,8 +48,7 @@ class Pgp4FlatTB:
 
     async def cycle(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.clk)
 
     async def reset(self, *, hold_cycles: int = 4, settle_cycles: int = 4):
         self.rst.setimmediatevalue(1)

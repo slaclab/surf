@@ -45,7 +45,9 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -54,6 +56,7 @@ from tests.common.regression_utils import (
     env_int,
     parameter_case,
     run_surf_vhdl_test,
+    wait_after_edge_offset,
 )
 from tests.xilinx.general.gt_rx_align_check_test_utils import (
     CONFIG_ADDR,
@@ -128,8 +131,7 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def reset(self) -> None:
         # Hold axilRst so the checker restarts from REG_INIT_C, then let the GT
@@ -198,8 +200,10 @@ class TB:
     async def pulse_reset_in(self, *, hold_cycles: int = 4) -> None:
         # resetIn is documented ASYNC to axilClk, so move it mid-period rather
         # than on an edge to exercise the synchronizer instead of a clean setup.
-        await RisingEdge(self.dut.axilClk)
-        await Timer(RESET_IN_SKEW_NS, unit="ns")
+        await wait_after_edge_offset(
+            self.dut.axilClk,
+            offset_time=RESET_IN_SKEW_NS,
+        )
         self.dut.resetIn.value = 1
         await self.cycle(hold_cycles)
         await Timer(RESET_IN_SKEW_NS, unit="ns")

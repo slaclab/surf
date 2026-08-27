@@ -52,7 +52,8 @@ import random
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_int,
@@ -186,8 +187,7 @@ class RxLaneTB:
     async def cycle(self, count: int = 1) -> None:
         """Advance count clock cycles, settling 1 ns after each rising edge."""
         for _ in range(count):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, cycles: int = 4) -> None:
         """Assert devRst_i for cycles clock cycles, then deassert."""
@@ -205,8 +205,7 @@ class RxLaneTB:
 async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 128):
     """Wait up to timeout_cycles for signal to equal value (1 ns settle)."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(signal.value) == value:
             return
     raise AssertionError(
@@ -217,8 +216,7 @@ async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 128):
 async def wait_for_bit(status_signal, *, bit_mask: int, clk, timeout_cycles: int = 128):
     """Wait until (status_signal & bit_mask) != 0."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if (int(status_signal.value) & bit_mask) != 0:
             return
     raise AssertionError(
@@ -401,8 +399,7 @@ async def drive_timeline(
             dut.gtRxData_i.value = 0
             dut.gtRxDataK_i.value = 0
 
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
 
         if cycle_i >= _LATENCY:
             got_samples.append(int(dut.sampleData_o.value) & _GT_WORD_MASK)

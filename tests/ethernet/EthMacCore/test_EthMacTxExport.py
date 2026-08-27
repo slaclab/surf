@@ -82,6 +82,8 @@ async def eth_mac_tx_export_test(dut):
         assert int(dut.txCountEn.value) == 0
         assert int(dut.txUnderRun.value) == 0
         assert int(dut.txLinkNotReady.value) == 0
+        # Terminal scenario: these no-output/status checks are the complete
+        # contract for the intentionally disconnected XLGMII export placeholder.
         return
 
     min_frame = build_ethernet_frame(

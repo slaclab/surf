@@ -165,10 +165,15 @@ jobs:
             --ignore=tests/simlink
           )
 
+          # Import once before either run mode. The compliance check consumes
+          # the same ruckus source inventory as the cocotb runner and fails
+          # fast on new structural violations before expensive simulations.
+          make MODULES=$PWD import
+          python -m tests.common.compliance_audit check tests
+
           # Full integration/release runs build and simulate on apt mcode GHDL
           # and collect the coverage consumed by Codecov.
           if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
-            make MODULES=$PWD import
             python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
             exit 0
           fi
@@ -192,7 +197,6 @@ jobs:
           fi
 
           echo "${selector_output}"
-          make MODULES=$PWD import
 
           if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
             echo "Directory selector forced a full run (rc=${selector_rc})"
@@ -291,6 +295,41 @@ jobs:
 
 # ----------------------------------------------------------------------------
 
+  adc_ddr_rogue:
+    name: ADC DDR Rogue Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: surf-rogue-test
+          environment-file: conda-rogue.yml
+          auto-activate: false
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+
+      - name: Run ADC DDR Rogue tests
+        run: |
+          python -c "import rogue, pyrogue; print(rogue.Version.current())"
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/devices/analog_devices/test_AdcDdrCalibration.py \
+            tests/devices/analog_devices/test_AdcDdrModel.py
+
+# ----------------------------------------------------------------------------
+
   docs:
     name: Documentation
     runs-on: ubuntu-24.04
@@ -317,7 +356,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, simlink_rogue, docs]
+    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
@@ -328,7 +367,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   conda_build_lib:
-    needs: [lint, test, simlink_rogue, docs]
+    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:

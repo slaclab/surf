@@ -50,6 +50,5 @@ def test_LineCode12b14bIntegration(parameters):
     run_line_code_integration_test(
         test_file=__file__,
         toplevel="surf.linecode12b14btb",
-        tb_source="protocols/line-codes/tb/LineCode12b14bTb.vhd",
         parameters=parameters,
     )

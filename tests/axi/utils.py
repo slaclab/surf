@@ -8,7 +8,7 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-from cocotb.triggers import RisingEdge, Timer
+from tests.common.regression_utils import sample_after_tpd
 
 
 def ring_buffer_axil_addr(bus_index: int, buf: int = 0, high: int = 0) -> int:
@@ -46,8 +46,7 @@ async def wait_sampled_ready(
     # source must hold its current beat stable until a clock edge confirms that
     # the sink presented `TREADY`.
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(settle_time_ns, unit="ns")
+        await sample_after_tpd(clk, propagation_time=settle_time_ns)
         if int(ready_signal.value) == 1:
             return
 

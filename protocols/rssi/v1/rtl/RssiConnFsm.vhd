@@ -40,7 +40,7 @@ entity RssiConnFsm is
       --
       WINDOW_ADDR_SIZE_G  : positive := 3;
       SEGMENT_ADDR_SIZE_G : positive := 7  -- 2^SEGMENT_ADDR_SIZE_G = Number of 64 bit wide data words
-      );
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -95,10 +95,11 @@ entity RssiConnFsm is
       -- Status signals
       peerTout_o    : out sl;
       paramReject_o : out sl
-      );
+   );
 end entity RssiConnFsm;
 
 architecture rtl of RssiConnFsm is
+
    --
    constant SAMPLES_PER_TIME_C : integer := integer(TIMEOUT_UNIT_G * CLK_FREQUENCY_G);
    --
@@ -112,7 +113,7 @@ architecture rtl of RssiConnFsm is
       WAIT_ACK_S,
       SEND_RST_S,
       OPEN_S
-      );
+   );
 
    type RegType is record
       connActive  : sl;
@@ -136,7 +137,6 @@ architecture rtl of RssiConnFsm is
       ---
       state     : StateType;
       connState : slv(3 downto 0);
-
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -164,6 +164,42 @@ architecture rtl of RssiConnFsm is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   function validPeerParams(param : RssiParamType) return boolean is
+   begin
+      return (
+         param.maxOutsSeg /= 0 and
+         conv_integer(param.maxSegSize) >= 8 and
+         param.retransTout /= 0 and
+         param.cumulAckTout /= 0 and
+         param.nullSegTout /= 0);
+   end function validPeerParams;
+
+   function clampWindowSize(value : slv(7 downto 0)) return integer is
+      variable size : integer;
+   begin
+      size := conv_integer(value);
+      if (size < 1) then
+         return 1;
+      elsif (size > 2 ** WINDOW_ADDR_SIZE_G) then
+         return 2 ** WINDOW_ADDR_SIZE_G;
+      else
+         return size;
+      end if;
+   end function clampWindowSize;
+
+   function clampBufferSize(value : slv(15 downto 0)) return integer is
+      variable size : integer;
+   begin
+      size := conv_integer(value(15 downto 3));  -- Divide by 8
+      if (size < 1) then
+         return 1;
+      elsif (size > 2 ** SEGMENT_ADDR_SIZE_G) then
+         return 2 ** SEGMENT_ADDR_SIZE_G;
+      else
+         return size;
+      end if;
+   end function clampBufferSize;
 
 
 
@@ -234,14 +270,17 @@ begin
             v.sndAck      := '0';
             v.sndRst      := '0';
             v.txAckF      := '0';
-            v.timeoutCntr := r.timeoutCntr + 1;
+            if (r.timeoutCntr /= RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               v.timeoutCntr := r.timeoutCntr + 1;
+            end if;
             --
             if (rxValid_i = '1' and rxFlags_i.syn = '1' and rxFlags_i.ack = '1') then
                -- Check parameters
                if (
                   rxRssiParam_i.version = appRssiParam_i.version and  -- Version match
                   rxRssiParam_i.chksumEn = appRssiParam_i.chksumEn and  -- Checksum match
-                  rxRssiParam_i.timeoutUnit = appRssiParam_i.timeoutUnit  -- Timeout unit match
+                  rxRssiParam_i.timeoutUnit = appRssiParam_i.timeoutUnit and  -- Timeout unit match
+                  validPeerParams(rxRssiParam_i) = true
                   ) then
 
                   -- Accept the parameters from the server
@@ -249,19 +288,19 @@ begin
 
                   -- Autoneg the maxOutsSeg
                   if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
-                     v.txWindowSize         := conv_integer(appRssiParam_i.maxOutsSeg);
+                     v.txWindowSize         := clampWindowSize(appRssiParam_i.maxOutsSeg);
                      v.rssiParam.maxOutsSeg := appRssiParam_i.maxOutsSeg;
                   else
-                     v.txWindowSize         := conv_integer(rxRssiParam_i.maxOutsSeg);
+                     v.txWindowSize         := clampWindowSize(rxRssiParam_i.maxOutsSeg);
                      v.rssiParam.maxOutsSeg := rxRssiParam_i.maxOutsSeg;
                   end if;
 
                   -- Autoneg the maxSegSize
                   if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
-                     v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
+                     v.txBufferSize         := clampBufferSize(appRssiParam_i.maxSegSize);
                      v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
                   else
-                     v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
+                     v.txBufferSize         := clampBufferSize(rxRssiParam_i.maxSegSize);
                      v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
                   end if;
 
@@ -327,43 +366,43 @@ begin
             --
             if (rxValid_i = '1' and rxFlags_i.syn = '1') then
 
-               -- Accept the parameters from the client
-               v.rssiParam := rxRssiParam_i;
-
-               -- Autoneg the maxOutsSeg
-               if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
-                  v.txWindowSize         := conv_integer(appRssiParam_i.maxOutsSeg);
-                  v.rssiParam.maxOutsSeg := appRssiParam_i.maxOutsSeg;
-               else
-                  v.txWindowSize         := conv_integer(rxRssiParam_i.maxOutsSeg);
-                  v.rssiParam.maxOutsSeg := rxRssiParam_i.maxOutsSeg;
-               end if;
-
-               -- Autoneg the maxSegSize
-               if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
-                  v.txBufferSize         := conv_integer(appRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
-                  v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
-               else
-                  v.txBufferSize         := conv_integer(rxRssiParam_i.maxSegSize(15 downto 3));  -- Divide by 8
-                  v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
-               end if;
-
-               --
-               v.paramReject := '0';
-
                -- Check parameters that have to match
                if (
                   rxRssiParam_i.version /= appRssiParam_i.version or  -- Version equality
                   rxRssiParam_i.chksumEn /= appRssiParam_i.chksumEn or  -- Checksum match
-                  rxRssiParam_i.timeoutUnit /= appRssiParam_i.timeoutUnit  -- Timeout unit match
+                  rxRssiParam_i.timeoutUnit /= appRssiParam_i.timeoutUnit or  -- Timeout unit match
+                  validPeerParams(rxRssiParam_i) = false
                   ) then
 
                   -- Propose different parameters (overwrite)
-                  v.rssiParam.version     := appRssiParam_i.version;
-                  v.rssiParam.timeoutUnit := appRssiParam_i.timeoutUnit;
-                  v.rssiParam.chksumEn    := appRssiParam_i.chksumEn;
+                  v.rssiParam    := appRssiParam_i;
+                  v.txWindowSize := clampWindowSize(appRssiParam_i.maxOutsSeg);
+                  v.txBufferSize := clampBufferSize(appRssiParam_i.maxSegSize);
                   --
-                  v.paramReject           := '1';
+                  v.paramReject  := '1';
+               else
+                  -- Accept the parameters from the client
+                  v.rssiParam := rxRssiParam_i;
+
+                  -- Autoneg the maxOutsSeg
+                  if (rxRssiParam_i.maxOutsSeg > appRssiParam_i.maxOutsSeg) then
+                     v.txWindowSize         := clampWindowSize(appRssiParam_i.maxOutsSeg);
+                     v.rssiParam.maxOutsSeg := appRssiParam_i.maxOutsSeg;
+                  else
+                     v.txWindowSize         := clampWindowSize(rxRssiParam_i.maxOutsSeg);
+                     v.rssiParam.maxOutsSeg := rxRssiParam_i.maxOutsSeg;
+                  end if;
+
+                  -- Autoneg the maxSegSize
+                  if (rxRssiParam_i.maxSegSize > appRssiParam_i.maxSegSize) then
+                     v.txBufferSize         := clampBufferSize(appRssiParam_i.maxSegSize);
+                     v.rssiParam.maxSegSize := appRssiParam_i.maxSegSize;
+                  else
+                     v.txBufferSize         := clampBufferSize(rxRssiParam_i.maxSegSize);
+                     v.rssiParam.maxSegSize := rxRssiParam_i.maxSegSize;
+                  end if;
+
+                  v.paramReject := '0';
                end if;
                -- Go to ACK state
                v.state := SEND_SYN_ACK_S;
@@ -398,7 +437,9 @@ begin
             v.txAckF      := '0';
             v.paramReject := '0';
             --
-            v.timeoutCntr := r.timeoutCntr+1;
+            if (r.timeoutCntr /= RETRANS_TOUT_G * SAMPLES_PER_TIME_C) then
+               v.timeoutCntr := r.timeoutCntr + 1;
+            end if;
 
             --
             v.rssiParam := r.rssiParam;
@@ -507,5 +548,7 @@ begin
    connState_o    <= r.connState;
    peerTout_o     <= r.peerTout;
    paramReject_o  <= r.paramReject;
+
 ---------------------------------------------------------------------
+
 end architecture rtl;

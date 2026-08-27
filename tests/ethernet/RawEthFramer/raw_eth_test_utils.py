@@ -16,6 +16,8 @@ from pathlib import Path
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.axi.utils import axil_read_u32, axil_write_u32, wait_sampled_ready
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     FlatEmacEndpoint,
@@ -359,6 +361,5 @@ async def wait_lookup_request(
 async def pulse_signal(signal, *, clk, cycles: int = 1) -> None:
     signal.value = 1
     for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
     signal.value = 0

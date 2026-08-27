@@ -32,13 +32,19 @@
 # - Timing: Transport input waits for sampled ready before changing beats.
 #   Status checks wait past the default `TPD_G` output delay, and app-output
 #   checks account for the registered segment RAM read latency used by the real
-#   `RssiCore` path.
+#   `RssiCore` path.  The checksum-enabled sweep filters out the checksum-
+#   disabled scenario; its dedicated pytest node selects that case explicitly.
 
 import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    cocotb_filtered_env,
+    cocotb_test_filter_excluding,
+    env_flag,
+    run_surf_vhdl_test,
+)
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     RSSI_FLAG_BUSY,
@@ -326,9 +332,6 @@ async def checksum_failed_data_payload_is_flushed_before_retransmit_test(dut):
 
 @cocotb.test()
 async def checksum_disabled_accepts_data_when_checksum_status_is_bad_test(dut):
-    if not env_flag("RSSI_CHECKSUM_DISABLED_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     payload = 0xCAFE_0000_0000_BEEF
@@ -579,14 +582,12 @@ def test_RssiRxFsm(parameters):
         test_file=__file__,
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
-        extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
+        extra_env=cocotb_filtered_env(
+            parameters,
+            cocotb_test_filter_excluding(
+                "checksum_disabled_accepts_data_when_checksum_status_is_bad_test"
+            ),
+        ),
     )
 
 
@@ -602,11 +603,4 @@ def test_RssiRxFsm_checksum_disabled():
             "COCOTB_TESTCASE": "checksum_disabled_accepts_data_when_checksum_status_is_bad_test",
             "RSSI_CHECKSUM_DISABLED_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
