@@ -188,7 +188,7 @@ verification operation ends.
 | `PatternTesterSamples` | `4096` | Valid samples checked by each deep hardware window. |
 | `VerifyPn23` | Device dependent | Enable PN23 coherence and recurrence qualification when the adapter provides a PN-long reset control. |
 | `SettleTime` | `1 ms` | Wall-clock wait after delay, relock, or ADC test-mode changes. |
-| `Debug` | `True` | Retain detailed per-tap diagnostics and publish one completed tree when the operation ends. |
+| `Debug` | `False` | Retain detailed per-tap diagnostics and publish one completed tree when the operation ends. |
 
 The full delay range is the safest initial scan. Narrow `DelayStart` and
 `DelayStop` only when the board has a characterized region and the entire

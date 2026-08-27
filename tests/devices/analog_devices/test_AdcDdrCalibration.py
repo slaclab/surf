@@ -605,7 +605,7 @@ def calibration_fixture():
 def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     calibration, config, readout = calibration_fixture
 
-    assert calibration.Debug.value() is True
+    assert calibration.Debug.value() is False
     assert calibration.UsePatternTester.value() is False
     assert calibration.Outcome.value() == calibration.OUTCOME_IDLE_C
     results = calibration._runCalibration(dev=calibration)
@@ -671,6 +671,7 @@ def test_pattern_alignment_reset_runs_after_checkerboard_selection():
 def test_diagnostics_publish_only_at_process_boundaries(
         calibration_fixture, monkeypatch):
     calibration, _, _ = calibration_fixture
+    calibration.Debug.set(True)
     publications = []
     originalSet = calibration.Diagnostics.set
 
@@ -699,6 +700,7 @@ def test_process_gui_message_keeps_framework_status(calibration_fixture):
 
 def test_full_calibration_can_add_deep_pattern_qualification(calibration_fixture):
     calibration, _, readout = calibration_fixture
+    calibration.Debug.set(True)
     calibration.UsePatternTester.set(True)
     calibration.PatternTesterSamples.set(32)
 

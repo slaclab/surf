@@ -582,7 +582,7 @@ class AdcDdrCalibration(pr.Process):
         self.add(pr.LocalVariable(
             name        = 'Debug',
             description = 'Retain and publish detailed diagnostics when the operation ends',
-            value       = True,
+            value       = False,
             mode        = 'RW'))
 
         self.add(pr.LocalVariable(
