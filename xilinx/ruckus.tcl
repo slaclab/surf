@@ -9,6 +9,7 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
 } else {
    loadSource -lib surf -path "$::DIR_PATH/general/rtl/SelectIoRxGearboxAligner.vhd"
    loadSource -lib surf -path "$::DIR_PATH/general/rtl/GtRxAlignCheck.vhd"
+   loadSource -lib surf -path "$::DIR_PATH/7Series/gtx7/rtl/Gtx7RxFixedLatPhaseAligner.vhd"
    loadSource -lib surf -dir  "$::DIR_PATH/dummy"
 }
 
