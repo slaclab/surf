@@ -1,0 +1,20 @@
+<map id="AdcDdrPhy7Series" name="AdcDdrPhy7Series">
+<area shape="rect" id="Node000001" title=" " alt="" coords="181,152,322,177"/>
+<area shape="rect" id="Node000005" href="$classAdcDdrPhy.html" title=" " alt="" coords="205,225,298,251"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="254,191,254,225,249,225,249,191"/>
+<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="161,5,267,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,45,201,73,205,103,220,130,239,150,235,154,216,133,199,105,196,73,202,44"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="214,79,289,104"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="229,42,248,77,243,80,224,44"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,118,254,152,249,152,249,118"/>
+<area shape="rect" id="Node000004" href="$classAdcDdrDeserializer7Series.html" title=" " alt="" coords="313,79,507,104"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="373,112,278,154,276,149,371,107"/>
+<area shape="rect" id="Node000006" href="$classAd9249ReadoutBank.html" title=" " alt="" coords="5,299,164,324"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="213,258,113,301,111,296,211,254"/>
+<area shape="rect" id="Node000008" href="$classAd9252Readout.html" title=" " alt="" coords="189,299,314,324"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="254,264,254,299,249,299,249,264"/>
+<area shape="rect" id="Node000009" href="$classAd9681Readout.html" title=" " alt="" coords="338,299,463,324"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="289,254,377,296,375,301,286,259"/>
+<area shape="rect" id="Node000007" href="$classAd9249Readout.html" title=" " alt="" coords="22,372,147,397"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="87,338,87,372,82,372,82,338"/>
+</map>

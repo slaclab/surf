@@ -1,0 +1,11 @@
+<map id="AdcDdrPatternTesterWrapper" name="AdcDdrPatternTesterWrapper">
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,225,294,251"/>
+<area shape="rect" id="Node000002" href="$classSlaveAxiLiteIpIntegrator.html" title=" " alt="" coords="5,152,184,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,183,175,223,172,227,119,188"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="57,79,132,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,118,97,152,92,152,92,118"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="41,5,148,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,44,97,79,92,79,92,44"/>
+<area shape="rect" id="Node000005" href="$classAdcDdrPatternTester.html" title=" " alt="" coords="208,152,363,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="260,188,207,227,203,223,257,183"/>
+</map>

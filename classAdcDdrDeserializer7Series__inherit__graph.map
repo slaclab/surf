@@ -1,0 +1,15 @@
+<map id="AdcDdrDeserializer7Series" name="AdcDdrDeserializer7Series">
+<area shape="rect" id="Node000001" title=" " alt="" coords="154,5,349,31"/>
+<area shape="rect" id="Node000002" href="$classAdcDdrPhy7Series.html" title=" " alt="" coords="181,79,322,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="254,44,254,79,249,79,249,44"/>
+<area shape="rect" id="Node000003" href="$classAdcDdrPhy.html" title=" " alt="" coords="205,152,298,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="254,118,254,152,249,152,249,118"/>
+<area shape="rect" id="Node000004" href="$classAd9249ReadoutBank.html" title=" " alt="" coords="5,225,164,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="213,185,113,228,111,223,211,180"/>
+<area shape="rect" id="Node000006" href="$classAd9252Readout.html" title=" " alt="" coords="189,225,314,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="254,191,254,225,249,225,249,191"/>
+<area shape="rect" id="Node000007" href="$classAd9681Readout.html" title=" " alt="" coords="338,225,463,251"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="289,181,377,223,375,228,286,186"/>
+<area shape="rect" id="Node000005" href="$classAd9249Readout.html" title=" " alt="" coords="22,299,147,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="87,264,87,299,82,299,82,264"/>
+</map>

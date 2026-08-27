@@ -1,13 +1,23 @@
 <map id="AdiConfigSlave" name="AdiConfigSlave">
-<area shape="rect" id="Node000001" title=" " alt="" coords="58,152,178,177"/>
-<area shape="rect" id="Node000004" href="$classAd9249Group.html" title=" " alt="" coords="5,225,116,251"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="102,190,72,227,68,224,98,186"/>
-<area shape="rect" id="Node000006" href="$classAd9681.html" title=" " alt="" coords="140,225,211,251"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="138,186,168,224,164,227,134,190"/>
-<area shape="rect" id="Node000002" href="$classSynchronizerEdge.html" title=" " alt="" coords="49,79,187,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,118,121,152,115,152,115,118"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="65,5,171,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,44,121,79,115,79,115,44"/>
-<area shape="rect" id="Node000005" href="$classAd9249.html" title=" " alt="" coords="25,299,96,324"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="63,264,63,299,58,299,58,264"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="222,152,342,177"/>
+<area shape="rect" id="Node000004" href="$classAd9249Sim.html" title=" " alt="" coords="38,225,134,251"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="239,184,119,228,117,223,237,179"/>
+<area shape="rect" id="Node000006" href="$classAd9249Group.html" title=" " alt="" coords="161,225,272,251"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="264,189,229,227,225,223,260,186"/>
+<area shape="rect" id="Node000008" href="$classAd9252Sim.html" title=" " alt="" coords="299,225,395,251"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="304,186,339,223,335,227,300,189"/>
+<area shape="rect" id="Node000010" href="$classAd9681Sim.html" title=" " alt="" coords="449,225,545,251"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="330,179,463,223,461,228,329,184"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerEdge.html" title=" " alt="" coords="213,79,351,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,118,285,152,279,152,279,118"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="229,5,335,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="285,44,285,79,279,79,279,44"/>
+<area shape="rect" id="Node000005" href="$classAd9249SimWrapper.html" title=" " alt="" coords="5,299,156,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="87,265,84,299,79,298,81,264"/>
+<area shape="rect" id="Node000007" href="$classAd9249.html" title=" " alt="" coords="180,299,251,324"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="219,265,218,299,213,298,214,264"/>
+<area shape="rect" id="Node000009" href="$classAd9252SimWrapper.html" title=" " alt="" coords="275,299,425,324"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="351,264,352,298,347,299,346,265"/>
+<area shape="rect" id="Node000011" href="$classAd9681SimWrapper.html" title=" " alt="" coords="449,299,600,324"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="509,263,523,298,518,300,504,265"/>
 </map>

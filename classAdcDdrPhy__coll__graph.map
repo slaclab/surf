@@ -1,0 +1,23 @@
+<map id="AdcDdrPhy" name="AdcDdrPhy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="160,299,253,324"/>
+<area shape="rect" id="Node000002" href="$classAdcDdrPhy7Series.html" title=" " alt="" coords="49,225,191,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,257,194,296,191,301,143,261"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="91,79,197,104"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,108,42,126,26,138,13,153,9,165,10,175,25,194,52,210,83,223,81,228,50,215,21,198,5,177,3,164,8,151,22,134,39,121,77,103"/>
+<area shape="rect" id="Node000004" href="$classRstSync.html" title=" " alt="" coords="241,152,316,177"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="179,108,258,149,255,154,177,113"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="242,185,147,228,145,223,240,180"/>
+<area shape="rect" id="Node000006" href="$classAdcDdrPhyUltraScale.html" title=" " alt="" coords="215,225,375,251"/>
+<area shape="poly" id="edge7_Node000006_Node000004" title=" " alt="" coords="287,190,295,225,290,226,282,191"/>
+<area shape="rect" id="Node000005" href="$classAdcDdrDeserializer7Series.html" title=" " alt="" coords="23,152,217,177"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="123,191,123,225,117,225,117,191"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="272,261,223,301,219,296,268,257"/>
+<area shape="rect" id="Node000007" href="$classAdcDdrDeserializerUltraScale.html" title=" " alt="" coords="341,152,555,177"/>
+<area shape="poly" id="edge8_Node000006_Node000007" title=" " alt="" coords="412,185,321,228,319,223,410,181"/>
+<area shape="rect" id="Node000008" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="316,79,449,104"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="405,113,439,150,436,154,401,116"/>
+<area shape="rect" id="Node000009" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="313,5,452,31"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="385,44,385,79,380,79,380,44"/>
+<area shape="rect" id="Node000010" href="$classGearbox.html" title=" " alt="" coords="473,79,551,104"/>
+<area shape="poly" id="edge11_Node000007_Node000010" title=" " alt="" coords="494,116,460,154,456,150,490,113"/>
+</map>

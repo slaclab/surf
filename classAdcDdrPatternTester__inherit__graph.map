@@ -1,0 +1,17 @@
+<map id="AdcDdrPatternTester" name="AdcDdrPatternTester">
+<area shape="rect" id="Node000001" title=" " alt="" coords="338,5,493,31"/>
+<area shape="rect" id="Node000002" href="$classAdcDdrCore.html" title=" " alt="" coords="277,79,375,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="392,41,342,81,339,76,389,37"/>
+<area shape="rect" id="Node000008" href="$classAdcDdrPatternTesterWrapper.html" title=" " alt="" coords="400,79,609,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="442,37,492,76,488,81,439,41"/>
+<area shape="rect" id="Node000003" href="$classAd9249ReadoutBank.html" title=" " alt="" coords="5,152,164,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="275,110,124,154,123,149,273,105"/>
+<area shape="rect" id="Node000005" href="$classAd9252Readout.html" title=" " alt="" coords="189,152,314,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="306,115,265,154,262,150,302,111"/>
+<area shape="rect" id="Node000006" href="$classAd9681Readout.html" title=" " alt="" coords="338,152,463,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="350,111,390,150,387,154,346,115"/>
+<area shape="rect" id="Node000007" href="$classAdcDdrCoreWrapper.html" title=" " alt="" coords="487,152,642,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="378,105,527,149,525,154,377,110"/>
+<area shape="rect" id="Node000004" href="$classAd9249Readout.html" title=" " alt="" coords="22,225,147,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="87,191,87,225,82,225,82,191"/>
+</map>
