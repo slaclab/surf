@@ -7,10 +7,15 @@
 ## may be copied, modified, propagated, or distributed except according to
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
-from surf.devices.analog_devices._Ad9249    import *
-from surf.devices.analog_devices._Ad5780    import *
-from surf.devices.analog_devices._AttHmc624 import *
-from surf.devices.analog_devices._Adt7420   import *
-from surf.devices.analog_devices._Ad9681    import *
-from surf.devices.analog_devices._Ad5541    import *
-from surf.devices.analog_devices._Ltm4664   import *
+from surf.devices.analog_devices._AdcDdrPatternTester import *
+from surf.devices.analog_devices._AdcDdr             import *
+from surf.devices.analog_devices._AdcDdrCalibration  import *
+from surf.devices.analog_devices._Ad9249             import *
+from surf.devices.analog_devices._Ad9249Legacy       import *
+from surf.devices.analog_devices._Ad9252             import *
+from surf.devices.analog_devices._Ad5780             import *
+from surf.devices.analog_devices._AttHmc624          import *
+from surf.devices.analog_devices._Adt7420            import *
+from surf.devices.analog_devices._Ad9681             import *
+from surf.devices.analog_devices._Ad5541             import *
+from surf.devices.analog_devices._Ltm4664            import *
