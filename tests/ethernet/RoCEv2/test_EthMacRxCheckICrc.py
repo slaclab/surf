@@ -29,7 +29,8 @@ from __future__ import annotations
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -59,8 +60,7 @@ async def capture_crc_errors(dut, *, clk, timeout_cycles: int = 64) -> list[int]
     errors = []
 
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(dut.mAxisTValid.value) == 1 and int(dut.mAxisTReady.value) == 1:
             errors.append(int(dut.mAxisCrcError.value))
             if int(dut.mAxisTLast.value) == 1:

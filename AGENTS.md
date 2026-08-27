@@ -16,7 +16,18 @@ Start with [README.md](README.md) for user-facing links and the source tree inde
 - [protocols/README.md](protocols/README.md) for PGP, SSI, SRP, RSSI, CoaXPress, JESD204B, I2C/SPI/UART, and related protocol cores.
 - [xilinx/README.md](xilinx/README.md) for Xilinx-family primitives, wrappers, and XVC UDP support.
 - [python/README.md](python/README.md) for the PyRogue package under `python/surf`.
-- [tests/README.md](tests/README.md) for cocotb regression layout, methodology comments, helper reuse, and simulator conventions.
+- [tests/README.md](tests/README.md) for the authoritative cocotb regression
+  methodology, coding style, coverage expectations, layout, and simulator
+  conventions.
+- [tests/common/README.md](tests/common/README.md) for the shared pytest/GHDL
+  runner, parameter and environment handling, build isolation, and reusable
+  regression helpers.
+- [tests/protocols/README.md](tests/protocols/README.md) for protocol-oracle,
+  layering, malformed-traffic, ready/valid, and integration-test guidance; then
+  read the nearest subsystem README, such as
+  [tests/protocols/batcher/README.md](tests/protocols/batcher/README.md) or
+  [tests/protocols/rssi/README.md](tests/protocols/rssi/README.md), when working
+  in that area.
 - [docs/plans/README.md](docs/plans/README.md) for substantial task planning, progress notes, and handoff conventions.
 
 Top-level `ruckus.tcl` loads `axi`, `base`, `dsp`, `devices`, `ethernet`, `protocols`, and `xilinx`. Module-level `ruckus.tcl` files should continue to be the source of truth for which HDL files and submodules are part of a build.
@@ -171,7 +182,9 @@ C, C++, and C header files should use the same license text with `//` comment de
 
 Tcl, shell, YAML, and other hash-comment files should use the Python-style `#-----------------------------------------------------------------------------` license block when they are maintained SURF source. For executable scripts with a shebang, keep the shebang first and place the license block immediately after it.
 
-Checked-in cocotb regression files must also include the `Test methodology` block described in [tests/README.md](tests/README.md), immediately after the license header.
+New or substantially edited cocotb regression files must also include the
+module-specific `Test methodology` block described in
+[tests/README.md](tests/README.md), immediately after the license header.
 
 ## Python Conventions
 
@@ -202,12 +215,19 @@ Checked-in cocotb regression files must also include the `Test methodology` bloc
 
 ## Tests And Verification
 
-- For RTL regressions, use the guidance in [tests/README.md](tests/README.md). The expected stack is `pytest + cocotb + GHDL + ruckus`.
+- For RTL regressions, start with [tests/README.md](tests/README.md). Use
+  [tests/common/README.md](tests/common/README.md) for runner/build mechanics,
+  [tests/protocols/README.md](tests/protocols/README.md) for protocol tests, and
+  the nearest test-subsystem README for local commands or exceptions. The
+  expected default stack is `pytest + cocotb + GHDL + ruckus`.
 - For docs-only changes, no RTL or Python tests are required, but check links and headings if the edit adds navigation.
 - For ruckus or source-list changes, run `make MODULES="$PWD" import` when practical.
 - For edited VHDL, run `./.venv/bin/vsg -c vsg-linter.yml path/to/file.vhd` and the most focused relevant cocotb/pytest target when practical.
 - For Python/PyRogue changes, run a focused import or pytest that exercises the changed module. Avoid packaging commands unless the task specifically requires packaging validation.
 - For cocotb tests, prefer `./.venv/bin/python -m pytest -q tests/<subsystem-or-file>`. Use `-n 0` when serial simulator logs are needed.
+- Select or explicitly skip cocotb scenarios that do not apply to a parameter case; do not return early and record an unexercised scenario as a pass.
+- Use `extra_vhdl_sources` only for design units absent from the ruckus import, and keep finite cocotb tasks awaited or lifetime agents explicitly owned by the bench.
+- For bug regressions, demonstrate failure on the known-bad RTL when practical, or document the defect-catching assertion and why the comparison could not be run.
 - For protocol or bus behavior changes, include tests or a clear verification note covering sidebands, backpressure, reset behavior, and boundary/error cases relevant to the change.
 - Avoid hand-editing generated or cache directories such as `build/`, `tests/sim_build/`, `.pytest_cache/`, `docs/_build/`, and `docs/_generated/`.
 
@@ -227,7 +247,14 @@ Before considering an RTL change done, check:
 
 ## Documentation Updates
 
-When adding a new subsystem, add or update the closest `README.md` if the layout or usage is not obvious. Keep README files short and navigational: describe what belongs in the folder, important subdirectories, and any local build/test conventions, then link upward through the parent README chain.
+When adding a new subsystem, add or update the closest `README.md` if the layout
+or usage is not obvious. Keep README files short and navigational: describe what
+belongs in the folder, important subdirectories, and any local build/test
+conventions, then link upward through the parent README chain. Test-subsystem
+READMEs should link to [tests/README.md](tests/README.md), and protocol-test
+READMEs should also link to
+[tests/protocols/README.md](tests/protocols/README.md), so local instructions
+extend rather than duplicate the shared methodology.
 
 Add deeper README files as substantial areas are touched, especially in high-traffic module families such as `axi/axi-stream`, `axi/axi-lite`, `protocols/pgp`, `protocols/coaxpress`, `protocols/ssi`, `protocols/srp`, `ethernet/IpV4Engine`, `ethernet/UdpEngine`, and `ethernet/EthMacCore`. Prefer adding the README in the same change that introduces new layout or conventions for that area.
 

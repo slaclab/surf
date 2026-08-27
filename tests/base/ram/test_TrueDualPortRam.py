@@ -39,6 +39,15 @@ from tests.common.regression_utils import (
 )
 
 
+def output_register_enabled(port: str) -> bool:
+    latency = int(os.environ.get(f"READ_LATENCY_{port}_G", "-1"))
+    if latency < 0:
+        latency = int(os.environ.get("READ_LATENCY_G", "1"))
+    if env_flag(f"DO{port}_REG_G", default=False) and latency == 1:
+        latency = 2
+    return latency == 2
+
+
 class TB(DualClockRamTB):
     def __init__(self, dut):
         super().__init__(dut)
@@ -135,13 +144,10 @@ async def cross_port_read_write_test(dut):
     assert await tb.read_b(2) == 0x5678
 
 
-@cocotb.test()
+@cocotb.test(skip=output_register_enabled("A"))
 async def mode_semantics_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if tb.doa_reg_enabled:
-        return
-
     # Seed two locations and intentionally leave `douta` showing the value from
     # address 1 before writing address 0. That setup makes the three RAM modes
     # produce visibly different output behavior on the write cycle.
@@ -170,13 +176,10 @@ async def mode_semantics_test(dut):
     assert await tb.read_b(0) == 0x2222
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("BYTE_WR_EN_G", default=False))
 async def byte_write_enable_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.byte_write_enabled:
-        return
-
     await tb.write_a(3, 0xABCD)
     await tb.write_b(3, 0x00EF, byte_mask=0b01)
     assert await tb.read_a(3) == 0xABEF
@@ -185,11 +188,8 @@ async def byte_write_enable_test(dut):
     assert await tb.read_a(3) == 0x12EF
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_DUAL_WRITE_COLLISION", default=False))
 async def dual_write_collision_test(dut):
-    if not env_flag("CHECK_DUAL_WRITE_COLLISION", default=False):
-        return
-
     tb = TB(dut)
     await tb.warmup()
 
@@ -225,13 +225,10 @@ async def dual_write_collision_test(dut):
     assert await tb.read_b(5) == 0x7777
 
 
-@cocotb.test()
+@cocotb.test(skip=not output_register_enabled("B"))
 async def registered_output_hold_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.dob_reg_enabled:
-        return
-
     await tb.write_a(0, 0x1111)
     await tb.write_a(1, 0x2222)
     assert await tb.read_b(0) == 0x1111
@@ -248,13 +245,10 @@ async def registered_output_hold_test(dut):
     assert int(dut.doutb.value) == 0x2222
 
 
-@cocotb.test()
+@cocotb.test(skip=not output_register_enabled("A"))
 async def registered_output_hold_a_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.doa_reg_enabled:
-        return
-
     await tb.write_b(0, 0x1111)
     await tb.write_b(1, 0x2222)
     assert await tb.read_a(0) == 0x1111

@@ -37,7 +37,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
@@ -127,13 +129,11 @@ class Jesd204bRxTopTB:
 
     async def axi_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.S_AXI_ACLK)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.S_AXI_ACLK)
 
     async def dev_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, axi_cycles: int = 8, dev_cycles: int = 8) -> None:
         self.dut.S_AXI_ARESETN.value = 0
@@ -183,8 +183,7 @@ async def assert_decerr(axil_master: AxiLiteMaster, address: int) -> None:
 async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 128):
     """Wait up to timeout_cycles for signal to equal value."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(signal.value) == value:
             return
     raise AssertionError(
@@ -271,8 +270,7 @@ async def drive_rx_link_up(
         for lane in range(l_g):
             getattr(dut, f"gtRxData_{lane}_i").value = data_32b
             getattr(dut, f"gtRxDataK_{lane}_i").value = datak_4b
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
 
     # Enable scrEnable if scrambled link-up: write commonCtrl bit5=1
     if scr:
@@ -287,8 +285,7 @@ async def drive_rx_link_up(
         for lane in range(l_g):
             getattr(dut, f"gtRxData_{lane}_i").value = data_32b
             getattr(dut, f"gtRxDataK_{lane}_i").value = datak_4b
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
         data_cycle_count += 1
 
     # Keep driving last data word while waiting for dataValid to assert
@@ -514,8 +511,7 @@ async def test_rx_reg_map(dut):
         offset = 0
         max_cycles = 600
         for _ in range(max_cycles):
-            await RisingEdge(dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.devClk_i)
             offset += 1
             if int(dut.sysRefDbg_o.value) == 1:
                 break

@@ -16,6 +16,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.common.regression_utils import (
     env_flag,
     env_sl,
@@ -100,7 +102,6 @@ def run_line_code_integration_test(
     *,
     test_file: str,
     toplevel: str,
-    tb_source: str,
     parameters: dict[str, object],
 ) -> None:
     run_surf_vhdl_test(
@@ -108,7 +109,6 @@ def run_line_code_integration_test(
         toplevel=toplevel,
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": [tb_source]},
     )
 
 
@@ -194,8 +194,7 @@ async def drive_integration_symbol(dut, *, data_in: int, data_k_in: int) -> None
     for _ in range(INTEGRATION_VALID_OUT_TIMEOUT_CYCLES):
         if int(dut.validOut.value) == 1:
             return
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
     raise AssertionError(
         f"Timed out waiting for validOut after {INTEGRATION_VALID_OUT_TIMEOUT_CYCLES} cycles"

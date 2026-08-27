@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.base.crc.crc_test_utils import crc_out_from_remainder, crc_update
 
@@ -51,8 +51,7 @@ class PgpModuleTB:
         # Sample one nanosecond after each edge so registered outputs have
         # time to reflect the DUT's default `TPD_G`.
         for _ in range(count):
-            await RisingEdge(self.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.clk)
 
     async def reset(self, *, hold_cycles: int = 4, settle_cycles: int = 4):
         # Using an explicit reset coroutine keeps every test's startup sequence

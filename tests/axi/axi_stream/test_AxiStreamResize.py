@@ -60,7 +60,8 @@ class TB:
         dut.S_SIDE_BAND.setimmediatevalue(0)
         dut.M_AXIS_TREADY.setimmediatevalue(0)
 
-        cocotb.start_soon(self._monitor_sideband())
+        # Lifetime monitor retained by the bench until cocotb ends the test.
+        self._monitor_task = cocotb.start_soon(self._monitor_sideband())
 
     def reset_active_value(self) -> int:
         return self.reset_active
@@ -77,6 +78,7 @@ class TB:
             await self.settle()
 
     async def _monitor_sideband(self):
+        """Lifetime agent: collect resized sidebands until the test ends."""
         while True:
             await RisingEdge(self.dut.axisClk)
             await self.settle()
@@ -186,17 +188,16 @@ async def backpressure_and_reset_test(dut):
         tb.dut.M_AXIS_TREADY.value = 1
         await send_task
         await tb.wait_for_output_clear(timeout_cycles=4)
-        return
+    else:
+        await send_task
+        tb.dut.axisRst.value = tb.reset_active_value()
+        await tb.wait_for_output_clear(timeout_cycles=tb.pipe_stages + 8)
+        assert int(tb.dut.M_AXIS_TVALID.value) == 0
+        assert int(tb.dut.M_SIDE_BAND.value) == 0
 
-    await send_task
-    tb.dut.axisRst.value = tb.reset_active_value()
-    await tb.wait_for_output_clear(timeout_cycles=tb.pipe_stages + 8)
-    assert int(tb.dut.M_AXIS_TVALID.value) == 0
-    assert int(tb.dut.M_SIDE_BAND.value) == 0
-
-    tb.dut.axisRst.value = tb.reset_inactive_value()
-    tb.dut.M_AXIS_TREADY.value = 1
-    await tb.cycle(2)
+        tb.dut.axisRst.value = tb.reset_inactive_value()
+        tb.dut.M_AXIS_TREADY.value = 1
+        await tb.cycle(2)
 
 
 PARAMETER_SWEEP = [
@@ -237,7 +238,4 @@ def test_AxiStreamResize(parameters):
         toplevel="surf.axistreamresizeipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamResizeIpIntegrator.vhd"],
-        },
     )

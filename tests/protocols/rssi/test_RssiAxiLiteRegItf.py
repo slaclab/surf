@@ -37,7 +37,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -80,8 +81,7 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     def _set_defaults(self) -> None:
         self.dut.negParamVersion_i.value = 1
@@ -333,11 +333,4 @@ def test_RssiAxiLiteRegItf(parameters):
         test_file=__file__,
         toplevel="surf.rssiaxiliteregitfwrapper",
         parameters=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiAxiLiteRegItf.vhd",
-                "protocols/rssi/v1/wrappers/RssiAxiLiteRegItfWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

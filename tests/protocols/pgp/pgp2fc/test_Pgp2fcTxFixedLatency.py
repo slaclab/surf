@@ -23,6 +23,7 @@
 
 import cocotb
 
+from tests.axi.utils import wait_sampled_ready
 from tests.protocols.pgp.pgp2_test_utils import K_FCD, PgpModuleTB, signal_int, wait_for_signal
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
 
@@ -48,10 +49,7 @@ async def drive_frame_word(
     tb.dut.vc0FrameEofe.value = eofe
     tb.dut.vc0FrameValid.value = 1
 
-    while True:
-        await tb.cycle()
-        if signal_int(tb.dut, "vc0FrameReady") == 1:
-            break
+    await wait_sampled_ready(tb.dut.vc0FrameReady, clk=tb.clk)
 
     tb.dut.vc0FrameValid.value = 0
     tb.dut.vc0FrameSof.value = 0
