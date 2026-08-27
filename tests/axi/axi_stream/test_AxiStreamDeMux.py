@@ -364,7 +364,4 @@ def test_AxiStreamDeMux(case):
         toplevel="surf.axistreamdemuxipintegrator",
         parameters=case["parameters"],
         extra_env=extra_env,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamDeMuxIpIntegrator.vhd"],
-        },
     )

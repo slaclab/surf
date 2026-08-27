@@ -25,7 +25,8 @@
 #   checks robust to gearbox latency while still validating real output order.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -98,15 +99,13 @@ async def _setup_bridge(dut) -> None:
 async def _drive_rx64(dut, rxd: int, rxc: int) -> None:
     dut.xgmiiRxd.value = rxd
     dut.xgmiiRxc.value = rxc
-    await RisingEdge(dut.rxClk156)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.rxClk156)
 
 
 async def _capture_rx_words(dut, *, cycles: int) -> list[tuple[int, int]]:
     observed: list[tuple[int, int]] = []
     for _ in range(cycles):
-        await RisingEdge(dut.rxClk312)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk312)
         sample = (int(dut.rxData.value), int(dut.rxDataK.value))
         if sample != (CXP_IDLE, CXP_IDLE_K):
             observed.append(sample)
@@ -125,14 +124,12 @@ async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
 
     async def capture_tx_words(cycles: int) -> None:
         for _ in range(cycles):
-            await RisingEdge(dut.txClk156)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.txClk156)
             tx_observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
 
     async def capture_rx_words(cycles: int) -> None:
         for _ in range(cycles):
-            await RisingEdge(dut.rxClk312)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.rxClk312)
             sample = (int(dut.rxData.value), int(dut.rxDataK.value))
             if sample != (CXP_IDLE, CXP_IDLE_K):
                 rx_observed.append(sample)
@@ -143,10 +140,8 @@ async def coaxpress_over_fiber_bridge_top_level_integration_test(dut):
     dut.txLsData.value = 0xA5
     dut.txLsDataK.value = 0
     dut.txLsValid.value = 1
-    await RisingEdge(dut.txClk312)
-    await Timer(1, unit="ns")
-    await RisingEdge(dut.txClk312)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.txClk312)
+    await sample_after_tpd(dut.txClk312)
     dut.txLsValid.value = 0
 
     await cycle(dut.rxClk156, 3)

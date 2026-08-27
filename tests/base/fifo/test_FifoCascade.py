@@ -166,11 +166,8 @@ async def stage_vector_mapping_test(dut):
     assert top_prog_full == int(dut.prog_full.value)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_STAGE_PRESSURE", default=False))
 async def staged_pressure_recovery_test(dut):
-    if not env_flag("CHECK_STAGE_PRESSURE", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
 

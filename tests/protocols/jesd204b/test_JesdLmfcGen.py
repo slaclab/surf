@@ -27,6 +27,8 @@ import cocotb
 import pytest
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.common.regression_utils import (
     env_int,
     parameter_case,
@@ -79,11 +81,9 @@ async def test_period(dut):
 
     # Align: assert SYSREF rising edge with nSync_i='0'
     dut.nSync_i.value = 0
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 1     # rising edge
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 0     # deassert after one cycle
 
     # measure_lmfc_period waits for the first lmfc_o pulse then counts to the
@@ -103,9 +103,9 @@ async def test_period(dut):
 
 @cocotb.test()
 async def test_sysref_realign_clause_a(dut):
-    """SYSREF-gating clause (a): SYSREF edge while nSync_i='0' realigns the counter.
+    """Real-time timing: measure SYSREF realignment at explicit sim-time offsets.
 
-    Verifies:
+    SYSREF-gating clause (a) verifies:
     - sysrefRe_o='1' exactly 1 cc after the SYSREF rising edge
     - lmfc_o='0' at that same cycle (not yet)
     - lmfc_o='1' exactly 2 cc after the SYSREF rising edge (off-by-one guard)
@@ -191,16 +191,13 @@ async def test_sysref_gate_clause_b(dut):
 
     # --- Align with nSync_i='0' ---
     dut.nSync_i.value = 0
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 0
 
     # Wait for the alignment lmfc pulse (2 cc after edge)
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     # Now lmfc_o should be high (cycle N+2)
 
     # Let the counter free-run; measure period to confirm alignment
@@ -216,8 +213,7 @@ async def test_sysref_gate_clause_b(dut):
     await tb.cycle(half)
     # Inject SYSREF rising edge (nSync_i='1' → counter should NOT reset)
     dut.sysref_i.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 0
 
     # Measure the period after the gated edge — should be unchanged
@@ -248,16 +244,13 @@ async def test_sysref_phase_neutral_clause_c(dut):
 
     # --- Initial alignment ---
     dut.nSync_i.value = 0
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 0
 
     # Wait for the alignment lmfc pulse
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
 
     # Let it free-run for exactly one full period so we know the phase
     measured_baseline = await measure_lmfc_period(dut, clk=dut.clk)
@@ -270,13 +263,11 @@ async def test_sysref_phase_neutral_clause_c(dut):
     # cycles away.  Inject SYSREF at that same moment (nSync_i='0').
     # Wait for the next lmfc_o pulse while simultaneously injecting SYSREF.
     for _ in range(512):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if dut.lmfc_o.value == 1:
             # We are at a period boundary — inject SYSREF now
             dut.sysref_i.value = 1
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             dut.sysref_i.value = 0
             break
     else:
@@ -292,9 +283,10 @@ async def test_sysref_phase_neutral_clause_c(dut):
 
 @cocotb.test()
 async def test_sysref_re_pulse_clause_d(dut):
-    """SYSREF-gating clause (d): sysrefRe_o is a single-cycle pulse on every SYSREF rising edge.
+    """Real-time timing: sample the SYSREF pulse away from TPD boundaries.
 
-    Verifies the single-cycle pulse in both nSync states (gated and active).
+    SYSREF-gating clause (d) verifies the single-cycle pulse in both nSync
+    states (gated and active).
     """
     dut.nSync_i.value = 1
     dut.sysref_i.value = 0
@@ -307,8 +299,7 @@ async def test_sysref_re_pulse_clause_d(dut):
     # Sample sysrefRe_o mid-cycle (Timer(6ns) past the rising edge) to avoid the
     # TPD=1ns boundary race at RisingEdge+1ns when r.sysrefRe transitions.
     dut.nSync_i.value = 0
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 1    # rising edge (cycle N)
     # Cycle N+1: sample 6ns into the clock cycle — solidly in the sysrefRe='1' window
     await RisingEdge(dut.clk)     # latch at edge N+1 (r.sysrefRe = 1 registered)
@@ -329,8 +320,7 @@ async def test_sysref_re_pulse_clause_d(dut):
 
     # --- Test with nSync_i='1' (gated — sysrefRe_o still pulses) ---
     dut.nSync_i.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.sysref_i.value = 1    # rising edge (cycle N)
     # Cycle N+1: sample mid-cycle — sysrefRe_o should be high (pulse regardless of nSync)
     await RisingEdge(dut.clk)

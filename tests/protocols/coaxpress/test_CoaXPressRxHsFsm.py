@@ -25,7 +25,8 @@ import os
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
@@ -214,10 +215,8 @@ def _expected_header_data_from_fields(
     )
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 1)
 async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -249,8 +248,7 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
             _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -266,10 +264,8 @@ async def coaxpress_rx_hs_fsm_header_and_lines_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 1)
 async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -320,8 +316,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -334,11 +329,8 @@ async def coaxpress_rx_hs_fsm_malformed_header_recovery_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 1)
 async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -400,8 +392,7 @@ async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(6):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [{"hdrTData": _expected_header_data(), "hdrTLast": 1, "hdrTSof": 1}], (
@@ -414,11 +405,8 @@ async def coaxpress_rx_hs_fsm_malformed_header_drops_following_line_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 2)
 async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 2:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -491,8 +479,7 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(8):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     assert header_beats == [
@@ -526,11 +513,8 @@ async def coaxpress_rx_hs_fsm_two_lane_step_alignment_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 4)
 async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)
@@ -624,9 +608,8 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     dut.sAxisTKeep.value = lane_keep_mask([0, 1, 2, 3])
     dut.sAxisTLast.value = 0
     shared_beat_cycles = 0
-    while True:
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+    for _ in range(1024):
+        await sample_after_tpd(dut.rxClk)
         shared_beat_cycles += 1
         error_seen |= int(dut.rxFsmError.value) == 1
         trace.append(
@@ -636,6 +619,11 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
         _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
         if int(dut.sAxisTReady.value) == 1:
             break
+    else:
+        raise AssertionError(
+            "Timed out waiting for shared tail/marker beat acceptance; "
+            f"trace tail={trace[-8:]}"
+        )
     dut.sAxisTValid.value = 0
     dut.sAxisTData.value = 0
     dut.sAxisTKeep.value = 0
@@ -649,8 +637,7 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     _capture_outputs(dut, header_beats=header_beats, data_beats=data_beats)
 
     for _ in range(8):
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
         error_seen |= int(dut.rxFsmError.value) == 1
         trace.append(
             f"idle ready={int(dut.sAxisTReady.value)} err={int(dut.rxFsmError.value)} "
@@ -669,11 +656,13 @@ async def coaxpress_rx_hs_fsm_quad_lane_tail_marker_type_same_beat_test(dut):
     ], trace
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 1
+    ),
+)
 async def coaxpress_rx_hs_fsm_repeated_single_line_frame_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
-
     start_clock(dut.rxClk)
     dut.rxRst.setimmediatevalue(1)
     dut.rxFsmRst.setimmediatevalue(0)

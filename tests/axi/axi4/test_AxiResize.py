@@ -26,7 +26,9 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiBus, AxiMaster, AxiRam
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
@@ -53,13 +55,15 @@ class TB:
         self.master = None
         self.ram = None
 
-        cocotb.start_soon(self._monitor_aw())
-        cocotb.start_soon(self._monitor_ar())
+        # Lifetime monitors retained by the bench until cocotb ends the test.
+        self._monitor_tasks = (
+            cocotb.start_soon(self._monitor_aw()),
+            cocotb.start_soon(self._monitor_ar()),
+        )
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         # Reset the wrapper shims and the resize state so each parameter case
@@ -76,9 +80,9 @@ class TB:
             self.ram = AxiRam(AxiBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2**16)
 
     async def _monitor_aw(self):
+        """Lifetime agent: record resized write metadata for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
                 self.aw_meta.append(
                     (
@@ -89,9 +93,9 @@ class TB:
                 )
 
     async def _monitor_ar(self):
+        """Lifetime agent: record resized read metadata for this test."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_ARVALID.value) and logic_int(self.dut.M_AXI_ARREADY.value):
                 self.ar_meta.append(
                     (
