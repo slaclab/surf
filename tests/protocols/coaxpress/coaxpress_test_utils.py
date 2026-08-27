@@ -16,9 +16,9 @@ from typing import Sequence, TypeVar
 import cocotb
 from cocotb.clock import Clock
 from cocotb.handle import Immediate
-from cocotb.triggers import RisingEdge, Timer
 
 from tests.axi.utils import wait_sampled_ready
+from tests.common.regression_utils import sample_after_tpd
 
 
 CXP_IDLE = 0xB53C3CBC
@@ -158,8 +158,7 @@ def set_initial_values(dut, values: dict[str, int]) -> None:
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def reset_signals(dut, *, clk, reset_names: tuple[str, ...], assert_cycles: int = 4, release_cycles: int = 2) -> None:
@@ -208,8 +207,7 @@ async def send_rx_word(
     dut.rxLinkUp.value = link_up
     dut.rxData.value = data
     dut.rxDataK.value = data_k
-    await RisingEdge(clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(clk)
     if capture is not None and valid_name is not None:
         snapshot = pulse_snapshot(dut, valid_name=valid_name, field_names=field_names)
         if snapshot is not None:
@@ -255,8 +253,7 @@ async def collect_stream_bytes(
     if ready_name is not None:
         getattr(dut, ready_name).value = 1
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(getattr(dut, valid_name).value) == 1:
             payload.append(int(getattr(dut, data_name).value))
             if len(payload) >= count:
@@ -293,8 +290,7 @@ async def send_axis_beats_no_ready(
         getattr(dut, f"{prefix}TData").value = beat.data
         getattr(dut, f"{prefix}TKeep").value = beat.keep
         getattr(dut, f"{prefix}TLast").value = beat.last
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if capture is not None and valid_name is not None:
             snapshot = pulse_snapshot(dut, valid_name=valid_name, field_names=field_names)
             if snapshot is not None:
@@ -315,8 +311,7 @@ async def collect_pulses(
 ) -> list[dict[str, int]]:
     observed: list[dict[str, int]] = []
     for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         snapshot = pulse_snapshot(dut, valid_name=valid_name, field_names=field_names)
         if snapshot is not None:
             observed.append(snapshot)

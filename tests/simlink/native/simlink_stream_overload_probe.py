@@ -30,6 +30,7 @@ EVENT_STREAM = os.fdopen(os.dup(sys.stdout.fileno()), "w", buffering=1)
 NULL_FD = os.open(os.devnull, os.O_WRONLY)
 os.dup2(NULL_FD, sys.stdout.fileno())
 os.close(NULL_FD)
+RECEIVE_TIMEOUT_SECONDS = 4.0
 
 
 def _emit(event, operation, completed_messages, **fields):
@@ -121,8 +122,9 @@ def _receive_probe(lib, port, cycle_sleep):
     context = _create(lib, port)
     _emit("ready", "socket_bind", 0)
     cycles = 0
+    deadline = time.monotonic() + RECEIVE_TIMEOUT_SECONDS
     try:
-        while True:
+        while time.monotonic() < deadline:
             result, valid, _ = stream_cycle(lib, context, port, ob_ready=1)
             if result != 1:
                 raise RuntimeError("Stream update failed")
@@ -131,6 +133,11 @@ def _receive_probe(lib, port, cycle_sleep):
                 _emit("received", "nonblocking_receive", 1, cycles=cycles)
                 break
             time.sleep(cycle_sleep)
+        else:
+            raise TimeoutError(
+                f"Stream receive did not complete within {RECEIVE_TIMEOUT_SECONDS}s "
+                f"after {cycles} cycles"
+            )
     finally:
         lib.rogueTcpStreamDestroy(context)
     _emit("destroyed", "socket_cleanup", 1, cycles=cycles)

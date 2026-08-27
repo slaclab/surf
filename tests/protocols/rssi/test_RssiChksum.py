@@ -20,7 +20,9 @@
 # - Stimulus: Feed ACK, DATA, and multi-word SYN headers with the checksum field
 #   cleared for generation mode, then feed complete headers with the checksum
 #   included for validation mode.  Additional cases cover enable gaps and reset
-#   interruptions so the accumulator restart behavior is explicit.
+#   interruptions so the accumulator restart behavior is explicit.  A raw,
+#   hand-worked ACK header anchors both the Python model and DUT independently
+#   of the header-builder path.
 # - Checks: Generated checksums must match the Python one's-complement oracle.
 #   Complete valid headers must assert `check_o`; headers with one altered byte
 #   must leave `check_o` deasserted.  Dropping enable or asserting reset must
@@ -34,9 +36,10 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     build_ack_header,
@@ -58,10 +61,9 @@ class TB:
 
     async def cycle(self, count: int = 1) -> None:
         for _ in range(count):
-            await RisingEdge(self.dut.clk_i)
             # Most RSSI RTL uses `after TPD_G`; wait past the default 1 ns
             # transport delay before sampling outputs.
-            await Timer(2, unit="ns")
+            await sample_after_tpd(self.dut.clk_i, propagation_time=2)
 
     async def reset(self) -> None:
         # Hold all data/control inputs in a benign state during reset so the
@@ -109,6 +111,20 @@ async def known_header_vectors_test(dut):
     tb = TB(dut)
     await tb.reset()
 
+    # 0x4008 + 0x1234 + 0x0000 = 0x523c; one's complement is 0xadc3.
+    # Keep the input bytes and result literal so a shared defect in the header
+    # builders and checksum helper cannot make the model and DUT agree.
+    raw_ack_without_checksum = bytes.fromhex("4008123400000000")
+    hand_worked_checksum = 0xADC3
+    assert ones_complement_checksum(raw_ack_without_checksum) == hand_worked_checksum, (
+        "RSSI checksum oracle disagrees with the hand-worked ACK vector"
+    )
+    observed, check_ok = await tb.run_words([0x4008_1234_0000_0000])
+    assert observed == hand_worked_checksum, (
+        f"raw ACK checksum: expected {hand_worked_checksum:#06x}, got {observed:#06x}"
+    )
+    assert check_ok == 0, f"generation mode unexpectedly asserted check_o={check_ok}"
+
     vectors = [
         build_ack_header(sequence=0x12, acknowledge=0x34),
         build_data_header(sequence=0x56, acknowledge=0x78, ack=True, busy=True),
@@ -133,13 +149,18 @@ async def known_header_vectors_test(dut):
         ),
     ]
 
-    for header in vectors:
+    for vector_index, header in enumerate(vectors):
         # Generation mode feeds the header with the checksum bytes cleared and
         # expects `chksum_o` to produce the value that belongs in those bytes.
         expected = ones_complement_checksum(header_without_checksum(header))
         observed, check_ok = await tb.run_words(header_words(header_without_checksum(header)))
-        assert observed == expected
-        assert check_ok == 0
+        assert observed == expected, (
+            f"header vector {vector_index}: expected checksum {expected:#06x}, "
+            f"got {observed:#06x}"
+        )
+        assert check_ok == 0, (
+            f"header vector {vector_index}: generation mode asserted check_o={check_ok}"
+        )
 
 
 @cocotb.test()
@@ -153,16 +174,16 @@ async def validation_mode_accepts_good_and_rejects_bad_headers_test(dut):
     # Validation mode feeds the complete header, including checksum.  A correct
     # header should reduce to zero after the RTL's final one's complement.
     observed, check_ok = await tb.run_words(header_words(good_header))
-    assert observed == 0
-    assert check_ok == 1
+    assert observed == 0, f"valid header reduced to nonzero checksum {observed:#06x}"
+    assert check_ok == 1, f"valid header produced check_o={check_ok}"
 
     bad_header = bytearray(good_header)
     # Flip a negotiated field without updating the checksum; the same length and
     # structure should now fail only the checksum validation.
     bad_header[5] ^= 0x20
     observed, check_ok = await tb.run_words(header_words(bytes(bad_header)))
-    assert observed != 0
-    assert check_ok == 0
+    assert observed != 0, "corrupted header unexpectedly reduced to a zero checksum"
+    assert check_ok == 0, f"corrupted header produced check_o={check_ok}"
 
 
 @cocotb.test()

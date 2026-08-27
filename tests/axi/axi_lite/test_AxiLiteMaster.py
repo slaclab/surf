@@ -26,7 +26,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import cancel_and_join_tasks, sample_after_tpd
 from cocotbext.axi import AxiResp
 
 from tests.common.regression_utils import env_sl, parameter_case, run_surf_vhdl_test
@@ -51,8 +52,14 @@ class SimpleAxiLiteSlave:
         dut.M_AXI_RRESP.setimmediatevalue(0)
         dut.M_AXI_RDATA.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run_write())
-        cocotb.start_soon(self._run_read())
+        # The read/write responders are lifetime protocol peers owned by TB.
+        self._responder_tasks = (
+            cocotb.start_soon(self._run_write()),
+            cocotb.start_soon(self._run_read()),
+        )
+
+    async def close(self) -> None:
+        await cancel_and_join_tasks(self._responder_tasks)
 
     def in_reset(self) -> bool:
         try:
@@ -62,8 +69,7 @@ class SimpleAxiLiteSlave:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def _wait_while_reset(self):
         while self.in_reset():
@@ -75,6 +81,7 @@ class SimpleAxiLiteSlave:
             await self.cycle(1)
 
     async def _run_write(self):
+        """Lifetime agent: respond to AXI-Lite writes until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -124,6 +131,7 @@ class SimpleAxiLiteSlave:
             self.dut.M_AXI_BVALID.value = 0
 
     async def _run_read(self):
+        """Lifetime agent: respond to AXI-Lite reads until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -167,6 +175,9 @@ class TB:
 
         self.slave = SimpleAxiLiteSlave(dut, self.reset_active)
 
+    async def close(self) -> None:
+        await self.slave.close()
+
     def reset_active_value(self) -> int:
         return self.reset_active
 
@@ -175,8 +186,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def reset(self):
         # Drive reset and hold the request inputs idle so the state machine
@@ -214,46 +224,56 @@ class TB:
 @cocotb.test()
 async def write_read_round_trip_test(dut):
     tb = TB(dut)
-    await tb.reset()
+    try:
+        await tb.reset()
 
-    ack_resp, _ = await tb.issue_request(rnw=False, address=0x24, wr_data=0x11223344)
-    assert ack_resp == int(AxiResp.OKAY)
-    assert tb.slave.mem[0x24] == 0x11223344
-    assert tb.slave.last_write == (0x24, 0x11223344, 0xF, 0)
+        ack_resp, _ = await tb.issue_request(rnw=False, address=0x24, wr_data=0x11223344)
+        assert ack_resp == int(AxiResp.OKAY)
+        assert tb.slave.mem[0x24] == 0x11223344
+        assert tb.slave.last_write == (0x24, 0x11223344, 0xF, 0)
 
-    ack_resp, ack_data = await tb.issue_request(rnw=True, address=0x24)
-    assert ack_resp == int(AxiResp.OKAY)
-    assert ack_data == 0x11223344
-    assert tb.slave.last_read == (0x24, 0)
+        ack_resp, ack_data = await tb.issue_request(rnw=True, address=0x24)
+        assert ack_resp == int(AxiResp.OKAY)
+        assert ack_data == 0x11223344
+        assert tb.slave.last_read == (0x24, 0)
+    finally:
+        await tb.close()
 
 
 @cocotb.test()
 async def error_and_idle_reset_test(dut):
     tb = TB(dut)
-    await tb.reset()
+    try:
+        await tb.reset()
 
-    tb.slave.mem[0x40] = 0xCAFEBABE
-    tb.slave.write_resp = AxiResp.SLVERR
-    tb.slave.read_resp = AxiResp.SLVERR
+        tb.slave.mem[0x40] = 0xCAFEBABE
+        tb.slave.write_resp = AxiResp.SLVERR
+        tb.slave.read_resp = AxiResp.SLVERR
 
-    ack_resp, _ = await tb.issue_request(rnw=False, address=0x40, wr_data=0xDEADBEEF)
-    assert ack_resp == int(AxiResp.SLVERR)
-    assert tb.slave.mem[0x40] == 0xCAFEBABE
+        ack_resp, _ = await tb.issue_request(
+            rnw=False,
+            address=0x40,
+            wr_data=0xDEADBEEF,
+        )
+        assert ack_resp == int(AxiResp.SLVERR)
+        assert tb.slave.mem[0x40] == 0xCAFEBABE
 
-    ack_resp, ack_data = await tb.issue_request(rnw=True, address=0x40)
-    assert ack_resp == int(AxiResp.SLVERR)
-    assert ack_data == 0xCAFEBABE
+        ack_resp, ack_data = await tb.issue_request(rnw=True, address=0x40)
+        assert ack_resp == int(AxiResp.SLVERR)
+        assert ack_data == 0xCAFEBABE
 
-    # Reassert reset after the error path so the test proves the DUT returns
-    # its request and ack outputs to the idle state cleanly.
-    tb.dut.axilRst.value = tb.reset_active_value()
-    await tb.cycle(2)
-    assert int(tb.dut.ackDone.value) == 0
-    assert int(tb.dut.M_AXI_AWVALID.value) == 0
-    assert int(tb.dut.M_AXI_WVALID.value) == 0
-    assert int(tb.dut.M_AXI_ARVALID.value) == 0
-    assert int(tb.dut.M_AXI_BREADY.value) == 1
-    assert int(tb.dut.M_AXI_RREADY.value) == 1
+        # Reassert reset after the error path so the test proves the DUT
+        # returns its request and ack outputs to the idle state cleanly.
+        tb.dut.axilRst.value = tb.reset_active_value()
+        await tb.cycle(2)
+        assert int(tb.dut.ackDone.value) == 0
+        assert int(tb.dut.M_AXI_AWVALID.value) == 0
+        assert int(tb.dut.M_AXI_WVALID.value) == 0
+        assert int(tb.dut.M_AXI_ARVALID.value) == 0
+        assert int(tb.dut.M_AXI_BREADY.value) == 1
+        assert int(tb.dut.M_AXI_RREADY.value) == 1
+    finally:
+        await tb.close()
 
 
 PARAMETER_SWEEP = [
@@ -277,7 +297,4 @@ def test_AxiLiteMaster(parameters):
         toplevel="surf.axilitemasteripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteMasterIpIntegrator.vhd"],
-        },
     )

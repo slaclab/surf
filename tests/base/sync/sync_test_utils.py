@@ -14,7 +14,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
-from tests.common.regression_utils import env_flag, env_sl
+from tests.common.regression_utils import env_flag, env_sl, sample_after_tpd
 
 
 class SynchronizerLikeTB:
@@ -67,8 +67,7 @@ class SynchronizerLikeTB:
         # signal has its next rising transition". This is the core way cocotb
         # synchronizes Python code to simulated hardware time.
         for _ in range(count):
-            await RisingEdge(self.dut.clk)
-            await self.settle()
+            await sample_after_tpd(self.dut.clk, propagation_time=2)
 
     async def reset(self) -> None:
         # Drive reset active first so the DUT starts from its known reset state.
