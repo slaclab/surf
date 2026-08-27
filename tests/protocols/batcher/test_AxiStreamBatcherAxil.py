@@ -334,7 +334,6 @@ def test_AxiStreamBatcherAxil(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "protocols/batcher/wrappers/AxiStreamBatcherAxilWrapper.vhd",
             ],
         },

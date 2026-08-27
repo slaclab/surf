@@ -138,13 +138,10 @@ async def axi_round_trip_and_sys_read_test(dut):
     assert sys_data == int.from_bytes(expected_data, "little")
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("SYS_WR_EN", default=False))
 async def sys_write_visibility_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    if not tb.sys_wr_en:
-        return
 
     await tb.sys_write(addr=6, data=0xAABBCCDD, we_mask=(1 << tb.byte_count) - 1)
     rd_txn = await tb.axil.read(6 << 2, 4)

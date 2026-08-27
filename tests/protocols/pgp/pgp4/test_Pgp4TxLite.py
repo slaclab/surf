@@ -50,6 +50,5 @@ def test_Pgp4TxLite(parameters):
     run_pgp_wrapper_test(
         test_file=__file__,
         toplevel="surf.pgp4txlitewrapper",
-        wrapper_source="protocols/pgp/pgp4/core/rtl/Pgp4TxLiteWrapper.vhd",
         extra_env=parameters,
     )

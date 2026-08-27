@@ -37,9 +37,11 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
+
+from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     build_ack_header,
@@ -81,8 +83,7 @@ async def _send_contiguous_frame_after_tpd(endpoint, beats: list[SsiBeat], *, cl
     for beat in beats:
         endpoint.drive(beat)
         for _ in range(1024):
-            await RisingEdge(clk)
-            await Timer(2, unit="ns")
+            await sample_after_tpd(clk, propagation_time=2)
             if int(endpoint._sig("TReady").value) == 1:
                 break
         else:
@@ -174,13 +175,11 @@ class TB:
                     for field in fields:
                         beat[field] = int(getattr(self.dut, field).value)
                     beats.append(beat)
-                    await RisingEdge(self.clk)
-                    await Timer(1, unit="ns")
+                    await sample_after_tpd(self.clk)
                     if beat.get("mAxisTLast", 0) == 1:
                         return beats
                 else:
-                    await RisingEdge(self.clk)
-                    await Timer(1, unit="ns")
+                    await sample_after_tpd(self.clk)
         finally:
             self.dut.mAxisTReady.value = 0
         raise AssertionError("Timed out waiting for selected mAxis frame fields")
@@ -815,10 +814,7 @@ async def rst_segment_emits_header_and_consumes_sequence_without_buffering_test(
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
 
-KNOWN_ISSUE_REASON = "set RUN_RSSI_KNOWN_ISSUE_TESTS=1 to run RSSI cases that require follow-up RTL fixes"
 
-
-@pytest.mark.skipif(not env_flag("RUN_RSSI_KNOWN_ISSUE_TESTS", default=False), reason=KNOWN_ISSUE_REASON)
 @pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
 def test_RssiTxFsm(parameters):
     run_surf_vhdl_test(
@@ -826,11 +822,4 @@ def test_RssiTxFsm(parameters):
         toplevel="surf.rssitxfsmwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiTxFsmWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
