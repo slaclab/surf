@@ -460,6 +460,7 @@ class AdcDdrCalibration(pr.Process):
         self._runDiagnostics = {}
         self._lastCaptureDiagnostics = {}
         self._deepPatternTesterActive = False
+        self._marginResults = {}
 
         kwargs.setdefault(
             'description',
@@ -596,6 +597,17 @@ class AdcDdrCalibration(pr.Process):
             description = 'FCO and data-lane results from the last operation',
             value       = {},
             mode        = 'RO'))
+
+        self.add(pr.LocalVariable(
+            name        = 'Margin',
+            description = 'Worst margin from the most recent successful full calibration',
+            value       = 'Unavailable',
+            mode        = 'RO'))
+
+        self.add(pr.LocalCommand(
+            name        = 'MarginReport',
+            description = 'Print selected FCO and data-eye margins from the last full calibration',
+            function    = self.marginReport))
 
         self.add(pr.LocalCommand(
             name        = 'ApplyResults',
@@ -1422,6 +1434,9 @@ class AdcDdrCalibration(pr.Process):
                 raise ValueError(f'Unsupported calibration operation {operation}')
             self.Results.set(results)
             retainResults = operation == self.FULL_C
+            if retainResults:
+                self._marginResults = copy.deepcopy(results)
+                self.Margin.set(self._marginHeadline(results))
             return results
         finally:
             # Test mode is always temporary. Delay settings remain installed
@@ -1433,6 +1448,82 @@ class AdcDdrCalibration(pr.Process):
                     variable.set(value, write=True)
                 self._readout._setDataDelays(dict(enumerate(originalData)))
             self._readout.Relock()
+
+    @staticmethod
+    def _marginRows(results: Mapping[str, Any]) -> list[dict[str, Any]]:
+        """Extract selected-eye margins from one complete calibration result."""
+
+        if not results or not results.get('Final', {}).get('passed', False):
+            raise RuntimeError('No successful full-calibration margin result is available')
+
+        rows = []
+        for kind, label in (('Fco', 'FCO'), ('Data', 'DATA')):
+            for lane, result in sorted(
+                    results.get(kind, {}).items(), key=lambda item: int(item[0])):
+                eye = result.get('eye')
+                if eye is None:
+                    raise RuntimeError(
+                        'No successful full-calibration margin result is available')
+                rows.append({
+                    'type':         label,
+                    'lane':         int(lane),
+                    'start':        int(eye['start']),
+                    'end':          int(eye['end']),
+                    'selected':     int(eye['selected']),
+                    'leftMargin':   int(eye['leftMargin']),
+                    'rightMargin':  int(eye['rightMargin']),
+                    'wraps':        bool(eye['wraps']),
+                    'leftBounded':  bool(eye['leftBounded']),
+                    'rightBounded': bool(eye['rightBounded']),
+                })
+        if not rows:
+            raise RuntimeError('No successful full-calibration margin result is available')
+        return rows
+
+    @classmethod
+    def _marginHeadline(cls, results: Mapping[str, Any]) -> str:
+        """Return one compact minimum-margin summary in native tap units."""
+
+        rows = cls._marginRows(results)
+        margin = min(
+            min(row['leftMargin'], row['rightMargin'])
+            for row in rows)
+        qualifiers = []
+        if any(not row['leftBounded'] or not row['rightBounded'] for row in rows):
+            qualifiers.append('scan-limited eye(s)')
+        if any(row['wraps'] for row in rows):
+            qualifiers.append('wrapped eye(s)')
+        suffix = f"; {', '.join(qualifiers)}" if qualifiers else ''
+        unit = 'tap' if margin == 1 else 'taps'
+        return f'{margin} {unit} minimum{suffix}'
+
+    def marginReport(self) -> None:
+        """Print a compact selected-eye margin table in native tap units."""
+
+        rows = self._marginRows(self._marginResults)
+        lines = [
+            f'{self.path} ADC alignment margins (native tap units)',
+            'Type  Lane  Eye        Selected  Left  Right  Worst  Bounds',
+        ]
+        for row in rows:
+            bounds = []
+            if row['wraps']:
+                bounds.append('wrapped')
+            if not row['leftBounded']:
+                bounds.append('left scan limit')
+            if not row['rightBounded']:
+                bounds.append('right scan limit')
+            if not bounds:
+                bounds.append('bounded')
+            eye = f"{row['start']}..{row['end']}"
+            lines.append(
+                f"{row['type']:<5} {row['lane']:>4}  {eye:<10} "
+                f"{row['selected']:>8}  {row['leftMargin']:>4}  "
+                f"{row['rightMargin']:>5}  "
+                f"{min(row['leftMargin'], row['rightMargin']):>5}  "
+                f"{', '.join(bounds)}")
+        lines.append(f'Headline: {self._marginHeadline(self._marginResults)}')
+        print('\n'.join(lines))
 
     def applyResults(self) -> None:
         """Reinstall the selected taps from the last complete calibration."""

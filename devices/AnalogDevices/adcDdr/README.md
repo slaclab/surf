@@ -189,6 +189,7 @@ verification operation ends.
 | `VerifyPn23` | Device dependent | Enable PN23 coherence and recurrence qualification when the adapter provides a PN-long reset control. |
 | `SettleTime` | `1 ms` | Wall-clock wait after delay, relock, or ADC test-mode changes. |
 | `Debug` | `False` | Retain detailed per-tap diagnostics and publish one completed tree when the operation ends. |
+| `Margin` | `Unavailable` | Single-line worst selected-eye margin from the most recent successful full calibration. |
 
 The full delay range is the safest initial scan. Narrow `DelayStart` and
 `DelayStop` only when the board has a characterized region and the entire
@@ -214,6 +215,12 @@ samples from every channel, channel-coherence results, each recurrence
 transformation tried, the selected valid transformation, and the nested deep
 pattern-tester result. A failed scan may publish partial results for the lane
 that could not produce a qualifying eye.
+
+After a successful full calibration, `Margin` reports the smallest left or
+right margin across every selected FCO and data eye. `MarginReport()` prints a
+per-lane table containing the eye range, selected tap, left and right margins,
+worst-side margin, and bounded, scan-limit, or wrapped status. Both use native
+`tap` units.
 
 `Diagnostics` contains the measurement backend, expected patterns, raw and
 masked data captures, FCO words and lock masks, and the currently active scan

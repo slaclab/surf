@@ -606,6 +606,7 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     calibration, config, readout = calibration_fixture
 
     assert calibration.Debug.value() is False
+    assert calibration.Margin.value() == 'Unavailable'
     assert calibration.UsePatternTester.value() is False
     assert calibration.Outcome.value() == calibration.OUTCOME_IDLE_C
     results = calibration._runCalibration(dev=calibration)
@@ -628,6 +629,7 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.snapshotDelays == [(tap, tap) for tap in range(8)] + [(2, 5)]
     assert calibration.RunTime.value() > 0.0
     assert calibration.Outcome.value() == calibration.OUTCOME_PASSED_C
+    assert calibration.Margin.value() == '1 tap minimum; scan-limited eye(s)'
 
     readout.FcoDelay[0].set(0)
     readout.DataDelay[0].set(0)
@@ -636,6 +638,28 @@ def test_full_calibration_applies_results_and_can_reapply(calibration_fixture):
     assert readout.FcoDelay[0].value() == 3
     assert readout.DataDelay[0].value() == 2
     assert readout.DataDelay[1].value() == 5
+
+
+def test_margin_report_is_compact_and_interpretable(calibration_fixture, capsys):
+    calibration, _, _ = calibration_fixture
+    calibration._runCalibration(dev=calibration)
+
+    calibration.MarginReport()
+
+    report = capsys.readouterr().out
+    assert 'ADC alignment margins (native tap units)' in report
+    assert 'Type  Lane  Eye        Selected  Left  Right  Worst  Bounds' in report
+    assert 'FCO      0  2..5              3     1      2      1  bounded' in report
+    assert 'DATA     0  1..4              2     1      2      1  bounded' in report
+    assert 'DATA     1  3..7              5     2      2      2  right scan limit' in report
+    assert 'Headline: 1 tap minimum; scan-limited eye(s)' in report
+
+
+def test_margin_report_requires_successful_full_calibration(calibration_fixture):
+    calibration, _, _ = calibration_fixture
+
+    with pytest.raises(RuntimeError, match='No successful full-calibration margin result'):
+        calibration.MarginReport()
 
 
 def test_pattern_alignment_reset_runs_after_checkerboard_selection():
