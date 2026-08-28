@@ -8,7 +8,8 @@ drivers, byte compaction, and V2 superframe reference helpers live in
 The suite is layered deliberately:
 
 - `test_AxiStreamBatcher.py` proves the leaf V2 byte-stream contract, subframe
-  metadata, termination controls, and output stability under backpressure.
+  metadata, termination controls, and output stability under backpressure. It
+  also covers the V1 padded-tail hold and release across a clock-gap timeout.
 - `test_AxiStreamBatcherAxil.py` proves reset values, register readback, CDC
   behavior, and the stream-side effects of threshold, gap, soft-reset, and
   blowoff controls. It reuses the leaf oracle instead of repeating the full
