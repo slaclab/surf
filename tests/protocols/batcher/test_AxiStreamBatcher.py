@@ -9,9 +9,9 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Use a standalone `AxiStreamBatcher` wrapper in V2 mode with an
-#   8-byte AXI Stream width so the regression checks the compacted output path
-#   implemented through `AxiStreamGearbox`.
+# - Sweep: Use a standalone `AxiStreamBatcher` wrapper at an 8-byte AXI Stream
+#   width. Exercise the V2 compacted output path through `AxiStreamGearbox` and
+#   the V1 padded-output path for the idle-gap tail regression.
 # - Stimulus: Drive one or more input subframes with varied payload lengths,
 #   `TKEEP`, `TDEST`, first-byte `TUSER`, and last-byte `TUSER`, then terminate
 #   superframes by subframe count, idle gap, byte threshold, and sink
@@ -26,13 +26,19 @@ import cocotb
 import pytest
 from cocotb.triggers import with_timeout
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import (
+    cocotb_filtered_env,
+    cocotb_test_filter,
+    cocotb_test_filter_excluding,
+    run_surf_vhdl_test,
+)
 from tests.protocols.batcher.batcher_test_utils import (
     AxisBeat,
     FlatAxisEndpoint,
     beats_to_bytes,
     cycle,
     expected_batched_bytes,
+    expected_batched_v1_bytes,
     keep_count,
     payload_to_beats,
     recv_beats,
@@ -122,11 +128,11 @@ async def two_subframes_share_one_superframe_test(dut):
 
 
 @cocotb.test()
-async def idle_gap_terminates_pending_tail_test(dut):
+async def v2_idle_gap_terminates_pending_tail_test(dut):
     tb = TB(dut)
     await tb.reset()
     dut.maxSubFrames.value = 8
-    dut.maxClkGap.value = 3
+    dut.maxClkGap.value = 32
 
     # With no second subframe arriving, the small max-clock-gap setting must
     # close the superframe after the tail has been accepted into the batcher.
@@ -146,6 +152,35 @@ async def idle_gap_terminates_pending_tail_test(dut):
     rx_beats = await with_timeout(rx_task, 4, "us")
 
     assert beats_to_bytes(rx_beats) == expected_batched_bytes([frame])
+    assert rx_beats[-1].last == 1
+
+
+@cocotb.test()
+async def v1_idle_gap_preserves_pending_tail_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+    dut.maxSubFrames.value = 8
+    dut.maxClkGap.value = 8
+
+    # Version 1 holds the padded tail word with TVALID deasserted while GAP_S
+    # waits for this timeout.  The held data must survive until the timeout
+    # reasserts TVALID and marks that same word as the terminal superframe beat.
+    payload = bytes(range(0x60, 0x6B))
+    frame = (payload, 0x2, 0x44, 0xB1)
+    rx_task = cocotb.start_soon(recv_until_last(tb.sink, clk=dut.axisClk))
+    await send_frame(
+        tb.source,
+        payload_to_beats(
+            payload,
+            dest=frame[1],
+            first_user=frame[2],
+            last_user=frame[3],
+        ),
+        clk=dut.axisClk,
+    )
+    rx_beats = await with_timeout(rx_task, 4, "us")
+
+    assert beats_to_bytes(rx_beats) == expected_batched_v1_bytes([frame])
     assert rx_beats[-1].last == 1
 
 
@@ -309,7 +344,35 @@ def test_AxiStreamBatcher(parameters):
         test_file=__file__,
         toplevel="surf.axistreambatcherwrapper",
         parameters=parameters,
-        extra_env=parameters,
+        extra_env=cocotb_filtered_env(
+            parameters,
+            cocotb_test_filter_excluding("v1_idle_gap_preserves_pending_tail_test"),
+        ),
+        extra_vhdl_sources={
+            "surf": [
+                "protocols/batcher/wrappers/AxiStreamBatcherWrapper.vhd",
+            ],
+        },
+    )
+
+
+def test_AxiStreamBatcher_v1_idle_gap():
+    parameters = {
+        "VERSION_G": 1,
+        "DATA_BYTES_G": 8,
+        "INPUT_PIPE_STAGES_G": 0,
+        "OUTPUT_PIPE_STAGES_G": 1,
+    }
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.axistreambatcherwrapper",
+        parameters=parameters,
+        extra_env={
+            **parameters,
+            "COCOTB_TEST_FILTER": cocotb_test_filter(
+                "v1_idle_gap_preserves_pending_tail_test"
+            ),
+        },
         extra_vhdl_sources={
             "surf": [
                 "protocols/batcher/wrappers/AxiStreamBatcherWrapper.vhd",
