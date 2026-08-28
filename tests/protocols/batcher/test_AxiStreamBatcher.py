@@ -128,7 +128,7 @@ async def two_subframes_share_one_superframe_test(dut):
 
 
 @cocotb.test()
-async def idle_gap_terminates_pending_tail_test(dut):
+async def v2_idle_gap_terminates_pending_tail_test(dut):
     tb = TB(dut)
     await tb.reset()
     dut.maxSubFrames.value = 8
