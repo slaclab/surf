@@ -103,8 +103,8 @@ Rogue environment separately so its package constraints do not alter the test
 runner:
 
 ```bash
-conda env create -f tests/simlink/rogue/conda.yml
-conda activate surf-simlink-rogue
+conda env create -f conda-rogue.yml
+conda activate surf-rogue-test
 export SIMLINK_ROGUE_PYTHON="$CONDA_PREFIX/bin/python"
 python -c 'import rogue, pyrogue; print(rogue.Version.current())'
 conda deactivate

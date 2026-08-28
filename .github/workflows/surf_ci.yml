@@ -28,6 +28,19 @@ name: CI
 # Manual dispatch can simulate a changed-path list to exercise selective
 # execution on a runner; it does not alter the path source used by push or
 # pull-request events.
+#
+# Regression coverage is split across two jobs, "Non-rogue Regression Tests"
+# and "Rogue Regression Tests". The split is a packaging boundary, not a
+# testing one. Rogue is distributed only through the tidair-tag conda channel
+# and is absent from pip_requirements.txt, so Rogue coverage needs Miniforge
+# and a conda login shell, whereas the non-rogue job deliberately builds and
+# simulates on apt mcode GHDL under actions/setup-python. Rogue coverage also
+# has to stay a distinct required suite because every Rogue test skips
+# silently when Rogue is missing (pytest.importorskip in the ADC DDR tests,
+# _check_rogue_python() in the SimLink contracts); inside the non-rogue job
+# they would be invisible no-ops. See tests/simlink/README.md for the
+# rationale on why the deterministic pyzmq peer cannot substitute for real
+# Rogue. Any future Rogue-dependent suite belongs in the Rogue job.
 on:
   push:
   pull_request:
@@ -109,7 +122,7 @@ jobs:
 
 # ----------------------------------------------------------------------------
   test:
-    name: Regression Tests
+    name: Non-rogue Regression Tests
     runs-on: ubuntu-24.04
 
     steps:
@@ -250,55 +263,15 @@ jobs:
 
 # ----------------------------------------------------------------------------
 
-  simlink_rogue:
-    name: SimLink Rogue Contract
+  rogue_test:
+    name: Rogue Regression Tests
+    # Every suite that needs a real Rogue install lives here, behind one
+    # pinned conda environment. Rogue is conda-only, so provisioning Miniforge
+    # dominates the runtime; running these suites as separate jobs paid that
+    # cost once per suite for no isolation benefit. Each suite keeps its own
+    # step so a failure still names the suite that broke.
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash -el {0}
-
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Setup Miniforge
-        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
-        with:
-          miniforge-variant: Miniforge3
-          miniforge-version: latest
-          activate-environment: surf-simlink-rogue
-          environment-file: tests/simlink/rogue/conda.yml
-          auto-activate: false
-          conda-remove-defaults: true
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
-          python -m pip install --upgrade pip
-          python -m pip install -r pip_requirements.txt
-          if [ -L ruckus ] && [ ! -d ruckus ]; then
-            echo "Removing broken ruckus symlink from checkout"
-            rm ruckus
-          fi
-          if [ ! -d ruckus ]; then
-            git clone https://github.com/slaclab/ruckus.git ruckus
-          fi
-          python -m pip install -r ruckus/scripts/pip_requirements.txt
-
-      - name: Run production Rogue SimLink contract
-        run: |
-          python -c "import rogue, pyrogue; print(rogue.Version.current())"
-          make MODULES="$PWD" import
-          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
-            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
-
-# ----------------------------------------------------------------------------
-
-  adc_ddr_rogue:
-    name: ADC DDR Rogue Tests
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 45
     defaults:
       run:
         shell: bash -el {0}
@@ -318,12 +291,42 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: Run ADC DDR Rogue tests
+      - name: Verify pinned Rogue
+        # Fail before any suite runs if the conda environment did not activate.
+        # Without this a missing Rogue would silently downgrade every suite
+        # below into a skip, which is exactly what this job exists to prevent.
         run: |
           python -c "import rogue, pyrogue; print(rogue.Version.current())"
+
+      - name: Import HDL sources
+        # Required by the SimLink contract, which builds from build/SRC_VHDL.
+        # Inert for the pure-PyRogue suites.
+        run: |
+          make MODULES="$PWD" import
+
+      - name: SimLink Rogue contract
+        run: |
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
+
+      - name: ADC DDR Rogue tests
+        # PYTHONPATH exposes the in-repo python/surf package: these tests
+        # deliberately exercise the checked-in PyRogue model, not an installed
+        # surf. Keep it scoped to this step.
+        run: |
           PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
             tests/devices/analog_devices/test_AdcDdrCalibration.py \
             tests/devices/analog_devices/test_AdcDdrModel.py
@@ -356,7 +359,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
+    needs: [lint, test, rogue_test, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
@@ -367,7 +370,7 @@ jobs:
 # ----------------------------------------------------------------------------
 
   conda_build_lib:
-    needs: [lint, test, simlink_rogue, adc_ddr_rogue, docs]
+    needs: [lint, test, rogue_test, docs]
     if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:
