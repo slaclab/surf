@@ -18,6 +18,10 @@ The suite is layered deliberately:
   selection, TDEST remapping, transition frames, alignment checks, timeout and
   bypass/drop policy, counters, and multi-input progress.
 
+`AxiStreamBatcher` holds a completed subframe tail with `TVALID=0` while waiting
+in `GAP_S`. The tail data and byte enables must remain intact until a new
+subframe arrives or the clock-gap timeout emits the tail.
+
 Keep future additions at the narrowest layer that owns the behavior. Packet
 grammar belongs in the leaf test; register behavior belongs in the AXI-Lite
 test; arbitration, routing, and cross-source policy belong in the event-builder
