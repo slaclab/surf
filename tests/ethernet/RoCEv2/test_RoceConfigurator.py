@@ -33,11 +33,10 @@ from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32, wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.RoCEv2.roce_test_utils import axil_read_wide, axil_write_wide, roce_rtl_sources
+from tests.ethernet.RoCEv2.roce_test_utils import axil_read_wide, axil_write_wide
 
 
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/RoceConfiguratorWrapper.vhd"
-RTL_SOURCES = roce_rtl_sources("RoceConfigurator.vhd")
 
 
 class TB:
@@ -127,5 +126,5 @@ def test_RoceConfigurator(parameters):
         toplevel="surf.roceconfiguratorwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": RTL_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": [WRAPPER_PATH]},
     )

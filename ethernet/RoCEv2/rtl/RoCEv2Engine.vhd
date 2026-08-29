@@ -55,75 +55,6 @@ end RoCEv2Engine;
 
 architecture mapping of RoCEv2Engine is
 
-   component mkAxiSTransportLayer
-      port (
-         CLK                        : in  std_logic;
-         RST_N                      : in  std_logic;
-         s_work_req_valid           : in  std_logic;
-         s_work_req_id              : in  std_logic_vector(63 downto 0);
-         s_work_req_op_code         : in  std_logic_vector(3 downto 0);
-         s_work_req_flags           : in  std_logic_vector(4 downto 0);
-         s_work_req_raddr           : in  std_logic_vector(63 downto 0);
-         s_work_req_rkey            : in  std_logic_vector(31 downto 0);
-         s_work_req_len             : in  std_logic_vector(31 downto 0);
-         s_work_req_laddr           : in  std_logic_vector(63 downto 0);
-         s_work_req_lkey            : in  std_logic_vector(31 downto 0);
-         s_work_req_sqpn            : in  std_logic_vector(23 downto 0);
-         s_work_req_solicited       : in  std_logic;
-         s_work_req_comp            : in  std_logic_vector(64 downto 0);
-         s_work_req_swap            : in  std_logic_vector(64 downto 0);
-         s_work_req_imm_dt          : in  std_logic_vector(32 downto 0);
-         s_work_req_rkey_to_inv     : in  std_logic_vector(32 downto 0);
-         s_work_req_srqn            : in  std_logic_vector(24 downto 0);
-         s_work_req_dqpn            : in  std_logic_vector(24 downto 0);
-         s_work_req_qkey            : in  std_logic_vector(32 downto 0);
-         s_work_req_ready           : out std_logic;
-         s_data_stream_tvalid       : in  std_logic;
-         s_data_stream_tdata        : in  std_logic_vector(255 downto 0);
-         s_data_stream_tkeep        : in  std_logic_vector(31 downto 0);
-         s_data_stream_tfirst       : in  std_logic;
-         s_data_stream_tlast        : in  std_logic;
-         s_data_stream_tready       : out std_logic;
-         m_data_stream_tvalid       : out std_logic;
-         m_data_stream_tdata        : out std_logic_vector(255 downto 0);
-         m_data_stream_tkeep        : out std_logic_vector(31 downto 0);
-         m_data_stream_tfirst       : out std_logic;
-         m_data_stream_tlast        : out std_logic;
-         m_data_stream_tready       : in  std_logic;
-         m_work_comp_sq_valid       : out std_logic;
-         m_work_comp_sq_id          : out std_logic_vector(63 downto 0);
-         m_work_comp_sq_op_code     : out std_logic_vector(7 downto 0);
-         m_work_comp_sq_flags       : out std_logic_vector(6 downto 0);
-         m_work_comp_sq_status      : out std_logic_vector(4 downto 0);
-         m_work_comp_sq_len         : out std_logic_vector(31 downto 0);
-         m_work_comp_sq_pkey        : out std_logic_vector(15 downto 0);
-         m_work_comp_sq_qpn         : out std_logic_vector(23 downto 0);
-         m_work_comp_sq_imm_dt      : out std_logic_vector(32 downto 0);
-         m_work_comp_sq_rkey_to_inv : out std_logic_vector(32 downto 0);
-         m_work_comp_sq_ready       : in  std_logic;
-         s_meta_data_tvalid         : in  std_logic;
-         s_meta_data_tdata          : in  std_logic_vector(302 downto 0);
-         s_meta_data_tready         : out std_logic;
-         m_meta_data_tvalid         : out std_logic;
-         m_meta_data_tdata          : out std_logic_vector(275 downto 0);
-         m_meta_data_tready         : in  std_logic;
-         m_dma_read_valid           : out std_logic;
-         m_dma_read_initiator       : out std_logic_vector(3 downto 0);
-         m_dma_read_sqpn            : out std_logic_vector(23 downto 0);
-         m_dma_read_wr_id           : out std_logic_vector(63 downto 0);
-         m_dma_read_start_addr      : out std_logic_vector(63 downto 0);
-         m_dma_read_len             : out std_logic_vector(12 downto 0);
-         m_dma_read_mr_idx          : out std_logic;
-         m_dma_read_ready           : in  std_logic;
-         s_dma_read_valid           : in  std_logic;
-         s_dma_read_initiator       : in  std_logic_vector(3 downto 0);
-         s_dma_read_sqpn            : in  std_logic_vector(23 downto 0);
-         s_dma_read_wr_id           : in  std_logic_vector(63 downto 0);
-         s_dma_read_is_resp_err     : in  std_logic;
-         s_dma_read_data_stream     : in  std_logic_vector(289 downto 0);
-         s_dma_read_ready           : out std_logic;
-         cnp_received               : out std_logic);
-   end component mkAxiSTransportLayer;
 
    signal roceRstN               : sl;
    signal obUdpRoceMaster_tValid : sl;
@@ -233,7 +164,7 @@ begin
    -----------------------------------------------------------------------------
    -- RoCE engine wrapper
    -----------------------------------------------------------------------------
-   mkAxiSTransportLayer_1 : mkAxiSTransportLayer
+   mkAxiSTransportLayer_1 : entity surf.mkAxiSTransportLayer
       port map (
          CLK                        => clk,
          RST_N                      => roceRstN,

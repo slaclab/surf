@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Wrapper on mkCrcRawAxiStreamCustomSend.v
+-- Description: Wrapper on the native VHDL iCRC engine, Send direction.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -36,21 +36,6 @@ entity EthMacCrcAxiStreamWrapperSend is
 end EthMacCrcAxiStreamWrapperSend;
 
 architecture rtl of EthMacCrcAxiStreamWrapperSend is
-
-   component mkCrcRawAxiStreamCustomSend
-      port (
-         CLK                : in  std_logic;
-         RST_N              : in  std_logic;
-         s_axis_tvalid      : in  std_logic;
-         s_axis_tdata       : in  std_logic_vector(255 downto 0);
-         s_axis_tkeep       : in  std_logic_vector(31 downto 0);
-         s_axis_tlast       : in  std_logic;
-         s_axis_tuser       : in  std_logic;
-         s_axis_tready      : out std_logic;
-         m_crc_stream_data  : out std_logic_vector(31 downto 0);
-         m_crc_stream_valid : out std_logic;
-         m_crc_stream_ready : in  std_logic);
-   end component;
 
    -- BlueRdma
    signal blueRstN         : sl;
@@ -110,7 +95,13 @@ begin
    -----------------------------------------------------------------------------
    -- CRC calculator
    -----------------------------------------------------------------------------
-   EthMacCrcAxiStreamWrapperSend_1 : mkCrcRawAxiStreamCustomSend
+   -- SEND_MODE_G below selects the generate form of the CRC as opposed to
+   -- the verify form; the same entity serves both directions of this pair
+   -- of wrappers, distinguished only by this one boolean.
+   EthMacCrcAxiStreamWrapperSend_1 : entity surf.RoCEv2ICrc
+      generic map (
+         TPD_G       => TPD_G,
+         SEND_MODE_G => true)
       port map (
          CLK                => ethClk,
          RST_N              => blueRstN,

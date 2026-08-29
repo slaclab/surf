@@ -49,10 +49,8 @@ from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.RoCEv2.roce_test_utils import roce_rtl_sources
 
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/RoCEv2AxiStreamRdmaCoreWrapper.vhd"
-RTL_SOURCES = roce_rtl_sources("RoCEv2AxiStreamRdmaCore.vhd")
 
 # AXI-Lite register map (must match RoCEv2AxiStreamRdma.vhd)
 REG_DISPATCH_ENABLE = 0x000
@@ -900,5 +898,5 @@ def test_RoCEv2AxiStreamRdmaCore(parameters):
         toplevel="surf.rocev2axistreamrdmacorewrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": RTL_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": [WRAPPER_PATH]},
     )

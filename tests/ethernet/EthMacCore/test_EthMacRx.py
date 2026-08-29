@@ -32,7 +32,6 @@ from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     FlatEmacEndpoint,
-    ROCE_ANALYSIS_SOURCES,
     build_ethernet_frame,
     build_ipv4_udp_frame,
     build_pause_frame,
@@ -155,5 +154,5 @@ def test_EthMacRx(parameters):
         toplevel="surf.ethmacrxloopbackwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER_PATH]},
     )
