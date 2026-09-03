@@ -581,9 +581,17 @@ begin
    -- word. This preserves channel-to-channel sample association across unrelated
    -- capture and stream clocks.
    -------------------------------------------------------------------------------------------------
+   -- Before frame lock the deserializer output (sampleIn -> r.formatted) is not
+   -- yet valid and can be metavalue (X) in simulation. The stream is
+   -- always-consumed and flags unaligned beats via tUser(0) below, but it must
+   -- never drive X on tData with tValid asserted -- that poisons downstream
+   -- feedback consumers (WaveformCapture pedestal, FIR, AdcDsp). Substitute a
+   -- defined zero until all FCO lanes are locked; the tUser(0) flag still marks
+   -- these beats as unaligned.
    fifoIn(FIFO_WIDTH_C-1) <= not uAnd(r.locked);
    GEN_FIFO_IN : for i in CHANNELS_G-1 downto 0 generate
-      fifoIn((16*i)+15 downto 16*i) <= r.formatted(i);
+      fifoIn((16*i)+15 downto 16*i) <=
+         r.formatted(i) when uAnd(r.locked) = '1' else (others => '0');
    end generate GEN_FIFO_IN;
 
    U_DataFifo : entity surf.FifoAsync

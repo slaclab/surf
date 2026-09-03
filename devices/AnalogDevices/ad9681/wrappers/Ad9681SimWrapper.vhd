@@ -55,7 +55,10 @@ architecture rtl of Ad9681SimWrapper is
 begin
 
    GEN_INPUT : for i in 7 downto 0 generate
-      vin(i) <= real(to_integer(unsigned(normalData((16*i)+13 downto 16*i))))*(2.0/16384.0);
+      -- Convert the offset-binary code supplied by the flattened test wrapper
+      -- back to the AD9681's +/-1 V differential input range.
+      vin(i) <= real(to_integer(unsigned(normalData((16*i)+13 downto 16*i))))*
+                (2.0/16384.0) - 1.0;
    end generate GEN_INPUT;
 
    dP <= dataP(1) & dataP(0);

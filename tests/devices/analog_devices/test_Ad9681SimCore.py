@@ -59,6 +59,11 @@ def channel(data, index):
     return (data >> (16 * index)) & 0xFFFF
 
 
+def twos_complement_word(offset_binary_code):
+    """Apply the AD9681's default offset-binary to two's-complement coding."""
+    return ((offset_binary_code ^ 0x2000) << 2) & 0xFFFF
+
+
 def pn_word(state, order=9, tap=5, width=14):
     word = 0
     for _ in range(width):
@@ -94,14 +99,23 @@ async def ad9681_register_index_and_pattern_test(dut):
     dut.sampleRst.value = 0
 
     # Identity and defaults. Register 0x05 powers up at 0x3F so every data and
-    # clock channel receives the next write.
+    # clock channel receives the next write. Per the datasheet, Register 0x14
+    # powers up at 0x01 and normal samples are output in two's complement.
     assert await read(dut, 0x01) == 0x8F
     assert await read(dut, 0x02) == 0x60
     assert await read(dut, 0x05) == 0x3F
+    assert await read(dut, 0x14) == 0x01
     assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
+    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
     assert all((channel(data, i) & 0x3) == 0 for i in range(8))
+
+    # Register 0x14 bit 0 can still select offset-binary output explicitly.
+    await write(dut, 0x14, 0x00)
+    assert await read(dut, 0x14) == 0x00
+    data = await sample(dut)
+    assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
+    await write(dut, 0x14, 0x01)
 
     # Register 0x100 is staged until the transfer strobe at Register 0xFF.
     await write(dut, 0x100, 0x66)
@@ -116,7 +130,7 @@ async def ad9681_register_index_and_pattern_test(dut):
     await write(dut, 0x21, 0x00)
     assert await read(dut, 0x21) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
+    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
     await write(dut, 0x21, 0x30)
 
     # Device index bits[3:0] select data channels A..D, each a pair (channel ch
@@ -127,8 +141,8 @@ async def ad9681_register_index_and_pattern_test(dut):
     data = await sample(dut)
     assert channel(data, 2) == 0xFFFC
     assert channel(data, 3) == 0xFFFC
-    assert channel(data, 0) == normal[0] << 2
-    assert channel(data, 4) == normal[4] << 2
+    assert channel(data, 0) == twos_complement_word(normal[0])
+    assert channel(data, 4) == twos_complement_word(normal[4])
 
     # A local read with a single channel selected returns that channel's copy.
     assert await read(dut, 0x0D) == 0x02
@@ -201,9 +215,10 @@ async def ad9681_register_index_and_pattern_test(dut):
     assert await sample(dut) == 0
     await write(dut, 0x00, 0x04)
     assert await read(dut, 0x05) == 0x3F
+    assert await read(dut, 0x14) == 0x01
     assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [value << 2 for value in normal]
+    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
 
 
 def test_Ad9681SimCore():

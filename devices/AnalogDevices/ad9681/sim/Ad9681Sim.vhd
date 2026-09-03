@@ -117,7 +117,11 @@ begin
          else
             analogInput := 0.0;
          end if;
-         normalData(i) <= "00" & adcConversion(analogInput, 0.0, 2.0, 14, false);
+         -- vin is the differential ADC input (vinP - vinN); the AD9681's 2 Vpp
+         -- differential full scale spans +/-1 V, so a symmetric conversion
+         -- window maps 0 V to mid-scale (offset binary).  A unipolar [0,2]
+         -- window would clamp every negative differential to code 0.
+         normalData(i) <= "00" & adcConversion(analogInput, -1.0, 1.0, 14, false);
       end process adcConvert;
    end generate GEN_NORMAL_DATA;
 
