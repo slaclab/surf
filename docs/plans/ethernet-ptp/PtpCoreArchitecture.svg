@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1190" role="img" aria-labelledby="title description">
   <title id="title">Ethernet PTP endpoint with atomic validated RX records</title>
-  <desc id="description">EthMacPtpEndpoint contains EthMacTop, one passive physical timestamp adapter, PtpRxFrontend, and PtpEndpoint. The frontend validates RX FCS before emitting decoded message and capture together. The MAC's redundant RX bypass is drained. TX uses the MAC bypass and a keyed wire completion event. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and one PHC. Physical adapter and validator RTL remain to be verified.</desc>
+  <desc id="description">EthMacPtpEndpoint contains EthMacTop, one passive physical timestamp adapter, PtpRxFrontend, and PtpEndpoint. The frontend validates RX FCS before emitting decoded message and capture together. The MAC's redundant RX bypass is drained. TX uses the MAC bypass and a keyed wire completion event. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and one PHC. The RX slice is implemented and simulated; TX completion and endpoint integration remain planned.</desc>
   <defs>
     <marker id="packetArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#334155"/></marker>
     <marker id="eventArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#b45309"/></marker>
@@ -29,7 +29,7 @@
   </defs>
   <rect width="1600" height="1190" fill="#fff"/>
   <text class="title" x="60" y="52">Ethernet PTP endpoint</text>
-  <text class="subtitle" x="60" y="84">Selected RX boundary · validated message and capture stay together · physical adapter RTL proof remains open</text>
+  <text class="subtitle" x="60" y="84">Selected RX boundary · validated message and capture stay together · RX slice simulated; endpoint integration and FPGA timing remain open</text>
 
   <rect x="70" y="170" width="1060" height="850" rx="18" fill="#f6f8fb" stroke="#b0bdcc" stroke-width="2"/>
   <text class="groupTitle" x="94" y="205">EthMacPtpEndpoint</text>

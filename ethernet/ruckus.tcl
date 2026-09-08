@@ -5,6 +5,7 @@ source $::env(RUCKUS_PROC_TCL)
 if {  $::env(VIVADO_VERSION) > 0.0} {
    # Load ruckus files
    loadRuckusTcl "$::DIR_PATH/EthMacCore"
+   loadRuckusTcl "$::DIR_PATH/PtpCore"
    loadRuckusTcl "$::DIR_PATH/GigEthCore"
    loadRuckusTcl "$::DIR_PATH/IpV4Engine"
    loadRuckusTcl "$::DIR_PATH/RawEthFramer"
@@ -16,4 +17,5 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/RoCEv2"
 } else {
    loadSource -lib surf -path "$::DIR_PATH/EthMacCore/rtl/EthMacPkg.vhd"
+   loadRuckusTcl "$::DIR_PATH/PtpCore"
 }

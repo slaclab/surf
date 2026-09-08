@@ -5,6 +5,7 @@ This tree contains Ethernet MAC, framing, IP/UDP, RoCEv2, and high-speed Etherne
 ## Layout
 
 - `EthMacCore/`: common Ethernet MAC logic.
+- [PtpCore/](PtpCore/README.md): PTP physical RX capture and atomic message validation; endpoint work is in progress.
 - `GigEthCore/`, `TenGigEthCore/`, `XauiCore/`, `XlauiCore/`, and `Caui4Core/`: speed and PHY-family specific Ethernet cores.
 - `RawEthFramer/`: raw Ethernet frame transmit/receive support.
 - `IpV4Engine/`: ARP, ICMP, IGMP, IPv4 receive/transmit, and demux helpers.

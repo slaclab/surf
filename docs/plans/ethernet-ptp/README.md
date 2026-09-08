@@ -9,11 +9,12 @@ PTP, exchanges the required delay messages, and disciplines its local time
 without relying on Linux `ptp4l`. Rogue may configure and observe the endpoint,
 but it is not in the timing loop.
 
-Status: detailed architecture planning. The recommended ordinary-PTP module
+Status: architecture planning with an implemented RX RTL proof. The ordinary-PTP module
 boundaries, datapath integration, initial protocol subset, time arithmetic,
 servo behavior, application coordination boundary, co-simulation model, and
-provisional register map are specified below. No RTL or public interface has
-been implemented.
+provisional register map are specified below. The
+[RX adapter/validator slice](rx-rtl-proof.md) now exists under `ethernet/PtpCore`;
+the production PHC, port, servo, registers, and complete endpoint remain planned.
 
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
 The real-MAC experiment rejects the original header-key-only RX association:
@@ -21,9 +22,11 @@ CRC drops can be invisible to `rxFifoDrop`, and timestamp-only flushes do not
 remove old packets from the MAC FIFO. The selected replacement is a
 [passive validated RX frontend](rx-frontend-design.md) that emits each decoded
 message and capture atomically. Its bounded reference model passes the loss,
-overflow, and restart cases; the production physical adapter/validator remains
-to be implemented and verified. The diagram and interfaces below reflect this
-replacement. R3-R6 are not yet all closed for endpoint implementation.
+overflow, and restart cases. The RX slice now also passes physical RTL and
+real-MAC loss experiments; device timing/resources and future consumer abort
+integration remain open. The diagram shows the target endpoint composition,
+including TX and protocol blocks that are not implemented yet. R3-R6 are not
+all closed for endpoint implementation.
 
 The [2026-09-08 design review](review-2026-09-08.md) records concrete defects,
 remaining design gates, and the evidence needed to close them. In particular,
@@ -191,6 +194,7 @@ ethernet/PtpCore/
   rtl/
     PtpPkg.vhd
     PtpPhc.vhd
+    PtpRxTimestampAdapter.vhd   # implemented RX proof, GMII/XGMII generic
     PtpGmiiTimestampTap.vhd
     PtpXgmiiTimestampTap.vhd
     PtpRxFrontend.vhd
@@ -241,6 +245,12 @@ architecture-selected ruckus manifest load only the applicable adapter and
 vendor checkpoint.
 
 The exact responsibility of each synthesizable block is:
+
+The current proof instantiates `PtpRxTimestampAdapter` directly with
+`PtpRxFrontend`. It implements only the RX portion of the physical adapter
+responsibilities below; combined RX/TX timestamp taps remain planned and should
+reuse this RX implementation. See the [source index](../../../ethernet/PtpCore/README.md)
+for implemented files and interface limits.
 
 | Entity | Clock domain | Responsibility |
 | --- | --- | --- |
@@ -703,6 +713,10 @@ conversion. Ignoring XGMII lane phase can bias delay by 1.6 ns at nominal 10G.
 The new RX model covers this with exact rational arithmetic. Extend the R5
 fixed-point vectors and multiply/rounding width budget to fractional tick spans;
 the earlier integer-tick arithmetic test does not establish that extension.
+The RTL captures raw unsteered coordinates at MAC/PCS while its PHC timestamp
+includes ingress calibration. Rate reconstruction must also account for the
+ingress/egress reference-plane displacement; raw tick differences alone cannot
+replace the calibrated local interval. Freeze that conversion with R5.
 
 A positive `offsetFromMaster` means the local PHC is ahead and must be slowed
 or stepped backward according to policy. The sign convention must have a

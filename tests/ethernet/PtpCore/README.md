@@ -1,6 +1,7 @@
-# PTP Phase 0 experiments
+# PTP experiments and RX RTL verification
 
-This suite validates planning assumptions before production PTP RTL exists.
+This suite contains planning reference models and verification of the first
+physical RX adapter/validator RTL slice.
 
 - `test_ptp_mac_association.py` drives real XGMII frames through `EthMacTop`
   using `EthMacPtpExperimentWrapper`, with Python capture/association models.
@@ -15,6 +16,14 @@ This suite validates planning assumptions before production PTP RTL exists.
   bounded RX validator after physical normalization. They verify FCS/length
   checks, atomic message/capture delivery, and same-edge overflow/reset abort.
   The physical GMII/XGMII adapter and protocol policy are outside this model.
+- `test_ptp_rx_rtl.py` compares the actual validator against the model each
+  cycle, through direct, GMII, and XGMII inputs. It additionally checks whole
+  frame acceptance and independent capture timing, signed calibration, reset,
+  abort priority, byte phase, and minimum-gap throughput.
+- `test_ptp_rx_mac.py` runs the RX RTL beside the unchanged MAC under the
+  original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
+- `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
+  packing for both reference and RTL tests.
 
 Run from the repository root after importing HDL sources:
 
@@ -30,7 +39,9 @@ results and remaining gates are in the
 Follow the [test guidance](../../README.md) for changes and new regressions.
 
 The [RX design decision](../../../docs/plans/ethernet-ptp/rx-frontend-design.md)
-records the selected replacement and the remaining physical producer proof.
+records the selected replacement and its physical producer contract.
+Current RTL results and synthesis limits are in the
+[RX implementation record](../../../docs/plans/ethernet-ptp/rx-rtl-proof.md).
 Run the models alone without starting a simulator:
 
 ```sh

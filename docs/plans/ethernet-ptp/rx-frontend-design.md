@@ -1,7 +1,9 @@
 # RX message/capture boundary
 
-Status: selected architecture and executable boundary model; production RTL,
-physical normalization, timing closure, and hardware validation remain open.
+Status: selected architecture, executable boundary model, and an
+[RX RTL proof](rx-rtl-proof.md) covering physical normalization and real-MAC
+loss. Endpoint consumer integration, timing closure, and hardware validation
+remain open.
 This replaces the rejected RX key join in the [main plan](README.md). The
 [Phase 0 experiments](phase-0-experiments.md) remain the regression evidence
 for rejecting that join, not evidence that this replacement RTL already works.
@@ -31,11 +33,13 @@ would require proving identical admission, loss, and reset behavior again.
 `EthMacPtpEndpoint` instantiates the unchanged `EthMacTop`, one selected
 `Ptp[Gmii|Xgmii]TimestampTap`, `PtpRxFrontend`, and `PtpEndpoint`.
 
-The physical adapter retains the TimestampTap name but gains an explicit RX
+The target combined physical adapter retains the TimestampTap name with an RX
 framing output. RX and TX have separate state. RX removes preamble/control
 symbols and produces ordered destination-MAC-through-FCS bytes together with
 the capture on SOF; TX still produces keyed wire-completion events. Both use
 the PHC message point and signed latency conventions in the main plan.
+The current RX-only proof uses `PtpRxTimestampAdapter` with `PHY_TYPE_G`; it
+does not implement TX completion or the combined tap composition yet.
 
 | Boundary | Contract |
 | --- | --- |
@@ -166,12 +170,11 @@ frame length, bounded unterminated input, and 400 randomized frames with stalls
 and restart. Combined with the existing arithmetic/PHC suite: 60 tests passed.
 Flake8 and documentation/whitespace checks also passed.
 
-R3 now has a selected, modeled replacement. It is not yet closed for RTL.
-Next implement the physical adapter/validator slice and compare it against
-this model, using the original real-MAC loss stimuli alongside it. Prove actual
-GMII/XGMII framing, capture-edge convention, FCS byte order, lane shifts,
-abort priority in the real consumer, and throughput/resource/timing bounds.
-Retain the rejected-join tests as counterexample regressions.
+R3 now has a selected, modeled replacement and an implemented physical RX
+slice. Its [verification record](rx-rtl-proof.md) covers comparison with this
+model and the original real-MAC loss stimuli. Remaining work includes abort
+priority in the future protocol consumer and FPGA resource/timing bounds.
+The rejected-join tests remain counterexample regressions.
 
 In parallel work packages, R4 still needs the integrated reset/generation
 contract, R5 rate-estimator qualification under delay variation, and R6 the

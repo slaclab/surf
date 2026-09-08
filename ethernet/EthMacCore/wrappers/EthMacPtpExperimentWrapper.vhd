@@ -24,6 +24,7 @@ entity EthMacPtpExperimentWrapper is
    generic (
       TPD_G             : time                     := 1 ns;
       RST_POLARITY_G    : sl                       := '1';
+      PTP_RX_EN_G       : boolean                  := false;
       PAUSE_EN_G        : boolean                  := false;
       PAUSE_512BITS_G   : positive range 1 to 1024 := 8;
       DROP_ERR_PKT_G    : boolean                  := true;
@@ -36,63 +37,74 @@ entity EthMacPtpExperimentWrapper is
       ROCEV2_EN_G       : boolean                  := false;
       FILT_EN_G         : boolean                  := false);
    port (
-      ethClk        : in  sl;
-      ethRst        : in  sl;
-      bypRst        : in  sl;
-      xgmiiRxd      : in  slv(63 downto 0);
-      xgmiiRxc      : in  slv(7 downto 0);
-      xgmiiTxd      : out slv(63 downto 0);
-      xgmiiTxc      : out slv(7 downto 0);
-      rxFifoDrop    : out sl;
-      phyReady      : in  sl;
-      sAxisTValid   : in  sl;
-      sAxisTData    : in  slv(127 downto 0);
-      sAxisTKeep    : in  slv(15 downto 0);
-      sAxisTLast    : in  sl;
-      sAxisTDest    : in  slv(7 downto 0);
-      sAxisTReady   : out sl;
-      sAxisSof      : in  sl;
-      sAxisEofe     : in  sl;
-      mAxisTValid   : out sl;
-      mAxisTData    : out slv(127 downto 0);
-      mAxisTKeep    : out slv(15 downto 0);
-      mAxisTLast    : out sl;
-      mAxisTDest    : out slv(7 downto 0);
-      mAxisTReady   : in  sl := '1';
-      mAxisSof      : out sl;
-      mAxisEofe     : out sl;
-      sBypTValid    : in  sl;
-      sBypTData     : in  slv(127 downto 0);
-      sBypTKeep     : in  slv(15 downto 0);
-      sBypTLast     : in  sl;
-      sBypTDest     : in  slv(7 downto 0);
-      sBypTReady    : out sl;
-      sBypSof       : in  sl;
-      sBypEofe      : in  sl;
-      mBypTValid    : out sl;
-      mBypTData     : out slv(127 downto 0);
-      mBypTKeep     : out slv(15 downto 0);
-      mBypTLast     : out sl;
-      mBypTDest     : out slv(7 downto 0);
-      mBypTReady    : in  sl := '1';
-      mBypSof       : out sl;
-      mBypEofe      : out sl;
-      localMac      : in  slv(47 downto 0);
-      filtEnable    : in  sl;
-      pauseEnable   : in  sl;
-      pauseTime     : in  slv(15 downto 0);
-      pauseThresh   : in  slv(15 downto 0);
-      ipCsumEn      : in  sl;
-      tcpCsumEn     : in  sl;
-      udpCsumEn     : in  sl;
-      dropOnPause   : in  sl;
-      rxPauseCnt    : out sl;
-      rxOverFlow    : out sl;
-      rxCountEn     : out sl;
-      rxCrcErrorCnt : out sl;
-      txCountEn     : out sl;
-      txUnderRunCnt : out sl;
-      txNotReadyCnt : out sl);
+      ethClk         : in  sl;
+      ethRst         : in  sl;
+      ptpFlush       : in sl               := '0';
+      ptpGeneration  : in slv(31 downto 0) := (others => '0');
+      ptpSeconds     : in slv(47 downto 0) := (others => '0');
+      ptpNanoseconds : in slv(31 downto 0) := (others => '0');
+      ptpFraction    : in slv(31 downto 0) := (others => '0');
+      ptpTicks       : in slv(63 downto 0) := (others => '0');
+      ptpMessage     : out slv(743 downto 0);
+      ptpValid       : out sl;
+      ptpReady       : in sl               := '1';
+      ptpAbort       : out sl;
+      ptpOverflow    : out slv(31 downto 0);
+      bypRst         : in  sl;
+      xgmiiRxd       : in  slv(63 downto 0);
+      xgmiiRxc       : in  slv(7 downto 0);
+      xgmiiTxd       : out slv(63 downto 0);
+      xgmiiTxc       : out slv(7 downto 0);
+      rxFifoDrop     : out sl;
+      phyReady       : in  sl;
+      sAxisTValid    : in  sl;
+      sAxisTData     : in  slv(127 downto 0);
+      sAxisTKeep     : in  slv(15 downto 0);
+      sAxisTLast     : in  sl;
+      sAxisTDest     : in  slv(7 downto 0);
+      sAxisTReady    : out sl;
+      sAxisSof       : in  sl;
+      sAxisEofe      : in  sl;
+      mAxisTValid    : out sl;
+      mAxisTData     : out slv(127 downto 0);
+      mAxisTKeep     : out slv(15 downto 0);
+      mAxisTLast     : out sl;
+      mAxisTDest     : out slv(7 downto 0);
+      mAxisTReady    : in  sl              := '1';
+      mAxisSof       : out sl;
+      mAxisEofe      : out sl;
+      sBypTValid     : in  sl;
+      sBypTData      : in  slv(127 downto 0);
+      sBypTKeep      : in  slv(15 downto 0);
+      sBypTLast      : in  sl;
+      sBypTDest      : in  slv(7 downto 0);
+      sBypTReady     : out sl;
+      sBypSof        : in  sl;
+      sBypEofe       : in  sl;
+      mBypTValid     : out sl;
+      mBypTData      : out slv(127 downto 0);
+      mBypTKeep      : out slv(15 downto 0);
+      mBypTLast      : out sl;
+      mBypTDest      : out slv(7 downto 0);
+      mBypTReady     : in  sl              := '1';
+      mBypSof        : out sl;
+      mBypEofe       : out sl;
+      localMac       : in  slv(47 downto 0);
+      filtEnable     : in  sl;
+      pauseEnable    : in  sl;
+      pauseTime      : in  slv(15 downto 0);
+      pauseThresh    : in  slv(15 downto 0);
+      ipCsumEn       : in  sl;
+      tcpCsumEn      : in  sl;
+      udpCsumEn      : in  sl;
+      dropOnPause    : in  sl;
+      rxPauseCnt     : out sl;
+      rxOverFlow     : out sl;
+      rxCountEn      : out sl;
+      rxCrcErrorCnt  : out sl;
+      txCountEn      : out sl;
+      txUnderRunCnt  : out sl;
+      txNotReadyCnt  : out sl);
 end entity EthMacPtpExperimentWrapper;
 
 architecture rtl of EthMacPtpExperimentWrapper is
@@ -247,5 +259,49 @@ begin
          phyReady        => phyReady,        -- [in]
          ethConfig       => ethConfig,       -- [in]
          ethStatus       => ethStatus);      -- [out]
+
+   GEN_PTP : if PTP_RX_EN_G generate
+      U_PtpRx : entity surf.PtpRxFrontendWrapper
+         generic map (
+            PHY_TYPE_G => "XGMII", RST_POLARITY_G => RST_POLARITY_G)
+         port map (
+            clk              => ethClk,         -- [in]
+            rst              => ethRst,         -- [in]
+            rxFlush          => ptpFlush,       -- [in]
+            phyReady         => phyReady,       -- [in]
+            generation       => ptpGeneration,  -- [in]
+            phcSeconds       => ptpSeconds,     -- [in]
+            phcNanoseconds   => ptpNanoseconds, -- [in]
+            phcFraction      => ptpFraction,    -- [in]
+            tickCount        => ptpTicks,       -- [in]
+            xgmiiRxd         => xgmiiRxd,       -- [in]
+            xgmiiRxc         => xgmiiRxc,       -- [in]
+            normValid        => open,           -- [out]
+            normData         => open,           -- [out]
+            normKeep         => open,           -- [out]
+            normSof          => open,           -- [out]
+            normLast         => open,           -- [out]
+            normError        => open,           -- [out]
+            normTime         => open,           -- [out]
+            normTicks        => open,           -- [out]
+            normPhase        => open,           -- [out]
+            normGeneration   => open,           -- [out]
+            normTimeValid    => open,           -- [out]
+            normCaptureError => open,           -- [out]
+            messageData      => ptpMessage,     -- [out]
+            messageValid     => ptpValid,       -- [out]
+            messageReady     => ptpReady,       -- [in]
+            rxAbort          => ptpAbort,       -- [out]
+            rxEpoch          => open,           -- [out]
+            acceptedCount    => open,           -- [out]
+            droppedCount     => open,           -- [out]
+            overflowCount    => ptpOverflow);   -- [out]
+   end generate GEN_PTP;
+   GEN_NO_PTP : if not PTP_RX_EN_G generate
+      ptpMessage <= (others => '0');
+      ptpValid <= '0';
+      ptpAbort <= '0';
+      ptpOverflow <= (others => '0');
+   end generate GEN_NO_PTP;
 
 end architecture rtl;

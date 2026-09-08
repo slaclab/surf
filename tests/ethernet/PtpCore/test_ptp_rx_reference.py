@@ -21,38 +21,13 @@
 from dataclasses import replace
 from fractions import Fraction
 import random
-import zlib
 
 import pytest
 
 from tests.ethernet.PtpCore.ptp_rx_reference import RxBeat, RxFrontend, RxStamp
 from tests.ethernet.PtpCore.ptp_reference import e2e
+from tests.ethernet.PtpCore.ptp_rx_test_utils import frame, beats
 
-
-def frame(kind=0, sequence=7, marker=1, tlvs=b"", minor=1):
-    # Fixture owns lengths independently of the receiver's dispatch table.
-    body_size = {0: 10, 8: 10, 9: 20, 11: 30}[kind]
-    ptp = bytearray(34 + body_size)
-    ptp[0:2] = bytes((kind, minor << 4 | 2))
-    ptp[2:4] = (len(ptp) + len(tlvs)).to_bytes(2, "big")
-    ptp[6:8] = b"\x02\x00" if kind == 0 else b"\x00\x00"
-    ptp[8:16] = (-17).to_bytes(8, "big", signed=True)
-    ptp[20:30] = bytes.fromhex("001122fffe3344550001")
-    ptp[30:32] = sequence.to_bytes(2, "big")
-    ptp[33] = 0xfd  # Signed -3, rather than unsigned 253.
-    ptp[34:44] = marker.to_bytes(10, "big")
-    raw = bytes.fromhex("011b1900000000112233445588f7") + ptp + tlvs
-    return raw.ljust(60, b"\x00")
-
-
-def beats(raw, stamp=None, width=8, corrupt=False):
-    stamp = stamp or RxStamp(Fraction(100), 12)
-    fcs = zlib.crc32(raw).to_bytes(4, "little")
-    if corrupt:
-        fcs = bytes((fcs[0] ^ 1,)) + fcs[1:]
-    wire = raw + fcs
-    return [RxBeat(wire[i:i+width], i == 0, i + width >= len(wire),
-                   stamp=stamp if i == 0 else None) for i in range(0, len(wire), width)]
 
 
 def send(rx, raw, **kwargs):

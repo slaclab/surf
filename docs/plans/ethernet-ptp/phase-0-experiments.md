@@ -64,7 +64,7 @@ checks coding/header fields but delegates FCS validation to the MAC.
 
 | Gate | Current status | What must happen before freezing production interfaces |
 | --- | --- | --- |
-| R3: association | Original key-only join and timestamp-only flush are experimentally rejected. The subsequent [RX frontend design](rx-frontend-design.md) selects and models an atomic replacement. | Verify physical adapter/validator RTL against the model and original loss stimuli; prove abort priority in its consumer and line-rate throughput. |
+| R3: association | Original join is rejected; the selected atomic replacement now passes the [RX RTL proof](rx-rtl-proof.md), including physical framing and real-MAC loss. | Qualify FPGA timing/resources and integrate abort priority through the future port/measurement consumer. |
 | R4: PHC lifecycle | Integer model passes commit-edge, generation, reset, PPS suppression, and coherent snapshot-session contracts. | Wire the generation/flush handshake through capture, packet, measurement, and command queues; verify finite token widths and independent reset recovery in RTL. |
 | R5: acquisition | Equal-rate failure reproduced; unsteered-counter correction passes exact and fixed-point vectors. | Freeze rate-estimator qualification under changing path delay/oscillator rate, minimum observation span, delay-filter startup, and stale-estimate policy. |
 | R6: TX lifecycle | Real MAC proves late TX; ledger tests cover early response, quarantine, wrap, and bounded outstanding work. | Freeze quiesce/drain/reset handshakes and the supported stale-packet lifetime, including key-storage/resource limits and full-reset recovery. |
@@ -93,7 +93,9 @@ PTP receive frontend that validates CRC and emits bounded decoded-message/time
 records atomically, using the bypass only to drain the MAC's redundant RX copy.
 This duplicates receive validation and moves structural parser ownership out
 of the port. Its reference model passes 25 additional tests; the physical
-adapter and validator are not yet implemented or resource-qualified in RTL.
+adapter and validator have since been implemented and exercised in the
+[RX RTL proof](rx-rtl-proof.md). Device timing/resource qualification and the
+complete endpoint consumer integration remain open.
 
 ## Files, validation, and limits
 
