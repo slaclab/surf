@@ -15,6 +15,20 @@ servo behavior, application coordination boundary, co-simulation model, and
 provisional register map are specified below. No RTL or public interface has
 been implemented.
 
+Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
+The real-MAC experiment rejects the original header-key-only RX association:
+CRC drops can be invisible to `rxFifoDrop`, and timestamp-only flushes do not
+remove old packets from the MAC FIFO. The physical capture strategy remains
+useful, but the RX association boundary must be revised before production PTP
+interfaces are frozen. The diagram marks that rejected join; it is not an
+implementation-ready endorsement of the original RX path.
+
+The [2026-09-08 design review](review-2026-09-08.md) records concrete defects,
+remaining design gates, and the evidence needed to close them. In particular,
+the passive timestamp association required proof under hidden MAC drops; the
+Phase 0 experiment now supplies counterexamples. Byte order and timestamp-point
+corrections from that review are incorporated below.
+
 ## Current SURF architecture
 
 - `ethernet/EthMacCore/rtl/EthMacTop.vhd` is the common MAC integration point.
@@ -134,17 +148,17 @@ may continue but the exported time-scale-valid status must reflect it.
 
 ## Recommended plain-PTP architecture
 
-The least invasive first implementation is a PTP-aware timestamp tap at the
+The candidate first implementation is a PTP-aware timestamp tap at the
 wire-facing GMII or XGMII bus, paired with the existing raw-Ethernet bypass.
 The tap observes the frame actually sent or received, captures time when the
 SFD crosses the MAC/PCS interface, and parses enough of the PTP header to
-identify that timestamp. This removes the need to carry a tag through every
-current MAC FIFO, arbitration, checksum, pause, padding, and filtering stage.
+identify that timestamp. If the association proof closes, this avoids carrying
+a tag through every current MAC FIFO, arbitration, checksum, pause, padding,
+and filtering stage.
 
-The complete composition and signal-flow drawing appears with the module
-inventory below. It separates hierarchy, packet/timestamp traffic, PHC
-control, and register access so unrelated connections do not share a routing
-plane.
+The composition drawing below shows each hardware block once, with separate
+line styles for packets, timestamps, PHC time, and control. The interface table
+supplies connections omitted from the drawing for readability.
 
 Application frames use the existing primary AXI Stream interface. PTP frames
 use the private `0x88F7` bypass between `PtpEndpoint` and `EthMacTop`. The
@@ -247,10 +261,10 @@ The simulation-only entities are:
 
 ![PtpCore RTL composition and signal flow](PtpCoreArchitecture.svg)
 
-The drawing uses manually placed boxes and straight, orthogonal connections;
-there is no automatic graph routing. A block repeated in more than one lane is
-the same RTL entity, not a second instance. Only one timestamp-tap variant is
-instantiated, selected by `PHY_TYPE_G`.
+Each box represents one instance. Only one timestamp-tap variant is
+instantiated, selected by `PHY_TYPE_G`. The highlighted association gate marks
+the rejected header-key join between physical captures and MAC-delivered frames
+after drops; its replacement remains an open interface decision.
 
 The drawing covers the mandatory Ethernet endpoint composition.
 `PtpEventScheduler` is deliberately outside `EthMacPtpEndpoint`: an
@@ -271,6 +285,7 @@ For completeness, the point-to-point interfaces are:
 | `EthMacTop` | TX/RX GMII or XGMII | PCS/PMA |
 | GMII/XGMII bus | Passive RX/TX observation | Selected timestamp tap |
 | `PtpPhc` | Current PHC time | Selected timestamp tap |
+| `PtpEndpoint` | Time/configuration generation, flush and quiesce control | Taps, `PtpPort`, `PtpServo`, and PHC command selector |
 | Selected timestamp tap | Keyed RX/TX SFD timestamp event | `PtpPort` |
 | `PtpPort` | Forward-delay observations and raw path-delay updates | `PtpServo` |
 | `PtpServo` | Automatic PHC command | Selector inside `PtpEndpoint` |
@@ -409,6 +424,18 @@ the entries to expire before reusing it. Correctness takes priority over
 extracting a measurement from an indistinguishable duplicate. Do not use
 global FIFO position as a substitute for the key.
 
+The [Phase 0 experiment](phase-0-experiments.md) demonstrates that this
+live-table rule is insufficient. A CRC-bad
+frame A may leave a tap event while the MAC drops its AXI frame; a later valid
+copy B with the same key may be delivered while B's event is still blocked.
+The apparent single pair is then A's timestamp and B's frame. Phase 0 must
+prove an ordering/retirement barrier covering every drop and event-delivery
+path, or select explicit per-frame association metadata in an opt-in MAC
+composition. `EthMacRxFifo` exposes only an aggregate primary-or-bypass drop
+pulse today. A flush on that pulse is conservative, but its timing relative to
+measurement acceptance must also be proved. The unchanged-MAC boundary is a
+compatibility objective, not grounds for accepting incorrect timestamps.
+
 ### Receive and transmit behavior
 
 The receive sequence is:
@@ -442,11 +469,14 @@ The transmit sequence is:
    when the first AXI beat handshakes and becomes timestamp-valid only after
    the matching TX tap event supplies `t3`; an abort or protocol reset cancels
    it.
-3. The TX tap observes the actual GMII/XGMII frame, captures `t3` at SFD, and
-   parses the transmitted source identity and sequence ID.
+3. The TX tap observes the actual GMII/XGMII frame, captures raw SFD time,
+   translates it to the PTP message point to form `t3`, and parses the
+   transmitted source identity and sequence ID.
 4. `PtpPort` records `t3` only when the tap key matches an outstanding local
-   request. Sequence wrap is unambiguous because outstanding depth and timeout
-   are bounded well below 65,536 requests.
+   request. Sequence reuse also requires a bounded stale-packet lifetime:
+   small outstanding depth alone does not prevent an old Delay_Resp from
+   matching after wrap or port restart. Keep the allocator across link-only
+   resets and quarantine retired keys for the supported stale-packet horizon.
 5. A Delay_Resp is accepted only when its `requestingPortIdentity` equals the
    local port identity, its source equals the configured upstream port, and
    its sequence ID identifies an outstanding request.
@@ -468,32 +498,47 @@ does not provide another writable source-MAC register. A future integration
 that permits the Ethernet MAC address itself to change must update the MAC and
 PTP builder atomically and restart the PTP port.
 
-The independent key-based event path is the recommended first implementation.
+The independent key-based event path is the candidate first implementation,
+subject to the association proof required by the design review.
 A generic per-frame request/tag metadata plane may still be useful for
-non-PTP hardware timestamp users, but it is no longer a dependency for the
-autonomous endpoint and should be a separate later design.
+non-PTP hardware timestamp users and should remain a separate later design.
+Narrow per-frame association metadata may nevertheless be required to close
+the PTP-specific drop/duplicate proof.
 
 ### Timestamp capture and reference plane
 
-The timestamp contract is the first bit of the Ethernet Start Frame Delimiter
-(SFD) at the MAC/PCS interface, expressed on the local PHC. It is not initially
-a timestamp at the connector or remote fiber.
+The internal detector may capture the first bit of SFD, but the timestamp
+exported for PTP arithmetic represents the first bit immediately **after** SFD
+at the MAC/PCS interface. Keep this message timestamp point distinct from the
+physical reference plane (MAC/PCS versus connector). This follows
+[IEEE's interpretation of 1588-2008, clause 7.3.4.1](https://standards.ieee.org/wp-content/uploads/import/documents/interpretations/1588-2008_interp.pdf).
+It is not initially a timestamp at the connector or remote fiber.
 
 - GMII observes one byte per enabled clock. Capture when `0xD5` is accepted as
-  SFD. Initial 1000BASE-X support has `ethClkEn = 1`; 10/100 Mb/s MII-style
-  clock-enable behavior is not a first-release claim.
+  SFD, then advance by one byte time (nominally 8 ns at 1 Gb/s) to the PTP
+  message timestamp point. Initial 1000BASE-X support has `ethClkEn = 1`;
+  10/100 Mb/s MII-style clock-enable behavior is not a first-release claim.
 - XGMII detects `/S/` in each legal lane position. If the PHC sample represents
   the lane-0 boundary of that word, the first SFD bit is
   `sample + (startLane + 7) * 0.8 ns`: 5.6 ns for start lane 0 and 8.8 ns for
   start lane 4, with normal carry into the next XGMII cycle. Lane alignment
   must be represented in the fractional field rather than rounded to a 6.4 ns
-  cycle.
+  cycle. These are raw SFD offsets only. The exported PTP timestamp adds one
+  further byte time: `(startLane + 8) * 0.8 ns`, nominally 6.4 ns or 9.6 ns.
+  Scale sub-cycle offsets with the active PHC rate, and document whether the
+  sampled PHC and PHY word represent values before or after the capture edge.
+  Test that convention independently of VHDL `TPD_G` scheduling.
 - RX raw capture occurs later than wire ingress, so a configured positive
   `ingressLatency` is subtracted. TX capture occurs earlier than wire egress,
   so a configured positive `egressLatency` is added. Each is a signed 64-bit
   `2^-16` ns value, and each is applied exactly once in the tap.
 - The tap reports physical coding/error indications. Final validity also uses
   the MAC AXI Stream EOFE/CRC result in the `PtpPort` RX codec.
+
+Perform message-point translation before the signed ingress/egress latency
+correction. Calibration constants must not conceal the missing SFD byte. Test
+against an independently constructed peer timestamp, because a loopback using
+the same incorrect convention at both ends can hide this error.
 
 PCS/PMA, transceiver, SFP, and board latency can be fixed, reset-dependent, or
 variable. Calibration registers can translate the MAC reference plane toward
@@ -597,6 +642,31 @@ enabled.
 
 ### E2E arithmetic and measurement lifecycle
 
+Every timestamp, association, completed measurement, and queued automatic
+command carries a local time-generation identifier. An absolute set or phase
+step advances this generation and flushes old work, including tap FIFOs and
+partially observed frames. Source/domain/calibration changes also invalidate
+measurement state through a configuration generation. Reject late completions
+from an older generation; clearing only the visible association table is not
+sufficient. Ordinary rate updates preserve time generation, but record their
+effect when estimating elapsed time. Generation wrap requires a quiescent
+flush before reuse. Local generations do not disambiguate stale network
+packets that arrive after a reset; those require the wire-key rules below.
+
+The reference PHC uses explicit commit-edge behavior: accepted commands commit
+on the following PHC edge; a phase delta applies to the normally advanced time
+at that edge, while manual absolute set names that edge's time directly. A new
+rate first affects the next increment. Discontinuity suppresses same-edge
+capture and PPS, advances generation, and clears validity. Acquisition uses a
+wide signed Q16 epoch delta, avoiding a supposedly stable absolute command
+whose target would need to change while waiting for acknowledgement. These
+semantics are model-tested and still require matching RTL and CDC validation.
+
+Use a separate, unsteered monotonic tick counter for protocol timers, sample
+age, holdover expiry, and command watchdogs. PHC set/step operations must not
+extend or instantly expire these timers. Capture arrival age at the wire
+event, not when a delayed Follow_Up or Delay_Resp finishes processing.
+
 An E2E solution combines two independently sequenced associations:
 
 - `t1` is `preciseOriginTimestamp` in Follow_Up;
@@ -614,6 +684,34 @@ reverseDelay = (t4 - cDelay) - t3
 meanPathDelay = (forwardDelay + reverseDelay) / 2
 offsetFromMaster = forwardDelay - meanPathDelay
 ```
+
+These equations assume sufficiently equal clock rates across the exchange.
+With residual fractional frequency error `epsilon` and physical separation
+`Delta` between local Sync RX and Delay_Req TX, the uncorrected path-delay
+bias has magnitude approximately `abs(epsilon * Delta) / 2`. At 100 ppm and
+10 ms this is 500 ns; at one second it is 50 us. Completion-time proximity
+cannot bound that error when general messages are delayed.
+
+Phase 0 must select either a rate-ratio correction of the local interval or
+a quantitative separation/error bound with a bootstrap frequency estimator.
+The former has a primary implementation precedent in
+[linuxptp timestamp processing](https://github.com/richardcochran/linuxptp/blob/master/tsproc.c):
+it scales the local `t2 - t3` interval before combining it with the remote
+interval. Freeze ratio direction, fixed-point width, estimator freshness, and
+handling of rate changes during an exchange. A bootstrap estimator must be
+able to progress without an already accepted path delay, or negative-delay
+rejection can prevent acquisition indefinitely for one sign of oscillator
+error. Prompt Delay_Req scheduling helps but does not solve arbitrary pause
+or packet queueing.
+
+The Phase 0 model evaluates the unsteered-counter alternative: a bounded
+64-bit tick span times Q16.48 nanoseconds per tick, using a checked 128-bit
+product, reconstructs elapsed master time. The ratio is estimated from Sync
+observations before path-delay acceptance, so bootstrap has no circular
+dependency. This removes numerical PHC rate changes from the elapsed-time
+calculation. Tests establish arithmetic accuracy under constant oscillator
+rate; minimum observation span, estimator filtering/freshness, and uncertainty
+under variable path delay remain to be frozen before selecting servo defaults.
 
 A positive `offsetFromMaster` means the local PHC is ahead and must be slowed
 or stepped backward according to policy. The sign convention must have a
@@ -641,12 +739,15 @@ calibration remains auditable.
 
 | Record | Contents |
 | --- | --- |
-| Sync sample | Source/domain, Sync sequence, `t1`, `t2`, `cSync`, completion time, and validity/error flags. |
-| Delay sample | Source/domain, Delay_Req sequence, `t3`, `t4`, `cDelay`, completion time, and validity/error flags. |
+| Sync sample | Source/domain, time/configuration generation, Sync sequence, `t1`, `t2`, `cSync`, monotonic capture/completion times, and validity/error flags. |
+| Delay sample | Source/domain, time/configuration generation, Delay_Req sequence, `t3`, `t4`, `cDelay`, monotonic capture/completion times, and validity/error flags. |
 
-A Delay_Resp combines its delay sample with the newest completed Sync sample
-from the same source/domain, provided their completion times differ by no more
-than `maxExchangeSeparation`. `PtpPort` emits a raw mean-path-delay update;
+A Delay_Resp combines its delay sample with an eligible completed Sync sample
+from the same source/domain and time/configuration generation. Bound exchange
+separation using monotonic capture times for `t2` and `t3`, and independently
+bound delivery/completion ages. Prefer the eligible sample nearest `t3`;
+out-of-order completion must not make an older Sync the newest servo input.
+`PtpPort` emits a raw mean-path-delay update;
 `PtpServo` applies the median/IIR filter and records its age. Every later
 completed Sync causes `PtpPort` to emit a forward-delay observation at the Sync
 rate. `PtpServo` forms `rawOffset = forwardDelay - filteredMeanPathDelay` only
@@ -728,8 +829,16 @@ before a configured clamp rejects the sample; ordinary clamp operation is
 status, not arithmetic overflow. Rate conversion is:
 
 ```text
-rateAddendQ32 = round(nominalAddendQ32 * rateCommandPpb / 1_000_000_000)
+rateAddendQ32 = round(nominalAddendQ32 * rateCommandPpbQ16
+                     / (1_000_000_000 * 2^16))
 ```
+
+Here `rateCommandPpbQ16` is the stored signed integer, not the real-valued ppb
+quantity. Specify the binary point at every multiply/divide boundary. The
+provisional unsigned Q2.30 gains represent values below 4; prove that range
+supports the chosen Sync-rate envelope or change the encoding before freezing
+registers. Parser acceptance of exponents `-10` through `+22` is not a claim
+that one gain set can track that entire range.
 
 The control sequence is:
 
@@ -772,6 +881,17 @@ has established both epoch and path delay. Manual changes to gains, filters,
 or clamps while the servo is enabled are shadowed until an atomic commit; the
 commit restarts acquisition unless a future explicitly verified live-update
 mode is added.
+
+Freeze bootstrap and validity behavior explicitly: start the delay filter from
+accepted samples only (never zero-filled history), publish its populated count,
+and specify when it becomes usable. Permit a first qualified solution below
+the step threshold to issue a validity-only command; otherwise an already
+aligned clock could remain invalid forever. After a set/step, require a fresh
+solution in the new time generation before tracking or lock qualification.
+Persistent Sync with stale delay must age into holdover/invalid time just as
+loss of usable Sync does. Count only fresh, chronologically advancing samples
+toward lock; duplicates cannot extend time quality. A changed grandmaster behind
+the same configured source port clears delay/lock and restarts acquisition.
 
 ### Clock-domain crossing and application use
 
@@ -862,6 +982,25 @@ state machine. Its initial contract is:
   indication; and
 - sticky/counted queue-full, rejected, cancelled, late, time-invalid, and
   execution conditions.
+
+Execute on the first eligible clock edge whose PHC is at or beyond the target;
+normal sub-cycle quantization is not a late-event error. Define a separate
+maximum lateness and validate spacing against the largest legal PHC increment,
+including rate trim. A time-generation change flushes armed events by default,
+even if time validity recovers before their deadlines. Inhibited or rejected
+head entries retire with a result so they cannot block later entries forever.
+CDC of an executed event must carry its payload coherently and respect the
+destination service rate; a pulse synchronizer alone cannot preserve arbitrary
+back-to-back records. Software needs a bounded result FIFO (with explicit
+overflow), or an explicit one-outstanding-event restriction, to collect every
+result rather than only the last execution register.
+
+The coordinator sequence above is best effort: a lost cancel or stalled
+endpoint can still cause partial execution. Minimum lead time must include
+worst-case configuration, acknowledgement, and cancellation latency. Any
+application requiring all-or-none physical action needs a separate interlock
+or coordination contract; per-endpoint AXI acknowledgements cannot guarantee
+distributed atomic execution.
 
 The scheduler is allowed to compare the local PHC directly and its output edge
 is quantized to `phcClk`. If an application starts a free-running local counter
@@ -956,16 +1095,24 @@ co-simulation path.
 
 ### `EthMacTop` integration strategy
 
-Keep the public `EthMacTop` entity unchanged for the first implementation.
-`EthMacPtpEndpoint` instantiates it with:
+Target an unchanged public `EthMacTop` entity for the first implementation,
+subject to closing the association proof. The candidate `EthMacPtpEndpoint`
+instantiates it with:
 
 ```text
 BYP_EN_G         = true
-BYP_ETH_TYPE_G   = x"88F7"
+BYP_ETH_TYPE_G   = x"F788"   # wire bytes 88 F7 in SURF byte-lane order
 BYP_COMMON_CLK_G = true
 bypClk           = ethClk
 bypRst           = portRst
 ```
+
+`EthMacRxBypass` compares `tData(111 downto 96)` directly, with byte 12 in
+the low byte. Therefore wire EtherType `0x88F7` requires `x"F788"` here.
+Keep wire-order constants distinct from packed AXI constants. Likewise,
+`localMac(7 downto 0)` is the first MAC octet; derive EUI-64 from the six wire
+octets, not from the displayed hexadecimal vector. A directed integration
+fixture must prove wire bytes `88 F7` route to PTP and `F7 88` do not.
 
 It connects the private bypass streams directly to `PtpEndpoint`, taps the
 external GMII/XGMII ports in parallel, and leaves the public primary stream
@@ -986,6 +1133,27 @@ independent primary and bypass common-clock selections. Without the correction,
 the source and destination clocks are physically the same but the bypass still
 selects the asynchronous FIFO implementation; this is functional but does not
 match the generic's stated intent.
+
+PTP protocol restart and physical MAC/FIFO reset are different operations.
+Freeze how `portRst` quiesces a partially accepted TX frame and drains old RX/TX
+FIFO contents when `ethRst` stays low. Do not withdraw a stalled valid AXI beat
+or assume a frame accepted into `EthMacTxFifo` can be cancelled downstream.
+Already queued requests may still reach the wire after timeout/reconfiguration;
+retire their responses and timestamp events without reusing their keys.
+Separate TX admission timeout, wait-for-wire-timestamp timeout, and Delay_Resp
+timeout; start the last from actual TX capture, allowing early response arrival
+relative to a backpressured tap event. Repeated Ethernet pause can postpone TX
+indefinitely despite bypass priority, so timeout must bound resource use and
+trigger loss of synchronization quality, not promise eventual transmission.
+
+The Phase 0 real-MAC test confirms accepted traffic survives a logical port
+restart and repeated pause. The request-ledger model therefore reserves an
+uncompleted TX key indefinitely; once actual wire completion is known, it
+starts a bounded stale-response quarantine. A logical timeout never makes an
+uncompleted key reusable. A full hardware reset may instead start a defined
+network-lifetime quarantine, but a one-sided bypass reset does not establish
+that all old MAC traffic has disappeared. Production restart/drain handshakes
+and the supported network-lifetime bound remain explicit Phase 0 decisions.
 
 The compatibility price is that timestamps are PTP-header keyed rather than a
 generic user-supplied tag. That is an appropriate first boundary for an FPGA
@@ -1105,7 +1273,7 @@ prevents later register churn:
 | `0x400-0x4FF` | Signed Q16 ingress latency, egress latency, delay asymmetry, maximum path delay, outlier limits, and calibration-valid/provenance fields. |
 | `0x500-0x5FF` | Atomic measurement snapshot: raw/corrected offset, raw/filtered mean path delay, frequency command, last `t1`-`t4`, source/grandmaster identity, time properties, sequence IDs, and message ages. |
 | `0x600-0x7FF` | 32-bit counters by message type plus bad version/domain/source/length, bad CRC/EOFE, duplicate, timeout, orphan timestamp/frame, FIFO overflow, rejected measurement, servo transition, holdover, and fault cause. |
-| `0x800-0xFFF` | Reserved for later external timestamp/per-out channels and profile extensions. Reads return zero until allocated. |
+| `0x800-0xFFF` | Reserved for later external timestamp/per-out channels and profile extensions. Unallocated reads/writes return `AXI_RESP_DECERR_C`. |
 
 Multiword time, identity, offset, path-delay, and counter reads use an explicit
 snapshot command. Multiword writes use shadow registers and a commit strobe.
@@ -1477,7 +1645,20 @@ without changing protocol logic.
 
 ## Phased implementation plan
 
+Phase numbers identify work packages, not a requirement to finish application
+co-simulation before testing the MAC. The critical path is Phase 0, Phases 1-3,
+then Phases 4 and 6 together, followed by one Phase 7 GTX7 hardware target.
+Phase 5 is an independent application service; the optional external Timing
+bridge and all-backend support do not gate the first autonomous endpoint.
+Phases 8-10 expand hardware coverage after that first target is qualified.
+
 ### Phase 0: freeze the ordinary-PTP interfaces
+
+- Close review gates R3-R6 in the [design review](review-2026-09-08.md):
+  timestamp association under hidden drops, time generations and monotonic
+  timers, rate-error/bootstrap behavior, and TX/reset lifecycle. Build the
+  adversarial association experiment against the real MAC before freezing the
+  unchanged-MAC interface promise.
 
 - Review `PtpPkg` record widths, sign conventions, SFD reference plane, Q32/Q16
   conversions, and valid/ready semantics.
@@ -1601,7 +1782,7 @@ and never updates the PHC from an incomplete, invalid, or mismatched exchange.
   ports or a software process. Cover duplicate publisher, subscriber before
   publisher, reset-generation mismatch, stale anchor, time step, rate change,
   source loss, and recovery.
-- Specify and test the optional external SimLink Timing wire contract without
+- As an optional follow-on, specify and test the external SimLink Timing wire contract without
   changing Stream, Memory, or SideBand compatibility. Keep monotonic simulator
   time separate from possibly discontinuous PTP time.
 - Run the same application-level scheduled-event tests through the fast
@@ -1944,8 +2125,9 @@ make MODULES="$PWD" import
 - PCS/PMA latency calibration is not portable between GTX7, GTH7, GTH
   UltraScale, GTH UltraScale+, and GTY UltraScale+. Reusing a convenient
   constant can produce a stable servo with a family-dependent absolute offset.
-- One-step support affects packet data, correction fields, checksums, and FCS
-  and should not be mixed into the initial two-step implementation.
+- One-step transmit insertion affects packet data, correction fields,
+  checksums, and FCS and should not be mixed into the initial two-step
+  implementation.
 - Hardware timestamps alone do not make an autonomous synchronized endpoint;
   message state, delay/offset arithmetic, and a stable clock servo are also
   required.
