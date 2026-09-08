@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1190" role="img" aria-labelledby="title description">
   <title id="title">Ethernet PTP endpoint with atomic validated RX records</title>
-  <desc id="description">EthMacPtpEndpoint contains EthMacTop, one passive physical timestamp adapter, PtpRxFrontend, and PtpEndpoint. The frontend validates RX FCS before emitting decoded message and capture together. The MAC's redundant RX bypass is drained. TX uses the MAC bypass and a keyed wire completion event. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and one PHC. The RX slice is implemented and simulated; TX completion and endpoint integration remain planned.</desc>
+  <desc id="description">EthMacPtpEndpoint contains EthMacTop, passive RX/TX timestamp adapters, PtpRxFrontend, and PtpEndpoint. The frontend validates RX FCS before emitting decoded message and capture together. The MAC's redundant RX bypass is drained. TX uses the MAC bypass and a keyed wire completion event. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and one PHC. The endpoint RTL is implemented; the implementation record tracks simulation and remaining FPGA qualification.</desc>
   <defs>
     <marker id="packetArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#334155"/></marker>
     <marker id="eventArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#b45309"/></marker>
@@ -29,7 +29,7 @@
   </defs>
   <rect width="1600" height="1190" fill="#fff"/>
   <text class="title" x="60" y="52">Ethernet PTP endpoint</text>
-  <text class="subtitle" x="60" y="84">Selected RX boundary · validated message and capture stay together · RX slice simulated; endpoint integration and FPGA timing remain open</text>
+  <text class="subtitle" x="60" y="84">Atomic RX records · physical TX completion · autonomous endpoint RTL · see implementation record for validation and FPGA qualification</text>
 
   <rect x="70" y="170" width="1060" height="850" rx="18" fill="#f6f8fb" stroke="#b0bdcc" stroke-width="2"/>
   <text class="groupTitle" x="94" y="205">EthMacPtpEndpoint</text>
@@ -51,9 +51,9 @@
   <text class="label eventText" x="982" y="325">Observe</text>
 
   <rect x="840" y="360" width="250" height="95" rx="10" fill="#fffbf1" stroke="#cc9a55" stroke-width="1.5"/>
-  <text class="blockTitle" x="965" y="394">Physical adapter</text>
-  <text class="detail" x="965" y="421">GMII or XGMII tap</text>
-  <text class="detail" x="965" y="445">RX framing · TX completion</text>
+  <text class="blockTitle" x="965" y="394">Physical capture</text>
+  <text class="detail" x="965" y="421">PtpRxTimestampAdapter</text>
+  <text class="detail" x="965" y="445">PtpTxTimestampTap</text>
   <path class="event" d="M 840 406 H 780"/>
   <text class="label eventText" x="810" y="389" text-anchor="middle">RX</text>
 
@@ -132,7 +132,7 @@
   <text class="small" x="1200" y="946">Precise actions remain in phcClk.</text>
   <text class="small" x="1200" y="971">Other domains use explicit CDC.</text>
 
-  <text class="groupNote" x="130" y="944">PtpPkg supplies shared types and arithmetic; it is not an instantiated block.</text>
+  <text class="groupNote" x="130" y="944">PtpPkg supplies shared types; port, servo and registers own serialized PtpMath engines.</text>
   <text class="groupNote" x="94" y="994">Common ethClk. Protocol abort and link loss do not imply PHC reset or release unresolved TX keys.</text>
 
   <path class="packet" d="M 70 1065 H 120"/>
@@ -144,5 +144,5 @@
   <path class="time" d="M 1280 1065 H 1330"/>
   <text class="label timeText" x="1345" y="1071">PHC time</text>
   <text class="small" x="60" y="1125">For clarity: status, shared localMac, clocks, resets, abort/generation control, and handshake returns are omitted.</text>
-  <text class="small" x="60" y="1153">The README interface table and RX boundary contract define those connections. Simulation providers are separate.</text>
+  <text class="small" x="60" y="1153">Primary TX uses PtpPrimaryGuard; PTP TX widens to the MAC bypass. PtpPhcRead provides optional snapshot CDC.</text>
 </svg>

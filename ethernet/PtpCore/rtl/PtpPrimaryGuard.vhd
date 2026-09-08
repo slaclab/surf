@@ -1,0 +1,107 @@
+-------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
+-- Description: Reserve untagged PTP TX identity at the primary EMAC boundary
+-------------------------------------------------------------------------------
+-- This file is part of 'SLAC Firmware Standard Library'.
+-- It is subject to the license terms in the LICENSE.txt file found in the
+-- top-level directory of this distribution and at:
+--    https://confluence.slac.stanford.edu/display/ppareg/LICENSE.html.
+-- No part of 'SLAC Firmware Standard Library', including this file,
+-- may be copied, modified, propagated, or distributed except according to
+-- the terms contained in the LICENSE.txt file.
+-------------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+library surf;
+use surf.StdRtlPkg.all;
+use surf.AxiStreamPkg.all;
+use surf.EthMacPkg.all;
+use surf.PtpPkg.all;
+
+entity PtpPrimaryGuard is
+   generic (
+      TPD_G          : time := 1 ns;
+      RST_POLARITY_G : sl   := '1');
+   port (
+      clk          : in  sl;
+      rst          : in  sl;
+      sMaster      : in  AxiStreamMasterType;
+      sSlave       : out AxiStreamSlaveType;
+      mMaster      : out AxiStreamMasterType;
+      mSlave       : in  AxiStreamSlaveType;
+      droppedCount : out slv(31 downto 0));
+end entity PtpPrimaryGuard;
+
+architecture rtl of PtpPrimaryGuard is
+
+   type RegType is record
+      master   : AxiStreamMasterType;
+      first    : sl;
+      dropping : sl;
+      dropped  : slv(31 downto 0);
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      master   => AXI_STREAM_MASTER_INIT_C,
+      first    => '1',
+      dropping => '0',
+      dropped  => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
+begin
+
+   comb : process (r, rst, sMaster, mSlave) is
+      variable v       : RegType;
+      variable ready   : sl;
+      variable discard : sl;
+   begin
+      v := r;
+
+      ready := not r.master.tValid or mSlave.tReady or r.dropping;
+      if mSlave.tReady = '1' then
+         v.master.tValid := '0';
+      end if;
+      if sMaster.tValid = '1' and ready = '1' then
+         discard := r.dropping;
+         if r.first = '1' then
+            discard := '0';
+            -- The 16-byte EMAC first beat contains the complete L2 header.
+            -- Reserve all untagged PTP on primary TX, preventing an application
+            -- from impersonating a Delay_Req key owned by the endpoint ledger.
+            -- A fragmented/short first beat is outside this wrapper's EMAC
+            -- contract and is also drained, never partially sent to the MAC.
+            if sMaster.tKeep(15 downto 0) /= x"FFFF" or
+               axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sMaster, EMAC_SOF_BIT_C, 0) = '0' or
+               sMaster.tData(111 downto 96) = x"F788" then
+               discard   := '1';
+               v.dropped := ptpSatInc(r.dropped);
+            end if;
+         end if;
+         if discard = '0' then
+            v.master := sMaster;
+         end if;
+         v.first    := sMaster.tLast;
+         v.dropping := discard and not sMaster.tLast;
+      end if;
+      if rst = RST_POLARITY_G then
+         v     := REG_INIT_C;
+         ready := '0';
+      end if;
+      rin           <= v;
+      sSlave.tReady <= ready;
+      mMaster       <= r.master;
+      droppedCount  <= r.dropped;
+   end process comb;
+   seq : process (clk) is
+   begin
+      if rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
+
+end architecture rtl;

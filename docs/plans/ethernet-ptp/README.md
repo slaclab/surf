@@ -9,12 +9,15 @@ PTP, exchanges the required delay messages, and disciplines its local time
 without relying on Linux `ptp4l`. Rogue may configure and observe the endpoint,
 but it is not in the timing loop.
 
-Status: architecture planning with an implemented RX RTL proof. The ordinary-PTP module
-boundaries, datapath integration, initial protocol subset, time arithmetic,
-servo behavior, application coordination boundary, co-simulation model, and
-provisional register map are specified below. The
-[RX adapter/validator slice](rx-rtl-proof.md) now exists under `ethernet/PtpCore`;
-the production PHC, port, servo, registers, and complete endpoint remain planned.
+Status: the autonomous endpoint simulation milestone is complete: 101 pytest
+cases pass, including independent absolute-phase checks and real-MAC lifecycle
+checks on GMII/XGMII. The [implementation record](autonomous-endpoint.md)
+defines the implemented register ABI, reset/command ownership, calibration,
+numerical envelope, validation and remaining limits. It supersedes provisional
+module names and register offsets below. The PHC, port, servo, AXI-Lite/PyRogue
+map, TX ledger and common-clock MAC composition now accompany the
+[RX adapter/validator slice](rx-rtl-proof.md). Device/GT integration, physical
+qualification and application timing remain future milestones.
 
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
 The real-MAC experiment rejects the original header-key-only RX association:
@@ -23,10 +26,10 @@ remove old packets from the MAC FIFO. The selected replacement is a
 [passive validated RX frontend](rx-frontend-design.md) that emits each decoded
 message and capture atomically. Its bounded reference model passes the loss,
 overflow, and restart cases. The RX slice now also passes physical RTL and
-real-MAC loss experiments; device timing/resources and future consumer abort
-integration remain open. The diagram shows the target endpoint composition,
-including TX and protocol blocks that are not implemented yet. R3-R6 are not
-all closed for endpoint implementation.
+real-MAC loss experiments. The endpoint now consumes that abort contract and
+retains physical TX ownership across protocol restart. The diagram shows the
+logical composition; consult the implementation record for completed tests and
+remaining qualification rather than treating the architectural diagram as proof.
 
 The [2026-09-08 design review](review-2026-09-08.md) records concrete defects,
 remaining design gates, and the evidence needed to close them. In particular,
@@ -246,11 +249,11 @@ vendor checkpoint.
 
 The exact responsibility of each synthesizable block is:
 
-The current proof instantiates `PtpRxTimestampAdapter` directly with
-`PtpRxFrontend`. It implements only the RX portion of the physical adapter
-responsibilities below; combined RX/TX timestamp taps remain planned and should
-reuse this RX implementation. See the [source index](../../../ethernet/PtpCore/README.md)
-for implemented files and interface limits.
+The implementation uses `PtpRxTimestampAdapter` with `PtpRxFrontend` for RX,
+and `PtpTxTimestampTap` reuses both for physical TX completion. `PtpPhcRead`
+is a separate optional snapshot CDC mailbox. The following inventory describes
+the target responsibilities; see the [source index](../../../ethernet/PtpCore/README.md)
+and [implemented contracts](autonomous-endpoint.md) for concrete entity names and limits.
 
 | Entity | Clock domain | Responsibility |
 | --- | --- | --- |
@@ -1267,6 +1270,10 @@ actuators remain SyncE/White Rabbit work described later.
 
 ### Provisional AXI-Lite register map
 
+This table is retained as planning history. Use the implemented
+[ABI v1 map](autonomous-endpoint.md#axi-lite-abi-v1) and matching PyRogue model
+for the current RTL. In particular, latency calibration is build-time in v1.
+
 Reserve one 4 KiB endpoint window. Offsets are provisional until the package
 and PyRogue model are reviewed, but keeping these functional blocks separated
 prevents later register churn:
@@ -1688,6 +1695,10 @@ offset sign.
 
 ### Phase 1: PHC, arithmetic, and CDC
 
+Local RTL and simulation work is implemented; see the
+[validation record](autonomous-endpoint.md#validation-and-handoff). The optional
+snapshot mailbox still needs device synthesis and physical CDC qualification.
+
 - Implement `PtpPkg`, `PtpPhc`, its integrated coherent read CDC, the PHC
   portion of `PtpReg`, and a thin `PtpPhcWrapper`.
 - Verify 48-bit second rollover behavior, nanosecond normalization, Q32
@@ -1729,6 +1740,9 @@ loss stimuli. Bus observation does not modify application traffic.
 
 ### Phase 3: PTP port packet and transaction engine
 
+The bounded two-step port and persistent keyed TX ledger are implemented and
+simulated. See the [implemented policy](autonomous-endpoint.md#port-policy-and-numerical-envelope).
+
 - Implement `PtpPort` with decoded RX policy validation, TX AXI builder,
   reserved-key TX completion, message timers, and E2E transaction arithmetic.
 - Use known PTP v2.0/v2.1 fixtures for Sync, Follow_Up, Delay_Resp, and Announce
@@ -1752,6 +1766,11 @@ FIFO-order assumption or silent overwrite, and its internal sections do not
 need public interfaces solely for unit-test access.
 
 ### Phase 4: autonomous endpoint and closed-loop servo
+
+The local autonomous endpoint milestone is complete. The independent master
+fixture is Python/cocotb (`ptp_endpoint_test_utils.py`); no VHDL packet-stimulus
+engine is needed. The [implementation record](autonomous-endpoint.md) defines
+the supported numerical cases and distinguishes them from device qualification.
 
 - Implement `PtpServo`, complete `PtpReg`, and compose them with `PtpPort` and
   `PtpPhc` in `PtpEndpoint`.
@@ -1803,6 +1822,11 @@ software timing loop, and the same event can be armed through Rogue/SimLink
 Memory using the production scheduler register contract.
 
 ### Phase 6: `EthMacTop` composition and compatibility
+
+`EthMacPtpEndpoint` now provides common-clock composition with the unchanged
+MAC, an exclusive primary PTP guard and a private TX resize/bypass path. GMII
+and XGMII pause/restart/late-completion regressions pass. Board/GT siblings and
+physical implementation remain later work.
 
 - Correct the bypass `GEN_SYNC_FIFO_G` selection in `EthMacRxFifo` to use
   `BYP_COMMON_CLK_G`, with focused tests proving primary and bypass generics are

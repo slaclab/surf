@@ -63,7 +63,8 @@ class WireFrame:
 
 
 class WireObserver:
-    def __init__(self):
+    def __init__(self, period_ns=Fraction(32, 5)):
+        self.period_ns = Fraction(period_ns)
         self.frames = []
         self.body = None
         self.timestamp = None
@@ -73,7 +74,7 @@ class WireObserver:
             byte, control = (data >> (8 * lane)) & 255, (controls >> lane) & 1
             if control and byte == 0xfb:
                 self.body = bytearray()
-                self.timestamp = edge_ns + Fraction((lane + 8) * 4, 5)
+                self.timestamp = edge_ns + Fraction(lane + 8, 8)*self.period_ns
             elif self.body is not None:
                 if control:
                     raw, self.body = bytes(self.body), None
