@@ -18,10 +18,12 @@ been implemented.
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
 The real-MAC experiment rejects the original header-key-only RX association:
 CRC drops can be invisible to `rxFifoDrop`, and timestamp-only flushes do not
-remove old packets from the MAC FIFO. The physical capture strategy remains
-useful, but the RX association boundary must be revised before production PTP
-interfaces are frozen. The diagram marks that rejected join; it is not an
-implementation-ready endorsement of the original RX path.
+remove old packets from the MAC FIFO. The selected replacement is a
+[passive validated RX frontend](rx-frontend-design.md) that emits each decoded
+message and capture atomically. Its bounded reference model passes the loss,
+overflow, and restart cases; the production physical adapter/validator remains
+to be implemented and verified. The diagram and interfaces below reflect this
+replacement. R3-R6 are not yet all closed for endpoint implementation.
 
 The [2026-09-08 design review](review-2026-09-08.md) records concrete defects,
 remaining design gates, and the evidence needed to close them. In particular,
@@ -148,34 +150,35 @@ may continue but the exported time-scale-valid status must reflect it.
 
 ## Recommended plain-PTP architecture
 
-The candidate first implementation is a PTP-aware timestamp tap at the
-wire-facing GMII or XGMII bus, paired with the existing raw-Ethernet bypass.
-The tap observes the frame actually sent or received, captures time when the
-SFD crosses the MAC/PCS interface, and parses enough of the PTP header to
-identify that timestamp. If the association proof closes, this avoids carrying
-a tag through every current MAC FIFO, arbitration, checksum, pause, padding,
-and filtering stage.
+The selected architecture observes the wire-facing GMII or XGMII bus.
+On RX, the physical adapter binds the message-point capture to normalized frame
+bytes, and `PtpRxFrontend` validates FCS and structure before publishing one
+decoded-message/capture record. No join with MAC-delivered RX packets exists.
+On TX, a header-keyed tap identifies actual Delay_Req wire completion after
+MAC queueing, subject to the R6 key-lifetime and exclusive-identity contract.
+The [RX design decision](rx-frontend-design.md) compares metadata-through-MAC
+and passive-validation alternatives and specifies storage and abort behavior.
 
 The composition drawing below shows each hardware block once, with separate
 line styles for packets, timestamps, PHC time, and control. The interface table
 supplies connections omitted from the drawing for readability.
 
-Application frames use the existing primary AXI Stream interface. PTP frames
-use the private `0x88F7` bypass between `PtpEndpoint` and `EthMacTop`. The
-timestamp taps are passive observers of the same GMII/XGMII buses that connect
-the MAC to the PCS/PMA; they do not sit in or modify the frame datapath.
+Application frames use the existing primary AXI Stream interface. PTP TX uses
+the private `0x88F7` bypass between `PtpEndpoint` and `EthMacTop`; the wrapper
+always drains the redundant MAC RX bypass copy. The physical observers use the
+same GMII/XGMII buses that connect the MAC to the PCS/PMA and do not modify them.
 
 `EthMacTop` already gives bypass traffic priority at a transmit frame boundary.
 The timestamp tap measures the actual egress SFD after any wait behind a frame
 already in progress, so that variable queueing delay is correctly included in
 `t3`. On receive, `EthMacRxBypass` selects `0x88F7` before the normal destination
-filter. The endpoint should run the bypass in the `ethClk` domain with
-`BYP_COMMON_CLK_G = true`, avoiding a CDC in the PTP packet path.
+filter, keeping the redundant copy off the application primary stream. The
+endpoint runs the bypass and frontend in `ethClk`, with `BYP_COMMON_CLK_G = true`.
 
 The current bypass classifier compares bytes 12 and 13 directly. A VLAN frame
 therefore presents `0x8100` or `0x88A8` rather than `0x88F7` and will not reach
-the PTP endpoint. Supporting one or more VLAN tags requires a deliberate
-extension to `EthMacRxBypass`; it is not silently included in the first scope.
+the bypass drain. The frontend independently rejects tagged PTP. Supporting
+VLAN tags requires deliberate extensions to both classifier and frontend.
 
 ### Proposed source tree and module inventory
 
@@ -190,6 +193,7 @@ ethernet/PtpCore/
     PtpPhc.vhd
     PtpGmiiTimestampTap.vhd
     PtpXgmiiTimestampTap.vhd
+    PtpRxFrontend.vhd
     PtpPort.vhd
     PtpServo.vhd
     PtpReg.vhd
@@ -203,6 +207,7 @@ ethernet/PtpCore/
   wrappers/
     PtpPhcWrapper.vhd
     PtpTimestampTapWrapper.vhd
+    PtpRxFrontendWrapper.vhd
     PtpEndpointLoopbackWrapper.vhd
 ```
 
@@ -241,13 +246,14 @@ The exact responsibility of each synthesizable block is:
 | --- | --- | --- |
 | `PtpPkg` | n/a | Wire constants, message types, port identity, time and event records, init constants, array types, byte-order helpers, timestamp normalization, signed time difference, and correction-field conversion. |
 | `PtpPhc` | `phcClk` plus optional read clock | Free-running 48-bit-seconds/32-bit-nanoseconds/32-bit-fraction PHC, nominal and signed rate addends, atomic set/phase operation, PPS, validity, discontinuity status, local coherent snapshot, and one optional clock-domain-safe snapshot/read interface. |
-| `Ptp[Gmii\|Xgmii]TimestampTap` | `ethClk` | The selected physical-interface variant observes RX and TX, detects SFD, records the PHC value, parses an untagged PTP header, and emits a keyed event after end-of-frame with physical error status. The XGMII variant also applies the correct sub-cycle byte offset for legal start-lane alignment. |
-| `PtpPort` | `ethClk` | Owns one fixed-role IEEE 1588 port: raw AXI Stream parsing and Delay_Req generation, keyed RX/TX timestamp association, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, corrected forward/reverse-delay arithmetic, source checks, and port counters. |
+| `Ptp[Gmii\|Xgmii]TimestampTap` | `ethClk` | Selected passive physical adapter: detects framing and captures message-point time, emits normalized RX bytes with their SOF capture to the frontend, and emits keyed TX completion events. Applies legal XGMII lane offsets and physical error detection. No independent RX timestamp queue. |
+| `PtpRxFrontend` | `ethClk` | Validates complete RX FCS, length, PTP structure, and bounded TLVs; emits atomic decoded-message/capture records for Sync, Follow_Up, Delay_Resp, and Announce. Owns bounded partial decode, record FIFO, and RX abort/epoch behavior. |
+| `PtpPort` | `ethClk` | Owns one fixed-role IEEE 1588 port: decoded RX policy validation and Delay_Req generation, keyed TX completion, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, corrected forward/reverse-delay arithmetic, source checks, and port counters. |
 | `PtpServo` | `ethClk` | Filters raw path-delay updates, combines later forward-delay observations with the fresh filtered delay to form offset samples, performs acquisition and PI rate control, produces bounded automatic phase/rate commands, and owns lock, holdover, and fault qualification. It remains separate because it is a replaceable control algorithm, not packet-port behavior. |
 | `PtpReg` | `ethClk` | Stable AXI-Lite register map for identity, profile, manual PHC commands, servo parameters, latency calibration, snapshots, counters, and interrupts. This follows the existing SURF `*Reg` naming pattern. Timing-control ports are direct RTL signals rather than AXI transactions. |
-| `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes raw bypass streams, timestamp-tap events, AXI-Lite, time/PPS, and summarized state. |
+| `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes decoded RX records/abort, raw bypass TX, TX timestamp events, AXI-Lite, time/PPS, and summarized state. |
 | `PtpEventScheduler` | `phcClk` plus optional AXI-Lite clock | Optional, separately instantiated application service. It owns a bounded queue of generic one-shot events at absolute PHC times, atomic enqueue/cancel commands, late/time-invalid policy, execution timestamps, and a non-backpressurable one-cycle event output. It is not part of the PTP protocol or servo loop. |
-| `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around `EthMacTop`: enables the `0x88F7` bypass, instantiates the proper tap for `PHY_TYPE_G`, supplies the shared `localMac`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
+| `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around `EthMacTop`: enables the `0x88F7` bypass, always drains its RX copy, instantiates the proper physical adapter and `PtpRxFrontend`, supplies shared `localMac`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
 
 The simulation-only entities are:
 
@@ -261,10 +267,9 @@ The simulation-only entities are:
 
 ![PtpCore RTL composition and signal flow](PtpCoreArchitecture.svg)
 
-Each box represents one instance. Only one timestamp-tap variant is
-instantiated, selected by `PHY_TYPE_G`. The highlighted association gate marks
-the rejected header-key join between physical captures and MAC-delivered frames
-after drops; its replacement remains an open interface decision.
+Each box represents one instance. Only one physical timestamp-adapter variant
+is instantiated, selected by `PHY_TYPE_G`. The RX frontend is a distinct
+validation boundary; its decoded message and capture share one record FIFO.
 
 The drawing covers the mandatory Ethernet endpoint composition.
 `PtpEventScheduler` is deliberately outside `EthMacPtpEndpoint`: an
@@ -281,12 +286,14 @@ For completeness, the point-to-point interfaces are:
 | Producer | Interface | Consumer |
 | --- | --- | --- |
 | `PtpPort` | Raw PTP TX AXI Stream | `EthMacTop` bypass input |
-| `EthMacTop` | Raw PTP RX AXI Stream | `PtpPort` |
+| `EthMacTop` | Raw PTP RX AXI Stream | Always-ready drain inside `EthMacPtpEndpoint` |
 | `EthMacTop` | TX/RX GMII or XGMII | PCS/PMA |
 | GMII/XGMII bus | Passive RX/TX observation | Selected timestamp tap |
 | `PtpPhc` | Current PHC time | Selected timestamp tap |
-| `PtpEndpoint` | Time/configuration generation, flush and quiesce control | Taps, `PtpPort`, `PtpServo`, and PHC command selector |
-| Selected timestamp tap | Keyed RX/TX SFD timestamp event | `PtpPort` |
+| Selected timestamp tap | Non-backpressurable normalized RX bytes plus atomic SOF capture | `PtpRxFrontend` |
+| `PtpRxFrontend` | Decoded RX message/capture valid/ready, RX epoch, and same-edge abort | `PtpPort` through `PtpEndpoint` |
+| `PtpEndpoint` | Time/configuration generation, flush and quiesce control | Tap, RX frontend, `PtpPort`, `PtpServo`, and PHC command selector |
+| Selected timestamp tap | Keyed TX message-point timestamp event | `PtpPort` |
 | `PtpPort` | Forward-delay observations and raw path-delay updates | `PtpServo` |
 | `PtpServo` | Automatic PHC command | Selector inside `PtpEndpoint` |
 | `PtpReg` | Manual PHC command | Selector inside `PtpEndpoint` |
@@ -322,10 +329,10 @@ transition to manual mode, hold or reset the servo integrator; on a transition
 back to automatic mode, restart acquisition instead of applying the stale
 integrator state.
 
-This is intentionally not a one-file-per-operation design. Parsing, message
-generation, matching tables, timers, and E2E arithmetic all mutate the same
-PTP port state and are not expected to have independent users, so they belong
-as internal records/process sections in `PtpPort`. Keep separate entities where
+Message generation, matching tables, timers, and E2E arithmetic mutate the
+same PTP port state and belong as internal records/process sections in
+`PtpPort`. The RX frontend has a separate verification boundary because it must
+bind physical capture and validated bytes before loss. Keep separate entities where
 there is a durable boundary: PHC versus protocol policy, servo versus packet
 state, AXI-Lite versus the timing loop, GMII versus XGMII physical decoding,
 and generic endpoint versus MAC composition. A distinct clock domain must be
@@ -352,9 +359,12 @@ implement the servo, event timing, or multi-endpoint coordination policy.
 - `PtpPortIdentityType`: 64-bit clock identity plus 16-bit port number;
 - `PtpEventKeyType`: direction, 4-bit message type, 8-bit domain,
   `sourcePortIdentity`, and 16-bit sequence ID;
-- `PtpMacTimestampType`: key, timestamp, lane/reference-plane information,
-  and valid/error flags;
-- decoded Sync, Follow_Up, Delay_Resp, and Announce records;
+- `PtpMacTimestampType`: key, timestamp, unsteered ticks plus byte phase,
+  lane/reference-plane information, and valid/error flags for TX completion;
+- `PtpRxMessageType`: decoded Sync, Follow_Up, Delay_Resp, or Announce fields
+  together with the SOF timestamp, unsteered ticks plus byte phase, time/configuration generation,
+  time-valid status, and RX epoch; plus an SOF capture sidecar type for the
+  non-backpressurable physical adapter;
 - a measurement-kind record that distinguishes a forward-delay observation
   from a raw path-delay update and carries both association ages; and
 - direct `PtpPhcControlType`, `PtpPhcStatusType`, servo configuration, and
@@ -365,35 +375,31 @@ implement the servo, event timing, or multi-endpoint coordination policy.
   PHC times, validity, and late/error flags. Opcodes and payloads are
   intentionally generic; application meanings do not belong in `PtpPkg`.
 
-Use a valid/ready interface around timestamp-tap events and completed
-measurement records. Internal decoded-message queues follow the same
-handshake discipline. The GMII/XGMII buses themselves are not backpressurable,
-so each tap owns independent RX and TX event FIFOs between physical capture and
-its valid/ready outputs. Four entries per direction, four Sync/Follow_Up
-association entries, and four outstanding Delay_Req entries are sufficient
-initial defaults and must be generics. When a tap FIFO is full, discard the
-newest event, set a sticky overflow bit, increment a saturating counter, and
-emit a direct same-clock overflow pulse. `PtpPort` responds by flushing all
-live associations for that direction; never overwrite an older timestamp
-silently or guess which key was affected. The initial endpoint needs RX Sync
-and TX Delay_Req timestamps. Other PTP event-message types may be counted or
-optionally queued for diagnostics, but general messages such as Follow_Up,
-Delay_Resp, and Announce do not consume timestamp FIFO entries.
+Use valid/ready around completed RX records, TX timestamp events, and
+measurements. The physical bus cannot be stalled. The frontend therefore owns
+one RX record FIFO, while the tap owns a separate TX completion FIFO; four
+entries each, four Sync/Follow_Up slots, and four outstanding Delay_Req entries
+are initial configurable defaults. All supported RX messages consume record
+slots, including general messages; they cannot bypass CRC validation or lose
+their capture/provenance separately.
 
-Inside `PtpPort`, organize the single-clock state as named subrecords for RX
-decode, TX generation, Sync association, delay association, timers, and
-counters under the normal `RegType`/`REG_INIT_C`/`r`/`rin` pattern. Pure field
-decode and time-arithmetic helpers belong in `PtpPkg`. The useful public
-contracts are raw RX/TX AXI Stream, RX/TX tap events, port configuration/status,
-and a valid measurement record for the servo. Decoded intermediate messages
-do not need public entity boundaries merely to make the implementation appear
-layered; cocotb can verify them through packet input, measurement output, and
-counters.
+The [RX boundary contract](rx-frontend-design.md) defines overflow/flush as an
+explicit same-edge abort of partial decode, queued records, and live RX-derived
+protocol work. `rxAbort` suppresses `valid && ready` transfer and increments the
+RX epoch without stepping the PHC or freeing unresolved TX keys. TX completion
+overflow requires fail-closed request retirement: a lost wire completion cannot
+make a request key reusable. R6 must specify recovery for that unknown wire fate.
 
-The tap emits an event only after enough frame state is known to attach an
-error indication. It records time immediately at SFD, then parses Ethernet
-bytes 12 and 13 and PTP header fields while the frame continues. For untagged
-PTP, the relevant PTP header byte offsets are:
+Inside `PtpPort`, use named subrecords for RX policy, TX generation, Sync
+association, delay association, timers, and counters under the normal two-process
+pattern. Pure decode/arithmetic helpers belong in `PtpPkg`. Public contracts are
+decoded RX records/abort, raw TX AXI Stream, TX completion events, configuration,
+status, and measurements. RX structural parsing belongs in `PtpRxFrontend`.
+
+The physical adapter captures at the message point and attaches the capture to
+the first normalized RX data beat. The frontend retains that capture through
+frame validation and emits nothing until complete FCS and structure are known.
+For untagged PTP, the relevant PTP header byte offsets are:
 
 | PTP offset | Field |
 | ---: | --- |
@@ -410,56 +416,34 @@ PTP, the relevant PTP header byte offsets are:
 
 The common PTP header is 34 bytes. Sync, Delay_Req, and Follow_Up are 44-byte
 PTP messages, Delay_Resp is 54 bytes, and Announce is 64 bytes before optional
-TLVs. The RX codec inside `PtpPort` must use `messageLength`, ignore legal
-Ethernet padding, reject truncation, and skip unknown TLVs without trying to
-interpret them.
+TLVs. `PtpRxFrontend` uses `messageLength`, ignores legal Ethernet padding,
+rejects truncation, and validates bounded TLV lengths before skipping unknown
+values. `PtpPort` then applies source/profile and message-specific semantic policy.
 
-The event key is normally unique while its bounded association is live, but a
-network duplicate can repeat every key field. For each key, match the oldest
-event to the oldest decoded frame only while exactly one unambiguous pair
-exists. If multiple live events or frames with the same key could make a MAC
-FIFO drop select the wrong SFD timestamp, mark that key generation ambiguous,
-discard every member, increment a duplicate-ambiguity counter, and wait for
-the entries to expire before reusing it. Correctness takes priority over
-extracting a measurement from an indistinguishable duplicate. Do not use
-global FIFO position as a substitute for the key.
-
-The [Phase 0 experiment](phase-0-experiments.md) demonstrates that this
-live-table rule is insufficient. A CRC-bad
-frame A may leave a tap event while the MAC drops its AXI frame; a later valid
-copy B with the same key may be delivered while B's event is still blocked.
-The apparent single pair is then A's timestamp and B's frame. Phase 0 must
-prove an ordering/retirement barrier covering every drop and event-delivery
-path, or select explicit per-frame association metadata in an opt-in MAC
-composition. `EthMacRxFifo` exposes only an aggregate primary-or-bypass drop
-pulse today. A flush on that pulse is conservative, but its timing relative to
-measurement acceptance must also be proved. The unchanged-MAC boundary is a
-compatibility objective, not grounds for accepting incorrect timestamps.
+No RX header-key join remains. The [Phase 0 experiment](phase-0-experiments.md)
+proved that an apparently unique live pair can combine a discarded frame's
+capture with a later delivered duplicate. The replacement carries message and
+capture together before any independent queue/drop. Duplicate exchange keys
+still need protocol retirement and conflict handling; atomic physical identity
+does not replace Sync/Follow_Up matching or stale-message policy.
 
 ### Receive and transmit behavior
 
 The receive sequence is:
 
-1. The RX tap captures the local time at SFD and later emits a key for a valid
-   PTP event frame. For the initial E2E endpoint, only Sync needs its RX
-   timestamp; recognizing all PTP event message types while making their
-   diagnostic queueing configurable keeps the tap reusable.
-2. `EthMacTop` checks CRC and frame shape and routes outer EtherType `0x88F7`
-   to its bypass. The bypass source and destination clocks are both `ethClk`;
-   the receive-FIFO implementation detail is addressed in the integration
-   section below.
-3. The RX codec in `PtpPort` validates the completed frame, including primary
-   multicast destination MAC, EtherType, version/minor version,
-   `transportSpecific`, domain, configured source identity, message length,
-   relevant flag fields, and message-specific identity. A bad-CRC/EOFE frame
-   never becomes a protocol message even if a tap event was already created.
-4. The port's association table joins the Sync frame with its timestamp. A
-   dropped bypass frame normally produces an orphan tap event that expires and
-   increments a counter. A repeated live key invokes the fail-closed ambiguity
-   rule above rather than claiming the key alone can identify which duplicate
-   survived.
-5. The same port state accepts Sync and Follow_Up in either order and emits a
-   forward-delay observation only after source, domain, and sequence all match.
+1. The physical adapter recognizes framing and binds the corrected local
+   message-point time, unsteered ticks, and generation to the RX SOF bytes.
+2. `PtpRxFrontend` streams the frame through FCS, length, version, and bounded
+   message/TLV checks. It enqueues one complete decoded-message/capture record
+   only after valid termination. Failed frames cannot leave orphan timestamps.
+3. Independently, `EthMacTop` routes its redundant untagged PTP copy to the
+   always-ready wrapper drain. MAC FIFO loss or reset does not select which
+   capture belongs to a frontend message.
+4. `PtpPort` accepts the atomic record only when its generation/epoch is current
+   and `rxAbort` is low, then applies destination/source/domain/flag and
+   message-specific policy. Abort invalidates live RX-derived work.
+5. The port accepts Sync and Follow_Up in either order and emits a forward-delay
+   observation only after source, domain, sequence, and duplicate policy match.
 
 The transmit sequence is:
 
@@ -467,8 +451,9 @@ The transmit sequence is:
    state builds Delay_Req with the next sequence ID.
 2. The raw frame enters the high-priority MAC bypass. A request is allocated
    when the first AXI beat handshakes and becomes timestamp-valid only after
-   the matching TX tap event supplies `t3`; an abort or protocol reset cancels
-   it.
+   the matching TX tap event supplies `t3`; an abort or protocol reset logically
+   retires it while preserving its key until its wire fate and quarantine permit
+   reuse.
 3. The TX tap observes the actual GMII/XGMII frame, captures raw SFD time,
    translates it to the PTP message point to form `t3`, and parses the
    transmitted source identity and sequence ID.
@@ -498,12 +483,9 @@ does not provide another writable source-MAC register. A future integration
 that permits the Ethernet MAC address itself to change must update the MAC and
 PTP builder atomically and restart the PTP port.
 
-The independent key-based event path is the candidate first implementation,
-subject to the association proof required by the design review.
-A generic per-frame request/tag metadata plane may still be useful for
-non-PTP hardware timestamp users and should remain a separate later design.
-Narrow per-frame association metadata may nevertheless be required to close
-the PTP-specific drop/duplicate proof.
+The independent key-based event path is retained only for TX completion,
+where the endpoint owns Delay_Req allocation and must reserve unresolved keys.
+A generic user-supplied per-frame timestamp tag remains a separate later API.
 
 ### Timestamp capture and reference plane
 
@@ -532,8 +514,9 @@ It is not initially a timestamp at the connector or remote fiber.
   `ingressLatency` is subtracted. TX capture occurs earlier than wire egress,
   so a configured positive `egressLatency` is added. Each is a signed 64-bit
   `2^-16` ns value, and each is applied exactly once in the tap.
-- The tap reports physical coding/error indications. Final validity also uses
-  the MAC AXI Stream EOFE/CRC result in the `PtpPort` RX codec.
+- The adapter reports physical coding/error indications. RX validity comes
+  from complete framing and FCS validation in `PtpRxFrontend`; it does not use
+  a separately delivered MAC AXI frame or aggregate MAC drop status.
 
 Perform message-point translation before the signed ingress/egress latency
 correction. Calibration constants must not conceal the missing SFD byte. Test
@@ -620,7 +603,7 @@ separate control inputs even when all logic uses one clock:
 | Input | Effect |
 | --- | --- |
 | `phcRst` | Explicitly resets PHC time, rate, validity, PPS state, and command state. It is driven only by the selected system/PTP timebase-reset policy. |
-| `portRst` | Clears RX/TX packet state, timestamp associations, timers, and Delay_Req transactions; it does not alter PHC time or the last acknowledged rate. |
+| `portRst` | Aborts RX partial/queued records and protocol work, clears timers, and logically retires Delay_Req transactions while preserving unresolved TX wire-key reservations. Does not reset PHC time/rate or directly reset a live MAC bypass. |
 | `linkReady` | Qualifies new protocol work and moves the port/servo into listening or holdover behavior. A deassertion is not wired as `phcRst`. |
 | `regRst` | Resets AXI-Lite transaction state. Whether an explicit register command also requests `phcRst` is a documented software-visible action, not an incidental consequence of AXI reset. |
 
@@ -712,6 +695,14 @@ dependency. This removes numerical PHC rate changes from the elapsed-time
 calculation. Tests establish arithmetic accuracy under constant oscillator
 rate; minimum observation span, estimator filtering/freshness, and uncertainty
 under variable path delay remain to be frozen before selecting servo defaults.
+
+The RX boundary review also requires a three-bit unsteered byte phase alongside
+the cycle counter in both RX and TX captures. Normalize the message point into
+whole cycles plus eighths (GMII phase zero); subtract both fields before rate
+conversion. Ignoring XGMII lane phase can bias delay by 1.6 ns at nominal 10G.
+The new RX model covers this with exact rational arithmetic. Extend the R5
+fixed-point vectors and multiply/rounding width budget to fractional tick spans;
+the earlier integer-tick arithmetic test does not establish that extension.
 
 A positive `offsetFromMaster` means the local PHC is ahead and must be slowed
 or stepped backward according to policy. The sign convention must have a
@@ -895,7 +886,8 @@ the same configured source port clears delay/lock and restarts acquisition.
 
 ### Clock-domain crossing and application use
 
-For the first GMII and XGMII endpoints, put `PtpPhc`, both taps, `PtpPort`, and
+For the first GMII and XGMII endpoints, put `PtpPhc`, the physical adapter,
+`PtpRxFrontend`, `PtpPort`, and
 `PtpServo` in the common `ethClk` domain. That is the only domain in which the
 exported running timestamp is cycle-accurate. Common clock does not mean common
 reset: `PtpEndpoint` fans out `phcRst`, `portRst`, `regRst`, and `linkReady`
@@ -1095,16 +1087,15 @@ co-simulation path.
 
 ### `EthMacTop` integration strategy
 
-Target an unchanged public `EthMacTop` entity for the first implementation,
-subject to closing the association proof. The candidate `EthMacPtpEndpoint`
-instantiates it with:
+The selected RX frontend preserves the public `EthMacTop` entity.
+`EthMacPtpEndpoint` instantiates it with:
 
 ```text
 BYP_EN_G         = true
 BYP_ETH_TYPE_G   = x"F788"   # wire bytes 88 F7 in SURF byte-lane order
 BYP_COMMON_CLK_G = true
 bypClk           = ethClk
-bypRst           = portRst
+bypRst           = macBYP reset  # R6 quiesce/reset contract; not raw portRst
 ```
 
 `EthMacRxBypass` compares `tData(111 downto 96)` directly, with byte 12 in
@@ -1114,9 +1105,10 @@ Keep wire-order constants distinct from packed AXI constants. Likewise,
 octets, not from the displayed hexadecimal vector. A directed integration
 fixture must prove wire bytes `88 F7` route to PTP and `F7 88` do not.
 
-It connects the private bypass streams directly to `PtpEndpoint`, taps the
-external GMII/XGMII ports in parallel, and leaves the public primary stream
-contract untouched. The composition takes one `localMac` input and supplies it
+It connects private bypass TX to `PtpEndpoint`, drains bypass RX in the
+wrapper, and observes external GMII/XGMII ports in parallel. `PtpRxFrontend`
+supplies decoded RX records to `PtpEndpoint`; the primary stream contract stays
+unchanged. The composition takes one `localMac` input and supplies it
 to both the Ethernet configuration path and `PtpEndpoint`. Before passing the
 configuration record to `EthMacTop`, it forces the local copy of
 `ethConfig.macAddress` to this input, making the same value authoritative even
@@ -1155,10 +1147,11 @@ network-lifetime quarantine, but a one-sided bypass reset does not establish
 that all old MAC traffic has disappeared. Production restart/drain handshakes
 and the supported network-lifetime bound remain explicit Phase 0 decisions.
 
-The compatibility price is that timestamps are PTP-header keyed rather than a
-generic user-supplied tag. That is an appropriate first boundary for an FPGA
-PTP endpoint. If a general NIC-style timestamp API is later required, add a
-separate metadata-plane RFC rather than weakening this key association.
+The compatibility cost is duplicated RX framing/FCS validation and a
+PTP-specific decoded RX boundary. TX completion remains header-keyed. Reserve
+that wire identity exclusively: primary traffic must not inject same-key
+Delay_Req frames, or the wrapper must enforce exclusion. A general NIC-style
+timestamp API needs a separate metadata-plane design.
 
 ### Xilinx family coverage for plain PTP
 
@@ -1700,36 +1693,36 @@ offset sign.
 Exit criterion: GHDL/cocotb tests match an integer Python reference model for
 long randomized runs and every clock command corner case.
 
-### Phase 2: passive physical timestamp taps
+### Phase 2: physical timestamp adapters and validated RX frontend
 
-- Implement `PtpGmiiTimestampTap` and `PtpXgmiiTimestampTap` as observers; do
-  not change an existing MAC entity.
-- Decode untagged destination/EtherType and the 34-byte PTP common header,
-  capture SFD, apply ingress/egress latency, and emit the full key.
-- Put independent, non-backpressurable RX/TX event FIFOs in each tap and verify
-  drop-newest, sticky status, saturating counters, and direction-wide
-  association flush on overflow.
-- Exercise back-to-back frames, runt/oversize/truncated frames, physical error,
-  reset mid-frame, all PTP event types, sequence wrap, and event FIFO full.
-- For XGMII, cover every legal `/S/` alignment and prove fractional byte-time
-  correction. For GMII, prove exact `0xD5` capture.
+- Implement `PtpGmiiTimestampTap`, `PtpXgmiiTimestampTap`, and `PtpRxFrontend`
+  according to the [selected RX boundary](rx-frontend-design.md), preserving
+  existing MAC entities. Prove SOF bytes and capture share every pipeline/reset.
+- Normalize physical RX framing without backpressure; validate FCS, bounded
+  length and TLVs before emitting an atomic decoded record. Keep TX keyed
+  completion separate. Reuse SURF CRC support where applicable.
+- Verify bounded storage, all four RX message types, malformed/truncated frames,
+  both legal XGMII start lanes, every termination position, GMII error, nested
+  start, and reset/generation change at every pipeline stage.
+- Exercise queue overflow simultaneous with ready and propagate `rxAbort` to
+  the real consumer before measurement commit. No separate RX event join.
+- Compare capture/calibration and signed fields with independent wire fixtures;
+  check eight-byte-per-clock throughput and synthesis resource/timing bounds.
 
-Exit criterion: tap results match a cycle-accurate Python wire model and the
-GMII/XGMII data being observed is not modified.
+Exit criterion: physical adapter/frontend RTL matches the bounded Python RX
+model and independent GMII/XGMII timing oracle under the original real-MAC
+loss stimuli. Bus observation does not modify application traffic.
 
 ### Phase 3: PTP port packet and transaction engine
 
-- Implement `PtpPort` with internal RX codec, TX builder, keyed timestamp
-  tables, message timers, and E2E transaction arithmetic on ordinary AXI
-  Stream frames.
-- Use known byte-vector fixtures for PTP v2.0 and v2.1 Sync, Follow_Up,
-  Delay_Resp, and Announce. Prove network byte order, message-length/padding
-  handling, correction-field sign, identity checks, EOFE rejection, and unknown
-  TLV skipping.
-- Join tap events and decoded frames with randomized relative delay so either
-  arrives first. Test duplicates, dropped frames, orphan events, replacement,
-  duplicate-key ambiguity, timeout, and sequence wrap. An ambiguous duplicate
-  must fail closed rather than select a plausible timestamp.
+- Implement `PtpPort` with decoded RX policy validation, TX AXI builder,
+  reserved-key TX completion, message timers, and E2E transaction arithmetic.
+- Use known PTP v2.0/v2.1 fixtures for Sync, Follow_Up, Delay_Resp, and Announce
+  across frontend and port. Prove network byte order, correction sign, source
+  and requesting-port checks, flag policy, and message-specific validity.
+- Reorder complete Sync/Follow_Up and Delay_Resp/TX completion records. Test
+  duplicate/conflicting exchange keys, replay, lost messages, timeout, sequence
+  wrap, and RX abort; the consumer must not commit old work on an abort edge.
 - Verify the complete 58-byte Delay_Req Ethernet content, shared `localMac`,
   SOF/EOFE, `TKEEP`, and `TLAST`, and prove stability under AXI backpressure;
   the MAC, not the builder, owns preamble/FCS/padding.
@@ -1800,8 +1793,9 @@ Memory using the production scheduler register contract.
 - Correct the bypass `GEN_SYNC_FIFO_G` selection in `EthMacRxFifo` to use
   `BYP_COMMON_CLK_G`, with focused tests proving primary and bypass generics are
   independent. Keep the public `EthMacTop` interface unchanged.
-- Implement `EthMacPtpEndpoint` around `EthMacTop` with raw
-  bypass on EtherType `0x88F7` and taps on the physical interface.
+- Implement `EthMacPtpEndpoint` around `EthMacTop` with raw TX bypass on
+  EtherType `0x88F7`, always-ready RX bypass drain, and the physical
+  adapter/validated frontend supplying atomic RX records.
 - Extend the current EthMac loopback test with PTP traffic mixed with random
   primary traffic, bypass/primary contention, pause, receive backpressure,
   bad CRC, FIFO drops, and link resets.
@@ -1997,12 +1991,13 @@ At minimum, focused tests should cover:
   protocol-oracle tests remain unchanged. Multi-process rendezvous is tested
   only when that later capability is implemented.
 - Capture: GMII and both XGMII start lanes, exact SFD edge, fractional offset,
-  timestamp behavior when `phyReady` changes, independent RX/TX event FIFO
-  pressure, and deterministic drop-newest overflow.
-- Association: timestamp/message arrival in either order, multiple outstanding
-  sequence IDs, unambiguous and ambiguous duplicates, sequence wrap,
+  timestamp behavior when `phyReady` changes, atomic RX record/TX completion
+  FIFO pressure, and explicit same-edge abort on RX overflow.
+- Association: Sync/Follow_Up and TX completion/Delay_Resp arrival in either
+  order, multiple outstanding sequence IDs, duplicate conflicts, sequence wrap,
   primary/bypass arbitration, backpressure, pause, underflow, filtered or
-  CRC-bad RX frames, tap/event FIFO full, orphan expiry, and counter saturation.
+  CRC-bad RX frames, record/event FIFO full, transaction expiry, and counter
+  saturation. A raw RX packet and timestamp never travel through separate queues.
 - Endpoint: message parsing, sequence/domain/identity rejection, two-step
   timestamp matching, correction-field arithmetic, independent Sync/delay
   measurement cadence and freshness, offset/path-delay solution, interval
@@ -2053,7 +2048,7 @@ make MODULES="$PWD" import
    servo gains after the integer reference-model sweep.
 4. Decide whether the first release must recognize a single `0x8100` VLAN tag;
    doing so requires changing the existing receive bypass classifier as well
-   as both taps and the frame builder.
+  as the physical adapters, RX frontend, and frame builder.
 5. Decide whether 10/100 Mb/s `ethClkEn` operation is required. The first
    1000BASE-X path does not need it.
 6. Determine how applications consume precise time: direct `phcClk` logic,
@@ -2090,13 +2085,16 @@ make MODULES="$PWD" import
 
 ## Risks
 
-- The keyed wire tap avoids invasive MAC metadata plumbing, but it duplicates
-  partial header parsing and must remain aligned with the completed AXI frame.
-  Dropped frames and orphan events must never be matched by arrival order. An
-  identical duplicate defeats uniqueness of the header key, so ambiguous live
-  duplicates are deliberately discarded rather than guessed.
-- A tap event is created before the MAC has delivered final CRC/EOFE status.
-  Protocol state must wait for both sides of the match and discard a bad frame.
+- The passive RX frontend duplicates framing/FCS validation. Its physical
+  adapter must keep capture and bytes together through every pipeline/reset,
+  sustain line rate, and never publish before complete validation. The model
+  proves the selected normalized boundary, not that physical implementation.
+- RX overflow uses explicit same-edge abort; a consumer that treats it as an
+  ordinary ready/valid channel can commit a record being invalidated. Prove
+  abort priority through transaction and measurement state in RTL.
+- TX remains header-keyed. Lost completion events, stale responses, and primary
+  traffic using the reserved Delay_Req identity require the R6 ownership,
+  quarantine, and reset contracts; the RX replacement does not close them.
 - A precise MAC timestamp can still be inaccurate at the wire if PCS/PMA or
   transceiver latency is variable or uncalibrated.
 - E2E PTP cannot distinguish real clock offset from unknown forward/reverse

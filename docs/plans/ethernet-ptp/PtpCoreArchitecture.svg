@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1080" role="img" aria-labelledby="title description">
-  <title id="title">Proposed Ethernet PTP endpoint architecture</title>
-  <desc id="description">One instance of each block is shown. EthMacPtpEndpoint contains EthMacTop, a passive GMII or XGMII timestamp tap, and PtpEndpoint. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and PtpPhc. Primary application frames pass through the MAC to an external PCS/PMA. Private bypass frames and keyed timestamp events meet at PtpPort; their association after MAC drops remains a design gate. The PHC drives capture time and application time. Register configuration, status, clocks, and resets are specified fully in the adjacent README interface table.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1190" role="img" aria-labelledby="title description">
+  <title id="title">Ethernet PTP endpoint with atomic validated RX records</title>
+  <desc id="description">EthMacPtpEndpoint contains EthMacTop, one passive physical timestamp adapter, PtpRxFrontend, and PtpEndpoint. The frontend validates RX FCS before emitting decoded message and capture together. The MAC's redundant RX bypass is drained. TX uses the MAC bypass and a keyed wire completion event. PtpEndpoint contains PtpPort, PtpServo, PtpReg, a command selector, and one PHC. Physical adapter and validator RTL remain to be verified.</desc>
   <defs>
     <marker id="packetArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#334155"/></marker>
     <marker id="eventArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#b45309"/></marker>
@@ -27,109 +27,122 @@
       .controlText { fill: #6240a4; }
     </style>
   </defs>
-
-  <rect width="1500" height="1080" fill="#fff"/>
+  <rect width="1600" height="1190" fill="#fff"/>
   <text class="title" x="60" y="52">Ethernet PTP endpoint</text>
-  <text class="subtitle" x="60" y="84">Proposed composition · one instance per block · common ethClk for capture, protocol, servo, and PHC</text>
+  <text class="subtitle" x="60" y="84">Selected RX boundary · validated message and capture stay together · physical adapter RTL proof remains open</text>
 
-  <!-- The optional integration wrapper preserves the primary stream interface. -->
-  <rect x="60" y="170" width="1000" height="750" rx="18" fill="#f6f8fb" stroke="#b0bdcc" stroke-width="2"/>
-  <text class="groupTitle" x="84" y="205">EthMacPtpEndpoint</text>
-  <text class="groupNote" x="720" y="205">Opt-in MAC composition</text>
+  <rect x="70" y="170" width="1060" height="850" rx="18" fill="#f6f8fb" stroke="#b0bdcc" stroke-width="2"/>
+  <text class="groupTitle" x="94" y="205">EthMacPtpEndpoint</text>
+  <text class="groupNote" x="855" y="205">Opt-in composition</text>
 
-  <text class="label" x="340" y="130" text-anchor="middle">Primary application AXI Stream</text>
-  <path class="packet duplex" d="M 340 145 V 230"/>
-  <rect class="box" x="110" y="230" width="490" height="100" rx="10"/>
-  <text class="blockTitle" x="355" y="269">EthMacTop</text>
-  <text class="detail" x="355" y="299">FIFOs · arbitration · pause · framing · CRC</text>
+  <text class="label" x="400" y="130" text-anchor="middle">Primary application AXI Stream</text>
+  <path class="packet duplex" d="M 400 145 V 240"/>
+  <rect class="box" x="100" y="240" width="370" height="100" rx="10"/>
+  <text class="blockTitle" x="285" y="279">EthMacTop</text>
+  <text class="detail" x="285" y="309">FIFO · arbitration · pause · CRC</text>
 
-  <rect class="box" x="1120" y="230" width="320" height="100" rx="10"/>
-  <text class="blockTitle" x="1280" y="269">PCS / PMA</text>
-  <text class="detail" x="1280" y="299">Family-specific PHY → link</text>
-  <path class="packet duplex" d="M 600 275 H 1120"/>
-  <text class="label" x="850" y="257" text-anchor="middle">TX / RX GMII or XGMII</text>
-  <circle cx="830" cy="275" r="5" fill="#b45309"/>
-  <path class="event" d="M 830 280 V 350"/>
-  <text class="label eventText" x="847" y="319">Observe</text>
+  <rect class="box" x="1200" y="240" width="330" height="100" rx="10"/>
+  <text class="blockTitle" x="1365" y="279">PCS / PMA</text>
+  <text class="detail" x="1365" y="309">Family-specific PHY → link</text>
+  <path class="packet duplex" d="M 470 285 H 1200"/>
+  <text class="label" x="815" y="267" text-anchor="middle">TX / RX GMII or XGMII</text>
+  <circle cx="965" cy="285" r="5" fill="#b45309"/>
+  <path class="event" d="M 965 290 V 360"/>
+  <text class="label eventText" x="982" y="325">Observe</text>
 
-  <rect x="690" y="350" width="270" height="95" rx="10" fill="#fffbf1" stroke="#cc9a55" stroke-width="1.5"/>
-  <text class="blockTitle" x="825" y="387">Timestamp tap</text>
-  <text class="detail" x="825" y="415">GMII or XGMII · RX + TX</text>
-  <text class="label eventText" x="523" y="373" text-anchor="middle">Keyed timestamp events</text>
-  <text class="small" x="1120" y="380">Capture at the MAC / PCS plane.</text>
-  <text class="small" x="1120" y="406">Translate SFD detection to the</text>
-  <text class="small" x="1120" y="432">PTP point immediately after SFD.</text>
+  <rect x="840" y="360" width="250" height="95" rx="10" fill="#fffbf1" stroke="#cc9a55" stroke-width="1.5"/>
+  <text class="blockTitle" x="965" y="394">Physical adapter</text>
+  <text class="detail" x="965" y="421">GMII or XGMII tap</text>
+  <text class="detail" x="965" y="445">RX framing · TX completion</text>
+  <path class="event" d="M 840 406 H 780"/>
+  <text class="label eventText" x="810" y="389" text-anchor="middle">RX</text>
 
-  <!-- Only PtpEndpoint owns the port, servo, registers, command selection, and PHC. -->
-  <rect x="90" y="470" width="890" height="405" rx="14" fill="#edf2f8" stroke="#9aaec5" stroke-width="1.5"/>
-  <text class="groupTitle" x="355" y="502">PtpEndpoint</text>
-  <path class="event" d="M 690 395 H 535 V 545 H 430"/>
-  <path class="packet duplex" d="M 240 330 V 525"/>
-  <rect x="126" y="388" width="228" height="57" rx="7" fill="#f6f8fb"/>
-  <text class="label" x="240" y="410" text-anchor="middle">Private PTP TX / RX</text>
-  <text class="small" x="240" y="433" text-anchor="middle">Raw L2 bypass · 0x88F7</text>
+  <rect x="450" y="360" width="330" height="95" rx="10" fill="#fffbf1" stroke="#cc9a55" stroke-width="2"/>
+  <text class="blockTitle" x="615" y="394">PtpRxFrontend</text>
+  <text class="detail" x="615" y="421">Framing / FCS · bounded decode</text>
+  <text class="detail" x="615" y="445">One message + capture FIFO</text>
+  <path class="event" d="M 615 455 V 505 H 430 V 620"/>
+  <text class="label eventText" x="640" y="487">Atomic RX records</text>
+  <path class="event" d="M 865 455 V 550 H 475 V 620"/>
+  <text class="label eventText" x="678" y="539" text-anchor="middle">Keyed TX completion</text>
 
-  <rect x="110" y="525" width="320" height="120" rx="10" fill="#fff" stroke="#cc9a55" stroke-width="2"/>
-  <text class="blockTitle" x="270" y="558">PtpPort</text>
-  <text class="detail" x="270" y="585">Parse · associate · E2E exchange</text>
-  <rect x="125" y="601" width="290" height="29" rx="5" fill="#fff0d7"/>
-  <text class="label eventText" x="270" y="621" text-anchor="middle">Key-only join rejected · R3</text>
+  <path class="packet" d="M 175 340 V 380"/>
+  <rect class="box" x="100" y="380" width="200" height="75" rx="10"/>
+  <text class="blockTitle" x="200" y="412">RX drain</text>
+  <text class="detail" x="200" y="439">Always ready</text>
+  <text class="small" x="100" y="480">Redundant MAC PTP copy</text>
+  <path class="packet" d="M 360 620 V 340"/>
+  <text class="label" x="345" y="535" text-anchor="end">PTP TX bypass</text>
+  <text class="small" x="345" y="557" text-anchor="end">Raw L2 · 0x88F7</text>
 
-  <rect class="box" x="690" y="525" width="270" height="120" rx="10"/>
-  <text class="blockTitle" x="825" y="564">PtpReg</text>
-  <text class="detail" x="825" y="594">Configuration · snapshots</text>
-  <text class="detail" x="825" y="620">Manual PHC commands</text>
-  <path class="control" d="M 690 585 H 430"/>
-  <text class="label controlText" x="565" y="575" text-anchor="middle">Port config</text>
+  <text class="small" x="1200" y="390">RX bytes and SOF capture are</text>
+  <text class="small" x="1200" y="416">inseparable before validation.</text>
+  <text class="small" x="1200" y="453">Timestamp point: immediately</text>
+  <text class="small" x="1200" y="479">after SFD at the MAC / PCS plane.</text>
 
-  <rect class="box" x="1120" y="525" width="320" height="120" rx="10"/>
-  <text class="blockTitle" x="1280" y="566">AXI-Lite / Rogue</text>
-  <text class="detail" x="1280" y="595">Configure and observe</text>
-  <text class="detail" x="1280" y="622">Outside the timing loop</text>
-  <path class="control" d="M 1120 565 H 1030 Q 1018 547 1006 565 H 960"/>
+  <rect x="100" y="580" width="1010" height="385" rx="14" fill="#edf2f8" stroke="#9aaec5" stroke-width="1.5"/>
+  <text class="groupTitle" x="125" y="608">PtpEndpoint</text>
+  <!-- Continue incoming routes above the endpoint background. -->
+  <path class="packet" style="marker-end: none" d="M 360 620 V 580"/>
+  <path class="event" d="M 430 580 V 620"/>
+  <path class="event" d="M 475 580 V 620"/>
+  <rect x="130" y="620" width="360" height="110" rx="10" fill="#fff" stroke="#cc9a55" stroke-width="2"/>
+  <text class="blockTitle" x="310" y="653">PtpPort</text>
+  <text class="detail" x="310" y="680">RX policy · exchanges · TX builder</text>
+  <text class="detail" x="310" y="708">Abort / epoch · timers · E2E arithmetic</text>
 
-  <path class="event" d="M 220 645 V 735"/>
-  <text class="label eventText" x="235" y="683">Forward delay +</text>
-  <text class="label eventText" x="235" y="706">path-delay updates</text>
-  <rect class="box" x="110" y="735" width="220" height="90" rx="10"/>
-  <text class="blockTitle" x="220" y="772">PtpServo</text>
-  <text class="detail" x="220" y="801">Filter · acquire · track</text>
+  <rect class="box" x="840" y="620" width="250" height="110" rx="10"/>
+  <text class="blockTitle" x="965" y="653">PtpReg</text>
+  <text class="detail" x="965" y="680">Configuration · snapshots</text>
+  <text class="detail" x="965" y="708">Manual PHC commands</text>
+  <path class="control" d="M 840 677 H 490"/>
+  <text class="label controlText" x="665" y="665" text-anchor="middle">Port config</text>
+  <rect class="box" x="1200" y="620" width="330" height="110" rx="10"/>
+  <text class="blockTitle" x="1365" y="660">AXI-Lite / Rogue</text>
+  <text class="detail" x="1365" y="694">Configure and observe</text>
+  <path class="control" d="M 1200 667 H 1162 Q 1150 649 1138 667 H 1090"/>
 
-  <rect x="400" y="735" width="180" height="90" rx="10" fill="#f6f2ff" stroke="#a38bc7" stroke-width="1.5"/>
-  <text class="blockTitle" x="490" y="772">Selector</text>
-  <text class="detail" x="490" y="801">Command / ack</text>
-  <path class="control" d="M 330 780 H 400"/>
-  <text class="label controlText" x="365" y="764" text-anchor="middle">Auto</text>
-  <path class="control" d="M 790 645 V 685 H 490 V 735"/>
-  <text class="label controlText" x="621" y="675" text-anchor="middle">Manual</text>
-  <path class="control" d="M 580 780 H 690"/>
-  <text class="label controlText" x="635" y="764" text-anchor="middle">Selected</text>
+  <path class="event" d="M 245 730 V 820"/>
+  <text class="label eventText" x="260" y="765">Forward delay +</text>
+  <text class="label eventText" x="260" y="790">path-delay updates</text>
+  <rect class="box" x="130" y="820" width="230" height="90" rx="10"/>
+  <text class="blockTitle" x="245" y="856">PtpServo</text>
+  <text class="detail" x="245" y="886">Filter · acquire · track</text>
 
-  <rect x="690" y="735" width="270" height="90" rx="10" fill="#effafa" stroke="#67a8ac" stroke-width="1.5"/>
-  <text class="blockTitle" x="825" y="772">PtpPhc</text>
-  <text class="detail" x="825" y="801">Numerically disciplined time</text>
-  <path class="time" d="M 960 780 H 1018 V 420 H 960"/>
-  <text class="label timeText" x="1040" y="717" transform="rotate(-90 1040 717)">PHC → capture</text>
-  <circle cx="1018" cy="780" r="5" fill="#007c83"/>
-  <path class="time" d="M 1023 780 H 1120"/>
-  <rect x="1120" y="735" width="320" height="90" rx="10" fill="#effafa" stroke="#67a8ac" stroke-width="1.5"/>
-  <text class="blockTitle" x="1280" y="772">Application consumers</text>
-  <text class="detail" x="1280" y="801">Time / PPS · optional scheduler</text>
-  <text class="small" x="1120" y="859">Precise actions remain in phcClk.</text>
-  <text class="small" x="1120" y="884">Other domains use explicit CDC.</text>
+  <rect x="480" y="820" width="190" height="90" rx="10" fill="#f6f2ff" stroke="#a38bc7" stroke-width="1.5"/>
+  <text class="blockTitle" x="575" y="856">Selector</text>
+  <text class="detail" x="575" y="886">Command / ack</text>
+  <path class="control" d="M 360 865 H 480"/>
+  <text class="label controlText" x="420" y="852" text-anchor="middle">Auto</text>
+  <path class="control" d="M 955 730 V 770 H 575 V 820"/>
+  <text class="label controlText" x="755" y="759" text-anchor="middle">Manual</text>
+  <path class="control" d="M 670 865 H 840"/>
+  <text class="label controlText" x="755" y="852" text-anchor="middle">Selected</text>
 
-  <text class="groupNote" x="110" y="854">PtpPkg supplies shared types and arithmetic; it is not an instantiated block.</text>
-  <text class="groupNote" x="84" y="902">One PHC per endpoint / lane. Protocol reset and link loss do not imply PHC reset.</text>
+  <rect x="840" y="820" width="250" height="90" rx="10" fill="#effafa" stroke="#67a8ac" stroke-width="1.5"/>
+  <text class="blockTitle" x="965" y="856">PtpPhc</text>
+  <text class="detail" x="965" y="886">Disciplined numerical time</text>
+  <path class="time" d="M 1090 865 H 1150 V 427 H 1090"/>
+  <text class="label timeText" x="1172" y="805" transform="rotate(-90 1172 805)">PHC → capture</text>
+  <circle cx="1150" cy="865" r="5" fill="#007c83"/>
+  <path class="time" d="M 1155 865 H 1200"/>
+  <rect x="1200" y="820" width="330" height="90" rx="10" fill="#effafa" stroke="#67a8ac" stroke-width="1.5"/>
+  <text class="blockTitle" x="1365" y="856">Application consumers</text>
+  <text class="detail" x="1365" y="886">Time / PPS · optional scheduler</text>
+  <text class="small" x="1200" y="946">Precise actions remain in phcClk.</text>
+  <text class="small" x="1200" y="971">Other domains use explicit CDC.</text>
 
-  <!-- Line styles retain meaning when the figure is printed without color. -->
-  <path class="packet" d="M 70 969 H 125"/>
-  <text class="label" x="139" y="975">Packet datapath</text>
-  <path class="event" d="M 375 969 H 430"/>
-  <text class="label eventText" x="444" y="975">Capture / measurement</text>
-  <path class="control" d="M 770 969 H 825"/>
-  <text class="label controlText" x="839" y="975">Configuration / command</text>
-  <path class="time" d="M 1170 969 H 1225"/>
-  <text class="label timeText" x="1239" y="975">PHC time</text>
-  <text class="small" x="60" y="1024">For clarity: status/readback, servo configuration, shared localMac, clocks, resets, and handshake returns are omitted.</text>
-  <text class="small" x="60" y="1052">The README interface table and reset contracts define those connections. Simulation providers are separate from this hardware composition.</text>
+  <text class="groupNote" x="130" y="944">PtpPkg supplies shared types and arithmetic; it is not an instantiated block.</text>
+  <text class="groupNote" x="94" y="994">Common ethClk. Protocol abort and link loss do not imply PHC reset or release unresolved TX keys.</text>
+
+  <path class="packet" d="M 70 1065 H 120"/>
+  <text class="label" x="135" y="1071">Packet datapath</text>
+  <path class="event" d="M 390 1065 H 440"/>
+  <text class="label eventText" x="455" y="1071">Capture / record / measurement</text>
+  <path class="control" d="M 850 1065 H 900"/>
+  <text class="label controlText" x="915" y="1071">Configuration / command</text>
+  <path class="time" d="M 1280 1065 H 1330"/>
+  <text class="label timeText" x="1345" y="1071">PHC time</text>
+  <text class="small" x="60" y="1125">For clarity: status, shared localMac, clocks, resets, abort/generation control, and handshake returns are omitted.</text>
+  <text class="small" x="60" y="1153">The README interface table and RX boundary contract define those connections. Simulation providers are separate.</text>
 </svg>
