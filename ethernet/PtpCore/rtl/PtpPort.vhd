@@ -1,7 +1,31 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Fixed-source two-step PTP port, bootstrap estimator and E2E transactions
+-- Description: Fixed-source two-step Layer-2 PTP TimeReceiver protocol engine.
+--
+-- Consumes structurally validated RX records and applies the configured
+-- source, domain and profile policy to Sync, Follow_Up, Delay_Resp and
+-- Announce. Four bounded Sync/Follow_Up slots accept either arrival order and
+-- reject conflicting associations. Completed Sync history supplies the sample
+-- nearest an actual Delay_Req TX capture; Announce metadata and raw-tick
+-- receipt timers qualify the current source session.
+--
+-- Estimates master time per raw local cycle from corrected Sync intervals,
+-- independently of PHC validity or steering. Qualified intervals establish and
+-- filter the rate ratio used by PtpE2e. The port publishes forward
+-- measurements and serialized end-to-end path-delay results to PtpServo,
+-- retaining generation and sequence provenance.
+--
+-- Schedules randomized Delay_Req intervals, reserves each wire key in
+-- PtpTxLedger before presenting a frame, and builds the private eight-byte SSI
+-- TX stream. The ledger joins physical TX completion with Delay_Resp in either
+-- order. An already presented frame remains stable under backpressure and
+-- drains across logical restart; protocol cancellation invalidates
+-- measurements without forgetting unresolved MAC transmissions.
+--
+-- Implements a configured upstream source rather than BMCA. This endpoint
+-- profile supports untagged multicast Layer-2 two-step E2E traffic; UDP, VLAN,
+-- one-step Sync and peer-delay operation are outside its scope.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,25 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Reserve untagged PTP TX identity at the primary EMAC boundary
+-- Description: Reserve PTP transmit ownership at the application's EMAC
+-- stream.
+--
+-- Inspects the first 16-byte primary TX beat, which must contain the complete
+-- Ethernet header, full TKEEP and SSI SOF. Untagged EtherType 0x88F7 frames
+-- and malformed initial beats are consumed and discarded through TLAST, with a
+-- saturating count of rejected frames. This prevents application traffic from
+-- impersonating a Delay_Req key reserved by the endpoint's private PTP
+-- producer.
+--
+-- Other frames pass through a single registered ready/valid stage with the
+-- complete AXI Stream record preserved, including payload and sidebands. The
+-- frame decision is retained until TLAST, and accepted output data stays
+-- stable under downstream backpressure.
+--
+-- EthMacPtpEndpoint places this guard before EthMacTop's primary TX input. The
+-- private PTP stream enters through the MAC bypass path. This block assumes
+-- EMAC_AXIS_CONFIG_C and classifies untagged Ethernet headers; it is not a
+-- general packet parser.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

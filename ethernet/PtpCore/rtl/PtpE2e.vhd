@@ -1,7 +1,27 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Serialized rate-corrected PTP E2E arithmetic and reference-plane conversion
+-- Description: Rate-corrected end-to-end PTP path-delay arithmetic.
+--
+-- Consumes an associated Sync sample and completed Delay_Req/Delay_Resp sample
+-- from PtpPort. These supply master timestamps t1/t4, correction fields and
+-- local RX/TX captures t2/t3. A qualified Q48 master-nanoseconds-per-raw-cycle
+-- ratio converts the raw tick/phase separation between t2 and t3 into master
+-- elapsed time, avoiding an assumption that the steered PHC rate stayed
+-- constant during the exchange.
+--
+-- A local PtpMath engine serializes the wide multiplications and divisions.
+-- Ingress and egress calibration are signed Q16 local PHC nanoseconds; each
+-- displacement is converted using the increment saved with its own capture
+-- before computing mean path delay. The returned measurement also carries the
+-- forward term, generation, raw timestamp and sequence provenance for the
+-- servo and diagnostics.
+--
+-- Latches all operands at input acceptance and holds the result until
+-- consumed. Zero ratio/increments, generation mismatch, arithmetic failure and
+-- negative or excessive delay mark the result as erroneous. Cancel aborts both
+-- arithmetic and publication; the caller rejects errored results before
+-- steering the clock.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

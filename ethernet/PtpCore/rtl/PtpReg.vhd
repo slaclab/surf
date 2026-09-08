@@ -1,7 +1,28 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Atomic PTP configuration, manual commands, snapshots and AXI-Lite status
+-- Description: AXI-Lite configuration, manual clock control and PTP
+-- diagnostics.
+--
+-- Implements the endpoint's 4 KiB register ABI using SURF AXI-Lite helpers.
+-- Configuration writes update shadows; an explicit validated commit activates
+-- the complete set together and requests protocol restart. Defaults derive
+-- raw-tick timers from CLK_FREQ_G. The active local PTP identity can follow
+-- the shared MAC address or use the configured override.
+--
+-- Manual commands latch their operands before waiting for PHC admission,
+-- preserving them across backpressure and later shadow writes. A dedicated
+-- PtpMath engine normalizes signed Q16 phase adjustments into the PHC's
+-- whole-seconds and Q32-remainder command format. Busy, acknowledgement and
+-- error status track the full transaction. PtpEndpoint arbitrates these
+-- commands with automatic servo control.
+--
+-- Explicit snapshots retain coherent PHC and diagnostic values for multiword
+-- software reads. The map also exposes source/Announce state, counters,
+-- calibration constants and masked sticky interrupts. regRst cancels AXI
+-- responses while preserving active configuration and accepted clock commands;
+-- rst resets the full register subsystem. The matching software map is
+-- python/surf/ethernet/ptp/_PtpEndpoint.py.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,27 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Common-clock GMII/XGMII MAC and autonomous PTP endpoint composition
+-- Description: Common-clock Ethernet MAC and autonomous PTP TimeReceiver.
+--
+-- Integrates EthMacTop with PtpEndpoint and passive GMII/XGMII timestamp
+-- paths. RX bytes and their physical start capture pass together through
+-- PtpRxTimestampAdapter and PtpRxFrontend, so protocol association does not
+-- depend on whether the MAC forwards or drops its own copy. PtpTxTimestampTap
+-- observes actual Delay_Req transmission after MAC queuing, arbitration and
+-- pause.
+--
+-- Application traffic uses the primary EMAC stream through PtpPrimaryGuard.
+-- The endpoint's private eight-byte Delay_Req stream is resized to the native
+-- MAC bypass width; the MAC supplies padding, preamble and FCS. AXI-Lite
+-- provides configuration and diagnostics while the PHC and servo run
+-- autonomously.
+--
+-- All interfaces share the continuously running Ethernet/PHC clock: 125 MHz
+-- for full-rate GMII or 156.25 MHz for XGMII. Ingress/egress calibration is
+-- set by signed Q16 local-PHC-nanosecond generics. System reset must clear the
+-- entire TX pipeline; port restart preserves PHC time and drains queued
+-- transmissions. MAC reset confirmation and the configured packet-lifetime
+-- bound govern safe TX key reuse.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

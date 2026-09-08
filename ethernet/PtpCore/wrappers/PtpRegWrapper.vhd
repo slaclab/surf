@@ -1,7 +1,20 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin PTP register/PHC adapter with controllable command backpressure
+-- Description: Flattened AXI-Lite register and real-PHC verification fixture.
+--
+-- Connects PtpReg to PtpPhc and exposes AXI-Lite channels through the existing
+-- SURF record adapter. The commandBlock input gates both valid and ready
+-- between the register block and PHC, letting cocotb hold a submitted command
+-- pending while changing shadows or asserting the register-only reset. PHC
+-- acknowledgement and error return through the real command path.
+--
+-- Uses a 125 MHz configuration and fixed test calibration/lifetime values.
+-- Protocol and servo diagnostics are tied to deterministic inactive values,
+-- while active configuration, restart, PHC status and IRQ remain observable.
+-- This isolates register atomicity, command operand latching, snapshots and
+-- reset behavior from packet processing; software stimulus and assertions
+-- remain in cocotb.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

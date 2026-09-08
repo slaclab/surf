@@ -1,7 +1,27 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PTP numerical clock with atomic commands and capture invalidation
+-- Description: Continuously advancing PTP hardware clock and atomic command
+-- target.
+--
+-- Maintains 48-bit seconds, 32-bit nanoseconds and a 32-bit fractional
+-- nanosecond accumulator. Each clock adds the nominal Q32
+-- nanoseconds-per-cycle increment plus the signed rate adjustment, normalizing
+-- seconds rollover. A separate 64-bit unsteered cycle counter provides
+-- protocol timers and rate-estimation intervals independent of clock steering.
+--
+-- A single ready/valid command slot latches immutable operands and commits
+-- them on the following edge. SET names commit-edge time, PHASE adjusts
+-- normally advanced time, and RATE changes subsequent increments. Other
+-- commands control time validity and PPS enable. Generation checks, command
+-- cancellation and monotonic policy reject stale or prohibited operations with
+-- an acknowledgement and error.
+--
+-- A time discontinuity advances the generation, clears validity and suppresses
+-- captures and PPS on the affected edge. Epoch, tick or generation exhaustion
+-- faults closed until system reset. PtpEndpoint owns command arbitration;
+-- physical timestamp adapters consume the time, exact active increment, raw
+-- ticks and capture-abort indication from this module.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

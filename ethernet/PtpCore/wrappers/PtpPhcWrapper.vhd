@@ -1,7 +1,19 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin PHC and independent snapshot-clock verification adapter
+-- Description: Flattened PHC and asynchronous snapshot verification interface.
+--
+-- Instantiates PtpPhc with configurable clock frequency and reset semantics,
+-- packs the exposed command fields into PtpPhcCommandType, and unpacks time,
+-- rate, raw ticks, validity, acknowledgement and fault status. PPS,
+-- discontinuity and capture-abort outputs allow tests to check edge-specific
+-- clock behavior against an independent numerical model.
+--
+-- Also instantiates PtpPhcRead with a separately driven reader clock/reset and
+-- exposes its request, completion, snapshot and sequence fields. Reset
+-- polarity is adapted for the mailbox. Cocotb controls both clocks and command
+-- timing to exercise coherent snapshots, reset cancellation and stopped-peer
+-- recovery; the wrapper adds no clock model or stimulus state machine.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

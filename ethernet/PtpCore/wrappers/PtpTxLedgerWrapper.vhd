@@ -1,7 +1,21 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin bounded wire-key lifecycle verification adapter
+-- Description: Flattened adversarial lifetime fixture for PtpTxLedger.
+--
+-- Adapts test-controlled allocation, physical wire-completion and Delay_Resp
+-- fields into the production ledger records. Exposes sequence allocation,
+-- completed sample provenance, response acceptance and status counters, with
+-- direct control of raw ticks, generation, logical restart and MAC reset
+-- confirmation.
+--
+-- Instantiates two entries and a two-bit sequence counter so cocotb can
+-- exhaust capacity and force key wrap quickly. PACKET_LIFETIME_G controls the
+-- quarantine interval. Wire and response inputs can be driven independently to
+-- test reordered events, duplicate/late traffic, unknown transmission fate and
+-- output backpressure. The wrapper supplies record defaults only; packet
+-- validation, stimulus sequencing and expected ownership state are handled
+-- outside this fixture.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

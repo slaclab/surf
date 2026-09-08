@@ -1,7 +1,24 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Sequential checked signed 128-bit PTP multiplication and division
+-- Description: Checked sequential signed 128-bit multiplier and divider.
+--
+-- Accepts one operand pair and operation on inputValid/inputReady.
+-- Multiplication uses unsigned magnitudes, shift/add accumulation and a
+-- 256-bit product; division uses restoring division with a widened remainder.
+-- Both iterative paths consume 128 steps, then restore the result sign and
+-- check that the answer fits in signed 128 bits. Divide by zero terminates
+-- with resultError.
+--
+-- Division optionally rounds to nearest with ties away from zero. The
+-- separately returned remainder always corresponds to a quotient truncated
+-- toward zero, even when the published quotient is rounded. This distinction
+-- lets PHC command producers normalize signed phase adjustments exactly.
+--
+-- Holds the result and error stable until resultReady. Cancel discards active
+-- work and suppresses a pending result transfer. PtpPort, PtpE2e, PtpServo and
+-- PtpReg instantiate this engine for their own serialized calculations; each
+-- caller owns fixed-point scaling and transaction provenance.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

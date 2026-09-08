@@ -1,7 +1,20 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin E2E fixed-point verification adapter
+-- Description: Flattened numerical verification interface for PtpE2e.
+--
+-- Constructs Sync and delay-sample records from scalar/vector ports and
+-- exposes the production engine's forward value, path delay, error and
+-- ready/valid handshakes. Tests directly control remote timestamps, correction
+-- fields, raw tick/phase separation, the rate ratio and each capture's PHC
+-- increment. Latency generics select the ingress and egress reference-plane
+-- offsets.
+--
+-- Unexposed record fields retain package initialization values, including
+-- matching default generations. The wrapper performs no arithmetic or packet
+-- association of its own. Cocotb supplies stimulus and independent expected
+-- results, including rate changes between captures, numerical boundaries,
+-- output backpressure and cancellation.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

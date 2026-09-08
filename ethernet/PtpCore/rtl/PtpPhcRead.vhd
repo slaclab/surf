@@ -1,7 +1,25 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Coherent PTP snapshot mailbox with reset cancellation
+-- Description: Coherent PHC snapshot mailbox for an independent reader clock.
+--
+-- Transfers a reader request into the PHC domain through a SURF asynchronous
+-- FIFO, captures time and status together on one PHC edge, and returns that
+-- immutable snapshot through a second FIFO. The response contains seconds,
+-- nanoseconds, fractional nanoseconds, generation, raw ticks and validity.
+-- readRequest is accepted only with readReady; readValid pulses when the
+-- response is published, with readSequence identifying the local request.
+--
+-- Only one request is outstanding. Each FIFO write is retained until its write
+-- acknowledgement, allowing requests and responses to survive a stopped peer
+-- clock or delayed reset recovery. Reset from either side cancels both
+-- directions of the mailbox session; SURF reset synchronizers release each
+-- domain locally. A read-side reset never resets the PHC itself.
+--
+-- This optional block provides an observation snapshot, not a continuously
+-- advancing clock replica. It is instantiated separately from PtpEndpoint's
+-- same-clock AXI-Lite snapshots. Consumers must qualify returned data with
+-- readValid and interpret time validity and generation from that snapshot.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,27 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PTP Delay_Req wire completion, independent of protocol restart
+-- Description: Passive Delay_Req completion capture at the physical MAC TX
+-- output.
+--
+-- Reuses PtpRxTimestampAdapter and PtpRxFrontend in TX-observation mode to
+-- decode GMII/XGMII framing, validate the transmitted frame and publish its
+-- PTP wire identity together with the physical start timestamp. Captures refer
+-- to the first destination-MAC octet, include XGMII lane phase, and add the
+-- signed Q16 egress calibration to reach the configured timestamp reference
+-- plane.
+--
+-- Observation occurs after MAC queuing, arbitration, pause, padding and FCS
+-- generation. PtpTxLedger uses the resulting record as evidence of actual
+-- transmission, independently of when the stream was accepted. A two-entry
+-- completion queue provides a ready/valid interface with an abort indication
+-- for invalidated observations.
+--
+-- Port restart and PHC discontinuity do not flush this observer: an older
+-- queued request can still appear on the wire and must resolve its retained
+-- ledger entry. Capture validity/error remains separate from physical
+-- identity. PHY loss flushes observation, and system reset must accompany
+-- reset of the physical MAC TX pipeline.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,26 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Autonomous PTP endpoint and manual/servo PHC command ownership
+-- Description: Autonomous PTP protocol, clock-control and register subsystem.
+--
+-- Connects PtpPort, PtpServo, PtpReg and one PtpPhc in a single clock domain.
+-- Validated RX records and observed TX completion records arrive from the
+-- physical frontends. The port produces Delay_Req frames and timing
+-- measurements; the servo turns qualified measurements into PHC commands. The
+-- surrounding EthMacPtpEndpoint supplies the MAC and physical timestamp
+-- adapters.
+--
+-- Arbitrates software and servo commands at the PHC ready/valid interface and
+-- retains producer ownership until acknowledgement, so a delayed response
+-- reaches the correct requester. Manual steering requires automatic control to
+-- be disabled, while PPS control remains available in either mode. A disabled
+-- servo continues to drain measurements.
+--
+-- Coordinates protocol restart, stale-work cancellation and clock validity
+-- without feeding a PHC command's own capture invalidation back into that
+-- command's commit. Port and register resets preserve the PHC; system reset
+-- clears the complete subsystem. AXI-Lite status, snapshots, PPS and IRQ
+-- expose the resulting time and endpoint state.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

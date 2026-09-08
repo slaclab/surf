@@ -1,7 +1,28 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Bounded PTP TX ownership, out-of-order response association and quarantine
+-- Description: Bounded ownership and lifetime tracking for PTP Delay_Req wire
+-- keys.
+--
+-- Reserves a sequence/domain/requester identity before PtpPort presents the
+-- first TX beat. Each entry retains its generation and physical fate while the
+-- MAC may queue or pause the request. A validated TX wire observation and the
+-- corresponding Delay_Resp can arrive in either order; both are required to
+-- publish a complete delay sample through the ready/valid output.
+--
+-- Logical restart, generation change or association timeout retires a request
+-- but cannot release a key whose transmission fate is unknown. Known wire
+-- completions retain their keys for PACKET_LIFETIME_G raw ticks, and duplicate
+-- wire observations renew quarantine. This prevents late traffic from being
+-- attached to a newer request after sequence reuse, within the configured
+-- finite network-lifetime bound.
+--
+-- Admission requires explicit confirmation that the complete MAC TX path was
+-- reset, followed by startup quarantine. Only that physical reset confirmation
+-- can discard unresolved wire ownership. Exhaustion deliberately stops
+-- allocation rather than guessing that queued frames disappeared. Status and
+-- rejection/timeout counters expose these conditions to the endpoint register
+-- block.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

@@ -1,7 +1,26 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin real-MAC autonomous PTP physical and AXI-Lite verification adapter
+-- Description: Physical and AXI-Lite verification fixture for the PTP
+-- endpoint.
+--
+-- With MAC_ENABLE_G set, instantiates EthMacPtpEndpoint and exposes
+-- GMII/XGMII, primary application traffic, pause control and flattened
+-- AXI-Lite channels. Tests can observe PHC time/status, PPS and servo state
+-- while an independent Python master drives packet traffic. System, port and
+-- register resets remain separately controllable.
+--
+-- With MAC_ENABLE_G clear, instantiates the same production endpoint and
+-- physical capture/validation modules but connects the Delay_Req stream to a
+-- Python MAC/wire encoder through the model ports. This accelerates
+-- closed-loop tests while preserving protocol association, timestamp
+-- observation, arithmetic and servo behavior. Separate real-MAC tests cover
+-- MAC arbitration, pause and queued-frame lifetime.
+--
+-- The wrapper supplies record adaptation and the selected integration
+-- topology. Packet stimulus, simulated master time, wire encoding in model
+-- mode and scoreboards live in cocotb; despite its name, the wrapper does not
+-- internally loop TX bytes back to RX.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

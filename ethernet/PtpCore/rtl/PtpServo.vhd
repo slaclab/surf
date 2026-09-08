@@ -1,7 +1,29 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Fixed-point PTP acquisition, median delay filter, PI control and holdover
+-- Description: PTP acquisition, filtered delay estimation and PHC feedback
+-- control.
+--
+-- Accepts separate forward and path-delay measurements from PtpPort. Up to
+-- five populated delay samples form a median filter; local-minus-master offset
+-- is forward time minus filtered delay and configured asymmetry. Generation,
+-- sample chronology and raw-tick age checks reject stale measurements before
+-- they can affect the clock.
+--
+-- During acquisition, an enabled large phase adjustment can establish the
+-- epoch. Otherwise the qualified raw-clock rate estimate initializes frequency
+-- control. A serialized PtpMath engine evaluates the fixed-point
+-- proportional/integral loop, including elapsed-time integration, frequency
+-- and phase-slew clamps, final-rate limiting and conditional integration at
+-- saturation. Commands use the PHC ready/valid and acknowledgement lifecycle;
+-- only acknowledged rate commands update the retained frequency estimate.
+--
+-- Lock/unlock thresholds and counters provide quality hysteresis. Loss of
+-- fresh measurements enters holdover, removes phase slew and preserves the
+-- last good frequency; expiry requests time-validity revocation. Cancellation
+-- removes obsolete work, while a disabled servo drains measurements without
+-- steering. PtpEndpoint supplies command arbitration, the actual PHC and
+-- external restart policy.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

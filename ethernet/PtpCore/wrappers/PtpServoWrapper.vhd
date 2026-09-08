@@ -1,7 +1,22 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin servo numerical and command-lifecycle verification adapter
+-- Description: Flattened fixed-point and command-lifecycle fixture for
+-- PtpServo.
+--
+-- Builds measurement and PHC-status records from test-controlled forward/delay
+-- values, raw ticks and rate ratio, then exposes the production servo's
+-- filter, offset, frequency, quality and command outputs. A fixed 125 MHz
+-- configuration enables the servo, supplies valid time and ratio flags, and
+-- relaxes selected age/sample limits so numerical vectors can be tested
+-- directly.
+--
+-- The wrapper contains no PHC. Cocotb independently drives command readiness,
+-- acknowledgement and error to test command holding, cancellation and when a
+-- frequency update becomes committed. Default record fields provide the
+-- remaining provenance/configuration. Independent Python models own expected
+-- filter and PI results; full acquisition and physical-clock behavior are
+-- covered by the endpoint fixture.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
