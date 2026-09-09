@@ -5,10 +5,12 @@ The default stack is `pytest + cocotb + GHDL + ruckus`; VHDL should only be
 used for thin wrappers, shims, or required simulation models.
 
 `conftest.py` supplies the `GPI_USERS` startup configuration required by cocotb
-2.1 when launching through cocotb-test. It uses cocotb's installed entry-point
-API, preserves an explicit `GPI_USERS`, and leaves older cocotb startup unchanged.
-The session fixture covers both the shared GHDL runner and custom SimLink runners;
-no dependency pin is required.
+2.1 when launching through cocotb-test. It exports `GPI_USERS` into `os.environ`
+at import using cocotb's installed entry-point API, preserving an explicit
+`GPI_USERS` when one is already set. pytest loads it for every invocation, so it
+covers both the shared GHDL runner and custom SimLink runners. cocotb 2.1 is
+pinned in `conda.yml` and `pip_requirements.txt` because the entry-point API it
+relies on does not exist in earlier releases.
 
 This README is the authoritative guide for new SURF regression work. Historical
 task plans and module queues are not prerequisites and do not define the next
