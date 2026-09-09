@@ -25,6 +25,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
@@ -58,10 +59,6 @@ async def sample(dut):
 def channel(data, index):
     return (data >> (16 * index)) & 0xFFFF
 
-
-def twos_complement_word(offset_binary_code):
-    """Apply the AD9681's default offset-binary to two's-complement coding."""
-    return ((offset_binary_code ^ 0x2000) << 2) & 0xFFFF
 
 
 def pn_word(state, order=9, tap=5, width=14):
@@ -107,7 +104,7 @@ async def ad9681_register_index_and_pattern_test(dut):
     assert await read(dut, 0x14) == 0x01
     assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
+    assert [channel(data, i) for i in range(8)] == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal]
     assert all((channel(data, i) & 0x3) == 0 for i in range(8))
 
     # Register 0x14 bit 0 can still select offset-binary output explicitly.
@@ -130,7 +127,7 @@ async def ad9681_register_index_and_pattern_test(dut):
     await write(dut, 0x21, 0x00)
     assert await read(dut, 0x21) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
+    assert [channel(data, i) for i in range(8)] == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal]
     await write(dut, 0x21, 0x30)
 
     # Device index bits[3:0] select data channels A..D, each a pair (channel ch
@@ -141,8 +138,8 @@ async def ad9681_register_index_and_pattern_test(dut):
     data = await sample(dut)
     assert channel(data, 2) == 0xFFFC
     assert channel(data, 3) == 0xFFFC
-    assert channel(data, 0) == twos_complement_word(normal[0])
-    assert channel(data, 4) == twos_complement_word(normal[4])
+    assert channel(data, 0) == (offset_binary_to_twos_complement(normal[0], 14) << 2)
+    assert channel(data, 4) == (offset_binary_to_twos_complement(normal[4], 14) << 2)
 
     # A local read with a single channel selected returns that channel's copy.
     assert await read(dut, 0x0D) == 0x02
@@ -218,7 +215,7 @@ async def ad9681_register_index_and_pattern_test(dut):
     assert await read(dut, 0x14) == 0x01
     assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [twos_complement_word(value) for value in normal]
+    assert [channel(data, i) for i in range(8)] == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal]
 
 
 def test_Ad9681SimCore():

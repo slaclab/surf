@@ -22,6 +22,7 @@
 import cocotb
 from cocotb.triggers import Edge, Timer, with_timeout
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
@@ -84,10 +85,6 @@ async def capture_frame(dut):
     return [(high[i] << 8) | low[i] for i in range(8)], frame
 
 
-def twos_complement_word(offset_binary_code):
-    """Apply the AD9681's default offset-binary to two's-complement coding."""
-    return ((offset_binary_code ^ 0x2000) << 2) & 0xFFFF
-
 
 @cocotb.test()
 async def ad9681_pin_level_device_sim_test(dut):
@@ -112,7 +109,7 @@ async def ad9681_pin_level_device_sim_test(dut):
         assert frame == 0b11110000
 
     words, frame = await capture_frame(dut)
-    assert words == [twos_complement_word(value) for value in normal]
+    assert words == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal]
     assert frame == 0b11110000
     assert int(dut.dN.value) == ((~int(dut.dP.value)) & 0xFFFF)
     assert int(dut.dcoN.value) == ((~int(dut.dcoP.value)) & 0x3)
@@ -126,7 +123,7 @@ async def ad9681_pin_level_device_sim_test(dut):
     words, _ = await capture_frame(dut)
     assert words[0] == 0xFFFC
     assert words[1] == 0xFFFC
-    assert words[2:] == [twos_complement_word(value) for value in normal[2:]]
+    assert words[2:] == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal[2:]]
 
     # Reselect every channel, then apply the alternating checkerboard. Words are
     # latched once per frame; reading sampleData live for each serialized bit

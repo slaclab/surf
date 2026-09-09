@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Primitive-free pin-level AD9681 device simulation
+-- Description: Pin-level Ad9681 ADC model with differential real inputs.
+--
+-- vin represents VIN+ minus VIN- in volts; nominal full scale is -1 V to
+-- +1 V. Normal conversions saturate, then pass through the device latency
+-- pipeline before coherent DDR serialization. SPI selects coding and test
+-- patterns; digital patterns bypass the normal-conversion pipeline.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the

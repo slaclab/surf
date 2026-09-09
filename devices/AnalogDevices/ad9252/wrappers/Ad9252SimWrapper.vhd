@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Flattened cocotb wrapper for surf.Ad9252Sim
+-- Description: Flattened cocotb adapter for the Ad9252 pin-level model.
+--
+-- Each normalData slot supplies an offset-binary code or, when selected by
+-- INPUT_MILLIVOLTS_G, signed differential millivolts. The adapter converts
+-- that stimulus to real volts and exposes SPI and differential serialized
+-- pins without adding state or changing the device's conversion latency.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -21,13 +26,14 @@ use surf.StdRtlPkg.all;
 
 entity Ad9252SimWrapper is
    generic (
-      CLK_PERIOD_G         : time    := 24 ns;
-      DATA_PHASE_PS_G      : natural := 0;
-      FCO_PHASE_PS_G       : natural := 0;
-      DATA_LANE0_SKEW_PS_G : natural := 0;
-      FCO_SKEW_PS_G        : natural := 0;
-      JITTER_PS_G          : natural := 0;
-      TIMING_BIAS_PS_G     : natural := 0);
+      INPUT_MILLIVOLTS_G    : boolean := false;
+      CLK_PERIOD_G          : time    := 24 ns;
+      DATA_PHASE_PS_G       : natural := 0;
+      FCO_PHASE_PS_G        : natural := 0;
+      DATA_LANE0_SKEW_PS_G  : natural := 0;
+      FCO_SKEW_PS_G         : natural := 0;
+      JITTER_PS_G           : natural := 0;
+      TIMING_BIAS_PS_G      : natural := 0);
    port (
       clkP       : in  sl;
       clkN       : in  sl;
@@ -52,8 +58,18 @@ architecture rtl of Ad9252SimWrapper is
 
 begin
 
+   -- Default stimulus is an offset-binary code, independent of output coding.
+   -- Analog regressions instead supply signed millivolts in each 16-bit slot.
    GEN_INPUT : for i in 7 downto 0 generate
-      vin(i) <= real(to_integer(unsigned(normalData((16*i)+13 downto 16*i))))*(2.0/16384.0);
+      inputVoltage : process (normalData) is
+      begin
+         if (INPUT_MILLIVOLTS_G) then
+            vin(i) <= real(to_integer(signed(normalData((16*i)+15 downto 16*i))))/1000.0;
+         else
+            vin(i) <= real(to_integer(unsigned(normalData((16*i)+13 downto 16*i))))*
+                      (2.0/16384.0) - 1.0;
+         end if;
+      end process inputVoltage;
    end generate GEN_INPUT;
 
    sdio     <= sdioDrive when sdioEnable = '1' else 'Z';

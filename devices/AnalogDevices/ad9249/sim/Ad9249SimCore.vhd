@@ -107,7 +107,7 @@ architecture rtl of Ad9249SimCore is
       selectMask   => (others => '1'),
       channel      => (others => CHANNEL_INIT_C),
       outputInvert => '0',
-      outputFormat => '0',
+      outputFormat => '1',
       lsbFirst     => '0',
       powerMode    => "000",
       resolution   => (others => '0'),
@@ -228,7 +228,7 @@ begin
                   when "0000" =>
                      word := normalData(i)(13 downto 0);
                      if (r.outputFormat = '1') then
-                        word(13) := not word(13);
+                        word := offsetBinaryToTwosComplement(word);
                      end if;
                   when "0001" => word := "10000000000000";
                   when "0010" => word := (others => '1');

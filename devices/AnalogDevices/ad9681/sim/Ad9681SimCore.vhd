@@ -233,7 +233,7 @@ begin
                   when "0000" =>
                      code := normalData(i)(13 downto 0);
                      if (r.global.outputFormat = '1') then
-                        code(13) := not code(13);
+                        code := offsetBinaryToTwosComplement(code);
                      end if;
                      word := code & "00";
                   when "0001" => word := "1000000000000000";
