@@ -389,7 +389,7 @@ For any VHDL file created or edited, run the same linter configuration used by
 CI before considering the wrapper done:
 
 ```bash
-./.venv/bin/vsg -c vsg-linter.yml path/to/Wrapper.vhd
+./.venv/bin/vsg -c vsg-linter.yml -f path/to/Wrapper.vhd
 ```
 
 If `vsg` reports fixable issues, run with `--fix` first, then rerun the lint
