@@ -355,7 +355,7 @@ begin
          for i in CHANNELS_G-1 downto 0 loop
             word := sampleIn(i)(SAMPLE_WIDTH_G-1 downto 0);
             if (OFFSET_BINARY_G) then
-               word(SAMPLE_WIDTH_G-1) := not word(SAMPLE_WIDTH_G-1);
+               word := offsetBinaryToTwosComplement(word);
             end if;
             if (NEGATE_G) then
                word := (not word) + 1;
@@ -524,6 +524,17 @@ begin
          v := REG_INIT_C;
       end if;
 
+      -- Preserve cadence while unlocked, but keep unknown deserializer data
+      -- out of downstream feedback paths. This mux also applies in hardware.
+      -- FCO lock qualifies alignment only; it does not validate each data lane.
+      fifoIn(FIFO_WIDTH_C-1) <= not uAnd(r.locked);
+      for i in CHANNELS_G-1 downto 0 loop
+         fifoIn((16*i)+15 downto 16*i) <= (others => '0');
+         if (uAnd(r.locked) = '1') then
+            fifoIn((16*i)+15 downto 16*i) <= r.formatted(i);
+         end if;
+      end loop;
+
       rin <= v;
 
       xbarMasterReadSlaves(0)  <= r.axilReadSlave;
@@ -581,19 +592,6 @@ begin
    -- word. This preserves channel-to-channel sample association across unrelated
    -- capture and stream clocks.
    -------------------------------------------------------------------------------------------------
-   -- Before frame lock the deserializer output (sampleIn -> r.formatted) is not
-   -- yet valid and can be metavalue (X) in simulation. The stream is
-   -- always-consumed and flags unaligned beats via tUser(0) below, but it must
-   -- never drive X on tData with tValid asserted -- that poisons downstream
-   -- feedback consumers (WaveformCapture pedestal, FIR, AdcDsp). Substitute a
-   -- defined zero until all FCO lanes are locked; the tUser(0) flag still marks
-   -- these beats as unaligned.
-   fifoIn(FIFO_WIDTH_C-1) <= not uAnd(r.locked);
-   GEN_FIFO_IN : for i in CHANNELS_G-1 downto 0 generate
-      fifoIn((16*i)+15 downto 16*i) <=
-         r.formatted(i) when uAnd(r.locked) = '1' else (others => '0');
-   end generate GEN_FIFO_IN;
-
    U_DataFifo : entity surf.FifoAsync
       generic map (
          TPD_G         => TPD_G,
