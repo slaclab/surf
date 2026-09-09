@@ -97,8 +97,8 @@ process-local scratch remains appropriate for helper APIs and small loop work.
   use `r.activeConfig` directly; the request builder accepts that local type.
 - `PtpServo` reads active local/shared configuration directly. Sample tick delta
   and integral correction have distinct fields and units. Frequency limiting
-  works directly on the existing `v.workFrequency` destination. Only the AXI
-  endpoint helper and the median-sort array/swap temporary remain local to `v`.
+  works directly on the existing `v.workFrequency` destination. Alongside `v`, only the AXI endpoint helper and the median-sort array/swap
+  temporary remain local.
 - PHC command selection, signed time advancement, range/rejection decisions and
   manual command decoding use next-state fields. The central register block's
   command strobes and qualified transaction decisions follow the same pattern.
