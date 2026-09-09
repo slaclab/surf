@@ -4,6 +4,12 @@ This directory holds Python-authored regressions for synthesizable SURF RTL.
 The default stack is `pytest + cocotb + GHDL + ruckus`; VHDL should only be
 used for thin wrappers, shims, or required simulation models.
 
+`conftest.py` supplies the `GPI_USERS` startup configuration required by cocotb
+2.1 when launching through cocotb-test. It uses cocotb's installed entry-point
+API, preserves an explicit `GPI_USERS`, and leaves older cocotb startup unchanged.
+The session fixture covers both the shared GHDL runner and custom SimLink runners;
+no dependency pin is required.
+
 This README is the authoritative guide for new SURF regression work. Historical
 task plans and module queues are not prerequisites and do not define the next
 module that must be tested. Add or deepen coverage when a subsystem is being
