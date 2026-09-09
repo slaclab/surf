@@ -70,6 +70,14 @@ and build-isolation conventions where they apply.
 
 ## Shared Helpers
 
+`adc.py` provides `offset_binary_to_twos_complement(code, bits)` and
+`twos_complement_to_offset_binary(code, bits)` for Python stimulus and
+scoreboards. Both consume and return unsigned bit patterns, validate the width,
+and leave sign extension and transport alignment to the caller. For example,
+AD9681 tests left-shift the converted 14-bit code by two; AD9249 and AD9252
+tests keep the code right-justified. VHDL models use the corresponding
+`StdRtlPkg` functions; Python expectations remain independent of the model.
+
 - `parameter_case()` creates readable pytest IDs for curated cases.
 - `hdl_parameters_from()` filters mixed case dictionaries to keys ending in
   `_G`.
