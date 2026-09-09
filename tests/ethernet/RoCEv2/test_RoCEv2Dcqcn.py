@@ -8,8 +8,18 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Test methodology
-# ----------------
+# Test methodology:
+# - Sweep: Compare the no-congestion baseline with one CNP event while holding
+#   rate recovery outside the observation window.
+# - Stimulus: Drive full-rate one-beat frames, compress the DCQCN update
+#   intervals through AXI-Lite, and inject one synchronized CNP pulse.
+# - Checks: Use both the AXI-Lite Rc/cnpCnt state and accepted M_AXIS beat rate;
+#   require the baseline token rate and the expected approximately 50-percent
+#   reduction after one CNP.
+# - Timing: Count accepted beats over fixed 4000-clock windows. Each scenario is
+#   enclosed by a simulated-time watchdog and cancels its lifetime source on
+#   both success and failure.
+#
 # DCQCN CNP rate-control bench for RoCEv2Dcqcn (via RoCEv2DcqcnWrapper). The bench
 # substitutes the RoCEv2Engine.cnp_received source with a TB-driven flat `cnp` port
 # and proves the congestion-control behavior with a DUAL PREDICATE:
@@ -38,7 +48,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -111,8 +123,7 @@ class TB:
         dut.M_AXIS_TREADY.value = 1
 
     async def _edge(self):
-        await RisingEdge(self.dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.clk)
 
     async def reset(self):
         self.dut.rst.value = 1
@@ -132,6 +143,7 @@ class TB:
 
     # --- ingress source: 32-byte beats full-rate, honoring S_AXIS_TREADY -----
     async def drive_beats(self):
+        """Lifetime agent: drive full-rate ingress until its test cancels it."""
         dut = self.dut
         ctr = 0
         while True:
@@ -149,8 +161,7 @@ class TB:
         dut = self.dut
         n = 0
         for _ in range(window_clk):
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             if int(dut.M_AXIS_TVALID.value) and int(dut.M_AXIS_TREADY.value):
                 n += 1
         return n
@@ -179,7 +190,8 @@ async def baseline_no_cnp(dut):
     await tb.reset()
     await tb.configure_intervals(RATE_INC_INTERVAL_HOLD)
 
-    cocotb.start_soon(tb.drive_beats())
+    # The full-rate source is a lifetime agent for this measurement window.
+    source_task = cocotb.start_soon(tb.drive_beats())
 
     async def body():
         # Let the FIFO prime and the TokenBucket reach steady state.
@@ -194,7 +206,10 @@ async def baseline_no_cnp(dut):
         assert 0.20 <= rate <= 0.30, \
             f"baseline egress {rate:.4f} b/clk outside the ~0.25 token-bucket band ({beats}/{COUNT_WINDOW})"
 
-    await with_timeout(body(), 200_000, "ns")
+    try:
+        await with_timeout(body(), 200_000, "ns")
+    finally:
+        source_task.cancel()
 
 
 @cocotb.test()
@@ -211,7 +226,8 @@ async def single_cnp_halves(dut):
     # measurement window, isolating the single 50% cut from the slow recovery.
     await tb.configure_intervals(RATE_INC_INTERVAL_HOLD)
 
-    cocotb.start_soon(tb.drive_beats())
+    # The full-rate source is a lifetime agent for this measurement window.
+    source_task = cocotb.start_soon(tb.drive_beats())
 
     async def body():
         # Establish the LINE_RATE baseline.
@@ -243,7 +259,10 @@ async def single_cnp_halves(dut):
         assert after >= base * 0.35, \
             f"post-CNP egress {after} collapsed below the expected half-rate {base} (over-throttled)"
 
-    await with_timeout(body(), 300_000, "ns")
+    try:
+        await with_timeout(body(), 300_000, "ns")
+    finally:
+        source_task.cancel()
 
 
 @pytest.mark.parametrize("parameters", [pytest.param({}, id="rocev2_dcqcn")])

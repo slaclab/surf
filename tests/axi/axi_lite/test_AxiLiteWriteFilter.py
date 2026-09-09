@@ -26,7 +26,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import env_sl, parameter_case, run_surf_vhdl_test
@@ -45,7 +46,8 @@ class ForwardedWriteTarget:
         dut.M_AXI_BVALID.setimmediatevalue(0)
         dut.M_AXI_BRESP.setimmediatevalue(0)
 
-        cocotb.start_soon(self._run())
+        # Lifetime AXI-Lite responder retained by the bus model.
+        self._responder_task = cocotb.start_soon(self._run())
 
     def in_reset(self) -> bool:
         try:
@@ -55,8 +57,7 @@ class ForwardedWriteTarget:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def _wait_while_reset(self):
         while self.in_reset():
@@ -66,6 +67,7 @@ class ForwardedWriteTarget:
             await self.cycle(1)
 
     async def _run(self):
+        """Lifetime agent: respond to downstream writes until the test ends."""
         while True:
             await self._wait_while_reset()
 
@@ -130,8 +132,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def reset(self):
         self.dut.axilRst.setimmediatevalue(self.reset_active_value())
@@ -193,7 +194,4 @@ def test_AxiLiteWriteFilter(parameters):
             "FILTER_ADDR_0_G": "416",
         },
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteWriteFilterIpIntegrator.vhd"],
-        },
     )

@@ -37,7 +37,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
@@ -53,12 +55,16 @@ from tests.protocols.jesd204b.jesd204b_test_utils import (
     K_CHAR,
     build_ilas_config_octets,
     build_rx_link_timeline,
+    jesd_wrapper_sources,
     wait_data_valid_all,
     wait_nSync,
 )
 
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bRxWrapper.vhd")
+
 # ---------------------------------------------------------------------------
-# RX status bit constants (JesdRxLane.vhd:322 + :267 verified in 04-04-SUMMARY)
+# RX status bit constants
 # bit0=rstDone, bit1=dataValid, bit2=alignErr, bit3=nSync, bit4=bufUnf,
 # bit5=bufOvf, bit6=posErr, bit7=enable, bit8=sysRef, bit9=kDetect,
 # bits10-13=dispErr[0:3], bits14-17=decErr[0:3], bits18-25=latency, bit26=cdrStable
@@ -123,13 +129,11 @@ class Jesd204bRxTopTB:
 
     async def axi_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.S_AXI_ACLK)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.S_AXI_ACLK)
 
     async def dev_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, axi_cycles: int = 8, dev_cycles: int = 8) -> None:
         self.dut.S_AXI_ARESETN.value = 0
@@ -179,8 +183,7 @@ async def assert_decerr(axil_master: AxiLiteMaster, address: int) -> None:
 async def wait_for_signal(signal, *, value, clk, timeout_cycles: int = 128):
     """Wait up to timeout_cycles for signal to equal value."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(signal.value) == value:
             return
     raise AssertionError(
@@ -267,8 +270,7 @@ async def drive_rx_link_up(
         for lane in range(l_g):
             getattr(dut, f"gtRxData_{lane}_i").value = data_32b
             getattr(dut, f"gtRxDataK_{lane}_i").value = datak_4b
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
 
     # Enable scrEnable if scrambled link-up: write commonCtrl bit5=1
     if scr:
@@ -283,8 +285,7 @@ async def drive_rx_link_up(
         for lane in range(l_g):
             getattr(dut, f"gtRxData_{lane}_i").value = data_32b
             getattr(dut, f"gtRxDataK_{lane}_i").value = datak_4b
-        await RisingEdge(dut.devClk_i)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.devClk_i)
         data_cycle_count += 1
 
     # Keep driving last data word while waiting for dataValid to assert
@@ -510,8 +511,7 @@ async def test_rx_reg_map(dut):
         offset = 0
         max_cycles = 600
         for _ in range(max_cycles):
-            await RisingEdge(dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.devClk_i)
             offset += 1
             if int(dut.sysRefDbg_o.value) == 1:
                 break
@@ -638,4 +638,5 @@ def test_JesdRxReg(parameters):
         toplevel="surf.jesd204brxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )

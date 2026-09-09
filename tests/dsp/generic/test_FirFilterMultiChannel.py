@@ -195,12 +195,6 @@ def test_FirFilterMultiChannel(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
-                "dsp/generic/fixed/FirFilterTap.vhd",
-                "dsp/generic/fixed/FirFilterSingleChannel.vhd",
-                "dsp/generic/fixed/FirFilterMultiChannel.vhd",
                 str(parameters["WRAPPER_PATH"]),
             ]
         },

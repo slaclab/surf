@@ -28,7 +28,9 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     hdl_parameters_from,
@@ -83,26 +85,22 @@ class TB:
         self.dut.rdRst.value = 1
         # Hold reset across several wrClk cycles
         for _ in range(6):
-            await RisingEdge(self.dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.wrClk)
         self.dut.wrRst.value = 0
         # Hold rdRst for a couple more rdClk cycles to be safe
         for _ in range(4):
-            await RisingEdge(self.dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.rdClk)
         self.dut.rdRst.value = 0
         # Quiet settling time after reset deassertion
         for _ in range(4):
-            await RisingEdge(self.dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.wrClk)
 
     async def write_word(self, data: int, trig: int) -> None:
         """Drive one 16-bit word on the write side on the next wrClk edge."""
         self.dut.validIn.value = 1
         self.dut.dataIn.value = data
         self.dut.trigIn.value = trig
-        await RisingEdge(self.dut.wrClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.wrClk)
 
     async def write_pair(self, first: int, second: int,
                          trig_first: int = 1, trig_second: int = 0) -> None:
@@ -119,8 +117,7 @@ class TB:
     async def wait_valid_out(self) -> None:
         """Block until validOut asserts on the rdClk domain (bounded)."""
         for _ in range(_VALID_TIMEOUT_CYCLES):
-            await RisingEdge(self.dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.rdClk)
             if int(self.dut.validOut.value) == 1:
                 return
         raise AssertionError(
@@ -163,8 +160,7 @@ async def word_order_and_trig_test(dut):
 
         # Wait for validOut to deassert before next pair
         for _ in range(8):
-            await RisingEdge(dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.rdClk)
             if int(dut.validOut.value) == 0:
                 break
 
@@ -219,19 +215,16 @@ async def overflow_underflow_quiet_test(dut):
             dut.validIn.value = 1
             dut.dataIn.value = 0xA000 + pair_idx
             dut.trigIn.value = 1
-            await RisingEdge(dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.wrClk)
 
             dut.dataIn.value = 0xB000 + pair_idx
             dut.trigIn.value = 0
-            await RisingEdge(dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.wrClk)
 
             # Gap — deassert validIn for 2 wrClk cycles (accumulator resets)
             dut.validIn.value = 0
             for _ in range(2):
-                await RisingEdge(dut.wrClk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(dut.wrClk)
                 overflow_seen |= int(dut.overflow.value)
 
             # Read side sampling
@@ -241,8 +234,7 @@ async def overflow_underflow_quiet_test(dut):
 
             # Wait for validOut to deassert
             for _ in range(8):
-                await RisingEdge(dut.rdClk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(dut.rdClk)
                 if int(dut.validOut.value) == 0:
                     break
 
@@ -259,8 +251,7 @@ async def overflow_underflow_quiet_test(dut):
             overflow_seen |= int(dut.overflow.value)
             # Wait for validOut to deassert before next pair
             for _ in range(8):
-                await RisingEdge(dut.rdClk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(dut.rdClk)
                 if int(dut.validOut.value) == 0:
                     break
 

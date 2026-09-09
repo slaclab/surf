@@ -35,7 +35,8 @@ import random
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_int,
@@ -98,7 +99,7 @@ def _init_dut(dut, *, scr_enable: int) -> JesdTB:
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 0)
 async def test_char03_restore_nonscrambled(dut):
     """Non-scrambled: original data recovered, charisk cleared (§5.3.3.4.2).
 
@@ -110,11 +111,6 @@ async def test_char03_restore_nonscrambled(dut):
     Original data recovered, no residual control chars.
     """
     f = env_int("F_G", default=2)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # Non-scrambled path only for scr=0
-    if scr_enable != 0:
-        return
 
     tb = _init_dut(dut, scr_enable=0)
     await tb.reset()
@@ -133,8 +129,7 @@ async def test_char03_restore_nonscrambled(dut):
     for cycle_i in range(total_cycles):
         dut.dataRx_i.value    = stimulus[cycle_i] if cycle_i < n_words else 0
         dut.chariskRx_i.value = 0
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if cycle_i >= _LATENCY:
             got_raw.append(int(dut.sampleData_o.value) & _GT_WORD_MASK)
 
@@ -177,7 +172,7 @@ async def test_char03_restore_nonscrambled(dut):
 # ---------------------------------------------------------------------------
 
 
-@cocotb.test()
+@cocotb.test(skip=env_sl("SCR_ENABLE", default=0) != 1)
 async def test_char03_restore_scrambled(dut):
     """Scrambled: original data recovered, charisk cleared (§5.3.3.4.3).
 
@@ -192,11 +187,6 @@ async def test_char03_restore_scrambled(dut):
     Original data recovered, no residual control chars.
     """
     f = env_int("F_G", default=2)
-    scr_enable = env_sl("SCR_ENABLE", default=0)
-
-    # Scrambled path only for scr=1
-    if scr_enable != 1:
-        return
 
     tb = _init_dut(dut, scr_enable=1)
     await tb.reset()
@@ -213,8 +203,7 @@ async def test_char03_restore_scrambled(dut):
     for cycle_i in range(total_cycles):
         dut.dataRx_i.value    = stimulus[cycle_i] if cycle_i < n_words else 0
         dut.chariskRx_i.value = 0
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if cycle_i >= _LATENCY:
             got_raw.append(int(dut.sampleData_o.value) & _GT_WORD_MASK)
 
@@ -263,8 +252,7 @@ async def test_char03_align_error(dut):
     for _ in range(4):
         dut.dataRx_i.value    = 0x11111111
         dut.chariskRx_i.value = 0
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
     # Inject a K-char (K28.5 = 0xBC) at byte 0 — K28.5 is not /F/ or /A/,
     # so it will NOT be consumed by char restoration → residual charisk → alignErr.
@@ -273,8 +261,7 @@ async def test_char03_align_error(dut):
     for _ in range(4):
         dut.dataRx_i.value    = k_word
         dut.chariskRx_i.value = 0x1
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
     # alignErr_o is combinatorial — sample it immediately after settle
     assert int(dut.alignErr_o.value) == 1, (
@@ -310,8 +297,7 @@ async def test_char03_position_error(dut):
     for _ in range(4):
         dut.dataRx_i.value    = 0x55555555
         dut.chariskRx_i.value = 0
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
     # Drive alignFrame_i=1 with K_CHAR at byte 3 only (data[31:24] = K_CHAR)
     # and chariskRx_i=0x8 (bit 3 set for byte 3).
@@ -322,16 +308,14 @@ async def test_char03_position_error(dut):
     dut.alignFrame_i.value = 1
     dut.dataRx_i.value     = illegal_word
     dut.chariskRx_i.value  = 0x8   # only byte 3 flagged
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.alignFrame_i.value = 0
 
     # positionErr_o is combinatorial from r.position.
     # After one more clock, r.position = 0xF → positionErr_o = 1.
     dut.dataRx_i.value    = 0x55555555
     dut.chariskRx_i.value = 0
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
 
     assert int(dut.positionErr_o.value) == 1, (
         "positionErr: expected positionErr_o=1 after alignFrame with "
@@ -362,9 +346,9 @@ async def test_char03_random_soak(dut):
     await tb.reset()
 
     # Fixed seed for reproducibility
-    random.seed(0xC0C0_BABE)
+    rng = random.Random(0xC0C0_BABE)
     n_words = 64
-    stimulus = [random.randint(0, 0xFFFFFFFF) for _ in range(n_words)]
+    stimulus = [rng.randint(0, 0xFFFFFFFF) for _ in range(n_words)]
 
     golden = predict_char_restoration(stimulus, f=f, scr=bool(scr_enable), lfsr_init=0)
 
@@ -376,8 +360,7 @@ async def test_char03_random_soak(dut):
     for cycle_i in range(total_cycles):
         dut.dataRx_i.value    = stimulus[cycle_i] if cycle_i < n_words else 0
         dut.chariskRx_i.value = 0
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if cycle_i >= _LATENCY:
             got_raw.append(int(dut.sampleData_o.value) & _GT_WORD_MASK)
 

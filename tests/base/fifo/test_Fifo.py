@@ -141,12 +141,9 @@ async def wrapper_branch_ordering_test(dut):
     assert observed == expected
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("GEN_SYNC_FIFO_G", default=False))
 async def sync_count_alias_test(dut):
     tb = TB(dut)
-    if not tb.sync_fifo:
-        return
-
     await tb.reset()
 
     # The sync wrapper aliases both public count ports to the same internal

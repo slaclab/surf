@@ -26,6 +26,8 @@
 import cocotb
 from cocotb.triggers import RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -83,15 +85,13 @@ async def _drive_cfg_packet(dut, beats: list[tuple[int, int]]) -> None:
 async def _pulse_event_ack(dut, tag: int) -> None:
     dut.eventTag.value = tag
     dut.eventAck.value = 1
-    await RisingEdge(dut.cfgClk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.cfgClk)
     dut.eventAck.value = 0
 
 
 async def _pulse_sw_trigger(dut) -> None:
     dut.swTrig.value = 1
-    await RisingEdge(dut.txClk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.txClk)
     dut.swTrig.value = 0
 
 
@@ -99,8 +99,7 @@ async def _collect_tx_bytes(dut, *, count: int, timeout_cycles: int) -> tuple[li
     observed: list[tuple[int, int, int]] = []
     tx_trig_drop_seen = False
     for cycle_index in range(timeout_cycles):
-        await RisingEdge(dut.txClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.txClk)
         if int(dut.txTrigDrop.value) == 1:
             tx_trig_drop_seen = True
         if int(dut.txLsValid.value) == 1:

@@ -28,7 +28,8 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamWrite, AxiStreamBus, AxiStreamFrame, AxiStreamSource, AxiWriteBus
 
 from tests.common.regression_utils import hdl_parameters_from, run_surf_vhdl_test
@@ -63,16 +64,18 @@ class TB:
         dut.axiWriteCtrlOver.setimmediatevalue(0)
         dut.dmaWrDescAckValid.setimmediatevalue(0)
         dut.dmaWrDescRetAck.setimmediatevalue(0)
-        cocotb.start_soon(self._descriptor_responder())
-        cocotb.start_soon(self._monitor_aw())
+        # Lifetime descriptor peer and handshake monitor owned by the bench.
+        self._lifetime_tasks = (
+            cocotb.start_soon(self._descriptor_responder()),
+            cocotb.start_soon(self._monitor_aw()),
+        )
 
     def buf_addr(self, i):
         return self.base + i * self.stride
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)
@@ -87,10 +90,10 @@ class TB:
             self.ram = AxiRamWrite(AxiWriteBus.from_prefix(self.dut, "M_AXI"), self.dut.axiClk, self.dut.axiRst, size=2 ** 16)
 
     async def _descriptor_responder(self):
+        """Lifetime agent: acknowledge DMA descriptors until the test ends."""
         acked = False
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             self.dut.dmaWrDescAckValid.value = 0
             req = int(self.dut.dmaWrDescReqValid.value)
             if not req:
@@ -110,9 +113,9 @@ class TB:
                 self.dut.dmaWrDescAckValid.value = 1
 
     async def _monitor_aw(self):
+        """Lifetime agent: record DMA write addresses until the test ends."""
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             if logic_int(self.dut.M_AXI_AWVALID.value) and logic_int(self.dut.M_AXI_AWREADY.value):
                 self.aw_log.append((int(self.dut.M_AXI_AWADDR.value), int(self.dut.M_AXI_AWLEN.value)))
 

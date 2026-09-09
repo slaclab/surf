@@ -4,8 +4,5 @@ source $::env(RUCKUS_PROC_TCL)
 # Load Source Code
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
-# Load Wrappers
-loadSource -lib surf -dir "$::DIR_PATH/wrappers"
-
 # Load Simulation
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/sim"

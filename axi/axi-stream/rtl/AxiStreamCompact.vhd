@@ -125,7 +125,7 @@ begin
          v.obMaster.tValid := '0';
       end if;
 
-      -- Output slot is free – we can do work
+      -- Output slot is free - we can do work
       if v.obMaster.tValid = '0' then
 
          -- Case A: a previous tLast beat overflowed; flush the remainder first
@@ -147,7 +147,7 @@ begin
             -- Do NOT accept new input this cycle
             v.ibSlave.tReady  := '0';
 
-         -- Case B: normal operation – accept input
+         -- Case B: normal operation - accept input
          else
             v.ibSlave.tReady := '1';
 
@@ -208,7 +208,7 @@ begin
                      end if;
                   end if;
 
-               -- Not enough bytes yet, but this is the last beat – flush partial
+               -- Not enough bytes yet, but this is the last beat - flush partial
                elsif sAxisMaster.tLast = '1' then
 
                   v.obMaster.tData := (others => '0');

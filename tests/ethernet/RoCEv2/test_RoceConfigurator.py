@@ -27,10 +27,11 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-from tests.axi.utils import axil_read_u32, axil_write_u32
+from tests.axi.utils import axil_read_u32, axil_write_u32, wait_sampled_ready
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.RoCEv2.roce_test_utils import axil_read_wide, axil_write_wide, roce_rtl_sources
 
@@ -53,8 +54,7 @@ class TB:
 
     async def cycle(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.clk)
 
     async def reset(self):
         self.dut.rst.value = 1
@@ -69,12 +69,10 @@ class TB:
     async def wait_for_metadata_request(self, *, timeout_cycles: int = 64) -> int:
         self.dut.M_META_REQ_TREADY.value = 1
         for _ in range(timeout_cycles):
-            await RisingEdge(self.dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.clk)
             if int(self.dut.M_META_REQ_TVALID.value) == 1:
                 value = int(self.dut.M_META_REQ_TDATA.value)
-                await RisingEdge(self.dut.clk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(self.dut.clk)
                 self.dut.M_META_REQ_TREADY.value = 0
                 return value
         self.dut.M_META_REQ_TREADY.value = 0
@@ -103,12 +101,8 @@ async def roce_configurator_axil_to_metadata_stream_test(dut):
     # read-only response register bank update as expected.
     dut.S_META_RESP_TDATA.value = first_response
     dut.S_META_RESP_TVALID.value = 1
-    while True:
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
-        if int(dut.S_META_RESP_TREADY.value) == 1:
-            dut.S_META_RESP_TVALID.value = 0
-            break
+    await wait_sampled_ready(dut.S_META_RESP_TREADY, clk=dut.clk)
+    dut.S_META_RESP_TVALID.value = 0
 
     await tb.cycle(2)
     assert (await axil_read_u32(tb.axil, 0xF00) >> 1) & 0x1 == 1

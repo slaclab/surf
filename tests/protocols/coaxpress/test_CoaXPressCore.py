@@ -29,11 +29,12 @@
 import os
 
 import cocotb
-from cocotb.triggers import Event, RisingEdge, Timer, with_timeout
+from cocotb.triggers import Event, with_timeout
 from cocotb.utils import get_sim_time
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.common.regression_utils import env_flag, env_int, run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_IDLE,
     CXP_IDLE_K,
@@ -195,18 +196,18 @@ async def _send_image_frame(
 
 
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
+    """Lifetime agent: count asserted cycles until the owner sets stop_event."""
     while True:
-        await RisingEdge(clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(clk, propagation_time=2)
         if stop_event.is_set():
             return
         counts[key] += int(signal.value)
 
 
 async def _trace_first_signal_high(signal, clk, stop_event: Event, trace: dict[str, object], capture) -> None:
+    """Lifetime agent: observe a signal until the owner sets stop_event."""
     while True:
-        await RisingEdge(clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(clk, propagation_time=2)
         if stop_event.is_set():
             return
         if trace["seen"] or int(signal.value) == 0:

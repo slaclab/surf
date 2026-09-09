@@ -21,7 +21,8 @@
 #   actual start, payload, terminate, and return-to-idle ordering.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -77,8 +78,7 @@ async def coaxpress_over_fiber_bridge_tx_packet_format_test(dut):
 
     async def capture_words(count: int) -> None:
         while len(observed) < count:
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
 
     capture = cocotb.start_soon(capture_words(20))
@@ -86,8 +86,7 @@ async def coaxpress_over_fiber_bridge_tx_packet_format_test(dut):
     dut.txLsData.value = 0xA5
     dut.txLsDataK.value = 0
     dut.txLsValid.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.txLsValid.value = 0
 
     await cycle(dut.clk, 6)
@@ -96,8 +95,7 @@ async def coaxpress_over_fiber_bridge_tx_packet_format_test(dut):
     dut.txLsData.value = 0x5C
     dut.txLsDataK.value = 1
     dut.txLsValid.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.txLsValid.value = 0
 
     await capture
@@ -147,8 +145,7 @@ async def coaxpress_over_fiber_bridge_tx_partial_lane_enable_test(dut):
 
     async def capture_words(count: int) -> None:
         while len(observed) < count:
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
 
     capture = cocotb.start_soon(capture_words(8))
@@ -156,8 +153,7 @@ async def coaxpress_over_fiber_bridge_tx_partial_lane_enable_test(dut):
     dut.txLsData.value = CXP_K28_1
     dut.txLsDataK.value = 1
     dut.txLsValid.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.txLsValid.value = 0
 
     await capture
@@ -195,8 +191,7 @@ async def coaxpress_over_fiber_bridge_tx_lane_enable_idle_rotation_test(dut):
 
     async def capture_words(count: int) -> None:
         while len(observed) < count:
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             observed.append((int(dut.xgmiiTxd.value), int(dut.xgmiiTxc.value)))
 
     async def send_byte(byte: int, lane_enable: int) -> None:
@@ -204,8 +199,7 @@ async def coaxpress_over_fiber_bridge_tx_lane_enable_idle_rotation_test(dut):
         dut.txLsData.value = byte
         dut.txLsDataK.value = 0
         dut.txLsValid.value = 1
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         dut.txLsValid.value = 0
         await cycle(dut.clk, 4)
 

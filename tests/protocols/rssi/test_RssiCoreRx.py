@@ -133,5 +133,5 @@ def test_RssiCoreRx():
     parameters = {"RETRANS_TOUT_G": 256, "NULL_TOUT_G": 1024}
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.rssicoreintegrationwrapper",
-        parameters=parameters, extra_env=parameters, force_compile=True,
+        parameters=parameters, extra_env=parameters,
     )

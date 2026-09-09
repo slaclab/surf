@@ -166,10 +166,10 @@ make MODULES="$PWD" import
 .venv/bin/pytest -q tests/protocols/rssi
 ```
 
-Default coverage includes the checksum and header generator, the receive FSM,
-and the focused connection-timeout and core-RX entries described below. The
-remaining connection-policy, TX, monitor, AXI-Lite and broad core/wrapper
-regressions are still gated by `RUN_RSSI_KNOWN_ISSUE_TESTS=1` on this branch.
+Default coverage includes the checksum and header generator, RX and TX FSMs,
+monitor, connection FSM, and the focused core-RX entries described below.
+AXI-Lite and broad core/wrapper regressions remain gated by
+`RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
 Their presence in the tree does not mean they pass by default.
 
 - `test_RssiRxFsm.py` uses the production synchronous payload RAM. It checks
@@ -181,18 +181,17 @@ Their presence in the tree does not mean they pass by default.
   real checksum block for standalone and contiguous SYN/DATA traffic and
   malformed-SYN recovery. Checksum-disabled behavior has its own entry.
 - `test_RssiConnFsm.py::test_RssiConnFsm_timeout` checks bounded retries and
-  timeout closure in both client and server modes. The other connection tests
-  retain their existing gate.
+  timeout closure in both client and server modes. The full connection suite
+  also runs by default, including parameter negotiation and rejection.
 - `test_RssiCoreRx.py` checks real client/server negotiation and drives an
   independent Python wire peer into a server core. The latter exercises the
   real checksum, payload RAM and application FIFO through DATA+BUSY,
   duplicate suppression, sequence wrap, and close/reopen with unread data.
   Unexpected application output is an error; the test does not drain it away.
 
-Broad two-core payload integration still has a reproduced failure before RX:
-the client transport emits a zero payload. It occurs with both the original PR
-RX and revised RX after applying the timeout prerequisite. Keep that limitation
-separate from the passing core-RX tests.
+Broader core and wrapper regressions remain opt-in. A passing default run does
+not establish complete retransmission, backpressure, or wrapper integration
+coverage.
 
 Simulation does not establish FPGA resource use or timing closure. In
 particular, compare synthesis/timing reports for representative window and

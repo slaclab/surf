@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Cocotb-facing wrapper — instantiates JesdAlignChGen (TX) and
+-- Description: Cocotb-facing wrapper - instantiates JesdAlignChGen (TX) and
 --              JesdAlignFrRepCh (RX) back-to-back to exercise the inline
 --              1+x^14+x^15 scrambler/descrambler round-trip.
 -------------------------------------------------------------------------------

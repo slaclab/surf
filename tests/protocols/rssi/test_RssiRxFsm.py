@@ -43,7 +43,7 @@ import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cocotb_filtered_env, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     RSSI_FLAG_BUSY,
@@ -823,8 +823,7 @@ def test_RssiRxFsm(parameters):
         test_file=__file__,
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
-        extra_env={**parameters, "COCOTB_TEST_FILTER": "^(?!.*(_wire_test|checksum_disabled_accepts)).*$"},
-        force_compile=True,
+        extra_env=cocotb_filtered_env(parameters, "^(?!.*(_wire_test|checksum_disabled_accepts)).*$"),
     )
 
 
@@ -838,7 +837,6 @@ def test_RssiRxFsm_checksum_disabled():
             **parameters,
             "COCOTB_TESTCASE": "checksum_disabled_accepts_data_when_checksum_status_is_bad_test",
         },
-        force_compile=True,
     )
 
 
@@ -848,6 +846,5 @@ def test_RssiRxFsm_real_checksum():
         test_file=__file__,
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
-        extra_env={**parameters, "COCOTB_TEST_FILTER": "_wire_test$"},
-        force_compile=True,
+        extra_env=cocotb_filtered_env(parameters, "_wire_test$"),
     )

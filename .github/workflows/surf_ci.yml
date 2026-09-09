@@ -14,9 +14,45 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-on: [push]
+# Triggers: every push runs the workflow (directory-scoped regression on
+# feature branches, full on pre-release/main/tags); PRs into main additionally
+# run it in full.
+# A feature branch with an open PR into main therefore runs the regression
+# job twice per push -- once selective (push ref) and once full (PR merge
+# ref). Distinct event/ref concurrency groups prevent push, PR, and manual
+# validation runs from cancelling one another. This is intentional: the push
+# run gives fast per-commit feedback and the PR run is the full pre-merge
+# release gate. In this repo feature branches normally target pre-release, so
+# the double run is confined to release PRs. The post-merge push to pre-release
+# is also full so the integration branch is checked after every feature merge.
+# Manual dispatch can simulate a changed-path list to exercise selective
+# execution on a runner; it does not alter the path source used by push or
+# pull-request events.
+#
+# Regression coverage is split across two jobs, "Non-rogue Regression Tests"
+# and "Rogue Regression Tests". The split is a packaging boundary, not a
+# testing one. Rogue is distributed only through the tidair-tag conda channel
+# and is absent from pip_requirements.txt, so Rogue coverage needs Miniforge
+# and a conda login shell, whereas the non-rogue job deliberately builds and
+# simulates on apt mcode GHDL under actions/setup-python. Rogue coverage also
+# has to stay a distinct required suite because every Rogue test skips
+# silently when Rogue is missing (pytest.importorskip in the ADC DDR tests,
+# _check_rogue_python() in the SimLink contracts); inside the non-rogue job
+# they would be invisible no-ops. See tests/simlink/README.md for the
+# rationale on why the deterministic pyzmq peer cannot substitute for real
+# Rogue. Any future Rogue-dependent suite belongs in the Rogue job.
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      changed_files_override:
+        description: Comma-separated paths used to exercise selective CI without changing push/PR policy
+        required: false
+        type: string
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -60,6 +96,13 @@ jobs:
             exit 1
           fi
 
+      - name: Check for non-ASCII characters in VHDL
+        run: |
+          if LC_ALL=C grep -rnP '[^\x00-\x7F]' --include=\*.vhd .; then
+            echo "Error: Non-ASCII characters found in VHDL source! Some tools (e.g. Cadence Genus) read VHDL with an ASCII codec and will fail. Please use plain ASCII (e.g. '-' instead of en/em dashes)."
+            exit 1
+          fi
+
       - name: Python Linter Checking
         run: |
           python -m compileall -f python/ scripts/ tests/
@@ -79,11 +122,13 @@ jobs:
 
 # ----------------------------------------------------------------------------
   test:
-    name: Regression Tests
+    name: Non-rogue Regression Tests
     runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
@@ -92,7 +137,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make python3 python3-pip tclsh ghdl
+          sudo apt-get install -y make python3 python3-pip tclsh ghdl libzmq3-dev valgrind
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
@@ -104,15 +149,187 @@ jobs:
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
-      - name: Parallel Regression Tests
+      - name: Determine run mode
+        id: mode
         run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/main" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/pre-release" ]] \
+             || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=selective" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Parallel Regression Tests
+        env:
+          CHANGED_FILES_OVERRIDE: ${{ inputs.changed_files_override }}
+        run: |
+          # Define the full regression universe once so integration runs and
+          # selective-mode fallbacks cannot drift apart as suites are added.
+          full_targets=(
+            tests
+          )
+          # tests/simlink is owned by the dedicated step below, which runs it
+          # on every push with a bounded worker count. Exclude it here so the
+          # unbounded -n auto never starves its multi-instance peer handshake
+          # and so the suite is not run twice.
+          full_ignores=(
+            --ignore=tests/simlink
+          )
+
+          # Import once before either run mode. The compliance check consumes
+          # the same ruckus source inventory as the cocotb runner and fails
+          # fast on new structural violations before expensive simulations.
           make MODULES=$PWD import
-          python -m pytest --cov -v -n auto --dist=worksteal tests/axi tests/base tests/dsp tests/protocols tests/ethernet/RoCEv2
+          python -m tests.common.compliance_audit check tests
+
+          # Full integration/release runs build and simulate on apt mcode GHDL
+          # and collect the coverage consumed by Codecov.
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
+            exit 0
+          fi
+
+          # Feature-branch pushes compare with origin/pre-release and map
+          # localized protocol/DSP/Ethernet paths to matching pytest
+          # directories. Any foundational, build-control, deleted/renamed,
+          # unknown, or otherwise indeterminate change emits FORCE_FULL.
+          selector_args=()
+          selection_source="git diff against origin/pre-release"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] \
+             && [[ -n "${CHANGED_FILES_OVERRIDE}" ]]; then
+            selector_args+=(--changed-files-override "${CHANGED_FILES_OVERRIDE}")
+            selection_source="manual changed-path simulation"
+          fi
+
+          if selector_output="$(python -m tests.common "${selector_args[@]}")"; then
+            selector_rc=0
+          else
+            selector_rc=$?
+          fi
+
+          echo "${selector_output}"
+
+          if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
+            echo "Directory selector forced a full run (rc=${selector_rc})"
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: full regression"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
+          else
+            # tests/common contains the selector's policy tests and always runs
+            # alongside any directory-owned cocotb targets.
+            targets=(tests/common)
+            if [[ -n "${selector_output}" ]]; then
+              mapfile -t selected < <(printf '%s\n' "${selector_output}")
+              targets+=("${selected[@]}")
+            else
+              echo "No directory-owned cocotb tests for this change set -- running tests/common only."
+            fi
+            {
+              echo "### Regression selection"
+              echo
+              echo "- Source: ${selection_source}"
+              echo "- Result: selective regression"
+              echo "- Pytest targets: \`${targets[*]}\`"
+            } >> "${GITHUB_STEP_SUMMARY}"
+            python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
+          fi
+
+      - name: SimLink Regression Tests
+        # SimLink runs in its own step with a bounded worker count, and is
+        # excluded from the step above in both full and selective mode. Its
+        # native ctypes libraries and the multi-instance ZeroMQ traffic test are
+        # timing-sensitive, and an unbounded -n auto on a many-core runner
+        # over-subscribes badly enough to starve the multi-instance peer
+        # handshake. Cap workers at min(nproc, 8): still ~2x faster than serial
+        # on the hosted 4-core runner, without the high-concurrency starvation.
+        # Unconditional: the path selector maps no path to tests/simlink, so a
+        # selective feature-branch push would otherwise never exercise it.
+        run: |
+          python -m pytest --cov --cov-append -v \
+            -n "$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')" \
+            --dist=worksteal tests/simlink
 
       - name: Code Coverage
+        if: steps.mode.outputs.value == 'full'
         run: |
           codecov
           coverage report -m
+
+# ----------------------------------------------------------------------------
+
+  rogue_test:
+    name: Rogue Regression Tests
+    # Every suite that needs a real Rogue install lives here, behind one
+    # pinned conda environment. Rogue is conda-only, so provisioning Miniforge
+    # dominates the runtime; running these suites as separate jobs paid that
+    # cost once per suite for no isolation benefit. Each suite keeps its own
+    # step so a failure still names the suite that broke.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: surf-rogue-test
+          environment-file: conda-rogue.yml
+          auto-activate: false
+          conda-remove-defaults: true
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
+          python -m pip install --upgrade pip
+          python -m pip install -r pip_requirements.txt
+          if [ -L ruckus ] && [ ! -d ruckus ]; then
+            echo "Removing broken ruckus symlink from checkout"
+            rm ruckus
+          fi
+          if [ ! -d ruckus ]; then
+            git clone https://github.com/slaclab/ruckus.git ruckus
+          fi
+          python -m pip install -r ruckus/scripts/pip_requirements.txt
+
+      - name: Verify pinned Rogue
+        # Fail before any suite runs if the conda environment did not activate.
+        # Without this a missing Rogue would silently downgrade every suite
+        # below into a skip, which is exactly what this job exists to prevent.
+        run: |
+          python -c "import rogue, pyrogue; print(rogue.Version.current())"
+
+      - name: Import HDL sources
+        # Required by the SimLink contract, which builds from build/SRC_VHDL.
+        # Inert for the pure-PyRogue suites.
+        run: |
+          make MODULES="$PWD" import
+
+      - name: SimLink Rogue contract
+        run: |
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
+
+      - name: ADC DDR Rogue tests
+        # PYTHONPATH exposes the in-repo python/surf package: these tests
+        # deliberately exercise the checked-in PyRogue model, not an installed
+        # surf. Keep it scoped to this step.
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/devices/analog_devices/test_AdcDdrCalibration.py \
+            tests/devices/analog_devices/test_AdcDdrModel.py
 
 # ----------------------------------------------------------------------------
 
@@ -142,7 +359,8 @@ jobs:
 # ----------------------------------------------------------------------------
 
   gen_release:
-    needs: [lint, test, docs]
+    needs: [lint, test, rogue_test, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/gen_release.yml@main
     with:
       version: '1.0.0'
@@ -152,7 +370,8 @@ jobs:
 # ----------------------------------------------------------------------------
 
   conda_build_lib:
-    needs: [lint, test, docs]
+    needs: [lint, test, rogue_test, docs]
+    if: startsWith(github.ref, 'refs/tags/')
     uses: slaclab/ruckus/.github/workflows/conda_build_lib.yml@main
     with:
       version: '1.0.0'
