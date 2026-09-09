@@ -29,7 +29,8 @@
 #   by close rather than counter overflow.
 # - Timing: Status checks wait past the default `TPD_G` output delay after each
 #   clock edge.  Timeout generics are kept small so retries and peer-timeout
-#   closure remain deterministic within a directed cocotb test.
+#   closure remain deterministic within a directed cocotb test. A default pytest
+#   entry selects only the two timeout cases; parameter-policy cases remain gated.
 
 import os
 
@@ -439,5 +440,17 @@ def test_RssiConnFsm(parameters):
                 "protocols/rssi/v1/wrappers/RssiConnFsmWrapper.vhd",
             ],
         },
+        force_compile=True,
+    )
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+def test_RssiConnFsm_timeout(parameters):
+    case = ("server_retries_syn_ack_then_times_out_waiting_for_ack_test"
+            if parameters["SERVER_G"] else
+            "client_retries_syn_then_times_out_waiting_for_syn_ack_test")
+    run_surf_vhdl_test(
+        test_file=__file__, toplevel="surf.rssiconnfsmwrapper",
+        parameters=parameters, extra_env={**parameters, "COCOTB_TESTCASE": case},
         force_compile=True,
     )

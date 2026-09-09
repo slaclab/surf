@@ -15,8 +15,8 @@
 #   retransmission policy are tested elsewhere.
 # - DUT shape: Run `RssiRxFsm` through a thin wrapper with small receive and
 #   transmit windows, optional header checksum validation, and an internal
-#   behavioral segment RAM.  The wrapper flattens SSI records, RX/TX sequence
-#   inputs, decoded flag outputs, and SYN parameter outputs so tests can assert
+#   production synchronous segment RAM. The wrapper flattens SSI records,
+#   RX/TX sequence inputs, decoded flag outputs, and SYN parameter outputs so tests can assert
 #   leaf-FSM behavior directly.
 # - Stimulus: Drive flattened transport-side SSI frames containing encoded RSSI
 #   ACK, DATA, NULL, RST, and SYN headers plus payload words where applicable.
@@ -24,21 +24,26 @@
 #   payload continuation, sequence numbers, and duplicate/out-of-order DATA.
 # - Checks: Valid in-order DATA must pulse `rxValidSeg_o`, update visible
 #   sequence/ack/flag fields, and deliver exactly the expected application
-#   frame.  Invalid checksum, unsupported EACK, illegal DATA/BUSY/ACK flag
-#   combinations, malformed SYN, out-of-order DATA, and duplicate DATA must
-#   pulse/drop as appropriate and stay silent on the application side.  With
+#   frame, including DATA+BUSY. Duplicates validate their ACK without RAM
+#   writes or a second delivery. Invalid headers and out-of-order DATA drop.
+#   Closure while paused cancels old delivery, and states match PyRogue. With
 #   `HEADER_CHKSUM_EN_G=false`, `chksumOk_i` is ignored while the checksum
 #   valid pulse still supplies timing.
 # - Timing: Transport input waits for sampled ready before changing beats.
 #   Status checks wait past the default `TPD_G` output delay, and app-output
 #   checks account for the registered segment RAM read latency used by the real
-#   `RssiCore` path.
+#   `RssiCore` path. A separate pytest case connects the real checksum block
+#   and drives contiguous SYN/DATA frames; ordinary leaf cases inject checksum
+#   status explicitly to isolate acceptance and error policy.
+
+import ast
+from pathlib import Path
 
 import cocotb
 import pytest
 from cocotb.triggers import Timer
 
-from tests.common.regression_utils import env_flag, run_surf_vhdl_test
+from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
     RssiParams,
     RSSI_FLAG_BUSY,
@@ -58,6 +63,8 @@ from tests.protocols.ssi.ssi_test_utils import (
     expect_no_output,
     recv_frame_and_check,
     setup_flat_ssi_testbench,
+    reset_dut,
+    send_contiguous_frame,
     SsiBeat,
 )
 
@@ -326,9 +333,6 @@ async def checksum_failed_data_payload_is_flushed_before_retransmit_test(dut):
 
 @cocotb.test()
 async def checksum_disabled_accepts_data_when_checksum_status_is_bad_test(dut):
-    if not env_flag("RSSI_CHECKSUM_DISABLED_CASE", default=False):
-        return
-
     tb = await TB.create(dut)
 
     payload = 0xCAFE_0000_0000_BEEF
@@ -396,10 +400,11 @@ async def valid_data_payload_delivery_test(dut):
 async def illegal_data_flag_combinations_drop_test(dut):
     tb = await TB.create(dut)
 
-    # DATA must carry ACK and must not be combined with BUSY or unsupported EACK.
+    # DATA must carry ACK and must not contain NULL, RST, or unsupported EACK.
     for ack, busy, extra_flags in (
         (False, False, 0),
-        (True, True, 0),
+        (True, False, RSSI_FLAG_NULL),
+        (True, False, RSSI_FLAG_RST),
         (True, False, RSSI_FLAG_EACK),
     ):
         drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
@@ -539,7 +544,7 @@ async def out_of_order_data_drops_then_in_order_retransmit_accepts_test(dut):
 
 
 @cocotb.test()
-async def duplicate_data_after_delivery_drops_without_second_output_test(dut):
+async def duplicate_data_after_delivery_preserves_ack_without_second_output_test(dut):
     tb = await TB.create(dut)
 
     payload = 0x1357_9BDF_2468_ACE0
@@ -557,14 +562,256 @@ async def duplicate_data_after_delivery_drops_without_second_output_test(dut):
         expected=[(payload, 0xFF, 1, 1, 0)],
     )
 
-    drop_wait = cocotb.start_soon(tb.wait_status_pulse("rxDropSeg_o"))
+    valid_wait = cocotb.start_soon(tb.wait_status_pulse("rxValidSeg_o"))
+    write_check = cocotb.start_soon(assert_no_payload_writes(tb, cycles=32))
     await tb.send_data_segment(
         sequence=1,
-        acknowledge=0,
-        payload_words=[payload],
+        acknowledge=1,
+        payload_words=[payload ^ 0xFFFF],
     )
-    await drop_wait
+    await valid_wait
+    assert int(dut.rxFlagAck_o.value) == 1
+    assert int(dut.rxAckN_o.value) == 1
+    await write_check
     await tb.expect_no_app_output()
+
+
+async def assert_no_payload_writes(tb, *, cycles):
+    for _ in range(cycles):
+        await tb.cycle()
+        assert int(tb.dut.payloadWrite_o.value) == 0, "Duplicate rewrote payload RAM"
+
+
+def rx_app_state_enum():
+    # Read the actual PyRogue map without requiring a PyRogue installation.
+    model = Path(__file__).resolve().parents[3] / "python/surf/protocols/rssi/_RssiCore.py"
+    for node in ast.walk(ast.parse(model.read_text())):
+        if isinstance(node, ast.Call):
+            keywords = {item.arg: item.value for item in node.keywords}
+            name = keywords.get("name")
+            if isinstance(name, ast.Constant) and name.value == "RxAppState":
+                return ast.literal_eval(keywords["enum"])
+    raise AssertionError("Missing PyRogue RxAppState enum")
+
+
+@cocotb.test()
+async def data_busy_payload_and_partial_keep_test(dut):
+    tb = await TB.create(dut)
+    for sequence, length in enumerate((1, 2, 4), start=1):
+        payload = [0x1234000000000000 + sequence * 256 + i for i in range(length)]
+        header = build_data_header(sequence=sequence, acknowledge=0, busy=True,
+                                   enable_checksum=False)
+        await tb.send_transport_word(data=stream_words_from_header(header)[0], sof=1, last=0)
+        dut.chksumValid_i.value = 1
+        await tb.cycle()
+        dut.chksumValid_i.value = 0
+        for i, word in enumerate(payload):
+            await tb.send_transport_word(data=word, sof=0, last=int(i == length - 1),
+                                         keep=0x1F if i == length - 1 else 0xFF)
+        await tb.wait_status_pulse("rxValidSeg_o")
+        assert int(dut.rxFlagBusy_o.value) == 1
+        assert int(dut.rxFlagAck_o.value) == 1
+        await recv_frame_and_check(
+            tb.sink, clk=tb.clk, ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(word, 0x1F if i == length - 1 else 0xFF,
+                       int(i == length - 1), int(i == 0), 0)
+                      for i, word in enumerate(payload)],
+        )
+        await tb.cycle(4)
+
+
+@cocotb.test()
+async def duplicate_pending_window_preserves_payload_and_ack_test(dut):
+    tb = await TB.create(dut)
+    # Fill the window while the application is paused. The duplicate arrives
+    # at the wrapped write pointer, where the oldest payload is still pending.
+    for seq in range(1, 5):
+        await tb.send_data_segment(sequence=seq, acknowledge=0,
+                                   payload_words=[0x100 + seq, 0x200 + seq])
+        await tb.wait_status_pulse("rxValidSeg_o")
+        await tb.cycle(4)
+    valid_wait = cocotb.start_soon(tb.wait_status_pulse("rxValidSeg_o"))
+    writes = cocotb.start_soon(assert_no_payload_writes(tb, cycles=32))
+    await tb.send_data_segment(sequence=4, acknowledge=1, busy=True,
+                               payload_words=[0xBAD, 0xBAD, 0xBAD])
+    await valid_wait
+    assert int(dut.rxAckN_o.value) == 1
+    await writes
+    for seq in range(1, 5):
+        await recv_frame_and_check(
+            tb.sink, clk=tb.clk, ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(0x100 + seq, 0xFF, 0, 1, 0), (0x200 + seq, 0xFF, 1, 0, 0)],
+        )
+    await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def duplicate_bad_checksum_and_eofe_do_not_validate_ack_test(dut):
+    tb = await TB.create(dut)
+    await tb.send_data_segment(sequence=1, acknowledge=0, payload_words=[123])
+    await tb.wait_status_pulse("rxValidSeg_o")
+    await tb.cycle(4)
+    for checksum_ok in (False, True):
+        async def reject_monitor():
+            dropped = False
+            for _ in range(40):
+                await tb.cycle()
+                assert int(dut.rxValidSeg_o.value) == 0, "Malformed duplicate validated ACK"
+                dropped |= bool(int(dut.rxDropSeg_o.value))
+                assert int(dut.payloadWrite_o.value) == 0
+            assert dropped
+        monitor = cocotb.start_soon(reject_monitor())
+        header = build_data_header(sequence=1, acknowledge=1, enable_checksum=False)
+        dut.chksumOk_i.value = int(checksum_ok)
+        await tb.send_transport_word(data=stream_words_from_header(header)[0], sof=1, last=0)
+        dut.chksumValid_i.value = 1
+        await tb.cycle()
+        dut.chksumValid_i.value = 0
+        await tb.send_transport_word(data=456, sof=0, last=1, eofe=int(checksum_ok))
+        await monitor
+
+
+@cocotb.test()
+async def close_at_each_payload_stage_cancels_old_connection_test(dut):
+    tb = await TB.create(dut)
+    states = rx_app_state_enum()
+    assert states == {0: "CHECK_BUFFER_S", 1: "DATA_S", 2: "SENT_S", 3: "READ_S"}
+    observed = set()
+    paused_read_codes = []
+    # Before the first beat, after the first beat, before the final beat, and
+    # after the final beat. Exercise closure with pause both asserted and clear.
+    for close_after, pause in ((0, True), (1, True), (3, True), (4, False), (1, False)):
+        dut.mAxisTReady.value = 0
+        dut.connActive_i.value = 1
+        await reset_dut(dut)
+        await tb.send_data_segment(sequence=1, acknowledge=0,
+                                   payload_words=[0xBAD000 + i for i in range(4)])
+        await tb.wait_status_pulse("rxValidSeg_o")
+        await tb.cycle(8)
+        paused_read_codes.append(int(dut.rxAppState_o.value))
+        observed.add(int(dut.rxAppState_o.value))
+        if close_after:
+            dut.mAxisTReady.value = 1
+            seen = 0
+            for _ in range(20):
+                await tb.cycle()
+                observed.add(int(dut.rxAppState_o.value))
+                if int(dut.mAxisTValid.value):
+                    assert int(dut.mAxisTData.value) == 0xBAD000 + seen
+                    seen += 1
+                    if seen == close_after:
+                        break
+            assert seen == close_after
+        dut.mAxisTReady.value = int(not pause)
+        dut.connActive_i.value = 0
+        await tb.cycle(8)
+        assert int(dut.mAxisTValid.value) == 0
+        await tb.send_syn_segment(sequence=0x40, acknowledge=0)
+        await tb.wait_status_pulse("rxValidSeg_o")
+        await tb.cycle(8)
+        dut.connActive_i.value = 1
+        await tb.expect_no_app_output()
+        assert int(dut.rxLastSeqN_o.value) == 0x40
+        await tb.send_data_segment(sequence=0x41, acknowledge=0, payload_words=[0xCAFE])
+        await tb.wait_status_pulse("rxValidSeg_o")
+        await recv_frame_and_check(
+            tb.sink, clk=tb.clk, ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(0xCAFE, 0xFF, 1, 1, 0)],
+        )
+        for _ in range(5):
+            await tb.cycle()
+            observed.add(int(dut.rxAppState_o.value))
+    assert all(states[code] == "READ_S" for code in paused_read_codes)
+    assert {states[code] for code in observed} == {"READ_S", "DATA_S", "SENT_S", "CHECK_BUFFER_S"}
+
+
+async def real_checksum_syn_case(dut, *, contiguous):
+    tb = await TB.create(dut, connected=False)
+    params = RssiParams(connection_id=0xA5B6C7D8, timeout_unit=3, max_outofseq=2)
+    words = stream_words_from_header(build_syn_header(
+        sequence=0x40, acknowledge=0, ack=True, params=params))
+    beats = [SsiBeat(data=word, keep=0xFF, sof=int(i == 0), last=int(i == 2))
+             for i, word in enumerate(words)]
+    if contiguous:
+        next_header = stream_words_from_header(build_data_header(sequence=0x41, acknowledge=0))[0]
+        beats += [SsiBeat(data=next_header, keep=0xFF, sof=1, last=0),
+                  SsiBeat(data=0x123456789ABCDEF0, keep=0x1F, sof=0, last=1)]
+
+    async def accept_syn():
+        await tb.wait_status_pulse("rxValidSeg_o", cycles=64)
+        assert int(dut.rxFlagSyn_o.value) == 1
+        assert int(dut.paramConnId_o.value) == params.connection_id
+        assert int(dut.paramTimeoutUnit_o.value) == params.timeout_unit
+        assert int(dut.paramMaxOutofseq_o.value) == params.max_outofseq
+        dut.connActive_i.value = 1
+
+    accepted = cocotb.start_soon(accept_syn())
+    await send_contiguous_frame(tb.source, beats, clk=tb.clk)
+    await accepted
+    if contiguous:
+        await tb.wait_status_pulse("rxValidSeg_o")
+        assert int(dut.rxFlagData_o.value) == 1
+        await recv_frame_and_check(
+            tb.sink, clk=tb.clk, ready_signal=dut.mAxisTReady,
+            fields=("data", "keep", "last", "sof", "eofe"),
+            expected=[(0x123456789ABCDEF0, 0x1F, 1, 1, 0)],
+        )
+    else:
+        await tb.expect_no_app_output()
+
+
+@cocotb.test()
+async def standalone_syn_real_checksum_wire_test(dut):
+    await real_checksum_syn_case(dut, contiguous=False)
+
+
+@cocotb.test()
+async def syn_followed_by_data_real_checksum_wire_test(dut):
+    await real_checksum_syn_case(dut, contiguous=True)
+
+
+@cocotb.test()
+async def malformed_syn_then_valid_syn_real_checksum_wire_test(dut):
+    tb = await TB.create(dut, connected=False)
+    for bad_checksum in (True, False):
+        await reset_dut(dut)
+        bad_header = bytearray(build_syn_header(
+            sequence=0x20, acknowledge=0, params=RssiParams(connection_id=0xBAD)))
+        if bad_checksum:
+            bad_header[-1] ^= 1
+        words = stream_words_from_header(bytes(bad_header))
+        beats = [SsiBeat(data=word, keep=0xFF, sof=int(i == 0),
+                         last=int(i == 2 and bad_checksum))
+                 for i, word in enumerate(words)]
+        if not bad_checksum:
+            beats.append(SsiBeat(data=0xBAD, keep=0xFF, sof=0, last=1))
+        good = RssiParams(connection_id=0x1234ABCD, timeout_unit=4, max_outofseq=1)
+        words = stream_words_from_header(build_syn_header(sequence=0x40, acknowledge=0, params=good))
+        beats += [SsiBeat(data=word, keep=0xFF, sof=int(i == 0), last=int(i == 2))
+                  for i, word in enumerate(words)]
+
+        async def watch_publication():
+            valid_count = 0
+            drops = 0
+            for _ in range(80):
+                await tb.cycle()
+                drops += int(dut.rxDropSeg_o.value)
+                if int(dut.rxValidSeg_o.value):
+                    valid_count += 1
+                    assert int(dut.rxSeqN_o.value) == 0x40
+                    assert int(dut.paramConnId_o.value) == good.connection_id
+                    assert int(dut.paramTimeoutUnit_o.value) == good.timeout_unit
+                else:
+                    assert int(dut.paramConnId_o.value) in (0, good.connection_id)
+            assert drops == 1
+            assert valid_count == 1
+
+        monitor = cocotb.start_soon(watch_publication())
+        await send_contiguous_frame(tb.source, beats, clk=tb.clk)
+        await monitor
 
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
@@ -576,13 +823,7 @@ def test_RssiRxFsm(parameters):
         test_file=__file__,
         toplevel="surf.rssirxfsmwrapper",
         parameters=parameters,
-        extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
+        extra_env={**parameters, "COCOTB_TEST_FILTER": "^(?!.*(_wire_test|checksum_disabled_accepts)).*$"},
         force_compile=True,
     )
 
@@ -596,13 +837,17 @@ def test_RssiRxFsm_checksum_disabled():
         extra_env={
             **parameters,
             "COCOTB_TESTCASE": "checksum_disabled_accepts_data_when_checksum_status_is_bad_test",
-            "RSSI_CHECKSUM_DISABLED_CASE": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-                "protocols/rssi/v1/wrappers/RssiRxFsmWrapper.vhd",
-            ],
-        },
+        force_compile=True,
+    )
+
+
+def test_RssiRxFsm_real_checksum():
+    parameters = {"EXTERNAL_CHKSUM_G": "false"}
+    run_surf_vhdl_test(
+        test_file=__file__,
+        toplevel="surf.rssirxfsmwrapper",
+        parameters=parameters,
+        extra_env={**parameters, "COCOTB_TEST_FILTER": "_wire_test$"},
         force_compile=True,
     )

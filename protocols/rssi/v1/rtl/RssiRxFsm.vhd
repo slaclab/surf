@@ -29,6 +29,12 @@
 --                - SENT Release the windowbuffer at txBufferAddr.
 --                       Increment txBufferAddr.
 --                       Register the received SeqN for acknowledgment.
+--
+-- SYN parameters are staged until the complete header passes validation.
+-- DATA may carry BUSY for the peer's receive-side flow control. Duplicate
+-- DATA is drained without buffer writes, but its validated ACK remains visible
+-- through rxValidSeg_o. Application delivery uses registered RAM read data and
+-- pause flow control; connection closure cancels pending application delivery.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -164,6 +170,7 @@ architecture rtl of RssiRxFsm is
       --
       segmentWe     : sl;
       segmentData   : slv(RSSI_WORD_WIDTH_C*8-1 downto 0);
+      duplicateData : sl;
 
       -- Packet flags
       rxF : flagsType;
@@ -177,6 +184,7 @@ architecture rtl of RssiRxFsm is
       rxAckN    : slv(7 downto 0);      -- Received ackN
       synEof    : sl;
       synEofe   : sl;
+      synLast   : sl;
 
       --
       chkEn      : sl;
@@ -226,6 +234,7 @@ architecture rtl of RssiRxFsm is
       --
       segmentWe   => '0',
       segmentData => (others => '0'),
+      duplicateData => '0',
 
       -- Packet flags
       rxF => (others => ('0')),
@@ -239,6 +248,7 @@ architecture rtl of RssiRxFsm is
       rxAckN    => (others => '0'),     -- Received ackN
       synEof    => '0',
       synEofe   => '0',
+      synLast   => '0',
 
       --
       chkEn      => '0',
@@ -314,9 +324,11 @@ begin
             v.rxHeaderAddr  := (others => '0');
             v.rxSegmentAddr := (others => '1');  -- "-1" so the first address after increment to be 0
             v.segmentWe     := '0';
+            v.duplicateData := '0';
             v.synParam      := RSSI_PARAM_INIT_C;
             v.synEof        := '0';
             v.synEofe       := '0';
+            v.synLast       := '0';
 
             -- Ready until SOF received
             -- Also flush any dropped or non SOF segments
@@ -419,8 +431,8 @@ begin
                   if (r.rxF.data = '1' and
                       v.rxF.ack = '1' and
                       v.rxF.nul = '0' and
-                      v.rxF.rst = '0' and
-                      v.rxF.busy = '0') then
+                      v.rxF.rst = '0') then
+                     -- BUSY describes the peer's receiver, not this DATA payload.
                      -- Only the next in-order DATA segment may enter the payload buffer.
                      if (r.rxSeqN - r.inOrderSeqN = 1) then
                         -- Wait if the buffer full
@@ -433,8 +445,10 @@ begin
                            v.tspState := DROP_S;
                         end if;
                      else
-                        -- Duplicate DATA -> drop without touching the payload buffer
-                        v.tspState := DROP_S;
+                        -- Drain the duplicate without writes. A clean EOF still
+                        -- validates its ACK for traffic in the opposite direction.
+                        v.duplicateData := '1';
+                        v.tspState      := DATA_S;
                      end if;
                   elsif (r.rxF.data = '0') then
                      -- Valid non data segment
@@ -492,7 +506,7 @@ begin
                v.rxHeaderAddr := r.rxHeaderAddr;
                v.tspSsiSlave  := r.tspSsiSlave;
 
-               if (r.tspSsiMaster.valid = '1') then
+               if (r.tspSsiMaster.valid = '1' and r.synLast = '0') then
 
                   -- Syn parameters
                   v.synParam.maxOutofseq               := r.headerData (63 downto 56);
@@ -500,13 +514,16 @@ begin
                   v.synParam.connectionId(31 downto 0) := r.headerData (47 downto 16);
                   v.synEof                             := r.tspSsiMaster.eof;
                   v.synEofe                            := r.tspSsiMaster.eofe;
+                  -- Freeze this accepted word while checksum completion is
+                  -- pending; the input may already hold the next stalled frame.
+                  v.synLast                            := '1';
 
                   -- Tsp parameters
                   v.tspSsiSlave := SSI_SLAVE_NOTRDY_C;
                end if;
 
                -- Wait for checksum
-               if (chksumValid_i = '1') then
+               if (chksumValid_i = '1' and r.synLast = '1') then
                   -- Check received data header
 
                   if (
@@ -549,7 +566,7 @@ begin
             -- Write enable and segment address
             if (tspSsiMaster_i.valid = '1') then
                v.rxSegmentAddr := r.rxSegmentAddr + 1;
-               v.segmentWe     := '1';
+               v.segmentWe     := not r.duplicateData;
             else
                v.rxSegmentAddr := r.rxSegmentAddr;
                v.segmentWe     := '0';
@@ -558,11 +575,11 @@ begin
             -- Wait until receiving EOF
             if (tspSsiMaster_i.eof = '1' and tspSsiMaster_i.valid = '1') then
 
-               -- Save tKeep of the last packet
-               v.windowArray(conv_integer(r.rxBufferAddr)).keep := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
-
-               -- Save packet length (+1 because it has not incremented for EOF yet)
-               v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(v.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
+               if (r.duplicateData = '0') then
+                  -- Save the final keep mask and zero-based payload word address.
+                  v.windowArray(conv_integer(r.rxBufferAddr)).keep := tspSsiMaster_i.keep(RSSI_WORD_WIDTH_C-1 downto 0);
+                  v.windowArray(conv_integer(r.rxBufferAddr)).segSize := conv_integer(v.rxSegmentAddr(SEGMENT_ADDR_SIZE_G-1 downto 0));
+               end if;
 
                -- Check EOF Error
                if (tspSsiMaster_i.eofe = '0') then
@@ -708,7 +725,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when READ_S =>
-            v.rxAppState := x"1";
+            v.rxAppState := x"3";
 
             -- Counters
             v.txBufferAddr := r.txBufferAddr;
@@ -739,7 +756,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when DATA_S =>
-            v.rxAppState := x"2";
+            v.rxAppState := x"1";
 
             -- Counters
             v.txBufferAddr := r.txBufferAddr;
@@ -781,7 +798,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when SENT_S =>
-            v.rxAppState := x"3";
+            v.rxAppState := x"2";
 
             -- Register the sent SeqN (this means that the place has been freed and the SeqN can be Acked)
             v.rxLastSeqN := r.windowArray(conv_integer(r.txBufferAddr)).seqN;
@@ -813,6 +830,17 @@ begin
 
       ----------------------------------------------------------------------
       end case;
+
+      -- Connection closure has priority in every application state, including
+      -- a paused first or final beat. A later SYN reinitializes the RX window.
+      if (connActive_i = '0') then
+         v.appState      := CHECK_BUFFER_S;
+         v.rxAppState    := x"0";
+         v.appSsiMaster  := SSI_MASTER_INIT_C;
+         v.txBufferAddr  := (others => '0');
+         v.txSegmentAddr := (others => '0');
+         v.rxLastSeqN    := r.inOrderSeqN;
+      end if;
 
       if (v.segmentWe = '1') then
          v.segmentData := tspSsiMaster_i.data(RSSI_WORD_WIDTH_C*8-1 downto 0);
