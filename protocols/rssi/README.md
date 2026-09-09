@@ -192,9 +192,7 @@ Their presence in the tree does not mean they pass by default.
 Broad two-core payload integration still has a reproduced failure before RX:
 the client transport emits a zero payload. It occurs with both the original PR
 RX and revised RX after applying the timeout prerequisite. Keep that limitation
-separate from the passing core-RX tests. See the
-[implementation validation notes](../../docs/plans/pr-1456-review/implementation.md)
-for exact revisions and results.
+separate from the passing core-RX tests.
 
 Simulation does not establish FPGA resource use or timing closure. In
 particular, compare synthesis/timing reports for representative window and
