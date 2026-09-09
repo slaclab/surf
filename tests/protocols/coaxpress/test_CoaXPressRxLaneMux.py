@@ -23,7 +23,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import env_int, parameter_case, run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import pack_words, reset_dut, start_clock
@@ -80,8 +81,7 @@ async def coaxpress_rx_lane_mux_round_robin_test(dut):
         _set_lane_inputs(dut, current, num_lanes=num_lanes)
         dut.mAxisTReady.value = 0 if cycle_index < 2 else 1
 
-        await RisingEdge(dut.rxClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.rxClk)
 
         ready_bits = int(dut.sAxisTReady.value)
         for lane, queue in enumerate(lane_queues):

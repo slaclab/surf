@@ -25,7 +25,9 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import env_flag, env_sl, hdl_parameters_from, parameter_case, run_surf_vhdl_test
 from tests.dsp.generic.dsp_test_utils import signed_samples, to_unsigned, truncate_signed
@@ -54,8 +56,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.clk)
 
     async def reset(self):
         self.dut.rst.value = self.reset_active_value()

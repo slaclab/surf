@@ -6,10 +6,12 @@ loadRuckusTcl "$::DIR_PATH/ad5541"
 loadRuckusTcl "$::DIR_PATH/ad5780"
 loadRuckusTcl "$::DIR_PATH/general"
 loadRuckusTcl "$::DIR_PATH/ltm4664"
+loadRuckusTcl "$::DIR_PATH/adcDdr"
 
 # Check for non-zero Vivado version (in-case non-Vivado project)
 if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/ad9467"
+   loadRuckusTcl "$::DIR_PATH/ad9252"
    loadRuckusTcl "$::DIR_PATH/ad9249"
    loadRuckusTcl "$::DIR_PATH/ad9681"
 

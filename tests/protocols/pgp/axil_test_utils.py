@@ -12,10 +12,9 @@ from __future__ import annotations
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
-from tests.common.regression_utils import start_lockstep_clocks
+from tests.common.regression_utils import sample_after_tpd, start_lockstep_clocks
 
 
 class PgpAxiLiteTb:
@@ -76,10 +75,9 @@ class PgpAxiLiteTb:
         """Advance the bench by a whole number of visible wrapper clock edges."""
 
         for _ in range(count):
-            await RisingEdge(self.cycle_clk)
             # Most SURF RTL uses the default `TPD_G => 1 ns`, so the tests wait
             # a small amount after every edge before sampling outputs.
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.cycle_clk)
 
     async def reset(self, *, hold_cycles: int = 4, settle_cycles: int = 8):
         """Drive every declared reset signal through its active and idle state."""

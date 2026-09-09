@@ -14,9 +14,10 @@ from dataclasses import dataclass
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
 
 from tests.axi.utils import wait_sampled_ready
+from tests.common.regression_utils import sample_after_tpd
 
 
 @dataclass
@@ -83,8 +84,7 @@ class FlatAxisEndpoint:
             await Timer(1, unit="ns")
             if int(self._sig("TVALID").value) == 1:
                 return self.snapshot()
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
             if int(self._sig("TVALID").value) == 1:
                 return self.snapshot()
         raise AssertionError(f"Timed out waiting for {self.prefix} valid")
@@ -92,8 +92,7 @@ class FlatAxisEndpoint:
     async def recv(self, *, clk, keep_ready: bool = False) -> AxisBeat:
         self._sig("TREADY").value = 1
         beat = await self.wait_valid(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if not keep_ready:
             self._sig("TREADY").value = 0
         return beat
@@ -105,8 +104,7 @@ def start_batcher_clock(dut, *, period_ns: float = 5.0) -> None:
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def reset_batcher_dut(dut, *, cycles: int = 4) -> None:
@@ -164,11 +162,38 @@ def batcher_v2_header(*, seq: int = 0, data_bytes: int = 8) -> bytes:
     return bytes([0x2 | ((width & 0xF) << 4), seq & 0xFF])
 
 
+def batcher_v1_header(*, seq: int = 0, data_bytes: int = 8) -> bytes:
+    width = (data_bytes // 2).bit_length() - 1
+    return bytes([0x1 | ((width & 0xF) << 4), seq & 0xFF]).ljust(data_bytes, b"\x00")
+
+
 def batcher_subframe_tail(*, byte_count: int, dest: int, first_user: int, last_user: int) -> bytes:
     return (
         byte_count.to_bytes(4, "little")
         + bytes([dest & 0xFF, first_user & 0xFF, last_user & 0xFF])
     )
+
+
+def expected_batched_v1_bytes(
+    frames: list[tuple[bytes, int, int, int]],
+    *,
+    seq: int = 0,
+    data_bytes: int = 8,
+) -> bytes:
+    width = (data_bytes // 2).bit_length() - 1
+    stream = bytearray(batcher_v1_header(seq=seq, data_bytes=data_bytes))
+    for payload, dest, first_user, last_user in frames:
+        stream.extend(payload)
+        stream.extend(b"\x00" * (-len(payload) % data_bytes))
+        tail = batcher_subframe_tail(
+            byte_count=len(payload),
+            dest=dest,
+            first_user=first_user,
+            last_user=last_user,
+        ) + bytes([width & 0xF])
+        stream.extend(tail)
+        stream.extend(b"\x00" * (-len(tail) % data_bytes))
+    return bytes(stream)
 
 
 def expected_batched_bytes(frames: list[tuple[bytes, int, int, int]], *, seq: int = 0) -> bytes:
@@ -224,8 +249,7 @@ async def recv_beats(endpoint: FlatAxisEndpoint, *, clk, count: int) -> list[Axi
 async def expect_no_valid(endpoint: FlatAxisEndpoint, *, clk, cycles: int) -> None:
     endpoint._sig("TREADY").value = 1
     for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         assert int(endpoint._sig("TVALID").value) == 0
     endpoint._sig("TREADY").value = 0
 
@@ -242,12 +266,10 @@ async def recv_until_last_with_backpressure(
     for _ in range(max_beats):
         beat = await endpoint.wait_valid(clk=clk)
         for _ in range(hold_cycles):
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
             assert endpoint.snapshot() == beat
         endpoint._sig("TREADY").value = 1
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         endpoint._sig("TREADY").value = 0
         beats.append(beat)
         if beat.last:

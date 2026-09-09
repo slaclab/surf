@@ -21,7 +21,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteRam
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -41,8 +42,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)
@@ -59,11 +59,14 @@ class TB:
         self.dut.ipbWdata.value = data
         self.dut.ipbWrite.value = int(write)
         self.dut.ipbStrobe.value = 1
-        while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+        for _ in range(1024):
+            await sample_after_tpd(self.dut.axiClk)
             if int(self.dut.ipbAck.value):
                 break
+        else:
+            raise AssertionError(
+                f"Timed out waiting for IPbus acknowledgement at address 0x{address:08x}"
+            )
         result = (int(self.dut.ipbRdata.value), int(self.dut.ipbErr.value))
         self.dut.ipbStrobe.value = 0
         self.dut.ipbWrite.value = 0

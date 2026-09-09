@@ -8,6 +8,16 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Exchange one frame in each direction across a real Rogue TcpClient
+#   process and the GHDL RogueTcpStream wrapper.
+# - Stimulus: Drive the HDL-to-client frame first to establish the ZeroMQ path,
+#   then receive the independently generated client-to-HDL frame.
+# - Checks: Compare both payloads byte-for-byte and require the client JSON
+#   result to report successful receipt of the HDL frame.
+# - Timing: Bound interpreter discovery, client readiness, result creation, and
+#   the finite cocotb receive task; always terminate the child in cleanup.
+#
 # Real-Rogue Stream contract: a production rogue.interfaces.stream.TcpClient
 # (separate process) exchanges one frame each direction with RogueTcpStreamWrap
 # under GHDL. cocotb is the firmware-side AXI-Stream endpoint and drives the

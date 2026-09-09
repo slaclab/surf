@@ -211,5 +211,4 @@ def test_BoxcarIntegrator(parameters):
         toplevel="surf.boxcarintegrator",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["dsp/generic/fixed/BoxcarIntegrator.vhd"]},
     )

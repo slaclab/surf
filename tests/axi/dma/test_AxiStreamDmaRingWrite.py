@@ -21,7 +21,9 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import (
     AxiLiteBus,
     AxiLiteMaster,
@@ -55,8 +57,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axilRst.value = 1
@@ -139,9 +140,6 @@ def test_AxiStreamDmaRingWrite(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
                 "axi/dma/ip_integrator/AxiStreamDmaRingWriteIpIntegrator.vhd",
             ],

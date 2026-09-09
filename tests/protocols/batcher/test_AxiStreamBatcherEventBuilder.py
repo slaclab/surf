@@ -362,8 +362,6 @@ async def bypass_skips_source_and_recovers_test(dut):
 async def routed_transition_frame_preempts_event_test(dut):
     tb = TB(dut)
     await tb.reset()
-    if tb.mode != "ROUTED":
-        return
 
     transition = _frame(bytes(range(0x80, 0x85)), dest=tb.trans_tdest, first_user=0x91, last_user=0xF1)
     blocked = AxisBeat(
@@ -660,14 +658,22 @@ async def align_check_survives_missing_reference_source_with_timeout_test(dut):
     ],
 )
 def test_AxiStreamBatcherEventBuilder(parameters):
+    extra_env = dict(parameters)
+    if parameters["MODE_G"] != "ROUTED":
+        # This scenario exercises the routed transition-frame policy and has no
+        # contract in INDEXED mode.  Exclude it before simulation rather than
+        # recording a cocotb pass that performed no checks.
+        extra_env["COCOTB_TEST_FILTER"] = (
+            r"^(?!.*routed_transition_frame_preempts_event_test$).*"
+        )
+
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.axistreambatchereventbuilderwrapper",
         parameters=parameters,
-        extra_env=parameters,
+        extra_env=extra_env,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
                 "protocols/batcher/wrappers/AxiStreamBatcherEventBuilderWrapper.vhd",
             ],
         },

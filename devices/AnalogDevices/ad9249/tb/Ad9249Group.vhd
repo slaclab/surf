@@ -93,7 +93,7 @@ architecture behavioral of Ad9249Group is
       clockDivRatio     => "000",
       outputLvds        => '0',
       outputInvert      => '0',
-      binFormat         => "00",
+      binFormat         => "01",
       termination       => "00",
       driveStrength     => '0',
       lsbFirst          => '0',

@@ -8,6 +8,16 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
+# Test methodology:
+# - Sweep: Exchange one opcode and one remData value in each direction across a
+#   real PyRogue SideBandSim process and the GHDL SimLink model.
+# - Stimulus: Start the external client first, then drive the HDL-to-client
+#   opcode before remData so the transport is warm before the reply.
+# - Checks: Require the client's JSON result and the DUT's received opcode and
+#   remData to match the independent constants in both directions.
+# - Timing: Bound interpreter discovery, client readiness, result creation, and
+#   reply observation; always terminate the child process in cleanup.
+#
 # Real-Rogue SideBand contract: a production pyrogue.interfaces.simulation.SideBandSim
 # (separate process) exchanges one opcode and one remData each direction with
 # RogueSideBandFlatHarness under GHDL. cocotb is the firmware-side sideband

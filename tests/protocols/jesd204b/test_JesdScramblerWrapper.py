@@ -28,7 +28,7 @@ import random
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.protocols.jesd204b.jesd204b_test_utils import (
@@ -133,8 +133,7 @@ class ScramblerWrapperTB(JesdTB):
         total_cycles = n + _DRAIN
         for i in range(total_cycles):
             dut.sampleData_i.value = input_words[i] if i < n else 0
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
             raw_tx.append(int(dut.txData_o.value))
             if int(dut.rxValid_o.value) == 1:
                 raw_rx.append(int(dut.rxData_o.value))
@@ -212,8 +211,7 @@ async def _run_pattern(
     # Assertion 3: Error outputs deasserted during steady-state data
     # -----------------------------------------------------------------------
     # Sample once after settling
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     assert int(dut.rxAlignErr_o.value) == 0, (
         f"[{case_name}] rxAlignErr_o unexpectedly asserted in steady state"
     )
@@ -256,8 +254,7 @@ async def scrambler_known_answer_vectors(dut):
     """Known-answer assertion: ties the bench to hand-computed LFSR anchors."""
     dut.rst.value = 1
     cocotb.start_soon(Clock(dut.clk, 10.0, unit="ns").start())
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.rst.value = 0
 
     for input_word, lfsr_init, expected_scrambled in KNOWN_ANSWER_VECTORS:

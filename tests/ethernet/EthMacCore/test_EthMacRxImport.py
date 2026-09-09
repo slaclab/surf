@@ -79,6 +79,8 @@ async def eth_mac_rx_import_test(dut):
         await expect_no_output(sink, clk=bench.clk, cycles=24)
         assert int(dut.rxCountEn.value) == 0
         assert int(dut.rxCrcError.value) == 0
+        # Terminal scenario: these no-output/status checks are the complete
+        # contract for the intentionally disconnected XLGMII import placeholder.
         return
 
     min_frame = build_ethernet_frame(

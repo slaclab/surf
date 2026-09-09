@@ -146,7 +146,7 @@ class FlatSrpAxis:
         self._sig(prefix, "TLAST").value = 0
         self._sig(prefix, "TUSER").value = 0
 
-    async def _recv_response_unbounded(self, *, prefix: str) -> AxisResponse:
+    async def _recv_response_until_last(self, *, prefix: str) -> AxisResponse:
         prefix = self.sink_prefix if prefix is None else prefix
         self._sig(prefix, "TREADY").value = 1
         words = []
@@ -154,7 +154,8 @@ class FlatSrpAxis:
         tuser = []
         tkeep = []
 
-        while True:
+        complete = False
+        while not complete:
             await RisingEdge(self.clk)
             if int(self._sig(prefix, "TVALID").value) != 1:
                 continue
@@ -174,12 +175,14 @@ class FlatSrpAxis:
             if hasattr(self.dut, f"{prefix}_TUSER"):
                 tuser.append(int(self._sig(prefix, "TUSER").value))
             if int(self._sig(prefix, "TLAST").value) == 1:
-                return AxisResponse(words=words, tdest=tdest, tuser=tuser, tkeep=tkeep)
+                complete = True
+
+        return AxisResponse(words=words, tdest=tdest, tuser=tuser, tkeep=tkeep)
 
     async def recv_response(self, *, prefix: str | None = None, timeout_time: int = 20) -> AxisResponse:
         prefix = self.sink_prefix if prefix is None else prefix
         return await with_timeout(
-            self._recv_response_unbounded(prefix=prefix),
+            self._recv_response_until_last(prefix=prefix),
             timeout_time,
             "us",
         )

@@ -4,7 +4,7 @@ This tree contains reusable AXI-family RTL and wrappers. Top-level `axi/ruckus.t
 
 ## Layout
 
-- `axi-lite/`: AXI-Lite records, crossbars, endpoints, masters, slaves, monitors, and IP-integrator adapters.
+- [`axi-lite/`](axi-lite/README.md): AXI-Lite records, crossbars, endpoints, masters, slaves, monitors, and IP-integrator adapters.
 - `axi-stream/`: AXI Stream records, FIFOs, muxes, monitors, protocol adapters, and stream wrappers.
 - `axi4/`: full AXI4 support blocks and adapters.
 - `bridge/`: bridges between AXI-family buses and SURF protocol records.

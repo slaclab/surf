@@ -19,6 +19,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 from tests.axi.utils import wait_sampled_ready
+from tests.common.regression_utils import sample_after_tpd
 
 
 # Shared EMAC helpers centralize the flattened lane ordering and the common
@@ -161,8 +162,7 @@ class FlatEmacEndpoint:
         if ready_signal is not None:
             ready_signal.value = 1
         beat = await self.wait_valid(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if ready_signal is not None and not keep_ready:
             ready_signal.value = 0
         return beat
@@ -384,8 +384,7 @@ def start_clock(signal, *, period_ns: float = 5.0) -> None:
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def reset_dut(dut, *, clk_name: str = "ethClk", rst_name: str = "ethRst") -> None:
@@ -452,8 +451,7 @@ async def send_frame_burst(
         await send_contiguous_frame(endpoint, frame, clk=clk)
         if index != len(frames) - 1:
             for _ in range(inter_frame_gap_cycles):
-                await RisingEdge(clk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(clk)
 
 
 async def recv_frame(endpoint: FlatEmacEndpoint, *, clk, ready_signal=None, timeout_cycles: int = 64) -> list[EmacBeat]:
@@ -463,8 +461,7 @@ async def recv_frame(endpoint: FlatEmacEndpoint, *, clk, ready_signal=None, time
     if ready_signal is not None:
         ready_signal.value = 1
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(endpoint._sig("TValid").value) == 1:
             beat = endpoint.snapshot()
             beats.append(beat)

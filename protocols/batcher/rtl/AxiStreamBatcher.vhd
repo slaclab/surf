@@ -176,7 +176,14 @@ begin
       -- Reset the strobes
       v.rxSlave.tReady := r.forceTerm;
       if (txSlave.tReady = '1') then
-         v.txMaster := axiStreamMasterInit(AXIS_CONFIG_G);
+         -- Preserve the pending tail while waiting for a clock-gap timeout
+         if (r.state = GAP_S) then
+            v.txMaster.tValid := '0';
+            v.txMaster.tLast  := '0';
+            v.txMaster.tUser  := (others => '0');
+         else
+            v.txMaster := axiStreamMasterInit(AXIS_CONFIG_G);
+         end if;
       end if;
 
       -- Check for max. super frame

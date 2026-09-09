@@ -23,7 +23,9 @@
 #   rather than assuming an ideal one-cycle transfer through the assembly.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -52,8 +54,7 @@ async def _drive_cfg_rx_completion(dut, value: int, *, hold_cycles: int = 8) -> 
     dut.cfgRxTData.value = value
     dut.cfgRxTValid.value = 1
     for _ in range(hold_cycles):
-        await RisingEdge(dut.cfgClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.cfgClk)
     dut.cfgRxTValid.value = 0
     dut.cfgRxTData.value = 0
 

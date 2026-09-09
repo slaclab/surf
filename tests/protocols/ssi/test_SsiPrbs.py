@@ -26,7 +26,9 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 
@@ -41,13 +43,11 @@ class TB:
 
     async def fast_cycle(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.fastClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.fastClk)
 
     async def slow_cycle(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.slowClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.slowClk)
 
     async def reset(self):
         # Hold both domains in reset long enough for the internal loopback path

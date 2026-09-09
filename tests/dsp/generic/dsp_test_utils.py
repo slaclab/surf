@@ -12,15 +12,14 @@ from __future__ import annotations
 
 from collections import deque
 
-from cocotb.triggers import RisingEdge, Timer
+from tests.common.regression_utils import sample_after_tpd
 
 SIM_SETTLE_NS = 2
 
 
 async def tick(clk, *, count: int = 1, settle_ns: int = SIM_SETTLE_NS) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(settle_ns, unit="ns")
+        await sample_after_tpd(clk, propagation_time=settle_ns)
 
 
 def signed_samples(width: int) -> list[int]:

@@ -29,20 +29,18 @@ from cocotb.triggers import FallingEdge, Timer
 
 from tests.base.sync.sync_test_utils import SynchronizerLikeTB
 from tests.common.regression_utils import (
+    env_flag,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("BYPASS_SYNC_G", default=False))
 async def propagation_latency_test(dut):
     # This test is structurally the same as the scalar synchronizer test; the
     # difference is that the data path now carries a whole vector at once.
     tb = SynchronizerLikeTB(dut, width=int(os.environ["WIDTH_G"]))
-    if tb.bypass_enabled:
-        return
-
     await tb.reset()
     assert int(dut.dataOut.value) == tb.expected_output(0)
 
@@ -52,12 +50,9 @@ async def propagation_latency_test(dut):
     await tb.drive_and_expect_after_latency(0b010101 & tb.mask)
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("BYPASS_SYNC_G", default=False))
 async def reset_behavior_test(dut):
     tb = SynchronizerLikeTB(dut, width=int(os.environ["WIDTH_G"]))
-    if tb.bypass_enabled:
-        return
-
     # Fill every bit with 1s so reset behavior is obvious on the output.
     await tb.reset()
     await tb.drive_and_expect_after_latency(tb.mask)
@@ -84,12 +79,9 @@ async def reset_behavior_test(dut):
     assert int(dut.dataOut.value) == tb.expected_output(tb.mask)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("BYPASS_SYNC_G", default=False))
 async def bypass_mode_test(dut):
     tb = SynchronizerLikeTB(dut, width=int(os.environ["WIDTH_G"]))
-    if not tb.bypass_enabled:
-        return
-
     # In bypass mode, just sample a few representative vector values directly.
     dut.rst.value = tb.reset_inactive_value()
     for value in (0, 0b101001 & tb.mask, tb.mask):

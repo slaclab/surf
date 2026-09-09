@@ -8,8 +8,20 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Test methodology
-# ----------------
+# Test methodology:
+# - Sweep: Cover single and high-occupancy traffic, response/work-request
+#   backpressure, engine stall/restart, partial and oversized frames, dynamic
+#   lengths, partial-byte enables, retry replay, ring wrap, and counter reset.
+# - Stimulus: Push deterministic 32-byte AXI Stream beats while a configurable
+#   in-order engine peer accepts work requests, issues DMA reads, drains their
+#   responses, and returns work completions.
+# - Checks: Scoreboard every replayed byte, first/last marker, byte enable,
+#   opcode/immediate field, error indication, work-request length, and relevant
+#   AXI-Lite success/error/oversize/frame counters.
+# - Timing: Engine latency and backpressure build FIFO occupancy deliberately;
+#   transaction progress has cycle limits and each liveness scenario has a
+#   simulated-time watchdog so a datapath wedge fails diagnostically.
+#
 # RoCEv2AxiStreamRdma buffers an inbound AXI-Stream payload in a store-and-forward
 # repack FIFO, issues one RDMA-SEND-with-immediate work request per complete packet,
 # serves the engine's DMA read by draining that packet into the 290-bit dmaReadResp, counts
@@ -30,7 +42,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotb.triggers import RisingEdge, with_timeout
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -57,6 +71,8 @@ REG_MON_FRAMECNT = 0x200  # AxiStreamMon frameCnt (64-bit; low word at 0x200)
 BEAT_BYTES = 32
 CLK_NS = 6.4
 DATA_MASK = (1 << 256) - 1
+DMA_RESPONSE_TIMEOUT_CYCLES = 65_536
+PROGRESS_TIMEOUT_CYCLES = 65_536
 
 
 def beat_pattern(counter: int) -> bytes:
@@ -132,8 +148,16 @@ class TB:
         dut.S_WORKCOMP_ID.value = 0
 
     async def _edge(self):
-        await RisingEdge(self.dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.clk)
+
+    async def _wait_asserted(self, signal, name: str) -> None:
+        for _ in range(PROGRESS_TIMEOUT_CYCLES):
+            if int(signal.value):
+                return
+            await self._edge()
+        raise AssertionError(
+            f"Timed out after {PROGRESS_TIMEOUT_CYCLES} cycles waiting for {name}"
+        )
 
     async def reset(self):
         self.dut.rst.value = 1
@@ -171,8 +195,7 @@ class TB:
                 dut.S_AXIS_TVALID.value = 1
                 ctr += 1
                 await self._edge()
-                while int(dut.S_AXIS_TREADY.value) == 0:
-                    await self._edge()
+                await self._wait_asserted(dut.S_AXIS_TREADY, "S_AXIS_TREADY")
         dut.S_AXIS_TVALID.value = 0
         dut.S_AXIS_TLAST.value = 0
 
@@ -187,8 +210,7 @@ class TB:
             dut.S_AXIS_TLAST.value = 0
             dut.S_AXIS_TVALID.value = 1
             await self._edge()
-            while int(dut.S_AXIS_TREADY.value) == 0:
-                await self._edge()
+            await self._wait_asserted(dut.S_AXIS_TREADY, "S_AXIS_TREADY")
         dut.S_AXIS_TVALID.value = 0
 
     # --- engine emulator (single, in-order) -------------------------------------
@@ -200,8 +222,7 @@ class TB:
             await RisingEdge(dut.clk)
         dut.M_WORKREQ_READY.value = 1
         await self._edge()
-        while int(dut.M_WORKREQ_VALID.value) == 0:
-            await self._edge()
+        await self._wait_asserted(dut.M_WORKREQ_VALID, "M_WORKREQ_VALID")
         wr = {
             "id": int(dut.M_WORKREQ_ID.value),
             "opcode": int(dut.M_WORKREQ_OPCODE.value),
@@ -220,22 +241,19 @@ class TB:
         dut.S_DMAREADREQ_WRID.value = wr["id"]
         dut.S_DMAREADREQ_SQPN.value = 0x10
         await self._edge()
-        while int(dut.S_DMAREADREQ_READY.value) == 0:
-            await self._edge()
+        await self._wait_asserted(dut.S_DMAREADREQ_READY, "S_DMAREADREQ_READY")
         dut.S_DMAREADREQ_VALID.value = 0
 
     async def _drain_resp(self, cfg):
         dut = self.dut
         beats = []
         is_err = 0
-        n = 0
-        while True:
+        for n in range(DMA_RESPONSE_TIMEOUT_CYCLES):
             # optional backpressure
             if cfg.resp_backpressure and (n % cfg.resp_backpressure == cfg.resp_backpressure - 1):
                 dut.M_DMAREADRESP_READY.value = 0
             else:
                 dut.M_DMAREADRESP_READY.value = 1
-            n += 1
             await self._edge()
             if int(dut.M_DMAREADRESP_VALID.value) == 1 and int(dut.M_DMAREADRESP_READY.value) == 1:
                 ds = int(dut.M_DMAREADRESP_DATASTREAM.value)
@@ -246,6 +264,12 @@ class TB:
                 beats.append((data, is_first, is_last))
                 if is_last:
                     break
+        else:
+            dut.M_DMAREADRESP_READY.value = 0
+            raise AssertionError(
+                "Timed out waiting for final DMA read response beat; "
+                f"received {len(beats)} beats"
+            )
         dut.M_DMAREADRESP_READY.value = 0
         return beats, is_err
 
@@ -255,11 +279,11 @@ class TB:
         dut.S_WORKCOMP_STATUS.value = 0
         dut.S_WORKCOMP_ID.value = wr["id"]
         await self._edge()
-        while int(dut.S_WORKCOMP_READY.value) == 0:
-            await self._edge()
+        await self._wait_asserted(dut.S_WORKCOMP_READY, "S_WORKCOMP_READY")
         dut.S_WORKCOMP_VALID.value = 0
 
     async def engine(self, cfg, sb=None):
+        """Lifetime agent: service RDMA work until its owning test cancels it."""
         idx = 0
         while True:
             wr = await self._accept_workreq(cfg.workreq_backpressure)
@@ -285,25 +309,33 @@ async def _run(dut, *, cfg, num_packets, beats_per_packet, watchdog_ns):
     await tb.reset()
     await tb.configure(beats_per_packet * BEAT_BYTES)
     sb = Scoreboard(beats_per_packet)
-    cocotb.start_soon(tb.engine(cfg, sb))
-    cocotb.start_soon(tb.push_packets(num_packets, beats_per_packet))
+    engine_task = cocotb.start_soon(tb.engine(cfg, sb))
+    producer_task = cocotb.start_soon(tb.push_packets(num_packets, beats_per_packet))
 
     async def wait_done():
         while sb.packets < num_packets:
             await RisingEdge(dut.clk)
 
     # A wedge in the DUT stalls dmaReadResp -> wait_done never completes -> timeout.
-    await with_timeout(wait_done(), watchdog_ns, "ns")
+    try:
+        await with_timeout(wait_done(), watchdog_ns, "ns")
+        await producer_task
 
-    for _ in range(64):  # let the final workComp settle
-        await RisingEdge(dut.clk)
-    succ = await axil_read_u32(tb.axil, REG_SUCCESS)
-    unsucc = await axil_read_u32(tb.axil, REG_UNSUCCESS)
+        for _ in range(64):  # let the final workComp settle
+            await RisingEdge(dut.clk)
+        succ = await axil_read_u32(tb.axil, REG_SUCCESS)
+        unsucc = await axil_read_u32(tb.axil, REG_UNSUCCESS)
 
-    assert not sb.errors, f"scoreboard errors (first 10): {sb.errors[:10]}"
-    assert sb.packets == num_packets, f"only {sb.packets}/{num_packets} packets drained"
-    assert succ == num_packets, f"SuccessCounter={succ} != {num_packets}"
-    assert unsucc == 0, f"UnsuccessCounter={unsucc} != 0"
+        assert not sb.errors, f"scoreboard errors (first 10): {sb.errors[:10]}"
+        assert sb.packets == num_packets, f"only {sb.packets}/{num_packets} packets drained"
+        assert succ == num_packets, f"SuccessCounter={succ} != {num_packets}"
+        assert unsucc == 0, f"UnsuccessCounter={unsucc} != 0"
+    finally:
+        # The engine is a lifetime protocol peer; the producer is finite but
+        # must also be cancelled if the watchdog aborts its transaction.
+        engine_task.cancel()
+        if not producer_task.done():
+            producer_task.cancel()
 
 
 @cocotb.test()
@@ -393,7 +425,7 @@ async def engine_teardown_then_restart(dut):
     # disarm window drains/drops whatever the source was pushing, so kill the old
     # flood and idle the bus before re-arming.
     await axil_write_u32(tb.axil, REG_DISPATCH_ENABLE, 0)
-    flood.kill()
+    flood.cancel()
     dut.S_AXIS_TVALID.value = 0
     dut.S_AXIS_TLAST.value = 0
     for _ in range(20):
@@ -403,15 +435,20 @@ async def engine_teardown_then_restart(dut):
     await axil_write_u32(tb.axil, REG_DISPATCH_ENABLE, 1)
 
     # A fresh, healthy engine takes over, fed by a fresh packet flood.
-    cocotb.start_soon(tb.engine(Cfg(readreq_latency=10, workcomp_latency=4)))
-    cocotb.start_soon(tb.push_packets(32, bpp))
+    engine_task = cocotb.start_soon(tb.engine(Cfg(readreq_latency=10, workcomp_latency=4)))
+    refill_task = cocotb.start_soon(tb.push_packets(32, bpp))
 
     async def wait_live(n):
         while int(await axil_read_u32(tb.axil, REG_SUCCESS)) < n:
             await RisingEdge(dut.clk)
 
     # Liveness: at least 4 completions after the restart, or the wedge stands.
-    await with_timeout(wait_live(4), 600_000, "ns")
+    try:
+        await with_timeout(wait_live(4), 600_000, "ns")
+    finally:
+        # Both agents intentionally run only for the liveness window.
+        engine_task.cancel()
+        refill_task.cancel()
 
 
 @cocotb.test()
@@ -442,20 +479,26 @@ async def partial_packet_then_rearm(dut):
     # The clean stream must validate exactly — the stale partial is gone.
     n = 8
     sb = Scoreboard(bpp)
-    cocotb.start_soon(tb.engine(Cfg(readreq_latency=8, workcomp_latency=4), sb))
-    cocotb.start_soon(tb.push_packets(n, bpp))
+    engine_task = cocotb.start_soon(tb.engine(Cfg(readreq_latency=8, workcomp_latency=4), sb))
+    producer_task = cocotb.start_soon(tb.push_packets(n, bpp))
 
     async def wait_done():
         while sb.packets < n:
             await RisingEdge(dut.clk)
 
-    await with_timeout(wait_done(), 600_000, "ns")
-    for _ in range(64):
-        await RisingEdge(dut.clk)
-    unsucc = int(await axil_read_u32(tb.axil, REG_UNSUCCESS))
-    assert not sb.errors, f"partial packet fused into the stream: {sb.errors[:10]}"
-    assert sb.packets == n, f"only {sb.packets}/{n} packets drained"
-    assert unsucc == 0, f"UnsuccessCounter={unsucc} != 0"
+    try:
+        await with_timeout(wait_done(), 600_000, "ns")
+        await producer_task
+        for _ in range(64):
+            await RisingEdge(dut.clk)
+        unsucc = int(await axil_read_u32(tb.axil, REG_UNSUCCESS))
+        assert not sb.errors, f"partial packet fused into the stream: {sb.errors[:10]}"
+        assert sb.packets == n, f"only {sb.packets}/{n} packets drained"
+        assert unsucc == 0, f"UnsuccessCounter={unsucc} != 0"
+    finally:
+        engine_task.cancel()
+        if not producer_task.done():
+            producer_task.cancel()
 
 
 @cocotb.test()
@@ -470,7 +513,7 @@ async def send_opcode_and_zeroed_reth(dut):
     n = 16
     await tb.configure(bpp * BEAT_BYTES)
 
-    cocotb.start_soon(tb.push_packets(n, bpp))
+    producer_task = cocotb.start_soon(tb.push_packets(n, bpp))
     for k in range(n):
         wr = await tb._accept_workreq()
         assert wr["opcode"] == 0x3, f"pkt {k}: opCode 0x{wr['opcode']:x} != 0x3 (SEND_WITH_IMM)"
@@ -484,6 +527,7 @@ async def send_opcode_and_zeroed_reth(dut):
         for _ in range(2):
             await RisingEdge(dut.clk)
         await tb._issue_workcomp(wr)
+    await producer_task
 
 
 @cocotb.test()
@@ -501,7 +545,7 @@ async def immediate_carries_channel_and_slot(dut):
     length = bpp * BEAT_BYTES
     await tb.configure(length, addrwrap=wrap)
 
-    cocotb.start_soon(tb.push_packets(n, bpp))
+    producer_task = cocotb.start_soon(tb.push_packets(n, bpp))
     for k in range(n):
         wr = await tb._accept_workreq()
         immdt   = wr["immdt"]
@@ -517,6 +561,7 @@ async def immediate_carries_channel_and_slot(dut):
         for _ in range(2):
             await RisingEdge(dut.clk)
         await tb._issue_workcomp(wr)
+    await producer_task
 
 
 @cocotb.test()
@@ -530,7 +575,7 @@ async def retry_rereads_same_payload(dut):
     await tb.reset()
     bpp = 4
     await tb.configure(bpp * BEAT_BYTES)
-    cocotb.start_soon(tb.push_packets(8, bpp))
+    producer_task = cocotb.start_soon(tb.push_packets(8, bpp))
 
     wr = await tb._accept_workreq()
     # First read of this wr_id.
@@ -547,6 +592,7 @@ async def retry_rereads_same_payload(dut):
 
     # Complete it (frees the slot) and confirm one success completion was counted.
     await tb._issue_workcomp(wr)
+    await producer_task
     for _ in range(64):
         await RisingEdge(dut.clk)
     assert int(await axil_read_u32(tb.axil, REG_SUCCESS)) == 1
@@ -566,7 +612,7 @@ async def ring_backpressure(dut):
     bpp = 2
     total = RING_SLOTS + 6
     await tb.configure(bpp * BEAT_BYTES)
-    cocotb.start_soon(tb.push_packets(total, bpp))
+    producer_task = cocotb.start_soon(tb.push_packets(total, bpp))
 
     # Accept WRs WITHOUT completing them (freePtr frozen) -> the ring fills to
     # RING_SLOTS and the dispatcher must then stall.
@@ -582,12 +628,14 @@ async def ring_backpressure(dut):
         await tb._accept_workreq()
         extra_seen["hit"] = True
 
-    t = cocotb.start_soon(watch_extra())
-    for _ in range(3000):
-        await RisingEdge(dut.clk)
-    assert not extra_seen["hit"], \
-        f"dispatch exceeded the ring bound: a {RING_SLOTS + 1}th WR issued with the ring full"
-    t.kill()
+    extra_watch_task = cocotb.start_soon(watch_extra())
+    try:
+        for _ in range(3000):
+            await RisingEdge(dut.clk)
+        assert not extra_seen["hit"], \
+            f"dispatch exceeded the ring bound: a {RING_SLOTS + 1}th WR issued with the ring full"
+    finally:
+        extra_watch_task.cancel()
     dut.M_WORKREQ_READY.value = 0
 
     # Release the gate: complete the held WRs -> freePtr advances -> ring drains.
@@ -598,6 +646,8 @@ async def ring_backpressure(dut):
     for _ in range(total - RING_SLOTS):
         wr = await with_timeout(tb._accept_workreq(), 400_000, "ns")
         await tb._issue_workcomp(wr)
+
+    await producer_task
 
     for _ in range(64):
         await RisingEdge(dut.clk)
@@ -632,12 +682,11 @@ async def oversized_packet_dropped_and_reframes(dut):
                 d.S_AXIS_TVALID.value = 1
                 ctr += 1
                 await tb._edge()
-                while int(d.S_AXIS_TREADY.value) == 0:
-                    await tb._edge()
+                await tb._wait_asserted(d.S_AXIS_TREADY, "S_AXIS_TREADY")
         d.S_AXIS_TVALID.value = 0
         d.S_AXIS_TLAST.value = 0
 
-    cocotb.start_soon(push_seq())
+    producer_task = cocotb.start_soon(push_seq())
 
     # The over-cap packet produces NO workReq (dropped). The first (and only) workReq is
     # the FOLLOWING normal packet -- it must dispatch cleanly carrying ITS bytes (proving
@@ -654,6 +703,7 @@ async def oversized_packet_dropped_and_reframes(dut):
         exp = endian_swap_32(beat_pattern(over_beats + i))
         assert data == exp, f"following pkt beat {i}: 0x{data:064x} != 0x{exp:064x}"
     await tb._issue_workcomp(wr)
+    await producer_task
 
     for _ in range(64):
         await RisingEdge(dut.clk)
@@ -699,12 +749,11 @@ async def dynamic_frame_size(dut):
                 d.S_AXIS_TVALID.value = 1
                 ctr += 1
                 await tb._edge()
-                while int(d.S_AXIS_TREADY.value) == 0:
-                    await tb._edge()
+                await tb._wait_asserted(d.S_AXIS_TREADY, "S_AXIS_TREADY")
         d.S_AXIS_TVALID.value = 0
         d.S_AXIS_TLAST.value = 0
 
-    cocotb.start_soon(push_seq())
+    producer_task = cocotb.start_soon(push_seq())
 
     ctr = 0
     for k, nbeats in enumerate(sizes):
@@ -721,6 +770,8 @@ async def dynamic_frame_size(dut):
             ctr += 1
             assert data == exp, f"pkt {k} beat {i}: 0x{data:064x} != 0x{exp:064x}"
         await tb._issue_workcomp(wr)
+
+    await producer_task
 
     for _ in range(64):
         await RisingEdge(dut.clk)
@@ -756,12 +807,11 @@ async def partial_final_beat_byteen(dut):
             d.S_AXIS_TLAST.value = 1 if last else 0
             d.S_AXIS_TVALID.value = 1
             await tb._edge()
-            while int(d.S_AXIS_TREADY.value) == 0:
-                await tb._edge()
+            await tb._wait_asserted(d.S_AXIS_TREADY, "S_AXIS_TREADY")
         d.S_AXIS_TVALID.value = 0
         d.S_AXIS_TLAST.value = 0
 
-    cocotb.start_soon(push_frame())
+    producer_task = cocotb.start_soon(push_frame())
 
     wr = await with_timeout(tb._accept_workreq(), 200_000, "ns")
     assert wr["len"] == total_bytes, f"workReq.len {wr['len']} != {total_bytes} (byte-exact)"
@@ -772,13 +822,12 @@ async def partial_final_beat_byteen(dut):
     dut.S_DMAREADREQ_WRID.value = wr["id"]
     dut.S_DMAREADREQ_SQPN.value = 0x10
     await tb._edge()
-    while int(dut.S_DMAREADREQ_READY.value) == 0:
-        await tb._edge()
+    await tb._wait_asserted(dut.S_DMAREADREQ_READY, "S_DMAREADREQ_READY")
     dut.S_DMAREADREQ_VALID.value = 0
 
     beats = []
     is_err = 0
-    while True:
+    for _ in range(DMA_RESPONSE_TIMEOUT_CYCLES):
         dut.M_DMAREADRESP_READY.value = 1
         await tb._edge()
         if int(dut.M_DMAREADRESP_VALID.value) and int(dut.M_DMAREADRESP_READY.value):
@@ -787,7 +836,14 @@ async def partial_final_beat_byteen(dut):
             beats.append(((ds >> 34) & DATA_MASK, (ds >> 2) & 0xFFFFFFFF, ds & 1))
             if ds & 1:
                 break
+    else:
+        dut.M_DMAREADRESP_READY.value = 0
+        raise AssertionError(
+            "Timed out waiting for partial-frame DMA response; "
+            f"received {len(beats)} beats"
+        )
     dut.M_DMAREADRESP_READY.value = 0
+    await producer_task
 
     def bitrev32(x):
         return int(f"{x:032b}"[::-1], 2)

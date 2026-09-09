@@ -28,7 +28,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -113,13 +115,11 @@ class Jesd204bTopTB:
 
     async def axi_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.S_AXI_ACLK)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.S_AXI_ACLK)
 
     async def dev_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, axi_cycles: int = 8, dev_cycles: int = 8) -> None:
         self.dut.S_AXI_ARESETN.value = 0
@@ -156,8 +156,7 @@ async def assert_decerr(axil_master, address: int) -> None:
 async def wait_for_bit(status_signal, *, bit_mask: int, clk, timeout_cycles: int = 256):
     """Wait until (status_signal & bit_mask) != 0."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if (int(status_signal.value) & bit_mask) != 0:
             return
     raise AssertionError(

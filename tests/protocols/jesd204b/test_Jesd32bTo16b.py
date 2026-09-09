@@ -28,7 +28,9 @@ import os
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     hdl_parameters_from,
@@ -79,25 +81,21 @@ class TB:
         self.dut.wrRst.value = 1
         self.dut.rdRst.value = 1
         for _ in range(6):
-            await RisingEdge(self.dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.wrClk)
         self.dut.wrRst.value = 0
         for _ in range(4):
-            await RisingEdge(self.dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.rdClk)
         self.dut.rdRst.value = 0
         # Quiet settling time after reset deassertion
         for _ in range(4):
-            await RisingEdge(self.dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.wrClk)
 
     async def write_word(self, data: int, trig: int) -> None:
         """Drive one 32-bit word with the given trig[1:0] value on the write side."""
         self.dut.validIn.value = 1
         self.dut.dataIn.value = data
         self.dut.trigIn.value = trig
-        await RisingEdge(self.dut.wrClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.wrClk)
         self.dut.validIn.value = 0
         await Timer(1, unit="ns")
 
@@ -108,8 +106,7 @@ class TB:
         valid signal — so we poll rdClk rising edges after Timer(1, "ns").
         """
         for _ in range(_VALID_TIMEOUT_CYCLES):
-            await RisingEdge(self.dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.rdClk)
             if int(self.dut.validOut.value) == 1:
                 return
         raise AssertionError(
@@ -119,8 +116,7 @@ class TB:
     async def wait_valid_deassert(self, max_cycles: int = 16) -> None:
         """Wait until validOut deasserts (bounded)."""
         for _ in range(max_cycles):
-            await RisingEdge(self.dut.rdClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.rdClk)
             if int(self.dut.validOut.value) == 0:
                 return
 
@@ -228,13 +224,11 @@ async def overflow_underflow_quiet_test(dut):
             dut.validIn.value = 1
             dut.dataIn.value = 0xA000_0000 + word_idx
             dut.trigIn.value = 0b01
-            await RisingEdge(dut.wrClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.wrClk)
             # Gap: deassert validIn for 2 cycles
             dut.validIn.value = 0
             for _ in range(2):
-                await RisingEdge(dut.wrClk)
-                await Timer(1, unit="ns")
+                await sample_after_tpd(dut.wrClk)
                 overflow_seen |= int(dut.overflow.value)
 
             # Collect the two output halves

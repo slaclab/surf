@@ -85,18 +85,22 @@ class TB:
 
     async def respond_one_read(self, *, data: int, resp: AxiResp = AxiResp.OKAY):
         self.dut.M_AXIL_ARREADY.value = 1
-        while True:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_ARVALID.value) and int(self.dut.M_AXIL_ARREADY.value):
                 break
+        else:
+            raise AssertionError("Timed out waiting for AXI-Lite read request")
         self.dut.M_AXIL_ARREADY.value = 0
         self.dut.M_AXIL_RDATA.value = data
         self.dut.M_AXIL_RRESP.value = int(resp)
         self.dut.M_AXIL_RVALID.value = 1
-        while True:
+        for _ in range(1024):
             await RisingEdge(self.dut.AXIS_ACLK)
             if int(self.dut.M_AXIL_RREADY.value):
                 break
+        else:
+            raise AssertionError("Timed out waiting for AXI-Lite read response acceptance")
         self.dut.M_AXIL_RVALID.value = 0
         self.dut.M_AXIL_RRESP.value = 0
 

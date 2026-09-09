@@ -17,6 +17,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.common.regression_utils import sample_after_tpd
+
 from tests.axi.utils import wait_sampled_ready
 
 
@@ -119,8 +121,7 @@ class FlatSsiEndpoint:
             await Timer(1, unit="ns")
             if int(self._sig("TValid").value) == 1:
                 return self.snapshot()
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
             if int(self._sig("TValid").value) == 1:
                 return self.snapshot()
         raise AssertionError(f"Timed out waiting for {self.prefix} valid")
@@ -131,8 +132,7 @@ class FlatSsiEndpoint:
         if ready_signal is not None:
             ready_signal.value = 1
         beat = await self.wait_valid(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if ready_signal is not None and not keep_ready:
             ready_signal.value = 0
         return beat
@@ -169,8 +169,7 @@ async def cycle(clk, count: int = 1) -> None:
     # Most SSI benches sample a little after each edge so registered outputs
     # have time to settle before Python reads them.
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def reset_dut(dut, *, clk_name: str = "axisClk", rst_name: str = "axisRst") -> None:
@@ -264,8 +263,7 @@ async def wait_output_clear(
 ) -> None:
     ready_signal.value = 1
     for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(endpoint._sig("TValid").value) == 0:
             ready_signal.value = 0
             return
@@ -356,8 +354,7 @@ async def recv_visible_beat(
     ready_signal.value = 0
     beat = await endpoint.wait_valid(clk=clk, timeout_cycles=timeout_cycles)
     ready_signal.value = 1
-    await RisingEdge(clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(clk)
     ready_signal.value = 0
     return beat
 
@@ -499,8 +496,7 @@ async def wait_signal_level(signal, *, clk, expected: int, cycles: int = 32) -> 
     for _ in range(cycles):
         if int(signal.value) == expected:
             return
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
     raise AssertionError(f"Timed out waiting for {signal}={expected}")
 
 

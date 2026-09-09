@@ -111,12 +111,12 @@ def run_pgp_wrapper_test(
     *,
     test_file: str,
     toplevel: str,
-    wrapper_source: str,
+    wrapper_source: str | None = None,
     parameters: dict[str, object] | None = None,
     extra_env: dict[str, str] | None = None,
     extra_sources: list[str] | None = None,
 ) -> None:
-    surf_sources = [wrapper_source]
+    surf_sources = [] if wrapper_source is None else [wrapper_source]
     if extra_sources is not None:
         surf_sources.extend(extra_sources)
 
@@ -125,7 +125,7 @@ def run_pgp_wrapper_test(
         toplevel=toplevel,
         parameters={} if parameters is None else parameters,
         extra_env=extra_env,
-        extra_vhdl_sources={"surf": surf_sources},
+        extra_vhdl_sources={"surf": surf_sources} if surf_sources else None,
     )
 
 
