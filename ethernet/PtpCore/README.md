@@ -13,13 +13,19 @@ for current validation, register ABI, numerical limits and remaining qualificati
   persistent TX reservations, rate estimation, request building and E2E arithmetic.
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
-- `PtpReg`, `PtpEndpoint`: atomic AXI-Lite configuration/snapshots and command ownership.
+- `PtpPhc`, `PtpPort`, `PtpServo` each contain their own AXI-Lite registers,
+  configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
+- `PtpMeasurementMasterType`/`PtpMeasurementSlaveType` and `PtpPortStatusType`
+  in `PtpPkg`: directional measurement transfer and grouped port diagnostics.
+- `PtpReg`, `PtpEndpoint`: common commit/snapshot coordination, IRQ and the
+  standard SURF crossbar. [ABI v2](../../docs/plans/ethernet-ptp/register-map.md)
+  has four 1 KiB banks at the aligned `AXIL_BASE_ADDR_G`.
 - `PtpPrimaryGuard`, `EthMacPtpEndpoint`: exclusive PTP TX ownership and common-clock
   GMII/XGMII composition, using existing SURF stream adapters.
 - `PtpPhcRead`: optional, separately instantiated coherent snapshot CDC mailbox.
 - `wrappers/`: thin flattened simulation adapters. Executable stimulus and
   independent models live in the [cocotb suite](../../tests/ethernet/PtpCore/README.md).
-- [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): register ABI v1.
+- [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): register ABI v2 with Phc/Port/Servo child devices.
 
 Use one continuously running clock: full-rate GMII at 125 MHz or XGMII at
 156.25 MHz. GMII 10/100 operation is unsupported. The primary MAC stream uses
@@ -41,3 +47,7 @@ resources, physical CDC, GT integration and hardware latency calibration remain
 open. The broader [plan](../../docs/plans/ethernet-ptp/README.md) covers later
 application timing and FPGA-family integration. See the parent
 [Ethernet index](../README.md) for neighboring cores.
+
+The [RTL readability review](../../docs/plans/ethernet-ptp/rtl-readability.md)
+tracks the current flow/interface cleanup. Regressions remain stopped pending
+maintainer approval of the VHDL; build-only smoke checks are permitted.

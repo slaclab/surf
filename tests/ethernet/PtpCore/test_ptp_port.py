@@ -30,9 +30,9 @@ async def adversarial_port(d):
     b = Bench(d)
     await b.start()
     await b.configure()
-    await b.write(0x004, 0xD)
-    await b.write(0x208, 1000, 8)
-    await b.write(0x03c, 1)
+    await b.write(0x004, 1)
+    await b.write(0x888, 1000, 8)
+    await b.commit()
     generation = int(d.timeGeneration.value)
 
     async def send(kind, sequence, remote=0, correction=0, patch=None):
@@ -45,7 +45,7 @@ async def adversarial_port(d):
 
     async def count():
         await b.snapshot()
-        return await b.read(0x610)
+        return await b.read(0xA10)
 
     await send(8, 1, NS)
     await send(0, 1)
@@ -92,8 +92,8 @@ async def adversarial_port(d):
     await b.wait(20)
     await b.snapshot()
     assert await b.read(0x044) & (1 << 16)
-    assert await b.read(0x530, 8) == 0x1234567890abcdef
-    assert await b.read(0x53c) == 37
+    assert await b.read(0x930, 8) == 0x1234567890abcdef
+    assert await b.read(0x93C) == 37
     await send(0, 100)
     await send(8, 100, 100*NS)
     assert int(d.portActive.value)
@@ -101,8 +101,8 @@ async def adversarial_port(d):
     await b.wait(20)
     assert not int(d.portActive.value), 'grandmaster change did not cancel old source state'
     await b.snapshot()
-    assert await b.read(0x530, 8) == 0xfedcba0987654321
-    assert await b.read(0x540, 32) == int.from_bytes(announce(0xfedcba0987654321)[48:78], 'big')
+    assert await b.read(0x930, 8) == 0xfedcba0987654321
+    assert await b.read(0x940, 32) == int.from_bytes(announce(0xfedcba0987654321)[48:78], 'big')
     await send(0, 101)
     await send(8, 101, 101*NS)
     assert int(d.portActive.value)
@@ -119,8 +119,8 @@ async def adversarial_port(d):
     # Qualify the real rate estimator with independent physical timing, then
     # hold the builder's first beat across a logical restart. Bytes already
     # promised to the MAC belong to its physical lifecycle and must still drain.
-    await b.write(0x208, 10000, 8)
-    await b.write(0x03c, 1)
+    await b.write(0x888, 10000, 8)
+    await b.commit()
     d.modelTxReady.value = 0
     await b.source(3, sequence=300)
     assert int(d.modelTxValid.value)
@@ -152,7 +152,7 @@ async def adversarial_port(d):
     assert request == expected
     await b.wait(3)
     assert not int(d.modelTxValid.value)
-    assert (await b.read(0x048) >> 16) & 255, 'restart released an unknown physical fate'
+    assert (await b.read(0x848) >> 16) & 255, 'restart released an unknown physical fate'
     assert int(d.timeGeneration.value) == generation
     b.stop()
 

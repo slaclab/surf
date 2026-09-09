@@ -56,6 +56,11 @@ end entity PtpPrimaryGuard;
 architecture rtl of PtpPrimaryGuard is
 
    type RegType is record
+      -- Current-cycle calculations and diagnostics. Use v for same-edge
+      -- decisions; these fields do not introduce a protocol pipeline stage.
+      ready    : sl;
+      discard  : sl;
+
       master   : AxiStreamMasterType;
       first    : sl;
       dropping : sl;
@@ -63,6 +68,8 @@ architecture rtl of PtpPrimaryGuard is
    end record;
 
    constant REG_INIT_C : RegType := (
+      ready    => '0',
+      discard  => '0',
       master   => AXI_STREAM_MASTER_INIT_C,
       first    => '1',
       dropping => '0',
@@ -74,20 +81,22 @@ architecture rtl of PtpPrimaryGuard is
 begin
 
    comb : process (r, rst, sMaster, mSlave) is
-      variable v       : RegType;
-      variable ready   : sl;
-      variable discard : sl;
+      variable v : RegType;
    begin
       v := r;
 
-      ready := not r.master.tValid or mSlave.tReady or r.dropping;
+      -- Drain an old output beat first; rejected frames can keep consuming
+      -- input independently of downstream readiness.
+      v.ready := not r.master.tValid or mSlave.tReady or r.dropping;
       if mSlave.tReady = '1' then
          v.master.tValid := '0';
       end if;
-      if sMaster.tValid = '1' and ready = '1' then
-         discard := r.dropping;
+      -- Classify only the first accepted beat, then carry that decision
+      -- through TLAST while preserving all forwarded stream sidebands.
+      if sMaster.tValid = '1' and v.ready = '1' then
+         v.discard := r.dropping;
          if r.first = '1' then
-            discard := '0';
+            v.discard := '0';
             -- The 16-byte EMAC first beat contains the complete L2 header.
             -- Reserve all untagged PTP on primary TX, preventing an application
             -- from impersonating a Delay_Req key owned by the endpoint ledger.
@@ -96,22 +105,22 @@ begin
             if sMaster.tKeep(15 downto 0) /= x"FFFF" or
                axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sMaster, EMAC_SOF_BIT_C, 0) = '0' or
                sMaster.tData(111 downto 96) = x"F788" then
-               discard   := '1';
+               v.discard := '1';
                v.dropped := ptpSatInc(r.dropped);
             end if;
          end if;
-         if discard = '0' then
+         if v.discard = '0' then
             v.master := sMaster;
          end if;
          v.first    := sMaster.tLast;
-         v.dropping := discard and not sMaster.tLast;
+         v.dropping := v.discard and not sMaster.tLast;
       end if;
       if rst = RST_POLARITY_G then
-         v     := REG_INIT_C;
-         ready := '0';
+         v       := REG_INIT_C;
+         v.ready := '0';
       end if;
       rin           <= v;
-      sSlave.tReady <= ready;
+      sSlave.tReady <= v.ready;
       mMaster       <= r.master;
       droppedCount  <= r.dropped;
    end process comb;

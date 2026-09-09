@@ -3,18 +3,19 @@
 -------------------------------------------------------------------------------
 -- Description: Autonomous PTP protocol, clock-control and register subsystem.
 --
--- Connects PtpPort, PtpServo, PtpReg and one PtpPhc in a single clock domain.
+-- Connects the AXI banks inside PtpPhc, PtpPort and PtpServo directly through
+-- AxiLiteCrossbar. Each core owns its configuration and snapshot storage.
+-- PtpReg coordinates atomic configuration and snapshots in the shared clock.
 -- Validated RX records and observed TX completion records arrive from the
 -- physical frontends. The port produces Delay_Req frames and timing
 -- measurements; the servo turns qualified measurements into PHC commands. The
 -- surrounding EthMacPtpEndpoint supplies the MAC and physical timestamp
 -- adapters.
 --
--- Arbitrates software and servo commands at the PHC ready/valid interface and
--- retains producer ownership until acknowledgement, so a delayed response
--- reaches the correct requester. Manual steering requires automatic control to
--- be disabled, while PPS control remains available in either mode. A disabled
--- servo continues to drain measurements.
+-- PHC-local management arbitrates software and servo commands through
+-- acknowledgement, so each response reaches the correct requester. Manual
+-- steering requires automatic control to be disabled; PPS remains available
+-- in either mode. A disabled servo continues to drain measurements.
 --
 -- Coordinates protocol restart, stale-work cancellation and clock validity
 -- without feeding a PHC command's own capture invalidation back into that
@@ -42,6 +43,7 @@ use surf.PtpPkg.all;
 
 entity PtpEndpoint is
    generic (
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
       RST_ASYNC_G       : boolean          := false;
@@ -66,7 +68,7 @@ entity PtpEndpoint is
       rxReady         : out sl;
       rxQueueOverflow : in  sl := '0';
       rxAbort         : in  sl;
-      rxCounters      : in  Slv32Array(0 to 2);
+      rxCounters      : in  PtpRxCountersType;
       txMessage       : in  PtpRxMessageType;
       txValid         : in  sl;
       txAbort         : in  sl;
@@ -84,68 +86,115 @@ end entity PtpEndpoint;
 
 architecture rtl of PtpEndpoint is
 
-   type OwnerType is (
-      NONE_S,
-      MANUAL_S,
-      AUTO_S);
+   constant NUM_AXIL_MASTERS_C : positive := 4;
+   constant AXIL_CONFIG_C      : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
+      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 12, 10);
 
-   type RegType is record
-      owner     : OwnerType;
-      abortSeen : sl;
-   end record;
+   signal readMasters  : AxiLiteReadMasterArray(3 downto 0);
+   signal readSlaves   : AxiLiteReadSlaveArray(3 downto 0);
+   signal writeMasters : AxiLiteWriteMasterArray(3 downto 0);
+   signal writeSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
+   signal axiReset     : sl;
+   signal configValid  : slv(2 downto 0);
+   signal enable       : sl;
+   signal servoEnable  : sl;
+   signal manualBusy   : sl;
+   signal restart      : sl;
+   signal sharedConfig : PtpSharedConfigType;
+   signal timeValue    : PtpTimeType;
+   signal status       : PtpPhcStatusType;
+   signal abortCapture : sl;
+   signal clearValid   : sl;
+   signal events       : slv(3 downto 0);
 
-   constant REG_INIT_C : RegType := (
-   owner     => NONE_S,
-   abortSeen => '0');
+   signal configControl   : PtpConfigControlType;
+   signal snapshotControl : PtpSnapshotControlType;
+   signal commandMaster   : PtpPhcCommandMasterType;
+   signal commandSlave    : PtpPhcCommandSlaveType;
+   signal servoStatus     : PtpServoStatusType;
 
-   signal r                : RegType := REG_INIT_C;
-   signal rin              : RegType;
-   signal config           : PtpConfigType;
-   signal configRestart    : sl;
-   signal restart          : sl;
-   signal timeValue        : PtpTimeType;
-   signal status           : PtpPhcStatusType;
-   signal abortCapture     : sl;
-   signal phcCommand       : PtpPhcCommandType;
-   signal phcCommandValid  : sl;
-   signal phcCommandReady  : sl;
-   signal phcCommandCancel : sl;
-   signal manualCommand    : PtpPhcCommandType;
-   signal manualValid      : sl;
-   signal manualReady      : sl;
-   signal manualAck        : sl;
-   signal autoCommand      : PtpPhcCommandType;
-   signal autoValid        : sl;
-   signal autoReady        : sl;
-   signal autoAck          : sl;
-   signal portCommandAbort : sl;
-   signal autoStale        : sl;
-   signal autoCancel       : sl;
-   signal clearValid       : sl;
-   signal measurement      : PtpMeasurementType;
-   signal measurementValid : sl;
-   signal measurementReady : sl;
-   signal measurementAbort : sl;
-   signal active           : sl;
-   signal quality          : slv(2 downto 0);
-   signal delayValue       : slv(127 downto 0);
-   signal offsetValue      : slv(127 downto 0);
-   signal ratePpb          : slv(63 downto 0);
-   signal filterCount      : slv(2 downto 0);
-   signal exchange         : PtpExchangeType;
-   signal announceBody     : slv(239 downto 0);
-   signal ledgerStatus     : slv(31 downto 0);
-   signal announceValid    : sl;
-   signal gmIdentity       : slv(63 downto 0);
-   signal announceFlags    : slv(15 downto 0);
-   signal utcOffset        : slv(15 downto 0);
-   signal counters         : Slv32Array(0 to 7);
+   signal measurementMaster : PtpMeasurementMasterType;
+   signal measurementSlave  : PtpMeasurementSlaveType;
+   signal portStatus        : PtpPortStatusType;
 
 begin
 
-   restart          <= portRst or configRestart;
-   rxFlush          <= restart or not linkReady or abortCapture;
-   counters(0 to 2) <= rxCounters;
+   comb : process (rst, regRst, portRst, configControl, portStatus, linkReady, abortCapture, status,
+                   timeValue, servoStatus) is
+      variable restartPort : sl;
+   begin
+      -- Form the bus reset independently of protocol restart. A register-only
+      -- reset must leave the PHC, active configuration and TX ownership intact.
+      axiReset <= '0';
+      if rst = RST_POLARITY_G or regRst = '1' then
+         axiReset <= '1';
+      end if;
+
+      -- Apply protocol lifecycle changes to the port and physical RX frontend.
+      restartPort := portRst or configControl.apply or portStatus.identityRestart;
+      restart     <= restartPort;
+      rxFlush     <= restartPort or not linkReady or abortCapture;
+
+      -- Aggregate only the event bits needed by the central IRQ register.
+      events(0) <= status.fault;
+      events(1) <= status.discontinuity;
+      events(2) <= status.error;
+      events(3) <= '0';
+      if servoStatus.state = PTP_SERVO_FAULT_C then
+         events(3) <= '1';
+      end if;
+      phcTime      <= timeValue;
+      phcStatus    <= status;
+      captureAbort <= abortCapture;
+      portActive   <= portStatus.active;
+      servoState   <= servoStatus.state;
+   end process comb;
+
+   U_Xbar : entity surf.AxiLiteCrossbar
+      generic map (
+         TPD_G              => TPD_G,
+         NUM_SLAVE_SLOTS_G  => 1,
+         NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
+         MASTERS_CONFIG_G   => AXIL_CONFIG_C)
+      port map (
+         axiClk              => clk,             -- [in]
+         axiClkRst           => axiReset,        -- [in]
+         sAxiWriteMasters(0) => axiWriteMaster,  -- [in]
+         sAxiWriteSlaves(0)  => axiWriteSlave,   -- [out]
+         sAxiReadMasters(0)  => axiReadMaster,   -- [in]
+         sAxiReadSlaves(0)   => axiReadSlave,    -- [out]
+         mAxiWriteMasters    => writeMasters,    -- [out]
+         mAxiWriteSlaves     => writeSlaves,     -- [in]
+         mAxiReadMasters     => readMasters,     -- [out]
+         mAxiReadSlaves      => readSlaves);     -- [in]
+
+   U_Control : entity surf.PtpReg
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         CLK_FREQ_G     => CLK_FREQ_G)
+      port map (
+         clk             => clk,                       -- [in]
+         rst             => rst,                       -- [in]
+         regRst          => regRst,                    -- [in]
+         axiReadMaster   => readMasters(0),            -- [in]
+         axiReadSlave    => readSlaves(0),             -- [out]
+         axiWriteMaster  => writeMasters(0),           -- [in]
+         axiWriteSlave   => writeSlaves(0),            -- [out]
+         manualBusy      => manualBusy,                -- [in]
+         configValid     => configValid,               -- [in]
+         captureAbort    => abortCapture,              -- [in]
+         events          => events,                    -- [in]
+         portActive      => portStatus.active,         -- [in]
+         servoState      => servoStatus.state,         -- [in]
+         filterCount     => servoStatus.filterCount,   -- [in]
+         announceValid   => portStatus.announceValid,  -- [in]
+         enable          => enable,                    -- [out]
+         servoEnable     => servoEnable,               -- [out]
+         configControl   => configControl,             -- [out]
+         snapshotControl => snapshotControl,           -- [out]
+         irq             => irq);                      -- [out]
 
    U_Phc : entity surf.PtpPhc
       generic map (
@@ -154,18 +203,27 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk           => clk,               -- [in]
-         rst           => rst,               -- [in]
-         monotonic     => config.monotonic,  -- [in]
-         command       => phcCommand,        -- [in]
-         commandValid  => phcCommandValid,   -- [in]
-         commandReady  => phcCommandReady,   -- [out]
-         commandCancel => phcCommandCancel,  -- [in]
-         clearValid    => clearValid,        -- [in]
-         phcTime       => timeValue,         -- [out]
-         status        => status,            -- [out]
-         pps           => pps,               -- [out]
-         captureAbort  => abortCapture);     -- [out]
+         clk              => clk,                      -- [in]
+         rst              => rst,                      -- [in]
+         regRst           => regRst,                   -- [in]
+         axiReadMaster    => readMasters(1),           -- [in]
+         axiReadSlave     => readSlaves(1),            -- [out]
+         axiWriteMaster   => writeMasters(1),          -- [in]
+         axiWriteSlave    => writeSlaves(1),           -- [out]
+         configControl    => configControl,            -- [in]
+         snapshotControl  => snapshotControl,          -- [in]
+         configValid      => configValid(0),           -- [out]
+         servoEnable      => servoEnable,              -- [in]
+         restart          => restart,                  -- [in]
+         portCommandAbort => portStatus.commandAbort,  -- [in]
+         commandMaster    => commandMaster,            -- [in]
+         commandSlave     => commandSlave,             -- [out]
+         manualBusy       => manualBusy,               -- [out]
+         clearValid       => clearValid,               -- [in]
+         phcTime          => timeValue,                -- [out]
+         status           => status,                   -- [out]
+         captureAbort     => abortCapture,             -- [out]
+         pps              => pps);                     -- [out]
 
    U_Port : entity surf.PtpPort
       generic map (
@@ -177,43 +235,38 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
-         clk                 => clk,               -- [in]
-         rst                 => rst,               -- [in]
-         restart             => restart,           -- [in]
-         linkReady           => linkReady,         -- [in]
-         macResetDone        => macResetDone,      -- [in]
-         localMac            => localMac,          -- [in]
-         config              => config,            -- [in]
-         phcStatus           => status,            -- [in]
-         captureAbort        => abortCapture,      -- [in]
-         rxMessage           => rxMessage,         -- [in]
-         rxValid             => rxValid,           -- [in]
-         rxReady             => rxReady,           -- [out]
-         rxAbort             => rxAbort,           -- [in]
-         rxQueueOverflow     => rxQueueOverflow,   -- [in]
-         commandAbort        => portCommandAbort,  -- [out]
-         txMessage           => txMessage,         -- [in]
-         txValid             => txValid,           -- [in]
-         txAbort             => txAbort,           -- [in]
-         txMaster            => txMaster,          -- [out]
-         txSlave             => txSlave,           -- [in]
-         measurement         => measurement,       -- [out]
-         measurementValid    => measurementValid,  -- [out]
-         measurementReady    => measurementReady,  -- [in]
-         measurementAbort    => measurementAbort,  -- [out]
-         active              => active,            -- [out]
-         ratioValid          => open,              -- [out]
-         announceValid       => announceValid,     -- [out]
-         exchange            => exchange,          -- [out]
-         announceBody        => announceBody,      -- [out]
-         ledgerStatus        => ledgerStatus,      -- [out]
-         grandmasterIdentity => gmIdentity,        -- [out]
-         announceFlags       => announceFlags,     -- [out]
-         utcOffset           => utcOffset,         -- [out]
-         rejectedCount       => counters(3),       -- [out]
-         syncCount           => counters(4),       -- [out]
-         delayCount          => counters(5),       -- [out]
-         timeoutCount        => counters(6));      -- [out]
+         clk               => clk,                -- [in]
+         rst               => rst,                -- [in]
+         regRst            => regRst,             -- [in]
+         axiReadMaster     => readMasters(2),     -- [in]
+         axiReadSlave      => readSlaves(2),      -- [out]
+         axiWriteMaster    => writeMasters(2),    -- [in]
+         axiWriteSlave     => writeSlaves(2),     -- [out]
+         configControl     => configControl,      -- [in]
+         snapshotControl   => snapshotControl,    -- [in]
+         configValid       => configValid(1),     -- [out]
+         restart           => restart,            -- [in]
+         linkReady         => linkReady,          -- [in]
+         macResetDone      => macResetDone,       -- [in]
+         localMac          => localMac,           -- [in]
+         phcStatus         => status,             -- [in]
+         measurementMaster => measurementMaster,  -- [out]
+         measurementSlave  => measurementSlave,   -- [in]
+         captureAbort      => abortCapture,       -- [in]
+         rxMessage         => rxMessage,          -- [in]
+         rxValid           => rxValid,            -- [in]
+         rxReady           => rxReady,            -- [out]
+         rxQueueOverflow   => rxQueueOverflow,    -- [in]
+         rxAbort           => rxAbort,            -- [in]
+         txMessage         => txMessage,          -- [in]
+         txValid           => txValid,            -- [in]
+         txAbort           => txAbort,            -- [in]
+         txMaster          => txMaster,           -- [out]
+         txSlave           => txSlave,            -- [in]
+         enable            => enable,             -- [in]
+         rxCounters        => rxCounters,         -- [in]
+         sharedConfig      => sharedConfig,       -- [out]
+         status            => portStatus);        -- [out]
 
    U_Servo : entity surf.PtpServo
       generic map (
@@ -222,138 +275,25 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk              => clk,               -- [in]
-         rst              => rst,               -- [in]
-         cancel           => measurementAbort,  -- [in]
-         restart          => restart,           -- [in]
-         config           => config,            -- [in]
-         phcStatus        => status,            -- [in]
-         measurement      => measurement,       -- [in]
-         measurementValid => measurementValid,  -- [in]
-         measurementReady => measurementReady,  -- [out]
-         command          => autoCommand,       -- [out]
-         commandValid     => autoValid,         -- [out]
-         commandReady     => autoReady,         -- [in]
-         commandAck       => autoAck,           -- [in]
-         commandError     => status.error,      -- [in]
-         cancelCommand    => autoCancel,        -- [out]
-         staleCommand     => autoStale,         -- [out]
-         expireTime       => clearValid,        -- [out]
-         servoState       => quality,           -- [out]
-         filteredDelay    => delayValue,        -- [out]
-         offsetValue      => offsetValue,       -- [out]
-         ratePpb          => ratePpb,           -- [out]
-         filterCount      => filterCount,       -- [out]
-         rejectedCount    => counters(7));      -- [out]
-
-   U_Reg : entity surf.PtpReg
-      generic map (
-         TPD_G             => TPD_G,
-         RST_POLARITY_G    => RST_POLARITY_G,
-         RST_ASYNC_G       => RST_ASYNC_G,
-         CLK_FREQ_G        => CLK_FREQ_G,
-         INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-         PACKET_LIFETIME_G => PACKET_LIFETIME_G)
-      port map (
-         clk                 => clk,             -- [in]
-         rst                 => rst,             -- [in]
-         regRst              => regRst,          -- [in]
-         axiReadMaster       => axiReadMaster,   -- [in]
-         axiReadSlave        => axiReadSlave,    -- [out]
-         axiWriteMaster      => axiWriteMaster,  -- [in]
-         axiWriteSlave       => axiWriteSlave,   -- [out]
-         localMac            => localMac,        -- [in]
-         config              => config,          -- [out]
-         configRestart       => configRestart,   -- [out]
-         phcTime             => timeValue,       -- [in]
-         phcStatus           => status,          -- [in]
-         captureAbort        => abortCapture,    -- [in]
-         command             => manualCommand,   -- [out]
-         commandValid        => manualValid,     -- [out]
-         commandReady        => manualReady,     -- [in]
-         commandAck          => manualAck,       -- [in]
-         commandError        => status.error,    -- [in]
-         portActive          => active,          -- [in]
-         servoState          => quality,         -- [in]
-         filteredDelay       => delayValue,      -- [in]
-         offsetValue         => offsetValue,     -- [in]
-         ratePpb             => ratePpb,         -- [in]
-         filterCount         => filterCount,     -- [in]
-         announceValid       => announceValid,   -- [in]
-         exchange            => exchange,        -- [in]
-         announceBody        => announceBody,    -- [in]
-         ledgerStatus        => ledgerStatus,    -- [in]
-         grandmasterIdentity => gmIdentity,      -- [in]
-         announceFlags       => announceFlags,   -- [in]
-         utcOffset           => utcOffset,       -- [in]
-         counters            => counters,        -- [in]
-         irq                 => irq);            -- [out]
-
-   -- Ownership extends through acknowledgement, not just command admission.
-   -- Thus a delayed PHC response can never acknowledge the other producer.
-   comb : process (r, rst, manualCommand, manualValid, autoCommand, autoValid, autoCancel, autoStale, portCommandAbort, restart, config, phcCommandReady, status) is
-      variable v : RegType;
-   begin
-      v := r;
-
-      v.abortSeen      := portCommandAbort;
-      phcCommand       <= PTP_PHC_COMMAND_INIT_C;
-      phcCommandValid  <= '0';
-      manualReady      <= '0';
-      autoReady        <= '0';
-      manualAck        <= '0';
-      autoAck          <= '0';
-      phcCommandCancel <= '0';
-      case r.owner is
-         when NONE_S =>
-            if manualValid = '1' then
-               phcCommand      <= manualCommand;
-               phcCommandValid <= manualValid;
-               manualReady     <= phcCommandReady;
-               if phcCommandReady = '1' then
-                  v.owner := MANUAL_S;
-               end if;
-            elsif autoValid = '1' and autoCancel = '0' then
-               phcCommand      <= autoCommand;
-               phcCommandValid <= autoValid;
-               autoReady       <= phcCommandReady;
-               if phcCommandReady = '1' then
-                  v.owner := AUTO_S;
-               end if;
-            end if;
-         when MANUAL_S =>
-            manualAck <= status.ack;
-            if status.ack = '1' then
-               v.owner := NONE_S;
-            end if;
-         when AUTO_S =>
-            -- A PHC command's own capture flush cannot cancel its commit.
-            -- Only independent protocol lifecycle causes cancel an accepted
-            -- automatic command; producer invalidation still cancels queued work.
-            phcCommandCancel <= (portCommandAbort and not r.abortSeen) or restart or autoStale or not config.servoEnable;
-            autoAck          <= status.ack;
-            if status.ack = '1' then
-               v.owner := NONE_S;
-            end if;
-      end case;
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
-   end process comb;
-   phcTime      <= timeValue;
-   phcStatus    <= status;
-   captureAbort <= abortCapture;
-   portActive   <= active;
-   servoState   <= quality;
-   seq : process (clk, rst) is
-   begin
-      if RST_ASYNC_G and rst = RST_POLARITY_G then
-         r <= REG_INIT_C after TPD_G;
-      elsif rising_edge(clk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
+         clk               => clk,                -- [in]
+         rst               => rst,                -- [in]
+         regRst            => regRst,             -- [in]
+         axiReadMaster     => readMasters(3),     -- [in]
+         axiReadSlave      => readSlaves(3),      -- [out]
+         axiWriteMaster    => writeMasters(3),    -- [in]
+         axiWriteSlave     => writeSlaves(3),     -- [out]
+         configControl     => configControl,      -- [in]
+         snapshotControl   => snapshotControl,    -- [in]
+         configValid       => configValid(2),     -- [out]
+         restart           => restart,            -- [in]
+         phcStatus         => status,             -- [in]
+         measurementMaster => measurementMaster,  -- [in]
+         measurementSlave  => measurementSlave,   -- [out]
+         commandMaster     => commandMaster,      -- [out]
+         commandSlave      => commandSlave,       -- [in]
+         expireTime        => clearValid,         -- [out]
+         status            => servoStatus,        -- [out]
+         servoEnable       => servoEnable,        -- [in]
+         sharedConfig      => sharedConfig);      -- [in]
 
 end architecture rtl;

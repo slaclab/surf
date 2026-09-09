@@ -104,6 +104,14 @@ architecture rtl of PtpTxLedger is
 
    type EntryArray is array (natural range <>) of EntryType;
    type RegType is record
+      -- Current-cycle calculations and diagnostics. Use v for same-edge
+      -- decisions; these fields do not introduce a protocol pipeline stage.
+      freeSlot      : integer range -1 to DEPTH_G-1;
+      collision     : boolean;
+      usedSlots     : natural range 0 to DEPTH_G;
+      unknownSlots  : natural range 0 to DEPTH_G;
+      ready         : sl;
+
       entries       : EntryArray(0 to DEPTH_G-1);
       nextSequence  : unsigned(SEQUENCE_BITS_G-1 downto 0);
       startup       : sl;
@@ -117,6 +125,11 @@ architecture rtl of PtpTxLedger is
    end record;
 
    constant REG_INIT_C : RegType := (
+      freeSlot      => -1,
+      collision     => false,
+      usedSlots     => 0,
+      unknownSlots  => 0,
+      ready         => '0',
       entries       => (others => ENTRY_INIT_C),
       nextSequence  => (others => '0'),
       startup       => '1',
@@ -135,49 +148,51 @@ begin
 
    comb : process (r, rst, restart, macResetDone, ticks, generation, config, allocate,
                    wireMessage, wireValid, response, responseValid, sampleReady) is
-      variable v            : RegType;
-      variable freeSlot     : integer range -1 to DEPTH_G-1;
-      variable collision    : boolean;
-      variable usedSlots    : natural range 0 to DEPTH_G;
-      variable unknownSlots : natural range 0 to DEPTH_G;
-      variable ready        : sl;
+      variable v : RegType;
    begin
       v := r;
 
       responseAccepted <= '0';
-      usedSlots        := 0;
-      unknownSlots     := 0;
-      freeSlot         := -1;
-      collision        := false;
-      ready            := '0';
+      v.usedSlots      := 0;
+      v.unknownSlots   := 0;
+      v.freeSlot       := -1;
+      v.collision      := false;
+      v.ready          := '0';
       v.resetPrevious  := macResetDone;
+      -- Retire the previous output before selecting a new completed entry.
       if r.valid = '1' and sampleReady = '1' then
          v.valid := '0';
       end if;
+      -- Account for occupancy, retire timed-out associations and reclaim only
+      -- entries whose known wire completion has finished quarantine.
       for i in 0 to DEPTH_G-1 loop
          -- Quarantine consumes bounded physical storage. An unresolved frame
          -- cannot free its slot through timeout or logical restart. After a
          -- known wire completion, keep its key for the full network lifetime.
          if r.entries(i).used = '1' then
-            usedSlots := usedSlots+1;
+            v.usedSlots := v.usedSlots+1;
             if r.entries(i).wireSeen = '0' then
-               unknownSlots := unknownSlots+1;
+               v.unknownSlots := v.unknownSlots+1;
             end if;
             if r.entries(i).retired = '1' and r.entries(i).wireSeen = '1' and
                unsigned(ticks)-unsigned(r.entries(i).wireTicks) > PACKET_LIFETIME_G then
                v.entries(i) := ENTRY_INIT_C;
             end if;
             if r.entries(i).sequenceId = slv(resize(r.nextSequence, 16)) then
-               collision := true;
+               v.collision := true;
             end if;
             if r.entries(i).retired = '0' and
                unsigned(ticks)-unsigned(r.entries(i).born) > unsigned(config.associationTimeout) then
                v.entries(i).retired := '1';
                v.timeoutCount       := ptpSatInc(v.timeoutCount);
             end if;
-         elsif freeSlot = -1 then
-            freeSlot := i;
+         elsif v.freeSlot = -1 then
+            v.freeSlot := i;
          end if;
+      end loop;
+
+      -- Match observed wire completions after retiring expired associations.
+      for i in 0 to DEPTH_G-1 loop
          if wireValid = '1' and r.entries(i).used = '1' and
             wireMessage.sequenceId = r.entries(i).sequenceId and
             wireMessage.sourcePortIdentity = r.entries(i).identity and
@@ -194,6 +209,10 @@ begin
                v.rejectedCount      := ptpSatInc(v.rejectedCount);
             end if;
          end if;
+      end loop;
+
+      -- Attach responses only to entries that remain eligible after wire checks.
+      for i in 0 to DEPTH_G-1 loop
          if responseValid = '1' and r.entries(i).used = '1' and v.entries(i).retired = '0' and
             response.sequenceId = r.entries(i).sequenceId and response.domainNumber = r.entries(i).domainNumber and
             response.messageBody(159 downto 80) = r.entries(i).identity and
@@ -213,6 +232,10 @@ begin
                v.entries(i).sample.responseTicks := response.capture.ticks;
             end if;
          end if;
+      end loop;
+
+      -- Publish at most one completed entry, retaining ascending-slot priority.
+      for i in 0 to DEPTH_G-1 loop
          if v.entries(i).used = '1' and v.entries(i).retired = '0' and
             v.entries(i).wireSeen = '1' and v.entries(i).responseSeen = '1' and v.valid = '0' then
             v.entries(i).retired := '1';
@@ -227,29 +250,31 @@ begin
             end if;
          end if;
       end loop;
+      -- Allocate from pre-edge free space after resolving existing ownership.
       if r.startup = '1' and r.resetSeen = '1' and
          unsigned(ticks)-unsigned(r.resetTick) > PACKET_LIFETIME_G then
          v.startup := '0';
       end if;
-      if r.startup = '0' and freeSlot /= -1 and not collision and restart = '0' then
-         ready := '1';
+      if r.startup = '0' and v.freeSlot /= -1 and not v.collision and restart = '0' then
+         v.ready := '1';
          if allocate = '1' then
-            v.entries(freeSlot)                   := ENTRY_INIT_C;
-            v.entries(freeSlot).used              := '1';
-            v.entries(freeSlot).sequenceId        := slv(resize(r.nextSequence, 16));
-            v.entries(freeSlot).generation        := generation;
-            v.entries(freeSlot).identity          := config.localIdentity;
-            v.entries(freeSlot).domainNumber      := config.domainNumber;
-            v.entries(freeSlot).born              := ticks;
-            v.entries(freeSlot).sample.sequenceId := slv(resize(r.nextSequence, 16));
-            v.entries(freeSlot).sample.generation := generation;
-            v.nextSequence                        := r.nextSequence + 1;
+            v.entries(v.freeSlot)                   := ENTRY_INIT_C;
+            v.entries(v.freeSlot).used              := '1';
+            v.entries(v.freeSlot).sequenceId        := slv(resize(r.nextSequence, 16));
+            v.entries(v.freeSlot).generation        := generation;
+            v.entries(v.freeSlot).identity          := config.localIdentity;
+            v.entries(v.freeSlot).domainNumber      := config.domainNumber;
+            v.entries(v.freeSlot).born              := ticks;
+            v.entries(v.freeSlot).sample.sequenceId := slv(resize(r.nextSequence, 16));
+            v.entries(v.freeSlot).sample.generation := generation;
+            v.nextSequence                          := r.nextSequence + 1;
          end if;
-      elsif collision and r.startup = '0' then
+      elsif v.collision and r.startup = '0' then
          -- Search at most one wire key per clock; no associative 65536-entry
          -- bitmap or unbounded combinational allocator is required.
          v.nextSequence := r.nextSequence + 1;
       end if;
+      -- Logical restart retires keys but cannot claim an unknown wire fate.
       if restart = '1' then
          responseAccepted <= '0';
          for i in 0 to DEPTH_G-1 loop
@@ -266,16 +291,12 @@ begin
          v.resetSeen := '1';
          v.resetTick := ticks;
          v.valid     := '0';
-         ready       := '0';
+         v.ready     := '0';
       end if;
       if rst = RST_POLARITY_G then
-         ready := '0';
-         if not RST_ASYNC_G then
-            v := REG_INIT_C;
-         end if;
+         v.ready := '0';
       end if;
-      rin              <= v;
-      allocateReady    <= ready;
+      allocateReady    <= v.ready;
       allocateSequence <= slv(resize(r.nextSequence, 16));
       sample           <= r.sample;
       sampleValid      <= r.valid and not restart;
@@ -285,10 +306,15 @@ begin
       ledgerStatus               <= (others => '0');
       ledgerStatus(0)            <= r.startup;
       ledgerStatus(1)            <= r.resetSeen;
-      ledgerStatus(15 downto 8)  <= slv(to_unsigned(usedSlots, 8));
-      ledgerStatus(23 downto 16) <= slv(to_unsigned(unknownSlots, 8));
+      ledgerStatus(15 downto 8)  <= slv(to_unsigned(v.usedSlots, 8));
+      ledgerStatus(23 downto 16) <= slv(to_unsigned(v.unknownSlots, 8));
       timeoutCount               <= r.timeoutCount;
       rejectedCount              <= r.rejectedCount;
+
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
    end process comb;
    seq : process (clk, rst) is
    begin

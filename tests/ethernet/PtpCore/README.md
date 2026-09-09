@@ -61,8 +61,12 @@ Run the models alone without starting a simulator:
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
-- `test_ptp_reg.py`: raw AXI-Lite alignment/strobes, atomic shadows, coherent
-  snapshots, immutable queued commands, bus-only reset and MAC identity changes.
+- `test_ptp_reg.py`: all four ABI v2 banks at zero and nonzero bases, SURF
+  field-strobe/alignment/error behavior, immutable commit candidates, cross-bank
+  atomicity, coherent snapshot sequences, queued commands and bus-reset recovery.
+- `test_ptp_register_map.py`: every PyRogue field start/access mode against its
+  local RTL decoder, child offsets, overlap and 1 KiB bank bounds; no PyRogue
+  installation is required for these static checks.
 - `test_ptp_port.py`: physical reordered/conflicting/foreign messages, bounded
   association replacement, timeout, grandmaster change and Announce metadata.
 - `test_ptp_endpoint.py`: independent master time with +100 ppm XGMII and

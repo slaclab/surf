@@ -1,6 +1,8 @@
 # Autonomous endpoint implementation
 
-Status: simulation milestone complete. This milestone
+Status: the original simulation milestone is complete. The current
+[RTL readability cleanup](rtl-readability.md) awaits maintainer VHDL approval;
+regressions must remain stopped until approval. This milestone
 builds on the committed [RX proof](rx-rtl-proof.md) and covers an autonomous
 fixed-source, two-step Layer-2 E2E TimeReceiver on GMII and XGMII. It does not
 qualify a board, transceiver, physical clock domain crossing, or accuracy budget.
@@ -27,14 +29,22 @@ MAC owns padding, preamble, FCS, arbitration and pause. Its redundant RX bypass
 is drained at native width: the passive atomic RX frontend supplies protocol
 messages independently of hidden MAC CRC/FIFO drops.
 
-`PtpEndpoint` composes `PtpPort`, `PtpServo`, `PtpReg`, and one `PtpPhc`. The
-command arbiter retains manual/automatic ownership through PHC acknowledgement.
+`PtpEndpoint` composes `PtpPort`, `PtpServo`, `PtpPhc`, a small `PtpReg`
+coordinator and the standard SURF AXI-Lite crossbar. Each functional core contains
+its own AXI-Lite decode, configuration and snapshot storage in its existing
+`RegType`/`comb`/`seq` structure. `PtpPhc` also owns manual phase normalization
+and final command arbitration. Only shared active limits, measurements and
+narrow lifecycle/status signals cross between these cores. All three cores
+use their local AXI configuration, with no optional bypass. Measurement
+handshakes and port status use package records.
+
+The PHC-local arbiter retains manual/automatic ownership through acknowledgement.
 Manual steering requires automatic control disabled; PPS enable is available
 in either mode. A disabled servo drains measurements so packet processing and
-protocol diagnostics continue under manual PHC ownership. RX overflow/link/configuration cancellation is separate from
-the PHC's own capture-abort path. This prevents a phase step from canceling
-itself through the RX flush feedback path. A held link loss cancels old work
-once and permits a subsequent frequency-only holdover command.
+protocol diagnostics continue under manual PHC ownership. RX overflow/link/
+configuration cancellation remains separate from the PHC's own capture-abort
+path, preventing a phase step from canceling itself. Held link loss cancels
+old work once and permits subsequent frequency-only holdover control.
 
 ## Time, arithmetic and lifecycle contracts
 
@@ -135,62 +145,30 @@ guarantee or a combined arbitrary-jitter stability proof. The physical endpoint
 regressions accelerate packet intervals with exact fractional correction fields;
 they verify state/command composition rather than long-duration default settling.
 
-## AXI-Lite ABI v1
+## AXI-Lite ABI v2
 
-All addresses below are byte offsets in a 4 KiB window. Multiword fields are
-little-word-first; identities and raw wire timestamps retain network significance
-inside the numeric value. Writes honor byte strobes. Unmapped/read-only writes
-return DECERR; misaligned accesses and rejected commands/commits return SLVERR.
-Configuration fields read back shadows. Commit at `0x03C` validates and activates
-all shadows together. Invalid settings or a busy manual command leave active
-configuration unchanged. All tick timers must be below 2^62; association timeout
-must be at least 2048 cycles to accommodate serialized work. Other bounds are
-checked by `PtpReg` and described by the software variables.
+The [register map](register-map.md) defines the implemented four-bank ABI,
+PyRogue hierarchy, commit/snapshot completion semantics, strobes and v1 migration.
+`AXIL_BASE_ADDR_G` sets the aligned 4 KiB base on the endpoint/MAC composition;
+the crossbar receives full addresses without local address stripping.
 
-| Offset | Content |
-| --- | --- |
-| `000` | Version `00010000` |
-| `004`, `008` | Enable/servo/step/monotonic/identity-override shadows; domain/minor version |
-| `010`, `020`, `030` | Local identity80 shadow, source identity80 shadow, shared MAC48 readback |
-| `03C`, `040` | Commit strobe; last configuration error |
-| `044` | Active enables, port active, servo state, populated filter count, Announce validity |
-| `048` | TX startup/reset-seen flags; reserved entries at bits15:8; unknown fates at bits23:16 |
-| `04C`, `050`, `054` | Sticky IRQ status, mask, write-one-to-clear; concurrent event wins |
-| `060`, `070` | Active local/source identities80 |
-| `100`, `104` | Snapshot strobe and saturating completion sequence |
-| `108`–`11C` | Snapshot seconds48, ns32, fraction32, generation32, validity |
-| `120`, `124` | Manual submit: bit7, kind2:0 (set/phase/rate/valid/PPS), value3; busy/ack/error |
-| `128`–`134` | Set-time shadows: seconds48, ns32, fraction32 |
-| `138`, `148` | Phase128 signed Q16 ns; rate64 signed Q32 ns/cycle shadows |
-| `150`, `158`, `160`, `168` | Nominal increment64, snapshot applied rate64, snapshot raw ticks64, live PHC fault |
-| `200`–`248` | Ten 64-bit tick timers in the order listed above |
-| `250` | LFSR seed16 |
-| `300`, `304` | Kp/Ki unsigned Q2.30 |
-| `308`, `30C`, `310` | Frequency/slew/final clamps, whole ppb32 |
-| `318`, `320`, `328` | Step/lock/unlock thresholds, signed Q16 ns64 |
-| `330`, `334` | Lock/unlock sample counts8 |
-| `380`, `384` | Build clock frequency32 Hz; packet lifetime64 ticks |
-| `400`, `408` | Maximum path delay and asymmetry, signed Q16 ns64 |
-| `410`, `418` | Read-only ingress/egress calibration, signed Q16 local PHC ns64 |
-| `500`, `510`, `520` | Snapshot offset128/delay128 Q16 ns and servo rate64 Q16 ppb |
-| `530`, `538`, `53C`, `540` | Snapshot GM identity64, flags16, UTC offset16, Announce body240 |
-| `560`, `570`, `580`, `590` | Last accepted exchange t1 wire80, t2 capture96, t3 capture96, t4 wire80 |
-| `5A0`, `5B0`, `5B8`, `5BC` | Exchange correction sum128, Delay_Resp correction64, generation32, Sync/Delay sequences16 |
-| `600`–`61C` | Eight saturating snapshot counters: RX accepted/dropped/overflow, port rejected, completed Sync/delay, request timeout, servo rejected |
+Configuration is stored in local shadows, frozen and validated by coordinated
+commit, then applied by all banks on one edge. An accepted commit returns OKAY
+before its result is known; software polls completion and checks ConfigError.
+One snapshot strobe captures all local diagnostic banks with a common sequence.
+AXI-only reset cancels bus responses but preserves accepted operations and active
+state. See the [ownership record](register-ownership.md) for implementation and
+verification details.
 
-IRQ bits are PHC fault, discontinuity, command error, and servo fault. The last
+IRQ bits remain PHC fault, discontinuity, command error and servo fault. The last
 exchange remains diagnostic after restart; compare its generation and sequences
-with current status before treating it as current. Snapshot updates PHC,
-measurements, Announce, exchange and counters together; poll sequence before
-reading frozen multiword values. Local-MAC changes restart acquisition and
-rederive the EUI-64 clock identity unless override is active; the configured
-nonzero local port number is preserved. The committed MAC and identity must
-come from the same owner in a larger integration.
+before treating it as current. Local-MAC changes restart acquisition and rederive
+the EUI-64 identity unless override is active, preserving the configured port
+number. Calibration remains elaboration-time.
 
-`python/surf/ethernet/ptp/_PtpEndpoint.py` mirrors this map. PyRogue is not installed
-on this machine; syntax/schema checks do not constitute a live Rogue transport
-test. Calibration remains elaboration-time in v1, rather than the runtime
-calibration proposed in the earlier plan.
+PyRogue is not installed on this machine. Static schema checks compare every
+software field start/access mode with local RTL decode, and check overlap and
+bank bounds; they do not constitute a live Rogue transport test.
 
 ## Optional snapshot CDC
 
@@ -205,7 +183,11 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 
 ## Validation and handoff
 
-- **101 distinct pytest cases pass across the focused runs listed below.** This
+The distributed-register refactor is being revalidated; current results are
+tracked in [register-ownership.md](register-ownership.md). The following records
+the earlier autonomous endpoint milestone.
+
+- **The original autonomous milestone passed 101 distinct pytest cases.** This
   includes 84 pure reference cases and 17 parameterized RTL cases; some RTL cases
   contain more than one cocotb scenario. The two PHY closed-loop cases also pass
   independent absolute-phase checks after acquisition and reacquisition.

@@ -36,14 +36,11 @@ entity PtpRxTimestampAdapter is
       rst          : in  sl;
       rxFlush      : in  sl;
       phyReady     : in  sl;
-      generation   : in  slv(31 downto 0);
       -- PHC and unsteered counter values describe the current sampling edge.
       -- Capture uses the first byte after SFD, so a command/generation change
       -- at that edge can suppress the entire observation without extrapolation.
       phcTime      : in  PtpTimeType;
-      phcIncrement : in  slv(63 downto 0);
-      tickCount    : in  slv(63 downto 0);
-      timeValid    : in  sl;
+      phcStatus    : in  PtpPhcStatusType;
       captureAbort : in  sl               := '0';
       xgmiiRxd     : in  slv(63 downto 0) := (others => '0');
       xgmiiRxc     : in  slv(7 downto 0)  := (others => '1');
@@ -69,21 +66,28 @@ architecture rtl of PtpRxTimestampAdapter is
       DRAIN_S);
 
    type RegType is record
-      state      : StateType;
-      preamble   : natural range 0 to 7;
-      first      : sl;
-      generation : slv(31 downto 0);
-      master     : AxiStreamMasterType;
-      capture    : PtpRxCaptureType;
+      -- Current-cycle calculations and diagnostics. Use v for same-edge
+      -- decisions; these fields do not introduce a protocol pipeline stage.
+      byteCount   : natural range 0 to 8;
+      captureLane : natural range 0 to 7;
+
+      state       : StateType;
+      preamble    : natural range 0 to 7;
+      first       : sl;
+      generation  : slv(31 downto 0);
+      master      : AxiStreamMasterType;
+      capture     : PtpRxCaptureType;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state      => SEARCH_S,
-      preamble   => 0,
-      first      => '0',
-      generation => (others => '0'),
-      master     => AXI_STREAM_MASTER_INIT_C,
-      capture    => PTP_RX_CAPTURE_INIT_C);
+      byteCount   => 0,
+      captureLane => 0,
+      state       => SEARCH_S,
+      preamble    => 0,
+      first       => '0',
+      generation  => (others => '0'),
+      master      => AXI_STREAM_MASTER_INIT_C,
+      capture     => PTP_RX_CAPTURE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -93,22 +97,23 @@ begin
    assert PHY_TYPE_G = "GMII" or PHY_TYPE_G = "XGMII"
       report "PtpRxTimestampAdapter supports 1G GMII or 10G XGMII" severity failure;
 
-   comb : process (r, rst, rxFlush, phyReady, generation, phcTime, phcIncrement, captureAbort,
-                   tickCount, timeValid, xgmiiRxd, xgmiiRxc, gmiiRxd, gmiiRxDv, gmiiRxEr) is
-      variable v           : RegType;
-      variable octet       : slv(7 downto 0);
-      variable count       : natural range 0 to 8;
-      variable captureLane : natural range 0 to 7;
+   comb : process (r, rst, rxFlush, phyReady, phcStatus, phcTime, captureAbort, xgmiiRxd, xgmiiRxc,
+                   gmiiRxd, gmiiRxDv, gmiiRxEr) is
+      variable v     : RegType;
+      variable octet : slv(7 downto 0);
    begin
-      v := r;
+      v     := r;
+      octet := (others => '0');
 
       -- Rebuild one output beat each cycle. The capture is held separately in
       -- the same RegType so its value survives later beats without being
       -- sampled again or delayed independently of SOF.
       v.master       := AXI_STREAM_MASTER_INIT_C;
       v.master.tKeep := (others => '0');
-      count          := 0;
-      captureLane    := 0;
+      v.byteCount    := 0;
+      v.captureLane  := 0;
+      -- Decode physical symbols in wire order. The two branches differ only
+      -- in byte-lane timing and framing; both populate the same pending beat.
       if PHY_TYPE_G = "XGMII" then
          -- Walk lanes in wire order using v.state: a delimiter in an earlier
          -- lane affects later lanes of this same word. This loop is unrolled
@@ -145,13 +150,13 @@ begin
                         -- This is the PTP message timestamp point: the first
                         -- destination-MAC byte, one byte after SFD. Save its
                         -- physical lane before packing it into AXI lane zero.
-                        captureLane := lane;
+                        v.captureLane := lane;
                         ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
-                        v.first     := '0';
+                        v.first       := '0';
                      end if;
-                     v.master.tData(8*count+7 downto 8*count) := octet;
-                     v.master.tKeep(count)                    := '1';
-                     count                                    := count+1;
+                     v.master.tData(8*v.byteCount+7 downto 8*v.byteCount) := octet;
+                     v.master.tKeep(v.byteCount)                          := '1';
+                     v.byteCount                                          := v.byteCount+1;
                   else
                      -- /T/ ends the frame; any other in-frame control emits
                      -- an error termination and drains the damaged remainder.
@@ -200,9 +205,9 @@ begin
                v.master.tValid := '1';
                if gmiiRxDv = '1' and gmiiRxEr = '0' then
                   if v.first = '1' then
-                     captureLane := 0;
+                     v.captureLane := 0;
                      ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
-                     v.first     := '0';
+                     v.first       := '0';
                   end if;
                   v.master.tData(7 downto 0) := gmiiRxd;
                   v.master.tKeep(0)          := '1';
@@ -229,16 +234,16 @@ begin
       -- capture once after lane decoding instead of replicating the wide
       -- normalization/calibration arithmetic in each unrolled lane.
       if ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, v.master) = '1' then
-         v.capture       := ptpRxCapture(phcTime, phcIncrement, captureLane, tickCount,
-                                  generation, timeValid, INGRESS_LATENCY_G);
+         v.capture       := ptpRxCapture(phcTime, phcStatus.increment, v.captureLane, phcStatus.ticks,
+                                  phcStatus.generation, phcStatus.timeValid, INGRESS_LATENCY_G);
          v.capture.error := v.capture.error or captureAbort;
       end if;
       -- These conditions win over any SOF/EOF decoded above, clearing both
       -- the pending frame and the output beat. Remember the new generation
       -- so admission can resume on a subsequent clean physical start.
-      if rxFlush = '1' or phyReady = '0' or (not TX_OBSERVE_G and generation /= r.generation) then
+      if rxFlush = '1' or phyReady = '0' or (not TX_OBSERVE_G and phcStatus.generation /= r.generation) then
          v            := REG_INIT_C;
-         v.generation := generation;
+         v.generation := phcStatus.generation;
       end if;
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;

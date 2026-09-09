@@ -1,5 +1,8 @@
 # Ethernet PTP Support
 
+Current review: [RTL flow and package interfaces](rtl-readability.md). Regression
+simulations require maintainer VHDL approval; only build smoke checks are authorized.
+
 ## Goal and status
 
 Explore and stage reusable IEEE 1588 Precision Time Protocol support for the
@@ -18,6 +21,11 @@ module names and register offsets below. The PHC, port, servo, AXI-Lite/PyRogue
 map, TX ledger and common-clock MAC composition now accompany the
 [RX adapter/validator slice](rx-rtl-proof.md). Device/GT integration, physical
 qualification and application timing remain future milestones.
+
+The [register-ownership refactor](register-ownership.md) moves PHC, port and
+servo registers into local management hierarchies with coordinated commits and
+snapshots. The [ABI v2 map](register-map.md) defines the four banks and software
+migration; verification of the refactor is in progress.
 
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
 The real-MAC experiment rejects the original header-key-only RX association:

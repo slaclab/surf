@@ -77,6 +77,8 @@ end entity PtpRxFrontendWrapper;
 
 architecture rtl of PtpRxFrontendWrapper is
 
+   signal phcStatus : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
+
    signal phcTime   : PtpTimeType;
    signal master    : AxiStreamMasterType;
    signal capture   : PtpRxCaptureType;
@@ -88,10 +90,14 @@ begin
    -- The test supplies PHC samples; this wrapper contains no PHC or time model.
    -- Link loss flushes the frontend as well as stopping the physical adapter,
    -- preventing already queued records from surviving an unqualified link.
-   phcTime.seconds     <= phcSeconds;
-   phcTime.nanoseconds <= phcNanoseconds;
-   phcTime.fraction    <= phcFraction;
-   flush               <= rxFlush or not phyReady;
+   phcTime.seconds      <= phcSeconds;
+   phcStatus.generation <= generation;
+   phcStatus.increment  <= phcIncrement;
+   phcStatus.ticks      <= tickCount;
+   phcStatus.timeValid  <= timeValid;
+   phcTime.nanoseconds  <= phcNanoseconds;
+   phcTime.fraction     <= phcFraction;
+   flush                <= rxFlush or not phyReady;
 
    -- Physical tests exercise the real adapter and validator together. The
    -- normalized signals below expose their boundary for the Python scoreboard.
@@ -105,22 +111,19 @@ begin
             PHY_TYPE_G        => PHY_TYPE_G,
             INGRESS_LATENCY_G => INGRESS_LATENCY_G)
          port map (
-            clk          => clk,           -- [in]
-            rst          => rst,           -- [in]
-            rxFlush      => rxFlush,       -- [in]
-            phyReady     => phyReady,      -- [in]
-            generation   => generation,    -- [in]
-            phcTime      => phcTime,       -- [in]
-            phcIncrement => phcIncrement,  -- [in]
-            tickCount    => tickCount,     -- [in]
-            timeValid    => timeValid,     -- [in]
-            xgmiiRxd     => xgmiiRxd,      -- [in]
-            xgmiiRxc     => xgmiiRxc,      -- [in]
-            gmiiRxd      => gmiiRxd,       -- [in]
-            gmiiRxDv     => gmiiRxDv,      -- [in]
-            gmiiRxEr     => gmiiRxEr,      -- [in]
-            rxMaster     => master,        -- [out]
-            rxCapture    => capture);      -- [out]
+            clk       => clk,        -- [in]
+            rst       => rst,        -- [in]
+            rxFlush   => rxFlush,    -- [in]
+            phyReady  => phyReady,   -- [in]
+            phcStatus => phcStatus,  -- [in]
+            phcTime   => phcTime,    -- [in]
+            xgmiiRxd  => xgmiiRxd,   -- [in]
+            xgmiiRxc  => xgmiiRxc,   -- [in]
+            gmiiRxd   => gmiiRxd,    -- [in]
+            gmiiRxDv  => gmiiRxDv,   -- [in]
+            gmiiRxEr  => gmiiRxEr,   -- [in]
+            rxMaster  => master,     -- [out]
+            rxCapture => capture);   -- [out]
 
    end generate GEN_PHY;
 
@@ -173,19 +176,19 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          FIFO_DEPTH_G   => FIFO_DEPTH_G)
       port map (
-         clk           => clk,             -- [in]
-         rst           => rst,             -- [in]
-         rxFlush       => flush,           -- [in]
-         generation    => generation,      -- [in]
-         rxMaster      => master,          -- [in]
-         rxCapture     => capture,         -- [in]
-         message       => rxMessage,       -- [out]
-         messageValid  => messageValid,    -- [out]
-         messageReady  => messageReady,    -- [in]
-         rxAbort       => rxAbort,         -- [out]
-         rxEpoch       => rxEpoch,         -- [out]
-         acceptedCount => acceptedCount,   -- [out]
-         droppedCount  => droppedCount,    -- [out]
-         overflowCount => overflowCount);  -- [out]
+         clk               => clk,             -- [in]
+         rst               => rst,             -- [in]
+         rxFlush           => flush,           -- [in]
+         generation        => generation,      -- [in]
+         rxMaster          => master,          -- [in]
+         rxCapture         => capture,         -- [in]
+         message           => rxMessage,       -- [out]
+         messageValid      => messageValid,    -- [out]
+         messageReady      => messageReady,    -- [in]
+         rxAbort           => rxAbort,         -- [out]
+         rxEpoch           => rxEpoch,         -- [out]
+         counters.accepted => acceptedCount,   -- [out]
+         counters.dropped  => droppedCount,    -- [out]
+         counters.overflow => overflowCount);  -- [out]
 
 end architecture rtl;

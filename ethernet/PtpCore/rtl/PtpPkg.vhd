@@ -1,7 +1,19 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: PTP endpoint records, fixed-point helpers and physical capture arithmetic
+-- Description: Shared types and arithmetic contracts for the PTP endpoint.
+--
+-- Defines time/capture payloads, decoded messages, measurement and PHC-command
+-- channels, local configuration records, bank coordination and diagnostics.
+-- Directional channel records keep payload, admission and completion semantics
+-- together; configuration and snapshot controls describe separate transactions
+-- in the common endpoint clock domain. Init constants provide inactive channel
+-- values and deterministic default state for every exported record.
+--
+-- Package helpers encode/decode protocol fields, perform fixed-point rounding
+-- and bounds checks, and translate physical capture positions into calibrated
+-- timestamps. Units and generation/lifecycle rules are documented beside each
+-- interface so producers, consumers and test wrappers use one shared contract.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -72,6 +84,35 @@ package PtpPkg is
       phaseFraction => (others => '0'),
       rate          => (others => '0'),
       value         => '0');
+
+   -- Servo-to-PHC command channel, entirely in clk. Hold data and valid until
+   -- ready accepts the request. cancel gates admission; stale independently
+   -- revokes accepted work before commit. Neither bit is qualified by valid.
+   -- The PHC retains ownership until ack, so ready and ack describe different
+   -- phases. error is meaningful with ack and belongs to that command owner.
+   type PtpPhcCommandMasterType is record
+      data   : PtpPhcCommandType;
+      valid  : sl;
+      cancel : sl;
+      stale  : sl;
+   end record;
+
+   constant PTP_PHC_COMMAND_MASTER_INIT_C : PtpPhcCommandMasterType := (
+      data   => PTP_PHC_COMMAND_INIT_C,
+      valid  => '0',
+      cancel => '0',
+      stale  => '0');
+
+   type PtpPhcCommandSlaveType is record
+      ready : sl;
+      ack   : sl;
+      error : sl;
+   end record;
+
+   constant PTP_PHC_COMMAND_SLAVE_INIT_C : PtpPhcCommandSlaveType := (
+      ready => '0',
+      ack   => '0',
+      error => '0');
 
    -- Generation exhaustion and epoch overflow fail closed until system reset.
    -- Such a reset must also reset all consumers and cancel snapshot sessions.
@@ -169,7 +210,49 @@ package PtpPkg is
 
    type PtpRxMessageArray is array (natural range <>) of PtpRxMessageType;
 
-   -- Runtime configuration is committed atomically by PtpReg. Timer units are
+   -- Coordinator-to-bank commit transaction in clk. prepare freezes each
+   -- bank's shadows; its separate configValid vote qualifies a later apply.
+   -- busy spans the transaction and prevents PHC manual command admission.
+   -- Banks consume the same record so the candidate and apply edges agree.
+   type PtpConfigControlType is record
+      prepare : sl;
+      apply   : sl;
+      busy    : sl;
+   end record;
+
+   constant PTP_CONFIG_CONTROL_INIT_C : PtpConfigControlType := (
+      prepare => '0',
+      apply   => '0',
+      busy    => '0');
+
+   -- One synchronous snapshot request broadcast to all register banks. capture
+   -- samples pre-edge status; sequenceId tags those samples with one common
+   -- transaction identity. The sequence has no meaning without capture.
+   type PtpSnapshotControlType is record
+      capture    : sl;
+      sequenceId : slv(31 downto 0);
+   end record;
+
+   constant PTP_SNAPSHOT_CONTROL_INIT_C : PtpSnapshotControlType := (
+      capture    => '0',
+      sequenceId => (others => '0'));
+
+   -- Saturating RX frontend counters. accepted counts queue insertions;
+   -- dropped counts completed frames rejected by validation, not every frame
+   -- lost during flush or before SOF; overflow counts full-queue completions.
+   -- These are live clk-domain values; PtpPort snapshots them for AXI reads.
+   type PtpRxCountersType is record
+      accepted : slv(31 downto 0);
+      dropped  : slv(31 downto 0);
+      overflow : slv(31 downto 0);
+   end record;
+
+   constant PTP_RX_COUNTERS_INIT_C : PtpRxCountersType := (
+      accepted => (others => '0'),
+      dropped  => (others => '0'),
+      overflow => (others => '0'));
+
+   -- Core calculation settings, assembled locally from the active registers. Timers are
    -- unsteered clock cycles; all delay/offset limits are signed Q16 nanoseconds.
    -- Conservative defaults target a 1 Hz source. Tests may select shorter
    -- intervals but must separately qualify the resulting control envelope.
@@ -242,6 +325,117 @@ package PtpPkg is
       unlockCount        => x"03",
       lfsrSeed           => x"0001");
 
+   -- PtpPort and PtpServo own disjoint local shadow/candidate/active records.
+   -- PtpConfigType collects settings internally for protocol calculations.
+   -- Only PtpSharedConfigType crosses between cores; PtpPort owns its values.
+   type PtpPortConfigType is record
+      identityOverride   : sl;
+      domainNumber       : slv(7 downto 0);
+      minorVersion       : slv(3 downto 0);
+      localIdentity      : slv(79 downto 0);
+      sourceIdentity     : slv(79 downto 0);
+      delayInterval      : slv(63 downto 0);
+      syncTimeout        : slv(63 downto 0);
+      associationTimeout : slv(63 downto 0);
+      maxExchange        : slv(63 downto 0);
+      minRateSpan        : slv(63 downto 0);
+      maxRateAge         : slv(63 downto 0);
+      maxPathDelay       : slv(63 downto 0);
+      lfsrSeed           : slv(15 downto 0);
+   end record;
+
+   constant PTP_PORT_CONFIG_INIT_C : PtpPortConfigType := (
+      identityOverride   => PTP_CONFIG_INIT_C.identityOverride,
+      domainNumber       => PTP_CONFIG_INIT_C.domainNumber,
+      minorVersion       => PTP_CONFIG_INIT_C.minorVersion,
+      localIdentity      => PTP_CONFIG_INIT_C.localIdentity,
+      sourceIdentity     => PTP_CONFIG_INIT_C.sourceIdentity,
+      delayInterval      => PTP_CONFIG_INIT_C.delayInterval,
+      syncTimeout        => PTP_CONFIG_INIT_C.syncTimeout,
+      associationTimeout => PTP_CONFIG_INIT_C.associationTimeout,
+      maxExchange        => PTP_CONFIG_INIT_C.maxExchange,
+      minRateSpan        => PTP_CONFIG_INIT_C.minRateSpan,
+      maxRateAge         => PTP_CONFIG_INIT_C.maxRateAge,
+      maxPathDelay       => PTP_CONFIG_INIT_C.maxPathDelay,
+      lfsrSeed           => PTP_CONFIG_INIT_C.lfsrSeed);
+
+   type PtpServoConfigType is record
+      allowStep       : sl;
+      maxDelayAge     : slv(63 downto 0);
+      holdoverTimeout : slv(63 downto 0);
+      minSampleTicks  : slv(63 downto 0);
+      maxSampleTicks  : slv(63 downto 0);
+      delayAsymmetry  : slv(63 downto 0);
+      stepThreshold   : slv(63 downto 0);
+      lockThreshold   : slv(63 downto 0);
+      unlockThreshold : slv(63 downto 0);
+      kp              : slv(31 downto 0);
+      ki              : slv(31 downto 0);
+      maxFrequencyPpb : slv(31 downto 0);
+      maxSlewPpb      : slv(31 downto 0);
+      maxRatePpb      : slv(31 downto 0);
+      lockCount       : slv(7 downto 0);
+      unlockCount     : slv(7 downto 0);
+   end record;
+
+   constant PTP_SERVO_CONFIG_INIT_C : PtpServoConfigType := (
+      allowStep       => PTP_CONFIG_INIT_C.allowStep,
+      maxDelayAge     => PTP_CONFIG_INIT_C.maxDelayAge,
+      holdoverTimeout => PTP_CONFIG_INIT_C.holdoverTimeout,
+      minSampleTicks  => PTP_CONFIG_INIT_C.minSampleTicks,
+      maxSampleTicks  => PTP_CONFIG_INIT_C.maxSampleTicks,
+      delayAsymmetry  => PTP_CONFIG_INIT_C.delayAsymmetry,
+      stepThreshold   => PTP_CONFIG_INIT_C.stepThreshold,
+      lockThreshold   => PTP_CONFIG_INIT_C.lockThreshold,
+      unlockThreshold => PTP_CONFIG_INIT_C.unlockThreshold,
+      kp              => PTP_CONFIG_INIT_C.kp,
+      ki              => PTP_CONFIG_INIT_C.ki,
+      maxFrequencyPpb => PTP_CONFIG_INIT_C.maxFrequencyPpb,
+      maxSlewPpb      => PTP_CONFIG_INIT_C.maxSlewPpb,
+      maxRatePpb      => PTP_CONFIG_INIT_C.maxRatePpb,
+      lockCount       => PTP_CONFIG_INIT_C.lockCount,
+      unlockCount     => PTP_CONFIG_INIT_C.unlockCount);
+
+   type PtpSharedConfigType is record
+      associationTimeout : slv(63 downto 0);
+      syncTimeout        : slv(63 downto 0);
+      maxPathDelay       : slv(63 downto 0);
+   end record;
+
+   constant PTP_SHARED_CONFIG_INIT_C : PtpSharedConfigType := (
+      associationTimeout => PTP_CONFIG_INIT_C.associationTimeout,
+      syncTimeout        => PTP_CONFIG_INIT_C.syncTimeout,
+      maxPathDelay       => PTP_CONFIG_INIT_C.maxPathDelay);
+
+   -- Servo quality encoding shared by RTL status and the software register ABI.
+   constant PTP_SERVO_DISABLED_C : slv(2 downto 0) := "000";
+   constant PTP_SERVO_ACQUIRING_C : slv(2 downto 0) := "001";
+   constant PTP_SERVO_TRACKING_C : slv(2 downto 0) := "010";
+   constant PTP_SERVO_LOCKED_C : slv(2 downto 0) := "011";
+   constant PTP_SERVO_HOLDOVER_C : slv(2 downto 0) := "100";
+   constant PTP_SERVO_FAULT_C : slv(2 downto 0) := "101";
+
+   -- Live servo diagnostics in clk, without a handshake. These fields report
+   -- the same pre-edge state exposed by the local register snapshots. Delay
+   -- and offset use signed Q16 nanoseconds; ratePpb is signed Q16 ppb.
+   -- Lifecycle outputs such as expireTime are controls, not diagnostic fields.
+   type PtpServoStatusType is record
+      state         : slv(2 downto 0);
+      filteredDelay : slv(127 downto 0);
+      offsetValue   : slv(127 downto 0);
+      ratePpb       : slv(63 downto 0);
+      filterCount   : slv(2 downto 0);
+      rejectedCount : slv(31 downto 0);
+   end record;
+
+   constant PTP_SERVO_STATUS_INIT_C : PtpServoStatusType := (
+      state         => PTP_SERVO_ACQUIRING_C,
+      filteredDelay => (others => '0'),
+      offsetValue   => (others => '0'),
+      ratePpb       => (others => '0'),
+      filterCount   => (others => '0'),
+      rejectedCount => (others => '0'));
+
    -- Forward and path-delay updates have independent cadences. Provenance stays
    -- with arithmetic through its serialized pipeline; abort cancels publication.
    type PtpMeasurementType is record
@@ -266,6 +460,28 @@ package PtpPkg is
       delayValue    => (others => '0'),
       ratio         => (others => '0'),
       ratioValid    => '0');
+
+   -- Port-to-servo transfer in the shared PHC clock domain. Data is sampled
+   -- only when valid and ready are high and abort is low. Abort has priority
+   -- over a coincident transfer and invalidates previously published work; it
+   -- is meaningful even when valid is low. It is not a CDC handshake.
+   type PtpMeasurementMasterType is record
+      data  : PtpMeasurementType;
+      valid : sl;
+      abort : sl;
+   end record;
+
+   constant PTP_MEASUREMENT_MASTER_INIT_C : PtpMeasurementMasterType := (
+      data  => PTP_MEASUREMENT_INIT_C,
+      valid => '0',
+      abort => '0');
+
+   type PtpMeasurementSlaveType is record
+      ready : sl;
+   end record;
+
+   constant PTP_MEASUREMENT_SLAVE_INIT_C : PtpMeasurementSlaveType := (
+      ready => '0');
 
    type PtpSyncSampleType is record
       capture    : PtpRxCaptureType;
@@ -322,12 +538,57 @@ package PtpPkg is
       syncSequence    => (others => '0'),
       delaySequence   => (others => '0'));
 
+   -- Live port status in clk, separate from the measurement transaction.
+   -- active/ratioValid/announceValid are qualified by current abort policy.
+   -- commandAbort excludes a PHC command's own capture invalidation, preventing
+   -- a phase step from canceling itself. identityRestart reports a MAC change.
+   -- Remaining fields are diagnostics, not ready/valid transactions. PtpPort
+   -- captures these in its own AXI snapshot bank; PtpReg uses only summary bits.
+   type PtpPortStatusType is record
+      active              : sl;
+      ratioValid          : sl;
+      announceValid       : sl;
+      commandAbort        : sl;
+      identityRestart     : sl;
+      exchange            : PtpExchangeType;
+      announceBody        : slv(239 downto 0);
+      ledgerStatus        : slv(31 downto 0);
+      grandmasterIdentity : slv(63 downto 0);
+      announceFlags       : slv(15 downto 0);
+      utcOffset           : slv(15 downto 0);
+      rejectedCount       : slv(31 downto 0);
+      syncCount           : slv(31 downto 0);
+      delayCount          : slv(31 downto 0);
+      timeoutCount        : slv(31 downto 0);
+   end record;
+
+   constant PTP_PORT_STATUS_INIT_C : PtpPortStatusType := (
+      active              => '0',
+      ratioValid          => '0',
+      announceValid       => '0',
+      commandAbort        => '0',
+      identityRestart     => '0',
+      exchange            => PTP_EXCHANGE_INIT_C,
+      announceBody        => (others => '0'),
+      ledgerStatus        => (others => '0'),
+      grandmasterIdentity => (others => '0'),
+      announceFlags       => (others => '0'),
+      utcOffset           => (others => '0'),
+      rejectedCount       => (others => '0'),
+      syncCount           => (others => '0'),
+      delayCount          => (others => '0'),
+      timeoutCount        => (others => '0'));
+
    function ptpTimeQ16 (timestamp : slv(95 downto 0)) return signed;
    function ptpWireTimeQ16 (timestamp : slv(79 downto 0)) return signed;
    function ptpTickPhase (capture : PtpRxCaptureType) return signed;
    function ptpRoundShift (value : signed;
    bits : natural) return signed;
    function ptpSatInc (value : slv) return slv;
+
+   -- Timeout comparisons use unsigned tick differences. Restrict configured
+   -- intervals to nonzero values below 2^62 so wrap/ordering stays unambiguous.
+   function ptpValidTimeout (value : slv(63 downto 0)) return boolean;
 
    -- Fixed 744-bit representation used by flattened verification interfaces.
    -- Capture arithmetic errors are rejected before enqueue and are not packed.
@@ -350,6 +611,11 @@ package PtpPkg is
 end package PtpPkg;
 
 package body PtpPkg is
+
+   function ptpValidTimeout (value : slv(63 downto 0)) return boolean is
+   begin
+      return unsigned(value) /= 0 and value(63 downto 62) = "00";
+   end function;
 
    function ptpTimeQ16 (timestamp : slv(95 downto 0)) return signed is
       variable whole : unsigned(79 downto 0);

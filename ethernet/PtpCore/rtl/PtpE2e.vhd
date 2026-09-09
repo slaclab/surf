@@ -71,9 +71,16 @@ architecture rtl of PtpE2e is
       WAIT_S,
       DONE_S);
 
+   type OperationType is (
+      ELAPSED_SCALE_S,
+      INGRESS_SCALE_S,
+      INGRESS_DIVIDE_S,
+      EGRESS_SCALE_S,
+      EGRESS_DIVIDE_S);
+
    type RegType is record
       state       : StateType;
-      operation   : natural range 0 to 4;
+      operation   : OperationType;
       a           : slv(127 downto 0);
       b           : slv(127 downto 0);
       divide      : sl;
@@ -88,7 +95,7 @@ architecture rtl of PtpE2e is
 
    constant REG_INIT_C : RegType := (
       state       => IDLE_S,
-      operation   => 0,
+      operation   => ELAPSED_SCALE_S,
       a           => (others => '0'),
       b           => (others => '0'),
       divide      => '0',
@@ -109,8 +116,6 @@ architecture rtl of PtpE2e is
    signal mathError  : sl;
 
 begin
-
-   mathInput <= '1' when r.state = ISSUE_S else '0';
 
    U_Math : entity surf.PtpMath
       generic map (
@@ -135,11 +140,12 @@ begin
 
    comb : process (r, rst, cancel, inputValid, syncSample, delaySample, ratio, maxPathDelay,
                    resultReady, mathReady, mathValid, mathResult, mathError) is
-      variable v          : RegType;
-      variable delayValue : signed(127 downto 0);
+      variable v : RegType;
    begin
       v := r;
 
+      -- Latch one complete exchange, run its arithmetic stages in order, then
+      -- hold the result until consumed. Cancellation below overrides all stages.
       case r.state is
          when IDLE_S =>
             if inputValid = '1' then
@@ -170,18 +176,18 @@ begin
                   v.state := DONE_S;
                else
                   case r.operation is
-                     when 0 =>
+                     when ELAPSED_SCALE_S =>
                         -- Q3 raw cycles times Q48 ns/cycle -> Q16 nanoseconds.
                         v.elapsed   := ptpRoundShift(signed(mathResult), 35);
                         v.a         := slv(resize(signed(INGRESS_LATENCY_G), 128));
                         v.b         := slv(resize(unsigned(r.ratio), 128));
-                        v.operation := 1;
-                     when 1 =>
+                        v.operation := INGRESS_SCALE_S;
+                     when INGRESS_SCALE_S =>
                         v.a         := mathResult;
                         v.b         := slv(shift_left(resize(unsigned(r.syncSample.capture.increment), 128), 16));
                         v.divide    := '1';
-                        v.operation := 2;
-                     when 2 =>
+                        v.operation := INGRESS_DIVIDE_S;
+                     when INGRESS_DIVIDE_S =>
                         -- Calibration is in local PHC ns. Convert each plane
                         -- displacement with that capture's actual PHC increment,
                         -- including a rate replacement between RX and TX.
@@ -189,17 +195,17 @@ begin
                         v.a         := slv(resize(signed(EGRESS_LATENCY_G), 128));
                         v.b         := slv(resize(unsigned(r.ratio), 128));
                         v.divide    := '0';
-                        v.operation := 3;
-                     when 3 =>
+                        v.operation := EGRESS_SCALE_S;
+                     when EGRESS_SCALE_S =>
                         v.a         := mathResult;
                         v.b         := slv(shift_left(resize(unsigned(r.delaySample.capture.increment), 128), 16));
                         v.divide    := '1';
-                        v.operation := 4;
-                     when 4 =>
+                        v.operation := EGRESS_DIVIDE_S;
+                     when EGRESS_DIVIDE_S =>
                         v.elapsed                   := r.elapsed + signed(mathResult);
-                        delayValue                  := ptpRoundShift(ptpWireTimeQ16(r.delaySample.remoteTime) -
+                        v.resultValue.delayValue    := slv(ptpRoundShift(ptpWireTimeQ16(r.delaySample.remoteTime) -
                            resize(signed(r.delaySample.correction), 128) -
-                           ptpWireTimeQ16(r.syncSample.remoteTime) - signed(r.syncSample.correction) - v.elapsed, 1);
+                           ptpWireTimeQ16(r.syncSample.remoteTime) - signed(r.syncSample.correction) - v.elapsed, 1));
                         v.resultValue.isDelay       := '1';
                         v.resultValue.generation    := r.delaySample.generation;
                         v.resultValue.ticks         := r.delaySample.capture.ticks;
@@ -207,10 +213,9 @@ begin
                         v.resultValue.delaySequence := r.delaySample.sequenceId;
                         v.resultValue.forward       := slv(ptpTimeQ16(r.syncSample.capture.timestamp) -
                            ptpWireTimeQ16(r.syncSample.remoteTime) - signed(r.syncSample.correction));
-                        v.resultValue.delayValue    := slv(delayValue);
                         v.resultValue.ratio         := r.ratio;
                         v.resultValue.ratioValid    := '1';
-                        if delayValue < 0 or delayValue > signed(r.maximum) then
+                        if signed(v.resultValue.delayValue) < 0 or signed(v.resultValue.delayValue) > signed(r.maximum) then
                            v.error := '1';
                         end if;
                         v.state := DONE_S;
@@ -224,6 +229,10 @@ begin
       end case;
       if cancel = '1' or (not RST_ASYNC_G and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
+      end if;
+      mathInput <= '0';
+      if r.state = ISSUE_S then
+         mathInput <= '1';
       end if;
       rin         <= v;
       inputReady  <= '0';

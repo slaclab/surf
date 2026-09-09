@@ -66,8 +66,8 @@ architecture rtl of PtpPhcRead is
    signal reset         : sl;
    signal localReset    : sl;
    signal phcReset      : sl;
-   signal requestAccept : sl;
    signal requestAck    : sl;
+   signal responseTake  : sl;
    signal responseWrite : sl;
    signal responseAck   : sl;
    signal requestFull   : sl;
@@ -76,9 +76,7 @@ architecture rtl of PtpPhcRead is
    signal requestTake   : sl;
    signal responseFull  : sl;
    signal responseValid : sl;
-   signal responseTake  : sl;
    signal responseData  : slv(WIDTH_C-1 downto 0);
-   signal snapshot      : slv(WIDTH_C-1 downto 0);
 
    type RegType is record
       busy           : sl;
@@ -104,8 +102,8 @@ architecture rtl of PtpPhcRead is
    end record;
 
    constant PHC_REG_INIT_C : PhcRegType := (
-   pending => '0',
-   data    => (others => '0'));
+      pending => '0',
+      data    => (others => '0'));
 
    signal p   : PhcRegType := PHC_REG_INIT_C;
    signal pin : PhcRegType;
@@ -132,20 +130,6 @@ begin
          clk      => phcClk,     -- [in]
          asyncRst => reset,      -- [in]
          syncRst  => phcReset);  -- [out]
-
-   -- FIFO full alone does not prove its opposite clock domain has completed
-   -- reset recovery. Hold each write until wr_ack, which also handles a stopped
-   -- peer clock; suppress the next write while that acknowledgement is visible.
-   readReady     <= not r.busy and not localReset and not reset
-      when r.sequenceId /= x"FFFFFFFF" else '0';
-   requestAccept <= readRequest and not r.busy and not localReset and not reset
-      when r.sequenceId /= x"FFFFFFFF" else '0';
-   requestWrite  <= r.requestPending and not requestAck and not requestFull and not localReset and not reset;
-   requestTake   <= requestValid and not p.pending and not captureAbort and not phcReset and not reset;
-   responseWrite <= p.pending and not responseAck and not responseFull and not phcReset and not reset;
-   responseTake  <= responseValid and r.busy and not localReset and not reset;
-   snapshot      <= phcTime.seconds & phcTime.nanoseconds & phcTime.fraction &
-      phcStatus.generation & phcStatus.ticks & phcStatus.timeValid;
 
    U_Request : entity surf.FifoAsync
       generic map (
@@ -207,40 +191,87 @@ begin
          almost_empty  => open,           -- [out]
          empty         => open);          -- [out]
 
-   comb : process (r, requestAccept, requestAck, responseTake, responseData) is
+   comb : process (r, readRequest, requestAck, requestFull, responseValid,
+                   responseData, localReset, reset) is
       variable v : RegType;
    begin
       v := r;
 
+      -- Retire a FIFO write only on its acknowledgement. A non-full FIFO may
+      -- still be waiting for the other clock domain to finish reset recovery.
       v.valid := '0';
       if requestAck = '1' then
          v.requestPending := '0';
       end if;
-      if requestAccept = '1' then
-         v.requestPending := '1';
-         v.busy           := '1';
-         v.sequenceId     := r.sequenceId + 1;
+
+      -- Accept one application request, then keep its FIFO token pending until
+      -- acknowledged. Test r.busy so a returning response cannot admit a new
+      -- request on the same edge and reuse its completion sequence.
+      readReady    <= '0';
+      requestWrite <= '0';
+      responseTake <= '0';
+      if localReset = '0' and reset = '0' then
+         if r.busy = '0' and r.sequenceId /= x"FFFFFFFF" then
+            readReady <= '1';
+            if readRequest = '1' then
+               v.requestPending := '1';
+               v.busy           := '1';
+               v.sequenceId     := r.sequenceId + 1;
+            end if;
+         end if;
+         if r.requestPending = '1' and requestAck = '0' and requestFull = '0' then
+            requestWrite <= '1';
+         end if;
+
+         -- Capture a returning response only for the outstanding request.
+         if responseValid = '1' and r.busy = '1' then
+            responseTake <= '1';
+            v.data       := responseData;
+            v.valid      := '1';
+            v.busy       := '0';
+         end if;
       end if;
-      if responseTake = '1' then
-         v.data  := responseData;
-         v.valid := '1';
-         v.busy  := '0';
-      end if;
-      rin <= v;
+
+      rin                  <= v;
+      readValid            <= r.valid and not localReset and not reset;
+      readTime.seconds     <= r.data(208 downto 161);
+      readTime.nanoseconds <= r.data(160 downto 129);
+      readTime.fraction    <= r.data(128 downto 97);
+      readGeneration       <= r.data(96 downto 65);
+      readTicks            <= r.data(64 downto 1);
+      readTimeValid        <= r.data(0);
+      readSequence         <= slv(r.sequenceId);
    end process comb;
-   phcComb : process (p, requestTake, responseAck, snapshot) is
+
+   phcComb : process (p, requestValid, responseAck, responseFull, captureAbort,
+                      phcReset, reset, phcTime, phcStatus) is
       variable v : PhcRegType;
    begin
       v := p;
+
+      -- Hold a captured response through FIFO reset recovery/backpressure.
       if responseAck = '1' then
          v.pending := '0';
       end if;
-      if requestTake = '1' then
-         v.pending := '1';
-         v.data    := snapshot;
+      requestTake   <= '0';
+      responseWrite <= '0';
+      if phcReset = '0' and reset = '0' then
+         if p.pending = '1' then
+            if responseAck = '0' and responseFull = '0' then
+               responseWrite <= '1';
+            end if;
+         elsif requestValid = '1' and captureAbort = '0' then
+            -- Sample all fields at this PHC edge. A discontinuity defers the
+            -- request; it cannot produce a partially old/new snapshot.
+            requestTake <= '1';
+            v.pending   := '1';
+            v.data      := phcTime.seconds & phcTime.nanoseconds & phcTime.fraction &
+               phcStatus.generation & phcStatus.ticks & phcStatus.timeValid;
+         end if;
       end if;
       pin <= v;
    end process phcComb;
+
    phcSeq : process (phcClk, phcReset) is
    begin
       if phcReset = '1' then
@@ -249,14 +280,6 @@ begin
          p <= pin after TPD_G;
       end if;
    end process phcSeq;
-   readValid            <= r.valid and not localReset and not reset;
-   readTime.seconds     <= r.data(208 downto 161);
-   readTime.nanoseconds <= r.data(160 downto 129);
-   readTime.fraction    <= r.data(128 downto 97);
-   readGeneration       <= r.data(96 downto 65);
-   readTicks            <= r.data(64 downto 1);
-   readTimeValid        <= r.data(0);
-   readSequence         <= slv(r.sequenceId);
    seq : process (readClk, localReset) is
    begin
       if localReset = '1' then

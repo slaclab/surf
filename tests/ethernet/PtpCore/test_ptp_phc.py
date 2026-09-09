@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: 125/156.25 MHz, synchronous high and asynchronous low reset.
-# - Stimulus: Full-epoch acquisition, signed phase/rate commands, stale commands,
+# - Stimulus: AXI policy setup, full-epoch acquisition, signed phase/rate commands,
 #   rollover, invalid/monotonic operations, and independent snapshot resets.
 # - Checks: Every PHC cycle against the split-integer model; snapshot time/ticks
 #   are coherent, old sessions cancel, and read reset preserves the PHC.
@@ -23,6 +23,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import Timer, RisingEdge
 import pytest
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_reference import PhcModel, PhcCommand, NS, Q16, Q32
 
@@ -36,12 +37,15 @@ class Bench:
         self.half = NS/self.frequency/2
         self.model = PhcModel(self.frequency)
         self.pps_enabled = False
+        self.pending_command = None
         for name in ("clk", "commandValid", "commandKind", "commandGeneration", "commandSeconds",
                      "commandNanoseconds", "commandFraction", "phaseSeconds", "phaseFraction",
-                     "commandRate", "commandValue", "readClk", "readRst", "readRequest"):
+                     "commandRate", "commandValue", "readClk", "readRst", "readRequest",
+                     "prepareConfig", "applyConfig"):
             getattr(d, name).value = 0
         d.rst.value = 1-self.polarity
-        d.monotonic.value = 0
+        self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst,
+                                  reset_active_level=self.polarity)
 
     async def step(self, command=None, rejected=False):
         d = self.d
@@ -68,9 +72,15 @@ class Bench:
         await Timer(self.half, unit="ns")
         if pending is not None and pending.kind in ("set", "phase"):
             assert int(d.captureAbort.value), "abort must precede commit edge"
+        accepted = command is not None and bool(d.commandReady.value)
+        committing = self.pending_command
+        old_pps_enabled = self.pps_enabled
         d.clk.value = 1
         _, pps = self.model.tick()
-        if command is not None and command[0] != "pps" and not rejected:
+        if committing is not None and committing[0][0] == "pps" and not committing[1]:
+            self.pps_enabled = bool(committing[0][1])
+        self.pending_command = (command, rejected) if accepted else None
+        if accepted and command[0] != "pps" and not rejected:
             self.model.submit(PhcCommand(command[0], command[1], self.model.generation))
         await Timer(self.half, unit="ns")
         got = ((int(d.timeSeconds.value)*NS + int(d.timeNanoseconds.value)) << 32) + int(d.timeFraction.value)
@@ -79,10 +89,11 @@ class Bench:
         assert int(d.timeGeneration.value) == self.model.generation
         assert int(d.timeValid.value) == self.model.valid
         assert int(d.timeIncrement.value) == self.model.nominal+self.model.rate
-        if pending:
-            assert int(d.commandAck.value)
-            assert not int(d.commandError.value)
-        assert bool(d.pps.value) == bool(pps and self.pps_enabled and self.model.valid)
+        assert bool(d.commandAck.value) == (committing is not None)
+        if committing is not None:
+            assert bool(d.commandError.value) == committing[1]
+        assert bool(d.pps.value) == bool(pps and old_pps_enabled and self.pps_enabled and self.model.valid)
+        return accepted
 
     async def reset(self):
         self.d.rst.value = self.polarity
@@ -93,35 +104,58 @@ class Bench:
             await Timer(self.half, unit="ns")
         self.d.rst.value = 1-self.polarity
         self.model = PhcModel(self.frequency)
+        self.pending_command = None
+        self.pps_enabled = False
 
-    async def command(self, kind, value):
-        await self.step((kind, value))
+    async def set_monotonic(self, enabled):
+        # Advance the reference clock on every AXI and coordination cycle.
+        transaction = cocotb.start_soon(self.axil.write(0x004, (int(enabled) << 3).to_bytes(4, "little")))
+        for _ in range(100):
+            await self.step()
+            if transaction.done():
+                assert transaction.result().resp == AxiResp.OKAY
+                break
+        else:
+            assert False, "PHC AXI write timeout"
+        self.d.prepareConfig.value = 1
+        await self.step()
+        self.d.prepareConfig.value = 0
+        assert int(self.d.configValid.value)
+        self.d.applyConfig.value = 1
+        await self.step()
+        self.d.applyConfig.value = 0
+
+    async def command(self, kind, value, rejected=False):
+        # The arbiter retains ownership through ACK. Hold the next request
+        # stable across that release cycle instead of assuming immediate ready.
+        for _ in range(20):
+            if await self.step((kind, value), rejected=rejected):
+                break
+        else:
+            assert False, "PHC command admission timeout"
         await self.step()
 
 @cocotb.test()
 async def phc_commands(d):
     b = Bench(d)
     await b.reset()
+    await b.set_monotonic(False)
     for _ in range(30):
         await b.step()
     await b.command("set", (((1 << 40)*NS + NS-100) << 32) + 12345)
     await b.command("valid", 1)
     await b.command("pps", 1)
-    b.pps_enabled = True
     for _ in range(30):
         await b.step()
     # Align revocation with natural seconds rollover. The clock still rolls,
     # but validity/PPS disable must suppress that edge's output pulse.
-    await b.command("set", ((101*NS) << 32)-4*b.model.nominal)
+    await b.command("set", ((101*NS) << 32)-6*b.model.nominal)
     await b.command("valid", 1)
     await b.command("valid", 0)
-    await b.command("set", ((102*NS) << 32)-4*b.model.nominal)
+    await b.command("set", ((102*NS) << 32)-6*b.model.nominal)
     await b.command("valid", 1)
-    await b.step(("pps", 0))
-    b.pps_enabled = False
-    await b.step()
+    await b.command("pps", 0)
     await b.command("pps", 1)
-    b.pps_enabled = True
     await b.command("phase", -(NS+3)*Q16-7)
     await b.command("phase", (2*NS+17)*Q16+13)
     rng = random.Random(1588)
@@ -136,12 +170,10 @@ async def phc_commands(d):
             await b.step()
     # Rejected commands still acknowledge, but cannot change the timebase.
     await b.command("valid", 1)
-    d.monotonic.value = 1
-    await b.step(("phase", -Q16), rejected=True)
-    await b.step()
+    await b.set_monotonic(True)
+    await b.command("phase", -Q16, rejected=True)
     assert int(d.commandAck.value) and int(d.commandError.value)
-    await b.step(("rate", -b.model.nominal), rejected=True)
-    await b.step()
+    await b.command("rate", -b.model.nominal, rejected=True)
     assert int(d.commandError.value)
 
 @cocotb.test()

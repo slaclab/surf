@@ -44,6 +44,7 @@ use surf.PtpPkg.all;
 
 entity EthMacPtpEndpoint is
    generic (
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
       PHY_TYPE_G        : string           := "XGMII";
@@ -103,7 +104,7 @@ architecture rtl of EthMacPtpEndpoint is
    signal rxQueueOverflow : sl;
    signal rxAbort         : sl;
    signal rxFlush         : sl;
-   signal rxCounters      : Slv32Array(0 to 2);
+   signal rxCounters      : PtpRxCountersType;
    signal txMessage       : PtpRxMessageType;
    signal txValid         : sl;
    signal txAbort         : sl;
@@ -115,7 +116,16 @@ architecture rtl of EthMacPtpEndpoint is
    signal gmiiData        : slv(7 downto 0);
    signal gmiiEnable      : sl;
    signal gmiiError       : sl;
-   signal resetDone       : sl := '0';
+
+   type RegType is record
+      resetDone : sl;
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      resetDone => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
 begin
 
@@ -123,14 +133,23 @@ begin
    -- System reset reaches the complete MAC TX pipeline and endpoint. Port-only
    -- reset reaches neither MAC FIFO nor PHC. The rising resetDone confirmation
    -- starts the ledger's bounded startup quarantine after each system reset.
+   comb : process (r, rst) is
+      variable v : RegType;
+   begin
+      v := r;
+
+      -- Only system reset confirms that the whole MAC pipeline was discarded.
+      v.resetDone := '1';
+      if rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+   end process comb;
+
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         if rst = RST_POLARITY_G then
-            resetDone <= '0' after TPD_G;
-         else
-            resetDone <= '1' after TPD_G;
-         end if;
+         r <= rin after TPD_G;
       end if;
    end process seq;
 
@@ -221,22 +240,19 @@ begin
          PHY_TYPE_G        => PHY_TYPE_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G)
       port map (
-         clk          => clk,                -- [in]
-         rst          => rst,                -- [in]
-         rxFlush      => rxFlush,            -- [in]
-         phyReady     => phyReady,           -- [in]
-         generation   => status.generation,  -- [in]
-         phcTime      => timeValue,          -- [in]
-         phcIncrement => status.increment,   -- [in]
-         tickCount    => status.ticks,       -- [in]
-         timeValid    => status.timeValid,   -- [in]
-         xgmiiRxd     => xgmiiRxd,           -- [in]
-         xgmiiRxc     => xgmiiRxc,           -- [in]
-         gmiiRxd      => gmiiRxd,            -- [in]
-         gmiiRxDv     => gmiiRxDv,           -- [in]
-         gmiiRxEr     => gmiiRxEr,           -- [in]
-         rxMaster     => rxMaster,           -- [out]
-         rxCapture    => rxCapture);         -- [out]
+         clk       => clk,         -- [in]
+         rst       => rst,         -- [in]
+         rxFlush   => rxFlush,     -- [in]
+         phyReady  => phyReady,    -- [in]
+         phcStatus => status,      -- [in]
+         phcTime   => timeValue,   -- [in]
+         xgmiiRxd  => xgmiiRxd,    -- [in]
+         xgmiiRxc  => xgmiiRxc,    -- [in]
+         gmiiRxd   => gmiiRxd,     -- [in]
+         gmiiRxDv  => gmiiRxDv,    -- [in]
+         gmiiRxEr  => gmiiRxEr,    -- [in]
+         rxMaster  => rxMaster,    -- [out]
+         rxCapture => rxCapture);  -- [out]
 
    U_Rx : entity surf.PtpRxFrontend
       generic map (
@@ -255,9 +271,7 @@ begin
          rxAbort       => rxAbort,            -- [out]
          queueOverflow => rxQueueOverflow,    -- [out]
          rxEpoch       => open,               -- [out]
-         acceptedCount => rxCounters(0),      -- [out]
-         droppedCount  => rxCounters(1),      -- [out]
-         overflowCount => rxCounters(2));     -- [out]
+         counters      => rxCounters);        -- [out]
 
    U_TxTap : entity surf.PtpTxTimestampTap
       generic map (
@@ -284,6 +298,7 @@ begin
 
    U_Endpoint : entity surf.PtpEndpoint
       generic map (
+         AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          CLK_FREQ_G        => CLK_FREQ_G,
@@ -296,7 +311,7 @@ begin
          regRst          => regRst,                -- [in]
          portRst         => portRst,               -- [in]
          linkReady       => phyReady,              -- [in]
-         macResetDone    => resetDone,             -- [in]
+         macResetDone    => r.resetDone,           -- [in]
          localMac        => ethConfig.macAddress,  -- [in]
          axiReadMaster   => axiReadMaster,         -- [in]
          axiReadSlave    => axiReadSlave,          -- [out]

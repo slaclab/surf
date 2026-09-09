@@ -54,7 +54,7 @@ async def real_mac_lifecycle(d):
         await b.wire(build_pause_frame(2000))
     await b.source(1, sequence=2)
     assert b.tx_count == 0, "request escaped pause"
-    ledger = await b.read(0x048)
+    ledger = await b.read(0x848)
     assert (ledger >> 16) & 255, "no unresolved MAC-accepted wire key"
     generation = int(d.timeGeneration.value)
     ticks = int(d.timeTicks.value)
@@ -70,12 +70,12 @@ async def real_mac_lifecycle(d):
     assert b.tx_count
     await b.wait(200)
     await b.snapshot()
-    assert await b.read(0x614) == 0, "retired request produced an E2E measurement"
+    assert await b.read(0xA14) == 0, "retired request produced an E2E measurement"
     assert int(d.timeGeneration.value) == generation
     assert int(d.timeTicks.value) > ticks
     await b.source(4, sequence=100)
     await b.snapshot()
-    assert await b.read(0x614) > 0, "fresh exchanges did not recover"
+    assert await b.read(0xA14) > 0, "fresh exchanges did not recover"
     assert not int(d.timeFault.value)
     b.stop()
 

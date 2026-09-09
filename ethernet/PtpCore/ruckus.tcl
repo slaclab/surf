@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # Company    : SLAC National Accelerator Laboratory
 #-----------------------------------------------------------------------------
-# Description: PTP receive RTL and simulation source manifest
+# Description: PTP cores with local AXI registers and simulation source manifest
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
 # It is subject to the license terms in the LICENSE.txt file found in the

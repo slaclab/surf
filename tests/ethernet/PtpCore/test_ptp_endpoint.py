@@ -33,15 +33,15 @@ from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench
 async def autonomous_endpoint(d):
     b = Bench(d)
     await b.start()
-    assert await b.read(0) == 0x10000
-    assert (await b.axil.read(0x800, 4)).resp == AxiResp.DECERR
-    await b.write(0x128, 5, 8)
-    await b.write(0x130, NS-100)
+    assert await b.read(0) == 0x20000
+    assert (await b.axil.read(0x3F0, 4)).resp == AxiResp.DECERR
+    await b.write(0x428, 5, 8)
+    await b.write(0x430, NS-100)
     await b.manual(0)
     await b.manual(3, 1)
     await b.snapshot()
-    assert await b.read(0x11c) == 1
-    assert await b.read(0x108, 8) in (5, 6)
+    assert await b.read(0x41C) == 1
+    assert await b.read(0x408, 8) in (5, 6)
     await b.configure()
     if not b.real_mac:
         b.tasks.append(cocotb.start_soon(b.model_mac()))
@@ -50,18 +50,18 @@ async def autonomous_endpoint(d):
     b.tasks.append(cocotb.start_soon(b.respond()))
     # Start invalid so autonomous acquisition may correct the arbitrary epoch.
     # Configuration changes intentionally do not reset or set the PHC.
-    await b.write(0x004, 0xD)
-    await b.write(0x03c, 1)
+    await b.write(0x004, 1)
+    await b.commit()
     await b.manual(3, 0)
-    await b.write(0x004, 0xF if b.allow_step else 0xB)
-    await b.write(0x03c, 1)
+    await b.write(0x004, 3)
+    await b.commit()
     if not b.allow_step:
         await RisingEdge(d.clk)
         local = Fraction(((int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value)) << 32)+int(d.timeFraction.value), Q32)
         b.epoch = local-Fraction(int(get_sim_time(unit="fs")), 1000000)-50
     await b.source(14)
     await b.snapshot()
-    counters = [await b.read(0x600+4*i) for i in range(8)]
+    counters = [await b.read(0xA00+4*i if i < 7 else 0xE00) for i in range(8)]
     d._log.info("Counters %s", counters)
     assert b.tx_count > 0
     assert counters[5] > 0, "no accepted E2E delay"
@@ -82,7 +82,7 @@ async def autonomous_endpoint(d):
         assert abs(error) < 100, error
 
     await check_absolute_phase()
-    offset = await b.read(0x500, 16)
+    offset = await b.read(0xD00, 16)
     if offset >> 127:
         offset -= 1 << 128
     assert abs(Fraction(offset, Q16)) < 100

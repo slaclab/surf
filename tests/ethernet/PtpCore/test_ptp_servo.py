@@ -11,7 +11,7 @@
 # Test methodology:
 # - Sweep: Both oscillator correction signs, variable sample intervals, offset
 #   signs, command backpressure, median startup and holdover cancellation.
-# - Stimulus: Independent rational PI oracle; long tick intervals are injected
+# - Stimulus: AXI configuration and independent rational PI oracle; intervals are injected
 #   directly so numerical seconds do not require millions of simulator cycles.
 # - Checks: Every applied rate addend, full-width offset/filter state, and held
 #   command against the oracle; no PHC packet model is embedded in the wrapper.
@@ -21,6 +21,7 @@
 from fractions import Fraction
 import cocotb
 from cocotb.triggers import Timer
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_reference import nearest, Q16, Q32, NS
 from tests.ethernet.PtpCore.ptp_endpoint_reference import PiController, Q48
@@ -35,8 +36,29 @@ async def numerical_control(d):
         d.clk.value = 1
         await Timer(4, unit="ns")
     for name in ("clk", "cancel", "ticks", "sampleTicks", "isDelay", "forwardValue", "delayValue", "ratio",
-                 "inputValid", "commandReady", "commandAck", "commandError"):
+                 "inputValid", "commandReady", "commandAck", "commandError", "prepareConfig", "applyConfig"):
         getattr(d, name).value = 0
+    d.rst.value = 0
+    axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
+
+    async def configure():
+        # Use the production shadow/candidate/active path. Shared limits are
+        # supplied by the fixture's port record; local limits belong to AXI.
+        for address, value in ((0x060, (1 << 62)-1), (0x068, 250000000),
+                               (0x070, 1), (0x078, (1 << 62)-1)):
+            transaction = cocotb.start_soon(axil.write(address, value.to_bytes(8, "little")))
+            for _ in range(100):
+                await edge()
+                if transaction.done():
+                    assert transaction.result().resp == AxiResp.OKAY
+                    break
+            else:
+                assert False, "servo AXI write timeout"
+        await edge(prepareConfig=1)
+        assert int(d.configValid.value)
+        await edge(prepareConfig=0, applyConfig=1)
+        await edge(applyConfig=0)
+
     async def collect(expected_ppb):
         for _ in range(1600):
             if int(d.commandValid.value):
@@ -57,6 +79,7 @@ async def numerical_control(d):
     for ppm in (-100, 100):
         await edge(rst=1)
         await edge(rst=0)
+        await configure()
         model = PiController()
         ratio = nearest(8*(1+Fraction(ppm, 1000000))*Q48)
         bootstrap = nearest(Fraction((ratio-8*Q48)*NS, 8*Q32))

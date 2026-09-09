@@ -43,10 +43,11 @@ use surf.PtpPkg.all;
 
 entity PtpEndpointLoopbackWrapper is
    generic (
-      MAC_ENABLE_G      : boolean  := true;
-      PHY_TYPE_G        : string   := "XGMII";
-      CLK_FREQ_G        : positive := 156250000;
-      PACKET_LIFETIME_G : positive := 10000);
+      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
+      MAC_ENABLE_G      : boolean          := true;
+      PHY_TYPE_G        : string           := "XGMII";
+      CLK_FREQ_G        : positive         := 156250000;
+      PACKET_LIFETIME_G : positive         := 10000);
    port (
       clk                : in  sl;
       rst                : in  sl;
@@ -81,7 +82,7 @@ entity PtpEndpointLoopbackWrapper is
       mAxisSof           : out sl;
       mAxisEofe          : out sl;
       mAxisTDest         : out slv(7 downto 0);
-      axil_awaddr        : in  slv(11 downto 0);
+      axil_awaddr        : in  slv(31 downto 0);
       axil_awvalid       : in  sl;
       axil_awready       : out sl;
       axil_wdata         : in  slv(31 downto 0);
@@ -91,7 +92,7 @@ entity PtpEndpointLoopbackWrapper is
       axil_bresp         : out slv(1 downto 0);
       axil_bvalid        : out sl;
       axil_bready        : in  sl;
-      axil_araddr        : in  slv(11 downto 0);
+      axil_araddr        : in  slv(31 downto 0);
       axil_arvalid       : in  sl;
       axil_arready       : out sl;
       axil_rdata         : out slv(31 downto 0);
@@ -151,7 +152,7 @@ begin
 
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
-         ADDR_WIDTH    => 12,
+         ADDR_WIDTH    => 32,
          EN_ERROR_RESP => true,
          HAS_WSTRB     => 1,
          FREQ_HZ       => CLK_FREQ_G)
@@ -210,6 +211,7 @@ begin
 
       U_DUT : entity surf.EthMacPtpEndpoint
          generic map (
+            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             PHY_TYPE_G        => PHY_TYPE_G,
             CLK_FREQ_G        => CLK_FREQ_G,
             PACKET_LIFETIME_G => PACKET_LIFETIME_G)
@@ -266,7 +268,7 @@ begin
       signal rxAbort         : sl;
       signal flush           : sl;
       signal captureAbort    : sl;
-      signal rxCounters      : Slv32Array(0 to 2);
+      signal rxCounters      : PtpRxCountersType;
       signal txMessage       : PtpRxMessageType;
       signal txValid         : sl;
       signal txAbort         : sl;
@@ -293,22 +295,19 @@ begin
          generic map (
             PHY_TYPE_G => PHY_TYPE_G)
          port map (
-            clk          => clk,                -- [in]
-            rst          => rst,                -- [in]
-            rxFlush      => flush,              -- [in]
-            phyReady     => phyReady,           -- [in]
-            generation   => status.generation,  -- [in]
-            phcTime      => timeValue,          -- [in]
-            phcIncrement => status.increment,   -- [in]
-            tickCount    => status.ticks,       -- [in]
-            timeValid    => status.timeValid,   -- [in]
-            xgmiiRxd     => xgmiiRxd,           -- [in]
-            xgmiiRxc     => xgmiiRxc,           -- [in]
-            gmiiRxd      => gmiiRxd,            -- [in]
-            gmiiRxDv     => gmiiRxDv,           -- [in]
-            gmiiRxEr     => gmiiRxEr,           -- [in]
-            rxMaster     => normalized,         -- [out]
-            rxCapture    => capture);           -- [out]
+            clk       => clk,         -- [in]
+            rst       => rst,         -- [in]
+            rxFlush   => flush,       -- [in]
+            phyReady  => phyReady,    -- [in]
+            phcStatus => status,      -- [in]
+            phcTime   => timeValue,   -- [in]
+            xgmiiRxd  => xgmiiRxd,    -- [in]
+            xgmiiRxc  => xgmiiRxc,    -- [in]
+            gmiiRxd   => gmiiRxd,     -- [in]
+            gmiiRxDv  => gmiiRxDv,    -- [in]
+            gmiiRxEr  => gmiiRxEr,    -- [in]
+            rxMaster  => normalized,  -- [out]
+            rxCapture => capture);    -- [out]
 
       U_Rx : entity surf.PtpRxFrontend
          port map (
@@ -324,9 +323,7 @@ begin
             rxAbort       => rxAbort,            -- [out]
             queueOverflow => rxQueueOverflow,    -- [out]
             rxEpoch       => open,               -- [out]
-            acceptedCount => rxCounters(0),      -- [out]
-            droppedCount  => rxCounters(1),      -- [out]
-            overflowCount => rxCounters(2));     -- [out]
+            counters      => rxCounters);        -- [out]
 
       U_Tx : entity surf.PtpTxTimestampTap
          generic map (
@@ -350,6 +347,7 @@ begin
 
       U_DUT : entity surf.PtpEndpoint
          generic map (
+            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             CLK_FREQ_G        => CLK_FREQ_G,
             PACKET_LIFETIME_G => PACKET_LIFETIME_G)
          port map (

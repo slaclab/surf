@@ -90,27 +90,37 @@ class Bench:
         assert False, "snapshot command timeout"
 
     async def manual(self, kind, value=0):
-        await self.write(0x120, 0x80 | kind | (value << 3))
+        await self.write(0x420, 0x80 | kind | (value << 3))
         for _ in range(100):
-            state = await self.read(0x124)
+            state = await self.read(0x424)
             if not state & 1:
                 assert state & 2 and not state & 4, state
                 return
         assert False, "manual PHC command timeout"
 
+    async def commit(self):
+        before = await self.read(0x048)
+        await self.write(0x03C, 1)
+        for _ in range(20):
+            if await self.read(0x048) != before:
+                assert await self.read(0x040) == 0
+                return
+        assert False, "configuration commit timeout"
+
     async def configure(self):
-        await self.write(0x020, int.from_bytes(SOURCE, "big"), 12)
+        await self.write(0x820, int.from_bytes(SOURCE, "big"), 12)
         # Short functional intervals retain the real PHC nominal increment.
         # Fractional correction fields avoid quantizing the independent source
         # to whole-ns accuracy during this accelerated packet schedule.
-        for address, value in {0x200: 2500, 0x208: 10000, 0x210: 12000, 0x218: 16000,
-                               0x220: 24000, 0x228: 12000, 0x230: 800, 0x238: 12000,
-                               0x240: 500, 0x248: 12000}.items():
+        for address, value in {0x880: 2500, 0x888: 10000, 0x890: 12000, 0xC60: 16000,
+                               0xC68: 24000, 0x898: 12000, 0x8A0: 800, 0x8A8: 12000,
+                               0xC70: 500, 0xC78: 12000}.items():
             await self.write(address, value, 8)
-        await self.write(0x330, 3)
-        await self.write(0x004, 0xF if self.allow_step else 0xB)
-        await self.write(0x03C, 1)
-        assert await self.read(0x040) == 0
+        await self.write(0xC50, 3)
+        await self.write(0xC04, 4 if self.allow_step else 0)
+        await self.write(0x404, 8)
+        await self.write(0x004, 3)
+        await self.commit()
 
     def frame(self, kind, sequence, remote=0, correction=0):
         size = {0: 44, 8: 44, 9: 54, 11: 64}[kind]
