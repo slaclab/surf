@@ -1,7 +1,13 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Primitive-free AD9252 register and digital output model
+-- Description: AD9252 register and parallel sample generation model.
+--
+-- Normal input words are offset-binary 14-bit codes. SPI writes stage global
+-- coding/inversion and channel patterns until register 0xFF publishes them.
+-- sampleEnable produces one registered word per channel on sampleClk; coding
+-- precedes inversion and bit ordering. Sample reset and SPI soft reset restore
+-- offset-binary defaults and clear both active and staged format settings.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -92,6 +98,8 @@ architecture rtl of Ad9252SimCore is
       channel      : ChannelArray(7 downto 0);
       outputInvert : sl;
       stagedInvert : sl;
+      outputFormat : sl;
+      stagedFormat : sl;
       lsbFirst     : sl;
       stagedLsb    : sl;
       toggle       : sl;
@@ -106,6 +114,8 @@ architecture rtl of Ad9252SimCore is
       channel      => (others => CHANNEL_INIT_C),
       outputInvert => '0',
       stagedInvert => '0',
+      outputFormat => '0',
+      stagedFormat => '0',
       lsbFirst     => '0',
       stagedLsb    => '0',
       toggle       => '0',
@@ -123,8 +133,8 @@ begin
    -- register 0xFF publishes buffered settings to selected channels.
    -------------------------------------------------------------------------------------------------
    comb : process (cfgAddr, cfgWrData, cfgWrEn, normalData, r, sampleEnable, sampleRst) is
-      variable active : ChannelType;
       variable v      : RegType;
+      variable active : ChannelType;
       variable word   : slv(13 downto 0);
    begin
       v       := r;
@@ -156,6 +166,10 @@ begin
                   v.staged.testMode  := cfgWrData(3 downto 0);
                when OUTPUT_MODE_ADDR_C =>
                   v.stagedInvert := cfgWrData(2);
+                  assert cfgWrData(1) = '0'
+                     report "Ad9252SimCore supports offset binary and two's complement only"
+                     severity failure;
+                  v.stagedFormat := cfgWrData(0);
                when OUTPUT_PHASE_ADDR_C =>
                   v.staged.outputPhase := cfgWrData(3 downto 0);
                when USER_PATTERN1_LSB_C =>
@@ -179,6 +193,7 @@ begin
                   -- channel image to every channel selected by 0x04/0x05.
                   if (cfgWrData(0) = '1') then
                      v.outputInvert := r.stagedInvert;
+                     v.outputFormat := r.stagedFormat;
                      v.lsbFirst     := r.stagedLsb;
                      for i in 7 downto 0 loop
                         if (r.selectMask(i) = '1') then
@@ -197,7 +212,8 @@ begin
                         end if;
                      end loop;
                   end if;
-               when others => null;
+               when others =>
+                  null;
             end case;
          end if;
 
@@ -211,10 +227,17 @@ begin
             v.valid  := '1';
             for i in 7 downto 0 loop
                case r.channel(i).testMode is
-                  when "0000" => word := normalData(i)(13 downto 0);
-                  when "0001" => word := "10000000000000";
-                  when "0010" => word := (others => '1');
-                  when "0011" => word := (others => '0');
+                  when "0000" =>
+                     word := normalData(i)(13 downto 0);
+                     if (r.outputFormat = '1') then
+                        word := offsetBinaryToTwosComplement(word);
+                     end if;
+                  when "0001" =>
+                     word := "10000000000000";
+                  when "0010" =>
+                     word := (others => '1');
+                  when "0011" =>
+                     word := (others => '0');
                   when "0100" =>
                      for j in 13 downto 0 loop
                         word(j) := ite((j mod 2) = 0, r.toggle, not r.toggle);
@@ -233,14 +256,21 @@ begin
                      else
                         v.channel(i).pn9 := adcDdrPn9Advance(r.channel(i).pn9, 14);
                      end if;
-                  when "0111" => word := (others => r.toggle);
-                  when "1000" => word := ite(r.toggle = '0', r.channel(i).userPatternA,
+                  when "0111" =>
+                     word := (others => r.toggle);
+                  when "1000" =>
+                     word := ite(r.toggle = '0', r.channel(i).userPatternA,
                                               r.channel(i).userPatternB);
-                  when "1001" => word := "10101010101010";
-                  when "1010" => word := "00000001111111";
-                  when "1011" => word := "10000000000000";
-                  when "1100" => word := "10100001100111";
-                  when others => word := (others => '0');
+                  when "1001" =>
+                     word := "10101010101010";
+                  when "1010" =>
+                     word := "00000001111111";
+                  when "1011" =>
+                     word := "10000000000000";
+                  when "1100" =>
+                     word := "10100001100111";
+                  when others =>
+                     word := (others => '0');
                end case;
                if (r.outputInvert = '1') then
                   word := not word;
@@ -266,21 +296,37 @@ begin
       end loop;
       v.rdData := (others => '0');
       case cfgAddr is
-         when SPI_CONFIG_ADDR_C => v.rdData := "00011000";
-         when CHIP_ID_ADDR_C => v.rdData := X"09";
-         when CHIP_GRADE_ADDR_C => v.rdData := X"30";
-         when DEVICE_INDEX2_ADDR_C => v.rdData(3 downto 0) := r.selectMask(7 downto 4);
-         when DEVICE_INDEX1_ADDR_C => v.rdData(5 downto 0) := r.selectMask(9 downto 8) & r.selectMask(3 downto 0);
-         when TEST_MODE_ADDR_C => v.rdData := active.userMode & active.resetPn23 & active.resetPn9 & active.testMode;
-         when OUTPUT_MODE_ADDR_C => v.rdData(2) := r.outputInvert;
-         when OUTPUT_PHASE_ADDR_C => v.rdData(3 downto 0) := active.outputPhase;
-         when USER_PATTERN1_LSB_C => v.rdData := active.userPatternA(7 downto 0);
-         when USER_PATTERN1_MSB_C => v.rdData(5 downto 0) := active.userPatternA(13 downto 8);
-         when USER_PATTERN2_LSB_C => v.rdData := active.userPatternB(7 downto 0);
-         when USER_PATTERN2_MSB_C => v.rdData(5 downto 0) := active.userPatternB(13 downto 8);
-         when SERIAL_OUTPUT_ADDR_C => v.rdData(7) := r.lsbFirst;
-         when CHANNEL_STATUS_ADDR_C => v.rdData(1 downto 0) := active.outputReset & active.powerDown;
-         when others => v.rdData := (others => '1');
+         when SPI_CONFIG_ADDR_C =>
+            v.rdData := "00011000";
+         when CHIP_ID_ADDR_C =>
+            v.rdData := X"09";
+         when CHIP_GRADE_ADDR_C =>
+            v.rdData := X"30";
+         when DEVICE_INDEX2_ADDR_C =>
+            v.rdData(3 downto 0) := r.selectMask(7 downto 4);
+         when DEVICE_INDEX1_ADDR_C =>
+            v.rdData(5 downto 0) := r.selectMask(9 downto 8) & r.selectMask(3 downto 0);
+         when TEST_MODE_ADDR_C =>
+            v.rdData := active.userMode & active.resetPn23 & active.resetPn9 & active.testMode;
+         when OUTPUT_MODE_ADDR_C =>
+            v.rdData(2) := r.outputInvert;
+            v.rdData(0) := r.outputFormat;
+         when OUTPUT_PHASE_ADDR_C =>
+            v.rdData(3 downto 0) := active.outputPhase;
+         when USER_PATTERN1_LSB_C =>
+            v.rdData := active.userPatternA(7 downto 0);
+         when USER_PATTERN1_MSB_C =>
+            v.rdData(5 downto 0) := active.userPatternA(13 downto 8);
+         when USER_PATTERN2_LSB_C =>
+            v.rdData := active.userPatternB(7 downto 0);
+         when USER_PATTERN2_MSB_C =>
+            v.rdData(5 downto 0) := active.userPatternB(13 downto 8);
+         when SERIAL_OUTPUT_ADDR_C =>
+            v.rdData(7) := r.lsbFirst;
+         when CHANNEL_STATUS_ADDR_C =>
+            v.rdData(1 downto 0) := active.outputReset & active.powerDown;
+         when others =>
+            v.rdData := (others => '1');
       end case;
       rin <= v;
    end process comb;

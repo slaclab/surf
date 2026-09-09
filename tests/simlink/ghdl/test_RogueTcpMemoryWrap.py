@@ -30,8 +30,9 @@
 #   peer process must exit 0. Malformed transaction types, frame counts, and
 #   data sizes must terminate the standalone receiver with the expected
 #   diagnostic.
-# - Timing: No fixed timing contract -- the bench loops RisingEdge(axilClk)
-#   up to a bounded edge count, breaking early once the peer process exits.
+# - Timing: The bench advances RisingEdge(axilClk) until the peer exits, with
+#   a wall-clock deadline covering process startup, ZMQ connection and traffic.
+#   Simulator speed must not determine the external process's time budget.
 #   A `finally:` block terminates the peer on every path (including an
 #   assertion failure) so nothing leaks across the xdist worker pool.
 #
@@ -45,6 +46,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 import cocotb
 import pytest
@@ -80,7 +82,7 @@ MEMORY_RECV_HARNESS = SIM_BUILD / "memory_recv_harness"
 
 CLK_PERIOD_NS = 10
 RST_EDGES = 3
-MAX_EDGES = 5000
+MAX_TRAFFIC_SECONDS = 30
 PORT_NUM = GHDL_CASES.port_pair(3).first
 # Fresh port pair, never used by another test function in this module (a
 # separate pytest function is its own xdist-schedulable unit).
@@ -152,13 +154,15 @@ async def memory_round_trip_test(dut):
 
         # Await the round trip: loop clock edges (each edge polls the C
         # model's ZMQ sockets and lets the AXI-Lite master transact against
-        # AxiLiteRam) until the peer process exits or the bound is hit.
-        for _ in range(MAX_EDGES):
+        # AxiLiteRam). Budget wall time because Python startup and ZMQ progress
+        # run independently of simulation time, as in the multi-instance bench.
+        deadline = time.monotonic() + MAX_TRAFFIC_SECONDS
+        while time.monotonic() < deadline:
             await RisingEdge(dut.axilClk)
             if peer.poll() is not None:
                 break
         else:
-            raise TimeoutError(f"peer process did not exit within {MAX_EDGES} clock edges")
+            raise TimeoutError(f"peer process did not exit within {MAX_TRAFFIC_SECONDS}s")
 
         assert peer.returncode == 0, f"peer exited with code {peer.returncode}"
 

@@ -15,13 +15,15 @@
 # - Stimulus: Drive a differential encode clock and independent channel codes,
 #   then program only the second CSB bank for a deterministic full-scale pattern.
 # - Checks: Recovered words, coherent checkerboard frames, FCO framing,
-#   complementary pins, and bank-isolated SPI are checked without Xilinx models.
+#   complementary pins, two's-complement reset coding, and bank-isolated
+#   SPI are checked without Xilinx models.
 # - Timing: Normal conversions appear exactly 16 sample clocks after capture;
 #   both banks otherwise use ideal centered DCO/FCO timing in this test.
 
 import cocotb
 from cocotb.triggers import Edge, Timer, with_timeout
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
@@ -100,15 +102,16 @@ async def ad9249_pin_level_device_sim_test(dut):
 
     # A normal conversion captured with the first frame must remain absent for
     # 16 complete output frames, then appear on the seventeenth frame.
-    for _ in range(16):
+    for frame_index in range(16):
         bank0, frame0 = await capture_bank(dut, 0)
-        assert bank0 == [0] * 8
+        expected = 0 if frame_index == 0 else 0x2000
+        assert bank0 == [expected] * 8
         assert frame0 == 0b11111110000000
 
     bank0, frame0 = await capture_bank(dut, 0)
     bank1, frame1 = await capture_bank(dut, 1)
-    assert bank0 == normal[:8]
-    assert bank1 == normal[8:]
+    assert bank0 == [offset_binary_to_twos_complement(value, 14) for value in normal[:8]]
+    assert bank1 == [offset_binary_to_twos_complement(value, 14) for value in normal[8:]]
     assert frame0 == 0b11111110000000
     assert frame1 == 0b11111110000000
     assert int(dut.dN.value) == ((~int(dut.dP.value)) & 0xFFFF)
@@ -120,7 +123,7 @@ async def ad9249_pin_level_device_sim_test(dut):
     await spi_write(dut, 1, 0x0D, 0x02)
     bank0, _ = await capture_bank(dut, 0)
     bank1, _ = await capture_bank(dut, 1)
-    assert bank0 == normal[:8]
+    assert bank0 == [offset_binary_to_twos_complement(value, 14) for value in normal[:8]]
     assert bank1 == [0x3FFF] * 8
 
     # Alternating test words must be captured once per frame rather than read
