@@ -55,23 +55,15 @@ from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.RoCEv2.roce_test_utils import roce_rtl_sources
 
+# The cocotb wrapper is the only source this bench has to name. RoCEv2Dcqcn's
+# whole transitive closure -- the rate/alpha/bucket helpers under
+# ethernet/RoCEv2/rtl as well as the SynchronizerEdge and SynchronizerOneShotCnt
+# it pulls from base/ -- already reaches GHDL through build_vhdl_sources(),
+# because ethernet/ruckus.tcl loads ethernet/RoCEv2 in the non-Vivado branch.
+# Listing any of those files again here would hand GHDL a second design file for
+# an entity the imported farm already provides.
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/RoCEv2DcqcnWrapper.vhd"
-# RoCEv2Dcqcn's full transitive RTL closure. RoCEv2TokenBucket instantiates
-# RoCEv2AxisBucket + RoCEv2TokenCalc (NOT in the standard surf build set), so they
-# MUST be listed here or GHDL elaboration fails with "unit not found". The two
-# Synchronizers (SynchronizerEdge / SynchronizerOneShotCnt) are deliberately NOT
-# listed -- they come from build_vhdl_sources(); double-listing -> redefinition error.
-RTL_SOURCES = roce_rtl_sources(
-    "RoCEv2RateDecProc.vhd",
-    "RoCEv2RateIncProc.vhd",
-    "RoCEv2AlphaUpdate.vhd",
-    "RoCEv2AxisBucket.vhd",
-    "RoCEv2TokenCalc.vhd",
-    "RoCEv2TokenBucket.vhd",
-    "RoCEv2Dcqcn.vhd",
-)
 
 # AXI-Lite register map (must match RoCEv2Dcqcn.vhd:290-304)
 REG_RAI = 0x004           # RW 32b
@@ -272,5 +264,5 @@ def test_RoCEv2Dcqcn(parameters):
         toplevel="surf.rocev2dcqcnwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": RTL_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": [WRAPPER_PATH]},
     )

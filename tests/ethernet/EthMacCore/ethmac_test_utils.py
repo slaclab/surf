@@ -31,16 +31,6 @@ ETHMAC_RTL_SOURCES = [
 ]
 ETHMAC_RTL_SOURCES.append(str(Path(__file__).resolve().parents[3] / "dsp" / "xilinx" / "logic" / "DspXor.vhd"))
 
-ROCE_RTL_ROOT = Path(__file__).resolve().parents[3] / "ethernet" / "RoCEv2" / "rtl"
-ROCE_ANALYSIS_SOURCES = [
-    str(ROCE_RTL_ROOT / "RoCEv2Pkg.vhd"),
-    *(
-        str(path)
-        for path in sorted(ROCE_RTL_ROOT.glob("*.vhd"))
-        if path.name != "RoCEv2Pkg.vhd"
-    ),
-]
-
 ETH_TYPE_IPV4 = 0x0800
 IPV4_VERSION_IHL = 0x45
 IP_PROTOCOL_UDP = 0x11

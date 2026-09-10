@@ -46,7 +46,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/EthMacRxCheckICrcWrapper.vhd"
-DUT_PATH = "ethernet/RoCEv2/rtl/EthMacRxCheckICrc.vhd"
 
 
 async def send_crc_word(dut, *, data: int, clk) -> None:
@@ -145,5 +144,5 @@ def test_EthMacRxCheckICrc(parameters):
         toplevel="surf.ethmacrxcheckicrcwrapper",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [DUT_PATH, WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER_PATH]},
     )
