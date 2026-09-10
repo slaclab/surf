@@ -25,6 +25,7 @@ entity AxiSy56040Reg is
    generic (
       TPD_G          : time                  := 1 ns;
       AXI_CLK_FREQ_G : real                  := 200.0E+6;  -- units of Hz
+      PULSE_WIDTH_G  : real                  := 10.0E-9;  -- units of seconds
       XBAR_DEFAULT_G : Slv2Array(3 downto 0) := ("11", "10", "01", "00"));
    port (
       -- XBAR Ports
@@ -44,8 +45,7 @@ end AxiSy56040Reg;
 
 architecture rtl of AxiSy56040Reg is
 
-   constant PULSE_WIDTH_C : real    := 10.0E-9;  -- units of seconds
-   constant PULSE_FREQ_C  : real    := 1.0 / PULSE_WIDTH_C;  -- units of Hz
+   constant PULSE_FREQ_C  : real    := 1.0 / PULSE_WIDTH_G;  -- units of Hz
    constant MAX_CNT_C     : natural := getTimeRatio(AXI_CLK_FREQ_G, PULSE_FREQ_C);
 
    type StateType is (
