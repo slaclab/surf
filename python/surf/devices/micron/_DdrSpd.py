@@ -15,6 +15,16 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
+import rogue
+import rogue.interfaces.memory as rim
+
+import threading
+import queue
+
+# Exception types to catch and mask in _SpdPageProxy._pollWorker. Mirrors
+# the transceiver module's page-select proxy, which this class is modelled
+# on.
+_SPD_POLL_EXC = (rogue.GeneralError, pr.MemoryError) if hasattr(pr, 'MemoryError') else (rogue.GeneralError,)
 
 # Medium timebase used by the DDR4 SPD minimum-cycle-time field (byte 18),
 # in picoseconds. Declared by name rather than as a bare literal so the
@@ -141,12 +151,200 @@ def _spdPage0SummaryGet(dev, var, read=True):
         f"{d['PrimaryBusWidth']}-bit bus{eccNote}, DDR4-{d['SpeedBinMtps']}"
     )
 
+# -----------------------------------------------------------------------------
+# Absolute-to-relative byte offset arithmetic for the page-1 decoded fields
+# below: SPD absolute byte N on page 1 (bytes 256-511) sits at page-relative
+# offset N-256. Serial number is absolute bytes 325-328 (relative 69-72),
+# part number is absolute bytes 329-348 (relative 73-92). These fields are
+# unreadable until the device map gains the page-select slave addresses
+# (see _SpdPageProxy).
+# -----------------------------------------------------------------------------
+
+def _spdPage1SerialNumberGet(dev, var, read=True):
+    pageBytes = var.dependencies[0].get(read=read)
+    raw = bytes(int(b) & 0xFF for b in pageBytes[69:73])
+    return raw.hex()
+
+def _spdPage1PartNumberGet(dev, var, read=True):
+    pageBytes = var.dependencies[0].get(read=read)
+    raw = bytes(int(b) & 0xFF for b in pageBytes[73:93])
+    return raw.decode('ascii', errors='replace').rstrip(' ')
+
+class DdrSpdPage1(pr.Device):
+    """Upper 256 bytes (page 1) of the DDR4 SPD EEPROM, exposed the same way
+    the parent's page 0 is: a hidden Mem array plus decoded link variables.
+    Unreachable until _SpdPageProxy's page-select slaves exist in the device
+    map; ships as a child of DdrSpd with its enable false for exactly that
+    reason."""
+    def __init__(self, nelms=0x100, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add(pr.RemoteVariable(
+            name        = 'Mem',
+            description = 'Memory Array (page 1, absolute SPD bytes 256-511)',
+            offset      = 0,
+            size        = (4*nelms),
+            numValues   = nelms,
+            valueBits   = 32,
+            valueStride = 32,
+            bitSize     = 32 * nelms,
+            hidden      = True,
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'SerialNumber',
+            description  = 'Module serial number (absolute SPD bytes 325-328)',
+            mode         = 'RO',
+            linkedGet    = _spdPage1SerialNumberGet,
+            dependencies = [self.Mem],
+        ))
+
+        self.add(pr.LinkVariable(
+            name         = 'PartNumber',
+            description  = 'Module part number (absolute SPD bytes 329-348)',
+            mode         = 'RO',
+            linkedGet    = _spdPage1PartNumberGet,
+            dependencies = [self.Mem],
+        ))
+
+class _SpdPageProxy(pr.Device):
+    """Serializes access to the DDR4 SPD's upper page (page 1) behind the two
+    page-select I2C slave addresses: 0x36 selects the lower page (the
+    power-up default) and 0x37 selects the upper page. These are separate
+    seven-bit I2C slave addresses, not a register inside the SPD slave
+    itself, and unlike the transceiver module's page select they are absent
+    from the device map of the bitstream currently on the board. spa0Offset
+    and spa1Offset predict where those two slaves will land in a later
+    four-entry device map, where device select moves to araddr bits 11:10
+    and the SPD stays at device 0: the two page-select slaves fall at the
+    device-1 and device-2 windows, 0x400 and 0x800. They are constructor
+    parameters, not baked-in constants, precisely so that prediction can be
+    corrected here without a second edit to this file once the real map
+    exists.
+
+    Modelled on surf.devices.transceivers._Qsfp's _UpperPageProxy, with one
+    addition: after servicing an upper-page transaction the worker restores
+    the lower-page select, so a page-1 read cannot leave the device selected
+    on the upper page for the next page-0 reader."""
+    def __init__(self, spa0Offset, spa1Offset, **kwargs):
+        super().__init__(**kwargs)
+
+        self.add(pr.LocalVariable(
+            name        = 'ErrorCount',
+            description = 'I2C page-select failures masked by the worker (cumulative since Rogue start)',
+            mode        = 'RO',
+            value       = 0,
+            typeStr     = 'UInt32',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'SelectLowerPage',
+            description = 'Page-select command to slave 0x36 (lower page, power-up default)',
+            offset      = spa0Offset,
+            bitSize     = 8,
+            mode        = 'WO',
+            hidden      = True,
+            groups      = ['NoStream', 'NoState', 'NoConfig'],
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'SelectUpperPage',
+            description = 'Page-select command to slave 0x37 (upper page)',
+            offset      = spa1Offset,
+            bitSize     = 8,
+            mode        = 'WO',
+            hidden      = True,
+            groups      = ['NoStream', 'NoState', 'NoConfig'],
+        ))
+
+        # No separate page buffer variable: on real DDR4 SPD hardware, page 0
+        # and page 1 answer at the identical I2C byte-address window (0-255);
+        # the internal page-select state, not the address, decides which
+        # page's content a read returns. Declaring a second RemoteVariable
+        # at that same real address (as the transceiver's UpperPage does at
+        # its own, disjoint, byte range) makes Rogue's own root-level
+        # overlap check raise NodeError at start() time, because it compares
+        # real addresses per memory slave with no exception for this kind of
+        # aliasing. The worker below reuses the parent's own Mem variable as
+        # the physical access point instead, which is the accurate model:
+        # the same address, read after the page-select write below, genuinely
+        # returns different content.
+        self._lastSelect = None
+        self._queue = queue.Queue()
+        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread.start()
+
+    def proxyTransaction(self, transaction):
+        self._queue.put(transaction)
+
+    def _pollWorker(self):
+        while True:
+            transaction = self._queue.get()
+            if transaction is None:
+                return
+            with self._memLock, transaction.lock():
+                try:
+                    regIndex = (transaction.address() >> 2) & 0xFF
+
+                    if self._lastSelect != 'upper':
+                        self.SelectUpperPage.set(value=1, write=True)
+                        self._lastSelect = 'upper'
+
+                    if (transaction.type() == rim.Write) or (transaction.type() == rim.Post):
+                        dataBa = bytearray(4)
+                        transaction.getData(dataBa, 0)
+                        data = int.from_bytes(dataBa, 'little', signed=False)
+                        self.parent.Mem.set(index=regIndex, value=data, write=True)
+                        transaction.done()
+                    else:
+                        data = self.parent.Mem.get(index=regIndex, read=True)
+                        dataBa = bytearray(int(data).to_bytes(4, 'little', signed=False))
+                        transaction.setData(dataBa, 0)
+                        transaction.done()
+
+                    # Restore the power-up default so this transaction cannot
+                    # leave the SPD selected on the upper page for the next
+                    # page-0 reader.
+                    self.SelectLowerPage.set(value=1, write=True)
+                    self._lastSelect = 'lower'
+
+                except _SPD_POLL_EXC:
+                    try:
+                        tt = transaction.type()
+                        if (tt == rim.Write) or (tt == rim.Post):
+                            transaction.done()
+                        else:
+                            dataBa = bytearray(4)
+                            transaction.setData(dataBa, 0)
+                            transaction.done()
+                    except Exception:
+                        pass
+                    try:
+                        self.ErrorCount.set(self.ErrorCount.value() + 1, write=False)
+                    except Exception:
+                        pass
+
+    def _stop(self):
+        self._queue.put(None)
+        self._pollThread.join()
+
+class _SpdProxySlave(rim.Slave):
+
+    def __init__(self, pageProxy):
+        super().__init__(4, 4)
+        self._pageProxy = pageProxy
+
+    def _doTransaction(self, transaction):
+        self._pageProxy.proxyTransaction(transaction)
+
 class DdrSpd(pr.Device):
     def __init__(   self,
             description = "Lookup tool at www.micron.com/spd",
             nelms       = 0x100,
             instantiate = True,
             hidden      = True,
+            spa0Offset  = 0x400,
+            spa1Offset  = 0x800,
             **kwargs):
         super().__init__(description=description, hidden=hidden, **kwargs)
 
@@ -257,4 +455,25 @@ class DdrSpd(pr.Device):
                 mode         = 'RO',
                 linkedGet    = _spdPage0SummaryGet,
                 dependencies = [self.Mem],
+            ))
+
+            self.pageProxy = _SpdPageProxy(
+                name       = 'PageProxy',
+                spa0Offset = spa0Offset,
+                spa1Offset = spa1Offset,
+                memBase    = self,
+                offset     = 0,
+                hidden     = True,
+            )
+            self.add(self.pageProxy)
+
+            self.pageProxySlave = _SpdProxySlave(self.pageProxy)
+
+            self.add(DdrSpdPage1(
+                name    = 'Page1',
+                nelms   = nelms,
+                memBase = self.pageProxySlave,
+                offset  = (1 << 10), # Page 1 plus 1 mem address region offset, matching the transceiver's page-plus-one convention
+                enabled = False,
+                hidden  = True,
             ))
