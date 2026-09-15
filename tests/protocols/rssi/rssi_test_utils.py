@@ -26,19 +26,6 @@ RSSI_FLAG_BUSY = 0x01
 
 RSSI_VERSION = 0x1
 
-RSSI_CORE_VHDL_SOURCES = [
-    "protocols/rssi/v1/rtl/RssiConnFsm.vhd",
-    "protocols/rssi/v1/rtl/RssiMonitor.vhd",
-    "protocols/rssi/v1/rtl/RssiRxFsm.vhd",
-    "protocols/rssi/v1/rtl/RssiTxFsm.vhd",
-    "protocols/rssi/v1/rtl/RssiCore.vhd",
-]
-
-RSSI_CORE_WRAPPER_VHDL_SOURCES = RSSI_CORE_VHDL_SOURCES + [
-    "protocols/rssi/v1/rtl/RssiCoreWrapper.vhd",
-]
-
-
 @dataclass(frozen=True)
 class RssiParams:
     # Defaults are ordinary valid negotiation values, not reset values.  Tests

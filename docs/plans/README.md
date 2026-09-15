@@ -20,3 +20,8 @@ Each task directory should capture:
 - Open risks, blockers, and next steps.
 
 Keep notes concise and factual. Do not store large simulator logs, generated outputs, build products, or waveform files here; summarize them and link to durable locations when needed.
+
+Before merging completed work, move enduring usage, methodology, and
+maintenance guidance into the nearest permanent README. Remove the completed
+task directory unless it still serves as an intentional design record or an
+active follow-up handoff.

@@ -22,6 +22,7 @@ with open('python/surf/__init__.py','a') as vf:
 setup (
    name='surf',
    version=pyVer,
+   python_requires='>=3.10',
    packages=['surf',
              'surf/axi',
              'surf/devices',
@@ -53,4 +54,3 @@ setup (
              'surf/protocols/ssi', ],
    package_dir={'':'python'},
 )
-

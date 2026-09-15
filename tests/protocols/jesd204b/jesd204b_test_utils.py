@@ -36,12 +36,29 @@ forwarding coroutine.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from tests.common.regression_utils import sample_after_tpd
 from collections import deque
 
 from tests.common.regression_utils import run_surf_vhdl_test  # noqa: F401 – re-exported for bench files
+
+# ---------------------------------------------------------------------------
+# Cocotb wrapper sources
+# ---------------------------------------------------------------------------
+# The JESD204B cocotb wrappers live in protocols/jesd204b/wrappers/ and are
+# intentionally excluded from protocols/jesd204b/ruckus.tcl (simulation-only
+# flattening shims). Benches pull the wrapper they instantiate into the GHDL
+# compile via run_surf_vhdl_test(extra_vhdl_sources=...), layering it on top of
+# the already-imported surf RTL.
+JESD_WRAPPERS_ROOT = Path(__file__).resolve().parents[3] / "protocols" / "jesd204b" / "wrappers"
+
+
+def jesd_wrapper_sources(*filenames: str) -> list[str]:
+    """Absolute paths to the named JESD204B cocotb wrapper .vhd files."""
+    return [str(JESD_WRAPPERS_ROOT / filename) for filename in filenames]
 
 # ---------------------------------------------------------------------------
 # JESD204B control character constants (§4.1 / Jesd204bPkg.vhd lines 32-38)
@@ -685,8 +702,7 @@ async def drive_gt_lane_from_timeline(
     for data_32b, datak_4b in timeline[segment][start_idx:]:
         data_port.value = data_32b
         datak_port.value = datak_4b
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def wait_nSync(dut, *, value: int, clk, timeout_cycles: int = 128) -> None:
@@ -706,8 +722,7 @@ async def wait_nSync(dut, *, value: int, clk, timeout_cycles: int = 128) -> None
         timeout_cycles: Maximum rising edges to wait.
     """
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(dut.nSync_o.value) == value:
             return
     raise AssertionError(
@@ -734,8 +749,7 @@ async def wait_data_valid_all(
         timeout_cycles: Maximum rising edges to wait.
     """
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if all(
             int(getattr(dut, f"dataValid_{i}_o").value) == 1
             for i in range(l_g)
@@ -797,8 +811,7 @@ async def forward_gt_loopback(
     ]
     cycle = 0
     while stop_event is None or not stop_event.is_set():
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")   # TPD_G=1 ns registered-output settle
+        await sample_after_tpd(clk)   # TPD_G=1 ns registered-output settle
         # nSync forwarding: RX nSync_o (sl) -> TX nSync_TX_i (slv L_G-1:0).
         # Replicate single-bit nSync_RX_o to all l_g TX lanes so both lanes advance
         # through SYNC_S->ILAS when nSync_o asserts. Writing plain int(nSync_RX_o)
@@ -905,8 +918,7 @@ async def measure_lmfc_period(dut, *, clk, timeout_cycles: int = 512) -> int:
     """
     # Wait for first rising edge of lmfc_o
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if dut.lmfc_o.value == 1:
             break
     else:
@@ -917,8 +929,7 @@ async def measure_lmfc_period(dut, *, clk, timeout_cycles: int = 512) -> int:
     # Count cycles to second rising edge
     count = 0
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         count += 1
         if dut.lmfc_o.value == 1:
             return count
@@ -952,8 +963,7 @@ class JesdTB:
     async def cycle(self, count: int = 1) -> None:
         """Advance count clock cycles, settling 1 ns after each rising edge."""
         for _ in range(count):
-            await RisingEdge(self.dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.clk)
 
     async def reset(self, cycles: int = 4) -> None:
         """Assert rst for `cycles` clock cycles, then deassert."""

@@ -19,22 +19,15 @@
 #   forced internal state advance.
 
 import os
-from pathlib import Path
 
 import cocotb
 import pytest
-from cocotb_test.simulator import run
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamRead, AxiReadBus, AxiStreamBus, AxiStreamSink
 
-from tests.common.regression_utils import (
-    COMMON_VHDL_COMPILE_ARGS,
-    TESTS_ROOT,
-    build_vhdl_sources,
-    merge_vhdl_sources,
-    cocotb_module_name_from_test_file,
-)
+from tests.common.regression_utils import run_surf_vhdl_test
 
 
 class TB:
@@ -52,8 +45,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)
@@ -150,27 +142,15 @@ async def single_descriptor_read_test(dut):
         ),
     ],
 )
-def test_AxiStreamDmaV2Read(case_env, request):
-    test_file = Path(__file__)
-    rel_parent = test_file.resolve().relative_to(TESTS_ROOT).parent
-
-    run(
-        module=cocotb_module_name_from_test_file(test_file),
+def test_AxiStreamDmaV2Read(case_env):
+    run_surf_vhdl_test(
+        test_file=__file__,
         toplevel="surf.axistreamdmav2readipintegrator",
-        toplevel_lang="vhdl",
-        vhdl_sources=merge_vhdl_sources(
-            build_vhdl_sources(),
-            {
-                "surf": [
-                    "axi/dma/rtl/v2/AxiStreamDmaV2Read.vhd",
-                    "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
-                    "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd",
-                ],
-            },
-        ),
-        parameters={},
-        sim_build=str((TESTS_ROOT / "sim_build" / rel_parent / f"{test_file.stem}.{request.node.callspec.id}")),
-        extra_env={key: str(value) for key, value in case_env.items()},
-        simulator="ghdl",
-        vhdl_compile_args=COMMON_VHDL_COMPILE_ARGS,
+        extra_env=case_env,
+        extra_vhdl_sources={
+            "surf": [
+                "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
+                "axi/dma/ip_integrator/AxiStreamDmaV2ReadIpIntegrator.vhd",
+            ],
+        },
     )

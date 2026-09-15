@@ -105,13 +105,10 @@ async def port_a_and_b_readback_test(dut):
     assert await tb.read_b(1) == 0x1234
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("DOA_REG_G", default=False))
 async def port_a_mode_semantics_test(dut):
     tb = TB(dut)
     await tb.warmup()
-
-    if tb.doa_reg_enabled:
-        return
 
     # Seed address 1 so `douta` is already showing a different value before
     # the write-under-test. That makes the three read-during-write modes
@@ -175,11 +172,8 @@ async def byte_write_and_reset_test(dut):
     assert await tb.read_b(4) == 0xCAFE
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_CROSS_PORT_COLLISION", default=False))
 async def cross_port_collision_test(dut):
-    if not env_flag("CHECK_CROSS_PORT_COLLISION", default=False):
-        return
-
     tb = TB(dut)
     await tb.warmup()
 

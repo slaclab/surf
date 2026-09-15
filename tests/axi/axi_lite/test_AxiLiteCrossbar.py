@@ -176,7 +176,4 @@ def test_AxiLiteCrossbar():
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.axilitecrossbaripintegrator",
-        extra_vhdl_sources={
-            "surf": ["axi/axi-lite/ip_integrator/AxiLiteCrossbarIpIntegrator.vhd"],
-        },
     )

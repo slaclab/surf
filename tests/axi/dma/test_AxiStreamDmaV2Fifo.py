@@ -22,7 +22,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
@@ -41,8 +42,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def reset(self):
         self.dut.axiRst.value = 1
@@ -132,9 +132,6 @@ def test_AxiStreamDmaV2Fifo(parameters):
         extra_env=parameters,
         extra_vhdl_sources={
             "surf": [
-                "axi/axi-lite/ip_integrator/SlaveAxiLiteIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/SlaveAxiStreamIpIntegrator.vhd",
-                "axi/axi-stream/ip_integrator/MasterAxiStreamIpIntegrator.vhd",
                 "axi/axi4/ip_integrator/MasterAxiIpIntegrator.vhd",
                 "axi/dma/ip_integrator/AxiStreamDmaV2FifoIpIntegrator.vhd",
             ],

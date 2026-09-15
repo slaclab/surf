@@ -124,10 +124,11 @@ async def ssi_resize_fifo_eofe_test(dut):
     await tb.send_eofe_frame()
 
     async def wait_for_output_terminal_beat():
-        while True:
+        terminal_seen = False
+        while not terminal_seen:
             await RisingEdge(dut.AXIS_ACLK)
             if int(dut.M_AXIS_TVALID.value) == 1 and int(dut.M_AXIS_TLAST.value) == 1:
-                return
+                terminal_seen = True
 
     # Wait until the wrapper presents the outgoing terminal beat. Apply the
     # timeout to the full condition wait so the test cannot hang indefinitely

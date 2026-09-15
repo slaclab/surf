@@ -108,16 +108,10 @@ class TB:
         return sampled_valid, sampled_underflow
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("FWFT_EN_G", default=False))
 async def count_and_flag_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    if tb.fwft_enabled:
-        # FWFT mode has a different visible contract because occupancy moves
-        # through an internal prefetch pipeline before the consumer sees data.
-        # The dedicated FWFT test below covers that behavior more directly.
-        return
 
     await tb.initialize_writer(3)
     assert int(dut.empty.value) == 0
@@ -131,12 +125,9 @@ async def count_and_flag_test(dut):
     assert int(dut.prog_empty.value) == (1 if 1 < tb.empty_threshold else 0)
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("FWFT_EN_G", default=False))
 async def standard_read_and_underflow_test(dut):
     tb = TB(dut)
-    if tb.fwft_enabled:
-        return
-
     await tb.reset()
     await tb.initialize_writer(2)
 
@@ -158,12 +149,9 @@ async def standard_read_and_underflow_test(dut):
     assert int(dut.empty.value) == 1
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("FWFT_EN_G", default=False))
 async def fwft_prefetch_test(dut):
     tb = TB(dut)
-    if not tb.fwft_enabled:
-        return
-
     await tb.reset()
     await tb.initialize_writer(1)
 

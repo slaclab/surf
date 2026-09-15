@@ -20,7 +20,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiRamRead, AxiReadBus
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -47,8 +48,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)

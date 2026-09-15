@@ -28,21 +28,18 @@ from cocotb.triggers import FallingEdge, Timer
 
 from tests.base.sync.sync_test_utils import SynchronizerLikeTB
 from tests.common.regression_utils import (
+    env_flag,
     hdl_parameters_from,
     parameter_case,
     run_surf_vhdl_test,
 )
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("BYPASS_SYNC_G", default=False))
 async def propagation_latency_test(dut):
     # Each `@cocotb.test()` function is an async coroutine. cocotb starts it,
     # gives it the HDL `dut`, and advances simulation time whenever we `await`.
     tb = SynchronizerLikeTB(dut, width=1)
-    if tb.bypass_enabled:
-        # The bypass case has different behavior and is covered by its own test.
-        return
-
     await tb.reset()
 
     # After reset, the synchronizer should present the reset/default value.
@@ -54,12 +51,9 @@ async def propagation_latency_test(dut):
     await tb.drive_and_expect_after_latency(0)
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("BYPASS_SYNC_G", default=False))
 async def reset_behavior_test(dut):
     tb = SynchronizerLikeTB(dut, width=1)
-    if tb.bypass_enabled:
-        return
-
     # First prove the DUT can leave reset and pass a non-default value through.
     await tb.reset()
     await tb.drive_and_expect_after_latency(1)
@@ -89,12 +83,9 @@ async def reset_behavior_test(dut):
     assert int(dut.dataOut.value) == tb.expected_output(1)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("BYPASS_SYNC_G", default=False))
 async def bypass_mode_test(dut):
     tb = SynchronizerLikeTB(dut, width=1)
-    if not tb.bypass_enabled:
-        return
-
     # In bypass mode, the DUT is combinational from input to output, so no
     # clock edge is needed to observe each new value.
     dut.rst.value = tb.reset_inactive_value()

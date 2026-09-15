@@ -42,15 +42,12 @@
 #   frames after a test arms the hook, leaving ACK/NULL control traffic free to
 #   maintain the connection.
 
-import os
-
 import cocotb
 import pytest
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
 from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 from tests.protocols.rssi.rssi_test_utils import (
-    RSSI_CORE_WRAPPER_VHDL_SOURCES,
     format_transport_frame,
     parse_header,
     protocol_bytes_from_stream_word,
@@ -73,13 +70,6 @@ from tests.protocols.ssi.ssi_test_utils import (
 DEPACKETIZER2_INIT_WAIT_CYCLES = 1024
 
 
-def _run_extended_case(case_name: str) -> bool:
-    return (
-        env_flag("RUN_RSSI_EXTENDED_TESTS", default=False)
-        or os.environ.get("COCOTB_TESTCASE") == case_name
-    )
-
-
 def _default_extra_env(parameters: dict[str, object]) -> dict[str, object]:
     if env_flag("RUN_RSSI_EXTENDED_TESTS", default=False):
         return parameters
@@ -94,14 +84,28 @@ def _explicit_pytest_selection(request, test_name: str) -> bool:
 
 
 def assert_frame_preserves_valid_bytes(actual: list[SsiBeat], expected: list[SsiBeat]) -> None:
-    assert len(actual) == len(expected)
-    for actual_beat, expected_beat in zip(actual, expected):
+    assert len(actual) == len(expected), (
+        f"frame beat count: expected {len(expected)}, got {len(actual)}"
+    )
+    for beat_index, (actual_beat, expected_beat) in enumerate(zip(actual, expected)):
         mask = data_mask_from_keep(expected_beat.keep)
-        assert actual_beat.data & mask == expected_beat.data & mask
-        assert actual_beat.keep == expected_beat.keep
-        assert actual_beat.last == expected_beat.last
-        assert actual_beat.sof == expected_beat.sof
-        assert actual_beat.eofe == expected_beat.eofe
+        assert actual_beat.data & mask == expected_beat.data & mask, (
+            f"beat {beat_index} payload: expected "
+            f"{expected_beat.data & mask:#x}, got {actual_beat.data & mask:#x}"
+        )
+        assert actual_beat.keep == expected_beat.keep, (
+            f"beat {beat_index} TKEEP: expected {expected_beat.keep:#x}, "
+            f"got {actual_beat.keep:#x}"
+        )
+        assert actual_beat.last == expected_beat.last, (
+            f"beat {beat_index} TLAST: expected {expected_beat.last}, got {actual_beat.last}"
+        )
+        assert actual_beat.sof == expected_beat.sof, (
+            f"beat {beat_index} SOF: expected {expected_beat.sof}, got {actual_beat.sof}"
+        )
+        assert actual_beat.eofe == expected_beat.eofe, (
+            f"beat {beat_index} EOFE: expected {expected_beat.eofe}, got {actual_beat.eofe}"
+        )
 
 
 class TB:
@@ -200,6 +204,9 @@ class TB:
         endpoint.set_idle()
 
     def start_transport_loopbacks(self) -> None:
+        # These retained coroutines are lifetime agents for one cocotb
+        # entrypoint.  They own no external resources and cocotb cancels them
+        # when that entrypoint finishes.
         self.loopback_tasks = [
             cocotb.start_soon(
                 self.loopback_transport(
@@ -227,6 +234,7 @@ class TB:
         *,
         drop_attr: str,
     ) -> None:
+        """Lifetime agent: relay RSSI traffic until cocotb ends the test."""
         dropping = False
         destination.set_idle()
         source_ready.value = 0
@@ -334,9 +342,6 @@ async def multi_stream_client_to_server_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_bidirectional_payload_routes_test(dut):
-    if not _run_extended_case("multi_stream_bidirectional_payload_routes_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -413,9 +418,6 @@ async def multi_stream_bidirectional_payload_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_partial_keep_and_eofe_routes_test(dut):
-    if not _run_extended_case("multi_stream_partial_keep_and_eofe_routes_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -441,9 +443,6 @@ async def multi_stream_partial_keep_and_eofe_routes_test(dut):
 
 @cocotb.test()
 async def multi_stream_dropped_client_data_retransmits_to_route_test(dut):
-    if not _run_extended_case("multi_stream_dropped_client_data_retransmits_to_route_test"):
-        return
-
     tb = await TB.create(dut)
 
     await tb.wait_connected()
@@ -532,13 +531,6 @@ def test_RssiCoreWrapperMultiStream(parameters):
         toplevel="surf.rssicorewrappermultistreamintegrationwrapper",
         parameters=parameters,
         extra_env=_default_extra_env(parameters),
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -557,13 +549,6 @@ def test_RssiCoreWrapperMultiStream_extended(parameters):
             **parameters,
             "RUN_RSSI_EXTENDED_TESTS": 1,
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )
 
 
@@ -600,11 +585,4 @@ def test_RssiCoreWrapperMultiStream_bidirectional_packetizer2(request):
             **parameters,
             "COCOTB_TESTCASE": "multi_stream_bidirectional_payload_routes_test",
         },
-        extra_vhdl_sources={
-            "surf": [
-                *RSSI_CORE_WRAPPER_VHDL_SOURCES,
-                "protocols/rssi/v1/wrappers/RssiCoreWrapperMultiStreamIntegrationWrapper.vhd",
-            ],
-        },
-        force_compile=True,
     )

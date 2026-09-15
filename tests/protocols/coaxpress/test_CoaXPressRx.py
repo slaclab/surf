@@ -26,10 +26,11 @@
 import os
 
 import cocotb
-from cocotb.triggers import Event, RisingEdge, Timer
+from cocotb.triggers import Event
 import pytest
 
 from tests.common.regression_utils import env_flag, env_int, parameter_case, run_surf_vhdl_test, start_lockstep_clocks
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.coaxpress.coaxpress_test_utils import (
     CXP_EOP,
     CXP_IDLE,
@@ -378,9 +379,9 @@ async def _send_one_lane_frame(
 
 
 async def _count_signal_high_cycles(signal, clk, stop_event: Event, counts: dict[str, int], key: str) -> None:
+    """Lifetime agent: count asserted cycles until the owner sets stop_event."""
     while True:
-        await RisingEdge(clk)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(clk, propagation_time=2)
         if stop_event.is_set():
             return
         counts[key] += int(signal.value)
@@ -438,10 +439,8 @@ async def _pulse_rx_fsm_reset(dut, *, cycles: int = 4) -> None:
     dut.rxFsmRst.value = 0
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 1)
 async def coaxpress_rx_one_lane_integration_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -550,11 +549,8 @@ async def coaxpress_rx_one_lane_integration_test(dut):
     ]
 
 
-@cocotb.test()
+@cocotb.test(skip=env_int("NUM_LANES_G", default=1) != 2)
 async def coaxpress_rx_two_lane_mux_rotation_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 2:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -669,11 +665,13 @@ async def coaxpress_rx_two_lane_mux_rotation_test(dut):
 # Opt-in investigation benches. These stay behind RUN_KNOWN_ISSUE_TESTS until
 # the remaining 4-lane short-frame boundary issue in CoaXPressRxHsFsm is fixed.
 #
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 4
+    ),
+)
 async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -739,11 +737,13 @@ async def coaxpress_rx_four_lane_fsm_error_reset_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 4
+    ),
+)
 async def coaxpress_rx_four_lane_clean_rotation_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -797,11 +797,13 @@ async def coaxpress_rx_four_lane_clean_rotation_known_issue_test(dut):
     assert [beat[2] for beat in data_beats] == [0, 0, 1] * 4, data_beats
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 4
+    ),
+)
 async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -887,11 +889,13 @@ async def coaxpress_rx_four_lane_fsm_error_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 4
+    ),
+)
 async def coaxpress_rx_four_lane_overflow_reset_recovery_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -982,11 +986,13 @@ async def coaxpress_rx_four_lane_overflow_reset_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, (signal_counts, observed_recovery_last)
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 4
+    ),
+)
 async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 4:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,
@@ -1079,11 +1085,13 @@ async def coaxpress_rx_four_lane_overflow_recovery_known_issue_test(dut):
     assert observed_recovery_last == [0, 0, 1] * 4, observed_recovery_last
 
 
-@cocotb.test(skip=os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1")
+@cocotb.test(
+    skip=(
+        os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+        or env_int("NUM_LANES_G", default=1) != 1
+    ),
+)
 async def coaxpress_rx_repeated_single_line_frame_known_issue_test(dut):
-    if env_int("NUM_LANES_G", default=1) != 1:
-        return
-
     start_lockstep_clocks(dut.dataClk, dut.cfgClk, dut.txClk, dut.rxClk, period_ns=4.0)
     set_initial_values(
         dut,

@@ -32,6 +32,7 @@ import cocotb
 import pytest
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
+from tests.common.regression_utils import sample_after_tpd
 from tests.protocols.ssi.ssi_test_utils import (
     assert_beat_list,
     assert_beat_views,
@@ -59,8 +60,7 @@ async def drive_ready_pattern(ready_signal, *, clk, pattern: list[int], cycles: 
     # coroutine keeps watching what traffic was actually accepted.
     for index in range(cycles):
         ready_signal.value = pattern[index % len(pattern)]
-        await cocotb.triggers.RisingEdge(clk)
-        await cocotb.triggers.Timer(1, unit="ns")
+        await sample_after_tpd(clk)
     ready_signal.value = 0
 
 

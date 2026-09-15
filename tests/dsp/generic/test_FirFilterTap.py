@@ -134,7 +134,6 @@ def test_FirFilterTap(parameters):
         },
         extra_vhdl_sources={
             "surf": [
-                "dsp/generic/fixed/FirFilterTap.vhd",
                 "dsp/generic/wrappers/FirFilterTapTestWrapper.vhd",
             ]
         },

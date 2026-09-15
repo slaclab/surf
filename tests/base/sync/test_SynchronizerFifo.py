@@ -168,26 +168,22 @@ async def data_order_test(dut):
         # pass-through, so ordering reduces to immediate combinational delivery.
         for value in values:
             await tb.expect_common_clock_passthrough(value)
-        return
+    else:
+        # In dual-clock mode the DUT behaves like a tiny asynchronous FIFO.
+        # Write a known sequence, then verify reads emerge in the same order.
+        for value in values:
+            await tb.write(value)
 
-    # In dual-clock mode the DUT behaves like a tiny asynchronous FIFO. Write a
-    # known sequence, then verify reads emerge in the same order.
-    for value in values:
-        await tb.write(value)
+        observed = []
+        for _ in values:
+            observed.append(await tb.read())
 
-    observed = []
-    for _ in values:
-        observed.append(await tb.read())
-
-    assert observed == values
+        assert observed == values
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("COMMON_CLK_G", default=False))
 async def common_clock_bypass_test(dut):
     tb = TB(dut)
-    if not tb.common_clk:
-        return
-
     await tb.reset()
     await tb.expect_common_clock_passthrough(0x5A)
 
@@ -204,11 +200,8 @@ async def reset_value_test(dut):
         assert observed == tb.init_value
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_ASYNC_BURST_GAPS", default=False))
 async def async_burst_read_gap_test(dut):
-    if not env_flag("CHECK_ASYNC_BURST_GAPS", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
     assert not tb.common_clk
@@ -235,11 +228,8 @@ async def async_burst_read_gap_test(dut):
         assert await tb.read_with_pause() == expected
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_RESET_WHILE_PREFETCHED", default=False))
 async def reset_while_prefetched_test(dut):
-    if not env_flag("CHECK_RESET_WHILE_PREFETCHED", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
     assert not tb.common_clk

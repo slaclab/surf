@@ -179,13 +179,15 @@ async def width_conversion_test(dut):
     assert observed == expected
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        int(os.environ.get("RD_DATA_WIDTH_G", "1"))
+        <= int(os.environ.get("WR_DATA_WIDTH_G", "1"))
+    ),
+)
 async def write_packer_reset_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    if tb.rd_width <= tb.wr_width:
-        return
 
     # When the wrapper is packing several narrow writes into one wider FIFO
     # word, a reset must discard the partial aggregate rather than letting stale

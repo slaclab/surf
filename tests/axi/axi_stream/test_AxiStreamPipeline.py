@@ -66,9 +66,10 @@ class TB:
 
         # Record the cycle where source and sink handshakes complete so the
         # tests can talk about pipeline latency in exact clock cycles.
-        cocotb.start_soon(self._monitor_handshakes())
+        self._monitor_task = cocotb.start_soon(self._monitor_handshakes())
 
     async def _monitor_handshakes(self):
+        """Lifetime agent: record pipeline handshakes until the test ends."""
         cycle = 0
         while True:
             await RisingEdge(self.dut.axisClk)
@@ -273,16 +274,10 @@ async def latency_and_backpressure_test(dut):
     tb.drive_source_idle()
 
 
-@cocotb.test()
+@cocotb.test(skip=int(os.environ.get("PIPE_STAGES_G", "0")) == 0)
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    # The zero-stage generate path is purely combinational, so reset should not
-    # be treated as a stateful flush path in this bench. Only the registered
-    # cases below are expected to clear buffered data on reset.
-    if tb.pipe_stages == 0:
-        return
 
     dut.M_AXIS_TREADY.value = 0
     tb.drive_source(
@@ -353,7 +348,4 @@ def test_AxiStreamPipeline(parameters):
         toplevel="surf.axistreampipelineipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamPipelineIpIntegrator.vhd"],
-        },
     )

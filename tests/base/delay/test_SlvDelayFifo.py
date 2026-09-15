@@ -120,11 +120,8 @@ async def timestamped_outputs_preserve_programmed_order_test(dut):
     assert await tb.wait_for_output() == 0x22
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("CHECK_RESET_FLUSH", default=False))
 async def reset_flushes_pending_entries_test(dut):
-    if not env_flag("CHECK_RESET_FLUSH", default=False):
-        return
-
     tb = TB(dut)
     await tb.reset()
 

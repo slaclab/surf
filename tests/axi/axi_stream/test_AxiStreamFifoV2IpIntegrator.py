@@ -39,6 +39,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer, with_timeout
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
+from tests.axi.utils import wait_sampled_ready
 from tests.common.regression_utils import env_flag, run_surf_vhdl_test, start_lockstep_clocks
 
 
@@ -103,7 +104,11 @@ class TB:
         self.rx_beat_users = []
 
         if self.clock_mode == "lockstep":
-            start_lockstep_clocks(dut.S_AXIS_ACLK, dut.M_AXIS_ACLK, period_ns=5.0)
+            self._clock_task = start_lockstep_clocks(
+                dut.S_AXIS_ACLK,
+                dut.M_AXIS_ACLK,
+                period_ns=5.0,
+            )
         else:
             cocotb.start_soon(Clock(dut.S_AXIS_ACLK, 5.0, unit="ns").start())
             cocotb.start_soon(Clock(dut.M_AXIS_ACLK, 7.0, unit="ns").start())
@@ -120,8 +125,11 @@ class TB:
         dut.M_AXIS_TREADY.setimmediatevalue(0)
         dut.fifoPauseThresh.setimmediatevalue((1 << self.fifo_addr_width) - 1)
 
-        cocotb.start_soon(self._monitor_source_handshakes())
-        cocotb.start_soon(self._monitor_sink_handshakes())
+        # Lifetime handshake monitors retained by the bench.
+        self._monitor_tasks = (
+            cocotb.start_soon(self._monitor_source_handshakes()),
+            cocotb.start_soon(self._monitor_sink_handshakes()),
+        )
 
     async def settle(self):
         await Timer(1, unit="ns")
@@ -137,6 +145,7 @@ class TB:
             await self.settle()
 
     async def _monitor_source_handshakes(self):
+        """Lifetime agent: record source handshakes until the test ends."""
         cycle = 0
         while True:
             await RisingEdge(self.dut.S_AXIS_ACLK)
@@ -146,6 +155,7 @@ class TB:
                 self.tx_cycles.append(cycle)
 
     async def _monitor_sink_handshakes(self):
+        """Lifetime agent: record sink handshakes until the test ends."""
         cycle = 0
         while True:
             await RisingEdge(self.dut.M_AXIS_ACLK)
@@ -230,11 +240,10 @@ class TB:
                 tdest=tdest,
                 tuser=tuser_values[index],
             )
-            while True:
-                await RisingEdge(self.dut.S_AXIS_ACLK)
-                await self.settle()
-                if int(self.dut.S_AXIS_TVALID.value) and int(self.dut.S_AXIS_TREADY.value):
-                    break
+            await wait_sampled_ready(
+                self.dut.S_AXIS_TREADY,
+                clk=self.dut.S_AXIS_ACLK,
+            )
 
         self.clear_source()
         await self.cycle_source(1)
@@ -333,12 +342,9 @@ async def stream_round_trip_test(dut):
     assert int(tb.dut.sAxisOverflow.value) == 0
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_METADATA_TRUNCATION", default=False))
 async def metadata_truncation_test(dut):
     tb = TB(dut)
-    if not tb.test_metadata_truncation:
-        return
-
     await tb.reset()
     tb.start_agents()
 
@@ -356,12 +362,9 @@ async def metadata_truncation_test(dut):
     assert scalar_tuser(rx_frame.tuser) == (scalar_tuser(frame.tuser) & mask(tb.m_user_width))
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_FRAME_READY", default=False))
 async def frame_ready_release_and_last_user_test(dut):
     tb = TB(dut)
-    if not tb.test_frame_ready:
-        return
-
     await tb.reset()
     tb.clear_samples()
     tb.dut.M_AXIS_TREADY.value = 1
@@ -372,20 +375,12 @@ async def frame_ready_release_and_last_user_test(dut):
 
     for index, data_byte in enumerate(payload[:-1]):
         tb.drive_source_beat(data_byte, last=False, tid=0x1, tdest=0x2, tuser=beat_users[index])
-        while True:
-            await RisingEdge(tb.dut.S_AXIS_ACLK)
-            await tb.settle()
-            if int(tb.dut.S_AXIS_TVALID.value) and int(tb.dut.S_AXIS_TREADY.value):
-                break
+        await wait_sampled_ready(tb.dut.S_AXIS_TREADY, clk=tb.dut.S_AXIS_ACLK)
         assert tb.rx_cycles == []
         assert int(tb.dut.M_AXIS_TVALID.value) == 0
 
     tb.drive_source_beat(payload[-1], last=True, tid=0x1, tdest=0x2, tuser=beat_users[-1])
-    while True:
-        await RisingEdge(tb.dut.S_AXIS_ACLK)
-        await tb.settle()
-        if int(tb.dut.S_AXIS_TVALID.value) and int(tb.dut.S_AXIS_TREADY.value):
-            break
+    await wait_sampled_ready(tb.dut.S_AXIS_TREADY, clk=tb.dut.S_AXIS_ACLK)
 
     tb.clear_source()
     received = await with_timeout(capture_task, 2, "us")
@@ -397,31 +392,20 @@ async def frame_ready_release_and_last_user_test(dut):
     assert received["last_sideband"] == [beat_users[-1]] * len(payload)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_THRESHOLD_PREFILL", default=False))
 async def threshold_prefill_release_test(dut):
     tb = TB(dut)
-    if not tb.test_threshold_prefill:
-        return
-
     await tb.reset()
     tb.dut.M_AXIS_TREADY.value = 0
 
     payload = b"\x21\x22\x23"
     for data_byte in payload[: tb.valid_thold - 1]:
         tb.drive_source_beat(data_byte, last=False, tid=0x1, tdest=0x1, tuser=0)
-        while True:
-            await RisingEdge(tb.dut.S_AXIS_ACLK)
-            await tb.settle()
-            if int(tb.dut.S_AXIS_TVALID.value) and int(tb.dut.S_AXIS_TREADY.value):
-                break
+        await wait_sampled_ready(tb.dut.S_AXIS_TREADY, clk=tb.dut.S_AXIS_ACLK)
         assert int(tb.dut.M_AXIS_TVALID.value) == 0
 
     tb.drive_source_beat(payload[tb.valid_thold - 1], last=False, tid=0x1, tdest=0x1, tuser=0)
-    while True:
-        await RisingEdge(tb.dut.S_AXIS_ACLK)
-        await tb.settle()
-        if int(tb.dut.S_AXIS_TVALID.value) and int(tb.dut.S_AXIS_TREADY.value):
-            break
+    await wait_sampled_ready(tb.dut.S_AXIS_TREADY, clk=tb.dut.S_AXIS_ACLK)
 
     await tb.wait_for_output_valid(timeout_cycles=4)
     assert int(tb.dut.M_AXIS_TVALID.value) == 1
@@ -437,12 +421,9 @@ async def threshold_prefill_release_test(dut):
     await tb.cycle_sink(2)
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_BURST_BEHAVIOR", default=False))
 async def burst_mode_release_test(dut):
     tb = TB(dut)
-    if not tb.test_burst_behavior:
-        return
-
     await tb.reset()
     tb.clear_samples()
     tb.dut.M_AXIS_TREADY.value = 1
@@ -468,23 +449,16 @@ async def burst_mode_release_test(dut):
     assert any(later > earlier + 1 for earlier, later in zip(tb.rx_cycles, tb.rx_cycles[1:]))
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("TEST_DYNAMIC_PAUSE", default=False))
 async def dynamic_pause_threshold_test(dut):
     tb = TB(dut)
-    if not tb.test_dynamic_pause:
-        return
-
     await tb.reset()
     tb.dut.fifoPauseThresh.value = 1
     tb.dut.M_AXIS_TREADY.value = 0
 
     for data_byte in [0x40, 0x41, 0x42]:
         tb.drive_source_beat(data_byte, last=True, tid=0x1, tdest=0x1, tuser=0)
-        while True:
-            await RisingEdge(tb.dut.S_AXIS_ACLK)
-            await tb.settle()
-            if int(tb.dut.S_AXIS_TVALID.value) and int(tb.dut.S_AXIS_TREADY.value):
-                break
+        await wait_sampled_ready(tb.dut.S_AXIS_TREADY, clk=tb.dut.S_AXIS_ACLK)
         if int(tb.dut.sAxisPause.value):
             break
 

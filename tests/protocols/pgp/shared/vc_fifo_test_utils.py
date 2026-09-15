@@ -15,6 +15,7 @@ from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiStreamBus, AxiStreamSink
 
+from tests.axi.utils import wait_sampled_ready
 
 def pack_bytes(data: bytes, width_bytes: int = 8) -> int:
     """Pack a short little-endian byte string into one AXI Stream beat."""
@@ -140,13 +141,12 @@ class VcFifoTb:
             self.dut.S_AXIS_TID.value = tid
             self.dut.S_AXIS_TUSER.value = tuser_last if index == len(beats) - 1 else 0
 
-            while True:
-                await RisingEdge(self.source_clk)
-                await self.settle()
-                if int(self.dut.S_AXIS_TREADY.value) == 1:
-                    if on_handshake is not None:
-                        await on_handshake(index)
-                    break
+            await wait_sampled_ready(
+                self.dut.S_AXIS_TREADY,
+                clk=self.source_clk,
+            )
+            if on_handshake is not None:
+                await on_handshake(index)
 
         self.drive_source_idle()
         await self.cycle_source(1)

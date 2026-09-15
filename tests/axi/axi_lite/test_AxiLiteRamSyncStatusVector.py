@@ -20,7 +20,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32
@@ -41,8 +42,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axilClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axilClk)
 
     async def reset(self):
         self.dut.wrRst.value = 1
@@ -87,9 +87,4 @@ def test_AxiLiteRamSyncStatusVector(parameters):
         toplevel="surf.axiliteramsyncstatusvectoripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": [
-                "axi/axi-lite/ip_integrator/AxiLiteRamSyncStatusVectorIpIntegrator.vhd",
-            ],
-        },
     )

@@ -22,7 +22,8 @@
 #   accepted handshakes once `TREADY` is asserted.
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.coaxpress.coaxpress_test_utils import (
@@ -54,16 +55,14 @@ def _expected_event_ack_bytes(tag: int) -> list[tuple[int, int, int]]:
 async def _pulse_event_ack(dut, tag: int) -> None:
     dut.eventTag.value = tag
     dut.eventAck.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.eventAck.value = 0
 
 
 async def _collect_handshakes(dut, *, count: int, timeout_cycles: int) -> list[tuple[int, int, int]]:
     observed: list[tuple[int, int, int]] = []
     for _ in range(timeout_cycles):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if int(dut.eventAckTValid.value) == 1 and int(dut.eventAckTReady.value) == 1:
             observed.append(
                 (
@@ -93,8 +92,7 @@ async def coaxpress_event_ack_msg_serialize_and_backpressure_test(dut):
 
     stalled_byte = None
     for _ in range(8):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         if int(dut.eventAckTValid.value) == 1:
             sample = (
                 int(dut.eventAckTData.value),
@@ -109,8 +107,7 @@ async def coaxpress_event_ack_msg_serialize_and_backpressure_test(dut):
     assert stalled_byte == (word_to_bytes(CXP_SOP)[0], 1, 0)
 
     for _ in range(2):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         assert (
             int(dut.eventAckTData.value),
             int(dut.eventAckTK.value),

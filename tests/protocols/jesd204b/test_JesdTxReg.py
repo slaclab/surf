@@ -28,7 +28,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
@@ -41,7 +43,11 @@ from tests.common.regression_utils import (
 from tests.protocols.jesd204b.jesd204b_test_utils import (
     K_CHAR,
     endian_swap_32,
+    jesd_wrapper_sources,
 )
+
+# JESD204B cocotb wrapper (excluded from ruckus.tcl; loaded for simulation only)
+WRAPPER_SOURCES = jesd_wrapper_sources("Jesd204bTxWrapper.vhd")
 
 # ---------------------------------------------------------------------------
 # StatusLane bit positions (JesdTxReg.vhd TX_STAT_WIDTH_C=6, JesdTxLane status_o)
@@ -59,7 +65,7 @@ _K28P5_WORD   = (K_CHAR << 24) | (K_CHAR << 16) | (K_CHAR << 8) | K_CHAR
 
 # ---------------------------------------------------------------------------
 # Parameter sweep: L_G in {1,2} x SC1 primary + SC0 smoke
-# K=32/F=2 fixed per plan. L_G and F_G/K_G passed as _G-suffixed HDL generics.
+# K=32/F=2 fixed. L_G and F_G/K_G passed as _G-suffixed HDL generics.
 # SUBCLASS is Python-only env key (stripped by hdl_parameters_from).
 # ---------------------------------------------------------------------------
 PARAMETER_SWEEP = [
@@ -109,13 +115,11 @@ class Jesd204bTopTB:
 
     async def axi_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.S_AXI_ACLK)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.S_AXI_ACLK)
 
     async def dev_cycle(self, n: int = 1) -> None:
         for _ in range(n):
-            await RisingEdge(self.dut.devClk_i)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.devClk_i)
 
     async def reset(self, axi_cycles: int = 8, dev_cycles: int = 8) -> None:
         self.dut.S_AXI_ARESETN.value = 0
@@ -152,8 +156,7 @@ async def assert_decerr(axil_master, address: int) -> None:
 async def wait_for_bit(status_signal, *, bit_mask: int, clk, timeout_cycles: int = 256):
     """Wait until (status_signal & bit_mask) != 0."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if (int(status_signal.value) & bit_mask) != 0:
             return
     raise AssertionError(
@@ -665,4 +668,5 @@ def test_JesdTxReg(parameters):
         toplevel="surf.jesd204btxwrapper",
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
+        extra_vhdl_sources={"surf": WRAPPER_SOURCES},
     )

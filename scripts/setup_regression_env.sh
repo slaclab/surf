@@ -80,7 +80,9 @@ Activate the environment with:
 Then prepare HDL sources with:
   make MODULES="${ROOT_DIR}" import
 
-Then run regressions with:
-  python -m pytest -v -n auto --dist=worksteal tests/axi tests/base tests/dsp
-  python -m pytest -v tests/test_*.py
+Then check the regression structure and run the narrowest relevant suite:
+  python -m tests.common.compliance_audit check tests
+  python -m pytest -n 0 -q tests/<subsystem>/test_<Target>.py
+
+See tests/README.md for the full methodology and parallel/full-suite commands.
 EOF

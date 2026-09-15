@@ -12,7 +12,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.protocols.pgp.pgp_test_utils import pgp_family_sources, run_pgp_wrapper_test
 
@@ -23,14 +24,12 @@ async def pgp2fc_core_wrapper_elab_test(dut):
     dut.rst.setimmediatevalue(1)
 
     for _ in range(4):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
     dut.rst.value = 0
 
     for _ in range(16):
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
 
 PARAMETER_SWEEP = [

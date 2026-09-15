@@ -168,13 +168,10 @@ async def multiport_read_visibility_test(dut):
         assert await tb.read_c(1) == 0x1234
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("REG_EN_G", default=True))
 async def mode_semantics_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.reg_enabled:
-        return
-
     await tb.write_a(0, 0x1111)
     await tb.write_a(1, 0xAAAA)
     assert await tb.read_a(1) == 0xAAAA
@@ -198,13 +195,10 @@ async def mode_semantics_test(dut):
     assert await tb.read_b(0) == 0x2222
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("BYTE_WR_EN_G", default=False))
 async def byte_write_enable_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.byte_write_enabled:
-        return
-
     await tb.write_a(3, 0xABCD)
     await tb.write_a(3, 0x00EF, byte_mask=0b01)
     assert await tb.read_b(3) == 0xABEF
@@ -213,13 +207,10 @@ async def byte_write_enable_test(dut):
     assert await tb.read_b(3) == 0x12EF
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("REG_EN_G", default=True))
 async def reset_behavior_test(dut):
     tb = TB(dut)
     await tb.warmup()
-    if not tb.reg_enabled:
-        return
-
     await tb.write_a(4, 0xCAFE)
     assert await tb.read_b(4) == 0xCAFE
 

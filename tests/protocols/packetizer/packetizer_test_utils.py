@@ -15,9 +15,10 @@ from dataclasses import dataclass
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
 
 from tests.axi.utils import wait_sampled_ready
+from tests.common.regression_utils import sample_after_tpd
 
 PACKETIZER2_VERSION = 0x2
 PACKETIZER2_CRC_NONE = 0x0
@@ -99,8 +100,7 @@ class FlatAxisEndpoint:
             await Timer(1, unit="ns")
             if int(self._sig("TVALID").value) == 1:
                 return self.snapshot()
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
             if int(self._sig("TVALID").value) == 1:
                 return self.snapshot()
         raise AssertionError(f"Timed out waiting for {self.prefix} valid")
@@ -108,8 +108,7 @@ class FlatAxisEndpoint:
     async def recv(self, *, clk, keep_ready: bool = False) -> AxisBeat:
         self._sig("TREADY").value = 1
         beat = await self.wait_valid(clk=clk)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if not keep_ready:
             self._sig("TREADY").value = 0
         return beat
@@ -121,8 +120,7 @@ def start_packetizer_clock(dut, *, period_ns: float = 5.0) -> None:
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 async def reset_packetizer_dut(dut, *, cycles: int = 4) -> None:
@@ -136,8 +134,7 @@ async def wait_debug_init_done(dut, *, timeout_cycles: int = 64) -> None:
     for _ in range(timeout_cycles):
         if int(dut.debugOut.value) & (1 << DEBUG_INIT_DONE):
             return
-        await RisingEdge(dut.axisClk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.axisClk)
     raise AssertionError("Timed out waiting for depacketizer initDone")
 
 
@@ -356,8 +353,7 @@ async def assert_no_output(
     if drive_ready:
         endpoint._sig("TREADY").value = 1
     for _ in range(cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         assert int(endpoint._sig("TVALID").value) == 0
     if drive_ready:
         endpoint._sig("TREADY").value = 0
@@ -404,16 +400,14 @@ async def send_unpaced_beats(endpoint: FlatAxisEndpoint, beats: list[AxisBeat], 
     # cadence.
     for beat in beats:
         endpoint.drive(beat)
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
     endpoint.set_idle()
 
 
 async def recv_valid_pulses(endpoint: FlatAxisEndpoint, count: int, *, clk) -> list[AxisBeat]:
     beats = []
     while len(beats) < count:
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(endpoint._sig("TVALID").value):
             beats.append(endpoint.snapshot())
     return beats
@@ -458,12 +452,10 @@ async def recv_beats_with_backpressure(
     for _ in range(count):
         beat = await endpoint.wait_valid(clk=clk)
         for _ in range(hold_cycles):
-            await RisingEdge(clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(clk)
             assert endpoint.snapshot() == beat
         endpoint._sig("TREADY").value = 1
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         endpoint._sig("TREADY").value = 0
         beats.append(beat)
     return beats

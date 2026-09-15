@@ -27,7 +27,9 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_flag,
@@ -59,20 +61,22 @@ class Pgp4RxEbTB:
         self.phy_period_ns = env_float("PHY_CLK_PERIOD_NS", default=4.0)
         self.pgp_period_ns = env_float("PGP_CLK_PERIOD_NS", default=4.125)
         if env_flag("COMMON_CLK", default=False):
-            start_lockstep_clocks(dut.phyClk, dut.pgpClk, period_ns=self.phy_period_ns)
+            self._clock_task = start_lockstep_clocks(
+                dut.phyClk,
+                dut.pgpClk,
+                period_ns=self.phy_period_ns,
+            )
         else:
             cocotb.start_soon(Clock(dut.phyClk, self.phy_period_ns, unit="ns").start())
             cocotb.start_soon(Clock(dut.pgpClk, self.pgp_period_ns, unit="ns").start())
 
     async def cycle_phy(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.phyClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.phyClk)
 
     async def cycle_pgp(self, count: int = 1):
         for _ in range(count):
-            await RisingEdge(self.dut.pgpClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.pgpClk)
 
     async def sample_pgp_cycle(self):
         await FallingEdge(self.dut.pgpClk)
@@ -95,8 +99,11 @@ class PulseMonitor:
         self.signal_name = signal_name
         self.step = step
         self.seen = False
+        # Lifetime observer retained by its monitor owner.
+        self.task = cocotb.start_soon(self.run())
 
     async def run(self):
+        """Lifetime agent: observe pulses until cocotb ends the test."""
         while True:
             await self.step()
             if signal_int(self.dut, self.signal_name) == 1:
@@ -112,8 +119,11 @@ class ValidBeatCollector:
         self.valid_name = valid_name
         self.field_names = field_names
         self.beats: list[tuple[int, ...]] = []
+        # Lifetime observer retained by its collector owner.
+        self.task = cocotb.start_soon(self.run())
 
     async def run(self):
+        """Lifetime agent: collect valid beats until cocotb ends the test."""
         while True:
             await self.step()
             if signal_int(self.dut, self.valid_name) == 1:
@@ -204,12 +214,14 @@ async def assert_no_output_words(tb: Pgp4RxEbTB, *, cycles: int):
         assert signal_int(tb.dut, "pgpRxValid") == 0
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        env_flag("EXPECT_SKIP_DISABLED", default=False)
+        or env_flag("EXPECT_OVERFLOW", default=False)
+    ),
+)
 async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False) or env_flag("EXPECT_OVERFLOW", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -222,7 +234,6 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
         valid_name="pgpRxValid",
         field_names=("pgpRxHeader", "pgpRxData"),
     )
-    cocotb.start_soon(collector.run())
 
     data_word_a = 0x0123456789ABCDEF
     idle_word = pgp4_idle_word(rem_link_ready=1, pause_mask=0x1234, overflow_mask=0x00A5)
@@ -247,12 +258,9 @@ async def pgp4_rx_eb_filters_skip_and_preserves_stream_order(dut):
     ]
     await wait_for_signal_in_domain(tb, "remLinkData", value=skip_data, cycles=64)
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("EXPECT_SKIP_DISABLED", default=False))
 async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -272,23 +280,21 @@ async def pgp4_rx_eb_reset_flushes_buffered_words(dut):
     assert words == [(PGP4_D_HEADER, marker_word)]
 
 
-@cocotb.test()
+@cocotb.test(
+    skip=(
+        env_flag("EXPECT_SKIP_DISABLED", default=False)
+        or not env_flag("EXPECT_OVERFLOW", default=False)
+    ),
+)
 async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     tb = Pgp4RxEbTB(dut)
-    if env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
     # Overflow is not expected under the slight-drift case, so keep the normal
     # regression realistic and only execute the deep fill test when the pytest
     # parameter sweep requests the explicit overflow-stress clock ratio.
-    if not env_flag("EXPECT_OVERFLOW", default=False):
-        return
-
     overflow_monitor = PulseMonitor(dut, "overflow", step=tb.cycle_pgp)
-    cocotb.start_soon(overflow_monitor.run())
 
     # The DUT uses a 512-entry async FIFO.  With the write clock much faster
     # than the read clock, a sustained burst should eventually overrun that
@@ -300,12 +306,9 @@ async def pgp4_rx_eb_overflow_pulses_when_phy_outpaces_local_clock(dut):
     assert overflow_monitor.seen
 
 
-@cocotb.test()
+@cocotb.test(skip=not env_flag("EXPECT_SKIP_DISABLED", default=False))
 async def pgp4_rx_eb_skip_disabled_passes_stream_and_link_error(dut):
     tb = Pgp4RxEbTB(dut)
-    if not env_flag("EXPECT_SKIP_DISABLED", default=False):
-        return
-
     initialize_phy_inputs(dut)
     await tb.reset()
 
@@ -316,8 +319,6 @@ async def pgp4_rx_eb_skip_disabled_passes_stream_and_link_error(dut):
         field_names=("pgpRxHeader", "pgpRxData"),
     )
     link_error_monitor = PulseMonitor(dut, "linkError", step=tb.sample_pgp_cycle)
-    cocotb.start_soon(collector.run())
-    cocotb.start_soon(link_error_monitor.run())
 
     data_word = 0x123456789ABCDEF0
     await send_phy_word(tb, header=PGP4_D_HEADER, data=data_word, link_error=1)

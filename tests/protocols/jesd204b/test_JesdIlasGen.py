@@ -36,7 +36,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import (
     env_int,
@@ -102,8 +103,7 @@ ILAS02_SWEEP = [
 async def wait_for_signal(signal, *, value, clk, timeout_cycles=2048):
     """Bounded poll for signal == value; raise AssertionError on timeout."""
     for _ in range(timeout_cycles):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
         if int(signal.value) == value:
             return
     raise AssertionError(
@@ -133,8 +133,7 @@ async def capture_ilas_words(dut, tb, *, k, f, num_mf=4):
     # together with the first pulse is an alignment the real FSM never
     # produces (post-merge reconciliation of plans 03-03/03-04).
     dut.lmfc_i.value = 1
-    await RisingEdge(dut.clk)
-    await Timer(1, unit="ns")
+    await sample_after_tpd(dut.clk)
     dut.ilas_i.value = 1
     dut.lmfc_i.value = 0
 
@@ -151,8 +150,7 @@ async def capture_ilas_words(dut, tb, *, k, f, num_mf=4):
         else:
             dut.lmfc_i.value = 0
 
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
 
         data = int(dut.ilasData_o.value)
         datak = int(dut.ilasK_o.value)

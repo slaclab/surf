@@ -10,10 +10,12 @@
 
 from __future__ import annotations
 
+from asyncio import CancelledError
 from functools import lru_cache
 import hashlib
 import os
 from pathlib import Path
+import re
 import shlex
 import subprocess
 
@@ -35,6 +37,14 @@ BASE_GHDL_COMPILE_ARGS = [
 ]
 
 OPTIONAL_GHDL_WARNINGS = ("elaboration", "hide", "specs")
+
+PRIMARY_VHDL_UNIT_RE = re.compile(
+    r"(?im)^(?:"
+    r"entity\s+(?P<entity>[a-z][a-z0-9_]*)\s+is\b|"
+    r"package\s+(?!body\b)(?P<package>[a-z][a-z0-9_]*)\s+is\b|"
+    r"configuration\s+(?P<configuration>[a-z][a-z0-9_]*)\s+of\b"
+    r")"
+)
 
 
 @lru_cache(maxsize=1)
@@ -70,11 +80,46 @@ COMMON_VHDL_COMPILE_ARGS = [
 ]
 
 
-def start_lockstep_clocks(*signals, period_ns: float) -> None:
+async def sample_after_delta_cycles(clock) -> None:
+    """Wait for a rising edge and sample after combinational delta settling."""
+    from cocotb.triggers import ReadOnly, RisingEdge
+
+    await RisingEdge(clock)
+    await ReadOnly()
+
+
+async def sample_after_tpd(
+    clock,
+    *,
+    propagation_time: float = 1.0,
+    unit: str = "ns",
+) -> None:
+    """Propagation sampling: wait past a real VHDL ``after TPD_G`` delay."""
+    from cocotb.triggers import RisingEdge, Timer
+
+    await RisingEdge(clock)
+    await Timer(propagation_time, unit=unit)
+
+
+async def wait_after_edge_offset(
+    clock,
+    *,
+    offset_time: float,
+    unit: str = "ns",
+) -> None:
+    """Real-time timing: move stimulus by a deliberate offset after an edge."""
+    from cocotb.triggers import RisingEdge, Timer
+
+    await RisingEdge(clock)
+    await Timer(offset_time, unit=unit)
+
+
+def start_lockstep_clocks(*signals, period_ns: float):
     import cocotb
     from cocotb.triggers import Timer
 
     async def drive() -> None:
+        """Lifetime agent: drive all requested clocks until the test ends."""
         half_period_ns = period_ns / 2
         for signal in signals:
             signal.value = 0
@@ -90,7 +135,27 @@ def start_lockstep_clocks(*signals, period_ns: float) -> None:
     # Drive logically-common clocks from one coroutine so COMMON_CLK_G tests
     # really exercise a shared clock, not two same-period oscillators that can
     # drift in phase relative to each other.
-    cocotb.start_soon(drive())
+    return cocotb.start_soon(drive())
+
+
+async def cancel_and_join_tasks(tasks) -> None:
+    """Cancel owned lifetime tasks, await termination, and surface failures."""
+    tasks = tuple(tasks)
+    for task in tasks:
+        task.cancel()
+
+    first_error = None
+    for task in tasks:
+        try:
+            await task
+        except CancelledError:
+            pass
+        except BaseException as error:
+            if first_error is None:
+                first_error = error
+
+    if first_error is not None:
+        raise first_error
 
 
 def env_flag(name: str, *, default: bool) -> bool:
@@ -158,6 +223,39 @@ def hdl_parameters_from(parameters: dict[str, object]) -> dict[str, object]:
     }
 
 
+def cocotb_test_filter(*test_names: str) -> str:
+    if not test_names:
+        raise ValueError("At least one cocotb test name is required")
+    alternatives = "|".join(re.escape(name) for name in test_names)
+    return rf"(?:{alternatives})$"
+
+
+def cocotb_test_filter_excluding(*test_names: str) -> str:
+    if not test_names:
+        raise ValueError("At least one cocotb test name is required")
+    alternatives = "|".join(re.escape(name) for name in test_names)
+    return rf"^(?!.*(?:{alternatives})$).*"
+
+
+def cocotb_filtered_env(
+    extra_env: dict[str, object],
+    test_filter: str,
+) -> dict[str, object]:
+    result = dict(extra_env)
+    external_selectors = {
+        name: os.environ[name]
+        for name in ("COCOTB_TESTCASE", "COCOTB_TEST_FILTER")
+        if name in os.environ
+    }
+    if len(external_selectors) > 1:
+        raise ValueError("Specify only one of COCOTB_TESTCASE or COCOTB_TEST_FILTER")
+    if external_selectors:
+        result.update(external_selectors)
+    else:
+        result["COCOTB_TEST_FILTER"] = test_filter
+    return result
+
+
 def build_vhdl_sources() -> dict[str, list[str]]:
     surf_dir = BUILD_SRC_ROOT / "surf"
     ruckus_dir = BUILD_SRC_ROOT / "ruckus"
@@ -173,6 +271,35 @@ def build_vhdl_sources() -> dict[str, list[str]]:
     }
 
 
+def _resolved_source_path(path: str | Path) -> Path:
+    source = Path(path)
+    if not source.is_absolute():
+        source = REPO_ROOT / source
+    return source.resolve()
+
+
+@lru_cache(maxsize=None)
+def _primary_vhdl_units(path: Path) -> frozenset[str]:
+    if path.suffix.lower() not in {".vhd", ".vhdl"}:
+        return frozenset()
+
+    try:
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return frozenset()
+
+    source_without_comments = "\n".join(
+        line.split("--", 1)[0]
+        for line in source.splitlines()
+    )
+    return frozenset(
+        name.lower()
+        for match in PRIMARY_VHDL_UNIT_RE.finditer(source_without_comments)
+        for name in match.groupdict().values()
+        if name is not None
+    )
+
+
 def merge_vhdl_sources(
     base_sources: dict[str, list[str]],
     extra_sources: dict[str, list[str]] | None,
@@ -181,11 +308,46 @@ def merge_vhdl_sources(
         return base_sources
 
     merged = {library: list(paths) for library, paths in base_sources.items()}
+    resolved_by_library = {
+        library: {_resolved_source_path(path) for path in paths}
+        for library, paths in base_sources.items()
+    }
+    units_by_library = {
+        library: {
+            unit: _resolved_source_path(path)
+            for path in paths
+            for unit in _primary_vhdl_units(_resolved_source_path(path))
+        }
+        for library, paths in base_sources.items()
+    }
+
     for library, paths in extra_sources.items():
         merged.setdefault(library, [])
+        resolved_by_library.setdefault(library, set())
+        units_by_library.setdefault(library, {})
         # Append test-local sources after the imported SURF library so wrappers
         # can instantiate the real RTL that was already compiled above.
-        merged[library].extend(str(Path(path)) for path in paths)
+        for path in paths:
+            resolved = _resolved_source_path(path)
+            if resolved in resolved_by_library[library]:
+                raise ValueError(
+                    f"Extra VHDL source {path} duplicates {resolved} "
+                    f"already present in library {library}"
+                )
+
+            units = _primary_vhdl_units(resolved)
+            duplicate_units = sorted(units & units_by_library[library].keys())
+            if duplicate_units:
+                unit = duplicate_units[0]
+                previous = units_by_library[library][unit]
+                raise ValueError(
+                    f"Extra VHDL source {path} declares {unit}, already declared "
+                    f"by {previous} in library {library}"
+                )
+
+            merged[library].append(str(Path(path)))
+            resolved_by_library[library].add(resolved)
+            units_by_library[library].update({unit: resolved for unit in units})
     return merged
 
 

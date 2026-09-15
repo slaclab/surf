@@ -21,7 +21,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
@@ -43,8 +44,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         # Reset the AXI-Lite side and the exposed FIFO interface together so
@@ -108,5 +108,4 @@ def test_AxiLiteFifoPop(parameters):
         toplevel="surf.axilitefifopopipintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={"surf": ["axi/axi-lite/ip_integrator/AxiLiteFifoPopIpIntegrator.vhd"]},
     )

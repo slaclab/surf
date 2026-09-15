@@ -21,7 +21,8 @@
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -37,12 +38,12 @@ class TB:
         dut.ipbRdata.setimmediatevalue(0)
         dut.ipbAck.setimmediatevalue(0)
         dut.ipbErr.setimmediatevalue(0)
-        cocotb.start_soon(self._ipb_model())
+        # Lifetime IPbus protocol peer retained by the bench.
+        self._ipb_task = cocotb.start_soon(self._ipb_model())
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
 
     async def reset(self):
         self.dut.axiRst.setimmediatevalue(1)
@@ -55,11 +56,11 @@ class TB:
             self.axi = AxiLiteMaster(AxiLiteBus.from_prefix(self.dut, "S_AXI"), self.dut.axiClk, self.dut.axiRst)
 
     async def _ipb_model(self):
+        """Lifetime agent: serve IPbus requests until the test ends."""
         pending = None
         delay = 0
         while True:
-            await RisingEdge(self.dut.axiClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axiClk)
             self.dut.ipbAck.value = 0
             if pending is None and int(self.dut.ipbStrobe.value):
                 pending = {

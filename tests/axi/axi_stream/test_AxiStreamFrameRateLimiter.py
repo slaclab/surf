@@ -22,7 +22,8 @@
 
 import cocotb
 import pytest
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiStreamBus, AxiStreamFrame, AxiStreamSink, AxiStreamSource
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
@@ -41,8 +42,7 @@ class TB:
 
     async def cycle(self, count=1):
         for _ in range(count):
-            await RisingEdge(self.dut.axisClk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(self.dut.axisClk)
 
     async def reset(self):
         self.dut.axisRst.setimmediatevalue(1)
@@ -87,7 +87,4 @@ def test_AxiStreamFrameRateLimiter(parameters):
         toplevel="surf.axistreamframeratelimiteripintegrator",
         parameters=parameters,
         extra_env=parameters,
-        extra_vhdl_sources={
-            "surf": ["axi/axi-stream/ip_integrator/AxiStreamFrameRateLimiterIpIntegrator.vhd"],
-        },
     )

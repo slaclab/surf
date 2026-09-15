@@ -127,16 +127,10 @@ class TB:
             await self.cycle()
 
 
-@cocotb.test()
+@cocotb.test(skip=env_flag("REG_OUTPUT_G", default=False))
 async def programmable_delay_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    # REG_OUTPUT_G adds an extra registered stage on top of the programmable
-    # delay line. The behavioral coverage for that option is handled by the
-    # hold and reset tests, while this test stays focused on the selectable tap.
-    if tb.reg_output:
-        return
 
     # Change the selected tap while feeding distinct words so the test proves
     # the mux picks the requested historical sample, not just the newest word.

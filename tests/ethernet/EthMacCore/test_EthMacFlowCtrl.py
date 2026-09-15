@@ -25,7 +25,8 @@ from __future__ import annotations
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+
+from tests.common.regression_utils import sample_after_tpd
 
 from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
@@ -36,8 +37,7 @@ WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacFlowCtrlWrapper.vhd"
 
 async def cycle(clk, count: int = 1) -> None:
     for _ in range(count):
-        await RisingEdge(clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(clk)
 
 
 @cocotb.test()
