@@ -11,6 +11,8 @@
 # Test methodology:
 # - Sweep: Physical offsets, four-byte/bulk transports, page enable state,
 #   reads, rejected non-read requests, and selection/read/restoration failures.
+#   Decode signed fine timing offsets, nominal speed bins, and module capacity
+#   for monolithic, multi-load, and 3DS packages using independent byte vectors.
 # - Stimulus: Use real Rogue roots and memory transactions against an EEPROM
 #   model whose two pages share a physical window. Inject failures and pause
 #   selection to exercise concurrent access and transaction expiration.
@@ -18,8 +20,8 @@
 #   bounded selection traffic, read-only enforcement, propagated errors, recovery,
 #   invalid-request rejection, and worker startup/shutdown.
 # - Timing: Threading events establish transaction ordering; waits are bounded.
-#   Raw Rogue masters exercise queued and in-flight timeouts. No FPGA, I2C
-#   electrical timing, or SPD timing/capacity decoding is modeled here.
+#   Raw Rogue masters exercise queued and in-flight timeouts. No FPGA or I2C
+#   electrical timing is modeled here.
 
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
@@ -31,7 +33,10 @@ pr = pytest.importorskip('pyrogue', reason='SPD proxy tests require Rogue/PyRogu
 rogue = pytest.importorskip('rogue', reason='SPD proxy tests require Rogue/PyRogue')
 rim = pytest.importorskip('rogue.interfaces.memory')
 
-from surf.devices.micron import DdrSpd, Tse2004av  # noqa: E402
+from surf.devices.micron import (  # noqa: E402
+    DdrSpd, Tse2004av, decodeSpdPage0,
+    spdTotalCapacityMiB, spdTckAvgMinPs, spdSpeedBinMtps,
+)
 
 
 class PagedMemory(rim.Slave):
@@ -44,10 +49,13 @@ class PagedMemory(rim.Slave):
         self.pages = [bytearray((i + 17) % 256 for i in range(256)),
                       bytearray((i + 139) % 256 for i in range(256))]
         self.pages[0][4] = 5
+        self.pages[0][6] = 0
         self.pages[0][12] = 9
         self.pages[0][13] = 0x0b
         self.pages[0][14] = 0x80
+        self.pages[0][17] = 0
         self.pages[0][18] = 6
+        self.pages[0][125] = 0
         self.pages[1][69:73] = bytes.fromhex('12345678')
         self.pages[1][73:93] = b'EXAMPLE-DDR4-MODULE'.ljust(20, b' ')
         self.page = 0
@@ -386,3 +394,111 @@ def test_instantiate_false_remains_a_physical_device():
         assert spd.Custom.get() == 0x12345678
     finally:
         root.stop()
+
+
+def page0_bytes():
+    """Fields from the Advantech SQR-SD4N-16G2K4HBC 16 GiB DDR4-2400 SPD.
+
+    Only the fields needed by this decoder are populated; this is not a
+    complete SPD image with a valid CRC. References are in the local README.
+    """
+    page = bytearray(256)
+    page[4] = 0x85
+    page[12] = 0x09
+    page[13] = 0x03
+    page[18] = 0x07
+    page[125] = 0xD6
+    return page
+
+
+@pytest.mark.parametrize('medium,fine,period,rate', [
+    # JESD21-C Annex L, Table 42: seven nominal DDR4 speed grades.
+    (0x0A, 0x00, 1250, 1600),
+    (0x09, 0xCA, 1071, 1866),
+    (0x08, 0xC1, 937, 2133),
+    (0x07, 0xD6, 833, 2400),
+    (0x06, 0x00, 750, 2666),
+    (0x06, 0xBC, 682, 2933),
+    (0x05, 0x00, 625, 3200),
+    (0x08, 0xC2, 938, 2133),  # One-ps rounding variant.
+    (0x08, 0x7F, 1127, 1775),  # Largest positive fine offset.
+    (0x08, 0x80, 872, 2294),  # Most negative fine offset.
+    (0x08, 0xFF, 999, 2002),  # Negative one must not become unsigned 255.
+    (0x07, 0xB5, 800, 2500),  # Nonstandard period must not snap to a bin.
+])
+def test_page0_timing_includes_fine_offset_and_nominal_speed(medium, fine, period, rate):
+    page = page0_bytes()
+    page[18], page[125] = medium, fine
+    decoded = decodeSpdPage0(page)
+    assert decoded['TckAvgMinPs'] == period
+    assert decoded['SpeedBinMtps'] == rate
+
+
+@pytest.mark.parametrize('medium,fine,timebases', [
+    (0, 0, 0),
+    (0, 0x7F, 0),  # A fine offset cannot make a missing coarse field valid.
+    (1, 0x80, 0),  # Nonpositive period after the signed correction.
+    (7, 0xD6, 1),  # Reserved fine timebase.
+    (7, 0xD6, 4),  # Reserved medium timebase.
+])
+def test_unknown_timing_does_not_produce_a_speed(medium, fine, timebases):
+    page = page0_bytes()
+    page[18], page[125], page[17] = medium, fine, timebases
+    decoded = decodeSpdPage0(page)
+    assert decoded['TckAvgMinPs'] == 0
+    assert decoded['SpeedBinMtps'] == 0
+
+
+@pytest.mark.parametrize('density,package,organization,bus,capacity', [
+    (0x85, 0x00, 0x09, 0x03, 16384),  # Datasheet: 8 Gb x8, two ranks, no ECC.
+    (0x85, 0x00, 0x09, 0x0B, 16384),  # ECC bits do not add usable capacity.
+    (0x05, 0x00, 0x08, 0x0B, 32768),  # Monolithic x4, two package ranks.
+    (0x05, 0x91, 0x08, 0x0B, 32768),  # DDP: byte 12 already counts both ranks.
+    (0x05, 0xB1, 0x18, 0x0B, 65536),  # QDP: four ranks, no extra die factor.
+    (0x05, 0x92, 0x08, 0x0B, 65536),  # Reviewed 2H 3DS case: 64 GiB.
+    (0x05, 0xA2, 0x08, 0x0B, 98304),  # Three dies; count is not a power of two.
+    (0x05, 0xB2, 0x08, 0x0B, 131072),  # Four dies per package.
+    (0x05, 0xF2, 0x08, 0x0B, 262144),  # Eight dies per package.
+    (0x03, 0xB2, 0x09, 0x03, 16384),  # JEDEC example: 2 Gb x8, 2 ranks, 4H.
+    (0x05, 0x92, 0x48, 0x0B, 0),  # Asymmetric ranks need byte 10 as well.
+    (0x05, 0x90, 0x08, 0x0B, 0),  # Unspecified loading for a stacked package.
+    (0x05, 0x93, 0x08, 0x0B, 0),  # Reserved loading for a stacked package.
+])
+def test_page0_capacity_counts_3ds_dies_only(density, package, organization, bus, capacity):
+    page = page0_bytes()
+    page[4], page[6], page[12], page[13] = density, package, organization, bus
+    assert decodeSpdPage0(page)['TotalCapacityMiB'] == capacity
+
+
+def test_decoder_helpers_keep_existing_call_signatures():
+    assert spdTotalCapacityMiB(0x85, 0x09, 0x03) == 16384
+    assert spdTotalCapacityMiB(0x05, 0x08, 0x0B, byte6=0x92) == 65536
+    assert spdTckAvgMinPs(7) == 875
+    assert spdSpeedBinMtps(7) == 2286
+    assert spdTckAvgMinPs(7, byte125=0xD6) == 833
+    assert spdSpeedBinMtps(7, byte125=0xD6) == 2400
+
+
+def test_page0_link_variables_and_summary_use_corrected_decode():
+    with spd_root() as (_, spd, memory):
+        memory.pages[0][:] = page0_bytes()
+        memory.pages[0][6] = 0x92
+        memory.pages[0][12] = 0x08
+        memory.pages[0][13] = 0x0B
+        assert spd.Page0Summary.get() == '65536MiB, 2Rx4, 64-bit bus (+ECC), DDR4-2400'
+        memory.operations.clear()
+        # These values come from Rogue's unsigned array cache. In particular,
+        # byte 125 must be converted to signed Python arithmetic before use.
+        assert spd.TotalCapacityMiB.get(read=False) == 65536
+        assert spd.PackageRanks.get(read=False) == 2
+        assert spd.TckAvgMinPs.get(read=False) == 833
+        assert spd.SpeedBinMtps.get(read=False) == 2400
+        assert memory.operations == []
+
+
+def test_page0_summary_identifies_unsupported_capacity_and_timing():
+    with spd_root() as (_, spd, memory):
+        memory.pages[0][:] = page0_bytes()
+        memory.pages[0][12] |= 0x40
+        memory.pages[0][17] = 1
+        assert spd.Page0Summary.get() == 'unknown capacity, 2Rx8, 64-bit bus, unknown speed'

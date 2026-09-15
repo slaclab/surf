@@ -23,10 +23,21 @@ import queue
 # Each SPD byte occupies one 32-bit word in the FPGA's I2C register window.
 _SPD_PAGE_BYTES_C = 0x100 * 4
 
-# Medium timebase used by the DDR4 SPD minimum-cycle-time field (byte 18),
-# in picoseconds. Declared by name rather than as a bare literal so the
-# assumption it encodes is visible where it is used.
+# DDR4 SPD byte 17 encodes these timebases as zero; other codes are reserved.
 SPD_MTB_MEDIUM_PS_C = 125
+SPD_FTB_FINE_PS_C = 1
+
+# Minimum cycle periods and nominal labels from JESD21-C Annex L, Table 42.
+# The labels deliberately differ from rounded 2e6/tCK (e.g. 833 ps -> 2400).
+_SPD_SPEED_BINS = {
+    1250: 1600,
+    1071: 1866,
+    937: 2133,
+    833: 2400,
+    750: 2666,
+    682: 2933,
+    625: 3200,
+}
 
 # SDRAM density code (low 4 bits of byte 4) to per-die density in megabits.
 _SPD_DENSITY_MB_TABLE = {
@@ -43,20 +54,20 @@ _SPD_DENSITY_MB_TABLE = {
 }
 
 # -----------------------------------------------------------------------------
-# The byte offsets and field encodings decoded below are carried verbatim
-# from this project's own decisions and were NOT independently re-derived
-# from a JEDEC specification document or from the fitted part's datasheet:
+# DDR4 base-configuration fields per JESD21-C Annex L (DDR4 SPD release 6):
 #   - byte 4:  SDRAM density, low 4 bits, coded per _SPD_DENSITY_MB_TABLE
+#   - byte 6:  package type, die count, and signal loading (section 8.1.7)
 #   - byte 12: module organisation; low 3 bits are the device-width code
-#     (0 => 4 bits wide), bits 5:3 are the package-rank count minus one
+#     (0 => 4 bits wide), bits 5:3 are the package-rank count minus one,
+#     and bit 6 identifies asymmetric rank mixes
 #   - byte 13: module memory bus width; low 3 bits are the primary-bus-width
 #     code (0 => 8 bits wide), bits 4:3 are the ECC-width code
-#   - byte 18: minimum average cycle time (tCKAVGmin) in units of the medium
-#     timebase (125 ps)
 #   - byte 14 bit 7: module thermal sensor presence flag
-# If any offset or encoding above is wrong, these functions will return a
-# plausible-looking but incorrect value; that risk is only retired by
-# comparing a real board read against the parts actually fitted.
+#   - byte 17: medium/fine timebases (section 8.1.18)
+#   - bytes 18/125: tCKAVGmin medium count and signed fine correction
+# Capacity uses logical ranks as specified in section 8.1.14. Asymmetric
+# modules also require the secondary package description in byte 10 and are
+# not decoded here. Zero capacity/timing denotes unknown or unsupported data.
 # -----------------------------------------------------------------------------
 
 def spdSdramDensityMb(byte4):
@@ -92,41 +103,73 @@ def spdThermalSensorPresent(byte14):
     render as a digit rather than as a word."""
     return bool((byte14 >> 7) & 0x01)
 
-def spdTotalCapacityMiB(byte4, byte12, byte13):
+def spdTotalCapacityMiB(byte4, byte12, byte13, byte6=0):
+    """Decode symmetric module capacity, excluding ECC; return 0 if unknown.
+
+    The optional package byte defaults to monolithic for existing callers.
+    Multi-load stacks already count their ranks in byte 12. Only 3DS stacks
+    multiply package ranks by the number of individually addressable dies.
+    """
+    if byte12 & 0x40:
+        return 0  # Mixed ranks require the secondary package's organization.
     densityMb = spdSdramDensityMb(byte4)
     deviceWidth = spdDeviceWidth(byte12)
     if deviceWidth == 0:
         return 0
     primaryBusWidth = spdPrimaryBusWidth(byte13)
-    packageRanks = spdPackageRanks(byte12)
+    logicalRanks = spdPackageRanks(byte12)
+    if byte6 & 0x80:
+        signalLoading = byte6 & 0x03
+        if signalLoading == 2:
+            logicalRanks *= ((byte6 >> 4) & 0x07) + 1
+        elif signalLoading != 1:
+            return 0  # Unspecified/reserved non-monolithic organization.
     miBPerDie = densityMb // 8
     diesPerRank = primaryBusWidth // deviceWidth
-    return miBPerDie * diesPerRank * packageRanks
+    return miBPerDie * diesPerRank * logicalRanks
 
-def spdTckAvgMinPs(byte18):
-    return byte18 * SPD_MTB_MEDIUM_PS_C
-
-def spdSpeedBinMtps(byte18):
-    if byte18 == 0:
+def spdTckAvgMinPs(byte18, byte125=0, byte17=0):
+    """Decode minimum cycle time including its signed fine offset, in ps."""
+    medium = int(byte18) & 0xFF
+    if medium == 0 or byte17 & 0x0F:
         return 0
-    tckPs = spdTckAvgMinPs(byte18)
+    # Convert to Python int before subtracting so unsigned Rogue array values
+    # cannot wrap or reject the negative fine correction.
+    fine = int(byte125) & 0xFF
+    if fine & 0x80:
+        fine -= 0x100
+    return max(0, medium * SPD_MTB_MEDIUM_PS_C + fine * SPD_FTB_FINE_PS_C)
+
+def spdSpeedBinMtps(byte18, byte125=0, byte17=0):
+    """Return a nominal DDR4 bin, or the rounded rate for nonstandard timing."""
+    tckPs = spdTckAvgMinPs(byte18, byte125, byte17)
+    if tckPs == 0:
+        return 0
+    for period, rate in _SPD_SPEED_BINS.items():
+        # Allow one ps of SPD encoding precision, including 937/938 ps for
+        # DDR4-2133. Do not force unrelated periods to a standard bin.
+        if abs(tckPs - period) <= SPD_FTB_FINE_PS_C:
+            return rate
     return round(2000000 / tckPs)
 
 def decodeSpdPage0(pageBytes):
     byte4  = pageBytes[4]  & 0xFF
+    byte6  = pageBytes[6]  & 0xFF
     byte12 = pageBytes[12] & 0xFF
     byte13 = pageBytes[13] & 0xFF
     byte14 = pageBytes[14] & 0xFF
+    byte17 = pageBytes[17] & 0xFF
     byte18 = pageBytes[18] & 0xFF
+    byte125 = pageBytes[125] & 0xFF
     return {
         'SdramDensityMb'  : spdSdramDensityMb(byte4),
         'DeviceWidth'     : spdDeviceWidth(byte12),
         'PackageRanks'    : spdPackageRanks(byte12),
         'PrimaryBusWidth' : spdPrimaryBusWidth(byte13),
         'EccBits'         : spdEccBits(byte13),
-        'TotalCapacityMiB': spdTotalCapacityMiB(byte4, byte12, byte13),
-        'TckAvgMinPs'     : spdTckAvgMinPs(byte18),
-        'SpeedBinMtps'    : spdSpeedBinMtps(byte18),
+        'TotalCapacityMiB': spdTotalCapacityMiB(byte4, byte12, byte13, byte6),
+        'TckAvgMinPs'     : spdTckAvgMinPs(byte18, byte125, byte17),
+        'SpeedBinMtps'    : spdSpeedBinMtps(byte18, byte125, byte17),
         'ThermalSensorPresent': spdThermalSensorPresent(byte14),
     }
 
@@ -143,9 +186,11 @@ def _spdPage0SummaryGet(dev, var, read=True):
     pageBytes = var.dependencies[0].get(read=read)
     d = decodeSpdPage0(pageBytes)
     eccNote = ' (+ECC)' if d['EccBits'] else ''
+    capacity = f"{d['TotalCapacityMiB']}MiB" if d['TotalCapacityMiB'] else 'unknown capacity'
+    speed = f"DDR4-{d['SpeedBinMtps']}" if d['SpeedBinMtps'] else 'unknown speed'
     return (
-        f"{d['TotalCapacityMiB']}MiB, {d['PackageRanks']}Rx{d['DeviceWidth']}, "
-        f"{d['PrimaryBusWidth']}-bit bus{eccNote}, DDR4-{d['SpeedBinMtps']}"
+        f"{capacity}, {d['PackageRanks']}Rx{d['DeviceWidth']}, "
+        f"{d['PrimaryBusWidth']}-bit bus{eccNote}, {speed}"
     )
 
 # -----------------------------------------------------------------------------
@@ -423,7 +468,7 @@ class DdrSpd(pr.Device):
 
             self.add(pr.LinkVariable(
                 name         = 'PackageRanks',
-                description  = 'Number of ranks per module',
+                description  = 'Package ranks per module, before the 3DS die-count multiplier',
                 mode         = 'RO',
                 disp         = '{:d}',
                 linkedGet    = _spdPage0LinkGet('PackageRanks'),
@@ -452,7 +497,7 @@ class DdrSpd(pr.Device):
 
             self.add(pr.LinkVariable(
                 name         = 'TotalCapacityMiB',
-                description  = 'Total module capacity',
+                description  = 'Module capacity excluding ECC, including 3DS dies (0 if unknown/unsupported)',
                 mode         = 'RO',
                 units        = 'MiB',
                 disp         = '{:d}',
@@ -462,7 +507,7 @@ class DdrSpd(pr.Device):
 
             self.add(pr.LinkVariable(
                 name         = 'TckAvgMinPs',
-                description  = 'Minimum SDRAM cycle time (tCKAVGmin)',
+                description  = 'Minimum SDRAM cycle time including the fine offset (0 if unknown/unsupported)',
                 mode         = 'RO',
                 units        = 'ps',
                 disp         = '{:d}',
@@ -472,7 +517,7 @@ class DdrSpd(pr.Device):
 
             self.add(pr.LinkVariable(
                 name         = 'SpeedBinMtps',
-                description  = 'Module speed bin (data rate)',
+                description  = 'Nominal DDR4 speed bin, or estimated rate for nonstandard timing (0 if unknown)',
                 mode         = 'RO',
                 units        = 'MT/s',
                 disp         = '{:d}',
