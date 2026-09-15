@@ -51,9 +51,14 @@ import zlib
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge
 
-from tests.common.regression_utils import env_flag, parameter_case, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    env_flag,
+    parameter_case,
+    run_surf_vhdl_test,
+    sample_after_tpd,
+)
 from tests.ethernet.RoCEv2.roce_test_utils import (
     IcrcProtocolChecker,
     collect_icrc_words,
@@ -321,8 +326,7 @@ async def rocev2icrc_backpressure_test(dut):
     # Wait for the word to reach the output register and observe the stall.
     stalled_ready_low = False
     for _ in range(DRAIN_CYCLES):
-        await RisingEdge(dut.CLK)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(dut.CLK, propagation_time=2)
         if int(dut.m_crc_stream_valid.value) == 1:
             assert int(dut.m_crc_stream_data.value) == expected, (
                 f"stalled CRC word {int(dut.m_crc_stream_data.value):#010x} does not equal the "
@@ -345,8 +349,7 @@ async def rocev2icrc_backpressure_test(dut):
     dut.m_crc_stream_ready.value = 1
     accepted = False
     for _ in range(DRAIN_CYCLES):
-        await RisingEdge(dut.CLK)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(dut.CLK, propagation_time=2)
         if int(dut.m_crc_stream_valid.value) == 0:
             accepted = True
             break

@@ -9,12 +9,13 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: One wrapper instance shared by two modes, selected by the
-#   ROCE_RDMA_MODE environment variable so both compile the assembled stack
-#   once. "smoke" proves the AXI-Lite crossbar path; "directed_write" drives a
-#   full work request through to a frame on the wire. The DUT is the assembled
-#   RoCEv2AxiStreamRdma top level (crossbar + RoceConfigurator/RoCEv2Engine +
-#   RoCEv2Dcqcn + RoCEv2AxiStreamRdmaCore), simulated rather than elaborated.
+# - Sweep: One wrapper instance shared by two modes, each pytest node selecting
+#   its own cocotb entrypoint through COCOTB_TEST_FILTER so both compile the
+#   assembled stack once. "smoke" proves the AXI-Lite crossbar path;
+#   "directed_write" drives a full work request through to a frame on the
+#   wire. The DUT is the assembled RoCEv2AxiStreamRdma top level (crossbar +
+#   RoceConfigurator/RoCEv2Engine + RoCEv2Dcqcn + RoCEv2AxiStreamRdmaCore),
+#   simulated rather than elaborated.
 # - Stimulus: smoke resets the DUT, round-trips a register write/read through
 #   the entity's own AXI-Lite crossbar to RoceConfigurator, then holds both
 #   inbound stream valids low with the transmit-side ready held high.
@@ -31,21 +32,26 @@
 #   or the iCRC; see EXPECTED_BTH_OPCODE's own comment for why neither is
 #   present on this entity's boundary.
 # - Timing: The bench samples every signal a small settle delay past each
-#   rising edge (the `_edge` helper), never on the edge itself, matching
+#   rising edge (`sample_after_tpd`), never on the edge itself, matching
 #   every other bench in this directory.
 
 from __future__ import annotations
 
-import os
+import math
 
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, SimTimeoutError, Timer, with_timeout
+from cocotb.triggers import RisingEdge
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
-from tests.common.regression_utils import TESTS_ROOT, run_surf_vhdl_test
+from tests.common.regression_utils import (
+    TESTS_ROOT,
+    cocotb_test_filter,
+    run_surf_vhdl_test,
+    sample_after_tpd,
+)
 from tests.ethernet.RoCEv2.roce_test_utils import axil_write_wide
 
 CLK_NS = 6.4
@@ -56,7 +62,7 @@ CLK_NS = 6.4
 # ethernet/ruckus.tcl loads ethernet/RoCEv2 in the non-Vivado branch.
 WRAPPER_PATH = "ethernet/RoCEv2/wrappers/RoCEv2AxiStreamRdmaWrapper.vhd"
 
-# Shared compiled library across every ROCE_RDMA_MODE in this module: the full
+# Shared compiled library across every entrypoint in this module: the full
 # stack is roughly 54k lines of generated VHDL, so recompiling it per mode is
 # measured expensive.
 SIM_BUILD_KEY = str(TESTS_ROOT / "sim_build" / "ethernet" / "RoCEv2" / "RoCEv2AxiStreamRdma_shared")
@@ -252,8 +258,7 @@ class TB:
         dut.M_IBUDP_TREADY.value = 1
 
     async def _edge(self):
-        await RisingEdge(self.dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(self.dut.clk)
 
     async def reset(self):
         self.dut.rst.value = 1
@@ -272,12 +277,6 @@ def _has_undefined_bit(value) -> bool:
 
 @cocotb.test()
 async def rocev2_axistream_rdma_smoke_test(dut):
-    # cocotb runs every registered coroutine on every module invocation, and
-    # this module holds two of them (smoke and directed), so each needs a
-    # mutual mode guard on ROCE_RDMA_MODE.
-    if os.environ.get("ROCE_RDMA_MODE") != "smoke":
-        return
-
     tb = TB(dut)
     await tb.reset()
 
@@ -344,7 +343,10 @@ def test_RoCEv2AxiStreamRdma_smoke(parameters):
         test_file=__file__,
         toplevel="surf.rocev2axistreamrdmawrapper",
         parameters=parameters,
-        extra_env={**parameters, "ROCE_RDMA_MODE": "smoke"},
+        extra_env={
+            **parameters,
+            "COCOTB_TEST_FILTER": cocotb_test_filter("rocev2_axistream_rdma_smoke_test"),
+        },
         extra_vhdl_sources={"surf": [WRAPPER_PATH]},
         sim_build_key=SIM_BUILD_KEY,
     )
@@ -387,11 +389,9 @@ async def _post_payload(dut, payload: bytes) -> None:
         dut.S_AXIS_TKEEP.value = (1 << len(chunk)) - 1
         dut.S_AXIS_TLAST.value = 1 if is_last else 0
         dut.S_AXIS_TVALID.value = 1
-        await RisingEdge(dut.clk)
-        await Timer(1, unit="ns")
+        await sample_after_tpd(dut.clk)
         while int(dut.S_AXIS_TREADY.value) == 0:
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
+            await sample_after_tpd(dut.clk)
     dut.S_AXIS_TVALID.value = 0
     dut.S_AXIS_TLAST.value = 0
 
@@ -400,36 +400,30 @@ async def _capture_ibudp_frame(dut, tb, *, timeout_ns: float) -> bytes:
     """Captures one complete frame on the network-bound M_IBUDP_* stream,
     holding M_IBUDP_TREADY high (already the TB's init state) and recording
     only the TKEEP-selected bytes of each accepted beat, stopping on TLAST.
-    On a timeout, fails naming how many beats were seen and the last-read
+    Gives up after `timeout_ns` of simulated time (counted in clock cycles),
+    failing with how many beats were seen and the last-read
     successCounter/dmaReadCnt so a stall is diagnosable without a second run.
     """
     payload = bytearray()
     beats_seen = 0
 
-    async def _run() -> None:
-        nonlocal beats_seen
-        while True:
-            await RisingEdge(dut.clk)
-            await Timer(1, unit="ns")
-            if int(dut.M_IBUDP_TVALID.value) == 1 and int(dut.M_IBUDP_TREADY.value) == 1:
-                beats_seen += 1
-                tdata = int(dut.M_IBUDP_TDATA.value)
-                tkeep = int(dut.M_IBUDP_TKEEP.value)
-                nbytes = tkeep.bit_length()
-                payload.extend(tdata.to_bytes(32, "little")[:nbytes])
-                if int(dut.M_IBUDP_TLAST.value) == 1:
-                    return
+    for _ in range(math.ceil(timeout_ns / CLK_NS)):
+        await sample_after_tpd(dut.clk)
+        if int(dut.M_IBUDP_TVALID.value) == 1 and int(dut.M_IBUDP_TREADY.value) == 1:
+            beats_seen += 1
+            tdata = int(dut.M_IBUDP_TDATA.value)
+            tkeep = int(dut.M_IBUDP_TKEEP.value)
+            nbytes = tkeep.bit_length()
+            payload.extend(tdata.to_bytes(32, "little")[:nbytes])
+            if int(dut.M_IBUDP_TLAST.value) == 1:
+                return bytes(payload)
 
-    try:
-        await with_timeout(_run(), timeout_ns, "ns")
-    except SimTimeoutError as exc:
-        success = await axil_read_u32(tb.axil, REG_CORE_SUCCESS)
-        dma_read_cnt = await axil_read_u32(tb.axil, REG_CORE_DMA_READ_CNT)
-        raise AssertionError(
-            f"timed out waiting for a complete frame on M_IBUDP_*: {beats_seen} beat(s) seen, "
-            f"successCounter=0x{success:x}, dmaReadCnt=0x{dma_read_cnt:x}"
-        ) from exc
-    return bytes(payload)
+    success = await axil_read_u32(tb.axil, REG_CORE_SUCCESS)
+    dma_read_cnt = await axil_read_u32(tb.axil, REG_CORE_DMA_READ_CNT)
+    raise AssertionError(
+        f"timed out waiting for a complete frame on M_IBUDP_*: {beats_seen} beat(s) seen, "
+        f"successCounter=0x{success:x}, dmaReadCnt=0x{dma_read_cnt:x}"
+    )
 
 
 def _check_directed_frame(frame: bytes) -> list[str]:
@@ -467,9 +461,6 @@ def _check_directed_frame(frame: bytes) -> list[str]:
 
 @cocotb.test()
 async def rocev2_axistream_rdma_directed_test(dut):
-    if os.environ.get("ROCE_RDMA_MODE") != "directed":
-        return
-
     tb = TB(dut)
     await tb.reset()
 
@@ -548,7 +539,10 @@ def test_RoCEv2AxiStreamRdma_directed_write(parameters):
         test_file=__file__,
         toplevel="surf.rocev2axistreamrdmawrapper",
         parameters=parameters,
-        extra_env={**parameters, "ROCE_RDMA_MODE": "directed"},
+        extra_env={
+            **parameters,
+            "COCOTB_TEST_FILTER": cocotb_test_filter("rocev2_axistream_rdma_directed_test"),
+        },
         extra_vhdl_sources={"surf": [WRAPPER_PATH]},
         sim_build_key=SIM_BUILD_KEY,
     )

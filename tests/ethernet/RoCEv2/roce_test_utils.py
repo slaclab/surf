@@ -14,10 +14,10 @@ import functools
 import zlib
 
 import cocotb
-from cocotb.triggers import RisingEdge, Timer
 
 from tests.axi.utils import axil_read_u32, axil_write_u32
 from tests.base.crc.crc_test_utils import crc_byte_lookup, reverse_bits
+from tests.common.regression_utils import sample_after_tpd
 
 
 def range_chunks(data: bytes, *, chunk_bytes: int) -> list[bytes]:
@@ -370,17 +370,22 @@ class IcrcProtocolChecker:
         self._prev_data: str | None = None
         self._accepted_outputs = 0
         self._accepted_input_tlasts = 0
+        self._task = None
 
     def start(self) -> None:
-        cocotb.start_soon(self._monitor())
+        self._task = cocotb.start_soon(self._monitor())
 
     def report(self) -> list[str]:
         return list(self._violations)
 
     async def _monitor(self) -> None:
+        """Lifetime agent: sample the handshake every cycle for the whole
+        test, recording violations for `report()`. Runs until the test ends;
+        the bench never needs to cancel it because it owns no external
+        resource and the entrypoint reads `report()` at the end.
+        """
         while True:
-            await RisingEdge(self._clk)
-            await Timer(self._settle_ns, unit="ns")
+            await sample_after_tpd(self._clk, propagation_time=self._settle_ns)
             cycle = self._cycle
             self._cycle += 1
 
@@ -464,6 +469,13 @@ class IcrcProtocolChecker:
 # valid/ready/payload handshake, not a full AXI-Stream bus, and its output
 # side is not an AXI-Stream bus at all, so a short explicit driver has fewer
 # moving parts than half a library.
+
+# Upper bound on how long drive_icrc_beats waits for s_axis_tready on one
+# beat. RoCEv2ICrc has a single elastic output register, so a healthy engine
+# accepts every beat within a few cycles; anything longer is a stall.
+ICRC_READY_WAIT_CYCLES = 64
+
+
 async def drive_icrc_beats(dut, beats: list[dict[str, int]]) -> None:
     """Presents each beat of `beats` (each a dict shaped like
     `icrc_beats_from_payload`'s own output, keyed by `s_axis_tdata`,
@@ -477,18 +489,26 @@ async def drive_icrc_beats(dut, beats: list[dict[str, int]]) -> None:
     elsewhere in this tree: sampling exactly at `RoCEv2ICrc.vhd`'s own
     default `TPD_G=1ns` can race its `r <= rin after TPD_G` register update
     on the one cycle a transition lands exactly at the sample point.
+
+    Fails if `s_axis_tready` stays low for `ICRC_READY_WAIT_CYCLES` edges on
+    any one beat, so a stuck input side reports which beat stalled instead
+    of hanging the worker.
     """
     dut.s_axis_tvalid.value = 1
-    for beat in beats:
+    for index, beat in enumerate(beats):
         dut.s_axis_tdata.value = beat["s_axis_tdata"]
         dut.s_axis_tkeep.value = beat["s_axis_tkeep"]
         dut.s_axis_tlast.value = beat["s_axis_tlast"]
         dut.s_axis_tuser.value = beat.get("s_axis_tuser", 0)
-        while True:
-            await RisingEdge(dut.CLK)
-            await Timer(2, unit="ns")
+        for _ in range(ICRC_READY_WAIT_CYCLES):
+            await sample_after_tpd(dut.CLK, propagation_time=2)
             if int(dut.s_axis_tready.value) == 1:
                 break
+        else:
+            raise AssertionError(
+                f"s_axis_tready stayed low for {ICRC_READY_WAIT_CYCLES} cycles while "
+                f"presenting beat {index} of {len(beats)}"
+            )
     dut.s_axis_tvalid.value = 0
 
 
@@ -500,8 +520,7 @@ async def collect_icrc_words(dut, cycles: int) -> list[int]:
     """
     words: list[int] = []
     for _ in range(cycles):
-        await RisingEdge(dut.CLK)
-        await Timer(2, unit="ns")
+        await sample_after_tpd(dut.CLK, propagation_time=2)
         if int(dut.m_crc_stream_valid.value) == 1 and int(dut.m_crc_stream_ready.value) == 1:
             words.append(int(dut.m_crc_stream_data.value))
     return words
