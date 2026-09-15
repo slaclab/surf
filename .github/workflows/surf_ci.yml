@@ -331,10 +331,11 @@ jobs:
             tests/devices/analog_devices/test_AdcDdrCalibration.py \
             tests/devices/analog_devices/test_AdcDdrModel.py
 
-      - name: DDR4 SPD Rogue tests
+      - name: DDR4 SPD and sensor Rogue tests
         run: |
           PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/devices/micron/test_DdrSpd.py
+            tests/devices/micron/test_DdrSpd.py \
+            tests/devices/micron/test_Tse2004av.py
 
 # ----------------------------------------------------------------------------
 

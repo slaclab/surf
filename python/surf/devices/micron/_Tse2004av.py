@@ -2,19 +2,11 @@
 # Title      : PyRogue _Tse2004av Module
 #-----------------------------------------------------------------------------
 # Description:
-# PyRogue _Tse2004av Module
-#
-# CAVEAT: the register pointer assignments below follow the JC-42.4 standard
-# temperature-sensor layout (Capability, Configuration, Alarm limits, Ambient
-# Temperature, Manufacturer ID, Device ID/Revision) and were NOT confirmed
-# against a TSE2004AV part datasheet in the session that wrote this file. A
-# consumer should confirm that ManufacturerId and DeviceIdRevision read
-# plausible, fixed values before trusting the writable Configuration and
-# alarm-limit registers, since a wrong pointer on a writable register is
-# worse than a wrong pointer on a read-only one. The decoded Temperature
-# variable below follows the same JC-42.4 scale and sign convention as the
-# pointer map above it, was likewise not confirmed against a part datasheet,
-# so the identity registers remain the gate a consumer must check first.
+# JEDEC TSE2004av temperature-sensor registers and temperature decoding,
+# as documented in the Renesas TSE2004GB2B0 datasheet, pages 23-27:
+# https://www.renesas.com/en/document/dst/tse2004gb2b0-datasheet
+# The FPGA I2C bridge must map each 16-bit sensor register to a 32-bit word
+# and preserve the sensor word's byte order.
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
 # It is subject to the license terms in the LICENSE.txt file found in the
@@ -42,6 +34,21 @@ def _tse2004avTemperatureGet(dev, var, read=True):
     raw = var.dependencies[0].get(read=read)
     return decodeTse2004avTemperature(raw)
 
+def _tse2004avConfigurationGet(dev, var, read=True):
+    # All fields share one block: read it once, then assemble the cached bits.
+    # CLEAR and reserved bits always read zero and are omitted.
+    var.dependencies[0].get(read=read)
+    return sum(int(field.get(read=False)) << field.bitOffset[0]
+               for field in var.dependencies)
+
+def _tse2004avClearEvent(cmd):
+    try:
+        cmd.set(1)
+    finally:
+        # Complete the pulse even on failure so a later control or bulk write
+        # cannot replay a cached CLEAR bit. Writing zero has no clear effect.
+        cmd.set(0)
+
 class Tse2004av(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -57,13 +64,118 @@ class Tse2004av(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Configuration',
-            description = 'Sensor Configuration Register',
+            name        = 'EventMode',
+            description = 'EVENT pin mode; frozen when either limit lock is set',
             offset      = (0x01 << 2),
-            bitSize     = 16,
+            bitSize     = 1,
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
+            enum        = {0: 'Comparator', 1: 'Interrupt'},
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'EventPolarity',
+            description = 'EVENT pin active level; frozen when either limit lock is set',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 1,
+            base        = pr.UInt,
+            mode        = 'RW',
+            enum        = {0: 'ActiveLow', 1: 'ActiveHigh'},
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'CriticalOnly',
+            description = 'Limit EVENT to critical temperature; frozen by EventLock',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 2,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'EventEnable',
+            description = 'Enable the EVENT pin; frozen when either limit lock is set',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 3,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'EventStatus',
+            description = 'True while the sensor asserts the EVENT pin',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 4,
+            base        = pr.Bool,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteCommand(
+            name        = 'ClearEvent',
+            description = 'Release EVENT in interrupt mode; ignored in comparator mode',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 5,
+            function    = _tse2004avClearEvent,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'EventLock',
+            description = 'Lock high/low limits and related controls until sensor power-on reset',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 6,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'CriticalLock',
+            description = 'Lock the critical limit and related controls until sensor power-on reset',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 7,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Shutdown',
+            description = 'Stop temperature conversion; either limit lock prevents setting this bit',
+            offset      = (0x01 << 2),
+            bitSize     = 1,
+            bitOffset   = 8,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'Hysteresis',
+            description = 'Temperature drop needed to release an event; frozen by either limit lock',
+            offset      = (0x01 << 2),
+            bitSize     = 2,
+            bitOffset   = 9,
+            base        = pr.UInt,
+            mode        = 'RW',
+            enum        = {0: 'Disabled', 1: '1.5 degC', 2: '3 degC', 3: '6 degC'},
+        ))
+
+        # A LinkVariable keeps the raw read interface without overlapping the
+        # RemoteVariables: an RO hardware alias would mask their verification.
+        self.add(pr.LinkVariable(
+            name         = 'Configuration',
+            description  = 'Configuration register readback; write the named control fields',
+            mode         = 'RO',
+            disp         = '0x{:04x}',
+            linkedGet    = _tse2004avConfigurationGet,
+            dependencies = [self.EventMode, self.EventPolarity, self.CriticalOnly,
+                            self.EventEnable, self.EventStatus, self.EventLock,
+                            self.CriticalLock, self.Shutdown, self.Hysteresis],
         ))
 
         self.add(pr.RemoteVariable(
