@@ -30,7 +30,6 @@ import pytest
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
-    ROCE_ANALYSIS_SOURCES,
     build_ethernet_frame,
     build_ipv4_udp_frame,
     build_pause_frame,
@@ -312,7 +311,5 @@ def test_EthMacTop(parameters):
         toplevel="surf.ethmactoploopbackwrapper",
         parameters=parameters,
         extra_env=parameters,
-        # `EthMacTx` and `EthMacRx` reference the RoCE helper entities during
-        # analysis even when `ROCEV2_EN_G` is disabled in the loopback wrapper.
-        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES + [WRAPPER_PATH]},
+        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER_PATH]},
     )

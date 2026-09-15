@@ -199,9 +199,13 @@ rule:
   component_008:
     case: 'PascalCase'
     case_exceptions:
-      - 'mkCrcRawAxiStreamCustomSend'
-      - 'mkCrcRawAxiStreamCustomRecv'
       - 'mkAxiSTransportLayer'
+      - 'mkTransportLayer'
+      - 'mkQP'
+      - 'FIFO2'
+      - 'FIFO20'
+      - 'BRAM2'
+      - 'SizedFIFO'
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
       - 'i2c_master_byte_ctrl'
@@ -622,6 +626,12 @@ rule:
   instantiation_009:
     case: 'PascalCase'
     case_exceptions:
+      - 'mkTransportLayer'
+      - 'mkQP'
+      - 'FIFO2'
+      - 'FIFO20'
+      - 'BRAM2'
+      - 'SizedFIFO'
       - 'xpm_fifo_async'
       - 'xpm_fifo_sync'
       - 'xpm_memory_tdpram'
@@ -699,8 +709,6 @@ rule:
       - 'DNA_PORT'
       - 'DNA_PORTE2'
       - 'DSP48E1'
-      - 'mkCrcRawAxiStreamCustomSend'
-      - 'mkCrcRawAxiStreamCustomRecv'
       - 'mkAxiSTransportLayer'
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
