@@ -10,18 +10,22 @@
 
 # Test methodology:
 # - Sweep: Integrate two data lanes/channels and one 14-bit FCO lane with the
-#   optional pattern engine both enabled and disabled.
+#   optional pattern engine both enabled and disabled, with offset-binary
+#   recoding both enabled and disabled before arithmetic negation.
 # - Stimulus: Access the relocatable block at a nonzero absolute AXI address,
 #   verify hardware-owned startup waits for delay readiness and loads every
 #   configured delay, exercise manual and readiness-loss reset/reload paths and
 #   the required DDR bitslip quiet interval, acquire lock, stream samples, load
-#   every delay class, and snapshot sample history.
+#   every delay class, and snapshot sample history. Inject both defined and X
+#   samples while unlocked, then restore known samples after relock.
 # - Checks: AXI status follows alignment, streams preserve both channels and
 #   sidebands, delay requests are width-limited and retained across readiness
 #   loss, an in-flight snapshot aborts with SLVERR, snapshot writes reject reset
 #   state and otherwise block until publication, and AXI transactions execute
 #   coherently in the capture domain; the pattern window is capability-gated
-#   and reports its shared-phase result through AXI-Lite.
+#   and reports its shared-phase result through AXI-Lite. Unlocked output
+#   preserves cadence and error sidebands but substitutes a defined zero;
+#   locked output resumes the configured numeric formatting.
 # - Timing: AXI-Lite is crossed as a complete bus into the capture clock domain;
 #   one wide FIFO crosses coherent channel samples to the stream clock.
 
@@ -35,13 +39,16 @@ from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.axi.utils import axil_read_u32 as _axil_read_u32
 from tests.axi.utils import axil_write_u32 as _axil_write_u32
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.adc import offset_binary_to_twos_complement
+from tests.common.regression_utils import env_flag, run_surf_vhdl_test
 
 
 AXIL_BASE_ADDR = 0xC100_0000
 
 
-def negate14(value):
+def format14(value):
+    if env_flag("OFFSET_BINARY_G", default=False):
+        value = offset_binary_to_twos_complement(value, 14)
     return (-value) & 0x3FFF
 
 
@@ -178,7 +185,7 @@ async def core_integration_test(dut):
         await FallingEdge(dut.streamClk)
         await Timer(1, unit="ns")
         if int(dut.streamValid.value) == 3:
-            assert int(dut.streamData.value) == (negate14(0x2345) << 16) | negate14(0x1234)
+            assert int(dut.streamData.value) == (format14(0x2345) << 16) | format14(0x1234)
             assert int(dut.streamKeep.value) == 0xF
             assert int(dut.streamDest.value) == 0x0100
             assert int(dut.streamLast.value) == 0
@@ -187,12 +194,38 @@ async def core_integration_test(dut):
     else:
         assert False, "sample did not cross to stream clock"
 
-    # Preserve sample cadence during loss of alignment and mark each affected
-    # channel with ordinary AXI Stream tUser(0), without SSI framing.
+    # Preserve sample cadence during loss of alignment, substitute zero even
+    # for unknown deserializer data, and mark each channel with tUser(0).
     dut.fcoWord.value = 0
     await axil_poll(axil, 0x01C, lambda value: (value & 0x04) == 0)
+    for sample in (0x2567_3456, "X" * len(dut.sampleIn)):
+        await FallingEdge(dut.captureClk)
+        dut.sampleIn.value = sample
+        dut.sampleValid.value = 1
+        await RisingEdge(dut.captureClk)
+        await Timer(2, unit="ns")
+        dut.sampleValid.value = 0
+        for _ in range(40):
+            await FallingEdge(dut.streamClk)
+            await Timer(1, unit="ns")
+            if int(dut.streamValid.value) == 3:
+                assert dut.streamData.value.is_resolvable
+                assert int(dut.streamData.value) == 0
+                assert int(dut.streamKeep.value) == 0xF
+                assert int(dut.streamDest.value) == 0x0100
+                assert int(dut.streamLast.value) == 0
+                assert int(dut.streamUser.value) == 0x0101
+                break
+        else:
+            assert False, "unaligned sample did not cross to stream clock"
+
+    # Restore defined data before reacquiring FCO lock. The first accepted
+    # locked sample must pass through formatting, not retain the substitute.
     await FallingEdge(dut.captureClk)
     dut.sampleIn.value = 0x2567_3456
+    dut.fcoWord.value = 0b11111110000000
+    await axil_poll(axil, 0x01C, lambda value: (value & 0x04) == 0x04)
+    await FallingEdge(dut.captureClk)
     dut.sampleValid.value = 1
     await RisingEdge(dut.captureClk)
     await Timer(2, unit="ns")
@@ -201,15 +234,14 @@ async def core_integration_test(dut):
         await FallingEdge(dut.streamClk)
         await Timer(1, unit="ns")
         if int(dut.streamValid.value) == 3:
-            assert int(dut.streamData.value) == (negate14(0x2567) << 16) | negate14(0x3456)
+            assert int(dut.streamData.value) == (format14(0x2567) << 16) | format14(0x3456)
+            assert int(dut.streamKeep.value) == 0xF
+            assert int(dut.streamDest.value) == 0x0100
             assert int(dut.streamLast.value) == 0
-            assert int(dut.streamUser.value) == 0x0101
+            assert int(dut.streamUser.value) == 0
             break
     else:
-        assert False, "unaligned sample did not cross to stream clock"
-
-    dut.fcoWord.value = 0b11111110000000
-    await axil_poll(axil, 0x01C, lambda value: (value & 0x04) == 0x04)
+        assert False, "relocked sample did not cross to stream clock"
 
     # Observe each acknowledged load and feed the applied value back as the
     # logical PHY's current-delay status.
@@ -354,7 +386,8 @@ async def core_integration_test(dut):
 
 
 @pytest.mark.parametrize('pattern_check', (True, False))
-def test_AdcDdrCore(pattern_check):
+@pytest.mark.parametrize('offset_binary', (True, False))
+def test_AdcDdrCore(pattern_check, offset_binary):
     sources = [
         "devices/AnalogDevices/adcDdr/rtl/AdcDdrPkg.vhd",
         "devices/AnalogDevices/adcDdr/rtl/AdcDdrPhy.vhd",
@@ -368,6 +401,7 @@ def test_AdcDdrCore(pattern_check):
         parameters={
             'AXIL_BASE_ADDR_G': f'{AXIL_BASE_ADDR:032b}',
             'NEGATE_G': True,
+            'OFFSET_BINARY_G': offset_binary,
             'PATTERN_CHECK_G': pattern_check,
         },
         extra_vhdl_sources={"surf": sources},

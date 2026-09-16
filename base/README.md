@@ -12,3 +12,10 @@ This tree contains the foundational RTL used by the rest of SURF. Top-level `bas
 - `crc/`: CRC packages and implementations.
 
 Most modules use SURF package aliases such as `sl` and `slv`, `_G` generics, `_C` constants, and the local `RegType`/`REG_INIT_C` registered-process style. Reuse these base modules rather than duplicating CDC, FIFO, RAM, reset, or CRC logic in higher-level subsystems.
+
+`StdRtlPkg.offsetBinaryToTwosComplement()` and
+`twosComplementToOffsetBinary()` recode nonempty `slv` words while preserving
+their bounds and direction. The leftmost bit is the MSB; neither function
+resizes or justifies the result. `adcConversion()` is the real-valued simulation
+helper: it rounds and saturates to the selected output coding, including at
+positive full scale, and requires `high > low` and 1 through 30 output bits.

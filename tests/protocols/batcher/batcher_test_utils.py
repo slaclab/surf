@@ -162,11 +162,38 @@ def batcher_v2_header(*, seq: int = 0, data_bytes: int = 8) -> bytes:
     return bytes([0x2 | ((width & 0xF) << 4), seq & 0xFF])
 
 
+def batcher_v1_header(*, seq: int = 0, data_bytes: int = 8) -> bytes:
+    width = (data_bytes // 2).bit_length() - 1
+    return bytes([0x1 | ((width & 0xF) << 4), seq & 0xFF]).ljust(data_bytes, b"\x00")
+
+
 def batcher_subframe_tail(*, byte_count: int, dest: int, first_user: int, last_user: int) -> bytes:
     return (
         byte_count.to_bytes(4, "little")
         + bytes([dest & 0xFF, first_user & 0xFF, last_user & 0xFF])
     )
+
+
+def expected_batched_v1_bytes(
+    frames: list[tuple[bytes, int, int, int]],
+    *,
+    seq: int = 0,
+    data_bytes: int = 8,
+) -> bytes:
+    width = (data_bytes // 2).bit_length() - 1
+    stream = bytearray(batcher_v1_header(seq=seq, data_bytes=data_bytes))
+    for payload, dest, first_user, last_user in frames:
+        stream.extend(payload)
+        stream.extend(b"\x00" * (-len(payload) % data_bytes))
+        tail = batcher_subframe_tail(
+            byte_count=len(payload),
+            dest=dest,
+            first_user=first_user,
+            last_user=last_user,
+        ) + bytes([width & 0xF])
+        stream.extend(tail)
+        stream.extend(b"\x00" * (-len(tail) % data_bytes))
+    return bytes(stream)
 
 
 def expected_batched_bytes(frames: list[tuple[bytes, int, int, int]], *, seq: int = 0) -> bytes:

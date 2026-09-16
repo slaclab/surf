@@ -1,5 +1,5 @@
 flake8
-cocotb
+cocotb>=2.1
 cocotbext-axi
 cocotb-test
 pyzmq

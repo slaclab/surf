@@ -15,13 +15,15 @@
 #   transfers while sampling eight independent normal input words.
 # - Checks: Reads expose identity/defaults, writes have no effect before
 #   transfer, selected channels update together, PN resets hold/release, and
-#   unselected channels do not change.
+#   unselected channels do not change. Coding covers offset-binary defaults,
+#   staged two's-complement selection, both rails, and soft-reset recovery.
 # - Timing: Register writes and each output sample occur on the sample clock.
 
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
@@ -87,6 +89,38 @@ async def ad9252_register_and_pattern_test(dut):
     assert await read(dut, 0x02) == 0x30
     data = await sample(dut)
     assert [channel(data, i) for i in range(8)] == [0x100 + i for i in range(8)]
+
+    # Output coding is global and buffered until device update. Sweep both
+    # sides of zero and both rails independently of channel selection.
+    assert await read(dut, 0x14) == 0x00
+    codes = [0, 1, 0x1FFF, 0x2000, 0x2001, 0x3FFE, 0x3FFF, 0x1234]
+    dut.normalData.value = sum(value << (16*i) for i, value in enumerate(codes))
+    await write(dut, 0x14, 0x01)
+    assert await read(dut, 0x14) == 0x00
+    data = await sample(dut)
+    assert [channel(data, i) for i in range(8)] == codes
+    await write(dut, 0xFF, 0x01)
+    assert await read(dut, 0x14) == 0x01
+    data = await sample(dut)
+    expected = [offset_binary_to_twos_complement(value, 14) for value in codes]
+    assert [channel(data, i) for i in range(8)] == expected
+    await write(dut, 0x14, 0x00)
+    data = await sample(dut)
+    assert [channel(data, i) for i in range(8)] == expected
+    await write(dut, 0xFF, 0x01)
+    assert await read(dut, 0x14) == 0x00
+    data = await sample(dut)
+    assert [channel(data, i) for i in range(8)] == codes
+
+    # Soft reset clears both staged and active coding; a later update cannot
+    # resurrect a staged two's-complement selection.
+    await write(dut, 0x14, 0x01)
+    await write(dut, 0x00, 0x04)
+    await write(dut, 0xFF, 0x01)
+    assert await read(dut, 0x14) == 0x00
+    data = await sample(dut)
+    assert [channel(data, i) for i in range(8)] == codes
+    dut.normalData.value = sum((0x100 + i) << (16*i) for i in range(8))
 
     # Select channels 0 and 3, stage checkerboard, and prove transfer is required.
     await write(dut, 0x05, 0x09)

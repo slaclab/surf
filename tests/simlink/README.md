@@ -82,8 +82,10 @@ Status describes checked-in automated coverage on the current branch.
 | Deterministic Stream bandwidth | Reference model | Exact-cycle pacer and paced wrapper | pyzmq peer | Common VHDL, execution unavailable | None |
 
 The ordinary open-source job permits the real-Rogue test to skip. The separate
-required `SimLink Rogue Contract` job supplies the pinned Rogue environment and
-runs the test without allowing a skip.
+required `Rogue Regression Tests` job supplies the pinned Rogue environment and
+runs the test without allowing a skip. That job owns every Rogue-dependent
+suite in the repository, so new real-Rogue contracts belong there rather than
+in a job of their own.
 
 ## Commands
 
@@ -147,14 +149,15 @@ SIMLINK_ROGUE_PYTHON=/path/to/rogue/bin/python \
 ```
 
 The test skips when Rogue is unavailable. The required Linux CI contract uses
-`rogue/conda.yml` and pins Rogue `v6.15.0` for reproducibility.
+the repository-root `conda-rogue.yml` and pins Rogue `v6.15.0` for
+reproducibility.
 
 To reproduce that package environment on Linux before running the command
 above:
 
 ```bash
-conda env create -f tests/simlink/rogue/conda.yml
-conda activate surf-simlink-rogue
+conda env create -f conda-rogue.yml
+conda activate surf-rogue-test
 python -m pip install -r pip_requirements.txt
 ```
 

@@ -22,6 +22,7 @@
 import cocotb
 from cocotb.triggers import Edge, Timer, with_timeout
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
@@ -84,6 +85,7 @@ async def capture_frame(dut):
     return [(high[i] << 8) | low[i] for i in range(8)], frame
 
 
+
 @cocotb.test()
 async def ad9681_pin_level_device_sim_test(dut):
     normal = [0x200 + i for i in range(8)]
@@ -96,14 +98,18 @@ async def ad9681_pin_level_device_sim_test(dut):
     await Timer(1, unit="ns")
 
     # A normal conversion captured with the first frame must remain absent for
-    # 16 complete output frames, then appear on the seventeenth frame.
-    for _ in range(16):
+    # 16 complete output frames, then appear on the seventeenth frame. The
+    # serializer itself starts at zero. The conversion pipeline resets to
+    # offset-binary code zero (-FS), which subsequent default two's-complement
+    # frames emit as 0x8000 after justification.
+    for frame_index in range(16):
         words, frame = await capture_frame(dut)
-        assert words == [0] * 8
+        expected = 0 if frame_index == 0 else 0x8000
+        assert words == [expected] * 8
         assert frame == 0b11110000
 
     words, frame = await capture_frame(dut)
-    assert words == [value << 2 for value in normal]
+    assert words == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal]
     assert frame == 0b11110000
     assert int(dut.dN.value) == ((~int(dut.dP.value)) & 0xFFFF)
     assert int(dut.dcoN.value) == ((~int(dut.dcoP.value)) & 0x3)
@@ -117,7 +123,7 @@ async def ad9681_pin_level_device_sim_test(dut):
     words, _ = await capture_frame(dut)
     assert words[0] == 0xFFFC
     assert words[1] == 0xFFFC
-    assert words[2:] == [value << 2 for value in normal[2:]]
+    assert words[2:] == [(offset_binary_to_twos_complement(value, 14) << 2) for value in normal[2:]]
 
     # Reselect every channel, then apply the alternating checkerboard. Words are
     # latched once per frame; reading sampleData live for each serialized bit
