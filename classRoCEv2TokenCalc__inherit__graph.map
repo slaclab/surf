@@ -1,11 +1,13 @@
 <map id="RoCEv2TokenCalc" name="RoCEv2TokenCalc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="125,5,262,31"/>
-<area shape="rect" id="Node000002" href="$classRoCEv2TokenBucket.html" title=" " alt="" coords="117,79,270,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="196,44,196,79,191,79,191,44"/>
-<area shape="rect" id="Node000003" href="$classRoCEv2Dcqcn.html" title=" " alt="" coords="137,152,249,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="196,118,196,152,191,152,191,118"/>
-<area shape="rect" id="Node000004" href="$classRoCEv2AxiStreamRdma.html" title=" " alt="" coords="5,225,184,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="168,187,112,227,109,223,165,183"/>
-<area shape="rect" id="Node000005" href="$classRoCEv2DcqcnWrapper.html" title=" " alt="" coords="209,225,375,251"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="222,183,277,223,274,227,218,187"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="152,5,289,31"/>
+<area shape="rect" id="Node000002" href="$classRoCEv2TokenBucket.html" title=" " alt="" coords="144,79,297,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,44,223,79,218,79,218,44"/>
+<area shape="rect" id="Node000003" href="$classRoCEv2Dcqcn.html" title=" " alt="" coords="165,152,277,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="223,118,223,152,218,152,218,118"/>
+<area shape="rect" id="Node000004" href="$classRoCEv2AxiStreamRdma.html" title=" " alt="" coords="33,225,211,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="196,187,140,227,137,223,192,183"/>
+<area shape="rect" id="Node000006" href="$classRoCEv2DcqcnWrapper.html" title=" " alt="" coords="236,225,403,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="249,183,305,223,302,227,246,187"/>
+<area shape="rect" id="Node000005" href="$classRoCEv2AxiStreamRdmaWrapper.html" title=" " alt="" coords="5,299,239,324"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="125,264,125,299,119,299,119,264"/>
 </map>

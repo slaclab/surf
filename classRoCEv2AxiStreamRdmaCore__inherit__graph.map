@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="1403,413,1611,439"/>
 <area shape="rect" id="Node000030" href="$classRoCEv2AxiStreamRdma.html" title=" " alt="" coords="1701,388,1879,413"/>
 <area shape="poly" id="edge50_Node000001_Node000030" title=" " alt="" coords="1624,413,1700,406,1701,411,1625,418"/>
-<area shape="rect" id="Node000031" href="$classRoCEv2AxiStreamRdmaCoreWrapper.html" title=" " alt="" coords="1659,437,1921,463"/>
-<area shape="poly" id="edge51_Node000001_Node000031" title=" " alt="" coords="1625,433,1659,436,1658,442,1624,439"/>
+<area shape="rect" id="Node000032" href="$classRoCEv2AxiStreamRdmaCoreWrapper.html" title=" " alt="" coords="1659,437,1921,463"/>
+<area shape="poly" id="edge52_Node000001_Node000032" title=" " alt="" coords="1625,433,1659,436,1658,442,1624,439"/>
 <area shape="rect" id="Node000002" href="$classAxiStreamFifoV2.html" title=" " alt="" coords="1057,217,1188,243"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1162,247,1481,411,1479,415,1160,251"/>
 <area shape="rect" id="Node000003" href="$classAxiStreamGearbox.html" title=" " alt="" coords="864,104,1009,129"/>
@@ -81,4 +81,6 @@
 <area shape="poly" id="edge44_Node000027_Node000028" title=" " alt="" coords="811,469,884,472,884,477,811,474"/>
 <area shape="rect" id="Node000029" href="$classRegisterVector.html" title=" " alt="" coords="1064,464,1181,489"/>
 <area shape="poly" id="edge48_Node000022_Node000029" title=" " alt="" coords="1195,463,1236,457,1236,463,1195,469"/>
+<area shape="rect" id="Node000031" href="$classRoCEv2AxiStreamRdmaWrapper.html" title=" " alt="" coords="1969,388,2203,413"/>
+<area shape="poly" id="edge51_Node000030_Node000031" title=" " alt="" coords="1893,398,1969,398,1969,403,1893,403"/>
 </map>

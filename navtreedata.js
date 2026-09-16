@@ -38,12 +38,12 @@ var NAVTREEINDEX =
 "annotated.html",
 "classAxiMonAxiLIpIntegrator.html",
 "classAxiStreamTap_1_1structure.html",
-"classEncoder10b12b.html",
-"classGtp7Core.html",
-"classMux_1_1rtl.html",
-"classPgp4RxLiteLowSpeedLaneSmokeWrapper.html",
-"classSaltRxLvds_1_1rtl.html",
-"classSyncClockFreqWrapper.html"
+"classDspComparator.html",
+"classGth7RxRstSeq_1_1Behavioral.html",
+"classMasterRamIpIntegrator_1_1mapping.html",
+"classPgp4GtyUsWrapper_1_1rtl.html",
+"classSaciAxiLiteMasterWrapper_1_1rtl.html",
+"classSspLowSpeedDecoder8b10bWrapperTb.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

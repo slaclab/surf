@@ -5,5 +5,7 @@ var searchData=
   ['boxcarfilter_2',['BoxcarFilter',['../classBoxcarFilter.html',1,'']]],
   ['boxcarfiltertb_3',['BoxcarFilterTb',['../classBoxcarFilterTb.html',1,'']]],
   ['boxcarintegrator_4',['BoxcarIntegrator',['../classBoxcarIntegrator.html',1,'']]],
-  ['boxcarintegratortb_5',['BoxcarIntegratorTb',['../classBoxcarIntegratorTb.html',1,'']]]
+  ['boxcarintegratortb_5',['BoxcarIntegratorTb',['../classBoxcarIntegratorTb.html',1,'']]],
+  ['bram2_6',['BRAM2',['../classBRAM2.html',1,'']]],
+  ['bypasswire_7',['BypassWire',['../classBypassWire.html',1,'']]]
 ];
