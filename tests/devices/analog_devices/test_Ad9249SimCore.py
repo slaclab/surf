@@ -16,7 +16,8 @@
 #   independent normal words for every bank channel.
 # - Checks: Identity/default readback, selected-channel isolation, pattern
 #   values, PN reset hold/release, global transforms, soft reset, and
-#   suppression and the staged 0x100 update are checked.
+#   suppression and the staged 0x100 update are checked. Output coding
+#   defaults to two's complement and can be switched to offset binary.
 # - Timing: Configuration writes and samples share the model sample clock;
 #   only the AD9249 resolution/rate override requires device update.
 
@@ -24,6 +25,7 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, RisingEdge, Timer
 
+from tests.common.adc import offset_binary_to_twos_complement
 from tests.common.regression_utils import run_surf_vhdl_test
 
 
@@ -90,8 +92,9 @@ async def ad9249_bank_register_and_pattern_test(dut):
     assert await read(dut, 0x04) == 0x0F
     assert await read(dut, 0x05) == 0x3F
     assert await read(dut, 0x100) == 0x00
+    assert await read(dut, 0x14) == 0x01
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [0x200 + i for i in range(8)]
+    assert [channel(data, i) for i in range(8)] == [offset_binary_to_twos_complement(0x200 + i, 14) for i in range(8)]
 
     # Register 0x100 is staged until the transfer strobe at register 0xFF.
     await write(dut, 0x100, 0x63)
@@ -99,12 +102,18 @@ async def ad9249_bank_register_and_pattern_test(dut):
     await write(dut, 0xFF, 0x01)
     assert await read(dut, 0x100) == 0x63
 
-    # Two's-complement normal-data mode flips the 14-bit code MSB. Test
-    # patterns are checked separately because their format applicability differs.
-    await write(dut, 0x14, 0x01)
+    # Offset binary is an explicit override, while soft reset restores the
+    # datasheet default of two's complement immediately (no transfer strobe).
+    await write(dut, 0x14, 0x00)
+    assert await read(dut, 0x14) == 0x00
     data = await sample(dut)
-    assert channel(data, 1) == (0x201 ^ 0x2000)
+    assert channel(data, 1) == 0x201
     await write(dut, 0x00, 0x04)
+    assert await read(dut, 0x14) == 0x01
+    data = await sample(dut)
+    assert channel(data, 1) == offset_binary_to_twos_complement(0x201, 14)
+    # Keep later digital-pattern checks in explicit offset-binary mode.
+    await write(dut, 0x14, 0x00)
 
     # Select only channels 0 and 3. AD9249 writes become visible immediately.
     await write(dut, 0x04, 0x00)
@@ -173,7 +182,7 @@ async def ad9249_bank_register_and_pattern_test(dut):
     assert await read(dut, 0x05) == 0x3F
     assert await read(dut, 0x100) == 0x00
     data = await sample(dut)
-    assert [channel(data, i) for i in range(8)] == [0x200 + i for i in range(8)]
+    assert [channel(data, i) for i in range(8)] == [offset_binary_to_twos_complement(0x200 + i, 14) for i in range(8)]
 
 
 def test_Ad9249SimCore():

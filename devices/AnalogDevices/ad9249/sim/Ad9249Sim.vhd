@@ -1,7 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Primitive-free pin-level AD9249 device simulation
+-- Description: Pin-level Ad9249 ADC model with differential real inputs.
+--
+-- vin represents VIN+ minus VIN- in volts; nominal full scale is -1 V to
+-- +1 V. Normal conversions saturate, then pass through the device latency
+-- pipeline before coherent DDR serialization. SPI selects coding and test
+-- patterns; digital patterns bypass the normal-conversion pipeline.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -118,13 +123,13 @@ begin
          variable analogInput : real;
       begin
          -- Real-valued board models can briefly produce NaN at time zero.
-         -- Substitute low scale because adcConversion() cannot clamp NaN.
+         -- Substitute zero differential input because adcConversion() cannot clamp NaN.
          if (vin(i) < 0.0) or (vin(i) >= 0.0) then
             analogInput := vin(i);
          else
             analogInput := 0.0;
          end if;
-         normalData(i) <= "00" & adcConversion(analogInput, 0.0, 2.0, 14, false);
+         normalData(i) <= "00" & adcConversion(analogInput, -1.0, 1.0, 14, false);
       end process adcConvert;
    end generate GEN_NORMAL_DATA;
 

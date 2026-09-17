@@ -26,6 +26,7 @@ entity AdcDdrCoreWrapper is
       TPD_G            : time               := 1 ns;
       AXIL_BASE_ADDR_G : slv(31 downto 0)   := x"00000000";
       PATTERN_CHECK_G  : boolean            := true;
+      OFFSET_BINARY_G  : boolean            := false;
       NEGATE_G         : boolean            := false);
    port (
       axilClk           : in  sl;
@@ -137,6 +138,7 @@ begin
          SAMPLE_WIDTH_G         => 14,
          SERIALIZATION_FACTOR_G => 14,
          PATTERN_CHECK_G        => PATTERN_CHECK_G,
+         OFFSET_BINARY_G        => OFFSET_BINARY_G,
          NEGATE_G               => NEGATE_G)
       port map (
          axilClk          => axilClk,

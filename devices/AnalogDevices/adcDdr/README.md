@@ -28,6 +28,17 @@ physical-lane mapping and ADC configuration behavior. Their configuration
 devices expose the same `DigitalReset()` and `ResetPNLong()` commands for
 direct use from PyRogue and for the common calibration sequence.
 
+## Unlocked Stream Samples
+
+The normalized AD9249, AD9252, and AD9681 readouts preserve stream cadence
+while FCO alignment is lost. Until every FCO lane is locked, the core replaces
+all channel payloads with zero and asserts `tUser(0)`. This behavior applies
+to synthesized hardware as well as simulation. Consumers should use the error
+flag to reject those samples; zero is a rail in offset-binary coding. After
+relock, samples resume the configured numeric formatting. FCO lock alone does
+not establish that every data lane is correctly timed or free of unknowns in
+simulation.
+
 ## Delay Controller Readiness
 
 The `idelayCtrlRdy` input defaults low so an omitted 7-Series connection holds

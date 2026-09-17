@@ -22,12 +22,12 @@ members of the pair. Use `127.0.0.1`; the simulator binds only to loopback.
 
 ## Install and verify Rogue
 
-The checked SURF contract uses the environment pinned in
-`tests/simlink/rogue/conda.yml`:
+The checked SURF contract uses the environment pinned in the repository-root
+`conda-rogue.yml`:
 
 ```bash
-conda env create -f tests/simlink/rogue/conda.yml
-conda activate surf-simlink-rogue
+conda env create -f conda-rogue.yml
+conda activate surf-rogue-test
 python -c 'import rogue, pyrogue; print(rogue.Version.current())'
 ```
 
@@ -169,9 +169,10 @@ The constructor and graph operations above are verified Rogue APIs. A checked
 real-Rogue Stream contract now exists
 ([`test_RogueStreamRogue.py`](../../tests/simlink/rogue/test_RogueStreamRogue.py)),
 exchanging a frame in each direction against `RogueTcpStreamWrap` under GHDL
-with the real `stream.TcpClient`. Extending the required `simlink_rogue` CI job
-to run it (and the SideBand contract) alongside the Memory contract is a tracked
-follow-up; until then it runs locally with `SIMLINK_ROGUE_PYTHON` set.
+with the real `stream.TcpClient`. Extending the required
+`Rogue Regression Tests` CI job to run it (and the SideBand contract) alongside
+the Memory contract is a tracked follow-up; until then it runs locally with
+`SIMLINK_ROGUE_PYTHON` set.
 
 ## SideBand client
 
@@ -224,8 +225,8 @@ real-Rogue SideBand contract now exists
 exchanging opcode/remData in each direction against `RogueSideBandWrap` under
 GHDL with the real `SideBandSim` (note the `None`-for-unchanged-field callback
 convention above: the receive callback must guard `int(...)` on each field).
-Wiring it into the required `simlink_rogue` CI job is the same tracked follow-up
-noted for Stream.
+Wiring it into the required `Rogue Regression Tests` CI job is the same tracked
+follow-up noted for Stream.
 
 ## PGP2b convenience endpoint
 

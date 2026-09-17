@@ -67,6 +67,25 @@ and datasheet conversion latency. Normal conversion data is delayed by 16
 sample clocks for AD9249 and AD9681 and by eight sample clocks for AD9252.
 Digitally generated test patterns are selected after that conversion pipeline.
 
+For all three models, `vin` is differential voltage (`VIN+ - VIN-`), with a
+nominal full-scale range of -1 V to +1 V. Out-of-range inputs saturate; zero
+volts maps to offset-binary `0x2000` or two's-complement `0x0000`. The AD9249
+and AD9681 reset to two's-complement output (register `0x14 = 0x01`); AD9252
+resets to offset binary (`0x14 = 0x00`). AD9252 coding changes are buffered
+until a device-update write to `0xFF`; AD9249/AD9681 apply them immediately.
+The normal-data coding helpers live in `surf.StdRtlPkg`.
+
+The retained `ad9249/tb/Ad9249Group` model uses the same differential input
+range and honors its existing output-format register for normal conversion.
+Downstream benches that previously added a 1 V bias to the model's `vin` input
+must remove it. This change does not alter the physical input common mode.
+
+The flattened `*SimWrapper` adapters normally accept offset-binary input codes
+independently of the selected device output coding. `INPUT_MILLIVOLTS_G=true`
+instead interprets each 16-bit input slot as signed differential millivolts,
+allowing direct voltage and overrange tests. These test wrappers are supplied
+explicitly by the cocotb runners and are not loaded by ruckus manifests.
+
 Their serializer timing controls have the same meaning:
 
 - `DATA_PHASE_G` and `FCO_PHASE_G` apply a common static displacement relative

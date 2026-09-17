@@ -18,4 +18,5 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
 } else {
    loadSource -lib surf -path "$::DIR_PATH/EthMacCore/rtl/EthMacPkg.vhd"
    loadRuckusTcl "$::DIR_PATH/PtpCore"
+   loadRuckusTcl "$::DIR_PATH/RoCEv2"
 }

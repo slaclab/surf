@@ -69,7 +69,8 @@ architecture rtl of Ad9681SimCore is
    constant GLOBAL_INIT_C : GlobalType := (
       powerMode    => "000",
       outputInvert => '0',
-      outputFormat => '0',
+      -- AD9681 Register 0x14 resets to 0x01: two's-complement output.
+      outputFormat => '1',
       lsbFirst     => '0',
       outputMode   => "011",
       select2x     => '0',
@@ -232,7 +233,7 @@ begin
                   when "0000" =>
                      code := normalData(i)(13 downto 0);
                      if (r.global.outputFormat = '1') then
-                        code(13) := not code(13);
+                        code := offsetBinaryToTwosComplement(code);
                      end if;
                      word := code & "00";
                   when "0001" => word := "1000000000000000";
