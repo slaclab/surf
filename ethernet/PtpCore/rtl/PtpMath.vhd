@@ -15,9 +15,9 @@
 -- toward zero, even when the published quotient is rounded. This distinction
 -- lets PHC command producers normalize signed phase adjustments exactly.
 --
--- Holds the result and error stable until resultReady. Cancel discards active
--- work and suppresses a pending result transfer. PtpPort, PtpE2e, PtpServo and
--- PtpReg instantiate this engine for their own serialized calculations; each
+-- Holds the result and error stable until resultReady. Valid is registered;
+-- both producer and consumer exclude cancel/reset edges from transfers.
+-- PtpPort, PtpE2e, PtpServo and PtpPhc use this engine for serialized calculations; each
 -- caller owns fixed-point scaling and transaction provenance.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -51,6 +51,7 @@ entity PtpMath is
       roundNearest    : in  sl := '1';
       operandA        : in  slv(127 downto 0);
       operandB        : in  slv(127 downto 0);
+      -- Registered valid; transfer requires valid/ready high and cancel/reset inactive.
       resultValid     : out sl;
       resultReady     : in  sl := '1';
       resultValue     : out slv(127 downto 0);
@@ -70,6 +71,7 @@ architecture rtl of PtpMath is
       -- decisions; these fields do not introduce a protocol pipeline stage.
       magnitude       : unsigned(255 downto 0);
       limitValue      : unsigned(255 downto 0);
+      inputReady      : sl;
 
       state           : StateType;
       count           : natural range 0 to 127;
@@ -82,6 +84,7 @@ architecture rtl of PtpMath is
       product         : unsigned(255 downto 0);
       multiplicand    : unsigned(255 downto 0);
       remainderValue  : unsigned(128 downto 0);
+      resultValid     : sl;
       resultValue     : slv(127 downto 0);
       resultRemainder : slv(127 downto 0);
       error           : sl;
@@ -90,6 +93,7 @@ architecture rtl of PtpMath is
    constant REG_INIT_C : RegType := (
       magnitude       => (others => '0'),
       limitValue      => (others => '0'),
+      inputReady      => '0',
       state           => IDLE_S,
       count           => 0,
       divide          => '0',
@@ -101,6 +105,7 @@ architecture rtl of PtpMath is
       product         => (others => '0'),
       multiplicand    => (others => '0'),
       remainderValue  => (others => '0'),
+      resultValid     => '0',
       resultValue     => (others => '0'),
       resultRemainder => (others => '0'),
       error           => '0');
@@ -115,6 +120,7 @@ begin
    begin
       v := r;
 
+      v.inputReady := '0';
       v.magnitude  := (others => '0');
       v.limitValue := shift_left(to_unsigned(1, 256), 127);
       if r.negative = '0' then
@@ -146,6 +152,11 @@ begin
                   v.error := '1';
                   v.state := DONE_S;
                end if;
+            end if;
+            -- Ready describes this edge's admission, even when accepting the
+            -- operands above starts work. Set it after the transaction reset.
+            if cancel = '0' and rst /= RST_POLARITY_G then
+               v.inputReady := '1';
             end if;
          when RUN_S =>
             if r.divide = '1' then
@@ -199,19 +210,16 @@ begin
       end case;
       -- A generation/port abort cancels both active arithmetic and a stalled
       -- result before transfer. The caller owns the associated provenance.
+      v.resultValid := '0';
+      if v.state = DONE_S then
+         v.resultValid := '1';
+      end if;
       if cancel = '1' or (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
-      rin         <= v;
-      inputReady  <= '0';
-      resultValid <= '0';
-      if cancel = '0' and rst /= RST_POLARITY_G then
-         if r.state = IDLE_S then
-            inputReady <= '1';
-         elsif r.state = DONE_S then
-            resultValid <= '1';
-         end if;
-      end if;
+      rin             <= v;
+      inputReady      <= v.inputReady;
+      resultValid     <= r.resultValid;
       resultValue     <= r.resultValue;
       resultRemainder <= r.resultRemainder;
       resultError     <= r.error;

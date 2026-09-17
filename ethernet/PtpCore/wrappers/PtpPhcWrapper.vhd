@@ -65,6 +65,9 @@ entity PtpPhcWrapper is
       applyConfig          : in  sl;
       configValid          : out sl;
       commandValid         : in  sl;
+      commandCancel        : in  sl := '0';
+      commandStale         : in  sl := '0';
+      clearValid           : in  sl := '0';
       commandReady         : out sl;
       commandKind          : in  slv(2 downto 0);
       commandGeneration    : in  slv(31 downto 0);
@@ -200,10 +203,11 @@ begin
          configControl.busy    => '0',             -- [in]
          configValid           => configValid,     -- [out]
          servoEnable           => '1',             -- [in]
+         clearValid            => clearValid,      -- [in]
          commandMaster.data    => command,         -- [in]
          commandMaster.valid   => commandValid,    -- [in]
-         commandMaster.cancel  => '0',             -- [in]
-         commandMaster.stale   => '0',             -- [in]
+         commandMaster.cancel  => commandCancel,   -- [in]
+         commandMaster.stale   => commandStale,    -- [in]
          commandSlave.ready    => commandReady,    -- [out]
          commandSlave.ack      => commandAck,      -- [out]
          commandSlave.error    => commandError,    -- [out]

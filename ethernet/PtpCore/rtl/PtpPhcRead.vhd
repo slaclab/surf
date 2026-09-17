@@ -61,7 +61,20 @@ end entity PtpPhcRead;
 
 architecture rtl of PtpPhcRead is
 
-   constant WIDTH_C : positive := 209;
+   -- Private FIFO layout, least significant field first. Both packing and
+   -- unpacking use these boundaries; time/status field widths own the size.
+   constant VALID_BIT_C       : natural := 0;
+   constant TICKS_LOW_C       : natural := VALID_BIT_C+1;
+   constant GENERATION_LOW_C  : natural := TICKS_LOW_C+PTP_PHC_STATUS_INIT_C.ticks'length;
+   constant FRACTION_LOW_C    : natural := GENERATION_LOW_C+PTP_PHC_STATUS_INIT_C.generation'length;
+   constant NANOSECONDS_LOW_C : natural := FRACTION_LOW_C+PTP_TIME_INIT_C.fraction'length;
+   constant SECONDS_LOW_C     : natural := NANOSECONDS_LOW_C+PTP_TIME_INIT_C.nanoseconds'length;
+   constant WIDTH_C           : positive := SECONDS_LOW_C+PTP_TIME_INIT_C.seconds'length;
+
+   -- Retain four storage locations for each small distributed CDC FIFO.
+   -- This is a storage choice, not request concurrency: busy admits only one
+   -- transaction until its response returns, regardless of FIFO capacity.
+   constant FIFO_ADDR_BITS_C : positive := 2;
 
    signal reset         : sl;
    signal localReset    : sl;
@@ -138,7 +151,7 @@ begin
          MEMORY_TYPE_G => "distributed",
          FWFT_EN_G     => true,
          DATA_WIDTH_G  => 1,
-         ADDR_WIDTH_G  => 2)
+         ADDR_WIDTH_G  => FIFO_ADDR_BITS_C)
       port map (
          rst           => reset,         -- [in]
          wr_clk        => readClk,       -- [in]
@@ -168,7 +181,7 @@ begin
          MEMORY_TYPE_G => "distributed",
          FWFT_EN_G     => true,
          DATA_WIDTH_G  => WIDTH_C,
-         ADDR_WIDTH_G  => 2)
+         ADDR_WIDTH_G  => FIFO_ADDR_BITS_C)
       port map (
          rst           => reset,          -- [in]
          wr_clk        => phcClk,         -- [in]
@@ -234,12 +247,12 @@ begin
 
       rin                  <= v;
       readValid            <= r.valid and not localReset and not reset;
-      readTime.seconds     <= r.data(208 downto 161);
-      readTime.nanoseconds <= r.data(160 downto 129);
-      readTime.fraction    <= r.data(128 downto 97);
-      readGeneration       <= r.data(96 downto 65);
-      readTicks            <= r.data(64 downto 1);
-      readTimeValid        <= r.data(0);
+      readTime.seconds     <= r.data(WIDTH_C-1 downto SECONDS_LOW_C);
+      readTime.nanoseconds <= r.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C);
+      readTime.fraction    <= r.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C);
+      readGeneration       <= r.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C);
+      readTicks            <= r.data(GENERATION_LOW_C-1 downto TICKS_LOW_C);
+      readTimeValid        <= r.data(VALID_BIT_C);
       readSequence         <= slv(r.sequenceId);
    end process comb;
 
@@ -265,8 +278,12 @@ begin
             -- request; it cannot produce a partially old/new snapshot.
             requestTake <= '1';
             v.pending   := '1';
-            v.data      := phcTime.seconds & phcTime.nanoseconds & phcTime.fraction &
-               phcStatus.generation & phcStatus.ticks & phcStatus.timeValid;
+            v.data(WIDTH_C-1 downto SECONDS_LOW_C) := phcTime.seconds;
+            v.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C) := phcTime.nanoseconds;
+            v.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C) := phcTime.fraction;
+            v.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C) := phcStatus.generation;
+            v.data(GENERATION_LOW_C-1 downto TICKS_LOW_C) := phcStatus.ticks;
+            v.data(VALID_BIT_C) := phcStatus.timeValid;
          end if;
       end if;
       pin <= v;

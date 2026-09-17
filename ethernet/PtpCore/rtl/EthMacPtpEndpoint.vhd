@@ -190,6 +190,7 @@ begin
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          PHY_TYPE_G        => PHY_TYPE_G,
+         -- One pause quantum is 512 bits: 64 GMII or 8 XGMII cycles.
          PAUSE_512BITS_G   => ite(PHY_TYPE_G = "GMII", 64, 8),
          JUMBO_G           => false,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
@@ -198,7 +199,7 @@ begin
          PRIM_COMMON_CLK_G => true,
          PRIM_CONFIG_G     => EMAC_AXIS_CONFIG_C,
          BYP_EN_G          => true,
-         BYP_ETH_TYPE_G    => x"F788",
+         BYP_ETH_TYPE_G    => PTP_ETH_TYPE_AXIS_C,
          BYP_COMMON_CLK_G  => true,
          BYP_CONFIG_G      => EMAC_AXIS_CONFIG_C)
       port map (

@@ -54,18 +54,27 @@ Run the models alone without starting a simulator:
 
 - `test_ptp_math.py`, `test_ptp_phc.py`: checked arithmetic and cycle-by-cycle PHC
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.
+  Math cancellation checks also assert that result-valid stays stable before
+  the cancellation edge, including when a completed result is stalled.
 - `test_ptp_e2e.py`, `test_ptp_tx_ledger.py`: independent full-width E2E vectors,
   calibration across PHC steering, keyed response/completion reordering, narrow
   sequence wrap, unknown physical fate and reset/quarantine behavior.
+  Added checks cover registered result/sample validity during cancellation and
+  ledger occupancy alignment with allocation, wire completion and MAC reset.
+  These checks await maintainer VHDL approval before execution.
 - `ptp_endpoint_reference.py`, `test_ptp_endpoint_reference.py`: rational
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
-- `test_ptp_reg.py`: all four ABI v2 banks at zero and nonzero bases, SURF
-  field-strobe/alignment/error behavior, immutable commit candidates, cross-bank
+  It also checks registered command/cancellation/expiry stability between edges.
+  `test_ptp_phc.py` exercises revocation after admission and expiry priority over
+  validity-setting commands. These added timing checks await VHDL review before
+  regression execution.
+- `test_ptp_reg.py`: all four development register banks at zero and nonzero bases, SURF
+  field-strobe/address-alias/error behavior, immutable commit candidates, cross-bank
   atomicity, coherent snapshot sequences, queued commands and bus-reset recovery.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
-  local RTL decoder, child offsets, overlap and 1 KiB bank bounds; no PyRogue
+  local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
 - `test_ptp_port.py`: physical reordered/conflicting/foreign messages, bounded
   association replacement, timeout, grandmaster change and Announce metadata.

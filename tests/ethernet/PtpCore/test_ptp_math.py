@@ -12,6 +12,8 @@
 # - Sweep: Signed multiply/divide, rounding, overflow, and synchronous reset.
 # - Stimulus: Boundary operands and seeded independent Python integer vectors.
 # - Checks: Full 128-bit result, truncation remainder, error, stable stalled output.
+# - Registered-valid check: cancel may not change resultValid before the edge;
+#   producer and consumer must exclude cancellation edges from transfers.
 # - Timing: Each normal operation completes in 128 work cycles; cancel wins over
 #   input and result transfers, including cancellation during a stalled result.
 
@@ -26,11 +28,14 @@ MASK = (1 << 128)-1
 
 @cocotb.test()
 async def checked_arithmetic(d):
-    async def edge(**inputs):
+    async def edge(check_registered=False, **inputs):
+        before = int(d.resultValid.value) if check_registered else None
         d.clk.value = 0
         for name, value in inputs.items():
             getattr(d, name).value = value
         await Timer(3.2, unit="ns")
+        if check_registered:
+            assert int(d.resultValid.value) == before, "result valid changed between edges"
         d.clk.value = 1
         await Timer(3.2, unit="ns")
 
@@ -76,7 +81,7 @@ async def checked_arithmetic(d):
         await edge(inputValid=1, divide=0, operandA=7, operandB=9, resultReady=0)
         for _ in range(delay):
             await edge(inputValid=0)
-        await edge(cancel=1, resultReady=1)
+        await edge(check_registered=True, cancel=1, resultReady=1)
         assert not int(d.resultValid.value)
         await edge(cancel=0)
         assert int(d.inputReady.value)

@@ -41,8 +41,10 @@
 -- Register state and protocol state use one RegType/comb/seq pair. regRst
 -- clears bus responses only, while restart preserves configuration and the TX
 -- ledger lifetime. Measurement data/valid/abort and reverse-direction ready
--- use the package measurement records. PtpPortStatusType groups live status
--- and diagnostics; snapshot storage remains in this module. Active local registers are the sole configuration source;
+-- use the package measurement records. PtpPortLifecycleType carries immediate
+-- command cancellation and identity restart; PtpPortStatusType owns registered
+-- diagnostics. The AXI snapshot bank freezes pre-edge state independently of
+-- live reporting. Active local registers are the sole configuration source;
 -- PtpEndpoint coordinates their common prepare/validate/apply transaction.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -99,7 +101,7 @@ entity PtpPort is
       rxMessage           : in  PtpRxMessageType;
       rxValid             : in  sl;
       rxReady             : out sl;
-      rxQueueOverflow     : in  sl            := '0';
+      rxQueueOverflow     : in  sl := '0';
       rxAbort             : in  sl;
       txMessage           : in  PtpRxMessageType;
       txValid             : in  sl;
@@ -108,27 +110,100 @@ entity PtpPort is
       txSlave             : in  AxiStreamSlaveType;
       measurementMaster   : out PtpMeasurementMasterType;
       measurementSlave    : in  PtpMeasurementSlaveType;
+      lifecycle           : out PtpPortLifecycleType;
       status              : out PtpPortStatusType);
 end entity PtpPort;
 
 architecture rtl of PtpPort is
 
+   constant PAIR_DEPTH_C    : positive := 4;
+   constant HISTORY_DEPTH_C : positive := 4;
+
+   -- Existing implementation admission floor, in raw cycles. Its original
+   -- latency budget is not documented; retain it pending timing qualification.
+   constant MIN_ASSOCIATION_TICKS_C : positive := 2048;
+   -- Raw oscillator qualification envelope, independent of servo actuation.
+   constant MAX_OSCILLATOR_PPB_C  : positive := 200000; -- 200 ppm.
+   constant RATIO_QUALIFY_COUNT_C : positive := 2;
+   constant RATIO_FILTER_SHIFT_C  : positive := 2; -- One-quarter new estimate.
+   -- Supported profile interval policy: roughly 1 ms through 48.5 days.
+   -- These are admission bounds, not the representable signed wire range.
+   constant MIN_LOG_INTERVAL_C : integer := -10;
+   constant MAX_LOG_INTERVAL_C : integer := 22;
+   -- Announce uses twice the configured Sync receipt cap.
+   constant ANNOUNCE_CAP_SHIFT_C : natural := 1;
+   constant LFSR_SEED_C          : slv(15 downto 0) := PTP_PORT_CONFIG_INIT_C.lfsrSeed;
+
+   -- Untagged Delay_Req, excluding MAC-supplied padding and FCS.
+   constant TX_FRAME_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C;
+   constant TX_BEAT_BYTES_C  : positive := PTP_RX_AXIS_CONFIG_C.TDATA_BYTES_C;
+   constant TX_LAST_BEAT_C   : natural := (TX_FRAME_BYTES_C-1)/TX_BEAT_BYTES_C;
+   constant TX_LAST_BYTES_C  : positive := TX_FRAME_BYTES_C-TX_LAST_BEAT_C*TX_BEAT_BYTES_C;
+   constant TX_LAST_KEEP_C   : slv(TX_BEAT_BYTES_C-1 downto 0) := toSlv(2**TX_LAST_BYTES_C-1, TX_BEAT_BYTES_C);
+
    function initialConfig return PtpPortConfigType is
-      variable v      : PtpPortConfigType := PTP_PORT_CONFIG_INIT_C;
+      variable v      : PtpPortConfigType     := PTP_PORT_CONFIG_INIT_C;
       constant TICK_C : unsigned(63 downto 0) := to_unsigned(CLK_FREQ_G, 64);
 
    begin
-      v.delayInterval := slv(TICK_C);
-      v.syncTimeout := slv(TICK_C+shift_left(TICK_C, 1));
-      v.associationTimeout := slv(shift_left(TICK_C, 1));
-      v.maxExchange := slv(shift_left(TICK_C, 1));
-      v.minRateSpan := slv(shift_right(TICK_C, 1));
-      v.maxRateAge := slv(shift_left(TICK_C, 2));
+      v.delayInterval      := slv(TICK_C);               -- 1 s before jitter.
+      v.syncTimeout        := slv(resize(TICK_C*3, 64));  -- 3 s.
+      v.associationTimeout := slv(resize(TICK_C*2, 64));  -- 2 s.
+      v.maxExchange        := slv(resize(TICK_C*2, 64));  -- 2 s.
+      v.minRateSpan        := slv(TICK_C/2);             -- 0.5 s, rounded down to ticks.
+      v.maxRateAge         := slv(resize(TICK_C*4, 64));  -- 4 s.
       return v;
    end function;
 
-   constant NOMINAL_C     : unsigned(63 downto 0) := shift_left(unsigned(ptpNominalIncrement(CLK_FREQ_G)), 16);
-   constant RATE_MARGIN_C : unsigned(63 downto 0) := resize((resize(NOMINAL_C, 96)*to_unsigned(200000, 32))/to_unsigned(1000000000, 128), 64);
+   -- Validate the same pre-edge shadows captured by prepare.
+   function validConfig (cfg : PtpPortConfigType) return boolean is
+   begin
+      -- Identity and protocol selection.
+      if unsigned(cfg.minorVersion) > unsigned(PTP_MINOR_VERSION_MAX_C) then
+         return false;
+      end if;
+      if unsigned(cfg.localIdentity(15 downto 0)) = 0 or
+         unsigned(cfg.sourceIdentity(15 downto 0)) = 0 then
+         return false;
+      end if;
+
+      -- Physical and association limits.
+      if signed(cfg.maxPathDelay) <= 0 then
+         return false;
+      end if;
+      if unsigned(cfg.associationTimeout) < MIN_ASSOCIATION_TICKS_C then
+         return false;
+      end if;
+      if unsigned(cfg.maxRateAge) < unsigned(cfg.minRateSpan) then
+         return false;
+      end if;
+
+      -- Every timeout must fit the supported unsigned-difference range.
+      if not ptpValidTimeout(cfg.delayInterval) then
+         return false;
+      end if;
+      if not ptpValidTimeout(cfg.syncTimeout) then
+         return false;
+      end if;
+      if not ptpValidTimeout(cfg.associationTimeout) then
+         return false;
+      end if;
+      if not ptpValidTimeout(cfg.maxExchange) then
+         return false;
+      end if;
+      if not ptpValidTimeout(cfg.minRateSpan) then
+         return false;
+      end if;
+      if not ptpValidTimeout(cfg.maxRateAge) then
+         return false;
+      end if;
+      return true;
+   end function;
+
+   -- Q16 elapsed master ns / Q3 elapsed raw cycles -> Q48 ns/cycle.
+   constant RATE_RATIO_SHIFT_C : natural := PTP_RATIO_FRAC_BITS_C+PTP_TICK_PHASE_BITS_C-PTP_TIME_FRAC_BITS_C;
+   constant NOMINAL_C          : unsigned(63 downto 0) := shift_left(unsigned(ptpNominalIncrement(CLK_FREQ_G)), PTP_PHC_TO_RATIO_SHIFT_C);
+   constant RATE_MARGIN_C      : unsigned(63 downto 0) := resize((resize(NOMINAL_C, 96)*to_unsigned(MAX_OSCILLATOR_PPB_C, 32))/to_unsigned(PTP_PPB_SCALE_C, 128), 64);
 
    type PairType is record
       used             : sl;
@@ -151,40 +226,22 @@ architecture rtl of PtpPort is
       followCorrection => (others => '0'),
       sample           => PTP_SYNC_SAMPLE_INIT_C);
 
-   type PairArray is array (0 to 3) of PairType;
+   type PairArray is array (0 to PAIR_DEPTH_C-1) of PairType;
    type StateType is (
       IDLE_S,
       RATE_ISSUE_S,
       RATE_WAIT_S);
 
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
+      -- Live diagnostic state; AXI snapshots below have a separate lifetime.
       portStatus          : PtpPortStatusType;
-      announceChange      : sl;
-      externalAbort       : sl;
-      abortPort           : sl;
-      readyRx             : sl;
-      policyValid         : sl;
-      qualifiedRatio      : sl;
-      validResponse       : sl;
-      slot                : integer range -1 to 3;
-      freeSlot            : integer range -1 to 3;
-      completed           : integer range -1 to 3;
-      selected            : integer range -1 to 3;
-      syncDistance        : signed(127 downto 0);
-      nearestSyncDistance : signed(127 downto 0);
-      remoteTime          : signed(127 downto 0);
-      rateSpan            : signed(127 downto 0);
-      completedSync       : PtpSyncSampleType;
-      intervalTicksValue  : unsigned(63 downto 0);
-      malformed           : boolean;
 
       -- Local management state shares the core reset and register process.
       readSlave           : AxiLiteReadSlaveType;
       writeSlave          : AxiLiteWriteSlaveType;
       shadow              : PtpPortConfigType;
       candidate           : PtpPortConfigType;
+      configValid         : sl;
       activeConfig        : PtpPortConfigType;
       lastMac             : slv(47 downto 0);
       sequenceId          : slv(31 downto 0);
@@ -195,11 +252,11 @@ architecture rtl of PtpPort is
       snapUtc             : slv(15 downto 0);
       snapCounters        : Slv32Array(0 to 6);
       pairs               : PairArray;
-      history             : PtpSyncSampleArray(0 to 3);
-      historyValid        : slv(3 downto 0);
-      historyPtr          : natural range 0 to 3;
+      history             : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
+      historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
+      historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
       generation          : slv(31 downto 0);
-      active              : sl;
+      -- Last accepted sample retained for waveform diagnostics.
       lastSync            : PtpSyncSampleType;
       lastRemote          : signed(127 downto 0);
       syncLimit           : slv(63 downto 0);
@@ -208,7 +265,7 @@ architecture rtl of PtpPort is
       anchor              : PtpSyncSampleType;
       anchorValid         : sl;
       ratio               : slv(63 downto 0);
-      ratioCount          : natural range 0 to 2;
+      ratioCount          : natural range 0 to RATIO_QUALIFY_COUNT_C;
       ratioTicks          : slv(63 downto 0);
       state               : StateType;
       rateA               : slv(127 downto 0);
@@ -217,50 +274,25 @@ architecture rtl of PtpPort is
       measurement         : PtpMeasurementType;
       measurementValid    : sl;
       master              : AxiStreamMasterType;
-      frame               : slv(463 downto 0);
-      beat                : natural range 0 to 7;
+      frame               : slv(8*TX_FRAME_BYTES_C-1 downto 0);
+      beat                : natural range 0 to TX_LAST_BEAT_C;
       lastRequest         : slv(63 downto 0);
       requestInterval     : unsigned(63 downto 0);
       minimumInterval     : unsigned(63 downto 0);
       requestStarted      : sl;
       lfsr                : slv(15 downto 0);
-      exchange            : PtpExchangeType;
       pendingExchange     : PtpExchangeType;
-      announceBody        : slv(239 downto 0);
       announceSeen        : sl;
       announceTicks       : slv(63 downto 0);
-      gmIdentity          : slv(63 downto 0);
-      flags               : slv(15 downto 0);
-      utc                 : slv(15 downto 0);
-      rejectedCount       : slv(31 downto 0);
-      syncCount           : slv(31 downto 0);
-      delayCount          : slv(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
       portStatus          => PTP_PORT_STATUS_INIT_C,
-      announceChange      => '0',
-      externalAbort       => '0',
-      abortPort           => '0',
-      readyRx             => '0',
-      policyValid         => '0',
-      qualifiedRatio      => '0',
-      validResponse       => '0',
-      slot                => -1,
-      freeSlot            => -1,
-      completed           => -1,
-      selected            => -1,
-      syncDistance        => (others => '0'),
-      nearestSyncDistance => (others => '0'),
-      remoteTime          => (others => '0'),
-      rateSpan            => (others => '0'),
-      completedSync       => PTP_SYNC_SAMPLE_INIT_C,
-      intervalTicksValue  => (others => '0'),
-      malformed           => false,
       readSlave           => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
       shadow              => initialConfig,
       candidate           => initialConfig,
+      configValid         => toSl(validConfig(initialConfig)),
       activeConfig        => initialConfig,
       lastMac             => (others => '0'),
       sequenceId          => (others => '0'),
@@ -275,7 +307,6 @@ architecture rtl of PtpPort is
       historyValid        => (others => '0'),
       historyPtr          => 0,
       generation          => (others => '0'),
-      active              => '0',
       lastSync            => PTP_SYNC_SAMPLE_INIT_C,
       lastRemote          => (others => '0'),
       lastTicks           => (others => '0'),
@@ -299,18 +330,10 @@ architecture rtl of PtpPort is
       requestInterval     => (others => '0'),
       minimumInterval     => (others => '0'),
       requestStarted      => '0',
-      lfsr                => x"0001",
-      exchange            => PTP_EXCHANGE_INIT_C,
+      lfsr                => LFSR_SEED_C,
       pendingExchange     => PTP_EXCHANGE_INIT_C,
-      announceBody        => (others => '0'),
       announceSeen        => '0',
-      announceTicks       => (others => '0'),
-      gmIdentity          => (others => '0'),
-      flags               => (others => '0'),
-      utc                 => (others => '0'),
-      rejectedCount       => (others => '0'),
-      syncCount           => (others => '0'),
-      delayCount          => (others => '0'));
+      announceTicks       => (others => '0'));
 
    signal r                : RegType := REG_INIT_C;
    signal rin              : RegType;
@@ -337,14 +360,96 @@ architecture rtl of PtpPort is
    signal e2eTake          : sl;
    signal e2eError         : sl;
 
+   -- Prefer an existing sequence association, then an unused slot, then the
+   -- oldest completed slot. The caller retires expired entries before searching.
+   function findPair (pairs : PairArray; sequenceId : slv(15 downto 0)) return integer is
+      variable matched  : integer range -1 to PAIR_DEPTH_C-1;
+      variable reusable : integer range -1 to PAIR_DEPTH_C-1;
+   begin
+      matched  := -1;
+      reusable := -1;
+      for i in pairs'range loop
+         if pairs(i).used = '0' and reusable = -1 then
+            reusable := i;
+         elsif pairs(i).used = '1' and pairs(i).sample.sequenceId = sequenceId then
+            matched := i;
+         end if;
+      end loop;
+      if matched /= -1 then
+         return matched;
+      end if;
+      if reusable = -1 then
+         for i in pairs'range loop
+            if pairs(i).complete = '1' then
+               if reusable = -1 then
+                  reusable := i;
+               elsif unsigned(pairs(i).born) < unsigned(pairs(reusable).born) then
+                  reusable := i;
+               end if;
+            end if;
+         end loop;
+      end if;
+      return reusable;
+   end function;
+
+   function completedPair (pairs : PairArray) return integer is
+   begin
+      for i in pairs'range loop
+         if pairs(i).syncSeen = '1' and pairs(i).followSeen = '1' and pairs(i).complete = '0' then
+            return i;
+         end if;
+      end loop;
+      return -1;
+   end function;
+
+   -- Select by capture phase, not delivery time. Equal distances retain the
+   -- first history entry; a Sync just after the TX capture is also eligible.
+   function nearestSync (history : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
+   historyValid : slv(HISTORY_DEPTH_C-1 downto 0); sample : PtpDelaySampleType;
+   ticks : slv(63 downto 0); cfg : PtpPortConfigType) return integer is
+      variable selected : integer range -1 to HISTORY_DEPTH_C-1;
+      variable distance : signed(127 downto 0);
+      variable nearest  : signed(127 downto 0);
+   begin
+      selected     := -1;
+      nearest      := (others => '1');
+      nearest(127) := '0';
+      for i in history'range loop
+         distance := abs(ptpTickPhase(sample.capture)-ptpTickPhase(history(i).capture));
+         if historyValid(i) = '1' and distance < nearest and
+            history(i).capture.generation = sample.generation and
+            distance <= shift_left(signed(resize(unsigned(cfg.maxExchange), 128)), PTP_TICK_PHASE_BITS_C) and
+            unsigned(ticks)-unsigned(history(i).capture.ticks) <= unsigned(cfg.associationTimeout) then
+            selected := i;
+            nearest  := distance;
+         end if;
+      end loop;
+      return selected;
+   end function;
+
+   -- Supported log2(seconds) range; 0x7F means unspecified on the wire.
+   function validLogInterval (logInterval : slv(7 downto 0)) return boolean is
+   begin
+      return signed(logInterval) >= MIN_LOG_INTERVAL_C and signed(logInterval) <= MAX_LOG_INTERVAL_C;
+   end function;
+
+   -- Announce uses the general-message control value. Leap flags are mutually
+   -- exclusive, and the upper flag octet is reserved for this endpoint profile.
+   function validAnnounce (message : PtpRxMessageType) return boolean is
+   begin
+      return message.control = PTP_CONTROL_OTHER_C and
+         (message.flags and PTP_LEAP_FLAGS_MASK_C) /= PTP_LEAP_FLAGS_MASK_C and
+         (message.flags and PTP_GENERAL_RESERVED_C) = x"0000";
+   end function;
+
    function intervalTicks (logInterval : slv(7 downto 0);
    fallback : slv(63 downto 0)) return unsigned is
       variable exponent : integer range -128 to 127;
       variable value    : unsigned(63 downto 0);
    begin
       exponent := to_integer(signed(logInterval));
-      value := to_unsigned(CLK_FREQ_G, 64);
-      if exponent < -10 or exponent > 22 then
+      value    := to_unsigned(CLK_FREQ_G, 64);
+      if exponent < MIN_LOG_INTERVAL_C or exponent > MAX_LOG_INTERVAL_C then
          return unsigned(fallback);
       elsif exponent < 0 then
          return shift_right(value, -exponent);
@@ -352,32 +457,60 @@ architecture rtl of PtpPort is
       return shift_left(value, exponent);
    end function;
 
+   -- Three advertised intervals, capped by the configured raw-tick timeout.
+   -- Invalid/unspecified intervals use the cap; rejection accounting stays at
+   -- the message handler because an invalid interval need not reject its data.
+   function receiptTimeout (logInterval : slv(7 downto 0);
+   limit : slv(63 downto 0)) return slv is
+      variable ticks : unsigned(63 downto 0);
+   begin
+      if validLogInterval(logInterval) then
+         ticks := intervalTicks(logInterval, limit);
+         ticks := ticks + shift_left(ticks, 1);
+         if ticks < unsigned(limit) then
+            return slv(ticks);
+         end if;
+      end if;
+      return limit;
+   end function;
+
    function buildRequest (cfg : PtpPortConfigType;
    mac : slv(47 downto 0);
    seqId : slv(15 downto 0)) return slv is
-      variable bytes       : Slv8Array(0 to 57) := (others => (others => '0'));
-      variable resultValue : slv(463 downto 0);
-      constant DEST_C      : slv(47 downto 0) := x"011B19000000";
+      constant MESSAGE_LENGTH_C : slv(15 downto 0) := toSlv(PTP_TIMESTAMP_MSG_BYTES_C, 16);
+      variable bytes            : Slv8Array(0 to TX_FRAME_BYTES_C-1) := (others => (others => '0'));
+      variable resultValue      : slv(8*TX_FRAME_BYTES_C-1 downto 0);
 
    begin
+      -- Ethernet header, bytes 0..13. Destination uses network significance;
+      -- the SURF source MAC stores its first wire octet in the low byte.
       for i in 0 to 5 loop
-         bytes(i) := DEST_C(47-8*i downto 40-8*i);
+         bytes(i)   := PTP_PRIMARY_MULTICAST_MAC_C(47-8*i downto 40-8*i);
          bytes(6+i) := mac(8*i+7 downto 8*i);
       end loop;
-      bytes(12) := x"88";
-      bytes(13) := x"F7";
-      bytes(14) := x"01";
-      bytes(15) := cfg.minorVersion & x"2";
-      bytes(17) := x"2C";
-      bytes(18) := cfg.domainNumber;
+      bytes(12) := PTP_ETH_TYPE_C(15 downto 8);  -- EtherType, high octet first.
+      bytes(13) := PTP_ETH_TYPE_C(7 downto 0);
+
+      -- PTP common header, bytes 14..47. Explicit wire positions keep this
+      -- encoder readable; protocol values and message sizes remain named.
+      bytes(14) := PTP_TRANSPORT_SPECIFIC_C & PTP_MSG_DELAY_REQ_C;  -- transportSpecific/messageType.
+      bytes(15) := cfg.minorVersion & PTP_MAJOR_VERSION_C;         -- minorVersionPTP/versionPTP.
+      bytes(16) := MESSAGE_LENGTH_C(15 downto 8);                  -- messageLength.
+      bytes(17) := MESSAGE_LENGTH_C(7 downto 0);
+      bytes(18) := cfg.domainNumber;                              -- domainNumber.
+
+      -- sourcePortIdentity, bytes 34..43, high octet first.
       for i in 0 to 9 loop
          bytes(34+i) := cfg.localIdentity(79-8*i downto 72-8*i);
       end loop;
-      bytes(44) := seqId(15 downto 8);
+      bytes(44) := seqId(15 downto 8);               -- sequenceId.
       bytes(45) := seqId(7 downto 0);
-      bytes(46) := x"01";
-      bytes(47) := x"7F";
-      for i in 0 to 57 loop
+      bytes(46) := PTP_CONTROL_DELAY_REQ_C;          -- controlField.
+      bytes(47) := PTP_LOG_INTERVAL_UNSPECIFIED_C;   -- logMessageInterval.
+
+      -- Reserved fields, flags, correctionField and originTimestamp (48..57)
+      -- retain their zero initialization. Pack into low-byte-first AXI lanes.
+      for i in bytes'range loop
          resultValue(8*i+7 downto 8*i) := bytes(i);
       end loop;
       return resultValue;
@@ -386,14 +519,13 @@ architecture rtl of PtpPort is
    function forwardMeasurement (item : PtpSyncSampleType) return PtpMeasurementType is
       variable resultValue : PtpMeasurementType := PTP_MEASUREMENT_INIT_C;
    begin
-      resultValue.generation := item.capture.generation;
-      resultValue.ticks := item.capture.ticks;
+      resultValue.generation   := item.capture.generation;
+      resultValue.ticks        := item.capture.ticks;
       resultValue.syncSequence := item.sequenceId;
-      resultValue.forward := slv(ptpTimeQ16(item.capture.timestamp)-ptpWireTimeQ16(item.remoteTime)-signed(item.correction));
+      resultValue.forward      := slv(ptpTimeQ16(item.capture.timestamp)-ptpWireTimeQ16(item.remoteTime)-signed(item.correction));
       return resultValue;
    end function;
 
-   signal coreConfig   : PtpConfigType;
    signal ledgerStatus : slv(31 downto 0);
    signal timeoutCount : slv(31 downto 0);
 
@@ -412,7 +544,7 @@ begin
          macResetDone     => macResetDone,          -- [in]
          ticks            => phcStatus.ticks,       -- [in]
          generation       => phcStatus.generation,  -- [in]
-         config           => coreConfig,            -- [in]
+         config           => r.activeConfig,        -- [in]
          allocate         => allocate,              -- [in]
          allocateReady    => allocateReady,         -- [out]
          allocateSequence => allocateSequence,      -- [out]
@@ -479,35 +611,66 @@ begin
                    e2eError, ledgerStatus, timeoutCount) is
       variable v  : RegType;
       variable ep : AxiLiteEndpointType;
+
+      -- Same-edge admission/cancellation decisions.
+      variable announceChange : sl;
+      variable externalAbort  : sl;
+      variable abortPort      : sl;
+      variable readyRx        : sl;
+      variable policyValid    : sl;
+      variable qualifiedRatio : sl;
+      variable validResponse  : sl;
+      variable malformed      : boolean;
+
+      -- Bounded table searches (-1 means no match) and timestamp arithmetic.
+      variable slot          : integer range -1 to PAIR_DEPTH_C-1;
+      variable completed     : integer range -1 to PAIR_DEPTH_C-1;
+      variable selected      : integer range -1 to HISTORY_DEPTH_C-1;
+      variable remoteTime    : signed(127 downto 0);
+      variable rateSpan      : signed(127 downto 0);
+      variable completedSync : PtpSyncSampleType;
    begin
       v := r;
 
+      allocate     <= '0';
+      e2eInput     <= '0';
+      e2eSync      <= PTP_SYNC_SAMPLE_INIT_C;
+      delayReady   <= '0';
+      e2eTake      <= '0';
+      rateInput    <= '0';
+      v.generation := phcStatus.generation;
+      if r.measurementValid = '1' and measurementSlave.ready = '1' then
+         v.measurementValid := '0';
+      end if;
+
+      -------------------------------------------------------------------------
+      -- Immediate lifecycle and RX admission
+      -------------------------------------------------------------------------
       -- First check Ethernet/PTP identity, then capture provenance and age.
       -- A rejected record is still consumed below and counted as a rejection.
-      v.policyValid := '1';
-      if rxMessage.destination /= x"011B19000000" then
-         v.policyValid := '0';
+      policyValid := '1';
+      if rxMessage.destination /= PTP_PRIMARY_MULTICAST_MAC_C then
+         policyValid := '0';
       elsif rxMessage.sourcePortIdentity /= r.activeConfig.sourceIdentity then
-         v.policyValid := '0';
-      elsif rxMessage.domainNumber /= r.activeConfig.domainNumber or rxMessage.transportSpecific /= x"0" then
-         v.policyValid := '0';
+         policyValid := '0';
+      elsif rxMessage.domainNumber /= r.activeConfig.domainNumber or rxMessage.transportSpecific /= PTP_TRANSPORT_SPECIFIC_C then
+         policyValid := '0';
       elsif rxMessage.capture.generation /= phcStatus.generation or rxMessage.capture.error /= '0' then
-         v.policyValid := '0';
+         policyValid := '0';
       elsif unsigned(phcStatus.ticks) < unsigned(rxMessage.capture.ticks) then
-         v.policyValid := '0';
+         policyValid := '0';
       elsif unsigned(phcStatus.ticks)-unsigned(rxMessage.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
-         v.policyValid := '0';
+         policyValid := '0';
       end if;
 
       -- A changed grandmaster or timescale cancels the old measurements on
       -- this edge. This decision precedes readiness and cannot depend on it.
-      v.announceChange := '0';
+      announceChange := '0';
       if rxValid = '1' and r.state = IDLE_S and r.measurementValid = '0' then
-         if v.policyValid = '1' and r.announceSeen = '1' and rxMessage.messageType = x"B" then
-            if rxMessage.control = x"05" and rxMessage.flags(1 downto 0) /= "11" and
-               rxMessage.flags(15 downto 8) = x"00" then
-               if rxMessage.messageBody(87 downto 24) /= r.gmIdentity or rxMessage.flags(3) /= r.flags(3) then
-                  v.announceChange := '1';
+         if policyValid = '1' and r.announceSeen = '1' and rxMessage.messageType = PTP_MSG_ANNOUNCE_C then
+            if validAnnounce(rxMessage) then
+               if ptpGrandmasterIdentity(rxMessage) /= r.portStatus.grandmasterIdentity or rxMessage.flags(PTP_TIMESCALE_BIT_C) /= r.portStatus.announceFlags(PTP_TIMESCALE_BIT_C) then
+                  announceChange := '1';
                end if;
             end if;
          end if;
@@ -515,501 +678,469 @@ begin
 
       -- Independent protocol causes may revoke an accepted PHC command. Its
       -- own capture invalidation only flushes measurement/association work.
-      v.externalAbort := '0';
+      externalAbort := '0';
       if rst = RST_POLARITY_G or restart = '1' then
-         v.externalAbort := '1';
+         externalAbort := '1';
       elsif linkReady = '0' or enable = '0' then
-         v.externalAbort := '1';
-      elsif rxQueueOverflow = '1' or txAbort = '1' or v.announceChange = '1' then
-         v.externalAbort := '1';
-      elsif r.active = '1' then
+         externalAbort := '1';
+      elsif rxQueueOverflow = '1' or txAbort = '1' or announceChange = '1' then
+         externalAbort := '1';
+      elsif r.portStatus.active = '1' then
          if unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(r.syncLimit) then
-            v.externalAbort := '1';
+            externalAbort := '1';
          end if;
       end if;
-      v.abortPort := '0';
-      if v.externalAbort = '1' or captureAbort = '1' or rxAbort = '1' or
+      abortPort := '0';
+      if externalAbort = '1' or captureAbort = '1' or rxAbort = '1' or
          phcStatus.generation /= r.generation then
-         v.abortPort := '1';
+         abortPort := '1';
       end if;
 
-      v.qualifiedRatio := '0';
-      if r.ratioCount = 2 and
+      -- Timing exception: lifecycle and measurement abort must reach the PHC,
+      -- servo and RX queue before this edge can commit or transfer old work.
+      -- Registering these requires a shared cancellation/commit protocol;
+      -- diagnostic status below has no role in those immediate decisions.
+      lifecycle              <= PTP_PORT_LIFECYCLE_INIT_C;
+      lifecycle.commandAbort <= externalAbort;
+      if localMac /= r.lastMac then
+         lifecycle.identityRestart <= '1';
+      end if;
+      abortNow                <= abortPort;
+      measurementMaster.abort <= abortPort;
+      measurementMaster.data  <= r.measurement;
+      measurementMaster.valid <= r.measurementValid and not abortPort;
+
+      qualifiedRatio := '0';
+      if r.ratioCount = RATIO_QUALIFY_COUNT_C and
          unsigned(phcStatus.ticks)-unsigned(r.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
-         v.qualifiedRatio := '1';
+         qualifiedRatio := '1';
       end if;
-      v.readyRx := '0';
-      if r.state = IDLE_S and r.measurementValid = '0' and v.abortPort = '0' then
-         v.readyRx := '1';
+      readyRx := '0';
+      if r.state = IDLE_S and r.measurementValid = '0' and abortPort = '0' then
+         readyRx := '1';
       end if;
-      v.validResponse := '0';
-      if rxMessage.messageType = x"9" and rxMessage.flags = x"0000" and
-         rxMessage.control = x"03" and unsigned(rxMessage.messageBody(191 downto 160)) < 1000000000 then
-         v.validResponse := rxValid and v.readyRx and v.policyValid;
+      validResponse := '0';
+      if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and rxMessage.flags = x"0000" and
+         rxMessage.control = PTP_CONTROL_DELAY_RESP_C and unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
+         validResponse := rxValid and readyRx and policyValid;
       end if;
+      rxReady       <= readyRx;
+      responseValid <= validResponse;
 
-      allocate                   <= '0';
-      e2eInput                   <= '0';
-      e2eSync                    <= PTP_SYNC_SAMPLE_INIT_C;
-      delayReady                 <= '0';
-      e2eTake                    <= '0';
-      v.slot                     := -1;
-      v.freeSlot                 := -1;
-      v.completed                := -1;
-      v.selected                 := -1;
-      v.nearestSyncDistance      := (others => '1');
-      v.nearestSyncDistance(127) := '0';
-      v.completedSync            := PTP_SYNC_SAMPLE_INIT_C;
-      v.malformed                := false;
-      v.generation               := phcStatus.generation;
-      if r.measurementValid = '1' and measurementSlave.ready = '1' then
-         v.measurementValid := '0';
-      end if;
-
+      -------------------------------------------------------------------------
+      -- TX ownership and request scheduling
+      -------------------------------------------------------------------------
       -- TX ownership survives abort. Once valid is presented, every byte and
       -- sideband stays stable under backpressure until the entire frame drains.
       if r.master.tValid = '1' and txSlave.tReady = '1' then
          v.master := AXI_STREAM_MASTER_INIT_C;
-         if r.beat /= 7 then
+         if r.beat /= TX_LAST_BEAT_C then
             v.beat          := r.beat+1;
             v.master.tValid := '1';
-            if v.beat = 7 then
-               v.master.tData(15 downto 0) := r.frame(463 downto 448);
-               v.master.tKeep(7 downto 0)  := x"03";
+            if v.beat = TX_LAST_BEAT_C then
+               v.master.tData(8*TX_LAST_BYTES_C-1 downto 0) := r.frame(8*TX_FRAME_BYTES_C-1 downto 8*TX_LAST_BEAT_C*TX_BEAT_BYTES_C);
+               v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0) := TX_LAST_KEEP_C;
                v.master.tLast              := '1';
             else
                -- Static slices make the seven-way beat mux explicit to both
                -- synthesis frontends; the final two-byte beat is handled above.
-               for i in 0 to 6 loop
+               for i in 0 to TX_LAST_BEAT_C-1 loop
                   if v.beat = i then
-                     v.master.tData(63 downto 0) := r.frame(64*i+63 downto 64*i);
+                     v.master.tData(8*TX_BEAT_BYTES_C-1 downto 0) := r.frame(8*TX_BEAT_BYTES_C*(i+1)-1 downto 8*TX_BEAT_BYTES_C*i);
                   end if;
                end loop;
-               v.master.tKeep(7 downto 0) := x"FF";
+               v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0) := (others => '1');
             end if;
          end if;
       end if;
+      txMaster <= r.master;
+
       -- Schedule a new request only after servicing an already presented TX beat.
-      v.intervalTicksValue := unsigned(r.activeConfig.delayInterval);
-      if r.minimumInterval > v.intervalTicksValue then
-         v.intervalTicksValue := r.minimumInterval;
-      end if;
-      if r.active = '1' and v.qualifiedRatio = '1' and r.master.tValid = '0' and allocateReady = '1' and
+      if r.portStatus.active = '1' and qualifiedRatio = '1' and r.master.tValid = '0' and allocateReady = '1' and
          (r.requestStarted = '0' or unsigned(phcStatus.ticks)-unsigned(r.lastRequest) >= r.requestInterval) then
          allocate                    <= '1';
          v.frame                     := buildRequest(r.activeConfig, localMac, allocateSequence);
          v.master                    := AXI_STREAM_MASTER_INIT_C;
          v.master.tValid             := '1';
-         v.master.tKeep(7 downto 0)  := x"FF";
-         v.master.tData(63 downto 0) := v.frame(63 downto 0);
+         v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0) := (others => '1');
+         v.master.tData(8*TX_BEAT_BYTES_C-1 downto 0) := v.frame(8*TX_BEAT_BYTES_C-1 downto 0);
          ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
-         v.beat                      := 0;
-         v.lastRequest               := phcStatus.ticks;
-         v.requestStarted            := '1';
+         v.beat           := 0;
+         v.lastRequest    := phcStatus.ticks;
+         v.requestStarted := '1';
          -- A bounded three-point schedule (0.5, 1.0, 1.5 times mean) avoids a
          -- runtime multiplier while preserving deterministic seeded variation.
-         v.requestInterval := v.intervalTicksValue;
-         if r.lfsr(1 downto 0) = "00" then
-            v.requestInterval := shift_right(v.intervalTicksValue, 1);
-         elsif r.lfsr(1 downto 0) = "11" then
-            v.requestInterval := v.intervalTicksValue + shift_right(v.intervalTicksValue, 1);
+         v.requestInterval := unsigned(r.activeConfig.delayInterval);
+         if r.minimumInterval > v.requestInterval then
+            v.requestInterval := r.minimumInterval;
          end if;
+         if r.lfsr(1 downto 0) = "00" then
+            v.requestInterval := shift_right(v.requestInterval, 1);
+         elsif r.lfsr(1 downto 0) = "11" then
+            v.requestInterval := v.requestInterval + shift_right(v.requestInterval, 1);
+         end if;
+         -- Fibonacci LFSR taps 16, 14, 13, 11 (one-based); shift toward bit 15,
+         -- feed the XOR into bit 0. A nonzero seed avoids the all-zero lockup.
          v.lfsr := r.lfsr(14 downto 0) & (r.lfsr(15) xor r.lfsr(13) xor r.lfsr(12) xor r.lfsr(10));
       end if;
 
+      -------------------------------------------------------------------------
+      -- RX association and message dispatch
+      -------------------------------------------------------------------------
       -- Retire expired partial associations before accepting this cycle's RX record.
-      for i in 0 to 3 loop
+      for i in r.pairs'range loop
          if r.pairs(i).used = '1' and
             unsigned(phcStatus.ticks)-unsigned(r.pairs(i).born) > unsigned(r.activeConfig.associationTimeout) then
             v.pairs(i) := PAIR_INIT_C;
          end if;
-         if v.pairs(i).used = '0' and v.freeSlot = -1 then
-            v.freeSlot := i;
-         elsif v.pairs(i).used = '1' and v.pairs(i).sample.sequenceId = rxMessage.sequenceId then
-            v.slot := i;
-         end if;
       end loop;
-      if v.freeSlot = -1 then
-         for i in 0 to 3 loop
-            if v.pairs(i).complete = '1' then
-               if v.freeSlot = -1 then
-                  v.freeSlot := i;
-               elsif unsigned(v.pairs(i).born) < unsigned(v.pairs(v.freeSlot).born) then
-                  v.freeSlot := i;
-               end if;
-            end if;
-         end loop;
-      end if;
+
       -- Consume one message: reject policy failures, otherwise dispatch by type.
-      if v.readyRx = '1' and rxValid = '1' then
-         if v.policyValid = '0' then
-            v.malformed := true;
-         elsif rxMessage.messageType = x"0" or rxMessage.messageType = x"8" then
-            if (rxMessage.messageType = x"0" and (rxMessage.flags /= x"0200" or rxMessage.control /= x"00")) or
-               (rxMessage.messageType = x"8" and (rxMessage.flags /= x"0000" or rxMessage.control /= x"02" or
-                unsigned(rxMessage.messageBody(191 downto 160)) >= 1000000000)) then
-               v.malformed := true;
-            else
-               if v.slot = -1 then
-                  v.slot := v.freeSlot;
-                  if v.slot /= -1 then
-                     v.pairs(v.slot)                   := PAIR_INIT_C;
-                     v.pairs(v.slot).used              := '1';
-                     v.pairs(v.slot).born              := phcStatus.ticks;
-                     v.pairs(v.slot).sample.sequenceId := rxMessage.sequenceId;
-                  end if;
-               end if;
-               if v.slot = -1 then
-                  v.malformed := true;
-               elsif rxMessage.messageType = x"0" then
-                  if v.pairs(v.slot).syncSeen = '1' then
-                     -- Duplicate Sync is ambiguous even if its headers match:
-                     -- the physical capture is a different wire event.
-                     v.pairs(v.slot).complete := '1';
-                     v.malformed              := true;
+      malformed := false;
+      if readyRx = '1' and rxValid = '1' then
+         if policyValid = '0' then
+            malformed := true;
+         else
+            case rxMessage.messageType is
+               when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
+                  if (rxMessage.messageType = PTP_MSG_SYNC_C and
+                      (rxMessage.flags /= PTP_TWO_STEP_FLAGS_C or rxMessage.control /= PTP_CONTROL_SYNC_C)) or
+                     (rxMessage.messageType = PTP_MSG_FOLLOW_UP_C and
+                      (rxMessage.flags /= x"0000" or rxMessage.control /= PTP_CONTROL_FOLLOW_UP_C or
+                       unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C)) then
+                     malformed := true;
                   else
-                     v.pairs(v.slot).syncSeen       := '1';
-                     v.pairs(v.slot).sample.capture := rxMessage.capture;
-                     v.pairs(v.slot).syncCorrection := rxMessage.correction;
-                     v.syncLimit                    := r.activeConfig.syncTimeout;
-                     if signed(rxMessage.logInterval) >= -10 and signed(rxMessage.logInterval) <= 22 then
-                        v.intervalTicksValue := intervalTicks(rxMessage.logInterval, r.activeConfig.syncTimeout);
-                        v.intervalTicksValue := v.intervalTicksValue + shift_left(v.intervalTicksValue, 1);
-                        if v.intervalTicksValue < unsigned(r.activeConfig.syncTimeout) then
-                           v.syncLimit := slv(v.intervalTicksValue);
+                     slot := findPair(v.pairs, rxMessage.sequenceId);
+                     if slot /= -1 then
+                        if v.pairs(slot).used = '0' or v.pairs(slot).sample.sequenceId /= rxMessage.sequenceId then
+                           v.pairs(slot)                   := PAIR_INIT_C;
+                           v.pairs(slot).used              := '1';
+                           v.pairs(slot).born              := phcStatus.ticks;
+                           v.pairs(slot).sample.sequenceId := rxMessage.sequenceId;
                         end if;
-                     elsif rxMessage.logInterval /= x"7F" then
-                        v.rejectedCount := ptpSatInc(v.rejectedCount);
+                     end if;
+                     if slot = -1 then
+                        malformed := true;
+                     elsif rxMessage.messageType = PTP_MSG_SYNC_C then
+                        if v.pairs(slot).syncSeen = '1' then
+                           -- Duplicate Sync is ambiguous even if its headers match:
+                           -- the physical capture is a different wire event.
+                           v.pairs(slot).complete := '1';
+                           malformed              := true;
+                        else
+                           v.pairs(slot).syncSeen       := '1';
+                           v.pairs(slot).sample.capture := rxMessage.capture;
+                           v.pairs(slot).syncCorrection := rxMessage.correction;
+                           v.syncLimit                  := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
+                           if not validLogInterval(rxMessage.logInterval) and
+                              rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
+                              v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                           end if;
+                        end if;
+                     else
+                        if v.pairs(slot).followSeen = '1' then
+                           if v.pairs(slot).sample.remoteTime /= ptpMessageTimestamp(rxMessage) or
+                              v.pairs(slot).followCorrection /= rxMessage.correction then
+                              v.pairs(slot).complete := '1';
+                              malformed              := true;
+                           end if;
+                        else
+                           v.pairs(slot).followSeen        := '1';
+                           v.pairs(slot).sample.remoteTime := ptpMessageTimestamp(rxMessage);
+                           v.pairs(slot).followCorrection  := rxMessage.correction;
+                        end if;
                      end if;
                   end if;
-               else
-                  if v.pairs(v.slot).followSeen = '1' then
-                     if v.pairs(v.slot).sample.remoteTime /= rxMessage.messageBody(239 downto 160) or
-                        v.pairs(v.slot).followCorrection /= rxMessage.correction then
-                        v.pairs(v.slot).complete := '1';
-                        v.malformed              := true;
-                     end if;
+
+               when PTP_MSG_DELAY_RESP_C =>
+                  if validResponse = '0' then
+                     malformed := true;
+                  elsif responseAccepted = '1' and validLogInterval(rxMessage.logInterval) then
+                     v.minimumInterval := intervalTicks(rxMessage.logInterval, r.activeConfig.delayInterval);
+                  end if;
+
+               when PTP_MSG_ANNOUNCE_C =>
+                  if not validAnnounce(rxMessage) then
+                     malformed      := true;
+                     v.announceSeen := '0';
                   else
-                     v.pairs(v.slot).followSeen        := '1';
-                     v.pairs(v.slot).sample.remoteTime := rxMessage.messageBody(239 downto 160);
-                     v.pairs(v.slot).followCorrection  := rxMessage.correction;
+                     v.announceSeen                   := '1';
+                     v.portStatus.announceBody        := rxMessage.messageBody;
+                     v.announceTicks                  := rxMessage.capture.ticks;
+                     v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
+                     v.portStatus.announceFlags       := rxMessage.flags;
+                     v.portStatus.utcOffset           := ptpUtcOffset(rxMessage);
+                     v.announceLimit                  := receiptTimeout(rxMessage.logInterval,
+                        slv(shift_left(unsigned(r.activeConfig.syncTimeout), ANNOUNCE_CAP_SHIFT_C)));
+                     if not validLogInterval(rxMessage.logInterval) and
+                        rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
+                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                     end if;
                   end if;
-               end if;
-            end if;
-         elsif rxMessage.messageType = x"9" then
-            if v.validResponse = '0' then
-               v.malformed := true;
-            elsif responseAccepted = '1' and rxMessage.logInterval /= x"7F" and signed(rxMessage.logInterval) >= -10 and signed(rxMessage.logInterval) <= 22 then
-               v.minimumInterval := intervalTicks(rxMessage.logInterval, r.activeConfig.delayInterval);
-            end if;
-         elsif rxMessage.messageType = x"B" then
-            if rxMessage.control /= x"05" or rxMessage.flags(1 downto 0) = "11" or rxMessage.flags(15 downto 8) /= x"00" then
-               v.malformed    := true;
-               v.announceSeen := '0';
-            else
-               v.announceSeen  := '1';
-               v.announceBody  := rxMessage.messageBody;
-               v.announceTicks := rxMessage.capture.ticks;
-               v.gmIdentity    := rxMessage.messageBody(87 downto 24);
-               v.flags         := rxMessage.flags;
-               v.utc           := rxMessage.messageBody(159 downto 144);
-               v.announceLimit := slv(shift_left(unsigned(r.activeConfig.syncTimeout), 1));
-               if signed(rxMessage.logInterval) >= -10 and signed(rxMessage.logInterval) <= 22 then
-                  v.intervalTicksValue := intervalTicks(rxMessage.logInterval, v.announceLimit);
-                  v.intervalTicksValue := v.intervalTicksValue + shift_left(v.intervalTicksValue, 1);
-                  if v.intervalTicksValue < unsigned(v.announceLimit) then
-                     v.announceLimit := slv(v.intervalTicksValue);
-                  end if;
-               elsif rxMessage.logInterval /= x"7F" then
-                  v.rejectedCount := ptpSatInc(v.rejectedCount);
-               end if;
-            end if;
-         else
-            v.malformed := true;
+
+               when others =>
+                  malformed := true;
+            end case;
          end if;
       end if;
-      if v.malformed then
-         v.rejectedCount := ptpSatInc(v.rejectedCount);
+      if malformed then
+         v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
       end if;
 
-      -- Complete at most one Sync association while the rate engine and output
-      -- slot are free. Chronology is capture based, not packet completion order.
-      if r.state = IDLE_S and r.measurementValid = '0' then
-         for i in 0 to 3 loop
-            if v.pairs(i).syncSeen = '1' and v.pairs(i).followSeen = '1' and v.pairs(i).complete = '0' and v.completed = -1 then
-               v.completed := i;
+      -------------------------------------------------------------------------
+      -- Rate estimation and forward-measurement publication
+      -------------------------------------------------------------------------
+      -- One rate-engine state owns each step. IDLE can complete a pair inserted
+      -- above on this same evaluation; capture chronology still gates acceptance.
+      case r.state is
+         when IDLE_S =>
+            if r.measurementValid = '0' then
+               completed := completedPair(v.pairs);
+               if completed /= -1 then
+                  v.pairs(completed).complete := '1';
+                  completedSync               := v.pairs(completed).sample;
+                  completedSync.correction    := slv(resize(signed(v.pairs(completed).syncCorrection), 128)+
+                                                     resize(signed(v.pairs(completed).followCorrection), 128));
+                  remoteTime := ptpWireTimeQ16(completedSync.remoteTime)+signed(completedSync.correction);
+                  if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) or
+                     (r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(completedSync.capture.ticks) <= unsigned(r.lastTicks))) then
+                     v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                  else
+                     v.portStatus.active          := '1';
+                     v.lastSync                   := completedSync;
+                     v.lastRemote                 := remoteTime;
+                     v.lastTicks                  := completedSync.capture.ticks;
+                     v.history(r.historyPtr)      := completedSync;
+                     v.historyValid(r.historyPtr) := '1';
+                     v.historyPtr                 := (r.historyPtr+1) mod HISTORY_DEPTH_C;
+                     v.portStatus.syncCount       := ptpSatInc(v.portStatus.syncCount);
+                     v.measurement                := forwardMeasurement(completedSync);
+                     v.measurement.ratio          := r.ratio;
+                     v.measurement.ratioValid     := qualifiedRatio;
+                     v.measurementValid           := '1';
+                     if r.anchorValid = '0' then
+                        v.anchor      := completedSync;
+                        v.anchorValid := '1';
+                     else
+                        rateSpan := ptpTickPhase(completedSync.capture)-ptpTickPhase(r.anchor.capture);
+                        if rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), PTP_TICK_PHASE_BITS_C) and rateSpan > 0 then
+                           v.rateA            := slv(shift_left(remoteTime-ptpWireTimeQ16(r.anchor.remoteTime)-signed(r.anchor.correction), RATE_RATIO_SHIFT_C));
+                           v.rateB            := slv(rateSpan);
+                           v.pendingSync      := completedSync;
+                           v.anchor           := completedSync;
+                           v.state            := RATE_ISSUE_S;
+                           v.measurementValid := '0';
+                        end if;
+                     end if;
+                  end if;
+               end if;
             end if;
-         end loop;
-         if v.completed /= -1 then
-            v.pairs(v.completed).complete := '1';
-            v.completedSync               := v.pairs(v.completed).sample;
-            v.completedSync.correction    := slv(resize(signed(v.pairs(v.completed).syncCorrection), 128)+
-                                   resize(signed(v.pairs(v.completed).followCorrection), 128));
-            v.remoteTime                  := ptpWireTimeQ16(v.completedSync.remoteTime)+signed(v.completedSync.correction);
-            if unsigned(phcStatus.ticks)-unsigned(v.completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) or
-               (r.active = '1' and (v.remoteTime <= r.lastRemote or unsigned(v.completedSync.capture.ticks) <= unsigned(r.lastTicks))) then
-               v.rejectedCount := ptpSatInc(v.rejectedCount);
-            else
-               v.active                     := '1';
-               v.lastSync                   := v.completedSync;
-               v.lastRemote                 := v.remoteTime;
-               v.lastTicks                  := v.completedSync.capture.ticks;
-               v.history(r.historyPtr)      := v.completedSync;
-               v.historyValid(r.historyPtr) := '1';
-               v.historyPtr                 := (r.historyPtr+1) mod 4;
-               v.syncCount                  := ptpSatInc(v.syncCount);
-               v.measurement                := forwardMeasurement(v.completedSync);
-               v.measurement.ratio          := r.ratio;
-               v.measurement.ratioValid     := v.qualifiedRatio;
-               v.measurementValid           := '1';
-               if r.anchorValid = '0' then
-                  v.anchor      := v.completedSync;
-                  v.anchorValid := '1';
+
+         when RATE_ISSUE_S =>
+            rateInput <= '1';
+            if rateReady = '1' then
+               v.state := RATE_WAIT_S;
+            end if;
+
+         when RATE_WAIT_S =>
+            if rateResultValid = '1' and abortPort = '0' then
+               if rateError = '0' and signed(rateResult) >= signed(resize(NOMINAL_C-RATE_MARGIN_C, 128)) and
+                  signed(rateResult) <= signed(resize(NOMINAL_C+RATE_MARGIN_C, 128)) then
+                  if r.ratioCount = 0 then
+                     v.ratio := rateResult(63 downto 0);
+                  else
+                     v.ratio := slv(resize(signed(resize(unsigned(r.ratio), 128))+
+                        ptpRoundShift(signed(rateResult)-signed(resize(unsigned(r.ratio), 128)), RATIO_FILTER_SHIFT_C), 64));
+                  end if;
+                  if r.ratioCount < RATIO_QUALIFY_COUNT_C then
+                     v.ratioCount := r.ratioCount+1;
+                  end if;
+                  v.ratioTicks := r.pendingSync.capture.ticks;
                else
-                  v.rateSpan := ptpTickPhase(v.completedSync.capture)-ptpTickPhase(r.anchor.capture);
-                  if v.rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), 3) and v.rateSpan > 0 then
-                     v.rateA            := slv(shift_left(v.remoteTime-ptpWireTimeQ16(r.anchor.remoteTime)-signed(r.anchor.correction), 35));
-                     v.rateB            := slv(v.rateSpan);
-                     v.pendingSync      := v.completedSync;
-                     v.anchor           := v.completedSync;
-                     v.state            := RATE_ISSUE_S;
-                     v.measurementValid := '0';
-                  end if;
+                  v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                end if;
+               v.measurement            := forwardMeasurement(r.pendingSync);
+               v.measurement.ratio      := v.ratio;
+               v.measurement.ratioValid := '0';
+               if v.ratioCount = RATIO_QUALIFY_COUNT_C and unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+                  v.measurement.ratioValid := '1';
+               end if;
+               v.measurementValid := '1';
+               v.state            := IDLE_S;
             end if;
-         end if;
-      end if;
-      if r.state = RATE_ISSUE_S and rateReady = '1' then
-         v.state := RATE_WAIT_S;
-      elsif r.state = RATE_WAIT_S and rateResultValid = '1' then
-         if rateError = '0' and signed(rateResult) >= signed(resize(NOMINAL_C-RATE_MARGIN_C, 128)) and
-            signed(rateResult) <= signed(resize(NOMINAL_C+RATE_MARGIN_C, 128)) then
-            if r.ratioCount = 0 then
-               v.ratio := rateResult(63 downto 0);
-            else
-               v.ratio := slv(resize(signed(resize(unsigned(r.ratio), 128))+
-                  ptpRoundShift(signed(rateResult)-signed(resize(unsigned(r.ratio), 128)), 2), 64));
-            end if;
-            if r.ratioCount < 2 then
-               v.ratioCount := r.ratioCount+1;
-            end if;
-            v.ratioTicks := r.pendingSync.capture.ticks;
-         else
-            v.rejectedCount := ptpSatInc(v.rejectedCount);
-         end if;
-         v.measurement            := forwardMeasurement(r.pendingSync);
-         v.measurement.ratio      := v.ratio;
-         v.measurement.ratioValid := '0';
-         if v.ratioCount = 2 and unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
-            v.measurement.ratioValid := '1';
-         end if;
-         v.measurementValid := '1';
-         v.state            := IDLE_S;
-      end if;
+      end case;
 
+      -------------------------------------------------------------------------
+      -- E2E association and result publication
+      -------------------------------------------------------------------------
+      -- Result valid is registered; the shared abort takes priority at this
+      -- receiver as well as at the arithmetic/ledger producers.
       -- Select the retained Sync nearest the actual TX capture, not nearest to
       -- the delayed wire-completion/Delay_Resp delivery. Signed separation also
       -- supports a Sync arriving just after the Delay_Req left the wire.
-      if delayValid = '1' and e2eReady = '1' then
-         for i in 0 to 3 loop
-            v.syncDistance := abs(ptpTickPhase(delaySample.capture)-ptpTickPhase(r.history(i).capture));
-            if r.historyValid(i) = '1' and v.syncDistance < v.nearestSyncDistance and
-               r.history(i).capture.generation = delaySample.generation and
-               v.syncDistance <= shift_left(signed(resize(unsigned(r.activeConfig.maxExchange), 128)), 3) and
-               unsigned(phcStatus.ticks)-unsigned(r.history(i).capture.ticks) <= unsigned(r.activeConfig.associationTimeout) then
-               v.selected            := i;
-               v.nearestSyncDistance := v.syncDistance;
-            end if;
-         end loop;
+      if delayValid = '1' and e2eReady = '1' and abortPort = '0' then
+         selected   := nearestSync(r.history, r.historyValid, delaySample, phcStatus.ticks, r.activeConfig);
          delayReady <= '1';
-         if v.selected /= -1 and v.qualifiedRatio = '1' then
-            e2eSync                           <= r.history(v.selected);
+         if selected /= -1 and qualifiedRatio = '1' then
+            e2eSync                           <= r.history(selected);
             e2eInput                          <= '1';
-            v.pendingExchange.t1              := r.history(v.selected).remoteTime;
-            v.pendingExchange.t2              := r.history(v.selected).capture.timestamp;
+            v.pendingExchange.t1              := r.history(selected).remoteTime;
+            v.pendingExchange.t2              := r.history(selected).capture.timestamp;
             v.pendingExchange.t3              := delaySample.capture.timestamp;
             v.pendingExchange.t4              := delaySample.remoteTime;
-            v.pendingExchange.syncCorrection  := r.history(v.selected).correction;
+            v.pendingExchange.syncCorrection  := r.history(selected).correction;
             v.pendingExchange.delayCorrection := delaySample.correction;
             v.pendingExchange.generation      := delaySample.generation;
-            v.pendingExchange.syncSequence    := r.history(v.selected).sequenceId;
+            v.pendingExchange.syncSequence    := r.history(selected).sequenceId;
             v.pendingExchange.delaySequence   := delaySample.sequenceId;
          else
-            v.rejectedCount := ptpSatInc(v.rejectedCount);
+            v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
          end if;
       end if;
-      if e2eValid = '1' and r.state = IDLE_S and v.state = IDLE_S and v.measurementValid = '0' then
+      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and v.measurementValid = '0' then
          e2eTake <= '1';
-         if e2eError = '0' and v.qualifiedRatio = '1' then
-            v.measurement      := e2eResult;
-            v.exchange         := r.pendingExchange;
-            v.measurementValid := '1';
-            v.delayCount       := ptpSatInc(v.delayCount);
+         if e2eError = '0' and qualifiedRatio = '1' then
+            v.measurement           := e2eResult;
+            v.portStatus.exchange   := r.pendingExchange;
+            v.measurementValid      := '1';
+            v.portStatus.delayCount := ptpSatInc(v.portStatus.delayCount);
          else
-            v.rejectedCount := ptpSatInc(v.rejectedCount);
+            v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
          end if;
       end if;
 
+      -------------------------------------------------------------------------
+      -- Final cancellation priority
+      -------------------------------------------------------------------------
       -- Cancellation has final priority over association and publication. TX
       -- drain state and unresolved ledger ownership deliberately survive it.
-      if v.abortPort = '1' then
+      if abortPort = '1' then
          -- Keep the TX frame/beat and diagnostic counters. Ledger retirement is
          -- independent and receives abort on this same edge.
-         v.pairs            := (others => PAIR_INIT_C);
-         v.historyValid     := (others => '0');
-         v.active           := '0';
-         v.syncLimit        := r.activeConfig.syncTimeout;
-         v.announceLimit    := slv(shift_left(unsigned(r.activeConfig.syncTimeout), 1));
-         v.anchorValid      := '0';
-         v.ratioCount       := 0;
-         v.state            := IDLE_S;
-         v.measurementValid := '0';
-         v.requestStarted   := '0';
-         v.minimumInterval  := (others => '0');
-         v.announceSeen     := '0';
-         if v.announceChange = '1' then
-            v.gmIdentity := rxMessage.messageBody(87 downto 24);
+         v.pairs             := (others => PAIR_INIT_C);
+         v.historyValid      := (others => '0');
+         v.portStatus.active := '0';
+         v.syncLimit         := r.activeConfig.syncTimeout;
+         v.announceLimit     := slv(shift_left(unsigned(r.activeConfig.syncTimeout), ANNOUNCE_CAP_SHIFT_C));
+         v.anchorValid       := '0';
+         v.ratioCount        := 0;
+         v.state             := IDLE_S;
+         v.measurementValid  := '0';
+         v.requestStarted    := '0';
+         v.minimumInterval   := (others => '0');
+         v.announceSeen      := '0';
+         if announceChange = '1' then
+            v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
          end if;
          v.lfsr := r.activeConfig.lfsrSeed;
          if unsigned(v.lfsr) = 0 then
-            v.lfsr := x"0001";
+            v.lfsr := LFSR_SEED_C;
          end if;
          allocate   <= '0';
          e2eInput   <= '0';
          delayReady <= '0';
       end if;
-      -- Construct live status from pre-edge state. AXI snapshots below capture
-      -- this same record; they do not read back this process's signal outputs.
-      v.portStatus              := PTP_PORT_STATUS_INIT_C;
-      v.portStatus.active       := r.active and not v.abortPort;
-      v.portStatus.ratioValid   := v.qualifiedRatio and not v.abortPort;
-      v.portStatus.commandAbort := v.externalAbort;
-      if localMac /= r.lastMac then
-         v.portStatus.identityRestart := '1';
+      -------------------------------------------------------------------------
+      -- Registered diagnostic summaries
+      -------------------------------------------------------------------------
+      -- Sample derived diagnostic summaries after all protocol updates and
+      -- cancellation. Counters, metadata and exchange already live in portStatus.
+      v.portStatus.ratioValid := '0';
+      if v.ratioCount = RATIO_QUALIFY_COUNT_C and
+         unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+         v.portStatus.ratioValid := '1';
       end if;
-      if v.abortPort = '0' and unsigned(phcStatus.ticks)-unsigned(r.announceTicks) <= unsigned(r.announceLimit) then
-         v.portStatus.announceValid := r.announceSeen;
+      v.portStatus.announceValid := '0';
+      if unsigned(phcStatus.ticks)-unsigned(v.announceTicks) <= unsigned(v.announceLimit) then
+         v.portStatus.announceValid := v.announceSeen;
       end if;
-      v.portStatus.exchange            := r.exchange;
-      v.portStatus.announceBody        := r.announceBody;
-      v.portStatus.ledgerStatus        := ledgerStatus;
-      v.portStatus.grandmasterIdentity := r.gmIdentity;
-      v.portStatus.announceFlags       := r.flags;
-      v.portStatus.utcOffset           := r.utc;
-      v.portStatus.rejectedCount       := r.rejectedCount;
-      v.portStatus.syncCount           := r.syncCount;
-      v.portStatus.delayCount          := r.delayCount;
-      v.portStatus.timeoutCount        := timeoutCount;
+      v.portStatus.ledgerStatus := ledgerStatus;
+      v.portStatus.timeoutCount := timeoutCount;
 
-      -- Local AXI register map, frozen configuration and snapshot capture.
-
+      -------------------------------------------------------------------------
+      -- AXI-Lite: decode, map, then close the transaction.
+      -------------------------------------------------------------------------
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
+
+      -- Suppress register accesses during AXI-only reset.
       if regRst = '1' then
          ep.axiStatus := AXI_LITE_STATUS_INIT_C;
       end if;
-      if ep.axiStatus.writeEnable = '1' and axiWriteMaster.awaddr(1 downto 0) /= "00" then
-         ep.axiStatus.writeEnable := '0';
-         axiSlaveWriteResponse(ep.axiWriteSlave, AXI_RESP_SLVERR_C);
-      end if;
-      if ep.axiStatus.readEnable = '1' and axiReadMaster.araddr(1 downto 0) /= "00" then
-         ep.axiStatus.readEnable := '0';
-         axiSlaveReadResponse(ep.axiReadSlave, AXI_RESP_SLVERR_C);
-      end if;
-      if ep.axiStatus.readEnable = '1' or ep.axiStatus.writeEnable = '1' then
-         axiSlaveRegisterR(ep, toSlv(16#0E0#, 10), 0, r.activeConfig.associationTimeout);
-         axiSlaveRegisterR(ep, toSlv(16#0E8#, 10), 0, r.activeConfig.syncTimeout);
-         axiSlaveRegisterR(ep, toSlv(16#0F0#, 10), 0, r.activeConfig.maxPathDelay);
-         axiSlaveRegister(ep, toSlv(16#004#, 10), 4, v.shadow.identityOverride);
-         axiSlaveRegister(ep, toSlv(16#008#, 10), 0, v.shadow.domainNumber);
-         axiSlaveRegister(ep, toSlv(16#008#, 10), 8, v.shadow.minorVersion);
-         axiSlaveRegister(ep, toSlv(16#010#, 10), 0, v.shadow.localIdentity);
-         axiSlaveRegister(ep, toSlv(16#020#, 10), 0, v.shadow.sourceIdentity);
-         axiSlaveRegister(ep, toSlv(16#080#, 10), 0, v.shadow.delayInterval);
-         axiSlaveRegister(ep, toSlv(16#088#, 10), 0, v.shadow.syncTimeout);
-         axiSlaveRegister(ep, toSlv(16#090#, 10), 0, v.shadow.associationTimeout);
-         axiSlaveRegister(ep, toSlv(16#098#, 10), 0, v.shadow.maxExchange);
-         axiSlaveRegister(ep, toSlv(16#0A0#, 10), 0, v.shadow.minRateSpan);
-         axiSlaveRegister(ep, toSlv(16#0A8#, 10), 0, v.shadow.maxRateAge);
-         axiSlaveRegister(ep, toSlv(16#0B0#, 10), 0, v.shadow.lfsrSeed);
-         axiSlaveRegister(ep, toSlv(16#0B8#, 10), 0, v.shadow.maxPathDelay);
-         axiSlaveRegisterR(ep, toSlv(16#030#, 10), 0, localMac);
-         axiSlaveRegisterR(ep, toSlv(16#044#, 10), 0, v.portStatus.active);
-         axiSlaveRegisterR(ep, toSlv(16#048#, 10), 0, ledgerStatus);
-         axiSlaveRegisterR(ep, toSlv(16#060#, 10), 0, r.activeConfig.localIdentity);
-         axiSlaveRegisterR(ep, toSlv(16#070#, 10), 0, r.activeConfig.sourceIdentity);
-         axiSlaveRegisterR(ep, toSlv(16#0C0#, 10), 0, slv(to_unsigned(PACKET_LIFETIME_G, 64)));
-         axiSlaveRegisterR(ep, toSlv(16#0D0#, 10), 0, INGRESS_LATENCY_G);
-         axiSlaveRegisterR(ep, toSlv(16#0D8#, 10), 0, EGRESS_LATENCY_G);
-         axiSlaveRegisterR(ep, toSlv(16#130#, 10), 0, r.snapGm);
-         axiSlaveRegisterR(ep, toSlv(16#138#, 10), 0, r.snapFlags);
-         axiSlaveRegisterR(ep, toSlv(16#13C#, 10), 0, r.snapUtc);
-         axiSlaveRegisterR(ep, toSlv(16#140#, 10), 0, r.snapAnnounce);
-         axiSlaveRegisterR(ep, toSlv(16#160#, 10), 0, r.snapExchange.t1);
-         axiSlaveRegisterR(ep, toSlv(16#170#, 10), 0, r.snapExchange.t2);
-         axiSlaveRegisterR(ep, toSlv(16#180#, 10), 0, r.snapExchange.t3);
-         axiSlaveRegisterR(ep, toSlv(16#190#, 10), 0, r.snapExchange.t4);
-         axiSlaveRegisterR(ep, toSlv(16#1A0#, 10), 0, r.snapExchange.syncCorrection);
-         axiSlaveRegisterR(ep, toSlv(16#1B0#, 10), 0, r.snapExchange.delayCorrection);
-         axiSlaveRegisterR(ep, toSlv(16#1B8#, 10), 0, r.snapExchange.generation);
-         axiSlaveRegisterR(ep, toSlv(16#1BC#, 10), 0, r.snapExchange.syncSequence);
-         axiSlaveRegisterR(ep, toSlv(16#3FC#, 10), 0, r.sequenceId);
-         axiSlaveRegisterR(ep, toSlv(16#044#, 10), 1, v.portStatus.announceValid);
-         axiSlaveRegisterR(ep, toSlv(16#044#, 10), 2, v.portStatus.ratioValid);
-         axiSlaveRegisterR(ep, toSlv(16#1BC#, 10), 16, r.snapExchange.delaySequence);
-         axiSlaveRegisterR(ep, toSlv(16#200#, 10), 0, r.snapCounters(0));
-         axiSlaveRegisterR(ep, toSlv(16#204#, 10), 0, r.snapCounters(1));
-         axiSlaveRegisterR(ep, toSlv(16#208#, 10), 0, r.snapCounters(2));
-         axiSlaveRegisterR(ep, toSlv(16#20C#, 10), 0, r.snapCounters(3));
-         axiSlaveRegisterR(ep, toSlv(16#210#, 10), 0, r.snapCounters(4));
-         axiSlaveRegisterR(ep, toSlv(16#214#, 10), 0, r.snapCounters(5));
-         axiSlaveRegisterR(ep, toSlv(16#218#, 10), 0, r.snapCounters(6));
+
+      -- Configuration shadows and live identity/status.
+      axiSlaveRegister(ep, x"004", 4, v.shadow.identityOverride);
+      axiSlaveRegister(ep, x"008", 0, v.shadow.domainNumber);
+      axiSlaveRegister(ep, x"008", 8, v.shadow.minorVersion);
+      axiSlaveRegister(ep, x"010", 0, v.shadow.localIdentity);
+      axiSlaveRegister(ep, x"020", 0, v.shadow.sourceIdentity);
+      axiSlaveRegisterR(ep, x"030", 0, localMac);
+      axiSlaveRegisterR(ep, x"044", 0, r.portStatus.active);
+      axiSlaveRegisterR(ep, x"044", 1, r.portStatus.announceValid);
+      axiSlaveRegisterR(ep, x"044", 2, r.portStatus.ratioValid);
+      axiSlaveRegisterR(ep, x"048", 0, r.portStatus.ledgerStatus);
+      axiSlaveRegisterR(ep, x"060", 0, r.activeConfig.localIdentity);
+      axiSlaveRegisterR(ep, x"070", 0, r.activeConfig.sourceIdentity);
+
+      -- Protocol timer and acceptance-limit shadows.
+      axiSlaveRegister(ep, x"080", 0, v.shadow.delayInterval);
+      axiSlaveRegister(ep, x"088", 0, v.shadow.syncTimeout);
+      axiSlaveRegister(ep, x"090", 0, v.shadow.associationTimeout);
+      axiSlaveRegister(ep, x"098", 0, v.shadow.maxExchange);
+      axiSlaveRegister(ep, x"0A0", 0, v.shadow.minRateSpan);
+      axiSlaveRegister(ep, x"0A8", 0, v.shadow.maxRateAge);
+      axiSlaveRegister(ep, x"0B0", 0, v.shadow.lfsrSeed);
+      axiSlaveRegister(ep, x"0B8", 0, v.shadow.maxPathDelay);
+
+      -- Implementation constants and active shared limits.
+      axiSlaveRegisterR(ep, x"0C0", 0, slv(to_unsigned(PACKET_LIFETIME_G, 64)));
+      axiSlaveRegisterR(ep, x"0D0", 0, INGRESS_LATENCY_G);
+      axiSlaveRegisterR(ep, x"0D8", 0, EGRESS_LATENCY_G);
+      axiSlaveRegisterR(ep, x"0E0", 0, r.activeConfig.associationTimeout);
+      axiSlaveRegisterR(ep, x"0E8", 0, r.activeConfig.syncTimeout);
+      axiSlaveRegisterR(ep, x"0F0", 0, r.activeConfig.maxPathDelay);
+
+      -- Coherent Announce and exchange snapshots.
+      axiSlaveRegisterR(ep, x"130", 0, r.snapGm);
+      axiSlaveRegisterR(ep, x"138", 0, r.snapFlags);
+      axiSlaveRegisterR(ep, x"13C", 0, r.snapUtc);
+      axiSlaveRegisterR(ep, x"140", 0, r.snapAnnounce);
+      axiSlaveRegisterR(ep, x"160", 0, r.snapExchange.t1);
+      axiSlaveRegisterR(ep, x"170", 0, r.snapExchange.t2);
+      axiSlaveRegisterR(ep, x"180", 0, r.snapExchange.t3);
+      axiSlaveRegisterR(ep, x"190", 0, r.snapExchange.t4);
+      axiSlaveRegisterR(ep, x"1A0", 0, r.snapExchange.syncCorrection);
+      axiSlaveRegisterR(ep, x"1B0", 0, r.snapExchange.delayCorrection);
+      axiSlaveRegisterR(ep, x"1B8", 0, r.snapExchange.generation);
+      axiSlaveRegisterR(ep, x"1BC", 0, r.snapExchange.syncSequence);
+      axiSlaveRegisterR(ep, x"1BC", 16, r.snapExchange.delaySequence);
+
+      -- Coherent RX/protocol counters and snapshot sequence.
+      axiSlaveRegisterR(ep, x"200", 0, r.snapCounters(0));
+      axiSlaveRegisterR(ep, x"204", 0, r.snapCounters(1));
+      axiSlaveRegisterR(ep, x"208", 0, r.snapCounters(2));
+      axiSlaveRegisterR(ep, x"20C", 0, r.snapCounters(3));
+      axiSlaveRegisterR(ep, x"210", 0, r.snapCounters(4));
+      axiSlaveRegisterR(ep, x"214", 0, r.snapCounters(5));
+      axiSlaveRegisterR(ep, x"218", 0, r.snapCounters(6));
+      axiSlaveRegisterR(ep, x"3FC", 0, r.sequenceId);
+
+      axiSlaveDefault(ep, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
+      -- The bus reset cancels responses only. Accepted operations and active
+      -- settings belong to the system-reset lifetime, not the AXI transaction.
+      if regRst = '1' then
+         v.readSlave  := AXI_LITE_READ_SLAVE_INIT_C;
+         v.writeSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
       end if;
 
-      -- Validate the immutable candidate, not subsequently writable shadows.
-      configValid <= '1';
+      -------------------------------------------------------------------------
+      -- Coordinated configuration and snapshots survive AXI-only reset.
+      -------------------------------------------------------------------------
 
-      -- Identity and protocol selection.
-      if unsigned(r.candidate.minorVersion) > 1 then
-         configValid <= '0';
-      end if;
-      if unsigned(r.candidate.localIdentity(15 downto 0)) = 0 or
-         unsigned(r.candidate.sourceIdentity(15 downto 0)) = 0 then
-         configValid <= '0';
-      end if;
-
-      -- Physical and association limits.
-      if signed(r.candidate.maxPathDelay) <= 0 then
-         configValid <= '0';
-      end if;
-      if unsigned(r.candidate.associationTimeout) < 2048 then
-         configValid <= '0';
-      end if;
-      if unsigned(r.candidate.maxRateAge) < unsigned(r.candidate.minRateSpan) then
-         configValid <= '0';
-      end if;
-
-      -- Every timeout must fit the supported unsigned-difference range.
-      if not ptpValidTimeout(r.candidate.delayInterval) then
-         configValid <= '0';
-      end if;
-      if not ptpValidTimeout(r.candidate.syncTimeout) then
-         configValid <= '0';
-      end if;
-      if not ptpValidTimeout(r.candidate.associationTimeout) then
-         configValid <= '0';
-      end if;
-      if not ptpValidTimeout(r.candidate.maxExchange) then
-         configValid <= '0';
-      end if;
-      if not ptpValidTimeout(r.candidate.minRateSpan) then
-         configValid <= '0';
-      end if;
-      if not ptpValidTimeout(r.candidate.maxRateAge) then
-         configValid <= '0';
-      end if;
-
+      -- Freeze candidate and vote together; same-edge shadow writes belong
+      -- to the next commit and must not affect this validation result.
       if configControl.prepare = '1' then
-         v.candidate := r.shadow;
+         v.candidate   := r.shadow;
+         v.configValid := toSl(validConfig(r.shadow));
       end if;
       if configControl.apply = '1' then
          v.activeConfig := r.candidate;
@@ -1018,60 +1149,27 @@ begin
       -- changes. A frozen override candidate remains independent of MAC edits.
       if configControl.apply = '1' or localMac /= r.lastMac then
          if v.activeConfig.identityOverride = '0' then
-            v.activeConfig.localIdentity := localMac(7 downto 0) & localMac(15 downto 8) & localMac(23 downto 16) &
-               x"FFFE" & localMac(31 downto 24) & localMac(39 downto 32) & localMac(47 downto 40) & v.activeConfig.localIdentity(15 downto 0);
+            v.activeConfig.localIdentity := ptpPortIdentity(
+               localMac, v.activeConfig.localIdentity(15 downto 0));
          end if;
       end if;
       v.lastMac := localMac;
       if snapshotControl.capture = '1' then
          v.sequenceId   := snapshotControl.sequenceId;
-         v.snapExchange := v.portStatus.exchange;
-         v.snapAnnounce := v.portStatus.announceBody;
-         v.snapGm       := v.portStatus.grandmasterIdentity;
-         v.snapFlags    := v.portStatus.announceFlags;
-         v.snapUtc      := v.portStatus.utcOffset;
+         v.snapExchange := r.portStatus.exchange;
+         v.snapAnnounce := r.portStatus.announceBody;
+         v.snapGm       := r.portStatus.grandmasterIdentity;
+         v.snapFlags    := r.portStatus.announceFlags;
+         v.snapUtc      := r.portStatus.utcOffset;
          v.snapCounters := (rxCounters.accepted, rxCounters.dropped, rxCounters.overflow,
-                            v.portStatus.rejectedCount, v.portStatus.syncCount, v.portStatus.delayCount, timeoutCount);
+                            r.portStatus.rejectedCount, r.portStatus.syncCount, r.portStatus.delayCount, timeoutCount);
       end if;
-      axiSlaveDefault(ep, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
-      -- The bus reset cancels responses only. Accepted operations and active
-      -- settings belong to the system-reset lifetime, not the AXI transaction.
-      if regRst = '1' then
-         v.readSlave  := AXI_LITE_READ_SLAVE_INIT_C;
-         v.writeSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
-      end if;
+      configValid   <= r.configValid;
       axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
 
-      -- Publish child controls and outward records once, after local decisions.
-      -- Drive the ledger configuration directly from its registered owner.
-      coreConfig                    <= PTP_CONFIG_INIT_C;
-      coreConfig.enable             <= enable;
-      coreConfig.identityOverride   <= r.activeConfig.identityOverride;
-      coreConfig.domainNumber       <= r.activeConfig.domainNumber;
-      coreConfig.minorVersion       <= r.activeConfig.minorVersion;
-      coreConfig.localIdentity      <= r.activeConfig.localIdentity;
-      coreConfig.sourceIdentity     <= r.activeConfig.sourceIdentity;
-      coreConfig.delayInterval      <= r.activeConfig.delayInterval;
-      coreConfig.syncTimeout        <= r.activeConfig.syncTimeout;
-      coreConfig.associationTimeout <= r.activeConfig.associationTimeout;
-      coreConfig.maxExchange        <= r.activeConfig.maxExchange;
-      coreConfig.minRateSpan        <= r.activeConfig.minRateSpan;
-      coreConfig.maxRateAge         <= r.activeConfig.maxRateAge;
-      coreConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;
-      coreConfig.lfsrSeed           <= r.activeConfig.lfsrSeed;
-      abortNow                      <= v.abortPort;
-      responseValid                 <= v.validResponse;
-      rateInput                     <= '0';
-      if r.state = RATE_ISSUE_S then
-         rateInput <= '1';
-      end if;
-      rxReady                         <= v.readyRx;
-      txMaster                        <= r.master;
-      measurementMaster.data          <= r.measurement;
-      measurementMaster.valid         <= r.measurementValid and not v.abortPort;
-      measurementMaster.abort         <= v.abortPort;
-      status                          <= v.portStatus;
+      -- Registered diagnostics and active shared configuration.
+      status                          <= r.portStatus;
       sharedConfig.associationTimeout <= r.activeConfig.associationTimeout;
       sharedConfig.syncTimeout        <= r.activeConfig.syncTimeout;
       sharedConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;

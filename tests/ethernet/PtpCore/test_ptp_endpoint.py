@@ -35,13 +35,13 @@ async def autonomous_endpoint(d):
     await b.start()
     assert await b.read(0) == 0x20000
     assert (await b.axil.read(0x3F0, 4)).resp == AxiResp.DECERR
-    await b.write(0x428, 5, 8)
-    await b.write(0x430, NS-100)
+    await b.write(0x1028, 5, 8)
+    await b.write(0x1030, NS-100)
     await b.manual(0)
     await b.manual(3, 1)
     await b.snapshot()
-    assert await b.read(0x41C) == 1
-    assert await b.read(0x408, 8) in (5, 6)
+    assert await b.read(0x101C) == 1
+    assert await b.read(0x1008, 8) in (5, 6)
     await b.configure()
     if not b.real_mac:
         b.tasks.append(cocotb.start_soon(b.model_mac()))
@@ -61,7 +61,7 @@ async def autonomous_endpoint(d):
         b.epoch = local-Fraction(int(get_sim_time(unit="fs")), 1000000)-50
     await b.source(14)
     await b.snapshot()
-    counters = [await b.read(0xA00+4*i if i < 7 else 0xE00) for i in range(8)]
+    counters = [await b.read(0x2200+4*i if i < 7 else 0x3200) for i in range(8)]
     d._log.info("Counters %s", counters)
     assert b.tx_count > 0
     assert counters[5] > 0, "no accepted E2E delay"
@@ -82,7 +82,7 @@ async def autonomous_endpoint(d):
         assert abs(error) < 100, error
 
     await check_absolute_phase()
-    offset = await b.read(0xD00, 16)
+    offset = await b.read(0x3100, 16)
     if offset >> 127:
         offset -= 1 << 128
     assert abs(Fraction(offset, Q16)) < 100

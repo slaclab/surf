@@ -11,9 +11,11 @@
 # Test methodology:
 # - Sweep: 125/156.25 MHz, synchronous high and asynchronous low reset.
 # - Stimulus: AXI policy setup, full-epoch acquisition, signed phase/rate commands,
-#   rollover, invalid/monotonic operations, and independent snapshot resets.
+#   rollover, invalid/monotonic operations, registered cancellation/expiry,
+#   and independent snapshot resets.
 # - Checks: Every PHC cycle against the split-integer model; snapshot time/ticks
 #   are coherent, old sessions cancel, and read reset preserves the PHC.
+#   Cancellation after admission rejects commit; expiry overrides VALID commands.
 # - Timing: Acceptance precedes commit by one edge; capture abort is inspected
 #   before commit and registered time/ack after TPD. Read clock is asynchronous.
 
@@ -38,7 +40,8 @@ class Bench:
         self.model = PhcModel(self.frequency)
         self.pps_enabled = False
         self.pending_command = None
-        for name in ("clk", "commandValid", "commandKind", "commandGeneration", "commandSeconds",
+        for name in ("clk", "commandValid", "commandCancel", "commandStale", "clearValid",
+                     "commandKind", "commandGeneration", "commandSeconds",
                      "commandNanoseconds", "commandFraction", "phaseSeconds", "phaseFraction",
                      "commandRate", "commandValue", "readClk", "readRst", "readRequest",
                      "prepareConfig", "applyConfig"):
@@ -47,10 +50,13 @@ class Bench:
         self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst,
                                   reset_active_level=self.polarity)
 
-    async def step(self, command=None, rejected=False):
+    async def step(self, command=None, rejected=False, cancel=False, stale=False, clear_valid=False):
         d = self.d
         d.clk.value = 0
         d.commandValid.value = int(command is not None)
+        d.commandCancel.value = int(cancel)
+        d.commandStale.value = int(stale)
+        d.clearValid.value = int(clear_valid)
         if command is not None:
             kind, value = command
             d.commandKind.value = KINDS[kind]
@@ -68,15 +74,24 @@ class Bench:
                 d.commandRate.value = value & ((1 << 64)-1)
             else:
                 d.commandValue.value = value
+        committing = self.pending_command
+        if committing is not None and (cancel or stale):
+            # Registered revocation arrives during the pending interval. The
+            # clock advances normally, and the PHC acknowledges an error.
+            self.model.pending = None
+            committing = (committing[0], True)
         pending = self.model.pending
         await Timer(self.half, unit="ns")
         if pending is not None and pending.kind in ("set", "phase"):
             assert int(d.captureAbort.value), "abort must precede commit edge"
         accepted = command is not None and bool(d.commandReady.value)
-        committing = self.pending_command
+        if cancel or stale:
+            assert not accepted, "revoked command was admitted"
         old_pps_enabled = self.pps_enabled
         d.clk.value = 1
         _, pps = self.model.tick()
+        if clear_valid:
+            self.model.valid = False
         if committing is not None and committing[0][0] == "pps" and not committing[1]:
             self.pps_enabled = bool(committing[0][1])
         self.pending_command = (command, rejected) if accepted else None
@@ -175,6 +190,42 @@ async def phc_commands(d):
     assert int(d.commandAck.value) and int(d.commandError.value)
     await b.command("rate", -b.model.nominal, rejected=True)
     assert int(d.commandError.value)
+
+@cocotb.test()
+async def registered_command_lifecycle(d):
+    b = Bench(d)
+    await b.reset()
+    await b.set_monotonic(False)
+    # Exercise each registered revoke flag both before admission and after
+    # acceptance. Neither a time step nor a rate/valid update may leak through.
+    for revoke in ("cancel", "stale"):
+        for command in (("phase", NS*Q16), ("rate", Q32), ("valid", 1)):
+            for _ in range(3):
+                assert not await b.step(command, **{revoke: True})
+            assert await b.step(command)
+            await b.step(**{revoke: True})
+            assert int(d.commandAck.value) and int(d.commandError.value)
+            await b.step(**{revoke: True})
+            await b.step()
+    # A successful phase commit must not be undone by the subsequent
+    # generation-change cancellation emitted by the servo.
+    await b.command("phase", NS*Q16)
+    generation = b.model.generation
+    await b.step(cancel=True)
+    assert b.model.generation == generation
+    await b.step()
+    await b.command("valid", 1)
+    await b.step()
+    # A registered expiry arriving at commit wins over VALID=1. The level
+    # stays effective while held and permits reacquisition after release.
+    assert await b.step(("valid", 1))
+    await b.step(clear_valid=True)
+    assert not int(d.timeValid.value)
+    await b.step(clear_valid=True)
+    await b.step()
+    await b.command("valid", 1)
+    assert int(d.timeValid.value)
+
 
 @cocotb.test()
 async def snapshot_sessions(d):

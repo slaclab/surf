@@ -1,7 +1,7 @@
 # Autonomous endpoint implementation
 
 Status: the original simulation milestone is complete. The current
-[RTL readability cleanup](rtl-readability.md) awaits maintainer VHDL approval;
+[RTL review](README.md#current-validation) awaits maintainer VHDL approval;
 regressions must remain stopped until approval. This milestone
 builds on the committed [RX proof](rx-rtl-proof.md) and covers an autonomous
 fixed-source, two-step Layer-2 E2E TimeReceiver on GMII and XGMII. It does not
@@ -145,11 +145,11 @@ guarantee or a combined arbitrary-jitter stability proof. The physical endpoint
 regressions accelerate packet intervals with exact fractional correction fields;
 they verify state/command composition rather than long-duration default settling.
 
-## AXI-Lite ABI v2
+## AXI-Lite register map
 
 The [register map](register-map.md) defines the implemented four-bank ABI,
-PyRogue hierarchy, commit/snapshot completion semantics, strobes and v1 migration.
-`AXIL_BASE_ADDR_G` sets the aligned 4 KiB base on the endpoint/MAC composition;
+PyRogue hierarchy, commit/snapshot completion semantics, strobes and the current development layout.
+`AXIL_BASE_ADDR_G` sets the aligned 16 KiB base on the endpoint/MAC composition;
 the crossbar receives full addresses without local address stripping.
 
 Configuration is stored in local shadows, frozen and validated by coordinated

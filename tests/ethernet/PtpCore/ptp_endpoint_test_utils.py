@@ -90,9 +90,9 @@ class Bench:
         assert False, "snapshot command timeout"
 
     async def manual(self, kind, value=0):
-        await self.write(0x420, 0x80 | kind | (value << 3))
+        await self.write(0x1020, 0x80 | kind | (value << 3))
         for _ in range(100):
-            state = await self.read(0x424)
+            state = await self.read(0x1024)
             if not state & 1:
                 assert state & 2 and not state & 4, state
                 return
@@ -108,17 +108,17 @@ class Bench:
         assert False, "configuration commit timeout"
 
     async def configure(self):
-        await self.write(0x820, int.from_bytes(SOURCE, "big"), 12)
+        await self.write(0x2020, int.from_bytes(SOURCE, "big"), 12)
         # Short functional intervals retain the real PHC nominal increment.
         # Fractional correction fields avoid quantizing the independent source
         # to whole-ns accuracy during this accelerated packet schedule.
-        for address, value in {0x880: 2500, 0x888: 10000, 0x890: 12000, 0xC60: 16000,
-                               0xC68: 24000, 0x898: 12000, 0x8A0: 800, 0x8A8: 12000,
-                               0xC70: 500, 0xC78: 12000}.items():
+        for address, value in {0x2080: 2500, 0x2088: 10000, 0x2090: 12000, 0x3060: 16000,
+                               0x3068: 24000, 0x2098: 12000, 0x20A0: 800, 0x20A8: 12000,
+                               0x3070: 500, 0x3078: 12000}.items():
             await self.write(address, value, 8)
-        await self.write(0xC50, 3)
-        await self.write(0xC04, 4 if self.allow_step else 0)
-        await self.write(0x404, 8)
+        await self.write(0x3050, 3)
+        await self.write(0x3004, 4 if self.allow_step else 0)
+        await self.write(0x1004, 8)
         await self.write(0x004, 3)
         await self.commit()
 

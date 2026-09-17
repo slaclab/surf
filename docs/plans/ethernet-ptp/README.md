@@ -1,7 +1,45 @@
 # Ethernet PTP Support
 
-Current review: [RTL flow and package interfaces](rtl-readability.md). Regression
-simulations require maintainer VHDL approval; only build smoke checks are authorized.
+The shared [SURF VHDL conventions](../../vhdl-conventions.md) describe process
+structure, state ownership, registered interfaces and readable arithmetic/register
+maps. The [PTP supplement](rtl-readability.md) records the local timing contracts.
+The [output-register survey](output-register-survey.md) reviews every PtpCore RTL
+file and wrapper against the same-type registered-output guidance.
+The [magic-number audit](magic-number-audit.md) covers every `PtpCore/rtl` file
+and records the implemented wire-format, units, and numeric-policy cleanup,
+including the policy bounds whose original rationale remains unverified.
+
+## Current validation
+
+VHDL changes are awaiting maintainer review. **Do not run simulation or pytest
+regressions until the maintainer approves the VHDL.** Lint and compile/link smoke
+checks remain authorized. Earlier simulation milestones below precede the
+current interface, register-map and control-flow changes.
+
+The output-register fixes pass VSG across all 22 PTP RTL/package/wrapper files
+and GHDL compilation/linking across all 21 entities/wrappers. Changed Python
+tests pass lint/syntax checks. The survey records implemented consolidations,
+registered controls and the remaining justified timing exceptions. Added
+behavioral checks have not run.
+These build results do not establish behavioral equivalence or FPGA timing.
+
+The `PtpMath`/`PtpE2e` input-ready follow-up uses the SURF stream pattern:
+default and resolve readiness through `v` beside admission, then publish it
+directly from `v`. Idle readiness and cancel/reset suppression are preserved.
+Both files pass VSG and compile/link checks through `PtpMath`, `PtpE2eWrapper`
+and `EthMacPtpEndpoint`; regressions remain paused.
+
+`PtpE2e.mathInput` is now registered with its operands from resolved next state,
+then published unconditionally from `r`. The issue/hold timing is preserved.
+VSG and compile/link checks through `PtpE2eWrapper` and `EthMacPtpEndpoint` pass;
+behavioral regressions remain unrun.
+
+After approval, prioritize command cancellation/ownership, registered expiry,
+arithmetic/ledger cancellation, RX queue/counter and ledger-summary alignment,
+servo status arithmetic, measurement backpressure, distributed commit/snapshot
+alignment, AXI-only reset recovery, association/ledger lifetime and mailbox resets, then GMII/XGMII endpoint
+regressions. Device-mapped resource and timing qualification remains open,
+including bounded searches and wide record muxes in `PtpPort`.
 
 ## Goal and status
 
@@ -24,7 +62,7 @@ qualification and application timing remain future milestones.
 
 The [register-ownership refactor](register-ownership.md) moves PHC, port and
 servo registers into local management hierarchies with coordinated commits and
-snapshots. The [ABI v2 map](register-map.md) defines the four banks and software
+snapshots. The [development register map](register-map.md) defines the four banks and software
 migration; verification of the refactor is in progress.
 
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
@@ -1279,10 +1317,11 @@ actuators remain SyncE/White Rabbit work described later.
 ### Provisional AXI-Lite register map
 
 This table is retained as planning history. Use the implemented
-[ABI v1 map](autonomous-endpoint.md#axi-lite-abi-v1) and matching PyRogue model
-for the current RTL. In particular, latency calibration is build-time in v1.
+[development register map](register-map.md) and matching PyRogue model
+for the current RTL. The current map uses a 16 KiB window; latency calibration
+is build-time. The 4 KiB proposal below is historical.
 
-Reserve one 4 KiB endpoint window. Offsets are provisional until the package
+The original proposal reserved one 4 KiB endpoint window. Offsets were provisional until the package
 and PyRogue model are reviewed, but keeping these functional blocks separated
 prevents later register churn:
 
@@ -1694,7 +1733,7 @@ Phases 8-10 expand hardware coverage after that first target is qualified.
 - Freeze the family-adapter port template, per-lane ownership, and AXI-Lite
   placements for 7-series, UltraScale, and UltraScale+ before writing a PHY
   sibling. The generic PTP entities must not acquire a Xilinx-family generic.
-- Freeze the 4 KiB AXI-Lite block allocation and multiword snapshot/commit
+- Freeze the 16 KiB AXI-Lite block allocation and multiword snapshot/commit
   rules, without yet promising every individual register offset.
 
 Exit criterion: `PtpPkg` can be reviewed independently and the equations have

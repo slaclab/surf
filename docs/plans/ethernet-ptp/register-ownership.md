@@ -1,9 +1,9 @@
 # Distributed PTP register ownership
 
-Status: register ownership implemented. The subsequent [RTL readability
-cleanup](rtl-readability.md) is awaiting maintainer VHDL approval; regressions
+Status: register ownership implemented. The subsequent [RTL changes](README.md#current-validation)
+are awaiting maintainer VHDL approval; regressions
 are prohibited until that approval. Earlier focused results below precede it. The endpoint now
-uses four local AXI banks and [ABI v2](register-map.md). AXI-Lite logic is inside
+uses four local AXI banks and [development register map](register-map.md). AXI-Lite logic is inside
 `PtpPhc`, `PtpPort` and `PtpServo`, sharing each core's existing state record
 and register process. Standalone direct interfaces remain available. No v1 compatibility decoder is retained.
 
@@ -94,19 +94,19 @@ wide diagnostic payloads through a new central record.
   transaction state, completion sequences and IRQ masks/status. It sees local
   validation votes, narrow summary signals and events, never wide payloads.
 
-The crossbar uses `genAxiLiteConfig(4, AXIL_BASE_ADDR_G, 12, 10)` and direct
+The crossbar uses `genAxiLiteConfig(4, AXIL_BASE_ADDR_G, 14, 12)` and direct
 record connections. `AXIL_BASE_ADDR_G` propagates through `EthMacPtpEndpoint`
 and physical test wrappers; no process rewrites upper address bits. The base
-must be 4 KiB aligned. Register-only reset reaches both crossbar and local bus
+must be 16 KiB aligned. Register-only reset reaches both crossbar and local bus
 state. The focused register fixture instantiates the same cores/crossbar with
 optional direct prepare/apply controls for frozen-candidate checks and snapshot
 inhibition for reset recovery. Manual command immutability is checked while the
 real PHC performs serialized phase normalization; no test-only command gate
 enters production RTL.
 
-The [ABI v2 map](register-map.md) defines exact offsets and access semantics.
+The [development register map](register-map.md) defines exact offsets and access semantics.
 The previous mixed-owner offsets are deliberately revised. PyRogue preserves
-field names under `Phc`, `Port` and `Servo` children. Version is `0x00020000`.
+field names under `Phc`, `Port` and `Servo` children. The existing development Version value remains `0x00020000`.
 Commit submission is asynchronous: invalid candidate validation completes through
 ConfigError/ConfigSequence rather than changing an already returned AXI response.
 The complete timing, snapshot sequence and reset-recovery contracts are in the
@@ -117,7 +117,7 @@ once, and the common apply edge installs their authoritative active copy.
 ## Validation before the readability cleanup
 
 These results do not validate the subsequent interface/control-flow changes.
-See [the review record](rtl-readability.md) for build-only validation and the
+See [current validation](README.md#current-validation) for build-only results and the
 maintainer approval gate.
 
 - Nine focused pytest cases pass after folding the banks into the functional

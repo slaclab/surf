@@ -30,7 +30,7 @@ entity PtpRxFrontend is
       RST_ASYNC_G    : boolean                   := false;
       TX_OBSERVE_G   : boolean                   := false;
       FIFO_DEPTH_G   : positive                  := 4;
-      MAX_FRAME_G    : positive range 82 to 1518 := 1518);
+      MAX_FRAME_G    : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
    port (
       clk           : in  sl;
       rst           : in  sl;
@@ -57,6 +57,10 @@ end entity PtpRxFrontend;
 
 architecture rtl of PtpRxFrontend is
 
+   constant PREFIX_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_ANNOUNCE_BYTES_C;
+   -- Good Ethernet FCS residue in CrcPkg's register convention.
+   constant ETH_CRC_RESIDUE_C : slv(31 downto 0) := x"C704DD7B";
+
    -- Only one physical frame is being decoded at a time. The 78-byte prefix
    -- covers Ethernet (14) plus the largest supported fixed PTP message (64).
    -- Longer TLVs are streamed past; count saturates at MAX_FRAME_G+1 so an
@@ -66,10 +70,10 @@ architecture rtl of PtpRxFrontend is
       active       : sl;
       bad          : sl;
       count        : natural range 0 to MAX_FRAME_G+1;
-      prefix       : Slv8Array(0 to 77);
+      prefix       : Slv8Array(0 to PREFIX_BYTES_C-1);
       crc          : slv(31 downto 0);
       capture      : PtpRxCaptureType;
-      tlvBytes     : natural range 0 to 3;
+      tlvBytes     : natural range 0 to PTP_TLV_HEADER_BYTES_C-1;
       tlvLength    : slv(15 downto 0);
       tlvRemaining : natural range 0 to 65535;
    end record;
@@ -99,6 +103,8 @@ architecture rtl of PtpRxFrontend is
       crcData          : slv(63 downto 0);
       keepGap          : boolean;
 
+      counters         : PtpRxCountersType;
+      messageValid     : sl;
       frame            : FrameType;
       queue            : PtpRxMessageArray(0 to FIFO_DEPTH_G-1);
       wrPtr            : natural range 0 to FIFO_DEPTH_G-1;
@@ -106,9 +112,6 @@ architecture rtl of PtpRxFrontend is
       fill             : natural range 0 to FIFO_DEPTH_G;
       generation       : slv(31 downto 0);
       epoch            : unsigned(31 downto 0);
-      accepted         : unsigned(31 downto 0);
-      dropped          : unsigned(31 downto 0);
-      overflow         : unsigned(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -118,16 +121,15 @@ architecture rtl of PtpRxFrontend is
       byteCount        => 0,
       crcData          => (others => '0'),
       keepGap          => false,
+      counters         => PTP_RX_COUNTERS_INIT_C,
+      messageValid     => '0',
       frame            => FRAME_INIT_C,
       queue            => (others => PTP_RX_MESSAGE_INIT_C),
       wrPtr            => 0,
       rdPtr            => 0,
       fill             => 0,
       generation       => (others => '0'),
-      epoch            => (others => '0'),
-      accepted         => (others => '0'),
-      dropped          => (others => '0'),
-      overflow         => (others => '0'));
+      epoch            => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -141,32 +143,24 @@ architecture rtl of PtpRxFrontend is
       return ptr+1;
    end function;
 
-   function satInc (value : unsigned) return unsigned is
-   begin
-      if value = (value'range => '1') then
-         return value;
-      end if;
-      return value+1;
-   end function;
-
    -- Fixed lengths include the 34-byte PTP header: Sync/Follow_Up (44),
    -- Delay_Resp (54), Announce (64). Delay_Req is TX-only for this receiver.
    -- Zero marks unsupported types, disabling both TLV walking and admission.
    function baseLength (kind : slv(3 downto 0)) return natural is
    begin
       if TX_OBSERVE_G then
-         if kind = x"1" then
-            return 44;
+         if kind = PTP_MSG_DELAY_REQ_C then
+            return PTP_TIMESTAMP_MSG_BYTES_C;
          end if;
          return 0;
       end if;
       case kind is
-         when x"0" | x"8" =>
-            return 44;
-         when x"9" =>
-            return 54;
-         when x"B" =>
-            return 64;
+         when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
+            return PTP_TIMESTAMP_MSG_BYTES_C;
+         when PTP_MSG_DELAY_RESP_C =>
+            return PTP_DELAY_RESP_BYTES_C;
+         when PTP_MSG_ANNOUNCE_C =>
+            return PTP_ANNOUNCE_BYTES_C;
          when others =>
             return 0;
       end case;
@@ -191,7 +185,7 @@ begin
    comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady) is
       variable v      : RegType;
       variable octet  : slv(7 downto 0);
-      variable base   : natural range 0 to 64;
+      variable base   : natural range 0 to PTP_ANNOUNCE_BYTES_C;
       variable length : natural range 0 to 65535;
       variable offset : natural range 0 to MAX_FRAME_G+1;
    begin
@@ -249,9 +243,10 @@ begin
                   offset := v.frame.count;
                   if offset < MAX_FRAME_G then
                      v.frame.count := offset+1;
-                     if offset < 78 then
+                     if offset < PREFIX_BYTES_C then
                         v.frame.prefix(offset) := octet;
                      end if;
+                     -- Byte 14 holds messageType; bytes 16..17 hold messageLength.
                      base   := baseLength(v.frame.prefix(14)(3 downto 0));
                      length := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
                      -- TLVs occupy [14+base, 14+messageLength). Their four-byte
@@ -259,22 +254,22 @@ begin
                      -- to skip unknown values. Padding lies outside this span.
                      -- Updating v within the loop handles headers split across
                      -- beats and a value ending partway through the same beat.
-                     if base /= 0 and offset >= 14+base and offset < 14+length then
+                     if base /= 0 and offset >= PTP_ETH_HEADER_BYTES_C+base and offset < PTP_ETH_HEADER_BYTES_C+length then
                         if v.frame.tlvRemaining /= 0 then
                            v.frame.tlvRemaining := v.frame.tlvRemaining-1;
                         else
-                           if v.frame.tlvBytes = 2 then
+                           if v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C then
                               v.frame.tlvLength(15 downto 8) := octet;
-                           elsif v.frame.tlvBytes = 3 then
+                           elsif v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C+1 then
                               v.frame.tlvLength(7 downto 0) := octet;
                               v.frame.tlvRemaining          := to_integer(unsigned(v.frame.tlvLength));
                               -- offset is the last TLV-header byte. A declared
                               -- value may not extend past the PTP message end.
-                              if v.frame.tlvRemaining > 14+length-offset-1 then
+                              if v.frame.tlvRemaining > PTP_ETH_HEADER_BYTES_C+length-offset-1 then
                                  v.frame.bad := '1';
                               end if;
                            end if;
-                           v.frame.tlvBytes := (v.frame.tlvBytes+1) mod 4;
+                           v.frame.tlvBytes := (v.frame.tlvBytes+1) mod PTP_TLV_HEADER_BYTES_C;
                         end if;
                      end if;
                   else
@@ -291,21 +286,21 @@ begin
             -- byte termination leaves the remainder from the prior beat intact.
             case v.byteCount is
                when 1 =>
- v.frame.crc := crc32Parallel1Byte(v.frame.crc, v.crcData(63 downto 56));
+                  v.frame.crc := crc32Parallel1Byte(v.frame.crc, v.crcData(63 downto 56));
                when 2 =>
- v.frame.crc := crc32Parallel2Byte(v.frame.crc, v.crcData(63 downto 48));
+                  v.frame.crc := crc32Parallel2Byte(v.frame.crc, v.crcData(63 downto 48));
                when 3 =>
- v.frame.crc := crc32Parallel3Byte(v.frame.crc, v.crcData(63 downto 40));
+                  v.frame.crc := crc32Parallel3Byte(v.frame.crc, v.crcData(63 downto 40));
                when 4 =>
- v.frame.crc := crc32Parallel4Byte(v.frame.crc, v.crcData(63 downto 32));
+                  v.frame.crc := crc32Parallel4Byte(v.frame.crc, v.crcData(63 downto 32));
                when 5 =>
- v.frame.crc := crc32Parallel5Byte(v.frame.crc, v.crcData(63 downto 24));
+                  v.frame.crc := crc32Parallel5Byte(v.frame.crc, v.crcData(63 downto 24));
                when 6 =>
- v.frame.crc := crc32Parallel6Byte(v.frame.crc, v.crcData(63 downto 16));
+                  v.frame.crc := crc32Parallel6Byte(v.frame.crc, v.crcData(63 downto 16));
                when 7 =>
- v.frame.crc := crc32Parallel7Byte(v.frame.crc, v.crcData(63 downto 8));
+                  v.frame.crc := crc32Parallel7Byte(v.frame.crc, v.crcData(63 downto 8));
                when 8 =>
- v.frame.crc := crc32Parallel8Byte(v.frame.crc, v.crcData);
+                  v.frame.crc := crc32Parallel8Byte(v.frame.crc, v.crcData);
                when others =>
                   null;
             end case;
@@ -315,7 +310,8 @@ begin
                -- proves that the fixed body and TLVs fit before FCS. Thus no
                -- separate trailing-FCS buffer is needed even though prefix may
                -- contain padding/FCS after a short message's meaningful bytes.
-               -- C704DD7B is the good residue in CrcPkg's register convention.
+               -- Header positions below are Ethernet-frame byte offsets:
+               -- EtherType 12..13, type 14, version 15, messageLength 16..17.
                base   := baseLength(v.frame.prefix(14)(3 downto 0));
                length := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
                -- Validate framing/FCS, protocol identity, then bounded body/TLV
@@ -323,19 +319,24 @@ begin
                v.frameComplete := true;
                if v.frame.bad /= '0' then
                   v.frameComplete := false;
-               elsif v.frame.count < 64 or v.frame.count > MAX_FRAME_G then
+               elsif v.frame.count < PTP_ETH_MIN_FRAME_C or v.frame.count > MAX_FRAME_G then
                   v.frameComplete := false;
-               elsif v.frame.crc /= x"C704DD7B" then
+               elsif v.frame.crc /= ETH_CRC_RESIDUE_C then
                   v.frameComplete := false;
-               elsif networkField(v.frame.prefix, 12, 2) /= x"88F7" then
+
+               -- Protocol identity: EtherType, then major/minor PTP version.
+               elsif networkField(v.frame.prefix, 12, 2) /= PTP_ETH_TYPE_C then
                   v.frameComplete := false;
-               elsif v.frame.prefix(15)(3 downto 0) /= x"2" then
+               elsif v.frame.prefix(15)(3 downto 0) /= PTP_MAJOR_VERSION_C then
                   v.frameComplete := false;
-               elsif v.frame.prefix(15)(7 downto 4) /= x"0" and v.frame.prefix(15)(7 downto 4) /= x"1" then
+               elsif v.frame.prefix(15)(7 downto 4) /= PTP_MINOR_VERSION_MIN_C and
+                  v.frame.prefix(15)(7 downto 4) /= PTP_MINOR_VERSION_MAX_C then
                   v.frameComplete := false;
-               elsif base = 0 or length < base or length > MAX_FRAME_G-18 then
+
+               -- Require the fixed body and complete TLVs before the FCS.
+               elsif base = 0 or length < base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
                   v.frameComplete := false;
-               elsif v.frame.count < 18+length or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
+               elsif v.frame.count < PTP_ETH_OVERHEAD_BYTES_C+length or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
                   v.frameComplete := false;
                end if;
                if v.frameComplete then
@@ -343,10 +344,12 @@ begin
                   -- candidate initialization zeros unused body bytes. Identity,
                   -- flags, and message-body semantics still need PtpPort policy.
                   -- A duplicate key remains a distinct physical record here.
+                  -- Explicit wire offsets make the field layout visible here,
+                  -- matching the Delay_Req encoder's Ethernet-frame convention.
                   v.completedMessage.capture            := v.frame.capture;
                   v.completedMessage.rxEpoch            := slv(r.epoch);
-                  v.completedMessage.destination        := networkField(v.frame.prefix, 0, 6);
-                  v.completedMessage.sourcePortIdentity := networkField(v.frame.prefix, 34, 10);
+                  v.completedMessage.destination        := networkField(v.frame.prefix, 0, PTP_ETH_MAC_BYTES_C);
+                  v.completedMessage.sourcePortIdentity := networkField(v.frame.prefix, 34, PTP_PORT_ID_BYTES_C);
                   v.completedMessage.sequenceId         := networkField(v.frame.prefix, 44, 2);
                   v.completedMessage.domainNumber       := v.frame.prefix(18);
                   v.completedMessage.messageType        := v.frame.prefix(14)(3 downto 0);
@@ -357,13 +360,14 @@ begin
                   v.completedMessage.correction         := networkField(v.frame.prefix, 22, 8);
                   v.completedMessage.control            := v.frame.prefix(46);
                   v.completedMessage.logInterval        := v.frame.prefix(47);
-                  for i in 0 to 29 loop
-                     if i < base-34 then
+                  -- Fixed body starts at frame byte 48; first octet is bits 239..232.
+                  for i in 0 to PTP_ANNOUNCE_BODY_BYTES_C-1 loop
+                     if i < base-PTP_HEADER_BYTES_C then
                         v.completedMessage.messageBody(239-8*i downto 232-8*i) := v.frame.prefix(48+i);
                      end if;
                   end loop;
                else
-                  v.dropped := satInc(r.dropped);
+                  v.counters.dropped := ptpSatInc(r.counters.dropped);
                end if;
                v.frame := FRAME_INIT_C;
             end if;
@@ -374,12 +378,14 @@ begin
       -- rescue this completion through simultaneous ready: discard the candidate
       -- and all queued records, advance the RX epoch, and cancel this edge's
       -- transfer. Malformed/non-PTP completions never take this overflow path.
+      -- queueOverflow/rxAbort intentionally remain immediate: registering only
+      -- the indication would permit the old queue head to transfer on this edge.
       if v.frameComplete and r.fill = FIFO_DEPTH_G then
-         v.fill        := 0;
-         v.wrPtr       := 0;
-         v.rdPtr       := 0;
-         v.epoch       := r.epoch+1;
-         v.overflow    := satInc(r.overflow);
+         v.fill              := 0;
+         v.wrPtr             := 0;
+         v.rdPtr             := 0;
+         v.epoch             := r.epoch+1;
+         v.counters.overflow := ptpSatInc(r.counters.overflow);
          queueOverflow <= '1';
          v.abortNow    := '1';
       else
@@ -391,10 +397,10 @@ begin
             v.fill  := r.fill-1;
          end if;
          if v.frameComplete then
-            v.queue(r.wrPtr) := v.completedMessage;
-            v.wrPtr          := advance(r.wrPtr);
-            v.fill           := v.fill+1;
-            v.accepted       := satInc(r.accepted);
+            v.queue(r.wrPtr)     := v.completedMessage;
+            v.wrPtr             := advance(r.wrPtr);
+            v.fill              := v.fill+1;
+            v.counters.accepted := ptpSatInc(r.counters.accepted);
          end if;
       end if;
 
@@ -420,19 +426,19 @@ begin
       if rst = RST_POLARITY_G then
          v.abortNow := '1';
       end if;
+      -- Register nonempty alongside the resolved queue pointers and fill.
+      v.messageValid := '0';
+      if v.fill /= 0 then
+         v.messageValid := '1';
+      end if;
       -- Keep the old head visible while stalled. rxAbort is combinational from
       -- this edge's decision, so messageValid alone is never proof of transfer.
       -- Epoch and counters below describe registered state, changing after TPD.
       message      <= r.queue(r.rdPtr);
-      messageValid <= '0';
-      if r.fill /= 0 then
-         messageValid <= '1';
-      end if;
-      rxAbort           <= v.abortNow;
-      rxEpoch           <= slv(r.epoch);
-      counters.accepted <= slv(r.accepted);
-      counters.dropped  <= slv(r.dropped);
-      counters.overflow <= slv(r.overflow);
+      messageValid <= r.messageValid;
+      rxAbort      <= v.abortNow;
+      rxEpoch      <= slv(r.epoch);
+      counters     <= r.counters;
 
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;

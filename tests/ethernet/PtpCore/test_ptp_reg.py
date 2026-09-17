@@ -9,12 +9,14 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Four local AXI banks at zero/nonzero bases, decode/strobes/errors,
+# - Sweep: Four 4 KiB AXI banks at zero/nonzero bases, decode/strobes/errors,
 #   frozen candidates, all-or-none commits, shared limits, coherent snapshots,
 #   MAC identity changes, immutable manual commands, and register-only reset.
 # - Stimulus: Raw AXI-Lite transactions preserve deliberately unaligned addresses;
 #   the real PHC prepares and executes commands while shadows are rewritten.
-# - Checks: Active versus shadow state, local snapshot sequence/edge agreement,
+# - Checks: Twelve-bit bank decode and 16 KiB aperture bounds, low address-bit
+#   aliases and field strobes, active versus shadow state,
+#   local snapshot sequence/edge agreement,
 #   full phase operand latching, accepted commit survival across AXI reset,
 #   busy/ack/error ownership, IRQ W1C and build constants.
 # - Timing: Clock edges are stepped explicitly; bus and command waits are bounded.
@@ -96,7 +98,7 @@ async def register_contract(d):
 
     async def finish():
         for _ in range(100):
-            value = await read(0x424)
+            value = await read(0x1024)
             if not value & 1:
                 assert value == 2
                 return
@@ -115,109 +117,137 @@ async def register_contract(d):
     await edge(rst=0)
     assert await read(0) == 0x20000
     # The crossbar decodes the actual base address; an unrelated high address
-    # must not alias the bank selected by the same low 12 address bits.
+    # must not alias the bank selected by the same low 14 address bits.
     expected_base = base
     base = base ^ 0x10000000
     await read(0, response=3)
     await write(4, 3, response=3)
     base = expected_base
-    for unused in (0x3F0, 0x7F0, 0xBF0, 0xFF0):
+    # Each bank decodes all 12 local address bits. Unallocated upper quarters
+    # must not alias the control word at local 0x004 as a 10-bit decode would.
+    for bank in (0x0000, 0x1000, 0x2000, 0x3000):
+        for unused_offset in (0x404, 0x804, 0xC04):
+            await read(bank+unused_offset, response=3)
+            await write(bank+unused_offset, 0, response=3)
+    # The next 16 KiB window is outside this endpoint's crossbar aperture.
+    await read(0x4000, response=3)
+    await write(0x4004, 0, response=3)
+    for unused in (0x3F0, 0x13F0, 0x23F0, 0x33F0):
         await read(unused, response=3)
         await write(unused, 0, response=3)
-    for unaligned in (0x005, 0x405, 0x805, 0xC05):
-        await read(unaligned, response=2)
-        await write(unaligned, 0, response=2)
+    # SURF register helpers ignore address bits 1:0. All four byte addresses
+    # select the same word; write strobes still select eligible field slices.
+    for address, mask in ((0x004, 3), (0x1004, 8), (0x2004, 16), (0x3004, 4)):
+        original = await read(address)
+        for low_bits in (1, 2, 3):
+            assert await read(address+low_bits) == await read(address)
+            value = original ^ mask if low_bits % 2 else original
+            await write(address+low_bits, value, strobe=1)
+            assert await read(address) == value
+            await write(address+low_bits, original ^ value, strobe=0, response=3)
+            assert await read(address) == value
+        await write(address, original)
     await read(0x3F0, response=3)
     await write(0x3F0, 1, response=3)
-    await write(0x881, 0, response=2)
-    assert await read_wide(0x880, 2) == 125000000
-    await read(0x881, response=2)
+    original_interval = await read_wide(0x2080, 2)
+    assert original_interval == 125000000
+    await write(0x2081, 0x12345678)
+    assert await read_wide(0x2080, 2) == (original_interval & ~0xffffffff) | 0x12345678
+    assert await read(0x2083) == 0x12345678
+    await write(0x2082, 0, strobe=1, response=3)
+    assert await read(0x2080) == 0x12345678
+    await write_wide(0x2080, original_interval, 2)
+    # Low-bit aliases do not make read-only or unmapped words writable.
+    assert await read(0x1083) == 125000000
+    await write(0x1083, 0, response=3)
+    await read(0x3F3, response=3)
+    await write(0x3F3, 0, response=3)
     # SURF helpers require strobes covering the whole addressed field slice.
     # Narrow fields permit a byte write; a partial wide-field write is rejected.
-    for address, value in ((0x004, 3), (0x404, 0), (0xC24, 0x03020100)):
+    for address, value in ((0x004, 3), (0x1004, 0), (0x3024, 0x03020100)):
         original = await read(address)
         await write(address, value, strobe=0, response=3)
         assert await read(address) == original
-        if address == 0xC24:
+        if address == 0x3024:
             await write(address, value, strobe=1, response=3)
             assert await read(address) == original
         else:
             await write(address, value, strobe=1)
             assert await read(address) == (original & 0xFFFFFF00) | (value & 0xFF)
         await write(address, original)
-    before = await read(0x808)
-    await write(0x808, 0x201, strobe=1)
-    assert await read(0x808) == (before & 0xFFFFFF00) | 1
-    await write(0x808, 0)
-    await write(0x8D0, 0, response=3)
-    assert await read_wide(0x8D0, 2) == (1 << 64)-Q16
-    assert await read_wide(0x8D8, 2) == 2*Q16
-    assert await read(0x480) == 125000000
-    assert await read_wide(0x8C0, 2) == 5000
+    before = await read(0x2008)
+    await write(0x2008, 0x201, strobe=1)
+    assert await read(0x2008) == (before & 0xFFFFFF00) | 1
+    await write(0x2008, 0)
+    await write(0x20D0, 0, response=3)
+    assert await read_wide(0x20D0, 2) == (1 << 64)-Q16
+    assert await read_wide(0x20D8, 2) == 2*Q16
+    assert await read(0x1080) == 125000000
+    assert await read_wide(0x20C0, 2) == 5000
 
     # Configuration stays inactive until one valid commit. Invalid commits leave
     # all active words intact, including the previous identity and enable bits.
     source = int('001122fffe3344550001', 16)
-    await write_wide(0x820, source, 3)
-    await write(0x810, 7)  # derive clock identity, preserve this port number
+    await write_wide(0x2020, source, 3)
+    await write(0x2010, 7)  # derive clock identity, preserve this port number
     await write(0x004, 1)
     assert not int(d.activeEnable.value)
     await commit()
     assert int(d.activeEnable.value)
-    assert (await read_wide(0x870, 3)) == source
-    assert (await read_wide(0x860, 3)) == int('020000fffe0000010007', 16)
-    await write(0x8A4, 0x40000000)
+    assert (await read_wide(0x2070, 3)) == source
+    assert (await read_wide(0x2060, 3)) == int('020000fffe0000010007', 16)
+    await write(0x20A4, 0x40000000)
     await write(0x004, 0)
     await commit(error=1)
     assert await read(0x040) == 1
     assert int(d.activeEnable.value)
-    await write(0x8A4, 0)
+    await write(0x20A4, 0)
     await write(0x004, 1)
     await commit()
     assert await read(0x040) == 0
     seen = await edge(localMac=int.from_bytes(bytes.fromhex('020000000002'), 'little'))
     assert seen['configRestart']
-    assert (await read_wide(0x860, 3)) == int('020000fffe0000020007', 16)
+    assert (await read_wide(0x2060, 3)) == int('020000fffe0000020007', 16)
 
     # Every owner validates its own candidate; one invalid servo setting must
     # prevent otherwise valid port and endpoint changes from taking effect.
-    old_source = await read_wide(0x870, 3)
-    await write_wide(0x820, source+1, 3)
+    old_source = await read_wide(0x2070, 3)
+    await write_wide(0x2020, source+1, 3)
     await write(0x004, 0)
-    await write(0xC30, 200001)
+    await write(0x3030, 200001)
     before_apply = len(applications)
     await commit(error=1)
     assert len(applications) == before_apply
     assert int(d.activeEnable.value)
-    assert await read_wide(0x870, 3) == old_source
-    await write(0xC30, 150000)
+    assert await read_wide(0x2070, 3) == old_source
+    await write(0x3030, 150000)
     await write(0x004, 1)
-    await write_wide(0x820, source, 3)
+    await write_wide(0x2020, source, 3)
 
     # Isolate the same bank prepare/apply pins used by the coordinator. Hold
     # candidates across multiple bus writes to prove they are immutable.
-    await write(0xC20, 0x20000000)
-    await write(0x404, 0)
-    await write_wide(0x820, source+2, 3)
+    await write(0x3020, 0x20000000)
+    await write(0x1004, 0)
+    await write_wide(0x2020, source+2, 3)
     await edge(bankControlOverride=1, bankPrepare=1)
     await edge(bankPrepare=0)
-    await write(0xC20, 0x30000000)
-    await write(0x404, 8)
-    await write_wide(0x820, source+3, 3)
+    await write(0x3020, 0x30000000)
+    await write(0x1004, 8)
+    await write_wide(0x2020, source+3, 3)
     await edge(bankApply=1)
     await edge(bankApply=0, bankControlOverride=0)
-    assert await read(0xC94) == 0x20000000
-    assert await read(0xC20) == 0x30000000
-    assert await read(0x484) == 0
-    assert await read(0x404) == 8
-    assert await read_wide(0x870, 3) == source+2
-    assert await read_wide(0x820, 3) == source+3
-    await write(0xC20, 0x10000000)
-    await write_wide(0x820, source, 3)
+    assert await read(0x3094) == 0x20000000
+    assert await read(0x3020) == 0x30000000
+    assert await read(0x1084) == 0
+    assert await read(0x1004) == 8
+    assert await read_wide(0x2070, 3) == source+2
+    assert await read_wide(0x2020, 3) == source+3
+    await write(0x3020, 0x10000000)
+    await write_wide(0x2020, source, 3)
     await commit()
-    assert await read(0xC94) == 0x10000000
-    assert await read(0x484) == 8
-    for port_addr, servo_addr in ((0x8E0, 0xCA0), (0x8E8, 0xCA8), (0x8F0, 0xCB0)):
+    assert await read(0x3094) == 0x10000000
+    assert await read(0x1084) == 8
+    for port_addr, servo_addr in ((0x20E0, 0x30A0), (0x20E8, 0x30A8), (0x20F0, 0x30B0)):
         assert await read_wide(port_addr, 2) == await read_wide(servo_addr, 2)
         await write(servo_addr, 1, response=3)
 
@@ -225,7 +255,7 @@ async def register_contract(d):
     # The accepted operation still applies every bank once, and software can
     # recover its completion through the sequence after the bus restarts.
     await write(0x004, 0)
-    await write_wide(0x820, source+4, 3)
+    await write_wide(0x2020, source+4, 3)
     sequence = await read(0x048)
     aw = w = 1
     for _ in range(40):
@@ -244,24 +274,24 @@ async def register_contract(d):
     await edge(regRst=0)
     assert await read(0x048) == sequence+1
     assert not int(d.activeEnable.value)
-    assert await read_wide(0x870, 3) == source+4
+    assert await read_wide(0x2070, 3) == source+4
     await write(0x004, 1)
-    await write_wide(0x820, source, 3)
+    await write_wide(0x2020, source, 3)
     await commit()
 
     # Normalize a phase delta while PHC time is invalid. Mutating all shadow
     # words and resetting only the AXI endpoint cannot alter this queued command.
     delta = 2*NS*Q16+123*Q16+17
-    await write_wide(0x438, delta, 4)
+    await write_wide(0x1038, delta, 4)
     before_ticks = int(d.timeTicks.value)
     before_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
-    await write(0x420, 0x81)
-    await write_wide(0x438, (1 << 128)-99*Q16, 4)
-    await write(0x420, 0x83, response=2)
+    await write(0x1020, 0x81)
+    await write_wide(0x1038, (1 << 128)-99*Q16, 4)
+    await write(0x1020, 0x83, response=2)
     await write(0x03c, 1, response=2)
     await edge(regRst=1)
     await edge(regRst=0)
-    assert await read(0x424) == 1
+    assert await read(0x1024) == 1
     await finish()
     elapsed = int(d.timeTicks.value)-before_ticks
     after_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
@@ -272,14 +302,14 @@ async def register_contract(d):
     # Multiword snapshots remain frozen while the PHC continues ticking.
     await write(0x100, 1)
     assert await read(0x104) == 1
-    stamp = await read_wide(0x408, 4)
-    ticks = await read_wide(0x460, 2)
+    stamp = await read_wide(0x1008, 4)
+    ticks = await read_wide(0x1060, 2)
     assert ticks == snapshots[-1]
-    for bank_sequence in (0x7FC, 0xBFC, 0xFFC):
+    for bank_sequence in (0x13FC, 0x23FC, 0x33FC):
         assert await read(bank_sequence) == await read(0x104)
     for _ in range(20):
         await edge()
-    assert await read_wide(0x408, 4) == stamp
+    assert await read_wide(0x1008, 4) == stamp
     assert int(d.timeTicks.value) > ticks
     await write(0x050, 2)
     assert int(d.irq.value)
@@ -289,8 +319,8 @@ async def register_contract(d):
     # Automatic ownership rejects manual steering; PPS remains a safe command.
     await write(0x004, 3)
     await commit()
-    await write(0x420, 0x82, response=2)
-    await write(0x420, 0x8C)
+    await write(0x1020, 0x82, response=2)
+    await write(0x1020, 0x8C)
     await finish()
     await edge(regRst=1)
     await edge(regRst=0)
@@ -310,12 +340,12 @@ async def register_contract(d):
     for _ in range(5):
         await edge()
     assert await read(0x104) == sequence+1
-    for bank_sequence in (0x7FC, 0xBFC, 0xFFC):
+    for bank_sequence in (0x13FC, 0x23FC, 0x33FC):
         assert await read(bank_sequence) == sequence+1
-    assert await read_wide(0x460, 2) == snapshots[-1]
+    assert await read_wide(0x1060, 2) == snapshots[-1]
 
 
-@pytest.mark.parametrize('base', [0, 0xA5800000])
+@pytest.mark.parametrize('base', [0, 0xA5804000])
 def test_ptp_reg(base):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpregwrapper',
                       parameters={'AXIL_BASE_ADDR_G': f'{base:032b}'}, extra_env={'AXIL_BASE': base})

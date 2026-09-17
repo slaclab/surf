@@ -11,6 +11,7 @@
 # Test methodology:
 # - Sweep: Both oscillator correction signs, variable sample intervals, offset
 #   signs, command backpressure, median startup and holdover cancellation.
+#   Check registered valid/cancel/expiry before and after input-changing edges.
 # - Stimulus: AXI configuration and independent rational PI oracle; intervals are injected
 #   directly so numerical seconds do not require millions of simulator cycles.
 # - Checks: Every applied rate addend, full-width offset/filter state, and held
@@ -28,11 +29,15 @@ from tests.ethernet.PtpCore.ptp_endpoint_reference import PiController, Q48
 
 @cocotb.test()
 async def numerical_control(d):
-    async def edge(**values):
+    async def edge(check_registered=False, **values):
+        registered = ("commandValid", "cancelCommand", "expireTime")
+        before = tuple(int(getattr(d, name).value) for name in registered) if check_registered else None
         d.clk.value = 0
         for name, value in values.items():
             getattr(d, name).value = value
         await Timer(4, unit="ns")
+        if check_registered:
+            assert tuple(int(getattr(d, name).value) for name in registered) == before
         d.clk.value = 1
         await Timer(4, unit="ns")
     for name in ("clk", "cancel", "ticks", "sampleTicks", "isDelay", "forwardValue", "delayValue", "ratio",
@@ -59,13 +64,16 @@ async def numerical_control(d):
         await edge(prepareConfig=0, applyConfig=1)
         await edge(applyConfig=0)
 
-    async def collect(expected_ppb):
+    async def wait_command():
         for _ in range(1600):
             if int(d.commandValid.value):
                 break
             await edge()
         else:
             assert False, "servo command timeout"
+
+    async def collect(expected_ppb):
+        await wait_command()
         expected_rate = nearest(Fraction(8*Q32*expected_ppb, NS*Q16))
         assert int(d.commandKind.value) == 2
         assert int(d.commandRate.value) == expected_rate & ((1 << 64)-1)
@@ -107,9 +115,21 @@ async def numerical_control(d):
         # only holdover command. It must not repeatedly cancel that command.
         await edge(cancel=1)
         await edge()
+        await wait_command()
+        # A new cancellation coincident with ready may transfer the registered
+        # request. The PHC must reject it on its next edge (leaf PHC test).
+        # The servo withdraws valid and emits cancellation after this edge.
+        await edge(check_registered=True, cancel=0)
+        await edge(check_registered=True, cancel=1, commandReady=1)
+        assert not int(d.commandValid.value)
+        assert int(d.cancelCommand.value)
+        await edge(commandReady=0, commandAck=1, commandError=1)
+        await edge(commandAck=0, commandError=0)
         await collect(model.holdover())
         assert int(d.servoState.value) == 4
-        await edge(ticks=now+250000001)
+        await edge(check_registered=True, ticks=now+250000000)
+        assert not int(d.expireTime.value)
+        await edge(check_registered=True, ticks=now+250000001)
         assert int(d.expireTime.value)
         await edge(cancel=0)
 

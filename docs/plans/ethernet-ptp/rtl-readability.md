@@ -1,125 +1,79 @@
-# PTP RTL flow and interface review
+# PTP RTL readability guidelines
 
-Status: VHDL changes prepared for maintainer review. **Do not run regressions
-until the maintainer approves the VHDL.** Only lint and compile/link smoke checks
-are authorized in the meantime. Earlier simulation results precede this cleanup.
+Apply the shared [SURF VHDL conventions](../../vhdl-conventions.md) throughout
+`ethernet/PtpCore`, including wrappers. They own the guidelines for process
+structure, output records, registered interfaces, scratch variables, constants,
+AXI-Lite ownership and review. The PTP-specific timing below supplements them.
 
-## Control flow
+Keep progress and verification results in the [task overview](README.md#current-validation).
+The [output-register survey](output-register-survey.md) records applied fixes
+and retained timing exceptions; [interface contracts](interface-records.md)
+describe ownership and handshakes.
 
-The review covers every VHDL file under `ethernet/PtpCore`, including the thin
-simulation wrappers. Simple wiring and record flattening remain wiring; protocol
-eligibility, cancellation, state-dependent handshakes and reset decisions belong
-in the appropriate combinational process.
+## Registered command and expiry interface
 
-| Module | Organization |
-| --- | --- |
-| `PtpPort` | Local active configuration; receive identity/provenance checks; Announce and lifecycle cancellation; TX draining and request scheduling; association expiry and message dispatch; rate/E2E completion; cancellation priority; local status/snapshot/register service; output publication. Next-state fields carry decisions forward without reading back generated signal flags. |
-| `PtpServo` | Configuration and work lifetime; sample acceptance/filtering; named arithmetic operations; PHC acceptance/acknowledgement; lock hysteresis; cancellation/disable/fault priority; local registers and outputs. Anti-windup checks frequency and total-rate saturation separately before deciding whether to integrate. |
-| `PtpPhc` | Command-owner selection; ordinary time advancement; pending-command commit and overflow/validity handling; local AXI/manual preparation and snapshots; reset and outputs. Manual preparation remains distinct from the numerical target. |
-| `PtpReg` | Decode requests against pre-edge ownership; prepare/validate/apply state progression; snapshot qualification/completion; IRQ event priority; reset and publication. Coordination strobes are generated in that flow. |
-| `PtpTxLedger` | Separate ordered sweeps for lifetime accounting, wire completion, response matching and publication, then allocation and reset/retirement policy. Ascending-slot publication priority and pre-edge allocation availability remain explicit. |
-| `PtpE2e`, `PtpMath` | Accept immutable operands, issue/consume arithmetic stages and hold results. E2E arithmetic operations have names instead of numeric stage IDs; cancellation remains the final override. |
-| `PtpPhcRead` | Request admission/write/response completion in the read-domain process; request capture/response write in the PHC-domain process. FIFO acknowledgements and each domain's reset qualification are handled locally. |
-| `PtpRxFrontend`, `PtpRxTimestampAdapter` | Physical decoding, frame validation, publication and final invalidation remain ordered. EOF validation now shows framing/FCS, protocol and length checks separately. |
-| `PtpPrimaryGuard` | Output drain, initial-beat classification, frame continuation, then reset/output publication. |
-| `PtpEndpoint`, `EthMacPtpEndpoint` | Composition remains thin. Endpoint lifecycle/IRQ decisions use `comb`; MAC reset confirmation uses `RegType`/`comb`/`seq`. |
-| `PtpTxTimestampTap`, package and wrappers | Passive composition and flattening are retained. Package records carry shared semantics; the register fixture groups its override/reset/observation wiring in `comb`. Port maps and indentation follow SURF style. |
+The servo-to-PHC interface has an explicit cancellation window. If the PHC
+accepts a command at edge N, cancellation registered by the servo on that edge
+can veto its pending commit at N+1. Cancellation first sampled at N+1 cannot
+undo that commit. Both cancellation bits remain meaningful when valid is low,
+and completion/error belong to the accepted command's owner.
 
-`PtpPort`, `PtpPhc` and `PtpServo` always use their local AXI banks. The
-optional AXI switches and bypass configuration inputs are removed. The PHC
-retains its servo command interface and the servo consumes the port-owned
-shared limits. Standalone PHC and servo fixtures expose AXI through the standard
-SURF adapter; Python programs their shadows and drives prepare/apply strobes.
+A registered expiry level sampled at N is consumed by the PHC at N+1. Preserve
+that latency for both assertion and release, including priority over
+validity-setting commands and PPS. Do not move an immediate abort behind a
+register without updating its consumers and contract.
 
-## Package records
+## Immediate lifecycle and capture controls
 
-- `PtpMeasurementType` remains the arithmetic payload, usable by `PtpE2e`
-  without transport semantics.
-- `PtpMeasurementMasterType` carries `data`, `valid` and `abort` from port to
-  servo. `PtpMeasurementSlaveType` carries `ready` in the reverse direction.
-  Transfer requires valid and ready with abort low. Abort also invalidates
-  previous work and is meaningful when valid is low. These are common-clock
-  interfaces, not CDC primitives.
-- `PtpPortStatusType` groups live activity/ratio/Announce qualification, lifecycle
-  indications, exchange/Announce data, ledger state and diagnostic counters.
-  `PtpPort` constructs it from pre-edge state and snapshots locally. The central
-  coordinator still receives only narrow summary bits, not the diagnostic bank.
-- The [interface record review](interface-records.md) adds directional PHC
-  command records, servo diagnostics, configuration-commit and snapshot-control
-  records, and named RX counters. The timestamp adapter reuses `PtpPhcStatusType`.
-- All new records have package initialization constants. Named servo-quality
-  constants retain the existing three-bit register ABI.
+RX overflow, port lifecycle and PHC capture invalidation must prevent stale
+work from transferring or committing on the current edge. Snapshot capture is
+qualified by the same capture invalidation at every bank. These intentional
+exceptions are documented in the owning RTL and the output-register survey;
+retiming them requires changing the connected protocol together.
 
-Measurements and diagnostics are separate because their validity rules differ.
-The response direction is separate because ready is driven by the consumer.
-Clock/reset and AXI interfaces retain the existing SURF types. No universal PTP
-control record is introduced: configuration coordination, PHC command completion
-and RX/TX physical provenance have different owners and lifetimes.
+Arithmetic results and ledger samples have registered valid outputs. Their
+producers and consumers exclude shared cancel/restart and system-reset edges
+from transfers even if valid and ready remain high before the edge.
 
-The software register map is unchanged. The PHC and servo fixtures add
-flattened AXI and prepare/apply ports; the PHC removes its monotonic input.
-The subsequent interface-record pass preserves those flattened fixture ports.
-Direct VHDL instantiators must adopt the records documented in the interface
-review; all in-repository instantiations have been updated.
+## Configuration and snapshots
 
-## Validation and next step
+PTP configuration uses coordinated prepare, validate and apply phases. Each
+bank's candidate and validation result must describe the same values. This
+excerpt assumes `validConfig` returns a Boolean:
 
-Build-only checks compile and link the RTL entities and simulation wrappers;
-VSG checks the PTP VHDL. No regression simulation is authorized before VHDL
-approval.
+```vhdl
+if configControl.prepare = '1' then
+   v.candidate   := r.shadow;
+   v.configValid := toSl(validConfig(r.shadow));
+end if;
 
-Final build-only results after the combinational-state pass (GHDL 6.0.0):
-all 21 RTL entities/wrappers compiled and
-linked successfully using the imported SURF sources and existing MAC source list.
-The package is analyzed as their dependency. VSG passes all 22 VHDL files, and
-`git diff --check` passes. No simulation executable was run. The updated PHC and servo Python stimulus
-has only been syntax checked; its AXI setup and PHC ownership timing still
-require behavioral verification after VHDL approval. Existing shared-RAM
-and optional RoCE binding warnings remain in the build; this is not FPGA timing,
-resource, CDC or behavioral qualification.
+if configControl.apply = '1' then
+   v.activeConfig := r.candidate;
+end if;
+```
 
-After approval, the relevant behavioral checks are cancellation versus a
-coincident measurement transfer, immutable PHC commands, commit/snapshot reset
-recovery, ledger completion ordering, mailbox clock/reset recovery, and the
-GMII/XGMII endpoint lifecycle regressions.
+Both preparation assignments use `r.shadow`. A simultaneous AXI write may
+already have updated `v.shadow`, but that write belongs to a later candidate.
+Later writes must not alter the pending candidate or its vote. Initialize the
+vote consistently with the candidate's defaults. In this example, prepare and
+apply are separate phases; the coordinator consumes the vote before issuing
+apply on a later edge.
 
-## Combinational intermediate state
+Keep bus-only reset separate from functional reset when their lifetimes differ.
+Resetting bus responses must not discard an accepted command or active settings
+that belong to the system-reset lifetime. Document which reset owns each
+transaction and its side effects.
 
-The additional guidance was found in the SURF checkout under
-`~/warm-tdm/firmware/submodules/surf/AGENTS.md` and copied into this repository's
-[Two-Process VHDL Style guidance](../../../AGENTS.md#two-process-vhdl-style).
-Intermediate calculations and diagnostics belong in `RegType` where practical;
-process-local scratch remains appropriate for helper APIs and small loop work.
+A coordinated snapshot samples the same agreed edge in each participating bank:
 
-- `PtpPort` now has only `v` and `ep` in `comb` (previously 22 variables).
-  Qualification, selected association slots, corrected remote time, rate span,
-  nearest-Sync search and live status use named `v` fields. Configuration reads
-  use `r.activeConfig` directly; the request builder accepts that local type.
-- `PtpServo` reads active local/shared configuration directly. Sample tick delta
-  and integral correction have distinct fields and units. Frequency limiting
-  works directly on the existing `v.workFrequency` destination. Alongside `v`, only the AXI endpoint helper and the median-sort array/swap
-  temporary remain local.
-- PHC command selection, signed time advancement, range/rejection decisions and
-  manual command decoding use next-state fields. The central register block's
-  command strobes and qualified transaction decisions follow the same pattern.
-- Ledger occupancy/search, RX frame qualification and CRC work, physical capture
-  lane/count, and math result magnitude/range checks use next-state fields.
-  E2E delay calculation writes `v.resultValue.delayValue` directly. Small parser
-  byte/index temporaries stay local and receive unconditional defaults.
+```vhdl
+if snapshotControl.capture = '1' then
+   v.snapshotStatus   := r.status;
+   v.snapshotSequence := snapshotControl.sequenceId;
+end if;
+```
 
-`v := r` initializes the complete next-state record. Per-cycle pulse/qualification
-fields are overwritten in their owning logic sections; intermediate diagnostic
-values can retain their last calculation while the corresponding stage is idle.
-Consumers of current-cycle calculations read `v`, so this does not add a protocol
-pipeline stage. Existing registered outputs still read `r`.
-
-When an output uses a current-cycle `v` field, output publication precedes the
-final synchronous reset assignment to `v`. Explicit reset gating of abort and
-ready remains in place. This preserves the original same-edge output equations
-while `rin` receives the reset value. Asynchronous reset remains solely in `seq`.
-
-The build smoke checks do not qualify synthesis resource use or behavior.
-Intermediate fields without observable registered consumers may be optimized
-away; adding AXI diagnostics later would make their storage observable and must
-be reviewed as a separate hardware/register-map change. Regression approval is
-still required before behavioral verification.
+The snapshot is a copy of pre-edge live status, tagged with the common request's
+identity. Matching sequence counters alone do not guarantee coherence. Specify
+how reset, configuration changes and capture invalidation affect a pending
+snapshot, especially if any values cross clock domains.

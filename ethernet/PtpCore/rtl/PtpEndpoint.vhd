@@ -87,15 +87,24 @@ end entity PtpEndpoint;
 architecture rtl of PtpEndpoint is
 
    constant NUM_AXIL_MASTERS_C : positive := 4;
-   constant AXIL_CONFIG_C      : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
-      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 12, 10);
 
-   signal readMasters  : AxiLiteReadMasterArray(3 downto 0);
-   signal readSlaves   : AxiLiteReadSlaveArray(3 downto 0);
-   signal writeMasters : AxiLiteWriteMasterArray(3 downto 0);
-   signal writeSlaves  : AxiLiteWriteSlaveArray(3 downto 0);
+   -- Bank order defines the development register offsets within the 16 KiB aperture.
+   constant CONTROL_AXIL_INDEX_C : natural := 0;
+   constant PHC_AXIL_INDEX_C     : natural := 1;
+   constant PORT_AXIL_INDEX_C    : natural := 2;
+   constant SERVO_AXIL_INDEX_C   : natural := 3;
+
+   constant AXIL_APERTURE_BITS_C : positive := 14; -- 16 KiB endpoint.
+   constant AXIL_BANK_BITS_C     : positive := 12; -- 4 KiB per owner.
+
+   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
+      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, AXIL_APERTURE_BITS_C, AXIL_BANK_BITS_C);
+
+   signal readMasters  : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal readSlaves   : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal writeMasters : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal writeSlaves  : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal axiReset     : sl;
-   signal configValid  : slv(2 downto 0);
    signal enable       : sl;
    signal servoEnable  : sl;
    signal manualBusy   : sl;
@@ -107,6 +116,10 @@ architecture rtl of PtpEndpoint is
    signal clearValid   : sl;
    signal events       : slv(3 downto 0);
 
+   signal phcConfigValid   : sl;
+   signal portConfigValid  : sl;
+   signal servoConfigValid : sl;
+
    signal configControl   : PtpConfigControlType;
    signal snapshotControl : PtpSnapshotControlType;
    signal commandMaster   : PtpPhcCommandMasterType;
@@ -116,10 +129,14 @@ architecture rtl of PtpEndpoint is
    signal measurementMaster : PtpMeasurementMasterType;
    signal measurementSlave  : PtpMeasurementSlaveType;
    signal portStatus        : PtpPortStatusType;
+   signal portLifecycle     : PtpPortLifecycleType;
 
 begin
 
-   comb : process (rst, regRst, portRst, configControl, portStatus, linkReady, abortCapture, status,
+   assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
+      report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
+
+   comb : process (rst, regRst, portRst, configControl, portStatus, portLifecycle, linkReady, abortCapture, status,
                    timeValue, servoStatus) is
       variable restartPort : sl;
    begin
@@ -131,17 +148,19 @@ begin
       end if;
 
       -- Apply protocol lifecycle changes to the port and physical RX frontend.
-      restartPort := portRst or configControl.apply or portStatus.identityRestart;
+      -- rxFlush shares the immediate capture/epoch cancellation contract; it
+      -- must not add a register stage independently of those consumers.
+      restartPort := portRst or configControl.apply or portLifecycle.identityRestart;
       restart     <= restartPort;
       rxFlush     <= restartPort or not linkReady or abortCapture;
 
       -- Aggregate only the event bits needed by the central IRQ register.
-      events(0) <= status.fault;
-      events(1) <= status.discontinuity;
-      events(2) <= status.error;
-      events(3) <= '0';
+      events(PTP_IRQ_PHC_FAULT_C) <= status.fault;
+      events(PTP_IRQ_DISCONTINUITY_C) <= status.discontinuity;
+      events(PTP_IRQ_COMMAND_ERROR_C) <= status.error;
+      events(PTP_IRQ_SERVO_FAULT_C) <= '0';
       if servoStatus.state = PTP_SERVO_FAULT_C then
-         events(3) <= '1';
+         events(PTP_IRQ_SERVO_FAULT_C) <= '1';
       end if;
       phcTime      <= timeValue;
       phcStatus    <= status;
@@ -175,26 +194,28 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk             => clk,                       -- [in]
-         rst             => rst,                       -- [in]
-         regRst          => regRst,                    -- [in]
-         axiReadMaster   => readMasters(0),            -- [in]
-         axiReadSlave    => readSlaves(0),             -- [out]
-         axiWriteMaster  => writeMasters(0),           -- [in]
-         axiWriteSlave   => writeSlaves(0),            -- [out]
-         manualBusy      => manualBusy,                -- [in]
-         configValid     => configValid,               -- [in]
-         captureAbort    => abortCapture,              -- [in]
-         events          => events,                    -- [in]
-         portActive      => portStatus.active,         -- [in]
-         servoState      => servoStatus.state,         -- [in]
-         filterCount     => servoStatus.filterCount,   -- [in]
-         announceValid   => portStatus.announceValid,  -- [in]
-         enable          => enable,                    -- [out]
-         servoEnable     => servoEnable,               -- [out]
-         configControl   => configControl,             -- [out]
-         snapshotControl => snapshotControl,           -- [out]
-         irq             => irq);                      -- [out]
+         clk              => clk,                                 -- [in]
+         rst              => rst,                                 -- [in]
+         regRst           => regRst,                              -- [in]
+         axiReadMaster    => readMasters(CONTROL_AXIL_INDEX_C),   -- [in]
+         axiReadSlave     => readSlaves(CONTROL_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster   => writeMasters(CONTROL_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave    => writeSlaves(CONTROL_AXIL_INDEX_C),   -- [out]
+         manualBusy       => manualBusy,                          -- [in]
+         phcConfigValid   => phcConfigValid,                      -- [in]
+         portConfigValid  => portConfigValid,                     -- [in]
+         servoConfigValid => servoConfigValid,                    -- [in]
+         captureAbort     => abortCapture,                        -- [in]
+         events           => events,                              -- [in]
+         portActive       => portStatus.active,                   -- [in]
+         servoState       => servoStatus.state,                   -- [in]
+         filterCount      => servoStatus.filterCount,             -- [in]
+         announceValid    => portStatus.announceValid,            -- [in]
+         enable           => enable,                              -- [out]
+         servoEnable      => servoEnable,                         -- [out]
+         configControl    => configControl,                       -- [out]
+         snapshotControl  => snapshotControl,                     -- [out]
+         irq              => irq);                                -- [out]
 
    U_Phc : entity surf.PtpPhc
       generic map (
@@ -203,27 +224,27 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk              => clk,                      -- [in]
-         rst              => rst,                      -- [in]
-         regRst           => regRst,                   -- [in]
-         axiReadMaster    => readMasters(1),           -- [in]
-         axiReadSlave     => readSlaves(1),            -- [out]
-         axiWriteMaster   => writeMasters(1),          -- [in]
-         axiWriteSlave    => writeSlaves(1),           -- [out]
-         configControl    => configControl,            -- [in]
-         snapshotControl  => snapshotControl,          -- [in]
-         configValid      => configValid(0),           -- [out]
-         servoEnable      => servoEnable,              -- [in]
-         restart          => restart,                  -- [in]
-         portCommandAbort => portStatus.commandAbort,  -- [in]
-         commandMaster    => commandMaster,            -- [in]
-         commandSlave     => commandSlave,             -- [out]
-         manualBusy       => manualBusy,               -- [out]
-         clearValid       => clearValid,               -- [in]
-         phcTime          => timeValue,                -- [out]
-         status           => status,                   -- [out]
-         captureAbort     => abortCapture,             -- [out]
-         pps              => pps);                     -- [out]
+         clk              => clk,                             -- [in]
+         rst              => rst,                             -- [in]
+         regRst           => regRst,                          -- [in]
+         axiReadMaster    => readMasters(PHC_AXIL_INDEX_C),   -- [in]
+         axiReadSlave     => readSlaves(PHC_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster   => writeMasters(PHC_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave    => writeSlaves(PHC_AXIL_INDEX_C),   -- [out]
+         configControl    => configControl,                   -- [in]
+         snapshotControl  => snapshotControl,                 -- [in]
+         configValid      => phcConfigValid,                  -- [out]
+         servoEnable      => servoEnable,                     -- [in]
+         restart          => restart,                         -- [in]
+         portCommandAbort => portLifecycle.commandAbort,      -- [in]
+         commandMaster    => commandMaster,                   -- [in]
+         commandSlave     => commandSlave,                    -- [out]
+         manualBusy       => manualBusy,                      -- [out]
+         clearValid       => clearValid,                      -- [in]
+         phcTime          => timeValue,                       -- [out]
+         status           => status,                          -- [out]
+         captureAbort     => abortCapture,                    -- [out]
+         pps              => pps);                            -- [out]
 
    U_Port : entity surf.PtpPort
       generic map (
@@ -235,38 +256,39 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
-         clk               => clk,                -- [in]
-         rst               => rst,                -- [in]
-         regRst            => regRst,             -- [in]
-         axiReadMaster     => readMasters(2),     -- [in]
-         axiReadSlave      => readSlaves(2),      -- [out]
-         axiWriteMaster    => writeMasters(2),    -- [in]
-         axiWriteSlave     => writeSlaves(2),     -- [out]
-         configControl     => configControl,      -- [in]
-         snapshotControl   => snapshotControl,    -- [in]
-         configValid       => configValid(1),     -- [out]
-         restart           => restart,            -- [in]
-         linkReady         => linkReady,          -- [in]
-         macResetDone      => macResetDone,       -- [in]
-         localMac          => localMac,           -- [in]
-         phcStatus         => status,             -- [in]
-         measurementMaster => measurementMaster,  -- [out]
-         measurementSlave  => measurementSlave,   -- [in]
-         captureAbort      => abortCapture,       -- [in]
-         rxMessage         => rxMessage,          -- [in]
-         rxValid           => rxValid,            -- [in]
-         rxReady           => rxReady,            -- [out]
-         rxQueueOverflow   => rxQueueOverflow,    -- [in]
-         rxAbort           => rxAbort,            -- [in]
-         txMessage         => txMessage,          -- [in]
-         txValid           => txValid,            -- [in]
-         txAbort           => txAbort,            -- [in]
-         txMaster          => txMaster,           -- [out]
-         txSlave           => txSlave,            -- [in]
-         enable            => enable,             -- [in]
-         rxCounters        => rxCounters,         -- [in]
-         sharedConfig      => sharedConfig,       -- [out]
-         status            => portStatus);        -- [out]
+         clk               => clk,                              -- [in]
+         rst               => rst,                              -- [in]
+         regRst            => regRst,                           -- [in]
+         axiReadMaster     => readMasters(PORT_AXIL_INDEX_C),   -- [in]
+         axiReadSlave      => readSlaves(PORT_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster    => writeMasters(PORT_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave     => writeSlaves(PORT_AXIL_INDEX_C),   -- [out]
+         configControl     => configControl,                    -- [in]
+         snapshotControl   => snapshotControl,                  -- [in]
+         configValid       => portConfigValid,                  -- [out]
+         restart           => restart,                          -- [in]
+         linkReady         => linkReady,                        -- [in]
+         macResetDone      => macResetDone,                     -- [in]
+         localMac          => localMac,                         -- [in]
+         phcStatus         => status,                           -- [in]
+         measurementMaster => measurementMaster,                -- [out]
+         measurementSlave  => measurementSlave,                 -- [in]
+         captureAbort      => abortCapture,                     -- [in]
+         rxMessage         => rxMessage,                        -- [in]
+         rxValid           => rxValid,                          -- [in]
+         rxReady           => rxReady,                          -- [out]
+         rxQueueOverflow   => rxQueueOverflow,                  -- [in]
+         rxAbort           => rxAbort,                          -- [in]
+         txMessage         => txMessage,                        -- [in]
+         txValid           => txValid,                          -- [in]
+         txAbort           => txAbort,                          -- [in]
+         txMaster          => txMaster,                         -- [out]
+         txSlave           => txSlave,                          -- [in]
+         enable            => enable,                           -- [in]
+         rxCounters        => rxCounters,                       -- [in]
+         sharedConfig      => sharedConfig,                     -- [out]
+         lifecycle         => portLifecycle,                     -- [out]
+         status            => portStatus);                      -- [out]
 
    U_Servo : entity surf.PtpServo
       generic map (
@@ -275,25 +297,25 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk               => clk,                -- [in]
-         rst               => rst,                -- [in]
-         regRst            => regRst,             -- [in]
-         axiReadMaster     => readMasters(3),     -- [in]
-         axiReadSlave      => readSlaves(3),      -- [out]
-         axiWriteMaster    => writeMasters(3),    -- [in]
-         axiWriteSlave     => writeSlaves(3),     -- [out]
-         configControl     => configControl,      -- [in]
-         snapshotControl   => snapshotControl,    -- [in]
-         configValid       => configValid(2),     -- [out]
-         restart           => restart,            -- [in]
-         phcStatus         => status,             -- [in]
-         measurementMaster => measurementMaster,  -- [in]
-         measurementSlave  => measurementSlave,   -- [out]
-         commandMaster     => commandMaster,      -- [out]
-         commandSlave      => commandSlave,       -- [in]
-         expireTime        => clearValid,         -- [out]
-         status            => servoStatus,        -- [out]
-         servoEnable       => servoEnable,        -- [in]
-         sharedConfig      => sharedConfig);      -- [in]
+         clk               => clk,                               -- [in]
+         rst               => rst,                               -- [in]
+         regRst            => regRst,                            -- [in]
+         axiReadMaster     => readMasters(SERVO_AXIL_INDEX_C),   -- [in]
+         axiReadSlave      => readSlaves(SERVO_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster    => writeMasters(SERVO_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave     => writeSlaves(SERVO_AXIL_INDEX_C),   -- [out]
+         configControl     => configControl,                     -- [in]
+         snapshotControl   => snapshotControl,                   -- [in]
+         configValid       => servoConfigValid,                  -- [out]
+         restart           => restart,                           -- [in]
+         phcStatus         => status,                            -- [in]
+         measurementMaster => measurementMaster,                 -- [in]
+         measurementSlave  => measurementSlave,                  -- [out]
+         commandMaster     => commandMaster,                     -- [out]
+         commandSlave      => commandSlave,                      -- [in]
+         expireTime        => clearValid,                        -- [out]
+         status            => servoStatus,                       -- [out]
+         servoEnable       => servoEnable,                       -- [in]
+         sharedConfig      => sharedConfig);                     -- [in]
 
 end architecture rtl;

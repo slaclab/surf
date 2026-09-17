@@ -16,7 +16,7 @@ from ._PtpServo import PtpServo
 
 
 class PtpEndpoint(pr.Device):
-    """Distributed PTP register ABI v2, four 1 KiB banks in a 4 KiB aperture.
+    """Development PTP register map: four 4 KiB banks in a 16 KiB aperture.
 
     Configuration variables in this device and Phc/Port/Servo children are
     shadows. CommitConfig prepares immutable candidates, validates all banks,
@@ -198,6 +198,6 @@ class PtpEndpoint(pr.Device):
             mode        = 'RO',
         ))
 
-        self.add(PtpPhc(name="Phc", offset=0x400))
-        self.add(PtpPort(name="Port", offset=0x800))
-        self.add(PtpServo(name="Servo", offset=0xC00))
+        self.add(PtpPhc(name="Phc", offset=0x1000))
+        self.add(PtpPort(name="Port", offset=0x2000))
+        self.add(PtpServo(name="Servo", offset=0x3000))

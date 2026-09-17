@@ -55,6 +55,14 @@ end entity PtpRxTimestampAdapter;
 
 architecture rtl of PtpRxTimestampAdapter is
 
+   constant XGMII_START_C         : slv(7 downto 0) := x"FB";
+   constant XGMII_TERMINATE_C     : slv(7 downto 0) := x"FD";
+   constant ETH_PREAMBLE_C        : slv(7 downto 0) := x"55";
+   constant ETH_SFD_C             : slv(7 downto 0) := x"D5";
+   constant GMII_PREAMBLE_BYTES_C : positive := 7;
+   -- XGMII /S/ replaces the first preamble octet.
+   constant XGMII_PREAMBLE_BYTES_C : positive := GMII_PREAMBLE_BYTES_C-1;
+
    -- SEARCH finds a legal start; PREAMBLE qualifies all preamble/SFD bytes;
    -- FRAME forwards bytes; DRAIN ignores a damaged frame until its physical
    -- termination. Preamble state and the pending-first-byte flag can cross a
@@ -72,7 +80,7 @@ architecture rtl of PtpRxTimestampAdapter is
       captureLane : natural range 0 to 7;
 
       state       : StateType;
-      preamble    : natural range 0 to 7;
+      preamble    : natural range 0 to GMII_PREAMBLE_BYTES_C;
       first       : sl;
       generation  : slv(31 downto 0);
       master      : AxiStreamMasterType;
@@ -125,21 +133,22 @@ begin
                when SEARCH_S =>
                   -- /S/ replaces the first preamble octet and is recognized
                   -- only in legal start lanes. Data-valued 0xFB is not /S/.
-                  if xgmiiRxc(lane) = '1' and octet = x"FB" and (lane = 0 or lane = 4) then
+                  -- /S/ is legal only at the start of either 32-bit half.
+                  if xgmiiRxc(lane) = '1' and octet = XGMII_START_C and (lane = 0 or lane = 4) then
                      v.state    := PREAMBLE_S;
                      v.preamble := 0;
                   end if;
                when PREAMBLE_S =>
                   -- Six remaining 0x55 bytes followed by data-valued SFD.
                   -- Nothing is forwarded until the complete preamble matches.
-                  if xgmiiRxc(lane) = '0' and octet = x"55" and v.preamble < 6 then
+                  if xgmiiRxc(lane) = '0' and octet = ETH_PREAMBLE_C and v.preamble < XGMII_PREAMBLE_BYTES_C then
                      v.preamble := v.preamble+1;
-                  elsif xgmiiRxc(lane) = '0' and octet = x"D5" and v.preamble = 6 then
+                  elsif xgmiiRxc(lane) = '0' and octet = ETH_SFD_C and v.preamble = XGMII_PREAMBLE_BYTES_C then
                      v.state := FRAME_S;
                      v.first := '1';
                   else
                      v.state := DRAIN_S;
-                     if xgmiiRxc(lane) = '1' and octet = x"FD" then
+                     if xgmiiRxc(lane) = '1' and octet = XGMII_TERMINATE_C then
                         v.state := SEARCH_S;
                      end if;
                   end if;
@@ -163,7 +172,7 @@ begin
                      -- count may be zero when /T/ follows a full prior word;
                      -- the resulting empty TLAST still completes validation.
                      v.master.tLast := '1';
-                     if octet = x"FD" then
+                     if octet = XGMII_TERMINATE_C then
                         v.state := SEARCH_S;
                      else
                         ssiSetUserEofe(PTP_RX_AXIS_CONFIG_C, v.master, '1');
@@ -173,7 +182,7 @@ begin
                when DRAIN_S =>
                   -- In particular, a nested /S/ cannot retimestamp bytes from
                   -- the damaged frame. Require /T/ before searching again.
-                  if xgmiiRxc(lane) = '1' and octet = x"FD" then
+                  if xgmiiRxc(lane) = '1' and octet = XGMII_TERMINATE_C then
                      v.state := SEARCH_S;
                   end if;
             end case;
@@ -185,7 +194,7 @@ begin
             when SEARCH_S =>
                if gmiiRxDv = '1' then
                   v.state := DRAIN_S;
-                  if gmiiRxEr = '0' and gmiiRxd = x"55" then
+                  if gmiiRxEr = '0' and gmiiRxd = ETH_PREAMBLE_C then
                      v.state    := PREAMBLE_S;
                      v.preamble := 1;
                   end if;
@@ -193,9 +202,9 @@ begin
             when PREAMBLE_S =>
                if gmiiRxDv = '0' then
                   v.state := SEARCH_S;
-               elsif gmiiRxEr = '0' and gmiiRxd = x"55" and v.preamble < 7 then
+               elsif gmiiRxEr = '0' and gmiiRxd = ETH_PREAMBLE_C and v.preamble < GMII_PREAMBLE_BYTES_C then
                   v.preamble := v.preamble+1;
-               elsif gmiiRxEr = '0' and gmiiRxd = x"D5" and v.preamble = 7 then
+               elsif gmiiRxEr = '0' and gmiiRxd = ETH_SFD_C and v.preamble = GMII_PREAMBLE_BYTES_C then
                   v.state := FRAME_S;
                   v.first := '1';
                else

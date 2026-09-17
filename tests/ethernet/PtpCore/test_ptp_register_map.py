@@ -12,7 +12,7 @@
 # - Sweep: All four distributed PyRogue banks and their RTL decode entries.
 # - Stimulus: Parse maintained sources without importing unavailable PyRogue.
 # - Checks: Exact field-start offsets/bits and access modes match RTL; software
-#   fields never overlap or escape a 1 KiB bank; parent child offsets agree.
+#   fields never overlap or escape a 4 KiB bank; parent child offsets agree.
 # - Timing: Static schema checks complement the real AXI/cocotb regressions.
 
 import ast
@@ -32,7 +32,7 @@ def test_local_register_schema(device, rtl):
     source = (ROOT/'ethernet/PtpCore/rtl'/f'{rtl}.vhd').read_text()
     hardware = {}
     for ro, offset, bit in re.findall(
-            r'axiSlaveRegister(R?)\(ep, toSlv\(16#([0-9A-F]+)#, 10\), (\d+),', source):
+            r'axiSlaveRegister(R?)\(ep, x"([0-9A-F]{3})", (\d+),', source):
         key = int(offset, 16), int(bit)
         assert key not in hardware
         hardware[key] = 'RO' if ro else 'RW'
@@ -62,9 +62,9 @@ def test_local_register_schema(device, rtl):
         assert hardware.get(key) == mode, (name, key, mode)
         software[key] = mode
         bits = set(range(offset*8+bit, offset*8+bit+width))
-        assert max(bits) < 0x400*8
+        assert max(bits) < 0x1000*8
         assert not occupied.intersection(bits), name
         occupied.update(bits)
     assert software == hardware
     if device == 'PtpEndpoint':
-        assert children == {'Phc': 0x400, 'Port': 0x800, 'Servo': 0xC00}
+        assert children == {'Phc': 0x1000, 'Port': 0x2000, 'Servo': 0x3000}

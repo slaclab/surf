@@ -58,12 +58,16 @@ entity PtpE2e is
       ratio        : in  slv(63 downto 0);
       maxPathDelay : in  slv(63 downto 0);
       resultValue  : out PtpMeasurementType;
+      -- Registered valid; transfer requires valid/ready high and cancel/reset inactive.
       resultValid  : out sl;
       resultReady  : in  sl;
       resultError  : out sl);
 end entity PtpE2e;
 
 architecture rtl of PtpE2e is
+
+   -- Q3 raw cycles * Q48 master ns/cycle -> Q16 nanoseconds.
+   constant ELAPSED_SHIFT_C : natural := PTP_TICK_PHASE_BITS_C+PTP_RATIO_FRAC_BITS_C-PTP_TIME_FRAC_BITS_C;
 
    type StateType is (
       IDLE_S,
@@ -79,8 +83,11 @@ architecture rtl of PtpE2e is
       EGRESS_DIVIDE_S);
 
    type RegType is record
+      -- Current-cycle admission; published from v, not delayed through r.
+      inputReady  : sl;
       state       : StateType;
       operation   : OperationType;
+      mathInput   : sl;
       a           : slv(127 downto 0);
       b           : slv(127 downto 0);
       divide      : sl;
@@ -89,13 +96,16 @@ architecture rtl of PtpE2e is
       delaySample : PtpDelaySampleType;
       ratio       : slv(63 downto 0);
       maximum     : slv(63 downto 0);
+      resultValid : sl;
       resultValue : PtpMeasurementType;
       error       : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
+      inputReady  => '0',
       state       => IDLE_S,
       operation   => ELAPSED_SCALE_S,
+      mathInput   => '0',
       a           => (others => '0'),
       b           => (others => '0'),
       divide      => '0',
@@ -104,6 +114,7 @@ architecture rtl of PtpE2e is
       delaySample => PTP_DELAY_SAMPLE_INIT_C,
       ratio       => (others => '0'),
       maximum     => (others => '0'),
+      resultValid => '0',
       resultValue => PTP_MEASUREMENT_INIT_C,
       error       => '0');
 
@@ -144,6 +155,8 @@ begin
    begin
       v := r;
 
+      v.inputReady := '0';
+
       -- Latch one complete exchange, run its arithmetic stages in order, then
       -- hold the result until consumed. Cancellation below overrides all stages.
       case r.state is
@@ -164,12 +177,16 @@ begin
                   v.state := DONE_S;
                end if;
             end if;
+            -- Preserve idle readiness after initializing an accepted exchange.
+            if cancel = '0' and rst /= RST_POLARITY_G then
+               v.inputReady := '1';
+            end if;
          when ISSUE_S =>
             if mathReady = '1' then
                v.state := WAIT_S;
             end if;
          when WAIT_S =>
-            if mathValid = '1' then
+            if mathValid = '1' and cancel = '0' then
                v.state := ISSUE_S;
                if mathError = '1' then
                   v.error := '1';
@@ -178,13 +195,13 @@ begin
                   case r.operation is
                      when ELAPSED_SCALE_S =>
                         -- Q3 raw cycles times Q48 ns/cycle -> Q16 nanoseconds.
-                        v.elapsed   := ptpRoundShift(signed(mathResult), 35);
+                        v.elapsed   := ptpRoundShift(signed(mathResult), ELAPSED_SHIFT_C);
                         v.a         := slv(resize(signed(INGRESS_LATENCY_G), 128));
                         v.b         := slv(resize(unsigned(r.ratio), 128));
                         v.operation := INGRESS_SCALE_S;
                      when INGRESS_SCALE_S =>
                         v.a         := mathResult;
-                        v.b         := slv(shift_left(resize(unsigned(r.syncSample.capture.increment), 128), 16));
+                        v.b         := slv(shift_left(resize(unsigned(r.syncSample.capture.increment), 128), PTP_PHC_TO_RATIO_SHIFT_C));
                         v.divide    := '1';
                         v.operation := INGRESS_DIVIDE_S;
                      when INGRESS_DIVIDE_S =>
@@ -198,7 +215,7 @@ begin
                         v.operation := EGRESS_SCALE_S;
                      when EGRESS_SCALE_S =>
                         v.a         := mathResult;
-                        v.b         := slv(shift_left(resize(unsigned(r.delaySample.capture.increment), 128), 16));
+                        v.b         := slv(shift_left(resize(unsigned(r.delaySample.capture.increment), 128), PTP_PHC_TO_RATIO_SHIFT_C));
                         v.divide    := '1';
                         v.operation := EGRESS_DIVIDE_S;
                      when EGRESS_DIVIDE_S =>
@@ -227,23 +244,23 @@ begin
                v.state := IDLE_S;
             end if;
       end case;
+      -- Register the request with its operands and operation. Using next state
+      -- preserves the issue edge, including a request held for mathReady.
+      v.mathInput := '0';
+      if v.state = ISSUE_S then
+         v.mathInput := '1';
+      end if;
+      v.resultValid := '0';
+      if v.state = DONE_S then
+         v.resultValid := '1';
+      end if;
       if cancel = '1' or (not RST_ASYNC_G and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
-      mathInput <= '0';
-      if r.state = ISSUE_S then
-         mathInput <= '1';
-      end if;
       rin         <= v;
-      inputReady  <= '0';
-      resultValid <= '0';
-      if cancel = '0' and rst /= RST_POLARITY_G then
-         if r.state = IDLE_S then
-            inputReady <= '1';
-         elsif r.state = DONE_S then
-            resultValid <= '1';
-         end if;
-      end if;
+      mathInput   <= r.mathInput;
+      inputReady  <= v.inputReady;
+      resultValid <= r.resultValid;
       resultValue <= r.resultValue;
       resultError <= r.error;
    end process comb;

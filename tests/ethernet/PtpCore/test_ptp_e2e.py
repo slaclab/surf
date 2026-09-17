@@ -13,6 +13,8 @@
 #   PHC rate replacements, negative/oversized path delay and arithmetic abort.
 # - Stimulus: Integer wire timestamps and independently reconstructed master time.
 # - Checks: Full signed 128-bit forward/path delay, rejection and stalled outputs.
+# - Registered-valid check: cancel may not change resultValid before the edge;
+#   producer and consumer must exclude cancellation edges from transfers.
 # - Timing: Five sequential operations must finish within 700 cycles; cancellation
 #   invalidates a result before its ready edge.
 
@@ -37,11 +39,14 @@ def timestamp(value, fraction=False):
 
 @cocotb.test()
 async def corrected_exchange(d):
-    async def edge(**values):
+    async def edge(check_registered=False, **values):
+        before = int(d.resultValid.value) if check_registered else None
         d.clk.value = 0
         for name, value in values.items():
             getattr(d, name).value = value
         await Timer(3.2, unit="ns")
+        if check_registered:
+            assert int(d.resultValid.value) == before, "result valid changed between edges"
         d.clk.value = 1
         await Timer(3.2, unit="ns")
     for name in ("clk", "cancel", "inputValid", "syncTime", "syncTicks", "syncPhase", "syncIncrement",
@@ -86,14 +91,24 @@ async def corrected_exchange(d):
             assert int(d.resultValid.value)
             assert int(d.delayValue.value) == expected_delay & MASK
         await edge(resultReady=1)
-    await edge(inputValid=1, resultReady=0)
-    await edge(inputValid=0)
-    for _ in range(50):
-        await edge()
-    await edge(cancel=1, resultReady=1)
-    assert not int(d.resultValid.value)
-    await edge(cancel=0)
-    assert int(d.inputReady.value)
+    # Cancel once during arithmetic and once while a completed result is held.
+    for wait_for_result in (False, True):
+        await edge(inputValid=1, resultReady=0)
+        await edge(inputValid=0)
+        if wait_for_result:
+            for _ in range(700):
+                if int(d.resultValid.value):
+                    break
+                await edge()
+            else:
+                assert False, "held-result cancellation setup timed out"
+        else:
+            for _ in range(50):
+                await edge()
+        await edge(check_registered=True, cancel=1, resultReady=1)
+        assert not int(d.resultValid.value)
+        await edge(cancel=0)
+        assert int(d.inputReady.value)
 
 
 def test_ptp_e2e():

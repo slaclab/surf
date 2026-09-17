@@ -81,19 +81,19 @@
   <text class="small" x="1200" y="479">after SFD at the MAC / PCS plane.</text>
 
   <rect x="100" y="580" width="1010" height="385" rx="14" fill="#edf2f8" stroke="#9aaec5" stroke-width="1.5"/>
-  <text class="groupTitle" x="125" y="608">PtpEndpoint · ABI v2</text>
+  <text class="groupTitle" x="125" y="608">PtpEndpoint · development map</text>
   <path class="packet" style="marker-end: none" d="M 360 620 V 580"/>
   <path class="event" d="M 430 580 V 620"/>
   <path class="event" d="M 475 580 V 620"/>
   <rect x="130" y="620" width="360" height="110" rx="10" fill="#fff" stroke="#cc9a55" stroke-width="2"/>
-  <text class="blockTitle" x="310" y="653">PtpPort · 0x800</text>
+  <text class="blockTitle" x="310" y="653">PtpPort · 0x2000</text>
   <text class="detail" x="310" y="680">Local config · protocol · ledger</text>
   <text class="detail" x="310" y="708">Announce / exchange snapshots</text>
 
   <rect class="box" x="525" y="620" width="270" height="110" rx="10"/>
   <text class="blockTitle" x="660" y="653">AxiLiteCrossbar</text>
   <text class="detail" x="660" y="680">AXIL_BASE_ADDR_G</text>
-  <text class="detail" x="660" y="708">Four 1 KiB banks</text>
+  <text class="detail" x="660" y="708">Four 4 KiB banks</text>
   <rect class="box" x="840" y="620" width="250" height="110" rx="10"/>
   <text class="blockTitle" x="965" y="653">PtpReg · 0x000</text>
   <text class="detail" x="965" y="680">Commit / snapshot control</text>
@@ -116,12 +116,12 @@
   <text class="label eventText" x="215" y="806">samples</text>
   <rect class="box" x="130" y="820" width="230" height="90" rx="10"/>
   <text class="blockTitle" x="245" y="856">PtpServo</text>
-  <text class="detail" x="245" y="886">0xC00 · gains / status</text>
+  <text class="detail" x="245" y="886">0x3000 · gains / status</text>
 
   <path class="control" d="M 360 865 H 480"/>
   <text class="label controlText" x="420" y="852" text-anchor="middle">Auto</text>
   <rect x="480" y="820" width="610" height="90" rx="10" fill="#effafa" stroke="#67a8ac" stroke-width="1.5"/>
-  <text class="blockTitle" x="785" y="856">PtpPhc · 0x400</text>
+  <text class="blockTitle" x="785" y="856">PtpPhc · 0x1000</text>
   <text class="detail" x="785" y="886">Local registers · manual/servo arbitration · timebase</text>
   <path class="time" d="M 1090 865 H 1150 V 427 H 1090"/>
   <text class="label timeText" x="1172" y="805" transform="rotate(-90 1172 805)">PHC → capture</text>

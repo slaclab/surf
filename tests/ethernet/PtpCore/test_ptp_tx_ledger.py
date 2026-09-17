@@ -14,6 +14,7 @@
 #   completion, identity change, explicit MAC reset and startup quarantine.
 # - Checks: Exact sequence/capture association; unknown wire fates retain slots;
 #   retired keys cannot emit samples or be reused before quarantine expiry.
+#   Registered occupancy follows allocation/wire completion/reset on that edge.
 # - Timing: Monotonic ticks are independent inputs; abort wins over stalled output.
 
 import cocotb
@@ -25,13 +26,16 @@ IDENTITY = int("001122fffe3344550001", 16)
 @cocotb.test()
 async def lifecycle(d):
     now = 0
-    async def edge(**values):
+    async def edge(check_registered=False, **values):
         nonlocal now
+        before = int(d.sampleValid.value) if check_registered else None
         d.clk.value = 0
         d.ticks.value = now
         for name, value in values.items():
             getattr(d, name).value = value
         await Timer(3.2, unit="ns")
+        if check_registered:
+            assert int(d.sampleValid.value) == before, "sample valid changed between edges"
         d.clk.value = 1
         await Timer(3.2, unit="ns")
         now += 1
@@ -46,6 +50,7 @@ async def lifecycle(d):
     await edge(rst=0)
     assert not int(d.allocateReady.value)
     await edge(macResetDone=1)
+    assert int(d.ledgerStatus.value) == 3  # Startup/reset seen, no occupied slots.
     await edge(macResetDone=0)
     for _ in range(102):
         await edge()
@@ -63,15 +68,17 @@ async def lifecycle(d):
     # Response publication can precede the queued TX completion record, even
     # though its physical capture must follow the actual wire capture.
     first = await allocate()
+    assert (int(d.ledgerStatus.value) >> 8) & 0xffff == 0x0101
     wire_tick = now
     await edge(responseValid=1, responseSequence=first, responseTicks=wire_tick+1)
     await edge(responseValid=0)
     await edge(wireValid=1, wireSequence=first, wireTicks=wire_tick)
+    assert (int(d.ledgerStatus.value) >> 8) & 0xffff == 0x0001
     await edge(wireValid=0)
     assert int(d.sampleValid.value)
     assert int(d.sampleSequence.value) == first
     assert int(d.sampleTicks.value) == wire_tick
-    await edge(restart=1, sampleReady=1, generation=1)
+    await edge(check_registered=True, restart=1, sampleReady=1, generation=1)
     assert not int(d.sampleValid.value)
     await edge(restart=0, sampleReady=0)
     second = await allocate()
@@ -108,6 +115,7 @@ async def lifecycle(d):
     await allocate()
     await allocate()
     await edge(macResetDone=1)
+    assert int(d.ledgerStatus.value) == 3  # Startup/reset seen, no occupied slots.
     await edge(macResetDone=0)
     assert not int(d.allocateReady.value)
     for _ in range(102):

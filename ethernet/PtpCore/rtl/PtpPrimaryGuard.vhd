@@ -102,9 +102,10 @@ begin
             -- from impersonating a Delay_Req key owned by the endpoint ledger.
             -- A fragmented/short first beat is outside this wrapper's EMAC
             -- contract and is also drained, never partially sent to the MAC.
+            -- EtherType is in frame bytes 12..13, AXI bits 111..96.
             if sMaster.tKeep(15 downto 0) /= x"FFFF" or
                axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sMaster, EMAC_SOF_BIT_C, 0) = '0' or
-               sMaster.tData(111 downto 96) = x"F788" then
+               sMaster.tData(111 downto 96) = PTP_ETH_TYPE_AXIS_C then
                v.discard := '1';
                v.dropped := ptpSatInc(r.dropped);
             end if;

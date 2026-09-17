@@ -68,13 +68,14 @@ entity PtpTxLedgerWrapper is
       sampleSequence     : out slv(15 downto 0);
       sampleTicks        : out slv(63 downto 0);
       sampleGeneration   : out slv(31 downto 0);
+      ledgerStatus       : out slv(31 downto 0);
       timeoutCount       : out slv(31 downto 0);
       rejectedCount      : out slv(31 downto 0));
 end entity PtpTxLedgerWrapper;
 
 architecture rtl of PtpTxLedgerWrapper is
 
-   signal config      : PtpConfigType := PTP_CONFIG_INIT_C;
+   signal config      : PtpPortConfigType := PTP_PORT_CONFIG_INIT_C;
    signal wireMessage : PtpRxMessageType := PTP_RX_MESSAGE_INIT_C;
    signal response    : PtpRxMessageType := PTP_RX_MESSAGE_INIT_C;
    signal sample      : PtpDelaySampleType;
@@ -123,6 +124,7 @@ begin
          sample           => sample,            -- [out]
          sampleValid      => sampleValid,       -- [out]
          sampleReady      => sampleReady,       -- [in]
+         ledgerStatus     => ledgerStatus,      -- [out]
          timeoutCount     => timeoutCount,      -- [out]
          rejectedCount    => rejectedCount);    -- [out]
 
