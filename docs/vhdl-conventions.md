@@ -84,6 +84,32 @@ exceptions, including vendor ports and uppercase configuration fields.
 | Instance / generate label | `U_...` / descriptive uppercase | `U_Pipeline`, `GEN_LANES` |
 | Architecture | Lowercase | `rtl`, `mapping` |
 
+### Common generics
+
+Put common timing/reset generics first where applicable: `TPD_G`, followed by
+the supported reset options. Group functional, buffering and implementation
+options after them. Reuse established names for established meanings, and pass
+the parent's setting to children that participate in that contract.
+
+| Generic | Meaning and expectations |
+| --- | --- |
+| `TPD_G` | Simulation propagation delay, usually `time := 1 ns`. Pipeline latency is specified separately in clock cycles. |
+| `RST_POLARITY_G`, `RST_ASYNC_G` | Supported reset polarity and synchronous/asynchronous behavior. |
+| `PIPE_STAGES_G` | Configurable pipeline stages. Document whether these add to the block's inherent latency and what zero means. |
+| `COMMON_CLK_G`, `GEN_SYNC_FIFO_G` | Clocking implementation choices. Selecting a synchronous implementation requires the connected clocks to satisfy that block's common-clock contract. |
+| `SYNTH_MODE_G`, `MEMORY_TYPE_G`, `XIL_DEVICE_G` | Implementation, memory or device choices. Document supported string values beside the declaration. |
+
+See [Fifo.vhd](../base/fifo/rtl/Fifo.vhd) and
+[AxiStreamFifoV2.vhd](../axi/axi-stream/rtl/AxiStreamFifoV2.vhd) for common
+buffering options. Expose only the options a module supports; preserve existing
+names, types and defaults, and account for differences in child reset support.
+
+State frequency and period units explicitly. Many general blocks use real
+frequencies in Hz and periods in seconds, as in
+[Heartbeat.vhd](../base/general/rtl/Heartbeat.vhd). Vendor clock wrappers such
+as [ClockManagerUltraScale.vhd](../xilinx/UltraScale/clocking/rtl/ClockManagerUltraScale.vhd)
+use real periods in nanoseconds. Preserve those interface units.
+
 ### Port declarations
 
 Group ports by clock domain. **Declare the clock first, followed by its reset,
@@ -126,6 +152,13 @@ in a separately labeled functional group. Follow the same grouping and order
 in port maps where practical. When maintaining an existing interface, account
 for positional instantiations and component declarations before reordering ports.
 
+Default optional inputs to their documented inactive or always-enabled value,
+using package constants for records. An optional reset commonly defaults to
+`not RST_POLARITY_G`; a default valid or ready of `'1'` needs an explicit
+always-enabled interface contract. Keep required clocks and inputs required.
+Choose record defaults and disabled outputs according to their
+[idle and tie-off behavior](#idle-and-disabled-interfaces).
+
 ### Instantiations
 
 Use named association and prefer direct SURF entity instantiation. Group clocks,
@@ -152,6 +185,24 @@ Use `-- [inout]` for bidirectional ports. Component binding remains appropriate
 for vendor IP, primitives and flows that require it. Attributes such as
 `ASYNC_REG`, `shreg_extract`, `ram_style` and `use_dsp` express implementation
 constraints and must survive formatting changes.
+
+### Structural generates
+
+Use labeled `if generate` branches for static feature, bypass and implementation
+choices, and `for generate` for replicated instances. Alternative implementations
+must be mutually exclusive. Give each selected branch complete ownership of the
+outputs it implements, including defined outputs when a feature is disabled.
+A bypass must connect forward data and sidebands together with reverse flow
+control; see the `ZERO_LATENCY` branch in
+[AxiStreamPipeline.vhd](../axi/axi-stream/rtl/AxiStreamPipeline.vhd).
+
+Reuse shared FIFO, RAM and pipeline wrappers when they support the required
+configuration. Keep primitive selection inside those wrappers rather than
+repeating it in each consumer. [Fifo.vhd](../base/fifo/rtl/Fifo.vhd) illustrates
+implementation selection, while
+[AxiLiteAsync.vhd](../axi/axi-lite/rtl/AxiLiteAsync.vhd) separates common-clock
+and asynchronous paths. Document supported generic values and reject unsupported
+combinations with assertions, following the checks below.
 
 ### Source layout and checks
 
@@ -440,6 +491,14 @@ See [FirFilterTap.vhd](../dsp/generic/fixed/FirFilterTap.vhd) for branch-local
 arithmetic and [AxiStreamMux.vhd](../axi/axi-stream/rtl/AxiStreamMux.vhd) for
 selection scratch.
 
+Local variables declared inside a function or procedure may be initialized in
+their declarations; those initializers run on each call. A process-declaration
+initializer does not run on each process activation, so it cannot replace the
+assignment-before-use rule above. The conversion functions in
+[AxiDmaPkg.vhd](../axi/dma/rtl/AxiDmaPkg.vhd) and `initQuarterWaveLut` in
+[SinCosLut.vhd](../dsp/xilinx/fixed/SinCosLut.vhd) illustrate subprogram-local
+initialization.
+
 Use a register when a value must survive a clock edge or is a useful retained
 diagnostic. Adding a register solely to eliminate a temporary obscures that
 distinction. The combinational ready field is a deliberate output-organization
@@ -516,6 +575,12 @@ channels. For distinct blocks, named controls such as `rxConfigValid` and
 `txConfigValid` are clearer than an anonymous vector with positional meanings.
 Defined register/protocol bitfields retain their documented layout.
 
+Check `StdRtlPkg` before defining an equivalent array type. Reuse types such as
+`Slv32Array`, `IntegerArray`, `NaturalArray` and the established matrix types
+when they express the interface. Preserve actual bounds and direction:
+`natural range <>` permits both ascending and descending constraints. Both
+forms are established in SURF; choose the one appropriate to the interface.
+
 Keep one definition of protocol encodings, CRCs and sidebands. A helper used
 only by one entity belongs locally, not in a growing catch-all package. Avoid
 circular dependencies and keep foundational packages independent of their
@@ -527,6 +592,24 @@ Helpers called by synthesized logic must be deterministic and synthesizable.
 Packages may also contain clearly identified elaboration or simulation helpers;
 use the established tool pragmas to isolate synthesis-incompatible code, as in
 [StdRtlPkg.vhd](../base/general/rtl/StdRtlPkg.vhd).
+
+### Record packing
+
+When a record crosses a vector-only storage or tool boundary, keep its packed
+size and paired pack/unpack helpers together with the type. Reuse existing
+`toSlv`/`to<Type>` helpers and size functions or constants. Make field order,
+enabled fields and separately transported valid/handshake bits explicit.
+
+[AxiDmaPkg.vhd](../axi/dma/rtl/AxiDmaPkg.vhd) pairs size constants with `toSlv`
+and record decoders such as `toAxiReadDmaReq`, which reconstructs `request` from
+a separate `valid` argument. In
+[AxiStreamPkg.vhd](../axi/axi-stream/rtl/AxiStreamPkg.vhd), `getSlvSize`, `toSlv`
+and `toAxiStreamMaster` share a stream configuration, and `tValid` is supplied
+separately. Keep the configuration and layout consistent on both sides.
+
+`StdRtlPkg.assignSlv` and `assignRecord` provide cursor-based packing and
+unpacking when useful. Clear, commented slices remain appropriate for fixed
+wire fields; see [Keep wire fields recognizable](#keep-wire-fields-recognizable).
 
 ## Constants, arithmetic and wire layouts
 
@@ -563,6 +646,27 @@ Check signedness and intermediate widths before narrowing a result. For example,
 resizing after an already-overflowed addition cannot recover the carry. Make
 truncation, rounding and overflow policy explicit; keep vector arithmetic wide
 enough that long durations do not pass through an overflowing VHDL integer.
+
+### Standard helpers
+
+Check [StdRtlPkg.vhd](../base/general/rtl/StdRtlPkg.vhd) before writing an
+equivalent helper. Its common functions have specific conversion and rounding
+semantics:
+
+| Helper | Behavior to preserve |
+| --- | --- |
+| `ite(condition, a, b)` | Selects between values; commonly used in generic-derived constants and static configuration. |
+| `wordCount(number, wordSize)` | Rounds a positive count up to whole words. |
+| `getTimeRatio(real, real)` | Returns `natural(ROUND(abs(T1/T2)))`; replacing it with a truncating ratio changes behavior. |
+| `resize(slv, size, pad)` | Trims upper bits or pads with the supplied bit, default `'0'`. Use the appropriate signed arithmetic overload when sign extension is needed. |
+| `toSlv(integer, size)` | Returns zero for negative integers in the current implementation. Use a signed conversion when encoding signed values. |
+| `toSl`, `uOr`, `uAnd`, `uXor` | Boolean-to-logic conversion and vector OR/AND/XOR reductions. |
+
+See [AxiStreamGearbox.vhd](../axi/axi-stream/rtl/AxiStreamGearbox.vhd) for
+generic-derived sizes and [Heartbeat.vhd](../base/general/rtl/Heartbeat.vhd)
+for a timing ratio. Using `ite` does not relax the
+[signal-assignment rule](#signal-assignments-in-comb): resolve behavioral
+selection before output publication.
 
 SURF helpers have specific size semantics: `bitSize(N)` sizes a value, while
 `log2(N)` sizes a count of choices. For example, the value 8 needs four bits,
@@ -618,6 +722,29 @@ A change that delivers the right bytes on a different handshake can still break
 its consumer. Keep reset values, readback, response codes and write side effects
 deterministic, and keep register names and bit meanings aligned across RTL,
 PyRogue, tests and documentation.
+
+### Idle and disabled interfaces
+
+Choose package constants for their transaction behavior. An initial state and
+an interface that accepts or answers traffic serve different purposes:
+
+- `AXI_STREAM_MASTER_INIT_C` represents an inactive source.
+- `AXI_STREAM_SLAVE_INIT_C` has ready low; `AXI_STREAM_SLAVE_FORCE_C` has ready
+  high. Use the latter for an intentional always-accepting sink or a connection
+  whose contract needs no backpressure.
+- AXI-Lite slave `_INIT_C` records have response-valid low. A disabled crossbar
+  destination commonly uses `AXI_LITE_READ_SLAVE_EMPTY_DECERR_C` and
+  `AXI_LITE_WRITE_SLAVE_EMPTY_DECERR_C` so accesses receive an error response.
+  The `_EMPTY_OK_C` and `_EMPTY_SLVERR_C` variants select different response
+  policies; preserve the intended behavior.
+
+These constants are defined in
+[AxiStreamPkg.vhd](../axi/axi-stream/rtl/AxiStreamPkg.vhd) and
+[AxiLitePkg.vhd](../axi/axi-lite/rtl/AxiLitePkg.vhd). The `GEN_NO_PATTERN_CHECK`
+branch in [AdcDdrCore.vhd](../devices/AnalogDevices/adcDdr/rtl/AdcDdrCore.vhd)
+shows explicit tie-offs for a disabled bank. Static empty responses are SURF
+integration idioms; implement transaction handling with the endpoint helpers
+when building a functional register slave.
 
 The following sections give the stream and register patterns in more detail.
 
@@ -918,9 +1045,12 @@ on lint or test results. These questions catch common mistakes:
   templates and synthesis attributes intact?
 - **Arithmetic and parameters:** Are widths, signedness, rounding and overflow
   deliberate? Do array bounds/direction and supported zero/one cases work?
-  Do constants explain units and policy?
+  Do constants explain units and policy? Are generic settings propagated and
+  alternative generate branches complete?
 - **Interfaces and software:** Are byte order, framing and sidebands preserved?
-  Do AXI decode, side effects, PyRogue and the documented map agree?
+  Do packed sizes and conversion helpers agree? Are optional and disabled
+  interfaces tied off with the intended transaction behavior? Do AXI decode,
+  side effects, PyRogue and the documented map agree?
 - **Readability and integration:** Can a reader follow `comb` in order, with
   unconditional `<=` publication from registered fields or documented exceptions,
   no conditional signal assignments, and a clock/reset-only `seq`? Are statements
