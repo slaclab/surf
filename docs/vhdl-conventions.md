@@ -84,6 +84,50 @@ exceptions, including vendor ports and uppercase configuration fields.
 | Instance / generate label | `U_...` / descriptive uppercase | `U_Pipeline`, `GEN_LANES` |
 | Architecture | Lowercase | `rtl`, `mapping` |
 
+### Port declarations
+
+Group ports by clock domain. **Declare the clock first, followed by its reset,
+then the signals belonging to that domain.** Within each domain, keep related
+ports together: an AXI-Lite bank, an input stream, an output stream, or a set of
+controls and status signals. Keep both directions of an interface together
+rather than separating all inputs from all outputs.
+
+Use a short comment and a blank line to identify each domain and interface:
+
+```vhdl
+port (
+   -- AXI-Lite clock domain
+   axilClk        : in  sl;
+   axilRst        : in  sl;
+
+   -- Register interface
+   axiReadMaster  : in  AxiLiteReadMasterType;
+   axiReadSlave   : out AxiLiteReadSlaveType;
+   axiWriteMaster : in  AxiLiteWriteMasterType;
+   axiWriteSlave  : out AxiLiteWriteSlaveType;
+
+   -- Stream clock domain
+   axisClk        : in  sl;
+   axisRst        : in  sl;
+   enable         : in  sl;
+
+   -- Input stream
+   sAxisMaster    : in  AxiStreamMasterType;
+   sAxisSlave     : out AxiStreamSlaveType;
+
+   -- Output stream
+   mAxisMaster    : out AxiStreamMasterType;
+   mAxisSlave     : in  AxiStreamSlaveType);
+```
+
+Here `enable` belongs to `axisClk`; its position makes that ownership visible.
+Ports without a clocked relationship, such as asynchronous device pins, belong
+in a separately labeled functional group. Follow the same grouping and order
+in port maps where practical. When maintaining an existing interface, account
+for positional instantiations and component declarations before reordering ports.
+
+### Instantiations
+
 Use named association and prefer direct SURF entity instantiation. Group clocks,
 resets and interfaces consistently, with aligned comments showing the direction
 of the instantiated port:
