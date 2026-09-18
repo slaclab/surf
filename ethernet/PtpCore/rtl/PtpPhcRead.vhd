@@ -42,11 +42,14 @@ entity PtpPhcRead is
    generic (
       TPD_G : time := 1 ns);
    port (
+      -- PHC clock domain and snapshot source.
       phcClk         : in  sl;
       phcRst         : in  sl;
       phcTime        : in  PtpTimeType;
       phcStatus      : in  PtpPhcStatusType;
       captureAbort   : in  sl;
+
+      -- Independent reader clock domain and request/response interface.
       readClk        : in  sl;
       readRst        : in  sl;
       readRequest    : in  sl;
@@ -92,6 +95,8 @@ architecture rtl of PtpPhcRead is
    signal responseData  : slv(WIDTH_C-1 downto 0);
 
    type RegType is record
+      -- Current-edge request admission, published from v.
+      readReady      : sl;
       busy           : sl;
       requestPending : sl;
       valid          : sl;
@@ -100,6 +105,7 @@ architecture rtl of PtpPhcRead is
    end record;
 
    constant REG_INIT_C : RegType := (
+      readReady      => '0',
       busy           => '0',
       requestPending => '0',
       valid          => '0',
@@ -206,7 +212,10 @@ begin
 
    comb : process (r, readRequest, requestAck, requestFull, responseValid,
                    responseData, localReset, reset) is
-      variable v : RegType;
+      variable v               : RegType;
+      variable requestWriteNow : sl;
+      variable responseTakeNow : sl;
+      variable readValidNow    : sl;
    begin
       v := r;
 
@@ -220,12 +229,12 @@ begin
       -- Accept one application request, then keep its FIFO token pending until
       -- acknowledged. Test r.busy so a returning response cannot admit a new
       -- request on the same edge and reuse its completion sequence.
-      readReady    <= '0';
-      requestWrite <= '0';
-      responseTake <= '0';
+      v.readReady     := '0';
+      requestWriteNow := '0';
+      responseTakeNow := '0';
       if localReset = '0' and reset = '0' then
          if r.busy = '0' and r.sequenceId /= x"FFFFFFFF" then
-            readReady <= '1';
+            v.readReady := '1';
             if readRequest = '1' then
                v.requestPending := '1';
                v.busy           := '1';
@@ -233,20 +242,27 @@ begin
             end if;
          end if;
          if r.requestPending = '1' and requestAck = '0' and requestFull = '0' then
-            requestWrite <= '1';
+            requestWriteNow := '1';
          end if;
 
          -- Capture a returning response only for the outstanding request.
          if responseValid = '1' and r.busy = '1' then
-            responseTake <= '1';
-            v.data       := responseData;
-            v.valid      := '1';
-            v.busy       := '0';
+            responseTakeNow := '1';
+            v.data          := responseData;
+            v.valid         := '1';
+            v.busy          := '0';
          end if;
       end if;
 
+      -- Reset must withdraw a published response even with a stopped clock.
+      -- Keep this immediate session cancellation separate from payload storage.
+      readValidNow := r.valid and not localReset and not reset;
+
       rin                  <= v;
-      readValid            <= r.valid and not localReset and not reset;
+      readReady            <= v.readReady;
+      requestWrite         <= requestWriteNow;
+      responseTake         <= responseTakeNow;
+      readValid            <= readValidNow;
       readTime.seconds     <= r.data(WIDTH_C-1 downto SECONDS_LOW_C);
       readTime.nanoseconds <= r.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C);
       readTime.fraction    <= r.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C);
@@ -258,7 +274,9 @@ begin
 
    phcComb : process (p, requestValid, responseAck, responseFull, captureAbort,
                       phcReset, reset, phcTime, phcStatus) is
-      variable v : PhcRegType;
+      variable v                : PhcRegType;
+      variable requestTakeNow   : sl;
+      variable responseWriteNow : sl;
    begin
       v := p;
 
@@ -266,27 +284,29 @@ begin
       if responseAck = '1' then
          v.pending := '0';
       end if;
-      requestTake   <= '0';
-      responseWrite <= '0';
+      requestTakeNow   := '0';
+      responseWriteNow := '0';
       if phcReset = '0' and reset = '0' then
          if p.pending = '1' then
             if responseAck = '0' and responseFull = '0' then
-               responseWrite <= '1';
+               responseWriteNow := '1';
             end if;
          elsif requestValid = '1' and captureAbort = '0' then
             -- Sample all fields at this PHC edge. A discontinuity defers the
             -- request; it cannot produce a partially old/new snapshot.
-            requestTake <= '1';
-            v.pending   := '1';
-            v.data(WIDTH_C-1 downto SECONDS_LOW_C) := phcTime.seconds;
-            v.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C) := phcTime.nanoseconds;
+            requestTakeNow                                    := '1';
+            v.pending                                         := '1';
+            v.data(WIDTH_C-1 downto SECONDS_LOW_C)            := phcTime.seconds;
+            v.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C)  := phcTime.nanoseconds;
             v.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C) := phcTime.fraction;
-            v.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C) := phcStatus.generation;
-            v.data(GENERATION_LOW_C-1 downto TICKS_LOW_C) := phcStatus.ticks;
-            v.data(VALID_BIT_C) := phcStatus.timeValid;
+            v.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C)  := phcStatus.generation;
+            v.data(GENERATION_LOW_C-1 downto TICKS_LOW_C)     := phcStatus.ticks;
+            v.data(VALID_BIT_C)                               := phcStatus.timeValid;
          end if;
       end if;
-      pin <= v;
+      pin           <= v;
+      requestTake   <= requestTakeNow;
+      responseWrite <= responseWriteNow;
    end process phcComb;
 
    phcSeq : process (phcClk, phcReset) is

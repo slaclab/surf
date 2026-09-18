@@ -141,6 +141,7 @@ architecture rtl of PtpPhc is
       -- Accepted manual work survives AXI reset and later operand writes.
       manualState        : ManualStateType;
       manualBusy         : sl;
+      mathInputValid     : sl;
       manualCommand      : PtpPhcCommandType;
       phaseOperand       : slv(127 downto 0);
       manualAck          : sl;
@@ -173,6 +174,7 @@ architecture rtl of PtpPhc is
       rate               => (others => '0'),
       manualState        => IDLE_S,
       manualBusy         => '0',
+      mathInputValid     => '0',
       manualCommand      => PTP_PHC_COMMAND_INIT_C,
       phaseOperand       => (others => '0'),
       manualAck          => '0',
@@ -249,7 +251,6 @@ begin
       v.abortSeen            := portCommandAbort;
       commandWord            := (others => '0');
       commandResponse        := PTP_PHC_COMMAND_SLAVE_INIT_C;
-      mathInputValid         <= '0';
 
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, qualify submission, then close the transaction.
@@ -328,7 +329,6 @@ begin
             -- AXI submission above owns the transition out of idle.
             null;
          when PHASE_ISSUE_S =>
-            mathInputValid <= '1';
             if mathReady = '1' then
                v.manualState := PHASE_WAIT_S;
             end if;
@@ -542,19 +542,26 @@ begin
       if v.manualState /= IDLE_S then
          v.manualBusy := '1';
       end if;
+      -- Register the issue request with its frozen operand. Resolved next
+      -- state preserves the existing admission edge without another cycle.
+      v.mathInputValid := '0';
+      if v.manualState = PHASE_ISSUE_S then
+         v.mathInputValid := '1';
+      end if;
 
       -------------------------------------------------------------------------
       -- Outputs retain their registered/combinational timing across reset.
       -------------------------------------------------------------------------
       -- Publish resolved controls before synchronous reset replaces v.
-      commandSlave  <= commandResponse;
-      captureAbort  <= captureAbortNow;
-      manualBusy    <= r.manualBusy;
-      axiReadSlave  <= r.readSlave;
-      axiWriteSlave <= r.writeSlave;
-      phcTime       <= r.timeValue;
-      status        <= r.status;
-      pps           <= r.pps;
+      commandSlave   <= commandResponse;
+      captureAbort   <= captureAbortNow;
+      manualBusy     <= r.manualBusy;
+      mathInputValid <= r.mathInputValid;
+      axiReadSlave   <= r.readSlave;
+      axiWriteSlave  <= r.writeSlave;
+      phcTime        <= r.timeValue;
+      status         <= r.status;
+      pps            <= r.pps;
 
       if RST_ASYNC_G = false and rst = RST_POLARITY_G then
          v := REG_INIT_C;

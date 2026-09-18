@@ -56,10 +56,8 @@ end entity PtpPrimaryGuard;
 architecture rtl of PtpPrimaryGuard is
 
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
+      -- Combinational interface controls; resolve and publish from v.
       ready    : sl;
-      discard  : sl;
 
       master   : AxiStreamMasterType;
       first    : sl;
@@ -69,7 +67,6 @@ architecture rtl of PtpPrimaryGuard is
 
    constant REG_INIT_C : RegType := (
       ready    => '0',
-      discard  => '0',
       master   => AXI_STREAM_MASTER_INIT_C,
       first    => '1',
       dropping => '0',
@@ -82,6 +79,9 @@ begin
 
    comb : process (r, rst, sMaster, mSlave) is
       variable v : RegType;
+
+      -- Calculations used only during this evaluation.
+      variable discard : sl;
    begin
       v := r;
 
@@ -94,9 +94,9 @@ begin
       -- Classify only the first accepted beat, then carry that decision
       -- through TLAST while preserving all forwarded stream sidebands.
       if sMaster.tValid = '1' and v.ready = '1' then
-         v.discard := r.dropping;
+         discard := r.dropping;
          if r.first = '1' then
-            v.discard := '0';
+            discard := '0';
             -- The 16-byte EMAC first beat contains the complete L2 header.
             -- Reserve all untagged PTP on primary TX, preventing an application
             -- from impersonating a Delay_Req key owned by the endpoint ledger.
@@ -106,15 +106,15 @@ begin
             if sMaster.tKeep(15 downto 0) /= x"FFFF" or
                axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, sMaster, EMAC_SOF_BIT_C, 0) = '0' or
                sMaster.tData(111 downto 96) = PTP_ETH_TYPE_AXIS_C then
-               v.discard := '1';
+               discard   := '1';
                v.dropped := ptpSatInc(r.dropped);
             end if;
          end if;
-         if v.discard = '0' then
+         if discard = '0' then
             v.master := sMaster;
          end if;
          v.first    := sMaster.tLast;
-         v.dropping := v.discard and not sMaster.tLast;
+         v.dropping := discard and not sMaster.tLast;
       end if;
       if rst = RST_POLARITY_G then
          v       := REG_INIT_C;

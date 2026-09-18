@@ -34,6 +34,14 @@ then published unconditionally from `r`. The issue/hold timing is preserved.
 VSG and compile/link checks through `PtpE2eWrapper` and `EthMacPtpEndpoint` pass;
 behavioral regressions remain unrun.
 
+The [VHDL conventions review and fixes](../ptp-vhdl-conventions-review/README.md)
+add PHY/frequency and ledger-depth assertions, register the PHC/port arithmetic
+requests, resolve immediate controls before publication, move calculation-only
+fields to process locals, and finish combinational-ready ownership. All 22
+VHDL files pass VSG and all 21 entities/wrappers compile/link with GHDL. The
+review records remaining generic-boundary/behavioral checks and a pre-existing
+test-helper import issue to repair before collecting endpoint regressions.
+
 After approval, prioritize command cancellation/ownership, registered expiry,
 arithmetic/ledger cancellation, RX queue/counter and ledger-summary alignment,
 servo status arithmetic, measurement backpressure, distributed commit/snapshot

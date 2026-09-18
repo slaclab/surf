@@ -43,6 +43,7 @@ use surf.PtpPkg.all;
 
 entity PtpEndpoint is
    generic (
+      -- Keep the established order for positional generic-map compatibility.
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
@@ -139,29 +140,35 @@ begin
    comb : process (rst, regRst, portRst, configControl, portStatus, portLifecycle, linkReady, abortCapture, status,
                    timeValue, servoStatus) is
       variable restartPort : sl;
+      variable axiResetNow : sl;
+      variable rxFlushNow  : sl;
+      variable irqEvents   : slv(3 downto 0);
    begin
       -- Form the bus reset independently of protocol restart. A register-only
       -- reset must leave the PHC, active configuration and TX ownership intact.
-      axiReset <= '0';
+      axiResetNow := '0';
       if rst = RST_POLARITY_G or regRst = '1' then
-         axiReset <= '1';
+         axiResetNow := '1';
       end if;
 
       -- Apply protocol lifecycle changes to the port and physical RX frontend.
       -- rxFlush shares the immediate capture/epoch cancellation contract; it
       -- must not add a register stage independently of those consumers.
       restartPort := portRst or configControl.apply or portLifecycle.identityRestart;
-      restart     <= restartPort;
-      rxFlush     <= restartPort or not linkReady or abortCapture;
+      rxFlushNow  := restartPort or not linkReady or abortCapture;
 
       -- Aggregate only the event bits needed by the central IRQ register.
-      events(PTP_IRQ_PHC_FAULT_C) <= status.fault;
-      events(PTP_IRQ_DISCONTINUITY_C) <= status.discontinuity;
-      events(PTP_IRQ_COMMAND_ERROR_C) <= status.error;
-      events(PTP_IRQ_SERVO_FAULT_C) <= '0';
+      irqEvents                          := (others => '0');
+      irqEvents(PTP_IRQ_PHC_FAULT_C)     := status.fault;
+      irqEvents(PTP_IRQ_DISCONTINUITY_C) := status.discontinuity;
+      irqEvents(PTP_IRQ_COMMAND_ERROR_C) := status.error;
       if servoStatus.state = PTP_SERVO_FAULT_C then
-         events(PTP_IRQ_SERVO_FAULT_C) <= '1';
+         irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
       end if;
+      axiReset     <= axiResetNow;
+      restart      <= restartPort;
+      rxFlush      <= rxFlushNow;
+      events       <= irqEvents;
       phcTime      <= timeValue;
       phcStatus    <= status;
       captureAbort <= abortCapture;

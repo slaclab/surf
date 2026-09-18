@@ -130,9 +130,11 @@ architecture rtl of PtpPort is
    -- These are admission bounds, not the representable signed wire range.
    constant MIN_LOG_INTERVAL_C : integer := -10;
    constant MAX_LOG_INTERVAL_C : integer := 22;
-   -- Announce uses twice the configured Sync receipt cap.
-   constant ANNOUNCE_CAP_SHIFT_C : natural := 1;
-   constant LFSR_SEED_C          : slv(15 downto 0) := PTP_PORT_CONFIG_INIT_C.lfsrSeed;
+   -- Receipt timeout spans three advertised intervals; Announce uses twice
+   -- the configured Sync receipt cap.
+   constant RECEIPT_INTERVALS_C   : positive         := 3;
+   constant ANNOUNCE_CAP_FACTOR_C : positive         := 2;
+   constant LFSR_SEED_C           : slv(15 downto 0) := PTP_PORT_CONFIG_INIT_C.lfsrSeed;
 
    -- Untagged Delay_Req, excluding MAC-supplied padding and FCS.
    constant TX_FRAME_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C;
@@ -233,6 +235,10 @@ architecture rtl of PtpPort is
       RATE_WAIT_S);
 
    type RegType is record
+      -- Current-edge admission for RX, ledger samples and E2E results.
+      rxReady             : sl;
+      delayReady          : sl;
+      e2eTake             : sl;
       -- Live diagnostic state; AXI snapshots below have a separate lifetime.
       portStatus          : PtpPortStatusType;
 
@@ -268,6 +274,7 @@ architecture rtl of PtpPort is
       ratioCount          : natural range 0 to RATIO_QUALIFY_COUNT_C;
       ratioTicks          : slv(63 downto 0);
       state               : StateType;
+      rateInput           : sl;
       rateA               : slv(127 downto 0);
       rateB               : slv(127 downto 0);
       pendingSync         : PtpSyncSampleType;
@@ -287,6 +294,9 @@ architecture rtl of PtpPort is
    end record;
 
    constant REG_INIT_C : RegType := (
+      rxReady             => '0',
+      delayReady          => '0',
+      e2eTake             => '0',
       portStatus          => PTP_PORT_STATUS_INIT_C,
       readSlave           => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
@@ -318,6 +328,7 @@ architecture rtl of PtpPort is
       ratioCount          => 0,
       ratioTicks          => (others => '0'),
       state               => IDLE_S,
+      rateInput           => '0',
       rateA               => (others => '0'),
       rateB               => (others => '0'),
       pendingSync         => PTP_SYNC_SAMPLE_INIT_C,
@@ -466,7 +477,7 @@ architecture rtl of PtpPort is
    begin
       if validLogInterval(logInterval) then
          ticks := intervalTicks(logInterval, limit);
-         ticks := ticks + shift_left(ticks, 1);
+         ticks := resize(ticks*RECEIPT_INTERVALS_C, ticks'length);
          if ticks < unsigned(limit) then
             return slv(ticks);
          end if;
@@ -616,11 +627,15 @@ begin
       variable announceChange : sl;
       variable externalAbort  : sl;
       variable abortPort      : sl;
-      variable readyRx        : sl;
       variable policyValid    : sl;
       variable qualifiedRatio : sl;
       variable validResponse  : sl;
       variable malformed      : boolean;
+      variable allocateNow    : sl;
+      variable e2eInputNow    : sl;
+      variable e2eSyncNow     : PtpSyncSampleType;
+      variable lifecycleNow   : PtpPortLifecycleType;
+      variable measurementNow : PtpMeasurementMasterType;
 
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
       variable slot          : integer range -1 to PAIR_DEPTH_C-1;
@@ -632,12 +647,11 @@ begin
    begin
       v := r;
 
-      allocate     <= '0';
-      e2eInput     <= '0';
-      e2eSync      <= PTP_SYNC_SAMPLE_INIT_C;
-      delayReady   <= '0';
-      e2eTake      <= '0';
-      rateInput    <= '0';
+      allocateNow  := '0';
+      e2eInputNow  := '0';
+      e2eSyncNow   := PTP_SYNC_SAMPLE_INIT_C;
+      v.delayReady := '0';
+      v.e2eTake    := '0';
       v.generation := phcStatus.generation;
       if r.measurementValid = '1' and measurementSlave.ready = '1' then
          v.measurementValid := '0';
@@ -700,32 +714,30 @@ begin
       -- servo and RX queue before this edge can commit or transfer old work.
       -- Registering these requires a shared cancellation/commit protocol;
       -- diagnostic status below has no role in those immediate decisions.
-      lifecycle              <= PTP_PORT_LIFECYCLE_INIT_C;
-      lifecycle.commandAbort <= externalAbort;
+      lifecycleNow              := PTP_PORT_LIFECYCLE_INIT_C;
+      lifecycleNow.commandAbort := externalAbort;
       if localMac /= r.lastMac then
-         lifecycle.identityRestart <= '1';
+         lifecycleNow.identityRestart := '1';
       end if;
-      abortNow                <= abortPort;
-      measurementMaster.abort <= abortPort;
-      measurementMaster.data  <= r.measurement;
-      measurementMaster.valid <= r.measurementValid and not abortPort;
+      measurementNow       := PTP_MEASUREMENT_MASTER_INIT_C;
+      measurementNow.abort := abortPort;
+      measurementNow.data  := r.measurement;
+      measurementNow.valid := r.measurementValid and not abortPort;
 
       qualifiedRatio := '0';
       if r.ratioCount = RATIO_QUALIFY_COUNT_C and
          unsigned(phcStatus.ticks)-unsigned(r.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
       end if;
-      readyRx := '0';
+      v.rxReady := '0';
       if r.state = IDLE_S and r.measurementValid = '0' and abortPort = '0' then
-         readyRx := '1';
+         v.rxReady := '1';
       end if;
       validResponse := '0';
       if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and rxMessage.flags = x"0000" and
          rxMessage.control = PTP_CONTROL_DELAY_RESP_C and unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
-         validResponse := rxValid and readyRx and policyValid;
+         validResponse := rxValid and v.rxReady and policyValid;
       end if;
-      rxReady       <= readyRx;
-      responseValid <= validResponse;
 
       -------------------------------------------------------------------------
       -- TX ownership and request scheduling
@@ -753,16 +765,15 @@ begin
             end if;
          end if;
       end if;
-      txMaster <= r.master;
 
       -- Schedule a new request only after servicing an already presented TX beat.
       if r.portStatus.active = '1' and qualifiedRatio = '1' and r.master.tValid = '0' and allocateReady = '1' and
          (r.requestStarted = '0' or unsigned(phcStatus.ticks)-unsigned(r.lastRequest) >= r.requestInterval) then
-         allocate                    <= '1';
-         v.frame                     := buildRequest(r.activeConfig, localMac, allocateSequence);
-         v.master                    := AXI_STREAM_MASTER_INIT_C;
-         v.master.tValid             := '1';
-         v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0) := (others => '1');
+         allocateNow                                  := '1';
+         v.frame                                      := buildRequest(r.activeConfig, localMac, allocateSequence);
+         v.master                                     := AXI_STREAM_MASTER_INIT_C;
+         v.master.tValid                              := '1';
+         v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0)   := (others => '1');
          v.master.tData(8*TX_BEAT_BYTES_C-1 downto 0) := v.frame(8*TX_BEAT_BYTES_C-1 downto 0);
          ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
          v.beat           := 0;
@@ -797,7 +808,7 @@ begin
 
       -- Consume one message: reject policy failures, otherwise dispatch by type.
       malformed := false;
-      if readyRx = '1' and rxValid = '1' then
+      if v.rxReady = '1' and rxValid = '1' then
          if policyValid = '0' then
             malformed := true;
          else
@@ -871,7 +882,7 @@ begin
                      v.portStatus.announceFlags       := rxMessage.flags;
                      v.portStatus.utcOffset           := ptpUtcOffset(rxMessage);
                      v.announceLimit                  := receiptTimeout(rxMessage.logInterval,
-                        slv(shift_left(unsigned(r.activeConfig.syncTimeout), ANNOUNCE_CAP_SHIFT_C)));
+                        slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64)));
                      if not validLogInterval(rxMessage.logInterval) and
                         rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
                         v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
@@ -937,7 +948,6 @@ begin
             end if;
 
          when RATE_ISSUE_S =>
-            rateInput <= '1';
             if rateReady = '1' then
                v.state := RATE_WAIT_S;
             end if;
@@ -979,11 +989,11 @@ begin
       -- the delayed wire-completion/Delay_Resp delivery. Signed separation also
       -- supports a Sync arriving just after the Delay_Req left the wire.
       if delayValid = '1' and e2eReady = '1' and abortPort = '0' then
-         selected   := nearestSync(r.history, r.historyValid, delaySample, phcStatus.ticks, r.activeConfig);
-         delayReady <= '1';
+         selected     := nearestSync(r.history, r.historyValid, delaySample, phcStatus.ticks, r.activeConfig);
+         v.delayReady := '1';
          if selected /= -1 and qualifiedRatio = '1' then
-            e2eSync                           <= r.history(selected);
-            e2eInput                          <= '1';
+            e2eSyncNow                        := r.history(selected);
+            e2eInputNow                       := '1';
             v.pendingExchange.t1              := r.history(selected).remoteTime;
             v.pendingExchange.t2              := r.history(selected).capture.timestamp;
             v.pendingExchange.t3              := delaySample.capture.timestamp;
@@ -998,7 +1008,7 @@ begin
          end if;
       end if;
       if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and v.measurementValid = '0' then
-         e2eTake <= '1';
+         v.e2eTake := '1';
          if e2eError = '0' and qualifiedRatio = '1' then
             v.measurement           := e2eResult;
             v.portStatus.exchange   := r.pendingExchange;
@@ -1021,7 +1031,7 @@ begin
          v.historyValid      := (others => '0');
          v.portStatus.active := '0';
          v.syncLimit         := r.activeConfig.syncTimeout;
-         v.announceLimit     := slv(shift_left(unsigned(r.activeConfig.syncTimeout), ANNOUNCE_CAP_SHIFT_C));
+         v.announceLimit     := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
          v.anchorValid       := '0';
          v.ratioCount        := 0;
          v.state             := IDLE_S;
@@ -1036,9 +1046,16 @@ begin
          if unsigned(v.lfsr) = 0 then
             v.lfsr := LFSR_SEED_C;
          end if;
-         allocate   <= '0';
-         e2eInput   <= '0';
-         delayReady <= '0';
+         allocateNow  := '0';
+         e2eInputNow  := '0';
+         v.delayReady := '0';
+      end if;
+      -- Register the rate request with the next operands/state. The shared
+      -- abort still cancels the child on the current edge, even if the old
+      -- registered valid remains high until that edge.
+      v.rateInput := '0';
+      if v.state = RATE_ISSUE_S then
+         v.rateInput := '1';
       end if;
       -------------------------------------------------------------------------
       -- Registered diagnostic summaries
@@ -1161,12 +1178,32 @@ begin
          v.snapGm       := r.portStatus.grandmasterIdentity;
          v.snapFlags    := r.portStatus.announceFlags;
          v.snapUtc      := r.portStatus.utcOffset;
-         v.snapCounters := (rxCounters.accepted, rxCounters.dropped, rxCounters.overflow,
-                            r.portStatus.rejectedCount, r.portStatus.syncCount, r.portStatus.delayCount, timeoutCount);
+         v.snapCounters := (
+            rxCounters.accepted,
+            rxCounters.dropped,
+            rxCounters.overflow,
+            r.portStatus.rejectedCount,
+            r.portStatus.syncCount,
+            r.portStatus.delayCount,
+            timeoutCount);
       end if;
       configValid   <= r.configValid;
       axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
+      -- Publish current-edge handshakes and lifecycle decisions only after
+      -- their priorities are resolved. Do not register these timing exceptions.
+      allocate          <= allocateNow;
+      e2eInput          <= e2eInputNow;
+      e2eSync           <= e2eSyncNow;
+      delayReady        <= v.delayReady;
+      e2eTake           <= v.e2eTake;
+      rateInput         <= r.rateInput;
+      rxReady           <= v.rxReady;
+      responseValid     <= validResponse;
+      lifecycle         <= lifecycleNow;
+      abortNow          <= abortPort;
+      measurementMaster <= measurementNow;
+      txMaster          <= r.master;
 
       -- Registered diagnostics and active shared configuration.
       status                          <= r.portStatus;

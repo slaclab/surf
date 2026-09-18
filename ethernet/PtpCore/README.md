@@ -53,7 +53,10 @@ for current validation, register ABI, numerical limits and remaining qualificati
 - [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): development register map with Phc/Port/Servo child devices.
 
 Use one continuously running clock: full-rate GMII at 125 MHz or XGMII at
-156.25 MHz. GMII 10/100 operation is unsupported. The primary MAC stream uses
+156.25 MHz. `EthMacPtpEndpoint` asserts that `CLK_FREQ_G` matches the selected
+`PHY_TYPE_G`; set both generics when selecting GMII. GMII 10/100 operation is
+unsupported. `PtpTxLedger` supports depths 1 through 255 so its eight-bit
+occupancy and unresolved counts remain representable. The primary MAC stream uses
 `EMAC_AXIS_CONFIG_C` and a full first beat with SSI SOF. Untagged EtherType
 `0x88F7` is reserved for the endpoint; other primary traffic passes through.
 Latency calibration is signed Q16 local-PHC nanoseconds in elaboration-time
@@ -72,6 +75,10 @@ requires valid and ready with the shared cancel/restart low and system reset
 inactive. Both producer and consumer give cancellation priority at the edge.
 RX overflow, port lifecycle and PHC capture invalidation remain immediate;
 snapshot capture is qualified by that same capture invalidation at every bank.
+PHC and port arithmetic requests are registered with their frozen operands from
+resolved next state. Combinational ready controls are recomputed through `v`
+in their owning records; immediate controls are resolved before unconditional
+publication. These source conventions preserve the documented transfer edges.
 
 Build manifests load `rtl/` and `wrappers/`. Run `make MODULES="$PWD" import`
 before the focused [tests](../../tests/ethernet/PtpCore/README.md). Device timing,

@@ -50,7 +50,7 @@ entity PtpTxLedger is
       TPD_G             : time                   := 1 ns;
       RST_POLARITY_G    : sl                     := '1';
       RST_ASYNC_G       : boolean                := false;
-      DEPTH_G           : positive               := 4;
+      DEPTH_G           : positive               := 4;  -- 1..255; occupancy status uses eight bits.
       SEQUENCE_BITS_G   : positive range 1 to 16 := 16;
       PACKET_LIFETIME_G : positive               := 156250000);
    port (
@@ -114,10 +114,7 @@ architecture rtl of PtpTxLedger is
    constant STARTUP_BIT_C    : natural := 0;
    constant RESET_SEEN_BIT_C : natural := 1;
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
-      freeSlot      : integer range -1 to DEPTH_G-1;
-      collision     : boolean;
+      -- Combinational interface controls; resolve and publish from v.
       ready         : sl;
 
       ledgerStatus  : slv(31 downto 0);
@@ -132,8 +129,6 @@ architecture rtl of PtpTxLedger is
    end record;
 
    constant REG_INIT_C : RegType := (
-      freeSlot      => -1,
-      collision     => false,
       ready         => '0',
       ledgerStatus  => (STARTUP_BIT_C => '1', others => '0'),
       entries       => (others => ENTRY_INIT_C),
@@ -150,15 +145,25 @@ architecture rtl of PtpTxLedger is
 
 begin
 
+   -- Occupied and unresolved counts each occupy one byte in the status ABI.
+   assert DEPTH_G <= 255
+      report "PtpTxLedger DEPTH_G must fit the eight-bit occupancy counters"
+      severity failure;
+
    comb : process (r, rst, restart, macResetDone, ticks, generation, config, allocate,
                    wireMessage, wireValid, response, responseValid, sampleReady) is
-      variable v : RegType;
+      variable v                : RegType;
+      variable acceptedResponse : sl;
+
+      -- Calculations used only during this evaluation.
+      variable freeSlot  : integer range -1 to DEPTH_G-1;
+      variable collision : boolean;
    begin
       v := r;
 
-      responseAccepted <= '0';
-      v.freeSlot       := -1;
-      v.collision      := false;
+      acceptedResponse := '0';
+      freeSlot         := -1;
+      collision        := false;
       v.ready          := '0';
       v.resetPrevious  := macResetDone;
       -- Retire the previous output before selecting a new completed entry.
@@ -177,15 +182,15 @@ begin
                v.entries(i) := ENTRY_INIT_C;
             end if;
             if r.entries(i).sequenceId = slv(resize(r.nextSequence, 16)) then
-               v.collision := true;
+               collision := true;
             end if;
             if r.entries(i).retired = '0' and
                unsigned(ticks)-unsigned(r.entries(i).born) > unsigned(config.associationTimeout) then
                v.entries(i).retired := '1';
                v.timeoutCount       := ptpSatInc(v.timeoutCount);
             end if;
-         elsif v.freeSlot = -1 then
-            v.freeSlot := i;
+         elsif freeSlot = -1 then
+            freeSlot := i;
          end if;
       end loop;
 
@@ -227,7 +232,7 @@ begin
                end if;
             else
                v.entries(i).responseSeen         := '1';
-               responseAccepted                  <= '1';
+               acceptedResponse                  := '1';
                v.entries(i).sample.remoteTime    := ptpMessageTimestamp(response);
                v.entries(i).sample.correction    := response.correction;
                v.entries(i).sample.responseTicks := response.capture.ticks;
@@ -256,28 +261,28 @@ begin
          unsigned(ticks)-unsigned(r.resetTick) > PACKET_LIFETIME_G then
          v.ledgerStatus(STARTUP_BIT_C) := '0';
       end if;
-      if r.ledgerStatus(STARTUP_BIT_C) = '0' and v.freeSlot /= -1 and not v.collision and restart = '0' then
+      if r.ledgerStatus(STARTUP_BIT_C) = '0' and freeSlot /= -1 and not collision and restart = '0' then
          v.ready := '1';
          if allocate = '1' then
-            v.entries(v.freeSlot)                   := ENTRY_INIT_C;
-            v.entries(v.freeSlot).used              := '1';
-            v.entries(v.freeSlot).sequenceId        := slv(resize(r.nextSequence, 16));
-            v.entries(v.freeSlot).generation        := generation;
-            v.entries(v.freeSlot).identity          := config.localIdentity;
-            v.entries(v.freeSlot).domainNumber      := config.domainNumber;
-            v.entries(v.freeSlot).born              := ticks;
-            v.entries(v.freeSlot).sample.sequenceId := slv(resize(r.nextSequence, 16));
-            v.entries(v.freeSlot).sample.generation := generation;
-            v.nextSequence                          := r.nextSequence + 1;
+            v.entries(freeSlot)                   := ENTRY_INIT_C;
+            v.entries(freeSlot).used              := '1';
+            v.entries(freeSlot).sequenceId        := slv(resize(r.nextSequence, 16));
+            v.entries(freeSlot).generation        := generation;
+            v.entries(freeSlot).identity          := config.localIdentity;
+            v.entries(freeSlot).domainNumber      := config.domainNumber;
+            v.entries(freeSlot).born              := ticks;
+            v.entries(freeSlot).sample.sequenceId := slv(resize(r.nextSequence, 16));
+            v.entries(freeSlot).sample.generation := generation;
+            v.nextSequence                        := r.nextSequence + 1;
          end if;
-      elsif v.collision and r.ledgerStatus(STARTUP_BIT_C) = '0' then
+      elsif collision and r.ledgerStatus(STARTUP_BIT_C) = '0' then
          -- Search at most one wire key per clock; no associative 65536-entry
          -- bitmap or unbounded combinational allocator is required.
          v.nextSequence := r.nextSequence + 1;
       end if;
       -- Logical restart retires keys but cannot claim an unknown wire fate.
       if restart = '1' then
-         responseAccepted <= '0';
+         acceptedResponse := '0';
          for i in 0 to DEPTH_G-1 loop
             v.entries(i).retired := '1';
          end loop;
@@ -312,6 +317,7 @@ begin
       end loop;
 
       allocateReady    <= v.ready;
+      responseAccepted <= acceptedResponse;
       allocateSequence <= slv(resize(r.nextSequence, 16));
       sample           <= r.sample;
       sampleValid      <= r.sampleValid;

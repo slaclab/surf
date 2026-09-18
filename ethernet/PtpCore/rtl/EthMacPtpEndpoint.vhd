@@ -44,11 +44,12 @@ use surf.PtpPkg.all;
 
 entity EthMacPtpEndpoint is
    generic (
+      -- Keep the established order for positional generic-map compatibility.
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
       PHY_TYPE_G        : string           := "XGMII";
-      CLK_FREQ_G        : positive         := 156250000;
+      CLK_FREQ_G        : positive         := 156250000;  -- Hz: 125000000 GMII, 156250000 XGMII.
       PACKET_LIFETIME_G : positive         := 156250000;
       FIFO_ADDR_WIDTH_G : positive         := 9;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
@@ -130,6 +131,10 @@ architecture rtl of EthMacPtpEndpoint is
 begin
 
    assert PHY_TYPE_G = "XGMII" or PHY_TYPE_G = "GMII" report "Unsupported PTP physical interface" severity failure;
+   assert (PHY_TYPE_G = "GMII" and CLK_FREQ_G = 125000000) or
+      (PHY_TYPE_G = "XGMII" and CLK_FREQ_G = 156250000)
+      report "PTP requires CLK_FREQ_G = 125000000 for GMII or 156250000 for XGMII"
+      severity failure;
    -- System reset reaches the complete MAC TX pipeline and endpoint. Port-only
    -- reset reaches neither MAC FIFO nor PHC. The rising resetDone confirmation
    -- starts the ledger's bounded startup quarantine after each system reset.

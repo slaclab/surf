@@ -1,7 +1,17 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Passive GMII/XGMII RX framing with inseparable SOF capture
+-- Description: Passive GMII/XGMII framing with a capture bound to each SOF.
+--
+-- Decodes preamble, SFD and termination in the continuously running Ethernet
+-- clock domain: full-rate GMII at 125 MHz or XGMII at 156.25 MHz. Packs frame
+-- bytes including FCS into an always-consumed stream, removing physical control
+-- symbols. Captures PHC time at the first destination-MAC byte, with XGMII lane
+-- phase and signed ingress calibration. Stream and capture are registered
+-- together; neither interface has backpressure. Malformed framing drains to
+-- the physical boundary; in-frame errors emit an error termination. PHY loss,
+-- flush and reset discard partial frames; RX also discards work on generation
+-- changes. TX observation preserves completion identity across those changes.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -74,11 +84,6 @@ architecture rtl of PtpRxTimestampAdapter is
       DRAIN_S);
 
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
-      byteCount   : natural range 0 to 8;
-      captureLane : natural range 0 to 7;
-
       state       : StateType;
       preamble    : natural range 0 to GMII_PREAMBLE_BYTES_C;
       first       : sl;
@@ -88,8 +93,6 @@ architecture rtl of PtpRxTimestampAdapter is
    end record;
 
    constant REG_INIT_C : RegType := (
-      byteCount   => 0,
-      captureLane => 0,
       state       => SEARCH_S,
       preamble    => 0,
       first       => '0',
@@ -109,6 +112,10 @@ begin
                    gmiiRxd, gmiiRxDv, gmiiRxEr) is
       variable v     : RegType;
       variable octet : slv(7 downto 0);
+
+      -- Calculations used only during this evaluation.
+      variable byteCount   : natural range 0 to 8;
+      variable captureLane : natural range 0 to 7;
    begin
       v     := r;
       octet := (others => '0');
@@ -118,8 +125,8 @@ begin
       -- sampled again or delayed independently of SOF.
       v.master       := AXI_STREAM_MASTER_INIT_C;
       v.master.tKeep := (others => '0');
-      v.byteCount    := 0;
-      v.captureLane  := 0;
+      byteCount      := 0;
+      captureLane    := 0;
       -- Decode physical symbols in wire order. The two branches differ only
       -- in byte-lane timing and framing; both populate the same pending beat.
       if PHY_TYPE_G = "XGMII" then
@@ -159,13 +166,13 @@ begin
                         -- This is the PTP message timestamp point: the first
                         -- destination-MAC byte, one byte after SFD. Save its
                         -- physical lane before packing it into AXI lane zero.
-                        v.captureLane := lane;
+                        captureLane := lane;
                         ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
                         v.first       := '0';
                      end if;
-                     v.master.tData(8*v.byteCount+7 downto 8*v.byteCount) := octet;
-                     v.master.tKeep(v.byteCount)                          := '1';
-                     v.byteCount                                          := v.byteCount+1;
+                     v.master.tData(8*byteCount+7 downto 8*byteCount) := octet;
+                     v.master.tKeep(byteCount)                        := '1';
+                     byteCount                                        := byteCount+1;
                   else
                      -- /T/ ends the frame; any other in-frame control emits
                      -- an error termination and drains the damaged remainder.
@@ -214,7 +221,7 @@ begin
                v.master.tValid := '1';
                if gmiiRxDv = '1' and gmiiRxEr = '0' then
                   if v.first = '1' then
-                     v.captureLane := 0;
+                     captureLane := 0;
                      ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
                      v.first       := '0';
                   end if;
@@ -243,7 +250,7 @@ begin
       -- capture once after lane decoding instead of replicating the wide
       -- normalization/calibration arithmetic in each unrolled lane.
       if ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, v.master) = '1' then
-         v.capture       := ptpRxCapture(phcTime, phcStatus.increment, v.captureLane, phcStatus.ticks,
+         v.capture       := ptpRxCapture(phcTime, phcStatus.increment, captureLane, phcStatus.ticks,
                                   phcStatus.generation, phcStatus.timeValid, INGRESS_LATENCY_G);
          v.capture.error := v.capture.error or captureAbort;
       end if;

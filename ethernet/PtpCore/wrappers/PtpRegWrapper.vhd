@@ -36,12 +36,13 @@ entity PtpRegWrapper is
    generic (
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
+      -- All fixture controls and interfaces share clk.
+      clk                  : in  sl;
+      rst                  : in  sl;
       bankControlOverride  : in  sl := '0';
       bankPrepare          : in  sl := '0';
       bankApply            : in  sl := '0';
       snapshotInhibit      : in  sl := '0';
-      clk                  : in  sl;
-      rst                  : in  sl;
       regRst               : in  sl;
       localMac             : in  slv(47 downto 0);
       axil_awaddr          : in  slv(31 downto 0);
@@ -143,45 +144,55 @@ begin
    comb : process (bankControlOverride, bankPrepare, bankApply, configControl, abortCapture,
                    snapshotInhibit, rst, regRst, portStatus, portLifecycle, status, servoStatus, enable, servoEnable,
                    snapshotControl, timeValue) is
-      variable restartPort : sl;
+      variable restartPort      : sl;
+      variable bankControlNow   : PtpConfigControlType;
+      variable snapshotAbortNow : sl;
+      variable axiResetNow      : sl;
+      variable resetNNow        : sl;
+      variable irqEvents        : slv(3 downto 0);
    begin
       -- Normal operation uses the real coordinator. Direct controls let the
       -- fixture hold a candidate while software edits its shadow registers.
-      bankConfigControl <= configControl;
+      bankControlNow := configControl;
       if bankControlOverride = '1' then
-         bankConfigControl.prepare <= bankPrepare;
-         bankConfigControl.apply   <= bankApply;
+         bankControlNow.prepare := bankPrepare;
+         bankControlNow.apply   := bankApply;
       end if;
-      snapshotAbort <= abortCapture or snapshotInhibit;
+      snapshotAbortNow := abortCapture or snapshotInhibit;
 
       -- Match production reset/lifecycle wiring before exposing observations.
-      axiReset <= '0';
+      axiResetNow := '0';
       if rst = RST_POLARITY_G or regRst = '1' then
-         axiReset <= '1';
+         axiResetNow := '1';
       end if;
-      resetN      <= not rst;
-      restartPort := configControl.apply or portLifecycle.identityRestart;
-      restart     <= restartPort;
-      events(0)   <= status.fault;
-      events(1)   <= status.discontinuity;
-      events(2)   <= status.error;
-      events(3)   <= '0';
+      resetNNow                          := not rst;
+      restartPort                        := configControl.apply or portLifecycle.identityRestart;
+      irqEvents                          := (others => '0');
+      irqEvents(PTP_IRQ_PHC_FAULT_C)     := status.fault;
+      irqEvents(PTP_IRQ_DISCONTINUITY_C) := status.discontinuity;
+      irqEvents(PTP_IRQ_COMMAND_ERROR_C) := status.error;
       if servoStatus.state = PTP_SERVO_FAULT_C then
-         events(3) <= '1';
+         irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
       end if;
 
       -- Flatten only the signals required by cocotb's independent checks.
-      activeEnable    <= enable;
-      activeServo     <= servoEnable;
-      configRestart   <= restartPort;
-      configPrepare   <= configControl.prepare;
-      snapshotCapture <= snapshotControl.capture;
-      timeSeconds     <= timeValue.seconds;
-      timeNanoseconds <= timeValue.nanoseconds;
-      timeFraction    <= timeValue.fraction;
-      timeTicks       <= status.ticks;
-      timeGeneration  <= status.generation;
-      timeValid       <= status.timeValid;
+      bankConfigControl <= bankControlNow;
+      snapshotAbort     <= snapshotAbortNow;
+      axiReset          <= axiResetNow;
+      resetN            <= resetNNow;
+      restart           <= restartPort;
+      events            <= irqEvents;
+      activeEnable      <= enable;
+      activeServo       <= servoEnable;
+      configRestart     <= restartPort;
+      configPrepare     <= configControl.prepare;
+      snapshotCapture   <= snapshotControl.capture;
+      timeSeconds       <= timeValue.seconds;
+      timeNanoseconds   <= timeValue.nanoseconds;
+      timeFraction      <= timeValue.fraction;
+      timeTicks         <= status.ticks;
+      timeGeneration    <= status.generation;
+      timeValid         <= status.timeValid;
    end process comb;
 
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator

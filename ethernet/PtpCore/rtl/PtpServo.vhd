@@ -196,16 +196,10 @@ architecture rtl of PtpServo is
       -- Registered command interface. Use v.commandMaster.cancel/stale for
       -- current-edge local decisions and publish the complete record from r.
       commandMaster      : PtpPhcCommandMasterType;
+      -- Combinational measurement admission, resolved through v each cycle.
+      measurementSlave   : PtpMeasurementSlaveType;
       expireTime         : sl;
       status             : PtpServoStatusType;
-
-      -- Current-cycle calculations and diagnostics; use v for local decisions.
-      sampleTickDelta    : signed(127 downto 0);
-      frequencyCandidate : signed(127 downto 0);
-      integralDelta      : signed(127 downto 0);
-      stale              : boolean;
-      acceptSample       : boolean;
-      integrate          : boolean;
 
       -- Local management state shares the core reset and register process.
       readSlave          : AxiLiteReadSlaveType;
@@ -248,14 +242,9 @@ architecture rtl of PtpServo is
 
    constant REG_INIT_C : RegType := (
       commandMaster      => PTP_PHC_COMMAND_MASTER_INIT_C,
+      measurementSlave   => PTP_MEASUREMENT_SLAVE_INIT_C,
       expireTime         => '0',
       status             => PTP_SERVO_STATUS_INIT_C,
-      sampleTickDelta    => (others => '0'),
-      frequencyCandidate => (others => '0'),
-      integralDelta      => (others => '0'),
-      stale              => false,
-      acceptSample       => false,
-      integrate          => false,
       readSlave          => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave         => AXI_LITE_WRITE_SLAVE_INIT_C,
       shadow             => initialConfig,
@@ -346,16 +335,23 @@ begin
    comb : process (r, measurementMaster, rst, regRst, axiReadMaster, axiWriteMaster, configControl,
                    snapshotControl, servoEnable, sharedConfig, restart, phcStatus, commandSlave,
                    readyMath, validMath, valueMath, remainderMath, errorMath) is
-      variable v                : RegType;
-      variable measurementReady : sl;
-      variable ep               : AxiLiteEndpointType;
-      variable sorted           : DelayArray;
-      variable temp             : signed(63 downto 0);
+      variable v      : RegType;
+      variable ep     : AxiLiteEndpointType;
+      variable sorted : DelayArray;
+      variable temp   : signed(63 downto 0);
+
+      -- Calculations used only during this evaluation.
+      variable sampleTickDelta    : signed(127 downto 0);
+      variable frequencyCandidate : signed(127 downto 0);
+      variable integralDelta      : signed(127 downto 0);
+      variable stale              : boolean;
+      variable acceptSample       : boolean;
+      variable integrate          : boolean;
    begin
-      v                := r;
-      measurementReady := '0';
-      sorted           := r.delays;
-      temp             := (others => '0');
+      v                  := r;
+      v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
+      sorted             := r.delays;
+      temp               := (others => '0');
 
       -- A held link/port abort cancels once, allowing later holdover work.
       -- Generation changes and stale samples independently invalidate work.
@@ -371,9 +367,9 @@ begin
          v.commandMaster.cancel := '1';
       end if;
 
-      v.abortSeen    := measurementMaster.abort;
-      v.generation   := phcStatus.generation;
-      v.stale        := r.haveSample = '1' and (measurementMaster.abort = '1' or unsigned(r.status.filterCount) = 0 or
+      v.abortSeen  := measurementMaster.abort;
+      v.generation := phcStatus.generation;
+      stale        := r.haveSample = '1' and (measurementMaster.abort = '1' or unsigned(r.status.filterCount) = 0 or
          unsigned(phcStatus.ticks)-unsigned(r.delayTicks) > unsigned(r.activeConfig.maxDelayAge) or
          unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(sharedConfig.syncTimeout));
       -- Sample expiry as a registered level. The PHC consumes it on the
@@ -387,8 +383,8 @@ begin
          end if;
       end if;
 
-      v.acceptSample := false;
-      if v.stale then
+      acceptSample := false;
+      if stale then
          v.status.state := PTP_SERVO_HOLDOVER_C;
          v.tracking     := '0';
          v.good         := (others => '0');
@@ -397,7 +393,7 @@ begin
       -- then wait for PHC acceptance and acknowledgement before updating history.
       case r.state is
          when IDLE_S =>
-            if v.stale and r.holdApplied = '0' then
+            if stale and r.holdApplied = '0' then
                -- Holdover removes the phase slew but preserves the last good
                -- frequency estimate. Conversion uses the same checked path as
                -- tracking; no combinational wide divider enters the clock loop.
@@ -410,7 +406,7 @@ begin
                v.state          := ISSUE_S;
             else
                -- Holdover work has priority over admitting another sample.
-               measurementReady := '1';
+               v.measurementSlave.ready := '1';
                if measurementMaster.valid = '1' and measurementMaster.abort = '0' and servoEnable = '1' then
                   if measurementMaster.data.generation /= phcStatus.generation or
                      unsigned(measurementMaster.data.ticks) > unsigned(phcStatus.ticks) or
@@ -444,9 +440,9 @@ begin
                   elsif unsigned(r.status.filterCount) /= 0 and measurementMaster.data.ratioValid = '1' and
                      unsigned(phcStatus.ticks)-unsigned(r.delayTicks) <= unsigned(r.activeConfig.maxDelayAge) and
                      (r.haveSample = '0' or unsigned(measurementMaster.data.ticks) > unsigned(r.lastTicks)) then
-                     v.sampleTickDelta := signed(resize(unsigned(measurementMaster.data.ticks), 128))-signed(resize(unsigned(r.lastTicks), 128));
-                     if r.tracking = '1' and (v.sampleTickDelta < signed(resize(unsigned(r.activeConfig.minSampleTicks), 128)) or
-                        v.sampleTickDelta > signed(resize(unsigned(r.activeConfig.maxSampleTicks), 128))) then
+                     sampleTickDelta := signed(resize(unsigned(measurementMaster.data.ticks), 128))-signed(resize(unsigned(r.lastTicks), 128));
+                     if r.tracking = '1' and (sampleTickDelta < signed(resize(unsigned(r.activeConfig.minSampleTicks), 128)) or
+                        sampleTickDelta > signed(resize(unsigned(r.activeConfig.maxSampleTicks), 128))) then
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      else
                         v.status.offsetValue            := slv(signed(measurementMaster.data.forward)-signed(r.status.filteredDelay)-resize(signed(r.activeConfig.delayAsymmetry), 128));
@@ -534,24 +530,24 @@ begin
                         v.b         := slv(r.interval); -- seconds Q32
                         v.operation := INTEGRAL_TIME_S;
                      when INTEGRAL_TIME_S =>
-                        v.integralDelta      := -ptpRoundShift(signed(valueMath), INTEGRAL_SHIFT_C); -- ppb Q16
-                        v.frequencyCandidate := r.frequency+v.integralDelta;
-                        v.workFrequency      := clamp(v.frequencyCandidate, r.activeConfig.maxFrequencyPpb);
+                        integralDelta      := -ptpRoundShift(signed(valueMath), INTEGRAL_SHIFT_C); -- ppb Q16
+                        frequencyCandidate := r.frequency+integralDelta;
+                        v.workFrequency    := clamp(frequencyCandidate, r.activeConfig.maxFrequencyPpb);
                         -- Conditional integration freezes only outward movement
                         -- at either frequency or final-rate saturation. Movement
                         -- back toward the linear region remains possible.
-                        v.integrate := true;
-                        if v.frequencyCandidate /= v.workFrequency then
-                           if (v.frequencyCandidate > 0 and v.integralDelta > 0) or (v.frequencyCandidate < 0 and v.integralDelta < 0) then
-                              v.integrate := false;
+                        integrate := true;
+                        if frequencyCandidate /= v.workFrequency then
+                           if (frequencyCandidate > 0 and integralDelta > 0) or (frequencyCandidate < 0 and integralDelta < 0) then
+                              integrate := false;
                            end if;
                         end if;
                         if clamp(v.workFrequency+r.slew, r.activeConfig.maxRatePpb) /= v.workFrequency+r.slew then
-                           if (v.workFrequency+r.slew > 0 and v.integralDelta > 0) or (v.workFrequency+r.slew < 0 and v.integralDelta < 0) then
-                              v.integrate := false;
+                           if (v.workFrequency+r.slew > 0 and integralDelta > 0) or (v.workFrequency+r.slew < 0 and integralDelta < 0) then
+                              integrate := false;
                            end if;
                         end if;
-                        if not v.integrate then
+                        if not integrate then
                            v.workFrequency := r.frequency;
                         end if;
                         v.status.ratePpb := slv(resize(clamp(v.workFrequency+r.slew, r.activeConfig.maxRatePpb), 64));
@@ -604,10 +600,10 @@ begin
                   if r.holding = '1' then
                      v.holdApplied := '1';
                   else
-                     v.acceptSample := true;
-                     v.frequency    := r.workFrequency;
-                     v.tracking     := '1';
-                     v.holdApplied  := '0';
+                     acceptSample  := true;
+                     v.frequency   := r.workFrequency;
+                     v.tracking    := '1';
+                     v.holdApplied := '0';
                      if phcStatus.timeValid = '0' then
                         v.commandMaster.data.kind  := PTP_CMD_VALID_C;
                         v.commandMaster.data.value := '1';
@@ -618,7 +614,7 @@ begin
             end if;
       end case;
       -- Lock hysteresis uses only a sample whose rate command was acknowledged.
-      if v.acceptSample then
+      if acceptSample then
          v.lastTicks    := r.sampleTicks;
          v.haveSample   := '1';
          v.status.state := PTP_SERVO_TRACKING_C;
@@ -655,14 +651,14 @@ begin
       -- Cancel current-edge measurement admission using pre-edge fault state.
       -- Math has its separate local cancel input; its valid remains registered.
       if v.commandMaster.cancel = '1' or r.status.state = PTP_SERVO_FAULT_C then
-         measurementReady := '0';
+         v.measurementSlave.ready := '0';
       end if;
       if servoEnable = '0' then
          -- Manual ownership still drains the port's measurement queue, even
          -- after a servo fault. Reset below has final admission priority.
-         measurementReady := '1';
-         v.status.state   := PTP_SERVO_DISABLED_C;
-         v.haveSample     := '0';
+         v.measurementSlave.ready := '1';
+         v.status.state           := PTP_SERVO_DISABLED_C;
+         v.haveSample             := '0';
       end if;
       if phcStatus.fault = '1' or r.status.state = PTP_SERVO_FAULT_C then
          v.status.state := PTP_SERVO_FAULT_C;
@@ -670,7 +666,7 @@ begin
       end if;
 
       if rst = RST_POLARITY_G then
-         measurementReady := '0';
+         v.measurementSlave.ready := '0';
       end if;
 
       -- Valid and payload enter COMMAND_S together and remain stable until
@@ -771,16 +767,16 @@ begin
       end if;
       -- Publish resolved controls and registered payloads without another
       -- decision stage. Preserve publication before the synchronous reset of v.
-      axiReadSlave           <= r.readSlave;
-      axiWriteSlave          <= r.writeSlave;
-      configValid            <= r.configValid;
-      measurementSlave.ready <= measurementReady;
-      commandMaster          <= r.commandMaster;
-      expireTime             <= r.expireTime;
-      status                 <= r.status;
-      invalidate             <= v.commandMaster.cancel;
-      inputMath              <= r.mathValid;
-      roundMath              <= r.mathRound;
+      axiReadSlave     <= r.readSlave;
+      axiWriteSlave    <= r.writeSlave;
+      configValid      <= r.configValid;
+      measurementSlave <= v.measurementSlave;
+      commandMaster    <= r.commandMaster;
+      expireTime       <= r.expireTime;
+      status           <= r.status;
+      invalidate       <= v.commandMaster.cancel;
+      inputMath        <= r.mathValid;
+      roundMath        <= r.mathRound;
 
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;

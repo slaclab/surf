@@ -71,13 +71,6 @@ architecture rtl of PtpReg is
       APPLY_S);
 
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
-      snapshotNow      : sl;
-      commitRequest    : sl;
-      snapshotRequest  : sl;
-      irqClear         : slv(31 downto 0);
-
       readSlave        : AxiLiteReadSlaveType;
       writeSlave       : AxiLiteWriteSlaveType;
       state            : CommitStateType;
@@ -95,10 +88,6 @@ architecture rtl of PtpReg is
    end record;
 
    constant REG_INIT_C : RegType := (
-      snapshotNow      => '0',
-      commitRequest    => '0',
-      snapshotRequest  => '0',
-      irqClear         => (others => '0'),
       readSlave        => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave       => AXI_LITE_WRITE_SLAVE_INIT_C,
       state            => IDLE_S,
@@ -121,18 +110,22 @@ begin
 
    comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, manualBusy, phcConfigValid,
                    portConfigValid, servoConfigValid, captureAbort, events, portActive, servoState, filterCount, announceValid) is
-      variable v  : RegType;
-      variable ep : AxiLiteEndpointType;
+      variable v           : RegType;
+      variable ep          : AxiLiteEndpointType;
+      variable snapshotNow : PtpSnapshotControlType;
+
+      -- Calculations used only during this evaluation.
+      variable commitRequest   : sl;
+      variable snapshotRequest : sl;
+      variable irqClear        : slv(31 downto 0);
    begin
       v := r;
 
       -- Decode requests against pre-edge ownership; completing a commit does
       -- not make the same edge available for another submission.
-      v.snapshotNow := '0';
-
-      v.commitRequest   := '0';
-      v.snapshotRequest := '0';
-      v.irqClear        := (others => '0');
+      commitRequest   := '0';
+      snapshotRequest := '0';
+      irqClear        := (others => '0');
 
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, qualify submissions, then close the transaction.
@@ -148,7 +141,7 @@ begin
       -- Provisional development identification; no released ABI version yet.
       axiSlaveRegisterR(ep, x"000", 0, slv'(x"00020000"));
       axiSlaveRegister(ep, x"004", 0, v.shadow);
-      axiSlaveRegister(ep, x"03C", 0, v.commitRequest);
+      axiSlaveRegister(ep, x"03C", 0, commitRequest);
       axiSlaveRegisterR(ep, x"040", 0, r.configError);
       axiSlaveRegisterR(ep, x"040", 1, r.configControl.busy);
       axiSlaveRegisterR(ep, x"044", 0, r.activeConfig);
@@ -161,23 +154,23 @@ begin
       -- Interrupt status, mask and write-one-to-clear.
       axiSlaveRegisterR(ep, x"04C", 0, r.irqStatus);
       axiSlaveRegister(ep, x"050", 0, v.irqMask);
-      axiSlaveRegister(ep, x"054", 0, v.irqClear);
+      axiSlaveRegister(ep, x"054", 0, irqClear);
 
       -- Coordinated snapshot submission and completion.
-      axiSlaveRegister(ep, x"100", 0, v.snapshotRequest);
+      axiSlaveRegister(ep, x"100", 0, snapshotRequest);
       axiSlaveRegisterR(ep, x"104", 0, r.snapshotSequence);
       axiSlaveRegisterR(ep, x"108", 0, r.snapshotPending);
 
       -- Submission checks use pre-edge ownership. Completion below cannot
       -- make a busy command or pending snapshot accept a replacement here.
-      if v.commitRequest = '1' then
+      if commitRequest = '1' then
          if r.configControl.busy = '1' or manualBusy = '1' then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
          else
             v.state := PREPARE_S;
          end if;
       end if;
-      if v.snapshotRequest = '1' then
+      if snapshotRequest = '1' then
          if r.snapshotPending = '1' then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
          else
@@ -185,7 +178,7 @@ begin
          end if;
       end if;
       -- A live event wins a coincident write-one-to-clear.
-      v.irqStatus            := r.irqStatus and not v.irqClear;
+      v.irqStatus             := r.irqStatus and not irqClear;
       v.irqStatus(3 downto 0) := v.irqStatus(3 downto 0) or events;
 
       -- Register IRQ with the event/W1C result and any mask write.
@@ -248,22 +241,23 @@ begin
       -- This strobe is an intentional timing exception: every bank must see
       -- the same captureAbort-qualified edge and sequence. A registered request
       -- would need a receiver-side veto/acknowledgement shared by all banks.
+      snapshotNow            := PTP_SNAPSHOT_CONTROL_INIT_C;
+      snapshotNow.sequenceId := ptpSatInc(r.snapshotSequence);
       if r.configControl.busy = '0' and captureAbort = '0' and rst /= RST_POLARITY_G then
-         v.snapshotNow := r.snapshotPending;
+         snapshotNow.capture := r.snapshotPending;
       end if;
-      if v.snapshotNow = '1' then
+      if snapshotNow.capture = '1' then
          v.snapshotPending  := '0';
-         v.snapshotSequence := ptpSatInc(r.snapshotSequence);
+         v.snapshotSequence := snapshotNow.sequenceId;
       end if;
       -- Publish registered status and the qualified coordination strobes.
-      configControl              <= r.configControl;
-      snapshotControl.capture    <= v.snapshotNow;
-      snapshotControl.sequenceId <= ptpSatInc(r.snapshotSequence);
-      enable                     <= r.activeConfig(0);
-      servoEnable                <= r.activeConfig(1);
-      irq                        <= r.irq;
-      axiReadSlave  <= r.readSlave;
-      axiWriteSlave <= r.writeSlave;
+      configControl   <= r.configControl;
+      snapshotControl <= snapshotNow;
+      enable          <= r.activeConfig(0);
+      servoEnable     <= r.activeConfig(1);
+      irq             <= r.irq;
+      axiReadSlave    <= r.readSlave;
+      axiWriteSlave   <= r.writeSlave;
 
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;

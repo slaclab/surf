@@ -67,10 +67,7 @@ architecture rtl of PtpMath is
       DONE_S);
 
    type RegType is record
-      -- Current-cycle calculations and diagnostics. Use v for same-edge
-      -- decisions; these fields do not introduce a protocol pipeline stage.
-      magnitude       : unsigned(255 downto 0);
-      limitValue      : unsigned(255 downto 0);
+      -- Combinational interface controls; resolve and publish from v.
       inputReady      : sl;
 
       state           : StateType;
@@ -91,8 +88,6 @@ architecture rtl of PtpMath is
    end record;
 
    constant REG_INIT_C : RegType := (
-      magnitude       => (others => '0'),
-      limitValue      => (others => '0'),
       inputReady      => '0',
       state           => IDLE_S,
       count           => 0,
@@ -117,14 +112,18 @@ begin
 
    comb : process (r, rst, cancel, inputValid, divide, roundNearest, operandA, operandB, resultReady) is
       variable v : RegType;
+
+      -- Calculations used only during this evaluation.
+      variable magnitude  : unsigned(255 downto 0);
+      variable limitValue : unsigned(255 downto 0);
    begin
       v := r;
 
       v.inputReady := '0';
-      v.magnitude  := (others => '0');
-      v.limitValue := shift_left(to_unsigned(1, 256), 127);
+      magnitude    := (others => '0');
+      limitValue   := shift_left(to_unsigned(1, 256), 127);
       if r.negative = '0' then
-         v.limitValue := v.limitValue - 1;
+         limitValue := limitValue - 1;
       end if;
       -- Accept immutable operands, consume one arithmetic bit per cycle, then
       -- hold the signed result until the consumer takes it.
@@ -170,20 +169,20 @@ begin
                   v.remainderValue := v.remainderValue - resize(r.b, 129);
                   v.a(0)           := '1';
                end if;
-               v.magnitude := resize(v.a, 256);
+               magnitude := resize(v.a, 256);
             else
                if r.a(0) = '1' then
                   v.product := r.product + r.multiplicand;
                end if;
                v.a            := shift_right(r.a, 1);
                v.multiplicand := shift_left(r.multiplicand, 1);
-               v.magnitude    := v.product;
+               magnitude      := v.product;
             end if;
             -- Only the final bit triggers rounding, range checking and sign restoration.
             if r.count = 127 then
                if r.divide = '1' then
                   if r.rounding = '1' and shift_left(v.remainderValue, 1) >= resize(r.b, 129) then
-                     v.magnitude := v.magnitude + 1;
+                     magnitude := magnitude + 1;
                   end if;
                   -- Remainder always describes truncation toward zero, even
                   -- when the separately returned quotient is rounded nearest.
@@ -192,10 +191,10 @@ begin
                      v.resultRemainder := slv(-signed(v.resultRemainder));
                   end if;
                end if;
-               if v.magnitude > v.limitValue then
+               if magnitude > limitValue then
                   v.error := '1';
                end if;
-               v.resultValue := slv(v.magnitude(127 downto 0));
+               v.resultValue := slv(magnitude(127 downto 0));
                if r.negative = '1' then
                   v.resultValue := slv(-signed(v.resultValue));
                end if;

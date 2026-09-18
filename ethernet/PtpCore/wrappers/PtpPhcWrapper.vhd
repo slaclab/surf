@@ -42,6 +42,7 @@ entity PtpPhcWrapper is
       RST_ASYNC_G    : boolean  := false;
       CLK_FREQ_G     : positive := 156250000);
    port (
+      -- PHC clock domain: management, command and live time interfaces.
       clk                  : in  sl;
       rst                  : in  sl;
       axil_awaddr          : in  slv(31 downto 0);
@@ -92,6 +93,8 @@ entity PtpPhcWrapper is
       fault                : out sl;
       pps                  : out sl;
       captureAbort         : out sl;
+
+      -- Independent reader clock domain: coherent snapshot mailbox.
       readClk              : in  sl;
       readRst              : in  sl;
       readRequest          : in  sl;
@@ -123,16 +126,16 @@ architecture rtl of PtpPhcWrapper is
 
 begin
 
-   command         <=
-   (
-      kind          => commandKind,
-      generation    => commandGeneration,
-      setTime       => (seconds => commandSeconds, nanoseconds => commandNanoseconds, fraction => commandFraction),
-      phaseSeconds  => phaseSeconds,
-      phaseFraction => phaseFraction,
-      rate          => commandRate,
-      value         => commandValue
-   );
+   command.kind                <= commandKind;
+   command.generation          <= commandGeneration;
+   command.setTime.seconds     <= commandSeconds;
+   command.setTime.nanoseconds <= commandNanoseconds;
+   command.setTime.fraction    <= commandFraction;
+   command.phaseSeconds        <= phaseSeconds;
+   command.phaseFraction       <= phaseFraction;
+   command.rate                <= commandRate;
+   command.value               <= commandValue;
+
    resetHigh       <= '1' when rst = RST_POLARITY_G else '0';
    resetN          <= not resetHigh;
    timeSeconds     <= timeValue.seconds;

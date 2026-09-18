@@ -1,7 +1,14 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Thin cocotb adapter for physical and normalized PTP RX proof
+-- Description: Physical and normalized interfaces for PTP RX verification.
+--
+-- Selects the production GMII/XGMII adapter or directly supplied normalized
+-- bytes, then connects the real frontend queue and validator. All inputs use
+-- clk; cocotb supplies PHC samples, frame stimulus and message backpressure.
+-- Observes the adapter stream/capture and flattens decoded records for an
+-- independent scoreboard. Flush, PHY loss and reset retain production queue
+-- invalidation behavior; the wrapper adds no stimulus or timestamp model.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
