@@ -18,7 +18,9 @@
 -- an acknowledgement and error.
 --
 -- A time discontinuity advances the generation, clears validity and suppresses
--- captures and PPS on the affected edge. Epoch, tick or generation exhaustion
+-- captures and PPS on the affected edge. Registered capture inhibition announces
+-- SET/PHASE at admission, before commit; a rejected command may also inhibit
+-- captures conservatively. Epoch, tick or generation exhaustion
 -- faults closed until system reset;
 -- physical timestamp adapters consume the time, exact active increment, raw
 -- ticks and capture-abort indication from this module.
@@ -156,6 +158,8 @@ architecture rtl of PtpPhc is
       timeValue          : PtpTimeType;
       status             : PtpPhcStatusType;
       owner              : OwnerType;
+      commandSlave       : PtpPhcCommandSlaveType;
+      captureAbort       : sl;
       abortSeen          : sl;
       command            : PtpPhcCommandType;
       pending            : sl;
@@ -185,6 +189,8 @@ architecture rtl of PtpPhc is
       timeValue          => PTP_TIME_INIT_C,
       status             => initialStatus,
       owner              => NONE_S,
+      commandSlave       => PTP_PHC_COMMAND_SLAVE_INIT_C,
+      captureAbort       => '1',
       abortSeen          => '0',
       command            => PTP_PHC_COMMAND_INIT_C,
       pending            => '0',
@@ -229,10 +235,8 @@ begin
       variable ep : AxiLiteEndpointType;
 
       -- AXI write payload and shared current-cycle admission qualification.
-      variable commandWord     : slv(7 downto 0);
-      variable slotReady       : sl;
-      variable commandResponse : PtpPhcCommandSlaveType;
-      variable captureAbortNow : sl;
+      variable commandWord : slv(7 downto 0);
+      variable slotReady   : sl;
 
       -- Preserve carry/sign bits until normalization and range checks finish.
       variable nextNanoseconds : signed(66 downto 0);
@@ -250,7 +254,7 @@ begin
       v.pps                  := '0';
       v.abortSeen            := portCommandAbort;
       commandWord            := (others => '0');
-      commandResponse        := PTP_PHC_COMMAND_SLAVE_INIT_C;
+      v.commandSlave         := PTP_PHC_COMMAND_SLAVE_INIT_C;
 
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, qualify submission, then close the transaction.
@@ -365,9 +369,9 @@ begin
 
       -- Admission uses the old slot occupancy. Committing a pending command
       -- below cannot admit its replacement on the same edge.
-      -- The response is an owner-qualified view of the shared registered
-      -- completion, with combinational ready. Keep one authoritative result
-      -- for automatic, manual and diagnostic consumers rather than copying it.
+      -- Registered ready promises an available automatic-command slot. Manual
+      -- preparation deasserts that promise before REQUEST_S can claim it.
+      -- Completion routing is resolved with the result before registration.
       case r.owner is
          when NONE_S =>
             if r.manualState = REQUEST_S then
@@ -378,8 +382,7 @@ begin
                   v.manualState := WAIT_ACK_S;
                end if;
             elsif commandMaster.valid = '1' and commandMaster.cancel = '0' and commandMaster.stale = '0' then
-               commandResponse.ready := slotReady;
-               if slotReady = '1' then
+               if r.commandSlave.ready = '1' then
                   v.command := commandMaster.data;
                   v.pending := '1';
                   v.owner   := AUTO_S;
@@ -390,8 +393,6 @@ begin
                v.owner := NONE_S;
             end if;
          when AUTO_S =>
-            commandResponse.ack   := r.status.ack;
-            commandResponse.error := r.status.error;
             if r.status.ack = '1' then
                v.owner := NONE_S;
             end if;
@@ -516,11 +517,20 @@ begin
          v.pps := '0';
       end if;
 
-      -- Timing exception: captures must reject the epoch invalidated on this
-      -- commit edge. Delaying this control alone would admit stale timestamps.
-      captureAbortNow := v.status.fault;
-      if v.status.discontinuity = '1' or rst = RST_POLARITY_G then
-         captureAbortNow := '1';
+      -- Announce possible SET/PHASE invalidation at admission, one cycle before
+      -- commit. A later rejected command may conservatively inhibit a capture;
+      -- it must never require a combinational veto from the commit arithmetic.
+      -- Keep fault/discontinuity asserted with the resulting clock state.
+      v.captureAbort := v.status.fault or v.status.discontinuity;
+      if v.pending = '1' and (v.command.kind = PTP_CMD_SET_C or v.command.kind = PTP_CMD_PHASE_C) then
+         v.captureAbort := '1';
+      end if;
+      if r.owner = AUTO_S then
+         v.commandSlave.ack   := v.status.ack;
+         v.commandSlave.error := v.status.error;
+      end if;
+      if v.owner = NONE_S and v.manualState /= REQUEST_S and v.status.fault = '0' then
+         v.commandSlave.ready := '1';
       end if;
 
       -------------------------------------------------------------------------
@@ -550,11 +560,11 @@ begin
       end if;
 
       -------------------------------------------------------------------------
-      -- Outputs retain their registered/combinational timing across reset.
+      -- Registered functional outputs, including admission and completion.
       -------------------------------------------------------------------------
       -- Publish resolved controls before synchronous reset replaces v.
-      commandSlave   <= commandResponse;
-      captureAbort   <= captureAbortNow;
+      commandSlave   <= r.commandSlave;
+      captureAbort   <= r.captureAbort;
       manualBusy     <= r.manualBusy;
       mathInputValid <= r.mathInputValid;
       axiReadSlave   <= r.readSlave;

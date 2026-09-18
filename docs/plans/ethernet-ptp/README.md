@@ -16,6 +16,14 @@ regressions until the maintainer approves the VHDL.** Lint and compile/link smok
 checks remain authorized. Earlier simulation milestones below precede the
 current interface, register-map and control-flow changes.
 
+The [registered-boundary redesign](../ptp-registered-boundaries/README.md)
+supersedes the former immediate-control exceptions: RX queue selection/events,
+port child requests and lifecycle, PHC response/capture inhibition, snapshots,
+endpoint event assembly and mailbox strobes now have registered boundaries.
+Interface latency changes are explicit in the [PTP timing contract](rtl-readability.md).
+VSG passes all 22 files; final compile/link and behavioral-check preparation
+are recorded in the redesign handoff. Simulation remains paused.
+
 The output-register fixes pass VSG across all 22 PTP RTL/package/wrapper files
 and GHDL compilation/linking across all 21 entities/wrappers. Changed Python
 tests pass lint/syntax checks. The survey records implemented consolidations,
@@ -39,8 +47,8 @@ add PHY/frequency and ledger-depth assertions, register the PHC/port arithmetic
 requests, resolve immediate controls before publication, move calculation-only
 fields to process locals, and finish combinational-ready ownership. All 22
 VHDL files pass VSG and all 21 entities/wrappers compile/link with GHDL. The
-review records remaining generic-boundary/behavioral checks and a pre-existing
-test-helper import issue to repair before collecting endpoint regressions.
+review records remaining generic-boundary/behavioral checks. The stale test-helper
+imports identified there are repaired by the registered-boundary follow-up.
 
 After approval, prioritize command cancellation/ownership, registered expiry,
 arithmetic/ledger cancellation, RX queue/counter and ledger-summary alignment,

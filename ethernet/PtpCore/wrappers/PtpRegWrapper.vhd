@@ -64,6 +64,7 @@ entity PtpRegWrapper is
       axil_rready          : in  sl;
       activeEnable         : out sl;
       activeServo          : out sl;
+      configApply          : out sl;
       configRestart        : out sl;
       configPrepare        : out sl;
       snapshotCapture      : out sl;
@@ -136,14 +137,27 @@ architecture rtl of PtpRegWrapper is
    signal portStatus        : PtpPortStatusType;
    signal portLifecycle     : PtpPortLifecycleType;
 
+   type RegType is record
+      restart : sl;
+      events  : slv(3 downto 0);
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      restart => '0',
+      events  => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
 begin
 
    assert AXIL_BASE_ADDR_G(13 downto 0) = toSlv(0, 14)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
 
-   comb : process (bankControlOverride, bankPrepare, bankApply, configControl, abortCapture,
+   comb : process (r, bankControlOverride, bankPrepare, bankApply, configControl, abortCapture,
                    snapshotInhibit, rst, regRst, portStatus, portLifecycle, status, servoStatus, enable, servoEnable,
                    snapshotControl, timeValue) is
+      variable v                : RegType;
       variable restartPort      : sl;
       variable bankControlNow   : PtpConfigControlType;
       variable snapshotAbortNow : sl;
@@ -151,6 +165,7 @@ begin
       variable resetNNow        : sl;
       variable irqEvents        : slv(3 downto 0);
    begin
+      v := r;
       -- Normal operation uses the real coordinator. Direct controls let the
       -- fixture hold a candidate while software edits its shadow registers.
       bankControlNow := configControl;
@@ -175,16 +190,20 @@ begin
          irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
       end if;
 
+      v.restart := restartPort;
+      v.events  := irqEvents;
+
       -- Flatten only the signals required by cocotb's independent checks.
       bankConfigControl <= bankControlNow;
       snapshotAbort     <= snapshotAbortNow;
       axiReset          <= axiResetNow;
       resetN            <= resetNNow;
-      restart           <= restartPort;
-      events            <= irqEvents;
+      restart           <= r.restart;
+      events            <= r.events;
       activeEnable      <= enable;
       activeServo       <= servoEnable;
-      configRestart     <= restartPort;
+      configApply       <= configControl.apply;
+      configRestart     <= r.restart;
       configPrepare     <= configControl.prepare;
       snapshotCapture   <= snapshotControl.capture;
       timeSeconds       <= timeValue.seconds;
@@ -193,7 +212,18 @@ begin
       timeTicks         <= status.ticks;
       timeGeneration    <= status.generation;
       timeValid         <= status.timeValid;
+      if rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
    end process comb;
+
+   seq : process (clk) is
+   begin
+      if rising_edge(clk) then
+         r <= rin after 1 ns;
+      end if;
+   end process seq;
 
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (

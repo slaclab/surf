@@ -82,6 +82,7 @@ architecture rtl of PtpReg is
       configSequence   : slv(31 downto 0);
       snapshotPending  : sl;
       snapshotSequence : slv(31 downto 0);
+      snapshotControl  : PtpSnapshotControlType;
       irq              : sl;
       irqStatus        : slv(31 downto 0);
       irqMask          : slv(31 downto 0);
@@ -99,6 +100,7 @@ architecture rtl of PtpReg is
       configSequence   => (others => '0'),
       snapshotPending  => '0',
       snapshotSequence => (others => '0'),
+      snapshotControl  => PTP_SNAPSHOT_CONTROL_INIT_C,
       irq              => '0',
       irqStatus        => (others => '0'),
       irqMask          => (others => '0'));
@@ -110,9 +112,8 @@ begin
 
    comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, manualBusy, phcConfigValid,
                    portConfigValid, servoConfigValid, captureAbort, events, portActive, servoState, filterCount, announceValid) is
-      variable v           : RegType;
-      variable ep          : AxiLiteEndpointType;
-      variable snapshotNow : PtpSnapshotControlType;
+      variable v  : RegType;
+      variable ep : AxiLiteEndpointType;
 
       -- Calculations used only during this evaluation.
       variable commitRequest   : sl;
@@ -236,23 +237,22 @@ begin
             null;
       end case;
 
-      -- Snapshot pre-edge state only outside a commit and capture invalidation.
-      -- Use r.snapshotPending so a new write cannot capture on its submit edge.
-      -- This strobe is an intentional timing exception: every bank must see
-      -- the same captureAbort-qualified edge and sequence. A registered request
-      -- would need a receiver-side veto/acknowledgement shared by all banks.
-      snapshotNow            := PTP_SNAPSHOT_CONTROL_INIT_C;
-      snapshotNow.sequenceId := ptpSatInc(r.snapshotSequence);
-      if r.configControl.busy = '0' and captureAbort = '0' and rst /= RST_POLARITY_G then
-         snapshotNow.capture := r.snapshotPending;
-      end if;
-      if snapshotNow.capture = '1' then
+      -- Issue a registered broadcast, then complete on the edge on which all
+      -- banks consume it. An issued snapshot samples coherent pre-edge state,
+      -- even if a command changes that state on the same edge. Invalidation
+      -- defers new issues; it cannot withdraw an already published request.
+      v.snapshotControl.capture := '0';
+      if r.snapshotControl.capture = '1' then
          v.snapshotPending  := '0';
-         v.snapshotSequence := snapshotNow.sequenceId;
+         v.snapshotSequence := r.snapshotControl.sequenceId;
+      elsif r.snapshotPending = '1' and r.configControl.busy = '0' and
+         captureAbort = '0' and rst /= RST_POLARITY_G then
+         v.snapshotControl.capture    := '1';
+         v.snapshotControl.sequenceId := ptpSatInc(r.snapshotSequence);
       end if;
       -- Publish registered status and the qualified coordination strobes.
       configControl   <= r.configControl;
-      snapshotControl <= snapshotNow;
+      snapshotControl <= r.snapshotControl;
       enable          <= r.activeConfig(0);
       servoEnable     <= r.activeConfig(1);
       irq             <= r.irq;

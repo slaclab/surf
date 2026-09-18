@@ -24,7 +24,7 @@ from cocotb.utils import get_sim_time
 from cocotbext.axi import AxiResp
 import pytest
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES, ROCE_ANALYSIS_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 from tests.ethernet.PtpCore.ptp_reference import NS, Q16, Q32
 
 from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench
@@ -106,4 +106,4 @@ def test_ptp_endpoint(mode, real_mac):
                       parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": real_mac},
                       extra_env={"MODE": mode, "REAL_MAC": int(real_mac), "OSCILLATOR_PPM": 100 if mode == "XGMII" else -100, "ALLOW_STEP": int(mode == "XGMII"), "ABSOLUTE_PHASE_CHECK": 1},
-                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES})
+                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})

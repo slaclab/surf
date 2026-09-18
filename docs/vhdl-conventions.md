@@ -94,7 +94,7 @@ the parent's setting to children that participate in that contract.
 | Generic | Meaning and expectations |
 | --- | --- |
 | `TPD_G` | Simulation propagation delay, usually `time := 1 ns`. Pipeline latency is specified separately in clock cycles. |
-| `RST_POLARITY_G`, `RST_ASYNC_G` | Supported reset polarity and synchronous/asynchronous behavior. |
+| `RST_POLARITY_G`, `RST_ASYNC_G` | Supported reset polarity and synchronous/asynchronous behavior. Prefer `RST_ASYNC_G := false` for new behavioral modules. |
 | `PIPE_STAGES_G` | Configurable pipeline stages. Document whether these add to the block's inherent latency and what zero means. |
 | `COMMON_CLK_G`, `GEN_SYNC_FIFO_G` | Clocking implementation choices. Selecting a synchronous implementation requires the connected clocks to satisfy that block's common-clock contract. |
 | `SYNTH_MODE_G`, `MEMORY_TYPE_G`, `XIL_DEVICE_G` | Implementation, memory or device choices. Document supported string values beside the declaration. |
@@ -331,6 +331,28 @@ bounded searches that a small local helper could clarify. Keep state updates,
 selection priority and cancellation in the owning process. A useful module
 boundary has an independent responsibility and a clear interface.
 
+### Apply reset before publishing outputs
+
+Place the synchronous `v := REG_INIT_C` override near the bottom of `comb`,
+after normal next-state calculations and **before `rin <= v` and output
+assignments**. This gives reset priority and makes outputs driven from `v`
+observe the resolved reset value. Avoid subsequent updates to `v` that undo
+the reset unless explicitly required by the interface.
+
+Ordering matters: `inputReady <= v.inputReady;` evaluates its right-hand side
+when that statement executes. A later `v := REG_INIT_C` does not change the
+value already scheduled for `inputReady`. Publishing before reset can therefore
+advertise acceptance or assert a control while the corresponding next state is
+being reset. The same applies to a scratch variable copied from `v` before
+reset; resetting `v` does not reset that copy.
+
+Outputs driven directly from `r` still reflect the current registers; moving
+their publication below the reset override does not make synchronous reset
+asynchronous. Keep asynchronous reset in `seq` and preserve the specialized
+templates below. If an existing interface intentionally publishes a value
+before reset, document why and verify its reset behavior at both ends. Treat
+changing that ordering as a behavior change, not a formatting edit.
+
 ### Where the template does not apply
 
 Memory inference, synchronizer internals and primitive-specific logic need their
@@ -342,6 +364,36 @@ and reuse the existing blocks: examples include
 A structural wrapper likewise needs no artificial register bank.
 
 ## Output ownership and interface timing
+
+### Registered boundaries are the default
+
+Design functional module outputs, including connections to child instances, to
+come directly from registers. The receiving module should have a full clock
+period for its own logic, without an upstream mux, decode or arithmetic path
+already consuming that budget. Register payload, valid and associated controls
+together. Prefer computing those registers from resolved next state; adding a
+register after an existing output equation can add unnecessary latency.
+
+Coding style does not establish this boundary. Publishing a local variable or
+`v` field is still combinational. Selecting `r.queue(r.readPointer)` also puts
+a mux after the registers; fixed slices and representation-only casts do not.
+Place selection before the output register when the interface needs a timing
+boundary, even if that requires an explicit queue output stage.
+
+An exception needs a concrete requirement or buffering/latency tradeoff, stated
+near the interface. "The current implementation needs this on the same edge"
+is a dependency to examine, not sufficient justification. Consider changing
+producer and consumer together: retain payload with a delayed acknowledgement,
+reserve capacity before advertising ready, or define an explicit cancellation
+window. Specify detection, publication and consumption edges, including what
+can no longer be revoked after commit. Preserve reset, memory and synchronizer
+implementation requirements.
+
+Combinational ready/backpressure may be appropriate when it expresses current
+capacity and the interface lacks storage to honor delayed backpressure. Review
+that path explicitly; use existing buffered pipeline blocks when a timing break
+is needed. Structural wiring preserves the child's boundary and needs no extra
+register. A wrapper that computes selection or policy is doing more than wiring.
 
 ### Signal assignments in comb
 
@@ -389,9 +441,11 @@ rin          <= v;
 Here valid and the request operands are registered together. `rin <= v` is
 the next-state transfer, so its source is naturally `v`.
 
-The limited exceptions to an `r` source are combinational ready/backpressure,
-documented immediate interface controls, structural forwarding, constants and
-necessary boundary packing, slicing or type conversion. **These exceptions
+The limited exceptions to an `r` source are justified combinational
+ready/backpressure or fixed-latency interface controls, structural forwarding,
+constants and representation-only boundary packing, slicing or type conversion.
+Evaluate exceptions against the registered-boundary guidance above; documenting
+an existing dependency alone does not justify retaining it. **These exceptions
 still require unconditional publication.** Resolve a combinational ready field
 through `v`, then write `inputReady <= v.inputReady;`; do not wrap that assignment
 in an `if`. Simple representation changes must not conceal selection or policy.
@@ -429,10 +483,11 @@ Explain intentional timing exceptions near the code. A wrapper flattening a
 record does not need another pipeline stage just to give each output a matching
 register.
 
-For combinational control records, a fully assigned local variable can collect
-the decision before publication. Keep output assignment separate from computing
-that decision, and preserve whether it occurs before or after reset overrides.
-Changing an output from `r` to `v`, or the reverse, changes its timing.
+For justified combinational control records, a fully assigned local variable can
+collect the decision before publication. Keep output assignment separate from
+computing that decision, and apply the intended reset override to the value
+being published. Follow the [reset ordering](#apply-reset-before-publishing-outputs)
+above. Changing an output from `r` to `v`, or the reverse, changes its timing.
 
 ### Register related controls together
 
@@ -694,10 +749,76 @@ literal is not useful if the resulting expression hides the layout.
 
 ## Reset and CDC rules
 
+### Prefer synchronous reset for behavioral state
+
+**Synchronous reset is the default preference. Encode it in `comb`**, using
+`v := REG_INIT_C` after the normal next-state calculations and before `rin`
+and output publication, as described in
+[reset ordering](#apply-reset-before-publishing-outputs). For a synchronous-only
+module, `seq` needs only the clock edge and `r <= rin after TPD_G`; do not move
+the behavioral reset branch into `seq`.
+
+Synchronous reset takes effect in the registers on an active clock edge. The
+reset must meet the receiving clock's timing requirements and remain asserted
+through an active edge. A stopped clock cannot reset those registers. Outputs
+intentionally published from `v` can respond to the reset before that edge;
+this does not make the state registers asynchronously resettable.
+
+### Use asynchronous reset when the implementation requires it
+
+Asynchronous reset is sometimes necessary. ASIC targets are an important case:
+the selected standard-cell library may provide only asynchronous reset pins on
+its available resettable registers. Other reasons include state that must reset
+while its clock is stopped and device primitives with a required asynchronous
+reset. Document the target or functional requirement; the synchronous preference
+does not override it.
+
+Encode asynchronous reset in `seq`, with reset in the sensitivity list and the
+reset branch before `elsif rising_edge(clk)`. For ordinary behavioral modules
+that support both modes, use the mutually exclusive guards shown in the
+[two-process example](#two-process-vhdl-style):
+
+- In `comb`, apply `v := REG_INIT_C` when `RST_ASYNC_G = false` and reset is active.
+- In `seq`, apply `r <= REG_INIT_C after TPD_G` when `RST_ASYNC_G` and reset is
+  active; otherwise capture `rin` on the clock edge.
+
+[AxiLiteRegs.vhd](../axi/axi-lite/rtl/AxiLiteRegs.vhd) is a concrete example.
+Default `RST_ASYNC_G` to `false` for new behavioral modules unless their intended
+implementation requires otherwise. Expose only supported modes and propagate
+the selection to children that share the reset contract.
+
 Reset is part of the interface. Preserve `TPD_G`, `RST_POLARITY_G`,
 `RST_ASYNC_G`, default values and optional reset ports when maintaining a module.
-The two-process example shows synchronous reset in `comb` and asynchronous reset
-in `seq`; use that placement for ordinary behavioral state.
+Changing reset mode changes behavior and implementation; it is not a style
+cleanup. Declaration-time initialization is separate from runtime reset and
+must not be assumed to initialize ASIC registers in hardware.
+
+### Reset distribution and implementation exceptions
+
+Synchronize release of an asynchronous reset to each receiving clock domain
+and respect the target registers' recovery/removal requirements. Use
+[RstSync.vhd](../base/sync/rtl/RstSync.vhd) for asynchronous assertion and
+synchronized release with its default configuration. Its `OUT_REG_RST_G`
+option changes assertion at the final stage; choose that deliberately when
+reset must reach a stopped domain. A reset synchronized to one clock is not
+automatically synchronized to another.
+
+[RstPipeline.vhd](../base/general/rtl/RstPipeline.vhd) and `RstPipelineVector`
+pipeline reset distribution in a clock domain; they do not replace a reset
+synchronizer. Account for their assertion and release latency at connected
+interfaces. [FifoAsync.vhd](../base/fifo/rtl/inferred/FifoAsync.vhd) illustrates
+separate reset synchronizers for its read and write clocks.
+
+Preserve the specialized clocked templates in synchronizers, inferred memories
+and primitive wrappers. For example,
+[Synchronizer.vhd](../base/sync/rtl/Synchronizer.vhd) implements both reset modes
+in clocked processes, while
+[SimpleDualPortRamInferred.vhd](../base/ram/inferred/SimpleDualPortRamInferred.vhd)
+resets its read-data register without clearing the memory array. Do not move
+these resets into a behavioral `comb` template or add whole-array resets as a
+style change; retain inference structure, attributes and supported reset modes.
+
+### Reuse CDC blocks
 
 Use existing `base/sync` blocks for synchronizing levels, transferring pulses,
 crossing status and managing reset. `RstPipeline`, `RstPipelineVector` and
@@ -835,14 +956,14 @@ begin
       end if;
    end if;
 
-   -- Publish combinational ready and the registered output beat.
-   sAxisSlave  <= v.sAxisSlave;
-   mAxisMaster <= r.mAxisMaster;
-
    if RST_ASYNC_G = false and axisRst = RST_POLARITY_G then
       v := REG_INIT_C;
    end if;
    rin <= v;
+
+   -- Publish after reset so combinational ready observes the override.
+   sAxisSlave  <= v.sAxisSlave;
+   mAxisMaster <= r.mAxisMaster;
 end process comb;
 ```
 
@@ -856,12 +977,14 @@ and excessive ready-path depth.
 
 ### Reset, framing and integration
 
-The example publishes ready before the synchronous whole-record reset, matching
-common SURF modules; transfers during the shared reset are not meaningful.
-Other interfaces explicitly suppress ready during reset. Preserve the intended
-publication/reset ordering and reset polarity, and clear registered valid and
-partial-frame state according to the module's contract. Asynchronous reset
-still belongs in `seq`; registering or delaying ready is not a reset fix.
+The example publishes ready after the synchronous whole-record reset, so ready
+is low while synchronous reset is asserted. Some existing SURF modules publish
+ready before reset and rely on the shared reset excluding transfers. Preserve
+such behavior only as an intentional, documented interface choice; see
+[reset ordering](#apply-reset-before-publishing-outputs). Preserve reset polarity,
+and clear registered valid and partial-frame state according to the module's
+contract. Asynchronous reset still belongs in `seq`; registering or delaying
+ready is not a reset fix.
 
 Move data and sidebands together. Preserve byte order, `tKeep`, enabled `tStrb`,
 `tLast`, `tDest`, `tId` and `tUser` through stalls, arbitration and width changes.
@@ -1037,10 +1160,20 @@ on lint or test results. These questions catch common mistakes:
 - **State and ownership:** Does each clock domain have its own record and
   process pair? Do output records own their values? Are retained state and
   temporary calculations clearly distinguished?
+- **Registered boundaries:** Do functional outputs come directly from registers,
+  without selection, qualification or arithmetic after them? Does each exception
+  have a concrete interface requirement or buffering/latency tradeoff, with
+  producer and consumer timing considered together?
 - **Timing:** Are payload, valid and controls aligned? What happens on a stall,
   simultaneous consume/refill, cancellation or command completion? Do whole-record
   assignments preserve decisions made earlier in `comb`?
 - **Reset and CDC:** Are startup values, reset options and `TPD_G` preserved?
+  Is synchronous reset the default, with any asynchronous requirement explained?
+  Does the synchronous reset override precede `rin` and output publication,
+  including reset handling for outputs derived from `v` or scratch variables?
+  Are any intentional ordering exceptions justified by the interface?
+  Is asynchronous reset release synchronized to each receiving domain, with
+  stopped-clock behavior and reset distribution latency accounted for?
   Does every crossing use the right primitive? Are memory/synchronizer inference
   templates and synthesis attributes intact?
 - **Arithmetic and parameters:** Are widths, signedness, rounding and overflow

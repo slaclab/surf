@@ -21,7 +21,7 @@ import cocotb
 import pytest
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
-    ETHMAC_RTL_SOURCES, ROCE_ANALYSIS_SOURCES, FlatEmacEndpoint,
+    ETHMAC_RTL_SOURCES, FlatEmacEndpoint,
     send_contiguous_frame, frame_beats_from_bytes, build_pause_frame)
 from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench, LOCAL
 from tests.ethernet.PtpCore.ptp_wire_utils import ptp_frame
@@ -85,4 +85,4 @@ def test_ptp_endpoint_mac(mode):
                       parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": True},
                       extra_env={"MODE": mode, "REAL_MAC": 1},
-                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES})
+                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})

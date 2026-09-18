@@ -32,12 +32,13 @@ for current validation, register ABI, numerical limits and remaining qualificati
   the former aggregate `PtpConfigType` and `PTP_CONFIG_INIT_C` are removed.
   The servo receives port-owned shared limits through `PtpSharedConfigType`.
 - `PtpMeasurementMasterType`/`PtpMeasurementSlaveType` in `PtpPkg`: directional
-  measurement transfer. `PtpPortLifecycleType` carries immediate command abort
+  measurement transfer. `PtpPortLifecycleType` carries registered command abort
   and MAC-change restart; `PtpPortStatusType` carries registered diagnostics.
   The port's live record owns counters, Announce metadata and the completed
   exchange directly. Local AXI snapshots freeze pre-edge state separately.
-  Summary validity and ledger reporting are clocked observations; protocol
-  admission and cancellation retain their current-cycle checks.
+  Summary validity, ledger reporting, measurement and lifecycle outputs are
+  registered. Local admission checks reject work before publication; consumers
+  act on a published cancellation on the following edge.
 - `PtpReg`, `PtpEndpoint`: common commit/snapshot coordination, IRQ and the
   standard SURF crossbar. [development register map](../../docs/plans/ethernet-ptp/register-map.md)
   has four 4 KiB banks in a 16 KiB-aligned window at `AXIL_BASE_ADDR_G`.
@@ -73,12 +74,27 @@ Arithmetic results (`PtpMath`, `PtpE2e`) and ledger samples also have registered
 valid outputs. Cancellation does not lower valid between clock edges: a transfer
 requires valid and ready with the shared cancel/restart low and system reset
 inactive. Both producer and consumer give cancellation priority at the edge.
-RX overflow, port lifecycle and PHC capture invalidation remain immediate;
-snapshot capture is qualified by that same capture invalidation at every bank.
-PHC and port arithmetic requests are registered with their frozen operands from
-resolved next state. Combinational ready controls are recomputed through `v`
-in their owning records; immediate controls are resolved before unconditional
-publication. These source conventions preserve the documented transfer edges.
+RX head selection, overflow, port lifecycle and measurement outputs are
+registered. A cause detected at edge N is consumed at N+1; already committed
+work is not retroactively revoked. The endpoint registers restart/flush assembly
+as another hop. PHC SET/PHASE admission announces capture inhibition before the
+following commit edge, including conservative inhibition of rejected commands.
+
+Port-to-ledger requests and complete E2E operands are registered. TX begins only
+after a reservation handshake and then survives logical restart. E2E owns its
+frozen exchange through result consumption. Ledger response acceptance returns
+one cycle after submission; the port retains the associated response metadata.
+Snapshots issue a registered capture/sequence broadcast; every bank samples
+pre-edge state and the coordinator completes on the next edge. Issued snapshots
+are not withdrawn by later invalidation. The CDC mailbox registers FIFO strobes
+and read-valid, retaining asynchronous session reset for stopped clocks.
+
+Reverse ready remains combinational where current arbitration/cancellation can
+remove capacity and no extra input slot is reserved. See the
+[boundary survey](../../docs/plans/ethernet-ptp/output-register-survey.md) for
+specific exceptions and the [timing contracts](../../docs/plans/ethernet-ptp/rtl-readability.md)
+for detection, publication and consumption edges. These changes deliberately
+revise interface latencies; the software register layout is unchanged.
 
 Build manifests load `rtl/` and `wrappers/`. Run `make MODULES="$PWD" import`
 before the focused [tests](../../tests/ethernet/PtpCore/README.md). Device timing,

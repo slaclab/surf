@@ -16,8 +16,9 @@
 # - Checks: Every cycle compares the RTL queue, record fields and abort priority
 #   with the bounded reference model; physical tests also require whole-frame
 #   acceptance and independently calculate the SOF timestamp and byte phase.
-# - Timing: Drive before the rising edge and inspect transfer/abort before TPD;
-#   compare registered state afterward. A watchdog bounds every cocotb test.
+# - Timing: Registered payload/valid/abort hold between edges. An event detected
+#   on this edge cancels downstream work on the next edge; old-head transfer
+#   may precede that event. Compare post-edge state with the frame/queue oracle.
 
 from fractions import Fraction
 import os
@@ -61,6 +62,9 @@ class Bench:
 
     async def step(self, **inputs):
         d = self.dut
+        names = ("messageValid", "messageData", "rxAbort", "rxEpoch")
+        published = tuple(integer(getattr(d, name)) for name in names) if self.cycle else None
+        was_reset = integer(d.rst) == self.polarity if self.cycle else True
         d.clk.value = 0
         q32 = self.base + self.cycle * self.increment
         seconds, nsfrac = divmod(q32, 1_000_000_000 << 32)
@@ -72,16 +76,23 @@ class Bench:
             getattr(d, name).value = value
         await Timer(self.half_period, unit="ns")
         in_reset = integer(d.rst) == self.polarity
+        if not in_reset and not was_reset:
+            assert published == tuple(integer(getattr(d, name)) for name in names), "RX boundary changed between edges"
         if in_reset:
             self.model = RxFrontend(depth=self.depth)
             expected = None
-            assert integer(d.rxAbort)
         else:
-            # Read the old head before calling the reference edge. The valid
-            # interface can be cancelled only by its explicit same-edge abort.
+            # The pure frame/queue model reports events at detection. The RTL
+            # boundary publishes them after that edge. Decide the old-head
+            # transfer first, using the event already visible to the consumer.
             assert integer(d.messageValid) == bool(self.model.entries), self.cycle
             if self.model.entries:
                 assert integer(d.messageData) == pack_record(self.model.entries[0]), self.cycle
+            assert integer(d.rxAbort) == self.model.abort, self.cycle
+            expected = self.model.entries[0] if (self.model.entries and integer(d.messageReady) and not self.model.abort) else None
+            actual_transfer = integer(d.messageValid) and integer(d.messageReady) and not integer(d.rxAbort)
+            assert bool(actual_transfer) == (expected is not None), self.cycle
+            self.aborts += integer(d.rxAbort)
             beat = None
             if integer(d.normValid):
                 keep = integer(d.normKeep)
@@ -93,17 +104,14 @@ class Bench:
                 beat = RxBeat(integer(d.normData).to_bytes(8, "little")[:keep.bit_count()],
                               bool(integer(d.normSof)), bool(integer(d.normLast)),
                               bool(integer(d.normError) or (stamp is not None and integer(d.normCaptureError))), stamp)
-            expected = self.model.edge(beat, ready=bool(integer(d.messageReady)),
-                                       restart=bool(integer(d.rxFlush) or not integer(d.phyReady)),
-                                       generation=integer(d.generation))
-            assert integer(d.rxAbort) == self.model.abort, self.cycle
-            actual_transfer = integer(d.messageValid) and integer(d.messageReady) and not integer(d.rxAbort)
-            assert bool(actual_transfer) == (expected is not None), self.cycle
-            self.aborts += integer(d.rxAbort)
+            self.model.edge(beat, ready=bool(integer(d.messageReady)),
+                            restart=bool(integer(d.rxFlush) or not integer(d.phyReady)),
+                            generation=integer(d.generation))
         if expected is not None:
             self.received.append(expected)
         d.clk.value = 1
         await Timer(self.half_period, unit="ns")
+        assert integer(d.rxAbort) == self.model.abort, self.cycle
         assert integer(d.rxEpoch) == self.model.rx_epoch, self.cycle
         assert integer(d.acceptedCount) == self.model.counters["accepted"], self.cycle
         assert integer(d.overflowCount) == self.model.counters["overflow"], self.cycle
@@ -265,12 +273,16 @@ async def rx_contract(dut):
     if mode == "DIRECT":
         # Exact collision: full before the EOF edge even though ready is high.
         dut.messageReady.value = 0
-        await bench.direct(frame(marker=700))
-        for i, beat in enumerate(beats(frame(marker=701))):
+        for slot in range(bench.depth):
+            await bench.direct(frame(marker=700+slot))
+        before = len(bench.received)
+        for i, beat in enumerate(beats(frame(marker=710))):
             await bench.step(directValid=1, directData=int.from_bytes(beat.data, "little"),
                              directKeep=(1 << len(beat.data))-1, directSof=int(beat.sof),
                              directLast=int(beat.eof), directError=0, messageReady=int(beat.eof))
         assert not bench.model.entries and bench.model.abort
+        assert len(bench.received) == before+1, "old head must precede registered overflow"
+        assert int.from_bytes(bench.received[-1].body[:10], "big") == 700
         # Empty termination after an exact multiple of the physical group.
         before = len(bench.received)
         for beat in beats(frame(marker=702)):

@@ -16,6 +16,7 @@
 # - Checks: Every PHC cycle against the split-integer model; snapshot time/ticks
 #   are coherent, old sessions cancel, and read reset preserves the PHC.
 #   Cancellation after admission rejects commit; expiry overrides VALID commands.
+#   Ready/completion/capture inhibition cannot respond combinationally to inputs.
 # - Timing: Acceptance precedes commit by one edge; capture abort is inspected
 #   before commit and registered time/ack after TPD. Read clock is asynchronous.
 
@@ -52,6 +53,8 @@ class Bench:
 
     async def step(self, command=None, rejected=False, cancel=False, stale=False, clear_valid=False):
         d = self.d
+        names = ("commandReady", "commandAck", "commandError", "captureAbort")
+        published = tuple(int(getattr(d, name).value) for name in names)
         d.clk.value = 0
         d.commandValid.value = int(command is not None)
         d.commandCancel.value = int(cancel)
@@ -82,11 +85,12 @@ class Bench:
             committing = (committing[0], True)
         pending = self.model.pending
         await Timer(self.half, unit="ns")
+        assert published == tuple(int(getattr(d, name).value) for name in names), "PHC output changed between edges"
         if pending is not None and pending.kind in ("set", "phase"):
             assert int(d.captureAbort.value), "abort must precede commit edge"
-        accepted = command is not None and bool(d.commandReady.value)
-        if cancel or stale:
-            assert not accepted, "revoked command was admitted"
+        # Registered ready promises capacity; shared cancel/stale still exclude
+        # transfer at both endpoints without changing that promise mid-cycle.
+        accepted = command is not None and bool(d.commandReady.value) and not cancel and not stale
         old_pps_enabled = self.pps_enabled
         d.clk.value = 1
         _, pps = self.model.tick()

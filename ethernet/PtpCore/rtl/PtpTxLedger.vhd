@@ -74,6 +74,8 @@ entity PtpTxLedger is
       sampleValid      : out sl;
       sampleReady      : in  sl;
       ledgerStatus     : out slv(31 downto 0);
+      -- Registered completion for the response sampled on the previous edge.
+      -- The caller retains that response's metadata until this result arrives.
       responseAccepted : out sl;
       timeoutCount     : out slv(31 downto 0);
       rejectedCount    : out slv(31 downto 0));
@@ -114,8 +116,9 @@ architecture rtl of PtpTxLedger is
    constant STARTUP_BIT_C    : natural := 0;
    constant RESET_SEEN_BIT_C : natural := 1;
    type RegType is record
-      -- Combinational interface controls; resolve and publish from v.
-      ready         : sl;
+      -- Registered capacity promise and one-cycle response completion.
+      ready            : sl;
+      responseAccepted : sl;
 
       ledgerStatus  : slv(31 downto 0);
       entries       : EntryArray(0 to DEPTH_G-1);
@@ -129,16 +132,17 @@ architecture rtl of PtpTxLedger is
    end record;
 
    constant REG_INIT_C : RegType := (
-      ready         => '0',
-      ledgerStatus  => (STARTUP_BIT_C => '1', others => '0'),
-      entries       => (others => ENTRY_INIT_C),
-      nextSequence  => (others => '0'),
-      resetTick     => (others => '0'),
-      resetPrevious => '0',
-      sample        => PTP_DELAY_SAMPLE_INIT_C,
-      sampleValid   => '0',
-      timeoutCount  => (others => '0'),
-      rejectedCount => (others => '0'));
+      ready            => '0',
+      responseAccepted => '0',
+      ledgerStatus     => (STARTUP_BIT_C => '1', others => '0'),
+      entries          => (others => ENTRY_INIT_C),
+      nextSequence     => (others => '0'),
+      resetTick        => (others => '0'),
+      resetPrevious    => '0',
+      sample           => PTP_DELAY_SAMPLE_INIT_C,
+      sampleValid      => '0',
+      timeoutCount     => (others => '0'),
+      rejectedCount    => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -152,8 +156,7 @@ begin
 
    comb : process (r, rst, restart, macResetDone, ticks, generation, config, allocate,
                    wireMessage, wireValid, response, responseValid, sampleReady) is
-      variable v                : RegType;
-      variable acceptedResponse : sl;
+      variable v : RegType;
 
       -- Calculations used only during this evaluation.
       variable freeSlot  : integer range -1 to DEPTH_G-1;
@@ -161,11 +164,11 @@ begin
    begin
       v := r;
 
-      acceptedResponse := '0';
-      freeSlot         := -1;
-      collision        := false;
-      v.ready          := '0';
-      v.resetPrevious  := macResetDone;
+      v.responseAccepted := '0';
+      freeSlot           := -1;
+      collision          := false;
+      v.ready            := '0';
+      v.resetPrevious    := macResetDone;
       -- Retire the previous output before selecting a new completed entry.
       if r.sampleValid = '1' and sampleReady = '1' then
          v.sampleValid := '0';
@@ -215,9 +218,8 @@ begin
       end loop;
 
       -- Attach responses only to entries that remain eligible after wire checks.
-      -- responseAccepted is a combinational handshake result for the response
-      -- on this edge. PtpPort uses it with that response's log interval; a
-      -- delayed event would also need a retained response payload/identity.
+      -- responseAccepted is registered on this edge. The caller retains the
+      -- submitted response metadata for that completion on the following edge.
       for i in 0 to DEPTH_G-1 loop
          if responseValid = '1' and r.entries(i).used = '1' and v.entries(i).retired = '0' and
             response.sequenceId = r.entries(i).sequenceId and response.domainNumber = r.entries(i).domainNumber and
@@ -232,7 +234,7 @@ begin
                end if;
             else
                v.entries(i).responseSeen         := '1';
-               acceptedResponse                  := '1';
+               v.responseAccepted                := '1';
                v.entries(i).sample.remoteTime    := ptpMessageTimestamp(response);
                v.entries(i).sample.correction    := response.correction;
                v.entries(i).sample.responseTicks := response.capture.ticks;
@@ -261,8 +263,7 @@ begin
          unsigned(ticks)-unsigned(r.resetTick) > PACKET_LIFETIME_G then
          v.ledgerStatus(STARTUP_BIT_C) := '0';
       end if;
-      if r.ledgerStatus(STARTUP_BIT_C) = '0' and freeSlot /= -1 and not collision and restart = '0' then
-         v.ready := '1';
+      if r.ready = '1' and restart = '0' then
          if allocate = '1' then
             v.entries(freeSlot)                   := ENTRY_INIT_C;
             v.entries(freeSlot).used              := '1';
@@ -282,7 +283,7 @@ begin
       end if;
       -- Logical restart retires keys but cannot claim an unknown wire fate.
       if restart = '1' then
-         acceptedResponse := '0';
+         v.responseAccepted := '0';
          for i in 0 to DEPTH_G-1 loop
             v.entries(i).retired := '1';
          end loop;
@@ -292,12 +293,13 @@ begin
       -- permits unknown wire fates to be discarded. Startup quarantine then
       -- excludes surviving network responses. A port reset is insufficient.
       if macResetDone = '1' and r.resetPrevious = '0' then
-         v.entries                      := (others => ENTRY_INIT_C);
+         v.entries                        := (others => ENTRY_INIT_C);
          v.ledgerStatus(STARTUP_BIT_C)    := '1';
          v.ledgerStatus(RESET_SEEN_BIT_C) := '1';
-         v.resetTick                    := ticks;
-         v.sampleValid                  := '0';
-         v.ready                        := '0';
+         v.resetTick                      := ticks;
+         v.sampleValid                    := '0';
+         v.ready                          := '0';
+         v.responseAccepted               := '0';
       end if;
       if rst = RST_POLARITY_G then
          v.ready := '0';
@@ -316,8 +318,25 @@ begin
          end if;
       end loop;
 
-      allocateReady    <= v.ready;
-      responseAccepted <= acceptedResponse;
+      -- Promise capacity for the next edge from the fully resolved table and
+      -- candidate key. Only this owner allocates entries; retirement cannot
+      -- invalidate a free-slot promise. Shared restart/reset cancel admission.
+      freeSlot  := -1;
+      collision := false;
+      for i in v.entries'range loop
+         if v.entries(i).used = '0' then
+            freeSlot := i;
+         elsif v.entries(i).sequenceId = slv(resize(v.nextSequence, 16)) then
+            collision := true;
+         end if;
+      end loop;
+      v.ready := '0';
+      if v.ledgerStatus(STARTUP_BIT_C) = '0' and freeSlot /= -1 and not collision and
+         restart = '0' and rst /= RST_POLARITY_G then
+         v.ready := '1';
+      end if;
+      allocateReady    <= r.ready;
+      responseAccepted <= r.responseAccepted;
       allocateSequence <= slv(resize(r.nextSequence, 16));
       sample           <= r.sample;
       sampleValid      <= r.sampleValid;

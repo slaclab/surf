@@ -15,6 +15,8 @@
 # - Checks: Exact sequence/capture association; unknown wire fates retain slots;
 #   retired keys cannot emit samples or be reused before quarantine expiry.
 #   Registered occupancy follows allocation/wire completion/reset on that edge.
+#   Capacity and response completion remain stable between active edges;
+#   response acceptance is a pulse associated with the submitted wire key.
 # - Timing: Monotonic ticks are independent inputs; abort wins over stalled output.
 
 import cocotb
@@ -29,11 +31,14 @@ async def lifecycle(d):
     async def edge(check_registered=False, **values):
         nonlocal now
         before = int(d.sampleValid.value) if check_registered else None
+        controls = (int(d.allocateReady.value), int(d.responseAccepted.value)) if now else None
         d.clk.value = 0
         d.ticks.value = now
         for name, value in values.items():
             getattr(d, name).value = value
         await Timer(3.2, unit="ns")
+        if controls is not None:
+            assert controls == (int(d.allocateReady.value), int(d.responseAccepted.value)), "control changed between edges"
         if check_registered:
             assert int(d.sampleValid.value) == before, "sample valid changed between edges"
         d.clk.value = 1
@@ -71,7 +76,9 @@ async def lifecycle(d):
     assert (int(d.ledgerStatus.value) >> 8) & 0xffff == 0x0101
     wire_tick = now
     await edge(responseValid=1, responseSequence=first, responseTicks=wire_tick+1)
+    assert int(d.responseAccepted.value), "matching response lacked registered completion"
     await edge(responseValid=0)
+    assert not int(d.responseAccepted.value), "response completion did not pulse"
     await edge(wireValid=1, wireSequence=first, wireTicks=wire_tick)
     assert (int(d.ledgerStatus.value) >> 8) & 0xffff == 0x0001
     await edge(wireValid=0)

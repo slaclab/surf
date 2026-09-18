@@ -58,6 +58,7 @@ entity PtpTxLedgerWrapper is
       wireGeneration     : in  slv(31 downto 0);
       wireError          : in  sl;
       responseValid      : in  sl;
+      responseAccepted   : out sl;
       responseSequence   : in  slv(15 downto 0);
       responseIdentity   : in  slv(79 downto 0);
       responseDomain     : in  slv(7 downto 0);
@@ -120,6 +121,7 @@ begin
          wireMessage      => wireMessage,       -- [in]
          wireValid        => wireValid,         -- [in]
          response         => response,          -- [in]
+         responseAccepted => responseAccepted,  -- [out]
          responseValid    => responseValid,     -- [in]
          sample           => sample,            -- [out]
          sampleValid      => sampleValid,       -- [out]

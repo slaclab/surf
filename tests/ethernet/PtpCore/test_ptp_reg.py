@@ -16,7 +16,7 @@
 #   the real PHC prepares and executes commands while shadows are rewritten.
 # - Checks: Twelve-bit bank decode and 16 KiB aperture bounds, low address-bit
 #   aliases and field strobes, active versus shadow state,
-#   local snapshot sequence/edge agreement,
+#   local snapshot sequence/edge agreement, registered request stability,
 #   full phase operand latching, accepted commit survival across AXI reset,
 #   busy/ack/error ownership, IRQ W1C and build constants.
 # - Timing: Clock edges are stepped explicitly; bus and command waits are bounded.
@@ -41,22 +41,31 @@ async def register_contract(d):
     d.axil_rready.value = 1
     d.localMac.value = int.from_bytes(bytes.fromhex('020000000001'), 'little')
 
+    clock_started = False
+
     async def edge(**values):
+        nonlocal clock_started
+        published = int(d.snapshotCapture.value) if clock_started else 0
+        was_reset = int(d.rst.value) if clock_started else 1
         d.clk.value = 0
         for name, value in values.items():
             getattr(d, name).value = value
         await Timer(4, unit='ns')
+        if not was_reset and not int(d.rst.value):
+            assert int(d.snapshotCapture.value) == published, 'snapshot request changed between edges'
         observed = {name: int(getattr(d, 'axil_'+name).value) for name in
                     ('awready', 'wready', 'bvalid', 'bresp', 'arready', 'rvalid', 'rresp', 'rdata')}
         observed['configRestart'] = int(d.configRestart.value)
+        observed['configApply'] = int(d.configApply.value)
         if int(d.snapshotCapture.value):
             snapshots.append(int(d.timeTicks.value))
         if int(d.configPrepare.value):
             preparations.append(int(d.timeTicks.value))
-        if int(d.configRestart.value):
+        if int(d.configApply.value):
             applications.append(int(d.timeTicks.value))
         d.clk.value = 1
         await Timer(4, unit='ns')
+        clock_started = True
         return observed
 
     async def write(address, value, strobe=15, response=0):
@@ -206,7 +215,10 @@ async def register_contract(d):
     await commit()
     assert await read(0x040) == 0
     seen = await edge(localMac=int.from_bytes(bytes.fromhex('020000000002'), 'little'))
-    assert seen['configRestart']
+    # Port detects identity at this edge; endpoint assembly is another register.
+    assert not seen['configRestart']
+    assert not (await edge())['configRestart']
+    assert (await edge())['configRestart']
     assert (await read_wide(0x2060, 3)) == int('020000fffe0000020007', 16)
 
     # Every owner validates its own candidate; one invalid servo setting must
@@ -336,6 +348,12 @@ async def register_contract(d):
     await edge(regRst=1)
     await edge(regRst=0)
     assert await read(0x104) == sequence
+    await edge(snapshotInhibit=0)
+    assert int(d.snapshotCapture.value), 'snapshot issue was not registered'
+    # Inhibition arriving after issue must not split the cohort or withdraw
+    # the registered request. All banks and the coordinator complete together.
+    await edge(snapshotInhibit=1)
+    assert not int(d.snapshotCapture.value), 'snapshot request did not pulse'
     await edge(snapshotInhibit=0)
     for _ in range(5):
         await edge()

@@ -767,6 +767,9 @@ begin
       end if;
       -- Publish resolved controls and registered payloads without another
       -- decision stage. Preserve publication before the synchronous reset of v.
+      -- Measurement ready is the reverse capacity exception: holdover work and
+      -- current cancellation share its input slot; delayed ready would require
+      -- an extra reserved sample slot. Forward commands/cancel remain registered.
       axiReadSlave     <= r.readSlave;
       axiWriteSlave    <= r.writeSlave;
       configValid      <= r.configValid;
@@ -774,7 +777,7 @@ begin
       commandMaster    <= r.commandMaster;
       expireTime       <= r.expireTime;
       status           <= r.status;
-      invalidate       <= v.commandMaster.cancel;
+      invalidate       <= r.commandMaster.cancel;
       inputMath        <= r.mathValid;
       roundMath        <= r.mathRound;
 

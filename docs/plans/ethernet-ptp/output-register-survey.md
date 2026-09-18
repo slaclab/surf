@@ -1,68 +1,54 @@
 # PtpCore output register survey
 
-Scope: all 15 files in `ethernet/PtpCore/rtl` (14 entities and `PtpPkg`) and
-all seven files in `ethernet/PtpCore/wrappers`, reviewed against the same-type
-output storage guidance in the [SURF VHDL conventions](../../vhdl-conventions.md#output-ownership-and-interface-timing).
+Scope: all 15 RTL/package files and seven wrappers in `ethernet/PtpCore`.
+The [registered-boundary redesign](../ptp-registered-boundaries/README.md)
+supersedes the earlier acceptance of immediate control and queue-selection
+exceptions. These changes affect interface latency; previous simulation results
+do not validate them. Simulation and pytest remain paused for VHDL review.
 
-## Disposition
+## Functional boundaries
 
-Implemented the record consolidations and registered the state-derived outputs
-listed below. Output records own their state; the changes do not add duplicate
-copies of the former scalar registers. Normal processing and commit latency
-are unchanged. Remaining combinational outputs have explicit handshake,
-cancellation or boundary-representation reasons; these are exceptions to the
-preferred registered interface, not templates for new control interfaces.
-
-Arithmetic and ledger result-valid outputs now remain stable until the clock
-edge when cancellation is sampled. Their consumers must exclude shared
-cancel/restart and system-reset edges from transfers even when valid and ready
-are high. Production consumers have been updated together with the producers.
-Configuration prepare/apply/busy now come from a registered record; system
-reset must reset the coordinator and all participating banks together.
-
-## Module coverage
-
-| File | Implemented changes and retained exceptions |
+| Owner | Registered boundary and transaction handling |
 | --- | --- |
-| [PtpServo](../../../ethernet/PtpCore/rtl/PtpServo.vhd) | `status` now owns quality, filtered delay, offset, rate, filter occupancy and rejection count. AXI reads/snapshots use that same state. Rate arithmetic stays 128 bits through clamping before storage in the 64-bit status field. Command, AXI, config vote and expiry were already registered. Measurement ready remains combinational backpressure. |
-| [PtpRxFrontend](../../../ethernet/PtpCore/rtl/PtpRxFrontend.vhd) | `counters` now owns all three saturating counters; `messageValid` is registered with resolved next queue fill. Message payload remains a selection from the authoritative queue and epoch a numeric conversion. Overflow/abort remain immediate so a coincident old-head transfer is canceled when the queue is discarded. |
-| [PtpPort](../../../ethernet/PtpCore/rtl/PtpPort.vhd) | AXI, TX stream, status and config vote already have matching registered storage. Arithmetic/ledger consumers now explicitly reject results on the shared abort edge. `sharedConfig` remains a view of active configuration. Measurement payload/valid retain immediate abort qualification, and lifecycle controls retain immediate PHC/servo/queue cancellation; registering these independently would permit stale work to commit. RX ready remains backpressure. |
-| [PtpPhc](../../../ethernet/PtpCore/rtl/PtpPhc.vhd) | `status.increment` now lives entirely in the authoritative status record, including nominal initialization and rate commits; no output override. `manualBusy` is registered with next manual state. The command response remains an owner-qualified projection of shared registered completion plus combinational ready, avoiding duplicate completion state. `captureAbort` remains immediate to reject an epoch invalidated on the current commit edge. Time, PPS and AXI are registered; config vote is constant. |
-| [PtpReg](../../../ethernet/PtpCore/rtl/PtpReg.vhd) | `configControl` and IRQ are registered from resolved next state, preserving prepare/apply and event/mask alignment. AXI records remain registered and enables remain slices of active configuration. Snapshot capture stays qualified by current capture invalidation, with one common sequence for all banks. Retiming it requires a coordinated receiver-side veto/acknowledgement protocol. |
-| [PtpMath](../../../ethernet/PtpCore/rtl/PtpMath.vhd) | `resultValid` is now registered alongside result/remainder/error. Caller and producer give shared cancel priority over transfer. Input ready remains combinational admission control. |
-| [PtpE2e](../../../ethernet/PtpCore/rtl/PtpE2e.vhd) | `resultValid` is now registered alongside the complete result and error. Its internal math receiver and the port receiver honor shared cancellation. Input ready remains combinational admission control. |
-| [PtpTxLedger](../../../ethernet/PtpCore/rtl/PtpTxLedger.vhd) | `sampleValid` now publishes its register directly under the shared restart/reset transfer contract. `ledgerStatus` owns startup/reset flags and counts resolved next entries, so allocation, wire completion and reset update the summary on the same edge. Sample/counters remain registered; allocation sequence is a conversion and ready is backpressure. `responseAccepted` remains a current-response handshake result: the port consumes it with that response's log interval, so delaying it alone would lose alignment. |
-| [PtpPhcRead](../../../ethernet/PtpCore/rtl/PtpPhcRead.vhd) | Retained mailbox unpacking, sequence conversion and admission-ready exceptions. Immediate reset qualification of read-valid cancels sessions even with a stopped peer clock. No redundant decoded payload register added. |
-| [PtpRxTimestampAdapter](../../../ethernet/PtpCore/rtl/PtpRxTimestampAdapter.vhd) | Already publishes complete registered stream and capture records. Local names differ from port names without fragmenting ownership. |
-| [PtpPrimaryGuard](../../../ethernet/PtpCore/rtl/PtpPrimaryGuard.vhd) | Already publishes a complete registered stream and same-type drop counter. Upstream ready remains combinational backpressure. |
-| [PtpEndpoint](../../../ethernet/PtpCore/rtl/PtpEndpoint.vhd) | Child outputs remain structural forwards. RX flush combines lifecycle/capture invalidation and must reach the queue on that same edge; its timing exception is documented. |
-| [EthMacPtpEndpoint](../../../ethernet/PtpCore/rtl/EthMacPtpEndpoint.vhd) | Structural forwarding is appropriate; local state owns reset-completion tracking without duplicating child outputs. |
-| [PtpTxTimestampTap](../../../ethernet/PtpCore/rtl/PtpTxTimestampTap.vhd) | Structural composition inherits adapter/frontend timing; no extra observer pipeline added. |
-| [PtpPkg](../../../ethernet/PtpCore/rtl/PtpPkg.vhd) | No module outputs. Existing status/counter records support consolidation. Configuration-control comments now specify registered timing and common reset ownership. Immediate measurement/lifecycle contracts remain explicit. |
+| `PtpRxFrontend` | `message` stores the selected next queue head alongside valid. Selection occurs before the register, using resolved queue data/pointers for empty enqueue and consume/refill. Queue capacity is unchanged; the output register holds a copy of the counted head. Overflow/abort register with queue invalidation and epoch. A detection-edge transfer may precede the event; downstream pending work is canceled when the event is consumed. |
+| `PtpPort` | Complete measurement and lifecycle records publish from `r`. Allocation valid is held until the ledger handshake, which creates the first TX beat. A coincident local cancellation preserves an already accepted reservation/frame. Delay responses are staged with their payload; a metadata stage aligns the log interval with the ledger's registered acceptance. E2E stages Sync, Delay, ratio and limit together and owns the exchange until result consumption. Child cancellation is registered; local admission waits through its consumption edge. |
+| `PtpTxLedger` | Allocation capacity is computed from the resolved table and next key, then registered. The sole allocator honors that promise until shared cancellation/reset. Response acceptance is a registered one-cycle completion; the caller retains submitted metadata. Samples, sample-valid, occupancy and counters remain registered. Sequence extension is fixed wiring. |
+| `PtpPhc` | Command ready/ack/error publish as a complete registered response. Ready reserves the free slot against manual request priority; completion routes to the accepted owner before registration. SET/PHASE admission registers capture inhibition before commit, including conservative inhibition of rejected operations. Fault/discontinuity retain inhibition with the resulting PHC state. Time, status, PPS and arithmetic requests are registered. |
+| `PtpReg` | Snapshot capture/sequence now form a registered broadcast. All banks sample pre-edge state on the next edge; the coordinator completes on that same edge. Invalidation defers issuance but cannot withdraw an issued observational snapshot. Config control, IRQ and AXI responses remain registered. Enable outputs are fixed slices of active configuration. |
+| `PtpEndpoint` | Registers restart, RX flush and IRQ-event assembly. Child functional outputs are forwarded. Local generation/cancellation checks protect admission while endpoint-wide events traverse this added hop. |
+| `PtpPhcRead` | Registers application ready/valid and both FIFO directions' strobes. Each write is pulsed and retried only without acknowledgement; pending ownership retains its payload. Reader data is latched on the actual registered FIFO-take edge. Existing asynchronous reset registers clear valid with a stopped clock; output qualification logic is removed. |
+| `PtpServo` | Command, cancellation, expiry and status records are registered. The math child now consumes registered cancellation too; local cancellation still clears the parent's transaction immediately and excludes results. |
+| `PtpMath`, `PtpE2e` | Operands/requests and result payload/valid are registered. Shared cancel/reset excludes a transfer at both producer and consumer. |
+| `PtpRxTimestampAdapter`, `PtpPrimaryGuard` | Already publish complete registered forward records. |
+| `EthMacPtpEndpoint`, `PtpTxTimestampTap` | Structural composition and registered reset-completion tracking; inherit the children’s forward boundaries. |
+| `PtpPkg` | Documents registered measurement, lifecycle and snapshot contracts; no module outputs. |
 
-## Wrapper coverage
+## Remaining exceptions
 
-`PtpE2eWrapper`, `PtpEndpointLoopbackWrapper`, `PtpPhcWrapper`,
-`PtpRegWrapper`, `PtpRxFrontendWrapper`, `PtpServoWrapper` and
-`PtpTxLedgerWrapper` forward or flatten DUT ports. These boundary conversions
-remain appropriate without artificial wrapper registers. The ledger wrapper
-now also exposes its status word for occupancy-alignment checks.
+- Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpPort` and
+  `PtpServo` expresses current capacity, simultaneous retirement or competing
+  admission/cancellation. Registering these signals alone would advertise a
+  slot that may not exist; a timing break needs an additional reserved slot or
+  an existing buffered SURF pipeline. These are reverse handshakes, not
+  permission for combinational forward payload, result or lifecycle outputs.
+- Reset distribution and fixed polarity conversion remain combinational:
+  endpoint AXI reset combines system/bus reset, mailbox reset joins its domains
+  before `RstSync`, and the TX observer converts PHY-ready to active-high flush.
+  The latter lets its frontend discard partial physical traffic on the same
+  PHY-loss sampling edge as the adapter; published invalidation is registered.
+  Adding a separate flush register would misalign those two consumers.
+- Constants, fixed slices/extensions and structural forwarding preserve the
+  underlying child/register ownership and need no extra stage.
+- Simulation wrappers flatten/pack interfaces and inject fixture controls.
+  `PtpRegWrapper` now registers restart/events like production; its explicit
+  bank override and snapshot-inhibit injection remain test stimulus. It exposes
+  actual configuration apply separately from delayed restart. The RX fixture
+  combines its injected flush with PHY loss; these fixtures do not define a
+  production timing boundary. The ledger fixture exposes registered response
+  acceptance for independent timing checks.
 
-## Validation and follow-up
+## Validation
 
-All 22 RTL/package/wrapper files pass VSG; all 21 entities/wrappers compile and
-link with GHDL. Changed Python tests pass flake8 and syntax checks. No simulation
-or pytest regression was run: maintainer VHDL approval remains required.
-
-Added checks cover arithmetic and ledger valid stability before cancellation
-edges, cancellation of held E2E results, and ledger summary alignment through
-allocation, completion and reset. Existing RX queue/counter, PHC increment,
-servo arithmetic and coordinator commit/IRQ checks cover the other affected
-behavior. Run these after approval, then endpoint integration regressions.
-Build checks do not establish behavioral equivalence or FPGA timing.
-
-Remaining immediate lifecycle/capture interfaces require a separate coordinated
-protocol redesign if they are to become registered. Preserve the documented
-exceptions until their producers and all consumers can change together. See
-[current validation](README.md#current-validation) for the broader review gate
-and device-mapped timing/resource work.
+See the [redesign handoff](../ptp-registered-boundaries/README.md) for final lint,
+compile/link evidence, authored behavioral checks and timing tables. No new
+behavioral equivalence, FPGA timing/resource or physical CDC claim is made.

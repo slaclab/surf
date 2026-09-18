@@ -21,7 +21,7 @@
 import cocotb
 from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES, ROCE_ANALYSIS_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench, LOCAL
 from tests.ethernet.PtpCore.ptp_reference import NS
 
@@ -162,4 +162,4 @@ def test_ptp_port():
                       parameters={'PHY_TYPE_G': 'XGMII', 'CLK_FREQ_G': 156250000,
                                   'PACKET_LIFETIME_G': 5000, 'MAC_ENABLE_G': False},
                       extra_env={'MODE': 'XGMII', 'REAL_MAC': 0},
-                      extra_vhdl_sources={'surf': ETHMAC_RTL_SOURCES+ROCE_ANALYSIS_SOURCES})
+                      extra_vhdl_sources={'surf': ETHMAC_RTL_SOURCES})

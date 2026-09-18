@@ -2,20 +2,21 @@
 
 Status: implementation prepared for VHDL review. Regression simulations remain
 on hold until maintainer approval. The register map is unchanged. The port
-lifecycle/status follow-up separates immediate controls from clocked diagnostic
-reporting and makes the status record own live diagnostic state.
+registered-boundary follow-up registers lifecycle and measurement controls,
+command responses and snapshots. The status record owns live diagnostic state.
+See the [current boundary survey](output-register-survey.md) for changed timing.
 
 ## Groups implemented
 
 | Interface | Record and ownership | Contract |
 | --- | --- | --- |
 | Servo commands to PHC | `PtpPhcCommandMasterType`: `data`, `valid`, `cancel`, `stale`; servo produces it. | All fields are registered. Hold payload/valid through admission or withdrawal. Both cancellation bits gate admission and can revoke pending work independently of `valid`. Cancellation registered on the admission edge vetoes the following commit edge; a later sampled event cannot undo a committed command. |
-| PHC command response | `PtpPhcCommandSlaveType`: `ready`, `ack`, `error`; PHC produces it. | Admission and completion are separate phases. Ownership lasts through acknowledgement, and `error` describes the acknowledged servo command. Manual command completion remains local to the PHC register bank. |
-| Port lifecycle | `PtpPortLifecycleType`: `commandAbort`, `identityRestart`; port produces it. | Combinational controls act before the next edge. Command abort excludes the PHC command's own capture invalidation; identity restart flushes on the same edge as a MAC-derived identity update. No handshake. |
-| Port diagnostics | `PtpPortStatusType`: activity/validity summaries, exchange, Announce metadata, ledger state and counters. | Registered output and local live AXI reads share the same state. Protocol-owned values update directly in the record; ratio/Announce validity and ledger observations are sampled each edge. Immediate lifecycle controls are separate. Local snapshots retain their pre-edge capture contract. |
+| PHC command response | `PtpPhcCommandSlaveType`: `ready`, `ack`, `error`; PHC produces it. | All fields, including capacity-ready, are registered. Admission and completion are separate phases. Ownership lasts through acknowledgement, and `error` describes the acknowledged servo command. Manual command completion remains local to the PHC register bank. |
+| Port lifecycle | `PtpPortLifecycleType`: `commandAbort`, `identityRestart`; port produces it. | A cause sampled at N is published after N and consumed at N+1. Command abort excludes the PHC command's own capture invalidation; identity restart enters registered endpoint flush assembly. No handshake. |
+| Port diagnostics | `PtpPortStatusType`: activity/validity summaries, exchange, Announce metadata, ledger state and counters. | Registered output and local live AXI reads share the same state. Protocol-owned values update directly in the record; ratio/Announce validity and ledger observations are sampled each edge. Registered lifecycle controls are separate. Local snapshots retain their pre-edge capture contract. |
 | Servo diagnostics | `PtpServoStatusType`: state, filtered delay, offset, computed rate, filter occupancy and rejection count. | The registered record owns these values; outputs and local reads use the same state. Delay/offset use signed Q16 ns; rate uses signed Q16 ppb, clamped before narrowing to its 64-bit field. The coordinator consumes only state and filter count. |
 | Configuration commit | `PtpConfigControlType`: `prepare`, `apply`, `busy`; coordinator broadcasts it. | Registered from resolved next state without adding commit cycles. Preparation freezes each bank's candidate, independent scalar validation votes qualify apply, and busy inhibits conflicting manual PHC commands. System reset resets the coordinator and every bank. |
-| Register snapshots | `PtpSnapshotControlType`: `capture`, `sequenceId`; coordinator broadcasts it. | A capture samples pre-edge state and assigns the same sequence to every bank. Configuration commit and snapshot capture remain separate transactions. |
+| Register snapshots | `PtpSnapshotControlType`: `capture`, `sequenceId`; coordinator broadcasts it. | Registered capture/sequence issue together. All banks sample pre-edge state on the following edge, when the coordinator also completes. An issued snapshot is not withdrawn by later invalidation. Configuration and snapshots remain separate transactions. |
 | RX diagnostics | `PtpRxCountersType`: `accepted`, `dropped`, `overflow`; frontend produces it. | The registered record owns the saturating counters. Port snapshot/register offsets preserve their order. Counter semantics exclude frames lost before SOF or during flush from `dropped`. |
 | PHC observation at timestamp adapter | Reuse `PtpPhcStatusType`. | Generation, increment, ticks and validity now arrive as the existing PHC status record, alongside `PtpTimeType`. No new duplicate clock-status type is needed. |
 

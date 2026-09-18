@@ -198,6 +198,8 @@ package PtpPkg is
       cancel => '0',
       stale  => '0');
 
+   -- All response fields are registered. Ready reserves the available slot;
+   -- cancel/stale/reset exclude transfer without changing ready mid-cycle.
    type PtpPhcCommandSlaveType is record
       ready : sl;
       ack   : sl;
@@ -343,9 +345,11 @@ package PtpPkg is
       apply   => '0',
       busy    => '0');
 
-   -- One synchronous snapshot request broadcast to all register banks. capture
-   -- samples pre-edge status; sequenceId tags those samples with one common
-   -- transaction identity. The sequence has no meaning without capture.
+   -- Registered snapshot request broadcast to all register banks. The next
+   -- edge samples pre-edge status and completes the coordinator's sequence.
+   -- Once issued, the request is not withdrawn by later capture invalidation;
+   -- all banks sample the same edge even if live state changes on that edge.
+   -- sequenceId tags the samples; it has no meaning without capture.
    type PtpSnapshotControlType is record
       capture    : sl;
       sequenceId : slv(31 downto 0);
@@ -532,8 +536,10 @@ package PtpPkg is
 
    -- Port-to-servo transfer in the shared PHC clock domain. Data is sampled
    -- only when valid and ready are high and abort is low. Abort has priority
-   -- over a coincident transfer and invalidates previously published work; it
-   -- is meaningful even when valid is low. It is not a CDC handshake.
+   -- over a coincident transfer and invalidates pending downstream work; it
+   -- is meaningful even when valid is low. All forward fields are registered.
+   -- An event detected at N is consumed at N+1; earlier completed operations
+   -- are not retroactively revoked. This is not a CDC handshake.
    type PtpMeasurementMasterType is record
       data  : PtpMeasurementType;
       valid : sl;
@@ -607,11 +613,10 @@ package PtpPkg is
       syncSequence    => (others => '0'),
       delaySequence   => (others => '0'));
 
-   -- Immediate lifecycle controls in clk, separate from registered diagnostics.
-   -- No ready/valid handshake: consumers act on the current evaluation before
-   -- the next edge. commandAbort excludes the PHC command's own capture abort,
-   -- so a phase step cannot cancel itself. identityRestart reports a MAC change
-   -- and feeds endpoint restart/RX flush on the same edge as the identity update.
+   -- Registered lifecycle controls in clk, without a ready/valid handshake.
+   -- A cause sampled at N is consumed at N+1. commandAbort excludes the PHC's
+   -- own capture abort, so a phase step cannot cancel itself. identityRestart
+   -- reports a MAC change; endpoint restart/RX flush add one registered hop.
    type PtpPortLifecycleType is record
       commandAbort    : sl;
       identityRestart : sl;

@@ -148,8 +148,10 @@ class RxFrontend:
     def edge(self, beat=None, ready=False, restart=False, generation=None):
         """Return a transferred OLD queue item, or None; expose abort this edge.
 
-        Flush/overflow suppress transfer even if ready was asserted. An RTL
-        consumer must qualify valid && ready with !abort on that same edge.
+        This logical model reports invalidation at detection and suppresses
+        its returned item. The registered RTL scoreboard decides an old-head
+        transfer before advancing this model, then compares the newly published
+        abort after the edge. An already visible abort always excludes transfer.
         A new completion never falls through an empty queue on its arrival edge.
         """
         self.abort = False

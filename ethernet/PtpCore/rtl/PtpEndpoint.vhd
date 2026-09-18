@@ -132,18 +132,34 @@ architecture rtl of PtpEndpoint is
    signal portStatus        : PtpPortStatusType;
    signal portLifecycle     : PtpPortLifecycleType;
 
+   type RegType is record
+      restart : sl;
+      events  : slv(3 downto 0);
+      rxFlush : sl;
+   end record;
+
+   constant REG_INIT_C : RegType := (
+      restart => '0',
+      rxFlush => '1',
+      events  => (others => '0'));
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
 begin
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
 
-   comb : process (rst, regRst, portRst, configControl, portStatus, portLifecycle, linkReady, abortCapture, status,
+   comb : process (r, rst, regRst, portRst, configControl, portStatus, portLifecycle, linkReady, abortCapture, status,
                    timeValue, servoStatus) is
+      variable v           : RegType;
       variable restartPort : sl;
       variable axiResetNow : sl;
       variable rxFlushNow  : sl;
       variable irqEvents   : slv(3 downto 0);
    begin
+      v := r;
       -- Form the bus reset independently of protocol restart. A register-only
       -- reset must leave the PHC, active configuration and TX ownership intact.
       axiResetNow := '0';
@@ -151,9 +167,9 @@ begin
          axiResetNow := '1';
       end if;
 
-      -- Apply protocol lifecycle changes to the port and physical RX frontend.
-      -- rxFlush shares the immediate capture/epoch cancellation contract; it
-      -- must not add a register stage independently of those consumers.
+      -- Register endpoint-wide lifecycle assembly. Consumers act on the next
+      -- edge; local PHC generation checks and port cancellation still protect
+      -- their own admission edges while the flush event crosses this boundary.
       restartPort := portRst or configControl.apply or portLifecycle.identityRestart;
       rxFlushNow  := restartPort or not linkReady or abortCapture;
 
@@ -165,16 +181,32 @@ begin
       if servoStatus.state = PTP_SERVO_FAULT_C then
          irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
       end if;
+      v.restart := restartPort;
+      v.events  := irqEvents;
+      v.rxFlush := rxFlushNow;
       axiReset     <= axiResetNow;
-      restart      <= restartPort;
-      rxFlush      <= rxFlushNow;
-      events       <= irqEvents;
+      restart      <= r.restart;
+      rxFlush      <= r.rxFlush;
+      events       <= r.events;
       phcTime      <= timeValue;
       phcStatus    <= status;
       captureAbort <= abortCapture;
       portActive   <= portStatus.active;
       servoState   <= servoStatus.state;
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
    end process comb;
+
+   seq : process (clk, rst) is
+   begin
+      if RST_ASYNC_G and rst = RST_POLARITY_G then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
+         r <= rin after TPD_G;
+      end if;
+   end process seq;
 
    U_Xbar : entity surf.AxiLiteCrossbar
       generic map (

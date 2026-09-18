@@ -24,7 +24,7 @@ from cocotb.triggers import with_timeout
 
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
-    ETHMAC_RTL_SOURCES, ROCE_ANALYSIS_SOURCES, build_pause_frame,
+    ETHMAC_RTL_SOURCES, build_pause_frame,
     frame_beats_from_bytes, send_contiguous_frame,
 )
 from tests.ethernet.PtpCore.ptp_reference import KeyedJoin, RequestLedger
@@ -142,4 +142,4 @@ async def paused_request_survives_logical_restart(dut):
 def test_ptp_mac_association():
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ethmacptpexperimentwrapper",
                        parameters={"PAUSE_EN_G": True, "FIFO_ADDR_WIDTH_G": 9},
-                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES + [WRAPPER]})
+                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER]})

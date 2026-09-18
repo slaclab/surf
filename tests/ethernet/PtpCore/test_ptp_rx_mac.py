@@ -25,7 +25,7 @@ from cocotb.triggers import FallingEdge, RisingEdge
 from cocotb.utils import get_sim_time
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES, ROCE_ANALYSIS_SOURCES
+from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
 from tests.ethernet.PtpCore.ptp_wire_utils import MacBench
 from tests.ethernet.PtpCore.ptp_rx_test_utils import frame, unpack_time
 
@@ -125,6 +125,6 @@ def test_ptp_rx_mac():
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ethmacptpexperimentwrapper",
         parameters={"PTP_RX_EN_G": True, "FIFO_ADDR_WIDTH_G": 9},
-        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ROCE_ANALYSIS_SOURCES +
+        extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES +
                             ["ethernet/EthMacCore/wrappers/EthMacPtpExperimentWrapper.vhd"]},
     )

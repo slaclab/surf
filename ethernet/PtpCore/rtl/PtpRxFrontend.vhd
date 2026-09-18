@@ -8,8 +8,9 @@
 -- at SOF, streams the CRC and TLV checks, then queues a complete decoded record.
 -- The registered queue head remains stable while messageReady is low.
 -- Transfer requires messageValid, messageReady and no rxAbort on the same edge.
--- A full-queue completion discards all queued work and asserts immediate abort;
--- flush, generation changes and system reset also invalidate pending work.
+-- A full-queue completion discards queued work and registers an abort event;
+-- consumers cancel pending work when they sample that event on the next edge.
+-- Flush, generation changes and system reset also invalidate pending work.
 -- TX observation retains physical completion identity across PHC generations.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -50,8 +51,9 @@ entity PtpRxFrontend is
       rxMaster      : in  AxiStreamMasterType;
       rxCapture     : in  PtpRxCaptureType;
       -- Transfer requires messageValid AND messageReady AND NOT rxAbort.
-      -- Abort is a same-edge invalidation, including of the visible old head;
-      -- consumers must give it priority over all protocol/measurement commits.
+      -- Abort/overflow are registered with the queue update. Consumers give
+      -- the published abort priority on its consumption edge. A transfer on
+      -- the earlier detection edge may enter revocable downstream work.
       message       : out PtpRxMessageType;
       messageValid  : out sl;
       messageReady  : in  sl;
@@ -103,7 +105,9 @@ architecture rtl of PtpRxFrontend is
    -- generation belongs to the PHC/configuration owner; epoch belongs to this
    -- RX queue. Clearing live pointers suffices to invalidate stored queue data.
    type RegType is record
-      -- Combinational interface controls; resolve and publish from v.
+      -- Registered queue boundary and invalidation events.
+      message          : PtpRxMessageType;
+      queueOverflow    : sl;
       abortNow         : sl;
 
       counters         : PtpRxCountersType;
@@ -118,6 +122,8 @@ architecture rtl of PtpRxFrontend is
    end record;
 
    constant REG_INIT_C : RegType := (
+      message          => PTP_RX_MESSAGE_INIT_C,
+      queueOverflow    => '0',
       abortNow         => '0',
       counters         => PTP_RX_COUNTERS_INIT_C,
       messageValid     => '0',
@@ -181,12 +187,11 @@ architecture rtl of PtpRxFrontend is
 begin
 
    comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady) is
-      variable v           : RegType;
-      variable octet       : slv(7 downto 0);
-      variable base        : natural range 0 to PTP_ANNOUNCE_BYTES_C;
-      variable length      : natural range 0 to 65535;
-      variable offset      : natural range 0 to MAX_FRAME_G+1;
-      variable overflowNow : sl;
+      variable v      : RegType;
+      variable octet  : slv(7 downto 0);
+      variable base   : natural range 0 to PTP_ANNOUNCE_BYTES_C;
+      variable length : natural range 0 to 65535;
+      variable offset : natural range 0 to MAX_FRAME_G+1;
 
       -- Calculations used only during this evaluation.
       variable completedMessage : PtpRxMessageType;
@@ -204,7 +209,7 @@ begin
       completedMessage := PTP_RX_MESSAGE_INIT_C;
       frameComplete    := false;
       v.abortNow       := '0';
-      overflowNow      := '0';
+      v.queueOverflow  := '0';
       byteCount        := 0;
       crcData          := (others => '0');
       keepGap          := false;
@@ -384,15 +389,15 @@ begin
       -- rescue this completion through simultaneous ready: discard the candidate
       -- and all queued records, advance the RX epoch, and cancel this edge's
       -- transfer. Malformed/non-PTP completions never take this overflow path.
-      -- queueOverflow/rxAbort intentionally remain immediate: registering only
-      -- the indication would permit the old queue head to transfer on this edge.
+      -- A coincident old-head transfer precedes the registered invalidation.
+      -- Downstream work remains revocable until that event is consumed next edge.
       if frameComplete and r.fill = FIFO_DEPTH_G then
          v.fill              := 0;
          v.wrPtr             := 0;
          v.rdPtr             := 0;
          v.epoch             := r.epoch+1;
          v.counters.overflow := ptpSatInc(r.counters.overflow);
-         overflowNow         := '1';
+         v.queueOverflow     := '1';
          v.abortNow          := '1';
       else
          -- Ordinary edge: remove the old head, then append a new completion.
@@ -418,15 +423,16 @@ begin
       if rxFlush = '1' or (not TX_OBSERVE_G and generation /= r.generation) then
          v := r;
 
-         v.frame      := FRAME_INIT_C;
-         v.fill       := 0;
-         v.rdPtr      := 0;
-         v.wrPtr      := 0;
-         v.generation := generation;
-         v.epoch      := r.epoch+1;
-         v.abortNow   := '1';
+         v.queueOverflow := '0';
+         v.frame         := FRAME_INIT_C;
+         v.fill          := 0;
+         v.rdPtr         := 0;
+         v.wrPtr         := 0;
+         v.generation    := generation;
+         v.epoch         := r.epoch+1;
+         v.abortNow      := '1';
       end if;
-      -- System reset also cancels transfer immediately. Unlike a logical flush,
+      -- Shared system reset excludes transfers. Unlike a logical flush,
       -- it resets epoch/counters; the owner must coordinate reset with consumers
       -- before reusing that epoch space. Async state reset occurs in seq.
       if rst = RST_POLARITY_G then
@@ -437,13 +443,16 @@ begin
       if v.fill /= 0 then
          v.messageValid := '1';
       end if;
-      -- Keep the old head visible while stalled. rxAbort is combinational from
-      -- this edge's decision, so messageValid alone is never proof of transfer.
-      -- Epoch and counters below describe registered state, changing after TPD.
-      message       <= r.queue(r.rdPtr);
-      queueOverflow <= overflowNow;
+      -- Select the next head before the register boundary. Use v.queue so an
+      -- arrival into an empty queue and simultaneous consume/refill both work.
+      -- The register holds through stalls; no read-pointer mux follows it.
+      if v.fill /= 0 then
+         v.message := v.queue(v.rdPtr);
+      end if;
+      message       <= r.message;
+      queueOverflow <= r.queueOverflow;
       messageValid  <= r.messageValid;
-      rxAbort       <= v.abortNow;
+      rxAbort       <= r.abortNow;
       rxEpoch       <= slv(r.epoch);
       counters      <= r.counters;
 

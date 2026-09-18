@@ -22,6 +22,9 @@ separates simulated behavior from remaining device and interoperability work.
   cycle, through direct, GMII, and XGMII inputs. It additionally checks whole
   frame acceptance and independent capture timing, signed calibration, reset,
   abort priority, byte phase, and minimum-gap throughput.
+  The registered-boundary follow-up also checks output stability between edges.
+  Its scoreboard distinguishes a detection-edge head transfer from the abort
+  consumed on the following edge, including full-queue consume/overflow.
 - `test_ptp_rx_mac.py` runs the RX RTL beside the unchanged MAC under the
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
 - `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
@@ -62,6 +65,8 @@ Run the models alone without starting a simulator:
   Added checks cover registered result/sample validity during cancellation and
   ledger occupancy alignment with allocation, wire completion and MAC reset.
   These checks await maintainer VHDL approval before execution.
+  Ledger capacity and response acceptance now have between-edge stability
+  checks; response completion must pulse for the submitted response.
 - `ptp_endpoint_reference.py`, `test_ptp_endpoint_reference.py`: rational
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
@@ -70,9 +75,13 @@ Run the models alone without starting a simulator:
   `test_ptp_phc.py` exercises revocation after admission and expiry priority over
   validity-setting commands. These added timing checks await VHDL review before
   regression execution.
+  PHC checks additionally require registered ready/ack/error/capture inhibition;
+  cancellation excludes transfer without requiring ready to change mid-cycle.
 - `test_ptp_reg.py`: all four development register banks at zero and nonzero bases, SURF
   field-strobe/address-alias/error behavior, immutable commit candidates, cross-bank
   atomicity, coherent snapshot sequences, queued commands and bus-reset recovery.
+  Snapshot requests must remain stable between edges; configuration apply is
+  observed separately from the registered endpoint restart path.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.

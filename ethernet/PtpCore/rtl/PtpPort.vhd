@@ -41,7 +41,7 @@
 -- Register state and protocol state use one RegType/comb/seq pair. regRst
 -- clears bus responses only, while restart preserves configuration and the TX
 -- ledger lifetime. Measurement data/valid/abort and reverse-direction ready
--- use the package measurement records. PtpPortLifecycleType carries immediate
+-- use registered forward measurement records. PtpPortLifecycleType carries registered
 -- command cancellation and identity restart; PtpPortStatusType owns registered
 -- diagnostics. The AXI snapshot bank freezes pre-edge state independently of
 -- live reporting. Active local registers are the sole configuration source;
@@ -278,8 +278,18 @@ architecture rtl of PtpPort is
       rateA               : slv(127 downto 0);
       rateB               : slv(127 downto 0);
       pendingSync         : PtpSyncSampleType;
-      measurement         : PtpMeasurementType;
-      measurementValid    : sl;
+      measurementMaster   : PtpMeasurementMasterType;
+      lifecycle           : PtpPortLifecycleType;
+      allocate            : sl;
+      response            : PtpRxMessageType;
+      responseValid       : sl;
+      responseLog         : slv(7 downto 0);
+      e2eInput            : sl;
+      e2eBusy             : sl;
+      e2eSync             : PtpSyncSampleType;
+      e2eDelay            : PtpDelaySampleType;
+      e2eRatio            : slv(63 downto 0);
+      e2eMaximum          : slv(63 downto 0);
       master              : AxiStreamMasterType;
       frame               : slv(8*TX_FRAME_BYTES_C-1 downto 0);
       beat                : natural range 0 to TX_LAST_BEAT_C;
@@ -332,8 +342,18 @@ architecture rtl of PtpPort is
       rateA               => (others => '0'),
       rateB               => (others => '0'),
       pendingSync         => PTP_SYNC_SAMPLE_INIT_C,
-      measurement         => PTP_MEASUREMENT_INIT_C,
-      measurementValid    => '0',
+      measurementMaster   => PTP_MEASUREMENT_MASTER_INIT_C,
+      lifecycle           => PTP_PORT_LIFECYCLE_INIT_C,
+      allocate            => '0',
+      response            => PTP_RX_MESSAGE_INIT_C,
+      responseValid       => '0',
+      responseLog         => (others => '0'),
+      e2eInput            => '0',
+      e2eBusy             => '0',
+      e2eSync             => PTP_SYNC_SAMPLE_INIT_C,
+      e2eDelay            => PTP_DELAY_SAMPLE_INIT_C,
+      e2eRatio            => (others => '0'),
+      e2eMaximum          => (others => '0'),
       master              => AXI_STREAM_MASTER_INIT_C,
       frame               => (others => '0'),
       beat                => 0,
@@ -561,7 +581,7 @@ begin
          allocateSequence => allocateSequence,      -- [out]
          wireMessage      => txMessage,             -- [in]
          wireValid        => txValid,               -- [in]
-         response         => rxMessage,             -- [in]
+         response         => r.response,             -- [in]
          responseValid    => responseValid,         -- [in]
          sample           => delaySample,           -- [out]
          sampleValid      => delayValid,            -- [out]
@@ -606,9 +626,9 @@ begin
          inputValid   => e2eInput,                     -- [in]
          inputReady   => e2eReady,                     -- [out]
          syncSample   => e2eSync,                      -- [in]
-         delaySample  => delaySample,                  -- [in]
-         ratio        => r.ratio,                      -- [in]
-         maxPathDelay => r.activeConfig.maxPathDelay,  -- [in]
+         delaySample  => r.e2eDelay,                  -- [in]
+         ratio        => r.e2eRatio,                      -- [in]
+         maxPathDelay => r.e2eMaximum,  -- [in]
          resultValue  => e2eResult,                    -- [out]
          resultValid  => e2eValid,                     -- [out]
          resultReady  => e2eTake,                      -- [in]
@@ -631,11 +651,6 @@ begin
       variable qualifiedRatio : sl;
       variable validResponse  : sl;
       variable malformed      : boolean;
-      variable allocateNow    : sl;
-      variable e2eInputNow    : sl;
-      variable e2eSyncNow     : PtpSyncSampleType;
-      variable lifecycleNow   : PtpPortLifecycleType;
-      variable measurementNow : PtpMeasurementMasterType;
 
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
       variable slot          : integer range -1 to PAIR_DEPTH_C-1;
@@ -647,18 +662,23 @@ begin
    begin
       v := r;
 
-      allocateNow  := '0';
-      e2eInputNow  := '0';
-      e2eSyncNow   := PTP_SYNC_SAMPLE_INIT_C;
+      -- Requests retain their complete payload until the child accepts them.
+      -- The response lane accepts one RX message per clock and returns its
+      -- registered acceptance one edge later; delay the log interval with it.
+      v.responseValid := '0';
+      v.responseLog   := r.response.logInterval;
+      if r.e2eInput = '1' and e2eReady = '1' then
+         v.e2eInput := '0';
+      end if;
       v.delayReady := '0';
       v.e2eTake    := '0';
       v.generation := phcStatus.generation;
-      if r.measurementValid = '1' and measurementSlave.ready = '1' then
-         v.measurementValid := '0';
+      if r.measurementMaster.valid = '1' and measurementSlave.ready = '1' then
+         v.measurementMaster.valid := '0';
       end if;
 
       -------------------------------------------------------------------------
-      -- Immediate lifecycle and RX admission
+      -- Local lifecycle decisions and RX admission
       -------------------------------------------------------------------------
       -- First check Ethernet/PTP identity, then capture provenance and age.
       -- A rejected record is still consumed below and counted as a rejection.
@@ -680,7 +700,7 @@ begin
       -- A changed grandmaster or timescale cancels the old measurements on
       -- this edge. This decision precedes readiness and cannot depend on it.
       announceChange := '0';
-      if rxValid = '1' and r.state = IDLE_S and r.measurementValid = '0' then
+      if rxValid = '1' and r.state = IDLE_S and r.measurementMaster.valid = '0' then
          if policyValid = '1' and r.announceSeen = '1' and rxMessage.messageType = PTP_MSG_ANNOUNCE_C then
             if validAnnounce(rxMessage) then
                if ptpGrandmasterIdentity(rxMessage) /= r.portStatus.grandmasterIdentity or rxMessage.flags(PTP_TIMESCALE_BIT_C) /= r.portStatus.announceFlags(PTP_TIMESCALE_BIT_C) then
@@ -693,7 +713,7 @@ begin
       -- Independent protocol causes may revoke an accepted PHC command. Its
       -- own capture invalidation only flushes measurement/association work.
       externalAbort := '0';
-      if rst = RST_POLARITY_G or restart = '1' then
+      if rst = RST_POLARITY_G or restart = '1' or configControl.apply = '1' or localMac /= r.lastMac then
          externalAbort := '1';
       elsif linkReady = '0' or enable = '0' then
          externalAbort := '1';
@@ -710,19 +730,18 @@ begin
          abortPort := '1';
       end if;
 
-      -- Timing exception: lifecycle and measurement abort must reach the PHC,
-      -- servo and RX queue before this edge can commit or transfer old work.
-      -- Registering these requires a shared cancellation/commit protocol;
-      -- diagnostic status below has no role in those immediate decisions.
-      lifecycleNow              := PTP_PORT_LIFECYCLE_INIT_C;
-      lifecycleNow.commandAbort := externalAbort;
+      -- Publish lifecycle events after this detection edge. The PHC observes
+      -- commandAbort on the next edge, in time to veto a command admitted on
+      -- this edge. Earlier committed work is not retroactively revoked.
+      v.lifecycle              := PTP_PORT_LIFECYCLE_INIT_C;
+      v.lifecycle.commandAbort := externalAbort;
       if localMac /= r.lastMac then
-         lifecycleNow.identityRestart := '1';
+         v.lifecycle.identityRestart := '1';
       end if;
-      measurementNow       := PTP_MEASUREMENT_MASTER_INIT_C;
-      measurementNow.abort := abortPort;
-      measurementNow.data  := r.measurement;
-      measurementNow.valid := r.measurementValid and not abortPort;
+      v.measurementMaster.abort := abortPort;
+      -- Drain the registered child cancellation before admitting new work.
+      -- Do not feed that old event back into its own next value above.
+      abortPort := abortPort or r.measurementMaster.abort;
 
       qualifiedRatio := '0';
       if r.ratioCount = RATIO_QUALIFY_COUNT_C and
@@ -730,13 +749,21 @@ begin
          qualifiedRatio := '1';
       end if;
       v.rxReady := '0';
-      if r.state = IDLE_S and r.measurementValid = '0' and abortPort = '0' then
+      if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' then
          v.rxReady := '1';
       end if;
       validResponse := '0';
       if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and rxMessage.flags = x"0000" and
          rxMessage.control = PTP_CONTROL_DELAY_RESP_C and unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
          validResponse := rxValid and v.rxReady and policyValid;
+      end if;
+
+      if validResponse = '1' then
+         v.response      := rxMessage;
+         v.responseValid := '1';
+      end if;
+      if responseAccepted = '1' and abortPort = '0' and validLogInterval(r.responseLog) then
+         v.minimumInterval := intervalTicks(r.responseLog, r.activeConfig.delayInterval);
       end if;
 
       -------------------------------------------------------------------------
@@ -766,10 +793,17 @@ begin
          end if;
       end if;
 
-      -- Schedule a new request only after servicing an already presented TX beat.
-      if r.portStatus.active = '1' and qualifiedRatio = '1' and r.master.tValid = '0' and allocateReady = '1' and
+      -- Offer a registered reservation request independently of ledger ready.
+      -- Only the actual handshake creates a frame. A local abort on that edge
+      -- cannot undo a reservation already accepted by the child: preserve and
+      -- transmit that frame, then let the registered cancellation retire it.
+      if r.allocate = '0' and r.portStatus.active = '1' and qualifiedRatio = '1' and
+         r.master.tValid = '0' and abortPort = '0' and
          (r.requestStarted = '0' or unsigned(phcStatus.ticks)-unsigned(r.lastRequest) >= r.requestInterval) then
-         allocateNow                                  := '1';
+         v.allocate := '1';
+      end if;
+      if r.allocate = '1' and allocateReady = '1' and r.measurementMaster.abort = '0' then
+         v.allocate                                   := '0';
          v.frame                                      := buildRequest(r.activeConfig, localMac, allocateSequence);
          v.master                                     := AXI_STREAM_MASTER_INIT_C;
          v.master.tValid                              := '1';
@@ -866,8 +900,6 @@ begin
                when PTP_MSG_DELAY_RESP_C =>
                   if validResponse = '0' then
                      malformed := true;
-                  elsif responseAccepted = '1' and validLogInterval(rxMessage.logInterval) then
-                     v.minimumInterval := intervalTicks(rxMessage.logInterval, r.activeConfig.delayInterval);
                   end if;
 
                when PTP_MSG_ANNOUNCE_C =>
@@ -905,7 +937,7 @@ begin
       -- above on this same evaluation; capture chronology still gates acceptance.
       case r.state is
          when IDLE_S =>
-            if r.measurementValid = '0' then
+            if r.measurementMaster.valid = '0' then
                completed := completedPair(v.pairs);
                if completed /= -1 then
                   v.pairs(completed).complete := '1';
@@ -917,30 +949,30 @@ begin
                      (r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(completedSync.capture.ticks) <= unsigned(r.lastTicks))) then
                      v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                   else
-                     v.portStatus.active          := '1';
-                     v.lastSync                   := completedSync;
-                     v.lastRemote                 := remoteTime;
-                     v.lastTicks                  := completedSync.capture.ticks;
-                     v.history(r.historyPtr)      := completedSync;
-                     v.historyValid(r.historyPtr) := '1';
-                     v.historyPtr                 := (r.historyPtr+1) mod HISTORY_DEPTH_C;
-                     v.portStatus.syncCount       := ptpSatInc(v.portStatus.syncCount);
-                     v.measurement                := forwardMeasurement(completedSync);
-                     v.measurement.ratio          := r.ratio;
-                     v.measurement.ratioValid     := qualifiedRatio;
-                     v.measurementValid           := '1';
+                     v.portStatus.active                     := '1';
+                     v.lastSync                              := completedSync;
+                     v.lastRemote                            := remoteTime;
+                     v.lastTicks                             := completedSync.capture.ticks;
+                     v.history(r.historyPtr)                 := completedSync;
+                     v.historyValid(r.historyPtr)            := '1';
+                     v.historyPtr                            := (r.historyPtr+1) mod HISTORY_DEPTH_C;
+                     v.portStatus.syncCount                  := ptpSatInc(v.portStatus.syncCount);
+                     v.measurementMaster.data                := forwardMeasurement(completedSync);
+                     v.measurementMaster.data.ratio          := r.ratio;
+                     v.measurementMaster.data.ratioValid     := qualifiedRatio;
+                     v.measurementMaster.valid               := '1';
                      if r.anchorValid = '0' then
                         v.anchor      := completedSync;
                         v.anchorValid := '1';
                      else
                         rateSpan := ptpTickPhase(completedSync.capture)-ptpTickPhase(r.anchor.capture);
                         if rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), PTP_TICK_PHASE_BITS_C) and rateSpan > 0 then
-                           v.rateA            := slv(shift_left(remoteTime-ptpWireTimeQ16(r.anchor.remoteTime)-signed(r.anchor.correction), RATE_RATIO_SHIFT_C));
-                           v.rateB            := slv(rateSpan);
-                           v.pendingSync      := completedSync;
-                           v.anchor           := completedSync;
-                           v.state            := RATE_ISSUE_S;
-                           v.measurementValid := '0';
+                           v.rateA                   := slv(shift_left(remoteTime-ptpWireTimeQ16(r.anchor.remoteTime)-signed(r.anchor.correction), RATE_RATIO_SHIFT_C));
+                           v.rateB                   := slv(rateSpan);
+                           v.pendingSync             := completedSync;
+                           v.anchor                  := completedSync;
+                           v.state                   := RATE_ISSUE_S;
+                           v.measurementMaster.valid := '0';
                         end if;
                      end if;
                   end if;
@@ -969,14 +1001,14 @@ begin
                else
                   v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                end if;
-               v.measurement            := forwardMeasurement(r.pendingSync);
-               v.measurement.ratio      := v.ratio;
-               v.measurement.ratioValid := '0';
+               v.measurementMaster.data            := forwardMeasurement(r.pendingSync);
+               v.measurementMaster.data.ratio      := v.ratio;
+               v.measurementMaster.data.ratioValid := '0';
                if v.ratioCount = RATIO_QUALIFY_COUNT_C and unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
-                  v.measurement.ratioValid := '1';
+                  v.measurementMaster.data.ratioValid := '1';
                end if;
-               v.measurementValid := '1';
-               v.state            := IDLE_S;
+               v.measurementMaster.valid := '1';
+               v.state                   := IDLE_S;
             end if;
       end case;
 
@@ -988,12 +1020,16 @@ begin
       -- Select the retained Sync nearest the actual TX capture, not nearest to
       -- the delayed wire-completion/Delay_Resp delivery. Signed separation also
       -- supports a Sync arriving just after the Delay_Req left the wire.
-      if delayValid = '1' and e2eReady = '1' and abortPort = '0' then
+      if delayValid = '1' and r.e2eBusy = '0' and abortPort = '0' then
          selected     := nearestSync(r.history, r.historyValid, delaySample, phcStatus.ticks, r.activeConfig);
          v.delayReady := '1';
          if selected /= -1 and qualifiedRatio = '1' then
-            e2eSyncNow                        := r.history(selected);
-            e2eInputNow                       := '1';
+            v.e2eSync                         := r.history(selected);
+            v.e2eDelay                        := delaySample;
+            v.e2eRatio                        := r.ratio;
+            v.e2eMaximum                      := r.activeConfig.maxPathDelay;
+            v.e2eInput                        := '1';
+            v.e2eBusy                         := '1';
             v.pendingExchange.t1              := r.history(selected).remoteTime;
             v.pendingExchange.t2              := r.history(selected).capture.timestamp;
             v.pendingExchange.t3              := delaySample.capture.timestamp;
@@ -1007,13 +1043,14 @@ begin
             v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
          end if;
       end if;
-      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and v.measurementValid = '0' then
+      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and v.measurementMaster.valid = '0' then
          v.e2eTake := '1';
+         v.e2eBusy := '0';
          if e2eError = '0' and qualifiedRatio = '1' then
-            v.measurement           := e2eResult;
-            v.portStatus.exchange   := r.pendingExchange;
-            v.measurementValid      := '1';
-            v.portStatus.delayCount := ptpSatInc(v.portStatus.delayCount);
+            v.measurementMaster.data           := e2eResult;
+            v.portStatus.exchange              := r.pendingExchange;
+            v.measurementMaster.valid          := '1';
+            v.portStatus.delayCount            := ptpSatInc(v.portStatus.delayCount);
          else
             v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
          end if;
@@ -1026,19 +1063,19 @@ begin
       -- drain state and unresolved ledger ownership deliberately survive it.
       if abortPort = '1' then
          -- Keep the TX frame/beat and diagnostic counters. Ledger retirement is
-         -- independent and receives abort on this same edge.
-         v.pairs             := (others => PAIR_INIT_C);
-         v.historyValid      := (others => '0');
-         v.portStatus.active := '0';
-         v.syncLimit         := r.activeConfig.syncTimeout;
-         v.announceLimit     := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
-         v.anchorValid       := '0';
-         v.ratioCount        := 0;
-         v.state             := IDLE_S;
-         v.measurementValid  := '0';
-         v.requestStarted    := '0';
-         v.minimumInterval   := (others => '0');
-         v.announceSeen      := '0';
+         -- independent and receives the registered abort on the following edge.
+         v.pairs                    := (others => PAIR_INIT_C);
+         v.historyValid             := (others => '0');
+         v.portStatus.active        := '0';
+         v.syncLimit                := r.activeConfig.syncTimeout;
+         v.announceLimit            := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
+         v.anchorValid              := '0';
+         v.ratioCount               := 0;
+         v.state                    := IDLE_S;
+         v.measurementMaster.valid  := '0';
+         v.requestStarted           := '0';
+         v.minimumInterval          := (others => '0');
+         v.announceSeen             := '0';
          if announceChange = '1' then
             v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
          end if;
@@ -1046,13 +1083,15 @@ begin
          if unsigned(v.lfsr) = 0 then
             v.lfsr := LFSR_SEED_C;
          end if;
-         allocateNow  := '0';
-         e2eInputNow  := '0';
-         v.delayReady := '0';
+         v.allocate      := '0';
+         v.responseValid := '0';
+         v.e2eInput      := '0';
+         v.e2eBusy       := '0';
+         v.delayReady    := '0';
       end if;
       -- Register the rate request with the next operands/state. The shared
-      -- abort still cancels the child on the current edge, even if the old
-      -- registered valid remains high until that edge.
+      -- child samples the registered abort with these requests. Local admission
+      -- remains closed while that cancellation drains through the child.
       v.rateInput := '0';
       if v.state = RATE_ISSUE_S then
          v.rateInput := '1';
@@ -1190,19 +1229,21 @@ begin
       configValid   <= r.configValid;
       axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
-      -- Publish current-edge handshakes and lifecycle decisions only after
-      -- their priorities are resolved. Do not register these timing exceptions.
-      allocate          <= allocateNow;
-      e2eInput          <= e2eInputNow;
-      e2eSync           <= e2eSyncNow;
+      -- Registered forward interfaces; reverse ready still describes capacity
+      -- on this edge. RX/measurement arbitration and local cancellation can
+      -- remove capacity now; registering ready would need an additional input
+      -- slot or a reservation shared with those competing producers.
+      allocate          <= r.allocate;
+      e2eInput          <= r.e2eInput;
+      e2eSync           <= r.e2eSync;
       delayReady        <= v.delayReady;
       e2eTake           <= v.e2eTake;
       rateInput         <= r.rateInput;
       rxReady           <= v.rxReady;
-      responseValid     <= validResponse;
-      lifecycle         <= lifecycleNow;
-      abortNow          <= abortPort;
-      measurementMaster <= measurementNow;
+      responseValid     <= r.responseValid;
+      lifecycle         <= r.lifecycle;
+      abortNow          <= r.measurementMaster.abort;
+      measurementMaster <= r.measurementMaster;
       txMaster          <= r.master;
 
       -- Registered diagnostics and active shared configuration.
