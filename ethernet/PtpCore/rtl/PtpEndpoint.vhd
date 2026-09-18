@@ -53,6 +53,7 @@ entity PtpEndpoint is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
    port (
+      -- Shared endpoint clock domain and lifecycle controls.
       clk             : in  sl;
       rst             : in  sl;
       regRst          : in  sl := '0';
@@ -60,10 +61,14 @@ entity PtpEndpoint is
       linkReady       : in  sl;
       macResetDone    : in  sl;
       localMac        : in  slv(47 downto 0);
+
+      -- AXI-Lite management.
       axiReadMaster   : in  AxiLiteReadMasterType;
       axiReadSlave    : out AxiLiteReadSlaveType;
       axiWriteMaster  : in  AxiLiteWriteMasterType;
       axiWriteSlave   : out AxiLiteWriteSlaveType;
+
+      -- Validated RX records and physical TX completions.
       rxMessage       : in  PtpRxMessageType;
       rxValid         : in  sl;
       rxReady         : out sl;
@@ -73,8 +78,12 @@ entity PtpEndpoint is
       txMessage       : in  PtpRxMessageType;
       txValid         : in  sl;
       txAbort         : in  sl;
+
+      -- Private Delay_Req stream.
       txMaster        : out AxiStreamMasterType;
       txSlave         : in  AxiStreamSlaveType;
+
+      -- Live PHC, capture controls and endpoint status.
       phcTime         : out PtpTimeType;
       phcStatus       : out PtpPhcStatusType;
       captureAbort    : out sl;
@@ -184,6 +193,12 @@ begin
       v.restart := restartPort;
       v.events  := irqEvents;
       v.rxFlush := rxFlushNow;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       axiReset     <= axiResetNow;
       restart      <= r.restart;
       rxFlush      <= r.rxFlush;
@@ -193,10 +208,6 @@ begin
       captureAbort <= abortCapture;
       portActive   <= portStatus.active;
       servoState   <= servoStatus.state;
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
 
    seq : process (clk, rst) is
@@ -326,7 +337,7 @@ begin
          enable            => enable,                           -- [in]
          rxCounters        => rxCounters,                       -- [in]
          sharedConfig      => sharedConfig,                     -- [out]
-         lifecycle         => portLifecycle,                     -- [out]
+         lifecycle         => portLifecycle,                    -- [out]
          status            => portStatus);                      -- [out]
 
    U_Servo : entity surf.PtpServo

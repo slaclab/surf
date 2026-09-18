@@ -173,9 +173,10 @@ architecture rtl of PtpRxFrontend is
    -- Prefix offsets count from destination-MAC byte zero. Reassemble wire
    -- octets into conventional big-endian fields; AXI lane order is unrelated
    -- to the numerical significance of a multibyte PTP field.
-   function networkField (bytes : Slv8Array;
-   first : natural;
-   count : positive) return slv is
+   function networkField (
+      bytes : Slv8Array;
+      first : natural;
+      count : positive) return slv is
       variable retVar : slv(8*count-1 downto 0);
    begin
       for i in 0 to count-1 loop
@@ -387,8 +388,8 @@ begin
 
       -- Admission deliberately tests pre-edge occupancy. A full queue cannot
       -- rescue this completion through simultaneous ready: discard the candidate
-      -- and all queued records, advance the RX epoch, and cancel this edge's
-      -- transfer. Malformed/non-PTP completions never take this overflow path.
+      -- and all queued records, advance the RX epoch, and publish an abort.
+      -- Malformed/non-PTP completions never take this overflow path.
       -- A coincident old-head transfer precedes the registered invalidation.
       -- Downstream work remains revocable until that event is consumed next edge.
       if frameComplete and r.fill = FIFO_DEPTH_G then
@@ -449,17 +450,18 @@ begin
       if v.fill /= 0 then
          v.message := v.queue(v.rdPtr);
       end if;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       message       <= r.message;
       queueOverflow <= r.queueOverflow;
       messageValid  <= r.messageValid;
       rxAbort       <= r.abortNow;
       rxEpoch       <= slv(r.epoch);
       counters      <= r.counters;
-
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
 
    seq : process (clk, rst) is

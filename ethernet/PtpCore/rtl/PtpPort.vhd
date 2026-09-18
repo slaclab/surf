@@ -40,8 +40,8 @@
 -- sharedConfig; it has no independently writable copies of these settings.
 -- Register state and protocol state use one RegType/comb/seq pair. regRst
 -- clears bus responses only, while restart preserves configuration and the TX
--- ledger lifetime. Measurement data/valid/abort and reverse-direction ready
--- use registered forward measurement records. PtpPortLifecycleType carries registered
+-- ledger lifetime. Measurement data/valid/abort are registered; reverse ready
+-- describes current capacity. PtpPortLifecycleType carries registered
 -- command cancellation and identity restart; PtpPortStatusType owns registered
 -- diagnostics. The AXI snapshot bank freezes pre-edge state independently of
 -- live reporting. Active local registers are the sole configuration source;
@@ -77,8 +77,10 @@ entity PtpPort is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
    port (
+      -- Shared endpoint clock domain.
       clk                 : in  sl;
       rst                 : in  sl;
+
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
       axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -91,6 +93,7 @@ entity PtpPort is
       enable           : in  sl                     := '0';
       rxCounters       : in  PtpRxCountersType      := PTP_RX_COUNTERS_INIT_C;
       sharedConfig     : out PtpSharedConfigType;
+
       -- Protocol/clock interface.
       restart             : in  sl;
       linkReady           : in  sl;
@@ -137,10 +140,10 @@ architecture rtl of PtpPort is
    constant LFSR_SEED_C           : slv(15 downto 0) := PTP_PORT_CONFIG_INIT_C.lfsrSeed;
 
    -- Untagged Delay_Req, excluding MAC-supplied padding and FCS.
-   constant TX_FRAME_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C;
-   constant TX_BEAT_BYTES_C  : positive := PTP_RX_AXIS_CONFIG_C.TDATA_BYTES_C;
-   constant TX_LAST_BEAT_C   : natural := (TX_FRAME_BYTES_C-1)/TX_BEAT_BYTES_C;
-   constant TX_LAST_BYTES_C  : positive := TX_FRAME_BYTES_C-TX_LAST_BEAT_C*TX_BEAT_BYTES_C;
+   constant TX_FRAME_BYTES_C : positive                        := PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C;
+   constant TX_BEAT_BYTES_C  : positive                        := PTP_RX_AXIS_CONFIG_C.TDATA_BYTES_C;
+   constant TX_LAST_BEAT_C   : natural                         := (TX_FRAME_BYTES_C-1)/TX_BEAT_BYTES_C;
+   constant TX_LAST_BYTES_C  : positive                        := TX_FRAME_BYTES_C-TX_LAST_BEAT_C*TX_BEAT_BYTES_C;
    constant TX_LAST_KEEP_C   : slv(TX_BEAT_BYTES_C-1 downto 0) := toSlv(2**TX_LAST_BYTES_C-1, TX_BEAT_BYTES_C);
 
    function initialConfig return PtpPortConfigType is
@@ -203,7 +206,7 @@ architecture rtl of PtpPort is
    end function;
 
    -- Q16 elapsed master ns / Q3 elapsed raw cycles -> Q48 ns/cycle.
-   constant RATE_RATIO_SHIFT_C : natural := PTP_RATIO_FRAC_BITS_C+PTP_TICK_PHASE_BITS_C-PTP_TIME_FRAC_BITS_C;
+   constant RATE_RATIO_SHIFT_C : natural               := PTP_RATIO_FRAC_BITS_C+PTP_TICK_PHASE_BITS_C-PTP_TIME_FRAC_BITS_C;
    constant NOMINAL_C          : unsigned(63 downto 0) := shift_left(unsigned(ptpNominalIncrement(CLK_FREQ_G)), PTP_PHC_TO_RATIO_SHIFT_C);
    constant RATE_MARGIN_C      : unsigned(63 downto 0) := resize((resize(NOMINAL_C, 96)*to_unsigned(MAX_OSCILLATOR_PPB_C, 32))/to_unsigned(PTP_PPB_SCALE_C, 128), 64);
 
@@ -393,7 +396,9 @@ architecture rtl of PtpPort is
 
    -- Prefer an existing sequence association, then an unused slot, then the
    -- oldest completed slot. The caller retires expired entries before searching.
-   function findPair (pairs : PairArray; sequenceId : slv(15 downto 0)) return integer is
+   function findPair (
+      pairs      : PairArray;
+      sequenceId : slv(15 downto 0)) return integer is
       variable matched  : integer range -1 to PAIR_DEPTH_C-1;
       variable reusable : integer range -1 to PAIR_DEPTH_C-1;
    begin
@@ -435,9 +440,12 @@ architecture rtl of PtpPort is
 
    -- Select by capture phase, not delivery time. Equal distances retain the
    -- first history entry; a Sync just after the TX capture is also eligible.
-   function nearestSync (history : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
-   historyValid : slv(HISTORY_DEPTH_C-1 downto 0); sample : PtpDelaySampleType;
-   ticks : slv(63 downto 0); cfg : PtpPortConfigType) return integer is
+   function nearestSync (
+      history      : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
+      historyValid : slv(HISTORY_DEPTH_C-1 downto 0);
+      sample       : PtpDelaySampleType;
+      ticks        : slv(63 downto 0);
+      cfg          : PtpPortConfigType) return integer is
       variable selected : integer range -1 to HISTORY_DEPTH_C-1;
       variable distance : signed(127 downto 0);
       variable nearest  : signed(127 downto 0);
@@ -473,8 +481,9 @@ architecture rtl of PtpPort is
          (message.flags and PTP_GENERAL_RESERVED_C) = x"0000";
    end function;
 
-   function intervalTicks (logInterval : slv(7 downto 0);
-   fallback : slv(63 downto 0)) return unsigned is
+   function intervalTicks (
+      logInterval : slv(7 downto 0);
+      fallback    : slv(63 downto 0)) return unsigned is
       variable exponent : integer range -128 to 127;
       variable value    : unsigned(63 downto 0);
    begin
@@ -491,8 +500,9 @@ architecture rtl of PtpPort is
    -- Three advertised intervals, capped by the configured raw-tick timeout.
    -- Invalid/unspecified intervals use the cap; rejection accounting stays at
    -- the message handler because an invalid interval need not reject its data.
-   function receiptTimeout (logInterval : slv(7 downto 0);
-   limit : slv(63 downto 0)) return slv is
+   function receiptTimeout (
+      logInterval : slv(7 downto 0);
+      limit       : slv(63 downto 0)) return slv is
       variable ticks : unsigned(63 downto 0);
    begin
       if validLogInterval(logInterval) then
@@ -505,10 +515,11 @@ architecture rtl of PtpPort is
       return limit;
    end function;
 
-   function buildRequest (cfg : PtpPortConfigType;
-   mac : slv(47 downto 0);
-   seqId : slv(15 downto 0)) return slv is
-      constant MESSAGE_LENGTH_C : slv(15 downto 0) := toSlv(PTP_TIMESTAMP_MSG_BYTES_C, 16);
+   function buildRequest (
+      cfg   : PtpPortConfigType;
+      mac   : slv(47 downto 0);
+      seqId : slv(15 downto 0)) return slv is
+      constant MESSAGE_LENGTH_C : slv(15 downto 0)                   := toSlv(PTP_TIMESTAMP_MSG_BYTES_C, 16);
       variable bytes            : Slv8Array(0 to TX_FRAME_BYTES_C-1) := (others => (others => '0'));
       variable resultValue      : slv(8*TX_FRAME_BYTES_C-1 downto 0);
 
@@ -581,7 +592,7 @@ begin
          allocateSequence => allocateSequence,      -- [out]
          wireMessage      => txMessage,             -- [in]
          wireValid        => txValid,               -- [in]
-         response         => r.response,             -- [in]
+         response         => r.response,            -- [in]
          responseValid    => responseValid,         -- [in]
          sample           => delaySample,           -- [out]
          sampleValid      => delayValid,            -- [out]
@@ -620,19 +631,19 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
-         clk          => clk,                          -- [in]
-         rst          => rst,                          -- [in]
-         cancel       => abortNow,                     -- [in]
-         inputValid   => e2eInput,                     -- [in]
-         inputReady   => e2eReady,                     -- [out]
-         syncSample   => e2eSync,                      -- [in]
-         delaySample  => r.e2eDelay,                  -- [in]
-         ratio        => r.e2eRatio,                      -- [in]
+         clk          => clk,           -- [in]
+         rst          => rst,           -- [in]
+         cancel       => abortNow,      -- [in]
+         inputValid   => e2eInput,      -- [in]
+         inputReady   => e2eReady,      -- [out]
+         syncSample   => e2eSync,       -- [in]
+         delaySample  => r.e2eDelay,    -- [in]
+         ratio        => r.e2eRatio,    -- [in]
          maxPathDelay => r.e2eMaximum,  -- [in]
-         resultValue  => e2eResult,                    -- [out]
-         resultValid  => e2eValid,                     -- [out]
-         resultReady  => e2eTake,                      -- [in]
-         resultError  => e2eError);                    -- [out]
+         resultValue  => e2eResult,     -- [out]
+         resultValid  => e2eValid,      -- [out]
+         resultReady  => e2eTake,       -- [in]
+         resultError  => e2eError);     -- [out]
 
    comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, configControl, snapshotControl,
                    enable, rxCounters, restart, linkReady, localMac, phcStatus, captureAbort, rxMessage,
@@ -778,8 +789,8 @@ begin
             v.master.tValid := '1';
             if v.beat = TX_LAST_BEAT_C then
                v.master.tData(8*TX_LAST_BYTES_C-1 downto 0) := r.frame(8*TX_FRAME_BYTES_C-1 downto 8*TX_LAST_BEAT_C*TX_BEAT_BYTES_C);
-               v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0) := TX_LAST_KEEP_C;
-               v.master.tLast              := '1';
+               v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0)   := TX_LAST_KEEP_C;
+               v.master.tLast                               := '1';
             else
                -- Static slices make the seven-way beat mux explicit to both
                -- synthesis frontends; the final two-byte beat is handled above.
@@ -820,9 +831,10 @@ begin
             v.requestInterval := r.minimumInterval;
          end if;
          if r.lfsr(1 downto 0) = "00" then
-            v.requestInterval := shift_right(v.requestInterval, 1);
+            -- Unsigned division rounds the half interval down to whole ticks.
+            v.requestInterval := v.requestInterval/2;
          elsif r.lfsr(1 downto 0) = "11" then
-            v.requestInterval := v.requestInterval + shift_right(v.requestInterval, 1);
+            v.requestInterval := v.requestInterval + v.requestInterval/2;
          end if;
          -- Fibonacci LFSR taps 16, 14, 13, 11 (one-based); shift toward bit 15,
          -- feed the XOR into bit 0. A nonzero seed avoids the all-zero lockup.
@@ -1226,6 +1238,12 @@ begin
             r.portStatus.delayCount,
             timeoutCount);
       end if;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       configValid   <= r.configValid;
       axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
@@ -1251,11 +1269,6 @@ begin
       sharedConfig.associationTimeout <= r.activeConfig.associationTimeout;
       sharedConfig.syncTimeout        <= r.activeConfig.syncTimeout;
       sharedConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;
-
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
    seq : process (clk, rst) is
    begin

@@ -77,8 +77,8 @@ end entity PtpTxLedgerWrapper;
 architecture rtl of PtpTxLedgerWrapper is
 
    signal config      : PtpPortConfigType := PTP_PORT_CONFIG_INIT_C;
-   signal wireMessage : PtpRxMessageType := PTP_RX_MESSAGE_INIT_C;
-   signal response    : PtpRxMessageType := PTP_RX_MESSAGE_INIT_C;
+   signal wireMessage : PtpRxMessageType  := PTP_RX_MESSAGE_INIT_C;
+   signal response    : PtpRxMessageType  := PTP_RX_MESSAGE_INIT_C;
    signal sample      : PtpDelaySampleType;
 
 begin
@@ -86,7 +86,7 @@ begin
    config.localIdentity                <= identity;
    config.domainNumber                 <= domainNumber;
    config.associationTimeout           <= timeout;
-   wireMessage.messageType             <= x"1";
+   wireMessage.messageType             <= PTP_MSG_DELAY_REQ_C;
    wireMessage.sequenceId              <= wireSequence;
    wireMessage.sourcePortIdentity      <= wireIdentity;
    wireMessage.domainNumber            <= wireDomain;

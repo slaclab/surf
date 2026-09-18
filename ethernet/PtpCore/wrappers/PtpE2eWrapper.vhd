@@ -65,7 +65,7 @@ end entity PtpE2eWrapper;
 
 architecture rtl of PtpE2eWrapper is
 
-   signal syncSample  : PtpSyncSampleType := PTP_SYNC_SAMPLE_INIT_C;
+   signal syncSample  : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
    signal delaySample : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
    signal measurement : PtpMeasurementType;
 

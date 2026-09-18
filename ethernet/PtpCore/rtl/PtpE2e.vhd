@@ -84,6 +84,8 @@ architecture rtl of PtpE2e is
 
    type RegType is record
       -- Current-cycle admission; published from v, not delayed through r.
+      -- Cancel/reset can revoke the single exchange slot on this edge;
+      -- registering ready would require an explicit capacity reservation.
       inputReady  : sl;
       state       : StateType;
       operation   : OperationType;

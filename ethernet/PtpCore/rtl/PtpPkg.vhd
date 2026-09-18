@@ -79,7 +79,7 @@ package PtpPkg is
    constant PTP_ANNOUNCE_BODY_BYTES_C : positive := 30;
    constant PTP_ANNOUNCE_BYTES_C      : positive := PTP_HEADER_BYTES_C+PTP_ANNOUNCE_BODY_BYTES_C;
    constant PTP_TLV_HEADER_BYTES_C    : positive := 4;
-   constant PTP_TLV_LENGTH_OFFSET_C   : natural := 2;
+   constant PTP_TLV_LENGTH_OFFSET_C   : natural  := 2;
 
    -- Frontend storage capacity must hold Announce plus Ethernet/FCS, even
    -- though individual accepted Ethernet frames may be shorter than Announce.
@@ -88,14 +88,14 @@ package PtpPkg is
 
    -- Supported fixed-source Layer-2 profile. Sync requires exactly twoStep;
    -- the general-message upper flag octet is reserved by this implementation.
-   constant PTP_MAJOR_VERSION_C      : slv(3 downto 0) := x"2";
-   constant PTP_MINOR_VERSION_MIN_C  : slv(3 downto 0) := x"0";
-   constant PTP_MINOR_VERSION_MAX_C  : slv(3 downto 0) := x"1";
-   constant PTP_TRANSPORT_SPECIFIC_C : slv(3 downto 0) := x"0";
+   constant PTP_MAJOR_VERSION_C      : slv(3 downto 0)  := x"2";
+   constant PTP_MINOR_VERSION_MIN_C  : slv(3 downto 0)  := x"0";
+   constant PTP_MINOR_VERSION_MAX_C  : slv(3 downto 0)  := x"1";
+   constant PTP_TRANSPORT_SPECIFIC_C : slv(3 downto 0)  := x"0";
    constant PTP_TWO_STEP_FLAGS_C     : slv(15 downto 0) := x"0200";
    constant PTP_LEAP_FLAGS_MASK_C    : slv(15 downto 0) := x"0003";
    constant PTP_GENERAL_RESERVED_C   : slv(15 downto 0) := x"FF00";
-   constant PTP_TIMESCALE_BIT_C      : natural := 3;
+   constant PTP_TIMESCALE_BIT_C      : natural          := 3;
 
    -- Endpoint event positions in the central IRQ status/mask registers.
    constant PTP_IRQ_PHC_FAULT_C     : natural := 0;
@@ -667,14 +667,16 @@ package PtpPkg is
    -- wire octet is in mac(7 downto 0). The result has clockIdentity in bits
    -- 79:16, first wire octet most significant, followed by the port number.
    -- MAC A:B:C:D:E:F becomes A:B:C:FF:FE:D:E:F; MAC bits are unchanged.
-   function ptpPortIdentity (mac : slv(47 downto 0);
-   portNumber : slv(15 downto 0)) return slv;
+   function ptpPortIdentity (
+      mac        : slv(47 downto 0);
+      portNumber : slv(15 downto 0)) return slv;
 
    function ptpTimeQ16 (timestamp : slv(95 downto 0)) return signed;
    function ptpWireTimeQ16 (timestamp : slv(79 downto 0)) return signed;
    function ptpTickPhase (capture : PtpRxCaptureType) return signed;
-   function ptpRoundShift (value : signed;
-   bits : natural) return signed;
+   function ptpRoundShift (
+      value : signed;
+      bits  : natural) return signed;
    function ptpSatInc (value : slv) return slv;
 
    -- Timeout comparisons use unsigned tick differences. Restrict configured
@@ -691,12 +693,12 @@ package PtpPkg is
    -- the sampled cycle. GMII supplies lane zero. ingressLatency is signed
    -- Q16 ns and must be an elaboration-time value at the current call sites.
    function ptpRxCapture (
-      phcTime : PtpTimeType;
-      increment : slv(63 downto 0);
-      lane : natural;
-      ticks : slv(63 downto 0);
-      generation : slv(31 downto 0);
-      timeValid : sl;
+      phcTime                 : PtpTimeType;
+      increment               : slv(63 downto 0);
+      lane                    : natural;
+      ticks                   : slv(63 downto 0);
+      generation              : slv(31 downto 0);
+      timeValid               : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType;
 
 end package PtpPkg;
@@ -733,8 +735,9 @@ package body PtpPkg is
       return message.messageBody(159 downto 144);
    end function;
 
-   function ptpPortIdentity (mac : slv(47 downto 0);
-   portNumber : slv(15 downto 0)) return slv is
+   function ptpPortIdentity (
+      mac        : slv(47 downto 0);
+      portNumber : slv(15 downto 0)) return slv is
       variable identity : slv(79 downto 0);
    begin
       identity(79 downto 56) := mac(7 downto 0) & mac(15 downto 8) & mac(23 downto 16);
@@ -767,13 +770,14 @@ package body PtpPkg is
       return signed(resize(unsigned(slv'(capture.ticks & capture.tickPhase)), 128));
    end function;
 
-   function ptpRoundShift (value : signed;
-   bits : natural) return signed is
+   function ptpRoundShift (
+      value : signed;
+      bits  : natural) return signed is
       variable magnitude   : unsigned(value'length downto 0);
       variable resultValue : signed(value'length downto 0);
    begin
       resultValue := resize(value, value'length+1);
-      magnitude := unsigned(abs(resultValue));
+      magnitude   := unsigned(abs(resultValue));
       if bits /= 0 then
          magnitude := shift_right(magnitude + shift_left(to_unsigned(1, magnitude'length), bits-1), bits);
       end if;
@@ -811,12 +815,12 @@ package body PtpPkg is
    end function;
 
    function ptpRxCapture (
-      phcTime : PtpTimeType;
-      increment : slv(63 downto 0);
-      lane : natural;
-      ticks : slv(63 downto 0);
-      generation : slv(31 downto 0);
-      timeValid : sl;
+      phcTime                 : PtpTimeType;
+      increment               : slv(63 downto 0);
+      lane                    : natural;
+      ticks                   : slv(63 downto 0);
+      generation              : slv(31 downto 0);
+      timeValid               : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType is
       -- Split the elaboration-time latency into whole seconds and a signed
       -- remainder smaller than one second. VHDL rem preserves the dividend's
@@ -837,16 +841,16 @@ package body PtpPkg is
       -- fixed 0.8 ns XGMII byte. Widen before arithmetic and retain Q32 precision
       -- through calibration; a positive ingress latency moves time earlier.
       subCycle := shift_right(unsigned(increment) * to_unsigned(lane, PTP_TICK_PHASE_BITS_C), PTP_TICK_PHASE_BITS_C);
-      ns := signed(resize(unsigned(slv'(phcTime.nanoseconds & phcTime.fraction)), 67)) +
+      ns       := signed(resize(unsigned(slv'(phcTime.nanoseconds & phcTime.fraction)), 67)) +
          signed(subCycle) - shift_left(resize(LAT_REMAIN_C, 67), PTP_TIME_TO_PHC_SHIFT_C);
       sec := signed(resize(unsigned(phcTime.seconds), 65)) - resize(LAT_SECONDS_C, 65);
       -- Canonical input and the supported Ethernet-clock addend need at most
       -- one carry/borrow after subtracting the sub-second latency remainder.
       if ns < 0 then
-         ns := ns + SECOND_Q32_C;
+         ns  := ns + SECOND_Q32_C;
          sec := sec - 1;
       elsif ns >= SECOND_Q32_C then
-         ns := ns - SECOND_Q32_C;
+         ns  := ns - SECOND_Q32_C;
          sec := sec + 1;
       end if;
       -- Reject an out-of-range epoch or failed normalization. Truncating the
@@ -856,12 +860,12 @@ package body PtpPkg is
       end if;
       -- Discard the low sixteen fractional bits only after normalization.
       -- Raw tick provenance is intentionally unaffected by ingress latency.
-      retVar.timestamp := slv(sec(47 downto 0)) & slv(ns(63 downto PTP_TIME_TO_PHC_SHIFT_C));
-      retVar.ticks := ticks;
-      retVar.tickPhase := slv(to_unsigned(lane, PTP_TICK_PHASE_BITS_C));
+      retVar.timestamp  := slv(sec(47 downto 0)) & slv(ns(63 downto PTP_TIME_TO_PHC_SHIFT_C));
+      retVar.ticks      := ticks;
+      retVar.tickPhase  := slv(to_unsigned(lane, PTP_TICK_PHASE_BITS_C));
       retVar.generation := generation;
-      retVar.increment := increment;
-      retVar.timeValid := timeValid;
+      retVar.increment  := increment;
+      retVar.timeValid  := timeValid;
       return retVar;
    end function;
 

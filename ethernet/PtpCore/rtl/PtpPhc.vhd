@@ -70,8 +70,10 @@ entity PtpPhc is
       RST_ASYNC_G    : boolean  := false;
       CLK_FREQ_G     : positive := 156250000);
    port (
+      -- Shared endpoint clock domain.
       clk           : in  sl;
       rst           : in  sl;
+
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
       axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -85,6 +87,7 @@ entity PtpPhc is
       restart          : in  sl                     := '0';
       portCommandAbort : in  sl                     := '0';
       manualBusy       : out sl;
+
       -- Protocol/clock interface.
       clearValid    : in  sl                      := '0';
       phcTime       : out PtpTimeType;
@@ -119,7 +122,7 @@ architecture rtl of PtpPhc is
    constant SECOND_Q16_C : slv(127 downto 0) := slv(shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
 
    constant NOMINAL_C : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
-   constant SECOND_C  : signed(66 downto 0) := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
+   constant SECOND_C  : signed(66 downto 0)   := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
 
    -- Capture consumers need the nominal increment even before the first tick.
    function initialStatus return PtpPhcStatusType is
@@ -559,10 +562,15 @@ begin
          v.mathInputValid := '1';
       end if;
 
+      -- Apply synchronous reset before publishing next state and outputs.
+      if RST_ASYNC_G = false and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       -------------------------------------------------------------------------
       -- Registered functional outputs, including admission and completion.
       -------------------------------------------------------------------------
-      -- Publish resolved controls before synchronous reset replaces v.
       commandSlave   <= r.commandSlave;
       captureAbort   <= r.captureAbort;
       manualBusy     <= r.manualBusy;
@@ -572,11 +580,6 @@ begin
       phcTime        <= r.timeValue;
       status         <= r.status;
       pps            <= r.pps;
-
-      if RST_ASYNC_G = false and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
 
    seq : process (clk, rst) is

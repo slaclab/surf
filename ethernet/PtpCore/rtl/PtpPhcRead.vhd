@@ -66,12 +66,12 @@ architecture rtl of PtpPhcRead is
 
    -- Private FIFO layout, least significant field first. Both packing and
    -- unpacking use these boundaries; time/status field widths own the size.
-   constant VALID_BIT_C       : natural := 0;
-   constant TICKS_LOW_C       : natural := VALID_BIT_C+1;
-   constant GENERATION_LOW_C  : natural := TICKS_LOW_C+PTP_PHC_STATUS_INIT_C.ticks'length;
-   constant FRACTION_LOW_C    : natural := GENERATION_LOW_C+PTP_PHC_STATUS_INIT_C.generation'length;
-   constant NANOSECONDS_LOW_C : natural := FRACTION_LOW_C+PTP_TIME_INIT_C.fraction'length;
-   constant SECONDS_LOW_C     : natural := NANOSECONDS_LOW_C+PTP_TIME_INIT_C.nanoseconds'length;
+   constant VALID_BIT_C       : natural  := 0;
+   constant TICKS_LOW_C       : natural  := VALID_BIT_C+1;
+   constant GENERATION_LOW_C  : natural  := TICKS_LOW_C+PTP_PHC_STATUS_INIT_C.ticks'length;
+   constant FRACTION_LOW_C    : natural  := GENERATION_LOW_C+PTP_PHC_STATUS_INIT_C.generation'length;
+   constant NANOSECONDS_LOW_C : natural  := FRACTION_LOW_C+PTP_TIME_INIT_C.fraction'length;
+   constant SECONDS_LOW_C     : natural  := NANOSECONDS_LOW_C+PTP_TIME_INIT_C.nanoseconds'length;
    constant WIDTH_C           : positive := SECONDS_LOW_C+PTP_TIME_INIT_C.seconds'length;
 
    -- Retain four storage locations for each small distributed CDC FIFO.

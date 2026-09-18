@@ -79,13 +79,13 @@ end entity PtpRegWrapper;
 
 architecture rtl of PtpRegWrapper is
 
-   constant TPD_G             : time := 1 ns;
-   constant RST_POLARITY_G    : sl := '1';
-   constant RST_ASYNC_G       : boolean := false;
-   constant CLK_FREQ_G        : positive := 125000000;
-   constant PACKET_LIFETIME_G : positive := 5000;
-   constant INGRESS_LATENCY_G : slv(63 downto 0) := x"FFFFFFFFFFFF0000";
-   constant EGRESS_LATENCY_G  : slv(63 downto 0) := x"0000000000020000";
+   constant TPD_C             : time             := 1 ns;
+   constant RST_POLARITY_C    : sl               := '1';
+   constant RST_ASYNC_C       : boolean          := false;
+   constant CLK_FREQ_C        : positive         := 125000000;
+   constant PACKET_LIFETIME_C : positive         := 5000;
+   constant INGRESS_LATENCY_C : slv(63 downto 0) := x"FFFFFFFFFFFF0000";
+   constant EGRESS_LATENCY_C  : slv(63 downto 0) := x"0000000000020000";
 
    signal resetN         : sl;
    signal axiReadMaster  : AxiLiteReadMasterType;
@@ -177,7 +177,7 @@ begin
 
       -- Match production reset/lifecycle wiring before exposing observations.
       axiResetNow := '0';
-      if rst = RST_POLARITY_G or regRst = '1' then
+      if rst = RST_POLARITY_C or regRst = '1' then
          axiResetNow := '1';
       end if;
       resetNNow                          := not rst;
@@ -192,6 +192,12 @@ begin
 
       v.restart := restartPort;
       v.events  := irqEvents;
+
+      -- Apply synchronous reset before publishing next state and outputs.
+      if rst = RST_POLARITY_C then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
 
       -- Flatten only the signals required by cocotb's independent checks.
       bankConfigControl <= bankControlNow;
@@ -212,16 +218,12 @@ begin
       timeTicks         <= status.ticks;
       timeGeneration    <= status.generation;
       timeValid         <= status.timeValid;
-      if rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
 
    seq : process (clk) is
    begin
       if rising_edge(clk) then
-         r <= rin after 1 ns;
+         r <= rin after TPD_C;
       end if;
    end process seq;
 
@@ -230,7 +232,7 @@ begin
          ADDR_WIDTH    => 32,
          EN_ERROR_RESP => true,
          HAS_WSTRB     => 1,
-         FREQ_HZ       => 125000000)
+         FREQ_HZ       => CLK_FREQ_C)
       port map (
          S_AXI_ACLK      => clk,             -- [in]
          S_AXI_ARESETN   => resetN,          -- [in]
@@ -262,7 +264,7 @@ begin
 
    U_Xbar : entity surf.AxiLiteCrossbar
       generic map (
-         TPD_G              => TPD_G,
+         TPD_G              => TPD_C,
          NUM_SLAVE_SLOTS_G  => 1,
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => AXIL_CONFIG_C)
@@ -280,10 +282,10 @@ begin
 
    U_Control : entity surf.PtpReg
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         CLK_FREQ_G     => CLK_FREQ_G)
+         TPD_G          => TPD_C,
+         RST_POLARITY_G => RST_POLARITY_C,
+         RST_ASYNC_G    => RST_ASYNC_C,
+         CLK_FREQ_G     => CLK_FREQ_C)
       port map (
          clk              => clk,                                 -- [in]
          rst              => rst,                                 -- [in]
@@ -310,10 +312,10 @@ begin
 
    U_Phc : entity surf.PtpPhc
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         CLK_FREQ_G     => CLK_FREQ_G)
+         TPD_G          => TPD_C,
+         RST_POLARITY_G => RST_POLARITY_C,
+         RST_ASYNC_G    => RST_ASYNC_C,
+         CLK_FREQ_G     => CLK_FREQ_C)
       port map (
          clk              => clk,                             -- [in]
          rst              => rst,                             -- [in]
@@ -339,13 +341,13 @@ begin
 
    U_Port : entity surf.PtpPort
       generic map (
-         TPD_G             => TPD_G,
-         RST_POLARITY_G    => RST_POLARITY_G,
-         RST_ASYNC_G       => RST_ASYNC_G,
-         CLK_FREQ_G        => CLK_FREQ_G,
-         PACKET_LIFETIME_G => PACKET_LIFETIME_G,
-         INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
+         TPD_G             => TPD_C,
+         RST_POLARITY_G    => RST_POLARITY_C,
+         RST_ASYNC_G       => RST_ASYNC_C,
+         CLK_FREQ_G        => CLK_FREQ_C,
+         PACKET_LIFETIME_G => PACKET_LIFETIME_C,
+         INGRESS_LATENCY_G => INGRESS_LATENCY_C,
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_C)
       port map (
          clk               => clk,                              -- [in]
          rst               => rst,                              -- [in]
@@ -378,15 +380,15 @@ begin
          enable            => enable,                           -- [in]
          rxCounters        => PTP_RX_COUNTERS_INIT_C,           -- [in]
          sharedConfig      => sharedConfig,                     -- [out]
-         lifecycle         => portLifecycle,                     -- [out]
+         lifecycle         => portLifecycle,                    -- [out]
          status            => portStatus);                      -- [out]
 
    U_Servo : entity surf.PtpServo
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         CLK_FREQ_G     => CLK_FREQ_G)
+         TPD_G          => TPD_C,
+         RST_POLARITY_G => RST_POLARITY_C,
+         RST_ASYNC_G    => RST_ASYNC_C,
+         CLK_FREQ_G     => CLK_FREQ_C)
       port map (
          clk               => clk,                               -- [in]
          rst               => rst,                               -- [in]

@@ -57,6 +57,8 @@ architecture rtl of PtpPrimaryGuard is
 
    type RegType is record
       -- Combinational interface controls; resolve and publish from v.
+      -- The single output slot permits simultaneous consume/refill; delayed
+      -- backpressure would require another slot to retain an accepted beat.
       ready    : sl;
 
       master   : AxiStreamMasterType;

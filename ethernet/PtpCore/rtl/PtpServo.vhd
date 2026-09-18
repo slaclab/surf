@@ -67,8 +67,10 @@ entity PtpServo is
       RST_ASYNC_G    : boolean  := false;
       CLK_FREQ_G     : positive := 156250000);
    port (
+      -- Shared endpoint clock domain.
       clk               : in  sl;
       rst               : in  sl;
+
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
       axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -80,6 +82,7 @@ entity PtpServo is
       configValid      : out sl;
       servoEnable      : in  sl                     := '0';
       sharedConfig     : in  PtpSharedConfigType    := PTP_SHARED_CONFIG_INIT_C;
+
       -- Protocol/clock interface.
       measurementMaster : in  PtpMeasurementMasterType;
       measurementSlave  : out PtpMeasurementSlaveType;
@@ -101,7 +104,7 @@ architecture rtl of PtpServo is
    constant MAX_ACTUATOR_PPB_C : positive := 200000;
 
    function initialConfig return PtpServoConfigType is
-      variable v      : PtpServoConfigType := PTP_SERVO_CONFIG_INIT_C;
+      variable v      : PtpServoConfigType    := PTP_SERVO_CONFIG_INIT_C;
       constant TICK_C : unsigned(63 downto 0) := to_unsigned(CLK_FREQ_G, 64);
 
    begin
@@ -162,7 +165,7 @@ architecture rtl of PtpServo is
    end function;
 
    constant NOMINAL_C    : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
-   constant SECOND_Q16_C : signed(127 downto 0) := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C);
+   constant SECOND_Q16_C : signed(127 downto 0)  := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C);
 
    constant PPB_Q16_SCALE_C : signed(127 downto 0) := shift_left(to_signed(PTP_PPB_SCALE_C, 128), PTP_PPB_FRAC_BITS_C);
 
@@ -296,8 +299,9 @@ architecture rtl of PtpServo is
    -- The 32-bit ppb bound with 16 fractional bits fits the 64-bit status
    -- rate field. Keep wide arithmetic until this clamp, then sign-extend the
    -- stored rate when issuing 128-bit math operands.
-   function clamp (value : signed(127 downto 0);
-   maximum : slv(31 downto 0)) return signed is
+   function clamp (
+      value   : signed(127 downto 0);
+      maximum : slv(31 downto 0)) return signed is
       variable limitValue : signed(127 downto 0);
    begin
       limitValue := shift_left(signed(resize(unsigned(maximum), 128)), PTP_PPB_FRAC_BITS_C);
@@ -765,8 +769,14 @@ begin
          v.snapRate     := r.status.ratePpb;
          v.snapRejected := r.status.rejectedCount;
       end if;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       -- Publish resolved controls and registered payloads without another
-      -- decision stage. Preserve publication before the synchronous reset of v.
+      -- decision stage. Combinational ready observes the reset override above.
       -- Measurement ready is the reverse capacity exception: holdover work and
       -- current cancellation share its input slot; delayed ready would require
       -- an extra reserved sample slot. Forward commands/cancel remain registered.
@@ -780,11 +790,6 @@ begin
       invalidate       <= r.commandMaster.cancel;
       inputMath        <= r.mathValid;
       roundMath        <= r.mathRound;
-
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
    seq : process (clk, rst) is
    begin

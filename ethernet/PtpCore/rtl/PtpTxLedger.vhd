@@ -134,7 +134,9 @@ architecture rtl of PtpTxLedger is
    constant REG_INIT_C : RegType := (
       ready            => '0',
       responseAccepted => '0',
-      ledgerStatus     => (STARTUP_BIT_C => '1', others => '0'),
+      ledgerStatus     => (
+         STARTUP_BIT_C => '1',
+         others        => '0'),
       entries          => (others => ENTRY_INIT_C),
       nextSequence     => (others => '0'),
       resetTick        => (others => '0'),
@@ -249,7 +251,7 @@ begin
             v.entries(i).retired := '1';
             if unsigned(v.entries(i).sample.responseTicks) >= unsigned(v.entries(i).wireTicks) and
                unsigned(v.entries(i).sample.responseTicks)-unsigned(v.entries(i).wireTicks) <= PACKET_LIFETIME_G and
-               unsigned(ticks)-unsigned(v.entries(i).wireTicks) <= PACKET_LIFETIME_G and
+               unsigned(ticks)-unsigned(v.entries(i).wireTicks)                             <= PACKET_LIFETIME_G and
                v.entries(i).generation = generation then
                v.sample      := v.entries(i).sample;
                v.sampleValid := '1';
@@ -335,6 +337,12 @@ begin
          restart = '0' and rst /= RST_POLARITY_G then
          v.ready := '1';
       end if;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       allocateReady    <= r.ready;
       responseAccepted <= r.responseAccepted;
       allocateSequence <= slv(resize(r.nextSequence, 16));
@@ -343,11 +351,6 @@ begin
       ledgerStatus     <= r.ledgerStatus;
       timeoutCount     <= r.timeoutCount;
       rejectedCount    <= r.rejectedCount;
-
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
    seq : process (clk, rst) is
    begin

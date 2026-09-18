@@ -69,7 +69,7 @@ architecture rtl of PtpRxTimestampAdapter is
    constant XGMII_TERMINATE_C     : slv(7 downto 0) := x"FD";
    constant ETH_PREAMBLE_C        : slv(7 downto 0) := x"55";
    constant ETH_SFD_C             : slv(7 downto 0) := x"D5";
-   constant GMII_PREAMBLE_BYTES_C : positive := 7;
+   constant GMII_PREAMBLE_BYTES_C : positive        := 7;
    -- XGMII /S/ replaces the first preamble octet.
    constant XGMII_PREAMBLE_BYTES_C : positive := GMII_PREAMBLE_BYTES_C-1;
 

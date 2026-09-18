@@ -53,7 +53,7 @@ entity PtpMath is
       operandB        : in  slv(127 downto 0);
       -- Registered valid; transfer requires valid/ready high and cancel/reset inactive.
       resultValid     : out sl;
-      resultReady     : in  sl := '1';
+      resultReady     : in  sl := '1';  -- Default consumer accepts every result.
       resultValue     : out slv(127 downto 0);
       resultRemainder : out slv(127 downto 0);
       resultError     : out sl);
@@ -68,6 +68,8 @@ architecture rtl of PtpMath is
 
    type RegType is record
       -- Combinational interface controls; resolve and publish from v.
+      -- Ready includes current cancel/reset: no second operand slot is
+      -- reserved to honor a delayed withdrawal of admission.
       inputReady      : sl;
 
       state           : StateType;

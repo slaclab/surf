@@ -95,8 +95,8 @@ architecture rtl of PtpServoWrapper is
    signal axiWriteSlave  : AxiLiteWriteSlaveType;
 
    signal sharedConfig : PtpSharedConfigType := PTP_SHARED_CONFIG_INIT_C;
-   signal status       : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
-   signal measurement  : PtpMeasurementType := PTP_MEASUREMENT_INIT_C;
+   signal status       : PtpPhcStatusType    := PTP_PHC_STATUS_INIT_C;
+   signal measurement  : PtpMeasurementType  := PTP_MEASUREMENT_INIT_C;
    signal command      : PtpPhcCommandType;
 
 begin

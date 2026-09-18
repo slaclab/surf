@@ -55,6 +55,7 @@ entity EthMacPtpEndpoint is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
    port (
+      -- Common Ethernet/PHC clock domain.
       clk            : in  sl;
       rst            : in  sl;
       portRst        : in  sl                  := '0';
@@ -62,14 +63,20 @@ entity EthMacPtpEndpoint is
       phyReady       : in  sl;
       ethConfig      : in  EthMacConfigType;
       ethStatus      : out EthMacStatusType;
+
+      -- Primary application streams; RX is always accepted by default.
       sAxisMaster    : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
       sAxisSlave     : out AxiStreamSlaveType;
       mAxisMaster    : out AxiStreamMasterType;
       mAxisSlave     : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+
+      -- AXI-Lite management in the same clock domain.
       axiReadMaster  : in  AxiLiteReadMasterType;
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
+
+      -- Selected physical interface, synchronous to clk.
       xgmiiRxd       : in  slv(63 downto 0)    := (others => '0');
       xgmiiRxc       : in  slv(7 downto 0)     := (others => '1');
       xgmiiTxd       : out slv(63 downto 0);
@@ -80,6 +87,8 @@ entity EthMacPtpEndpoint is
       gmiiTxd        : out slv(7 downto 0);
       gmiiTxEn       : out sl;
       gmiiTxEr       : out sl;
+
+      -- Live PHC and endpoint status.
       phcTime        : out PtpTimeType;
       phcStatus      : out PtpPhcStatusType;
       pps            : out sl;

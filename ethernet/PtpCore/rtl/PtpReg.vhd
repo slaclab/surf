@@ -250,6 +250,12 @@ begin
          v.snapshotControl.capture    := '1';
          v.snapshotControl.sequenceId := ptpSatInc(r.snapshotSequence);
       end if;
+      -- Apply synchronous reset before publishing next state and outputs.
+      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+         v := REG_INIT_C;
+      end if;
+      rin <= v;
+
       -- Publish registered status and the qualified coordination strobes.
       configControl   <= r.configControl;
       snapshotControl <= r.snapshotControl;
@@ -258,11 +264,6 @@ begin
       irq             <= r.irq;
       axiReadSlave    <= r.readSlave;
       axiWriteSlave   <= r.writeSlave;
-
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
    end process comb;
 
    seq : process (clk, rst) is

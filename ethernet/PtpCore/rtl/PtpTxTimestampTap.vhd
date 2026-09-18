@@ -79,6 +79,8 @@ begin
    -- Port reset and PHC discontinuity deliberately do not flush this observer.
    -- A frame accepted by the MAC may appear much later, in a new generation.
    -- The port's persistent ledger distinguishes useful and retired completions.
+   -- This polarity conversion must reach both physical observers on the same
+   -- PHY-loss edge; frontend invalidation is registered after that edge.
    flush <= not phyReady;
 
    U_Adapter : entity surf.PtpRxTimestampAdapter
