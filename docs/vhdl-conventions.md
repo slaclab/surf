@@ -22,11 +22,13 @@ generics described with each example. Arithmetic examples using `unsigned`,
 - [Language, layout and naming](#language-layout-and-naming)
 - [Two-process VHDL style](#two-process-vhdl-style)
 - [Output ownership and interface timing](#output-ownership-and-interface-timing)
+- [Physical I/O and clock outputs](#physical-io-and-clock-outputs)
 - [State and process variables](#state-and-process-variables)
 - [Multiple clock domains](#multiple-clock-domains)
 - [Packages and interface records](#packages-and-interface-records)
 - [Constants, arithmetic and wire layouts](#constants-arithmetic-and-wire-layouts)
 - [Reset and CDC rules](#reset-and-cdc-rules)
+- [FIFO and RAM timing contracts](#fifo-and-ram-timing-contracts)
 - [Bus and protocol semantics](#bus-and-protocol-semantics)
 - [AXI Stream conventions](#axi-stream-conventions)
 - [AXI-Lite register implementation](#axi-lite-register-implementation)
@@ -450,6 +452,8 @@ capacity and the interface lacks storage to honor delayed backpressure. Review
 that path explicitly; use existing buffered pipeline blocks when a timing break
 is needed. Structural wiring preserves the child's boundary and needs no extra
 register. A wrapper that computes selection or policy is doing more than wiring.
+Physical pad buffers and forwarded clocks follow the specialized
+[I/O guidance](#physical-io-and-clock-outputs) below.
 
 ### Signal assignments in comb
 
@@ -578,6 +582,155 @@ cancel/reset edges at both ends, even if registered valid remains high until
 the edge. AXI Stream has its own protocol; do not add a private cancellation rule
 to it. The [stream section](#axi-stream-conventions) describes its ready/valid
 pattern and the related scalar `inputReady` convention.
+
+## Physical I/O and clock outputs
+
+### Tri-state and open-drain interfaces
+
+Apply the [PHY separation](#fpga-family-and-phy-implementations) to bidirectional
+pins: keep sampled input, driven output and output-enable separate in common
+logic, and connect them through the target's I/O buffer in the PHY or pin-facing
+wrapper. Keep `inout` and high-impedance behavior at that physical boundary;
+use explicit signals and selection for internal data paths. The pad connection
+may pass through hierarchy, but its I/O buffer must connect to the external pin.
+
+[IoBufWrapper.vhd](../xilinx/general/rtl/IoBufWrapper.vhd) provides the existing
+Xilinx wrapper: `I` is driven data, `O` is the buffered pin input, `IO` is the
+physical connection, and `T = '1'` releases the driver. It instantiates the
+Xilinx `IOBUF` primitive; it is not a vendor-neutral implementation selector.
+[IoBufWrapperDummy.vhd](../xilinx/dummy/IoBufWrapperDummy.vhd) supplies a
+behavioral definition of the same entity for the non-Vivado path in
+[xilinx/ruckus.tcl](../xilinx/ruckus.tcl). That legacy substitution is not a
+model for new family support: use uniquely named implementations and an explicit
+selector when multiple target implementations are needed.
+
+For example, this Xilinx pin-facing wrapper connects an open-drain SDA line.
+The controller supplies registered `sdaRelease`, initialized to `'1'` for
+reset/idle, and receives `sdaSense` through its input capture logic. `sda` is
+the external `inout sl` port, with a board pull-up:
+
+```vhdl
+U_SdaBuffer : entity surf.IoBufWrapper
+   generic map (
+      TPD_G => TPD_G)
+   port map (
+      O  => sdaSense,     -- [out]
+      IO => sda,          -- [inout]
+      I  => '0',          -- [in]
+      T  => sdaRelease);  -- [in]
+```
+
+Here `'0'` on `sdaRelease` drives low and `'1'` releases the pin. For a
+push-pull bidirectional bus, connect the controller's driven data to `I`
+instead of tying it low, and retain the separate input and release signals.
+
+Document output-enable polarity and the reset/idle drive state. For open-drain
+interfaces, drive only low or release the pin; the pull-up supplies high.
+Read the sampled pin rather than substituting the intended output value, so
+another device's drive is observable. This matters for I2C clock stretching
+and arbitration. [LeapXcvr.vhd](../devices/Amphenol/LeapXcvr/rtl/LeapXcvr.vhd)
+shows separate I2C input/output records connected through `IoBufWrapper`.
+Define direction-turnaround timing so neither end drives against the other.
+The I/O buffer does not register or synchronize its input; retain the capture
+or CDC logic required by the interface.
+
+Drive data and output-enable decisions from the owning logic using the normal
+state and timing rules. A primitive instance or concurrent tri-state assignment
+in the pad wrapper or simulation model implements the physical connection;
+it is an implementation exception, not a reason to put conditional signal
+assignments into the controller's `comb`. Model pull-ups and bus ownership in
+tests where released-line behavior matters.
+
+### Forwarded clocks and protocol clocks
+
+For a clock forwarded to an FPGA pin, use the appropriate clock-output wrapper.
+[ClkOutBufSingle.vhd](../xilinx/general/rtl/ClkOutBufSingle.vhd) and
+[ClkOutBufDiff.vhd](../xilinx/general/rtl/ClkOutBufDiff.vhd) use `ODDR` or `ODDRE1`
+and single-ended or differential output buffers for their supported Xilinx
+families. Keep target-specific clock forwarding in the PHY; do not replace it
+with ordinary fabric clock qualification or separately generated P/N signals.
+
+Document clock frequency, phase/inversion, reset behavior and enable timing.
+In these wrappers, `INVERT_G` controls the forwarded phase and `outEnL = '1'`
+releases the output buffer. Releasing the pin differs from resetting the DDR
+output to a driven level. Do not assume either control provides a glitch-free
+clock stop/start protocol; meet the selected primitive's timing requirements
+and the receiving device's clock requirements.
+
+This PHY excerpt forwards `sampleClk` to a differential pin pair. The target
+sets `XIL_DEVICE_G` to a supported family; `sampleRst` is active high and
+`clockRelease` is a separately sequenced, active-high pin-release control:
+
+```vhdl
+U_SampleClock : entity surf.ClkOutBufDiff
+   generic map (
+      TPD_G          => TPD_G,
+      XIL_DEVICE_G   => XIL_DEVICE_G,
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn   => sampleClk,     -- [in]
+      rstIn   => sampleRst,     -- [in]
+      outEnL  => clockRelease,  -- [in]
+      clkOutP => sampleClkP,    -- [out]
+      clkOutN => sampleClkN);   -- [out]
+```
+
+The wrapper owns both P/N outputs and the DDR primitive. If the pin is always
+driven, tie `outEnL` to `'0'`; that does not remove the reset or clock-timing
+requirements.
+
+A protocol clock generated by a controller is a different case.
+[SpiMaster.vhd](../protocols/spi/rtl/SpiMaster.vhd), for example, creates SPI
+clock transitions as registered outputs while its state machine stays on the
+system clock. Preserve the protocol's idle polarity, sampling edge and data
+setup/hold relationship. A signal named `sclk` does not by itself require a
+forwarded-clock primitive or a new internal clock domain.
+
+### Physical-interface and constraint ownership
+
+Document what the reusable PHY provides and what the integrating target must
+supply. The target owns board-dependent pin assignments, I/O electrical
+standards, clock definitions, input/output delays and placement requirements.
+Keep reusable implementation constraints with the block where appropriate,
+and make their required use and hierarchy assumptions explicit.
+
+Identify ownership of shared resources, reference clocks and reset sequencing.
+The [ADC DDR readout guidance](../devices/AnalogDevices/adcDdr/README.md#relationship-to-static-timing)
+assigns timing constraints to the integrating target; its
+[delay-controller guidance](../devices/AnalogDevices/adcDdr/README.md#delay-controller-readiness)
+also assigns `IDELAYCTRL` reset generation to the target that owns the reference
+clock. Follow this division rather than hiding board assumptions in common RTL.
+Simulation or runtime calibration does not replace implementation timing checks.
+
+For example, a 7-Series target can own the delay controller below. This excerpt
+assumes `unisim.vcomponents` is imported and `idelayRefClk` is the required
+buffered reference clock. The target's reset sequencer supplies `idelayCtrlRst`
+after accounting for reference-clock stability and the primitive's reset
+requirements:
+
+```vhdl
+-- In the target architecture declarations:
+constant ADC_IODELAY_GROUP_C : string := "ADC_BANK0";
+
+signal idelayCtrlRdy : sl;
+
+attribute IODELAY_GROUP : string;
+attribute IODELAY_GROUP of U_DelayCtrl : label is ADC_IODELAY_GROUP_C;
+
+begin
+
+U_DelayCtrl : IDELAYCTRL
+   port map (
+      REFCLK => idelayRefClk,    -- [in]
+      RST    => idelayCtrlRst,   -- [in]
+      RDY    => idelayCtrlRdy);  -- [out]
+```
+
+Pass the same group string to `AdcDdrPhy.IODELAY_GROUP_G` and connect
+`idelayCtrlRdy` to its `idelayCtrlRdy` input. The target still supplies the
+matching reference-frequency setting and board-specific timing/pin constraints;
+the instance and group attribute alone do not provide them.
 
 ## State and process variables
 
@@ -897,6 +1050,146 @@ synchronizing each bit of a multi-bit value does not make a coherent snapshot.
 A stream crossing needs a suitable asynchronous FIFO; a pulse crossing needs
 a pulse-transfer mechanism. Consume the synchronized result in the destination
 domain, and retain the primitive's inference structure and CDC attributes.
+
+## FIFO and RAM timing contracts
+
+Select a memory by its interface behavior as well as capacity and implementation.
+Reuse [Fifo.vhd](../base/fifo/rtl/Fifo.vhd) and the
+[RAM selectors](../base/ram/README.md) where they support the required behavior.
+Changing a backend or output-pipeline option must preserve the consumer's timing
+contract, or update the consumer and its verification in the same change.
+
+**Strongly prefer first-word fall-through (FWFT) for new FIFO uses.** Set
+`FWFT_EN_G => true` explicitly rather than relying on the wrapper's default.
+In FWFT mode, `valid` identifies a word already presented at the output and
+`rd_en` consumes it. This simplifies downstream logic: the consumer can accept
+an available word without issuing a read request and tracking its later response.
+
+Use requested-read mode only when a specific implementation or interface
+requirement calls for it, and document that reason. Preserve existing read-mode
+contracts during focused maintenance. Without FWFT, a read request precedes the
+returned word; account for read latency and use the returned `valid`. Do not
+treat both modes as the same ready/valid interface.
+
+Honor the selected FIFO's full/empty, overflow/underflow and reset behavior,
+including any output pipeline. Account for in-flight data when choosing
+backpressure thresholds, and do not assume
+asynchronous counts or flags reflect the other domain's latest edge.
+[FifoOutputPipeline.vhd](../base/fifo/rtl/FifoOutputPipeline.vhd) is specifically
+for a FWFT interface; its buffering and bypass behavior are part of that contract.
+
+The following consumer assumes a same-clock FIFO configured with
+`FWFT_EN_G => true`. `fifoValid`/`fifoData` are its `valid`/`dout` outputs and
+`fifoRdEn` drives its `rd_en`. `RegType` owns `fifoRdEn`, `outputValid` and
+`outputData`; both control fields initialize to `'0'`. The consumer has one
+registered output slot, a downstream `outputReady`, and active-high synchronous
+reset shared with the FIFO:
+
+```vhdl
+comb : process (r, fifoValid, fifoData, outputReady, rst) is
+   variable v : RegType;
+begin
+   v := r;
+   v.fifoRdEn := '0';
+
+   -- Release a consumed output before considering a replacement.
+   if outputReady = '1' then
+      v.outputValid := '0';
+   end if;
+
+   if v.outputValid = '0' and fifoValid = '1' then
+      v.outputData  := fifoData;
+      v.outputValid := '1';
+      v.fifoRdEn    := '1';
+   end if;
+
+   if rst = '1' then
+      v := REG_INIT_C;
+   end if;
+   rin <= v;
+
+   fifoRdEn    <= v.fifoRdEn;
+   outputValid <= r.outputValid;
+   outputData  <= r.outputData;
+end process comb;
+```
+
+The combinational `fifoRdEn` consumes the same word captured into the output
+slot on that edge. A stalled output prevents another read. This ordering is
+for FWFT; a requested-read FIFO also needs capacity reserved for responses
+that have been requested but not yet returned.
+
+For RAMs, specify read latency, port enables and output-register enables, and
+align valid/control metadata with the returned data. Use explicit read-latency
+generics where available; preserve the documented interaction with legacy
+`DOA_REG_G`/`DOB_REG_G` settings. Selecting `MEMORY_TYPE_G = "distributed"` does
+not imply asynchronous reads:
+[SimpleDualPortRam.vhd](../base/ram/rtl/SimpleDualPortRam.vhd) keeps synchronous
+reads in its inferred backend, including distributed memory, with a base latency
+of one read-clock cycle and an optional output register.
+
+For example, this RAM has one-cycle reads and no extra output register. It
+uses 8-bit addresses, 32-bit data, one shared clock and active-high synchronous
+reset. The caller accepts every response and prevents same-address read/write
+collisions; `readEnable` and `writeEnable` are inactive during reset:
+
+```vhdl
+U_Ram : entity surf.SimpleDualPortRam
+   generic map (
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      DATA_WIDTH_G   => 32,
+      ADDR_WIDTH_G   => 8,
+      SYNTH_MODE_G   => "inferred",
+      MEMORY_TYPE_G  => "block",
+      COMMON_CLK_G   => true,
+      DOB_REG_G      => false,
+      READ_LATENCY_G => 1)
+   port map (
+      clka   => clk,           -- [in]
+      ena    => '1',           -- [in]
+      wea    => writeEnable,   -- [in]
+      addra  => writeAddress,  -- [in]
+      dina   => writeData,     -- [in]
+      clkb   => clk,           -- [in]
+      rstb   => rst,           -- [in]
+      enb    => readEnable,    -- [in]
+      regceb => '1',           -- [in]
+      addrb  => readAddress,   -- [in]
+      doutb  => readData);     -- [out]
+```
+
+Keep a `readValid : sl` field initialized to `'0'` in the caller's `RegType`.
+Its usual `seq` captures `rin` on `clk` with the same `TPD_G`. The corresponding
+`comb` excerpt aligns valid with the RAM output:
+
+```vhdl
+-- In comb, after v := r:
+v.readValid := readEnable;
+
+if rst = '1' then
+   v := REG_INIT_C;
+end if;
+rin <= v;
+
+readValid <= r.readValid;
+```
+
+A read accepted at an edge updates both `readData` and `readValid` after that
+edge; downstream sequential logic consumes them at the next edge. When reads
+pause, the RAM may retain old data, but `readValid` deasserts. Increasing read
+latency requires a matching valid/metadata pipeline, including matching enable
+and stall behavior.
+
+Define whether same-address read/write or simultaneous writes can occur.
+Depend on a collision result only when the selected implementation and clock
+relationship guarantee it. Preserve read-first, write-first or no-change
+behavior where supported; otherwise prevent the collision in the owning logic.
+Keep memory initialization, output-register reset and clearing stored contents
+distinct, following the existing inference/reset exceptions. Verify latency,
+stalls, simultaneous operations and reset with work pending for the supported
+configurations.
 
 ## Bus and protocol semantics
 
@@ -1280,6 +1573,14 @@ on lint or test results. These questions catch common mistakes:
 - **Timing:** Are payload, valid and controls aligned? What happens on a stall,
   simultaneous consume/refill, cancellation or command completion? Do whole-record
   assignments preserve decisions made earlier in `comb`?
+- **Physical I/O:** Are pin buffers isolated in the PHY, with drive/release
+  polarity, turnaround and reset behavior defined? Are forwarded clocks using
+  the appropriate primitives, and are target constraints and shared-resource
+  responsibilities documented?
+- **Memories:** Do new FIFO uses select FWFT unless an exception is explained?
+  Do FIFO read mode, RAM latency and output enables agree with
+  the consumer's timing? Are capacity thresholds, collisions and reset behavior
+  accounted for across the supported implementations?
 - **Reset and CDC:** Are startup values, reset options and `TPD_G` preserved?
   Is synchronous reset the default, with any asynchronous requirement explained?
   Does the synchronous reset override precede `rin` and output publication,
