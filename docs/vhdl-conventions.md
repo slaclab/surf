@@ -163,9 +163,10 @@ Choose record defaults and disabled outputs according to their
 
 ### Instantiations
 
-Use named association and prefer direct SURF entity instantiation. Group clocks,
-resets and interfaces consistently, with aligned comments showing the direction
-of the instantiated port:
+Use named association and direct entity instantiation for SURF RTL by default.
+This names the implementation explicitly and avoids maintaining a duplicate
+component declaration. Group clocks, resets and interfaces consistently, with
+aligned comments showing the direction of the instantiated port:
 
 ```vhdl
 U_Pipeline : entity surf.AxiStreamPipeline
@@ -183,10 +184,12 @@ U_Pipeline : entity surf.AxiStreamPipeline
       mAxisSlave  => outputSlave);  -- [in]
 ```
 
-Use `-- [inout]` for bidirectional ports. Component binding remains appropriate
-for vendor IP, primitives and flows that require it. Attributes such as
-`ASYNC_REG`, `shreg_extract`, `ram_style` and `use_dsp` express implementation
-constraints and must survive formatting changes.
+Use `-- [inout]` for bidirectional ports. Component instantiation is an exception
+for vendor IP, primitives and flows that require deferred binding. In particular,
+[family and PHY selectors](#fpga-family-and-phy-implementations) often require
+components because entities for other architectures are absent from the build.
+Attributes such as `ASYNC_REG`, `shreg_extract`, `ram_style` and `use_dsp` express
+implementation constraints and must survive formatting changes.
 
 ### Structural generates
 
@@ -205,6 +208,54 @@ implementation selection, while
 [AxiLiteAsync.vhd](../axi/axi-lite/rtl/AxiLiteAsync.vhd) separates common-clock
 and asynchronous paths. Document supported generic values and reject unsupported
 combinations with assertions, following the checks below.
+
+### FPGA-family and PHY implementations
+
+Keep shared behavior in common RTL and isolate family-specific primitives,
+clocking and PHY details behind a common interface. Make implementation
+selection visible in VHDL: use an explicit family or PHY generic and mutually
+exclusive generate branches that instantiate uniquely named implementations.
+Reject unsupported selections with an assertion and document supported values.
+
+**Do not add alternative implementations with the same VHDL filename or entity
+name and rely on ruckus to choose which definition exists.** That pattern hides
+the module's behavior in the build configuration. Give each implementation a
+distinct filename and matching entity name, with a family or PHY suffix, and
+keep one common selector that shows the alternatives and their connections.
+Existing duplicate-name implementations are not a pattern for new code.
+
+The [ADC DDR readout](../devices/AnalogDevices/adcDdr/README.md) demonstrates
+this separation:
+
+- [AdcDdrCore.vhd](../devices/AnalogDevices/adcDdr/rtl/AdcDdrCore.vhd) owns shared
+  alignment, monitoring and register behavior.
+- [AdcDdrPhy.vhd](../devices/AnalogDevices/adcDdr/rtl/AdcDdrPhy.vhd) selects the
+  PHY through `DEVICE_FAMILY_G` and explicit generate branches.
+- [AdcDdrPhy7Series.vhd](../devices/AnalogDevices/adcDdr/7Series/rtl/AdcDdrPhy7Series.vhd)
+  and [AdcDdrPhyUltraScale.vhd](../devices/AnalogDevices/adcDdr/UltraScale/rtl/AdcDdrPhyUltraScale.vhd)
+  contain the family implementations and instantiate correspondingly named
+  deserializers. UltraScale and UltraScale+ share the latter implementation.
+- [ruckus.tcl](../devices/AnalogDevices/adcDdr/ruckus.tcl) loads common sources
+  and uses `getFpgaArch` to load the applicable family directory.
+
+Ruckus may filter out sources that require another family's primitive library;
+the choice between implementations must still be explicit in the VHDL selector.
+Keep the selector generic consistent with the target and loaded family sources.
+
+**Family and PHY selectors often require component instantiation, as an
+exception to the direct-entity rule.** A direct entity instantiation requires
+the referenced entity during analysis, even inside a generate branch that will
+be inactive. Component declarations provide the interfaces without requiring
+those entities to be present, deferring binding until elaboration. Unavailable
+family implementations can remain unbound placeholders (black boxes) in the
+source; their inactive generate branches are not elaborated. `AdcDdrPhy` uses
+this pattern so the common selector can be analyzed with only the selected
+family's sources loaded.
+
+Keep component declarations synchronized with their uniquely named entities.
+The active branch must bind to the intended implementation; a missing selected
+PHY must not silently remain a black box. Use direct entity instantiation where
+this deferred binding is unnecessary.
 
 ### Source layout and checks
 
@@ -1038,15 +1089,16 @@ assumes `AxiLitePkg` is imported, `ep` is a process-local `AxiLiteEndpointType`,
 and `RegType` owns `axiWriteSlave`, `axiReadSlave`, `threshold`, `frameCount` and
 `clearCount`. It uses `axilRst` and the reset generics from the two-process
 template. Initialize the slave records with their `AXI_LITE_*_INIT_C` values.
+This small bank uses an 8-bit local byte address, covering 256 bytes.
 
 ```vhdl
 -- In comb, after v := r:
 v.clearCount := '0';
 axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-axiSlaveRegister(ep, x"000", 0, v.threshold);
-axiSlaveRegisterR(ep, x"004", 0, r.frameCount);
-axiSlaveRegister(ep, x"008", 0, v.clearCount);
+axiSlaveRegister(ep, x"00", 0, v.threshold);
+axiSlaveRegisterR(ep, x"04", 0, r.frameCount);
+axiSlaveRegister(ep, x"08", 0, v.clearCount);
 
 -- This example's clear command wins over a count update earlier in comb.
 if v.clearCount = '1' then
@@ -1079,17 +1131,50 @@ Synchronize status from other clock domains before exposing it through registers
 
 ### Addresses and bank connections
 
-Write fixed offsets as hex literals such as `x"3FC"`. Each digit supplies four
-decode bits, so choose the literal width with the bank aperture and crossbar
-configuration. Changing `x"3FC"` to a wider literal is a decode change, not just
-formatting. Computed offsets remain appropriate for repeated register arrays.
+Prefer crossbar address segments whose local address widths fall on 4-bit
+boundaries, such as 8, 12 or 16 bits. This keeps segment boundaries on hex-digit
+boundaries and makes base addresses and offsets easier to read. Denser packing
+may use other widths when needed to fit the available address space. Normally
+give a module at least 8 local address bits (256 bytes); smaller banks are a
+rare exception for constrained address spaces.
 
-Follow the alignment and strobe behavior of the selected
-[AxiLitePkg.vhd](../axi/axi-lite/rtl/AxiLitePkg.vhd) helper. Word-register helpers
-ignore address bits 1:0 when matching. Once a helper has responded,
-`axiSlaveDefault` cannot turn that low-bit alias into an error; it handles
-unmapped accesses, commonly with `AXI_RESP_DECERR_C`. Add stricter alignment
-checks only when the block's contract calls for them.
+Write fixed offsets as hex literals and use one address width throughout a
+module's register helpers. Pass only the local address bits needed for the
+module's entire register bank, including the usual 8-bit minimum. Do not choose
+each literal's width independently from that register's offset, or include
+parent crossbar selection bits. The crossbar allocation must accommodate the
+module's local address width. Computed offsets remain appropriate for repeated
+register arrays, with the same width rule.
+
+**The width of the address argument controls the helper's decode width.** For
+example:
+
+```vhdl
+axiSlaveRegister(ep, x"000", 0, v.threshold);
+```
+
+Here `x"000"` supplies 12 address bits, so the word-register helper compares
+address bits 11:2; it does not infer an 8-bit bank from the small offset. In a
+crossbar segment with only 8 local address bits, bits 11:8 belong to the parent
+address selection. At a segment base of `0x100`, this call will fail to match
+offset zero because those bits are nonzero. Use `x"00"` for an 8-bit bank.
+Conversely, a bank that needs 12 local address bits must use three-digit
+offsets throughout, including `x"000"` for offset zero, to avoid aliases within
+the bank. Adding leading hex zeros changes decoding; it is not formatting.
+
+Place register offsets on 32-bit word boundaries: `0x00`, `0x04`, `0x08`, and
+so on. Align wider registers to their natural boundaries: a 64-bit register
+starts on an 8-byte boundary (`0x00`, `0x08`, `0x10`), never at `0x04` or `0x0C`;
+a 128-bit register starts on a 16-byte boundary. Reserve every word occupied by
+a wider register so adjacent fields cannot overlap it.
+
+Follow the strobe behavior of the selected
+[AxiLitePkg.vhd](../axi/axi-lite/rtl/AxiLitePkg.vhd) helper. Its word-register
+helpers ignore incoming address bits 1:0 when matching. There is no need to add
+guards requiring `awaddr(1 downto 0)` or `araddr(1 downto 0)` to be zero for an
+ordinary register bank. Once a helper has responded, `axiSlaveDefault` cannot
+turn that low-bit alias into an error; it handles unmapped accesses, commonly
+with `AXI_RESP_DECERR_C`.
 
 Compose banks with the standard crossbar, address-map helpers and base-address
 generics. Name each distinct destination and use its index for all four buses:
@@ -1207,11 +1292,14 @@ on lint or test results. These questions catch common mistakes:
 - **Arithmetic and parameters:** Are widths, signedness, rounding and overflow
   deliberate? Do array bounds/direction and supported zero/one cases work?
   Do constants explain units and policy? Are generic settings propagated and
-  alternative generate branches complete?
+  alternative generate branches complete? Are family/PHY implementations
+  uniquely named and selected explicitly in VHDL?
 - **Interfaces and software:** Are byte order, framing and sidebands preserved?
   Do packed sizes and conversion helpers agree? Are optional and disabled
   interfaces tied off with the intended transaction behavior? Do AXI decode,
-  side effects, PyRogue and the documented map agree?
+  side effects, PyRogue and the documented map agree? Do helper address widths
+  match the module's local address space and fit the crossbar allocation, with
+  word and wider-register alignment preserved?
 - **Readability and integration:** Can a reader follow `comb` in order, with
   unconditional `<=` publication from registered fields or documented exceptions,
   no conditional signal assignments, and a clock/reset-only `seq`? Are statements
