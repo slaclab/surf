@@ -1,5 +1,8 @@
 # Task Plans
 
+Active integration: [RSSI RX and keepalive](rssi-rx-keepalive/README.md), combining
+the keepalive fix with PR #1456 for Warm-TDM hardware acceptance.
+
 Use this directory for planning, progress notes, and handoff material for substantial SURF work.
 
 Create one task directory per effort:
