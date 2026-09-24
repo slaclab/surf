@@ -9,6 +9,56 @@ packetizer/depacketizer layer around `RssiCore`. `RssiCore` is still useful for
 focused protocol integration tests or custom wrappers that already own stream
 chunking and routing.
 
+## Keepalive Compatibility Contract
+
+This section records the SURF/Rogue implementation compatibility contract for
+an established connection with retransmission/keepalive enabled. The historical
+[SLAC RSSI page](https://confluence.slac.stanford.edu/x/1IyfD) and its attached
+Word document are useful protocol references, but archived versions contain
+DATA/NULL-only timeout wording that does not describe deployed ACK keepalive
+behavior. The live page still needs reconciliation. This is a
+maintained statement of that behavior, not a claim that those references have
+been updated or that a complete reconciled RSSI specification exists.
+
+- **Client NULL generation:** NULLs supply keepalive traffic when the client
+  is transmit-idle. The RTL client and Rogue v6.15.0 postpone NULL transmission
+  when they transmit ACKs, as well as DATA or NULL segments. The idle interval
+  is nominally one third of the negotiated NULL timeout. Receipt of server
+  DATA alone is not the timer refresh; transmitting its ACK is.
+- **Server receive liveness:** accepted DATA, NULL, ACK, or BUSY-bearing traffic
+  refreshes the server's NULL timeout. This includes pure ACKs and ACKs with
+  BUSY set. Continuous server-to-client streaming can therefore remain open
+  with only ACKs in the reverse direction and no client DATA/NULL segments.
+- **Validation and silence:** only traffic accepted by the receiver
+  (`rxValid_i`) qualifies. Stale flag values and rejected frames do not refresh
+  liveness. The server closes the connection when qualifying traffic stops for
+  the negotiated timeout, even if its transmit window has already drained.
+- **Separate mechanisms:** a pure ACK does not consume a DATA sequence number.
+  Sequence advancement is not required to demonstrate receive liveness. BUSY
+  flow control, periodic BUSY ACKs, and retransmission accounting have their
+  own rules; this keepalive correction does not change them. DATA+BUSY legality
+  is a separate receive-validation question.
+
+ACK/BUSY timeout refresh was explicitly added in
+[2016](https://github.com/slaclab/surf/commit/b768834bd43c47fc32765de980fe54b3c505a701).
+[PR #1454](https://github.com/slaclab/surf/pull/1454) removed it while adding
+periodic BUSY ACK handling. The removal shipped in v2.74.0 and remains in
+v2.75.0; this branch restores keepalive compatibility while retaining the
+periodic BUSY ACK changes. Rogue's
+[`transportTx()`](https://github.com/slaclab/rogue/blob/e30812114e7e6c338d8ab204d2ec2f61aa1527e8/src/rogue/protocols/rssi/Controller.cpp#L590-L619)
+updates the last-transmit timestamp for ACKs, and
+[`stateOpen()`](https://github.com/slaclab/rogue/blob/e30812114e7e6c338d8ab204d2ec2f61aa1527e8/src/rogue/protocols/rssi/Controller.cpp#L914-L934)
+uses that timestamp to decide when to send NULLs. The RTL client implements the
+corresponding ACK-sensitive idle counter in `RssiMonitor`.
+
+`test_RssiMonitor.py` checks individual timer inputs and invalid flags.
+`test_RssiCoreKeepalive.py` checks the complete server core against an
+independent Python wire peer, including payload delivery with ACK-only replies
+for several timeout periods followed by silence and timeout. Neither runs the
+Rogue implementation or Ethernet. Sustained server-to-host acceptance through
+the deployed Rogue, Ethernet and FPGA image remains necessary; see the
+[test guide](../../tests/protocols/rssi/README.md#keepalive-compatibility-regression).
+
 ## Typical Instantiation
 
 Common SLAC application patterns instantiate one `RssiCoreWrapper` server behind
@@ -147,9 +197,15 @@ For direct `RssiCore`, keep these relationships valid:
 ## Regression Coverage
 
 Cocotb regression coverage under `tests/protocols/rssi/` includes:
-Only `test_RssiChksum.py` and `test_RssiHeaderReg.py` are intended to run in default CI; set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable the remaining characterization tests.
+Stable cases, including the monitor and core keepalive regressions, run by
+default. Set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable gated characterization
+cases; see the [test guide](../../tests/protocols/rssi/README.md).
+
 - Module-level checksum, header, RX FSM, TX FSM, monitor, connection FSM, and
   AXI-Lite register-interface tests.
+- `test_RssiCoreKeepalive.py`: default-enabled server-core integration with
+  SYN negotiation, checked DATA delivery, ACK-only reverse traffic for four
+  NULL timeout periods, and NULL-timeout closure when the peer becomes silent.
 - `test_RssiCore.py`: direct `RssiCore` client/server integration with
   connection, parameter negotiation, payload delivery, retransmission,
   checksum-corruption recovery, keepalive, missing-keepalive close, explicit
