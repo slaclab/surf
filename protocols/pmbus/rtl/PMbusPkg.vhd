@@ -74,4 +74,20 @@ package PMbusPkg is
       16#A0# to 16#A9# => "001",
       16#AA# to 16#FF# => "000");
 
+   -- If-Then-Else for PMbusAccessArray (mirrors the ite() overloads in StdRtlPkg)
+   function ite(i : boolean; t : PMbusAccessArray; e : PMbusAccessArray) return PMbusAccessArray;
+
 end package PMbusPkg;
+
+package body PMbusPkg is
+
+   function ite (i : boolean; t : PMbusAccessArray; e : PMbusAccessArray) return PMbusAccessArray is
+   begin
+      if (i) then
+         return t;
+      else
+         return e;
+      end if;
+   end function ite;
+
+end package body PMbusPkg;
