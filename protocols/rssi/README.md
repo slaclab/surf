@@ -9,6 +9,24 @@ packetizer/depacketizer layer around `RssiCore`. `RssiCore` is still useful for
 focused protocol integration tests or custom wrappers that already own stream
 chunking and routing.
 
+## Keepalive Compatibility
+
+An RSSI server refreshes its receive-liveness timer on validated DATA, NULL,
+ACK, or BUSY traffic. This preserves compatibility with Rogue v6.15.0 and the
+RTL client, which postpone NULL transmission whenever they send ACKs. During
+continuous server-to-client streaming, frequent ACK-only replies therefore
+keep the server connected without separate NULL packets. Ignoring those ACKs
+would close an active connection after each negotiated NULL timeout.
+
+Only traffic accepted by the receiver (`rxValid_i`) refreshes the timer; stale
+flags or rejected frames do not. A peer that stops sending qualifying traffic
+still times out. The separate periodic BUSY-ACK and retransmission behavior is
+unchanged. `test_RssiMonitor.py` covers the timer policy and invalid flags;
+it verifies liveness for several timeout periods followed by closure when the
+peer goes silent. These are monitor-level checks, not a Rogue interoperability
+test. Hardware acceptance with sustained server-to-host traffic through the
+deployed Rogue, Ethernet and FPGA image remains necessary.
+
 ## Typical Instantiation
 
 Common SLAC application patterns instantiate one `RssiCoreWrapper` server behind
@@ -147,7 +165,10 @@ For direct `RssiCore`, keep these relationships valid:
 ## Regression Coverage
 
 Cocotb regression coverage under `tests/protocols/rssi/` includes:
-Only `test_RssiChksum.py` and `test_RssiHeaderReg.py` are intended to run in default CI; set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable the remaining characterization tests.
+Stable cases, including the monitor liveness regression, run by
+default. Set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable gated characterization
+cases; see the [test guide](../../tests/protocols/rssi/README.md).
+
 - Module-level checksum, header, RX FSM, TX FSM, monitor, connection FSM, and
   AXI-Lite register-interface tests.
 - `test_RssiCore.py`: direct `RssiCore` client/server integration with
