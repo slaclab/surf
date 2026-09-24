@@ -7,6 +7,20 @@
 # copied, modified, propagated, or distributed except according to the terms
 # contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
+"""
+Flex BMR467 (BMR4672010/001) digital PoL regulator, PMBus over
+surf.AxiLitePMbusMasterCore.
+
+FIRMWARE REQUIREMENT: instantiate the core with
+ACCESS_ROM_INIT_G => BMR467_ACCESS_ROM_C (surf.FlexPMbusPkg). The default
+ROM treats 0xAA-0xFF as byte transfers; this part has 24 word-sized
+MFR commands there (READ_IOUT0/1, IOUT0/1_CAL_*, USER_CONFIG, ...).
+
+Data formats: VIN/IOUT/temperature/duty/frequency are LINEAR11.
+VOUT is LINEAR16 with VOUT_MODE = 0x13 (exponent -13, LSB ~122 uV).
+PMBus address 0x26 with RSA = 0 ohm (SA shorted to PREF); see the
+PMBus Addressing table for other values.
+"""
 
 import pyrogue as pr
 
@@ -70,8 +84,8 @@ NOT_IMPLEMENTED = [
 ]
 
 class Bmr467(surf.protocols.i2c.PMBus):
-    def __init__(self, **kwargs):
-        super().__init__(notImplemented=NOT_IMPLEMENTED, **kwargs)
+    def __init__(self, simpleDisplay=True, **kwargs):
+        super().__init__(simpleDisplay=simpleDisplay, notImplemented=NOT_IMPLEMENTED, **kwargs)
 
         literalDataFormat = surf.protocols.i2c.getPMbusLiteralDataFormat
         linearDataFormat  = surf.protocols.i2c.getPMbusLinearDataFormat
@@ -123,6 +137,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xBF),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -131,6 +146,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xCA),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -139,6 +155,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xCB),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -147,6 +164,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xCC),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -155,6 +173,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xCD),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -163,6 +182,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xCE),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -171,6 +191,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD0),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -179,6 +200,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD1),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -187,6 +209,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD3),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -195,6 +218,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD4),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -203,6 +227,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD5),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -211,6 +236,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD6),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -219,6 +245,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD7),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -227,6 +254,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD8),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -235,6 +263,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xD9),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -243,6 +272,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xDA),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -259,6 +289,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xDC),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -267,6 +298,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xDD),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -275,6 +307,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xDE),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -291,6 +324,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE0),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -299,6 +333,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE1),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -316,6 +351,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             bitSize      = 16,
             mode         = 'RO',
             pollInterval = 1,
+            hidden       = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -332,6 +368,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE5),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -340,6 +377,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE6),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -348,6 +386,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE7),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -356,6 +395,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE8),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -364,6 +404,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xE9),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -397,6 +438,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             bitSize      = 16,
             mode         = 'RO',
             pollInterval = 1,
+            hidden       = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -405,6 +447,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xF3),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -413,6 +456,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xF5),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -421,6 +465,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xF6),
             bitSize     = 16,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -429,6 +474,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xF8),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -437,6 +483,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xF9),
             bitSize     = 8,
             mode        = 'RW',
+            hidden      = simpleDisplay,
         ))
 
         self.add(pr.RemoteVariable(
@@ -445,6 +492,7 @@ class Bmr467(surf.protocols.i2c.PMBus):
             offset      = (4*0xFA),
             bitSize     = 8,
             mode        = 'RO',
+            hidden      = simpleDisplay,
         ))
 
         # self.add(pr.RemoteVariable(
@@ -493,7 +541,6 @@ class Bmr467(surf.protocols.i2c.PMBus):
             linkedGet    = linearDataFormat,
             dependencies = [self.VOUT_MODE,self.READ_VOUT],
         ))
-        self.VOUT_MODE._default = 0x13
 
         self.add(pr.LinkVariable(
             name         = 'IOUT',
