@@ -28,8 +28,8 @@ import pytest
 from cocotb.triggers import FallingEdge, RisingEdge
 
 from tests.common.regression_utils import run_surf_vhdl_test
-from tests.protocols.packetizer.test_AxiStreamDepacketizer2 import TB
 from tests.protocols.packetizer.packetizer_test_utils import (
+    Depacketizer2TB as TB,
     cycle, packetizer2_header_beat, packetizer2_data_beat,
     packetizer2_tail_beat, send_beats, recv_beats, assert_app_beat,
 )

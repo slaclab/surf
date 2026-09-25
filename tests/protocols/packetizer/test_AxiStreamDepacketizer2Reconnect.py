@@ -12,6 +12,9 @@
 # - DUT: Production V2 depacketizer through its existing flat wrapper. Curated
 #   cases cover every inferred RAM read latency, output pipeline bypass,
 #   NONE/DATA/FULL CRC, CRC pipelining, and RSSI's 256-entry FULL-CRC profile.
+#   PGP3/PGP4/PGP4 Lite cases cover 12/0-bit sequence counters, a single
+#   destination, and PGP3's one-stage input pipeline. Multi-destination SEQ=0
+#   is excluded because NO_SEQ stores only one destination's state.
 # - Stimulus: Open enough destinations to fill the output buffers during link
 #   cleanup, then present fresh headers immediately when linkGood returns.
 #   Separate sparse/empty sweeps distinguish destination 0 from the inactive
@@ -198,8 +201,9 @@ async def reconnect_with_pending_terminations(dut):
 async def sparse_and_empty_sweeps(dut):
     tb = TB(dut)
     await tb.start()
-    # The highest RAM entry is inactive, unlike the original all-active and
-    # mask-9 cases. An old read of active destination 0 must not terminate it.
+    # With multiple destinations, the highest entry is inactive. An old read
+    # of active destination 0 must not terminate it. The single-destination
+    # cases must terminate only destination 0, then handle an empty sweep.
     await tb.reconnect([0], epoch=0)
     # Fresh frames above all ended normally: another disconnect owes no EOFE.
     await tb.reconnect([], epoch=1)
@@ -221,25 +225,34 @@ def test_packetizer2_sof_packet_crc_vector(crc_mode, expected_hex):
 
 
 PARAMETER_SWEEP = [
-    pytest.param("block", False, 3, 1, "NONE", 0, id="block_unregistered"),
-    pytest.param("block", True, 3, 1, "NONE", 0, id="block_registered"),
-    pytest.param("distributed", False, 3, 1, "NONE", 0, id="lut_unregistered"),
-    pytest.param("distributed", True, 3, 1, "DATA", 1, id="lut_registered_crc_pipeline"),
-    pytest.param("block", True, 2, 0, "NONE", 0, id="block_output_bypass"),
-    pytest.param("distributed", False, 2, 0, "NONE", 0, id="lut_output_bypass"),
-    pytest.param("block", True, 8, 1, "FULL", 0, id="rssi_full_crc"),
-    pytest.param("block", True, 3, 1, "FULL", 1, id="full_crc_pipeline"),
+    # memory, registered, bits, output, crc, crc_pipeline, seq, input_stages
+    pytest.param("block", False, 3, 1, "NONE", 0, 16, 0, id="block_unregistered"),
+    pytest.param("block", True, 3, 1, "NONE", 0, 16, 0, id="block_registered"),
+    pytest.param("distributed", False, 3, 1, "NONE", 0, 16, 0, id="lut_unregistered"),
+    pytest.param("distributed", True, 3, 1, "DATA", 1, 16, 0, id="lut_registered_crc_pipeline"),
+    pytest.param("block", True, 2, 0, "NONE", 0, 16, 0, id="block_output_bypass"),
+    pytest.param("distributed", False, 2, 0, "NONE", 0, 16, 0, id="lut_output_bypass"),
+    pytest.param("block", True, 8, 1, "FULL", 0, 16, 0, id="rssi_full_crc"),
+    pytest.param("block", True, 3, 1, "FULL", 1, 16, 0, id="full_crc_pipeline"),
+    pytest.param("distributed", False, 4, 1, "DATA", 0, 12, 1, id="pgp3_seq12_tdest4"),
+    pytest.param("distributed", True, 2, 1, "DATA", 1, 12, 0, id="pgp4_seq12_crc_pipe"),
+    pytest.param("distributed", False, 0, 1, "DATA", 0, 12, 0, id="pgp4_single_vc"),
+    pytest.param("distributed", False, 0, 1, "DATA", 0, 0, 0, id="pgp4lite_seq0"),
+    pytest.param("distributed", True, 0, 1, "DATA", 1, 0, 0, id="pgp4lite_seq0_crc_pipe"),
 ]
 
 
-@pytest.mark.parametrize("memory,registered,bits,output,crc,crc_pipeline", PARAMETER_SWEEP)
-def test_AxiStreamDepacketizer2Reconnect(memory, registered, bits, output, crc, crc_pipeline):
+@pytest.mark.parametrize("memory,registered,bits,output,crc,crc_pipeline,seq,input_stages", PARAMETER_SWEEP)
+def test_AxiStreamDepacketizer2Reconnect(memory, registered, bits, output, crc, crc_pipeline, seq, input_stages):
+    if seq == 0 and bits > 0:
+        pytest.skip("NO_SEQ has one shared state register; per-destination cleanup is unsupported")
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.axistreamdepacketizer2wrapper",
         parameters={
             "MEMORY_TYPE_G": memory, "REG_EN_G": registered, "TDEST_BITS_G": bits,
             "OUTPUT_PIPE_STAGES_G": output, "CRC_MODE_G": crc, "CRC_PIPELINE_G": crc_pipeline,
+            "SEQ_CNT_SIZE_G": seq, "INPUT_PIPE_STAGES_G": input_stages,
         },
         extra_vhdl_sources={
             "surf": ["protocols/packetizer/wrappers/AxiStreamDepacketizer2Wrapper.vhd"],

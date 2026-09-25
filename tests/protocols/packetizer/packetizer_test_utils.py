@@ -115,6 +115,29 @@ class FlatAxisEndpoint:
         return beat
 
 
+class Depacketizer2TB:
+    """Shared flat depacketizer endpoints, clock and initialization wait."""
+
+    def __init__(self, dut):
+        self.dut = dut
+        self.source = FlatAxisEndpoint(dut, prefix="S_AXIS")
+        self.sink = FlatAxisEndpoint(dut, prefix="M_AXIS")
+
+        # Lifetime clock agent; cocotb stops it at the end of the test.
+        self.clock_task = cocotb.start_soon(Clock(dut.axisClk, 5, unit="ns").start())
+        dut.axisRst.setimmediatevalue(1)
+        dut.linkGood.setimmediatevalue(1)
+        dut.M_AXIS_TREADY.setimmediatevalue(0)
+        self.source.set_idle()
+
+    async def reset(self):
+        await reset_packetizer_dut(self.dut)
+        await self.wait_init_done()
+
+    async def wait_init_done(self, timeout_cycles: int = 64):
+        await wait_debug_init_done(self.dut, timeout_cycles=timeout_cycles)
+
+
 def start_packetizer_clock(dut, *, period_ns: float = 5.0) -> None:
     cocotb.start_soon(Clock(dut.axisClk, period_ns, unit="ns").start())
 
