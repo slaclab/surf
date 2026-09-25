@@ -28,6 +28,19 @@ The suite progresses from leaves to integration:
   BUSY asserts, then resumes with intact payload on release. A pass confirms
   this signaling gap; it does not claim correct backpressure behavior. See the
   [integration handoff](../../../docs/plans/rssi-rx-keepalive/README.md).
+- `test_RssiSrpRecovery.py` connects the production V2/FULL-CRC RSSI wrapper
+  to SRPv3 and an AXI read responder across 156.25/125 MHz clocks. It checks
+  reconnect with unacknowledged replies, an unterminated incoming frame, and
+  complete-read bursts with host BUSY alone or a blocked AXI response. It preserves old traffic
+  and checks the first new request without a global reset or output drain.
+  The clean and partial-frame cases run by default and guard the depacketizer
+  reconnect correction. FIFO-filling bursts are slower integration coverage;
+  see the [integration handoff](../../../docs/plans/rssi-rx-keepalive/README.md)
+  for their gates and original-versus-corrected results. The related
+  `tests/protocols/packetizer/test_AxiStreamDepacketizer2Recovery.py` checks
+  exactly one termination per active destination, stable stalled output,
+  reconnect before the sweep finishes, and reset during termination across
+  block/distributed RAM configurations.
 - `test_RssiCore.py` covers direct client/server negotiation, payload transfer,
   backpressure, loss/retransmission, checksums, keepalive, close/reopen, BUSY,
   and AXI-Lite-controlled behavior.

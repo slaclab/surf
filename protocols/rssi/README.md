@@ -207,6 +207,27 @@ receive buffer or produce another application frame. Its ACK is still reported
 when the header, ACK window, and payload termination pass validation. This
 allows acknowledgment progress for traffic in the opposite direction.
 
+## Application Frames Across Reconnect
+
+With packetizer V2 enabled, `RssiCoreWrapper` passes connection state to the
+depacketizer's `linkGood` input. Link loss must terminate open application frames
+with EOF+EOFE before accepting new frames for those destinations. It does not
+globally reset an attached SRP bridge or cancel AXI transactions already issued.
+
+The termination sweep must read a destination's active-frame flag before
+clearing that same RAM entry. Its output pipeline must consume each pending
+beat exactly once under backpressure. Otherwise an attached `SsiFrameLimiter`
+can retain an unterminated frame and consume the first post-reconnect SOF as
+that old frame's error ending, losing the new request.
+
+The local recovery correction on `fix/rssi-rx-keepalive-integration` addresses
+both the sweep RAM address and pending-beat ownership. Firmware built before
+that correction can lose the first request after a congested disconnect.
+Queued responses from the old connection may still emerge; reconnect is not
+a global application flush. See the [recovery tests](../../tests/protocols/rssi/README.md)
+and [integration handoff](../../docs/plans/rssi-rx-keepalive/README.md) for the
+tested boundary and remaining hardware acceptance.
+
 ## Regression Coverage
 
 Run the default suite with:
