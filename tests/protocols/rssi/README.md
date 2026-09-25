@@ -23,6 +23,11 @@ The suite progresses from leaves to integration:
 - `test_RssiCoreRx.py` checks default core RX coverage with an independent wire
   peer: DATA+BUSY, duplicate suppression, sequence wrap, and close/reopen with
   unread data. It also checks real client/server negotiation.
+- `test_RssiBusyThreshold.py` characterizes the current 1024-byte storage
+  geometry under a stalled application sink: ACK progress stops before local
+  BUSY asserts, then resumes with intact payload on release. A pass confirms
+  this signaling gap; it does not claim correct backpressure behavior. See the
+  [integration handoff](../../../docs/plans/rssi-rx-keepalive/README.md).
 - `test_RssiCore.py` covers direct client/server negotiation, payload transfer,
   backpressure, loss/retransmission, checksums, keepalive, close/reopen, BUSY,
   and AXI-Lite-controlled behavior.
