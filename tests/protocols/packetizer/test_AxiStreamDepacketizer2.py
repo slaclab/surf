@@ -29,7 +29,7 @@ from cocotb.triggers import with_timeout
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.protocols.packetizer.packetizer_test_utils import (
     AxisBeat,
-    FlatAxisEndpoint,
+    Depacketizer2TB as TB,
     PACKETIZER2_CRC_DATA,
     PACKETIZER2_CRC_NONE,
     DEBUG_INIT_DONE,
@@ -40,31 +40,8 @@ from tests.protocols.packetizer.packetizer_test_utils import (
     packetizer2_header_word,
     packetizer2_tail_beat,
     recv_beats,
-    reset_packetizer_dut,
     send_beats,
-    start_packetizer_clock,
-    wait_debug_init_done,
 )
-
-
-class TB:
-    def __init__(self, dut):
-        self.dut = dut
-        self.source = FlatAxisEndpoint(dut, prefix="S_AXIS")
-        self.sink = FlatAxisEndpoint(dut, prefix="M_AXIS")
-
-        start_packetizer_clock(dut)
-        dut.axisRst.setimmediatevalue(1)
-        dut.linkGood.setimmediatevalue(1)
-        dut.M_AXIS_TREADY.setimmediatevalue(0)
-        self.source.set_idle()
-
-    async def reset(self):
-        await reset_packetizer_dut(self.dut)
-        await self.wait_init_done()
-
-    async def wait_init_done(self, timeout_cycles: int = 64):
-        await wait_debug_init_done(self.dut, timeout_cycles=timeout_cycles)
 
 
 def assert_error_beat(beat: AxisBeat, *, dest: int, tid: int, header_user: int) -> None:
