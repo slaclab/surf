@@ -621,8 +621,9 @@ begin
 
             -- Check for max index
             if (r.debug.initDone = '1') then
-               -- Wait for link to come back up
-               if (linkGood = '1') then
+               -- Retain the final termination until it has moved to stage 0.
+               -- HEADER_S reuses stage 1 even while stage 0 is stalled.
+               if (linkGood = '1') and (v.outputAxisMaster(1).tValid = '0') then
                   -- Check for BRAM or REG_EN_G used
                   if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                      -- Next state (1 or 2 cycle read latency)
@@ -688,6 +689,9 @@ begin
          v.crcInit        := (others => '1');
          -- Reset the index
          v.activeTDest    := (others => '1');
+         -- This address override follows the normal read-latency calculation.
+         -- Wait the maximum RAM latency before examining the first entry.
+         v.rdLat          := 2;
          v.debug.initDone := '0';
          -- Next state
          v.state          := TERMINATE_S;

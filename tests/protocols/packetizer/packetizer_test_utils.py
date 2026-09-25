@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import os
+import zlib
 from dataclasses import dataclass
 
 import cocotb
@@ -265,6 +266,40 @@ def packetizer2_tail_beat(*, eof: int, tuser: int, byte_count: int, crc: int = 0
         last=1,
         user=0,
     )
+
+
+def packetizer2_sof_packet(
+    payload: bytes, *, dest: int, tid: int, eof: bool,
+    first_user: int = 0x20, last_user: int = 0,
+    crc_mode: int = PACKETIZER2_CRC_NONE,
+) -> list[AxisBeat]:
+    """Build a first V2 packet; EOF may leave its application frame open.
+
+    CRC is calculated independently with zlib over the wire bytes, including
+    zero padding in the final payload word. FULL also covers the header and
+    low four tail bytes. The CRC itself occupies the final four bytes in
+    network byte order. Continuation packets need a retained CRC and are not
+    modeled by this helper.
+    """
+    if not payload:
+        raise ValueError("A V2 packet needs at least one payload byte")
+    header = packetizer2_header_beat(
+        sof=1, tuser=first_user, dest=dest, tid=tid, seq=0, crc_mode=crc_mode,
+    )
+    padded = payload + bytes((-len(payload)) % 8)
+    data = [packetizer2_data_beat(padded[i:i+8]) for i in range(0, len(padded), 8)]
+    tail = packetizer2_tail_beat(
+        eof=int(eof), tuser=last_user, byte_count=(len(payload)-1) % 8+1,
+    )
+    if crc_mode == PACKETIZER2_CRC_FULL:
+        crc_bytes = header.data.to_bytes(8, "little") + padded + tail.data.to_bytes(8, "little")[:4]
+    elif crc_mode == PACKETIZER2_CRC_DATA:
+        crc_bytes = padded
+    elif crc_mode != PACKETIZER2_CRC_NONE:
+        raise ValueError(f"Unsupported CRC mode: {crc_mode}")
+    if crc_mode != PACKETIZER2_CRC_NONE:
+        tail.data |= int.from_bytes(zlib.crc32(crc_bytes).to_bytes(4, "big"), "little") << 32
+    return [header, *data, tail]
 
 
 def packetizer0_header_beat(*, frame: int, packet: int, tuser: int, dest: int, tid: int) -> AxisBeat:

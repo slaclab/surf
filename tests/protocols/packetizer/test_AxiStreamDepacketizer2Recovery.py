@@ -18,7 +18,8 @@
 # - Checks: Exact application payloads before/after disconnect; held AXI beat
 #   stability; one EOF+EOFE without SOF per destination; no extra output.
 # - Timing: Finite monitor records pre-edge handshakes and is explicitly awaited;
-#   all scenarios have a timeout. CRC is covered by the RSSI/SRP integration.
+#   all scenarios have a timeout. The companion Reconnect regression covers
+#   CRC-enabled cleanup and fresh input arriving before terminations drain.
 
 import os
 
