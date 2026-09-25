@@ -229,7 +229,11 @@ begin
       end process;
    end generate NO_SEQ;
 
-   ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0)   else (others => '0');
+   -- The termination sweep advances activeTDest while clearing the entry just
+   -- examined. Do not clear the next entry before reading its active-frame flag.
+   ramAddrr <= (others => '0') when (TDEST_BITS_G = 0) else
+               r.activeTDest when (r.state = TERMINATE_S and rin.ramWe = '1') else
+               rin.activeTDest;
    crcR     <= r               when (CRC_PIPELINE_G = 1) else rin;
 
    GEN_CRC : if (CRC_EN_C) generate
@@ -381,6 +385,7 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
             -- Check for data
@@ -433,6 +438,7 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
             -- Process an incoming transaction
@@ -603,6 +609,7 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
             -- Reset the values in the RAM
