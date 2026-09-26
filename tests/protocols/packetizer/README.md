@@ -3,6 +3,11 @@
 Follow the shared [test methodology](../../README.md),
 [protocol guidance](../README.md), and [runner documentation](../../common/README.md).
 
+The [working V2 specification](../../../protocols/packetizer/packetizer2-spec.md)
+records current behavior and open compatibility questions. See the
+[coverage ledger](../../../docs/plans/packetizer2-spec/findings.md#coverage-inventory)
+for the scope and limits of the existing assertions.
+
 `packetizer_test_utils.py` provides packet encoders, an independent CRC oracle,
 flat AXI Stream endpoints, and `Depacketizer2TB` for shared clock/reset setup.
 Each test module owns its scenario assertions.
