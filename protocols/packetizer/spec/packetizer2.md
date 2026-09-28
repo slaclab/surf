@@ -370,6 +370,11 @@ The RTL suppresses repeated header-error terminations using stored per-context
 state until the context is reestablished. A newly arriving SOF is not an
 unconditional replacement for an open frame: Rogue rejects an unexpected SOF
 and clears the old assembly; RTL likewise rejects an SOF/active-state mismatch.
+Both discard the packet that triggered this rejection. Neither reprocesses its
+header as a new beginning. Consequently, a valid new frame can be lost along
+with the incomplete old frame. Whether to retain this policy or accept that
+new beginning after abandonment is an open decision (F11). This describes RTL
+header processing; unexpected framing during payload is a separate case.
 
 Application EOFE carried in last-user metadata and transport EOFE reporting a
 damaged packet are distinct inputs. Neither endpoint can be described simply
@@ -380,10 +385,24 @@ incidental sidebands are not fully specified. Header-error diagnostics include
 a suspected sequence-strobe defect. Truncated packets, unexpected framing
 inside payload, and malformed tails still need focused characterization.
 
-### 7.3 RTL link-loss cleanup
+### 7.3 External abandonment and the RTL link binding
 
-A falling `linkGood` initiates a destination cleanup sweep. The baseline
-recovery tests require one EOF+EOFE termination per open destination, none for
+Transport availability and frame continuity are distinct. A temporary outage
+does not itself invalidate an application frame if the transport preserves
+ordered, complete delivery. The integration must identify events at which it
+abandons receive continuity, and define how buffered data around that event is
+handled. This is an endpoint/transport contract, not an additional wire field.
+
+The current PGP4 binding treats loss of local RX link readiness as abandonment;
+its receive path requests PHY reinitialization and ignores packet data during
+acquisition. The RSSI V2 binding uses connection closure, which clears transport
+window state and application buffering. Ordinary RSSI retries while connected
+do not request abandonment. Neither event proves every open frame lost data;
+both integrations conservatively abandon all open receive destinations (F12).
+
+In the current RTL endpoint, a falling `linkGood` initiates a destination
+cleanup sweep. The baseline recovery tests require one EOF+EOFE termination
+per open destination, none for
 inactive destinations, stable output under stalls, and preservation of pending
 terminations ahead of fresh payload. State is cleared as entries are consumed;
 cleanup waits for output capacity.
@@ -406,10 +425,13 @@ The transmitter has no equivalent destination initialization sweep. Its RAM
 contents after an interrupted frame need characterization separately from
 register reset. Resetting a RAM output register does not clear stored context.
 
-The reviewed Rogue V2 API has no equivalent `linkGood` cleanup sweep. The
-lifetime of partial assemblies across software reconnects needs its own
-characterization. RTL recovery guarantees cannot be assumed to apply to Rogue.
-These reset and reconnect questions are tracked under F10.
+The reviewed Rogue V2 API has no equivalent `linkGood` cleanup sweep. Its
+UDP/RSSI wrapper does not notify Packetizer2 when the RSSI session closes,
+although RSSI clears its own queues. Partial packetizer assemblies can therefore
+survive until later traffic rejects them or the object is replaced. Exact
+reconnect behavior still needs integrated characterization; RTL recovery
+guarantees cannot be assumed to apply to Rogue. These questions are tracked
+under F10 and F12 in the [transport investigation](../../../docs/plans/packetizer2-spec/transport-continuity.md).
 
 ## 8. Endpoint Bindings
 
@@ -595,6 +617,8 @@ and validation. Existing test assertions are evidence, not a fresh test pass.
 | F08 | Malformed byte counts, lengths, and reserved bits |
 | F09 | Frame versus fragment metadata and endpoint delivery contracts |
 | F10 | Warm reset, stalled output, and software reconnect |
+| F11 | Discard or accept an unexpected new beginning after abandonment |
+| F12 | Transport continuity, abandonment triggers, and buffered-data boundaries |
 
 The existing [packet helper](../../../tests/protocols/packetizer/packetizer_test_utils.py)
 uses an independent `zlib` first-packet CRC oracle. The two literal vectors in

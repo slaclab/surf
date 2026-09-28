@@ -158,6 +158,114 @@ in April 2017, with initialization and bounded completion added in 2018.
 Internal state invalidation and termination of already-exposed downstream
 frames are separate obligations; an alternative must address both.
 
+### F11: Unexpected SOF discards the first packet of the new frame
+
+Classification: shared observed behavior; recovery policy unresolved.
+
+Both RTL header rejection and Rogue's SOF/sequence/CRC rejection abandon the
+old assembly and discard the triggering packet. Neither retries that packet as
+a fresh beginning. If it was the first valid packet of frame B after an
+incomplete frame A, B is lost as well; B's continuations cannot start assembly.
+This statement assumes RTL is expecting a header, rather than mid-payload.
+
+Needed decision: preserve this behavior or accept a valid new beginning after
+abandoning the old frame. Define what makes that beginning valid, including
+integrity checks and streaming output ordering. Add a directed regression for
+single-packet and fragmented B, with interleaved unaffected destinations.
+See the [source trace](transport-continuity.md#unexpected-sof-is-discarded-by-both-receivers).
+
+Maintainer discussion, 2026-09-28: accepting the new beginning merits serious
+consideration, but existing applications may depend on the extra discard,
+including accidentally. No evidence currently establishes that changing this
+behavior is safe. Treat it as an observable compatibility change, separate
+from a structural refactor, and preserve current behavior pending review.
+
+A careful consumer survey is needed before selecting the policy. Cover direct
+RTL users and wrappers, Rogue integrations, deployed downstream applications,
+and mixed old/new endpoint versions; local repository instantiations alone
+cannot establish compatibility. Look for dependencies on the first frame after
+recovery being sacrificed, EOFE/SOF ordering, FIFO or parser flushing,
+request/retry timing, and error/drop counters. These are possible couplings to
+investigate, not observed dependencies. Include buffered or replayed SOF packets:
+a structurally valid beginning is not by itself evidence of a new application
+transaction. Record surveyed consumers, evidence, unreviewed deployments and
+any migration requirements. This survey has not yet been performed.
+
+### F12: Link availability and receive-continuity policy are conflated
+
+Classification: integration-contract gap; no blanket misuse established.
+
+A brief RSSI outage recovered within the session does not lower RX `linkGood`.
+Actual session closure resets application buffering and retransmission state.
+PGP4 local RX link loss requests PHY reinitialization and ignores packet data
+during acquisition. Global frame abandonment is defensible for these paths,
+but does not prove every open frame was damaged. Pending TX data and TX frame
+context can survive the event in both integrations.
+
+Packet errors alone do not close silent destinations, and a lost tail can
+prevent the next transport header from reaching RTL header validation. Rogue's
+reviewed RSSI binding has no equivalent notification to clear Packetizer2
+assembly on session closure. These facts require distinct transport and endpoint
+contracts rather than a wire-level rule that any link outage invalidates frames.
+
+Needed evidence: integrated continuity-preserving outage versus destructive
+reconnect, queued data around the event, partial packets, stalled output, and
+SOF recovery. The [transport investigation](transport-continuity.md) records
+source evidence and limits. No decision to remove or replace `linkGood` is made.
+
+### F13: Graceful transmit abandonment needs an independent contract
+
+Classification: architectural exploration; no interface or behavior selected.
+
+Maintainer discussion, 2026-09-28: the transmitting Packetizer2 may have no
+visibility into receive-side state, particularly on a unidirectional link.
+The TX/RX recovery asymmetry in F12 is therefore not inherently a defect, and
+a transmit recovery contract cannot require a reverse channel or coordinated
+peer reset. A graceful local mechanism to abandon pending transmit work may
+still be useful for transport reinitialization or an application-requested
+restart. Its trigger and scope need to be defined by the integration.
+
+The current [Packetizer2 interface](../../../protocols/packetizer/rtl/AxiStreamPacketizer2.vhd)
+provides `axisRst`, but no dedicated graceful-abandonment request or completion
+indication. F10's RAM/reset questions remain relevant; clearing local context
+alone does not establish a safe application or transport boundary.
+
+Questions to resolve before proposing an interface:
+
+- Scope and trigger: all destinations or selected contexts, requested locally
+  without assuming knowledge of remote RX state. Distinguish ordinary reset,
+  completion of pending work, and abandonment of incomplete frames.
+- Application input: decide how to handle the remainder of an interrupted
+  frame. Possibilities include consuming/discarding through its accepted
+  `TLAST`, or coordinating a fresh boundary with the upstream producer. Merely
+  clearing active/sequence/CRC state could relabel the old frame's remaining
+  bytes as a new, apparently valid frame. Include interleaved destinations and
+  a producer that stops before providing the old frame's end.
+- Transport output: account for an emitted header, partial payload, a stalled
+  valid beat, and packets already buffered downstream. Define whether pending
+  output is completed, terminated with an existing error indication, or flushed
+  under a coordinated transport reset. Preserve ready/valid obligations outside
+  the applicable interface reset; abandonment cannot silently retract a
+  presented stalled beat.
+- Peer outcome: a local completion indication cannot promise that a remote
+  receiver has closed its frame. Explore what existing packet/error encodings
+  can communicate when the link is usable, and what remains unobservable when
+  it is unavailable. Include receivers retaining old context and F11's current
+  behavior of discarding the next unexpected SOF.
+- Completion and liveness: distinguish internal context invalidation, a safe
+  next application boundary, and downstream acceptance of any termination.
+  Establish dependencies on upstream progress and downstream readiness; a
+  graceful operation cannot promise bounded completion under arbitrary stalls
+  without a defined escalation or coordinated reset.
+- Compatibility and evidence: survey caller expectations and investigate
+  requests between packets, mid-packet, under backpressure, with multiple open
+  destinations, and during repeated recovery. Check cumulative CRC/sequence
+  initialization, old/new peer combinations, and unidirectional operation.
+
+This records a candidate capability to investigate, not a decision to add a
+pin, mode, wire encoding, or TX sweep mirroring RX. No new implementation or
+behavioral test has been added for it.
+
 ## Coverage inventory
 
 These entries describe source-level assertions, not fresh test results.

@@ -18,18 +18,20 @@ The working documents are:
 - [Link-recovery history](link-recovery-history.md): the 2017 PGP3 origin,
   evolution of cleanup/initialization, and the distinction between invalidating
   internal context and terminating already-delivered application frames.
+- [Transport continuity](transport-continuity.md): unexpected-SOF rejection,
+  RSSI retry versus session closure, PGP4 reacquisition, and abandonment policy.
 
 ## Baseline and current status
 
-As of 2026-09-25:
+As of 2026-09-28:
 
 - Worktree: `~/surf-packetizer2-spec`.
 - Branch: `docs/packetizer2-spec`.
 - Base: the existing `fix/depacketizer2-link-recovery` branch at
   `5520beec22698f4ee07b7bd613089abb5c2e2482`.
-- The initial documentation was subsequently committed as `c3c7a1d71`;
-  that is the current branch HEAD for the presentation update. The inspected
-  RTL baseline remains `5520beec2`.
+- The user committed the initial documentation as `c3c7a1d71` and the
+  specification/rendering update as `c76a32dde`, the current branch HEAD.
+  The inspected RTL baseline remains `5520beec2`.
 - Rogue source inspected at `~/rogue`, revision
   `cf356dc277b13fcd4821e6dc78156c7a33090813`.
 - The initial SURF/Rogue/PGP/RSSI source review is recorded. The latest SURF
@@ -46,7 +48,8 @@ As of 2026-09-25:
   the output. Failure or timeout preserves any previous output.
 - Changes are limited to documentation and its rendering tools. No HDL,
   endpoint software, tests, public interfaces, or wire encodings have changed.
-  This presentation update is unstaged; no commits were made by the agent.
+  The transport-continuity follow-up is unstaged; no commits were made by
+  the agent.
 
 ## Working decisions
 
@@ -103,6 +106,31 @@ RAM-latency handling followed. The detailed record distinguishes commit
 intent, observed diffs, and architectural interpretation. No cleanup removal,
 new abort interface, or RTL change has been selected.
 
+## Transport-continuity investigation
+
+The 2026-09-28 review confirms that both receivers discard an unexpected SOF
+while clearing the old assembly. RSSI retries within an active connection
+preserve context; an actual close flushes application buffering and transmit
+window state. PGP4 RX link loss requests PHY reinitialization and suppresses
+packet delivery during acquisition. TX application-frame context is not
+automatically restarted by either binding. Rogue's RSSI error path clears
+transport queues without notifying Packetizer2 to clear its partial assemblies.
+
+The draft now distinguishes transport availability from a decision to abandon
+receive continuity. F11 records the unexpected-SOF choice; F12 records binding
+and queue-ordering questions. These are source findings, not new simulation
+results or approval to change recovery behavior. See the detailed
+[investigation](transport-continuity.md) for evidence and coverage limits.
+
+The follow-up discussion records two further constraints in the findings:
+F11 requires a careful survey of application dependencies, including accidental
+dependence on discarding the first new frame, before changing SOF recovery.
+F13 explores graceful local TX abandonment without assuming a reverse channel
+or remote-state visibility. Input-frame boundaries, pending transport output,
+peer notification, completion and compatibility remain open. The consumer
+survey and TX mechanism investigation are outstanding; neither behavior change
+nor a new interface has been approved.
+
 ## Validation and handoff
 
 Initial review: source inspection only. Existing tests were read, not rerun;
@@ -145,12 +173,20 @@ Validation of this revision:
   references, and generic table. No clipping or overlap was found.
 - No RTL, Rogue integration, simulation, or synthesis tests were run for this
   documentation and render-tool update.
-- `git diff --check` passed. The presentation update is unstaged and branch
-  HEAD remains `c3c7a1d71`; generated HTML/PDF output is ignored under `build/`.
+- `git diff --check` passed. At that validation point the presentation update
+  was unstaged and branch HEAD remained `c3c7a1d71`; generated HTML/PDF output
+  is ignored under `build/`. The user subsequently committed that update.
 
 The link-recovery history addition was checked against local commit messages
 and diffs; its local links, headings, and whitespace were checked. No simulation
 was run, and historical regression results are not claimed as fresh passes.
+
+The 2026-09-28 transport-continuity documentation passed `git diff --check`
+and checks of six Markdown files, 77 local links/anchors, and nine pinned
+Rogue references against the local checkout. HTML and PDF regenerated with
+`make -C protocols/packetizer/spec html pdf`; internal HTML navigation and the
+updated PDF recovery text were checked. No behavioral tests were run, and
+source-based reconnect consequences remain unverified by simulation.
 
 Primary files are the three `*Packetizer2*` RTL units, the V2 standalone tests
 under `tests/protocols/packetizer/`, Rogue `ControllerV2.cpp`/`Controller.cpp`,
