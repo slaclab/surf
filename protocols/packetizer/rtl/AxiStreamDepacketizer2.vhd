@@ -229,7 +229,11 @@ begin
       end process;
    end generate NO_SEQ;
 
-   ramAddrr <= rin.activeTDest when (TDEST_BITS_G > 0)   else (others => '0');
+   -- The termination sweep advances activeTDest while clearing the entry just
+   -- examined. Do not clear the next entry before reading its active-frame flag.
+   ramAddrr <= (others => '0') when (TDEST_BITS_G = 0) else
+               r.activeTDest when (r.state = TERMINATE_S and rin.ramWe = '1') else
+               rin.activeTDest;
    crcR     <= r               when (CRC_PIPELINE_G = 1) else rin;
 
    GEN_CRC : if (CRC_EN_C) generate
@@ -381,6 +385,7 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
             -- Check for data
@@ -433,6 +438,7 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
             -- Process an incoming transaction
@@ -603,19 +609,18 @@ begin
             -- Advance the output pipeline
             if (r.outputAxisMaster(1).tValid = '1' and v.outputAxisMaster(0).tValid = '0') then
                v.outputAxisMaster(0) := r.outputAxisMaster(1);
+               v.outputAxisMaster(1).tValid := '0';
             end if;
 
-            -- Reset the values in the RAM
-            v.packetActive := '0';
-            v.sentEofe     := '0';      -- Clear any frame error
-            v.packetSeq    := (others => '0');
+            -- Reset the CRC
             v.crcInit      := (others => '1');
             v.crcReset     := '1';      -- Reset CRC in ram to 0xFFFFFFFF
 
             -- Check for max index
             if (r.debug.initDone = '1') then
-               -- Wait for link to come back up
-               if (linkGood = '1') then
+               -- Retain the final termination until it has moved to stage 0.
+               -- HEADER_S reuses stage 1 even while stage 0 is stalled.
+               if (linkGood = '1') and (v.outputAxisMaster(1).tValid = '0') then
                   -- Check for BRAM or REG_EN_G used
                   if (MEMORY_TYPE_G /= "distributed") or (REG_EN_G) then
                      -- Next state (1 or 2 cycle read latency)
@@ -628,6 +633,11 @@ begin
             else
                -- Check if ready to move data and RAM output ready
                if (v.outputAxisMaster(1).tValid = '0') and (r.rdLat = 0) then
+                  -- Clear frame state only when consuming this entry. NO_SEQ
+                  -- captures these values every cycle, even without ramWe.
+                  v.packetActive := '0';
+                  v.sentEofe     := '0';  -- Clear any frame error
+                  v.packetSeq    := (others => '0');
                   -- Write to the RAM
                   v.activeTDest                                        := r.activeTDest - 1;
                   -- Increment the index
@@ -637,7 +647,9 @@ begin
                   v.outputAxisMaster(1).tLast                          := '1';
                   v.outputAxisMaster(1).tValid                         := ramPacketActiveOut;
                   v.outputAxisMaster(1).tDest(7 downto 0)              := x"00";  -- Initialize
-                  v.outputAxisMaster(1).tDest(ADDR_WIDTH_C-1 downto 0) := r.activeTDest;
+                  if (TDEST_BITS_G > 0) then
+                     v.outputAxisMaster(1).tDest(ADDR_WIDTH_C-1 downto 0) := r.activeTDest;
+                  end if;
                   v.debug.eof                                          := ramPacketActiveOut;
                   v.debug.eofe                                         := ramPacketActiveOut;
                   -- Check if initializing the RAM is done
@@ -681,6 +693,10 @@ begin
          v.crcInit        := (others => '1');
          -- Reset the index
          v.activeTDest    := (others => '1');
+         -- Always wait the worst-case RAM latency. The address may not change
+         -- if the highest tDest was already selected, so the normal
+         -- change-detected restart above cannot be relied on here.
+         v.rdLat          := 2;
          v.debug.initDone := '0';
          -- Next state
          v.state          := TERMINATE_S;
