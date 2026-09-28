@@ -144,46 +144,55 @@ For direct `RssiCore`, keep these relationships valid:
 - `MAX_SEG_SIZE_G <= (2**SEGMENT_ADDR_SIZE_G)*8`
 - `SEGMENT_ADDR_SIZE_G` is the number of 64-bit payload words per segment.
 
+## DATA And BUSY
+
+DATA carries payload and an ACK. SYN, EACK, RST, and NULL are clear; BUSY may
+be set. BUSY reports the sender's receive-side backpressure independently of
+its outgoing payload. This matches the clarification to the
+[RSSI specification](https://confluence.slac.stanford.edu/spaces/ppareg/pages/211782868/Reliable+SLAC+Streaming+Protocol+RSSI)
+and the existing SURF header generator and Rogue transmitter.
+
+A duplicate of the most recently accepted DATA segment does not rewrite the
+receive buffer or produce another application frame. Its ACK is still reported
+when the header, ACK window, and payload termination pass validation. This
+allows acknowledgment progress for traffic in the opposite direction.
+
 ## Regression Coverage
 
-Cocotb regression coverage under `tests/protocols/rssi/` includes:
-Only `test_RssiChksum.py` and `test_RssiHeaderReg.py` are intended to run in default CI; set `RUN_RSSI_KNOWN_ISSUE_TESTS=1` to enable the remaining characterization tests.
-- Module-level checksum, header, RX FSM, TX FSM, monitor, connection FSM, and
-  AXI-Lite register-interface tests.
-- `test_RssiCore.py`: direct `RssiCore` client/server integration with
-  connection, parameter negotiation, payload delivery, retransmission,
-  checksum-corruption recovery, keepalive, missing-keepalive close, explicit
-  close, close/reopen lifecycle, partial `TKEEP` delivery, transport
-  backpressure stalls, and backpressure-driven BUSY reporting. Focused pytest
-  entries also cover duplicate-free BUSY recovery, AXI-Lite controlled
-  open/parameter writes/status/counter reads/checksum injection/close, and
-  `HEADER_CHKSUM_EN_G=false` connection/payload delivery.
-- `test_RssiCoreWrapper.py`: one-stream `RssiCoreWrapper` smoke coverage across
-  bypass-chunker and legacy packetizer/depacketizer modes, including
-  `WINDOW_ADDR_SIZE_G` values 1, 2, and 3 and `MAX_SEG_SIZE_G` values 64, 128,
-  and 256. Partial-`TKEEP` coverage compares only bytes selected by `TKEEP`;
-  bytes outside `TKEEP` are not part of the payload contract and may be changed
-  by the packetizer path.
-- `test_RssiCoreWrapperMultiStream.py`: two-stream `RssiCoreWrapper` active-open
-  and routed client-to-server payload coverage with `APP_STREAMS_G=2`, routed
-  stream destinations, `APP_ILEAVE_EN_G=true`, and the
-  packetizer2/depacketizer2 path. The routed payload test waits after RSSI
-  connection so the server-side `AxiStreamDepacketizer2` can finish
-  initializing its per-`TDEST` route state. Extended coverage covers
-  bidirectional routing, routed partial-`TKEEP` and EOFE preservation through
-  the packetizer2 application boundary, one routed DATA loss/retransmit case,
-and a second window/segment-size parameter set. Run it with `RUN_RSSI_KNOWN_ISSUE_TESTS=1` (and `RUN_RSSI_EXTENDED_TESTS=1` for extended cases).
+Run the default suite with:
 
-Current EOFE behavior is path-specific in the regression suite: direct
-`RssiCore` and the one-stream legacy wrapper path clear application EOFE on
-receive, while the packetizer2 routed wrapper path preserves EOFE at the routed
-application boundary.
+```sh
+make MODULES="$PWD" import
+.venv/bin/pytest -q tests/protocols/rssi
+```
 
-Known remaining test gaps:
+Default coverage includes the checksum and header generator, RX and TX FSMs,
+monitor, connection FSM, and the focused core-RX entries described below.
+AXI-Lite and broad core/wrapper regressions remain gated by
+`RUN_RSSI_KNOWN_ISSUE_TESTS=1`.
+Their presence in the tree does not mean they pass by default.
 
-- Hardware resource reduction from smaller `WINDOW_ADDR_SIZE_G` values still
-  needs synthesis or target-level validation. The cocotb tests prove
-  elaboration and basic behavior, not BRAM inference.
-- Repeated same-direction DATA loss without an intervening clean ACK/drain
-  interval remains a future characterization item if that behavior becomes part
-  of the hardware contract.
+- `test_RssiRxFsm.py` uses the production synchronous payload RAM. It checks
+  DATA+BUSY with one-word, two-word and full-buffer payloads and partial final
+  `TKEEP`; duplicate ACK validation without RAM writes or second delivery;
+  a wrapped, occupied receive window; malformed duplicate rejection; closure
+  before the first beat, mid-frame, before the final beat and at completion;
+  and the actual PyRogue application-state map. A separate case connects the
+  real checksum block for standalone and contiguous SYN/DATA traffic and
+  malformed-SYN recovery. Checksum-disabled behavior has its own entry.
+- `test_RssiConnFsm.py::test_RssiConnFsm_timeout` checks bounded retries and
+  timeout closure in both client and server modes. The full connection suite
+  also runs by default, including parameter negotiation and rejection.
+- `test_RssiCoreRx.py` checks real client/server negotiation and drives an
+  independent Python wire peer into a server core. The latter exercises the
+  real checksum, payload RAM and application FIFO through DATA+BUSY,
+  duplicate suppression, sequence wrap, and close/reopen with unread data.
+  Unexpected application output is an error; the test does not drain it away.
+
+Broader core and wrapper regressions remain opt-in. A passing default run does
+not establish complete retransmission, backpressure, or wrapper integration
+coverage.
+
+Simulation does not establish FPGA resource use or timing closure. In
+particular, compare synthesis/timing reports for representative window and
+segment sizes before treating this critical-path review as complete.
