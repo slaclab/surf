@@ -2,7 +2,7 @@
 
 Status: exploratory design question. No controller split, generic removal or
 wire-protocol change has been selected. See the [task context](README.md) and
-[working specification](../../../protocols/packetizer/packetizer2-spec.md).
+[working specification](../../../protocols/packetizer/spec/packetizer2.md).
 
 ## Existing boundary
 
@@ -32,6 +32,12 @@ CRC from the tail. It does not transport V2 ID or first user.
 The [RX protocol](../../../protocols/pgp/pgp4/core/rtl/Pgp4RxProtocol.vhd)
 reconstructs those V2 words with DATA mode and default metadata where absent.
 PGP3 uses the same overall arrangement.
+
+The [link-recovery history](link-recovery-history.md) also establishes that
+`linkGood` and per-destination EOFE cleanup originated in the PGP3 integration
+in April 2017. RSSI subsequently adopted the same interface. Separating PGP
+would allow more direct ownership of link-loss policy, but downstream frame
+abandonment would remain an obligation for each streaming endpoint.
 
 ## Configuration provenance
 

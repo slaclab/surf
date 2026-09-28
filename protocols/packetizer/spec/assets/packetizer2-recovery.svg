@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="520" viewBox="0 0 1040 520" role="img" aria-labelledby="title desc">
+  <title id="title">Link-loss cleanup and pending output</title>
+  <desc id="desc">A falling linkGood starts cleanup without discarding pending output. The sweep clears inactive contexts and queues one error termination for each active context, waiting for output capacity. Link return does not cancel cleanup. Sweep completion does not mean queued terminations have transferred.</desc>
+  <style>
+    .title { font: 700 24px Arial, sans-serif; fill: #0b2545; }
+    .label { font: 600 21px Arial, sans-serif; fill: #0b2545; }
+    .text { font: 18px Arial, sans-serif; fill: #18324a; }
+    .box { stroke: #16324f; stroke-width: 2; }
+    .arrow { stroke: #16324f; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#16324f"/>
+    </marker>
+  </defs>
+  <text x="30" y="35" class="title">Receive Cleanup Preserves Output Ordering</text>
+  <rect x="30" y="65" width="620" height="83" rx="8" class="box" fill="#fde2d5"/>
+  <text x="340" y="98" text-anchor="middle" class="label">linkGood falls: Begin cleanup</text>
+  <text x="340" y="129" text-anchor="middle" class="text">Keep any pending output stable until accepted</text>
+  <path d="M340 152 V187" class="arrow"/>
+  <rect x="30" y="193" width="620" height="130" rx="8" class="box" fill="#fff2c8"/>
+  <text x="340" y="227" text-anchor="middle" class="label">Sweep destination contexts</text>
+  <text x="340" y="260" text-anchor="middle" class="text">Inactive: Clear state, no termination</text>
+  <text x="340" y="291" text-anchor="middle" class="text">Active: Queue EOF+EOFE, clear state, wait for capacity</text>
+  <path d="M340 327 V362" class="arrow"/>
+  <rect x="30" y="368" width="620" height="100" rx="8" class="box" fill="#e8f6df"/>
+  <text x="340" y="402" text-anchor="middle" class="label">Sweep complete: initDone=1</text>
+  <text x="340" y="435" text-anchor="middle" class="text">Queued terminations still precede fresh payload</text>
+  <rect x="705" y="193" width="305" height="130" rx="8" class="box" fill="#e9e3ff"/>
+  <text x="857" y="231" text-anchor="middle" class="label">Link returns early</text>
+  <text x="857" y="265" text-anchor="middle" class="text">Pending cleanup</text>
+  <text x="857" y="291" text-anchor="middle" class="text">continues</text>
+  <path d="M700 258 H656" class="arrow"/>
+  <text x="520" y="505" text-anchor="middle" class="text">Behavioral ordering only; global reset can cancel pending output.</text>
+</svg>

@@ -3,7 +3,7 @@
 This is the initial source-review ledger for the revisions recorded in the
 [handoff](README.md). No finding below has a new reproducer or fix from this
 effort. Links into RTL refer to that baseline checkout. The
-[working specification](../../../protocols/packetizer/packetizer2-spec.md)
+[working specification](../../../protocols/packetizer/spec/packetizer2.md)
 defines the evidence terminology.
 
 ## Findings requiring characterization or a decision
@@ -90,7 +90,8 @@ checking consumers.
 
 ### F07: Rogue and RTL apply different CRC acceptance policies
 
-Classification: observed compatibility difference.
+Classification: known software shortcut; intended protocol policy clarified
+by the maintainer on 2026-09-25.
 
 Rogue ignores the advertised mode, always uses FULL when inbound CRC checking
 is enabled, and ignores CRC when it is disabled. RTL requires the configured
@@ -98,9 +99,15 @@ mode and requires zero CRC even in NONE. Rogue transmits NONE or FULL only.
 The common Rogue network wrapper disables inbound checking and enables
 outbound CRC, which can hide receive-direction CRC defects in system testing.
 
-Needed evidence: a directional compatibility matrix including NONE/DATA/FULL,
-header-mode mismatch, zero/nonzero CRC and each software enable combination.
-Decide whether permissive software reception remains a supported policy.
+Decision: the VHDL acceptance policy is the protocol reference. Rogue's
+permissiveness is a known departure, not an alternative definition of correct
+CRC handling. The reference requires matching mode and CRC coverage, including
+a zero CRC field for NONE. This does not authorize changing software behavior.
+
+Needed evidence remains a directional compatibility matrix including
+NONE/DATA/FULL, header-mode mismatch, zero/nonzero CRC and each software enable
+combination. Characterize deployed shortcuts and the impact of any future
+software enforcement change separately from the intended protocol rules.
 
 ### F08: Software tail byte count is not validated like the wire field
 
@@ -145,6 +152,11 @@ equivalent link-status sweep in the reviewed V2 interface.
 Needed evidence: warm reset after partial TX/RX activity, all affected context
 types, reset with stalled output, and software reconnect with incomplete
 assembly. Establish what downstream can observe and what permits a fresh frame.
+
+The [history investigation](link-recovery-history.md) traces cleanup to PGP3
+in April 2017, with initialization and bounded completion added in 2018.
+Internal state invalidation and termination of already-exposed downstream
+frames are separate obligations; an alternative must address both.
 
 ## Coverage inventory
 

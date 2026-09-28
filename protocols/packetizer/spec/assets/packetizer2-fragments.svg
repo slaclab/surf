@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="420" viewBox="0 0 1040 420" role="img" aria-labelledby="title desc">
+  <title id="title">Frame fragmentation and destination interleaving</title>
+  <desc id="desc">Destination A sends two packets around a complete packet for destination B. Each destination retains independent sequence and CRC state. Every packet has a header, payload, and tail.</desc>
+  <style>
+    .title { font: 700 24px Arial, sans-serif; fill: #0b2545; }
+    .label { font: 600 20px Arial, sans-serif; fill: #0b2545; }
+    .text { font: 18px Arial, sans-serif; fill: #18324a; }
+    .box { stroke: #16324f; stroke-width: 2; }
+    .arrow { stroke: #16324f; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#16324f"/>
+    </marker>
+  </defs>
+  <text x="30" y="35" class="title">One Frame Can Span Interleaved Packets</text>
+  <text x="30" y="76" class="text">Application frame A: First fragment + final fragment</text>
+  <text x="30" y="105" class="text">Application frame B: One complete fragment</text>
+  <g transform="translate(30,140)">
+    <rect width="280" height="134" rx="8" class="box" fill="#d9f0ff"/>
+    <text x="140" y="32" text-anchor="middle" class="label">Destination A · Sequence 0</text>
+    <text x="140" y="63" text-anchor="middle" class="text">SOF=1 · EOF=0</text>
+    <line x1="0" y1="82" x2="280" y2="82" class="box"/>
+    <text x="140" y="115" text-anchor="middle" class="text">Header | Payload | Tail</text>
+  </g>
+  <path d="M315 207 H375" class="arrow"/>
+  <g transform="translate(380,140)">
+    <rect width="280" height="134" rx="8" class="box" fill="#e8f6df"/>
+    <text x="140" y="32" text-anchor="middle" class="label">Destination B · Sequence 0</text>
+    <text x="140" y="63" text-anchor="middle" class="text">SOF=1 · EOF=1</text>
+    <line x1="0" y1="82" x2="280" y2="82" class="box"/>
+    <text x="140" y="115" text-anchor="middle" class="text">Header | Payload | Tail</text>
+  </g>
+  <path d="M665 207 H725" class="arrow"/>
+  <g transform="translate(730,140)">
+    <rect width="280" height="134" rx="8" class="box" fill="#d9f0ff"/>
+    <text x="140" y="32" text-anchor="middle" class="label">Destination A · Sequence 1</text>
+    <text x="140" y="63" text-anchor="middle" class="text">SOF=0 · EOF=1</text>
+    <line x1="0" y1="82" x2="280" y2="82" class="box"/>
+    <text x="140" y="115" text-anchor="middle" class="text">Header | Payload | Tail</text>
+  </g>
+  <path d="M170 283 V320 H870 V283" stroke="#3775a2" stroke-width="2" fill="none"/>
+  <text x="520" y="354" text-anchor="middle" class="text">A resumes its own sequence and CRC; B has independent state.</text>
+  <text x="520" y="393" text-anchor="middle" class="text">Each header/tail delimits a packet. In-band SOF/EOF delimit the application frame.</text>
+</svg>
