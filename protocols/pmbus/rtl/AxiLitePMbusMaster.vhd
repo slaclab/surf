@@ -20,17 +20,22 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
+use surf.PMbusPkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity AxiLitePMbusMaster is
    generic (
-      TPD_G           : time            := 1 ns;
-      I2C_ADDR_G      : slv(6 downto 0) := "1010000";
-      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real            := 156.25E+6);  -- units of Hz
+      TPD_G              : time             := 1 ns;
+      I2C_ADDR_G         : slv(6 downto 0)  := "1010000";
+      I2C_SCL_FREQ_G     : real             := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G    : real             := 100.0E-9;    -- units of seconds
+      RD_GAP_TIME_G      : real             := 0.0;         -- units of seconds, 0.0 = no gap after a read
+      WR_GAP_TIME_G      : real             := 0.0;         -- units of seconds, 0.0 = no gap after a write
+      IGNORE_RESP_INIT_G : sl               := '1';         -- '1' = mask I2C failures (read zeros), '0' = SLVERR + fail code
+      ACCESS_ROM_INIT_G  : PMbusAccessArray := PMBUS_ACCESS_ROM_INIT_C;
+      AXI_CLK_FREQ_G     : real             := 156.25E+6);  -- units of Hz
    port (
       -- PMbus Ports
       scl             : inout sl;
@@ -54,11 +59,15 @@ begin
 
    U_Core : entity surf.AxiLitePMbusMasterCore
       generic map (
-         TPD_G           => TPD_G,
-         I2C_ADDR_G      => I2C_ADDR_G,
-         I2C_SCL_FREQ_G  => I2C_SCL_FREQ_G,
-         I2C_MIN_PULSE_G => I2C_MIN_PULSE_G,
-         AXI_CLK_FREQ_G  => AXI_CLK_FREQ_G)
+         TPD_G              => TPD_G,
+         I2C_ADDR_G         => I2C_ADDR_G,
+         I2C_SCL_FREQ_G     => I2C_SCL_FREQ_G,
+         I2C_MIN_PULSE_G    => I2C_MIN_PULSE_G,
+         RD_GAP_TIME_G      => RD_GAP_TIME_G,
+         WR_GAP_TIME_G      => WR_GAP_TIME_G,
+         IGNORE_RESP_INIT_G => IGNORE_RESP_INIT_G,
+         ACCESS_ROM_INIT_G  => ACCESS_ROM_INIT_G,
+         AXI_CLK_FREQ_G     => AXI_CLK_FREQ_G)
       port map (
          -- I2C Interface
          i2ci            => i2ci,
