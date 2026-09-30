@@ -23,6 +23,9 @@ The suite progresses from leaves to integration:
 - `test_RssiCore.py` covers direct client/server negotiation, payload transfer,
   backpressure, loss/retransmission, checksums, keepalive, close/reopen, BUSY,
   and AXI-Lite-controlled behavior.
+- `test_RssiCoreKeepalive.py` covers sustained server DATA with an independent
+  ACK-only wire peer and subsequent receive-liveness timeout through the real
+  server core. It runs by default, independently of the gated core tests.
 - `test_RssiCoreWrapper.py` and `test_RssiCoreWrapperMultiStream.py` cover the
   packetizer/chunker boundary, segment/window configurations, routing,
   multi-stream loss recovery, and application-side sidebands.
@@ -56,6 +59,50 @@ Directed negative cases should verify that illegal flag combinations, malformed
 headers, bad checksums, and out-of-order frames do not leak application payload.
 Recovery cases should then send valid traffic and prove that the endpoint makes
 forward progress without duplicate delivery.
+
+## Keepalive Compatibility Regression
+
+The [implementation compatibility contract](../../../protocols/rssi/README.md#keepalive-compatibility-contract)
+requires a server to remain connected while receiving valid ACKs, including
+ACKs carrying BUSY. Rogue and the RTL client postpone NULL transmission while
+transmitting ACKs. Requiring DATA/NULL-only reverse traffic would disconnect a
+healthy server-to-client stream. ACKs need not advance the receive sequence to
+demonstrate liveness.
+
+| Layer | Required checks | Scope |
+| --- | --- | --- |
+| Monitor: `test_RssiMonitor.py` | Valid DATA, NULL, ACK and BUSY independently refresh liveness; silence and invalid flags time out; periodic BUSY ACK behavior remains covered. | Drives decoded inputs directly; does not validate wire frames. |
+| Core: `test_RssiCoreKeepalive.py` | Negotiate SYN/SYN+ACK/ACK; verify every server DATA payload, sequence, checksum and SSI boundary; send only ACK replies for at least four negotiated NULL timeout periods; require continuous connection, then silence-triggered closure with the NULL-timeout status. | Production server TX/RX, checksum, monitor, connection FSM, FIFOs and RAM, using an independent Python wire peer. |
+| Rogue/hardware acceptance | Sustain server-to-host traffic through the deployed Rogue, UDP/Ethernet and FPGA image; verify received data and absence of timeout/reconnect cycles, then verify recovery after peer loss. | Actual interoperability; the first two layers do not establish this result. |
+
+The core regression checks ACK spacing below the nominal client NULL interval
+and deliberately sends no client DATA/NULL after connection setup. It drains
+the acknowledged transmit window before silence so retransmission failure
+cannot substitute for a receive-liveness timeout. The unused RTL client in the
+existing integration wrapper remains closed; the test does not claim to test
+the client NULL generator or the Rogue executable. Payload or initialization
+errors must fail the scenario, not be hidden by draining unexpected frames.
+
+For a keepalive behavior change, run this regression against both the corrected
+RTL and the known-bad monitor from `ce66ccf99` (the v2.75.0 monitor behavior).
+Use a separate scratch source tree/build for the comparison, changing only
+`RssiMonitor.vhd`; retain the same test and all other RTL. The bad monitor must
+fail on connection continuity during ACK-only streaming, before the silence
+phase. A passing monitor unit test alone is not enough evidence.
+
+```bash
+./.venv/bin/python -m pytest -n 0 -q \
+    tests/protocols/rssi/test_RssiMonitor.py \
+    tests/protocols/rssi/test_RssiCoreKeepalive.py
+```
+
+Historical RSSI prose is not a substitute for an interoperability check. When
+it conflicts with the transmit/receive behavior of supported peers, record the
+discrepancy and evidence before choosing a test expectation. In particular,
+the DATA/NULL-only expectation introduced with #1454 was incorrect even though
+its directed monitor test passed.
+
+## Suite Organization And Commands
 
 When one methodology block can no longer describe a coherent set of scenarios,
 split the integration suite by behavior while continuing to share the RSSI
