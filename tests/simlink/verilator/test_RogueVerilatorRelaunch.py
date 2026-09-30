@@ -13,8 +13,9 @@
 #   run twice as two separate process invocations of the same binary, bound
 #   to the same TCP port pair, against one persistent Memory peer that stays
 #   alive across both runs.
-# - Stimulus: Build libRogueSimLinkDpi.so, build the relaunch TB with
-#   `verilator --binary --timing`, spawn the persistent peer, run the binary
+# - Stimulus: Build the relaunch TB and libRogueSimLinkDpi.so through ruckus
+#   (an abi-check, then make build on simlink/test/sv with
+#   system_verilator.mk), spawn the persistent peer, run the binary
 #   for phase one (write id 1), signal continue, run the same binary again
 #   as a fresh process for phase two (write id 2 queued while no simulator
 #   owns the endpoint).
@@ -48,11 +49,6 @@ PORT_NUM = VERILATOR_RELAUNCH.port_pair(0).first
 # (no VPI/DPI traffic pending); a passing run completes by edge ~1020000.
 # 150_000_000 edges is ~30 s of wall clock on a hang.
 WAIT_EDGES_G = 150_000_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_dpi_library():
-    vu.build_dpi_library()
 
 
 def test_verilator_persistent_peer_survives_relaunch():

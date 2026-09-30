@@ -11,9 +11,11 @@
 # Test methodology:
 # - Sweep: Four Stream, two Memory, and two SideBand leaves in one Icarus
 #   top, on eight adjacent port pairs (IVERILOG_MULTI).
-# - Stimulus: Eight tagged pyzmq peers exchange their own tagged frames with
-#   the DUT; the DUT drives and checks each instance's tagged vector in HDL,
-#   then re-pulses reset and runs a spurious-traffic guard window.
+# - Stimulus: Build the multi-instance TB and RogueSimLink.vpi through
+#   ruckus (make build on simlink/test/sv with system_iverilog.mk); eight
+#   tagged pyzmq peers exchange their own tagged frames with the DUT; the DUT
+#   drives and checks each instance's tagged vector in HDL, then re-pulses
+#   reset and runs a spurious-traffic guard window.
 # - Checks: vvp prints the RogueSvMultiInstanceTb passed banner and exits 0;
 #   every peer exits 0 and passes validate_multi_instance_peer_result(). The
 #   HDL top's own per-tag $fatal checks catch cross-instance isolation
@@ -41,11 +43,6 @@ BASE_PORT = IVERILOG_MULTI.port_pair(0).first
 # passing run completes by edge ~2500. 1_000_000 edges is ~21 s of wall
 # clock on a hang.
 WAIT_EDGES_G = 1_000_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_vpi_module():
-    iu.build_vpi_module()
 
 
 def test_iverilog_multi_instance_isolation():

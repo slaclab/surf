@@ -8,31 +8,33 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Shared helpers for the Verilator SimLink regression: tool discovery/skip
-# (with a version floor since older Verilator builds lack --binary/--timing),
-# the libRogueSimLinkDpi.so build fixture, and the build/run helpers, which
-# serve any self-driving top under simlink/test/sv/.
+# Shared helpers for the Verilator SimLink regression: tool/ruckus discovery
+# and skip (with a version floor since older Verilator builds lack
+# --binary/--timing), the DPI ABI guard, and the build/run helpers, which
+# drive any self-driving top under simlink/test/sv/ through ruckus's
+# system_verilator.mk. abi-check runs under the same backend lock as the
+# ruckus build, so a build never proceeds past a prototype drift between the
+# SV import and the C definition.
 
-import fcntl
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
-from tests.simlink.paths import SV_HDL_TEST_SOURCE_DIR, SV_SOURCE_DIR, VERILATOR_SOURCE_DIR
+from tests.simlink.common import ruckus_verilog_flow as rf
+from tests.simlink.paths import VERILATOR_SOURCE_DIR
 
-REQUIRED_TOOLS = ("make", "gcc", "pkg-config", "verilator")
+REQUIRED_TOOLS = ("make", "gcc", "pkg-config", "verilator", "tclsh")
 MIN_VERILATOR = (5, 20)
 BUILD_TIMEOUT_SECONDS = 300
 RUN_TIMEOUT_SECONDS = 120
 
 TB_TOP = "RogueSvTrafficTb"
-TB_SOURCE = SV_HDL_TEST_SOURCE_DIR / f"{TB_TOP}.sv"
-DPI_LIB = VERILATOR_SOURCE_DIR / "libRogueSimLinkDpi.so"
 
 SKIP_REASON = (
     f"Verilator regression needs {', '.join(REQUIRED_TOOLS)} "
-    f"(verilator >= {'.'.join(str(part) for part in MIN_VERILATOR)})"
+    f"(verilator >= {'.'.join(str(part) for part in MIN_VERILATOR)}) and a "
+    f"ruckus checkout providing system_verilator.mk (RUCKUS_DIR, ./ruckus or ../ruckus)"
 )
 
 
@@ -70,53 +72,21 @@ def tools_available():
     root = _verilator_root()
     if root is None:
         return False
-    return (Path(root) / "include" / "vltstd" / "svdpi.h").exists()
-
-
-def build_dpi_library():
-    """Build libRogueSimLinkDpi.so and run the DPI ABI guard under a file
-    lock so parallel pytest workers do not race on the shared build/
-    output."""
-    build_dir = VERILATOR_SOURCE_DIR / "build"
-    build_dir.mkdir(parents=True, exist_ok=True)
-    with open(build_dir / ".pytest-build.lock", "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        subprocess.run(
-            ["make", "-C", str(VERILATOR_SOURCE_DIR), "all", "abi-check"],
-            check=True, timeout=BUILD_TIMEOUT_SECONDS,
-        )
-
-
-def hdl_sources(tb_source=TB_SOURCE):
-    """Sorted sv/*.sv, sorted verilator/*.sv, then tb_source -- mirroring what
-    ruckus's loadSource -dir collects per directory."""
-    return [
-        *sorted(SV_SOURCE_DIR.glob("*.sv")),
-        *sorted(VERILATOR_SOURCE_DIR.glob("*.sv")),
-        tb_source,
-    ]
+    if not (Path(root) / "include" / "vltstd" / "svdpi.h").exists():
+        return False
+    return rf.find_ruckus_dir("system_verilator.mk") is not None
 
 
 def build_tb(build_dir, parameters, top=TB_TOP):
-    build_dir.mkdir(parents=True, exist_ok=True)
-    source = SV_HDL_TEST_SOURCE_DIR / f"{top}.sv"
-    command = [
-        "verilator", "--binary", "--timing", "-j", "0",
-        "--top-module", top,
-    ]
-    for name, value in parameters.items():
-        command.append(f"-G{name}={value}")
-    command.extend(["--Mdir", str(build_dir), "-o", f"V{top}"])
-    command.extend(str(entry) for entry in hdl_sources(tb_source=source))
-    command.append(str(DPI_LIB.resolve()))
-    command.extend(["-LDFLAGS", f"-Wl,-rpath,{VERILATOR_SOURCE_DIR.resolve()}"])
-    subprocess.run(command, check=True, cwd=build_dir, timeout=BUILD_TIMEOUT_SECONDS)
+    flags = "--binary --timing -j 0" + "".join(f" -G{name}={value}" for name, value in parameters.items())
+    with rf.backend_lock("verilator"):
+        subprocess.run(
+            ["make", "-C", str(VERILATOR_SOURCE_DIR), "abi-check"],
+            check=True, timeout=BUILD_TIMEOUT_SECONDS,
+        )
+        rf.make_build("verilator", build_dir, top, "VERILATOR_FLAGS", flags, BUILD_TIMEOUT_SECONDS)
     return build_dir / f"V{top}"
 
 
 def run_tb(build_dir, top=TB_TOP, plusargs=()):
-    binary_path = build_dir / f"V{top}"
-    return subprocess.run(
-        [str(binary_path), *plusargs],
-        capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS,
-    )
+    return rf.make_tb("verilator", build_dir, top, plusargs, RUN_TIMEOUT_SECONDS)

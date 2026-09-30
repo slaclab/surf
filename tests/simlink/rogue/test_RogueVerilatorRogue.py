@@ -11,8 +11,11 @@
 # Test methodology:
 # - Sweep: One RogueSvRogueTb with Memory0, Stream0 and SideBand0 built with
 #   `verilator --binary --timing`.
-# - Stimulus: The three production Rogue clients (rogue_memory_client.py,
-#   rogue_stream_client.py, rogue_sideband_client.py, unchanged) started under
+# - Stimulus: The TB and libRogueSimLinkDpi.so are built through ruckus (an
+#   abi-check, then make build on simlink/test/sv with system_verilator.mk)
+#   and the compiled binary is launched through ruckus's tb target. The
+#   three production Rogue clients (rogue_memory_client.py,
+#   rogue_stream_client.py, rogue_sideband_client.py, unchanged) start under
 #   SIMLINK_ROGUE_PYTHON before the compiled binary; the DUT drives the
 #   HDL-first Stream frame and SideBand event.
 # - Checks: The DUT's own HDL-side word0/rx checks fire on any mismatch, and
@@ -38,7 +41,6 @@ WAIT_EDGES_G = 18_000_000
 def test_verilator_real_rogue_contract():
     rogue_python = check_rogue_python()
 
-    vu.build_dpi_library()
     vu.build_tb(
         SIM_BUILD,
         {"BASE_PORT_G": BASE_PORT, "WAIT_EDGES_G": WAIT_EDGES_G},

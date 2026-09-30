@@ -13,10 +13,11 @@
 #   direct/sustained loopback, Stream2 128-byte direct loopback, Memory0
 #   AXI-Lite RAM, SideBand0 opcode/remote-data exchange) run under Icarus
 #   with live pyzmq peers.
-# - Stimulus: Build RogueSimLink.vpi, compile the TB with iverilog -g2012,
-#   spawn one peer per active instance (stream/stream/stream/memory/
-#   sideband), wait until every peer reports its ZeroMQ sockets are
-#   connected, then run vvp.
+# - Stimulus: Build the TB and RogueSimLink.vpi through ruckus (make build
+#   on simlink/test/sv with system_iverilog.mk), spawn one peer per active
+#   instance (stream/stream/stream/memory/sideband), wait until every peer
+#   reports its ZeroMQ sockets are connected, then launch vvp through
+#   ruckus's tb target.
 # - Checks: vvp prints the RogueSvTrafficTb passed banner and exits 0, and
 #   every peer exits 0 with byte-exact round-tripped frames/transactions. The
 #   HDL top itself self-checks flop-equivalent timing, stall/gap coverage,
@@ -44,11 +45,6 @@ BASE_PORT = IVERILOG_TRAFFIC.port_pair(0).first
 # ~80000 edges/second measured this session; a passing run completes by edge
 # ~21000. 1_600_000 edges is ~20 s of wall clock on a hang.
 WAIT_EDGES_G = 1_600_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_vpi_module():
-    iu.build_vpi_module()
 
 
 def test_iverilog_traffic_exchanges_stream_beats():

@@ -66,7 +66,7 @@ def check_rogue_python():
                 check=True,
                 capture_output=True,
                 text=True,
-                timeout=15,
+                timeout=30,
             )
             return candidate
         except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
@@ -95,7 +95,12 @@ def rogue_plusargs(memory_result, stream_result, sideband_result):
 
 
 def _wait_for_ready(peer, ready_path, name):
-    deadline = time.monotonic() + 15.0
+    # Matches the SIMLINK_MULTI_MAX_TRAFFIC_SECONDS/SIMLINK_PEER_WAIT_SECONDS
+    # "loaded host" default of 60s already established elsewhere in this
+    # test suite: under pytest-xdist, client process startup (import
+    # rogue/pyrogue, construct the TcpClient) competes with concurrent
+    # ruckus builds in sibling workers.
+    deadline = time.monotonic() + 60.0
     while time.monotonic() < deadline:
         if ready_path.exists():
             return
@@ -106,7 +111,23 @@ def _wait_for_ready(peer, ready_path, name):
                 f"stdout:\n{stdout}\nstderr:\n{stderr}"
             )
         time.sleep(0.02)
-    raise TimeoutError(f"{name} client did not become ready within 15 seconds")
+    raise TimeoutError(f"{name} client did not become ready within 60 seconds")
+
+
+# rogue.interfaces.memory.TcpClient's readiness probe (started when the
+# client's `with root:` block enters, right after it signals ready) times out
+# after a fixed 10 s baked into the compiled Rogue library, not configurable
+# from this side of the binding. Launching the simulator through ruckus's tb
+# recipe (make parses the Makefile and system_iverilog.mk/system_verilator.mk
+# on every invocation, including their own tool-version and git shell calls)
+# adds real fork/exec/parse overhead between "clients ready" and "simulator
+# actually listening" that a direct exec did not have; under pytest-xdist
+# contention that overhead occasionally exceeds the fixed 10 s budget. A
+# retry is the correct mitigation here, not a longer timeout: the timeout
+# cannot be lengthened, and the clients must start between build and run, so
+# the order that creates this race cannot change.
+ROGUE_READINESS_RETRY_SIGNATURE = "Timed out waiting for remote TcpServer readiness"
+ROGUE_RUN_ATTEMPTS = 3
 
 
 def run_sv_rogue(run_sim, base_port, build_dir, rogue_python):
@@ -115,7 +136,24 @@ def run_sv_rogue(run_sim, base_port, build_dir, rogue_python):
     line, and every client's result JSON exactly as the GHDL real-Rogue
     contracts assert them.
 
-    run_sim(plusargs) must return a subprocess.CompletedProcess."""
+    run_sim(plusargs) must return a subprocess.CompletedProcess. Retries on
+    the specific transient SimLink-readiness race described above; any other
+    failure (wrong values, missing banner, non-transient client error) is
+    raised on the first attempt."""
+    for attempt in range(1, ROGUE_RUN_ATTEMPTS + 1):
+        try:
+            _attempt_sv_rogue(run_sim, base_port, build_dir, rogue_python)
+            return
+        except AssertionError as exc:
+            if ROGUE_READINESS_RETRY_SIGNATURE not in str(exc) or attempt == ROGUE_RUN_ATTEMPTS:
+                raise
+            print(
+                f"run_sv_rogue: attempt {attempt} hit the transient SimLink "
+                f"readiness race under load, retrying: {exc}"
+            )
+
+
+def _attempt_sv_rogue(run_sim, base_port, build_dir, rogue_python):
     build_dir.mkdir(parents=True, exist_ok=True)
 
     memory_result = build_dir / "rogue_memory_result.json"

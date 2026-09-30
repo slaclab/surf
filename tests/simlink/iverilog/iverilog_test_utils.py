@@ -8,30 +8,29 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 
-# Shared helpers for the Icarus SimLink regression: tool discovery/skip (with
-# a version floor since older Icarus builds lack the sysfunc argument writes
-# and SV-2012 subset this backend needs), the RogueSimLink.vpi build fixture,
-# and the compile/run helpers, which serve any self-driving top under
-# simlink/test/sv/.
+# Shared helpers for the Icarus SimLink regression: tool/ruckus discovery and
+# skip (with a version floor since older Icarus builds lack the sysfunc
+# argument writes and SV-2012 subset this backend needs), and the build/run
+# helpers, which drive any self-driving top under simlink/test/sv/ through
+# ruckus's system_iverilog.mk.
 
-import fcntl
 import re
 import shutil
 import subprocess
 
-from tests.simlink.paths import IVERILOG_SOURCE_DIR, SV_HDL_TEST_SOURCE_DIR, SV_SOURCE_DIR
+from tests.simlink.common import ruckus_verilog_flow as rf
 
-REQUIRED_TOOLS = ("make", "gcc", "pkg-config", "iverilog", "iverilog-vpi", "vvp")
+REQUIRED_TOOLS = ("make", "gcc", "pkg-config", "iverilog", "iverilog-vpi", "vvp", "tclsh")
 MIN_IVERILOG_MAJOR = 12
 BUILD_TIMEOUT_SECONDS = 300
 RUN_TIMEOUT_SECONDS = 120
 
 TB_TOP = "RogueSvTrafficTb"
-TB_SOURCE = SV_HDL_TEST_SOURCE_DIR / f"{TB_TOP}.sv"
 
 SKIP_REASON = (
     f"Icarus regression needs {', '.join(REQUIRED_TOOLS)} "
-    f"(iverilog >= {MIN_IVERILOG_MAJOR})"
+    f"(iverilog >= {MIN_IVERILOG_MAJOR}) and a ruckus checkout providing "
+    f"system_iverilog.mk (RUCKUS_DIR, ./ruckus or ../ruckus)"
 )
 
 
@@ -52,49 +51,17 @@ def tools_available():
     if subprocess.run(["pkg-config", "--exists", "libzmq"]).returncode != 0:
         return False
     major = _iverilog_major_version()
-    return major is not None and major >= MIN_IVERILOG_MAJOR
-
-
-def build_vpi_module():
-    """Build RogueSimLink.vpi under a file lock so parallel pytest workers do
-    not race on the shared build/ output."""
-    build_dir = IVERILOG_SOURCE_DIR / "build"
-    build_dir.mkdir(parents=True, exist_ok=True)
-    with open(build_dir / ".pytest-build.lock", "w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        subprocess.run(
-            ["make", "-C", str(IVERILOG_SOURCE_DIR), "all"],
-            check=True, timeout=BUILD_TIMEOUT_SECONDS,
-        )
-
-
-def hdl_sources(tb_source=TB_SOURCE):
-    """Sorted sv/*.sv, sorted iverilog/*.sv, then tb_source -- mirroring what
-    ruckus's loadSource -dir collects per directory."""
-    return [
-        *sorted(SV_SOURCE_DIR.glob("*.sv")),
-        *sorted(IVERILOG_SOURCE_DIR.glob("*.sv")),
-        tb_source,
-    ]
+    if major is None or major < MIN_IVERILOG_MAJOR:
+        return False
+    return rf.find_ruckus_dir("system_iverilog.mk") is not None
 
 
 def compile_tb(build_dir, parameters, top=TB_TOP):
-    build_dir.mkdir(parents=True, exist_ok=True)
-    vvp_path = build_dir / f"{top}.vvp"
-    source = SV_HDL_TEST_SOURCE_DIR / f"{top}.sv"
-    command = ["iverilog", "-g2012", "-o", str(vvp_path), "-s", top]
-    for name, value in parameters.items():
-        command.append(f"-P{top}.{name}={value}")
-    command.extend(str(entry) for entry in hdl_sources(tb_source=source))
-    subprocess.run(command, check=True, timeout=BUILD_TIMEOUT_SECONDS)
-    return vvp_path
+    flags = "-g2012" + "".join(f" -P{top}.{name}={value}" for name, value in parameters.items())
+    with rf.backend_lock("iverilog"):
+        rf.make_build("iverilog", build_dir, top, "IVERILOG_FLAGS", flags, BUILD_TIMEOUT_SECONDS)
+    return build_dir / f"{top}.vvp"
 
 
 def run_tb(build_dir, top=TB_TOP, plusargs=()):
-    vvp_path = build_dir / f"{top}.vvp"
-    command = ["vvp", "-n", "-M", str(IVERILOG_SOURCE_DIR), "-mRogueSimLink", str(vvp_path)]
-    command.extend(plusargs)
-    return subprocess.run(
-        command,
-        capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS,
-    )
+    return rf.make_tb("iverilog", build_dir, top, plusargs, RUN_TIMEOUT_SECONDS)

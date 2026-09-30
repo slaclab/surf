@@ -28,6 +28,11 @@ from tests.simlink.common.simlink_protocol import (
 SV_TRAFFIC_TOP = "RogueSvTrafficTb"
 SV_TRAFFIC_BANNER = "RogueSvTrafficTb passed"
 SV_TRAFFIC_PAIR_COUNT = 5
+# Matches the SIMLINK_MULTI_MAX_TRAFFIC_SECONDS/SIMLINK_PEER_WAIT_SECONDS
+# "loaded host" default of 60s already established elsewhere in this test
+# suite: under pytest-xdist, peer process startup competes with concurrent
+# ruckus builds in sibling workers.
+PEER_READY_SECONDS = 60
 
 
 def sv_traffic_peer_specs(base_port):
@@ -76,7 +81,7 @@ def run_sv_traffic(run_sim, base_port, result_dir, *, env=None):
     specs = sv_traffic_peer_specs(base_port)
     peers = spawn_peer_group(specs, result_dir, ready=True, env=env)
     try:
-        wait_for_peers_ready(peers, 10)
+        wait_for_peers_ready(peers, PEER_READY_SECONDS)
         result = run_sim()
         output = result.stdout + result.stderr
         print(output)

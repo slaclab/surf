@@ -12,9 +12,12 @@
 # - Sweep: Four Stream, two Memory, and two SideBand leaves in one binary
 #   built with `verilator --binary --timing`, on eight adjacent port pairs
 #   (VERILATOR_MULTI).
-# - Stimulus: Eight tagged pyzmq peers exchange their own tagged frames with
-#   the DUT; the DUT drives and checks each instance's tagged vector in HDL,
-#   then re-pulses reset and runs a spurious-traffic guard window.
+# - Stimulus: Build the multi-instance binary and libRogueSimLinkDpi.so
+#   through ruckus (an abi-check, then make build on simlink/test/sv with
+#   system_verilator.mk); eight tagged pyzmq peers exchange their own tagged
+#   frames with the DUT; the DUT drives and checks each instance's tagged
+#   vector in HDL, then re-pulses reset and runs a spurious-traffic guard
+#   window.
 # - Checks: the binary prints the RogueSvMultiInstanceTb passed banner and
 #   exits 0; every peer exits 0 and passes
 #   validate_multi_instance_peer_result(). The HDL top's own per-tag $fatal
@@ -42,11 +45,6 @@ BASE_PORT = VERILATOR_MULTI.port_pair(0).first
 # passing run completes by edge ~2100. 20_000_000 edges is ~19 s of wall
 # clock on a hang.
 WAIT_EDGES_G = 20_000_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_dpi_library():
-    vu.build_dpi_library()
 
 
 def test_verilator_multi_instance_isolation():

@@ -38,7 +38,11 @@ def relaunch_plusargs(result_path, address, value):
 
 
 def _wait_for_ready(peer, ready_path):
-    deadline = time.monotonic() + 15.0
+    # Matches the SIMLINK_MULTI_MAX_TRAFFIC_SECONDS/SIMLINK_PEER_WAIT_SECONDS
+    # "loaded host" default of 60s already established elsewhere in this
+    # test suite: under pytest-xdist, peer process startup competes with
+    # concurrent ruckus builds in sibling workers.
+    deadline = time.monotonic() + 60.0
     while time.monotonic() < deadline:
         if ready_path.exists():
             return

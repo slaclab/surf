@@ -12,8 +12,9 @@
 # - Sweep: One RogueSvMemoryRelaunchTb top run twice as two separate vvp
 #   invocations bound to the same TCP port pair, against one persistent
 #   Memory peer that stays alive across both runs.
-# - Stimulus: Build RogueSimLink.vpi, compile the relaunch TB with
-#   iverilog -g2012, spawn the persistent peer, run vvp for phase one
+# - Stimulus: Build the relaunch TB and RogueSimLink.vpi through ruckus
+#   (make build on simlink/test/sv with system_iverilog.mk), spawn the
+#   persistent peer, run vvp for phase one
 #   (write id 1), signal continue, run a fresh vvp for phase two (write
 #   id 2 queued while no simulator owns the endpoint).
 # - Checks: each vvp invocation prints the RogueSvMemoryRelaunchTb passed
@@ -42,11 +43,6 @@ PORT_NUM = IVERILOG_RELAUNCH.port_pair(0).first
 # ~210000 edges/second measured this session; a passing run completes by
 # edge ~44300. 6_300_000 edges is ~30 s of wall clock on a hang.
 WAIT_EDGES_G = 6_300_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_vpi_module():
-    iu.build_vpi_module()
 
 
 def test_iverilog_persistent_peer_survives_relaunch():

@@ -12,12 +12,12 @@
 # - Sweep: One RogueSvTrafficTb top (Stream0 throttled loopback, Stream1
 #   direct/sustained loopback, Stream2 128-byte direct loopback, Memory0
 #   AXI-Lite RAM, SideBand0 opcode/remote-data exchange) run under Verilator
-#   with live pyzmq peers -- the same top and scenario Plan 01-01 built for
-#   Icarus.
-# - Stimulus: Build libRogueSimLinkDpi.so, build the TB with
-#   `verilator --binary --timing`, spawn one peer per active instance
-#   (stream/stream/stream/memory/sideband), wait until every peer reports its
-#   ZeroMQ sockets are connected, then run the compiled binary.
+#   with live pyzmq peers -- the same top and scenario the Icarus suite runs.
+# - Stimulus: Build the TB and libRogueSimLinkDpi.so through ruckus (an
+#   abi-check, then make build on simlink/test/sv with system_verilator.mk),
+#   spawn one peer per active instance (stream/stream/stream/memory/
+#   sideband), wait until every peer reports its ZeroMQ sockets are
+#   connected, then launch the compiled binary through ruckus's tb target.
 # - Checks: the binary prints the RogueSvTrafficTb passed banner and exits 0,
 #   and every peer exits 0 with byte-exact round-tripped frames/transactions.
 #   The HDL top itself self-checks flop-equivalent timing, stall/gap
@@ -46,11 +46,6 @@ BASE_PORT = VERILATOR_TRAFFIC.port_pair(0).first
 # ~235000 edges/second measured this session; a passing run completes by
 # edge ~69500. 5_000_000 edges is ~21 s of wall clock on a hang.
 WAIT_EDGES_G = 5_000_000
-
-
-@pytest.fixture(scope="module", autouse=True)
-def build_dpi_library():
-    vu.build_dpi_library()
 
 
 def test_verilator_traffic_exchanges_stream_beats():

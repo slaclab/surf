@@ -11,10 +11,12 @@
 # Test methodology:
 # - Sweep: One RogueSvRogueTb with Memory0, Stream0 and SideBand0 under
 #   Icarus Verilog.
-# - Stimulus: The three production Rogue clients (rogue_memory_client.py,
-#   rogue_stream_client.py, rogue_sideband_client.py, unchanged) started under
-#   SIMLINK_ROGUE_PYTHON before vvp; the DUT drives the HDL-first Stream frame
-#   and SideBand event.
+# - Stimulus: The TB and RogueSimLink.vpi are built through ruckus (make
+#   build on simlink/test/sv with system_iverilog.mk) and vvp is launched
+#   through ruckus's tb target. The three production Rogue clients
+#   (rogue_memory_client.py, rogue_stream_client.py, rogue_sideband_client.py,
+#   unchanged) start under SIMLINK_ROGUE_PYTHON before vvp; the DUT drives
+#   the HDL-first Stream frame and SideBand event.
 # - Checks: The DUT's own HDL-side word0/rx checks fire on any mismatch, and
 #   sv_rogue_scenario.py asserts the same JSON contracts the GHDL real-Rogue
 #   tests assert for each client.
@@ -38,7 +40,6 @@ WAIT_EDGES_G = 6_000_000
 def test_iverilog_real_rogue_contract():
     rogue_python = check_rogue_python()
 
-    iu.build_vpi_module()
     iu.compile_tb(
         SIM_BUILD,
         {"BASE_PORT_G": BASE_PORT, "WAIT_EDGES_G": WAIT_EDGES_G},
