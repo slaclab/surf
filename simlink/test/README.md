@@ -10,7 +10,7 @@ runner supplies the sources it needs explicitly.
 | `common/` | Backend-neutral flat and multi-instance harnesses driven by cocotb |
 | `vcs/` | VCS-specific VPI test bridge |
 | `xsim/` | Self-driving Vivado xsim testbench tops |
-| `sv/` | Four self-driving SystemVerilog tops shared by the Icarus and Verilator runners: `RogueSvTrafficTb` (traffic), `RogueSvMultiInstanceTb` (eight-instance isolation), `RogueSvMemoryRelaunchTb` (persistent-peer relaunch), `RogueSvRogueTb` (real-Rogue contract) |
+| `sv/` | Four self-driving SystemVerilog tops shared by the Icarus and Verilator runners: `RogueSvTrafficTb` (traffic), `RogueSvMultiInstanceTb` (eight-instance isolation), `RogueSvMemoryRelaunchTb` (persistent-peer relaunch), `RogueSvRogueTb` (real-Rogue contract); also holds the `Makefile` and `ruckus.tcl` Vivado-free ruckus project that builds these tops on `system_iverilog.mk` or `system_verilator.mk` |
 
 Names describe the source's role: a `Harness` is a passive structural test
 top driven externally, a `Bridge` crosses a simulator/language boundary, and a

@@ -22,8 +22,8 @@ a first production Rogue transaction should use the
 | xsim mixed-language tests | VHDL -> SV -> DPI integration | ABI, elaboration, instance isolation, traffic, and duplicate-pair rejection |
 | Native VCS VHPI shim | Declarative ABI compile and generic lifecycle | End callback remains unregistered; direct cleanup releases metadata and common instances |
 | VCS + cocotb | Opt-in licensed VHPI integration | Same active eight-instance tagged-traffic and reset scenario as GHDL |
-| Icarus VPI traffic | Flat SV wrappers over the Icarus VPI leaves | Flop-equivalent leaf timing, throttled and sustained Stream, 128-byte Stream, AXI-Lite and SideBand traffic, time-0 outputs against live pyzmq peers; eight independent tagged instances with a reset re-pulse, and a persistent pyzmq peer spanning two separate `vvp` runs |
-| Verilator DPI-C traffic | Flat SV wrappers over the Verilator DPI-C leaves | Flop-equivalent leaf timing, throttled and sustained Stream, 128-byte Stream, AXI-Lite and SideBand traffic, time-0 outputs against live pyzmq peers; eight independent tagged instances with a reset re-pulse, and a persistent pyzmq peer spanning two runs of the compiled binary |
+| Icarus VPI traffic | Flat SV wrappers over the Icarus VPI leaves, built and run through ruckus's `system_iverilog.mk` via the `simlink/test/sv` project | Flop-equivalent leaf timing, throttled and sustained Stream, 128-byte Stream, AXI-Lite and SideBand traffic, time-0 outputs against live pyzmq peers; eight independent tagged instances with a reset re-pulse, and a persistent pyzmq peer spanning two separate `vvp` runs |
+| Verilator DPI-C traffic | Flat SV wrappers over the Verilator DPI-C leaves, built and run through ruckus's `system_verilator.mk` via the `simlink/test/sv` project | Flop-equivalent leaf timing, throttled and sustained Stream, 128-byte Stream, AXI-Lite and SideBand traffic, time-0 outputs against live pyzmq peers; eight independent tagged instances with a reset re-pulse, and a persistent pyzmq peer spanning two runs of the compiled binary |
 
 The pyzmq peer is intentionally small and deterministic. It documents the
 numeric ordinary Memory result and ASCII probe result, but because it is not
@@ -173,6 +173,15 @@ against live pyzmq peers:
 ./.venv/bin/python -m pytest -q -n 0 tests/simlink/iverilog tests/simlink/verilator
 ```
 
+Both layers need `tclsh` and a ruckus checkout providing `system_iverilog.mk`
+or `system_verilator.mk` (ruckus 4.32.0 or newer), found through `RUCKUS_DIR`,
+else `./ruckus`, else `../ruckus`; they skip otherwise. Each test runs
+`make build` once against the `simlink/test/sv` ruckus project and launches
+through ruckus's own `tb` target (`make -o build tb`) without rebuilding.
+Builds are serialized per backend by a lock under `tests/sim_build/simlink`,
+because ruckus's SimLink library build runs `make` and `make clean` inside
+the shared `simlink/iverilog` or `simlink/verilator` directory.
+
 Run the Icarus and Verilator real-Rogue contracts the same way as the GHDL
 contract above, by pointing at an interpreter that can import both `rogue`
 and `pyrogue`; both skip when Rogue is unavailable and both run in the Rogue
@@ -183,6 +192,8 @@ SIMLINK_ROGUE_PYTHON=/path/to/rogue/bin/python \
   ./.venv/bin/python -m pytest -q -n 0 \
   tests/simlink/rogue/test_RogueIverilogRogue.py tests/simlink/rogue/test_RogueVerilatorRogue.py
 ```
+
+These also build and run through ruckus, as described above.
 
 The test skips when Rogue is unavailable. The required Linux CI contract uses
 the repository-root `conda-rogue.yml` and pins Rogue `v6.15.0` for

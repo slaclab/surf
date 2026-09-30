@@ -88,7 +88,9 @@ and `N+1`; the next non-overlapping instance's base port must be at least
 `tests/simlink/run-iverilog.sh` and `tests/simlink/iverilog/` exercise this
 backend against live pyzmq peers through the shared traffic, eight-instance,
 and relaunch tops, and `tests/simlink/rogue/test_RogueIverilogRogue.py` runs
-the production Rogue clients against `RogueSvRogueTb`. See the
+the production Rogue clients against `RogueSvRogueTb`. Every test builds
+through the `simlink/test/sv` ruckus project on `system_iverilog.mk` rather
+than a hand-built `iverilog` command line. See the
 [test guide](../../tests/simlink/README.md).
 
 ## Limitations

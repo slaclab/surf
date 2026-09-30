@@ -83,8 +83,10 @@ and `N+1`; the next non-overlapping instance's base port must be at least
 `tests/simlink/run-verilator.sh` and `tests/simlink/verilator/` exercise this
 backend against live pyzmq peers through the shared traffic, eight-instance,
 and relaunch tops, and `tests/simlink/rogue/test_RogueVerilatorRogue.py` runs
-the production Rogue clients against `RogueSvRogueTb`. See the
-[test guide](../../tests/simlink/README.md).
+the production Rogue clients against `RogueSvRogueTb`. Every test builds
+through the `simlink/test/sv` ruckus project on `system_verilator.mk` rather
+than a hand-built `verilator` command line; the `abi-check` guard still runs
+before every build. See the [test guide](../../tests/simlink/README.md).
 
 ## Limitations
 
