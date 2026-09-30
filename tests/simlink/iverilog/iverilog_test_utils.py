@@ -11,7 +11,8 @@
 # Shared helpers for the Icarus SimLink regression: tool discovery/skip (with
 # a version floor since older Icarus builds lack the sysfunc argument writes
 # and SV-2012 subset this backend needs), the RogueSimLink.vpi build fixture,
-# and the RogueSvTrafficTb compile/run helpers.
+# and the compile/run helpers, which serve any self-driving top under
+# simlink/test/sv/.
 
 import fcntl
 import re
@@ -67,30 +68,33 @@ def build_vpi_module():
         )
 
 
-def hdl_sources():
-    """Sorted sv/*.sv, sorted iverilog/*.sv, then the traffic TB -- mirroring
-    what ruckus's loadSource -dir collects per directory."""
+def hdl_sources(tb_source=TB_SOURCE):
+    """Sorted sv/*.sv, sorted iverilog/*.sv, then tb_source -- mirroring what
+    ruckus's loadSource -dir collects per directory."""
     return [
         *sorted(SV_SOURCE_DIR.glob("*.sv")),
         *sorted(IVERILOG_SOURCE_DIR.glob("*.sv")),
-        TB_SOURCE,
+        tb_source,
     ]
 
 
-def compile_tb(build_dir, parameters):
+def compile_tb(build_dir, parameters, top=TB_TOP):
     build_dir.mkdir(parents=True, exist_ok=True)
-    vvp_path = build_dir / f"{TB_TOP}.vvp"
-    command = ["iverilog", "-g2012", "-o", str(vvp_path), "-s", TB_TOP]
+    vvp_path = build_dir / f"{top}.vvp"
+    source = SV_HDL_TEST_SOURCE_DIR / f"{top}.sv"
+    command = ["iverilog", "-g2012", "-o", str(vvp_path), "-s", top]
     for name, value in parameters.items():
-        command.append(f"-P{TB_TOP}.{name}={value}")
-    command.extend(str(source) for source in hdl_sources())
+        command.append(f"-P{top}.{name}={value}")
+    command.extend(str(entry) for entry in hdl_sources(tb_source=source))
     subprocess.run(command, check=True, timeout=BUILD_TIMEOUT_SECONDS)
     return vvp_path
 
 
-def run_tb(build_dir):
-    vvp_path = build_dir / f"{TB_TOP}.vvp"
+def run_tb(build_dir, top=TB_TOP, plusargs=()):
+    vvp_path = build_dir / f"{top}.vvp"
+    command = ["vvp", "-n", "-M", str(IVERILOG_SOURCE_DIR), "-mRogueSimLink", str(vvp_path)]
+    command.extend(plusargs)
     return subprocess.run(
-        ["vvp", "-n", "-M", str(IVERILOG_SOURCE_DIR), "-mRogueSimLink", str(vvp_path)],
+        command,
         capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS,
     )

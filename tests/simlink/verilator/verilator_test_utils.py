@@ -10,8 +10,8 @@
 
 # Shared helpers for the Verilator SimLink regression: tool discovery/skip
 # (with a version floor since older Verilator builds lack --binary/--timing),
-# the libRogueSimLinkDpi.so build fixture, and the RogueSvTrafficTb
-# build/run helpers.
+# the libRogueSimLinkDpi.so build fixture, and the build/run helpers, which
+# serve any self-driving top under simlink/test/sv/.
 
 import fcntl
 import re
@@ -87,35 +87,36 @@ def build_dpi_library():
         )
 
 
-def hdl_sources():
-    """Sorted sv/*.sv, sorted verilator/*.sv, then the traffic TB -- mirroring
-    what ruckus's loadSource -dir collects per directory."""
+def hdl_sources(tb_source=TB_SOURCE):
+    """Sorted sv/*.sv, sorted verilator/*.sv, then tb_source -- mirroring what
+    ruckus's loadSource -dir collects per directory."""
     return [
         *sorted(SV_SOURCE_DIR.glob("*.sv")),
         *sorted(VERILATOR_SOURCE_DIR.glob("*.sv")),
-        TB_SOURCE,
+        tb_source,
     ]
 
 
-def build_tb(build_dir, parameters):
+def build_tb(build_dir, parameters, top=TB_TOP):
     build_dir.mkdir(parents=True, exist_ok=True)
+    source = SV_HDL_TEST_SOURCE_DIR / f"{top}.sv"
     command = [
         "verilator", "--binary", "--timing", "-j", "0",
-        "--top-module", TB_TOP,
+        "--top-module", top,
     ]
     for name, value in parameters.items():
         command.append(f"-G{name}={value}")
-    command.extend(["--Mdir", str(build_dir), "-o", f"V{TB_TOP}"])
-    command.extend(str(source) for source in hdl_sources())
+    command.extend(["--Mdir", str(build_dir), "-o", f"V{top}"])
+    command.extend(str(entry) for entry in hdl_sources(tb_source=source))
     command.append(str(DPI_LIB.resolve()))
     command.extend(["-LDFLAGS", f"-Wl,-rpath,{VERILATOR_SOURCE_DIR.resolve()}"])
     subprocess.run(command, check=True, cwd=build_dir, timeout=BUILD_TIMEOUT_SECONDS)
-    return build_dir / f"V{TB_TOP}"
+    return build_dir / f"V{top}"
 
 
-def run_tb(build_dir):
-    binary_path = build_dir / f"V{TB_TOP}"
+def run_tb(build_dir, top=TB_TOP, plusargs=()):
+    binary_path = build_dir / f"V{top}"
     return subprocess.run(
-        [str(binary_path)],
+        [str(binary_path), *plusargs],
         capture_output=True, text=True, timeout=RUN_TIMEOUT_SECONDS,
     )
