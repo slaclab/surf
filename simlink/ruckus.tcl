@@ -1,16 +1,13 @@
 # Load RUCKUS library
 source $::env(RUCKUS_PROC_TCL)
 
-# Load reusable, simulator-neutral simulation components. Test-only HDL under
-# test/ is supplied explicitly by the tests/simlink runners and is never part
-# of a normal SURF import.
-loadSource -lib surf -sim_only -dir "$::DIR_PATH/sim"
-
 # Select the simulator backend. Prefer the backend explicitly requested by the
 # ruckus make target (make xsim/gui -> xsim, make vcs -> vcs). Fall back to
 # environment sniffing for older ruckus. Note: sniffing VCS_VERSION alone is
 # unreliable because users commonly source both Vivado and VCS in one setup
-# script, so VCS_VERSION is set even during a Vivado xsim run.
+# script, so VCS_VERSION is set even during a Vivado xsim run. iverilog and
+# verilator are never sniffed: they are only selected by explicitly setting
+# RUCKUS_SIM_BACKEND.
 if {[info exists ::env(RUCKUS_SIM_BACKEND)]} {
    set simBackend $::env(RUCKUS_SIM_BACKEND)
 } elseif {[info exists ::env(GHDLFLAGS)]} {
@@ -19,6 +16,17 @@ if {[info exists ::env(RUCKUS_SIM_BACKEND)]} {
    set simBackend "vcs"
 } else {
    set simBackend "xsim"
+}
+
+# Load reusable, simulator-neutral simulation components. Test-only HDL under
+# test/ is supplied explicitly by the tests/simlink runners and is never part
+# of a normal SURF import. The VHDL record wrappers in sim/ serve the ghdl,
+# vcs and xsim backends; the Verilog-only Icarus and Verilator backends have
+# no VHDL support, so they load the flat SystemVerilog wrappers in sv/ instead.
+if {${simBackend} eq {iverilog} || ${simBackend} eq {verilator}} {
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/sv"
+} else {
+   loadSource -lib surf -sim_only -dir "$::DIR_PATH/sim"
 }
 
 # When re-generating an existing Vivado project, purge sibling-backend sources

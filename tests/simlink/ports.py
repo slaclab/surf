@@ -98,6 +98,7 @@ NATIVE_TRANSPORT = PortRange("native-transport", 19900, 9)
 # runners. HDL offsets from BASE_PORT_G are fixed: Stream0 +0, Stream1 +2,
 # Stream2 +4, Memory0 +6, SideBand0 +8 (five pairs total).
 IVERILOG_TRAFFIC = PortRange("iverilog-traffic", 19760, 5)
+VERILATOR_TRAFFIC = PortRange("verilator-traffic", 19780, 5)
 
 ALL_PORT_RANGES = (
     GHDL_CASES,
@@ -127,4 +128,5 @@ ALL_PORT_RANGES = (
     NATIVE_STREAM_OVERLOAD,
     NATIVE_TRANSPORT,
     IVERILOG_TRAFFIC,
+    VERILATOR_TRAFFIC,
 )
