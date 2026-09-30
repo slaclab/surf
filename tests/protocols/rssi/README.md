@@ -23,6 +23,8 @@ The suite progresses from leaves to integration:
 - `test_RssiCore.py` covers direct client/server negotiation, payload transfer,
   backpressure, loss/retransmission, checksums, keepalive, close/reopen, BUSY,
   and AXI-Lite-controlled behavior.
+- `test_RssiCoreBusy.py` runs by default and checks application FIFO pause/BUSY
+  advertisement and recovery through the production server and a wire peer.
 - `test_RssiCoreWrapper.py` and `test_RssiCoreWrapperMultiStream.py` cover the
   packetizer/chunker boundary, segment/window configurations, routing,
   multi-stream loss recovery, and application-side sidebands.
@@ -77,3 +79,26 @@ Run known-issue and extended cases explicitly with:
 RUN_RSSI_KNOWN_ISSUE_TESTS=1 RUN_RSSI_EXTENDED_TESTS=1 \
     ./.venv/bin/python -m pytest -n 0 -q tests/protocols/rssi
 ```
+
+## FIFO Pause/BUSY Regression
+
+`test_RssiCoreBusy.py` fills the real application FIFO while its output is
+stalled, at segment address widths 4 and 5 (pause thresholds 8 and 16 words).
+It stops DATA on the first BUSY header, checks repeated BUSY ACKs with stable
+sequence/ACK values, drains and compares every payload/SSI beat, probes release
+with NULL, resumes DATA, and checks that periodic ACKs stop. It also checks
+application beat stability under backpressure and wire header checksums.
+
+The entire bounded scenario fits inside the negotiated 8192-clock NULL
+timeout. It therefore runs independently of pending #1489's ACK/BUSY liveness
+fix. The unused RTL client stays closed. The test does not execute Rogue,
+assume unsolicited BUSY-release notification, or establish hardware timing.
+
+```bash
+./.venv/bin/python -m pytest -n 0 -q tests/protocols/rssi/test_RssiCoreBusy.py
+```
+
+For a negative comparison, use the same test in an isolated source tree with
+only `RssiCore.vhd` restored to the old occupancy-bit BUSY condition. The
+`pause16` case must fail waiting for a reply during FIFO filling, before the
+periodic/release checks. This verifies the test detects the threshold mismatch.

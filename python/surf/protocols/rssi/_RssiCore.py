@@ -254,7 +254,7 @@ class RssiCore(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         =  'LocalBusy',
-            description  =  'Local Busy flag.  Asserts when AppFifoOut_INST FIFO has 1 or more SEGMENTs filled',
+            description  =  'Latched indication that the application output FIFO asserted pause. Cleared on reset or a new connection.',
             offset       =  0x40,
             bitSize      =  1,
             bitOffset    =  7,
