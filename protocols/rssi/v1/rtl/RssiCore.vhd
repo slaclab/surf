@@ -222,7 +222,6 @@ architecture rtl of RssiCore is
    signal s_mAppAxisMaster : AxiStreamMasterType;
    signal s_mAppAxisSlave  : AxiStreamSlaveType;
    signal s_mAppAxisCtrl   : AxiStreamCtrlType;
-   signal s_mAppfifoWrCnt  : slv(SEGMENT_ADDR_SIZE_G downto 0);
 
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
@@ -807,7 +806,9 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
-   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G);
+   -- Advertise the same backpressure that stops RX application delivery.
+   -- A higher occupancy threshold can be unreachable once pause is asserted.
+   s_localBusy      <= s_mAppAxisCtrl.pause;
 
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);
@@ -840,7 +841,7 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
-         fifoWrCnt   => s_mAppfifoWrCnt,
+         fifoWrCnt   => open,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
