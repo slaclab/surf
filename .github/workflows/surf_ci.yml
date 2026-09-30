@@ -337,6 +337,11 @@ jobs:
             tests/devices/micron/test_DdrSpd.py \
             tests/devices/micron/test_Tse2004av.py
 
+      - name: Flex PMBus Rogue tests
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/devices/flex/test_FlexPmbus.py
+
 # ----------------------------------------------------------------------------
 
   docs:

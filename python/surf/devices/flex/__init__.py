@@ -8,3 +8,4 @@
 ## the terms contained in the LICENSE.txt file.
 ##############################################################################
 from surf.devices.flex._Bmr467 import *
+from surf.devices.flex._Bmr474 import *
