@@ -94,6 +94,11 @@ XSIM_TRAFFIC = PortRange("xsim-traffic", 19740, 8)
 NATIVE_STREAM_OVERLOAD = PortRange("native-stream-overload", 19800, 9)
 NATIVE_TRANSPORT = PortRange("native-transport", 19900, 9)
 
+# RogueSvTrafficTb ports, shared by the Icarus and Verilator SV traffic
+# runners. HDL offsets from BASE_PORT_G are fixed: Stream0 +0, Stream1 +2,
+# Stream2 +4, Memory0 +6, SideBand0 +8 (five pairs total).
+IVERILOG_TRAFFIC = PortRange("iverilog-traffic", 19760, 5)
+
 ALL_PORT_RANGES = (
     GHDL_CASES,
     GHDL_MULTI,
@@ -121,4 +126,5 @@ ALL_PORT_RANGES = (
     XSIM_TRAFFIC,
     NATIVE_STREAM_OVERLOAD,
     NATIVE_TRANSPORT,
+    IVERILOG_TRAFFIC,
 )
