@@ -3,8 +3,10 @@
 SimLink lets Rogue and PyRogue software communicate with an HDL simulation
 through the same Stream, Memory, and SideBand interfaces used for hardware.
 SURF provides interchangeable adapters for GHDL/VHPIDIRECT, Synopsys
-VCS/VHPI, and Vivado xsim/DPI. The downstream `Rogue*Wrap` interfaces are
-common; only the simulator leaf and foreign-function boundary change.
+VCS/VHPI, Vivado xsim/DPI, Icarus Verilog/VPI, and Verilator/DPI-C. The
+downstream `Rogue*Wrap` interfaces are common; only the simulator leaf and
+foreign-function boundary change. Verilog-only designs (Icarus, Verilator)
+instantiate the flat wrappers in `sv/` instead of the VHDL wrappers in `sim/`.
 
 ## Start here
 
@@ -20,7 +22,7 @@ Memory round trip, and the equivalent VCS and xsim entry points.
 | Connect production Rogue/PyRogue software | [Rogue clients](docs/rogue-clients.md) |
 | Move an existing `axi/simlink` VCS target | [Legacy VCS migration](docs/migration-from-vcs.md) |
 | Diagnose setup, bind, readiness, or traffic failures | [Troubleshooting](docs/troubleshooting.md) |
-| Integrate with a specific simulator | [GHDL](ghdl/README.md), [VCS](vcs/README.md), or [xsim](xsim/README.md) |
+| Integrate with a specific simulator | [GHDL](ghdl/README.md), [VCS](vcs/README.md), [xsim](xsim/README.md), [Icarus](iverilog/README.md), or [Verilator](verilator/README.md) |
 | Understand lifecycle, ownership, or pacing | [Architecture reference](docs/architecture.md) |
 | Check ports, framing, or compatibility invariants | [Protocol reference](docs/protocol-reference.md) |
 | Maintain the common C transport/model layer | [Shared internals](shared/README.md) |
@@ -54,6 +56,12 @@ backend implementation:
 | GHDL | VHPIDIRECT | `libRogueSimLinkVhpiDirect.so` | [GHDL](ghdl/README.md) |
 | VCS | VHPI | `libRogueSimLinkVhpi.so` | [VCS](vcs/README.md) |
 | xsim | DPI-C | `libRogueSimLinkDpi.so` | [xsim](xsim/README.md) |
+| Icarus | VPI | `RogueSimLink.vpi` | [Icarus](iverilog/README.md) |
+| Verilator | DPI-C | `libRogueSimLinkDpi.so` | [Verilator](verilator/README.md) |
+
+`iverilog` and `verilator` are selected only by explicitly setting
+`RUCKUS_SIM_BACKEND`; unlike GHDL and VCS, they are never sniffed from other
+environment variables.
 
 Use `RUCKUS_SIM_BACKEND` to select explicitly. The
 [getting-started guide](docs/getting-started.md) covers setup and automatic
@@ -64,9 +72,10 @@ three adapter and lifecycle implementations.
 
 | Path | Purpose | Normal `ruckus` import |
 | --- | --- | --- |
-| `sim/` | Reusable, simulator-neutral VHDL interfaces and pacing | Yes, simulation-only |
+| `sim/` | Reusable, simulator-neutral VHDL interfaces and pacing | Yes, simulation-only (ghdl, vcs, xsim) |
+| `sv/` | Flat SystemVerilog wrappers, imported instead of `sim/` for iverilog and verilator | Yes, simulation-only (iverilog, verilator) |
 | `shared/` | Common C model, transport, lifecycle, and ownership code | Through the selected backend library |
-| `ghdl/`, `vcs/`, `xsim/` | Simulator-specific leaves and foreign-interface adapters | Exactly one selected backend |
+| `ghdl/`, `vcs/`, `xsim/`, `iverilog/`, `verilator/` | Simulator-specific leaves and foreign-interface adapters | Exactly one selected backend |
 | `test/` | HDL and SystemVerilog harnesses, bridges, and testbench tops used only by `tests/simlink` | No; tests supply sources explicitly |
 
 The directory names describe responsibility rather than synthesizability:

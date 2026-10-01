@@ -23,6 +23,13 @@
 # Optional license override, applied to VCS test subprocesses only.
 # export SIMLINK_VCS_LICENSE_FILE=27000@cadlic-ext.stanford.edu
 
+# --- Icarus/Verilator layers -------------------------------------------------
+# Absolute path to a ruckus checkout providing system_iverilog.mk and
+# system_verilator.mk (ruckus 4.32.0 or newer). Default search order is
+# ./ruckus then ../ruckus; only set this if neither location has a
+# flow-capable ruckus checkout.
+# export RUCKUS_DIR=/path/to/ruckus
+
 # --- Common overrides -------------------------------------------------------
 # Override pytest args wholesale (default: "-q -n auto --dist=worksteal").
 # Use serial for readable simulator logs:
