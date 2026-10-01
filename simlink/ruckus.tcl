@@ -32,16 +32,26 @@ if {${simBackend} eq {iverilog} || ${simBackend} eq {verilator}} {
 # When re-generating an existing Vivado project, purge sibling-backend sources
 # so switching backends doesn't leave duplicate RogueTcp* entities in sim_1.
 # Only remove when present, to avoid needless add/remove churn in the project.
+# Directories are compared after normalizing both sides because the project
+# stores the path as loaded (which may go through a symlink), so a normalized
+# get_files glob can silently match nothing.
 # Guard on VIVADO_VERSION because get_files/remove_files are Vivado-only; GHDL
 # re-analyzes from scratch and has no persistent project to clean.
 if {$::env(VIVADO_VERSION) > 0.0} {
+   set staleDirs {}
    foreach other {ghdl vcs xsim} {
       if {${other} ne ${simBackend}} {
-         set staleFiles [get_files -quiet [file normalize "$::DIR_PATH/${other}/*"]]
-         if {[llength ${staleFiles}] > 0} {
-            remove_files -quiet ${staleFiles}
-         }
+         lappend staleDirs [file normalize "$::DIR_PATH/${other}"]
       }
+   }
+   set staleFiles {}
+   foreach f [get_files -quiet -of_objects [get_filesets sim_1]] {
+      if {[lsearch -exact ${staleDirs} [file dirname [file normalize ${f}]]] >= 0} {
+         lappend staleFiles ${f}
+      }
+   }
+   if {[llength ${staleFiles}] > 0} {
+      remove_files -quiet ${staleFiles}
    }
 }
 
