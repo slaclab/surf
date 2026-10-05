@@ -9,6 +9,10 @@ The [magic-number audit](magic-number-audit.md) covers every `PtpCore/rtl` file
 and records the implemented wire-format, units, and numeric-policy cleanup,
 including the policy bounds whose original rationale remains unverified.
 
+The [physical-clock integration note](physical-clock-integration.md) adds
+applied-rate, reference-generation, clock-health and qualification requirements
+extracted from the SPT bridge study. It describes future integration work.
+
 ## Current validation
 
 VHDL changes are awaiting maintainer review. **Do not run simulation or pytest
@@ -994,6 +998,11 @@ destination-clock replica requires an explicit frequency and phase-transfer
 design and must publish its uncertainty. Plain PTP does not silently provide
 that physical clock synchronization.
 
+For a consumer of a physically disciplined clock, also apply the
+[epoch and recovery requirements](physical-clock-integration.md#clock-health-epoch-and-recovery).
+PLL lock and a coherent timestamp snapshot do not establish current destination
+time or deterministic application phase.
+
 ### Application coordination and timed-event interface
 
 Keep four ownership layers distinct:
@@ -1537,9 +1546,12 @@ implementation.
 
 The candidate fabric implementation is an integer MMCM configuration that
 produces the nominal output frequency, with repeated dynamic fine-phase steps
-used to create a small average frequency offset. A phase accumulator converts
-the signed servo-rate request into `PSEN` events, `PSINCDEC` selects the
-direction, and the controller waits for `PSDONE` before issuing another event.
+used to create a small average frequency offset. For a reference sharing the
+PHC's source oscillator, derive the steering correction from the applied PHC
+increment/rate with explicit units; the servo's `ratePpb` diagnostic is not an
+already-applied actuator command. A phase accumulator converts that correction
+into `PSEN` events, `PSINCDEC` selects the direction, and the controller waits
+for `PSDONE` before issuing another event.
 Each event moves the selected output by 1/56 of the MMCM VCO period. Therefore,
 for a fractional frequency correction magnitude `|y|`, the required event rate
 is approximately `|y| * 56 * fVCO`; at a 1 GHz VCO, a 10 ppm correction needs
@@ -1547,9 +1559,15 @@ about 560,000 phase steps per second and each step is about 17.86 ps. A second
 MMCM or PLL may be evaluated as a cleanup stage, but it cannot remove all
 deterministic phase-step modulation and spurs.
 
-Keep this actuator outside `PtpPhc`. The generic PTP boundary should export a
-signed rate/phase request and status such as ready, saturated, locked, and
-fault. A family-specific wrapper should own `MMCME2_ADV`, `MMCME3_ADV`, or
+The [physical-clock integration note](physical-clock-integration.md#reference-generation-and-external-cleanup)
+adds a fabric-accumulator reference feeding an external PLL/VCXO as another
+candidate, plus continuity, lifecycle and hardware qualification requirements.
+Reference frequency and cleanup circuitry are application choices.
+
+Keep this actuator outside `PtpPhc`. A future generic actuator boundary could
+carry a signed rate/phase request and status such as ready, saturated, locked,
+and fault; this boundary is not implemented by the current endpoint. A
+family-specific wrapper should own `MMCME2_ADV`, `MMCME3_ADV`, or
 `MMCME4_ADV`, phase accumulation, `PSEN`/`PSDONE` sequencing, output buffering,
 and reset recovery. This preserves the same protocol and servo logic for a
 fabric MMCM, a transceiver fractional-QPLL, or an external DPLL/VCXO actuator.
