@@ -11,3 +11,4 @@ from surf.devices.micron._AxiMicronMt28ew import *
 from surf.devices.micron._AxiMicronN25Q import *
 from surf.devices.micron._AxiMicronP30 import *
 from surf.devices.micron._DdrSpd import *
+from surf.devices.micron._Tse2004av import *

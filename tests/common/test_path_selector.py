@@ -132,6 +132,28 @@ def test_ethernet_test_change_selects_only_its_area(tmp_path, area):
     assert selection == path_selector.Selection((f"tests/ethernet/{area}",))
 
 
+def test_ethernet_rocev2_source_change_selects_rocev2_tests_in_this_repo():
+    """Not redundant with test_ethernet_source_change_selects_area_and_dependents or
+    test_ethernet_test_change_selects_only_its_area above. Both of those pass
+    tmp_path as repo_root and call _add_test_areas() to synthesize their target
+    directory inside it, so they prove the routing policy (which area maps to
+    which test target) but never that this repository actually owns
+    tests/ethernet/RoCEv2 on disk. path_selector._owned_test_target() returns
+    None when repo_root / target is not a real directory, and
+    path_selector._ethernet_targets() then returns None for the whole change, so
+    a rename or removal of the real tests/ethernet/RoCEv2 directory would leave
+    every existing parametrized case above still green. This test passes no
+    repo_root, so the default path_selector.REPO_ROOT (this checkout) is used,
+    closing that gap.
+    """
+    selection = path_selector.select_targets(
+        [_change("ethernet/RoCEv2/rtl/RoCEv2AxiStreamRdma.vhd")]
+    )
+
+    assert selection == path_selector.Selection(("tests/ethernet/RoCEv2",))
+    assert selection.force_full is False
+
+
 def test_new_ethernet_area_with_owned_tests_selects_its_area(tmp_path):
     _add_test_areas(tmp_path, "ethernet", ("NewArea",))
     selection = path_selector.select_targets(
