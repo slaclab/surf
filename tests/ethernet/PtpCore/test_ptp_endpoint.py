@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: GMII/XGMII autonomous endpoint with an independent Python MAC/wire model.
-# - Stimulus: AXI-Lite configuration/commands, independent two-step master,
+# - Stimulus: AXI-Lite configuration/commands, independent one-/two-step master,
 #   oscillator error, Delay_Req responses, loss and restart.
 # - Checks: PHC commands/snapshots, timestamp provenance, acquisition, lock/holdover,
 #   valid command sequencing and reacquisition with oscillator error.
@@ -86,6 +86,11 @@ async def autonomous_endpoint(d):
     if offset >> 127:
         offset -= 1 << 128
     assert abs(Fraction(offset, Q16)) < 100
+    # Both receive modes describe the same independent 100 ns symmetric path.
+    # A split Sync/Follow_Up correction must give the same E2E result as the
+    # one-step total. Compare at each mode's acquisition point, not by cycle.
+    delay = await b.read(0x3110, 16)
+    assert abs(Fraction(delay, Q16)-b.delay) < Fraction(1, 10), delay
     generation = int(d.timeGeneration.value)
     before = int(d.timeTicks.value)
     d.phyReady.value = 0
@@ -101,9 +106,11 @@ async def autonomous_endpoint(d):
     b.stop()
 
 @pytest.mark.parametrize("mode,real_mac", [("XGMII", False), ("GMII", False)])
-def test_ptp_endpoint(mode, real_mac):
+@pytest.mark.parametrize("two_step", [True, False], ids=["two-step", "one-step"])
+def test_ptp_endpoint(mode, real_mac, two_step):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpendpointloopbackwrapper",
                       parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": real_mac},
-                      extra_env={"MODE": mode, "REAL_MAC": int(real_mac), "OSCILLATOR_PPM": 100 if mode == "XGMII" else -100, "ALLOW_STEP": int(mode == "XGMII"), "ABSOLUTE_PHASE_CHECK": 1},
+                      extra_env={"TWO_STEP": int(two_step), "SYNC_CORRECTION": 10*Q16+3, "ORIGIN_BIAS_NS": 3,
+                                 "MODE": mode, "REAL_MAC": int(real_mac), "OSCILLATOR_PPM": 100 if mode == "XGMII" else -100, "ALLOW_STEP": int(mode == "XGMII"), "ABSOLUTE_PHASE_CHECK": 1},
                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})

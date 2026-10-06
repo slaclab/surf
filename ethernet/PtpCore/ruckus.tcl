@@ -13,4 +13,5 @@
 #-----------------------------------------------------------------------------
 source $::env(RUCKUS_PROC_TCL)
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
+# Includes the direct PtpPort transaction/measurement fixture and PHY fixtures.
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"

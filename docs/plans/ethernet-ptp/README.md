@@ -1,7 +1,7 @@
 # Ethernet PTP Support
 
 This directory is the single home for PTP implementation plans, decisions and
-verification handoffs. The implemented endpoint is a fixed-source, two-step
+verification handoffs. The implemented endpoint is a fixed-source, one-/two-step
 Layer-2 E2E TimeReceiver with autonomous numerical PHC/servo control. Software
 configures and observes it; software is not in the timing loop.
 
@@ -13,7 +13,7 @@ configures and observes it; software is not in the timing loop.
 | Software/hardware interface | [Register map](register-map.md), [register ownership](register-ownership.md), [interface records](interface-records.md) |
 | RTL rules and cycle contracts | [SURF conventions](../../vhdl-conventions.md), [PTP timing supplement](rtl-readability.md), [boundary survey](output-register-survey.md) |
 | Completed RTL reviews and pending acceptance | [Consolidated review record](rtl-review.md); replaces the three separate PTP conventions/boundary plan directories |
-| Pending receive extension | [One-step implementation plan](one-step.md), not yet implemented or validated |
+| One-step receive implementation and pending acceptance | [One-step handoff](one-step.md), implemented with static checks; behavioral verification paused |
 | Future physical-clock integration | [Applied-rate, reference and clock-health requirements](physical-clock-integration.md) |
 | Numeric definitions and unresolved policy provenance | [Implemented magic-number audit](magic-number-audit.md) |
 | Historical design evidence | [2026-09-08 review](review-2026-09-08.md), [Phase 0 counterexamples](phase-0-experiments.md), [RX design decision](rx-frontend-design.md), [RX proof](rx-rtl-proof.md) |
@@ -38,7 +38,9 @@ GHDL compile/link for all 21 entities/wrappers; these are historical checks,
 not a fresh validation after later merges. The
 [review record](rtl-review.md#historical-static-evidence) retains their scope,
 source provenance and build limitations. The stale test-helper imports have
-been repaired. Behavioral checks of the changed boundaries remain unrun.
+been repaired. Behavioral checks of the changed boundaries remain unrun. One-step receive and
+its focused/physical fixtures are now implemented; the [one-step evidence](one-step.md#completion-evidence-and-open-risks)
+records current static checks separately from the pending behavioral acceptance.
 
 After approval, follow the [ordered acceptance checklist](rtl-review.md#outstanding-acceptance):
 parameter assertions and leaf/register checks, registered command/expiry and
@@ -139,7 +141,7 @@ The release-gating behavior is:
 - configurable `domainNumber`, default 0, and `transportSpecific = 0`;
 - one configured upstream `sourcePortIdentity`; there is no BMCA or role
   election in the first endpoint;
-- two-step Sync using Sync and Follow_Up, E2E path delay using Delay_Req and
+- one-step Sync or two-step Sync using Sync and Follow_Up, E2E path delay using Delay_Req and
   Delay_Resp, and passive Announce monitoring;
 - autonomous PHC and servo operation after AXI-Lite configuration; Rogue is
   not in the message, timestamp, arithmetic, or control loop; and
@@ -165,10 +167,9 @@ UDP/IPv4, UDP/IPv6, VLAN tags, unicast negotiation, management/signaling
 messages, authentication TLVs, transparent clocks, and TimeTransmitter
 operation remain later scope.
 
-Receiving one-step Sync is a useful low-cost extension because it only changes
-which origin timestamp is selected. It should be designed into the parser but
-is not a first-release exit criterion. Generating one-step Sync is much more
-invasive because it modifies a frame in flight and remains later scope.
+One-step Sync reception is implemented through per-association timestamp and
+correction selection; its [behavioral acceptance](one-step.md) is pending.
+Generating one-step Sync modifies a frame in flight and remains later scope.
 
 Default interoperability values should follow the common default-profile
 behavior used by linuxptp: Sync every `2^0` seconds, mean Delay_Req interval of
@@ -1809,8 +1810,9 @@ loss stimuli. Bus observation does not modify application traffic.
 
 ### Phase 3: PTP port packet and transaction engine
 
-The bounded two-step port and persistent keyed TX ledger are implemented and
-simulated. See the [implemented policy](autonomous-endpoint.md#port-policy-and-numerical-envelope).
+The bounded two-step port and persistent keyed TX ledger passed the original
+simulation milestone. The current one-/two-step port and later boundary changes
+remain subject to the behavioral approval gate. See the [implemented policy](autonomous-endpoint.md#port-policy-and-numerical-envelope).
 
 - Implement `PtpPort` with decoded RX policy validation, TX AXI builder,
   reserved-key TX completion, message timers, and E2E transaction arithmetic.
@@ -2030,8 +2032,8 @@ Accuracy/White Rabbit target.
 
 ### Later extensions
 
-- One-step Sync receive, followed separately by one-step Sync insertion and
-  correction-field updates.
+- One-step Sync transmit insertion and correction-field updates; receive
+  support is implemented with behavioral acceptance pending.
 - Experimental servo-steered 10 MHz and phase-aligned 1 PPS physical outputs,
   using a family-specific MMCM, transceiver fractional-QPLL, or external clock
   actuator behind the generic servo-actuator boundary described above.
@@ -2105,7 +2107,7 @@ At minimum, focused tests should cover:
   primary/bypass arbitration, backpressure, pause, underflow, filtered or
   CRC-bad RX frames, record/event FIFO full, transaction expiry, and counter
   saturation. A raw RX packet and timestamp never travel through separate queues.
-- Endpoint: message parsing, sequence/domain/identity rejection, two-step
+- Endpoint: message parsing, sequence/domain/identity rejection, one-step origin selection and two-step
   timestamp matching, correction-field arithmetic, independent Sync/delay
   measurement cadence and freshness, offset/path-delay solution, interval
   special values and Delay_Resp rate changes, Announce time properties,
@@ -2149,8 +2151,8 @@ make MODULES="$PWD" import
 
 1. Replace the provisional direct-link accuracy objective with the required
    steady-state, peak, temperature, and holdover limits.
-2. Decide whether one-step Sync receive is a Phase 4 release criterion or the
-   first later extension.
+2. Decide whether one-step Sync receive behavioral acceptance is a release
+   criterion; implementation is now present but verification remains paused.
 3. Freeze exact register offsets, fixed-point gain formats, and safe default
    servo gains after the integer reference-model sweep.
 4. Decide whether the first release must recognize a single `0x8100` VLAN tag;

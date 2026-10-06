@@ -16,13 +16,13 @@ import zlib
 from tests.ethernet.PtpCore.ptp_rx_reference import RxBeat, RxStamp
 
 
-def frame(kind=0, sequence=7, marker=1, tlvs=b"", minor=1):
+def frame(kind=0, sequence=7, marker=1, tlvs=b"", minor=1, *, two_step=True):
     # Fixture owns lengths independently of the receiver's dispatch table.
     body_size = {0: 10, 8: 10, 9: 20, 11: 30}[kind]
     ptp = bytearray(34 + body_size)
     ptp[0:2] = bytes((kind, minor << 4 | 2))
     ptp[2:4] = (len(ptp) + len(tlvs)).to_bytes(2, "big")
-    ptp[6:8] = b"\x02\x00" if kind == 0 else b"\x00\x00"
+    ptp[6:8] = b"\x02\x00" if kind == 0 and two_step else b"\x00\x00"
     ptp[8:16] = (-17).to_bytes(8, "big", signed=True)
     ptp[20:30] = bytes.fromhex("001122fffe3344550001")
     ptp[30:32] = sequence.to_bytes(2, "big")

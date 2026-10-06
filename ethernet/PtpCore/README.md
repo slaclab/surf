@@ -1,10 +1,21 @@
 # Ethernet PTP endpoint
 
-This area implements a fixed-source, two-step Layer-2 E2E PTP TimeReceiver.
+This area implements a fixed-source Layer-2 E2E PTP TimeReceiver with one-step
+and two-step Sync reception.
 `EthMacPtpEndpoint` combines the existing MAC with passive timestamp/validation
 paths and an autonomous PHC/servo. Software configures and observes it; software
 is not in the timing loop. See the [implementation contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md)
 for current validation, register ABI, numerical limits and remaining qualification.
+
+Sync flags select the receive mode per message: exactly `0x0000` uses the Sync
+origin timestamp and correction; exactly `0x0200` waits for Follow_Up and uses
+its timestamp plus both signed corrections. Both use the same capture, rate
+estimator, history and E2E path. No software mode switch or register change is
+required. Mixed-mode collisions follow the conservative
+[association policy](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#port-policy-and-numerical-envelope).
+One-step reception is implemented but awaits behavioral verification under the
+[one-step handoff](../../docs/plans/ethernet-ptp/one-step.md). One-step transmit
+insertion remains outside scope.
 
 - `rtl/PtpPkg.vhd`: shared time, capture, configuration, command and measurement records.
   It also owns wire encodings/lengths, message-body accessors,

@@ -4,7 +4,9 @@ Status: the original simulation milestone is complete. The current
 [RTL review](README.md#current-validation) awaits maintainer VHDL approval;
 regressions must remain stopped until approval. This milestone
 builds on the committed [RX proof](rx-rtl-proof.md) and covers an autonomous
-fixed-source, two-step Layer-2 E2E TimeReceiver on GMII and XGMII. It does not
+fixed-source, two-step Layer-2 E2E TimeReceiver on GMII and XGMII.
+One-step receive has since been implemented; its prepared checks remain unrun
+under the same gate. See the [one-step handoff](one-step.md). It does not
 qualify a board, transceiver, physical clock domain crossing, or accuracy budget.
 The implemented contracts here supersede the larger plan's provisional module
 names and register map. Application scheduling and shared simulator timing
@@ -90,14 +92,32 @@ old work once and permits subsequent frequency-only holdover control.
 ## Port policy and numerical envelope
 
 The fixed source accepts multicast destination `01:1B:19:00:00:00`, configured
-sourcePortIdentity/domain, transportSpecific zero, PTP v2.0/v2.1, two-step Sync,
-Follow_Up, Delay_Resp and Announce. Flag/control and canonical timestamp checks
-follow structural/FCS validation. There is no BMCA, one-step Sync support, UDP,
+sourcePortIdentity/domain, transportSpecific zero, PTP v2.0/v2.1, one-step or
+two-step Sync, Follow_Up, Delay_Resp and Announce. Flag/control and canonical timestamp checks
+follow structural/FCS validation. There is no BMCA, one-step transmit insertion, UDP,
 VLAN, Pdelay, security extension, or automatic upstream selection.
 
-Four bounded Sync/Follow_Up slots support either order. Conflicting Follow_Up
-and duplicate physical Sync invalidate the association; completed slots may
-retire, while unfinished slots cannot be overwritten. Corrected remote time
+Four bounded associations select the mode independently for each Sync. Exact
+flags `0x0000` select one-step: nanoseconds must be below 1,000,000,000, and the
+Sync's originTimestamp and sign-extended correction complete the sample with
+its own physical capture. Exact flags `0x0200` select two-step: Sync and
+Follow_Up may arrive in either order, the Sync body is non-authoritative, and
+the sample uses Follow_Up's preciseOriginTimestamp plus the widened signed
+sum of both corrections. All 48 seconds bits and Q16 correction bits survive.
+Other Sync flags are rejected before association updates.
+
+A one-step Sync colliding with a retained Follow_Up retires the association
+without a sample. Follow_Up after a one-step Sync is rejected and counted
+without changing its timestamp, correction, age or completion state. Conflicting
+two-step Follow_Up and duplicate physical Sync (including a different step mode)
+invalidate the association. Retired entries cannot complete again. A later
+packet cannot revoke an already consumed measurement. Completed slots may
+retire, while unfinished slots cannot be overwritten. Retention/expiry and
+chronology checks bound replay protection; sequence wrap is not a session ID.
+Mode state flushes with the existing associations on restart, source/configuration
+changes, RX abort/epoch invalidation and PHC generation changes; AXI-only reset
+preserves it. Both receive modes share the existing registered measurement,
+backpressure and child-cancellation contracts. Corrected remote time
 and raw capture time must both advance. Four completed Syncs supply the nearest
 eligible t2 for an actual t3. E2E computes a delay only with a fresh, qualified
 rate ratio and matching-generation complete timestamps; negative/excessive path

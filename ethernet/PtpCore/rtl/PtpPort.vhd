@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Fixed-source two-step Layer-2 PTP TimeReceiver protocol engine.
+-- Description: Fixed-source Layer-2 PTP TimeReceiver protocol engine.
 --
 -- Consumes structurally validated RX records and applies the configured
 -- source, domain and profile policy to Sync, Follow_Up, Delay_Resp and
--- Announce. Four bounded Sync/Follow_Up slots accept either arrival order and
--- reject conflicting associations. Completed Sync history supplies the sample
--- nearest an actual Delay_Req TX capture; Announce metadata and raw-tick
+-- Announce. Four bounded slots accept one-step Sync or two-step Sync/Follow_Up
+-- in either arrival order and reject conflicting associations. Sync history
+-- supplies the sample nearest a Delay_Req TX capture; Announce metadata and raw-tick
 -- receipt timers qualify the current source session.
 --
 -- Estimates master time per raw local cycle from corrected Sync intervals,
@@ -24,8 +24,8 @@
 -- measurements without forgetting unresolved MAC transmissions.
 --
 -- Implements a configured upstream source rather than BMCA. This endpoint
--- profile supports untagged multicast Layer-2 two-step E2E traffic; UDP, VLAN,
--- one-step Sync and peer-delay operation are outside its scope.
+-- profile supports untagged multicast Layer-2 one-/two-step E2E reception;
+-- UDP, VLAN, one-step transmit insertion and peer-delay are outside its scope.
 --
 -- The local AXI-Lite bank owns identity/domain shadows, protocol timers,
 -- rate-estimation limits and path-delay acceptance policy. configControl.prepare
@@ -213,6 +213,7 @@ architecture rtl of PtpPort is
    type PairType is record
       used             : sl;
       syncSeen         : sl;
+      twoStep          : sl;            -- Meaningful only after syncSeen.
       followSeen       : sl;
       complete         : sl;
       born             : slv(63 downto 0);
@@ -224,6 +225,7 @@ architecture rtl of PtpPort is
    constant PAIR_INIT_C : PairType := (
       used             => '0',
       syncSeen         => '0',
+      twoStep          => '0',
       followSeen       => '0',
       complete         => '0',
       born             => (others => '0'),
@@ -428,10 +430,13 @@ architecture rtl of PtpPort is
       return reusable;
    end function;
 
+   -- Select the first unretired association ready for sample processing:
+   -- one-step needs only Sync; two-step also needs Follow_Up. Return -1 if none.
    function completedPair (pairs : PairArray) return integer is
    begin
       for i in pairs'range loop
-         if pairs(i).syncSeen = '1' and pairs(i).followSeen = '1' and pairs(i).complete = '0' then
+         if pairs(i).used = '1' and pairs(i).syncSeen = '1' and pairs(i).complete = '0' and
+            (pairs(i).twoStep = '0' or pairs(i).followSeen = '1') then
             return i;
          end if;
       end loop;
@@ -860,13 +865,31 @@ begin
          else
             case rxMessage.messageType is
                when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
-                  if (rxMessage.messageType = PTP_MSG_SYNC_C and
-                      (rxMessage.flags /= PTP_TWO_STEP_FLAGS_C or rxMessage.control /= PTP_CONTROL_SYNC_C)) or
-                     (rxMessage.messageType = PTP_MSG_FOLLOW_UP_C and
-                      (rxMessage.flags /= x"0000" or rxMessage.control /= PTP_CONTROL_FOLLOW_UP_C or
-                       unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C)) then
-                     malformed := true;
+                  -- Validate message semantics before allocating or changing a slot.
+                  if rxMessage.messageType = PTP_MSG_SYNC_C then
+                     if rxMessage.flags /= PTP_ONE_STEP_FLAGS_C and rxMessage.flags /= PTP_TWO_STEP_FLAGS_C then
+                        malformed := true;
+                     elsif rxMessage.control /= PTP_CONTROL_SYNC_C then
+                        malformed := true;
+                     elsif rxMessage.flags = PTP_ONE_STEP_FLAGS_C then
+                        -- Only one-step Sync carries the authoritative timestamp.
+                        -- The two-step Sync body is ignored in favor of Follow_Up.
+                        if unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C then
+                           malformed := true;
+                        end if;
+                     end if;
                   else
+                     -- Follow_Up always requires zero flags and a valid timestamp.
+                     if rxMessage.flags /= PTP_ONE_STEP_FLAGS_C then
+                        malformed := true;
+                     elsif rxMessage.control /= PTP_CONTROL_FOLLOW_UP_C then
+                        malformed := true;
+                     elsif unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C then
+                        malformed := true;
+                     end if;
+                  end if;
+
+                  if not malformed then
                      slot := findPair(v.pairs, rxMessage.sequenceId);
                      if slot /= -1 then
                         if v.pairs(slot).used = '0' or v.pairs(slot).sample.sequenceId /= rxMessage.sequenceId then
@@ -879,15 +902,24 @@ begin
                      if slot = -1 then
                         malformed := true;
                      elsif rxMessage.messageType = PTP_MSG_SYNC_C then
-                        if v.pairs(slot).syncSeen = '1' then
+                        if v.pairs(slot).syncSeen = '1' or
+                           (rxMessage.flags = PTP_ONE_STEP_FLAGS_C and v.pairs(slot).followSeen = '1') then
                            -- Duplicate Sync is ambiguous even if its headers match:
                            -- the physical capture is a different wire event.
+                           -- One-step cannot inherit an earlier Follow_Up either.
                            v.pairs(slot).complete := '1';
                            malformed              := true;
                         else
                            v.pairs(slot).syncSeen       := '1';
                            v.pairs(slot).sample.capture := rxMessage.capture;
                            v.pairs(slot).syncCorrection := rxMessage.correction;
+                           v.pairs(slot).twoStep        := '0';
+                           if rxMessage.flags = PTP_TWO_STEP_FLAGS_C then
+                              v.pairs(slot).twoStep := '1';
+                           else
+                              v.pairs(slot).sample.remoteTime := ptpMessageTimestamp(rxMessage);
+                              v.pairs(slot).followCorrection  := (others => '0');
+                           end if;
                            v.syncLimit                  := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
                            if not validLogInterval(rxMessage.logInterval) and
                               rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
@@ -895,7 +927,11 @@ begin
                            end if;
                         end if;
                      else
-                        if v.pairs(slot).followSeen = '1' then
+                        if v.pairs(slot).syncSeen = '1' and v.pairs(slot).twoStep = '0' then
+                           -- Count inconsistent Follow_Up without changing any
+                           -- part of the one-step association, even after use.
+                           malformed := true;
+                        elsif v.pairs(slot).followSeen = '1' then
                            if v.pairs(slot).sample.remoteTime /= ptpMessageTimestamp(rxMessage) or
                               v.pairs(slot).followCorrection /= rxMessage.correction then
                               v.pairs(slot).complete := '1';
@@ -954,8 +990,11 @@ begin
                if completed /= -1 then
                   v.pairs(completed).complete := '1';
                   completedSync               := v.pairs(completed).sample;
-                  completedSync.correction    := slv(resize(signed(v.pairs(completed).syncCorrection), 128)+
+                  completedSync.correction    := slv(resize(signed(v.pairs(completed).syncCorrection), 128));
+                  if v.pairs(completed).twoStep = '1' then
+                     completedSync.correction := slv(signed(completedSync.correction)+
                                                      resize(signed(v.pairs(completed).followCorrection), 128));
+                  end if;
                   remoteTime := ptpWireTimeQ16(completedSync.remoteTime)+signed(completedSync.correction);
                   if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) or
                      (r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(completedSync.capture.ticks) <= unsigned(r.lastTicks))) then

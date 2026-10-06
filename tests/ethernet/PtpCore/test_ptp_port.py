@@ -9,8 +9,9 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Physical XGMII input through the production validator and port.
-# - Stimulus: Follow_Up before Sync, replay, conflicting Follow_Up, duplicate
+# - Sweep: Physical GMII/XGMII input through the production validator and port.
+# - Stimulus: One-step/mixed-mode traffic, malformed wire frames, Follow_Up
+#   before Sync, replay, conflicting Follow_Up, duplicate
 #   Sync, foreign identity, invalid timestamp, completed-table replacement,
 #   timeout, and configured-source grandmaster/time-property changes.
 # - Checks: Exact completed-pair counts, rejected traffic isolation, Announce
@@ -19,6 +20,7 @@
 #   and timeout waits are bounded; source timestamps need only be chronological.
 
 import cocotb
+import pytest
 from cocotb.triggers import RisingEdge, Timer
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
@@ -157,9 +159,68 @@ async def adversarial_port(d):
     b.stop()
 
 
-def test_ptp_port():
+@cocotb.test()
+async def physical_one_step_policy(d):
+    b = Bench(d)
+    await b.start()
+    try:
+        await b.configure()
+        await b.write(0x004, 1)  # Drain measurements without steering the PHC.
+        await b.write(0x20A0, 1000000, 8)
+        await b.write(0x20A8, 1000000, 8)
+        await b.commit()
+
+        async def count():
+            await b.snapshot()
+            return await b.read(0x2210)
+
+        # Per-message mode selection, upper seconds bits, second carry and both
+        # XGMII start lanes. No Follow_Up is sent for any one-step sequence.
+        accepted = 0
+        for i in range(8):
+            two_step = bool(i % 2)
+            seq = (65532+i) & 0xffff
+            remote = (1 << 40)*NS+i*NS+NS-1
+            await b.wire(b.frame(0, seq, remote, 32769, two_step=two_step),
+                         lane=4*((i//2) % 2) if b.mode == 'XGMII' else 0)
+            if two_step:
+                await b.wire(b.frame(8, seq, remote, -17))
+            await b.wait(160)
+            accepted += 1
+            assert await count() == accepted
+
+        # FCS, short-body and unsupported-version errors die in the validator.
+        # Profile/domain/flags/control errors die in port policy. Neither path
+        # may contaminate the following valid copy of the same sequence.
+        seq = 100
+        for patch, corrupt, truncate in (
+                (None, True, False), (None, False, True),
+                ((15, b'\x13'), False, False), ((15, b'\x22'), False, False),
+                ((14, b'\x10'), False, False), ((18, b'\x01'), False, False),
+                ((20, b'\x02\x01'), False, False), ((46, b'\x01'), False, False),
+                ((54, NS.to_bytes(4, 'big')), False, False)):
+            seq += 1
+            remote = ((1 << 40)+seq)*NS
+            frame = bytearray(b.frame(0, seq, remote, two_step=False))
+            if patch:
+                offset, data = patch
+                frame[offset:offset+len(data)] = data
+            await b.wire(bytes(frame[:50] if truncate else frame), corrupt=corrupt)
+            await b.wait(160)
+            assert await count() == accepted
+            await b.wire(b.frame(0, seq, remote, two_step=False))
+            await b.wait(160)
+            accepted += 1
+            assert await count() == accepted
+        assert not int(d.timeFault.value)
+    finally:
+        b.stop()
+
+
+@pytest.mark.parametrize('mode', ['XGMII', 'GMII'])
+def test_ptp_port(mode):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpendpointloopbackwrapper',
-                      parameters={'PHY_TYPE_G': 'XGMII', 'CLK_FREQ_G': 156250000,
+                      parameters={'PHY_TYPE_G': mode, 'CLK_FREQ_G': 125000000 if mode == 'GMII' else 156250000,
                                   'PACKET_LIFETIME_G': 5000, 'MAC_ENABLE_G': False},
-                      extra_env={'MODE': 'XGMII', 'REAL_MAC': 0},
+                      extra_env={'MODE': mode, 'REAL_MAC': 0},
                       extra_vhdl_sources={'surf': ETHMAC_RTL_SOURCES})

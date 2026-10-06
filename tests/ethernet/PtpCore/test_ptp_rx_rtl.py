@@ -11,7 +11,7 @@
 # Test methodology:
 # - Sweep: Direct normalized input, GMII, XGMII lanes 0/4, depth 1/4,
 #   synchronous active-high and asynchronous active-low reset, signed latency.
-# - Stimulus: Independent Python wire encoders, malformed/FCS-bad duplicates,
+# - Stimulus: Independent one-/two-step wire encoders, malformed/FCS-bad duplicates,
 #   minimum-gap traffic, record pressure, reset/generation during reception.
 # - Checks: Every cycle compares the RTL queue, record fields and abort priority
 #   with the bounded reference model; physical tests also require whole-frame
@@ -191,6 +191,25 @@ async def rx_contract(dut):
             assert got.key[0] == kind and got.correction == -17
             if expected is not None:
                 assert (got.stamp.time, got.stamp.ticks, got.stamp.tick_phase) == expected
+    # One-step changes body interpretation only in PtpPort. The frontend must
+    # preserve all 48 seconds bits, flags, signed correction and own capture.
+    marker = (1 << 72) | 999999999
+    for lane in ((0, 4) if mode == "XGMII" else (0,)):
+        kwargs = {"lane": lane} if mode != "DIRECT" else {}
+        before = len(bench.received)
+        expected = await send(frame(marker=marker, two_step=False), **kwargs)
+        await bench.wait()
+        assert len(bench.received) == before+1
+        got = bench.received[-1]
+        assert got.flags == 0 and got.correction == -17
+        assert int.from_bytes(got.body[:10], "big") == marker
+        if expected is not None:
+            assert (got.stamp.time, got.stamp.ticks, got.stamp.tick_phase) == expected
+        before = len(bench.received)
+        await send(frame(two_step=False), corrupt=True, **kwargs)
+        await send(frame(two_step=False)[:50], **kwargs)
+        await bench.wait()
+        assert len(bench.received) == before
     before = len(bench.received)
     await send(frame(minor=0))
     await bench.wait()

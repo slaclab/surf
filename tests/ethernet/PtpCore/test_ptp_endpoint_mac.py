@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: Real SURF MAC in GMII and XGMII, private PTP bypass and primary guard.
-# - Stimulus: Qualified Sync pairs, pause before TX admission, port restart with
+# - Stimulus: Qualified one-/two-step Syncs, pause before TX admission, port restart with
 #   a queued request, late completion/response, and application/spoofed traffic.
 # - Checks: Persistent wire-key retirement, no stale measurement after restart,
 #   eventual fresh E2E completion, and unchanged non-PTP application payload.
@@ -80,9 +80,10 @@ async def real_mac_lifecycle(d):
     b.stop()
 
 @pytest.mark.parametrize("mode", ["XGMII", "GMII"])
-def test_ptp_endpoint_mac(mode):
+@pytest.mark.parametrize("two_step", [True, False], ids=["two-step", "one-step"])
+def test_ptp_endpoint_mac(mode, two_step):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpendpointloopbackwrapper",
                       parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": True},
-                      extra_env={"MODE": mode, "REAL_MAC": 1},
+                      extra_env={"TWO_STEP": int(two_step), "MODE": mode, "REAL_MAC": 1},
                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})

@@ -125,5 +125,5 @@ input-dependent controls; queue/metadata cases test the new storage ownership.
 Record actual outcomes and source revisions here when execution is authorized.
 Device timing, added register/resource cost, physical CDC, calibrated hardware
 accuracy, external-master interoperability and live PyRogue transport remain
-separate qualification work. One-step receive remains a separate
-[pending implementation](one-step.md).
+separate qualification work. One-step receive is implemented; its static evidence and prepared behavioral
+checks remain in the separate [one-step handoff](one-step.md).

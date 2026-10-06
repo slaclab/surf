@@ -30,6 +30,11 @@ separates simulated behavior from remaining device and interoperability work.
 - `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
   packing for both reference and RTL tests.
 
+**Current gate:** simulation and pytest (including collection and pure reference
+cases) remain paused pending maintainer VHDL approval. The commands below are
+for use after approval. One-step fixtures are prepared, not behaviorally validated;
+see the [implementation/evidence handoff](../../../docs/plans/ethernet-ptp/one-step.md).
+
 Run from the repository root after importing HDL sources:
 
 ```sh
@@ -85,16 +90,30 @@ Run the models alone without starting a simulator:
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
-- `test_ptp_port.py`: physical reordered/conflicting/foreign messages, bounded
-  association replacement, timeout, grandmaster change and Announce metadata.
+- `test_ptp_port_samples.py` / `PtpPortWrapper`: direct production port with
+  exact independent Q16 forward expectations, one-/two-step correction equivalence,
+  signed64 boundaries/widened sums, upper seconds bits, timestamp/flag rejection,
+  mixed-mode collisions, capacity/expiry/sequence wrap, rate qualification,
+  measurement stalls and lifecycle cancellation. The thin wrapper adds observation
+  and backpressure at the port boundary; it contains no alternate protocol model.
+- `test_ptp_port.py`: GMII/XGMII reordered/conflicting/foreign messages, bounded
+  association replacement, timeout, grandmaster change and Announce metadata,
+  plus one-step mode transitions and malformed/FCS-bad/truncated wire traffic.
 - `test_ptp_endpoint.py`: independent master time with +100 ppm XGMII and
   −100 ppm GMII oscillators, acquisition with/without phase step, lock, holdover
-  expiry and reacquisition. A Python MAC model accelerates these long tests;
+  expiry and reacquisition in both receive modes. A known total correction is
+  split between Sync and Follow_Up for two-step and carried by Sync for one-step;
+  independent symmetric-path delay and absolute phase checks apply to each.
+  A Python MAC model accelerates these long tests;
   production RX/TX physical timestamp RTL remains in the loop.
 - `test_ptp_endpoint_mac.py`: the real `EthMacTop`, both PHY interfaces, primary
   traffic/identity guard, paused TX surviving port restart, late completion and
-  fresh transaction recovery. `ptp_endpoint_test_utils.py` supplies shared wire
-  stimulus and an independent physical request/FCS observer.
+  fresh transaction recovery in one-step and two-step runs.
+  `ptp_endpoint_test_utils.py` supplies shared wire
+  stimulus and an independent physical request/FCS observer. One-step frame bodies
+  use scheduled physical capture time from the independent simulation clock; the
+  driver asserts agreement with the observed edge. Existing builders default to
+  two-step, and the source uses `TWO_STEP=0` for one-step cases.
 
 The endpoint tests use accelerated packet timers and fractional correction
 fields; the numerical sweeps separately cover realistic default-gain intervals.

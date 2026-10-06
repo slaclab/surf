@@ -35,11 +35,13 @@ def send(rx, raw, **kwargs):
         assert rx.edge(beat) is None
 
 
-@pytest.mark.parametrize("width,kind,minor", [(1, 0, 0), (8, 0, 1), (8, 8, 0), (1, 9, 1), (8, 11, 1)])
-def test_decode_owns_message_and_capture(width, kind, minor):
+@pytest.mark.parametrize("width,kind,minor,two_step", [
+    (1, 0, 0, True), (8, 0, 1, True), (8, 8, 0, True), (1, 9, 1, True), (8, 11, 1, True),
+    (1, 0, 0, False), (8, 0, 1, False)])
+def test_decode_owns_message_and_capture(width, kind, minor, two_step):
     rx = RxFrontend()
     stamp = RxStamp(Fraction(100000000000000003, 5), 1234)
-    send(rx, frame(kind=kind, minor=minor), stamp=stamp, width=width)
+    send(rx, frame(kind=kind, minor=minor, two_step=two_step), stamp=stamp, width=width)
     head = rx.entries[0]
     for _ in range(20):
         assert rx.edge(ready=False) is None
@@ -48,6 +50,7 @@ def test_decode_owns_message_and_capture(width, kind, minor):
     assert got.stamp == stamp  # time_valid=False must still allow acquisition.
     assert got.key == (kind, 0, bytes.fromhex("001122fffe3344550001"), 7)
     assert got.correction == -17 and got.log_interval == -3
+    assert got.flags == (0x200 if kind == 0 and two_step else 0)
     assert got.minor_version == minor
     assert got.body[:10] == (1).to_bytes(10, "big")
     assert len(got.body) == {0: 10, 8: 10, 9: 20, 11: 30}[kind]

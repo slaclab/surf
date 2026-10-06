@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: GMII/XGMII autonomous endpoint, independent wire model and real MAC.
-# - Stimulus: AXI-Lite configuration/commands, independent two-step master,
+# - Stimulus: AXI-Lite configuration/commands, independent one-/two-step master,
 #   oscillator error, Delay_Req responses, loss and restart.
 # - Checks: Register atomicity, timestamp provenance, acquisition, lock/holdover,
 #   valid command sequencing, and primary traffic identity ownership.
@@ -39,6 +39,9 @@ class Bench:
         self.frequency = 125000000 if self.mode == "GMII" else 156250000
         ppm = int(os.environ.get("OSCILLATOR_PPM", "0"))
         self.allow_step = os.environ.get("ALLOW_STEP", "1") == "1"
+        self.two_step = os.environ.get("TWO_STEP", "1") == "1"
+        self.sync_correction = int(os.environ.get("SYNC_CORRECTION", "0"))
+        self.origin_bias = int(os.environ.get("ORIGIN_BIAS_NS", "0"))
         self.period = 2*round(NS/self.frequency/(1+ppm/1000000)*1000000/2)/1000000
         self.other_tx = []
         self.rx_lock = Lock()
@@ -122,12 +125,12 @@ class Bench:
         await self.write(0x004, 3)
         await self.commit()
 
-    def frame(self, kind, sequence, remote=0, correction=0):
+    def frame(self, kind, sequence, remote=0, correction=0, *, two_step=True):
         size = {0: 44, 8: 44, 9: 54, 11: 64}[kind]
         message = bytearray(size)
         message[0:2] = bytes((kind, 0x12))
         message[2:4] = size.to_bytes(2, "big")
-        message[6:8] = (0x200 if kind == 0 else 0).to_bytes(2, "big")
+        message[6:8] = (0x200 if kind == 0 and two_step else 0).to_bytes(2, "big")
         message[8:16] = correction.to_bytes(8, "big", signed=True)
         message[20:30] = SOURCE
         message[30:32] = sequence.to_bytes(2, "big")
@@ -140,13 +143,23 @@ class Bench:
         return (bytes.fromhex("011b1900000000112233445588f7")+message).ljust(60, b"\x00")
 
     async def wire(self, frame, tx=False, lane=0, corrupt=False):
+        # A callable builds a one-step frame from the scheduled destination-MAC
+        # edge, using only simulation time and the independently driven clock.
+        # The observed edge below must agree with this prediction exactly.
         d = self.d
         capture = None
+        await FallingEdge(d.clk)
+        first_edge = Fraction(int(get_sim_time(unit="fs")), 1000000)
+        cycles = Fraction(3, 2)+Fraction(lane, 8) if self.mode == "XGMII" else Fraction(17, 2)
+        scheduled_capture = first_edge+cycles*Fraction(str(self.period))
+        if callable(frame):
+            frame = frame(scheduled_capture)
         if self.mode == "XGMII":
             data = d.modelXgmiiTxd if tx else d.xgmiiRxd
             control = d.modelXgmiiTxc if tx else d.xgmiiRxc
             for index, (word, ctrl) in enumerate(xgmii_words(frame, lane=lane, corrupt_crc=corrupt)):
-                await FallingEdge(d.clk)
+                if index:
+                    await FallingEdge(d.clk)
                 data.value = word
                 control.value = ctrl
                 await RisingEdge(d.clk)
@@ -160,8 +173,11 @@ class Bench:
             data = d.modelGmiiTxd if tx else d.gmiiRxd
             enable = d.modelGmiiTxEn if tx else d.gmiiRxDv
             raw = b"\x55"*7+b"\xd5"+frame+zlib.crc32(frame).to_bytes(4, "little")
+            if corrupt:
+                raw = raw[:-1]+bytes((raw[-1] ^ 1,))
             for index, byte in enumerate(raw):
-                await FallingEdge(d.clk)
+                if index:
+                    await FallingEdge(d.clk)
                 data.value = byte
                 enable.value = 1
                 await RisingEdge(d.clk)
@@ -170,6 +186,7 @@ class Bench:
             await FallingEdge(d.clk)
             enable.value = 0
             await self.wait(12)
+        assert capture == scheduled_capture, (capture, scheduled_capture)
         return capture
 
     async def model_mac(self):
@@ -237,13 +254,24 @@ class Bench:
             async with self.rx_lock:
                 await self.wire(self.frame(9, seq, integer, correction))
 
-    async def source(self, count, sequence=0):
+    async def source(self, count, sequence=0, *, two_step=None):
+        two_step = self.two_step if two_step is None else two_step
         for index in range(count):
             async with self.rx_lock:
-                capture = await self.wire(self.frame(0, sequence+index), lane=4*(index % 2) if self.mode == "XGMII" else 0)
-                origin = capture+self.epoch-self.delay
-                integer = int(origin)
-                await self.wire(self.frame(8, sequence+index, integer, nearest((origin-integer)*Q16)))
+                seq = (sequence+index) & 0xffff
+                lane = 4*(index % 2) if self.mode == "XGMII" else 0
+                if two_step:
+                    capture = await self.wire(self.frame(0, seq, correction=self.sync_correction), lane=lane)
+                    origin = capture+self.epoch-self.delay
+                    integer = int(origin)-self.origin_bias
+                    total = nearest((origin-integer)*Q16)
+                    await self.wire(self.frame(8, seq, integer, total-self.sync_correction))
+                else:
+                    def sync_at(capture):
+                        origin = capture+self.epoch-self.delay
+                        integer = int(origin)-self.origin_bias
+                        return self.frame(0, seq, integer, nearest((origin-integer)*Q16), two_step=False)
+                    await self.wire(sync_at, lane=lane)
             await self.wait(2200)
             self.d._log.info("Sync %d: active=%s quality=%s valid=%s generation=%s tx=%d", sequence+index,
                              self.d.portActive.value, self.d.servoState.value, self.d.timeValid.value,

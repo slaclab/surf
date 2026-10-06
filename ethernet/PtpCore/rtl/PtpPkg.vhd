@@ -86,12 +86,14 @@ package PtpPkg is
    subtype PtpFrameCapacityType is positive range
       PTP_ETH_OVERHEAD_BYTES_C+PTP_ANNOUNCE_BYTES_C to PTP_ETH_MAX_FRAME_C;
 
-   -- Supported fixed-source Layer-2 profile. Sync requires exactly twoStep;
-   -- the general-message upper flag octet is reserved by this implementation.
+   -- Supported fixed-source Layer-2 profile. Sync accepts only the complete
+   -- one-step or two-step flag words below; these constants are not bit masks.
+   -- The general-message upper flag octet is reserved by this implementation.
    constant PTP_MAJOR_VERSION_C      : slv(3 downto 0)  := x"2";
    constant PTP_MINOR_VERSION_MIN_C  : slv(3 downto 0)  := x"0";
    constant PTP_MINOR_VERSION_MAX_C  : slv(3 downto 0)  := x"1";
    constant PTP_TRANSPORT_SPECIFIC_C : slv(3 downto 0)  := x"0";
+   constant PTP_ONE_STEP_FLAGS_C     : slv(15 downto 0) := x"0000";
    constant PTP_TWO_STEP_FLAGS_C     : slv(15 downto 0) := x"0200";
    constant PTP_LEAP_FLAGS_MASK_C    : slv(15 downto 0) := x"0003";
    constant PTP_GENERAL_RESERVED_C   : slv(15 downto 0) := x"FF00";
