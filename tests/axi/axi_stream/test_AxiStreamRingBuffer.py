@@ -19,26 +19,62 @@
 #   visible through the registered read path at trigger time.
 # - Timing: The bench waits for the DUT to emit the stream frame after the
 #   trigger instead of assuming the readout begins immediately on the same cycle.
+# - Recovery: A second test runs the data clock on its own and lets
+#   ContinuousMode capture until the data side has written 16 read requests
+#   into its readReq CDC FIFO, so the FIFO write pointer has wrapped to its
+#   reset value. With the data side's logging stopped for that capture, the
+#   bench stops dataClk and pulses dataRst: the AXI-Lite side and the FIFO
+#   read side reset, the unclocked data side keeps logging stopped and its
+#   buffer armed, and no stale FIFO entry re-triggers the readout. The next
+#   local trigger is never answered with a read request, which is the wedge
+#   (TrigState WAIT_S with DataState IDLE_S) seen in hardware. The checks
+#   require fresh frames after the clock restarts and no wedge left behind.
+#   TRIG_TIMEOUT_G is set short so the trigger timeout fits the bench. The
+#   bench only observes the FIFO's wr_en; it drives no internal signal.
 
 import cocotb
 import pytest
-from cocotb.triggers import with_timeout
+from cocotb.clock import Clock
+from cocotb.triggers import FallingEdge, with_timeout
 
 from tests.common.regression_utils import sample_after_tpd
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp, AxiStreamBus, AxiStreamSink
 
 from tests.common.regression_utils import run_surf_vhdl_test, start_lockstep_clocks
 
+TRIG_TIMEOUT_C = 64
+
+# SynchronizerFifo's default ADDR_WIDTH_G (4) inside the DUT's readReq CDC path
+READREQ_FIFO_DEPTH_C = 16
+
+TRIG_STATE_WAIT_C = 2
+DATA_STATE_IDLE_C = 0
+
+
+def fsm_states(status: int) -> tuple[int, int]:
+    """Return (trigStateIdx, dataStateIdx) from the register at offset 0x0."""
+    return (status >> 28) & 0x3, (status >> 30) & 0x3
+
 
 class TB:
-    def __init__(self, dut):
+    def __init__(self, dut, independent_data_clk=False):
         self.dut = dut
         self.axil = None
         self.sink = None
+        self.data_clock = None
 
-        # Keep the data, AXI-Lite, and stream-export clocks truly aligned for
-        # the common-clock wrapper subset this bench is validating.
-        start_lockstep_clocks(dut.dataClk, dut.axilClk, dut.axisClk, period_ns=5.0)
+        if independent_data_clk:
+            # The AXI-Lite and stream-export clocks stay aligned for the
+            # wrapper's synchronous TX FIFO, while the data clock is a
+            # bench-owned lifetime agent that the recovery test stops and
+            # restarts.
+            start_lockstep_clocks(dut.axilClk, dut.axisClk, period_ns=5.0)
+            self.data_clock = Clock(dut.dataClk, 4.0, unit="ns")
+            self.data_clock.start()
+        else:
+            # Keep the data, AXI-Lite, and stream-export clocks truly aligned for
+            # the common-clock wrapper subset this bench is validating.
+            start_lockstep_clocks(dut.dataClk, dut.axilClk, dut.axisClk, period_ns=5.0)
         dut.dataRst.setimmediatevalue(1)
         dut.axilRst.setimmediatevalue(1)
         dut.axisRst.setimmediatevalue(1)
@@ -73,6 +109,10 @@ class TB:
         assert txn.resp == AxiResp.OKAY
         return int.from_bytes(txn.data, "little")
 
+    async def write_reg(self, address: int, value: int):
+        txn = await self.axil.write(address, value.to_bytes(4, "little"))
+        assert txn.resp == AxiResp.OKAY
+
     async def push_value(self, value: int):
         self.dut.dataValue.value = value
         self.dut.dataValid.value = 1
@@ -103,7 +143,43 @@ async def trigger_exports_captured_window_test(dut):
     assert bytes(frame.tdata) == expected
 
 
-@pytest.mark.parametrize("parameters", [pytest.param({}, id="small_common_clk_capture")])
+@cocotb.test()
+async def continuous_mode_recovers_from_unclocked_data_reset_test(dut):
+    tb = TB(dut, independent_data_clk=True)
+    await tb.reset()
+    tb.start_agents()
+
+    # Start ContinuousMode capture with every data cycle valid.
+    readReqWrite = tb.dut.u_dut.u_sync_readreq.wr_en
+    tb.dut.dataValid.value = 1
+    await tb.write_reg(0xC, 1)
+
+    # Each falling edge of wr_en is one read request landed in the readReq
+    # CDC FIFO. After the 16th the write pointer is back at its reset value,
+    # and the data side has stopped logging for that capture.
+    for _ in range(READREQ_FIFO_DEPTH_C):
+        await with_timeout(FallingEdge(readReqWrite), 10, "us")
+
+    # Pulse dataRst while dataClk is stopped: the AXI-Lite side and the FIFO
+    # read side reset through their RstSync, the data side does not.
+    tb.data_clock.stop()
+    tb.dut.dataRst.value = 1
+    await tb.cycle(8)
+    tb.dut.dataRst.value = 0
+    await tb.cycle(8)
+    tb.data_clock.start()
+
+    # Let any frame already in the TX FIFO drain, then require fresh frames.
+    await tb.cycle(400)
+    tb.sink.clear()
+    for _ in range(4):
+        await with_timeout(tb.sink.recv(), 20, "us")
+
+    trig_state, data_state = fsm_states(await tb.read_reg(0x0))
+    assert not (trig_state == TRIG_STATE_WAIT_C and data_state == DATA_STATE_IDLE_C)
+
+
+@pytest.mark.parametrize("parameters", [pytest.param({"TRIG_TIMEOUT_G": TRIG_TIMEOUT_C}, id="small_common_clk_capture")])
 def test_AxiStreamRingBuffer(parameters):
     run_surf_vhdl_test(
         test_file=__file__,
