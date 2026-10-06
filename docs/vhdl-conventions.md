@@ -11,8 +11,10 @@ code. Correct combinational assignments, reset behavior and protocol timing
 matter in every module, regardless of its age or layout.
 
 The examples are architecture or process excerpts unless stated otherwise.
-They assume the usual SURF imports and the ports and generics described with
-each example. [AGENTS.md](../AGENTS.md) covers repository workflow, while
+They assume the relevant IEEE and SURF package imports and the ports and
+generics described with each example. Arithmetic examples using `unsigned`,
+`signed`, `to_unsigned` or `shift_left` assume `numeric_std`.
+[AGENTS.md](../AGENTS.md) covers repository workflow, while
 [tests/README.md](../tests/README.md) describes the regression methodology.
 
 ## Contents
@@ -20,11 +22,13 @@ each example. [AGENTS.md](../AGENTS.md) covers repository workflow, while
 - [Language, layout and naming](#language-layout-and-naming)
 - [Two-process VHDL style](#two-process-vhdl-style)
 - [Output ownership and interface timing](#output-ownership-and-interface-timing)
+- [Physical I/O and clock outputs](#physical-io-and-clock-outputs)
 - [State and process variables](#state-and-process-variables)
 - [Multiple clock domains](#multiple-clock-domains)
 - [Packages and interface records](#packages-and-interface-records)
 - [Constants, arithmetic and wire layouts](#constants-arithmetic-and-wire-layouts)
 - [Reset and CDC rules](#reset-and-cdc-rules)
+- [FIFO and RAM timing contracts](#fifo-and-ram-timing-contracts)
 - [Bus and protocol semantics](#bus-and-protocol-semantics)
 - [AXI Stream conventions](#axi-stream-conventions)
 - [AXI-Lite register implementation](#axi-lite-register-implementation)
@@ -161,9 +165,10 @@ Choose record defaults and disabled outputs according to their
 
 ### Instantiations
 
-Use named association and prefer direct SURF entity instantiation. Group clocks,
-resets and interfaces consistently, with aligned comments showing the direction
-of the instantiated port:
+Use named association and direct entity instantiation for SURF RTL by default.
+This names the implementation explicitly and avoids maintaining a duplicate
+component declaration. Group clocks, resets and interfaces consistently, with
+aligned comments showing the direction of the instantiated port:
 
 ```vhdl
 U_Pipeline : entity surf.AxiStreamPipeline
@@ -181,10 +186,12 @@ U_Pipeline : entity surf.AxiStreamPipeline
       mAxisSlave  => outputSlave);  -- [in]
 ```
 
-Use `-- [inout]` for bidirectional ports. Component binding remains appropriate
-for vendor IP, primitives and flows that require it. Attributes such as
-`ASYNC_REG`, `shreg_extract`, `ram_style` and `use_dsp` express implementation
-constraints and must survive formatting changes.
+Use `-- [inout]` for bidirectional ports. Component instantiation is an exception
+for vendor IP, primitives and flows that require deferred binding. In particular,
+[family and PHY selectors](#fpga-family-and-phy-implementations) often require
+components because entities for other architectures are absent from the build.
+Attributes such as `ASYNC_REG`, `shreg_extract`, `ram_style` and `use_dsp` express
+implementation constraints and must survive formatting changes.
 
 ### Structural generates
 
@@ -204,13 +211,62 @@ implementation selection, while
 and asynchronous paths. Document supported generic values and reject unsupported
 combinations with assertions, following the checks below.
 
+### FPGA-family and PHY implementations
+
+Keep shared behavior in common RTL and isolate family-specific primitives,
+clocking and PHY details behind a common interface. Make implementation
+selection visible in VHDL: use an explicit family or PHY generic and mutually
+exclusive generate branches that instantiate uniquely named implementations.
+Reject unsupported selections with an assertion and document supported values.
+
+**Do not add alternative implementations with the same VHDL filename or entity
+name and rely on ruckus to choose which definition exists.** That pattern hides
+the module's behavior in the build configuration. Give each implementation a
+distinct filename and matching entity name, with a family or PHY suffix, and
+keep one common selector that shows the alternatives and their connections.
+Existing duplicate-name implementations are not a pattern for new code.
+
+The [ADC DDR readout](../devices/AnalogDevices/adcDdr/README.md) demonstrates
+this separation:
+
+- [AdcDdrCore.vhd](../devices/AnalogDevices/adcDdr/rtl/AdcDdrCore.vhd) owns shared
+  alignment, monitoring and register behavior.
+- [AdcDdrPhy.vhd](../devices/AnalogDevices/adcDdr/rtl/AdcDdrPhy.vhd) selects the
+  PHY through `DEVICE_FAMILY_G` and explicit generate branches.
+- [AdcDdrPhy7Series.vhd](../devices/AnalogDevices/adcDdr/7Series/rtl/AdcDdrPhy7Series.vhd)
+  and [AdcDdrPhyUltraScale.vhd](../devices/AnalogDevices/adcDdr/UltraScale/rtl/AdcDdrPhyUltraScale.vhd)
+  contain the family implementations and instantiate correspondingly named
+  deserializers. UltraScale and UltraScale+ share the latter implementation.
+- [ruckus.tcl](../devices/AnalogDevices/adcDdr/ruckus.tcl) loads common sources
+  and uses `getFpgaArch` to load the applicable family directory.
+
+Ruckus may filter out sources that require another family's primitive library;
+the choice between implementations must still be explicit in the VHDL selector.
+Keep the selector generic consistent with the target and loaded family sources.
+
+**Family and PHY selectors often require component instantiation, as an
+exception to the direct-entity rule.** A direct entity instantiation requires
+the referenced entity during analysis, even inside a generate branch that will
+be inactive. Component declarations provide the interfaces without requiring
+those entities to be present, deferring binding until elaboration. Unavailable
+family implementations can remain unbound placeholders (black boxes) in the
+source; their inactive generate branches are not elaborated. `AdcDdrPhy` uses
+this pattern so the common selector can be analyzed with only the selected
+family's sources loaded.
+
+Keep component declarations synchronized with their uniquely named entities.
+The active branch must bind to the intended implementation; a missing selected
+PHY must not silently remain a black box. Use direct entity instantiation where
+this deferred binding is unnecessary.
+
 ### Source layout and checks
 
 Place synthesizable modules in `rtl/`, simulation models in `sim/`, VHDL benches
 in `tb/`, and adapters in `wrappers/` or `ip_integrator/`. Family-specific code
 belongs in directories such as `7Series`, `UltraScale` or `gtyUltraScale+`.
-Update the nearest `ruckus.tcl` when adding or moving HDL; use `loadRuckusTcl`
-for child directories and `getFpgaArch` guards for family-specific sources.
+Update the nearest `ruckus.tcl` when adding, moving or deleting HDL; use
+`loadRuckusTcl` for child directories and `getFpgaArch` guards for family-specific
+sources.
 
 Constrain generics to meaningful ranges and assert relationships between them:
 
@@ -293,9 +349,11 @@ end process seq;
 
 Start `comb` with `v := r` and make all next-state updates through `v`. Clear
 pulse fields before setting them conditionally. A transaction-valid flag has a
-different lifetime: it stays asserted with its payload until the interface
-accepts or cancels it. The [AXI Stream example](#axi-stream-conventions) shows
-that distinction.
+different lifetime: it stays asserted with its payload until acceptance or an
+explicitly defined reset or cancellation event. Cancellation is permitted only
+when the interface contract supports it. The
+[AXI Stream example](#example-one-output-slot-with-combinational-input-ready)
+shows the distinction between a pulse and a retained valid flag.
 
 Keep the behavioral algorithm in `comb`: arithmetic, validation, arbitration,
 state transitions and priority decisions all belong there. `seq` contains only
@@ -343,7 +401,7 @@ Ordering matters: `inputReady <= v.inputReady;` evaluates its right-hand side
 when that statement executes. A later `v := REG_INIT_C` does not change the
 value already scheduled for `inputReady`. Publishing before reset can therefore
 advertise acceptance or assert a control while the corresponding next state is
-being reset. The same applies to a scratch variable copied from `v` before
+being reset. The same applies to a local variable copied from `v` before
 reset; resetting `v` does not reset that copy.
 
 Outputs driven directly from `r` still reflect the current registers; moving
@@ -371,7 +429,7 @@ Design functional module outputs, including connections to child instances, to
 come directly from registers. The receiving module should have a full clock
 period for its own logic, without an upstream mux, decode or arithmetic path
 already consuming that budget. Register payload, valid and associated controls
-together. Prefer computing those registers from resolved next state; adding a
+together. Prefer computing their next-state values in `comb`; adding a
 register after an existing output equation can add unnecessary latency.
 
 Coding style does not establish this boundary. Publishing a local variable or
@@ -394,6 +452,8 @@ capacity and the interface lacks storage to honor delayed backpressure. Review
 that path explicitly; use existing buffered pipeline blocks when a timing break
 is needed. Structural wiring preserves the child's boundary and needs no extra
 register. A wrapper that computes selection or policy is doing more than wiring.
+Physical pad buffers and forwarded clocks follow the specialized
+[I/O guidance](#physical-io-and-clock-outputs) below.
 
 ### Signal assignments in comb
 
@@ -401,15 +461,16 @@ register. A wrapper that computes selection or policy is doing more than wiring.
 outputs must be driven explicitly from `r`.** Apply this rule to internal
 signals connecting child instances as well as module ports.
 
-- Put decisions and calculations in assignments to `v` or justified scratch
-  using `:=`. Publish each signal once, near the end of the process.
+- Put decisions and calculations in assignments to `v` or justified local
+  variables using `:=`. Publish each signal once, near the end of the process.
 - **Do not put `<=` assignments inside `if`/`elsif`/`else` or `case` branches.**
   Do not default an output with `<=` and then override it conditionally.
 - **Do not put conditional expressions, Boolean qualification or arithmetic
   decisions on the right-hand side of `<=`.** A `when ... else` expression or
   helper that hides the selection has the same problem. Compute the result
   in the owning logic before publication.
-- Use a direct registered field, such as `requestValid <= r.requestValid;`.
+- For registered outputs, use a direct field, such as
+  `requestValid <= r.requestValid;`.
   Even a decode using only `r` fields is combinational logic; it does not become
   a registered output merely because its inputs are registered.
 
@@ -433,15 +494,19 @@ if v.state = ISSUE_S then
    v.requestValid := '1';
 end if;
 
--- Unconditional publication:
+-- Apply synchronous reset before publication.
+if RST_ASYNC_G = false and rst = RST_POLARITY_G then
+   v := REG_INIT_C;
+end if;
+rin <= v;
+
 requestValid <= r.requestValid;
-rin          <= v;
 ```
 
 Here valid and the request operands are registered together. `rin <= v` is
 the next-state transfer, so its source is naturally `v`.
 
-The limited exceptions to an `r` source are justified combinational
+For outputs, the limited exceptions to an `r` source are justified combinational
 ready/backpressure or fixed-latency interface controls, structural forwarding,
 constants and representation-only boundary packing, slicing or type conversion.
 Evaluate exceptions against the registered-boundary guidance above; documenting
@@ -449,7 +514,8 @@ an existing dependency alone does not justify retaining it. **These exceptions
 still require unconditional publication.** Resolve a combinational ready field
 through `v`, then write `inputReady <= v.inputReady;`; do not wrap that assignment
 in an `if`. Simple representation changes must not conceal selection or policy.
-The [AXI Stream example](#axi-stream-conventions) shows this in context.
+The [AXI Stream example](#example-one-output-slot-with-combinational-input-ready)
+shows this in context.
 
 ### Give each output one state owner
 
@@ -484,10 +550,12 @@ record does not need another pipeline stage just to give each output a matching
 register.
 
 For justified combinational control records, a fully assigned local variable can
-collect the decision before publication. Keep output assignment separate from
-computing that decision, and apply the intended reset override to the value
-being published. Follow the [reset ordering](#apply-reset-before-publishing-outputs)
-above. Changing an output from `r` to `v`, or the reverse, changes its timing.
+collect the decision before publication. For AXI Stream ready, use the `v` field
+pattern in [Combinational ready outputs](#combinational-ready-outputs).
+Keep output assignment separate from computing that decision, and apply the
+intended reset override to the value being published. Follow the
+[reset ordering](#apply-reset-before-publishing-outputs) above. Changing an
+output from `r` to `v`, or the reverse, changes its timing.
 
 ### Register related controls together
 
@@ -503,15 +571,166 @@ record may also erase a cancellation decision already made in the evaluation.
 Review whole-record assignments and output/reset ordering together.
 
 Document assertion and release latency at both ends of a control interface. If
-a receiver accepts a command at edge N and commits at N+1, cancellation produced
-at N can still veto that pending commit. Cancellation first produced at N+1
-cannot undo it. Ownership and completion must follow the accepted command.
+a receiver accepts a command at edge N and commits at N+1, a registered
+cancellation asserted just after N can veto that commit if it reaches the
+receiver before N+1 and meets its setup requirement. Cancellation first
+registered at N+1 is too late. Ownership and completion must follow the accepted
+command.
 
 A custom interface with shared cancellation must define transfer to exclude
 cancel/reset edges at both ends, even if registered valid remains high until
 the edge. AXI Stream has its own protocol; do not add a private cancellation rule
 to it. The [stream section](#axi-stream-conventions) describes its ready/valid
 pattern and the related scalar `inputReady` convention.
+
+## Physical I/O and clock outputs
+
+### Tri-state and open-drain interfaces
+
+Apply the [PHY separation](#fpga-family-and-phy-implementations) to bidirectional
+pins: keep sampled input, driven output and output-enable separate in common
+logic, and connect them through the target's I/O buffer in the PHY or pin-facing
+wrapper. Keep `inout` and high-impedance behavior at that physical boundary;
+use explicit signals and selection for internal data paths. The pad connection
+may pass through hierarchy, but its I/O buffer must connect to the external pin.
+
+[IoBufWrapper.vhd](../xilinx/general/rtl/IoBufWrapper.vhd) provides the existing
+Xilinx wrapper: `I` is driven data, `O` is the buffered pin input, `IO` is the
+physical connection, and `T = '1'` releases the driver. It instantiates the
+Xilinx `IOBUF` primitive; it is not a vendor-neutral implementation selector.
+[IoBufWrapperDummy.vhd](../xilinx/dummy/IoBufWrapperDummy.vhd) supplies a
+behavioral definition of the same entity for the non-Vivado path in
+[xilinx/ruckus.tcl](../xilinx/ruckus.tcl). That legacy substitution is not a
+model for new family support: use uniquely named implementations and an explicit
+selector when multiple target implementations are needed.
+
+For example, this Xilinx pin-facing wrapper connects an open-drain SDA line.
+The controller supplies registered `sdaRelease`, initialized to `'1'` for
+reset/idle, and receives `sdaSense` through its input capture logic. `sda` is
+the external `inout sl` port, with a board pull-up:
+
+```vhdl
+U_SdaBuffer : entity surf.IoBufWrapper
+   generic map (
+      TPD_G => TPD_G)
+   port map (
+      O  => sdaSense,     -- [out]
+      IO => sda,          -- [inout]
+      I  => '0',          -- [in]
+      T  => sdaRelease);  -- [in]
+```
+
+Here `'0'` on `sdaRelease` drives low and `'1'` releases the pin. For a
+push-pull bidirectional bus, connect the controller's driven data to `I`
+instead of tying it low, and retain the separate input and release signals.
+
+Document output-enable polarity and the reset/idle drive state. For open-drain
+interfaces, drive only low or release the pin; the pull-up supplies high.
+Read the sampled pin rather than substituting the intended output value, so
+another device's drive is observable. This matters for I2C clock stretching
+and arbitration. [LeapXcvr.vhd](../devices/Amphenol/LeapXcvr/rtl/LeapXcvr.vhd)
+shows separate I2C input/output records connected through `IoBufWrapper`.
+Define direction-turnaround timing so neither end drives against the other.
+The I/O buffer does not register or synchronize its input; retain the capture
+or CDC logic required by the interface.
+
+Drive data and output-enable decisions from the owning logic using the normal
+state and timing rules. A primitive instance or concurrent tri-state assignment
+in the pad wrapper or simulation model implements the physical connection;
+it is an implementation exception, not a reason to put conditional signal
+assignments into the controller's `comb`. Model pull-ups and bus ownership in
+tests where released-line behavior matters.
+
+### Forwarded clocks and protocol clocks
+
+For a clock forwarded to an FPGA pin, use the appropriate clock-output wrapper.
+[ClkOutBufSingle.vhd](../xilinx/general/rtl/ClkOutBufSingle.vhd) and
+[ClkOutBufDiff.vhd](../xilinx/general/rtl/ClkOutBufDiff.vhd) use `ODDR` or `ODDRE1`
+and single-ended or differential output buffers for their supported Xilinx
+families. Keep target-specific clock forwarding in the PHY; do not replace it
+with ordinary fabric clock qualification or separately generated P/N signals.
+
+Document clock frequency, phase/inversion, reset behavior and enable timing.
+In these wrappers, `INVERT_G` controls the forwarded phase and `outEnL = '1'`
+releases the output buffer. Releasing the pin differs from resetting the DDR
+output to a driven level. Do not assume either control provides a glitch-free
+clock stop/start protocol; meet the selected primitive's timing requirements
+and the receiving device's clock requirements.
+
+This PHY excerpt forwards `sampleClk` to a differential pin pair. The target
+sets `XIL_DEVICE_G` to a supported family; `sampleRst` is active high and
+`clockRelease` is a separately sequenced, active-high pin-release control:
+
+```vhdl
+U_SampleClock : entity surf.ClkOutBufDiff
+   generic map (
+      TPD_G          => TPD_G,
+      XIL_DEVICE_G   => XIL_DEVICE_G,
+      RST_POLARITY_G => '1',
+      INVERT_G       => false)
+   port map (
+      clkIn   => sampleClk,     -- [in]
+      rstIn   => sampleRst,     -- [in]
+      outEnL  => clockRelease,  -- [in]
+      clkOutP => sampleClkP,    -- [out]
+      clkOutN => sampleClkN);   -- [out]
+```
+
+The wrapper owns both P/N outputs and the DDR primitive. If the pin is always
+driven, tie `outEnL` to `'0'`; that does not remove the reset or clock-timing
+requirements.
+
+A protocol clock generated by a controller is a different case.
+[SpiMaster.vhd](../protocols/spi/rtl/SpiMaster.vhd), for example, creates SPI
+clock transitions as registered outputs while its state machine stays on the
+system clock. Preserve the protocol's idle polarity, sampling edge and data
+setup/hold relationship. A signal named `sclk` does not by itself require a
+forwarded-clock primitive or a new internal clock domain.
+
+### Physical-interface and constraint ownership
+
+Document what the reusable PHY provides and what the integrating target must
+supply. The target owns board-dependent pin assignments, I/O electrical
+standards, clock definitions, input/output delays and placement requirements.
+Keep reusable implementation constraints with the block where appropriate,
+and make their required use and hierarchy assumptions explicit.
+
+Identify ownership of shared resources, reference clocks and reset sequencing.
+The [ADC DDR readout guidance](../devices/AnalogDevices/adcDdr/README.md#relationship-to-static-timing)
+assigns timing constraints to the integrating target; its
+[delay-controller guidance](../devices/AnalogDevices/adcDdr/README.md#delay-controller-readiness)
+also assigns `IDELAYCTRL` reset generation to the target that owns the reference
+clock. Follow this division rather than hiding board assumptions in common RTL.
+Simulation or runtime calibration does not replace implementation timing checks.
+
+For example, a 7-Series target can own the delay controller below. This excerpt
+assumes `unisim.vcomponents` is imported and `idelayRefClk` is the required
+buffered reference clock. The target's reset sequencer supplies `idelayCtrlRst`
+after accounting for reference-clock stability and the primitive's reset
+requirements:
+
+```vhdl
+-- In the target architecture declarations:
+constant ADC_IODELAY_GROUP_C : string := "ADC_BANK0";
+
+signal idelayCtrlRdy : sl;
+
+attribute IODELAY_GROUP : string;
+attribute IODELAY_GROUP of U_DelayCtrl : label is ADC_IODELAY_GROUP_C;
+
+begin
+
+U_DelayCtrl : IDELAYCTRL
+   port map (
+      REFCLK => idelayRefClk,    -- [in]
+      RST    => idelayCtrlRst,   -- [in]
+      RDY    => idelayCtrlRdy);  -- [out]
+```
+
+Pass the same group string to `AdcDdrPhy.IODELAY_GROUP_G` and connect
+`idelayCtrlRdy` to its `idelayCtrlRdy` input. The target still supplies the
+matching reference-frequency setting and board-specific timing/pin constraints;
+the instance and group attribute alone do not provide them.
 
 ## State and process variables
 
@@ -544,7 +763,7 @@ that every path reaching a use assigns the value during the current evaluation;
 process variables must not accidentally retain a value from an earlier one.
 See [FirFilterTap.vhd](../dsp/generic/fixed/FirFilterTap.vhd) for branch-local
 arithmetic and [AxiStreamMux.vhd](../axi/axi-stream/rtl/AxiStreamMux.vhd) for
-selection scratch.
+temporary selection variables.
 
 Local variables declared inside a function or procedure may be initialized in
 their declarations; those initializers run on each call. A process-declaration
@@ -579,7 +798,8 @@ use these names:
 | Processes | `combAxil`, `seqAxil` | `combAxis`, `seqAxis` |
 | Clock / reset | `axilClk`, `axilRst` | `axisClk`, `axisRst` |
 
-`combAxil` starts with a local `v := rAxil` and ends with `rinAxil <= v`;
+`combAxil` starts with a local `v := rAxil` and publishes `rinAxil <= v` after
+resolving next state and synchronous reset, followed by its output assignments;
 `seqAxil` registers only that state on `axilClk`. The stream pair does the same
 for its own state and clock. Each domain retains its initialization and
 synchronous/asynchronous reset handling. Never drive a shared state record from
@@ -623,10 +843,10 @@ not belong in one record just to shorten a port list. Connect whole records
 between production modules and flatten them at tool-facing boundaries.
 
 Use existing SURF records before defining a new one. Exported records normally
-have an `_INIT_C` constant; an intentionally non-default-initialized type is an
-exception. Prefix exported constants by package or protocol, as in `AXI_`,
-`SSI_` or `PGP2B_`. Use unconstrained `natural range <>` arrays for replicated
-channels. For distinct blocks, named controls such as `rxConfigValid` and
+have an `_INIT_C` constant; document any intentional exception. Prefix exported
+constants by package or protocol, as in `AXI_`, `SSI_` or `PGP2B_`. Use
+unconstrained `natural range <>` arrays for replicated channels. For distinct
+blocks, named controls such as `rxConfigValid` and
 `txConfigValid` are clearer than an anonymous vector with positional meanings.
 Defined register/protocol bitfields retain their documented layout.
 
@@ -820,16 +1040,156 @@ style change; retain inference structure, attributes and supported reset modes.
 
 ### Reuse CDC blocks
 
-Use existing `base/sync` blocks for synchronizing levels, transferring pulses,
-crossing status and managing reset. `RstPipeline`, `RstPipelineVector` and
-`RstSync` cover common reset fanout and release needs. A custom synchronizer,
-FIFO or reset pipeline needs a concrete reason the existing block cannot serve.
+Use existing `base/sync` blocks for synchronizing levels, transferring pulses
+and crossing status. Use the reset blocks described above for reset distribution
+and synchronized release. A custom synchronizer, FIFO or reset pipeline needs a
+concrete reason the existing block cannot serve.
 
 Choose the crossing for the information being transferred. Independently
 synchronizing each bit of a multi-bit value does not make a coherent snapshot.
 A stream crossing needs a suitable asynchronous FIFO; a pulse crossing needs
 a pulse-transfer mechanism. Consume the synchronized result in the destination
 domain, and retain the primitive's inference structure and CDC attributes.
+
+## FIFO and RAM timing contracts
+
+Select a memory by its interface behavior as well as capacity and implementation.
+Reuse [Fifo.vhd](../base/fifo/rtl/Fifo.vhd) and the
+[RAM selectors](../base/ram/README.md) where they support the required behavior.
+Changing a backend or output-pipeline option must preserve the consumer's timing
+contract, or update the consumer and its verification in the same change.
+
+**Strongly prefer first-word fall-through (FWFT) for new FIFO uses.** Set
+`FWFT_EN_G => true` explicitly rather than relying on the wrapper's default.
+In FWFT mode, `valid` identifies a word already presented at the output and
+`rd_en` consumes it. This simplifies downstream logic: the consumer can accept
+an available word without issuing a read request and tracking its later response.
+
+Use requested-read mode only when a specific implementation or interface
+requirement calls for it, and document that reason. Preserve existing read-mode
+contracts during focused maintenance. Without FWFT, a read request precedes the
+returned word; account for read latency and use the returned `valid`. Do not
+treat both modes as the same ready/valid interface.
+
+Honor the selected FIFO's full/empty, overflow/underflow and reset behavior,
+including any output pipeline. Account for in-flight data when choosing
+backpressure thresholds, and do not assume
+asynchronous counts or flags reflect the other domain's latest edge.
+[FifoOutputPipeline.vhd](../base/fifo/rtl/FifoOutputPipeline.vhd) is specifically
+for a FWFT interface; its buffering and bypass behavior are part of that contract.
+
+The following consumer assumes a same-clock FIFO configured with
+`FWFT_EN_G => true`. `fifoValid`/`fifoData` are its `valid`/`dout` outputs and
+`fifoRdEn` drives its `rd_en`. `RegType` owns `fifoRdEn`, `outputValid` and
+`outputData`; both control fields initialize to `'0'`. The consumer has one
+registered output slot, a downstream `outputReady`, and active-high synchronous
+reset shared with the FIFO:
+
+```vhdl
+comb : process (r, fifoValid, fifoData, outputReady, rst) is
+   variable v : RegType;
+begin
+   v := r;
+   v.fifoRdEn := '0';
+
+   -- Release a consumed output before considering a replacement.
+   if outputReady = '1' then
+      v.outputValid := '0';
+   end if;
+
+   if v.outputValid = '0' and fifoValid = '1' then
+      v.outputData  := fifoData;
+      v.outputValid := '1';
+      v.fifoRdEn    := '1';
+   end if;
+
+   if rst = '1' then
+      v := REG_INIT_C;
+   end if;
+   rin <= v;
+
+   fifoRdEn    <= v.fifoRdEn;
+   outputValid <= r.outputValid;
+   outputData  <= r.outputData;
+end process comb;
+```
+
+The combinational `fifoRdEn` consumes the same word captured into the output
+slot on that edge. A stalled output prevents another read. This ordering is
+for FWFT; a requested-read FIFO also needs capacity reserved for responses
+that have been requested but not yet returned.
+
+For RAMs, specify read latency, port enables and output-register enables, and
+align valid/control metadata with the returned data. Use explicit read-latency
+generics where available; preserve the documented interaction with legacy
+`DOA_REG_G`/`DOB_REG_G` settings. Selecting `MEMORY_TYPE_G = "distributed"` does
+not imply asynchronous reads:
+[SimpleDualPortRam.vhd](../base/ram/rtl/SimpleDualPortRam.vhd) keeps synchronous
+reads in its inferred backend, including distributed memory, with a base latency
+of one read-clock cycle and an optional output register.
+
+For example, this RAM has one-cycle reads and no extra output register. It
+uses 8-bit addresses, 32-bit data, one shared clock and active-high synchronous
+reset. The caller accepts every response and prevents same-address read/write
+collisions; `readEnable` and `writeEnable` are inactive during reset:
+
+```vhdl
+U_Ram : entity surf.SimpleDualPortRam
+   generic map (
+      TPD_G          => TPD_G,
+      RST_POLARITY_G => '1',
+      RST_ASYNC_G    => false,
+      DATA_WIDTH_G   => 32,
+      ADDR_WIDTH_G   => 8,
+      SYNTH_MODE_G   => "inferred",
+      MEMORY_TYPE_G  => "block",
+      COMMON_CLK_G   => true,
+      DOB_REG_G      => false,
+      READ_LATENCY_G => 1)
+   port map (
+      clka   => clk,           -- [in]
+      ena    => '1',           -- [in]
+      wea    => writeEnable,   -- [in]
+      addra  => writeAddress,  -- [in]
+      dina   => writeData,     -- [in]
+      clkb   => clk,           -- [in]
+      rstb   => rst,           -- [in]
+      enb    => readEnable,    -- [in]
+      regceb => '1',           -- [in]
+      addrb  => readAddress,   -- [in]
+      doutb  => readData);     -- [out]
+```
+
+Keep a `readValid : sl` field initialized to `'0'` in the caller's `RegType`.
+Its usual `seq` captures `rin` on `clk` with the same `TPD_G`. The corresponding
+`comb` excerpt aligns valid with the RAM output:
+
+```vhdl
+-- In comb, after v := r:
+v.readValid := readEnable;
+
+if rst = '1' then
+   v := REG_INIT_C;
+end if;
+rin <= v;
+
+readValid <= r.readValid;
+```
+
+A read accepted at an edge updates both `readData` and `readValid` after that
+edge; downstream sequential logic consumes them at the next edge. When reads
+pause, the RAM may retain old data, but `readValid` deasserts. Increasing read
+latency requires a matching valid/metadata pipeline, including matching enable
+and stall behavior.
+
+Define whether same-address read/write or simultaneous writes can occur.
+Depend on a collision result only when the selected implementation and clock
+relationship guarantee it. Preserve read-first, write-first or no-change
+behavior where supported; otherwise prevent the collision in the owning logic.
+Keep memory initialization, output-register reset and clearing stored contents
+distinct, following the existing inference/reset exceptions. Verify latency,
+stalls, simultaneous operations and reset with work pending for the supported
+configurations.
 
 ## Bus and protocol semantics
 
@@ -877,9 +1237,12 @@ Use `AxiStreamMasterType` for forward data/valid/sidebands and
 `AxiStreamSlaveType` for reverse ready, from
 [AxiStreamPkg.vhd](../axi/axi-stream/rtl/AxiStreamPkg.vhd). Connect complete
 records between modules. Keep a registered output master and the input slave
-record in the owning `RegType`, with the appropriate package initialization
-constants or `axiStreamMasterInit(CONFIG_G)`. Structural forwarding and
-boundary flattening remain exceptions; do not add storage to a wire-only wrapper.
+record in the owning `RegType`. Initialize them with the appropriate package
+constants; the master can also use `axiStreamMasterInit(CONFIG_G)`.
+The slave record may be recomputed through `v` for combinational ready, as
+described below; membership in `RegType` alone does not define output timing.
+Structural forwarding and boundary flattening remain exceptions; do not add
+storage to a wire-only wrapper.
 
 Treat `AxiStreamConfigType` as part of the interface contract: data width,
 `TKEEP` encoding, `TUSER` mode, destination/ID widths and strobe use must agree
@@ -913,8 +1276,8 @@ SURF resize/packing adapters when representations differ.
 ### Combinational ready outputs
 
 Follow the common SURF AXI Stream pattern: keep the ready field or slave record
-in `RegType`, default it through `v` on each evaluation, assert it beside the
-logic that can accept the input, and publish it directly from `v`. For example,
+in `RegType`, default ready low through `v` on each evaluation, assert it beside
+the logic that can accept the input, and publish it directly from `v`, for example,
 `inputReady <= v.inputReady;` or `sAxisSlave <= v.sAxisSlave;`. This is an
 intentional combinational output; belonging to `RegType` does not require
 publishing the previous cycle's value from `r`. Do not rely on retained ready
@@ -923,10 +1286,11 @@ and the scalar equivalent in [DspAddSub.vhd](../dsp/generic/fixed/DspAddSub.vhd)
 
 Ready describes acceptance on the current edge. Preserve whether the interface
 advertises capacity before valid arrives or asserts ready only with valid.
-Account for backpressure, cancellation, reset and whole-record initialization
-in the owning logic; do not recreate the readiness decision in the output
-assignment section. In particular, accepting an input and initializing its
-transaction state must not accidentally clear that same edge's ready value.
+Account for backpressure, reset and whole-record initialization in the owning
+logic, plus cancellation where a custom interface permits it. Do not recreate
+the readiness decision in the output assignment section. In particular,
+accepting an input and initializing its transaction state must not accidentally
+clear that same edge's ready value.
 
 ### Example: one output slot with combinational input ready
 
@@ -983,8 +1347,9 @@ ready before reset and rely on the shared reset excluding transfers. Preserve
 such behavior only as an intentional, documented interface choice; see
 [reset ordering](#apply-reset-before-publishing-outputs). Preserve reset polarity,
 and clear registered valid and partial-frame state according to the module's
-contract. Asynchronous reset still belongs in `seq`; registering or delaying
-ready is not a reset fix.
+contract. With `RST_ASYNC_G = true`, the example resets registered state in
+`seq` and does not force combinational ready low; both ends must exclude
+transfers during reset. Registering or delaying ready is not a reset fix.
 
 Move data and sidebands together. Preserve byte order, `tKeep`, enabled `tStrb`,
 `tLast`, `tDest`, `tId` and `tUser` through stalls, arbitration and width changes.
@@ -1015,16 +1380,18 @@ every child's local bank.
 Use the SURF endpoint helpers for ordinary register banks. The following excerpt
 assumes `AxiLitePkg` is imported, `ep` is a process-local `AxiLiteEndpointType`,
 and `RegType` owns `axiWriteSlave`, `axiReadSlave`, `threshold`, `frameCount` and
-`clearCount`. Initialize the slave records with their `AXI_LITE_*_INIT_C` values.
+`clearCount`. It uses `axilRst` and the reset generics from the two-process
+template. Initialize the slave records with their `AXI_LITE_*_INIT_C` values.
+This small bank uses an 8-bit local byte address, covering 256 bytes.
 
 ```vhdl
 -- In comb, after v := r:
 v.clearCount := '0';
 axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.axiWriteSlave, v.axiReadSlave);
 
-axiSlaveRegister(ep, x"000", 0, v.threshold);
-axiSlaveRegisterR(ep, x"004", 0, r.frameCount);
-axiSlaveRegister(ep, x"008", 0, v.clearCount);
+axiSlaveRegister(ep, x"00", 0, v.threshold);
+axiSlaveRegisterR(ep, x"04", 0, r.frameCount);
+axiSlaveRegister(ep, x"08", 0, v.clearCount);
 
 -- This example's clear command wins over a count update earlier in comb.
 if v.clearCount = '1' then
@@ -1033,7 +1400,12 @@ end if;
 
 axiSlaveDefault(ep, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
--- Output publication:
+-- Apply synchronous reset before publication.
+if RST_ASYNC_G = false and axilRst = RST_POLARITY_G then
+   v := REG_INIT_C;
+end if;
+rin <= v;
+
 axiWriteSlave <= r.axiWriteSlave;
 axiReadSlave  <= r.axiReadSlave;
 ```
@@ -1052,17 +1424,50 @@ Synchronize status from other clock domains before exposing it through registers
 
 ### Addresses and bank connections
 
-Write fixed offsets as hex literals such as `x"3FC"`. Each digit supplies four
-decode bits, so choose the literal width with the bank aperture and crossbar
-configuration. Changing `x"3FC"` to a wider literal is a decode change, not just
-formatting. Computed offsets remain appropriate for repeated register arrays.
+Prefer crossbar address segments whose local address widths fall on 4-bit
+boundaries, such as 8, 12 or 16 bits. This keeps segment boundaries on hex-digit
+boundaries and makes base addresses and offsets easier to read. Denser packing
+may use other widths when needed to fit the available address space. Normally
+give a module at least 8 local address bits (256 bytes); smaller banks are a
+rare exception for constrained address spaces.
 
-Follow the alignment and strobe behavior of the selected
-[AxiLitePkg.vhd](../axi/axi-lite/rtl/AxiLitePkg.vhd) helper. Word-register helpers
-ignore address bits 1:0 when matching. Once a helper has responded,
-`axiSlaveDefault` cannot turn that low-bit alias into an error; it handles
-unmapped accesses, commonly with `AXI_RESP_DECERR_C`. Add stricter alignment
-checks only when the block's contract calls for them.
+Write fixed offsets as hex literals and use one address width throughout a
+module's register helpers. Pass only the local address bits needed for the
+module's entire register bank, including the usual 8-bit minimum. Do not choose
+each literal's width independently from that register's offset, or include
+parent crossbar selection bits. The crossbar allocation must accommodate the
+module's local address width. Computed offsets remain appropriate for repeated
+register arrays, with the same width rule.
+
+**The width of the address argument controls the helper's decode width.** For
+example:
+
+```vhdl
+axiSlaveRegister(ep, x"000", 0, v.threshold);
+```
+
+Here `x"000"` supplies 12 address bits, so the word-register helper compares
+address bits 11:2; it does not infer an 8-bit bank from the small offset. In a
+crossbar segment with only 8 local address bits, bits 11:8 belong to the parent
+address selection. At a segment base of `0x100`, this call will fail to match
+offset zero because those bits are nonzero. Use `x"00"` for an 8-bit bank.
+Conversely, a bank that needs 12 local address bits must use three-digit
+offsets throughout, including `x"000"` for offset zero, to avoid aliases within
+the bank. Adding leading hex zeros changes decoding; it is not formatting.
+
+Place register offsets on 32-bit word boundaries: `0x00`, `0x04`, `0x08`, and
+so on. Align wider registers to their natural boundaries: a 64-bit register
+starts on an 8-byte boundary (`0x00`, `0x08`, `0x10`), never at `0x04` or `0x0C`;
+a 128-bit register starts on a 16-byte boundary. Reserve every word occupied by
+a wider register so adjacent fields cannot overlap it.
+
+Follow the strobe behavior of the selected
+[AxiLitePkg.vhd](../axi/axi-lite/rtl/AxiLitePkg.vhd) helper. Its word-register
+helpers ignore incoming address bits 1:0 when matching. There is no need to add
+guards requiring `awaddr(1 downto 0)` or `araddr(1 downto 0)` to be zero for an
+ordinary register bank. Once a helper has responded, `axiSlaveDefault` cannot
+turn that low-bit alias into an error; it handles unmapped accesses, commonly
+with `AXI_RESP_DECERR_C`.
 
 Compose banks with the standard crossbar, address-map helpers and base-address
 generics. Name each distinct destination and use its index for all four buses:
@@ -1157,9 +1562,10 @@ The standard banner is:
 Read the control flow and trace a transaction through the module before relying
 on lint or test results. These questions catch common mistakes:
 
-- **State and ownership:** Does each clock domain have its own record and
-  process pair? Do output records own their values? Are retained state and
-  temporary calculations clearly distinguished?
+- **State and ownership:** Does each domain with local behavioral state have
+  its own record and process pair, subject to the implementation exceptions?
+  Does each output have one owner? Are retained state, recomputed combinational
+  controls and temporary calculations clearly distinguished?
 - **Registered boundaries:** Do functional outputs come directly from registers,
   without selection, qualification or arithmetic after them? Does each exception
   have a concrete interface requirement or buffering/latency tradeoff, with
@@ -1167,10 +1573,18 @@ on lint or test results. These questions catch common mistakes:
 - **Timing:** Are payload, valid and controls aligned? What happens on a stall,
   simultaneous consume/refill, cancellation or command completion? Do whole-record
   assignments preserve decisions made earlier in `comb`?
+- **Physical I/O:** Are pin buffers isolated in the PHY, with drive/release
+  polarity, turnaround and reset behavior defined? Are forwarded clocks using
+  the appropriate primitives, and are target constraints and shared-resource
+  responsibilities documented?
+- **Memories:** Do new FIFO uses select FWFT unless an exception is explained?
+  Do FIFO read mode, RAM latency and output enables agree with
+  the consumer's timing? Are capacity thresholds, collisions and reset behavior
+  accounted for across the supported implementations?
 - **Reset and CDC:** Are startup values, reset options and `TPD_G` preserved?
   Is synchronous reset the default, with any asynchronous requirement explained?
   Does the synchronous reset override precede `rin` and output publication,
-  including reset handling for outputs derived from `v` or scratch variables?
+  including reset handling for outputs derived from `v` or local variables?
   Are any intentional ordering exceptions justified by the interface?
   Is asynchronous reset release synchronized to each receiving domain, with
   stopped-clock behavior and reset distribution latency accounted for?
@@ -1179,11 +1593,14 @@ on lint or test results. These questions catch common mistakes:
 - **Arithmetic and parameters:** Are widths, signedness, rounding and overflow
   deliberate? Do array bounds/direction and supported zero/one cases work?
   Do constants explain units and policy? Are generic settings propagated and
-  alternative generate branches complete?
+  alternative generate branches complete? Are family/PHY implementations
+  uniquely named and selected explicitly in VHDL?
 - **Interfaces and software:** Are byte order, framing and sidebands preserved?
   Do packed sizes and conversion helpers agree? Are optional and disabled
   interfaces tied off with the intended transaction behavior? Do AXI decode,
-  side effects, PyRogue and the documented map agree?
+  side effects, PyRogue and the documented map agree? Do helper address widths
+  match the module's local address space and fit the crossbar allocation, with
+  word and wider-register alignment preserved?
 - **Readability and integration:** Can a reader follow `comb` in order, with
   unconditional `<=` publication from registered fields or documented exceptions,
   no conditional signal assignments, and a clock/reset-only `seq`? Are statements
