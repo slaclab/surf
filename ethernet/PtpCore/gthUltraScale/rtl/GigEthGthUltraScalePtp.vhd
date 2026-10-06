@@ -32,7 +32,9 @@ entity GigEthGthUltraScalePtp is
       PACKET_LIFETIME_G : positive         := 125000000;
       FIFO_ADDR_WIDTH_G : positive         := 9;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
+      -- Select dedicated gtRefClk instead of the legacy sysClk125 reference.
+      USE_GTREFCLK_G    : boolean := false);
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -68,7 +70,8 @@ entity GigEthGthUltraScalePtp is
       gtTxP        : out sl;
       gtTxN        : out sl;
       gtRxP        : in  sl;
-      gtRxN        : in  sl);
+      gtRxN        : in  sl;
+      gtRefClk     : in  sl := '0');  -- Used only with USE_GTREFCLK_G.
 end entity GigEthGthUltraScalePtp;
 
 architecture rtl of GigEthGthUltraScalePtp is
@@ -130,7 +133,10 @@ begin
          gmiiRxEr          => gmiiRxEr);          -- [in]
 
    U_Phy : entity surf.GigEthGthUltraScalePhy
+      generic map (
+         USE_GTREFCLK_G => USE_GTREFCLK_G)
       port map (
+         gtRefClk     => gtRefClk,      -- [in]
          sysClk125    => sysClk125,     -- [in]
          sysClk62     => sysClk62,      -- [in]
          coreRst      => coreRst,       -- [in]

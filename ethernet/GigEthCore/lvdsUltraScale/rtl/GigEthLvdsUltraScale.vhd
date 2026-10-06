@@ -69,39 +69,6 @@ end GigEthLvdsUltraScale;
 
 architecture mapping of GigEthLvdsUltraScale is
 
-   component GigEthLvdsUltraScaleCore
-      port (
-         txn                  : out std_logic;
-         txp                  : out std_logic;
-         rxn                  : in  std_logic;
-         rxp                  : in  std_logic;
-         mmcm_locked_out      : out std_logic;
-         sgmii_clk_r          : out std_logic;
-         sgmii_clk_f          : out std_logic;
-         sgmii_clk_en         : out std_logic;
-         clk125_out           : out std_logic;
-         clk625_out           : out std_logic;
-         clk312_out           : out std_logic;
-         rst_125_out          : out std_logic;
-         refclk625_n          : in  std_logic;
-         refclk625_p          : in  std_logic;
-         gmii_txd             : in  std_logic_vector(7 downto 0);
-         gmii_tx_en           : in  std_logic;
-         gmii_tx_er           : in  std_logic;
-         gmii_rxd             : out std_logic_vector(7 downto 0);
-         gmii_rx_dv           : out std_logic;
-         gmii_rx_er           : out std_logic;
-         gmii_isolate         : out std_logic;
-         configuration_vector : in  std_logic_vector(4 downto 0);
-         speed_is_10_100      : in  std_logic;
-         speed_is_100         : in  std_logic;
-         status_vector        : out std_logic_vector(15 downto 0);
-         reset                : in  std_logic;
-         signal_detect        : in  std_logic;
-         idelay_rdy_out       : out std_logic
-         );
-   end component;
-
    signal config : GigEthConfigType;
    signal status : GigEthStatusType;
 
@@ -190,40 +157,29 @@ begin
    ------------------
    -- gmii - sgmii
    ------------------
-   U_GigEthLvdsUltraScaleCore : GigEthLvdsUltraScaleCore
+   U_Phy : entity surf.GigEthLvdsUltraScalePhy
       port map (
-         -- Clocks and Resets
-         refclk625_p          => sgmiiClkP,
-         refclk625_n          => sgmiiClkN,
-         clk125_out           => sysClk125,
-         clk312_out           => open,
-         clk625_out           => open,
-         reset                => areset,
-         rst_125_out          => sysRst125,
-         sgmii_clk_r          => open,
-         sgmii_clk_f          => open,
-         sgmii_clk_en         => sysClk125En,
-         -- MGT Ports
-         txp                  => sgmiiTxP,
-         txn                  => sgmiiTxN,
-         rxp                  => sgmiiRxP,
-         rxn                  => sgmiiRxN,
-         -- PHY Interface
-         gmii_txd             => gmiiTxd,
-         gmii_tx_en           => gmiiTxEn,
-         gmii_tx_er           => gmiiTxEr,
-         gmii_rxd             => gmiiRxd,
-         gmii_rx_dv           => gmiiRxDv,
-         gmii_rx_er           => gmiiRxEr,
-         gmii_isolate         => open,
-         -- Configuration and Status
-         configuration_vector => config.coreConfig,
-         status_vector        => status.coreStatus,
-         mmcm_locked_out      => open,
-         speed_is_10_100      => speed_is_10_100,
-         speed_is_100         => speed_is_100,
-         idelay_rdy_out       => open,
-         signal_detect        => sigDet);
+         coreRst        => areset,             -- [in]
+         sigDet         => sigDet,             -- [in]
+         speed_is_10_100 => speed_is_10_100,    -- [in]
+         speed_is_100    => speed_is_100,       -- [in]
+         coreConfig     => config.coreConfig,  -- [in]
+         coreStatus     => status.coreStatus,  -- [out]
+         sysClk125      => sysClk125,           -- [out]
+         sysRst125      => sysRst125,           -- [out]
+         sysClkEn       => sysClk125En,         -- [out]
+         gmiiTxd        => gmiiTxd,             -- [in]
+         gmiiTxEn       => gmiiTxEn,            -- [in]
+         gmiiTxEr       => gmiiTxEr,            -- [in]
+         gmiiRxd        => gmiiRxd,             -- [out]
+         gmiiRxDv       => gmiiRxDv,            -- [out]
+         gmiiRxEr       => gmiiRxEr,            -- [out]
+         sgmiiClkP      => sgmiiClkP,           -- [in]
+         sgmiiClkN      => sgmiiClkN,           -- [in]
+         sgmiiRxP       => sgmiiRxP,            -- [in]
+         sgmiiRxN       => sgmiiRxN,            -- [in]
+         sgmiiTxP       => sgmiiTxP,            -- [out]
+         sgmiiTxN       => sgmiiTxN);           -- [out]
 
    status.phyReady <= status.coreStatus(0);
    phyReady        <= status.phyReady;

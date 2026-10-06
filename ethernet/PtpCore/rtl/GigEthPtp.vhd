@@ -167,8 +167,9 @@ begin
 
    U_PcsReset : entity surf.PwrUpRst
       generic map (
-         TPD_G      => TPD_G,
-         DURATION_G => 1000)
+         TPD_G       => TPD_G,
+         RST_ASYNC_G => true,  -- Assert even if oscillator programming stops sysClk125.
+         DURATION_G  => 1000)
       port map (
          clk    => sysClk125,  -- [in]
          arst   => pcsReset,   -- [in]

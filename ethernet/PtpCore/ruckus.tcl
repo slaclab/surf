@@ -21,10 +21,19 @@ loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"
 set family [getFpgaArch]
 if { (${family} eq {kintexu} || ${family} eq {virtexu}) &&
      $::env(VIVADO_VERSION) >= 2016.4 } {
+   # One GTH PTP composition; USE_GTREFCLK_G selects the PHY clock path.
    loadSource -lib surf -dir "$::DIR_PATH/gthUltraScale/rtl"
 }
 if { (${family} eq {kintexuplus} || ${family} eq {zynquplus} ||
       ${family} eq {zynquplusRFSOC} || ${family} eq {virtexuplus} ||
       ${family} eq {virtexuplusHBM}) && $::env(VIVADO_VERSION) >= 2017.3 } {
    loadSource -lib surf -dir "$::DIR_PATH/gtyUltraScale+/rtl"
+}
+
+# LVDS SGMII copper composition uses the existing Marvell controller and PCS.
+if { (${family} eq {kintexu} || ${family} eq {virtexu} ||
+      ${family} eq {kintexuplus} || ${family} eq {virtexuplus} ||
+      ${family} eq {zynquplus} || ${family} eq {zynquplusRFSOC} ||
+      ${family} eq {virtexuplusHBM}) && $::env(VIVADO_VERSION) >= 2022.2 } {
+   loadSource -lib surf -dir "$::DIR_PATH/lvdsUltraScale/rtl"
 }

@@ -131,7 +131,8 @@ for build results and the maintainer VHDL approval gate on regressions.
 [GigEthGthUltraScalePtp](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd) and
 [GigEthGtyUltraScalePlusPtp](gtyUltraScale+/rtl/GigEthGtyUltraScalePlusPtp.vhd)
 compose their PHY adapter with the same
-[GigEthPtp](rtl/GigEthPtp.vhd). Both have identical public contracts.
+[GigEthPtp](rtl/GigEthPtp.vhd). Both share the same MAC/PTP contract; GTH
+also offers the optional dedicated reference described below.
 `GigEthPtp` owns `GigEthReg`, `EthMacPtpEndpoint`, PCS reset stretching, and one
 `AxiLiteAsync` followed by the local register crossbar. It is also usable with
 another compatible full-rate GMII PHY. MAC/PCS register ownership stays here
@@ -170,7 +171,7 @@ preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
 - Supply continuously running, related `sysClk125` (125 MHz) and `sysClk62`
   (62.5 MHz) clocks meeting the existing checkpoint contract. GMII and PHC share
   `sysClk125`; this is full-rate 1 GbE, not 10/100 or SGMII rate adaptation.
-- These checkpoints retain the legacy `gtrefclk => sysClk125` connection and
+- By default these checkpoints retain the legacy `gtrefclk => sysClk125` connection and
   `rxuserclk2 => sysClk62` wiring. They do not expose a newly qualified dedicated
   GT reference path or recovered clock. In particular, the KCU105 investigation
   found a fabric GT-reference path in its GTH checkpoint; clock routing still
@@ -182,7 +183,10 @@ preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
 - `extRst`, Ethernet soft reset and watchdog reset only restart the PCS and PTP
   port association, preserving the running MAC/PHC and unresolved TX lifecycle.
   The common composition stretches PCS reset for 1000 `sysClk125` cycles using
-  `PwrUpRst`. Link-ready loss reaches the endpoint independently through PCS
+  `PwrUpRst` with asynchronous assertion so reset also reaches the PHY while
+  `sysClk125` is stopped; release is synchronized and stretched after the clock
+  resumes. Assert system reset before stopping or retuning a clock source.
+  Link-ready loss reaches the endpoint independently through PCS
   status bit 1. The PHY-only interface expects its enclosing design to supply
   the appropriate stretched reset.
 - `axilRst` resets the management bridge, not the PHC. Default `COMMON_CLK_G=false`
@@ -194,10 +198,54 @@ preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
 
 The extraction adds `U_Phy/` to the legacy checkpoint instance hierarchy.
 Review external XDC/Tcl queries and DCP constraints that name the former
-`U_GigEth*Core` path. PTP paths use `U_Phy/U_GigEth*Core`; KCU105 prefixes that
-with `U_Ptp/`. No checkpoint is modified or regenerated here.
+`U_GigEth*Core` path. GTH paths now include
+`U_Phy/GEN_FABRIC_REF/U_GigEthGthUltraScaleCore` or
+`U_Phy/GEN_GT_REF/U_GigEthGthUltraScaleRefCore`; KCU105 prefixes the latter
+with `U_Ptp/`. GTY retains `U_Phy/U_GigEthGtyUltraScaleCore`.
+The legacy checkpoints remain unchanged.
 
 These are source integrations, not hardware-qualified PHYs. Static interface
 checks cannot prove checkpoint binding, clock routing, timing closure or
 connector-plane latency. Current evidence and required acceptance are retained
 in the [PTP plan](../../docs/plans/ethernet-ptp/README.md#phy-composition-implementation).
+
+### Dedicated GTH reference and copper SGMII
+
+[GigEthGthUltraScalePtp](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd)
+passes `USE_GTREFCLK_G` to `GigEthGthUltraScalePhy`. False (default) keeps
+`sysClk125` as the reference and ignores the optional `gtRefClk` input. True
+uses `gtRefClk` for the dedicated 125 MHz reference and selects the separately
+named `GigEthGthUltraScaleRefCore` checkpoint. Supply related fabric
+125/62.5 MHz clocks in either mode. Selection is static at elaboration; the
+fixed GT routing inside each DCP requires distinct checkpoint assets, but no
+separate PHY or PTP VHDL wrapper. The dedicated-reference asset is not yet
+supplied: the selected component cannot bind with only the existing legacy DCP.
+Develop compatible IP in `surf-dcp-targets`, as identified by the
+[checkpoint README](../GigEthCore/gthUltraScale/images/README.md), then qualify
+its reference routing and integrate the asset through the normal ruckus manifest.
+No checkpoint conversion or environment-variable loading workflow is required.
+
+[Sgmii88E1111LvdsUltraScalePtp](lvdsUltraScale/rtl/Sgmii88E1111LvdsUltraScalePtp.vhd)
+combines the shared LVDS PHY adapter with a separate `GigEthPtp` and Marvell
+MDIO controller. It advertises only gigabit full duplex and gates readiness
+on MDIO initialization, copper link/speed, PCS validity and GMII clock enable.
+10/100 support remains in the ordinary Ethernet composition only. Its PHC,
+application streams and outputs use the PCS-derived `phyClk` (125 MHz from
+625 MHz external PHY clock); use `phyRst` for consumers in that domain.
+
+The independent `stableClk`/`stableRst` domain owns external PHY reset, MDIO and
+finite PCS-reset pulses. It must keep running while the PHY clock is absent.
+This avoids a reset feedback loop: the vendor PCS reset also controls its
+clock/reset outputs. **Copper PCS reset resets the copper PHC/MAC and register
+configuration**; software must reconfigure and reacquire time. That differs
+from the externally clocked GTH/GTY compositions, which retain PHC time during
+PCS reset. Cable-loss clock continuity and reset recovery require hardware
+qualification. Do not claim holdover across a stopped clock.
+
+Both new compositions use the same endpoint register layout and single internal
+AXI-Lite CDC before fanout. Instantiating them together creates independent PHCs
+and servos; there is no shared timing loop. Their distinct MACs provide distinct
+default PTP identities, unless overridden by software. Outputs are local to
+each clock domain; comparison capture/stream CDC belongs in board/application
+integration. Readiness bit 1 in copper's Ethernet core status is qualified as
+above, while bit 0 retains raw PCS link validity.

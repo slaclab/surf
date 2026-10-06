@@ -101,6 +101,52 @@ routing, reset release, CDC and timing. RFMC integration additionally requires
 verified RTM pins and clock sources. Calibrate PHY-to-connector latency and
 reset repeatability separately for each family before claiming timing accuracy.
 
+### Dual-endpoint KCU105 extension
+
+Source integration adds `USE_GTREFCLK_G` and optional `gtRefClk` to
+`GigEthGthUltraScalePhy`/`GigEthGthUltraScalePtp`, plus
+`Sgmii88E1111LvdsUltraScalePtp` with its own PHY-clocked PHC. The GTH default
+retains the fabric reference; true selects the separate dedicated-reference
+checkpoint. The duplicated RefPhy/RefPtp VHDL wrappers have been consolidated.
+GTH checkpoint hierarchy now includes `GEN_FABRIC_REF` or `GEN_GT_REF` beneath
+`U_Phy`; review external constraints using exact paths.
+The copper composition shares `GigEthLvdsUltraScalePhy` with the ordinary LVDS MAC;
+Marvell `GIGABIT_ONLY_G` defaults false for existing consumers and is true for
+PTP. Board integration supplies XM107 to the SFP lane and exposes copper as a
+second independent endpoint through the host link. This does not modify RFMC.
+
+The temporary netlist-conversion script and its environment-variable loading
+workflow have been removed. No dedicated-reference binary was generated or
+supplied. Develop and qualify compatible IP in `surf-dcp-targets`, then add its
+asset to the normal SURF manifest. The KCU105 dedicated-reference selection
+remains in RTL, but cannot bind using only the existing legacy DCP; source
+import does not establish build readiness. The source DCP remains unchanged.
+Copper PCS reset also
+resets its PHC and configuration because vendor clock/reset outputs are coupled;
+finite pulses generated in the stable domain avoid level-feedback deadlock.
+See the [composition guide](../../../ethernet/PtpCore/README.md#dedicated-gth-reference-and-copper-sgmii)
+for these different reset contracts.
+
+KCU105 oscillator control can stop the SFP user clocks during programming.
+`GigEthPtp` therefore asserts its PCS reset stretcher asynchronously, with
+synchronized/stretched release once `sysClk125` resumes. Board logic must assert
+system reset before stopping or retuning the clock and invalidate/reconfigure
+the endpoint afterward. Stopped-clock reset assertion/recovery still needs
+approved behavioral verification and hardware qualification.
+
+Static checks cover real-package/entity GHDL analysis of new adapters,
+compositions and the board top, unchanged legacy LVDS public interface and
+composed vendor pin mapping, source-manifest selection, target Tcl syntax and
+Python syntax. These do not bind vendor IP or execute protocol behavior.
+The GTH consolidation additionally passed static elaboration of both generic
+modes with declaration-only checkpoint substitutes and an exact comparison of
+each branch's vendor pin map against the former separate adapters. KCU105 uses
+`USE_GTREFCLK_G=true`; existing ordinary Ethernet consumers keep the default.
+Outstanding acceptance includes initialization without cable, gigabit-only
+negotiation, copper watchdog/reset completion and PHC invalidation/configuration
+recovery, independent endpoint resets, concurrent traffic and register access,
+and calibrated comparison of separate clock/PHY paths. Simulations remain paused.
+
 ## Goal and status
 
 Explore and stage reusable IEEE 1588 Precision Time Protocol support for the
@@ -2198,8 +2244,8 @@ make MODULES="$PWD" import
 10. Select representative hardware for 7-series, first-generation UltraScale,
     and UltraScale+ qualification; synthesis alone cannot establish connector-
     plane accuracy or reset-repeatable latency.
-11. Decide whether 1 Gb/s UltraScale LVDS/SGMII is a first-release gate or a
-    compatibility follow-on after the GTH/GTY paths. Its 10/100 modes remain
+11. Qualify the implemented 1 Gb/s UltraScale LVDS/SGMII composition alongside
+    the GTH path for the dual-endpoint KCU105 demonstrator. Its 10/100 modes remain
     out of scope unless `ethClkEn` timing is specified.
 12. Establish, for each wrapper, whether its proposed `phcClk` truly remains
     continuous through link and PCS recovery. Where it does not, freeze the

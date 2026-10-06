@@ -25,7 +25,9 @@ entity Sgmii88E1111Mdio is
       TPD_G : time                            := 1 ns;
       -- half-period of MDC in clk cycles
       DIV_G : natural range 1 to natural'high := 1;
-      PHY_G : natural range 0 to 31           := 7);
+      PHY_G : natural range 0 to 31           := 7;
+      -- Preserve legacy tri-speed advertisement unless explicitly restricted.
+      GIGABIT_ONLY_G : boolean := false);
    port (
       -- clock and reset
       clk             : in  sl;
@@ -60,7 +62,7 @@ architecture rtl of Sgmii88E1111Mdio is
          mdioWriteInst(PHY_G, 22, X"0001", false),  -- select page 1
          mdioWriteInst(PHY_G, 0, X"0140", false),  -- disable ANEG on SMII side
          mdioWriteInst(PHY_G, 22, X"0000", false),  -- select page 0
-         mdioWriteInst(PHY_G, 4, X"0140", false),  -- advertise 10/100 FD only
+         mdioWriteInst(PHY_G, 4, ite(GIGABIT_ONLY_G, X"0000", X"0140"), false),  -- optional 10/100 FD
          mdioWriteInst(PHY_G, 9, X"0200", false),  -- advertise 1000   FD only
          mdioWriteInst(PHY_G, 18, X"0C00", false),  -- enable link status and ANEG IRQ
          mdioWriteInst(PHY_G, 0, X"1340", true)    -- restart copper ANEG

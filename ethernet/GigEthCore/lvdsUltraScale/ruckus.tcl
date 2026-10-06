@@ -4,6 +4,7 @@ source $::env(RUCKUS_PROC_TCL)
 # Load Source Code
 if { $::env(VIVADO_VERSION) >= 2022.2 } {
 
+   # Shared PHY adapter plus ordinary MAC composition; PTP lives in PtpCore.
    loadSource -lib surf -dir  "$::DIR_PATH/rtl"
 
    loadSource -lib surf -path "$::DIR_PATH/ip/GigEthLvdsUltraScaleCore.dcp"
