@@ -2,6 +2,10 @@
 
 Use this directory for planning, progress notes, and handoff material for substantial SURF work.
 
+All PTP plans and review handoffs belong in [ethernet-ptp](ethernet-ptp/README.md).
+Its document map separates current contracts, pending work and historical evidence;
+update that workstream instead of creating another sibling PTP plan.
+
 Create one task directory per effort:
 
 ```text

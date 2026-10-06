@@ -1,7 +1,7 @@
 # PtpCore output register survey
 
 Scope: all 15 RTL/package files and seven wrappers in `ethernet/PtpCore`.
-The [registered-boundary redesign](../ptp-registered-boundaries/README.md)
+The [registered-boundary redesign](rtl-review.md)
 supersedes the earlier acceptance of immediate control and queue-selection
 exceptions. These changes affect interface latency; previous simulation results
 do not validate them. Simulation and pytest remain paused for VHDL review.
@@ -49,6 +49,6 @@ do not validate them. Simulation and pytest remain paused for VHDL review.
 
 ## Validation
 
-See the [redesign handoff](../ptp-registered-boundaries/README.md) for final lint,
+See the [redesign handoff](rtl-review.md) for final lint,
 compile/link evidence, authored behavioral checks and timing tables. No new
 behavioral equivalence, FPGA timing/resource or physical CDC claim is made.

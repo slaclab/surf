@@ -1,70 +1,51 @@
 # Ethernet PTP Support
 
-The shared [SURF VHDL conventions](../../vhdl-conventions.md) describe process
-structure, state ownership, registered interfaces and readable arithmetic/register
-maps. The [PTP supplement](rtl-readability.md) records the local timing contracts.
-The [output-register survey](output-register-survey.md) reviews every PtpCore RTL
-file and wrapper against the same-type registered-output guidance.
-The [magic-number audit](magic-number-audit.md) covers every `PtpCore/rtl` file
-and records the implemented wire-format, units, and numeric-policy cleanup,
-including the policy bounds whose original rationale remains unverified.
+This directory is the single home for PTP implementation plans, decisions and
+verification handoffs. The implemented endpoint is a fixed-source, two-step
+Layer-2 E2E TimeReceiver with autonomous numerical PHC/servo control. Software
+configures and observes it; software is not in the timing loop.
 
-The [physical-clock integration note](physical-clock-integration.md) adds
-applied-rate, reference-generation, clock-health and qualification requirements
-extracted from the SPT bridge study. It describes future integration work.
+## Document map
 
-The [one-step Sync receive plan](one-step.md) specifies a pending extension to
-accept either Sync mode while preserving the current two-step path. It includes
-association rules, affected modules and acceptance checks; it is not implemented
-or validated and does not lift the behavioral-regression pause.
+| Purpose | Maintained document |
+| --- | --- |
+| Implemented behavior and numerical limits | [Endpoint contract](autonomous-endpoint.md) and [PtpCore guide](../../../ethernet/PtpCore/README.md) |
+| Software/hardware interface | [Register map](register-map.md), [register ownership](register-ownership.md), [interface records](interface-records.md) |
+| RTL rules and cycle contracts | [SURF conventions](../../vhdl-conventions.md), [PTP timing supplement](rtl-readability.md), [boundary survey](output-register-survey.md) |
+| Completed RTL reviews and pending acceptance | [Consolidated review record](rtl-review.md); replaces the three separate PTP conventions/boundary plan directories |
+| Pending receive extension | [One-step implementation plan](one-step.md), not yet implemented or validated |
+| Future physical-clock integration | [Applied-rate, reference and clock-health requirements](physical-clock-integration.md) |
+| Numeric definitions and unresolved policy provenance | [Implemented magic-number audit](magic-number-audit.md) |
+| Historical design evidence | [2026-09-08 review](review-2026-09-08.md), [Phase 0 counterexamples](phase-0-experiments.md), [RX design decision](rx-frontend-design.md), [RX proof](rx-rtl-proof.md) |
+
+The broader architecture, integration studies and phased roadmap below retain
+future work and design rationale. Their provisional interfaces and earlier
+milestone results are superseded by the maintained contracts above and current
+validation state below; they are not a second implementation checklist. Keep
+completed review findings in the consolidated record and active feature work
+here rather than opening another sibling `ptp-*` plan directory.
 
 ## Current validation
 
 VHDL changes are awaiting maintainer review. **Do not run simulation or pytest
 regressions until the maintainer approves the VHDL.** Lint and compile/link smoke
-checks remain authorized. Earlier simulation milestones below precede the
-current interface, register-map and control-flow changes.
+checks remain authorized. Earlier simulation milestones predate the current
+interface, register-map and control-flow changes.
 
-The [registered-boundary redesign](../ptp-registered-boundaries/README.md)
-supersedes the former immediate-control exceptions: RX queue selection/events,
-port child requests and lifecycle, PHC response/capture inhibition, snapshots,
-endpoint event assembly and mailbox strobes now have registered boundaries.
-Interface latency changes are explicit in the [PTP timing contract](rtl-readability.md).
-VSG passes all 22 files; final compile/link and behavioral-check preparation
-are recorded in the redesign handoff. Simulation remains paused.
+The conventions fixes, registered-boundary redesign and follow-up are
+implemented. Recorded static checks passed VSG for all 22 PTP VHDL files and
+GHDL compile/link for all 21 entities/wrappers; these are historical checks,
+not a fresh validation after later merges. The
+[review record](rtl-review.md#historical-static-evidence) retains their scope,
+source provenance and build limitations. The stale test-helper imports have
+been repaired. Behavioral checks of the changed boundaries remain unrun.
 
-The output-register fixes pass VSG across all 22 PTP RTL/package/wrapper files
-and GHDL compilation/linking across all 21 entities/wrappers. Changed Python
-tests pass lint/syntax checks. The survey records implemented consolidations,
-registered controls and the remaining justified timing exceptions. Added
-behavioral checks have not run.
-These build results do not establish behavioral equivalence or FPGA timing.
-
-The `PtpMath`/`PtpE2e` input-ready follow-up uses the SURF stream pattern:
-default and resolve readiness through `v` beside admission, then publish it
-directly from `v`. Idle readiness and cancel/reset suppression are preserved.
-Both files pass VSG and compile/link checks through `PtpMath`, `PtpE2eWrapper`
-and `EthMacPtpEndpoint`; regressions remain paused.
-
-`PtpE2e.mathInput` is now registered with its operands from resolved next state,
-then published unconditionally from `r`. The issue/hold timing is preserved.
-VSG and compile/link checks through `PtpE2eWrapper` and `EthMacPtpEndpoint` pass;
-behavioral regressions remain unrun.
-
-The [VHDL conventions review and fixes](../ptp-vhdl-conventions-review/README.md)
-add PHY/frequency and ledger-depth assertions, register the PHC/port arithmetic
-requests, resolve immediate controls before publication, move calculation-only
-fields to process locals, and finish combinational-ready ownership. All 22
-VHDL files pass VSG and all 21 entities/wrappers compile/link with GHDL. The
-review records remaining generic-boundary/behavioral checks. The stale test-helper
-imports identified there are repaired by the registered-boundary follow-up.
-
-After approval, prioritize command cancellation/ownership, registered expiry,
-arithmetic/ledger cancellation, RX queue/counter and ledger-summary alignment,
-servo status arithmetic, measurement backpressure, distributed commit/snapshot
-alignment, AXI-only reset recovery, association/ledger lifetime and mailbox resets, then GMII/XGMII endpoint
-regressions. Device-mapped resource and timing qualification remains open,
-including bounded searches and wide record muxes in `PtpPort`.
+After approval, follow the [ordered acceptance checklist](rtl-review.md#outstanding-acceptance):
+parameter assertions and leaf/register checks, registered command/expiry and
+cancellation, RX/ledger/servo alignment, backpressure, commit/snapshot and
+AXI-only reset recovery, association/ledger lifetime, mailbox resets, then
+GMII/XGMII endpoint integration. Device timing/resources, physical CDC,
+external-master interoperability and calibrated hardware accuracy remain open.
 
 ## Goal and status
 
@@ -75,9 +56,10 @@ PTP, exchanges the required delay messages, and disciplines its local time
 without relying on Linux `ptp4l`. Rogue may configure and observe the endpoint,
 but it is not in the timing loop.
 
-Status: the autonomous endpoint simulation milestone is complete: 101 pytest
-cases pass, including independent absolute-phase checks and real-MAC lifecycle
-checks on GMII/XGMII. The [implementation record](autonomous-endpoint.md)
+Historical milestone: the original autonomous endpoint passed 101 pytest
+cases, including independent absolute-phase checks and real-MAC lifecycle
+checks on GMII/XGMII. These results predate the paused RTL revisions. The
+[implementation record](autonomous-endpoint.md)
 defines the implemented register ABI, reset/command ownership, calibration,
 numerical envelope, validation and remaining limits. It supersedes provisional
 module names and register offsets below. The PHC, port, servo, AXI-Lite/PyRogue
@@ -88,7 +70,8 @@ qualification and application timing remain future milestones.
 The [register-ownership refactor](register-ownership.md) moves PHC, port and
 servo registers into local management hierarchies with coordinated commits and
 snapshots. The [development register map](register-map.md) defines the four banks and software
-migration; verification of the refactor is in progress.
+migration. Earlier refactor tests do not validate subsequent RTL changes;
+remaining acceptance is tracked in the [review record](rtl-review.md#outstanding-acceptance).
 
 Phase 0 now has an [executable experiment and reference models](phase-0-experiments.md).
 The real-MAC experiment rejects the original header-key-only RX association:

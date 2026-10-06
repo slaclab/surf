@@ -183,9 +183,12 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 
 ## Validation and handoff
 
-The distributed-register refactor is being revalidated; current results are
-tracked in [register-ownership.md](register-ownership.md). The following records
-the earlier autonomous endpoint milestone.
+The register refactor and later RTL reviews are implemented, but behavioral
+acceptance of the subsequent changes remains paused. See the
+[consolidated handoff](rtl-review.md#outstanding-acceptance) for pending checks
+and [register-ownership.md](register-ownership.md) for earlier refactor evidence.
+The following records the original autonomous endpoint milestone; it does not
+validate the current RTL.
 
 - **The original autonomous milestone passed 101 distinct pytest cases.** This
   includes 84 pure reference cases and 17 parameterized RTL cases; some RTL cases

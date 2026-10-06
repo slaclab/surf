@@ -132,7 +132,7 @@ reset must retain its existing meaning.
    a model that merely repeats the new RTL branches. Retain the test methodology
    blocks and SLAC headers required by the test guide.
 4. Apply the VHDL review checklist and authorized static checks. Use the
-   [compile/link handoff](../ptp-registered-boundaries/README.md#validation-and-handoff)
+   [compile/link handoff](rtl-review.md#compilelink-procedure)
    and current runner documentation; do not depend on old temporary build paths.
    Do not execute a built simulator or use pytest collection as a static check.
 5. Update the PtpCore README, endpoint contract, PTP test README, and affected
