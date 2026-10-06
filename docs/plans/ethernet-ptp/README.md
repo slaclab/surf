@@ -13,6 +13,11 @@ The [physical-clock integration note](physical-clock-integration.md) adds
 applied-rate, reference-generation, clock-health and qualification requirements
 extracted from the SPT bridge study. It describes future integration work.
 
+The [one-step Sync receive plan](one-step.md) specifies a pending extension to
+accept either Sync mode while preserving the current two-step path. It includes
+association rules, affected modules and acceptance checks; it is not implemented
+or validated and does not lift the behavioral-regression pause.
+
 ## Current validation
 
 VHDL changes are awaiting maintainer review. **Do not run simulation or pytest
