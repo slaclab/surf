@@ -195,7 +195,7 @@ preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
 The extraction adds `U_Phy/` to the legacy checkpoint instance hierarchy.
 Review external XDC/Tcl queries and DCP constraints that name the former
 `U_GigEth*Core` path. PTP paths use `U_Phy/U_GigEth*Core`; KCU105 prefixes that
-with `U_Ptp/U_Ethernet/`. No checkpoint is modified or regenerated here.
+with `U_Ptp/`. No checkpoint is modified or regenerated here.
 
 These are source integrations, not hardware-qualified PHYs. Static interface
 checks cannot prove checkpoint binding, clock routing, timing closure or
