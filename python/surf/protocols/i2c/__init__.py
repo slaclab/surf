@@ -45,22 +45,28 @@ def getPMbusLiteralDataFormat(var, read):
     return X
 
 ##############################################################################
-# PMBus Power System Mgt Protocol Specification – Part II – Revision 1.0:
+# PMBus Power System Mgt Protocol Specification - Part II - Revision 1.0:
 ##############################################################################
-# 8.3.1. Linear Mode:
-# The data bytes for the VOUT_MODE and VOUT_COMMAND when using the Linear
-# voltage data format.
+# 8.2. "Linear" Output Voltage Format (LINEAR16):
+# The data bytes for VOUT_COMMAND, READ_VOUT and the other VOUT_* commands
+# when VOUT_MODE selects the Linear voltage data format.
 def getPMbusLinearDataFormat(var, read):
-    # Get the VOUT_MODE and VOUT_COMMAND
+    """
+    PMBus Part II section 8.2 "Linear" output-voltage format (LINEAR16).
+    dependencies[0] = VOUT_MODE, dependencies[1] = the VOUT_* / READ_VOUT register.
+    Mantissa is a 16-bit UNSIGNED integer; exponent is 5-bit two's complement
+    from VOUT_MODE[4:0]. VOUT_MODE[7:5] must be 000 (Linear); VID (001) and
+    Direct (010) modes are not supported here.
+    """
     voutMode = var.dependencies[0].get(read=read)
-    voutCmd  = var.dependencies[1].get(read=read)
+    raw      = var.dependencies[1].get(read=read)
 
-    # 11 bit, two's complement mantissa
-    Y  = pr.twosComplement( int(voutCmd  & 0xFFFF), 11)
+    # Only the Linear mode (VOUT_MODE[7:5] = 000) is decoded here
+    if ((voutMode >> 5) & 0x7) != 0:
+        return float('nan')
 
     # 5 bit, two's complement exponent (scaling factor)
-    N  = pr.twosComplement( int(voutMode & 0x001F), 5)
+    N = pr.twosComplement(int(voutMode & 0x1F), 5)
 
-    # X is the 'real world' value
-    X = Y*(2**N)
-    return X
+    # 16 bit, unsigned mantissa: X is the 'real world' value
+    return (int(raw) & 0xFFFF) * (2.0 ** N)
