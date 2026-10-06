@@ -26,6 +26,11 @@ validation state below; they are not a second implementation checklist. Keep
 completed review findings in the consolidated record and active feature work
 here rather than opening another sibling `ptp-*` plan directory.
 
+Status reconciled October 6, 2026 against SURF
+`66552564fd9a273e070e4925471f3661bcc5d4a9` and consuming project
+`e964280287e19bb64fa68f467e67a7a3cde45b7e`. Current source integration and
+historical verification results are distinguished below.
+
 ## Current validation
 
 VHDL changes are awaiting maintainer review. **Do not run simulation or pytest
@@ -52,14 +57,15 @@ external-master interoperability and calibrated hardware accuracy remain open.
 
 ## PHY composition implementation
 
-The first two production PHY/PTP source integrations are implemented together:
+The first two PHY/PTP source integrations are implemented together:
 UltraScale GTH for KCU105 and UltraScale+ GTY for the RFMC **1 GbE RTM** path.
 RFMC 10G XAUI is outside this change; its board top remains a placeholder.
 The [PTP composition guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions) is authoritative
 for the new public interfaces, register map, clock/reset contract and hierarchy.
 
-- `GigEthGthUltraScalePhy` and `GigEthGtyUltraScalePlusPhy` expose identical
-  GMII, PCS configuration/status, reset and serial interfaces. They own only
+- `GigEthGthUltraScalePhy` and `GigEthGtyUltraScalePlusPhy` share
+  GMII, PCS configuration/status, reset and serial contracts; GTH additionally
+  exposes optional `gtRefClk` and `USE_GTREFCLK_G`. They own only
   checkpoint wiring and live in `GigEthCore`. Their legacy Ethernet lanes reuse
   them with unchanged public interfaces, MAC logic, reset behavior and maps.
 - `GigEthGthUltraScalePtp` and `GigEthGtyUltraScalePlusPtp` compose those PHYs
@@ -121,8 +127,7 @@ supplied. Develop and qualify compatible IP in `surf-dcp-targets`, then add its
 asset to the normal SURF manifest. The KCU105 dedicated-reference selection
 remains in RTL, but cannot bind using only the existing legacy DCP; source
 import does not establish build readiness. The source DCP remains unchanged.
-Copper PCS reset also
-resets its PHC and configuration because vendor clock/reset outputs are coupled;
+Copper PCS reset also resets its PHC and configuration because vendor clock/reset outputs are coupled;
 finite pulses generated in the stable domain avoid level-feedback deadlock.
 See the [composition guide](../../../ethernet/PtpCore/README.md#dedicated-gth-reference-and-copper-sgmii)
 for these different reset contracts.
@@ -146,6 +151,38 @@ Outstanding acceptance includes initialization without cable, gigabit-only
 negotiation, copper watchdog/reset completion and PHC invalidation/configuration
 recovery, independent endpoint resets, concurrent traffic and register access,
 and calibrated comparison of separate clock/PHY paths. Simulations remain paused.
+
+### Board clock control and remaining handoff
+
+The consuming KCU105 target now includes `Kcu105Clock`, pin constraints and
+PyRogue `ClockControl`: reset control at `0x00090000` and the raw XM107 Si570
+window at `0x00091000`. The board-specific wrapper reuses three
+`AxiLiteCrossbarI2cMux` instances and `AxiI2cRegMasterCore`; the PCA9544 selection
+uses `I2cMuxPkg`. U28 and U80 are parallel branches on the board's main bus,
+not three cascaded physical muxes: first deselect U28 to isolate the onboard
+Si570 at the same address, then select U80's LPC channel and XM107's Si570
+channel. Physical topology, addresses and revision assumptions belong in the
+consuming target's maintained guide.
+
+SFP reset defaults asserted and every Si570 write reasserts it. Software must
+establish 125 MHz, release reset and configure the SFP endpoint; host and copper
+use independent clocks. Raw register access is implemented, but calibrated
+frequency programming and frequency monitoring are not. SURF's existing Si570
+frequency helper has a hard-coded crystal calibration and is not used for this
+target. Hardware acceptance must verify mux isolation/NACK propagation and
+SFP programming/reset while host and copper remain operational.
+
+Next work is compatible dedicated-reference IP in `surf-dcp-targets`, RTL
+review, and the approved behavioral/device acceptance above. SMA PPS/10 MHz
+behavior and endpoint-tagged PHC streaming remain open; existing register
+snapshots are available but do not provide simultaneous phase measurement.
+RFMC stays on the selected 1 GbE RTM path with its board top still a scaffold.
+
+The [VHDL conventions](../../vhdl-conventions.md#give-the-code-room-to-be-read)
+now explicitly require blank lines between neighboring multiline constructs,
+including constants, function/procedure declarations and bodies, and processes.
+The review checklist includes that rule; the KCU105 declaration block has been
+spaced accordingly. This is formatting guidance, not behavioral validation.
 
 ## Goal and status
 
