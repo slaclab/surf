@@ -15,3 +15,16 @@ source $::env(RUCKUS_PROC_TCL)
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
 # Includes the direct PtpPort transaction/measurement fixture and PHY fixtures.
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"
+
+# PTP lane compositions are family-specific; PHY adapters and checkpoints are
+# owned by GigEthCore and loaded by its normal family manifests.
+set family [getFpgaArch]
+if { (${family} eq {kintexu} || ${family} eq {virtexu}) &&
+     $::env(VIVADO_VERSION) >= 2016.4 } {
+   loadSource -lib surf -dir "$::DIR_PATH/gthUltraScale/rtl"
+}
+if { (${family} eq {kintexuplus} || ${family} eq {zynquplus} ||
+      ${family} eq {zynquplusRFSOC} || ${family} eq {virtexuplus} ||
+      ${family} eq {virtexuplusHBM}) && $::env(VIVADO_VERSION) >= 2017.3 } {
+   loadSource -lib surf -dir "$::DIR_PATH/gtyUltraScale+/rtl"
+}

@@ -17,6 +17,8 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
    loadRuckusTcl "$::DIR_PATH/RoCEv2"
 } else {
    loadSource -lib surf -path "$::DIR_PATH/EthMacCore/rtl/EthMacPkg.vhd"
+   # Common Ethernet management used by PtpCore; no vendor checkpoints.
+   loadRuckusTcl "$::DIR_PATH/GigEthCore/core"
    loadRuckusTcl "$::DIR_PATH/PtpCore"
    loadRuckusTcl "$::DIR_PATH/RoCEv2"
 }

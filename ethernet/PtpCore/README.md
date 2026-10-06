@@ -60,6 +60,12 @@ insertion remains outside scope.
 - `PtpPrimaryGuard`, `EthMacPtpEndpoint`: exclusive PTP TX ownership and common-clock
   GMII/XGMII composition, using existing SURF stream adapters.
 - `PtpPhcRead`: optional, separately instantiated coherent snapshot CDC mailbox.
+- `GigEthPtp`: common 1G Ethernet management, MAC/PTP composition and one
+  AXI-Lite crossing before register fanout. The single-lane
+  [UltraScale GTH](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd) and
+  [UltraScale+ GTY](gtyUltraScale+/rtl/GigEthGtyUltraScalePlusPtp.vhd)
+  compositions live here beside the common PTP code; their reusable PHY-only
+  adapters live in [GigEthCore](../GigEthCore/README.md).
 - `wrappers/`: thin flattened simulation adapters. Executable stimulus and
   independent models live in the [cocotb suite](../../tests/ethernet/PtpCore/README.md).
 - [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): development register map with Phc/Port/Servo child devices.
@@ -119,3 +125,79 @@ modules. The [PTP supplement](../../docs/plans/ethernet-ptp/rtl-readability.md)
 documents the local timing contracts. See
 [current validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
 for build results and the maintainer VHDL approval gate on regressions.
+
+## 1G PHY compositions
+
+[GigEthGthUltraScalePtp](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd) and
+[GigEthGtyUltraScalePlusPtp](gtyUltraScale+/rtl/GigEthGtyUltraScalePlusPtp.vhd)
+compose their PHY adapter with the same
+[GigEthPtp](rtl/GigEthPtp.vhd). Both have identical public contracts.
+`GigEthPtp` owns `GigEthReg`, `EthMacPtpEndpoint`, PCS reset stretching, and one
+`AxiLiteAsync` followed by the local register crossbar. It is also usable with
+another compatible full-rate GMII PHY. MAC/PCS register ownership stays here
+because `GigEthReg` describes both; it does not belong in a PHY-only adapter.
+
+```text
+AXI-Lite -> AxiLiteAsync -> crossbar -> GigEthReg / EthMacPtpEndpoint
+                                               |
+application AXI Stream <-> EthMacPtpEndpoint <-> GMII <-> family PHY <-> serial
+```
+
+Application streams use `EMAC_AXIS_CONFIG_C` in the 125 MHz domain. Add stream
+CDC outside this interface if the application has another clock; the management
+bridge does not cross stream data. The existing endpoint reserves untagged
+EtherType `0x88F7` for PTP. PHC time/status, PPS, IRQ, port state, servo state and
+primary-drop count are exposed in the 125 MHz domain. `localMac` feeds the
+Ethernet register block, whose MAC configuration also feeds the PTP endpoint.
+
+Default register locations relative to `AXIL_BASE_ADDR_G`:
+
+| Offset | Size | Device |
+| --- | --- | --- |
+| `0x0000` | 4 KiB | `GigEthReg` |
+| `0x4000` | 16 KiB | `PtpEndpoint`: control, PHC, port, servo at 4 KiB strides |
+
+Allocate at least a 32 KiB aligned parent window for the default map.
+`ETH_OFFSET_G` and `PTP_OFFSET_G` can retain an existing board map. The resolved
+Ethernet/PTP addresses must be 4 KiB/16 KiB aligned and disjoint; address addition
+must not wrap. Elaboration assertions check those conditions. The parent must
+allocate an aperture enclosing both banks. Holes return DECERR. The KCU105
+integration uses relative `0x10000`/`0x20000` in its existing 256 KiB aperture,
+preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
+
+### Clocks, resets and qualification
+
+- Supply continuously running, related `sysClk125` (125 MHz) and `sysClk62`
+  (62.5 MHz) clocks meeting the existing checkpoint contract. GMII and PHC share
+  `sysClk125`; this is full-rate 1 GbE, not 10/100 or SGMII rate adaptation.
+- These checkpoints retain the legacy `gtrefclk => sysClk125` connection and
+  `rxuserclk2 => sysClk62` wiring. They do not expose a newly qualified dedicated
+  GT reference path or recovered clock. In particular, the KCU105 investigation
+  found a fabric GT-reference path in its GTH checkpoint; clock routing still
+  needs Vivado/device review before accepting precision results. Do not assume
+  the GTY checkpoint has identical internal routing without inspecting it.
+- `sysRst125` resets the complete MAC/PTP pipeline and PHC. It must follow the
+  clock-source startup/discontinuity contract. A clock that stops or changes
+  phase cannot silently retain a claim of valid time.
+- `extRst`, Ethernet soft reset and watchdog reset only restart the PCS and PTP
+  port association, preserving the running MAC/PHC and unresolved TX lifecycle.
+  The common composition stretches PCS reset for 1000 `sysClk125` cycles using
+  `PwrUpRst`. Link-ready loss reaches the endpoint independently through PCS
+  status bit 1. The PHY-only interface expects its enclosing design to supply
+  the appropriate stretched reset.
+- `axilRst` resets the management bridge, not the PHC. Default `COMMON_CLK_G=false`
+  permits an independent management domain; set it true only when the clocks
+  and resets meet `AxiLiteAsync`'s common-clock contract.
+- `PACKET_LIFETIME_G` defaults to 125,000,000 unsteered ticks (one second).
+  Validate that bound against actual network/TX retention. Latency calibration
+  is signed Q16 PHC nanoseconds; zero defaults are explicitly uncalibrated.
+
+The extraction adds `U_Phy/` to the legacy checkpoint instance hierarchy.
+Review external XDC/Tcl queries and DCP constraints that name the former
+`U_GigEth*Core` path. PTP paths use `U_Phy/U_GigEth*Core`; KCU105 prefixes that
+with `U_Ptp/U_Ethernet/`. No checkpoint is modified or regenerated here.
+
+These are source integrations, not hardware-qualified PHYs. Static interface
+checks cannot prove checkpoint binding, clock routing, timing closure or
+connector-plane latency. Current evidence and required acceptance are retained
+in the [PTP plan](../../docs/plans/ethernet-ptp/README.md#phy-composition-implementation).

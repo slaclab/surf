@@ -14,6 +14,7 @@ configures and observes it; software is not in the timing loop.
 | RTL rules and cycle contracts | [SURF conventions](../../vhdl-conventions.md), [PTP timing supplement](rtl-readability.md), [boundary survey](output-register-survey.md) |
 | Completed RTL reviews and pending acceptance | [Consolidated review record](rtl-review.md); replaces the three separate PTP conventions/boundary plan directories |
 | One-step receive implementation and pending acceptance | [One-step handoff](one-step.md), implemented with static checks; behavioral verification paused |
+| 1G PHY composition and pending acceptance | [Current implementation](#phy-composition-implementation) and [integration guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions) |
 | Future physical-clock integration | [Applied-rate, reference and clock-health requirements](physical-clock-integration.md) |
 | Numeric definitions and unresolved policy provenance | [Implemented magic-number audit](magic-number-audit.md) |
 | Historical design evidence | [2026-09-08 review](review-2026-09-08.md), [Phase 0 counterexamples](phase-0-experiments.md), [RX design decision](rx-frontend-design.md), [RX proof](rx-rtl-proof.md) |
@@ -48,6 +49,57 @@ cancellation, RX/ledger/servo alignment, backpressure, commit/snapshot and
 AXI-only reset recovery, association/ledger lifetime, mailbox resets, then
 GMII/XGMII endpoint integration. Device timing/resources, physical CDC,
 external-master interoperability and calibrated hardware accuracy remain open.
+
+## PHY composition implementation
+
+The first two production PHY/PTP source integrations are implemented together:
+UltraScale GTH for KCU105 and UltraScale+ GTY for the RFMC **1 GbE RTM** path.
+RFMC 10G XAUI is outside this change; its board top remains a placeholder.
+The [PTP composition guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions) is authoritative
+for the new public interfaces, register map, clock/reset contract and hierarchy.
+
+- `GigEthGthUltraScalePhy` and `GigEthGtyUltraScalePlusPhy` expose identical
+  GMII, PCS configuration/status, reset and serial interfaces. They own only
+  checkpoint wiring and live in `GigEthCore`. Their legacy Ethernet lanes reuse
+  them with unchanged public interfaces, MAC logic, reset behavior and maps.
+- `GigEthGthUltraScalePtp` and `GigEthGtyUltraScalePlusPtp` compose those PHYs
+  with one family-independent `GigEthPtp`; all three live under `PtpCore`.
+  The common block owns `GigEthReg`, `EthMacPtpEndpoint`, reset stretching and a single management crossing before
+  a local crossbar. Application streams and PHC outputs remain at 125 MHz.
+- Default offsets are Ethernet `0x0000` (4 KiB) and PTP `0x4000` (16 KiB).
+  Offset generics preserve existing board layouts; KCU105 keeps Ethernet
+  `0x50000` and endpoint `0x60000`. Assertions reject unaligned, overlapping or
+  wrapped addresses. The enclosing crossbar must cover the selected banks.
+- Board clock generation and pin selection stay outside SURF. No checkpoint
+  was regenerated. Retained fabric-reference wiring is not a precision-clock
+  qualification. `sysRst125` resets PHC/MAC; PCS-only resets preserve their
+  lifecycle. New family names are unique, including the explicit `Plus` suffix.
+
+Static evidence for this change: GHDL analysis with real SURF packages and
+current dependency entity declarations passes for the two PHYs, two PTP lanes,
+common composition, both modified legacy lanes and KCU105 target. A structural
+comparison against the pre-extraction legacy sources confirms unchanged public
+interfaces and logic and identical composed checkpoint connections; GTY's
+previously unassociated `gtpowergood` output is now explicitly open.
+The actual GigEthCore/PtpCore manifests were evaluated with mocked Vivado
+loading commands for `kintexu` and `zynquplusRFSOC`: each selected its expected
+PTP lane and excluded the other family, with one copy of each common block.
+Documentation links/anchors and diff whitespace pass. These checks do not bind
+the DCPs or establish behavioral equivalence.
+
+The normal ruckus `make import` attempt could not complete on this host: Tcl
+failed to create a subprocess error file (`not owner`) before loading sources.
+VSG is unavailable. Simulation/pytest remain paused; no Vivado or hardware
+validation has run. Current checks and outstanding gates must remain distinct.
+
+Next acceptance work after RTL approval: exercise both common/default and
+KCU105 register layouts through the asynchronous bus; AXI-only, PCS-only and
+system reset recovery; link loss with outstanding TX; application traffic and
+PTP association; then bind both family checkpoints in Vivado. Review the added
+`U_Phy/` hierarchy against imported and external constraints, clock/reference
+routing, reset release, CDC and timing. RFMC integration additionally requires
+verified RTM pins and clock sources. Calibrate PHY-to-connector latency and
+reset repeatability separately for each family before claiming timing accuracy.
 
 ## Goal and status
 
@@ -1251,66 +1303,39 @@ The LVDS/SGMII entries cover 1 Gb/s operation only. Supporting their 10/100
 Mb/s `ethClkEn` behavior would require an enable-aware timestamp and PHC
 contract and is a later extension.
 
-Add opt-in PTP siblings while leaving every legacy entity and public address
-map unchanged:
+The implemented baseline is the shared-PHY composition described
+[above](#phy-composition-implementation): legacy and PTP lanes share a PHY
+adapter, while MAC/PTP management stays outside that adapter. The initial
+UltraScale GTH and UltraScale+ GTY paths are present; the remaining entries
+in the coverage table are future integrations, not supported PHY claims.
 
-| Path | PTP sibling work | PTP AXI-Lite placement | Generated GT/IP change |
-| --- | --- | --- | --- |
-| 7-series 1G GTP7/GTH7 | Add `GigEthGtp7Ptp` and `GigEthGth7Ptp` beside their existing lane cores. Replace only the local MAC composition with `EthMacPtpEndpoint` and tap GMII. | New sibling crossbar: Ethernet at base + `0x0000`, PTP at base + `0x1000`. | None; reuse the existing DCPs. |
-| 7-series 1G GTX7 | Add `GigEthGtx7Ptp`; retain the existing core/config/DRP composition and tap GMII. | Extend the sibling's existing map: Ethernet `0x0000`, DRP `0x1000`, PTP `0x2000`. | None; reuse `GigEthGtx7Core.dcp`. |
-| 7-series 10G GTH7/GTX7 | Add `TenGigEthGth7Ptp` and `TenGigEthGtx7Ptp`; tap XGMII and run the endpoint at the shared `phyClk`. | New sibling crossbar: Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the existing 10GBASE-R DCP/XCI products. |
-| UltraScale 1G GTH | Add `GigEthGthUltraScalePtp` under `gthUltraScale/rtl`; use the final `sysClk125` selected by the enclosing wrapper and tap GMII. | Ethernet at `0x0000`, PTP at `0x1000`. | None; keep `txoutclk` and `rxoutclk` unused as they are today. |
-| UltraScale 1G LVDS/SGMII | Add `GigEthLvdsUltraScalePtp` for 1 Gb/s mode after the GTH path; tap its internal GMII and use `sysClk125`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the existing SGMII IP unchanged. |
-| UltraScale 10G GTH | Add `TenGigEthGthUltraScalePtp` under `gthUltraScale/rtl`; tap XGMII and use the lane's `phyClock`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; keep `rxrecclkout` and existing QPLL/DRP wiring unchanged. |
-| UltraScale+ 1G GTH/GTY | Add `GigEthGthUltraScalePtp` and `GigEthGtyUltraScalePtp` in their architecture-selected directories; tap GMII and use the final `sysClk125`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; reuse the family DCPs and existing clock managers. |
-| UltraScale+ 10G GTH/GTY | Add `TenGigEthGthUltraScalePtp` and `TenGigEthGtyUltraScalePtp`; tap XGMII and use each lane's `phyClock`. | Ethernet at `0x0000`, PTP at `0x1000`. | None; leave recovered-clock, QPLL, DRP, and buffer configuration unchanged. |
-| 100 Gb/s `Caui4Core` | Separate future integration using the vendor CMAC timestamp interface or an AXI-side contract. | To be defined. | Vendor-core-specific investigation required. |
+Extend this pattern only for a concrete integration need. Use unique entity
+names for each new family implementation (including `Plus` for UltraScale+),
+following the current VHDL conventions. Preserve legacy public interfaces and
+address maps. Do not duplicate transceiver wiring merely to select a different
+MAC. Where a new PHY has a different reference, reset or rate contract, make
+that difference explicit rather than presenting nominally identical clocks as
+interchangeable.
 
-The GTH UltraScale and UltraScale+ source trees intentionally use the same
-legacy entity names because `GigEthCore/ruckus.tcl` and
-`TenGigEthCore/ruckus.tcl` select mutually exclusive architecture directories.
-The PTP siblings follow the same convention; they are not a single source file
-shared across generations. Each family `ruckus.tcl` continues loading its
-local `rtl/` directory and unchanged checkpoint.
+Future PTP compositions must allocate the endpoint's full 16 KiB-aligned window;
+older `+0x1000`/`+0x2000` PTP proposals are superseded. Default new 1G layouts
+place Ethernet at `+0x0000` and PTP at `+0x4000`. A layout with DRP at `+0x1000`
+can still place PTP at `+0x4000`. Preserve the existing Ethernet/DRP offsets.
 
-Where an existing multi-lane `*Wrapper` is part of the public integration, add
-a matching `*PtpWrapper` rather than adding ports to the legacy wrapper. The
-PTP wrapper instantiates one PTP lane sibling per Ethernet lane and exposes
-per-lane status, PPS, and time outputs. The current wrappers already provide a
-`localMac(i)` and independent AXI-Lite interface per lane. Keep one
-`PtpEndpoint` and one PHC per lane even when several 1G lanes share
-`sysClk125`; a common clock net does not make their PTP port identities,
-calibration, servo state, or time controls common. A shared PHC for a future
-boundary-clock or multi-port design needs a separate interface decision.
+Multi-lane convenience wrappers remain optional future work. A replicated
+ordinary-clock endpoint keeps its own PHC, identity, servo and calibration per
+lane even when clock nets are shared. A shared-PHC boundary clock requires a
+separate interface and protocol design. Retain authoritative `localMac` sharing
+between Ethernet configuration and the PTP builder, and keep the management
+crossing inside the composition before fanout when all banks share a domain.
 
-For each sibling, the existing `localMac` port is the authoritative Ethernet
-source address. The Ethernet register block and PTP builder receive the same
-value. `EN_AXI_REG_G` retains its legacy meaning for the Ethernet registers;
-the new PTP window remains present because the configured autonomous endpoint
-needs a control plane. Every new sibling may add `AXIL_BASE_ADDR_G` without
-changing its legacy counterpart.
-
-Clock and reset mapping is part of each adapter's contract:
-
-- 7-series 1G uses `sysClk125`; 7-series 10G uses the shared wrapper
-  `phyClk`.
-- UltraScale/UltraScale+ 1G uses the final `sysClk125` after the wrapper's
-  internal `ClockManager` versus `EXT_PLL_G` selection. PTP does not depend on
-  which source was selected.
-- UltraScale/UltraScale+ 10G uses the lane-local `phyClock` already exported as
-  `phyClk(i)` by the multi-lane wrapper. Do not cross timestamps to a shared
-  reference clock before capture.
-- PCS/link reset contributes to `portRst` and loss-of-link state, not
-  `phcRst`. The sibling adds an explicit PTP timebase-reset input. If its PHC
-  clock stops or changes phase/rate while the clock manager or GT restarts, it
-  clears `timeValid`, records a discontinuity cause after clock recovery, and
-  reacquires instead of claiming continuous holdover.
-
-The new 1G/10G siblings may initially duplicate a small amount of composition
-from their legacy lane cores. Do not refactor all families merely to remove
-that duplication. Extract a common PHY adapter only after at least two sibling
-implementations demonstrate an identical, narrow boundary and the legacy
-entity ports remain unchanged.
+Clock continuity and reset ownership must be reviewed for each new PHY. A
+PCS/link restart must not silently reset the PHC. A stopped or discontinuous
+PHC clock requires invalidation/reset and reacquisition; it cannot claim
+continuous holdover. Existing 1G GMII requires 125 MHz; 10G XGMII integration
+requires its actual 156.25 MHz capture domain, with no timestamp CDC before
+capture. The current adapters retain their old checkpoint wiring pending
+reference-route review and qualification.
 
 The ordinary-PTP capture point is GMII/XGMII, so PCS/PMA latency constants are
 specific to family, transceiver type, generated-IP version, line rate, and
@@ -1920,10 +1945,10 @@ observable in a counter.
 ### Phase 7: 7-series 1 Gb/s integration and control plane
 
 - Add `GigEthGtx7Ptp.vhd` first, without changing `GigEthGtx7` or its DCP. Add
-  PTP at AXI-Lite base + `0x2000`, expose direct PHC time, PPS, lock, holdover,
+  PTP at AXI-Lite base + `0x4000`, expose direct PHC time, PPS, lock, holdover,
   and time-valid outputs, and keep the existing Ethernet/DRP maps.
 - Add `GigEthGtp7Ptp.vhd` and `GigEthGth7Ptp.vhd` using the same GMII endpoint,
-  with Ethernet/PTP windows at base + `0x0000`/`0x1000`. Add matching
+  with Ethernet/PTP windows at base + `0x0000`/`0x4000`. Add matching
   multi-lane `*PtpWrapper` entities where the current public wrapper is needed;
   keep one endpoint per lane even though `sysClk125` is shared.
 - Fan the existing wrapper `localMac` into both Ethernet configuration and the
@@ -1966,14 +1991,16 @@ XGMII/PCS latency from endpoint algorithm error.
 
 ### Phase 9: UltraScale and UltraScale+ 1 Gb/s integration
 
-- Add the first-generation UltraScale GTH PTP lane sibling and matching
-  multi-lane wrapper under `GigEthCore/gthUltraScale`. Then add the
-  architecture-specific UltraScale+ GTH and GTY siblings under
-  `gthUltraScale+` and `gtyUltraScale+`; do not merge same-named entities across
-  the mutually exclusive ruckus source trees.
-- Reuse the common GMII tap and 125 MHz PHC. Verify both internal
-  `ClockManager` and `EXT_PLL_G` selections where offered, and document which
-  source/reset events stop or disturb `sysClk125`.
+The GTH UltraScale and GTY UltraScale+ single-lane source compositions are now
+implemented; see [current evidence](#phy-composition-implementation). Their
+behavioral and device acceptance remains open. Multi-lane convenience wrappers,
+UltraScale+ GTH and LVDS/SGMII integrations remain future work.
+
+- Reuse the shared-PHY boundary for additional required paths. New UltraScale+
+  GTH names must include `Plus`; do not add duplicate names selected by ruckus.
+- Reuse the common GMII tap and 125 MHz PHC. Qualify the clocks supplied by
+  each enclosing board or clock wrapper, including any internal/external PLL
+  selection, and document which events stop or disturb `sysClk125`.
 - Keep an endpoint, AXI-Lite window, PTP port identity, calibration set, and
   output-status set per lane even when the wrapper shares `sysClk125`.
 - Add the UltraScale LVDS/SGMII sibling in 1 Gb/s mode after the GT paths. Keep
