@@ -167,8 +167,19 @@ Choose record defaults and disabled outputs according to their
 
 Use named association and direct entity instantiation for SURF RTL by default.
 This names the implementation explicitly and avoids maintaining a duplicate
-component declaration. Group clocks, resets and interfaces consistently, with
-aligned comments showing the direction of the instantiated port:
+component declaration. **Strongly prefer explicit logical library names over
+`work`**, including when instantiating another entity from the same library.
+Use `entity surf.EntityName` for SURF RTL and the owning project's named library
+for project RTL. Declare that library in the VHDL context and assign sources to
+the same library in ruckus with `loadSource -lib <library> ...`; keep synthesis
+and simulation library mappings consistent. `work` denotes the library into
+which the current design unit is analyzed, so it hides the intended ownership
+and makes binding depend on the compilation context. Use it only when that
+relative binding is intentional and document the reason. Preserve vendor/IP
+binding requirements and existing public interfaces during focused maintenance.
+
+Group clocks, resets and interfaces consistently, with aligned comments showing
+the direction of the instantiated port:
 
 ```vhdl
 U_Pipeline : entity surf.AxiStreamPipeline
@@ -1424,6 +1435,27 @@ Synchronize status from other clock domains before exposing it through registers
 
 ### Addresses and bank connections
 
+**Strongly prefer one upstream AXI-Lite slave interface per subsystem, with an
+internal `AxiLiteCrossbar` to select its child register banks.** A wrapper that
+owns several register banks should also own their address decode and fanout.
+Expose scalar read/write master and slave records at that boundary; keep the
+per-bank arrays inside the wrapper. The parent crossbar allocates one aperture
+to the subsystem, which uses `AXIL_BASE_ADDR_G` and local offsets to locate its
+children. Do not expose one upstream bus per child merely to move this fanout
+into the parent. Genuine bus fabrics, independent access paths and established
+interfaces can require multiple buses; document that reason when adding or
+substantially reworking such an interface.
+
+When all child banks share one clock domain that differs from the upstream
+bus domain, **strongly prefer one internal
+`AxiLiteAsync` before the local crossbar**. Cross the complete upstream interface
+once, then decode and fan out in the destination domain. Keep the bridge and
+its clock/reset connections inside the subsystem; do not replicate the same
+crossing for each bank. If child banks occupy different domains or require
+independent reset/access behavior, place crossings to match those contracts
+and document the topology. No asynchronous bridge is needed for a common-clock
+interface.
+
 Prefer crossbar address segments whose local address widths fall on 4-bit
 boundaries, such as 8, 12 or 16 bits. This keeps segment boundaries on hex-digit
 boundaries and makes base addresses and offsets easier to read. Denser packing
@@ -1600,12 +1632,17 @@ on lint or test results. These questions catch common mistakes:
   interfaces tied off with the intended transaction behavior? Do AXI decode,
   side effects, PyRogue and the documented map agree? Do helper address widths
   match the module's local address space and fit the crossbar allocation, with
-  word and wider-register alignment preserved?
+  word and wider-register alignment preserved? Does each subsystem own its
+  local register crossbar behind one upstream AXI-Lite interface, with any
+  multiple-bus exception explained? When its banks share a destination domain,
+  is the required AXI-Lite crossing internal and placed once before fanout?
 - **Readability and integration:** Can a reader follow `comb` in order, with
   unconditional `<=` publication from registered fields or documented exceptions,
   no conditional signal assignments, and a clock/reset-only `seq`? Are statements
   and associations laid out clearly, wrappers thin, headers useful and ruckus
-  manifests current? Were unrelated vendor/generated files left alone?
+  manifests current? Do entity references use explicit owning libraries that
+  match source and tool mappings, with any intentional `work` binding explained?
+  Were unrelated vendor/generated files left alone?
 - **Evidence:** Which lint, build and behavioral checks ran, and what remains
   unverified? A clean compile or generic synthesis netlist does not establish
   behavioral equivalence, FPGA timing or resource use.
