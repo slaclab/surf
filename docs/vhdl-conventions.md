@@ -71,6 +71,30 @@ lines, and align colons and associations within a group. Put every record field,
 initialization association and generic/port association on a separate line.
 Compressing statements to reduce line count makes the algorithm harder to follow.
 
+**Separate neighboring declarations or statements with a blank line whenever
+either spans multiple lines.** This applies to constants and aggregate
+initializers, record/type declarations, function and procedure declarations and
+bodies, wrapped assignments and calls, instantiations, processes, generate
+blocks and control-flow blocks. Keep a
+construct's explanatory comment attached to it; put the separating blank line
+before that comment. Related single-line declarations may remain grouped.
+Apply this between sibling constructs at the same nesting level; it does not
+require blank lines between every field or association within one construct.
+
+```vhdl
+constant MUX_ADDR_C : Slv7Array(0 to 1) := (
+   0 => "1110100",
+   1 => "1110101");
+
+-- Select one channel on each mux.
+constant MUX_SELECT_C : Slv8Array(0 to 1) := (
+   0 => x"01",
+   1 => x"06");
+
+signal busy : sl;
+signal done : sl;
+```
+
 ### Names and instantiations
 
 These are the usual naming conventions. Keep established public names and local
@@ -1642,7 +1666,9 @@ on lint or test results. These questions catch common mistakes:
   and associations laid out clearly, wrappers thin, headers useful and ruckus
   manifests current? Do entity references use explicit owning libraries that
   match source and tool mappings, with any intentional `work` binding explained?
-  Were unrelated vendor/generated files left alone?
+  Are neighboring multiline constructs separated by blank lines, including
+  constants, type declarations, function/procedure declarations and bodies, and
+  processes? Were unrelated vendor/generated files left alone?
 - **Evidence:** Which lint, build and behavioral checks ran, and what remains
   unverified? A clean compile or generic synthesis netlist does not establish
   behavioral equivalence, FPGA timing or resource use.
