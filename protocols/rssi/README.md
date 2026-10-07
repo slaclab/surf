@@ -9,6 +9,21 @@ packetizer/depacketizer layer around `RssiCore`. `RssiCore` is still useful for
 focused protocol integration tests or custom wrappers that already own stream
 chunking and routing.
 
+## Application FIFO BUSY
+
+`RssiCore` drives local BUSY from the application output FIFO's pause signal,
+the same backpressure that stops RX application delivery. A higher occupancy
+threshold can be unreachable after RX pauses: at `SEGMENT_ADDR_SIZE_G=5`,
+pause asserts at 16 words while the former BUSY count bit required 32 words.
+The receive window holds accepted DATA until application delivery resumes.
+
+The existing monitor advertises BUSY on outgoing headers and repeats ACKs
+while pressure persists. After draining, a subsequent header communicates
+BUSY=0; an immediate falling-edge notification is not implemented. The
+`LocalBusy` register records sticky history until reset or a new connection.
+See the [BUSY integration coverage](../../tests/protocols/rssi/README.md#fifo-pausebusy-regression)
+for the independent wire-peer regression and its recovery limits.
+
 ## Keepalive Compatibility Contract
 
 This section records the SURF/Rogue implementation compatibility contract for
