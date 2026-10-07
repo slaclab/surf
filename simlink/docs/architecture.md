@@ -188,21 +188,26 @@ Rate shaping applies only to `RogueTcpStream`.
 `simlink/ruckus.tcl` loads the public simulation interfaces and exactly one
 backend. It first
 honors `RUCKUS_SIM_BACKEND`, then detects GHDL or VCS environments, and
-otherwise selects xsim. In a persistent Vivado project it removes stale
-sibling-backend sources to avoid duplicate entity definitions.
+otherwise selects xsim; `iverilog` and `verilator` are never detected this
+way and are selected only by explicitly setting `RUCKUS_SIM_BACKEND`. GHDL,
+VCS, and xsim import the VHDL wrappers in `sim/`; Icarus and Verilator import
+the flat SystemVerilog wrappers in `sv/` instead, since neither tool parses
+VHDL. In a persistent Vivado project it removes stale sibling-backend sources
+to avoid duplicate entity definitions.
 
-| Property | GHDL | VCS | xsim |
-| --- | --- | --- | --- |
-| Foreign ABI | VHPIDIRECT functions | VHPI foreign architecture/callback | SystemVerilog DPI-C |
-| Logic representation | `std_logic` enum-ordinal byte arrays | VHPI enum scalar/vector values | Two-state DPI `bit` values behind SV `logic` ports |
-| Update trigger | VHDL calls C on every rising edge | VHPI value-change callback detects rising edge | SV `always @(posedge clock)` calls C |
-| Library shape | Combined `libRogueSimLinkVhpiDirect.so` | Combined `libRogueSimLinkVhpi.so` | Combined `libRogueSimLinkDpi.so` |
-| Instance handle | Process-wide integer handle | Common instance in VHPI callback `user_data` | Per-leaf common-instance `chandle` |
-| Model cleanup | Explicit C destroy API plus `atexit`; VHDL normally relies on exit | Common `atexit` for worker/socket shutdown; exported VHPI cleanup is not registered as an end callback | SV `final` plus common `atexit` fallback |
-| Executable coverage | GHDL/cocotb | Opt-in active-traffic cocotb runner; executed with VCS X-2025.06 | Native adapter and Vivado-enabled mixed-language tests |
+| Property | GHDL | VCS | xsim | Icarus | Verilator |
+| --- | --- | --- | --- | --- | --- |
+| Foreign ABI | VHPIDIRECT functions | VHPI foreign architecture/callback | SystemVerilog DPI-C | VPI system functions | SystemVerilog DPI-C |
+| Logic representation | `std_logic` enum-ordinal byte arrays | VHPI enum scalar/vector values | Two-state DPI `bit` values behind SV `logic` ports | Four-state VPI vector values, X/Z read as 0 | Two-state DPI `bit` values behind SV `logic` ports |
+| Update trigger | VHDL calls C on every rising edge | VHPI value-change callback detects rising edge | SV `always @(posedge clock)` calls C | SV `always @(posedge clock)` calls C, outputs published through one nonblocking assignment | SV `always @(posedge clock)` calls C, outputs published through one nonblocking assignment |
+| Library shape | Combined `libRogueSimLinkVhpiDirect.so` | Combined `libRogueSimLinkVhpi.so` | Combined `libRogueSimLinkDpi.so` | `RogueSimLink.vpi` built from the xsim adapters | `libRogueSimLinkDpi.so` built from the xsim adapters |
+| Instance handle | Process-wide integer handle | Common instance in VHPI callback `user_data` | Per-leaf common-instance `chandle` | Common-registry integer handle held in an SV `int` | Per-leaf `chandle` |
+| Model cleanup | Explicit C destroy API plus `atexit`; VHDL normally relies on exit | Common `atexit` for worker/socket shutdown; exported VHPI cleanup is not registered as an end callback | SV `final` plus common `atexit` fallback | SV `final` plus common `atexit` fallback | SV `final` plus common `atexit` fallback |
+| Executable coverage | GHDL/cocotb | Opt-in active-traffic cocotb runner; executed with VCS X-2025.06 | Native adapter and Vivado-enabled mixed-language tests | Self-driving `RogueSvTrafficTb`, `RogueSvMultiInstanceTb`, `RogueSvMemoryRelaunchTb` and real-Rogue `RogueSvRogueTb` runners in `tests/simlink/iverilog` and `tests/simlink/rogue` | Self-driving `RogueSvTrafficTb`, `RogueSvMultiInstanceTb`, `RogueSvMemoryRelaunchTb` and real-Rogue `RogueSvRogueTb` runners in `tests/simlink/verilator` and `tests/simlink/rogue` |
 
 Exact adapter behavior and build requirements belong to the
-[GHDL](../ghdl/README.md), [VCS](../vcs/README.md), and
-[xsim](../xsim/README.md) backend guides. The
+[GHDL](../ghdl/README.md), [VCS](../vcs/README.md),
+[xsim](../xsim/README.md), [Icarus](../iverilog/README.md), and
+[Verilator](../verilator/README.md) backend guides. The
 [test guide](../../tests/simlink/README.md) maps each contract to executable
 coverage.

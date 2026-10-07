@@ -10,7 +10,7 @@ set -uo pipefail
 ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)"
 DIR="$ROOT/tests/simlink"
 
-ALL_LAYERS=(native ghdl rogue xsim vcs)
+ALL_LAYERS=(native ghdl rogue xsim vcs iverilog verilator)
 
 usage() {
     echo "usage: $(basename "$0") [layer ...]   (layers: ${ALL_LAYERS[*]})" >&2
