@@ -11,8 +11,8 @@
 import pyrogue as pr
 
 
-class PtpPort(pr.Device):
-    """Port-local identity, timers, source/exchange snapshots and counters.
+class PtpProtocolEngine(pr.Device):
+    """Protocol-engine identity, timers, source/exchange snapshots and counters.
 
     Shared association/path-delay limits have this single writable owner.
     Calibration values are signed Q16 local PHC nanoseconds at elaboration.

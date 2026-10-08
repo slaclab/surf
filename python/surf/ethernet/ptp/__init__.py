@@ -10,5 +10,5 @@
 
 from surf.ethernet.ptp._PtpEndpoint import *
 from surf.ethernet.ptp._PtpPhc import *
-from surf.ethernet.ptp._PtpPort import *
+from surf.ethernet.ptp._PtpProtocolEngine import *
 from surf.ethernet.ptp._PtpServo import *

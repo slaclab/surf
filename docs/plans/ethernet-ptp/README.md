@@ -90,9 +90,13 @@ AXI-only reset recovery through the production controller.
 ### Protocol engine naming
 
 The protocol RTL is now `PtpProtocolEngine` (formerly `PtpPort`), instantiated
-as `U_ProtocolEngine` in the endpoint and register fixture. The software `Port`
-bank, offsets, `PtpPort*Type` records and `PtpPortWrapper` test entry point are
-unchanged. Historical evidence retains the original entity name.
+as `U_ProtocolEngine` in the endpoint and register fixture. Python now matches:
+`PtpProtocolEngine` in `_PtpProtocolEngine.py`, exported from `surf.ethernet.ptp`
+and instantiated as `PtpEndpoint.ProtocolEngine` (formerly `PtpEndpoint.Port`).
+The composite Python device remains `PtpEndpoint`; its root registers map to
+`PtpEndpointControl`. Register offsets and fields, `PtpPort*Type` records and
+the `PtpPortWrapper` test entry point are unchanged. Historical evidence retains
+the original entity name.
 
 Rename checks on October 8, 2026: source comparison confirms only name/comment
 and instance-label substitutions in the affected VHDL. GHDL analysis/link passes
@@ -595,7 +599,7 @@ cannot be managed through its parent.
 
 The corresponding PyRogue package should live under
 `python/surf/ethernet/ptp/`. Use private implementation files `_PtpPhc.py`,
-`_PtpServo.py`, `_PtpEndpoint.py`, and `_PtpEventScheduler.py`, re-exported
+`_PtpProtocolEngine.py`, `_PtpServo.py`, `_PtpEndpoint.py`, and `_PtpEventScheduler.py`, re-exported
 from `__init__.py`. These classes mirror hardware registers and do not
 implement the servo, event timing, or multi-endpoint coordination policy.
 

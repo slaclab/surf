@@ -23,7 +23,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
-         ('PtpPort', 'PtpProtocolEngine'), ('PtpServo', 'PtpServo')]
+         ('PtpProtocolEngine', 'PtpProtocolEngine'), ('PtpServo', 'PtpServo')]
 
 
 @pytest.mark.parametrize('device,rtl', BANKS)
@@ -43,7 +43,7 @@ def test_local_register_schema(device, rtl):
         if not isinstance(node, ast.Call):
             continue
         keywords = {kw.arg: kw.value for kw in node.keywords}
-        if isinstance(node.func, ast.Name) and node.func.id in ('PtpPhc', 'PtpPort', 'PtpServo'):
+        if isinstance(node.func, ast.Name) and node.func.id in ('PtpPhc', 'PtpProtocolEngine', 'PtpServo'):
             children[ast.literal_eval(keywords['name'])] = ast.literal_eval(keywords['offset'])
         if not isinstance(node.func, ast.Attribute) or node.func.attr not in ('RemoteVariable', 'RemoteCommand'):
             continue
@@ -57,7 +57,7 @@ def test_local_register_schema(device, rtl):
         # Config bits are described individually in software but use a two-bit
         # vector in the central hardware endpoint.
         key = (offset, 0) if device == 'PtpEndpoint' and offset in (4, 0x44) and bit < 2 else (offset, bit)
-        if device == 'PtpPort' and offset == 0x48:
+        if device == 'PtpProtocolEngine' and offset == 0x48:
             key = (offset, 0)  # packed ledger status
         assert hardware.get(key) == mode, (name, key, mode)
         software[key] = mode
@@ -67,4 +67,4 @@ def test_local_register_schema(device, rtl):
         occupied.update(bits)
     assert software == hardware
     if device == 'PtpEndpoint':
-        assert children == {'Phc': 0x1000, 'Port': 0x2000, 'Servo': 0x3000}
+        assert children == {'Phc': 0x1000, 'ProtocolEngine': 0x2000, 'Servo': 0x3000}

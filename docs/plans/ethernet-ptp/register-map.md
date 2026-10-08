@@ -11,7 +11,7 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 | --- | --- | --- | --- |
 | Endpoint | `0x000` | `PtpEndpointControl` | `PtpEndpoint` |
 | PHC | `0x1000` | `PtpPhc` | `PtpEndpoint.Phc` |
-| Port | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.Port` |
+| Protocol engine | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
 
 ## Transactions and reset
@@ -28,7 +28,7 @@ PREPARE freezes all local and endpoint shadows. VALIDATE checks the frozen
 port/servo candidates and manual-command exclusion. APPLY activates all candidates
 on one common edge and restarts protocol/servo acquisition. Shadow edits after
 PREPARE affect a subsequent commit. Shared association/Sync age and maximum path
-limits have one writable owner in Port; Servo exposes read-only active copies.
+limits have one writable owner in ProtocolEngine; Servo exposes read-only active copies.
 PHC monotonic policy lives in Phc; phase-step permission lives in Servo.
 
 Snapshot submission is separate from commit. A pending request waits until
@@ -66,7 +66,7 @@ and identities retain network significance within their numerical value.
 
 This map is still under development; there is no released ABI compatibility
 contract. The existing `Version` register value (`0x00020000`) is retained while
-the layout evolves. The bank spacing is now 4 KiB, with PHC, Port and Servo at
+the layout evolves. The bank spacing is now 4 KiB, with PHC, ProtocolEngine and Servo at
 `0x1000`, `0x2000` and `0x3000`. Software should use the updated PyRogue children
 or the offsets below. Fields within each bank keep their existing local offsets.
 The endpoint window occupies 16 KiB and must be aligned accordingly.
@@ -122,7 +122,7 @@ The endpoint window occupies 16 KiB and must be aligned accordingly.
 | `0x1084` | `ActiveMonotonic` | 3 | RO | Committed monotonic policy. |
 | `0x13FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
 
-## PtpPort fields
+## PtpProtocolEngine fields
 
 Live activity/validity and ledger reads use the same registered diagnostic state
 as the port status output. Activity reflects accepted/canceled protocol state;

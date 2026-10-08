@@ -30,8 +30,9 @@ insertion remains outside scope.
   TX-observation mode for actual TX wire completion.
 - `PtpProtocolEngine` (formerly `PtpPort`), `PtpTxLedger`, `PtpE2e`: fixed-source
   policy, message association, persistent TX reservations, rate estimation,
-  request building and E2E arithmetic. The software `Port` bank and shared
-  `PtpPort*Type` records retain their existing names and layouts.
+  request building and E2E arithmetic. The Python device is also
+  `PtpProtocolEngine`, exposed as the endpoint's `ProtocolEngine` child.
+  Shared `PtpPort*Type` records retain their existing names and layouts.
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
 - `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
@@ -76,7 +77,7 @@ insertion remains outside scope.
   adapters live in [GigEthCore](../GigEthCore/README.md).
 - `wrappers/`: thin flattened simulation adapters. Executable stimulus and
   independent models live in the [cocotb suite](../../tests/ethernet/PtpCore/README.md).
-- [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): development register map with Phc/Port/Servo child devices.
+- [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): development register map with Phc/ProtocolEngine/Servo child devices.
 
 Use one continuously running clock: full-rate GMII at 125 MHz or XGMII at
 156.25 MHz. `EthMacPtpEndpoint` asserts that `CLK_FREQ_G` matches the selected

@@ -21,7 +21,9 @@ checks explicitly; static success is not behavioral approval.
 
 The protocol RTL is now `PtpProtocolEngine.vhd` (formerly `PtpPort.vhd`).
 Historical source names and evidence below retain their original names; the
-`PtpPortWrapper` fixture and software `Port` bank are unchanged.
+`PtpPortWrapper` fixture is unchanged. The Python device is now
+`PtpProtocolEngine`, exposed as `PtpEndpoint.ProtocolEngine`, with the same
+register offsets and fields.
 
 ## Scope and preparation
 

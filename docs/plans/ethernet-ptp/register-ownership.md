@@ -108,7 +108,7 @@ enters production RTL.
 
 The [development register map](register-map.md) defines exact offsets and access semantics.
 The previous mixed-owner offsets are deliberately revised. PyRogue preserves
-field names under `Phc`, `Port` and `Servo` children. The existing development Version value remains `0x00020000`.
+field names under `Phc`, `ProtocolEngine` and `Servo` children. The existing development Version value remains `0x00020000`.
 Commit submission is asynchronous: invalid candidate validation completes through
 ConfigError/ConfigSequence rather than changing an already returned AXI response.
 The complete timing, snapshot sequence and reset-recovery contracts are in the

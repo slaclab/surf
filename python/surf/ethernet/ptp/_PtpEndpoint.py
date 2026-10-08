@@ -11,14 +11,14 @@
 import pyrogue as pr
 
 from ._PtpPhc import PtpPhc
-from ._PtpPort import PtpPort
+from ._PtpProtocolEngine import PtpProtocolEngine
 from ._PtpServo import PtpServo
 
 
 class PtpEndpoint(pr.Device):
     """Development PTP register map: four 4 KiB banks in a 16 KiB aperture.
 
-    Configuration variables in this device and Phc/Port/Servo children are
+    Configuration variables in this device and Phc/ProtocolEngine/Servo children are
     shadows. CommitConfig prepares immutable candidates, validates all banks,
     then applies all or none. Poll ConfigBusy and ConfigSequence and check
     ConfigError; submission success alone is not commit success. Snapshot
@@ -199,5 +199,5 @@ class PtpEndpoint(pr.Device):
         ))
 
         self.add(PtpPhc(name="Phc", offset=0x1000))
-        self.add(PtpPort(name="Port", offset=0x2000))
+        self.add(PtpProtocolEngine(name="ProtocolEngine", offset=0x2000))
         self.add(PtpServo(name="Servo", offset=0x3000))
