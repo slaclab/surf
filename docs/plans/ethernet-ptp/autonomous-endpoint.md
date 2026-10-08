@@ -159,6 +159,17 @@ unlock is three beyond 1 µs. Qualification counters retain progress in the
 neutral hysteresis band and reset when the opposite threshold is crossed.
 Maximum path delay is 1 ms.
 
+Two existing implementation limits still lack a documented design rationale:
+`PtpPort` requires an association timeout of at least 2048 raw clock cycles,
+and `PtpServo` caps the configurable actuator limit at 200,000 ppb. Inspection
+of their introducing commit (`dc18c9ba2`) found no additional justification.
+The association floor needs a complete operation/latency budget; the 128-step
+math engine alone does not establish it. The actuator cap needs an explicit
+control/actuator rationale and qualification. It is separate from both the
+independently documented ±200 ppm oscillator qualification envelope and the
+default 150,000 ppb total correction setting. Naming these limits does not
+establish their sufficiency or hardware suitability.
+
 Independent rational PI sweeps cover ±100 ppm, initial ±10 µs, and Sync periods
 1/8, 1/4 and 1 s. For those cases, peak error is below 12 µs and every sampled
 error after 120 s is below 100 ns. Separate estimator sweeps include ±100 ns

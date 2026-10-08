@@ -121,9 +121,8 @@ and read-valid, retaining asynchronous session reset for stopped clocks.
 
 Reverse ready remains combinational where current arbitration/cancellation can
 remove capacity and no extra input slot is reserved. See the
-[boundary survey](../../docs/plans/ethernet-ptp/output-register-survey.md) for
-specific exceptions and the [timing contracts](../../docs/plans/ethernet-ptp/rtl-readability.md)
-for detection, publication and consumption edges. These changes deliberately
+[timing guide](../../docs/plans/ethernet-ptp/rtl-readability.md#output-ownership-and-exceptions)
+for specific exceptions and detection, publication and consumption edges. These changes deliberately
 revise interface latencies; the software register layout is unchanged.
 
 Build manifests load `rtl/` and `wrappers/`. Run `make MODULES="$PWD" import`

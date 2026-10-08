@@ -4,7 +4,7 @@ Status: implementation prepared for VHDL review. Regression simulations remain
 on hold until maintainer approval. The register map is unchanged. The port
 registered-boundary follow-up registers lifecycle and measurement controls,
 command responses and snapshots. The status record owns live diagnostic state.
-See the [current boundary survey](output-register-survey.md) for changed timing.
+See the [current timing contracts](rtl-readability.md) for changed timing.
 
 ## Groups implemented
 

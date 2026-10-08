@@ -11,12 +11,12 @@ configures and observes it; software is not in the timing loop.
 | --- | --- |
 | Implemented behavior and numerical limits | [Endpoint contract](autonomous-endpoint.md) and [PtpCore guide](../../../ethernet/PtpCore/README.md) |
 | Software/hardware interface | [Register map](register-map.md), [register ownership](register-ownership.md), [interface records](interface-records.md) |
-| RTL rules and cycle contracts | [SURF conventions](../../vhdl-conventions.md), [PTP timing supplement](rtl-readability.md), [boundary survey](output-register-survey.md) |
+| RTL rules and cycle contracts | [SURF conventions](../../vhdl-conventions.md), [PTP timing supplement](rtl-readability.md) |
 | Completed RTL reviews and pending acceptance | [Consolidated review record](rtl-review.md); replaces the three separate PTP conventions/boundary plan directories |
 | One-step receive implementation and pending acceptance | [One-step handoff](one-step.md), implemented with static checks; behavioral verification paused |
 | 1G PHY composition and pending acceptance | [Current implementation](#phy-composition-implementation) and [integration guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions) |
 | Future physical-clock integration | [Applied-rate, reference and clock-health requirements](physical-clock-integration.md) |
-| Numeric definitions and unresolved policy provenance | [Implemented magic-number audit](magic-number-audit.md) |
+| Numeric definitions and unresolved policy provenance | [Maintenance rules](rtl-readability.md#numeric-definitions-and-layouts), [numerical limits](autonomous-endpoint.md#port-policy-and-numerical-envelope) and [review follow-up](rtl-review.md#outstanding-acceptance) |
 | Historical design evidence | [2026-09-08 review](review-2026-09-08.md), [Phase 0 counterexamples](phase-0-experiments.md), [RX design decision](rx-frontend-design.md), [RX proof](rx-rtl-proof.md) |
 
 The broader architecture, integration studies and phased roadmap below retain

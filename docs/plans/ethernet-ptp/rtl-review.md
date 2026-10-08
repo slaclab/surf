@@ -15,12 +15,18 @@ instructions have been removed from the active plans. The original conventions
 review examined `c3170db49d74a16566a3b7a3e2feee12eeb2feee` on 2026-09-17.
 The follow-up began at `a48b07ef1b96dee81b66a2a64c463e752173911f` on 2026-09-18.
 All three reviews covered 15 RTL/package files and seven simulation wrappers.
+The numeric-literal audit reviewed 15 RTL/package files on 2026-09-17 in the
+working tree based on `d8f9c5867`, including pending readability edits. Its
+cleanup was implemented in 13 files; `PtpMath` and `PtpTxTimestampTap` retained
+justified literals. Its completed recommendations are consolidated here and
+in the timing guide; the pre-cleanup literal inventory is no longer an active
+checklist.
 
 The maintained contracts are authoritative:
 
 - [Endpoint composition and numerical envelope](autonomous-endpoint.md).
 - [Registered timing and local implementation decisions](rtl-readability.md).
-- [Per-module boundary ownership and remaining exceptions](output-register-survey.md).
+- [Output ownership and remaining exceptions](rtl-readability.md#output-ownership-and-exceptions).
 - [Register ABI](register-map.md), [register ownership](register-ownership.md)
   and [directional interface records](interface-records.md).
 - [SURF VHDL conventions](../../vhdl-conventions.md), including the RTL checklist.
@@ -37,6 +43,7 @@ The maintained contracts are authoritative:
 | Ready ownership (R6, partly superseded) | Remaining combinational reverse-ready controls resolve through the owning `v` record beside admission. PHC command-ready, ledger allocation-ready and mailbox application-ready became registered capacity promises in the redesign; do not restore the original broad exception. |
 | Reset/publication follow-up | Eight processes moved the synchronous reset override and `rin <= v` before output publication: endpoint, PHC, port, coordinator, RX frontend, servo, TX ledger and register wrapper. Registered outputs still use `r`. Port and servo reverse-ready retain their explicit reset/cancellation suppression. |
 | Layout and constants | Expanded declarations/initializers, headers and clock grouping; kept public generic order for positional callers. Wrapper-local constants use `_C`, message codes use package constants, timeout factors preserve widths, and unsigned divide-by-two preserves Delay_Req jitter rounding. No new protocol policy or ABI was intended. |
+| Numeric definitions and layouts | `PtpPkg` owns shared protocol values, unit scales, format shifts, IRQ positions and body accessors. Local policy/depth constants and private mailbox layout centralize coupled values; commented wire positions remain explicit. Register offsets, provisional identification value, defaults and timing were preserved by this cleanup. See the [maintenance rules](rtl-readability.md#numeric-definitions-and-layouts). |
 | Test integration | Removed stale `ROCE_ANALYSIS_SOURCES` imports from five tests; those sources belong to the normal ruckus inventory. This former collection prerequisite is resolved, not remaining work. Wrappers flatten production records and use real cores/bus adapters. |
 
 Physical RX remains non-backpressurable. Logical restart preserves already
@@ -52,7 +59,13 @@ prototype.
 These are recorded results from the September reviews, not fresh runs after
 later merges or proof of behavioral equivalence:
 
-- Each review's final VSG run passed all 22 PTP VHDL files with
+- The numeric cleanup recorded VSG passing all 15 RTL/package files
+  (689 rules per file) and GHDL 6.0.0 compiling/linking 21 entities/wrappers,
+  with the package analyzed as a dependency. Shared-RAM, optional RoCE binding
+  and wrapper open-association warnings remained. Diff whitespace passed;
+  no simulator executable or pytest regression ran.
+- The conventions, registered-boundary and follow-up reviews each recorded a
+  final VSG pass for all 22 PTP VHDL files with
   `vsg-linter.yml`; GHDL 6.0.0 compiled/linked all 21 entities/wrappers,
   including `EthMacPtpEndpoint`. No built simulator executable was run.
 - The registered-boundary pass checked ten edited Python files with flake8
@@ -96,6 +109,12 @@ the same package twice. The recorded GHDL options were
 Use static Python parsing/lint without importing tests while pytest is paused.
 
 ## Outstanding acceptance
+
+Document and justify the existing 2048-cycle association floor and 200,000-ppb
+actuator cap before treating them as qualified bounds. The
+[endpoint numerical envelope](autonomous-endpoint.md#port-policy-and-numerical-envelope)
+records their distinct purposes, introducing revision and missing rationale.
+This source/design follow-up does not require restarting paused simulations.
 
 After explicit VHDL approval, use the [PTP test guide](../../../tests/ethernet/PtpCore/README.md)
 and run focused leaf/register tests before port/servo and GMII/XGMII integration:
