@@ -4,7 +4,7 @@
 -- Description: Rate-corrected end-to-end PTP path-delay arithmetic.
 --
 -- Consumes an associated Sync sample and completed Delay_Req/Delay_Resp sample
--- from PtpPort. These supply master timestamps t1/t4, correction fields and
+-- from PtpProtocolEngine. These supply master timestamps t1/t4, correction fields and
 -- local RX/TX captures t2/t3. A qualified Q48 master-nanoseconds-per-raw-cycle
 -- ratio converts the raw tick/phase separation between t2 and t3 into master
 -- elapsed time, avoiding an assumption that the steered PHC rate stayed

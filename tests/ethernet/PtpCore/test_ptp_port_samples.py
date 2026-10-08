@@ -9,7 +9,7 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Real PtpPort with explicit validated records and 125 MHz nominal rate.
+# - Sweep: Real PtpProtocolEngine with explicit validated records and 125 MHz nominal rate.
 # - Stimulus: One-/two-step equivalents, signed/fractional corrections, large
 #   epochs, malformed timestamps/flags, mixed-mode collisions, wrap and expiry.
 # - Checks: Exact independent Q16 forward arithmetic, sequence/capture provenance,

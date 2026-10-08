@@ -4,7 +4,7 @@ Status: register ownership implemented. The subsequent [RTL changes](README.md#c
 are awaiting maintainer VHDL approval; regressions
 are prohibited until that approval. Earlier focused results below precede it. The endpoint now
 uses four local AXI banks and [development register map](register-map.md). AXI-Lite logic is inside
-`PtpPhc`, `PtpPort` and `PtpServo`, sharing each core's existing state record
+`PtpPhc`, `PtpProtocolEngine` and `PtpServo`, sharing each core's existing state record
 and register process. Standalone direct interfaces remain available. No v1 compatibility decoder is retained.
 
 ## Problem and intended ownership
@@ -79,7 +79,7 @@ wide diagnostic payloads through a new central record.
 
 ## Implemented composition and ABI
 
-- `PtpPort` owns `PtpPortConfigType`, MAC-derived identity, shared active
+- `PtpProtocolEngine` owns `PtpPortConfigType`, MAC-derived identity, shared active
   limits and local diagnostics. RX counters terminate here.
 - `PtpServo` owns `PtpServoConfigType` and diagnostics, consuming the port's
   authoritative `PtpSharedConfigType`.

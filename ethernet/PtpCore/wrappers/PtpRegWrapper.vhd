@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Description: Four-bank AXI-Lite and real-PHC verification fixture.
 --
--- Instantiates the production coordinator, crossbar and PtpPhc/PtpPort/PtpServo
+-- Instantiates the production coordinator, crossbar and PtpPhc/PtpProtocolEngine/PtpServo
 -- cores at a configurable base address. AXI decode, configuration, snapshots
 -- and command ownership are implemented inside the real cores. The protocol
 -- inputs are inactive; PHC phase preparation and time advancement remain real.
@@ -293,7 +293,7 @@ begin
          pps              => open,                            -- [out]
          manualBusy       => manualBusy);                     -- [out]
 
-   U_Port : entity surf.PtpPort
+   U_ProtocolEngine : entity surf.PtpProtocolEngine
       generic map (
          TPD_G             => TPD_C,
          RST_POLARITY_G    => RST_POLARITY_C,

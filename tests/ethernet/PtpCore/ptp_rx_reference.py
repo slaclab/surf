@@ -136,7 +136,7 @@ class RxFrontend:
             self.counters["length"] += 1
             return None
         # Source/domain/destination/flags and message-specific semantic checks
-        # remain PtpPort policy. This is a structurally valid, CRC-checked record.
+        # remain PtpProtocolEngine policy. This is a structurally valid, CRC-checked record.
         return RxMessage(
             self.stamp, self.rx_epoch, bytes(p[:6]),
             (kind, p[18], bytes(p[34:44]), int.from_bytes(p[44:46], "big")),

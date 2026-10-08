@@ -87,6 +87,22 @@ remain paused pending RTL approval. Next acceptance covers apply-to-restart and
 identity-restart latency, RX flush/capture inhibition, IRQ event/W1C timing, and
 AXI-only reset recovery through the production controller.
 
+### Protocol engine naming
+
+The protocol RTL is now `PtpProtocolEngine` (formerly `PtpPort`), instantiated
+as `U_ProtocolEngine` in the endpoint and register fixture. The software `Port`
+bank, offsets, `PtpPort*Type` records and `PtpPortWrapper` test entry point are
+unchanged. Historical evidence retains the original entity name.
+
+Rename checks on October 8, 2026: source comparison confirms only name/comment
+and instance-label substitutions in the affected VHDL. GHDL analysis/link passes
+for the real engine, endpoint and both register/protocol fixtures; MAC endpoint
+and loopback analysis uses a declaration-only MAC. Python syntax, mocked source
+manifest selection, local documentation links and whitespace checks pass.
+Behavioral regressions remain paused; the full-import and VSG limits above
+still apply. Next acceptance uses the existing protocol and endpoint regressions
+after RTL approval.
+
 ## PHY composition implementation
 
 The first two PHY/PTP source integrations are implemented together:
@@ -423,7 +439,7 @@ ethernet/PtpCore/
     PtpGmiiTimestampTap.vhd
     PtpXgmiiTimestampTap.vhd
     PtpRxFrontend.vhd
-    PtpPort.vhd
+    PtpProtocolEngine.vhd
     PtpServo.vhd
     PtpReg.vhd
     PtpEndpoint.vhd
@@ -483,10 +499,10 @@ and [implemented contracts](autonomous-endpoint.md) for concrete entity names an
 | `PtpPhc` | `phcClk` plus optional read clock | Free-running 48-bit-seconds/32-bit-nanoseconds/32-bit-fraction PHC, nominal and signed rate addends, atomic set/phase operation, PPS, validity, discontinuity status, local coherent snapshot, and one optional clock-domain-safe snapshot/read interface. |
 | `Ptp[Gmii\|Xgmii]TimestampTap` | `ethClk` | Selected passive physical adapter: detects framing and captures message-point time, emits normalized RX bytes with their SOF capture to the frontend, and emits keyed TX completion events. Applies legal XGMII lane offsets and physical error detection. No independent RX timestamp queue. |
 | `PtpRxFrontend` | `ethClk` | Validates complete RX FCS, length, PTP structure, and bounded TLVs; emits atomic decoded-message/capture records for Sync, Follow_Up, Delay_Resp, and Announce. Owns bounded partial decode, record FIFO, and RX abort/epoch behavior. |
-| `PtpPort` | `ethClk` | Owns one fixed-role IEEE 1588 port: decoded RX policy validation and Delay_Req generation, keyed TX completion, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, corrected forward/reverse-delay arithmetic, source checks, and port counters. |
+| `PtpProtocolEngine` | `ethClk` | Owns one fixed-role IEEE 1588 port: decoded RX policy validation and Delay_Req generation, keyed TX completion, bounded Sync/Follow_Up and Delay_Req/Delay_Resp tables, Announce/message timers, corrected forward/reverse-delay arithmetic, source checks, and port counters. |
 | `PtpServo` | `ethClk` | Filters raw path-delay updates, combines later forward-delay observations with the fresh filtered delay to form offset samples, performs acquisition and PI rate control, produces bounded automatic phase/rate commands, and owns lock, holdover, and fault qualification. It remains separate because it is a replaceable control algorithm, not packet-port behavior. |
 | `PtpReg` | `ethClk` | Stable AXI-Lite register map for identity, profile, manual PHC commands, servo parameters, latency calibration, snapshots, counters, and interrupts. This follows the existing SURF `*Reg` naming pattern. Timing-control ports are direct RTL signals rather than AXI transactions. |
-| `PtpEndpoint` | `ethClk` | Composes `PtpPort`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes decoded RX records/abort, raw bypass TX, TX timestamp events, AXI-Lite, time/PPS, and summarized state. |
+| `PtpEndpoint` | `ethClk` | Composes `PtpProtocolEngine`, `PtpServo`, `PtpPhc`, and `PtpReg`; owns the small manual-versus-servo PHC command selector and reset partition; and exposes decoded RX records/abort, raw bypass TX, TX timestamp events, AXI-Lite, time/PPS, and summarized state. |
 | `PtpEventScheduler` | `phcClk` plus optional AXI-Lite clock | Optional, separately instantiated application service. It owns a bounded queue of generic one-shot events at absolute PHC times, atomic enqueue/cancel commands, late/time-invalid policy, execution timestamps, and a non-backpressurable one-cycle event output. It is not part of the PTP protocol or servo loop. |
 | `EthMacPtpEndpoint` | `ethClk` plus primary clock | Compatibility composition around `EthMacTop`: enables the `0x88F7` bypass, always drains its RX copy, instantiates the proper physical adapter and `PtpRxFrontend`, supplies shared `localMac`, and connects `PtpEndpoint`. Existing application traffic remains on the primary stream. |
 
@@ -496,7 +512,7 @@ The simulation-only entities are:
 | --- | --- |
 | `PtpGrandmasterSim` | Owns canonical simulated PTP time, grandmaster identity/quality, rate error, and scheduled time-source faults. It publishes time anchors rather than driving every simulated tick. |
 | `PtpTimeTransmitterSim` | Full-protocol per-link adapter. It consumes the shared grandmaster time model, generates PTP traffic and delay responses for one emulated link, and applies that link's propagation delay, asymmetry, jitter, loss, and reordering. Multiple instances may share one grandmaster. |
-| `PtpEndpointSim` | Fast application-simulation provider. It consumes the shared time model, instantiates the real `PtpPhc`, and applies explicit phase/rate commands from a simulation control model without instantiating Ethernet, `PtpPort`, or the real packet servo. It preserves the production PHC/application interface but does not replace full protocol verification through `PtpEndpoint`. |
+| `PtpEndpointSim` | Fast application-simulation provider. It consumes the shared time model, instantiates the real `PtpPhc`, and applies explicit phase/rate commands from a simulation control model without instantiating Ethernet, `PtpProtocolEngine`, or the real packet servo. It preserves the production PHC/application interface but does not replace full protocol verification through `PtpEndpoint`. |
 
 ### PtpCore RTL composition and signal flow
 
@@ -520,23 +536,23 @@ For completeness, the point-to-point interfaces are:
 
 | Producer | Interface | Consumer |
 | --- | --- | --- |
-| `PtpPort` | Raw PTP TX AXI Stream | `EthMacTop` bypass input |
+| `PtpProtocolEngine` | Raw PTP TX AXI Stream | `EthMacTop` bypass input |
 | `EthMacTop` | Raw PTP RX AXI Stream | Always-ready drain inside `EthMacPtpEndpoint` |
 | `EthMacTop` | TX/RX GMII or XGMII | PCS/PMA |
 | GMII/XGMII bus | Passive RX/TX observation | Selected timestamp tap |
 | `PtpPhc` | Current PHC time | Selected timestamp tap |
 | Selected timestamp tap | Non-backpressurable normalized RX bytes plus atomic SOF capture | `PtpRxFrontend` |
-| `PtpRxFrontend` | Decoded RX message/capture valid/ready, RX epoch, and same-edge abort | `PtpPort` through `PtpEndpoint` |
-| `PtpEndpoint` | Time/configuration generation, flush and quiesce control | Tap, RX frontend, `PtpPort`, `PtpServo`, and PHC command selector |
-| Selected timestamp tap | Keyed TX message-point timestamp event | `PtpPort` |
-| `PtpPort` | Forward-delay observations and raw path-delay updates | `PtpServo` |
+| `PtpRxFrontend` | Decoded RX message/capture valid/ready, RX epoch, and same-edge abort | `PtpProtocolEngine` through `PtpEndpoint` |
+| `PtpEndpoint` | Time/configuration generation, flush and quiesce control | Tap, RX frontend, `PtpProtocolEngine`, `PtpServo`, and PHC command selector |
+| Selected timestamp tap | Keyed TX message-point timestamp event | `PtpProtocolEngine` |
+| `PtpProtocolEngine` | Forward-delay observations and raw path-delay updates | `PtpServo` |
 | `PtpServo` | Automatic PHC command | Selector inside `PtpEndpoint` |
 | `PtpReg` | Manual PHC command | Selector inside `PtpEndpoint` |
 | Selector inside `PtpEndpoint` | Selected PHC command | `PtpPhc` |
-| Enclosing Ethernet wrapper | Shared `localMac` | Ethernet configuration and `PtpPort` TX builder |
+| Enclosing Ethernet wrapper | Shared `localMac` | Ethernet configuration and `PtpProtocolEngine` TX builder |
 | `EthMacPtpEndpoint` | `phcRst`, `portRst`, `regRst`, `linkReady` | Reset partition inside `PtpEndpoint` |
-| `PtpReg` | Port and servo configuration | `PtpPort`, `PtpServo` |
-| `PtpPort`, `PtpServo`, `PtpPhc` | Status, counters, and snapshots | `PtpReg` |
+| `PtpReg` | Port and servo configuration | `PtpProtocolEngine`, `PtpServo` |
+| `PtpProtocolEngine`, `PtpServo`, `PtpPhc` | Status, counters, and snapshots | `PtpReg` |
 | `PtpPhc` | Time, PPS, validity, and coherent readback | Application logic |
 | `PtpPhc` | Current time and validity | Optional `PtpEventScheduler` |
 | AXI-Lite/Rogue | Event shadow words, enqueue, and cancel | Optional `PtpEventScheduler` |
@@ -566,7 +582,7 @@ integrator state.
 
 Message generation, matching tables, timers, and E2E arithmetic mutate the
 same PTP port state and belong as internal records/process sections in
-`PtpPort`. The RX frontend has a separate verification boundary because it must
+`PtpProtocolEngine`. The RX frontend has a separate verification boundary because it must
 bind physical capture and validated bytes before loss. Keep separate entities where
 there is a durable boundary: PHC versus protocol policy, servo versus packet
 state, AXI-Lite versus the timing loop, GMII versus XGMII physical decoding,
@@ -625,7 +641,7 @@ RX epoch without stepping the PHC or freeing unresolved TX keys. TX completion
 overflow requires fail-closed request retirement: a lost wire completion cannot
 make a request key reusable. R6 must specify recovery for that unknown wire fate.
 
-Inside `PtpPort`, use named subrecords for RX policy, TX generation, Sync
+Inside `PtpProtocolEngine`, use named subrecords for RX policy, TX generation, Sync
 association, delay association, timers, and counters under the normal two-process
 pattern. Pure decode/arithmetic helpers belong in `PtpPkg`. Public contracts are
 decoded RX records/abort, raw TX AXI Stream, TX completion events, configuration,
@@ -653,7 +669,7 @@ The common PTP header is 34 bytes. Sync, Delay_Req, and Follow_Up are 44-byte
 PTP messages, Delay_Resp is 54 bytes, and Announce is 64 bytes before optional
 TLVs. `PtpRxFrontend` uses `messageLength`, ignores legal Ethernet padding,
 rejects truncation, and validates bounded TLV lengths before skipping unknown
-values. `PtpPort` then applies source/profile and message-specific semantic policy.
+values. `PtpProtocolEngine` then applies source/profile and message-specific semantic policy.
 
 No RX header-key join remains. The [Phase 0 experiment](phase-0-experiments.md)
 proved that an apparently unique live pair can combine a discarded frame's
@@ -674,7 +690,7 @@ The receive sequence is:
 3. Independently, `EthMacTop` routes its redundant untagged PTP copy to the
    always-ready wrapper drain. MAC FIFO loss or reset does not select which
    capture belongs to a frontend message.
-4. `PtpPort` accepts the atomic record only when its generation/epoch is current
+4. `PtpProtocolEngine` accepts the atomic record only when its generation/epoch is current
    and `rxAbort` is low, then applies destination/source/domain/flag and
    message-specific policy. Abort invalidates live RX-derived work.
 5. The port accepts Sync and Follow_Up in either order and emits a forward-delay
@@ -682,7 +698,7 @@ The receive sequence is:
 
 The transmit sequence is:
 
-1. After a valid source and Sync have been observed, the `PtpPort` transmit
+1. After a valid source and Sync have been observed, the `PtpProtocolEngine` transmit
    state builds Delay_Req with the next sequence ID.
 2. The raw frame enters the high-priority MAC bypass. A request is allocated
    when the first AXI beat handshakes and becomes timestamp-valid only after
@@ -692,7 +708,7 @@ The transmit sequence is:
 3. The TX tap observes the actual GMII/XGMII frame, captures raw SFD time,
    translates it to the PTP message point to form `t3`, and parses the
    transmitted source identity and sequence ID.
-4. `PtpPort` records `t3` only when the tap key matches an outstanding local
+4. `PtpProtocolEngine` records `t3` only when the tap key matches an outstanding local
    request. Sequence reuse also requires a bounded stale-packet lifetime:
    small outstanding depth alone does not prevent an old Delay_Resp from
    matching after wrap or port restart. Keep the allocator across link-only
@@ -710,7 +726,7 @@ The complete Delay_Req Ethernet frame contract is:
 - `TKEEP`, `TLAST`, first-beat SOF set, and final-beat EOFE clear according to
   `EMAC_AXIS_CONFIG_C`, with all output fields stable while `TVALID = 1` and
   `TREADY = 0`; and
-- no preamble, SFD, padding, or FCS from `PtpPort`. `EthMacTop` adds the two
+- no preamble, SFD, padding, or FCS from `PtpProtocolEngine`. `EthMacTop` adds the two
   minimum-frame padding bytes, preamble/SFD, and FCS.
 
 The PTP register block exposes the shared MAC address as read-only status. It
@@ -965,7 +981,7 @@ saturate a bad measurement into a plausible value.
 `correctedOffset = rawOffset - delayAsymmetry`, and report both values so the
 calibration remains auditable.
 
-`PtpPort` owns two different completed records:
+`PtpProtocolEngine` owns two different completed records:
 
 | Record | Contents |
 | --- | --- |
@@ -977,9 +993,9 @@ from the same source/domain and time/configuration generation. Bound exchange
 separation using monotonic capture times for `t2` and `t3`, and independently
 bound delivery/completion ages. Prefer the eligible sample nearest `t3`;
 out-of-order completion must not make an older Sync the newest servo input.
-`PtpPort` emits a raw mean-path-delay update;
+`PtpProtocolEngine` emits a raw mean-path-delay update;
 `PtpServo` applies the median/IIR filter and records its age. Every later
-completed Sync causes `PtpPort` to emit a forward-delay observation at the Sync
+completed Sync causes `PtpProtocolEngine` to emit a forward-delay observation at the Sync
 rate. `PtpServo` forms `rawOffset = forwardDelay - filteredMeanPathDelay` only
 while the filtered delay is no older than `maxDelayAge`. If no fresh delay
 exists, Sync is counted and retained for source/timeout state but does not
@@ -999,7 +1015,7 @@ delay estimate.
 
 ### Protocol and servo state machines
 
-Protocol availability and clock quality are orthogonal. `PtpPort` owns:
+Protocol availability and clock quality are orthogonal. `PtpProtocolEngine` owns:
 
 | Port state | Behavior and transition |
 | --- | --- |
@@ -1126,7 +1142,7 @@ the same configured source port clears delay/lock and restarts acquisition.
 ### Clock-domain crossing and application use
 
 For the first GMII and XGMII endpoints, put `PtpPhc`, the physical adapter,
-`PtpRxFrontend`, `PtpPort`, and
+`PtpRxFrontend`, `PtpProtocolEngine`, and
 `PtpServo` in the common `ethClk` domain. That is the only domain in which the
 exported running timestamp is cycle-accurate. Common clock does not mean common
 reset: `PtpEndpoint` fans out `phcRst`, `portRst`, `regRst`, and `linkReady`
@@ -1254,7 +1270,7 @@ serve incompatible goals:
 
 | Mode | Time path | Purpose |
 | --- | --- | --- |
-| Full protocol simulation | `PtpGrandmasterSim` feeds one `PtpTimeTransmitterSim` per emulated link; each sends real PTP frames and timestamp conditions through `EthMacPtpEndpoint` and the real `PtpPort`/`PtpServo`. | Verify parsing, timestamps, exchange association, E2E arithmetic, servo behavior, MAC integration, and several independent link impairments against one time source. |
+| Full protocol simulation | `PtpGrandmasterSim` feeds one `PtpTimeTransmitterSim` per emulated link; each sends real PTP frames and timestamp conditions through `EthMacPtpEndpoint` and the real `PtpProtocolEngine`/`PtpServo`. | Verify parsing, timestamps, exchange association, E2E arithmetic, servo behavior, MAC integration, and several independent link impairments against one time source. |
 | Fast application co-simulation | `PtpGrandmasterSim` publishes canonical time through a simulation timing bus; one or more `PtpEndpointSim` instances provide the normal PHC/application interface while Ethernet is replaced by SimLink. | Verify multi-endpoint application behavior without simulating the Ethernet and PTP packet loop. |
 
 The common fast-path case is one HDL simulator process. It must not require a
@@ -1954,7 +1970,7 @@ The bounded two-step port and persistent keyed TX ledger passed the original
 simulation milestone. The current one-/two-step port and later boundary changes
 remain subject to the behavioral approval gate. See the [implemented policy](autonomous-endpoint.md#port-policy-and-numerical-envelope).
 
-- Implement `PtpPort` with decoded RX policy validation, TX AXI builder,
+- Implement `PtpProtocolEngine` with decoded RX policy validation, TX AXI builder,
   reserved-key TX completion, message timers, and E2E transaction arithmetic.
 - Use known PTP v2.0/v2.1 fixtures for Sync, Follow_Up, Delay_Resp, and Announce
   across frontend and port. Prove network byte order, correction sign, source
@@ -1972,7 +1988,7 @@ remain subject to the behavioral approval gate. See the [implemented policy](aut
   updates and later Sync pairs produce forward-delay observations with explicit
   age and sequence provenance.
 
-Exit criterion: `PtpPort` completes and retires keyed transactions without a
+Exit criterion: `PtpProtocolEngine` completes and retires keyed transactions without a
 FIFO-order assumption or silent overwrite, and its internal sections do not
 need public interfaces solely for unit-test access.
 
@@ -1983,7 +1999,7 @@ fixture is Python/cocotb (`ptp_endpoint_test_utils.py`); no VHDL packet-stimulus
 engine is needed. The [implementation record](autonomous-endpoint.md) defines
 the supported numerical cases and distinguishes them from device qualification.
 
-- Implement `PtpServo`, complete `PtpReg`, and compose them with `PtpPort` and
+- Implement `PtpServo`, complete `PtpReg`, and compose them with `PtpProtocolEngine` and
   `PtpPhc` in `PtpEndpoint`.
 - Implement `PtpTimeTransmitterSim` with an initially local reference-time
   model and cocotb control. It supplies independently controlled clock offset,

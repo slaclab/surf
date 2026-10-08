@@ -78,7 +78,7 @@ defines the record contracts and has no module outputs.
 
 The remaining exceptions are:
 
-- Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpPort` and
+- Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpProtocolEngine` and
   `PtpServo` expresses current capacity, simultaneous retirement or competing
   admission/cancellation. A timing break needs an additional reserved slot or
   an existing buffered SURF pipeline. This exception does not permit

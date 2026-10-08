@@ -4,13 +4,13 @@
 -- Description: Bounded ownership and lifetime tracking for PTP Delay_Req wire
 -- keys.
 --
--- Reserves a sequence/domain/requester identity before PtpPort presents the
+-- Reserves a sequence/domain/requester identity before PtpProtocolEngine presents the
 -- first TX beat. Each entry retains its generation and physical fate while the
 -- MAC may queue or pause the request. A validated TX wire observation and the
 -- corresponding Delay_Resp can arrive in either order; both are required to
 -- publish a complete delay sample through the ready/valid output.
 --
--- Configuration comes directly from PtpPort's active record in clk. Allocation
+-- Configuration comes directly from PtpProtocolEngine's active record in clk. Allocation
 -- captures localIdentity and domainNumber; retirement uses associationTimeout
 -- in raw ticks. Servo settings are owned and consumed separately.
 --

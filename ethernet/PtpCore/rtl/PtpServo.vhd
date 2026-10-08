@@ -4,7 +4,7 @@
 -- Description: PTP acquisition, filtered delay estimation and PHC feedback
 -- control.
 --
--- Accepts separate forward and path-delay measurements from PtpPort. Up to
+-- Accepts separate forward and path-delay measurements from PtpProtocolEngine. Up to
 -- five populated delay samples form a median filter; local-minus-master offset
 -- is forward time minus filtered delay and configured asymmetry. Generation,
 -- sample chronology and raw-tick age checks reject stale measurements before
@@ -28,7 +28,7 @@
 -- The local AXI-Lite bank stores gains, step/lock policy, sample-age limits
 -- and asymmetry as writable shadows, frozen candidates and active settings.
 -- Candidate validity is captured on prepare for the later coordinated apply.
--- Shared association, sync and path-delay limits come from PtpPort's active
+-- Shared association, sync and path-delay limits come from PtpProtocolEngine's active
 -- sharedConfig record, maintaining one owner for settings used by both cores.
 -- The common snapshot strobe stores filter, offset, rate and rejection state
 -- locally with the endpoint sequence; AXI read latency cannot mix samples.

@@ -364,7 +364,7 @@ package PtpPkg is
    -- Saturating RX frontend counters. accepted counts queue insertions;
    -- dropped counts completed frames rejected by validation, not every frame
    -- lost during flush or before SOF; overflow counts full-queue completions.
-   -- These are live clk-domain values; PtpPort snapshots them for AXI reads.
+   -- These are live clk-domain values; PtpProtocolEngine snapshots them for AXI reads.
    type PtpRxCountersType is record
       accepted : slv(31 downto 0);
       dropped  : slv(31 downto 0);
@@ -376,7 +376,7 @@ package PtpPkg is
       dropped  => (others => '0'),
       overflow => (others => '0'));
 
-   -- PtpPort owns these shadow/candidate/active settings in clk. Its child
+   -- PtpProtocolEngine owns these shadow/candidate/active settings in clk. Its child
    -- PtpTxLedger consumes the complete active record directly in that domain.
    -- Timers use unsteered clock cycles; maxPathDelay uses signed Q16 ns.
    -- Defaults target a 1 Hz source. Shorter intervals require separate
@@ -404,7 +404,7 @@ package PtpPkg is
       localIdentity      => x"001122FFFE3344550001", -- Example MAC 00:11:22:33:44:55 + FFFE, port 1.
       sourceIdentity     => x"00000000000000000001", -- Placeholder clock identity 0, port 1; configure upstream.
 
-      -- Raw ticks = seconds * 156250000 here. PtpPort.initialConfig recomputes
+      -- Raw ticks = seconds * 156250000 here. PtpProtocolEngine.initialConfig recomputes
       -- these timer defaults from CLK_FREQ_G, including at 125 MHz.
       delayInterval      => x"0000000009502F90",     -- 1 s nominal Delay_Req interval before jitter.
       syncTimeout        => x"000000001BF08EB0",     -- 3 s: three nominal 1 Hz Sync periods.
@@ -468,7 +468,7 @@ package PtpPkg is
       lockCount       => x"08",               -- Eight qualifying samples inside the lock threshold.
       unlockCount     => x"03");              -- Three qualifying samples beyond the unlock threshold.
 
-   -- PtpPort exports these active limits to PtpServo in the common clk domain.
+   -- PtpProtocolEngine exports these active limits to PtpServo in the common clk domain.
    -- There is no handshake or independent writable copy in the receiving core.
    -- Timeout units are unsteered cycles; maxPathDelay is signed Q16 ns.
    type PtpSharedConfigType is record
@@ -632,7 +632,7 @@ package PtpPkg is
    -- The record owns live counters, Announce metadata and the last completed
    -- exchange. Derived ratio/Announce validity is sampled on each clock edge;
    -- protocol admission uses current-cycle checks rather than these summaries.
-   -- PtpPort's separate AXI snapshot bank freezes pre-edge diagnostic state on
+   -- PtpProtocolEngine's separate AXI snapshot bank freezes pre-edge diagnostic state on
    -- the common capture strobe. PtpEndpointControl consumes registered summaries.
    type PtpPortStatusType is record
       active              : sl;

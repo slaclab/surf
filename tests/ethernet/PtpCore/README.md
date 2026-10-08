@@ -90,7 +90,7 @@ Run the models alone without starting a simulator:
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
-- `test_ptp_port_samples.py` / `PtpPortWrapper`: direct production port with
+- `test_ptp_port_samples.py` / `PtpPortWrapper`: direct production `PtpProtocolEngine` with
   exact independent Q16 forward expectations, one-/two-step correction equivalence,
   signed64 boundaries/widened sums, upper seconds bits, timestamp/flag rejection,
   mixed-mode collisions, capacity/expiry/sequence wrap, rate qualification,

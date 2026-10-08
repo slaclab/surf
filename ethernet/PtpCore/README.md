@@ -28,11 +28,13 @@ insertion remains outside scope.
   keeps frame bytes and their start capture aligned. The leaf blocks remain
   independently testable. `PtpTxTimestampTap` composes the same leaves in
   TX-observation mode for actual TX wire completion.
-- `PtpPort`, `PtpTxLedger`, `PtpE2e`: fixed-source policy, message association,
-  persistent TX reservations, rate estimation, request building and E2E arithmetic.
+- `PtpProtocolEngine` (formerly `PtpPort`), `PtpTxLedger`, `PtpE2e`: fixed-source
+  policy, message association, persistent TX reservations, rate estimation,
+  request building and E2E arithmetic. The software `Port` bank and shared
+  `PtpPort*Type` records retain their existing names and layouts.
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
-- `PtpPhc`, `PtpPort`, `PtpServo` each contain their own AXI-Lite registers,
+- `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
   configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
   Servo command payload, valid, cancellation and expiry are registered. The
   PHC's separate acceptance/commit edges allow cancellation registered on an
@@ -88,7 +90,7 @@ Latency calibration is signed Q16 local-PHC nanoseconds in elaboration-time
 
 `PtpEndpoint.TX_AXIS_CONFIG_G` selects the private Delay_Req output format.
 Its default `PTP_RX_AXIS_CONFIG_C` preserves the eight-byte stream and direct
-ready/valid connection from `PtpPort`. Other formats use an internal
+ready/valid connection from `PtpProtocolEngine`. Other formats use an internal
 `AxiStreamResize`; `EthMacPtpEndpoint` selects the MAC's 16-byte
 `EMAC_AXIS_CONFIG_C`. The resize uses system reset only, preserving queued
 data across port and register resets. Supported conversions follow

@@ -33,7 +33,7 @@ MAC owns padding, preamble, FCS, arbitration and pause. Its redundant RX bypass
 is drained at native width: the passive atomic RX frontend supplies protocol
 messages independently of hidden MAC CRC/FIFO drops.
 
-`PtpEndpoint` structurally composes `PtpPort`, `PtpServo`, `PtpPhc`,
+`PtpEndpoint` structurally composes `PtpProtocolEngine`, `PtpServo`, `PtpPhc`,
 `PtpEndpointControl` (formerly `PtpReg`), TX adaptation and the standard SURF
 AXI-Lite crossbar. The controller owns global enable/commit/snapshot state,
 registered restart/RX flush and IRQ events, plus combinational AXI reset.
@@ -164,7 +164,7 @@ neutral hysteresis band and reset when the opposite threshold is crossed.
 Maximum path delay is 1 ms.
 
 Two existing implementation limits still lack a documented design rationale:
-`PtpPort` requires an association timeout of at least 2048 raw clock cycles,
+`PtpProtocolEngine` requires an association timeout of at least 2048 raw clock cycles,
 and `PtpServo` caps the configurable actuator limit at 200,000 ppb. Inspection
 of their introducing commit (`dc18c9ba2`) found no additional justification.
 The association floor needs a complete operation/latency budget; the 128-step

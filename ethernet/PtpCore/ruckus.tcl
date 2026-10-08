@@ -14,7 +14,7 @@
 source $::env(RUCKUS_PROC_TCL)
 # Includes PtpEndpointControl (formerly PtpReg) and the RX tap/leaf blocks.
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
-# Includes the direct PtpPort transaction/measurement fixture and PHY fixtures.
+# Includes the direct PtpProtocolEngine fixture (PtpPortWrapper) and PHY fixtures.
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"
 
 # PTP lane compositions are family-specific; PHY adapters and checkpoints are

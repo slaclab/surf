@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Flat transaction and measurement fixture for the real PtpPort.
+-- Description: Flat transaction and measurement fixture for the real PtpProtocolEngine.
 --
 -- Exposes validated RX records, capture provenance, cancellation and measurement
 -- backpressure without a servo consuming results. Python owns all stimulus and
@@ -167,7 +167,7 @@ begin
    syncCount                             <= status.syncCount;
    rejectedCount                         <= status.rejectedCount;
 
-   U_DUT : entity surf.PtpPort
+   U_DUT : entity surf.PtpProtocolEngine
       generic map (
          CLK_FREQ_G        => 125000000,
          PACKET_LIFETIME_G => 5000)

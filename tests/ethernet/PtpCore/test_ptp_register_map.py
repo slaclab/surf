@@ -23,7 +23,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
-         ('PtpPort', 'PtpPort'), ('PtpServo', 'PtpServo')]
+         ('PtpPort', 'PtpProtocolEngine'), ('PtpServo', 'PtpServo')]
 
 
 @pytest.mark.parametrize('device,rtl', BANKS)

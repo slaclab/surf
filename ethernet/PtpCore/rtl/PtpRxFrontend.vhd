@@ -354,7 +354,7 @@ begin
                if frameComplete then
                   -- Publish decoded common fields and only the fixed body;
                   -- candidate initialization zeros unused body bytes. Identity,
-                  -- flags, and message-body semantics still need PtpPort policy.
+                  -- flags, and message-body semantics still need PtpProtocolEngine policy.
                   -- A duplicate key remains a distinct physical record here.
                   -- Explicit wire offsets make the field layout visible here,
                   -- matching the Delay_Req encoder's Ethernet-frame convention.

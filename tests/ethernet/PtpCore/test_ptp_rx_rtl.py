@@ -191,7 +191,7 @@ async def rx_contract(dut):
             assert got.key[0] == kind and got.correction == -17
             if expected is not None:
                 assert (got.stamp.time, got.stamp.ticks, got.stamp.tick_phase) == expected
-    # One-step changes body interpretation only in PtpPort. The frontend must
+    # One-step changes body interpretation only in PtpProtocolEngine. The frontend must
     # preserve all 48 seconds bits, flags, signed correction and own capture.
     marker = (1 << 72) | 999999999
     for lane in ((0, 4) if mode == "XGMII" else (0,)):

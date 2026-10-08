@@ -11,7 +11,7 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 | --- | --- | --- | --- |
 | Endpoint | `0x000` | `PtpEndpointControl` | `PtpEndpoint` |
 | PHC | `0x1000` | `PtpPhc` | `PtpEndpoint.Phc` |
-| Port | `0x2000` | `PtpPort` | `PtpEndpoint.Port` |
+| Port | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.Port` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
 
 ## Transactions and reset

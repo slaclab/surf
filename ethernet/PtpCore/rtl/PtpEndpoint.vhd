@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Description: Autonomous PTP protocol, clock-control and register subsystem.
 --
--- Connects the AXI banks inside PtpPhc, PtpPort and PtpServo directly through
+-- Connects the AXI banks inside PtpPhc, PtpProtocolEngine and PtpServo directly through
 -- AxiLiteCrossbar. Each core owns its configuration and snapshot storage.
 -- PtpEndpointControl coordinates configuration, snapshots and lifecycle events.
 -- Validated RX records and observed TX completion records arrive from the
@@ -248,7 +248,7 @@ begin
          captureAbort     => abortCapture,                    -- [out]
          pps              => pps);                            -- [out]
 
-   U_Port : entity surf.PtpPort
+   U_ProtocolEngine : entity surf.PtpProtocolEngine
       generic map (
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,

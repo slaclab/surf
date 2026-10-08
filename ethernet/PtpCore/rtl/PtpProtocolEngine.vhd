@@ -67,7 +67,7 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
 
-entity PtpPort is
+entity PtpProtocolEngine is
    generic (
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
@@ -115,9 +115,9 @@ entity PtpPort is
       measurementSlave    : in  PtpMeasurementSlaveType;
       lifecycle           : out PtpPortLifecycleType;
       status              : out PtpPortStatusType);
-end entity PtpPort;
+end entity PtpProtocolEngine;
 
-architecture rtl of PtpPort is
+architecture rtl of PtpProtocolEngine is
 
    constant PAIR_DEPTH_C    : positive := 4;
    constant HISTORY_DEPTH_C : positive := 4;

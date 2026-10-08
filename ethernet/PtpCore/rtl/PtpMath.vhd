@@ -17,7 +17,7 @@
 --
 -- Holds the result and error stable until resultReady. Valid is registered;
 -- both producer and consumer exclude cancel/reset edges from transfers.
--- PtpPort, PtpE2e, PtpServo and PtpPhc use this engine for serialized calculations; each
+-- PtpProtocolEngine, PtpE2e, PtpServo and PtpPhc use this engine for serialized calculations; each
 -- caller owns fixed-point scaling and transaction provenance.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
