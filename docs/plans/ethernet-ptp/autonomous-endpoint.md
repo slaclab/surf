@@ -1,21 +1,16 @@
-# Autonomous endpoint implementation
+# Autonomous PTP endpoint contract
 
-Status: the original simulation milestone is complete. The current
-[RTL review](README.md#current-validation) awaits maintainer VHDL approval;
-regressions must remain stopped until approval. This milestone
-builds on the committed [RX proof](rx-rtl-proof.md) and covers an autonomous
-fixed-source, two-step Layer-2 E2E TimeReceiver on GMII and XGMII.
-One-step receive has since been implemented; its prepared checks remain unrun
-under the same gate. See the [one-step handoff](one-step.md). It does not
-qualify a board, transceiver, physical clock domain crossing, or accuracy budget.
-The implemented contracts here supersede the larger plan's provisional module
-names and register map. Application scheduling and shared simulator timing
-services remain subsequent milestones.
+Implemented fixed-source, one-/two-step Layer-2 E2E TimeReceiver on GMII/XGMII.
+Current changes await [RTL approval and behavioral acceptance](rtl-review.md);
+[historical milestones](history/verification.md) do not validate the current
+source. This contract describes source behavior, not hardware-qualified accuracy.
+Application scheduling, shared simulator timing and physical clock control are
+future work.
 
 ## Composition and ownership
 
 `EthMacPtpEndpoint` composes the unchanged `EthMacTop`, `PtpPrimaryGuard`, passive
-RX adapter/frontend, passive `PtpTxTimestampTap`, and `PtpEndpoint`. All run in
+`PtpRxTimestampTap`, passive `PtpTxTimestampTap`, and `PtpEndpoint`. All run in
 one continuously running Ethernet/PHC clock domain. Use 125 MHz for full-rate
 GMII or 156.25 MHz for XGMII; GMII 10/100 clock enables are unsupported.
 
@@ -33,12 +28,30 @@ MAC owns padding, preamble, FCS, arbitration and pause. Its redundant RX bypass
 is drained at native width: the passive atomic RX frontend supplies protocol
 messages independently of hidden MAC CRC/FIFO drops.
 
+The wrapper's `localMac` is authoritative for Ethernet configuration, the PTP
+builder and readback. Its least significant octet is first on the wire. The
+project must assign a unique deployed address; `MAC_ADDR_INIT_C` is only a
+convenience default. Default PTP clock identity inserts `FFFE` into those MAC
+octets in EUI-64 form, preserving the configured port number; software may
+override clock identity without changing the Ethernet source MAC. A MAC change
+restarts acquisition and updates both views coherently.
+
+Delay_Req uses multicast `01:1B:19:00:00:00`, EtherType `0x88F7`, message type 1,
+length 44, configured domain/minor version, zero correction/origin timestamp,
+local identity, allocated sequence, control 1 and log interval `0x7F`. Its
+58 meaningful bytes exclude preamble/padding/FCS; SSI SOF is set, final EOFE is
+clear and every offered beat remains stable under backpressure. Bypass priority
+is at frame boundaries; the TX tap observes actual transmission after MAC pause
+or queueing. Tagged frames are outside this contract and require coordinated
+classifier, frontend and builder changes.
+
 `PtpEndpoint` structurally composes `PtpProtocolEngine`, `PtpServo`, `PtpPhc`,
 `PtpEndpointControl` (formerly `PtpReg`), TX adaptation and the standard SURF
 AXI-Lite crossbar. The controller owns global enable/commit/snapshot state,
 registered restart/RX flush and IRQ events, plus combinational AXI reset.
 Restart consumes the published apply strobe, and IRQ status consumes the
-previous event stage; consolidation preserves their register hops. Each functional core contains
+previous event stage; consolidation preserves their register hops. Each functional
+core contains
 its own AXI-Lite decode, configuration and snapshot storage in its existing
 `RegType`/`comb`/`seq` structure. `PtpPhc` also owns manual phase normalization
 and final command arbitration. Only shared active limits, measurements and
@@ -54,16 +67,123 @@ configuration cancellation remains separate from the PHC's own capture-abort
 path, preventing a phase step from canceling itself. Held link loss cancels
 old work once and permits subsequent frequency-only holdover control.
 
+## RX message and capture boundary
+
+A passive adapter binds capture and bytes at the first destination-MAC octet,
+before any lossy queue. `PtpRxFrontend` validates the complete frame and publishes
+one atomic decoded-message/capture record; the redundant MAC bypass is always
+drained, including during logical restart. Aggregate MAC CRC/FIFO status is
+diagnostic and cannot select or invalidate frontend records.
+
+| Alternative | Identity guarantee | Cost and decision |
+| --- | --- | --- |
+| Metadata through an opt-in receive MAC | Capture and frame remain one transaction only if every importer, pipeline, filter, FIFO, and reset carries or discards both. | Viable, but changes several existing MAC boundaries or creates maintained siblings. Prefer for a future general timestamp API. |
+| Passive validated RX frontend | The producer owns frame bytes and capture before the first lossy queue. No later packet lookup exists. | Selected. Duplicates FCS/framing validation, but confines new logic to PtpCore and preserves the public MAC. |
+| Header key plus aggregate drop flush | No complete frame-local loss identity; CRC rejection and retained FIFO data break the join. | Rejected by the real-MAC counterexamples. More table entries or key bits do not repair it. |
+
+Inspection supports the boundary choice: `EthMacRxImport` exposes AXI packets
+and aggregate status, without frame-local capture metadata; its GMII/XGMII
+leaves perform physical import and CRC. `EthMacRx` then passes traffic through
+additional processing before `EthMacRxFifo`. Existing `TUSER` fields already
+have SOF/error meanings. Adding a parallel FIFO at any one of those boundaries
+would require proving identical admission, loss, and reset behavior again.
+
+`PtpRxTimestampTap` structurally composes `PtpRxTimestampAdapter` and
+`PtpRxFrontend` without added state or latency. The adapter handles GMII/XGMII
+normalization; `PtpTxTimestampTap` reuses the same leaves for separate TX
+completion. There is no combined
+RX/TX timestamp-tap entity or separate RX timestamp/frame join.
+
+| Boundary | Contract |
+| --- | --- |
+| Adapter to frontend | Eight-byte AXI/SSI format, contiguous low-byte keep, SOF/EOFE and last; a capture sidecar is meaningful on SOF. No ready: every valid beat is consumed. GMII contributes one byte, XGMII up to eight; termination after a full word may use a zero-byte final beat. |
+| SOF capture | Q16 time, raw ticks/eighth-cycle phase, generation, active increment, validity/error from the same frame. Time-invalid observations can still bootstrap acquisition. |
+| Frontend to protocol engine | One `PtpRxMessageType` valid/ready channel for Sync, Follow_Up, Delay_Resp and Announce, with capture, RX epoch, header and fixed body. No independent capture queue or raw RX port. |
+| Protocol TX/completion | Delay_Req stream and keyed wire completion remain distinct, subject to reserved-key lifetime and exclusive primary-traffic rules. |
+
+Sidecar and SOF share every enable/reset. Normalization/CRC sustain eight bytes
+per cycle at XGMII line rate, including minimum gaps. GMII has phase zero;
+XGMII normalizes `(startLane + 8)` byte times into ticks plus eighth-cycle phase.
+RX and TX both retain that phase: ignoring lane-4 versus lane-0 differences can
+bias nominal 10G delay by 1.6 ns. Capture arithmetic scales with the active PHC
+increment and normalizes seconds carry/borrow; epoch underflow/overflow marks
+an invalid capture. Direct capture at the message point avoids extrapolating
+across a PHC command edge.
+
+### Validation and bounded storage
+
+The adapter rejects invalid preamble/SFD, illegal XGMII start lanes/control
+sequences, and GMII error indication, and reports any in-frame error through
+EOFE. A physical error is sticky until termination. Missing termination cannot
+grow storage: byte counters saturate and the frame remains rejected until
+resynchronization. A nested SOF invalidates the partial frame and the nested
+candidate; recovery is permitted at a subsequent clean SOF.
+
+The frontend owns these structural checks:
+
+- Complete frame length of 64–1518 bytes, destination MAC through FCS.
+  Jumbo and tagged PTP are outside this first contract.
+- Ethernet FCS across the complete frame, including legal padding. Nothing is
+  queued before the final CRC result and framing status are known.
+- Outer EtherType `88 F7`, major version 2, minor version 0 or 1, and a supported
+  RX message type. The byte-order convention remains distinct from `x"F788"`
+  in the MAC bypass generic.
+- `messageLength` covers the fixed body (44/44/54/64 bytes respectively), fits
+  the received frame, and is at most 1500. Padding beyond that length is
+  excluded from PTP decode, but included in CRC.
+- Optional TLVs walk exactly to `messageLength`; reject partial headers and
+  values extending beyond it. Structurally valid unknown TLVs are skipped.
+  Profile-specific TLV semantics and conformance fixtures remain a parser
+  qualification task; the model checks boundary lengths, not full IEEE conformance.
+
+`PtpProtocolEngine` owns configured destination/source/domain/transport-specific
+policy, flag legality, valid nanoseconds, requesting-port identity, Announce
+semantics, timeouts, and Sync/Follow_Up transaction matching. Keep structural
+parsing and mutable protocol policy separate. Configuration changes abort all
+in-flight frontend work through the common generation contract, including a
+frame that began before the change and terminates afterward.
+
+The wire key identifies a protocol exchange, not a physical frame. Two valid
+same-key Sync copies produce two internally consistent records. Protocol
+duplicate/replay policy must still prevent reusing completed exchange keys and
+reject conflicting live content; this design does not prove which of two
+conflicting, CRC-valid Follow_Up messages a sender intended. No oracle wire ID
+is carried in the interface or used by the reference model.
+
+Storage is bounded independently of frame termination: at most 78 prefix bytes,
+saturating length counters, CRC and streaming TLV state, one SOF capture and a
+configured complete-record queue (default four). The Python oracle holds four
+trailing FCS bytes; RTL instead proves the declared body ends before the FCS.
+The legacy 744-bit diagnostic packing gives 2,976 data bits for four records,
+but omits capture increment/error and is not a lossless transport or device-area
+estimate. See the [deferred FIFO option](#deferred-rx-fifo-optimization).
+
+A completion finding the queue full **before the edge** discards the completion
+and whole queue, advances RX epoch and increments overflow even if ready is high.
+Malformed/unsupported frames do not enqueue and cannot cause queue overflow.
+Otherwise the old head may retire before a valid completion enqueues; new records
+do not fall through on arrival. Restart/generation changes discard partial and
+queued work. RX overflow never steps the PHC or releases unknown TX wire keys.
+
+The [registered timing contract](rtl-readability.md#registered-lifecycle-and-queue-boundaries)
+is authoritative: a detection-edge old-head transfer can precede publication of
+abort, and the consumer cancels pending work when that registered event arrives.
+This supersedes the original reference model's immediate-abort timing. Pipeline
+capture, completion, generation and abort together; an independent reset or CDC
+would need coordinated invalidation before admitting new work. The current
+physical producer boundary has no CDC.
+
 ## Time, arithmetic and lifecycle contracts
 
 - PHC time is seconds48/nanoseconds32/fraction32. Captures retain Q16 fraction,
   generation32, unsteered ticks64, eighth-cycle phase, and the exact active Q32
-  increment. The existing RX `toSlv()` layout remains 744 bits and omits the new
-  increment field; it is a legacy diagnostic/test packing, not a complete
+  increment. The existing RX `toSlv()` layout remains 744 bits and omits
+  capture increment/error; it is a legacy diagnostic/test packing, not a complete
   transport for endpoint records or a CDC interface.
 - The timestamp plane is the first destination-MAC octet, with XGMII lane
   phase applied. Ingress is subtracted and egress added. Both are signed Q16
-  **local PHC nanoseconds**, supplied by build-time latency generics in ABI v1. Egress excludes the single
+  **local PHC nanoseconds**, supplied by build-time latency generics. Egress
+  excludes the single
   most-negative 64-bit value because the shared ingress adapter must negate it.
   E2E converts each latency to master-time units using that capture's increment
   and the qualified master-time/raw-tick ratio. A PHC rate change between t2 and
@@ -122,7 +242,17 @@ retire, while unfinished slots cannot be overwritten. Retention/expiry and
 chronology checks bound replay protection; sequence wrap is not a session ID.
 Mode state flushes with the existing associations on restart, source/configuration
 changes, RX abort/epoch invalidation and PHC generation changes; AXI-only reset
-preserves it. Both receive modes share the existing registered measurement,
+preserves it. Distinct sequence IDs can alternate modes without reconfiguration. The private mode bit is qualified by `syncSeen`;
+`followSeen` indicates an actual Follow_Up. Completion requires an unretired Sync
+and either one-step mode or its Follow_Up; the unused one-step Follow_Up correction
+is zero. Exact flags and canonical one-step nanoseconds are checked before slot
+lookup/update, so malformed traffic cannot contaminate a retained association.
+These collision rules are conservative implementation policy, not a claim that
+IEEE 1588 mandates this exact handling. Completion follows full frame validation
+and available processing capacity; RX waits while rate processing or a measurement
+stalls, and later collisions cannot revoke consumed samples.
+
+Both receive modes share the existing registered measurement,
 backpressure and child-cancellation contracts. Corrected remote time
 and raw capture time must both advance. Four completed Syncs supply the nearest
 eligible t2 for an actual t3. E2E computes a delay only with a fresh, qualified
@@ -182,6 +312,39 @@ guarantee or a combined arbitrary-jitter stability proof. The physical endpoint
 regressions accelerate packet intervals with exact fractional correction fields;
 they verify state/command composition rather than long-duration default settling.
 
+## Arithmetic units and sign conventions
+
+The Q32 PHC nominal increment represents 8 ns exactly at 125 MHz; its 6.4 ns
+representation at 156.25 MHz has less than 0.02 ppb nominal rate error. Q16-only
+increment rounding would be approximately 1 ppm without residual arithmetic.
+Captured correction arithmetic uses Q16 nanoseconds; gains use unsigned Q2.30
+(values below 4), with signed128 checked intermediates and nearest rounding,
+ties away from zero where selected. Parser log-interval acceptance is not a
+claim that one gain set tracks the entire range.
+
+For equal-rate clocks, the explanatory E2E equations are:
+
+```text
+forward = t2 - (t1 + cSync)
+reverse = (t4 - cDelay) - t3
+meanDelay = (forward + reverse) / 2
+localMinusMaster = forward - meanDelay - delayAsymmetry
+rateAddendQ32 = round(nominalAddendQ32 * rateCommandPpbQ16
+                     / (1_000_000_000 * 2^16))
+```
+
+Here `t1`/`cSync` use the selected receive-mode origin and correction; `t2` is
+local Sync RX, `t3` local Delay_Req TX and `t4` remote Delay_Resp receive time.
+Positive local-minus-master offset calls for negative phase/frequency correction.
+`delayAsymmetry` means half the forward-minus-reverse physical path difference;
+it is distinct from ingress/egress calibration. The implemented E2E uses the
+qualified master-time/raw-tick ratio and each capture's calibration conversion,
+not an equal-rate assumption. The uncorrected error is approximately half the
+oscillator error times RX-to-TX separation: 100 ppm over 10 ms gives 500 ns.
+Bootstrap therefore estimates rate independently of already-valid path delay.
+Do not constrain the individual cross-clock differences to a network-delay
+range before their potentially large epoch offsets cancel.
+
 ## AXI-Lite register map
 
 The [register map](register-map.md) defines the implemented four-bank ABI,
@@ -194,7 +357,7 @@ commit, then applied by all banks on one edge. An accepted commit returns OKAY
 before its result is known; software polls completion and checks ConfigError.
 One snapshot strobe captures all local diagnostic banks with a common sequence.
 AXI-only reset cancels bus responses but preserves accepted operations and active
-state. See the [ownership record](register-ownership.md) for implementation and
+state. See the [ownership record](register-map.md#register-ownership) for implementation and
 verification details.
 
 IRQ bits remain PHC fault, discontinuity, command error and servo fault. The last
@@ -203,9 +366,9 @@ before treating it as current. Local-MAC changes restart acquisition and rederiv
 the EUI-64 identity unless override is active, preserving the configured port
 number. Calibration remains elaboration-time.
 
-PyRogue is not installed on this machine. Static schema checks compare every
-software field start/access mode with local RTL decode, and check overlap and
-bank bounds; they do not constitute a live Rogue transport test.
+Static register-schema checks compare software fields with local RTL decode,
+including overlap and bank bounds. They do not establish live Rogue transport
+behavior; runtime and hardware acceptance remain separate.
 
 ## Optional snapshot CDC
 
@@ -218,71 +381,27 @@ reset recovery: each FIFO write waits for acknowledgement rather than assuming
 that deasserted full proves the peer domain is ready. Consumers accept only
 `readValid` responses in their current reset session.
 
-## Validation and handoff
 
-The register refactor and later RTL reviews are implemented, but behavioral
-acceptance of the subsequent changes remains paused. See the
-[consolidated handoff](rtl-review.md#outstanding-acceptance) for pending checks
-and [register-ownership.md](register-ownership.md) for earlier refactor evidence.
-The following records the original autonomous endpoint milestone; it does not
-validate the current RTL.
+## Deferred RX FIFO optimization
 
-- **The original autonomous milestone passed 101 distinct pytest cases.** This
-  includes 84 pure reference cases and 17 parameterized RTL cases; some RTL cases
-  contain more than one cocotb scenario. The two PHY closed-loop cases also pass
-  independent absolute-phase checks after acquisition and reacquisition.
-- Baseline: 60 reference cases and seven cocotb scenarios for the RX proof.
-- New focused arithmetic/PHC/E2E/ledger/servo/reference run: 31 pytest cases pass.
-  PHC cases also exercise independent-clock snapshot cancellation, a stopped
-  PHC peer clock, and validity/PPS revocation coincident with seconds rollover. The ledger uses narrow sequences to force wrap and retirement.
-- Register/PHC test passes shadow atomicity, alignment/strobes, command operand
-  latching, backpressure, register-only reset, snapshots, identity changes and IRQ.
-- XGMII +100 ppm with initial phase step and GMII −100 ppm without a step pass
-  acquisition, lock, holdover expiry and reacquisition. At both lock checkpoints,
-  PHC time compared directly with independent simulated master time has absolute
-  error below 100 ns; generation counts also confirm the intended step policy.
-  These two cases took 800.50 s with two workers on this machine.
-- Physical adversarial port tests pass Follow_Up reordering, duplicate/conflicting
-  keys, foreign source, invalid timestamps, completed-slot retirement, Sync
-  timeout, grandmaster/timescale-change abort, Announce metadata, and every TX beat held
-  across port reset and drained afterward.
-- VSG and Python lint pass. Generic GHDL synthesis passes PHC, arithmetic, E2E,
-  ledger, port, servo, registers, endpoint, primary guard and TX timestamp tap.
-  The TX builder uses static slices after GHDL rejected its variable part select.
-- The subsequent SURF style pass aligns declarations, record initializers and
-  port maps, expands dense statements, and preserves the VHDL token sequence and
-  comment text in all 22 PTP sources. Repository VSG and HDL import pass; the
-  31-case arithmetic/PHC/E2E/ledger/servo/register/reference regression passes
-  again after formatting (47.31 s).
-- Optional `PtpPhcRead` generic synthesis is blocked in the existing SURF
-  `SimpleDualPortRam.vhd` conditional write-enable assignment: GHDL reports a
-  27-versus-1 vector-width mismatch for the 209-bit response FIFO with byte
-  writes disabled. Mailbox simulation passes. This feature does not alter the
-  shared RAM primitive; its device synthesis/CDC qualification remains open.
-- Real-MAC lifecycle tests pass on both GMII and XGMII: primary payload, PTP
-  identity guard, pause/port restart, retired late completion and fresh recovery.
-  The pair took 1217.69 s with two workers during concurrent verification work.
-- All 65 existing RX/reference/MAC-association pytest cases pass after integration.
-- PyRogue syntax and 99 register fields were checked for address-bit overlap;
-  a live PyRogue import/transport test remains unavailable on this machine.
+Consider replacing `PtpRxFrontend`'s manual `r.queue` with a synchronous SURF
+FIFO using distributed RAM and `FWFT_EN_G => true`. RX currently defaults to
+four records; TX observation selects two and is always ready in
+`EthMacPtpEndpoint`. A nominal 16-entry RAM for both is a candidate, matching
+the public `Fifo` wrapper's minimum address width, not a protocol requirement.
+No RTL or depth change is selected yet; resource/timing benefits need synthesis
+evidence, and usable capacity must account for backend/FWFT buffering.
 
-### Review-gate disposition
+A replacement must retain atomic message/capture storage, stable registered
+outputs, and explicit flush/generation/epoch and abort timing. Preserve the
+pre-edge-full discard-all policy unless deliberately revising its contract.
+Add lossless record packing: the existing verification `toSlv` omits
+`capture.increment` and `capture.error`. Larger queues preserve capture times
+but can increase backlog age; retain stale-record rejection. Revisit queue
+capacity and interface latency tests when implementing, subject to the existing
+RTL-approval gate on behavioral regressions.
 
-| Review finding | Local evidence / remaining boundary |
-| --- | --- |
-| R3: RX frame identity after hidden MAC drops | Atomic message/capture RX replaces the disproved queue association; physical and real-MAC loss tests pass. |
-| R4: generations, raw timers, reset/CDC | PHC cycle model, generation cancellation, stopped-peer snapshot sessions and register-only reset are implemented/tested; physical CDC qualification remains. |
-| R5: oscillator-error bootstrap | Independent raw-tick estimator and rate-corrected E2E/calibration models, leaf RTL scoreboards and physical closed-loop cases; see the stated envelope above. |
-| R6: persistent TX fate | Bounded keyed ledger, forced wrap/quarantine tests, stalled beat preservation and actual paused MAC requests on both PHYs. |
-| R7: numerical encodings and timing | Q-format contracts, serialized checked engines, independent PI sweeps and command scoreboard; generic synthesis passes, device path/resource budgets remain open. |
-| R8: timed events | Subsequent application timing milestone; no scheduler is implemented here. |
-| R9: profile and interoperability | Concrete fixed-source parser/policy and adversarial packet fixtures exist; pinned external-master/packet-capture interoperability fixture remains open. |
-| R10: hardware qualification | Select board, GT path, instrument and part; no hardware accuracy or family-wide timing claim follows from these simulations. |
 
-Reproduce focused or full regressions using the [test index](../../../tests/ethernet/PtpCore/README.md).
-Keep generated HDL, waveforms and simulator logs outside this plan directory.
-Device synthesis/implementation must still measure PHC/capture/CRC and control
-paths, resources, clock constraints and physical reset/CDC behavior. Then select
-one board/GT sibling integration and calibrate its latency plane. Application
-scheduling, cross-process timing simulation, interoperability against an external
-PTP master, and live PyRogue transport testing are separate follow-on work.
+Validation history is retained in [historical evidence](history/verification.md);
+all current acceptance and device/interoperability gates belong in the
+[review record](rtl-review.md#outstanding-acceptance).

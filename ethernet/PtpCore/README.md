@@ -14,7 +14,7 @@ estimator, history and E2E path. No software mode switch or register change is
 required. Mixed-mode collisions follow the conservative
 [association policy](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#port-policy-and-numerical-envelope).
 One-step reception is implemented but awaits behavioral verification under the
-[one-step handoff](../../docs/plans/ethernet-ptp/one-step.md). One-step transmit
+[one-step acceptance checklist](../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance). One-step transmit
 insertion remains outside scope.
 
 - `rtl/PtpPkg.vhd`: shared time, capture, configuration, command and measurement records.

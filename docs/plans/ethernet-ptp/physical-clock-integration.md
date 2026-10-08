@@ -53,7 +53,7 @@ responsibilities. Device configuration over SPI and the continuous fine-frequenc
 actuator may be different interfaces.
 
 A fabric phase accumulator is a candidate alongside the
-[MMCM phase-stepping approach](README.md#experimental-fpga-generated-frequency-output).
+[MMCM phase-stepping approach](history/design-studies.md#experimental-fpga-generated-frequency-output).
 In the PHC domain, its phase advance is:
 
 ```text
@@ -109,7 +109,7 @@ The integration must define:
 [PtpPhcRead](../../../ethernet/PtpCore/rtl/PtpPhcRead.vhd) supplies coherent
 snapshots. A snapshot does not provide continuously advancing or
 latency-compensated time in the receiving clock domain. The
-[existing CDC and application plan](README.md#clock-domain-crossing-and-application-use)
+[existing CDC and application plan](autonomous-endpoint.md#optional-snapshot-cdc)
 already distinguishes these uses. A precise consumer must define its reference
 edge, time-transfer latency, epoch/timescale conversion, divider alignment and
 common event/counter origin. Frequency lock alone cannot establish those values.
@@ -139,8 +139,6 @@ oscillator. The hardware qualification plan must cover:
    event. Account for connector/PHY calibration and distribution skew.
 
 Use independent measurements: endpoint self-reported offset and PLL lock alone
-cannot establish timing accuracy. Current validation is limited to documentation
-links, heading anchors and whitespace. No RTL changed and no simulation or
-hardware measurements were run; the existing RTL-review simulation pause remains
-in force. Next work is requirements selection, actuator/loop design and the
-corresponding implementation and qualification, subject to that review gate.
+cannot establish timing accuracy. Next work is requirements selection, actuator/
+loop design, implementation and qualification, subject to the existing RTL-review
+approval gate. No physical-clock implementation or hardware result is claimed here.

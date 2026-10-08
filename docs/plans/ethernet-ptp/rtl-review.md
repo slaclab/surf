@@ -1,4 +1,4 @@
-# PTP RTL review decisions and verification handoff
+# PTP review and acceptance record
 
 ## Status and provenance
 
@@ -27,8 +27,8 @@ The maintained contracts are authoritative:
 - [Endpoint composition and numerical envelope](autonomous-endpoint.md).
 - [Registered timing and local implementation decisions](rtl-readability.md).
 - [Output ownership and remaining exceptions](rtl-readability.md#output-ownership-and-exceptions).
-- [Register ABI](register-map.md), [register ownership](register-ownership.md)
-  and [directional interface records](interface-records.md).
+- [Register ABI](register-map.md), [register ownership](register-map.md#register-ownership)
+  and [directional interface records](rtl-readability.md#interface-records).
 - [SURF VHDL conventions](../../vhdl-conventions.md), including the RTL checklist.
 
 ## Implemented decisions
@@ -85,19 +85,145 @@ later merges or proof of behavioral equivalence:
   dependencies for future verification.
 
 Earlier behavioral milestones remain in the
-[endpoint evidence](autonomous-endpoint.md#validation-and-handoff),
-[register refactor evidence](register-ownership.md#validation-before-the-readability-cleanup)
-and [RX proof](rx-rtl-proof.md). They predate the final interface/control-flow
+[endpoint evidence](history/verification.md#autonomous-endpoint-milestone),
+[register refactor evidence](history/verification.md#register-ownership-milestone)
+and [RX proof](history/verification.md#rx-rtl-proof). They predate the final interface/control-flow
 changes and cannot close the acceptance items below.
+
+## One-step receive static evidence
+
+Implemented October 6, 2026 in the tree based on
+`fc75fe24ab1dfb3da77164843c71783ab1aa3ba8`. The original planning baseline was
+`aa6b2c4084aafbea77761a5ff96b9605fbb952f9`; their comparison found no intervening
+PTP RTL/fixture changes. The RTL was then named `PtpPort`; current naming is
+`PtpProtocolEngine`, with the `PtpPortWrapper` fixture retained.
+
+The following records the implementation-time checks, not new checks of today’s
+source. Source review covered both arrival orders/collision directions, full-table
+abort priority, accepted-sample immutability, signed128 correction assembly,
+registered outputs, no new CDC and unchanged reset/AXI-only semantics. The
+private `twoStep`/`syncSeen` state feeds the existing sample path; no exported
+record, entity interface, register, default or counter definition changed.
+The frontend already retained the required body/flags/correction. The package
+later named `PTP_ONE_STEP_FLAGS_C` beside `PTP_TWO_STEP_FLAGS_C`; explicit
+flag/control/timestamp rejection branches kept the same admission/counting rules.
+Those readability follow-ups passed package/port VSG and port compile/link.
+
+- VSG 3.35.0 with `vsg-linter.yml`: zero violations in `PtpPort.vhd` and the new
+  `PtpPortWrapper.vhd`. Python AST parsing and flake8 pass for the eight changed/
+  added Python fixture files. Static compliance screening against that baseline’s
+  fixtures reported no new findings; no tests were imported or collected.
+- Fresh ruckus source import passed with the checked-out sibling ruckus. Initial
+  sandbox attempts failed in Tcl subprocess temporary-file creation; the same
+  isolated import succeeded with sandbox escalation. The initial recipe's
+  `MODULES="$PWD"` also needed adjustment for this workspace's sibling layout.
+  `GIT_STATUS=skip-index-refresh` suppressed Make's incidental Git index refresh.
+- GHDL 6.0.0 (LLVM 22.1.0) import and compile/link passed for `PtpPort`,
+  `PtpPortWrapper`, `PtpEndpoint`, `PtpEndpointLoopbackWrapper`,
+  `PtpRxFrontendWrapper`, and `EthMacPtpEndpoint`, using
+  `--std=08 --ieee=synopsys -frelaxed-rules -fexplicit`. The current
+  `ETHMAC_RTL_SOURCES` selection supplied MAC RTL plus `DspXor.vhd`; the imported
+  `EthMacPkg` was not duplicated. Builds used checked-out sources and a fresh
+  temporary library. No executable was run; run-time generics/assertions and
+  behavior remain untested. Dependency warnings include shared variables,
+  elaboration, port attributes and name hiding; the unchanged servo's
+  `maximum` warning remains.
+- Production entity declarations and the RTL AXI register calls matched the baseline;
+  public package layouts and PyRogue sources are unchanged. Documentation links/
+  anchors and diff whitespace were checked.
+
+The recorded tools were GHDL 6.0.0 (LLVM 22.1.0), VSG 3.35.0 and Python 3.13.2;
+Python/static tools came from the existing `/Users/bareese/surf/.venv/bin`, not
+an environment installed by this task. That path is historical, not a portable
+prerequisite. Use the compile/link procedure below and current tool paths.
+No known-bad simulation ran under the gate; completion/count assertions are
+intended to reject the old exact-two-step-only admission policy. Remaining risks
+include fixture timing/expectations, mixed-mode collisions, bounded retained-key
+reuse and registered cancellation/publication. Earlier endpoint passes do not
+validate these changes.
+
+## Controller and protocol naming evidence
+
+The October 8, 2026 controller consolidation preserves global coordination and
+the prior apply-to-restart and event-to-IRQ register hops; its contracts belong
+in the endpoint/register/timing guides. Recorded checks were:
+
+GHDL 6.0.0 analysis/link passed for the real
+controller, endpoint and register fixture, including endpoint compositions with
+the MAC TX format and synchronous active-high/asynchronous active-low resets.
+MAC endpoint and loopback analysis uses the real PTP cores and a declaration-only
+MAC. Source comparison confirms unchanged AXI/commit/snapshot/IRQ processing
+after resolving its event input to the retained register, unchanged prior state
+reset values, and the separate port-to-PHC command-abort connection. Changed
+Python sources parse; mocked manifest loading selects the renamed controller;
+local guide links and diff whitespace pass. This is not behavioral equivalence
+or FPGA timing evidence.
+
+The recorded full ruckus import failed before source loading with Tcl’s
+error-file permission failure (`not owner`); VSG was unavailable. Pending
+controller behavior is covered in the acceptance checklist below.
+
+Rename checks on October 8, 2026: source comparison confirms only name/comment
+and instance-label substitutions in the affected VHDL. GHDL analysis/link passes
+for the real engine, endpoint and both register/protocol fixtures; MAC endpoint
+and loopback analysis uses a declaration-only MAC. Python syntax, mocked source
+manifest selection, local documentation links and whitespace checks pass.
+The full-import and VSG limitations also applied to these checks; protocol and
+endpoint regressions remain pending.
+
+## PHY source-integration evidence
+
+The October 6 status reconciliation used SURF
+`66552564fd9a273e070e4925471f3661bcc5d4a9` and consuming project
+`e964280287e19bb64fa68f467e67a7a3cde45b7e`. Later extension checks below are
+recorded source-integration evidence; no exact revision was supplied for every
+working-tree check. Real checkpoint binding and hardware acceptance remain open.
+
+Static evidence for this change: GHDL analysis with real SURF packages and
+current dependency entity declarations passes for the two PHYs, two PTP lanes,
+common composition, both modified legacy lanes and KCU105 target. A structural
+comparison against the pre-extraction legacy sources confirms unchanged public
+interfaces and logic and identical composed checkpoint connections; GTY's
+previously unassociated `gtpowergood` output is now explicitly open.
+The actual GigEthCore/PtpCore manifests were evaluated with mocked Vivado
+loading commands for `kintexu` and `zynquplusRFSOC`: each selected its expected
+PTP lane and excluded the other family, with one copy of each common block.
+Documentation links/anchors and diff whitespace pass. These checks do not bind
+the DCPs or establish behavioral equivalence.
+
+The normal ruckus `make import` attempt could not complete on this host: Tcl
+failed to create a subprocess error file (`not owner`) before loading sources.
+VSG is unavailable. Simulation/pytest remain paused; no Vivado or hardware
+validation has run. Current checks and outstanding gates must remain distinct.
+
+Static checks cover real-package/entity GHDL analysis of new adapters,
+compositions and the board top, unchanged legacy LVDS public interface and
+composed vendor pin mapping, source-manifest selection, target Tcl syntax and
+Python syntax. These do not bind vendor IP or execute protocol behavior.
+The GTH consolidation additionally passed static elaboration of both generic
+modes with declaration-only checkpoint substitutes and an exact comparison of
+each branch's vendor pin map against the former separate adapters. KCU105 uses
+`USE_GTREFCLK_G=true`; existing ordinary Ethernet consumers keep the default.
+
+These checks covered shared GTH/GTY and LVDS PHY extraction, common composition,
+dedicated-reference selection, Marvell gigabit-only integration and stopped-clock
+reset handling. No checkpoint was regenerated or converted; the dedicated GTH
+asset remains missing. Register layouts and exact clock/reset/constraint paths
+are maintained in the [composition guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions).
 
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),
 manifests and available tools before rebuilding. Use an isolated temporary output
 directory and the checked-out source; do not alter installed environments or
-invoke packaging. The previous import used `make MODULES="$PWD" OUT_DIR=<temp>
-import` from the SURF root. If import is blocked, document that limitation and
-the provenance of any source inventory used instead.
+invoke packaging. The earlier import used `make MODULES="$PWD" OUT_DIR=<temp> import` from the
+SURF root. In this consuming workspace's sibling-ruckus layout, the one-step
+import instead required `MODULES="$PWD/.."`, separate temporary `OUT_DIR` and
+`IMAGES_DIR`, and `GIT_STATUS=skip-index-refresh` to suppress an incidental index
+refresh. Inspect the target/setup before selecting the recipe. If import is
+blocked, record that limitation and the source inventory's provenance; do not
+reuse old compiled objects or depend on disposable `/private/tmp/ptp-one-step-*`
+logs.
 
 The non-Vivado inventory omits most MAC sources. Supplement it using the current
 `ETHMAC_RTL_SOURCES` list in
@@ -144,5 +270,80 @@ input-dependent controls; queue/metadata cases test the new storage ownership.
 Record actual outcomes and source revisions here when execution is authorized.
 Device timing, added register/resource cost, physical CDC, calibrated hardware
 accuracy, external-master interoperability and live PyRogue transport remain
-separate qualification work. One-step receive is implemented; its static evidence and prepared behavioral
-checks remain in the separate [one-step handoff](one-step.md).
+separate qualification work. Include the one-step and PHY acceptance below;
+prepared fixtures are not passing results.
+
+## One-step receive acceptance
+
+Run focused sample tests, physical port/RX checks, then endpoint and real-MAC
+variants after explicit approval, retaining existing two-step coverage. Record
+commands, parameters, source revision and outcomes here. The
+[test guide](../../../tests/ethernet/PtpCore/README.md#autonomous-endpoint-tests)
+indexes `test_ptp_port_samples.py`, `test_ptp_port.py`, RX fixtures,
+`test_ptp_endpoint.py` and `test_ptp_endpoint_mac.py`; all new scenarios are
+prepared, not executed.
+
+| Case | Required observation |
+| --- | --- |
+| Valid one-step Sync with no Follow_Up | Completes once; enters the existing rate/history path; repeated valid exchanges enable E2E acquisition and servo operation. |
+| Equivalent one-step and two-step exchanges | Equal remote time, capture and net correction produce equal numerical forward/E2E results. Account for different message arrival/completion latency; do not require cycle-identical publication. |
+| Correction arithmetic | Positive, negative and fractional Q16 corrections, including crossing a second boundary; sum of two-step corrections equals the one-step correction in paired fixtures. No truncation or double application. |
+| Timestamp validation | Nanoseconds 999,999,999 accepted; 1,000,000,000 and larger rejected; exercise nonzero upper seconds bits. Invalid one-step input cannot contaminate an existing association. Two-step Sync body remains non-authoritative. |
+| Flags and source policy | Accept the two supported Sync flag values; reject other flags, wrong control, source, domain and unsupported versions as before. |
+| Association collisions | Follow_Up before/after one-step Sync; duplicate one-step Sync; mixed-mode duplicate sequence; identical/conflicting Follow_Up. Assert counters, no unintended completion and unchanged accepted sample contents. |
+| Lifecycle boundaries | Back-to-back mode changes on distinct sequences, 16-bit sequence wrap, stale/replayed messages, expiry, full table and completed-entry replacement. No resurrection or permanent table leak. |
+| Stalls and invalidation | Measurement backpressure, rate-engine busy, RX overflow/abort, generation/epoch changes and reset/reconfiguration around admission/completion. Stable registered payloads; cancellation at the documented consumption edge. |
+| Physical integration | Full-rate GMII 125 MHz and XGMII 156.25 MHz, including both XGMII start lanes. Bad FCS/truncation never publishes a sample. Preserve timestamp calibration and Delay_Req TX completion behavior. |
+| Two-step compatibility | Existing Sync/Follow_Up arrival orders, duplicate policy, correction sum, acquisition, holdover/recovery and MAC-composition behavior remain covered. |
+
+For equivalent-mode fixtures, explicitly split a known total correction between
+Sync and Follow_Up in the two-step case. Check against the one-step total and an
+independent expected result. Closed-loop fixtures must compare at corresponding
+measurement times or use mode-specific timing expectations so that Follow_Up
+latency is not mistaken for an arithmetic discrepancy.
+
+One-step source timestamps are built from the scheduled physical edge using
+independent simulator time, then checked against the observed edge; no DUT PHC
+value generates the source timestamp. Direct port vectors compare Python integer
+arithmetic at controlled capture times. Closed-loop modes compare each result
+with the same independent path/phase expectation at its own acquisition point,
+so Follow_Up latency is not treated as an arithmetic error.
+
+## PHY and hardware acceptance
+
+After RTL approval, exercise common/default and KCU105 address layouts through
+the asynchronous management bus; AXI-only, PCS-only and system reset; link loss
+with outstanding TX; concurrent application/PTP traffic; and independent endpoint
+resets. Cover cable-absent initialization, gigabit-only negotiation, MDIO/PCS
+readiness, copper watchdog/finite reset pulses, configuration recovery and PHC
+invalidation. For oscillator programming, verify stopped-clock reset assertion
+and synchronized/stretched release while other endpoints remain operational.
+Controller checks must cover apply-to-restart/identity-restart latency, RX flush
+and capture inhibition, IRQ event/W1C priority and bus-reset recovery through the
+production controller.
+
+Bind actual checkpoints in Vivado, including the missing dedicated-reference
+GTH IP once supplied. Review exact `U_Phy/GEN_FABRIC_REF`/`GEN_GT_REF` hierarchy,
+imported/external constraints, GT/fabric reference routes, clock continuity,
+reset release and physical CDC. RFMC additionally needs verified RTM pins and
+clock sources. Measure resources/timing per family and PHY, including capture
+normalization, CRC/decode, PHC carry, fixed-point paths and queue storage. The
+optional mailbox's historical GHDL RAM-width synthesis failure remains an open
+device-synthesis/CDC gate, not a reason to alter shared RAM incidentally.
+
+Freeze a pinned external-master release/commit, L2/E2E profile, source identity,
+domain/minor version, multicast behavior and intervals, retaining packet captures
+and instrument configuration. Exercise supported receive modes, malformed/profile
+traffic, pause/primary contention and compatibility with existing EthMacCore,
+IpV4Engine, UdpEngine and RoCEv2 users. Do not infer conformance from synthetic
+fixtures or the endpoint's own reported offset.
+
+Define quantitative resource, settling/overshoot, steady/peak error, observation
+duration, temperature, reset sample count and holdover duration/error limits.
+Measure MAC/PCS-to-connector ingress/egress calibration, cold-start/link-reset
+latency modes and phase repeatability independently for each FPGA/GT/IP/rate/reset
+combination. Separate fixed, reset-dependent and variable delay, network asymmetry
+and packet-delay variation. Record hardware-calibrated versus compile-supported
+status per wrapper. Physical clock/output qualification additionally follows the
+[clock requirements](physical-clock-integration.md#qualification-and-next-steps).
+Live PyRogue transport is a separate acceptance item from static map checks.

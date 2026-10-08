@@ -14,6 +14,68 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 | Protocol engine | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
 
+## Register ownership
+
+| Owner | Register responsibilities |
+| --- | --- |
+| Endpoint control | ABI/capabilities, endpoint and automatic-control enables, coordinated commit and snapshot commands/completion, restart policy, aggregate status and IRQ |
+| PHC | Set/phase/rate operands, manual command submission/completion, monotonic and PPS policy, time/rate/raw-tick snapshots, clock constants and faults |
+| Port | Source/domain/local identity, MAC-derived identity, request and association timers, rate-estimator limits, path-delay acceptance limit, calibration readback, Announce/exchange snapshots, ledger status and protocol/RX counters |
+| Servo | Step policy, gains, frequency/slew limits, delay-age/holdover/sample limits, asymmetry, lock thresholds/counters, filter/offset/rate snapshots and servo diagnostics |
+
+AXI logic belongs directly in each functional core's VHDL module and uses the existing
+SURF endpoint helpers. Keep numerical/physical helpers such as `PtpMath`,
+`PtpE2e`, and the timestamp adapters free of AXI. The port presents its ledger
+diagnostics; a separate bus endpoint for every internal helper is unnecessary.
+RX counters may enter port management from the physical frontend in the enclosing
+MAC composition. They need not pass through endpoint control.
+
+Manual operands, phase normalization and manual/servo arbitration belong to
+`PtpPhc`, with accepted ownership retained through acknowledgement. Endpoint
+control supplies permission and lifecycle policy; a command's own capture
+invalidation must not cancel that command.
+
+- `PtpProtocolEngine` owns `PtpPortConfigType`, MAC-derived identity, shared active
+  limits and local diagnostics. RX counters terminate here.
+- `PtpServo` owns `PtpServoConfigType` and diagnostics, consuming the port's
+  authoritative `PtpSharedConfigType`.
+- `PtpPhc` owns its register map, manual operands, phase normalization,
+  snapshots and final manual/automatic command arbitration.
+- All three cores merge register state into the existing `RegType` and update
+  it in their single `comb`/`seq` pair. There are no separate AXI management
+  wrappers or PHC register entity. All three cores always use their local AXI
+  banks, with no optional configuration bypass. Standalone PHC and servo
+  fixtures configure the real banks through AXI and prepare/apply strobes.
+- `PtpEndpointControl` (formerly `PtpReg`) stores global enable shadows/candidates,
+  commit/snapshot transactions, completion sequences and IRQ masks/status. It
+  also owns the existing registered restart/RX-flush/event stages and
+  combinational AXI reset. It sees local validation votes and narrow status
+  signals, never wide diagnostic payloads; the register map is unchanged.
+
+Shared `associationTimeout`, `syncTimeout` and `maxPathDelay` have one writable
+owner in the protocol engine and reach Servo as active `PtpSharedConfigType`
+values. The engine validates them once; there are currently no cross-candidate
+servo validation rules. Any future such rule must use the same frozen candidate
+cohort. The coordinator exchanges scalar votes and narrow summaries, never wide
+snapshot payloads. Independent validation inputs are not positional bank votes.
+Sticky IRQ aggregation retains event-wins priority against concurrent W1C.
+
+The register fixture uses the production cores/crossbar/controller, with explicit
+prepare/apply override and snapshot inhibition for candidate/reset checks.
+It tests command immutability while the real PHC performs phase normalization;
+no test-only command gate is part of production RTL. The old mixed-owner map and
+optional configuration bypass are not retained.
+
+## Software naming
+
+`PtpProtocolEngine` in `_PtpProtocolEngine.py` is exported from
+`surf.ethernet.ptp` and instantiated as `PtpEndpoint.ProtocolEngine`, replacing
+`PtpEndpoint.Port`. The composite device remains `PtpEndpoint`; root registers
+map to `PtpEndpointControl`. Register offsets/fields, package `PtpPort*Type`
+records and the `PtpPortWrapper` test entry point are unchanged. Historical
+checks retain their original entity names. Hardware-backed models describe
+registers; application orchestration belongs outside these devices.
+
 ## Transactions and reset
 
 Configuration registers read back shadows. A write of one to `CommitConfig`
@@ -218,4 +280,6 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x3200` | `ServoRejected` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x33FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
 
-The [ownership and verification record](register-ownership.md) describes the refactor and validation.
+See [historical register checks](history/verification.md#register-ownership-milestone)
+and [current acceptance](rtl-review.md#outstanding-acceptance). Cycle-level
+broadcast contracts and record ownership are in the [timing guide](rtl-readability.md).

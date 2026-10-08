@@ -1,4 +1,4 @@
-# PTP RTL readability guidelines
+# PTP RTL and interface contracts
 
 Apply the shared [SURF VHDL conventions](../../vhdl-conventions.md), especially
 [registered boundaries](../../vhdl-conventions.md#registered-boundaries-are-the-default).
@@ -98,6 +98,56 @@ The remaining exceptions are:
   its injected flush with PHY loss; these fixtures do not define a production
   timing boundary. The ledger fixture exposes registered response acceptance
   for independent timing checks.
+
+## Interface records
+
+`PtpPkg` owns the following directional records and initialization constants.
+Units, owner and lifetime belong with each record; current timing below takes
+precedence over the initial record-conversion equivalence comparison.
+
+| Interface | Record and ownership | Contract |
+| --- | --- | --- |
+| Servo commands to PHC | `PtpPhcCommandMasterType`: `data`, `valid`, `cancel`, `stale`; servo produces it. | All fields are registered. Hold payload/valid through admission or withdrawal. Both cancellation bits gate admission and can revoke pending work independently of `valid`. Cancellation registered on the admission edge vetoes the following commit edge; a later sampled event cannot undo a committed command. |
+| PHC command response | `PtpPhcCommandSlaveType`: `ready`, `ack`, `error`; PHC produces it. | All fields, including capacity-ready, are registered. Admission and completion are separate phases. Ownership lasts through acknowledgement, and `error` describes the acknowledged servo command. Manual command completion remains local to the PHC register bank. |
+| Port lifecycle | `PtpPortLifecycleType`: `commandAbort`, `identityRestart`; port produces it. | A cause sampled at N is published after N and consumed at N+1. Command abort excludes the PHC command's own capture invalidation; identity restart enters registered endpoint flush assembly. No handshake. |
+| Port diagnostics | `PtpPortStatusType`: activity/validity summaries, exchange, Announce metadata, ledger state and counters. | Registered output and local live AXI reads share the same state. Protocol-owned values update directly in the record; ratio/Announce validity and ledger observations are sampled each edge. Registered lifecycle controls are separate. Local snapshots retain their pre-edge capture contract. |
+| Servo diagnostics | `PtpServoStatusType`: state, filtered delay, offset, computed rate, filter occupancy and rejection count. | The registered record owns these values; outputs and local reads use the same state. Delay/offset use signed Q16 ns; rate uses signed Q16 ppb, clamped before narrowing to its 64-bit field. The coordinator consumes only state and filter count. |
+| Configuration commit | `PtpConfigControlType`: `prepare`, `apply`, `busy`; coordinator broadcasts it. | Registered from resolved next state without adding commit cycles. Preparation freezes each bank's candidate, independent scalar validation votes qualify apply, and busy inhibits conflicting manual PHC commands. System reset resets the coordinator and every bank. |
+| Register snapshots | `PtpSnapshotControlType`: `capture`, `sequenceId`; coordinator broadcasts it. | Registered capture/sequence issue together. All banks sample pre-edge state on the following edge, when the coordinator also completes. An issued snapshot is not withdrawn by later invalidation. Configuration and snapshots remain separate transactions. |
+| RX diagnostics | `PtpRxCountersType`: `accepted`, `dropped`, `overflow`; frontend produces it. | The registered record owns the saturating counters. Port snapshot/register offsets preserve their order. Counter semantics exclude frames lost before SOF or during flush from `dropped`. |
+| PHC observation at timestamp adapter | Reuse `PtpPhcStatusType`. | Generation, increment, ticks and validity arrive as the existing PHC status record, alongside `PtpTimeType`. No new duplicate clock-status type is needed. |
+
+The records have package initialization constants and comments covering units,
+direction and lifetime. The existing measurement master/slave,
+port status, time/capture and protocol payload records remain in use.
+
+### Interfaces retained separately
+
+- Clock/reset, AXI-Lite/AXI Stream, and GMII/XGMII interfaces retain their normal
+  SURF conventions. These do not need another PTP-specific wrapper record.
+- `restart`, `captureAbort`, `expireTime`, enables, IRQ, and per-bank validation
+  votes remain independent controls. They have different owners or lifetimes.
+  The coordinator receives explicitly named `phcConfigValid`, `portConfigValid`
+  and `servoConfigValid` inputs; each leaf retains its scalar `configValid`
+  output. There is no positional vote vector or dependency on AXI bank indices.
+- The central register block still takes narrow status fields, rather than a
+  whole diagnostic record that would blur local register ownership.
+- RX messages and TX completion messages already have payload records. Their
+  queue handshakes and abort signals remain explicit: RX queue
+  invalidation and physical TX observation have distinct lifetime rules.
+- Serialized math and ledger services retain their existing point-to-point
+  payload ports. Their result-valid outputs are registered; consumers exclude
+  shared cancel/restart and reset edges from transfers. Payloads and controls could form
+  a later focused cleanup; they are not folded into endpoint-wide records.
+- The asynchronous PHC reader keeps its explicit request/response pins and CDC
+  boundary. Introducing a record would not itself make that crossing safe.
+
+Wrappers flatten production records to their scalar Python DUT interfaces;
+physical compositions forward RX counters and complete PHC status. Direct VHDL
+users must adopt changed record ports; external MAC endpoint ports and software
+offsets were unchanged by the record conversion. The register fixture copies
+configuration-control records for explicit prepare/apply stimulus while retaining
+busy. Current fixture behavior is described under output ownership above.
 
 ## Registered command and expiry interface
 

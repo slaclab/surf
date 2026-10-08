@@ -33,7 +33,7 @@ separates simulated behavior from remaining device and interoperability work.
 **Current gate:** simulation and pytest (including collection and pure reference
 cases) remain paused pending maintainer VHDL approval. The commands below are
 for use after approval. One-step fixtures are prepared, not behaviorally validated;
-see the [implementation/evidence handoff](../../../docs/plans/ethernet-ptp/one-step.md).
+see the [one-step acceptance checklist](../../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
 
 Run from the repository root after importing HDL sources:
 
@@ -44,14 +44,14 @@ Run from the repository root after importing HDL sources:
 The counterexample tests pass when they demonstrate the rejected algorithm's
 failure. They must not be mistaken for successful timestamp-association RTL.
 Large simulator logs stay in `tests/sim_build` or temporary storage; durable
-results and remaining gates are in the
-[Phase 0 record](../../../docs/plans/ethernet-ptp/phase-0-experiments.md).
+historical results are in the
+[Phase 0 record](../../../docs/plans/ethernet-ptp/history/verification.md#phase-0-counterexamples).
 Follow the [test guidance](../../README.md) for changes and new regressions.
 
-The [RX design decision](../../../docs/plans/ethernet-ptp/rx-frontend-design.md)
+The [RX design decision](../../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-message-and-capture-boundary)
 records the selected replacement and its physical producer contract.
-Current RTL results and synthesis limits are in the
-[RX implementation record](../../../docs/plans/ethernet-ptp/rx-rtl-proof.md).
+Historical RTL results and synthesis limits are in the
+[RX evidence record](../../../docs/plans/ethernet-ptp/history/verification.md#rx-rtl-proof).
 Run the models alone without starting a simulator:
 
 ```sh
