@@ -2302,6 +2302,25 @@ make MODULES="$PWD" import
     distribution, or both. Multi-process use additionally requires a time-
     grant protocol.
 
+### Deferred frontend FIFO optimization
+
+Consider replacing `PtpRxFrontend`'s manual `r.queue` with a synchronous SURF
+FIFO using distributed RAM and `FWFT_EN_G => true`. RX currently defaults to
+four records; TX observation selects two and is always ready in
+`EthMacPtpEndpoint`. A nominal 16-entry RAM for both is a candidate, matching
+the public `Fifo` wrapper's minimum address width, not a protocol requirement.
+No RTL or depth change is selected yet; resource/timing benefits need synthesis
+evidence, and usable capacity must account for backend/FWFT buffering.
+
+A replacement must retain atomic message/capture storage, stable registered
+outputs, and explicit flush/generation/epoch and abort timing. Preserve the
+pre-edge-full discard-all policy unless deliberately revising its contract.
+Add lossless record packing: the existing verification `toSlv` omits
+`capture.increment` and `capture.error`. Larger queues preserve capture times
+but can increase backlog age; retain stale-record rejection. Revisit queue
+capacity and interface latency tests when implementing, subject to the existing
+RTL-approval gate on behavioral regressions.
+
 ## Risks
 
 - The passive RX frontend duplicates framing/FCS validation. Its physical
