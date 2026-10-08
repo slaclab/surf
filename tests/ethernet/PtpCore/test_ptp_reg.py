@@ -215,7 +215,7 @@ async def register_contract(d):
     await commit()
     assert await read(0x040) == 0
     seen = await edge(localMac=int.from_bytes(bytes.fromhex('020000000002'), 'little'))
-    # Port detects identity at this edge; endpoint assembly is another register.
+    # Port detects identity here; PtpEndpointControl adds another register hop.
     assert not seen['configRestart']
     assert not (await edge())['configRestart']
     assert (await edge())['configRestart']

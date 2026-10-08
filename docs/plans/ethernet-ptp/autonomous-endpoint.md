@@ -33,8 +33,12 @@ MAC owns padding, preamble, FCS, arbitration and pause. Its redundant RX bypass
 is drained at native width: the passive atomic RX frontend supplies protocol
 messages independently of hidden MAC CRC/FIFO drops.
 
-`PtpEndpoint` composes `PtpPort`, `PtpServo`, `PtpPhc`, a small `PtpReg`
-coordinator and the standard SURF AXI-Lite crossbar. Each functional core contains
+`PtpEndpoint` structurally composes `PtpPort`, `PtpServo`, `PtpPhc`,
+`PtpEndpointControl` (formerly `PtpReg`), TX adaptation and the standard SURF
+AXI-Lite crossbar. The controller owns global enable/commit/snapshot state,
+registered restart/RX flush and IRQ events, plus combinational AXI reset.
+Restart consumes the published apply strobe, and IRQ status consumes the
+previous event stage; consolidation preserves their register hops. Each functional core contains
 its own AXI-Lite decode, configuration and snapshot storage in its existing
 `RegType`/`comb`/`seq` structure. `PtpPhc` also owns manual phase normalization
 and final command arbitration. Only shared active limits, measurements and

@@ -633,7 +633,7 @@ package PtpPkg is
    -- exchange. Derived ratio/Announce validity is sampled on each clock edge;
    -- protocol admission uses current-cycle checks rather than these summaries.
    -- PtpPort's separate AXI snapshot bank freezes pre-edge diagnostic state on
-   -- the common capture strobe. PtpReg consumes only registered summary bits.
+   -- the common capture strobe. PtpEndpointControl consumes registered summaries.
    type PtpPortStatusType is record
       active              : sl;
       ratioValid          : sl;

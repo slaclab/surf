@@ -22,7 +22,7 @@ import re
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
-BANKS = [('PtpEndpoint', 'PtpReg'), ('PtpPhc', 'PtpPhc'),
+BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
          ('PtpPort', 'PtpPort'), ('PtpServo', 'PtpServo')]
 
 

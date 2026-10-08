@@ -90,9 +90,11 @@ wide diagnostic payloads through a new central record.
   wrappers or PHC register entity. All three cores always use their local AXI
   banks, with no optional configuration bypass. Standalone PHC and servo
   fixtures configure the real banks through AXI and prepare/apply strobes.
-- `PtpReg` now stores only global enable shadows/candidates, commit and snapshot
-  transaction state, completion sequences and IRQ masks/status. It sees local
-  validation votes, narrow summary signals and events, never wide payloads.
+- `PtpEndpointControl` (formerly `PtpReg`) stores global enable shadows/candidates,
+  commit/snapshot transactions, completion sequences and IRQ masks/status. It
+  also owns the existing registered restart/RX-flush/event stages and
+  combinational AXI reset. It sees local validation votes and narrow status
+  signals, never wide diagnostic payloads; the register map is unchanged.
 
 The crossbar uses `genAxiLiteConfig(4, AXIL_BASE_ADDR_G, 14, 12)` and direct
 record connections. `AXIL_BASE_ADDR_G` propagates through `EthMacPtpEndpoint`

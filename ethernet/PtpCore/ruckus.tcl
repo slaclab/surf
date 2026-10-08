@@ -12,7 +12,7 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 source $::env(RUCKUS_PROC_TCL)
-# Includes PtpRxTimestampTap and its adapter/frontend children.
+# Includes PtpEndpointControl (formerly PtpReg) and the RX tap/leaf blocks.
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
 # Includes the direct PtpPort transaction/measurement fixture and PHY fixtures.
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"

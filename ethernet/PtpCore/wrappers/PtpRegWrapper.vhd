@@ -119,7 +119,6 @@ architecture rtl of PtpRegWrapper is
    signal status        : PtpPhcStatusType;
    signal abortCapture  : sl;
    signal clearValid    : sl;
-   signal events        : slv(3 downto 0);
 
    signal phcConfigValid   : sl;
    signal portConfigValid  : sl;
@@ -137,37 +136,18 @@ architecture rtl of PtpRegWrapper is
    signal portStatus        : PtpPortStatusType;
    signal portLifecycle     : PtpPortLifecycleType;
 
-   type RegType is record
-      restart : sl;
-      events  : slv(3 downto 0);
-   end record;
-
-   constant REG_INIT_C : RegType := (
-      restart => '0',
-      events  => (others => '0'));
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
 begin
 
    assert AXIL_BASE_ADDR_G(13 downto 0) = toSlv(0, 14)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
 
-   comb : process (r, bankControlOverride, bankPrepare, bankApply, configControl, abortCapture,
-                   snapshotInhibit, rst, regRst, portStatus, portLifecycle, status, servoStatus, enable, servoEnable,
-                   snapshotControl, timeValue) is
-      variable v                : RegType;
-      variable restartPort      : sl;
+   -- Only fixture-specific combinational overrides live here. The production
+   -- controller owns reset distribution and registered restart/event timing.
+   comb : process (bankControlOverride, bankPrepare, bankApply, configControl, abortCapture,
+                   snapshotInhibit) is
       variable bankControlNow   : PtpConfigControlType;
       variable snapshotAbortNow : sl;
-      variable axiResetNow      : sl;
-      variable resetNNow        : sl;
-      variable irqEvents        : slv(3 downto 0);
    begin
-      v := r;
-      -- Normal operation uses the real coordinator. Direct controls let the
-      -- fixture hold a candidate while software edits its shadow registers.
       bankControlNow := configControl;
       if bankControlOverride = '1' then
          bankControlNow.prepare := bankPrepare;
@@ -175,57 +155,23 @@ begin
       end if;
       snapshotAbortNow := abortCapture or snapshotInhibit;
 
-      -- Match production reset/lifecycle wiring before exposing observations.
-      axiResetNow := '0';
-      if rst = RST_POLARITY_C or regRst = '1' then
-         axiResetNow := '1';
-      end if;
-      resetNNow                          := not rst;
-      restartPort                        := configControl.apply or portLifecycle.identityRestart;
-      irqEvents                          := (others => '0');
-      irqEvents(PTP_IRQ_PHC_FAULT_C)     := status.fault;
-      irqEvents(PTP_IRQ_DISCONTINUITY_C) := status.discontinuity;
-      irqEvents(PTP_IRQ_COMMAND_ERROR_C) := status.error;
-      if servoStatus.state = PTP_SERVO_FAULT_C then
-         irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
-      end if;
-
-      v.restart := restartPort;
-      v.events  := irqEvents;
-
-      -- Apply synchronous reset before publishing next state and outputs.
-      if rst = RST_POLARITY_C then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
-
-      -- Flatten only the signals required by cocotb's independent checks.
       bankConfigControl <= bankControlNow;
       snapshotAbort     <= snapshotAbortNow;
-      axiReset          <= axiResetNow;
-      resetN            <= resetNNow;
-      restart           <= r.restart;
-      events            <= r.events;
-      activeEnable      <= enable;
-      activeServo       <= servoEnable;
-      configApply       <= configControl.apply;
-      configRestart     <= r.restart;
-      configPrepare     <= configControl.prepare;
-      snapshotCapture   <= snapshotControl.capture;
-      timeSeconds       <= timeValue.seconds;
-      timeNanoseconds   <= timeValue.nanoseconds;
-      timeFraction      <= timeValue.fraction;
-      timeTicks         <= status.ticks;
-      timeGeneration    <= status.generation;
-      timeValid         <= status.timeValid;
    end process comb;
 
-   seq : process (clk) is
-   begin
-      if rising_edge(clk) then
-         r <= rin after TPD_C;
-      end if;
-   end process seq;
+   resetN          <= not rst;
+   activeEnable    <= enable;
+   activeServo     <= servoEnable;
+   configApply     <= configControl.apply;
+   configRestart   <= restart;
+   configPrepare   <= configControl.prepare;
+   snapshotCapture <= snapshotControl.capture;
+   timeSeconds     <= timeValue.seconds;
+   timeNanoseconds <= timeValue.nanoseconds;
+   timeFraction    <= timeValue.fraction;
+   timeTicks       <= status.ticks;
+   timeGeneration  <= status.generation;
+   timeValid       <= status.timeValid;
 
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
@@ -280,7 +226,7 @@ begin
          mAxiReadMasters     => readMasters,     -- [out]
          mAxiReadSlaves      => readSlaves);     -- [in]
 
-   U_Control : entity surf.PtpReg
+   U_Control : entity surf.PtpEndpointControl
       generic map (
          TPD_G          => TPD_C,
          RST_POLARITY_G => RST_POLARITY_C,
@@ -290,6 +236,9 @@ begin
          clk              => clk,                                 -- [in]
          rst              => rst,                                 -- [in]
          regRst           => regRst,                              -- [in]
+         portRst          => '0',                                 -- [in]
+         linkReady        => '1',                                 -- [in]
+         identityRestart  => portLifecycle.identityRestart,       -- [in]
          axiReadMaster    => readMasters(CONTROL_AXIL_INDEX_C),   -- [in]
          axiReadSlave     => readSlaves(CONTROL_AXIL_INDEX_C),    -- [out]
          axiWriteMaster   => writeMasters(CONTROL_AXIL_INDEX_C),  -- [in]
@@ -299,11 +248,16 @@ begin
          portConfigValid  => portConfigValid,                     -- [in]
          servoConfigValid => servoConfigValid,                    -- [in]
          captureAbort     => snapshotAbort,                       -- [in]
-         events           => events,                              -- [in]
+         phcFault         => status.fault,                        -- [in]
+         phcDiscontinuity => status.discontinuity,                -- [in]
+         phcCommandError  => status.error,                        -- [in]
          portActive       => portStatus.active,                   -- [in]
          servoState       => servoStatus.state,                   -- [in]
          filterCount      => servoStatus.filterCount,             -- [in]
          announceValid    => portStatus.announceValid,            -- [in]
+         axiReset         => axiReset,                            -- [out]
+         restart          => restart,                             -- [out]
+         rxFlush          => open,                                -- [out]
          enable           => enable,                              -- [out]
          servoEnable      => servoEnable,                         -- [out]
          configControl    => configControl,                       -- [out]

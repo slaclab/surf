@@ -23,7 +23,7 @@
 -- last good frequency; registered expiry requests time-validity revocation
 -- on the next PHC edge. Registered command cancellation can revoke a request
 -- accepted on its detection edge before the PHC commits it. A disabled servo
--- drains measurements without steering. PtpEndpoint coordinates restart policy.
+-- drains measurements without steering. PtpEndpointControl owns restart policy.
 --
 -- The local AXI-Lite bank stores gains, step/lock policy, sample-age limits
 -- and asymmetry as writable shadows, frozen candidates and active settings.

@@ -9,7 +9,7 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 
 | Bank | Offset | RTL owner | PyRogue path |
 | --- | --- | --- | --- |
-| Endpoint | `0x000` | `PtpReg` | `PtpEndpoint` |
+| Endpoint | `0x000` | `PtpEndpointControl` | `PtpEndpoint` |
 | PHC | `0x1000` | `PtpPhc` | `PtpEndpoint.Phc` |
 | Port | `0x2000` | `PtpPort` | `PtpEndpoint.Port` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |

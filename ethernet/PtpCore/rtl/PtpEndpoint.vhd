@@ -5,7 +5,7 @@
 --
 -- Connects the AXI banks inside PtpPhc, PtpPort and PtpServo directly through
 -- AxiLiteCrossbar. Each core owns its configuration and snapshot storage.
--- PtpReg coordinates atomic configuration and snapshots in the shared clock.
+-- PtpEndpointControl coordinates configuration, snapshots and lifecycle events.
 -- Validated RX records and observed TX completion records arrive from the
 -- physical frontends. The port produces Delay_Req frames and timing
 -- measurements; the servo turns qualified measurements into PHC commands. The
@@ -132,7 +132,6 @@ architecture rtl of PtpEndpoint is
    signal status       : PtpPhcStatusType;
    signal abortCapture : sl;
    signal clearValid   : sl;
-   signal events       : slv(3 downto 0);
 
    signal phcConfigValid   : sl;
    signal portConfigValid  : sl;
@@ -152,83 +151,17 @@ architecture rtl of PtpEndpoint is
    signal portTxMaster : AxiStreamMasterType;
    signal portTxSlave  : AxiStreamSlaveType;
 
-   type RegType is record
-      restart : sl;
-      events  : slv(3 downto 0);
-      rxFlush : sl;
-   end record;
-
-   constant REG_INIT_C : RegType := (
-      restart => '0',
-      rxFlush => '1',
-      events  => (others => '0'));
-
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-
 begin
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
 
-   comb : process (r, rst, regRst, portRst, configControl, portStatus, portLifecycle, linkReady, abortCapture, status,
-                   timeValue, servoStatus) is
-      variable v           : RegType;
-      variable restartPort : sl;
-      variable axiResetNow : sl;
-      variable rxFlushNow  : sl;
-      variable irqEvents   : slv(3 downto 0);
-   begin
-      v := r;
-      -- Form the bus reset independently of protocol restart. A register-only
-      -- reset must leave the PHC, active configuration and TX ownership intact.
-      axiResetNow := '0';
-      if rst = RST_POLARITY_G or regRst = '1' then
-         axiResetNow := '1';
-      end if;
-
-      -- Register endpoint-wide lifecycle assembly. Consumers act on the next
-      -- edge; local PHC generation checks and port cancellation still protect
-      -- their own admission edges while the flush event crosses this boundary.
-      restartPort := portRst or configControl.apply or portLifecycle.identityRestart;
-      rxFlushNow  := restartPort or not linkReady or abortCapture;
-
-      -- Aggregate only the event bits needed by the central IRQ register.
-      irqEvents                          := (others => '0');
-      irqEvents(PTP_IRQ_PHC_FAULT_C)     := status.fault;
-      irqEvents(PTP_IRQ_DISCONTINUITY_C) := status.discontinuity;
-      irqEvents(PTP_IRQ_COMMAND_ERROR_C) := status.error;
-      if servoStatus.state = PTP_SERVO_FAULT_C then
-         irqEvents(PTP_IRQ_SERVO_FAULT_C) := '1';
-      end if;
-      v.restart := restartPort;
-      v.events  := irqEvents;
-      v.rxFlush := rxFlushNow;
-      -- Apply synchronous reset before publishing next state and outputs.
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
-         v := REG_INIT_C;
-      end if;
-      rin <= v;
-
-      axiReset     <= axiResetNow;
-      restart      <= r.restart;
-      rxFlush      <= r.rxFlush;
-      events       <= r.events;
-      phcTime      <= timeValue;
-      phcStatus    <= status;
-      captureAbort <= abortCapture;
-      portActive   <= portStatus.active;
-      servoState   <= servoStatus.state;
-   end process comb;
-
-   seq : process (clk, rst) is
-   begin
-      if RST_ASYNC_G and rst = RST_POLARITY_G then
-         r <= REG_INIT_C after TPD_G;
-      elsif rising_edge(clk) then
-         r <= rin after TPD_G;
-      end if;
-   end process seq;
+   -- Structural forwarding preserves each child's registered boundary.
+   phcTime      <= timeValue;
+   phcStatus    <= status;
+   captureAbort <= abortCapture;
+   portActive   <= portStatus.active;
+   servoState   <= servoStatus.state;
 
    U_Xbar : entity surf.AxiLiteCrossbar
       generic map (
@@ -248,7 +181,7 @@ begin
          mAxiReadMasters     => readMasters,     -- [out]
          mAxiReadSlaves      => readSlaves);     -- [in]
 
-   U_Control : entity surf.PtpReg
+   U_Control : entity surf.PtpEndpointControl
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
@@ -258,6 +191,9 @@ begin
          clk              => clk,                                 -- [in]
          rst              => rst,                                 -- [in]
          regRst           => regRst,                              -- [in]
+         portRst          => portRst,                             -- [in]
+         linkReady        => linkReady,                           -- [in]
+         identityRestart  => portLifecycle.identityRestart,       -- [in]
          axiReadMaster    => readMasters(CONTROL_AXIL_INDEX_C),   -- [in]
          axiReadSlave     => readSlaves(CONTROL_AXIL_INDEX_C),    -- [out]
          axiWriteMaster   => writeMasters(CONTROL_AXIL_INDEX_C),  -- [in]
@@ -267,11 +203,16 @@ begin
          portConfigValid  => portConfigValid,                     -- [in]
          servoConfigValid => servoConfigValid,                    -- [in]
          captureAbort     => abortCapture,                        -- [in]
-         events           => events,                              -- [in]
+         phcFault         => status.fault,                        -- [in]
+         phcDiscontinuity => status.discontinuity,                -- [in]
+         phcCommandError  => status.error,                        -- [in]
          portActive       => portStatus.active,                   -- [in]
          servoState       => servoStatus.state,                   -- [in]
          filterCount      => servoStatus.filterCount,             -- [in]
          announceValid    => portStatus.announceValid,            -- [in]
+         axiReset         => axiReset,                            -- [out]
+         restart          => restart,                             -- [out]
+         rxFlush          => rxFlush,                             -- [out]
          enable           => enable,                              -- [out]
          servoEnable      => servoEnable,                         -- [out]
          configControl    => configControl,                       -- [out]

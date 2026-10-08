@@ -1,9 +1,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Endpoint-wide AXI coordination for distributed PTP register banks.
+-- Description: Endpoint lifecycle, AXI coordination and interrupt control.
 --
--- Owns only global enables, commit/snapshot transactions and IRQ aggregation.
+-- Owns global enables, commit/snapshot transactions, restart/RX flush and IRQ
+-- aggregation. Restart uses the published configuration-apply strobe, and IRQ
+-- status consumes registered events, preserving both existing pipeline stages.
+-- PHC capture inhibition flushes RX but never feeds command cancellation back
+-- into the PHC. AXI reset is an active-high combinational system/bus reset;
+-- register-only reset preserves lifecycle state and accepted coordination.
+--
 -- PHC, port and servo settings and wide diagnostic payloads remain in their
 -- local AXI managers. A commit freezes all candidates, checks their votes,
 -- then applies every bank on one common edge or leaves all active state intact.
@@ -31,7 +37,7 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.PtpPkg.all;
 
-entity PtpReg is
+entity PtpEndpointControl is
    generic (
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';
@@ -41,6 +47,11 @@ entity PtpReg is
       clk              : in  sl;
       rst              : in  sl;
       regRst           : in  sl := '0';
+      portRst          : in  sl := '0';
+      linkReady        : in  sl;
+      identityRestart  : in  sl;
+
+      -- Register bus and local configuration votes.
       axiReadMaster    : in  AxiLiteReadMasterType;
       axiReadSlave     : out AxiLiteReadSlaveType;
       axiWriteMaster   : in  AxiLiteWriteMasterType;
@@ -49,20 +60,29 @@ entity PtpReg is
       phcConfigValid   : in  sl;
       portConfigValid  : in  sl;
       servoConfigValid : in  sl;
+
+      -- Narrow live status inputs; wide snapshots stay in their owning banks.
       captureAbort     : in  sl;
-      events           : in  slv(3 downto 0);
+      phcFault         : in  sl;
+      phcDiscontinuity : in  sl;
+      phcCommandError  : in  sl;
       portActive       : in  sl;
       servoState       : in  slv(2 downto 0);
       filterCount      : in  slv(2 downto 0);
       announceValid    : in  sl;
+
+      -- Active-high bus reset is combinational; lifecycle outputs are registered.
+      axiReset         : out sl;
+      restart          : out sl;
+      rxFlush          : out sl;
       enable           : out sl;
       servoEnable      : out sl;
       irq              : out sl;
       configControl    : out PtpConfigControlType;
       snapshotControl  : out PtpSnapshotControlType);
-end entity PtpReg;
+end entity PtpEndpointControl;
 
-architecture rtl of PtpReg is
+architecture rtl of PtpEndpointControl is
 
    type CommitStateType is (
       IDLE_S,
@@ -86,6 +106,9 @@ architecture rtl of PtpReg is
       irq              : sl;
       irqStatus        : slv(31 downto 0);
       irqMask          : slv(31 downto 0);
+      restart          : sl;
+      rxFlush          : sl;
+      events           : slv(3 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -103,15 +126,19 @@ architecture rtl of PtpReg is
       snapshotControl  => PTP_SNAPSHOT_CONTROL_INIT_C,
       irq              => '0',
       irqStatus        => (others => '0'),
-      irqMask          => (others => '0'));
+      irqMask          => (others => '0'),
+      restart          => '0',
+      rxFlush          => '1',
+      events           => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, manualBusy, phcConfigValid,
-                   portConfigValid, servoConfigValid, captureAbort, events, portActive, servoState, filterCount, announceValid) is
+   comb : process (r, rst, regRst, portRst, linkReady, identityRestart, axiReadMaster, axiWriteMaster,
+                   manualBusy, phcConfigValid, portConfigValid, servoConfigValid, captureAbort,
+                   phcFault, phcDiscontinuity, phcCommandError, portActive, servoState, filterCount, announceValid) is
       variable v  : RegType;
       variable ep : AxiLiteEndpointType;
 
@@ -119,8 +146,29 @@ begin
       variable commitRequest   : sl;
       variable snapshotRequest : sl;
       variable irqClear        : slv(31 downto 0);
+      variable axiResetNow     : sl;
    begin
       v := r;
+
+      -- Reset distribution is deliberately combinational. It resets bus
+      -- handling without resetting the clock, protocol or pending commands.
+      axiResetNow := '0';
+      if rst = RST_POLARITY_G or regRst = '1' then
+         axiResetNow := '1';
+      end if;
+
+      -- Use the already published apply, not the next-state commit decision.
+      -- This retains the register hop previously owned by PtpEndpoint.
+      v.restart := portRst or r.configControl.apply or identityRestart;
+      v.rxFlush := v.restart or not linkReady or captureAbort;
+
+      v.events                          := (others => '0');
+      v.events(PTP_IRQ_PHC_FAULT_C)     := phcFault;
+      v.events(PTP_IRQ_DISCONTINUITY_C) := phcDiscontinuity;
+      v.events(PTP_IRQ_COMMAND_ERROR_C) := phcCommandError;
+      if servoState = PTP_SERVO_FAULT_C then
+         v.events(PTP_IRQ_SERVO_FAULT_C) := '1';
+      end if;
 
       -- Decode requests against pre-edge ownership; completing a commit does
       -- not make the same edge available for another submission.
@@ -178,9 +226,10 @@ begin
             v.snapshotPending := '1';
          end if;
       end if;
-      -- A live event wins a coincident write-one-to-clear.
+      -- Consume the prior event stage, preserving status/IRQ latency. A
+      -- registered event wins a coincident write-one-to-clear.
       v.irqStatus             := r.irqStatus and not irqClear;
-      v.irqStatus(3 downto 0) := v.irqStatus(3 downto 0) or events;
+      v.irqStatus(3 downto 0) := v.irqStatus(3 downto 0) or r.events;
 
       -- Register IRQ with the event/W1C result and any mask write.
       v.irq := '0';
@@ -257,6 +306,9 @@ begin
       rin <= v;
 
       -- Publish registered status and the qualified coordination strobes.
+      axiReset        <= axiResetNow;
+      restart         <= r.restart;
+      rxFlush         <= r.rxFlush;
       configControl   <= r.configControl;
       snapshotControl <= r.snapshotControl;
       enable          <= r.activeConfig(0);

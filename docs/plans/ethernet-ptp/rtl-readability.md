@@ -72,9 +72,9 @@ expiry and status. `PtpMath` and `PtpE2e` register requests/operands and result
 payload/valid; shared cancel/reset excludes a transfer at both producer and
 consumer. `PtpRxTimestampAdapter` and `PtpPrimaryGuard` publish complete
 registered forward records. `EthMacPtpEndpoint` and `PtpTxTimestampTap` compose
-child boundaries with registered reset-completion tracking. `PtpEndpoint`
-registers restart, RX flush and IRQ-event assembly and forwards child functional
-outputs. `PtpPkg` defines the record contracts and has no module outputs.
+child boundaries with registered reset-completion tracking. `PtpEndpoint` is
+structural, forwarding controller/core outputs and adapting TX. `PtpPkg`
+defines the record contracts and has no module outputs.
 
 The remaining exceptions are:
 
@@ -92,7 +92,7 @@ The remaining exceptions are:
 - Constants, fixed slices/extensions and structural forwarding preserve the
   underlying child/register ownership and need no extra stage.
 - Simulation wrappers flatten/pack interfaces and inject fixture controls.
-  `PtpRegWrapper` registers restart/events like production; its bank override
+  `PtpRegWrapper` instantiates production `PtpEndpointControl`; its bank override
   and snapshot-inhibit injection remain test stimulus. It exposes actual
   configuration apply separately from delayed restart. The RX fixture combines
   its injected flush with PHY loss; these fixtures do not define a production
@@ -129,7 +129,9 @@ uses resolved queue data and pointers before the register.
 
 Port lifecycle and measurement fields are registered together. A local cause
 sampled at N is visible after N and consumed by PHC/servo/children at N+1.
-Endpoint restart/flush assembly adds another register. PHY and generation checks
+`PtpEndpointControl` restart/flush assembly adds another register. It uses the
+already published configuration apply; its IRQ status consumes the prior event
+register. Consolidation from `PtpEndpoint` preserves these cycles. PHY and generation checks
 remain local to the affected owner. These are bounded event-delivery latencies,
 not retroactive cancellation of already committed operations.
 
@@ -144,7 +146,7 @@ The exact multi-hop boundaries are:
 
 | Transfer | Detection and consumption edges |
 | --- | --- |
-| Port lifecycle to endpoint assembly | A cause sampled at N publishes after N; endpoint assembly consumes at N+1 and publishes its event for consumption at N+2. MAC-change restart therefore crosses two registered hops. |
+| Port lifecycle to `PtpEndpointControl` | A cause sampled at N publishes after N; the controller consumes at N+1 and publishes its event for consumption at N+2. MAC-change restart therefore crosses two registered hops. |
 | Delay response to ledger | Port RX at N stages the response; ledger consumption at N+1 registers acceptance; the port consumes that acceptance with retained log-interval metadata at N+2. |
 | Ledger allocation | Registered capacity promises a slot to the sole allocator until shared cancellation/reset. The request handshake creates the first TX beat; a reservation already accepted on a cancellation-detection edge is preserved. |
 | E2E request | Registered valid and frozen Sync/Delay/ratio/limit remain owned through result consumption or cancellation; no replacement request may overwrite the diagnostic exchange tag. |
@@ -169,7 +171,7 @@ N+1 and the coordinator reports completion on that edge. An invalidation can
 defer a new issue, but cannot withdraw an issued snapshot. If a command commits
 at N+1, the snapshot still describes coherent pre-command state; if it committed
 at N, the snapshot describes the coherent resulting state. Live and frozen
-state have distinct storage and lifetimes. `PtpReg` also registers
+state have distinct storage and lifetimes. `PtpEndpointControl` also registers
 configuration control, IRQ and AXI responses; enable outputs are fixed slices
 of active configuration.
 

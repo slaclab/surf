@@ -54,8 +54,10 @@ insertion remains outside scope.
   Summary validity, ledger reporting, measurement and lifecycle outputs are
   registered. Local admission checks reject work before publication; consumers
   act on a published cancellation on the following edge.
-- `PtpReg`, `PtpEndpoint`: common commit/snapshot coordination, IRQ and the
-  standard SURF crossbar. [development register map](../../docs/plans/ethernet-ptp/register-map.md)
+- `PtpEndpointControl` (formerly `PtpReg`) owns common commit/snapshot
+  coordination, global enables, registered restart/RX flush, IRQ-event staging
+  and combinational AXI reset. `PtpEndpoint` connects it to the functional cores
+  through the standard SURF crossbar and otherwise remains structural. [development register map](../../docs/plans/ethernet-ptp/register-map.md)
   has four 4 KiB banks in a 16 KiB-aligned window at `AXIL_BASE_ADDR_G`.
   Port and servo capture candidate settings and their validation votes together
   on prepare; later shadow writes cannot change either for that commit.
@@ -106,8 +108,9 @@ requires valid and ready with the shared cancel/restart low and system reset
 inactive. Both producer and consumer give cancellation priority at the edge.
 RX head selection, overflow, port lifecycle and measurement outputs are
 registered. A cause detected at edge N is consumed at N+1; already committed
-work is not retroactively revoked. The endpoint registers restart/flush assembly
-as another hop. PHC SET/PHASE admission announces capture inhibition before the
+work is not retroactively revoked. `PtpEndpointControl` registers restart/flush
+assembly as another hop, using the already published configuration apply. IRQ
+status consumes its prior registered event stage, preserving event latency. PHC SET/PHASE admission announces capture inhibition before the
 following commit edge, including conservative inhibition of rejected commands.
 
 Port-to-ledger requests and complete E2E operands are registered. TX begins only

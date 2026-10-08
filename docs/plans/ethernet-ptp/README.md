@@ -55,6 +55,38 @@ AXI-only reset recovery, association/ledger lifetime, mailbox resets, then
 GMII/XGMII endpoint integration. Device timing/resources, physical CDC,
 external-master interoperability and calibrated hardware accuracy remain open.
 
+## Endpoint control consolidation
+
+`PtpEndpointControl` replaces `PtpReg` and absorbs `PtpEndpoint`'s lifecycle
+shim: registered restart, RX flush and IRQ events, plus combinational active-high
+AXI reset. `PtpEndpoint` is structural; the functional banks and register ABI
+are unchanged. Restart uses the prior published configuration apply, and IRQ
+status consumes the prior event register. PHC command cancellation remains a
+separate port-to-PHC path, preventing capture inhibition from cancelling its
+own phase command. System reset initializes the combined state; `regRst` still
+clears only bus responses and resets the crossbar.
+
+The register fixture uses the production controller instead of duplicating the
+shim; its established `PtpRegWrapper` test entry point is retained. Current
+source references supersede the earlier `PtpReg` architecture below.
+
+Static checks on October 8, 2026: GHDL 6.0.0 analysis/link passes for the real
+controller, endpoint and register fixture, including endpoint compositions with
+the MAC TX format and synchronous active-high/asynchronous active-low resets.
+MAC endpoint and loopback analysis uses the real PTP cores and a declaration-only
+MAC. Source comparison confirms unchanged AXI/commit/snapshot/IRQ processing
+after resolving its event input to the retained register, unchanged prior state
+reset values, and the separate port-to-PHC command-abort connection. Changed
+Python sources parse; mocked manifest loading selects the renamed controller;
+local guide links and diff whitespace pass. This is not behavioral equivalence
+or FPGA timing evidence.
+
+Full ruckus import still fails before source loading with Tcl's error-file
+permission failure (`not owner`); VSG is unavailable. Behavioral regressions
+remain paused pending RTL approval. Next acceptance covers apply-to-restart and
+identity-restart latency, RX flush/capture inhibition, IRQ event/W1C timing, and
+AXI-only reset recovery through the production controller.
+
 ## PHY composition implementation
 
 The first two PHY/PTP source integrations are implemented together:
