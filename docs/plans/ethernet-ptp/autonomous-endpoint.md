@@ -25,8 +25,10 @@ attempts and counting them. It also rejects malformed/short initial SSI beats;
 a legal primary frame presents a full first 16-byte beat with SOF. Other frames
 retain their payload and sidebands through a registered ready/valid stage.
 
-The port builds a 58-byte Delay_Req on an eight-byte SSI stream. A SURF
-`AxiStreamResize` widens it to the MAC's native bypass configuration. The
+The port builds a 58-byte Delay_Req on an eight-byte SSI stream.
+`PtpEndpoint.TX_AXIS_CONFIG_G` defaults to that format with a direct connection;
+`EthMacPtpEndpoint` selects the MAC's native bypass configuration, enabling
+an `AxiStreamResize` inside `PtpEndpoint`. Only system reset clears this stage. The
 MAC owns padding, preamble, FCS, arbitration and pause. Its redundant RX bypass
 is drained at native width: the passive atomic RX frontend supplies protocol
 messages independently of hidden MAC CRC/FIFO drops.

@@ -12,6 +12,11 @@
 -- surrounding EthMacPtpEndpoint supplies the MAC and physical timestamp
 -- adapters.
 --
+-- TX_AXIS_CONFIG_G selects the private Delay_Req output format. The default
+-- eight-byte stream connects directly to the port; other formats use an
+-- AxiStreamResize. Only system reset clears that TX stage, so port/register
+-- resets leave accepted frames free to drain toward physical transmission.
+--
 -- PHC-local management arbitrates software and servo commands through
 -- acknowledgement, so each response reaches the correct requester. Manual
 -- steering requires automatic control to be disabled; PPS remains available
@@ -51,7 +56,10 @@ entity PtpEndpoint is
       CLK_FREQ_G        : positive         := 156250000;
       PACKET_LIFETIME_G : positive         := 156250000;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
+
+      -- Appended to preserve positional generic maps and the default TX format.
+      TX_AXIS_CONFIG_G : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C);
    port (
       -- Shared endpoint clock domain and lifecycle controls.
       clk             : in  sl;
@@ -79,7 +87,7 @@ entity PtpEndpoint is
       txValid         : in  sl;
       txAbort         : in  sl;
 
-      -- Private Delay_Req stream.
+      -- Private Delay_Req stream in TX_AXIS_CONFIG_G format.
       txMaster        : out AxiStreamMasterType;
       txSlave         : in  AxiStreamSlaveType;
 
@@ -140,6 +148,9 @@ architecture rtl of PtpEndpoint is
    signal measurementSlave  : PtpMeasurementSlaveType;
    signal portStatus        : PtpPortStatusType;
    signal portLifecycle     : PtpPortLifecycleType;
+
+   signal portTxMaster : AxiStreamMasterType;
+   signal portTxSlave  : AxiStreamSlaveType;
 
    type RegType is record
       restart : sl;
@@ -332,13 +343,41 @@ begin
          txMessage         => txMessage,                        -- [in]
          txValid           => txValid,                          -- [in]
          txAbort           => txAbort,                          -- [in]
-         txMaster          => txMaster,                         -- [out]
-         txSlave           => txSlave,                          -- [in]
+         txMaster          => portTxMaster,                     -- [out]
+         txSlave           => portTxSlave,                      -- [in]
          enable            => enable,                           -- [in]
          rxCounters        => rxCounters,                       -- [in]
          sharedConfig      => sharedConfig,                     -- [out]
          lifecycle         => portLifecycle,                    -- [out]
          status            => portStatus);                      -- [out]
+
+   -- Preserve the original ready/valid path when no format conversion is needed.
+   GEN_TX_BYPASS : if TX_AXIS_CONFIG_G = PTP_RX_AXIS_CONFIG_C generate
+      txMaster    <= portTxMaster;
+      portTxSlave <= txSlave;
+   end generate GEN_TX_BYPASS;
+
+   GEN_TX_RESIZE : if TX_AXIS_CONFIG_G /= PTP_RX_AXIS_CONFIG_C generate
+
+      -- This stage belongs to the physical TX pipeline. Logical restart and
+      -- AXI-only reset must let queued data drain; only system reset clears it.
+      U_TxResize : entity surf.AxiStreamResize
+         generic map (
+            TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
+            SLAVE_AXI_CONFIG_G  => PTP_RX_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => TX_AXIS_CONFIG_G)
+         port map (
+            axisClk     => clk,           -- [in]
+            axisRst     => rst,           -- [in]
+            sAxisMaster => portTxMaster,  -- [in]
+            sAxisSlave  => portTxSlave,   -- [out]
+            mAxisMaster => txMaster,      -- [out]
+            mSideBand   => open,          -- [out]
+            mAxisSlave  => txSlave);      -- [in]
+
+   end generate GEN_TX_RESIZE;
 
    U_Servo : entity surf.PtpServo
       generic map (

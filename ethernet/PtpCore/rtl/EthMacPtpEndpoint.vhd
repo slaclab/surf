@@ -4,15 +4,15 @@
 -- Description: Common-clock Ethernet MAC and autonomous PTP TimeReceiver.
 --
 -- Integrates EthMacTop with PtpEndpoint and passive GMII/XGMII timestamp
--- paths. RX bytes and their physical start capture pass together through
--- PtpRxTimestampAdapter and PtpRxFrontend, so protocol association does not
+-- paths. PtpRxTimestampTap keeps RX bytes and their physical start capture
+-- together through framing and validation, so protocol association does not
 -- depend on whether the MAC forwards or drops its own copy. PtpTxTimestampTap
 -- observes actual Delay_Req transmission after MAC queuing, arbitration and
 -- pause.
 --
 -- Application traffic uses the primary EMAC stream through PtpPrimaryGuard.
--- The endpoint's private eight-byte Delay_Req stream is resized to the native
--- MAC bypass width; the MAC supplies padding, preamble and FCS. AXI-Lite
+-- PtpEndpoint adapts its private Delay_Req stream to the native MAC bypass
+-- width; the MAC supplies padding, preamble and FCS. AXI-Lite
 -- provides configuration and diagnostics while the PHC and servo run
 -- autonomously.
 --
@@ -102,12 +102,8 @@ architecture rtl of EthMacPtpEndpoint is
 
    signal guardedMaster   : AxiStreamMasterType;
    signal guardedSlave    : AxiStreamSlaveType;
-   signal bypMaster       : AxiStreamMasterType;
-   signal bypSlave        : AxiStreamSlaveType;
    signal macBypMaster    : AxiStreamMasterType;
    signal macBypSlave     : AxiStreamSlaveType;
-   signal rxMaster        : AxiStreamMasterType;
-   signal rxCapture       : PtpRxCaptureType;
    signal rxMessage       : PtpRxMessageType;
    signal rxValid         : sl;
    signal rxReady         : sl;
@@ -182,23 +178,8 @@ begin
 
    -- EthMacTop shares one bypass configuration between RX and TX. Its passive
    -- RX FIFO cannot narrow the native stream without backpressure, even when
-   -- that redundant RX copy is drained. Resize only our ready/valid TX path.
-   -- System reset clears this physical pipeline; port restart must let it drain.
-   U_TxResize : entity surf.AxiStreamResize
-      generic map (
-         TPD_G               => TPD_G,
-         RST_POLARITY_G      => RST_POLARITY_G,
-         SLAVE_AXI_CONFIG_G  => PTP_RX_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => EMAC_AXIS_CONFIG_C)
-      port map (
-         axisClk     => clk,           -- [in]
-         axisRst     => rst,           -- [in]
-         sAxisMaster => bypMaster,     -- [in]
-         sAxisSlave  => bypSlave,      -- [out]
-         mAxisMaster => macBypMaster,  -- [out]
-         mSideBand   => open,          -- [out]
-         mAxisSlave  => macBypSlave);  -- [in]
-
+   -- that redundant RX copy is drained. Keep the native bypass format and
+   -- select it for PtpEndpoint's ready/valid TX output below.
    U_Mac : entity surf.EthMacTop
       generic map (
          TPD_G             => TPD_G,
@@ -248,38 +229,24 @@ begin
          ethConfig       => ethConfig,                 -- [in]
          ethStatus       => ethStatus);                -- [out]
 
-   U_RxAdapter : entity surf.PtpRxTimestampAdapter
+   U_RxTap : entity surf.PtpRxTimestampTap
       generic map (
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          PHY_TYPE_G        => PHY_TYPE_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G)
       port map (
-         clk       => clk,         -- [in]
-         rst       => rst,         -- [in]
-         rxFlush   => rxFlush,     -- [in]
-         phyReady  => phyReady,    -- [in]
-         phcStatus => status,      -- [in]
-         phcTime   => timeValue,   -- [in]
-         xgmiiRxd  => xgmiiRxd,    -- [in]
-         xgmiiRxc  => xgmiiRxc,    -- [in]
-         gmiiRxd   => gmiiRxd,     -- [in]
-         gmiiRxDv  => gmiiRxDv,    -- [in]
-         gmiiRxEr  => gmiiRxEr,    -- [in]
-         rxMaster  => rxMaster,    -- [out]
-         rxCapture => rxCapture);  -- [out]
-
-   U_Rx : entity surf.PtpRxFrontend
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G)
-      port map (
          clk           => clk,                -- [in]
          rst           => rst,                -- [in]
          rxFlush       => rxFlush,            -- [in]
-         generation    => status.generation,  -- [in]
-         rxMaster      => rxMaster,           -- [in]
-         rxCapture     => rxCapture,          -- [in]
+         phyReady      => phyReady,           -- [in]
+         phcTime       => timeValue,          -- [in]
+         phcStatus     => status,             -- [in]
+         xgmiiRxd      => xgmiiRxd,           -- [in]
+         xgmiiRxc      => xgmiiRxc,           -- [in]
+         gmiiRxd       => gmiiRxd,            -- [in]
+         gmiiRxDv      => gmiiRxDv,           -- [in]
+         gmiiRxEr      => gmiiRxEr,           -- [in]
          message       => rxMessage,          -- [out]
          messageValid  => rxValid,            -- [out]
          messageReady  => rxReady,            -- [in]
@@ -319,7 +286,8 @@ begin
          CLK_FREQ_G        => CLK_FREQ_G,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+         TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C)
       port map (
          clk             => clk,                   -- [in]
          rst             => rst,                   -- [in]
@@ -341,8 +309,8 @@ begin
          txMessage       => txMessage,             -- [in]
          txValid         => txValid,               -- [in]
          txAbort         => txAbort,               -- [in]
-         txMaster        => bypMaster,             -- [out]
-         txSlave         => bypSlave,              -- [in]
+         txMaster        => macBypMaster,          -- [out]
+         txSlave         => macBypSlave,           -- [in]
          phcTime         => timeValue,             -- [out]
          phcStatus       => status,                -- [out]
          captureAbort    => abortCapture,          -- [out]

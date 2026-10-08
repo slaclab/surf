@@ -22,8 +22,12 @@ insertion remains outside scope.
   fixed-point format definitions and distinct nanoseconds/ppb conversion scales.
   These describe fixed interface contracts rather than configurable precision.
   Table/filter depths and implementation policies remain local to their owners.
-- `PtpRxTimestampAdapter`, `PtpRxFrontend`, `PtpTxTimestampTap`: physical capture,
-  bounded FCS/message validation and actual TX wire completion.
+- [PtpRxTimestampTap](rtl/PtpRxTimestampTap.vhd): RX physical capture and bounded
+  FCS/message validation, composing `PtpRxTimestampAdapter` and `PtpRxFrontend`
+  without additional state or latency. The adapter/frontend register boundary
+  keeps frame bytes and their start capture aligned. The leaf blocks remain
+  independently testable. `PtpTxTimestampTap` composes the same leaves in
+  TX-observation mode for actual TX wire completion.
 - `PtpPort`, `PtpTxLedger`, `PtpE2e`: fixed-source policy, message association,
   persistent TX reservations, rate estimation, request building and E2E arithmetic.
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
@@ -79,6 +83,15 @@ occupancy and unresolved counts remain representable. The primary MAC stream use
 `0x88F7` is reserved for the endpoint; other primary traffic passes through.
 Latency calibration is signed Q16 local-PHC nanoseconds in elaboration-time
 `INGRESS_LATENCY_G`/`EGRESS_LATENCY_G` generics, readable in software.
+
+`PtpEndpoint.TX_AXIS_CONFIG_G` selects the private Delay_Req output format.
+Its default `PTP_RX_AXIS_CONFIG_C` preserves the eight-byte stream and direct
+ready/valid connection from `PtpPort`. Other formats use an internal
+`AxiStreamResize`; `EthMacPtpEndpoint` selects the MAC's 16-byte
+`EMAC_AXIS_CONFIG_C`. The resize uses system reset only, preserving queued
+data across port and register resets. Supported conversions follow
+`AxiStreamResize`'s stream-configuration constraints; downstream framing must
+interpret the selected configuration's SSI SOF/EOFE bits.
 
 System reset must reset the entire MAC/endpoint TX pipeline. A port restart
 preserves PHC time and unknown physical TX reservations; an AXI-only reset also
