@@ -16,6 +16,19 @@
 
 import pyrogue as pr
 
+
+def _signExtend(code, bits):
+    # Two's complement value of a bits-wide unsigned code
+    if code & (1 << (bits - 1)):
+        return code - (1 << bits)
+    return code
+
+
+def _tempFromCode(code):
+    # UG480 Equation 2-6: temperature transfer function of the 12-bit code
+    return code * (503.975/4096.0) - 273.15
+
+
 class Xadc(pr.Device):
     def __init__(self,
                  description = "AXI-Lite XADC for Xilinx 7 Series (Refer to PG091 & PG019)",
@@ -33,7 +46,7 @@ class Xadc(pr.Device):
             self.simpleViewList = simpleViewList[:]
             self.simpleViewList.append('enable')
 
-        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0):
+        def addPair(name, offset, bitSize, units, bitOffset, description, function, pollInterval=0, disp='{:1.3f}', extraDependencies=()):
             self.add(pr.RemoteVariable(
                 name         = ("Raw"+name),
                 offset       = offset,
@@ -51,8 +64,8 @@ class Xadc(pr.Device):
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
-                disp         = '{:1.3f}',
-                dependencies = [self.variables["Raw"+name]],
+                disp         = disp,
+                dependencies = [self.variables["Raw"+name]] + [self.variables[n] for n in extraDependencies],
             ))
 
         addPair(
@@ -65,10 +78,10 @@ class Xadc(pr.Device):
             pollInterval = pollInterval,
             description  = """
                 The result of the on-chip temperature sensor measurement is
-                stored in this location. The data is MSB justified in the
-                16-bit register (Read Only).  The 12 MSBs correspond to the
-                temperature sensor transfer function shown in Figure 2-8,
-                page 31 of UG480 (v1.2) """,
+                stored in this location (DRP 00h, Read Only). The data is MSB
+                justified in the 16-bit register. The 12 MSBs correspond to the
+                temperature sensor transfer function shown in Figure 2-9,
+                page 25 of UG480 v1.11 (Equation 2-6).""",
         )
 
         addPair(
@@ -79,8 +92,10 @@ class Xadc(pr.Device):
             units       = "degC",
             function    = self.convTemp,
             description = """
-                Maximum temperature measurement recorded since
-                power-up or the last AxiXadc reset (Read Only).""",
+                Maximum temperature measurement recorded since power-up or
+                the last XADC reset (DRP 20h, Read Only). The 12 MSBs follow
+                the temperature sensor transfer function, Figure 2-9, page 25
+                of UG480 v1.11.""",
         )
 
         addPair(
@@ -91,8 +106,10 @@ class Xadc(pr.Device):
             units       = "degC",
             function    = self.convTemp,
             description = """
-                Minimum temperature measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""",
+                Minimum temperature measurement recorded since power-up or
+                the last XADC reset (DRP 24h, Read Only). The 12 MSBs follow
+                the temperature sensor transfer function, Figure 2-9, page 25
+                of UG480 v1.11.""",
         )
 
         self.add(pr.RemoteVariable(
@@ -124,11 +141,11 @@ class Xadc(pr.Device):
             function    = self.convCoreVoltage,
             pollInterval = pollInterval,
             description = """
-                The result of the on-chip VccInt supply monitor measurement
-                is stored at this location. The data is MSB justified in the
-                16-bit register (Read Only). The 12 MSBs correspond to the
-                supply sensor transfer function shown in Figure 2-9,
-                page 32 of UG480 (v1.2)     """,
+                The result of the on-chip VCCINT supply monitor measurement
+                is stored at this location (DRP 01h, Read Only). The data is
+                MSB justified in the 16-bit register. The 12 MSBs correspond
+                to the supply sensor transfer function shown in Figure 2-10,
+                page 26 of UG480 v1.11 (Equation 2-7, 1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -139,8 +156,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Maximum VccInt measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""")
+                Maximum VCCINT measurement recorded since power-up or the
+                last XADC reset (DRP 21h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""")
 
         addPair(
             name        = 'MinVccInt',
@@ -150,8 +169,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Minimum VccInt measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""")
+                Minimum VCCINT measurement recorded since power-up or the
+                last XADC reset (DRP 25h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""")
 
         self.add(pr.RemoteVariable(
             name        = 'VccIntAlarm',
@@ -172,11 +193,11 @@ class Xadc(pr.Device):
             function    = self.convCoreVoltage,
             pollInterval = pollInterval,
             description = """
-                The result of the on-chip VccAux supply monitor measurement
-                is stored at this location. The data is MSB justified in the
-                16-bit register (Read Only). The 12 MSBs correspond to the
-                supply sensor transfer function shown in Figure 2-9,
-                page 32 of UG480 (v1.2)""",
+                The result of the on-chip VCCAUX supply monitor measurement
+                is stored at this location (DRP 02h, Read Only). The data is
+                MSB justified in the 16-bit register. The 12 MSBs correspond
+                to the supply sensor transfer function shown in Figure 2-10,
+                page 26 of UG480 v1.11 (Equation 2-7, 1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -187,8 +208,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Maximum VccAux measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""",
+                Maximum VCCAUX measurement recorded since power-up or the
+                last XADC reset (DRP 22h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -199,8 +222,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Minimum VccAux measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""",
+                Minimum VCCAUX measurement recorded since power-up or the
+                last XADC reset (DRP 26h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""",
         )
 
         self.add(pr.RemoteVariable(
@@ -222,11 +247,11 @@ class Xadc(pr.Device):
             function    = self.convCoreVoltage,
             pollInterval = pollInterval,
             description = """
-                The result of the on-chip VccBram supply monitor measurement
-                is stored at this location. The data is MSB justified in the
-                16-bit register (Read Only). The 12 MSBs correspond to the
-                supply sensor transfer function shown in Figure 2-9,
-                page 32 of UG480 (v1.2)""",
+                The result of the on-chip VCCBRAM supply monitor measurement
+                is stored at this location (DRP 06h, Read Only). The data is
+                MSB justified in the 16-bit register. The 12 MSBs correspond
+                to the supply sensor transfer function shown in Figure 2-10,
+                page 26 of UG480 v1.11 (Equation 2-7, 1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -237,8 +262,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Maximum VccBram measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""",
+                Maximum VCCBRAM measurement recorded since power-up or the
+                last XADC reset (DRP 23h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -249,8 +276,10 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                Minimum VccBram measurement recorded since power-up
-                or the last AxiXadc reset (Read Only).""",
+                Minimum VCCBRAM measurement recorded since power-up or the
+                last XADC reset (DRP 27h, Read Only). The 12 MSBs follow the
+                supply sensor transfer function, Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""",
         )
 
         self.add(pr.RemoteVariable(
@@ -269,14 +298,16 @@ class Xadc(pr.Device):
             bitSize     = 12,
             bitOffset   = 4,
             units       = "V",
-            function    = self.convCoreVoltage,
+            function    = self.convAuxVoltage,
             description = """
                 The result of a conversion on the dedicated analog input
-                channel is stored in this register. The data is MSB justified
-                in the 16-bit register (Read Only). The 12 MSBs correspond to the
-                transfer function shown in Figure 2-5, page 29 or
-                Figure 2-6, page 29 of UG480 (v1.2) depending on analog input mode
-                settings.""",
+                channel VP/VN is stored in this register (DRP 03h, Read Only).
+                The data is MSB justified in the 16-bit register. The 12 MSBs
+                correspond to the transfer function shown in Figure 2-6,
+                page 23 or Figure 2-7, page 23 of UG480 v1.11 depending on the
+                analog input mode. The decode assumes unipolar input mode
+                (0 V to 1 V, 1 LSB = 1V/4096); a bipolar setting yields two's
+                complement codes that this decode does not handle.""",
         )
 
         addPair(
@@ -287,11 +318,12 @@ class Xadc(pr.Device):
             units       = "V",
             function    = self.convCoreVoltage,
             description = """
-                The result of a conversion on the reference input VrefP is
-                stored in this register. The 12 MSBs correspond to the ADC
-                transfer function shown in Figure 2-9  of UG480 (v1.2). The data is MSB
-                justified in the 16-bit register (Read Only). The supply sensor is used
-                when measuring VrefP.""",
+                The result of a conversion on the reference input VREFP is
+                stored in this register (DRP 04h, Read Only). The data is MSB
+                justified in the 16-bit register. The supply sensor is used
+                when measuring VREFP, so the 12 MSBs correspond to the supply
+                sensor transfer function shown in Figure 2-10, page 26 of
+                UG480 v1.11 (1 LSB = 3V/4096).""",
         )
 
         addPair(
@@ -300,16 +332,16 @@ class Xadc(pr.Device):
             bitSize     = 12,
             bitOffset   = 4,
             units       = "V",
-            function    = self.convCoreVoltage,
+            function    = self.convSignedCoreVoltage,
             description = """
                 The result of a conversion on the reference input VREFN is
-                stored in this register (Read Only). This channel is measured in bipolar
-                mode with a 2's complement output coding as shown in
-                Figure 2-2, page 25. By measuring in bipolar mode, small
-                positive and negative at: offset around 0V (VrefN) can be
-                measured. The supply sensor is also used to measure
-                VrefN, thus 1 LSB = 3V/4096. The data is MSB justified in
-                the 16-bit register.      """,
+                stored in this register (DRP 05h, Read Only). This channel is
+                measured in bipolar mode with a two's complement output coding
+                as shown in Figure 2-3, page 19 of UG480 v1.11, so small
+                positive and negative offsets around 0 V can be measured. The
+                supply sensor is used, so 1 LSB = 3V/4096 and the decoded range
+                is -1.5 V to +1.4993 V. The data is MSB justified in the 16-bit
+                register.""",
         )
 
         for ch in auxChannels:
@@ -320,12 +352,14 @@ class Xadc(pr.Device):
                 bitOffset   =  4,
                 base        = pr.UInt,
                 mode        = "RO",
-                description = f'Raw ADC result for auxiliary analog input channel {ch}',
+                description = f'Raw 12-bit ADC code for auxiliary analog input channel {ch} (VAUXP[{ch}]/VAUXN[{ch}]), MSB justified (DRP {0x10+ch:02X}h, Read Only)',
             ))
 
             self.add(pr.LinkVariable(
                 name=f'Aux[{ch}]',
-                description=f'Auxiliary analog input channel {ch} voltage in volts',
+                description=(f'Auxiliary analog input channel {ch} (VAUXP[{ch}]/VAUXN[{ch}]) voltage in volts, 1 LSB = 1V/4096. '
+                         'Assumes unipolar input mode (0 V to 1 V, Figure 2-2, page 18 of UG480 v1.11); '
+                         "a bipolar setting yields two's complement codes (Figure 2-3, page 19) that this decode does not handle"),
                 units='V',
                 disp='{:1.3f}',
                 mode='RO',
@@ -343,23 +377,26 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    The result of a conversion on the PS supply, VccpInt is
-                    stored in this register. The 12 MSBs correspond to the ADC
-                    transfer function shown in Figure 2-9, page 32 of UG480 (v1.2). The data is
-                    MSB justified in the 16-bit register (Zynq Only and Read Only).
-                    The supply sensor is used when measuring VccpInt.""",
+                    The result of a conversion on the PS supply VCCPINT is
+                    stored in this register (DRP 0Dh, Zynq Only and Read Only). The
+                    data is MSB justified in the 16-bit register. The supply sensor
+                    is used, so the 12 MSBs correspond to the supply sensor transfer
+                    function shown in Figure 2-10, page 26 of UG480 v1.11
+                    (1 LSB = 3V/4096).""",
             )
 
             addPair(
                 name        = 'MaxVccpInt',
-                offset      = 0x20,
+                offset      = 0x2a0,
                 bitSize     = 12,
                 bitOffset   = 4,
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Maximum VccpInt measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Maximum VCCPINT measurement recorded since power-up or
+                    the last XADC reset (DRP 28h, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             addPair(
@@ -370,8 +407,10 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Minimum VccpInt measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Minimum VCCPINT measurement recorded since power-up or
+                    the last XADC reset (DRP 2Ch, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             self.add(pr.RemoteVariable(
@@ -392,11 +431,12 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    The result of a conversion on the PS supply, VccpAux is
-                    stored in this register. The 12 MSBs correspond to the ADC
-                    transfer function shown in Figure 2-9, page 32 of UG480 (v1.2). The data is
-                    MSB justified in the 16-bit register (Zynq Only and Read Only).
-                    The supply sensor is used when measuring VccpAux.""",
+                    The result of a conversion on the PS supply VCCPAUX is
+                    stored in this register (DRP 0Eh, Zynq Only and Read Only). The
+                    data is MSB justified in the 16-bit register. The supply sensor
+                    is used, so the 12 MSBs correspond to the supply sensor transfer
+                    function shown in Figure 2-10, page 26 of UG480 v1.11
+                    (1 LSB = 3V/4096).""",
             )
 
             addPair(
@@ -407,8 +447,10 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Maximum VccpAux measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Maximum VCCPAUX measurement recorded since power-up or
+                    the last XADC reset (DRP 29h, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             addPair(
@@ -419,8 +461,10 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Minimum VccpAux measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Minimum VCCPAUX measurement recorded since power-up or
+                    the last XADC reset (DRP 2Dh, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             self.add(pr.RemoteVariable(
@@ -441,11 +485,12 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    The result of a conversion on the PS supply, VccpDdr is
-                    stored in this register. The 12 MSBs correspond to the ADC
-                    transfer function shown in Figure 2-9, page 32 of UG480 (v1.2). The data is
-                    MSB justified in the 16-bit register (Zynq Only and Read Only).
-                    The supply sensor is used when measuring VccpDdr.""",
+                    The result of a conversion on the PS supply VCCO_DDR (the PS DDR I/O supply, spelled VCCDDRO in PG091) is
+                    stored in this register (DRP 0Fh, Zynq Only and Read Only). The
+                    data is MSB justified in the 16-bit register. The supply sensor
+                    is used, so the 12 MSBs correspond to the supply sensor transfer
+                    function shown in Figure 2-10, page 26 of UG480 v1.11
+                    (1 LSB = 3V/4096).""",
             )
 
             addPair(
@@ -456,8 +501,10 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Maximum VccpDdr measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Maximum VCCO_DDR measurement recorded since power-up or
+                    the last XADC reset (DRP 2Ah, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             addPair(
@@ -468,8 +515,10 @@ class Xadc(pr.Device):
                 units       = "V",
                 function    = self.convCoreVoltage,
                 description = """
-                    Minimum VccpDdr measurement recorded since power-up
-                    or the last AxiXadc reset (Zynq Only and Read Only).""",
+                    Minimum VCCO_DDR measurement recorded since power-up or
+                    the last XADC reset (DRP 2Eh, Zynq Only and Read Only).
+                    Supply sensor transfer function, Figure 2-10, page 26 of
+                    UG480 v1.11 (1 LSB = 3V/4096).""",
             )
 
             self.add(pr.RemoteVariable(
@@ -482,35 +531,106 @@ class Xadc(pr.Device):
                 description = "VccpDdr Alarm Tripped",
             ))
 
-        self.add(pr.RemoteVariable(
+        addPair(
             name        = 'SupplyOffsetA',
             offset      = 0x220,
             bitSize     = 12,
             bitOffset   = 4,
-            base        = pr.UInt,
-            mode        = 'RO',
-            description = 'Calibration coefficient for supply sensor offset using ADC A',
-        ))
+            units       = "LSB",
+            function    = self.convSignedOffset,
+            disp        = '{:d}',
+            description = """
+                Calibration coefficient for the supply sensor offset using ADC A, applied to supply sensor measurements
+                (DRP 08h, Read Only). The 12-bit two's complement correction
+                is MSB justified in the 16-bit register and decoded as a signed
+                LSB count, see the "XADC Calibration Coefficients" section and
+                Figure 3-3 (page 33) of UG480 v1.11.""",
+        )
 
-        self.add(pr.RemoteVariable(
+        addPair(
             name        = 'AdcOffsetA',
             offset      = 0x224,
             bitSize     = 12,
             bitOffset   = 4,
-            base        = pr.UInt,
-            mode        = 'RO',
-            description = 'Calibration coefficient for ADC A offset error',
-        ))
+            units       = "LSB",
+            function    = self.convSignedOffset,
+            disp        = '{:d}',
+            description = """
+                Calibration coefficient for the ADC A offset error
+                (DRP 09h, Read Only). The 12-bit two's complement correction
+                is MSB justified in the 16-bit register and decoded as a signed
+                LSB count, see the "XADC Calibration Coefficients" section and
+                Figure 3-3 (page 33) of UG480 v1.11.""",
+        )
 
-        self.add(pr.RemoteVariable(
+        addPair(
             name        = 'AdcGainA',
             offset      = 0x228,
+            bitSize     = 7,
+            bitOffset   = 0,
+            units       = "%",
+            function    = self.convGain,
+            disp        = '{:1.1f}',
+            description = """
+                Calibration coefficient for ADC A gain error (DRP 0Ah,
+                Read Only). Bits [6:0] hold the gain correction: bit 6 = 1 means
+                positive and bits [5:0] are the magnitude in 0.1 % steps (range
+                +/-6.3 %), decoded as signed percent. See "XADC Calibration
+                Coefficients" section and Figure 3-3 (page 33) of UG480
+                v1.11.""",
+        )
+
+        addPair(
+            name        = 'SupplyOffsetB',
+            offset      = 0x2c0,
             bitSize     = 12,
             bitOffset   = 4,
-            base        = pr.UInt,
-            mode        = 'RO',
-            description = 'Calibration coefficient for ADC A gain error',
-        ))
+            units       = "LSB",
+            function    = self.convSignedOffset,
+            disp        = '{:d}',
+            description = """
+                Calibration coefficient for the supply sensor offset using ADC B, applied to supply sensor measurements
+                (DRP 30h, Read Only). The 12-bit two's complement correction
+                is MSB justified in the 16-bit register and decoded as a signed
+                LSB count, see the "XADC Calibration Coefficients" section and
+                Figure 3-3 (page 33) of UG480 v1.11.
+                Address C_BASEADDR + 0x2C0 per PG091 Table 2-3.""",
+        )
+
+        addPair(
+            name        = 'AdcOffsetB',
+            offset      = 0x2c4,
+            bitSize     = 12,
+            bitOffset   = 4,
+            units       = "LSB",
+            function    = self.convSignedOffset,
+            disp        = '{:d}',
+            description = """
+                Calibration coefficient for the ADC B offset error
+                (DRP 31h, Read Only). The 12-bit two's complement correction
+                is MSB justified in the 16-bit register and decoded as a signed
+                LSB count, see the "XADC Calibration Coefficients" section and
+                Figure 3-3 (page 33) of UG480 v1.11.
+                Address C_BASEADDR + 0x2C4 per PG091 Table 2-3.""",
+        )
+
+        addPair(
+            name        = 'AdcGainB',
+            offset      = 0x2c8,
+            bitSize     = 7,
+            bitOffset   = 0,
+            units       = "%",
+            function    = self.convGain,
+            disp        = '{:1.1f}',
+            description = """
+                Calibration coefficient for ADC B gain error (DRP 32h,
+                Read Only). Bits [6:0] hold the gain correction: bit 6 = 1 means
+                positive and bits [5:0] are the magnitude in 0.1 % steps (range
+                +/-6.3 %), decoded as signed percent. See "XADC Calibration
+                Coefficients" section and Figure 3-3 (page 33) of UG480
+                v1.11.
+                Address C_BASEADDR + 0x2C8 per PG091 Table 2-3.""",
+        )
 
         self.add(pr.RemoteVariable(
             name        = 'JTGD',
@@ -543,14 +663,39 @@ class Xadc(pr.Device):
         ))
 
 
+        self.add(pr.RemoteVariable(
+            name        = 'RawOT_LimitCtrl',
+            offset      = 0x34c,
+            bitSize     = 4,
+            bitOffset   = 0,
+            base        = pr.UInt,
+            mode        = 'RO',
+            description = """
+                Low four bits of the OT upper alarm register 53h; 0011b
+                enables automatic over-temperature shutdown (UG480 v1.11
+                Thermal Management).""",
+            hidden      = True,
+        ))
+
         addPair(
-            name         = 'OT_Limit',
-            description  = 'Over-temperature alarm threshold setting in degrees C',
-            offset       = 0x34c,
-            bitSize      = 12,
-            bitOffset    = 4,
-            units        = "degC",
-            function     = self.convTemp,
+            name              = 'OT_Limit',
+            description       = """
+                Effective over-temperature shutdown threshold in degrees C
+                from the OT upper alarm register 53h (Read Only). The 12 MSBs
+                hold the threshold code per UG480 v1.11 Equation 4-2
+                (temperature transfer function, Figure 2-9, page 25). Bits
+                [3:0] = 0011b enable automatic shutdown, which on 7 series
+                also requires set_property BITSTREAM.CONFIG.OVERTEMPPOWERDOWN
+                ENABLE [current_design] in the XDC. A register value of 0000h
+                (the default, including before configuration) means the 125 C
+                default threshold applies, which this variable reports as
+                125.0.""",
+            offset            = 0x34c,
+            bitSize           = 12,
+            bitOffset         = 4,
+            units             = "degC",
+            function          = self.convOtLimit,
+            extraDependencies = ('RawOT_LimitCtrl',),
         )
 
         # Default to simple view
@@ -559,32 +704,53 @@ class Xadc(pr.Device):
 
     @staticmethod
     def convTemp(dev, var, read):
-        value   = var.dependencies[0].get(read=read)
-        fpValue = value*(503.975/4096.0)
-        fpValue -= 273.15
-        return (fpValue)
+        return _tempFromCode(var.dependencies[0].get(read=read))
 
     @staticmethod
     def getTemp(var, read):
-        value = var.depdendencies[0].get(read=read)
-        fpValue = value*(503.975/4096.0)
-        fpValue -= 273.15
-        return (fpValue)
+        return _tempFromCode(var.dependencies[0].get(read=read))
 
     @staticmethod
     def setTemp(var, value, write):
-        ivalue = int((int(value) + 273.15)*(4096/503.975))
-        var.depdendencies[0].set(ivalue, write=write)
+        # Round to the nearest code and clamp to the 12-bit range
+        code = round((value + 273.15) * (4096.0/503.975))
+        code = min(max(code, 0), 4095)
+        var.dependencies[0].set(code, write=write)
+
+    @staticmethod
+    def convOtLimit(var, read):
+        hi = var.dependencies[0].get(read=read)
+        # Bits [3:0] share one block with bits [15:4], so this returns the
+        # shadow filled by the read just issued, with no second transaction
+        lo = var.dependencies[1].get(read=False)
+        if hi == 0 and lo == 0:
+            # Register 53h at 0000h: hardware applies its 125 C default
+            return 125.0
+        return _tempFromCode(hi)
 
     @staticmethod
     def convCoreVoltage(var, read):
-        value   = var.dependencies[0].get(read=read)
-        fpValue = value*(732.0E-6)
-        return fpValue
+        return var.dependencies[0].get(read=read) * (3.0/4096.0)
+
+    @staticmethod
+    def convSignedCoreVoltage(var, read):
+        return _signExtend(var.dependencies[0].get(read=read), 12) * (3.0/4096.0)
+
+    @staticmethod
+    def convSignedOffset(var, read):
+        return _signExtend(var.dependencies[0].get(read=read), 12)
+
+    @staticmethod
+    def convGain(var, read):
+        code = var.dependencies[0].get(read=read)
+        mag  = code & 0x3F
+        if mag == 0:
+            return 0.0
+        return (mag if code & 0x40 else -mag) / 10.0
 
     @staticmethod
     def convAuxVoltage(var, read):
-        return var.dependencies[0].get(read=read) * 244e-6
+        return var.dependencies[0].get(read=read) * (1.0/4096.0)
 
     def simpleView(self):
         # Hide all the variable
