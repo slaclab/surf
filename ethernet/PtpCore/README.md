@@ -13,8 +13,10 @@ its timestamp plus both signed corrections. Both use the same capture, rate
 estimator, history and E2E path. No software mode switch or register change is
 required. Mixed-mode collisions follow the conservative
 [association policy](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#port-policy-and-numerical-envelope).
-One-step reception is implemented but awaits behavioral verification under the
-[one-step acceptance checklist](../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance). One-step transmit
+Both receive modes pass the current direct, physical and endpoint fixtures;
+see the [October 9 results](../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
+and remaining [one-step acceptance](../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
+Standards/profile conformance and hardware qualification remain open. One-step transmit
 insertion remains outside scope.
 
 - `rtl/PtpPkg.vhd`: shared time, capture, configuration, command and measurement records.

@@ -29,17 +29,17 @@ separates simulated behavior from remaining device and interoperability work.
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
 - `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
   packing for both reference and RTL tests.
+- `test_ptp_wire_vectors.py` anchors the shared Sync builder against four
+  literal wire frames and both E2E reference solvers against three hand-worked
+  examples. These are pure model/helper checks, not additional RTL or IEEE
+  conformance results; provenance and remaining gaps are in the matrix below.
 
-**Current gate:** simulation and pytest (including collection and pure reference
-cases) remain paused pending maintainer VHDL approval. The commands below are
-for use after approval. One-step fixtures are prepared, not behaviorally validated;
-see the [one-step acceptance checklist](../../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
-
-Run from the repository root after importing HDL sources:
-
-```sh
-./.venv/bin/python -m pytest -n 0 -q --log-cli-level=INFO tests/ethernet/PtpCore
-```
+**Current authorization:** the maintainer lifted the simulation/pytest pause on
+October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
+and [one-step acceptance checklist](../../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
+The selected standards baseline is IEEE 1588-2019 with 2008 compatibility;
+the [specification coverage matrix](specification-coverage.md) distinguishes
+normative requirements, endpoint restrictions and implementation checks.
 
 The counterexample tests pass when they demonstrate the rejected algorithm's
 failure. They must not be mistaken for successful timestamp-association RTL.
@@ -52,11 +52,58 @@ The [RX design decision](../../../docs/plans/ethernet-ptp/autonomous-endpoint.md
 records the selected replacement and its physical producer contract.
 Historical RTL results and synthesis limits are in the
 [RX evidence record](../../../docs/plans/ethernet-ptp/history/verification.md#rx-rtl-proof).
-Run the models alone without starting a simulator:
+
+## Selecting tests
+
+Default to focused tests chosen from the changed behavior and affected interfaces.
+Do not run the full directory after every edit or as an automatic handoff check.
+Before execution, state the selection and why it covers the change. Once it
+passes, expand only if a failure, an uncovered interaction or the scope of the
+change warrants it. Keep unrun acceptance work explicit.
+
+| Change | First selection | Expand when needed |
+| --- | --- | --- |
+| Documentation or comments only | Links/anchors and diff whitespace; no pytest or simulation. | Executable behavior also changes. |
+| Reference arithmetic or packet helpers | Relevant cases in `test_ptp_reference.py`, `test_ptp_endpoint_reference.py`, `test_ptp_rx_reference.py`, or `test_ptp_wire_vectors.py`. | Run a consuming RTL fixture when its stimulus/oracle behavior changes; model checks alone do not exercise cocotb drivers. |
+| Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
+| Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
+| Protocol policy or correction handling | `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
+| Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
+
+Select by dependency and assertion coverage, not filename alone. For shared helper
+changes, inspect callers; choose consumers that exercise each changed path.
+GMII/XGMII and one-/two-step cases are not interchangeable when serialization,
+capture timing or message association changes. A single case is useful during
+iteration, but does not close acceptance for affected configurations left unrun.
+
+The October 9 [runtime evidence](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
+shows why selection matters: direct protocol samples took about 25 seconds,
+math/servo together about 65 seconds, and eight endpoint configurations about
+39 minutes with six workers. These are observed batch times with concurrent
+work, not per-case estimates or runtime guarantees. Long endpoint cases are
+reserved for changes requiring those integration assertions; the full suite is
+for substantial integration/release validation or an explicit request.
+
+Run from the SURF root, using the existing configured Python environment; refresh
+the HDL import only when missing or stale. For example, check the models alone:
 
 ```sh
 ./.venv/bin/python -m pytest -n 0 -q tests/ethernet/PtpCore/test_ptp_reference.py tests/ethernet/PtpCore/test_ptp_rx_reference.py
 ```
+
+For a math/servo change, select those two fixtures and run them concurrently:
+
+```sh
+./.venv/bin/python -m pytest -q -n 2 --dist=worksteal tests/ethernet/PtpCore/test_ptp_math.py tests/ethernet/PtpCore/test_ptp_servo.py
+```
+
+Use a quoted pytest node ID for one configuration, for example
+`'tests/ethernet/PtpCore/test_ptp_port.py::test_ptp_port[GMII]'`.
+Parallelize independent selected simulations, with workers bounded by the case
+count and available CPU/memory. Use `-n 0` for tiny pure-model checks or serial
+debug logs. Record selected cases/results; retain the rest as unrun rather than
+reporting the previous full-suite result as validation of a later edit.
 
 ## Autonomous endpoint tests
 
@@ -69,7 +116,7 @@ Run the models alone without starting a simulator:
   sequence wrap, unknown physical fate and reset/quarantine behavior.
   Added checks cover registered result/sample validity during cancellation and
   ledger occupancy alignment with allocation, wire completion and MAC reset.
-  These checks await maintainer VHDL approval before execution.
+  Execution outcomes are tracked in the acceptance record linked above.
   Ledger capacity and response acceptance now have between-edge stability
   checks; response completion must pulse for the submitted response.
 - `ptp_endpoint_reference.py`, `test_ptp_endpoint_reference.py`: rational
@@ -78,8 +125,7 @@ Run the models alone without starting a simulator:
   model at varied sample intervals, median startup, backpressure and holdover.
   It also checks registered command/cancellation/expiry stability between edges.
   `test_ptp_phc.py` exercises revocation after admission and expiry priority over
-  validity-setting commands. These added timing checks await VHDL review before
-  regression execution.
+  validity-setting commands. Execution outcomes are tracked in the acceptance record.
   PHC checks additionally require registered ready/ack/error/capture inhibition;
   cancellation excludes transfer without requiring ready to change mid-cycle.
 - `test_ptp_reg.py`: all four development register banks at zero and nonzero bases, SURF
@@ -117,11 +163,15 @@ Run the models alone without starting a simulator:
 
 The endpoint tests use accelerated packet timers and fractional correction
 fields; the numerical sweeps separately cover realistic default-gain intervals.
-Neither is an FPGA timing or hardware accuracy measurement. Long real-MAC tests
-can take several minutes on this machine. Use bounded workers, for example:
+Neither is an FPGA timing or hardware accuracy measurement. Cases have isolated
+build directories. When full-suite validation is warranted by the selection
+policy above, use parallel execution:
 
 ```sh
 make MODULES="$PWD" import
-./.venv/bin/python -m pytest -q -n 2 tests/ethernet/PtpCore
-./.venv/bin/flake8 tests/ethernet/PtpCore python/surf/ethernet/ptp
+./.venv/bin/python -m pytest -q -n auto --dist=worksteal tests/ethernet/PtpCore
 ```
+
+Run flake8 on changed Python files; run VHDL lint and test-structure checks as
+required by the shared guides. These static checks do not require a full
+behavioral regression.

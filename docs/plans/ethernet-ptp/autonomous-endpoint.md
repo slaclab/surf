@@ -1,7 +1,8 @@
 # Autonomous PTP endpoint contract
 
 Implemented fixed-source, one-/two-step Layer-2 E2E TimeReceiver on GMII/XGMII.
-Current changes await [RTL approval and behavioral acceptance](rtl-review.md);
+Behavioral verification was authorized October 9, 2026; current results and
+remaining acceptance belong in the [review record](rtl-review.md);
 [historical milestones](history/verification.md) do not validate the current
 source. This contract describes source behavior, not hardware-qualified accuracy.
 Application scheduling, shared simulator timing and physical clock control are
@@ -352,7 +353,7 @@ and interface ranges, including standalone clock-frequency generics. It does not
 assume that every Sync arrives one second apart or that every offset is small.
 The first reduction preserves all fractional bits, register/command formats,
 rounding points, overflow rejection and the 128-iteration arithmetic schedule.
-Behavioral equivalence still awaits the [paused acceptance checks](rtl-review.md#fixed-point-width-acceptance).
+Behavioral equivalence is assessed through the [width acceptance checks](rtl-review.md#fixed-point-width-acceptance).
 
 | Quantity | Bound and implementation decision |
 | --- | --- |
@@ -473,8 +474,8 @@ pre-edge-full discard-all policy unless deliberately revising its contract.
 Add lossless record packing: the existing verification `toSlv` omits
 `capture.increment` and `capture.error`. Larger queues preserve capture times
 but can increase backlog age; retain stale-record rejection. Revisit queue
-capacity and interface latency tests when implementing, subject to the existing
-RTL-approval gate on behavioral regressions.
+capacity and interface latency tests when implementing, following the current
+verification authorization and acceptance record.
 
 
 Validation history is retained in [historical evidence](history/verification.md);

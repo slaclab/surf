@@ -3,8 +3,9 @@
 ## Status and provenance
 
 The conventions fixes, registered-boundary redesign and conventions follow-up
-are implemented. **Behavioral acceptance is still pending maintainer VHDL
-approval** under [current validation](README.md#current-validation). Completion
+are implemented. **The maintainer authorized resuming behavioral verification
+on October 9, 2026**, lifting the prior simulation/pytest pause under
+[current validation](README.md#current-validation). Completion
 of a source review or compile/link check does not validate the changed timing.
 
 This record consolidates the former `ptp-vhdl-conventions-review`,
@@ -193,8 +194,8 @@ the DCPs or establish behavioral equivalence.
 
 The normal ruckus `make import` attempt could not complete on this host: Tcl
 failed to create a subprocess error file (`not owner`) before loading sources.
-VSG is unavailable. Simulation/pytest remain paused; no Vivado or hardware
-validation has run. Current checks and outstanding gates must remain distinct.
+VSG was unavailable. Simulation/pytest were paused at that checkpoint; no Vivado
+or hardware validation ran. These static results and outstanding gates remain distinct.
 
 Static checks cover real-package/entity GHDL analysis of new adapters,
 compositions and the board top, unchanged legacy LVDS public interface and
@@ -236,8 +237,106 @@ package elaboration order, hidden declarations and AXI interface attributes.
 
 Python syntax parsing (without imports), changed documentation links/anchors
 and `git diff --check` passed. VSG was unavailable. Simulation, pytest collection
-and pure models remain paused. No Vivado resource/timing comparison was run;
+and pure models were still paused during that static review. No Vivado resource/timing comparison was run;
 declared bit-count reductions do not establish mapped FPGA savings.
+
+## October 9 behavioral verification
+
+The maintainer explicitly approved the proposed math/servo-first regression
+sequence on October 9, 2026 and selected IEEE 1588-2019 with 2008 compatibility
+for standards traceability. This authorizes simulation, pytest collection and
+pure-model tests; it is not acceptance of results that have not run.
+
+Baseline: SURF `f8e6ba1729a4ebf1faa2bf88b295c43bc9ed0ba4`, initially clean.
+Tools: GHDL 6.0.0 / LLVM 22.1.0; Python 3.13.2; pytest 9.0.2;
+cocotb 2.1.0; cocotb-test 0.2.6; cocotbext-axi 0.1.28; xdist 3.8.0.
+Python uses the existing `/Users/bareese/surf/.venv/bin/python`; no environment
+was installed or changed. Tests and HDL are from this consuming checkout,
+not the sibling SURF source. The normal ruckus import succeeded with sandbox
+escalation after reproducing the Tcl error-file permission failure.
+
+From `firmware/submodules/surf` in the consuming project:
+
+```sh
+make MODULES=/Users/bareese/ptp-dev/firmware/submodules GIT_STATUS=skip-index-refresh import
+/Users/bareese/surf/.venv/bin/python -m pytest -n 0 -q \
+  tests/ethernet/PtpCore/test_ptp_math.py tests/ethernet/PtpCore/test_ptp_servo.py
+```
+
+The remaining selections used the same interpreter and `-q`, with these worker
+counts (paths relative to `tests/ethernet/PtpCore`; JUnit/log-output flags omitted):
+
+```text
+-n 2: test_ptp_{phc,e2e,tx_ledger,reg,register_map,reference,rx_reference,endpoint_reference,rx_rtl}.py
+-n 0: test_ptp_port_samples.py
+-n 2: test_ptp_{port,rx_mac,mac_association}.py
+-n 6 --dist=worksteal: test_ptp_{endpoint,endpoint_mac}.py
+-n 0: test_ptp_wire_vectors.py
+-n 2 --dist=worksteal: test_ptp_port.py  (after the fixture correction)
+```
+
+The final collection was reconciled against the union of JUnit node IDs, using
+the corrected port results for repeated nodes: **121 distinct cases passed,
+zero remaining failures, zero skips, zero missing/extra nodes**. This comprises
+**24 cocotb/GHDL configurations and 97 Python/reference/static cases**, not 121
+RTL simulations. The eight endpoint cases cover both PHYs and both receive modes
+in the closed-loop and real-MAC fixtures. All four closed-loop cases passed
+their independent phase/path-delay assertions at acquisition and reacquisition;
+their accelerated simulation bounds are not hardware accuracy measurements.
+
+| Batch | Result |
+| --- | --- |
+| Math and servo, serial | **2 passed in 64.62 s**, including current width-boundary vectors. |
+| PHC, E2E, ledger, registers/map, all reference models and RX RTL, two workers | **99 passed in 105.35 s**. |
+| Direct protocol samples, serial | **1 pytest case passed in 25.21 s**, containing all three cocotb scenarios. |
+| Initial physical port/RX-MAC/MAC-association batch, two workers | **3 passed, 1 failed in 808.75 s**; GMII fixture timeout issue described below. |
+| Corrected physical port fixtures, both PHYs in parallel | **2 passed in 468.84 s**, including both adversarial and one-step scenarios on each PHY. |
+| Closed-loop endpoint and real-MAC lifecycle, six workers | **8 passed in 2359.23 s**. |
+| New literal-wire / hand-worked arithmetic anchors, serial | **7 passed in 0.05 s**; pure Python checks only. |
+
+The same current math and servo fixtures also passed with only `PtpMath.vhd`
+and `PtpServo.vhd` replaced by their pre-width-change contents from
+`4319702d0`. The comparison used the shared runner, the current imported
+dependencies and separate `/tmp/ptp-20261009-before-width-{math,servo}` build
+directories; it did not modify the checkout or imported source files. Both
+versions satisfy the same exact result/error/128-cycle math assertions and PI
+command expectations for these vectors. This is bounded regression evidence,
+not formal equivalence over all inputs. An initial temporary launcher could
+not import `tests` inside the simulator; exporting the absolute checkout path
+through the runner's Python search path corrected that harness failure.
+
+Following the maintainer's request for parallel execution, six endpoint workers
+ran alongside the two port/MAC
+workers on this eight-logical-CPU host; the corrected port fixtures also ran
+concurrently with the endpoint batch. Build directories are isolated by
+parameters and scenario metadata.
+Logs/JUnit are local temporary evidence under `/tmp/ptp-20261009-*`; simulator
+outputs remain in ignored `tests/sim_build/ethernet/PtpCore`. This summary is
+the durable evidence, not a dependency on temporary files.
+
+The initial GMII `adversarial_port` scenario failed at the conflicting Follow_Up
+count (`2` instead of `1`). Its 1000-cycle Sync receipt timeout expired during
+the rejected-message sequence: GMII serialization takes more cycles than XGMII,
+and rejected traffic does not renew the accepted-Sync timestamp. The resulting
+source timeout correctly flushed the retained association. XGMII passed that
+sequence. The fixture now keeps the normal 10000-cycle timeout for association
+policy, then separately commits the short timeout, acquires a fresh pair and
+checks expiry. Rejection/count assertions remain, with an added reacquisition
+count assertion. Both complete PHY fixtures passed on rerun.
+
+Production RTL remains at the baseline revision. Executable changes are the
+timeout isolation in `test_ptp_port.py` and the new Python-only
+`test_ptp_wire_vectors.py`; no protocol policy or register interface was changed.
+The [specification matrix](../../../tests/ethernet/PtpCore/specification-coverage.md)
+records existing coverage and missing normative traceability. A green behavioral
+suite does not establish whole-standard/profile conformance.
+
+Changed Python passes flake8 and the structural compliance audit. Local Markdown
+links/anchors and diff whitespace were checked. No production RTL was changed,
+and no Vivado, physical CDC, device timing/resources, external-master or hardware
+accuracy qualification ran. The additional generic-boundary, largest-interval,
+overflow/manual-phase and standards/profile acceptance items below remain open;
+passing the current fixture inventory does not close missing scenarios.
 
 ## Compile/link procedure
 
@@ -260,7 +359,7 @@ including the required `EthMacCore/rtl` sources and `DspXor.vhd`, without import
 the same package twice. The recorded GHDL options were
 `--std=08 --ieee=synopsys -frelaxed-rules -fexplicit`; only `ghdl -i` and
 `ghdl -m` were used. Compile/link does not exercise run-time assertions.
-Use static Python parsing/lint without importing tests while pytest is paused.
+Use static Python parsing/lint for checks that do not need execution.
 
 ## Outstanding acceptance
 
@@ -268,9 +367,9 @@ Document and justify the existing 2048-cycle association floor and 200,000-ppb
 actuator cap before treating them as qualified bounds. The
 [endpoint numerical envelope](autonomous-endpoint.md#port-policy-and-numerical-envelope)
 records their distinct purposes, introducing revision and missing rationale.
-This source/design follow-up does not require restarting paused simulations.
+This source/design follow-up is independent of simulation results.
 
-After explicit VHDL approval, use the [PTP test guide](../../../tests/ethernet/PtpCore/README.md)
+With the October 9 authorization, use the [PTP test guide](../../../tests/ethernet/PtpCore/README.md)
 and run focused leaf/register tests before port/servo and GMII/XGMII integration:
 
 1. Accepted/rejected PHY/frequency pairs and ledger depths 1, 255 and 256;
@@ -303,16 +402,16 @@ prepared fixtures are not passing results.
 
 ### Fixed-point width acceptance
 
-After explicit maintainer approval, run the prepared `test_ptp_math.py` and
-`test_ptp_servo.py` fixtures before the existing PHC, E2E, port and endpoint
-checks. None has been executed for this change.
+The October 9 run passed `test_ptp_math.py` and `test_ptp_servo.py` before
+starting PHC, E2E, port and endpoint checks. The additional acceptance below
+is not all covered by those two passing fixtures.
 
-- Math vectors now distinguish unused shifted-out bits from selected high
+- Covered by the current and pre-width-change comparison: math vectors distinguish unused shifted-out bits from selected high
   partial products, addition carry from signed-range overflow, both operand
   orders, zero, signed minimum and nonzero wrapped low products. Exact 128-work-
   cycle latency is checked alongside the existing remainder, stall and cancel
-  checks. Compare results/error/latency against the previous implementation.
-- Servo vectors retain the rational PI oracle and exercise both signs of the
+  checks. Both implementations passed the same result/error/latency assertions.
+- Covered by the current and pre-width-change comparison: servo vectors retain the rational PI oracle and exercise both signs of the
   maximum 200,000-ppb limits, bootstrap subtraction and tracking sums approaching
   +/-400,000 ppb, anti-windup, fractional corrections and holdover. These cases
   would expose narrowing a sum to 35 bits before clamping.
@@ -327,12 +426,12 @@ checks. None has been executed for this change.
 ## One-step receive acceptance
 
 Run focused sample tests, physical port/RX checks, then endpoint and real-MAC
-variants after explicit approval, retaining existing two-step coverage. Record
+variants under the October 9 authorization, retaining existing two-step coverage. Record
 commands, parameters, source revision and outcomes here. The
 [test guide](../../../tests/ethernet/PtpCore/README.md#autonomous-endpoint-tests)
 indexes `test_ptp_port_samples.py`, `test_ptp_port.py`, RX fixtures,
 `test_ptp_endpoint.py` and `test_ptp_endpoint_mac.py`; all new scenarios are
-prepared, not executed.
+prepared; execution results are recorded above.
 
 | Case | Required observation |
 | --- | --- |
@@ -362,7 +461,7 @@ so Follow_Up latency is not treated as an arithmetic error.
 
 ## PHY and hardware acceptance
 
-After RTL approval, exercise common/default and KCU105 address layouts through
+Exercise common/default and KCU105 address layouts through
 the asynchronous management bus; AXI-only, PCS-only and system reset; link loss
 with outstanding TX; concurrent application/PTP traffic; and independent endpoint
 resets. Cover cable-absent initialization, gigabit-only negotiation, MDIO/PCS

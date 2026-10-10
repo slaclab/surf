@@ -13,22 +13,31 @@ acceptance remain open.
 | What does software configure/read? | [Register map and ownership](register-map.md) |
 | Who owns each interface and clock edge? | [PTP timing and record contracts](rtl-readability.md), [SURF VHDL conventions](../../vhdl-conventions.md) |
 | What was checked, and what remains to approve? | [Review and acceptance record](rtl-review.md), [test procedures/fixtures](../../../tests/ethernet/PtpCore/README.md) |
+| How do tests relate to IEEE 1588? | [Specification coverage and gaps](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
 ## Current validation
 
-**Simulation and pytest, including collection and pure models, remain paused
-until explicit maintainer VHDL approval.** Lint and compile/link smoke checks
-are allowed. Historical simulation passes predate the register, interface,
-control-flow and one-step receive changes and do not validate the current tree.
+**The maintainer authorized resuming behavioral verification on October 9,
+2026.** The prior simulation/pytest pause is lifted. The resumed run and its
+source revision are recorded in the [acceptance record](rtl-review.md#october-9-behavioral-verification).
+The resumed suite passes all **121 distinct cases** after a GMII fixture timeout
+correction: 24 cocotb/GHDL configurations and 97 Python/static cases, with no
+remaining failures or skips. Production RTL is unchanged by this verification.
+Additional boundary and standards/profile acceptance remains open.
+
+Routine changes use the [focused test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests).
+The full suite is reserved for substantial integration/release validation or an
+explicit request. Parallelize the selected cases; the acceptance backlog does
+not require replaying all regressions after each edit.
 
 The [review record](rtl-review.md) owns recorded static checks and their limits,
 including blocked full imports, declaration-only dependencies and unavailable
 tools. None establishes behavioral equivalence, real checkpoint binding, timing
 closure, physical CDC, external-master interoperability or hardware accuracy.
-After approval, follow its [ordered acceptance checklist](rtl-review.md#outstanding-acceptance),
+Follow its [ordered acceptance checklist](rtl-review.md#outstanding-acceptance),
 including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
 
 ## Current implementation
@@ -41,11 +50,12 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   See [software naming](register-map.md#software-naming).
 - One-step receive selects origin/correction per Sync without a mode register.
   Its association rules are part of the [endpoint contract](autonomous-endpoint.md#port-policy-and-numerical-envelope),
-  with prepared fixtures awaiting behavioral approval.
+  with both receive modes passing the current direct, physical and endpoint fixtures.
 - The [fixed-point width audit](autonomous-endpoint.md#fixed-point-width-audit)
   narrows bounded servo state and the math engine's internal product storage.
-  Precision and public arithmetic ranges are retained; added boundary fixtures
-  await [behavioral acceptance](rtl-review.md#fixed-point-width-acceptance).
+  Precision and public arithmetic ranges are retained; current and pre-width-change
+  RTL pass the prepared boundary fixtures. Additional
+  [width acceptance](rtl-review.md#fixed-point-width-acceptance) remains open.
 
 ## PHY composition implementation
 
@@ -71,8 +81,9 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
 
 ## Open decisions and next work
 
-1. Review the current RTL and record approval before restarting behavioral
-   checks. Justify the existing 2048-cycle association floor and 200,000-ppb
+1. Complete the remaining boundary acceptance and the IEEE 1588-2019/2008
+   [specification coverage review](../../../tests/ethernet/PtpCore/specification-coverage.md).
+   Justify the existing 2048-cycle association floor and 200,000-ppb
    actuator cap; their rationale is still unresolved.
 2. Supply/qualify the dedicated GTH reference IP, then qualify reset/clock
    continuity, constraints, CDC, timing/resources and latency separately for

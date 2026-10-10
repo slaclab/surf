@@ -18,6 +18,8 @@
 #   snapshots, abort-driven restart, and every stalled/drained TX beat.
 # - Timing: Servo is disabled to isolate protocol behavior. Per-frame processing
 #   and timeout waits are bounded; source timestamps need only be chronological.
+#   Association-policy traffic uses the normal receipt timeout on both PHYs;
+#   the short receipt-timeout scenario is configured and reacquired separately.
 
 import cocotb
 import pytest
@@ -33,7 +35,10 @@ async def adversarial_port(d):
     await b.start()
     await b.configure()
     await b.write(0x004, 1)
-    await b.write(0x2088, 1000, 8)
+    # Keep the configured 10000-cycle receipt timeout during policy checks.
+    # GMII serialization plus the rejected-message sequence exceeds 1000
+    # cycles without a fresh accepted Sync. Expiry would correctly flush the
+    # conflicting association and invalidate this test's retained-key premise.
     await b.commit()
     generation = int(d.timeGeneration.value)
 
@@ -79,6 +84,15 @@ async def adversarial_port(d):
         await send(0, seq)
         await send(8, seq, seq*NS)
     assert await count() == 10
+    assert int(d.portActive.value)
+    # Test receipt expiry separately. Applying the shorter configuration
+    # restarts acquisition, so accept a fresh pair before waiting for expiry.
+    await b.write(0x2088, 1000, 8)
+    await b.commit()
+    assert not int(d.portActive.value)
+    await send(0, 18)
+    await send(8, 18, 18*NS)
+    assert await count() == 11
     assert int(d.portActive.value)
     await b.wait(1100)
     assert not int(d.portActive.value)
