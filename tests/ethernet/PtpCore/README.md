@@ -39,7 +39,16 @@ separates simulated behavior from remaining device and interoperability work.
   both transmitted versions. The
   [source/applicability table](specification-coverage.md#source-backed-directed-checks)
   records verified 2019 clauses, 2008 compatibility and implementation policy;
-  the remaining audit includes known scheduler, domain and overflow gaps.
+  the remaining audit includes known scheduler, domain and profile gaps.
+
+- `test_ptp_exchange.py` supplies eight focused configurations: ordinary multicast
+  master byte anchors through RX; both editions and Sync modes through the actual
+  protocol/ledger/E2E chain; correction-overflow retirement; and isolated response
+  identity/sequence/domain/provenance mismatches with same-request recovery.
+  `ptp_master_test_utils.py` supplies the source-backed master packets. Timestamp
+  and raw-tick advances preserve 1 Hz Sync values while skipping idle simulation
+  seconds; these are protocol-boundary checks, not a closed-loop servo run.
+  See [exchange coverage](specification-coverage.md#ordinary-master-and-exchange-checks).
 
 **Current authorization:** the maintainer lifted the simulation/pytest pause on
 October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
@@ -72,10 +81,11 @@ change warrants it. Keep unrun acceptance work explicit.
 | --- | --- | --- |
 | Documentation or comments only | Links/anchors and diff whitespace; no pytest or simulation. | Executable behavior also changes. |
 | Reference arithmetic or packet helpers | Relevant cases in `test_ptp_reference.py`, `test_ptp_endpoint_reference.py`, `test_ptp_rx_reference.py`, or `test_ptp_wire_vectors.py`. | Run a consuming RTL fixture when its stimulus/oracle behavior changes; model checks alone do not exercise cocotb drivers. |
+| Ordinary master traffic | `test_ptp_exchange.py::test_master_headers` and affected `test_ordinary_master` edition/mode nodes. | Add a continuous PHY/PHC/servo run only when that interaction changes; raw-tick fixture results do not qualify hardware rates. |
 | Sourced header, version, TLV or two-step checks | The relevant node/scenario in `test_ptp_specification.py` (RX or protocol). | Expand for affected PHY timing or normative cases absent from that fixture; the selected cases are not the whole standards audit. |
 | Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
-| Protocol policy or correction handling | `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
 
@@ -168,6 +178,11 @@ reporting the previous full-suite result as validation of a later edit.
   use scheduled physical capture time from the independent simulation clock; the
   driver asserts agreement with the observed edge. Existing builders default to
   two-step, and the source uses `TWO_STEP=0` for one-step cases.
+
+The older endpoint helper intentionally retains legacy received controls and
+unspecified intervals for accelerated functional tests; it is not the nominal
+standards-valid master. The separate exchange fixture checks normal header and
+interval values without replaying the long servo/MAC lifecycle scenarios.
 
 The endpoint tests use accelerated packet timers and fractional correction
 fields; the numerical sweeps separately cover realistic default-gain intervals.

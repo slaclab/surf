@@ -906,6 +906,12 @@ begin
                      end if;
                      if slot = -1 then
                         malformed := true;
+                     elsif rxMessage.correction = PTP_CORRECTION_OVERFLOW_C then
+                        -- Retain a completed key even when this is the first
+                        -- half received. Neither arrival order nor a later
+                        -- finite duplicate may revive an overflowed exchange.
+                        v.pairs(slot).complete := '1';
+                        malformed              := true;
                      elsif rxMessage.messageType = PTP_MSG_SYNC_C then
                         if v.pairs(slot).syncSeen = '1' or
                            (policyFlags = PTP_ONE_STEP_FLAGS_C and v.pairs(slot).followSeen = '1') then

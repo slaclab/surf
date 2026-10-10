@@ -227,7 +227,13 @@ begin
             response.sequenceId = r.entries(i).sequenceId and response.domainNumber = r.entries(i).domainNumber and
             ptpRequestingIdentity(response) = r.entries(i).identity and
             response.capture.generation = r.entries(i).generation then
-            if r.entries(i).responseSeen = '1' then
+            if response.correction = PTP_CORRECTION_OVERFLOW_C then
+               -- Invalidate only the matched exchange. Keep physical ownership
+               -- and quarantine, including when TX completion arrives later.
+               -- Do not acknowledge metadata such as logMinDelayReqInterval.
+               v.entries(i).retired := '1';
+               v.rejectedCount      := ptpSatInc(v.rejectedCount);
+            elsif r.entries(i).responseSeen = '1' then
                -- Even identical repeats cannot refresh transaction age.
                if r.entries(i).sample.remoteTime /= ptpMessageTimestamp(response) or
                   r.entries(i).sample.correction /= response.correction then

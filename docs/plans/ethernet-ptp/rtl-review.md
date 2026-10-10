@@ -401,6 +401,57 @@ distribution, correction overflow policy and sdoId=000 domain limits.
 Profile/external-port, assigned flag/TLV, time-property and E2E/asymmetry
 acceptance remain partial. These focused passes do not establish conformance.
 
+### October 9 master and exchange checks
+
+Working-tree follow-up on SURF `6db41ad53ed5d17491fcfddfcff30325755d244f`,
+using the same existing Python/GHDL environment and imported source symlinks.
+The three requested items are ordinary multicast master traffic, correction
+field overflow handling and stronger response-association negative tests.
+[Coverage and clauses](../../../tests/ethernet/PtpCore/specification-coverage.md#ordinary-master-and-exchange-checks)
+describe the eight new configurations and their applicability.
+
+`PtpProtocolEngine` retires overflowed Sync/Follow_Up keys before arithmetic;
+`PtpTxLedger` retires matched overflow responses without accepting interval
+metadata. Both preserve existing bounded key ownership. Production interfaces,
+register layouts and manifests are unchanged. The thin `PtpPortWrapper` adds
+body/interval inputs, explicit wire observations, snapshots and E2E result
+outputs; it still contains no alternative protocol logic.
+
+Before the fix, the Sync test published a measurement from the sentinel. After
+correcting a mistyped test expectation (100.25 ns is Q16 **6569984**), the
+ordinary 2019 two-step case passed on the old RTL, while Delay_Resp overflow
+failed because the response's advertised interval poisoned later scheduling.
+The initial new-fixture run had 1 pass/7 failures in 87.58 s, six caused by that
+expected-value typo. The corrected two-case comparison had 1 pass/1 targeted
+failure in 32.95 s. The test expectation, not E2E arithmetic, was corrected.
+Temporary evidence is `/tmp/ptp-exchange-before{,-corrected}.{log,xml}`.
+
+Focused after-change selection (four workers):
+
+```sh
+/Users/bareese/surf/.venv/bin/python -m pytest -q -n 4 --dist=worksteal \
+  tests/ethernet/PtpCore/test_ptp_exchange.py \
+  tests/ethernet/PtpCore/test_ptp_port_samples.py \
+  tests/ethernet/PtpCore/test_ptp_tx_ledger.py
+```
+
+**10 configurations passed in 196.17 s (3 min 16 s), zero failures/skips**:
+eight new exchange configurations plus the existing direct protocol and ledger
+fixtures. Logs/XML are `/tmp/ptp-exchange-after.{log,xml}`.
+The new ordinary-master fixture uses independent 1 Hz timestamp/raw-tick
+advances, skips idle seconds and checks exact forward/delay values, full
+exchange snapshots and stalled outputs. It does not simulate the PHY/PHC/servo
+continuously at those rates. The original long closed-loop, physical-port and
+real-MAC scenarios and the full suite were deliberately not rerun. External
+master, hardware, timing/CDC and full profile acceptance remain open.
+
+VSG reported zero violations on the three edited production files and wrapper.
+New Python passed flake8 and the structural audit (zero findings). All 83 local
+links/anchors in the five changed SURF guides and diff whitespace passed. The
+RTL checklist review traced identity admission, same-edge wire retirement,
+registered completion, retained-key replay and final cancellation priority; no
+new state, clock crossing or public interface was introduced.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),

@@ -37,6 +37,7 @@ entity PtpPortWrapper is
       prepare               : in  sl;
       applyConfig           : in  sl;
       configValid           : out sl;
+      snapshotCapture       : in  sl                := '0';
       ticks                 : in  slv(63 downto 0);
       generation            : in  slv(31 downto 0);
       rxAbort               : in  sl;
@@ -51,6 +52,8 @@ entity PtpPortWrapper is
       rxSource              : in  slv(79 downto 0);
       rxTimestamp           : in  slv(79 downto 0);
       rxCorrection          : in  slv(63 downto 0);
+      rxLogInterval         : in  slv(7 downto 0)   := x"7F";
+      rxBodyTail            : in  slv(159 downto 0) := (others => '0');
       captureTime           : in  slv(95 downto 0);
       captureTicks          : in  slv(63 downto 0);
       captureGeneration     : in  slv(31 downto 0);
@@ -63,9 +66,19 @@ entity PtpPortWrapper is
       measurementGeneration : out slv(31 downto 0);
       measurementRatio      : out slv(63 downto 0);
       ratioValid            : out sl;
+      measurementDelayValid : out sl;
+      measurementDelay      : out slv(127 downto 0);
+      measurementDelaySeq   : out slv(15 downto 0);
+      delayCount            : out slv(31 downto 0);
+      ledgerStatus          : out slv(31 downto 0);
+      wireValid             : in  sl                := '0';
+      wireSequence          : in  slv(15 downto 0)  := (others => '0');
+      wireTime              : in  slv(95 downto 0)  := (others => '0');
+      wireTicks             : in  slv(63 downto 0)  := (others => '0');
+      wireGeneration        : in  slv(31 downto 0)  := (others => '0');
       syncCount             : out slv(31 downto 0);
       rejectedCount         : out slv(31 downto 0);
-      txReady               : in  sl := '1';
+      txReady               : in  sl                := '1';
       txValid               : out sl;
       txData                : out slv(63 downto 0);
       txKeep                : out slv(7 downto 0);
@@ -98,8 +111,10 @@ architecture rtl of PtpPortWrapper is
    signal writeMaster : AxiLiteWriteMasterType;
    signal writeSlave  : AxiLiteWriteSlaveType;
    signal config      : PtpConfigControlType := PTP_CONFIG_CONTROL_INIT_C;
+   signal snapshot    : PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
    signal phcStatus   : PtpPhcStatusType     := PTP_PHC_STATUS_INIT_C;
    signal rxMessage   : PtpRxMessageType     := PTP_RX_MESSAGE_INIT_C;
+   signal wireMessage : PtpRxMessageType     := PTP_RX_MESSAGE_INIT_C;
    signal measurement : PtpMeasurementMasterType;
    signal take        : PtpMeasurementSlaveType;
    signal status      : PtpPortStatusType;
@@ -148,6 +163,7 @@ begin
    -- Fixed record slices only: no protocol behavior in this fixture.
    config.prepare                        <= prepare;
    config.apply                          <= applyConfig;
+   snapshot.capture                      <= snapshotCapture;
    phcStatus.ticks                       <= ticks;
    phcStatus.generation                  <= generation;
    phcStatus.increment                   <= ptpNominalIncrement(125000000);
@@ -158,8 +174,9 @@ begin
    rxMessage.flags                       <= rxFlags;
    rxMessage.control                     <= rxControl;
    rxMessage.sequenceId                  <= rxSequence;
-   rxMessage.logInterval                 <= PTP_LOG_INTERVAL_UNSPECIFIED_C;
+   rxMessage.logInterval                 <= rxLogInterval;
    rxMessage.messageBody(239 downto 160) <= rxTimestamp;
+   rxMessage.messageBody(159 downto 0)   <= rxBodyTail;
    rxMessage.correction                  <= rxCorrection;
    rxMessage.capture.timestamp           <= captureTime;
    rxMessage.capture.ticks               <= captureTicks;
@@ -174,6 +191,11 @@ begin
    measurementGeneration                 <= measurement.data.generation;
    measurementRatio                      <= measurement.data.ratio;
    ratioValid                            <= measurement.data.ratioValid;
+   measurementDelayValid                 <= measurement.data.isDelay;
+   measurementDelay                      <= measurement.data.delayValue;
+   measurementDelaySeq                    <= measurement.data.delaySequence;
+   delayCount                            <= status.delayCount;
+   ledgerStatus                          <= status.ledgerStatus;
    syncCount                             <= status.syncCount;
    rejectedCount                         <= status.rejectedCount;
    txSlave.tReady                        <= txReady;
@@ -183,6 +205,14 @@ begin
    txLast                                <= txMaster.tLast;
    txSof                                 <= ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, txMaster);
    txEofe                                <= ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, txMaster);
+
+   wireMessage.messageType               <= PTP_MSG_DELAY_REQ_C;
+   wireMessage.sourcePortIdentity        <= x"020000FFFE0000010001";
+   wireMessage.sequenceId                <= wireSequence;
+   wireMessage.capture.timestamp         <= wireTime;
+   wireMessage.capture.ticks             <= wireTicks;
+   wireMessage.capture.generation        <= wireGeneration;
+   wireMessage.capture.increment         <= ptpNominalIncrement(125000000);
 
    U_DUT : entity surf.PtpProtocolEngine
       generic map (
@@ -197,6 +227,7 @@ begin
          axiWriteMaster    => writeMaster,               -- [in]
          axiWriteSlave     => writeSlave,                -- [out]
          configControl     => config,                    -- [in]
+         snapshotControl   => snapshot,                  -- [in]
          configValid       => configValid,               -- [out]
          enable            => '1',                       -- [in]
          sharedConfig      => open,                      -- [out]
@@ -211,8 +242,8 @@ begin
          rxReady           => rxReady,                   -- [out]
          rxQueueOverflow   => rxOverflow,                -- [in]
          rxAbort           => rxAbort,                   -- [in]
-         txMessage         => PTP_RX_MESSAGE_INIT_C,     -- [in]
-         txValid           => '0',                       -- [in]
+         txMessage         => wireMessage,               -- [in]
+         txValid           => wireValid,                 -- [in]
          txAbort           => '0',                       -- [in]
          txMaster          => txMaster,                  -- [out]
          txSlave           => txSlave,                   -- [in]

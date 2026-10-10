@@ -31,8 +31,13 @@ The subsequent [specification audit and fixes](rtl-review.md#october-9-directed-
 use the maintainer-supplied 2019 text. Minor-version, reserved/control-field,
 TLV and transmitted-control fixes have **11 focused RTL configurations and
 27 RX model cases passing**; the selected RTL runs took about 66 seconds total.
-The full suite was not rerun. The default multicast scheduler, correction
-overflow policy, domain limits and profile requirements remain open.
+The full suite was not rerun. The subsequent
+[master/exchange checks](rtl-review.md#october-9-master-and-exchange-checks)
+add ordinary multicast master traffic, correction-overflow retirement and
+response-association rejection/recovery: **10 focused configurations passed in
+196.17 seconds with four workers**, including the direct protocol and ledger
+regressions. The default multicast scheduler,
+domain limits and profile requirements remain open.
 
 Routine changes use the [focused test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests).
 The full suite is reserved for substantial integration/release validation or an

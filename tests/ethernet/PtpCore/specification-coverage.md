@@ -55,13 +55,13 @@ relative to this directory.
 | PTP-S02: versions and domain | 19.2/19.3; 7.1.2.1; 13.3.2.10. All 16 minor values accepted with major 2; major 1/3 rejection in selected fixtures; ignored messageTypeSpecific and minorSdoId in non-isolated operation; both TX versions checked. Existing port fixtures check foreign source/domain rejection. | 7.1.4/Table 2 reserves domains 128–255 for the selected sdoId=000, but configuration currently permits them. No domain-range validation test/fix yet. No profile-isolation option 16.5. |
 | PTP-S03: timestamp point | 7.3.4.1/7.3.4.2: first symbol after SFD at the reference plane, with capture-point and ingress/egress latency corrections. Existing `test_ptp_rx_rtl.py` and wire observers check GMII/XGMII phase, signed calibration and provenance. | Independently map every configured latency sign/plane to these equations. Connector calibration and reset-dependent PHY latency require hardware; MAC-side simulation is insufficient. |
 | PTP-S04: one-/two-step Sync | 11.2; 13.3.2.8/Table 37; 13.6/13.7. `test_ptp_port_samples.py` checks exact mode equivalence; the specification fixture checks reordered Follow_Up, cleared Follow_Up twoStepFlag and reserved-bit tolerance. | Complete per-message applicability of assigned flags under the selected profile; collision/replay policies remain local contracts. |
-| PTP-S05: corrections | 13.3.2.9/Table 38; 11.2/11.3.2. Signed fractional correction and widened sums have independent numerical expectations. The direct protocol fixture uses finite signed bounds. | The overflow indication is definitively `0x7fffffffffffffff`, not `-1`. RTL still treats it numerically. Select and test explicit receiver handling; the standard's encoding does not prescribe a universal discard action. Arithmetic boundary coverage does not establish semantic validity. |
-| PTP-S06: E2E equations | 11.2/11.3.2. Existing E2E RTL vectors and rational/fixed-point oracle anchors cover symmetric-path delay/offset, split corrections and rate mismatch. | Map the complete independent end-to-end vector set to the clauses; add known path-asymmetry/calibration sign tests and fractional Delay_Resp contributions at the protocol boundary. |
-| PTP-S07: response association | 9.5.7; 11.3.2; 13.8. Ledger/port fixtures check requesting identity, sequence, source, reordering, wrap and late completion. | Explicit one-field-at-a-time clause mapping, response acceptance and later recovery. Separate required association fields from local retirement/quarantine bounds. New header-admission tests do not prove successful response matching. |
+| PTP-S05: corrections | 13.3.2.9/Table 38; 11.2/11.3.2. Signed fractional correction and widened sums have independent numerical expectations. The direct protocol fixture uses finite signed bounds. `test_ptp_exchange.py` retires overflowed Sync/Follow_Up keys in both orders and matched Delay_Resp requests, blocks replay and interval updates, and checks fresh recovery. | The overflow indication is `0x7fffffffffffffff`, not `-1`. Retirement is the chosen local policy; the standard's encoding does not prescribe a universal discard action. Wider profile/option applicability remains partial. |
+| PTP-S06: E2E equations | 11.2/11.3.2. Existing E2E RTL vectors and rational/fixed-point oracle anchors cover symmetric-path delay/offset, split corrections and rate mismatch. | The ordinary-master fixture adds exact 100.25 ns symmetric delay with a fractional Delay_Resp contribution at the protocol boundary. Complete asymmetric-path/calibration-sign coverage remains open. |
+| PTP-S07: response association | 9.5.7; 11.3.2; 13.8. Ledger/port fixtures check requesting identity, sequence, source, reordering, wrap and late completion. | The exchange fixture mutates each requester member, sequence, each source member, domain and capture generation separately; both TX-observation orders reject then recover on the same request, and completed responses cannot publish twice. Full profile/state applicability and finite-lifetime bounds remain separate acceptance. |
 | PTP-S08: Delay_Req and intervals | 11.3.2; 13.3.2.13/13.3.2.14/Table 42; 13.6. New independent emitted-byte check covers destination/source, length, identity, initial sequence, version-specific control, log interval 0x7f, zero correction/origin/reserved fields and stable backpressure. | **Known departure:** the three-point schedule fails the default multicast distribution in 9.5.11.2(c)(1). Mean/granularity, matched-response interval updates and foreign/stale-response immunity need directed scheduler acceptance. |
 | PTP-S09: ignored fields and TLVs | 13.2; 13.3.2.8/.10/.13; 5.3.8; 14.1/14.1.2; 14.4.2. Directed checks cover reserved flag bits, ignored control values, even/odd TLV lengths, unknown TLV followed by PAD, truncation and recovery. | Assigned options and recognized optional TLVs need per-message/profile analysis. Skip semantics do not imply support for the option. Rejecting malformed TLVs is the endpoint's policy, distinct from the sender encoding rules. |
 | PTP-S10: Announce/time properties and configured ports | 13.5/Table 37; 17.6. Existing physical-port checks cover metadata and acquisition restart on GM/timescale changes. | UTC-offset validity, leap/traceability/timescale behavior and receipt timeouts need explicit requirement mapping. External configuration requires its specified data sets, state behavior and initialization; current fixed-source operation has not demonstrated that contract. |
-| PTP-S11: external interoperability | Clause 19's compatibility scope. Synthetic master and separate real-MAC fixtures exercise the selected exchange. | Pin a LinuxPTP/instrument configuration, both versions/modes and independent packet captures. No external-master or hardware result yet. |
+| PTP-S11: external interoperability | Clause 19's compatibility scope. Ordinary master headers/intervals now have focused RX and protocol/ledger/E2E checks, alongside the older accelerated synthetic-master and real-MAC fixtures. | Pin a LinuxPTP/instrument configuration, both versions/modes and independent packet captures. No external-master or hardware result yet. |
 | PTP-I01: implementation quality | Math/PHC/servo/register, queue, cancellation, holdover and snapshot tests. | PI gains, rounding, lock thresholds and finite buffers are implementation choices. Simulated phase bounds are not IEEE or hardware accuracy guarantees. |
 
 ## Construction and acceptance rules
@@ -106,6 +106,44 @@ version rejection, control-based rejection, reserved-bit rejection and acceptanc
 of odd TLV lengths. These are now corrected. The transmit check covers the
 additional 2019 controlField correction.
 
+## Ordinary master and exchange checks
+
+`test_ptp_exchange.py` adds eight independently selectable pytest configurations.
+It uses a separate source-backed master builder, with complete literal byte
+anchors through `PtpRxFrontend`. The protocol fixture then submits those packet
+fields to the actual `PtpProtocolEngine`, `PtpTxLedger` and `PtpE2e`.
+
+- `master_headers`: 2019 controlField zero, selected legacy controls in minor-zero
+  mode, Sync/Follow_Up log interval 0, Delay_Resp interval 0, Announce interval 1,
+  canonical bodies/lengths/reserved fields, and a consistent free-running GM
+  Announce (arbitrary timescale, no UTC/traceability claims).
+- `ordinary_master`: four edition/mode combinations; 1 Hz Sync timestamps,
+  2 s Announce cadence during acquisition, fractional timestamp corrections,
+  complete emitted Delay_Req bytes, and both response/TX-observation orders.
+  Independent expectations are forward 150 ns and symmetric path delay
+  100.25 ns; snapshots assert t1/t2/t3/t4, correction and sequence provenance.
+  Results hold under measurement backpressure. See 11.2/11.3.2, 13.3/Table 42,
+  13.5--13.8 and Annex F.
+- `sync_overflow`: one-step and either two-step operand, either arrival order,
+  same-key finite replay rejection and next-key recovery; `-1` remains finite.
+- `response_overflow`: matching overflow before/after TX observation, no estimate,
+  no advertised-interval poisoning, retained unknown wire fate and fresh recovery.
+  The overflow encoding comes from 13.3.2.9; retirement is local receiver policy.
+- `response_association`: requester clockIdentity/portNumber and sequence are
+  independently mismatched per 9.5.7. Configured source clock/port and domain
+  admission are checked separately, as is local capture generation. Each of
+  seven mutations is checked with both delivery orders, followed by successful
+  completion of the same request and duplicate rejection.
+
+Raw ticks and timestamps advance together between transactions; idle seconds
+are omitted while the serialized RTL pipelines run normally. This proves the
+selected protocol exchange using ordinary message fields and interval values.
+It does not establish continuous-time PHY/PHC/servo operation at these rates,
+external-master interoperability, BMCA/profile conformance or the default
+request distribution. The older accelerated master remains separate.
+Execution and known-bad evidence belong in the
+[acceptance record](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-master-and-exchange-checks).
+
 ## Remaining normative work
 
 1. **Deployment/profile contract:** identify the intended profile, options,
@@ -120,14 +158,11 @@ additional 2019 controlField correction.
    seconds. Current 0.5/1/1.5 timing is a known departure. A profile can specify
    another distribution; no such profile is currently selected. Fix/design and
    short deterministic distribution/interval-update regressions remain open.
-3. **Correction overflow:** encoding is resolved; select receiver policy and
-   test it across Sync, Follow_Up and Delay_Resp without publishing a finite
-   estimate from an overflow indication.
-4. **Domain configuration:** restrict or explicitly resolve domains 128–255
+3. **Domain configuration:** restrict or explicitly resolve domains 128–255
    under sdoId=000; add prepare/apply boundary checks for 127/128/255.
-5. **Protocol semantics:** finish E2E/asymmetry, response interval updates,
+4. **Protocol semantics:** finish E2E/asymmetry, response interval updates,
    assigned flags/optional TLVs and time-property/timeout cases identified above.
-6. **Qualification:** external-master compatibility, calibrated reference-plane
+5. **Qualification:** external-master compatibility, calibrated reference-plane
    timestamps, hardware timing/CDC and accuracy remain separate acceptance.
 
 Run only the affected cases from the [selection guide](README.md#selecting-tests).

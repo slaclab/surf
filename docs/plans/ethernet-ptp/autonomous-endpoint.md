@@ -258,6 +258,17 @@ IEEE 1588 mandates this exact handling. Completion follows full frame validation
 and available processing capacity; RX waits while rate processing or a measurement
 stalls, and later collisions cannot revoke consumed samples.
 
+The correctionField encoding `0x7fffffffffffffff` is an overflow indication
+(IEEE 1588-2019 13.3.2.9), not a finite correction. The local receiver policy
+retires the affected Sync/Follow_Up key, including when the overflowing half
+arrives first. Finite duplicates cannot revive that retained key. A matching
+Delay_Resp with this encoding retires its request without accepting its advertised
+interval; unresolved TX ownership and the normal quarantine remain intact.
+Identity/domain/provenance checks precede retirement, so foreign traffic cannot
+invalidate an unrelated request. Already consumed measurements are not revoked.
+Other signed values, including `-1` and both finite wire bounds, remain arithmetic
+inputs; existing chronological and path-delay validity checks still apply.
+
 Both receive modes share the existing registered measurement,
 backpressure and child-cancellation contracts. Corrected remote time
 and raw capture time must both advance. Four completed Syncs supply the nearest

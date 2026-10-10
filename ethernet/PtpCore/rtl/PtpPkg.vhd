@@ -129,6 +129,9 @@ package PtpPkg is
 
    constant PTP_LOG_INTERVAL_UNSPECIFIED_C : slv(7 downto 0) := x"7F";
 
+   -- IEEE 1588-2019 13.3.2.9: this encoding is not a finite Q16 correction.
+   constant PTP_CORRECTION_OVERFLOW_C : slv(63 downto 0) := x"7FFFFFFFFFFFFFFF";
+
    -- Shared wire records and timebase interfaces. All arithmetic units are explicit.
    -- Normalized RX retains destination-MAC-through-FCS bytes in low-byte-first
    -- AXI lanes. SOF and the capture sidecar must share one pipeline; there is
