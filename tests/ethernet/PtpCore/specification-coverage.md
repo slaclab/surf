@@ -16,9 +16,10 @@ A named deployment profile has not been selected. A fixed source alone does
 not establish conformance to the external port configuration option in 17.6.
 
 The authoritative 2019 text supplied by the maintainer was reviewed October 9,
-2026: local file `/Users/bareese/Downloads/1588-2019.pdf`, SHA-256
+2026. The original is preserved in the ptp-dev workspace at
+[docs/reference/1588-2019.pdf](../../../../../../docs/reference/1588-2019.pdf), SHA-256
 `85bcd0f039c2553337ccf1756c40921b027549d0327eb580d2931e227611274b`.
-The licensed PDF and extracted text are not stored in this repository.
+The licensed PDF is not bundled in SURF itself; extracted text remains temporary.
 Clause/table numbers below refer to that edition, not carried-over 2008 numbers.
 This audit does not yet include separate amendments or corrigenda.
 
