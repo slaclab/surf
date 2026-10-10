@@ -33,6 +33,13 @@ separates simulated behavior from remaining device and interoperability work.
   literal wire frames and both E2E reference solvers against three hand-worked
   examples. These are pure model/helper checks, not additional RTL or IEEE
   conformance results; provenance and remaining gaps are in the matrix below.
+- `test_ptp_specification.py` provides seven short, separately selected RTL
+  cases: literal RX packets/recovery, signed two-step corrections, minor versions,
+  TLV suffixes, ignored control/reserved bits and complete Delay_Req bytes for
+  both transmitted versions. The
+  [source/applicability table](specification-coverage.md#source-backed-directed-checks)
+  records verified 2019 clauses, 2008 compatibility and implementation policy;
+  the remaining audit includes known scheduler, domain and overflow gaps.
 
 **Current authorization:** the maintainer lifted the simulation/pytest pause on
 October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
@@ -65,6 +72,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | --- | --- | --- |
 | Documentation or comments only | Links/anchors and diff whitespace; no pytest or simulation. | Executable behavior also changes. |
 | Reference arithmetic or packet helpers | Relevant cases in `test_ptp_reference.py`, `test_ptp_endpoint_reference.py`, `test_ptp_rx_reference.py`, or `test_ptp_wire_vectors.py`. | Run a consuming RTL fixture when its stimulus/oracle behavior changes; model checks alone do not exercise cocotb drivers. |
+| Sourced header, version, TLV or two-step checks | The relevant node/scenario in `test_ptp_specification.py` (RX or protocol). | Expand for affected PHY timing or normative cases absent from that fixture; the selected cases are not the whole standards audit. |
 | Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |

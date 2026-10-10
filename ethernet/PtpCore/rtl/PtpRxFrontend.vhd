@@ -277,7 +277,9 @@ begin
                               v.frame.tlvRemaining          := to_integer(unsigned(v.frame.tlvLength));
                               -- offset is the last TLV-header byte. A declared
                               -- value may not extend past the PTP message end.
-                              if v.frame.tlvRemaining > PTP_ETH_HEADER_BYTES_C+length-offset-1 then
+                              -- IEEE 1588-2019 5.3.8 requires even TLV lengths.
+                              if v.frame.tlvLength(0) = '1' or
+                                 v.frame.tlvRemaining > PTP_ETH_HEADER_BYTES_C+length-offset-1 then
                                  v.frame.bad := '1';
                               end if;
                            end if;
@@ -336,15 +338,12 @@ begin
                elsif v.frame.crc /= ETH_CRC_RESIDUE_C then
                   frameComplete := false;
 
-               -- Protocol identity: EtherType, then major/minor PTP version.
+               -- IEEE 1588-2019 19.2 accepts every minor version when the
+               -- major version matches. Preserve the minor value in the record.
                elsif networkField(v.frame.prefix, 12, 2) /= PTP_ETH_TYPE_C then
                   frameComplete := false;
                elsif v.frame.prefix(15)(3 downto 0) /= PTP_MAJOR_VERSION_C then
                   frameComplete := false;
-               elsif v.frame.prefix(15)(7 downto 4) /= PTP_MINOR_VERSION_MIN_C and
-                  v.frame.prefix(15)(7 downto 4) /= PTP_MINOR_VERSION_MAX_C then
-                  frameComplete := false;
-
                -- Require the fixed body and complete TLVs before the FCS.
                elsif base = 0 or length < base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
                   frameComplete := false;

@@ -162,10 +162,12 @@ async def exact_mode_equivalence(d):
     await b.start()
     try:
         # Include both second-boundary directions, every seconds bit and the
-        # full signed correction range. Expected values use Python integers.
+        # ordinary signed correction bounds. The maximum signed64 encoding
+        # is the overflow sentinel (1588-2019 13.3.2.9), not a finite value.
+        # Expected values use Python integers.
         vectors = [(42*NS, -Q16-17), (42*NS+NS-1, 2*Q16+7),
                    ((1 << 40)*NS+NS-1, -Q16//2), (((1 << 48)-1)*NS, Q16//2),
-                   (42*NS, -(1 << 63)), (42*NS, (1 << 63)-1)]
+                   (42*NS, -(1 << 63)), (42*NS, (1 << 63)-2)]
         for remote, correction in vectors:
             local = remote*Q16+55*Q16+123
             expected = local-remote*Q16-correction
@@ -199,7 +201,7 @@ async def exact_mode_equivalence(d):
             assert len(set(results)) == 1
         # Two-step sum may exceed signed64, while each wire field remains valid.
         await b.pulse('restart')
-        for correction in ((1 << 63)-1, -(1 << 63)):
+        for correction in ((1 << 63)-2, -(1 << 63)):
             await b.pulse('restart')
             await b.send(0, 9, 0, correction, two_step=True, local=100*Q16)
             await b.send(8, 9, NS, correction)
@@ -266,9 +268,10 @@ async def collisions_and_policy(d):
         await b.no_result()
         assert b.counts() == (before, rejected+1)
 
-        # Preserve exact flag, control, domain and configured-source policy.
+        # Preserve unsupported assigned flags, domain and configured-source policy.
+        # Reserved flags and controlField are ignored in the specification tests.
         for kwargs in ({'flags': 1}, {'flags': 0x201}, {'flags': 0x400},
-                       {'control': 1}, {'domain': 1}, {'source': SOURCE+1},
+                       {'flags': 0x100}, {'domain': 1}, {'source': SOURCE+1},
                        {'generation': 1}):
             await b.pulse('restart')
             before, rejected = b.counts()

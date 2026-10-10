@@ -23,10 +23,16 @@ acceptance remain open.
 **The maintainer authorized resuming behavioral verification on October 9,
 2026.** The prior simulation/pytest pause is lifted. The resumed run and its
 source revision are recorded in the [acceptance record](rtl-review.md#october-9-behavioral-verification).
-The resumed suite passes all **121 distinct cases** after a GMII fixture timeout
+The resumed baseline suite passed all **121 distinct cases** after a GMII fixture timeout
 correction: 24 cocotb/GHDL configurations and 97 Python/static cases, with no
-remaining failures or skips. Production RTL is unchanged by this verification.
+remaining failures or skips. That baseline run did not change production RTL.
 Additional boundary and standards/profile acceptance remains open.
+The subsequent [specification audit and fixes](rtl-review.md#october-9-directed-specification-checks)
+use the maintainer-supplied 2019 text. Minor-version, reserved/control-field,
+TLV and transmitted-control fixes have **11 focused RTL configurations and
+27 RX model cases passing**; the selected RTL runs took about 66 seconds total.
+The full suite was not rerun. The default multicast scheduler, correction
+overflow policy, domain limits and profile requirements remain open.
 
 Routine changes use the [focused test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests).
 The full suite is reserved for substantial integration/release validation or an
@@ -50,7 +56,8 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   See [software naming](register-map.md#software-naming).
 - One-step receive selects origin/correction per Sync without a mode register.
   Its association rules are part of the [endpoint contract](autonomous-endpoint.md#port-policy-and-numerical-envelope),
-  with both receive modes passing the current direct, physical and endpoint fixtures.
+  with both receive modes passing the baseline direct, physical and endpoint
+  fixtures; later header fixes have the focused verification recorded above.
 - The [fixed-point width audit](autonomous-endpoint.md#fixed-point-width-audit)
   narrows bounded servo state and the math engine's internal product storage.
   Precision and public arithmetic ranges are retained; current and pre-width-change

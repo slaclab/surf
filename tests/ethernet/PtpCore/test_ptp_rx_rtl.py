@@ -214,7 +214,7 @@ async def rx_contract(dut):
     await send(frame(minor=0))
     await bench.wait()
     assert len(bench.received) == before+1 and bench.received[-1].minor_version == 0
-    for offset, value in ((12, 0xf7), (15, 0x13), (15, 0x22), (14, 1), (17, 43)):
+    for offset, value in ((12, 0xf7), (15, 0x13), (15, 0x11), (14, 1), (17, 43)):
         raw = bytearray(frame())
         raw[offset] = value
         before = len(bench.received)

@@ -164,7 +164,7 @@ async def adversarial_port(d):
     expected[14] = 1
     expected[20:22] = bytes(2)
     expected[34:44] = LOCAL
-    expected[46] = 1
+    expected[46] = 0  # Default minor version 1: 2019 Layer-2 controlField.
     assert request == expected
     await b.wait(3)
     assert not int(d.modelTxValid.value)
@@ -204,14 +204,14 @@ async def physical_one_step_policy(d):
             assert await count() == accepted
 
         # FCS, short-body and unsupported-version errors die in the validator.
-        # Profile/domain/flags/control errors die in port policy. Neither path
+        # Profile/domain/flags/source errors die in port policy. Neither path
         # may contaminate the following valid copy of the same sequence.
         seq = 100
         for patch, corrupt, truncate in (
                 (None, True, False), (None, False, True),
-                ((15, b'\x13'), False, False), ((15, b'\x22'), False, False),
+                ((15, b'\x13'), False, False), ((15, b'\x11'), False, False),
                 ((14, b'\x10'), False, False), ((18, b'\x01'), False, False),
-                ((20, b'\x02\x01'), False, False), ((46, b'\x01'), False, False),
+                ((20, b'\x02\x01'), False, False), ((34, b'\x80'), False, False),
                 ((54, NS.to_bytes(4, 'big')), False, False)):
             seq += 1
             remote = ((1 << 40)+seq)*NS

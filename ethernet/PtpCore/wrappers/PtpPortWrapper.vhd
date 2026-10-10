@@ -3,8 +3,8 @@
 -------------------------------------------------------------------------------
 -- Description: Flat transaction and measurement fixture for the real PtpProtocolEngine.
 --
--- Exposes validated RX records, capture provenance, cancellation and measurement
--- backpressure without a servo consuming results. Python owns all stimulus and
+-- Exposes validated RX records, capture provenance, cancellation, TX beats and
+-- measurement backpressure without a servo consuming results. Python owns all stimulus and
 -- expected arithmetic. The AXI adapter accesses the production local register
 -- bank; prepare/apply inputs model the endpoint coordinator's transaction.
 -- Physical validation is covered separately by the endpoint and RX fixtures.
@@ -25,6 +25,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpPortWrapper is
@@ -64,6 +65,13 @@ entity PtpPortWrapper is
       ratioValid            : out sl;
       syncCount             : out slv(31 downto 0);
       rejectedCount         : out slv(31 downto 0);
+      txReady               : in  sl := '1';
+      txValid               : out sl;
+      txData                : out slv(63 downto 0);
+      txKeep                : out slv(7 downto 0);
+      txLast                : out sl;
+      txSof                 : out sl;
+      txEofe                : out sl;
       axil_awaddr           : in  slv(31 downto 0);
       axil_awvalid          : in  sl;
       axil_awready          : out sl;
@@ -96,6 +104,8 @@ architecture rtl of PtpPortWrapper is
    signal take        : PtpMeasurementSlaveType;
    signal status      : PtpPortStatusType;
    signal resetN      : sl;
+   signal txMaster    : AxiStreamMasterType;
+   signal txSlave     : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
 
 begin
 
@@ -166,6 +176,13 @@ begin
    ratioValid                            <= measurement.data.ratioValid;
    syncCount                             <= status.syncCount;
    rejectedCount                         <= status.rejectedCount;
+   txSlave.tReady                        <= txReady;
+   txValid                               <= txMaster.tValid;
+   txData                                <= txMaster.tData(63 downto 0);
+   txKeep                                <= txMaster.tKeep(7 downto 0);
+   txLast                                <= txMaster.tLast;
+   txSof                                 <= ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, txMaster);
+   txEofe                                <= ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, txMaster);
 
    U_DUT : entity surf.PtpProtocolEngine
       generic map (
@@ -197,8 +214,8 @@ begin
          txMessage         => PTP_RX_MESSAGE_INIT_C,     -- [in]
          txValid           => '0',                       -- [in]
          txAbort           => '0',                       -- [in]
-         txMaster          => open,                      -- [out]
-         txSlave           => AXI_STREAM_SLAVE_FORCE_C,  -- [in]
+         txMaster          => txMaster,                  -- [out]
+         txSlave           => txSlave,                   -- [in]
          measurementMaster => measurement,               -- [out]
          measurementSlave  => take,                      -- [in]
          lifecycle         => open,                      -- [out]

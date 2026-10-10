@@ -477,13 +477,16 @@ architecture rtl of PtpProtocolEngine is
       return signed(logInterval) >= MIN_LOG_INTERVAL_C and signed(logInterval) <= MAX_LOG_INTERVAL_C;
    end function;
 
-   -- Announce uses the general-message control value. Leap flags are mutually
-   -- exclusive, and the upper flag octet is reserved for this endpoint profile.
+   -- IEEE 1588-2019 13.2 and Table 37: reserved flags are ignored on receipt.
+   constant RESERVED_FLAGS_MASK_C : slv(15 downto 0) := x"9880";
+
+   -- Leap flags are mutually exclusive. Unsupported assigned upper-octet
+   -- flags remain outside this multicast endpoint's selected options.
+   -- Layer-2 controlField is ignored per 13.3.2.13, including legacy values.
    function validAnnounce (message : PtpRxMessageType) return boolean is
    begin
-      return message.control = PTP_CONTROL_OTHER_C and
-         (message.flags and PTP_LEAP_FLAGS_MASK_C) /= PTP_LEAP_FLAGS_MASK_C and
-         (message.flags and PTP_GENERAL_RESERVED_C) = x"0000";
+      return (message.flags and PTP_LEAP_FLAGS_MASK_C) /= PTP_LEAP_FLAGS_MASK_C and
+         (message.flags and PTP_GENERAL_RESERVED_C and not RESERVED_FLAGS_MASK_C) = x"0000";
    end function;
 
    function intervalTicks (
@@ -552,7 +555,11 @@ architecture rtl of PtpProtocolEngine is
       end loop;
       bytes(44) := seqId(15 downto 8);               -- sequenceId.
       bytes(45) := seqId(7 downto 0);
-      bytes(46) := PTP_CONTROL_DELAY_REQ_C;          -- controlField.
+      -- 2019 Layer-2 transmits controlField=0; retain the 2008 encoding only
+      -- when software explicitly selects minor version 0 compatibility.
+      if cfg.minorVersion = PTP_MINOR_VERSION_MIN_C then
+         bytes(46) := PTP_CONTROL_DELAY_REQ_C;
+      end if;
       bytes(47) := PTP_LOG_INTERVAL_UNSPECIFIED_C;   -- logMessageInterval.
 
       -- Reserved fields, flags, correctionField and originTimestamp (48..57)
@@ -667,6 +674,7 @@ begin
       variable qualifiedRatio : sl;
       variable validResponse  : sl;
       variable malformed      : boolean;
+      variable policyFlags    : slv(15 downto 0);
 
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
       variable slot          : integer range -1 to PAIR_DEPTH_C-1;
@@ -677,6 +685,7 @@ begin
       variable completedSync : PtpSyncSampleType;
    begin
       v := r;
+      policyFlags := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
 
       -- Requests retain their complete payload until the child accepts them.
       -- The response lane accepts one RX message per clock and returns its
@@ -769,8 +778,8 @@ begin
          v.rxReady := '1';
       end if;
       validResponse := '0';
-      if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and rxMessage.flags = x"0000" and
-         rxMessage.control = PTP_CONTROL_DELAY_RESP_C and unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
+      if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and policyFlags = x"0000" and
+         unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
          validResponse := rxValid and v.rxReady and policyValid;
       end if;
 
@@ -867,11 +876,9 @@ begin
                when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
                   -- Validate message semantics before allocating or changing a slot.
                   if rxMessage.messageType = PTP_MSG_SYNC_C then
-                     if rxMessage.flags /= PTP_ONE_STEP_FLAGS_C and rxMessage.flags /= PTP_TWO_STEP_FLAGS_C then
+                     if policyFlags /= PTP_ONE_STEP_FLAGS_C and policyFlags /= PTP_TWO_STEP_FLAGS_C then
                         malformed := true;
-                     elsif rxMessage.control /= PTP_CONTROL_SYNC_C then
-                        malformed := true;
-                     elsif rxMessage.flags = PTP_ONE_STEP_FLAGS_C then
+                     elsif policyFlags = PTP_ONE_STEP_FLAGS_C then
                         -- Only one-step Sync carries the authoritative timestamp.
                         -- The two-step Sync body is ignored in favor of Follow_Up.
                         if unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C then
@@ -879,10 +886,8 @@ begin
                         end if;
                      end if;
                   else
-                     -- Follow_Up always requires zero flags and a valid timestamp.
-                     if rxMessage.flags /= PTP_ONE_STEP_FLAGS_C then
-                        malformed := true;
-                     elsif rxMessage.control /= PTP_CONTROL_FOLLOW_UP_C then
+                     -- Follow_Up ignores reserved bits and controlField.
+                     if policyFlags /= PTP_ONE_STEP_FLAGS_C then
                         malformed := true;
                      elsif unsigned(ptpMessageNanoseconds(rxMessage)) >= PTP_NANOSECONDS_PER_SECOND_C then
                         malformed := true;
@@ -903,7 +908,7 @@ begin
                         malformed := true;
                      elsif rxMessage.messageType = PTP_MSG_SYNC_C then
                         if v.pairs(slot).syncSeen = '1' or
-                           (rxMessage.flags = PTP_ONE_STEP_FLAGS_C and v.pairs(slot).followSeen = '1') then
+                           (policyFlags = PTP_ONE_STEP_FLAGS_C and v.pairs(slot).followSeen = '1') then
                            -- Duplicate Sync is ambiguous even if its headers match:
                            -- the physical capture is a different wire event.
                            -- One-step cannot inherit an earlier Follow_Up either.
@@ -914,7 +919,7 @@ begin
                            v.pairs(slot).sample.capture := rxMessage.capture;
                            v.pairs(slot).syncCorrection := rxMessage.correction;
                            v.pairs(slot).twoStep        := '0';
-                           if rxMessage.flags = PTP_TWO_STEP_FLAGS_C then
+                           if policyFlags = PTP_TWO_STEP_FLAGS_C then
                               v.pairs(slot).twoStep := '1';
                            else
                               v.pairs(slot).sample.remoteTime := ptpMessageTimestamp(rxMessage);

@@ -39,7 +39,9 @@ restarts acquisition and updates both views coherently.
 
 Delay_Req uses multicast `01:1B:19:00:00:00`, EtherType `0x88F7`, message type 1,
 length 44, configured domain/minor version, zero correction/origin timestamp,
-local identity, allocated sequence, control 1 and log interval `0x7F`. Its
+local identity, allocated sequence and log interval `0x7F`. Control is zero for
+minor version 1 (2019 Layer-2), or one for selected minor version 0 (2008
+compatibility). Its
 58 meaningful bytes exclude preamble/padding/FCS; SSI SOF is set, final EOFE is
 clear and every offered beat remains stable under backpressure. Bypass priority
 is at frame boundaries; the TX tap observes actual transmission after MAC pause
@@ -126,14 +128,14 @@ The frontend owns these structural checks:
   Jumbo and tagged PTP are outside this first contract.
 - Ethernet FCS across the complete frame, including legal padding. Nothing is
   queued before the final CRC result and framing status are known.
-- Outer EtherType `88 F7`, major version 2, minor version 0 or 1, and a supported
+- Outer EtherType `88 F7`, major version 2 with any minor version, and a supported
   RX message type. The byte-order convention remains distinct from `x"F788"`
   in the MAC bypass generic.
 - `messageLength` covers the fixed body (44/44/54/64 bytes respectively), fits
   the received frame, and is at most 1500. Padding beyond that length is
   excluded from PTP decode, but included in CRC.
-- Optional TLVs walk exactly to `messageLength`; reject partial headers and
-  values extending beyond it. Structurally valid unknown TLVs are skipped.
+- Optional TLVs walk exactly to `messageLength`; reject odd value lengths,
+  partial headers and values extending beyond it. Structurally valid unknown TLVs are skipped.
   Profile-specific TLV semantics and conformance fixtures remain a parser
   qualification task; the model checks boundary lengths, not full IEEE conformance.
 
@@ -219,19 +221,22 @@ physical producer boundary has no CDC.
 ## Port policy and numerical envelope
 
 The fixed source accepts multicast destination `01:1B:19:00:00:00`, configured
-sourcePortIdentity/domain, transportSpecific zero, PTP v2.0/v2.1, one-step or
-two-step Sync, Follow_Up, Delay_Resp and Announce. Flag/control and canonical timestamp checks
+sourcePortIdentity/domain, majorSdoId (formerly transportSpecific) zero, PTP
+major version 2 with any minor version, one-step or two-step Sync, Follow_Up,
+Delay_Resp and Announce. The non-isolated domain ignores minorSdoId;
+messageTypeSpecific and received controlField are ignored. Reserved flag bits
+(`0x9880`) are excluded from policy checks. Remaining flags and canonical timestamp checks
 follow structural/FCS validation. There is no BMCA, one-step transmit insertion, UDP,
 VLAN, Pdelay, security extension, or automatic upstream selection.
 
-Four bounded associations select the mode independently for each Sync. Exact
-flags `0x0000` select one-step: nanoseconds must be below 1,000,000,000, and the
+Four bounded associations select the mode independently for each Sync. After
+masking reserved bits, flags `0x0000` select one-step: nanoseconds must be below 1,000,000,000, and the
 Sync's originTimestamp and sign-extended correction complete the sample with
-its own physical capture. Exact flags `0x0200` select two-step: Sync and
+its own physical capture. Flags `0x0200` select two-step: Sync and
 Follow_Up may arrive in either order, the Sync body is non-authoritative, and
 the sample uses Follow_Up's preciseOriginTimestamp plus the widened signed
 sum of both corrections. All 48 seconds bits and Q16 correction bits survive.
-Other Sync flags are rejected before association updates.
+Other non-reserved Sync flags are rejected before association updates.
 
 A one-step Sync colliding with a retained Follow_Up retires the association
 without a sample. Follow_Up after a one-step Sync is rejected and counted
@@ -246,7 +251,7 @@ changes, RX abort/epoch invalidation and PHC generation changes; AXI-only reset
 preserves it. Distinct sequence IDs can alternate modes without reconfiguration. The private mode bit is qualified by `syncSeen`;
 `followSeen` indicates an actual Follow_Up. Completion requires an unretired Sync
 and either one-step mode or its Follow_Up; the unused one-step Follow_Up correction
-is zero. Exact flags and canonical one-step nanoseconds are checked before slot
+is zero. Masked flags and canonical one-step nanoseconds are checked before slot
 lookup/update, so malformed traffic cannot contaminate a retained association.
 These collision rules are conservative implementation policy, not a claim that
 IEEE 1588 mandates this exact handling. Completion follows full frame validation
@@ -274,6 +279,13 @@ rejection and use fallback. Known Sync/Announce intervals give three-period
 receipt timeouts, capped by configured `SyncTimeout` (twice that for Announce).
 A configured-source grandmaster or PTP-timescale change cancels old acquisition. Announce metadata
 is exposed, including all 30 body octets; UTC/leap flags never step the PHC.
+
+The three-point schedule is a known departure from IEEE 1588-2019
+9.5.11.2(c)(1)'s default multicast uniform distribution. The selected sdoId=000
+also reserves domains 128–255, which configuration does not yet prohibit.
+The correction overflow encoding `0x7fffffffffffffff` still follows ordinary
+arithmetic and needs explicit receiver policy. These and configured-port/profile
+requirements remain in the [specification audit](../../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work).
 
 The servo uses the median of only populated delay samples (up to five), then
 local-minus-master offset = forward − filteredDelay − asymmetry. While invalid,

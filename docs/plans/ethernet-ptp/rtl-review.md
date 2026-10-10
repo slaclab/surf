@@ -338,6 +338,69 @@ accuracy qualification ran. The additional generic-boundary, largest-interval,
 overflow/manual-phase and standards/profile acceptance items below remain open;
 passing the current fixture inventory does not close missing scenarios.
 
+### October 9 directed specification checks
+
+The maintainer supplied the authoritative IEEE 1588-2019 PDF; its provenance,
+verified clauses and remaining gaps are in the
+[specification matrix](../../../tests/ethernet/PtpCore/specification-coverage.md).
+The changes below are working-tree changes on SURF
+`ddf7aa41d7180852a40c00202c8502735cdee75f`, using the same Python/GHDL toolchain
+as the baseline above. Imported sources are symlinks to this checkout.
+
+The directed checks exposed and corrected five header/parser issues:
+
+- RX now accepts every minor version with major=2 (19.2).
+- Layer-2 controlField and reserved flag bits are ignored on reception
+  (13.3.2.13, 13.2 and Table 37).
+- The TLV walker rejects odd value lengths (5.3.8/14.1.2), preserving
+  unknown-TLV skipping and recovery.
+- Emitted Delay_Req control is zero in 2019 mode; the selected 2008 mode
+  retains one. The short TX fixture compares all 58 pre-MAC bytes and
+  stalled sidebands in both modes.
+
+The RX reference model and conflicting old negative vectors were updated.
+The direct correction fixture now excludes the overflow sentinel from ordinary
+finite wire bounds. The physical-port expected request was updated to 2019
+control=0; those long physical-port scenarios were not rerun.
+`PtpPortWrapper` only adds flat TX observations/backpressure; production public
+interfaces and manifests are unchanged.
+
+| Focused selection | Result |
+| --- | --- |
+| Initial two literal-header / signed-correction specification cases | **2 passed in 19.44 s**, before production changes. |
+| Four added receive-rule cases on previous RTL | **4 failed in 19.25 s**, detecting minor-version, ignored-control, reserved-flag and odd-TLV defects. |
+| Seven specification cases, direct protocol samples, direct/GMII/XGMII RX frontend; four workers | **9 passed, 2 failed in 63.07 s**. Failures were new fixture setup issues: nonmonotonic remote time and unexpired reset quarantine. |
+| Only those two corrected specification cases; two workers | **2 passed in 3.31 s**. No further RTL changes were needed. |
+| Affected pure RX reference file; serial | **27 passed in 0.09 s**. |
+
+The resulting union is **11 distinct cocotb/GHDL configurations plus 27 pure
+Python cases passing**, with no remaining failures or skips in that selection.
+The initial focused after-change command was:
+
+```sh
+/Users/bareese/surf/.venv/bin/python -m pytest -q -n 4 --dist=worksteal \
+  tests/ethernet/PtpCore/test_ptp_specification.py \
+  tests/ethernet/PtpCore/test_ptp_port_samples.py \
+  tests/ethernet/PtpCore/test_ptp_rx_rtl.py
+```
+
+The two rerun node parameters were `reserved_flags` and
+`delay_request_headers` under `test_ptp_specification_protocol_rules`.
+Temporary evidence is `/tmp/ptp-spec-{before,after,rerun,model}.{log,xml}`.
+Each specification node selects its own cocotb scenario and does not replay
+the imported benches' tests.
+
+VSG reported zero violations on both production RTL files and the fixture.
+Changed Python passed flake8 and the structural audit with zero findings;
+documentation links/anchors and whitespace were checked. The earlier 121-case
+suite remains historical evidence. Closed-loop endpoints, physical port,
+real-MAC lifecycle and hardware were not rerun for these changes.
+
+Known open implementation issues include the default multicast request
+distribution, correction overflow policy and sdoId=000 domain limits.
+Profile/external-port, assigned flag/TLV, time-property and E2E/asymmetry
+acceptance remain partial. These focused passes do not establish conformance.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),
@@ -439,7 +502,7 @@ prepared; execution results are recorded above.
 | Equivalent one-step and two-step exchanges | Equal remote time, capture and net correction produce equal numerical forward/E2E results. Account for different message arrival/completion latency; do not require cycle-identical publication. |
 | Correction arithmetic | Positive, negative and fractional Q16 corrections, including crossing a second boundary; sum of two-step corrections equals the one-step correction in paired fixtures. No truncation or double application. |
 | Timestamp validation | Nanoseconds 999,999,999 accepted; 1,000,000,000 and larger rejected; exercise nonzero upper seconds bits. Invalid one-step input cannot contaminate an existing association. Two-step Sync body remains non-authoritative. |
-| Flags and source policy | Accept the two supported Sync flag values; reject other flags, wrong control, source, domain and unsupported versions as before. |
+| Flags and source policy | Ignore reserved flag bits and controlField; accept either supported Sync mode after masking. Reject unsupported assigned flags, foreign source/domain and unsupported major versions. Accept any minor version with major=2. |
 | Association collisions | Follow_Up before/after one-step Sync; duplicate one-step Sync; mixed-mode duplicate sequence; identical/conflicting Follow_Up. Assert counters, no unintended completion and unchanged accepted sample contents. |
 | Lifecycle boundaries | Back-to-back mode changes on distinct sequences, 16-bit sequence wrap, stale/replayed messages, expiry, full table and completed-entry replacement. No resurrection or permanent table leak. |
 | Stalls and invalidation | Measurement backpressure, rate-engine busy, RX overflow/abort, generation/epoch changes and reset/reconfiguration around admission/completion. Stable registered payloads; cancellation at the documented consumption edge. |

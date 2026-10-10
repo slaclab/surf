@@ -198,7 +198,7 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | --- | --- | --- | --- | --- |
 | `0x2004` | `IdentityOverride` | 4 | RW | Use LocalIdentity instead of deriving EUI-64 from the shared MAC; the configured port number is preserved. |
 | `0x2008` | `DomainNumber` | 7:0 | RW | Configured PTP domain shadow. |
-| `0x2008` | `MinorVersion` | 11:8 | RW | Transmitted PTP minor version, 0 or 1. |
+| `0x2008` | `MinorVersion` | 11:8 | RW | Transmitted PTP minor version: 0 selects 2008 Delay_Req control=1; 1 selects 2019 Layer-2 control=0. RX accepts any minor with major=2. |
 | `0x2010` | `LocalIdentity` | 79:0 | RW | Local clockIdentity/portNumber shadow, network significance; low word at lowest address. |
 | `0x2020` | `SourceIdentity` | 79:0 | RW | Only this upstream sourcePortIdentity is accepted; no BMCA. |
 | `0x2030` | `LocalMac` | 47:0 | RO | Shared SURF MAC address, first wire octet in least significant byte. |

@@ -110,7 +110,7 @@ class RxFrontend:
             self.tlv_header.append(byte)
             if len(self.tlv_header) == 4:
                 self.tlv_remaining = int.from_bytes(self.tlv_header[2:4], "big")
-                if self.tlv_remaining > length - ptp_offset - 1:
+                if self.tlv_remaining % 2 or self.tlv_remaining > length - ptp_offset - 1:
                     self.bad = True
                 self.tlv_header.clear()
 
@@ -128,7 +128,7 @@ class RxFrontend:
         kind = p[14] & 15
         base = self.BASE_LENGTH.get(kind)
         length = int.from_bytes(p[16:18], "big")
-        if (base is None or p[15] & 15 != 2 or p[15] >> 4 not in (0, 1)):
+        if base is None or p[15] & 15 != 2:
             self.counters["unsupported"] += 1
             return None
         if (not base <= length <= self.max_frame - 18 or

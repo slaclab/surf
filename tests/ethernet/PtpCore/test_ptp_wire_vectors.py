@@ -18,8 +18,8 @@
 # - Timing: Pure oracle-anchor tests; these do not execute RTL or establish
 #   2019/profile conformance. See specification-coverage.md for source limits.
 #   Common 2008 header offsets are independently documented in NISTIR 8002,
-#   Appendix C; the v2.1 nibble remains a selected implementation contract
-#   pending review against the full 2019 text. These are hand-authored vectors,
+#   Appendix C; 2019 header/version fields are checked against 13.3/19.2.
+#   These are hand-authored vectors,
 #   not published IEEE test vectors.
 
 from fractions import Fraction
